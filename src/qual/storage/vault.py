@@ -52,6 +52,7 @@ class VaultService:
         for path in (
             self._state_path(state.root_dir),
             self._backup_state_path(state.root_dir),
+            self._tmp_state_path(state.root_dir),
             self._corrupt_state_path(state.root_dir),
         ):
             if path.exists():
@@ -64,12 +65,17 @@ class VaultService:
     def _backup_state_path(self, root_dir: Path) -> Path:
         return root_dir / _BACKUP_STATE_FILE
 
+    def _tmp_state_path(self, root_dir: Path) -> Path:
+        return self._state_path(root_dir).with_suffix(".tmp")
+
     def _corrupt_state_path(self, root_dir: Path) -> Path:
         return self._state_path(root_dir).with_suffix(".corrupt.json")
 
     def _read_state(self, root_dir: Path) -> dict[str, object]:
         state_path = self._state_path(root_dir)
         payload = self._load_payload(state_path)
+        if payload is None:
+            payload = self._load_payload(self._tmp_state_path(root_dir))
         if payload is None:
             payload = self._load_payload(self._backup_state_path(root_dir))
         if payload is None:
@@ -87,9 +93,10 @@ class VaultService:
             "is_locked": state.is_locked,
         }
         self._write_backup(state.root_dir)
-        tmp = self._state_path(state.root_dir).with_suffix(".tmp")
+        tmp = self._tmp_state_path(state.root_dir)
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
         tmp.replace(self._state_path(state.root_dir))
+        self._clear_quarantine_state(state.root_dir)
 
     def _quarantine_invalid_state(self, root_dir: Path) -> None:
         state_path = self._state_path(root_dir)
@@ -99,6 +106,11 @@ class VaultService:
         if corrupt.exists():
             corrupt.unlink()
         state_path.replace(corrupt)
+
+    def _clear_quarantine_state(self, root_dir: Path) -> None:
+        corrupt = self._corrupt_state_path(root_dir)
+        if corrupt.exists():
+            corrupt.unlink()
 
     def _load_payload(self, path: Path) -> dict[str, object] | None:
         if not path.exists():
@@ -120,7 +132,7 @@ class VaultService:
         state_path = self._state_path(root_dir)
         if not state_path.exists():
             return
-        if self._load_payload(state_path) is None:
+        if not self._is_valid_payload(state_path):
             return
         try:
             backup_path = self._backup_state_path(root_dir)
@@ -129,3 +141,15 @@ class VaultService:
             tmp.replace(backup_path)
         except OSError:
             return
+
+    def _is_valid_payload(self, path: Path) -> bool:
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return False
+        if not isinstance(payload, dict):
+            return False
+        schema_version = payload.get("schema_version", 0)
+        if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
+            return False
+        return True
