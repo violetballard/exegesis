@@ -50,4 +50,9 @@ def run_context_basket_command(*, action: str | None, item_id: str | None) -> in
             print(value)
         return 0
 
-    raise ValueError("context-basket action must be one of: add, remove, list")
+    if action == "clear":
+        store.clear()
+        print("Context basket cleared")
+        return 0
+
+    raise ValueError("context-basket action must be one of: add, remove, list, clear")

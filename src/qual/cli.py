@@ -62,6 +62,7 @@ def parse_args(argv: list[str] | None = None) -> CLIArgs:
     p_basket_remove.add_argument("item_id", help="Context item id")
 
     p_basket_sub.add_parser("list", help="List basket item ids")
+    p_basket_sub.add_parser("clear", help="Clear all basket item ids")
 
     parser.set_defaults(
         command="bootstrap",
