@@ -64,6 +64,9 @@ class VaultService:
     def _backup_state_path(self, root_dir: Path) -> Path:
         return root_dir / _BACKUP_STATE_FILE
 
+    def _corrupt_state_path(self, root_dir: Path) -> Path:
+        return self._state_path(root_dir).with_suffix(".corrupt.json")
+
     def _read_state(self, root_dir: Path) -> dict[str, object]:
         state_path = self._state_path(root_dir)
         payload = self._load_payload(state_path)
@@ -92,7 +95,7 @@ class VaultService:
         state_path = self._state_path(root_dir)
         if not state_path.exists():
             return
-        corrupt = state_path.with_suffix(".corrupt.json")
+        corrupt = self._corrupt_state_path(root_dir)
         if corrupt.exists():
             corrupt.unlink()
         state_path.replace(corrupt)
