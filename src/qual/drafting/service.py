@@ -7,8 +7,12 @@ class DraftingService:
     """Draft revision scaffold service."""
 
     def propose_diff(self, original: str, proposed: str) -> str:
-        before = original.splitlines(keepends=True)
-        after = proposed.splitlines(keepends=True)
+        before = self._normalize_newlines(original).splitlines(keepends=True)
+        after = self._normalize_newlines(proposed).splitlines(keepends=True)
         return "".join(
             difflib.unified_diff(before, after, fromfile="original", tofile="proposed")
         )
+
+    @staticmethod
+    def _normalize_newlines(value: str) -> str:
+        return value.replace("\r\n", "\n").replace("\r", "\n")
