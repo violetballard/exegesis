@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from dataclasses import dataclass
 from pathlib import Path
 
 from src.qual.config import validate_project_name
 
 _STATE_FILE = ".vault_state.json"
+_BACKUP_STATE_FILE = ".vault_state.bak.json"
 _SCHEMA_VERSION = 1
 
 
@@ -49,14 +51,15 @@ class VaultService:
     def _state_path(self, root_dir: Path) -> Path:
         return root_dir / _STATE_FILE
 
+    def _backup_state_path(self, root_dir: Path) -> Path:
+        return root_dir / _BACKUP_STATE_FILE
+
     def _read_state(self, root_dir: Path) -> dict[str, object]:
         state_path = self._state_path(root_dir)
-        if not state_path.exists():
-            return {}
-        try:
-            payload = json.loads(state_path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
-            self._quarantine_invalid_state(root_dir)
+        payload = self._load_payload(state_path)
+        if payload is None:
+            payload = self._load_payload(self._backup_state_path(root_dir))
+        if payload is None:
             return {}
         if not isinstance(payload, dict):
             return {}
@@ -66,9 +69,11 @@ class VaultService:
         state.root_dir.mkdir(parents=True, exist_ok=True)
         payload = {
             "schema_version": _SCHEMA_VERSION,
+            "updated_at": datetime.now(UTC).isoformat(),
             "project_name": state.project_name,
             "is_locked": state.is_locked,
         }
+        self._write_backup(state.root_dir)
         tmp = self._state_path(state.root_dir).with_suffix(".tmp")
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
         tmp.replace(self._state_path(state.root_dir))
@@ -81,3 +86,33 @@ class VaultService:
         if corrupt.exists():
             corrupt.unlink()
         state_path.replace(corrupt)
+
+    def _load_payload(self, path: Path) -> dict[str, object] | None:
+        if not path.exists():
+            return None
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            if path.name == _STATE_FILE:
+                self._quarantine_invalid_state(path.parent)
+            return None
+        if not isinstance(payload, dict):
+            return None
+        schema_version = payload.get("schema_version", 0)
+        if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
+            return None
+        return payload
+
+    def _write_backup(self, root_dir: Path) -> None:
+        state_path = self._state_path(root_dir)
+        if not state_path.exists():
+            return
+        if self._load_payload(state_path) is None:
+            return
+        try:
+            backup_path = self._backup_state_path(root_dir)
+            tmp = backup_path.with_suffix(".tmp")
+            tmp.write_bytes(state_path.read_bytes())
+            tmp.replace(backup_path)
+        except OSError:
+            return

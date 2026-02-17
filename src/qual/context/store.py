@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 from src.qual.context.basket import ContextBasket
@@ -13,32 +14,51 @@ class ContextBasketStore:
 
     def __init__(self, root_dir: Path) -> None:
         self._path = root_dir / "context_basket.json"
+        self._backup_path = root_dir / "context_basket.bak.json"
 
     def load(self) -> ContextBasket:
-        if not self._path.exists():
+        payload = self._load_payload(self._path)
+        loaded_from_backup = False
+        if payload is None:
+            payload = self._load_payload(self._backup_path)
+            loaded_from_backup = payload is not None
+        if payload is None:
             return ContextBasket()
-        try:
-            payload = json.loads(self._path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
-            self._quarantine_invalid_file()
-            return ContextBasket()
+
+        should_rewrite = False
         if isinstance(payload, list):
             basket = ContextBasket(item_ids=[str(x) for x in payload])
-            basket.normalize()
-            return basket
-        if not isinstance(payload, dict):
+            should_rewrite = True
+        elif isinstance(payload, dict):
+            schema_version = payload.get("schema_version", 0)
+            if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
+                return ContextBasket()
+            items = payload.get("item_ids", [])
+            if not isinstance(items, list):
+                return ContextBasket()
+            basket = ContextBasket(item_ids=[str(x) for x in items])
+            should_rewrite = schema_version != _SCHEMA_VERSION
+        else:
             return ContextBasket()
-        items = payload.get("item_ids", [])
-        if not isinstance(items, list):
-            return ContextBasket()
-        basket = ContextBasket(item_ids=[str(x) for x in items])
+
+        prior = list(basket.item_ids)
         basket.normalize()
+        if basket.item_ids != prior:
+            should_rewrite = True
+
+        if loaded_from_backup or should_rewrite:
+            self.save(basket)
         return basket
 
     def save(self, basket: ContextBasket) -> None:
         basket.normalize()
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        payload = {"schema_version": _SCHEMA_VERSION, "item_ids": list(basket.item_ids)}
+        payload = {
+            "schema_version": _SCHEMA_VERSION,
+            "updated_at": datetime.now(UTC).isoformat(),
+            "item_ids": list(basket.item_ids),
+        }
+        self._write_backup()
         tmp = self._path.with_suffix(".tmp")
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
         tmp.replace(self._path)
@@ -46,7 +66,7 @@ class ContextBasketStore:
     def clear(self) -> None:
         for path in (
             self._path,
-            self._path.with_suffix(".backup.json"),
+            self._backup_path,
             self._path.with_suffix(".corrupt.json"),
         ):
             if path.exists():
@@ -59,3 +79,28 @@ class ContextBasketStore:
         if corrupt.exists():
             corrupt.unlink()
         self._path.replace(corrupt)
+
+    def _load_payload(self, path: Path) -> dict[str, object] | list[object] | None:
+        if not path.exists():
+            return None
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            if path == self._path:
+                self._quarantine_invalid_file()
+            return None
+        if isinstance(payload, (dict, list)):
+            return payload
+        return None
+
+    def _write_backup(self) -> None:
+        if not self._path.exists():
+            return
+        if self._load_payload(self._path) is None:
+            return
+        try:
+            tmp = self._backup_path.with_suffix(".tmp")
+            tmp.write_bytes(self._path.read_bytes())
+            tmp.replace(self._backup_path)
+        except OSError:
+            return
