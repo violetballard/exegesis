@@ -2,11 +2,12 @@ SHELL := /usr/bin/env bash
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup format format-check lint build typecheck test run ci
+.PHONY: help setup scope-check format format-check lint build typecheck test run ci
 
 help:
 	@echo "Developer workflow targets:"
 	@echo "  make setup        - verify required local toolchain"
+	@echo "  make scope-check  - enforce branch file ownership policy"
 	@echo "  make format       - apply formatting"
 	@echo "  make format-check - verify formatting without writing"
 	@echo "  make lint         - run lint checks"
@@ -18,6 +19,9 @@ help:
 
 setup:
 	@./scripts/setup.sh
+
+scope-check:
+	@./scripts/scope-check.sh
 
 format:
 	@./quality-format.sh
