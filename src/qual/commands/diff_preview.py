@@ -10,6 +10,7 @@ MAX_DIFF_OUTPUT_CHARS_ENV = "QUAL_DIFF_MAX_OUTPUT_CHARS"
 IGNORE_TRAILING_WHITESPACE_ENV = "QUAL_DIFF_IGNORE_TRAILING_WHITESPACE"
 SUPPRESS_FILE_HEADERS_ENV = "QUAL_DIFF_SUPPRESS_FILE_HEADERS"
 INCLUDE_SUMMARY_ENV = "QUAL_DIFF_INCLUDE_SUMMARY"
+SUMMARY_ONLY_ENV = "QUAL_DIFF_SUMMARY_ONLY"
 
 
 @dataclass(frozen=True)
@@ -92,6 +93,8 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
         diff = _suppress_file_headers(diff)
     if not diff:
         return "No diff: inputs are identical."
+    if _env_enabled(SUMMARY_ONLY_ENV):
+        return _summarize_diff(diff)
 
     max_chars = _max_diff_output_chars()
     output = diff
