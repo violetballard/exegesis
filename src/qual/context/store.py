@@ -46,7 +46,7 @@ class ContextBasketStore:
     def clear(self) -> None:
         for path in (
             self._path,
-            self._backup_path,
+            self._path.with_suffix(".backup.json"),
             self._path.with_suffix(".corrupt.json"),
         ):
             if path.exists():
