@@ -4,6 +4,8 @@ from dataclasses import dataclass
 
 from src.qual.drafting.service import DraftingService
 
+MAX_DIFF_OUTPUT_CHARS = 20_000
+
 
 @dataclass(frozen=True)
 class DiffPreviewInput:
@@ -30,4 +32,10 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
     diff = drafting.propose_diff(original, proposed)
     if not diff:
         return "No diff: inputs are identical."
+    if len(diff) > MAX_DIFF_OUTPUT_CHARS:
+        omitted = len(diff) - MAX_DIFF_OUTPUT_CHARS
+        return (
+            f"{diff[:MAX_DIFF_OUTPUT_CHARS]}\n"
+            f"... diff truncated ({omitted} characters omitted) ..."
+        )
     return diff
