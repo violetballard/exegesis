@@ -30,8 +30,16 @@ def validate_project_name(raw: str) -> str:
     return project
 
 
+def _project_root() -> Path:
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        if (parent / "src").is_dir():
+            return parent
+    return Path.cwd()
+
+
 def default_config() -> AppConfig:
-    project_root = Path.cwd()
+    project_root = _project_root()
     return AppConfig(
         app_name="Qual Workstation",
         app_data_dir=project_root / ".local_app_data" / "qual_workstation",
