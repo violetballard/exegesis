@@ -16,9 +16,19 @@ class ContextBasketStore:
         self._path = root_dir / "context_basket.json"
         self._backup_path = root_dir / "context_basket.bak.json"
 
+    def _corrupt_path(self) -> Path:
+        return self._path.with_suffix(".corrupt.json")
+
+    def _tmp_path(self) -> Path:
+        return self._path.with_suffix(".tmp")
+
     def load(self) -> ContextBasket:
         payload = self._load_payload(self._path)
+        loaded_from_tmp = False
         loaded_from_backup = False
+        if payload is None:
+            payload = self._load_payload(self._tmp_path())
+            loaded_from_tmp = payload is not None
         if payload is None:
             payload = self._load_payload(self._backup_path)
             loaded_from_backup = payload is not None
@@ -46,7 +56,7 @@ class ContextBasketStore:
         if basket.item_ids != prior:
             should_rewrite = True
 
-        if loaded_from_backup or should_rewrite:
+        if loaded_from_tmp or loaded_from_backup or should_rewrite:
             self.save(basket)
         return basket
 
@@ -59,15 +69,17 @@ class ContextBasketStore:
             "item_ids": list(basket.item_ids),
         }
         self._write_backup()
-        tmp = self._path.with_suffix(".tmp")
+        tmp = self._tmp_path()
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
         tmp.replace(self._path)
+        self._clear_quarantine_file()
 
     def clear(self) -> None:
         for path in (
             self._path,
             self._backup_path,
-            self._path.with_suffix(".corrupt.json"),
+            self._tmp_path(),
+            self._corrupt_path(),
         ):
             if path.exists():
                 path.unlink()
@@ -75,10 +87,15 @@ class ContextBasketStore:
     def _quarantine_invalid_file(self) -> None:
         if not self._path.exists():
             return
-        corrupt = self._path.with_suffix(".corrupt.json")
+        corrupt = self._corrupt_path()
         if corrupt.exists():
             corrupt.unlink()
         self._path.replace(corrupt)
+
+    def _clear_quarantine_file(self) -> None:
+        corrupt = self._corrupt_path()
+        if corrupt.exists():
+            corrupt.unlink()
 
     def _load_payload(self, path: Path) -> dict[str, object] | list[object] | None:
         if not path.exists():
