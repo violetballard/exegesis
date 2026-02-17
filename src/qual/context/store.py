@@ -15,15 +15,23 @@ class ContextBasketStore:
     def load(self) -> ContextBasket:
         if not self._path.exists():
             return ContextBasket()
-        payload = json.loads(self._path.read_text(encoding="utf-8"))
+        try:
+            payload = json.loads(self._path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return ContextBasket()
+        if not isinstance(payload, dict):
+            return ContextBasket()
         items = payload.get("item_ids", [])
         if not isinstance(items, list):
             return ContextBasket()
-        return ContextBasket(item_ids=[str(x) for x in items])
+        basket = ContextBasket(item_ids=[str(x) for x in items])
+        basket.normalize()
+        return basket
 
     def save(self, basket: ContextBasket) -> None:
+        basket.normalize()
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        payload = {"item_ids": list(basket.item_ids)}
+        payload = {"schema_version": 1, "item_ids": list(basket.item_ids)}
         tmp = self._path.with_suffix(".tmp")
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
         tmp.replace(self._path)
