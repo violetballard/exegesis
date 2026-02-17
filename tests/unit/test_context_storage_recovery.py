@@ -52,7 +52,8 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         loaded = self.store.load()
 
         self.assertEqual(loaded.item_ids, ["first"])
-        self.assertTrue(self.store._path.with_suffix(".corrupt.json").exists())
+        # Successful recovery rewrites primary and clears stale quarantine artifacts.
+        self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
         self.assertEqual(
             json.loads(self.store._path.read_text(encoding="utf-8")).get("item_ids"),
             ["first"],
@@ -90,7 +91,8 @@ class VaultRecoveryTests(unittest.TestCase):
 
         reopened = self.svc.create_or_open(self.root, "p2")
 
-        self.assertTrue((state.root_dir / ".vault_state.corrupt.json").exists())
+        # Successful recovery rewrites primary and clears stale quarantine artifacts.
+        self.assertFalse((state.root_dir / ".vault_state.corrupt.json").exists())
         self.assertIsInstance(reopened.is_locked, bool)
         self.assertTrue((state.root_dir / ".vault_state.json").exists())
 
