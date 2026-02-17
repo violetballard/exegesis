@@ -33,9 +33,12 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
     if not diff:
         return "No diff: inputs are identical."
     if len(diff) > MAX_DIFF_OUTPUT_CHARS:
-        omitted = len(diff) - MAX_DIFF_OUTPUT_CHARS
+        head_chars = MAX_DIFF_OUTPUT_CHARS // 2
+        tail_chars = MAX_DIFF_OUTPUT_CHARS - head_chars
+        omitted = len(diff) - (head_chars + tail_chars)
         return (
-            f"{diff[:MAX_DIFF_OUTPUT_CHARS]}\n"
+            f"{diff[:head_chars]}"
             f"... diff truncated ({omitted} characters omitted) ..."
+            f"{diff[-tail_chars:]}"
         )
     return diff
