@@ -96,7 +96,7 @@ class ContextBasketStore:
     def _write_backup(self) -> None:
         if not self._path.exists():
             return
-        if self._load_payload(self._path) is None:
+        if not self._is_valid_payload(self._path):
             return
         try:
             tmp = self._backup_path.with_suffix(".tmp")
@@ -104,3 +104,17 @@ class ContextBasketStore:
             tmp.replace(self._backup_path)
         except OSError:
             return
+
+    def _is_valid_payload(self, path: Path) -> bool:
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return False
+        if isinstance(payload, list):
+            return True
+        if not isinstance(payload, dict):
+            return False
+        schema_version = payload.get("schema_version", 0)
+        if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
+            return False
+        return True
