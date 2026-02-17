@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 
 from src.qual.drafting.service import DraftingService
 
 MAX_DIFF_OUTPUT_CHARS = 20_000
+MAX_DIFF_OUTPUT_CHARS_ENV = "QUAL_DIFF_MAX_OUTPUT_CHARS"
 
 
 @dataclass(frozen=True)
@@ -16,6 +18,19 @@ class DiffPreviewInput:
 def _normalize_text(value: str) -> str:
     # Normalize newlines so diff output is stable across platforms.
     return value.replace("\r\n", "\n").replace("\r", "\n")
+
+
+def _max_diff_output_chars() -> int:
+    raw = os.getenv(MAX_DIFF_OUTPUT_CHARS_ENV)
+    if raw is None:
+        return MAX_DIFF_OUTPUT_CHARS
+    try:
+        parsed = int(raw.strip())
+    except ValueError:
+        return MAX_DIFF_OUTPUT_CHARS
+    if parsed <= 0:
+        return MAX_DIFF_OUTPUT_CHARS
+    return parsed
 
 
 def run_diff_preview(payload: DiffPreviewInput) -> str:
@@ -32,9 +47,10 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
     diff = drafting.propose_diff(original, proposed)
     if not diff:
         return "No diff: inputs are identical."
-    if len(diff) > MAX_DIFF_OUTPUT_CHARS:
-        head_chars = MAX_DIFF_OUTPUT_CHARS // 2
-        tail_chars = MAX_DIFF_OUTPUT_CHARS - head_chars
+    max_chars = _max_diff_output_chars()
+    if len(diff) > max_chars:
+        head_chars = max_chars // 2
+        tail_chars = max_chars - head_chars
         omitted = len(diff) - (head_chars + tail_chars)
         return (
             f"{diff[:head_chars]}"
