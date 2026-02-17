@@ -11,6 +11,7 @@ IGNORE_TRAILING_WHITESPACE_ENV = "QUAL_DIFF_IGNORE_TRAILING_WHITESPACE"
 SUPPRESS_FILE_HEADERS_ENV = "QUAL_DIFF_SUPPRESS_FILE_HEADERS"
 INCLUDE_SUMMARY_ENV = "QUAL_DIFF_INCLUDE_SUMMARY"
 SUMMARY_ONLY_ENV = "QUAL_DIFF_SUMMARY_ONLY"
+INCLUDE_SUMMARY_DETAILS_ENV = "QUAL_DIFF_INCLUDE_SUMMARY_DETAILS"
 
 
 @dataclass(frozen=True)
@@ -71,7 +72,12 @@ def _summarize_diff(diff: str) -> str:
             continue
         if line.startswith("-"):
             removed += 1
-    return f"Diff summary: +{added} -{removed} (hunks: {hunks})"
+    summary = f"Diff summary: +{added} -{removed} (hunks: {hunks})"
+    if _env_enabled(INCLUDE_SUMMARY_DETAILS_ENV):
+        changed = added + removed
+        net = added - removed
+        summary = f"{summary} [changed: {changed}, net: {net:+d}]"
+    return summary
 
 
 def run_diff_preview(payload: DiffPreviewInput) -> str:
