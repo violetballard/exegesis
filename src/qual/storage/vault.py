@@ -7,6 +7,7 @@ from pathlib import Path
 from src.qual.config import validate_project_name
 
 _STATE_FILE = ".vault_state.json"
+_SCHEMA_VERSION = 1
 
 
 @dataclass
@@ -24,7 +25,11 @@ class VaultService:
         project_root = root_dir / safe_project_name
         project_root.mkdir(parents=True, exist_ok=True)
         (project_root / "attachments").mkdir(exist_ok=True)
-        is_locked = self._read_is_locked(project_root)
+        raw_state = self._read_state(project_root)
+        is_locked = bool(raw_state.get("is_locked", False))
+        if raw_state.get("project_name") not in {None, safe_project_name}:
+            # If metadata does not match directory identity, prefer a safe default.
+            is_locked = True
         state = VaultState(
             project_name=safe_project_name,
             root_dir=project_root,
@@ -44,24 +49,35 @@ class VaultService:
     def _state_path(self, root_dir: Path) -> Path:
         return root_dir / _STATE_FILE
 
-    def _read_is_locked(self, root_dir: Path) -> bool:
+    def _read_state(self, root_dir: Path) -> dict[str, object]:
         state_path = self._state_path(root_dir)
         if not state_path.exists():
-            return False
+            return {}
         try:
             payload = json.loads(state_path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
-            return False
+            self._quarantine_invalid_state(root_dir)
+            return {}
         if not isinstance(payload, dict):
-            return False
-        return bool(payload.get("is_locked", False))
+            return {}
+        return payload
 
     def _write_state(self, state: VaultState) -> None:
         state.root_dir.mkdir(parents=True, exist_ok=True)
         payload = {
+            "schema_version": _SCHEMA_VERSION,
             "project_name": state.project_name,
             "is_locked": state.is_locked,
         }
         tmp = self._state_path(state.root_dir).with_suffix(".tmp")
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
         tmp.replace(self._state_path(state.root_dir))
+
+    def _quarantine_invalid_state(self, root_dir: Path) -> None:
+        state_path = self._state_path(root_dir)
+        if not state_path.exists():
+            return
+        corrupt = state_path.with_suffix(".corrupt.json")
+        if corrupt.exists():
+            corrupt.unlink()
+        state_path.replace(corrupt)
