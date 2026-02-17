@@ -6,4 +6,4 @@ from src.qual.cli import parse_args
 
 if __name__ == "__main__":
     cli = parse_args()
-    raise SystemExit(run(project_name=cli.project))
+    raise SystemExit(run(cli))
