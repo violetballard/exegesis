@@ -5,6 +5,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 
 log "starting CI entrypoint"
 "$ROOT_DIR/scripts/setup.sh"
+"$ROOT_DIR/scripts/scope-check.sh"
 "$ROOT_DIR/scripts/format-check.sh"
 "$ROOT_DIR/scripts/lint.sh"
 "$ROOT_DIR/scripts/build.sh"
