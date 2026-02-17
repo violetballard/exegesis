@@ -44,8 +44,13 @@ class ContextBasketStore:
         tmp.replace(self._path)
 
     def clear(self) -> None:
-        if self._path.exists():
-            self._path.unlink()
+        for path in (
+            self._path,
+            self._path.with_suffix(".backup.json"),
+            self._path.with_suffix(".corrupt.json"),
+        ):
+            if path.exists():
+                path.unlink()
 
     def _quarantine_invalid_file(self) -> None:
         if not self._path.exists():
