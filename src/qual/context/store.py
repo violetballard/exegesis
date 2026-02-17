@@ -24,4 +24,10 @@ class ContextBasketStore:
     def save(self, basket: ContextBasket) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
         payload = {"item_ids": list(basket.item_ids)}
-        self._path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+        tmp = self._path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+        tmp.replace(self._path)
+
+    def clear(self) -> None:
+        if self._path.exists():
+            self._path.unlink()
