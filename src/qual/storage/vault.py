@@ -48,6 +48,16 @@ class VaultService:
         state.is_locked = False
         self._write_state(state)
 
+    def clear_state(self, state: VaultState) -> None:
+        for path in (
+            self._state_path(state.root_dir),
+            self._backup_state_path(state.root_dir),
+            self._corrupt_state_path(state.root_dir),
+        ):
+            if path.exists():
+                path.unlink()
+        state.is_locked = True
+
     def _state_path(self, root_dir: Path) -> Path:
         return root_dir / _STATE_FILE
 
