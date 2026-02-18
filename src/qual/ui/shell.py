@@ -27,5 +27,10 @@ class ShellUI:
     def _format_item_id(value: str) -> str:
         normalized = " ".join(value.split())
         if len(normalized) <= 24:
-            return normalized
-        return f"{normalized[:21]}..."
+            rendered = normalized
+        else:
+            rendered = f"{normalized[:21]}..."
+        if "," in rendered or '"' in rendered:
+            escaped = rendered.replace("\\", "\\\\").replace('"', '\\"')
+            return f'"{escaped}"'
+        return rendered
