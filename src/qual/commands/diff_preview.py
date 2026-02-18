@@ -12,6 +12,7 @@ SUPPRESS_FILE_HEADERS_ENV = "QUAL_DIFF_SUPPRESS_FILE_HEADERS"
 INCLUDE_SUMMARY_ENV = "QUAL_DIFF_INCLUDE_SUMMARY"
 SUMMARY_ONLY_ENV = "QUAL_DIFF_SUMMARY_ONLY"
 INCLUDE_SUMMARY_DETAILS_ENV = "QUAL_DIFF_INCLUDE_SUMMARY_DETAILS"
+INCLUDE_OPTIONS_BANNER_ENV = "QUAL_DIFF_INCLUDE_OPTIONS_BANNER"
 
 
 @dataclass(frozen=True)
@@ -80,10 +81,23 @@ def _summarize_diff(diff: str) -> str:
     return summary
 
 
+def _options_banner(*, ignore_trailing_whitespace: bool, suppress_file_headers: bool, max_chars: int) -> str:
+    return (
+        "Diff options: "
+        f"ignore_trailing_whitespace={str(ignore_trailing_whitespace).lower()}, "
+        f"suppress_file_headers={str(suppress_file_headers).lower()}, "
+        f"max_output_chars={max_chars}"
+    )
+
+
 def run_diff_preview(payload: DiffPreviewInput) -> str:
     original = _normalize_text(payload.original)
     proposed = _normalize_text(payload.proposed)
-    if _env_enabled(IGNORE_TRAILING_WHITESPACE_ENV):
+    ignore_trailing_whitespace = _env_enabled(IGNORE_TRAILING_WHITESPACE_ENV)
+    suppress_file_headers = _env_enabled(SUPPRESS_FILE_HEADERS_ENV)
+    include_options_banner = _env_enabled(INCLUDE_OPTIONS_BANNER_ENV)
+
+    if ignore_trailing_whitespace:
         original = _normalize_trailing_whitespace(original)
         proposed = _normalize_trailing_whitespace(proposed)
 
@@ -95,14 +109,24 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
 
     drafting = DraftingService()
     diff = drafting.propose_diff(original, proposed)
-    if _env_enabled(SUPPRESS_FILE_HEADERS_ENV):
+    if suppress_file_headers:
         diff = _suppress_file_headers(diff)
     if not diff:
         return "No diff: inputs are identical."
-    if _env_enabled(SUMMARY_ONLY_ENV):
-        return _summarize_diff(diff)
-
     max_chars = _max_diff_output_chars()
+    banner = ""
+    if include_options_banner:
+        banner = (
+            _options_banner(
+                ignore_trailing_whitespace=ignore_trailing_whitespace,
+                suppress_file_headers=suppress_file_headers,
+                max_chars=max_chars,
+            )
+            + "\n\n"
+        )
+    if _env_enabled(SUMMARY_ONLY_ENV):
+        return f"{banner}{_summarize_diff(diff)}"
+
     output = diff
     if len(diff) > max_chars:
         head_chars = max_chars // 2
@@ -115,5 +139,5 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
         )
 
     if _env_enabled(INCLUDE_SUMMARY_ENV):
-        return f"{output}\n\n{_summarize_diff(diff)}"
-    return output
+        return f"{banner}{output}\n\n{_summarize_diff(diff)}"
+    return f"{banner}{output}"
