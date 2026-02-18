@@ -1,5 +1,7 @@
 # Integration Runbook
 
+See `ROADMAP.md` for milestone status and sprint cadence.
+
 ## Ownership
 
 - `README.md` is integrator-owned.
