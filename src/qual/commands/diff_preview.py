@@ -36,7 +36,13 @@ def _env_enabled(name: str) -> bool:
 
 def _normalize_trailing_whitespace(value: str) -> str:
     lines = value.splitlines(keepends=True)
-    return "".join(line.rstrip(" \t") + ("\n" if line.endswith("\n") else "") for line in lines)
+    normalized: list[str] = []
+    for line in lines:
+        if line.endswith("\n"):
+            normalized.append(f"{line[:-1].rstrip(' \t')}\n")
+        else:
+            normalized.append(line.rstrip(" \t"))
+    return "".join(normalized)
 
 
 def _suppress_file_headers(diff: str) -> str:
