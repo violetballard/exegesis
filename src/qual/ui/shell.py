@@ -25,7 +25,8 @@ class ShellUI:
 
     @staticmethod
     def _format_item_id(value: str) -> str:
-        normalized = " ".join(value.split())
+        escaped = ShellUI._escape_control_chars(value)
+        normalized = " ".join(escaped.split())
         if len(normalized) <= 24:
             rendered = normalized
         else:
@@ -34,3 +35,14 @@ class ShellUI:
             escaped = rendered.replace("\\", "\\\\").replace('"', '\\"')
             return f'"{escaped}"'
         return rendered
+
+    @staticmethod
+    def _escape_control_chars(value: str) -> str:
+        parts: list[str] = []
+        for char in value:
+            code = ord(char)
+            if code < 32 or code == 127:
+                parts.append(f"\\x{code:02x}")
+            else:
+                parts.append(char)
+        return "".join(parts)
