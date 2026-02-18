@@ -13,6 +13,7 @@ INCLUDE_SUMMARY_ENV = "QUAL_DIFF_INCLUDE_SUMMARY"
 SUMMARY_ONLY_ENV = "QUAL_DIFF_SUMMARY_ONLY"
 INCLUDE_SUMMARY_DETAILS_ENV = "QUAL_DIFF_INCLUDE_SUMMARY_DETAILS"
 INCLUDE_OPTIONS_BANNER_ENV = "QUAL_DIFF_INCLUDE_OPTIONS_BANNER"
+TRUNCATION_STRATEGY_ENV = "QUAL_DIFF_TRUNCATION_STRATEGY"
 
 
 @dataclass(frozen=True)
@@ -86,7 +87,34 @@ def _options_banner(*, ignore_trailing_whitespace: bool, suppress_file_headers: 
         "Diff options: "
         f"ignore_trailing_whitespace={str(ignore_trailing_whitespace).lower()}, "
         f"suppress_file_headers={str(suppress_file_headers).lower()}, "
-        f"max_output_chars={max_chars}"
+        f"max_output_chars={max_chars}, "
+        f"truncation_strategy={_truncation_strategy()}"
+    )
+
+
+def _truncation_strategy() -> str:
+    raw = os.getenv(TRUNCATION_STRATEGY_ENV)
+    if raw is None:
+        return "middle"
+    value = raw.strip().lower()
+    if value in {"middle", "tail"}:
+        return value
+    return "middle"
+
+
+def _truncate_diff(diff: str, max_chars: int) -> str:
+    strategy = _truncation_strategy()
+    if strategy == "tail":
+        omitted = len(diff) - max_chars
+        return f"{diff[:max_chars]}\n... diff truncated ({omitted} characters omitted) ..."
+
+    head_chars = max_chars // 2
+    tail_chars = max_chars - head_chars
+    omitted = len(diff) - (head_chars + tail_chars)
+    return (
+        f"{diff[:head_chars]}"
+        f"... diff truncated ({omitted} characters omitted) ..."
+        f"{diff[-tail_chars:]}"
     )
 
 
@@ -129,14 +157,7 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
 
     output = diff
     if len(diff) > max_chars:
-        head_chars = max_chars // 2
-        tail_chars = max_chars - head_chars
-        omitted = len(diff) - (head_chars + tail_chars)
-        output = (
-            f"{diff[:head_chars]}"
-            f"... diff truncated ({omitted} characters omitted) ..."
-            f"{diff[-tail_chars:]}"
-        )
+        output = _truncate_diff(diff, max_chars)
 
     if _env_enabled(INCLUDE_SUMMARY_ENV):
         return f"{banner}{output}\n\n{_summarize_diff(diff)}"
