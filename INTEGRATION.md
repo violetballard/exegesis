@@ -1,6 +1,7 @@
 # Integration Runbook
 
 See `ROADMAP.md` for milestone status and sprint cadence.
+See `ARCHITECTURE.md` for module boundaries and dependency guardrails.
 
 ## Ownership
 

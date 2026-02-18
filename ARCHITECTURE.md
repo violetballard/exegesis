@@ -1,0 +1,62 @@
+# Architecture Guardrails
+
+This file defines hard boundaries to keep the codebase understandable and refactor-safe.
+
+## Layer Ownership
+
+- `src/qual/ui/**`
+  - Owns user-facing rendering and display formatting.
+  - Must not read/write storage directly.
+
+- `src/qual/engine/**`
+  - Owns orchestration of user flows and app state transitions.
+  - Calls service interfaces in lower layers.
+  - Must not implement crypto or raw database logic.
+
+- `src/qual/commands/**`
+  - Owns command-level behavior and command output contracts.
+  - Must not directly mutate persistent storage.
+
+- `src/qual/context/**`
+  - Owns context-basket domain rules and normalization.
+
+- `src/qual/storage/**`
+  - Owns local persistence and vault lock state behavior.
+  - Is the only layer that touches on-disk state files for storage/vault concerns.
+
+- `src/qual/metrics/**`
+  - Owns metrics schema, recording, storage, and export.
+  - Must remain isolated from product flow logic except through explicit engine calls.
+
+## Dependency Direction
+
+Allowed direction only:
+- `ui -> engine`
+- `commands -> drafting|context|engine` (via public entrypoints)
+- `engine -> context|storage|metrics|drafting`
+- `context -> (no engine/ui imports)`
+- `storage -> (no engine/ui imports)`
+- `metrics -> (no ui imports)`
+
+Disallowed examples:
+- `ui -> storage`
+- `ui -> metrics/db`
+- `engine -> metrics/crypto internals`
+- `commands -> storage`
+
+## Integration Contracts
+
+- Each cross-module concern gets one thin entrypoint:
+  - metrics: recorder/report/export entrypoints only
+  - storage: vault/context store entrypoints only
+  - commands: public command runner only
+- No feature lane should import private helper modules from another lane.
+
+## Change Rules
+
+- Any new infrastructure module (metrics, audit, encryption, persistence) must include:
+  - ownership statement (what it owns)
+  - non-goals (what it must never do)
+  - one integration point in engine or command layer
+- Keep optional behavior behind explicit flags/defaults until stable.
+- Add or update focused contract tests when changing cross-layer behavior.
