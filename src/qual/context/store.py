@@ -81,21 +81,20 @@ class ContextBasketStore:
             self._tmp_path(),
             self._corrupt_path(),
         ):
-            if path.exists():
-                path.unlink()
+            self._unlink_if_exists(path)
 
     def _quarantine_invalid_file(self) -> None:
         if not self._path.exists():
             return
         corrupt = self._corrupt_path()
-        if corrupt.exists():
-            corrupt.unlink()
-        self._path.replace(corrupt)
+        self._unlink_if_exists(corrupt)
+        try:
+            self._path.replace(corrupt)
+        except OSError:
+            return
 
     def _clear_quarantine_file(self) -> None:
-        corrupt = self._corrupt_path()
-        if corrupt.exists():
-            corrupt.unlink()
+        self._unlink_if_exists(self._corrupt_path())
 
     def _load_payload(self, path: Path) -> dict[str, object] | list[object] | None:
         if not path.exists():
@@ -135,3 +134,9 @@ class ContextBasketStore:
         if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
             return False
         return True
+
+    def _unlink_if_exists(self, path: Path) -> None:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError:
+            return
