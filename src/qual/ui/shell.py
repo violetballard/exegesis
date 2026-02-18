@@ -25,8 +25,8 @@ class ShellUI:
 
     @staticmethod
     def _format_item_id(value: str) -> str:
-        normalized = " ".join(value.split())
-        normalized = ShellUI._escape_control_chars(normalized)
+        escaped = ShellUI._escape_control_chars(value)
+        normalized = " ".join(escaped.split())
         if len(normalized) <= 24:
             rendered = normalized
         else:
