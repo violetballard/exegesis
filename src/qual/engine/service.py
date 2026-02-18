@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from src.qual.context.store import ContextBasketStore
 from src.qual.context.basket import ContextBasket
 from src.qual.drafting.service import DraftingService
+from src.qual.metrics import MetricsDB, MetricsExporter, MetricsRecorder, UsageIntegrityService
 from src.qual.storage.vault import VaultService, VaultState
 
 
@@ -13,6 +14,9 @@ class EngineRuntime:
     vault: VaultState
     basket: ContextBasket
     drafting: DraftingService
+    metrics: MetricsRecorder
+    usage_integrity: UsageIntegrityService
+    metrics_exporter: MetricsExporter
 
 
 class EngineService:
@@ -31,7 +35,15 @@ class EngineService:
         basket.item_ids = sanitized
         if sanitized != original_item_ids:
             basket_store.save(basket)
-        return EngineRuntime(vault=vault, basket=basket, drafting=self._drafting_service)
+        metrics_db = MetricsDB(app_data_dir)
+        return EngineRuntime(
+            vault=vault,
+            basket=basket,
+            drafting=self._drafting_service,
+            metrics=MetricsRecorder(metrics_db),
+            usage_integrity=UsageIntegrityService(metrics_db),
+            metrics_exporter=MetricsExporter(metrics_db),
+        )
 
     @staticmethod
     def _sanitize_item_ids(values: list[str]) -> list[str]:
