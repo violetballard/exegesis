@@ -27,10 +27,7 @@ class ShellUI:
     def _format_item_id(value: str) -> str:
         escaped = ShellUI._escape_control_chars(value)
         normalized = " ".join(escaped.split())
-        if len(normalized) <= 24:
-            rendered = normalized
-        else:
-            rendered = f"{normalized[:21]}..."
+        rendered = ShellUI._truncate_for_preview(normalized, max_len=24)
         if "," in rendered or '"' in rendered:
             escaped = rendered.replace("\\", "\\\\").replace('"', '\\"')
             return f'"{escaped}"'
@@ -46,3 +43,20 @@ class ShellUI:
             else:
                 parts.append(char)
         return "".join(parts)
+
+    @staticmethod
+    def _truncate_for_preview(value: str, *, max_len: int) -> str:
+        if len(value) <= max_len:
+            return value
+
+        prefix = value[: max_len - 3]
+        while prefix:
+            if prefix.endswith("\\"):
+                prefix = prefix[:-1]
+                continue
+            escape_start = prefix.rfind("\\x")
+            if escape_start != -1 and len(prefix) - escape_start < 4:
+                prefix = prefix[:escape_start]
+                continue
+            break
+        return f"{prefix}..."
