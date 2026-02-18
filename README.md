@@ -5,6 +5,7 @@ CLI scaffold for bootstrap, diff-preview, context basket, and vault state flows.
 ## Project Docs
 
 - Roadmap and milestone status: `ROADMAP.md`
+- Architecture boundaries and dependency rules: `ARCHITECTURE.md`
 - Integration process and merge gates: `INTEGRATION.md`
 - Thread lane ownership and scope guardrails: `THREAD_OWNERSHIP.md`
 
