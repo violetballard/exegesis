@@ -28,7 +28,8 @@ class VaultService:
         project_root.mkdir(parents=True, exist_ok=True)
         (project_root / "attachments").mkdir(exist_ok=True)
         raw_state = self._read_state(project_root)
-        is_locked = bool(raw_state.get("is_locked", False))
+        parsed_is_locked = self._parse_is_locked(raw_state.get("is_locked", False))
+        is_locked = parsed_is_locked if parsed_is_locked is not None else False
         if raw_state.get("project_name") not in {None, safe_project_name}:
             # If metadata does not match directory identity, prefer a safe default.
             is_locked = True
@@ -151,6 +152,8 @@ class VaultService:
         schema_version = payload.get("schema_version", 0)
         if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
             return False
+        if "is_locked" in payload and self._parse_is_locked(payload.get("is_locked")) is None:
+            return False
         return True
 
     def _unlink_if_exists(self, path: Path) -> None:
@@ -158,3 +161,19 @@ class VaultService:
             path.unlink(missing_ok=True)
         except OSError:
             return
+
+    def _parse_is_locked(self, value: object) -> bool | None:
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, int):
+            if value in {0, 1}:
+                return bool(value)
+            return None
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"true", "1", "yes", "on"}:
+                return True
+            if normalized in {"false", "0", "no", "off", ""}:
+                return False
+            return None
+        return None
