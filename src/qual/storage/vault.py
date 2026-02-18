@@ -55,8 +55,7 @@ class VaultService:
             self._tmp_state_path(state.root_dir),
             self._corrupt_state_path(state.root_dir),
         ):
-            if path.exists():
-                path.unlink()
+            self._unlink_if_exists(path)
         state.is_locked = True
 
     def _state_path(self, root_dir: Path) -> Path:
@@ -103,14 +102,14 @@ class VaultService:
         if not state_path.exists():
             return
         corrupt = self._corrupt_state_path(root_dir)
-        if corrupt.exists():
-            corrupt.unlink()
-        state_path.replace(corrupt)
+        self._unlink_if_exists(corrupt)
+        try:
+            state_path.replace(corrupt)
+        except OSError:
+            return
 
     def _clear_quarantine_state(self, root_dir: Path) -> None:
-        corrupt = self._corrupt_state_path(root_dir)
-        if corrupt.exists():
-            corrupt.unlink()
+        self._unlink_if_exists(self._corrupt_state_path(root_dir))
 
     def _load_payload(self, path: Path) -> dict[str, object] | None:
         if not path.exists():
@@ -153,3 +152,9 @@ class VaultService:
         if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
             return False
         return True
+
+    def _unlink_if_exists(self, path: Path) -> None:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError:
+            return
