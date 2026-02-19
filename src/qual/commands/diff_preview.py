@@ -17,6 +17,7 @@ INCLUDE_OPTIONS_BANNER_ENV = "QUAL_DIFF_INCLUDE_OPTIONS_BANNER"
 TRUNCATION_STRATEGY_ENV = "QUAL_DIFF_TRUNCATION_STRATEGY"
 STRIP_ANSI_ENV = "QUAL_DIFF_STRIP_ANSI"
 CANONICALIZE_INLINE_WHITESPACE_ENV = "QUAL_DIFF_CANONICALIZE_INLINE_WHITESPACE"
+IGNORE_CASE_ENV = "QUAL_DIFF_IGNORE_CASE"
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
 
@@ -62,6 +63,12 @@ def _canonicalize_inline_whitespace(value: str) -> str:
         body = re.sub(r"[ \t]+", " ", body)
         normalized.append(body + newline)
     return "".join(normalized)
+
+
+def _normalize_case(value: str) -> str:
+    return value.casefold()
+
+
 def _suppress_file_headers(diff: str) -> str:
     lines = diff.splitlines(keepends=True)
     if len(lines) >= 2 and lines[0].startswith("--- ") and lines[1].startswith("+++ "):
@@ -112,6 +119,7 @@ def _options_banner(*, ignore_trailing_whitespace: bool, suppress_file_headers: 
         f"suppress_file_headers={str(suppress_file_headers).lower()}, "
         f"strip_ansi={str(_env_enabled(STRIP_ANSI_ENV)).lower()}, "
         f"canonicalize_inline_whitespace={str(_env_enabled(CANONICALIZE_INLINE_WHITESPACE_ENV)).lower()}, "
+        f"ignore_case={str(_env_enabled(IGNORE_CASE_ENV)).lower()}, "
         f"max_output_chars={max_chars}, "
         f"truncation_strategy={_truncation_strategy()}"
     )
@@ -156,6 +164,9 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
     if _env_enabled(CANONICALIZE_INLINE_WHITESPACE_ENV):
         original = _canonicalize_inline_whitespace(original)
         proposed = _canonicalize_inline_whitespace(proposed)
+    if _env_enabled(IGNORE_CASE_ENV):
+        original = _normalize_case(original)
+        proposed = _normalize_case(proposed)
     if ignore_trailing_whitespace:
         original = _normalize_trailing_whitespace(original)
         proposed = _normalize_trailing_whitespace(proposed)
