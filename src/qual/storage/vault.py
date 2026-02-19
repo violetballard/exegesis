@@ -30,7 +30,10 @@ class VaultService:
         raw_state = self._read_state(project_root)
         parsed_is_locked = self._parse_is_locked(raw_state.get("is_locked", False))
         is_locked = parsed_is_locked if parsed_is_locked is not None else False
-        if raw_state.get("project_name") not in {None, safe_project_name}:
+        stored_project_name = self._parse_project_name(raw_state.get("project_name"))
+        if "project_name" in raw_state and stored_project_name is None:
+            is_locked = True
+        elif stored_project_name is not None and stored_project_name != safe_project_name:
             # If metadata does not match directory identity, prefer a safe default.
             is_locked = True
         state = VaultState(
@@ -177,3 +180,11 @@ class VaultService:
                 return False
             return None
         return None
+
+    def _parse_project_name(self, value: object) -> str | None:
+        if not isinstance(value, str):
+            return None
+        try:
+            return validate_project_name(value)
+        except ValueError:
+            return None
