@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
 
 from src.qual.drafting.service import DraftingService
@@ -14,6 +15,9 @@ SUMMARY_ONLY_ENV = "QUAL_DIFF_SUMMARY_ONLY"
 INCLUDE_SUMMARY_DETAILS_ENV = "QUAL_DIFF_INCLUDE_SUMMARY_DETAILS"
 INCLUDE_OPTIONS_BANNER_ENV = "QUAL_DIFF_INCLUDE_OPTIONS_BANNER"
 TRUNCATION_STRATEGY_ENV = "QUAL_DIFF_TRUNCATION_STRATEGY"
+STRIP_ANSI_ENV = "QUAL_DIFF_STRIP_ANSI"
+CANONICALIZE_INLINE_WHITESPACE_ENV = "QUAL_DIFF_CANONICALIZE_INLINE_WHITESPACE"
+ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
 
 @dataclass(frozen=True)
@@ -45,6 +49,19 @@ def _normalize_trailing_whitespace(value: str) -> str:
     return "".join(normalized)
 
 
+def _strip_ansi(value: str) -> str:
+    return ANSI_ESCAPE_RE.sub("", value)
+
+
+def _canonicalize_inline_whitespace(value: str) -> str:
+    lines = value.splitlines(keepends=True)
+    normalized: list[str] = []
+    for line in lines:
+        newline = "\n" if line.endswith("\n") else ""
+        body = line[:-1] if newline else line
+        body = re.sub(r"[ \t]+", " ", body)
+        normalized.append(body + newline)
+    return "".join(normalized)
 def _suppress_file_headers(diff: str) -> str:
     lines = diff.splitlines(keepends=True)
     if len(lines) >= 2 and lines[0].startswith("--- ") and lines[1].startswith("+++ "):
@@ -93,6 +110,8 @@ def _options_banner(*, ignore_trailing_whitespace: bool, suppress_file_headers: 
         "Diff options: "
         f"ignore_trailing_whitespace={str(ignore_trailing_whitespace).lower()}, "
         f"suppress_file_headers={str(suppress_file_headers).lower()}, "
+        f"strip_ansi={str(_env_enabled(STRIP_ANSI_ENV)).lower()}, "
+        f"canonicalize_inline_whitespace={str(_env_enabled(CANONICALIZE_INLINE_WHITESPACE_ENV)).lower()}, "
         f"max_output_chars={max_chars}, "
         f"truncation_strategy={_truncation_strategy()}"
     )
@@ -131,6 +150,12 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
     suppress_file_headers = _env_enabled(SUPPRESS_FILE_HEADERS_ENV)
     include_options_banner = _env_enabled(INCLUDE_OPTIONS_BANNER_ENV)
 
+    if _env_enabled(STRIP_ANSI_ENV):
+        original = _strip_ansi(original)
+        proposed = _strip_ansi(proposed)
+    if _env_enabled(CANONICALIZE_INLINE_WHITESPACE_ENV):
+        original = _canonicalize_inline_whitespace(original)
+        proposed = _canonicalize_inline_whitespace(proposed)
     if ignore_trailing_whitespace:
         original = _normalize_trailing_whitespace(original)
         proposed = _normalize_trailing_whitespace(proposed)
