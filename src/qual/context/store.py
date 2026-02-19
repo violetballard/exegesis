@@ -37,16 +37,19 @@ class ContextBasketStore:
 
         should_rewrite = False
         if isinstance(payload, list):
-            basket = ContextBasket(item_ids=[str(x) for x in payload])
+            parsed_items = self._parse_item_ids(payload)
+            if parsed_items is None:
+                return ContextBasket()
+            basket = ContextBasket(item_ids=parsed_items)
             should_rewrite = True
         elif isinstance(payload, dict):
             schema_version = payload.get("schema_version", 0)
             if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
                 return ContextBasket()
-            items = payload.get("item_ids", [])
-            if not isinstance(items, list):
+            parsed_items = self._parse_item_ids(payload.get("item_ids", []))
+            if parsed_items is None:
                 return ContextBasket()
-            basket = ContextBasket(item_ids=[str(x) for x in items])
+            basket = ContextBasket(item_ids=parsed_items)
             should_rewrite = schema_version != _SCHEMA_VERSION
         else:
             return ContextBasket()
@@ -127,13 +130,23 @@ class ContextBasketStore:
         except (json.JSONDecodeError, OSError):
             return False
         if isinstance(payload, list):
-            return True
+            return self._parse_item_ids(payload) is not None
         if not isinstance(payload, dict):
             return False
         schema_version = payload.get("schema_version", 0)
         if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
             return False
-        return True
+        return self._parse_item_ids(payload.get("item_ids", [])) is not None
+
+    def _parse_item_ids(self, value: object) -> list[str] | None:
+        if not isinstance(value, list):
+            return None
+        parsed: list[str] = []
+        for raw in value:
+            if isinstance(raw, (dict, list)):
+                return None
+            parsed.append(str(raw))
+        return parsed
 
     def _unlink_if_exists(self, path: Path) -> None:
         try:
