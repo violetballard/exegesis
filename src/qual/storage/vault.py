@@ -123,11 +123,17 @@ class VaultService:
         except (json.JSONDecodeError, OSError):
             if path.name == _STATE_FILE:
                 self._quarantine_invalid_state(path.parent)
+            elif path == self._tmp_state_path(path.parent):
+                self._unlink_if_exists(path)
             return None
         if not isinstance(payload, dict):
+            if path == self._tmp_state_path(path.parent):
+                self._unlink_if_exists(path)
             return None
         schema_version = payload.get("schema_version", 0)
         if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
+            if path == self._tmp_state_path(path.parent):
+                self._unlink_if_exists(path)
             return None
         return payload
 
