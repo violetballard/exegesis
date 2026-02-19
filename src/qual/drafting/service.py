@@ -15,11 +15,15 @@ class DraftingService:
 
     @staticmethod
     def _normalize_newlines(value: str) -> str:
-        return value.replace("\r\n", "\n").replace("\r", "\n")
+        normalized = value.replace("\r\n", "\n").replace("\r", "\n")
+        normalized = normalized.replace("\u2028", "\n").replace("\u2029", "\n")
+        return normalized.replace("\u0085", "\n")
 
     @classmethod
     def _normalize_for_diff(cls, value: str) -> str:
         normalized = cls._normalize_newlines(value)
+        if normalized.startswith("\ufeff"):
+            normalized = normalized[1:]
         had_trailing_newline = normalized.endswith("\n")
         parts = normalized.split("\n")
         if had_trailing_newline:
