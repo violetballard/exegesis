@@ -27,6 +27,8 @@ class ShellUI:
     def _format_item_id(value: str) -> str:
         escaped = ShellUI._escape_control_chars(value)
         normalized = " ".join(escaped.split())
+        if not normalized:
+            return "<blank>"
         rendered = ShellUI._truncate_for_preview(normalized, max_len=24)
         if "," in rendered or '"' in rendered:
             escaped = rendered.replace("\\", "\\\\").replace('"', '\\"')
