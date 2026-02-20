@@ -4,6 +4,7 @@ from src.qual.bootstrap import build_runtime
 from src.qual.commands.diff_preview import DiffPreviewInput, run_diff_preview
 from src.qual.config import default_config
 from src.qual.context.store import ContextBasketStore
+from src.qual.storage.vault import VaultService
 from src.qual.ui.shell import ShellUI
 
 
@@ -23,7 +24,8 @@ def run_diff_preview_command(*, original: str | None, proposed: str | None) -> i
 
 def run_context_basket_command(*, action: str | None, item_id: str | None) -> int:
     config = default_config()
-    store = ContextBasketStore(config.app_data_dir)
+    vault = VaultService().create_or_open(config.app_data_dir, config.default_project_name)
+    store = ContextBasketStore(vault.root_dir)
     basket = store.load()
 
     if action == "add":
