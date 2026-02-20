@@ -26,8 +26,6 @@ class DraftingService:
     @classmethod
     def _normalize_for_diff(cls, value: str) -> str:
         normalized = cls._normalize_newlines(value)
-        if normalized.startswith("\ufeff"):
-            normalized = normalized[1:]
         had_trailing_newline = normalized.endswith("\n")
         parts = normalized.split("\n")
         if had_trailing_newline:
