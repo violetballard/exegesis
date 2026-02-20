@@ -100,8 +100,9 @@ class VaultService:
             "project_name": state.project_name,
             "is_locked": state.is_locked,
         }
-        if recovered_from is not None:
-            payload["recovered_from"] = recovered_from
+        normalized_recovered_from = self._parse_recovered_from(recovered_from)
+        if normalized_recovered_from is not None:
+            payload["recovered_from"] = normalized_recovered_from
         self._write_backup(state.root_dir)
         tmp = self._tmp_state_path(state.root_dir)
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
@@ -176,6 +177,10 @@ class VaultService:
             return False
         if "is_locked" in payload and self._parse_is_locked(payload.get("is_locked")) is None:
             return False
+        if "project_name" in payload and self._parse_project_name(payload.get("project_name")) is None:
+            return False
+        if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
+            return False
         return True
 
     def _unlink_if_exists(self, path: Path) -> None:
@@ -207,3 +212,11 @@ class VaultService:
             return validate_project_name(value)
         except ValueError:
             return None
+
+    def _parse_recovered_from(self, value: object) -> str | None:
+        if not isinstance(value, str):
+            return None
+        normalized = value.strip().lower()
+        if normalized in {"tmp", "backup"}:
+            return normalized
+        return None
