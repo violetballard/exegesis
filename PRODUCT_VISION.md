@@ -2,6 +2,11 @@
 
 This file is the non-negotiable product anchor for all lanes.
 
+## Product Names
+
+- `Exegesis Engine`: CLI-first agent runtime (this repository)
+- `Exegesis Studio`: commercial writing/research workstation package (future separate project)
+
 ## End Goal
 
 Build a local-first workstation agent that helps users run repeatable thinking and drafting workflows with:
@@ -30,6 +35,21 @@ This is not only a chat interface. It is an agent runtime + workflow system.
 4. Operator-first control surface
 - CLI remains a first-class surface for development and reliability.
 - UI can evolve on top without changing core contracts.
+
+5. Agent-to-UI protocol (`A2UI`)
+- Agent emits structured presentation artifacts (cards, sections, actions, metadata).
+- Artifacts must be consumable by multiple clients, including future Studio UI.
+- CLI remains able to render a text fallback of the same underlying artifacts.
+
+6. Expansion lanes
+- Architecture must support future quantitative analysis and coding workflows in addition to writing/research.
+- New domains should reuse shared agent/runtime contracts instead of bespoke pipelines.
+
+## Product Packaging Strategy
+
+- Build and stabilize `Exegesis Engine` first as the base qualitative research/writing agent.
+- Use Engine outputs and contracts to drive UI generation and interaction patterns.
+- Create `Exegesis Studio` as a separate project once Engine contracts are stable enough for client consumption.
 
 ## Non-Goals
 

@@ -1,6 +1,8 @@
-# qual
+# Exegesis Engine (`qual`)
 
 CLI scaffold for bootstrap, diff-preview, context basket, and vault state flows.
+
+Future commercial UI package name: `Exegesis Studio` (separate project after Engine contract maturity).
 
 ## Project Docs
 
