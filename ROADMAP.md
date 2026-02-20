@@ -77,6 +77,35 @@ Exit criteria:
 - Retrieval paths are auditable and deterministic
 - RAG behavior is documented as part of output contracts
 
+## Milestone 5: A2UI Presentation Layer (Planned)
+
+Status: planned
+
+Scope:
+- Define `A2UI` output contract for agent-produced presentation artifacts
+- Add agent-side card/section/action payload generation with deterministic schemas
+- Provide CLI rendering fallback for the same structured payloads
+- Ensure compatibility targets for multiple clients (including future Studio)
+
+Exit criteria:
+- A2UI schema/versioning is documented and stable
+- Core workflows can emit A2UI payloads and CLI fallback views
+- Output contracts are test-covered and backward-compatible by policy
+
+## Milestone 6: Studio Readiness Handoff (Planned)
+
+Status: planned
+
+Scope:
+- Freeze Engine contracts required by UI clients
+- Define Engine-to-Studio boundary and repo split handoff package
+- Prepare integration docs for separate `Exegesis Studio` project bootstrapping
+
+Exit criteria:
+- Engine contracts are ready for external client consumption
+- Explicit handoff bundle exists for Studio implementation startup
+- Repository split plan is approved and documented
+
 ## Sprint Cadence
 
 Current sprint model:
