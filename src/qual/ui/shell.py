@@ -11,7 +11,9 @@ class ShellUI:
             preview_items = [self._format_item_id(value) for value in runtime.basket.item_ids[:3]]
             preview = ", ".join(preview_items)
             if len(runtime.basket.item_ids) > 3:
-                preview = f"{preview}, +{len(runtime.basket.item_ids) - 3} more"
+                remaining = len(runtime.basket.item_ids) - 3
+                label = "item" if remaining == 1 else "items"
+                preview = f"{preview}, +{remaining} more {label}"
         else:
             preview = "<empty>"
         return (
