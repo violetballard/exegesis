@@ -107,9 +107,13 @@ class ContextBasketStore:
         except (json.JSONDecodeError, OSError):
             if path == self._path:
                 self._quarantine_invalid_file()
+            elif path == self._tmp_path():
+                self._unlink_if_exists(path)
             return None
         if isinstance(payload, (dict, list)):
             return payload
+        if path == self._tmp_path():
+            self._unlink_if_exists(path)
         return None
 
     def _write_backup(self) -> None:
