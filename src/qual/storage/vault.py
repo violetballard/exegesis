@@ -27,7 +27,7 @@ class VaultService:
         project_root = root_dir / safe_project_name
         project_root.mkdir(parents=True, exist_ok=True)
         (project_root / "attachments").mkdir(exist_ok=True)
-        raw_state = self._read_state(project_root)
+        raw_state, recovered_from = self._read_state(project_root)
         parsed_is_locked = self._parse_is_locked(raw_state.get("is_locked", False))
         is_locked = parsed_is_locked if parsed_is_locked is not None else False
         stored_project_name = self._parse_project_name(raw_state.get("project_name"))
@@ -41,7 +41,7 @@ class VaultService:
             root_dir=project_root,
             is_locked=is_locked,
         )
-        self._write_state(state)
+        self._write_state(state, recovered_from=recovered_from)
         return state
 
     def lock(self, state: VaultState) -> None:
@@ -74,20 +74,25 @@ class VaultService:
     def _corrupt_state_path(self, root_dir: Path) -> Path:
         return self._state_path(root_dir).with_suffix(".corrupt.json")
 
-    def _read_state(self, root_dir: Path) -> dict[str, object]:
+    def _read_state(self, root_dir: Path) -> tuple[dict[str, object], str | None]:
         state_path = self._state_path(root_dir)
         payload = self._load_payload(state_path)
+        recovered_from: str | None = None
         if payload is None:
             payload = self._load_payload(self._tmp_state_path(root_dir))
+            if payload is not None:
+                recovered_from = "tmp"
         if payload is None:
             payload = self._load_payload(self._backup_state_path(root_dir))
+            if payload is not None:
+                recovered_from = "backup"
         if payload is None:
-            return {}
+            return {}, None
         if not isinstance(payload, dict):
-            return {}
-        return payload
+            return {}, None
+        return payload, recovered_from
 
-    def _write_state(self, state: VaultState) -> None:
+    def _write_state(self, state: VaultState, recovered_from: str | None = None) -> None:
         state.root_dir.mkdir(parents=True, exist_ok=True)
         payload = {
             "schema_version": _SCHEMA_VERSION,
@@ -95,6 +100,8 @@ class VaultService:
             "project_name": state.project_name,
             "is_locked": state.is_locked,
         }
+        if recovered_from is not None:
+            payload["recovered_from"] = recovered_from
         self._write_backup(state.root_dir)
         tmp = self._tmp_state_path(state.root_dir)
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")

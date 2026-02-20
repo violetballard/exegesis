@@ -59,11 +59,16 @@ class ContextBasketStore:
         if basket.item_ids != prior:
             should_rewrite = True
 
+        recovered_from: str | None = None
+        if loaded_from_tmp:
+            recovered_from = "tmp"
+        elif loaded_from_backup:
+            recovered_from = "backup"
         if loaded_from_tmp or loaded_from_backup or should_rewrite:
-            self.save(basket)
+            self.save(basket, recovered_from=recovered_from)
         return basket
 
-    def save(self, basket: ContextBasket) -> None:
+    def save(self, basket: ContextBasket, recovered_from: str | None = None) -> None:
         basket.normalize()
         self._path.parent.mkdir(parents=True, exist_ok=True)
         payload = {
@@ -71,6 +76,8 @@ class ContextBasketStore:
             "updated_at": datetime.now(UTC).isoformat(),
             "item_ids": list(basket.item_ids),
         }
+        if recovered_from is not None:
+            payload["recovered_from"] = recovered_from
         self._write_backup()
         tmp = self._tmp_path()
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
