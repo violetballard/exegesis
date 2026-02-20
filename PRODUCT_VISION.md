@@ -44,6 +44,7 @@ This is not only a chat interface. It is an agent runtime + workflow system.
 6. Expansion lanes
 - Architecture must support future quantitative analysis and coding workflows in addition to writing/research.
 - New domains should reuse shared agent/runtime contracts instead of bespoke pipelines.
+- Qualitative coding support is a required follow-on once the base writing engine is stable.
 
 ## Product Packaging Strategy
 
