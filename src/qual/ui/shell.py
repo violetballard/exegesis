@@ -31,7 +31,7 @@ class ShellUI:
         escaped = ShellUI._escape_control_chars(value)
         normalized = " ".join(escaped.split())
         rendered = ShellUI._truncate_for_preview(normalized, max_len=24)
-        if "," in rendered or '"' in rendered:
+        if "," in rendered or '"' in rendered or "\\" in rendered:
             escaped = rendered.replace("\\", "\\\\").replace('"', '\\"')
             return f'"{escaped}"'
         return rendered
