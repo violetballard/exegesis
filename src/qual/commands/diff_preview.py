@@ -20,6 +20,7 @@ CANONICALIZE_INLINE_WHITESPACE_ENV = "QUAL_DIFF_CANONICALIZE_INLINE_WHITESPACE"
 IGNORE_CASE_ENV = "QUAL_DIFF_IGNORE_CASE"
 IGNORE_EDGE_BLANK_LINES_ENV = "QUAL_DIFF_IGNORE_EDGE_BLANK_LINES"
 IGNORE_ALL_BLANK_LINES_ENV = "QUAL_DIFF_IGNORE_ALL_BLANK_LINES"
+TRUNCATION_MARKER_ENV = "QUAL_DIFF_TRUNCATION_MARKER"
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
 
@@ -157,18 +158,25 @@ def _truncation_strategy() -> str:
     return "middle"
 
 
+def _truncation_marker(omitted: int) -> str:
+    custom = os.getenv(TRUNCATION_MARKER_ENV)
+    if custom is not None and custom.strip():
+        return custom.strip()
+    return f"... diff truncated ({omitted} characters omitted) ..."
+
+
 def _truncate_diff(diff: str, max_chars: int) -> str:
     strategy = _truncation_strategy()
     if strategy == "tail":
         omitted = len(diff) - max_chars
-        return f"{diff[:max_chars]}\n... diff truncated ({omitted} characters omitted) ..."
+        return f"{diff[:max_chars]}\n{_truncation_marker(omitted)}"
 
     head_chars = max_chars // 2
     tail_chars = max_chars - head_chars
     omitted = len(diff) - (head_chars + tail_chars)
     return (
         f"{diff[:head_chars]}"
-        f"... diff truncated ({omitted} characters omitted) ..."
+        f"{_truncation_marker(omitted)}"
         f"{diff[-tail_chars:]}"
     )
 
