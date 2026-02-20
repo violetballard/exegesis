@@ -106,6 +106,24 @@ Exit criteria:
 - Explicit handoff bundle exists for Studio implementation startup
 - Repository split plan is approved and documented
 
+## Milestone 7: Qualitative Coding Support (Planned)
+
+Status: planned
+
+Dependency:
+- Starts after base writing engine milestones are stable (Milestones 1 through 4 complete enough for production use).
+
+Scope:
+- Add codebook management primitives (codes, definitions, versioned edits)
+- Add coding operations over source excerpts and retrieved chunks
+- Add agreement/coverage metrics and audit trails for coding actions
+- Expose coding artifacts in both CLI and A2UI payloads
+
+Exit criteria:
+- Users can apply, revise, and review qualitative codes in normal workflows
+- Coding operations are auditable and retrieval-aware
+- Coding outputs are consumable by future `Exegesis Studio` clients
+
 ## Sprint Cadence
 
 Current sprint model:
