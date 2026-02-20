@@ -51,6 +51,8 @@ class ContextBasketStore:
                 return ContextBasket()
             basket = ContextBasket(item_ids=parsed_items)
             should_rewrite = schema_version != _SCHEMA_VERSION
+            if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
+                should_rewrite = True
         else:
             return ContextBasket()
 
@@ -76,8 +78,9 @@ class ContextBasketStore:
             "updated_at": datetime.now(UTC).isoformat(),
             "item_ids": list(basket.item_ids),
         }
-        if recovered_from is not None:
-            payload["recovered_from"] = recovered_from
+        normalized_recovered_from = self._parse_recovered_from(recovered_from)
+        if normalized_recovered_from is not None:
+            payload["recovered_from"] = normalized_recovered_from
         self._write_backup()
         tmp = self._tmp_path()
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
@@ -151,7 +154,11 @@ class ContextBasketStore:
         schema_version = payload.get("schema_version", 0)
         if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
             return False
-        return self._parse_item_ids(payload.get("item_ids", [])) is not None
+        if self._parse_item_ids(payload.get("item_ids", [])) is None:
+            return False
+        if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
+            return False
+        return True
 
     def _parse_item_ids(self, value: object) -> list[str] | None:
         if not isinstance(value, list):
@@ -162,6 +169,14 @@ class ContextBasketStore:
                 return None
             parsed.append(str(raw))
         return parsed
+
+    def _parse_recovered_from(self, value: object) -> str | None:
+        if not isinstance(value, str):
+            return None
+        normalized = value.strip().lower()
+        if normalized in {"tmp", "backup"}:
+            return normalized
+        return None
 
     def _unlink_if_exists(self, path: Path) -> None:
         try:
