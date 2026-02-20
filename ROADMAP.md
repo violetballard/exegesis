@@ -1,6 +1,7 @@
 # Roadmap
 
 This file is the canonical in-repo milestone tracker.
+See `PRODUCT_VISION.md` for non-negotiable end-goal alignment.
 
 ## Milestone 0: Foundation (Complete)
 
@@ -53,11 +54,26 @@ Scope:
 - Define and lock user-facing output contracts
 - Expand end-to-end verification scenarios
 - Prepare release notes and operator runbook for first publish
+- Define generation provenance contract (retrieval evidence attached to outputs)
 
 Exit criteria:
 - Contract changes documented and intentional
 - Reproducible release candidate checklist
 - Main branch in publishable state
+
+## Milestone 4: Retrieval Layer (Planned)
+
+Status: planned
+
+Scope:
+- Ingestion pipeline for context/vault documents (chunk + index metadata)
+- Retrieval orchestration in engine before drafting/diff generation
+- Source-attribution model for retrieved chunks
+
+Exit criteria:
+- Agent uses retrieved chunks by default for generation flows
+- Retrieval paths are auditable and deterministic
+- RAG behavior is documented as part of output contracts
 
 ## Sprint Cadence
 
