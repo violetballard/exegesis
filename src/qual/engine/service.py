@@ -28,14 +28,14 @@ class EngineService:
 
     def bootstrap(self, *, app_data_dir, project_name: str) -> EngineRuntime:
         vault = self._vault_service.create_or_open(app_data_dir, project_name)
-        basket_store = ContextBasketStore(app_data_dir)
+        basket_store = ContextBasketStore(vault.root_dir)
         basket = basket_store.load()
         original_item_ids = list(basket.item_ids)
         sanitized = self._sanitize_item_ids(original_item_ids)
         basket.item_ids = sanitized
         if sanitized != original_item_ids:
             basket_store.save(basket)
-        metrics_db = MetricsDB(app_data_dir)
+        metrics_db = MetricsDB(vault.root_dir)
         return EngineRuntime(
             vault=vault,
             basket=basket,
