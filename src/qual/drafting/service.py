@@ -30,7 +30,8 @@ class DraftingService:
         parts = normalized.split("\n")
         if had_trailing_newline:
             parts = parts[:-1]
-        cleaned = [line.lstrip("\ufeff").rstrip(" \t") for line in parts]
+        cleaned = [line[1:] if line.startswith("\ufeff") else line for line in parts]
+        cleaned = [line.rstrip(" \t") for line in cleaned]
         result = "\n".join(cleaned)
         if had_trailing_newline:
             result += "\n"
