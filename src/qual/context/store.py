@@ -53,6 +53,8 @@ class ContextBasketStore:
             should_rewrite = schema_version != _SCHEMA_VERSION
             if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
                 should_rewrite = True
+            if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
+                should_rewrite = True
         else:
             return ContextBasket()
 
@@ -158,6 +160,8 @@ class ContextBasketStore:
             return False
         if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
             return False
+        if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
+            return False
         return True
 
     def _parse_item_ids(self, value: object) -> list[str] | None:
@@ -177,6 +181,18 @@ class ContextBasketStore:
         if normalized in {"tmp", "backup"}:
             return normalized
         return None
+
+    def _parse_updated_at(self, value: object) -> str | None:
+        if not isinstance(value, str):
+            return None
+        candidate = value.strip()
+        if not candidate:
+            return None
+        try:
+            datetime.fromisoformat(candidate.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        return candidate
 
     def _unlink_if_exists(self, path: Path) -> None:
         try:

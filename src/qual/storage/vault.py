@@ -181,6 +181,8 @@ class VaultService:
             return False
         if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
             return False
+        if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
+            return False
         return True
 
     def _unlink_if_exists(self, path: Path) -> None:
@@ -220,3 +222,15 @@ class VaultService:
         if normalized in {"tmp", "backup"}:
             return normalized
         return None
+
+    def _parse_updated_at(self, value: object) -> str | None:
+        if not isinstance(value, str):
+            return None
+        candidate = value.strip()
+        if not candidate:
+            return None
+        try:
+            datetime.fromisoformat(candidate.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        return candidate
