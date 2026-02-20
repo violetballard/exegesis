@@ -16,6 +16,7 @@ This is not only a chat interface. It is an agent runtime + workflow system.
 
 1. Local-first state and identity
 - Project-scoped vault and context basket with safe recovery behavior.
+- Encrypted by default at rest for persisted local state and context artifacts.
 
 2. Retrieval-first context handling
 - Source documents are stored in vault/context.
@@ -35,6 +36,7 @@ This is not only a chat interface. It is an agent runtime + workflow system.
 - No hidden cross-module coupling.
 - No silent output contract drift.
 - No lane work without roadmap/vision mapping.
+- No plaintext-by-default storage mode for persistent workstation data.
 
 ## Handoff Alignment Rule
 

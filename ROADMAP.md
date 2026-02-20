@@ -55,11 +55,13 @@ Scope:
 - Expand end-to-end verification scenarios
 - Prepare release notes and operator runbook for first publish
 - Define generation provenance contract (retrieval evidence attached to outputs)
+- Define and lock encryption-at-rest default behavior and key lifecycle policy
 
 Exit criteria:
 - Contract changes documented and intentional
 - Reproducible release candidate checklist
 - Main branch in publishable state
+- Encryption-by-default is enforced for persistent local state
 
 ## Milestone 4: Retrieval Layer (Planned)
 
