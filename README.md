@@ -4,6 +4,7 @@ CLI scaffold for bootstrap, diff-preview, context basket, and vault state flows.
 
 ## Project Docs
 
+- Product target and non-negotiables: `PRODUCT_VISION.md`
 - Roadmap and milestone status: `ROADMAP.md`
 - Architecture boundaries and dependency rules: `ARCHITECTURE.md`
 - Integration process and merge gates: `INTEGRATION.md`

@@ -2,6 +2,7 @@
 
 See `ROADMAP.md` for milestone status and sprint cadence.
 See `ARCHITECTURE.md` for module boundaries and dependency guardrails.
+See `PRODUCT_VISION.md` for non-negotiable product goals.
 
 ## Ownership
 
@@ -30,4 +31,6 @@ See `ARCHITECTURE.md` for module boundaries and dependency guardrails.
 - Files changed
 - Commands run with results
 - Risks/blockers
+- Roadmap item(s) affected (from `ROADMAP.md`)
+- Vision capability affected (from `PRODUCT_VISION.md`)
 - Proposed `README.md` patch text (optional)
