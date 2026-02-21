@@ -157,13 +157,13 @@ class VaultService:
             return
         if not self._is_valid_payload(state_path):
             return
+        backup_path = self._backup_state_path(root_dir)
+        tmp = backup_path.with_suffix(".tmp")
         try:
-            backup_path = self._backup_state_path(root_dir)
-            tmp = backup_path.with_suffix(".tmp")
             tmp.write_bytes(state_path.read_bytes())
             tmp.replace(backup_path)
         except OSError:
-            return
+            self._unlink_if_exists(tmp)
 
     def _is_valid_payload(self, path: Path) -> bool:
         try:
