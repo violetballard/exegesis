@@ -33,4 +33,5 @@ See `PRODUCT_VISION.md` for non-negotiable product goals.
 - Risks/blockers
 - Roadmap item(s) affected (from `ROADMAP.md`)
 - Vision capability affected (from `PRODUCT_VISION.md`)
+- Routing/provider impact note (if model routing or provider configuration is touched)
 - Proposed `README.md` patch text (optional)

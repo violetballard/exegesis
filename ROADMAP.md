@@ -56,12 +56,15 @@ Scope:
 - Prepare release notes and operator runbook for first publish
 - Define generation provenance contract (retrieval evidence attached to outputs)
 - Define and lock encryption-at-rest default behavior and key lifecycle policy
+- Define role-based auto-routing contract and power-user override policy
+- Define localhost-only gating for OpenAI-compatible override endpoints
 
 Exit criteria:
 - Contract changes documented and intentional
 - Reproducible release candidate checklist
 - Main branch in publishable state
 - Encryption-by-default is enforced for persistent local state
+- Override behavior is deterministic, localhost-gated, and auditable
 
 ## Milestone 4: Retrieval Layer (Planned)
 

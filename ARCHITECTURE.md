@@ -50,6 +50,8 @@ Disallowed examples:
   - metrics: recorder/report/export entrypoints only
   - storage: vault/context store entrypoints only
   - commands: public command runner only
+- Model/provider routing must be centralized in engine policy modules, not scattered across commands/UI.
+- Role overrides (if enabled) must flow through a single validated endpoint profile resolver.
 - No feature lane should import private helper modules from another lane.
 
 ## Change Rules
@@ -60,3 +62,4 @@ Disallowed examples:
   - one integration point in engine or command layer
 - Keep optional behavior behind explicit flags/defaults until stable.
 - Add or update focused contract tests when changing cross-layer behavior.
+- Any provider override path must enforce localhost-only endpoint validation and must be auditable.
