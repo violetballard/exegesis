@@ -35,6 +35,7 @@ This is not only a chat interface. It is an agent runtime + workflow system.
 4. Operator-first control surface
 - CLI remains a first-class surface for development and reliability.
 - UI can evolve on top without changing core contracts.
+- Model routing is automatic by default; user-facing model selection is not the primary control path.
 
 5. Agent-to-UI protocol (`A2UI`)
 - Agent emits structured presentation artifacts (cards, sections, actions, metadata).
@@ -45,6 +46,11 @@ This is not only a chat interface. It is an agent runtime + workflow system.
 - Architecture must support future quantitative analysis and coding workflows in addition to writing/research.
 - New domains should reuse shared agent/runtime contracts instead of bespoke pipelines.
 - Qualitative coding support is a required follow-on once the base writing engine is stable.
+
+7. Power-user provider control (gated)
+- Advanced users may bind role-specific models through OpenAI-compatible local endpoints.
+- Endpoint policy is localhost-only for overrides to avoid accidental remote provider drift.
+- Overrides must preserve routing invariants and audit provenance.
 
 ## Product Packaging Strategy
 
