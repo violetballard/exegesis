@@ -33,6 +33,8 @@ class DraftingService:
         cleaned = [line[1:] if line.startswith("\ufeff") else line for line in parts]
         cleaned = [line.rstrip(" \t") for line in cleaned]
         result = "\n".join(cleaned)
-        if had_trailing_newline:
+        if result and not result.endswith("\n"):
+            result += "\n"
+        elif had_trailing_newline:
             result += "\n"
         return result
