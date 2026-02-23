@@ -1,15 +1,12 @@
-# Dual Bulk Draft Routing Spec (No UI Choice)
+# Dual Bulk Draft Routing Spec
 
 This document captures the enforced routing and execution policy for bulk drafting.
 
-## Goal
+## Goals
 
-- Deterministic dual bulk drafting routing in Exegesis Engine.
-- Users never choose models in UI.
-- Routing is automatic from:
-  - installed pack capability (memory-tier gate)
-  - section type
-  - target word count thresholds
+- Deterministic dual bulk drafting routing with no UI choice.
+- Allow `best` bulk drafting on 128GB+ when installed and runtime-supported, even if non-resident.
+- Engine manages residency/mode switching automatically.
 
 ## Model Roles
 
@@ -38,18 +35,25 @@ Best model may be used only for:
 
 All other operations force `fast`.
 
-## Capability Gate
+## Capability Gates
 
-`supports_best_bulk := pack.contains_model("gpt-oss-120b") AND pack.memory_tier_gb >= 256`
+Compute from installed pack metadata + runtime support:
 
-If false, routing always selects `fast`.
+- `supports_best_bulk := pack.contains_model("gpt-oss-120b") AND runtime.supports_model("gpt-oss-120b")`
+- `supports_best_bulk_resident := supports_best_bulk AND pack.memory_tier_gb >= 256`
+- `supports_best_bulk_ondemand := supports_best_bulk AND pack.memory_tier_gb >= 128`
+
+If `supports_best_bulk` is false, best is never selected.
+If `supports_best_bulk` is true but `supports_best_bulk_ondemand` is false, route as unsupported.
 
 ## Routing Inputs
 
 - `section_type`
 - `target_word_count`
-- `supports_best_bulk`
 - `operation_kind`
+- `supports_best_bulk`
+- `supports_best_bulk_resident`
+- `supports_best_bulk_ondemand`
 
 ## Routing Outputs
 
@@ -62,17 +66,38 @@ If false, routing always selects `fast`.
   - `word_count_threshold_general`
   - `word_count_threshold_methods_findings`
   - `default_fast`
+- `bulk_draft_mode`: `normal|drafting_mode`
 
 ## Deterministic Rules (ordered)
 
-1. If `supports_best_bulk == false` -> `fast/unsupported`
-2. If `operation_kind` not allowlisted -> `fast/op_not_allowed`
+1. If `supports_best_bulk == false` or `supports_best_bulk_ondemand == false` -> `fast/unsupported/normal`
+2. If `operation_kind` not allowlisted -> `fast/op_not_allowed/normal`
 3. `discussion` -> `best/section_type_discussion`
 4. `conclusion` -> `best/section_type_conclusion`
 5. Thresholds:
    - `methods|findings` and `target_word_count >= 2500` -> `best/word_count_threshold_methods_findings`
    - all other section types and `target_word_count >= 1500` -> `best/word_count_threshold_general`
    - otherwise -> `fast/default_fast`
+
+Mode selection:
+- `fast` -> `normal`
+- `best` with resident support -> `normal`
+- `best` without resident support -> `drafting_mode`
+
+## Drafting Mode Lifecycle
+
+When `bulk_draft_mode == drafting_mode`:
+1. Snapshot resident models.
+2. Unload all resident models.
+3. Load `gpt-oss-120b` as sole resident model.
+4. Run best bulk drafting with strict context limits.
+5. Unload `gpt-oss-120b`.
+6. Restore resident snapshot.
+7. Run editor pass.
+
+Context policy defaults:
+- default load ctx: 12k
+- hard max ctx: 16k
 
 ## Execution Pipeline
 
@@ -83,8 +108,8 @@ Inputs:
 
 Steps:
 1. Require `outline_id`; deny bulk drafting if missing.
-2. Route to `fast|best` via deterministic function.
-3. Run bulk drafting with selected tier model.
+2. Route to tier/reason/mode.
+3. Run bulk drafting (`fast` or `best`).
 4. Always run editor pass.
 5. Produce patch proposal + evidence refs + open questions.
 6. Persist AgentRun metadata/provenance.
@@ -94,6 +119,7 @@ Steps:
 Persist at minimum:
 - `bulk_draft_tier`
 - `bulk_draft_reason`
+- `bulk_draft_mode`
 - `planner_outline_id`
 - `target_word_count`
 - `section_type`
@@ -101,12 +127,13 @@ Persist at minimum:
 - `model_id_bulk`
 - `model_id_editor`
 - `context_set_ids`
-- `output_hash`, `patch_hash`, timestamps, duration
+- output/provenance hashes and timing fields
+- optional restore/debug fields (`restore_success`, snapshot reference)
 
 ## UI/Client Rules
 
 - Studio has no model-selection controls.
-- Optional transparency label only: `Bulk draft: Fast/Best (auto)`.
+- Optional transparency label only: `Bulk drafting: auto (Fast/Best)` and/or `Drafting Mode: engaged`.
 - CLI may alter pack installation/config, but routing remains deterministic for given inputs.
 
 ## Implementation
