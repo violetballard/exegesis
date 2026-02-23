@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from http.cookies import SimpleCookie
 import secrets
+from http.cookies import CookieError
 
 COOKIE_NAME = "exegesis_console_session"
 CSRF_HEADER_NAME = "x-csrf-token"
@@ -88,7 +89,10 @@ def parse_cookie_session_id(cookie_header: str | None) -> str | None:
     if not cookie_header:
         return None
     cookie = SimpleCookie()
-    cookie.load(cookie_header)
+    try:
+        cookie.load(cookie_header)
+    except CookieError:
+        return None
     morsel = cookie.get(COOKIE_NAME)
     if morsel is None:
         return None

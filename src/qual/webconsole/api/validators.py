@@ -77,6 +77,15 @@ def parse_provider_probe_request(payload: Any) -> ProviderProbeRequest:
     return ProviderProbeRequest(confidentiality_profile=confidentiality_profile, base_url=base_url)
 
 
+_SENSITIVE_TOKENS = ("api_key", "token", "secret", "password", "authorization")
+
+
+def sanitize_probe_report(payload: Any) -> dict[str, Any]:
+    data = require_object(payload, field="probe_report")
+    sanitized = _sanitize_value(data)
+    return require_object(sanitized, field="probe_report")
+
+
 def _require_non_empty_str(payload: dict[str, Any], key: str) -> str:
     value = payload.get(key)
     if not isinstance(value, str) or not value.strip():
@@ -108,3 +117,20 @@ def _require_str_tuple(payload: dict[str, Any], key: str) -> tuple[str, ...]:
             raise ValueError(f"{key} must be a list of strings")
         items.append(item)
     return tuple(items)
+
+
+def _sanitize_value(value: Any) -> Any:
+    if isinstance(value, dict):
+        cleaned: dict[str, Any] = {}
+        for key, nested in value.items():
+            lowered = str(key).lower()
+            if any(token in lowered for token in _SENSITIVE_TOKENS):
+                cleaned[str(key)] = "<redacted>"
+                continue
+            cleaned[str(key)] = _sanitize_value(nested)
+        return cleaned
+    if isinstance(value, list):
+        return [_sanitize_value(item) for item in value]
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    return str(value)

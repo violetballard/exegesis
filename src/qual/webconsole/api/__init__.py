@@ -6,7 +6,7 @@ from src.qual.webconsole.api.handlers import (
     ProviderProbeService,
     WebConsoleApi,
 )
-from src.qual.webconsole.api.validators import ProviderProbeRequest
+from src.qual.webconsole.api.validators import ProviderProbeRequest, sanitize_probe_report
 
 __all__ = [
     "ActionGateway",
@@ -16,6 +16,7 @@ __all__ = [
     "DenyAllPolicyGate",
     "ProviderProbeService",
     "ProviderProbeRequest",
+    "sanitize_probe_report",
     "StubActionExecutor",
     "WebConsoleApi",
 ]
