@@ -70,8 +70,11 @@
 ## Configuration Ownership and Precedence
 
 Engine-owned config files:
-- User config: `~/.config/exegesis/config.toml`
-- Optional project override: `<vault>/.exegesis/config.toml`
+- User config: `~/.config/exegesis/exegesis.yml`
+- Optional project override: `<vault>/.exegesis/exegesis.yml`
+
+Compatibility note:
+- Engine may support legacy TOML/YAML formats, but `exegesis.yml` is the canonical shared schema for Engine + Studio.
 
 Effective-value precedence:
 1. CLI flags (ephemeral, highest)

@@ -50,7 +50,7 @@ This is not only a chat interface. It is an agent runtime + workflow system.
 
 7. Power-user provider control (gated)
 - Advanced users may bind role-specific models through OpenAI-compatible local endpoints.
-- Endpoint policy is localhost-only for overrides to avoid accidental remote provider drift.
+- Endpoint policy is localhost-only in confidential mode to avoid accidental remote provider drift.
 - Overrides must preserve routing invariants and audit provenance.
 - Advanced config editing is centralized in the local web admin console, not Studio model-pickers.
 - Provider compatibility probing (`exegesis doctor` / admin probe report) is required so fallback modes are explicit to operators.
@@ -72,6 +72,6 @@ This is not only a chat interface. It is an agent runtime + workflow system.
 
 Every review/integration handoff must include:
 - roadmap item(s) affected (`ROADMAP.md`)
-- vision capability affected (one of the four above)
+- vision capability affected (one of the required capabilities above)
 
 If a change cannot map to these, it should not be promoted.
