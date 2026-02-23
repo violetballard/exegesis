@@ -5,19 +5,24 @@
 - Structured, auditable within-document retrieval for long sources.
 - Optimized for qualitative workflows that need stable evidence provenance.
 - Offline-first and encrypted at rest in confidential mode.
+- Adds local vision/OCR fallback for scanned PDFs when capability-gated support is present.
 
 ## Data Model
 
 - `DocumentIndexRecord`:
   - `doc_id`
   - `index_type=pageindex`
-  - `version=pageindex_v1`
+  - `version=pageindex_v2`
   - source/index hashes
   - status (`building|ready|failed|stale`)
+  - `requires_ocr`
+  - `vision_enabled_at_build`
+  - `model_used` metadata
 - `PageIndexPayload` (encrypted):
   - tree nodes and ranges
   - optional node summaries
   - page-to-excerpt references
+  - optional vision artifacts (`page -> excerpt_ids`)
   - build metadata
 - Encrypted excerpt blobs with integrity hashes
 
@@ -25,6 +30,7 @@
 
 - `docindex.build(doc_id, source_bytes, options) -> JobRef`
 - `docindex.query(doc_id, source_bytes, query, constraints, options) -> PageIndexResult`
+- `vision_read_pages(doc_id, page_numbers, output_format, max_pages, options)`
 - `fetch_excerpt(excerpt_id) -> {text, provenance}`
 - `pin_to_context_set(context_set_id, excerpt_id)`
 
@@ -38,6 +44,7 @@
   - `openai_compat` provider
   - localhost endpoint (`127.0.0.1` or `localhost`)
 - Non-local endpoints are denied.
+- Vision fallback is enabled only when BOTH runtime image input and Magistral vision model capability are true.
 
 ## Caching and Invalidation
 
@@ -52,4 +59,4 @@
 - `docindex_build_completed`
 - `docindex_build_failed`
 - `docindex_query_executed` (query hash only; no raw prompt logging)
-
+- `vision_read_pages_executed` (page numbers only; no extracted text logging)
