@@ -75,6 +75,7 @@ Scope:
 - Retrieval orchestration in engine before drafting/diff generation
 - Source-attribution model for retrieved chunks
 - Add PageIndex-style within-document retrieval with encrypted index payloads, query cache, and audit trace
+- Add unified retrieval interface (`retrieve_auto`) with pluggable `fts|pageindex|embeddings` strategy contract
 
 Exit criteria:
 - Agent uses retrieved chunks by default for generation flows
