@@ -27,6 +27,7 @@ SUPPRESS_HUNK_HEADERS_ENV = "QUAL_DIFF_SUPPRESS_HUNK_HEADERS"
 SUMMARY_JSON_ENV = "QUAL_DIFF_SUMMARY_JSON"
 SUMMARY_JSON_INDENT_ENV = "QUAL_DIFF_SUMMARY_JSON_INDENT"
 SUMMARY_JSON_SORT_KEYS_ENV = "QUAL_DIFF_SUMMARY_JSON_SORT_KEYS"
+SUMMARY_JSON_ENSURE_ASCII_ENV = "QUAL_DIFF_SUMMARY_JSON_ENSURE_ASCII"
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
 
@@ -163,10 +164,11 @@ def _summarize_diff(diff: str) -> str:
             payload["changed"] = added + removed
             payload["net"] = added - removed
         sort_keys = _summary_json_sort_keys()
+        ensure_ascii = _summary_json_ensure_ascii()
         indent = _summary_json_indent()
         if indent is None:
-            return json.dumps(payload, separators=(",", ":"), sort_keys=sort_keys)
-        return json.dumps(payload, indent=indent, sort_keys=sort_keys)
+            return json.dumps(payload, separators=(",", ":"), sort_keys=sort_keys, ensure_ascii=ensure_ascii)
+        return json.dumps(payload, indent=indent, sort_keys=sort_keys, ensure_ascii=ensure_ascii)
 
     summary = f"Diff summary: +{added} -{removed} (hunks: {hunks})"
     if _env_enabled(INCLUDE_SUMMARY_DETAILS_ENV):
@@ -201,6 +203,18 @@ def _summary_json_sort_keys() -> bool:
     return True
 
 
+def _summary_json_ensure_ascii() -> bool:
+    raw = os.getenv(SUMMARY_JSON_ENSURE_ASCII_ENV)
+    if raw is None:
+        return True
+    value = raw.strip().lower()
+    if value in {"0", "false", "no", "off"}:
+        return False
+    if value in {"1", "true", "yes", "on"}:
+        return True
+    return True
+
+
 def _options_banner(
     *, ignore_trailing_whitespace: bool, suppress_file_headers: bool, max_chars: int, max_lines: int | None
 ) -> str:
@@ -217,6 +231,7 @@ def _options_banner(
         f"summary_json={str(_env_enabled(SUMMARY_JSON_ENV)).lower()}, "
         f"summary_json_indent={str(_summary_json_indent() or 0)}, "
         f"summary_json_sort_keys={str(_summary_json_sort_keys()).lower()}, "
+        f"summary_json_ensure_ascii={str(_summary_json_ensure_ascii()).lower()}, "
         f"suppress_hunk_headers={str(_env_enabled(SUPPRESS_HUNK_HEADERS_ENV)).lower()}, "
         f"max_output_lines={max_lines_value}, "
         f"max_output_chars={max_chars}, "
