@@ -6,14 +6,14 @@ import uuid
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Literal, Protocol
-from urllib.parse import urlparse
+from typing import Any, Literal
 
 from src.qual.audit import AuditLog
-from src.qual.metrics.crypto import decrypt_bytes, encrypt_bytes
+from src.qual.engine.llm_client import ModelCapabilities, OpenAICompatClient, RuntimeCapabilities
+from src.qual.engine.policy_gate import PolicyGate
+from src.qual.engine.vault_store import VaultStore
 
 _DOCINDEX_DIR = ".docindex"
-_KEY_FILE = "docindex_v1.key"
 _RECORDS_FILE = "records_v1.enc.json"
 _EXCERPTS_FILE = "excerpts_v1.enc.json"
 _QUERY_CACHE_FILE = "query_cache_v1.enc.json"
@@ -25,21 +25,6 @@ _DEFAULT_PROMPT_HASH = "pageindex_prompt_v2"
 _DEFAULT_MODEL_ID = "magistral-small"
 _MIN_TEXT_THRESHOLD = 40
 _MIN_PRINTABLE_RATIO = 0.82
-
-
-@dataclass(frozen=True)
-class RuntimeCapabilities:
-    image_input: bool
-    tool_calling: bool
-    json_schema_mode: bool = False
-
-
-@dataclass(frozen=True)
-class ModelCapabilities:
-    model_id: str
-    supports_vision: bool
-    max_ctx: int
-    default_kv_cache: int
 
 
 @dataclass(frozen=True)
@@ -104,159 +89,20 @@ class ExcerptRecord:
     storage_ref: str
 
 
-class PageIndexNavigator(Protocol):
-    def model_id(self) -> str:
-        ...
-
-    def prompt_template_hash(self) -> str:
-        ...
-
-    def build_tree(
-        self,
-        *,
-        doc_id: str,
-        text: str,
-        max_depth: int,
-        target_granularity: str,
-        include_node_summaries: bool,
-    ) -> tuple[list[dict[str, object]], dict[str, str]]:
-        ...
-
-    def query_tree(
-        self,
-        *,
-        tree: list[dict[str, object]],
-        node_summaries: dict[str, str],
-        query: str,
-        constraints: DocIndexQueryConstraints,
-    ) -> tuple[list[dict[str, object]], dict[str, object]]:
-        ...
-
-
-class VisionPageReader(Protocol):
-    def read_pages(
-        self,
-        *,
-        doc_id: str,
-        source_bytes: bytes,
-        page_numbers: tuple[int, ...],
-        output_format: str,
-    ) -> dict[int, str]:
-        ...
-
-
-class LocalVisionPageReader:
-    def read_pages(
-        self,
-        *,
-        doc_id: str,
-        source_bytes: bytes,
-        page_numbers: tuple[int, ...],
-        output_format: str,
-    ) -> dict[int, str]:
-        # Local deterministic stub for offline fallback path.
-        text = source_bytes.decode("utf-8", errors="ignore")
-        segments = [x.strip() for x in text.split("\n\n") if x.strip()]
-        if not segments:
-            segments = ["<scanned-page-content-unavailable>"]
-        out: dict[int, str] = {}
-        for page in page_numbers:
-            idx = (page - 1) % len(segments)
-            body = segments[idx]
-            out[page] = body if output_format == "text" else f"## Page {page}\n\n{body}"
-        return out
-
-
-class LocalPageIndexNavigator:
+class LocalPageIndexNavigator(OpenAICompatClient):
     def __init__(self, *, model: str = _DEFAULT_MODEL_ID, prompt_hash: str = _DEFAULT_PROMPT_HASH) -> None:
-        self._model = model
-        self._prompt_hash = prompt_hash
-        self.query_calls = 0
-
-    def model_id(self) -> str:
-        return self._model
-
-    def prompt_template_hash(self) -> str:
-        return self._prompt_hash
-
-    def build_tree(
-        self,
-        *,
-        doc_id: str,
-        text: str,
-        max_depth: int,
-        target_granularity: str,
-        include_node_summaries: bool,
-    ) -> tuple[list[dict[str, object]], dict[str, str]]:
-        lines = [line.strip() for line in text.splitlines() if line.strip()]
-        chunks: list[str] = []
-        chunk_size = 1200 if target_granularity == "subsection" else 2200
-        if not lines:
-            chunks = ["<empty-document>"]
-        else:
-            buf = ""
-            for line in lines:
-                if len(buf) + len(line) + 1 > chunk_size and buf:
-                    chunks.append(buf)
-                    buf = line
-                else:
-                    buf = f"{buf}\n{line}" if buf else line
-            if buf:
-                chunks.append(buf)
-
-        tree: list[dict[str, object]] = []
-        summaries: dict[str, str] = {}
-        cursor = 0
-        for idx, chunk in enumerate(chunks, start=1):
-            node_id = f"{doc_id}:n{idx}"
-            node = {
-                "node_id": node_id,
-                "title": f"Section {idx}",
-                "depth": min(max_depth, 2),
-                "page_start": idx,
-                "page_end": idx,
-                "char_start": cursor,
-                "char_end": cursor + len(chunk),
-                "children": [],
-            }
-            tree.append(node)
-            cursor += len(chunk) + 1
-            if include_node_summaries:
-                summaries[node_id] = chunk[:160]
-        return tree, summaries
-
-    def query_tree(
-        self,
-        *,
-        tree: list[dict[str, object]],
-        node_summaries: dict[str, str],
-        query: str,
-        constraints: DocIndexQueryConstraints,
-    ) -> tuple[list[dict[str, object]], dict[str, object]]:
-        self.query_calls += 1
-        lowered = query.lower()
-        ranked: list[tuple[int, dict[str, object]]] = []
-        visited: list[str] = []
-        for node in tree:
-            node_id = str(node["node_id"])
-            visited.append(node_id)
-            title = str(node["title"]).lower()
-            summary = node_summaries.get(node_id, "").lower()
-            score = 0
-            for token in lowered.split():
-                if token in title:
-                    score += 2
-                if token in summary:
-                    score += 1
-            if constraints.section_hint and constraints.section_hint.lower() in title:
-                score += 2
-            ranked.append((score, node))
-        ranked.sort(key=lambda item: item[0], reverse=True)
-        best = [node for score, node in ranked if score > 0][: constraints.max_results]
-        if not best:
-            best = [node for _, node in ranked[: constraints.max_results]]
-        trace = {"visited_node_ids": visited[:50], "decision_log": f"ranked:{len(ranked)}"}
-        return best, trace
+        super().__init__(
+            base_url="http://127.0.0.1:11434/v1",
+            model_id=model,
+            runtime_capabilities=RuntimeCapabilities(image_input=False, tool_calling=True),
+            model_capabilities=ModelCapabilities(
+                model_id=model,
+                supports_vision=False,
+                max_ctx=8192,
+                default_kv_cache=2048,
+            ),
+            prompt_template_hash=prompt_hash,
+        )
 
 
 class DocIndexService:
@@ -265,20 +111,14 @@ class DocIndexService:
         vault_root: Path,
         *,
         audit_log: AuditLog,
-        navigator: PageIndexNavigator | None = None,
-        vision_reader: VisionPageReader | None = None,
+        llm_client: OpenAICompatClient | None = None,
+        navigator: OpenAICompatClient | None = None,
         runtime_capabilities: RuntimeCapabilities | None = None,
         model_capabilities: dict[str, ModelCapabilities] | None = None,
         now_fn=None,
     ) -> None:
-        self._root = vault_root / _DOCINDEX_DIR
-        self._root.mkdir(parents=True, exist_ok=True)
-        (self._root / _PAYLOAD_DIR).mkdir(exist_ok=True)
-        (self._root / _EXCERPT_BLOB_DIR).mkdir(exist_ok=True)
-        (self._root / _SOURCE_BLOB_DIR).mkdir(exist_ok=True)
+        self._root = vault_root
         self._audit = audit_log
-        self._navigator = navigator if navigator is not None else LocalPageIndexNavigator()
-        self._vision_reader = vision_reader if vision_reader is not None else LocalVisionPageReader()
         self._runtime_caps = runtime_capabilities if runtime_capabilities is not None else RuntimeCapabilities(
             image_input=False,
             tool_calling=True,
@@ -292,8 +132,28 @@ class DocIndexService:
                 default_kv_cache=2048,
             )
         }
+        default_model = self._model_caps.get(_DEFAULT_MODEL_ID, self._default_model_caps())
+        effective_client = llm_client if llm_client is not None else navigator
+        self._llm = effective_client if effective_client is not None else OpenAICompatClient(
+            base_url="http://127.0.0.1:11434/v1",
+            model_id=_DEFAULT_MODEL_ID,
+            runtime_capabilities=self._runtime_caps,
+            model_capabilities=default_model,
+            prompt_template_hash=_DEFAULT_PROMPT_HASH,
+        )
+        self._policy_gate = PolicyGate(
+            confidentiality_profile="confidential",
+            llm_base_url=self._llm.base_url,
+        )
+        self._store = VaultStore(
+            root=self._root,
+            namespace=_DOCINDEX_DIR,
+            key_filename="docindex_v1.key",
+        )
+        (self._store.path / _PAYLOAD_DIR).mkdir(exist_ok=True)
+        (self._store.path / _EXCERPT_BLOB_DIR).mkdir(exist_ok=True)
+        (self._store.path / _SOURCE_BLOB_DIR).mkdir(exist_ok=True)
         self._now_fn = now_fn or (lambda: datetime.now(UTC))
-        self._key = self._load_or_create_key()
         self._cleanup_query_cache()
 
     def build(self, doc_id: str, source_bytes: bytes, options: DocIndexBuildOptions) -> JobRef:
@@ -334,7 +194,7 @@ class DocIndexService:
 
             if has_text_layer:
                 excerpt_records = self._build_excerpts(doc_id=doc_id, text=text, extraction_method="text_layer")
-                tree, node_summaries = self._navigator.build_tree(
+                tree, node_summaries = self._llm.build_pageindex_tree(
                     doc_id=doc_id,
                     text=text,
                     max_depth=options.max_depth,
@@ -358,10 +218,10 @@ class DocIndexService:
                 },
                 "vision_artifacts": {},
                 "build_metadata": {
-                    "agent_model_id": self._navigator.model_id(),
-                    "vision_model_id": self._navigator.model_id() if self._vision_enabled() else None,
-                    "ctx": self._model_caps.get(self._navigator.model_id(), self._default_model_caps()).max_ctx,
-                    "prompt_template_hash": self._navigator.prompt_template_hash(),
+                    "agent_model_id": self._llm.model_id,
+                    "vision_model_id": self._llm.model_id if self._vision_enabled() else None,
+                    "ctx": self._llm.model_capabilities.max_ctx,
+                    "prompt_template_hash": self._llm.prompt_template_hash,
                     "runtime_id": "local-offline",
                     "build_time_seconds": max(0, int((self._now_fn() - started).total_seconds())),
                     "llm_endpoint": options.llm_endpoint,
@@ -492,11 +352,12 @@ class DocIndexService:
 
             tree = payload.get("tree", [])
             node_summaries = payload.get("node_summaries", {})
-            hits_nodes, trace = self._navigator.query_tree(
+            hits_nodes, trace = self._llm.query_pageindex_tree(
                 tree=tree,
                 node_summaries=node_summaries,
                 query=query,
-                constraints=constraints,
+                section_hint=constraints.section_hint,
+                max_results=constraints.max_results,
             )
             page_numbers: list[int] = []
             for node in hits_nodes:
@@ -538,11 +399,12 @@ class DocIndexService:
 
         tree = payload["tree"]
         node_summaries = payload.get("node_summaries", {})
-        hits_nodes, trace = self._navigator.query_tree(
+        hits_nodes, trace = self._llm.query_pageindex_tree(
             tree=tree,
             node_summaries=node_summaries,
             query=query,
-            constraints=constraints,
+            section_hint=constraints.section_hint,
+            max_results=constraints.max_results,
         )
         hits = [self._node_to_hit(doc_id=doc_id, node=node, constraints=constraints, payload=payload) for node in hits_nodes]
         result = PageIndexResult(
@@ -592,8 +454,7 @@ class DocIndexService:
 
         source_bytes = self._read_source_blob(doc_id)
         started = self._now_fn()
-        page_text = self._vision_reader.read_pages(
-            doc_id=doc_id,
+        page_text = self._llm.vision_read_pages(
             source_bytes=source_bytes,
             page_numbers=tuple(unique_pages),
             output_format=output_format,
@@ -728,8 +589,7 @@ class DocIndexService:
         plaintext = text.encode("utf-8")
         hash_value = hashlib.sha256(plaintext).hexdigest()
         storage_ref = f"{excerpt_id}.enc"
-        blob_path = self._root / _EXCERPT_BLOB_DIR / storage_ref
-        blob_path.write_bytes(encrypt_bytes(plaintext, self._key))
+        self._store.write_blob(f"{_EXCERPT_BLOB_DIR}/{storage_ref}", plaintext)
         return ExcerptRecord(
             excerpt_id=excerpt_id,
             doc_id=doc_id,
@@ -741,12 +601,12 @@ class DocIndexService:
     def _upsert_excerpts(self, excerpts: list[ExcerptRecord]) -> None:
         current = [x for x in self._load_excerpts() if x.doc_id != excerpts[0].doc_id]
         current.extend(excerpts)
-        self._write_encrypted_json(self._root / _EXCERPTS_FILE, [asdict(x) for x in current])
+        self._store.write_json(_EXCERPTS_FILE, [asdict(x) for x in current])
 
     def _append_excerpts(self, excerpts: list[ExcerptRecord]) -> None:
         current = self._load_excerpts()
         current.extend(excerpts)
-        self._write_encrypted_json(self._root / _EXCERPTS_FILE, [asdict(x) for x in current])
+        self._store.write_json(_EXCERPTS_FILE, [asdict(x) for x in current])
 
     def _find_excerpt(self, excerpt_id: str) -> ExcerptRecord | None:
         for item in self._load_excerpts():
@@ -755,7 +615,7 @@ class DocIndexService:
         return None
 
     def _load_excerpts(self) -> list[ExcerptRecord]:
-        payload = self._read_encrypted_json(self._root / _EXCERPTS_FILE, default=[])
+        payload = self._store.read_json(_EXCERPTS_FILE, default=[])
         out: list[ExcerptRecord] = []
         if not isinstance(payload, list):
             return out
@@ -777,8 +637,7 @@ class DocIndexService:
         return out
 
     def _read_excerpt_text(self, excerpt: ExcerptRecord) -> str:
-        path = self._root / _EXCERPT_BLOB_DIR / excerpt.storage_ref
-        plaintext = decrypt_bytes(path.read_bytes(), self._key)
+        plaintext = self._store.read_blob(f"{_EXCERPT_BLOB_DIR}/{excerpt.storage_ref}")
         if hashlib.sha256(plaintext).hexdigest() != excerpt.hash:
             raise ValueError("excerpt integrity mismatch")
         return plaintext.decode("utf-8")
@@ -823,7 +682,7 @@ class DocIndexService:
         return {
             "agent_model_id": _DEFAULT_MODEL_ID,
             "vision_model_id": _DEFAULT_MODEL_ID if vision_used else None,
-            "prompt_template_hash": self._navigator.prompt_template_hash(),
+            "prompt_template_hash": self._llm.prompt_template_hash,
             "ctx": model_caps.max_ctx,
         }
 
@@ -838,9 +697,9 @@ class DocIndexService:
 
     def _cleanup_query_cache(self) -> None:
         now = self._now_fn()
-        raw = self._read_encrypted_json(self._root / _QUERY_CACHE_FILE, default=[])
+        raw = self._store.read_json(_QUERY_CACHE_FILE, default=[])
         if not isinstance(raw, list):
-            self._write_encrypted_json(self._root / _QUERY_CACHE_FILE, [])
+            self._store.write_json(_QUERY_CACHE_FILE, [])
             return
         keep: list[dict[str, object]] = []
         for entry in raw:
@@ -849,10 +708,10 @@ class DocIndexService:
             expires = datetime.fromisoformat(str(entry["expires_at"]))
             if expires > now:
                 keep.append(entry)
-        self._write_encrypted_json(self._root / _QUERY_CACHE_FILE, keep)
+        self._store.write_json(_QUERY_CACHE_FILE, keep)
 
     def _get_cached_query(self, cache_key: str) -> PageIndexResult | None:
-        entries = self._read_encrypted_json(self._root / _QUERY_CACHE_FILE, default=[])
+        entries = self._store.read_json(_QUERY_CACHE_FILE, default=[])
         if not isinstance(entries, list):
             return None
         now = self._now_fn()
@@ -877,7 +736,7 @@ class DocIndexService:
         return None
 
     def _set_cached_query(self, cache_key: str, result: PageIndexResult) -> None:
-        entries = self._read_encrypted_json(self._root / _QUERY_CACHE_FILE, default=[])
+        entries = self._store.read_json(_QUERY_CACHE_FILE, default=[])
         if not isinstance(entries, list):
             entries = []
         filtered = [x for x in entries if isinstance(x, dict) and str(x.get("cache_key")) != cache_key]
@@ -888,48 +747,44 @@ class DocIndexService:
                 "result": asdict(result),
             }
         )
-        self._write_encrypted_json(self._root / _QUERY_CACHE_FILE, filtered)
+        self._store.write_json(_QUERY_CACHE_FILE, filtered)
 
     def _validate_build_options(self, options: DocIndexBuildOptions) -> None:
         if options.confidentiality_profile not in {"confidential", "standard"}:
             raise ValueError("confidentiality_profile must be confidential or standard")
         if options.confidentiality_profile == "confidential":
-            if options.mode != "offline_only":
-                raise PermissionError("confidential profile requires offline_only mode")
-            if options.pdf_text_extraction != "local":
-                raise PermissionError("confidential profile requires local text extraction")
+            gate = PolicyGate(confidentiality_profile="confidential", llm_base_url=self._llm.base_url)
+            gate.enforce_local_only_ocr(mode=options.mode, pdf_text_extraction=options.pdf_text_extraction)
             if options.llm_provider != "openai_compat":
                 raise PermissionError("confidential profile requires openai_compat provider")
-            if not _is_localhost_endpoint(options.llm_endpoint):
-                raise PermissionError("confidential profile requires localhost llm endpoint")
+            gate.enforce_localhost_llm()
+            # Build-time endpoint override must also remain localhost in confidential mode.
+            PolicyGate(confidentiality_profile="confidential", llm_base_url=options.llm_endpoint).enforce_localhost_llm()
         if options.max_depth < 1 or options.max_depth > 12:
             raise ValueError("max_depth must be within 1..12")
         if options.target_granularity not in {"section", "subsection"}:
             raise ValueError("target_granularity must be section or subsection")
 
     def _write_payload(self, doc_id: str, payload: dict[str, object]) -> None:
-        path = self._root / _PAYLOAD_DIR / f"{doc_id}.enc"
-        self._write_encrypted_json(path, payload)
+        self._store.write_json(f"{_PAYLOAD_DIR}/{doc_id}.enc", payload)
 
     def _read_payload(self, doc_id: str) -> dict[str, object]:
-        path = self._root / _PAYLOAD_DIR / f"{doc_id}.enc"
-        payload = self._read_encrypted_json(path, default={})
+        payload = self._store.read_json(f"{_PAYLOAD_DIR}/{doc_id}.enc", default={})
         if not isinstance(payload, dict):
             raise ValueError("invalid payload")
         return payload
 
     def _write_source_blob(self, doc_id: str, source_bytes: bytes) -> None:
-        path = self._root / _SOURCE_BLOB_DIR / f"{doc_id}.enc"
-        path.write_bytes(encrypt_bytes(source_bytes, self._key))
+        self._store.write_blob(f"{_SOURCE_BLOB_DIR}/{doc_id}.enc", source_bytes)
 
     def _read_source_blob(self, doc_id: str) -> bytes:
-        path = self._root / _SOURCE_BLOB_DIR / f"{doc_id}.enc"
+        path = self._store.path / _SOURCE_BLOB_DIR / f"{doc_id}.enc"
         if not path.exists():
             raise KeyError(f"source blob missing for doc_id: {doc_id}")
-        return decrypt_bytes(path.read_bytes(), self._key)
+        return self._store.read_blob(f"{_SOURCE_BLOB_DIR}/{doc_id}.enc")
 
     def _load_records(self) -> list[DocumentIndexRecord]:
-        payload = self._read_encrypted_json(self._root / _RECORDS_FILE, default=[])
+        payload = self._store.read_json(_RECORDS_FILE, default=[])
         out: list[DocumentIndexRecord] = []
         if not isinstance(payload, list):
             return out
@@ -958,7 +813,7 @@ class DocIndexService:
         return out
 
     def _save_records(self, records: list[DocumentIndexRecord]) -> None:
-        self._write_encrypted_json(self._root / _RECORDS_FILE, [asdict(x) for x in records])
+        self._store.write_json(_RECORDS_FILE, [asdict(x) for x in records])
 
     @staticmethod
     def _find_record(records: list[DocumentIndexRecord], doc_id: str) -> DocumentIndexRecord | None:
@@ -974,35 +829,3 @@ class DocIndexService:
                 records[idx] = value
                 return
         records.append(value)
-
-    def _read_encrypted_json(self, path: Path, *, default: object) -> object:
-        if not path.exists():
-            return default
-        plaintext = decrypt_bytes(path.read_bytes(), self._key)
-        try:
-            return json.loads(plaintext.decode("utf-8"))
-        except json.JSONDecodeError:
-            return default
-
-    def _write_encrypted_json(self, path: Path, payload: object) -> None:
-        plaintext = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
-        path.write_bytes(encrypt_bytes(plaintext, self._key))
-
-    def _load_or_create_key(self) -> bytes:
-        path = self._root / _KEY_FILE
-        if path.exists():
-            raw = path.read_bytes()
-            if len(raw) < 32:
-                raise ValueError("docindex key file is invalid")
-            return raw[:32]
-        raw = (uuid.uuid4().bytes + uuid.uuid4().bytes)[:32]
-        path.write_bytes(raw)
-        return raw
-
-
-def _is_localhost_endpoint(raw: str) -> bool:
-    parsed = urlparse(raw)
-    host = parsed.hostname
-    if host not in {"127.0.0.1", "localhost"}:
-        return False
-    return parsed.scheme in {"http", "https"}
