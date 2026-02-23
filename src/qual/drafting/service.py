@@ -1,21 +1,110 @@
 from __future__ import annotations
 
 import difflib
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class DiffOrchestration:
+    before_text: str
+    after_text: str
+    before_lines: list[str]
+    after_lines: list[str]
+
+
+@dataclass(frozen=True)
+class DiffSummary:
+    changed: bool
+    added_lines: int
+    removed_lines: int
+    net_line_delta: int
+    total_changed_lines: int
+    hunk_count: int
 
 
 class DraftingService:
     """Draft revision scaffold service."""
 
     def propose_diff(self, original: str, proposed: str) -> str:
+        orchestration = self.orchestrate_diff(original, proposed)
+        if not self.has_meaningful_change(orchestration=orchestration):
+            return ""
+        return self._build_unified_diff(
+            orchestration.before_lines,
+            orchestration.after_lines,
+        )
+
+    def orchestrate_diff(self, original: str, proposed: str) -> DiffOrchestration:
         before_text = self._normalize_for_diff(original)
         after_text = self._normalize_for_diff(proposed)
-        if before_text == after_text:
-            return ""
-        before = before_text.splitlines(keepends=True)
-        after = after_text.splitlines(keepends=True)
-        return "".join(
-            difflib.unified_diff(before, after, fromfile="original", tofile="proposed")
+        return DiffOrchestration(
+            before_text=before_text,
+            after_text=after_text,
+            before_lines=before_text.splitlines(keepends=True),
+            after_lines=after_text.splitlines(keepends=True),
         )
+
+    def summarize_diff(self, original: str, proposed: str) -> DiffSummary:
+        orchestration = self.orchestrate_diff(original, proposed)
+        return self.summarize_orchestration(orchestration)
+
+    def has_meaningful_change(
+        self,
+        *,
+        original: str | None = None,
+        proposed: str | None = None,
+        orchestration: DiffOrchestration | None = None,
+    ) -> bool:
+        active = orchestration or self.orchestrate_diff(
+            original=original or "",
+            proposed=proposed or "",
+        )
+        return active.before_text != active.after_text
+
+    def summarize_orchestration(self, orchestration: DiffOrchestration) -> DiffSummary:
+        if not self.has_meaningful_change(orchestration=orchestration):
+            return DiffSummary(
+                changed=False,
+                added_lines=0,
+                removed_lines=0,
+                net_line_delta=0,
+                total_changed_lines=0,
+                hunk_count=0,
+            )
+        diff_text = self._build_unified_diff(
+            orchestration.before_lines,
+            orchestration.after_lines,
+        )
+        added, removed, hunk_count = self._parse_diff_metrics(diff_text)
+        return DiffSummary(
+            changed=True,
+            added_lines=added,
+            removed_lines=removed,
+            net_line_delta=added - removed,
+            total_changed_lines=added + removed,
+            hunk_count=hunk_count,
+        )
+
+    @staticmethod
+    def _build_unified_diff(before: list[str], after: list[str]) -> str:
+        return "".join(difflib.unified_diff(before, after, fromfile="original", tofile="proposed"))
+
+    @staticmethod
+    def _parse_diff_metrics(diff_text: str) -> tuple[int, int, int]:
+        added = 0
+        removed = 0
+        hunk_count = 0
+        for line in diff_text.splitlines():
+            if line.startswith("@@"):
+                hunk_count += 1
+                continue
+            if line.startswith("+++") or line.startswith("---"):
+                continue
+            if line.startswith("+"):
+                added += 1
+            elif line.startswith("-"):
+                removed += 1
+        return added, removed, hunk_count
 
     @staticmethod
     def _normalize_newlines(value: str) -> str:
