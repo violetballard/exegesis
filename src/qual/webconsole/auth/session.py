@@ -109,3 +109,15 @@ def serialize_session_cookie(session: Session, *, secure: bool = False) -> str:
     if secure:
         cookie[COOKIE_NAME]["secure"] = True
     return cookie.output(header="", sep="").strip()
+
+
+def serialize_cleared_session_cookie(*, secure: bool = False) -> str:
+    cookie = SimpleCookie()
+    cookie[COOKIE_NAME] = ""
+    cookie[COOKIE_NAME]["path"] = "/"
+    cookie[COOKIE_NAME]["httponly"] = True
+    cookie[COOKIE_NAME]["samesite"] = "Strict"
+    cookie[COOKIE_NAME]["max-age"] = "0"
+    if secure:
+        cookie[COOKIE_NAME]["secure"] = True
+    return cookie.output(header="", sep="").strip()
