@@ -25,10 +25,25 @@ Use these branch lanes to avoid duplicate work and merge conflicts.
   - Shared by approval only:
     - `src/qual/app.py`
 
-- `codex/feat-webconsole*`
+- `codex/feat-webconsole-core*`
   - Owned paths:
-    - `src/qual/webconsole/**`
+    - `src/qual/webconsole/server/**`
+    - `src/qual/webconsole/api/**`
+    - `src/qual/webconsole/auth/**`
   - Shared by approval only:
+    - `src/qual/webconsole/__init__.py`
+    - `src/qual/webconsole/types.py`
+    - `WEB_CONSOLE_SPEC.md`
+    - `PROVIDER_COMPAT_PROBE_SPEC.md`
+
+- `codex/feat-webconsole-ui*`
+  - Owned paths:
+    - `src/qual/webconsole/render/**`
+    - `src/qual/webconsole/templates/**`
+    - `src/qual/webconsole/static/**`
+  - Shared by approval only:
+    - `src/qual/webconsole/__init__.py`
+    - `src/qual/webconsole/types.py`
     - `WEB_CONSOLE_SPEC.md`
     - `PROVIDER_COMPAT_PROBE_SPEC.md`
 
