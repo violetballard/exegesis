@@ -3,11 +3,17 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
-from datetime import UTC, datetime
 from pathlib import Path
 
 from src.qual.audit import AuditLog
-from src.qual.docindex.service import DocIndexBuildOptions, DocIndexQueryConstraints, DocIndexService, LocalPageIndexNavigator
+from src.qual.docindex.service import (
+    DocIndexBuildOptions,
+    DocIndexQueryConstraints,
+    DocIndexService,
+    LocalPageIndexNavigator,
+    ModelCapabilities,
+    RuntimeCapabilities,
+)
 
 
 class PageIndexDocIndexTests(unittest.TestCase):
@@ -76,6 +82,8 @@ class PageIndexDocIndexTests(unittest.TestCase):
         self.assertNotIn(b"Methods", raw)
         payload_raw = (docindex_dir / "payloads" / f"{self.doc_id}.enc").read_bytes()
         self.assertNotIn(b"Findings", payload_raw)
+        source_raw = (docindex_dir / "source_blobs" / f"{self.doc_id}.enc").read_bytes()
+        self.assertNotIn(b"Methods", source_raw)
 
     def test_query_cache_prevents_repeat_navigation(self) -> None:
         self.svc.build(self.doc_id, self.source, DocIndexBuildOptions())
@@ -130,6 +138,67 @@ class PageIndexDocIndexTests(unittest.TestCase):
         self.assertEqual(excerpt["excerpt_id"], str(excerpt_id))
         self.assertIn("text", excerpt)
         self.assertIn("provenance", excerpt)
+
+    def test_scanned_pdf_without_vision_returns_alert(self) -> None:
+        scanned = b"\x89PNG\x00\x01\x02" * 40
+        self.svc.build("scan-1", scanned, DocIndexBuildOptions())
+        result = self.svc.query(
+            "scan-1",
+            scanned,
+            "methods",
+            DocIndexQueryConstraints(max_results=2),
+            options=DocIndexBuildOptions(),
+        )
+        self.assertEqual(result.hits, [])
+        self.assertIn("alert", result.trace)
+        record = self.svc.get_record("scan-1")
+        self.assertIsNotNone(record)
+        self.assertTrue(record.requires_ocr)  # type: ignore[union-attr]
+
+    def test_scanned_pdf_with_vision_enabled_allows_vision_read(self) -> None:
+        scanned = b"\x89PNG\x00\x01\x02" * 40
+        svc = DocIndexService(
+            self.root,
+            audit_log=self.audit,
+            navigator=self.navigator,
+            runtime_capabilities=RuntimeCapabilities(image_input=True, tool_calling=True),
+            model_capabilities={
+                "magistral-small": ModelCapabilities(
+                    model_id="magistral-small",
+                    supports_vision=True,
+                    max_ctx=8192,
+                    default_kv_cache=2048,
+                )
+            },
+        )
+        svc.build("scan-2", scanned, DocIndexBuildOptions())
+        result = svc.query(
+            "scan-2",
+            scanned,
+            "page",
+            DocIndexQueryConstraints(max_results=2),
+            options=DocIndexBuildOptions(),
+        )
+        self.assertTrue(result.hits)
+        first = result.hits[0]
+        self.assertIn("page_range", first)
+        self.assertTrue(first["excerpt_ids"])  # type: ignore[index]
+
+        vision_events = [
+            json.loads(line)
+            for line in (self.root / "audit_events.jsonl").read_text(encoding="utf-8").splitlines()
+            if json.loads(line)["name"] == "vision_read_pages_executed"
+        ]
+        self.assertTrue(vision_events)
+
+    def test_vision_read_pages_rejects_when_capability_disabled(self) -> None:
+        self.svc.build(self.doc_id, self.source, DocIndexBuildOptions())
+        with self.assertRaises(PermissionError):
+            self.svc.vision_read_pages(
+                doc_id=self.doc_id,
+                page_numbers=(1,),
+                options=DocIndexBuildOptions(),
+            )
 
 
 if __name__ == "__main__":

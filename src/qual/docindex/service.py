@@ -19,9 +19,27 @@ _EXCERPTS_FILE = "excerpts_v1.enc.json"
 _QUERY_CACHE_FILE = "query_cache_v1.enc.json"
 _PAYLOAD_DIR = "payloads"
 _EXCERPT_BLOB_DIR = "excerpt_blobs"
+_SOURCE_BLOB_DIR = "source_blobs"
 _QUERY_CACHE_TTL = timedelta(hours=1)
-_DEFAULT_PROMPT_HASH = "pageindex_prompt_v1"
+_DEFAULT_PROMPT_HASH = "pageindex_prompt_v2"
 _DEFAULT_MODEL_ID = "magistral-small"
+_MIN_TEXT_THRESHOLD = 40
+_MIN_PRINTABLE_RATIO = 0.82
+
+
+@dataclass(frozen=True)
+class RuntimeCapabilities:
+    image_input: bool
+    tool_calling: bool
+    json_schema_mode: bool = False
+
+
+@dataclass(frozen=True)
+class ModelCapabilities:
+    model_id: str
+    supports_vision: bool
+    max_ctx: int
+    default_kv_cache: int
 
 
 @dataclass(frozen=True)
@@ -72,13 +90,16 @@ class DocumentIndexRecord:
     index_hash: str
     status: Literal["ready", "building", "failed", "stale"]
     error_summary: str | None
+    requires_ocr: bool
+    vision_enabled_at_build: bool
+    model_used: dict[str, object]
 
 
 @dataclass(frozen=True)
 class ExcerptRecord:
     excerpt_id: str
     doc_id: str
-    span: dict[str, int]
+    span: dict[str, object]
     hash: str
     storage_ref: str
 
@@ -110,6 +131,40 @@ class PageIndexNavigator(Protocol):
         constraints: DocIndexQueryConstraints,
     ) -> tuple[list[dict[str, object]], dict[str, object]]:
         ...
+
+
+class VisionPageReader(Protocol):
+    def read_pages(
+        self,
+        *,
+        doc_id: str,
+        source_bytes: bytes,
+        page_numbers: tuple[int, ...],
+        output_format: str,
+    ) -> dict[int, str]:
+        ...
+
+
+class LocalVisionPageReader:
+    def read_pages(
+        self,
+        *,
+        doc_id: str,
+        source_bytes: bytes,
+        page_numbers: tuple[int, ...],
+        output_format: str,
+    ) -> dict[int, str]:
+        # Local deterministic stub for offline fallback path.
+        text = source_bytes.decode("utf-8", errors="ignore")
+        segments = [x.strip() for x in text.split("\n\n") if x.strip()]
+        if not segments:
+            segments = ["<scanned-page-content-unavailable>"]
+        out: dict[int, str] = {}
+        for page in page_numbers:
+            idx = (page - 1) % len(segments)
+            body = segments[idx]
+            out[page] = body if output_format == "text" else f"## Page {page}\n\n{body}"
+        return out
 
 
 class LocalPageIndexNavigator:
@@ -148,6 +203,7 @@ class LocalPageIndexNavigator:
                     buf = f"{buf}\n{line}" if buf else line
             if buf:
                 chunks.append(buf)
+
         tree: list[dict[str, object]] = []
         summaries: dict[str, str] = {}
         cursor = 0
@@ -210,14 +266,32 @@ class DocIndexService:
         *,
         audit_log: AuditLog,
         navigator: PageIndexNavigator | None = None,
+        vision_reader: VisionPageReader | None = None,
+        runtime_capabilities: RuntimeCapabilities | None = None,
+        model_capabilities: dict[str, ModelCapabilities] | None = None,
         now_fn=None,
     ) -> None:
         self._root = vault_root / _DOCINDEX_DIR
         self._root.mkdir(parents=True, exist_ok=True)
         (self._root / _PAYLOAD_DIR).mkdir(exist_ok=True)
         (self._root / _EXCERPT_BLOB_DIR).mkdir(exist_ok=True)
+        (self._root / _SOURCE_BLOB_DIR).mkdir(exist_ok=True)
         self._audit = audit_log
         self._navigator = navigator if navigator is not None else LocalPageIndexNavigator()
+        self._vision_reader = vision_reader if vision_reader is not None else LocalVisionPageReader()
+        self._runtime_caps = runtime_capabilities if runtime_capabilities is not None else RuntimeCapabilities(
+            image_input=False,
+            tool_calling=True,
+            json_schema_mode=False,
+        )
+        self._model_caps = model_capabilities if model_capabilities is not None else {
+            _DEFAULT_MODEL_ID: ModelCapabilities(
+                model_id=_DEFAULT_MODEL_ID,
+                supports_vision=False,
+                max_ctx=8192,
+                default_kv_cache=2048,
+            )
+        }
         self._now_fn = now_fn or (lambda: datetime.now(UTC))
         self._key = self._load_or_create_key()
         self._cleanup_query_cache()
@@ -231,83 +305,112 @@ class DocIndexService:
             name="docindex_build_started",
             metadata={"doc_id": doc_id, "job_id": job_id, "source_hash": source_hash},
         )
+        self._write_source_blob(doc_id, source_bytes)
+
         records = self._load_records()
         existing = self._find_record(records, doc_id)
         now_iso = started.isoformat()
         building_record = DocumentIndexRecord(
             doc_id=doc_id,
             index_type="pageindex",
-            version="pageindex_v1",
+            version="pageindex_v2",
             created_at=existing.created_at if existing is not None else now_iso,
             updated_at=now_iso,
             source_hash=source_hash,
             index_hash="",
             status="building",
             error_summary=None,
+            requires_ocr=False,
+            vision_enabled_at_build=self._vision_enabled(),
+            model_used=self._model_used_metadata(vision_used=False),
         )
         self._upsert_record(records, building_record)
         self._save_records(records)
 
         try:
             text = source_bytes.decode("utf-8", errors="ignore")
-            excerpt_records = self._build_excerpts(doc_id=doc_id, text=text)
-            tree, node_summaries = self._navigator.build_tree(
-                doc_id=doc_id,
-                text=text,
-                max_depth=options.max_depth,
-                target_granularity=options.target_granularity,
-                include_node_summaries=options.include_node_summaries,
-            )
+            has_text_layer = self._text_quality_ok(text)
+            requires_ocr = not has_text_layer
+
+            if has_text_layer:
+                excerpt_records = self._build_excerpts(doc_id=doc_id, text=text, extraction_method="text_layer")
+                tree, node_summaries = self._navigator.build_tree(
+                    doc_id=doc_id,
+                    text=text,
+                    max_depth=options.max_depth,
+                    target_granularity=options.target_granularity,
+                    include_node_summaries=options.include_node_summaries,
+                )
+            else:
+                excerpt_records = []
+                tree, node_summaries = self._build_minimal_scanned_tree(doc_id=doc_id, source_bytes=source_bytes)
+
             payload = {
                 "tree": tree,
                 "node_summaries": node_summaries,
                 "page_text_map": {
-                    node["node_id"]: [x.excerpt_id for x in excerpt_records if x.span["char_start"] <= int(node["char_end"])]
+                    node["node_id"]: [
+                        x.excerpt_id
+                        for x in excerpt_records
+                        if int(x.span.get("char_start", 10**9)) <= int(node.get("char_end", -1))
+                    ]
                     for node in tree
                 },
+                "vision_artifacts": {},
                 "build_metadata": {
-                    "model_id": self._navigator.model_id(),
-                    "ctx": 8192,
+                    "agent_model_id": self._navigator.model_id(),
+                    "vision_model_id": self._navigator.model_id() if self._vision_enabled() else None,
+                    "ctx": self._model_caps.get(self._navigator.model_id(), self._default_model_caps()).max_ctx,
                     "prompt_template_hash": self._navigator.prompt_template_hash(),
                     "runtime_id": "local-offline",
                     "build_time_seconds": max(0, int((self._now_fn() - started).total_seconds())),
                     "llm_endpoint": options.llm_endpoint,
+                    "requires_ocr": requires_ocr,
+                    "vision_enabled_at_build": self._vision_enabled(),
                 },
             }
             index_hash = hashlib.sha256(
                 json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
             ).hexdigest()
             self._write_payload(doc_id, payload)
-            self._upsert_excerpts(excerpt_records)
+            if excerpt_records:
+                self._upsert_excerpts(excerpt_records)
+
             ready = DocumentIndexRecord(
                 doc_id=doc_id,
                 index_type="pageindex",
-                version="pageindex_v1",
+                version="pageindex_v2",
                 created_at=building_record.created_at,
                 updated_at=self._now_fn().isoformat(),
                 source_hash=source_hash,
                 index_hash=index_hash,
                 status="ready",
                 error_summary=None,
+                requires_ocr=requires_ocr,
+                vision_enabled_at_build=self._vision_enabled(),
+                model_used=self._model_used_metadata(vision_used=requires_ocr and self._vision_enabled()),
             )
             self._upsert_record(records, ready)
             self._save_records(records)
             self._audit.record(
                 name="docindex_build_completed",
-                metadata={"doc_id": doc_id, "job_id": job_id, "index_hash": index_hash},
+                metadata={"doc_id": doc_id, "job_id": job_id, "index_hash": index_hash, "requires_ocr": requires_ocr},
             )
             return JobRef(job_id=job_id, doc_id=doc_id, status="ready")
         except Exception:
             failed = DocumentIndexRecord(
                 doc_id=doc_id,
                 index_type="pageindex",
-                version="pageindex_v1",
+                version="pageindex_v2",
                 created_at=building_record.created_at,
                 updated_at=self._now_fn().isoformat(),
                 source_hash=source_hash,
                 index_hash="",
                 status="failed",
                 error_summary="docindex build failed",
+                requires_ocr=False,
+                vision_enabled_at_build=self._vision_enabled(),
+                model_used=self._model_used_metadata(vision_used=False),
             )
             self._upsert_record(records, failed)
             self._save_records(records)
@@ -343,6 +446,9 @@ class DocIndexService:
                 index_hash=record.index_hash,
                 status="stale",
                 error_summary="source_hash changed",
+                requires_ocr=record.requires_ocr,
+                vision_enabled_at_build=record.vision_enabled_at_build,
+                model_used=record.model_used,
             )
             self._upsert_record(records, stale)
             self._save_records(records)
@@ -363,6 +469,73 @@ class DocIndexService:
 
         started = self._now_fn()
         payload = self._read_payload(doc_id)
+
+        if record.requires_ocr:
+            if not self._vision_enabled():
+                result = PageIndexResult(
+                    doc_id=doc_id,
+                    query=query,
+                    hits=[],
+                    trace={
+                        "alert": "Scanned PDF requires OCR; vision not available in this runtime/model.",
+                        "requires_ocr": True,
+                    },
+                    model_used=self._model_used_metadata(vision_used=False),
+                    elapsed_ms=max(0, int((self._now_fn() - started).total_seconds() * 1000)),
+                )
+                self._set_cached_query(cache_key, result)
+                self._audit.record(
+                    name="docindex_query_executed",
+                    metadata={"doc_id": doc_id, "query_hash": query_hash, "cached": False, "requires_ocr": True},
+                )
+                return result
+
+            tree = payload.get("tree", [])
+            node_summaries = payload.get("node_summaries", {})
+            hits_nodes, trace = self._navigator.query_tree(
+                tree=tree,
+                node_summaries=node_summaries,
+                query=query,
+                constraints=constraints,
+            )
+            page_numbers: list[int] = []
+            for node in hits_nodes:
+                page_numbers.append(max(1, int(node.get("page_start", 1))))
+            if not page_numbers:
+                page_numbers = [1]
+            vision = self.vision_read_pages(
+                doc_id=doc_id,
+                page_numbers=tuple(page_numbers),
+                output_format="markdown",
+                max_pages=max(1, min(3, constraints.max_results)),
+                options=options,
+            )
+            hits = [
+                {
+                    "node_path": [{"node_id": f"{doc_id}:page:{item['page']}", "title": f"Page {item['page']}"}],
+                    "page_range": item["page_range"],
+                    "excerpt_ids": [item["excerpt_id"]],
+                    "score": 1.0,
+                    "rationale": "vision_page_match",
+                    "doc_id": doc_id,
+                }
+                for item in vision["results"]
+            ]
+            result = PageIndexResult(
+                doc_id=doc_id,
+                query=query,
+                hits=hits,
+                trace={**trace, "vision_fallback": True},
+                model_used=self._model_used_metadata(vision_used=True),
+                elapsed_ms=max(0, int((self._now_fn() - started).total_seconds() * 1000)),
+            )
+            self._set_cached_query(cache_key, result)
+            self._audit.record(
+                name="docindex_query_executed",
+                metadata={"doc_id": doc_id, "query_hash": query_hash, "cached": False, "requires_ocr": True},
+            )
+            return result
+
         tree = payload["tree"]
         node_summaries = payload.get("node_summaries", {})
         hits_nodes, trace = self._navigator.query_tree(
@@ -377,11 +550,7 @@ class DocIndexService:
             query=query,
             hits=hits,
             trace=trace,
-            model_used={
-                "model_id": payload["build_metadata"]["model_id"],
-                "ctx": payload["build_metadata"]["ctx"],
-                "prompt_template_hash": payload["build_metadata"]["prompt_template_hash"],
-            },
+            model_used=self._model_used_metadata(vision_used=False),
             elapsed_ms=max(0, int((self._now_fn() - started).total_seconds() * 1000)),
         )
         self._set_cached_query(cache_key, result)
@@ -390,6 +559,91 @@ class DocIndexService:
             metadata={"doc_id": doc_id, "query_hash": query_hash, "cached": False},
         )
         return result
+
+    def vision_read_pages(
+        self,
+        *,
+        doc_id: str,
+        page_numbers: tuple[int, ...],
+        output_format: str = "markdown",
+        max_pages: int = 3,
+        include_coordinates: bool = False,
+        options: DocIndexBuildOptions,
+    ) -> dict[str, object]:
+        self._validate_build_options(options)
+        if not self._vision_enabled():
+            raise PermissionError("vision is not enabled for this runtime/model")
+        if output_format not in {"markdown", "text"}:
+            raise ValueError("output_format must be markdown or text")
+        if max_pages < 1:
+            raise ValueError("max_pages must be >= 1")
+
+        unique_pages = []
+        seen = set()
+        for value in page_numbers:
+            if value <= 0 or value in seen:
+                continue
+            seen.add(value)
+            unique_pages.append(value)
+            if len(unique_pages) >= min(10, max_pages):
+                break
+        if not unique_pages:
+            raise ValueError("at least one valid page number is required")
+
+        source_bytes = self._read_source_blob(doc_id)
+        started = self._now_fn()
+        page_text = self._vision_reader.read_pages(
+            doc_id=doc_id,
+            source_bytes=source_bytes,
+            page_numbers=tuple(unique_pages),
+            output_format=output_format,
+        )
+        results: list[dict[str, object]] = []
+        new_excerpt_records: list[ExcerptRecord] = []
+        payload = self._read_payload(doc_id)
+        vision_artifacts = payload.get("vision_artifacts")
+        if not isinstance(vision_artifacts, dict):
+            vision_artifacts = {}
+
+        for page in unique_pages:
+            text = page_text.get(page, "")
+            excerpt = self._store_excerpt_text(
+                doc_id=doc_id,
+                text=text,
+                span={"page_start": page, "page_end": page, "extraction_method": "vision"},
+            )
+            new_excerpt_records.append(excerpt)
+            key = str(page)
+            prior = vision_artifacts.get(key)
+            if not isinstance(prior, list):
+                prior = []
+            prior.append(excerpt.excerpt_id)
+            vision_artifacts[key] = prior
+            results.append(
+                {
+                    "page": page,
+                    "excerpt_id": excerpt.excerpt_id,
+                    "page_range": {"start": page, "end": page},
+                    "coordinates": None if not include_coordinates else {},
+                }
+            )
+
+        if new_excerpt_records:
+            self._append_excerpts(new_excerpt_records)
+            payload["vision_artifacts"] = vision_artifacts
+            self._write_payload(doc_id, payload)
+
+        elapsed_ms = max(0, int((self._now_fn() - started).total_seconds() * 1000))
+        self._audit.record(
+            name="vision_read_pages_executed",
+            metadata={"doc_id": doc_id, "page_numbers": unique_pages, "count": len(unique_pages)},
+        )
+        return {
+            "doc_id": doc_id,
+            "results": results,
+            "model_used": self._model_used_metadata(vision_used=True),
+            "elapsed_ms": elapsed_ms,
+        }
 
     def fetch_excerpt(self, excerpt_id: str) -> dict[str, object]:
         excerpt = self._find_excerpt(excerpt_id)
@@ -410,9 +664,10 @@ class DocIndexService:
 
     def get_record_status(self, doc_id: str) -> str | None:
         record = self._find_record(self._load_records(), doc_id)
-        if record is None:
-            return None
-        return record.status
+        return record.status if record is not None else None
+
+    def get_record(self, doc_id: str) -> DocumentIndexRecord | None:
+        return self._find_record(self._load_records(), doc_id)
 
     def _node_to_hit(
         self,
@@ -423,67 +678,75 @@ class DocIndexService:
         payload: dict[str, object],
     ) -> dict[str, object]:
         node_id = str(node["node_id"])
-        excerpt_ids = payload.get("page_text_map", {}).get(node_id, [])
-        page_or_span: dict[str, int]
+        page_text_map = payload.get("page_text_map")
+        excerpt_ids: list[str] = []
+        if isinstance(page_text_map, dict):
+            values = page_text_map.get(node_id)
+            if isinstance(values, list):
+                excerpt_ids = [str(x) for x in values]
         if constraints.require_page_ranges:
-            page_or_span = {"start": int(node.get("page_start", 1)), "end": int(node.get("page_end", 1))}
+            range_payload = {"start": int(node.get("page_start", 1)), "end": int(node.get("page_end", 1))}
             range_key = "page_range"
         else:
-            page_or_span = {"char_start": int(node.get("char_start", 0)), "char_end": int(node.get("char_end", 0))}
+            range_payload = {"char_start": int(node.get("char_start", 0)), "char_end": int(node.get("char_end", 0))}
             range_key = "span_range"
         return {
             "node_path": [{"node_id": node_id, "title": str(node.get("title", ""))}],
-            range_key: page_or_span,
-            "excerpt_ids": list(excerpt_ids),
+            range_key: range_payload,
+            "excerpt_ids": excerpt_ids,
             "score": 1.0,
             "rationale": "node_match",
             "doc_id": doc_id,
         }
 
-    def _build_excerpts(self, *, doc_id: str, text: str) -> list[ExcerptRecord]:
+    def _build_excerpts(self, *, doc_id: str, text: str, extraction_method: str) -> list[ExcerptRecord]:
         records: list[ExcerptRecord] = []
         chunk_size = 450
-        cursor = 0
         for start in range(0, len(text), chunk_size):
             segment = text[start : start + chunk_size]
             if not segment:
                 continue
-            excerpt_id = str(uuid.uuid4())
-            hash_value = hashlib.sha256(segment.encode("utf-8")).hexdigest()
-            storage_ref = f"{excerpt_id}.enc"
-            blob_path = self._root / _EXCERPT_BLOB_DIR / storage_ref
-            blob_path.write_bytes(encrypt_bytes(segment.encode("utf-8"), self._key))
             records.append(
-                ExcerptRecord(
-                    excerpt_id=excerpt_id,
+                self._store_excerpt_text(
                     doc_id=doc_id,
-                    span={"char_start": start, "char_end": start + len(segment)},
-                    hash=hash_value,
-                    storage_ref=storage_ref,
+                    text=segment,
+                    span={"char_start": start, "char_end": start + len(segment), "extraction_method": extraction_method},
                 )
             )
-            cursor += len(segment)
         if not records:
-            excerpt_id = str(uuid.uuid4())
-            storage_ref = f"{excerpt_id}.enc"
-            blob_path = self._root / _EXCERPT_BLOB_DIR / storage_ref
-            blob_path.write_bytes(encrypt_bytes(b"", self._key))
             records.append(
-                ExcerptRecord(
-                    excerpt_id=excerpt_id,
+                self._store_excerpt_text(
                     doc_id=doc_id,
-                    span={"char_start": 0, "char_end": 0},
-                    hash=hashlib.sha256(b"").hexdigest(),
-                    storage_ref=storage_ref,
+                    text="",
+                    span={"char_start": 0, "char_end": 0, "extraction_method": extraction_method},
                 )
             )
         return records
 
+    def _store_excerpt_text(self, *, doc_id: str, text: str, span: dict[str, object]) -> ExcerptRecord:
+        excerpt_id = str(uuid.uuid4())
+        plaintext = text.encode("utf-8")
+        hash_value = hashlib.sha256(plaintext).hexdigest()
+        storage_ref = f"{excerpt_id}.enc"
+        blob_path = self._root / _EXCERPT_BLOB_DIR / storage_ref
+        blob_path.write_bytes(encrypt_bytes(plaintext, self._key))
+        return ExcerptRecord(
+            excerpt_id=excerpt_id,
+            doc_id=doc_id,
+            span=span,
+            hash=hash_value,
+            storage_ref=storage_ref,
+        )
+
     def _upsert_excerpts(self, excerpts: list[ExcerptRecord]) -> None:
         current = [x for x in self._load_excerpts() if x.doc_id != excerpts[0].doc_id]
         current.extend(excerpts)
-        payload = [asdict(x) for x in current]
-        self._write_encrypted_json(self._root / _EXCERPTS_FILE, payload)
+        self._write_encrypted_json(self._root / _EXCERPTS_FILE, [asdict(x) for x in current])
+
+    def _append_excerpts(self, excerpts: list[ExcerptRecord]) -> None:
+        current = self._load_excerpts()
+        current.extend(excerpts)
+        self._write_encrypted_json(self._root / _EXCERPTS_FILE, [asdict(x) for x in current])
 
     def _find_excerpt(self, excerpt_id: str) -> ExcerptRecord | None:
         for item in self._load_excerpts():
@@ -499,11 +762,14 @@ class DocIndexService:
         for raw in payload:
             if not isinstance(raw, dict):
                 continue
+            span_raw = raw.get("span", {})
+            if not isinstance(span_raw, dict):
+                span_raw = {}
             out.append(
                 ExcerptRecord(
                     excerpt_id=str(raw["excerpt_id"]),
                     doc_id=str(raw["doc_id"]),
-                    span={"char_start": int(raw["span"]["char_start"]), "char_end": int(raw["span"]["char_end"])},
+                    span=dict(span_raw),
                     hash=str(raw["hash"]),
                     storage_ref=str(raw["storage_ref"]),
                 )
@@ -513,10 +779,62 @@ class DocIndexService:
     def _read_excerpt_text(self, excerpt: ExcerptRecord) -> str:
         path = self._root / _EXCERPT_BLOB_DIR / excerpt.storage_ref
         plaintext = decrypt_bytes(path.read_bytes(), self._key)
-        text = plaintext.decode("utf-8")
         if hashlib.sha256(plaintext).hexdigest() != excerpt.hash:
             raise ValueError("excerpt integrity mismatch")
-        return text
+        return plaintext.decode("utf-8")
+
+    def _build_minimal_scanned_tree(self, *, doc_id: str, source_bytes: bytes) -> tuple[list[dict[str, object]], dict[str, str]]:
+        approx_pages = max(1, min(20, len(source_bytes) // 2048 + 1))
+        tree: list[dict[str, object]] = []
+        summaries: dict[str, str] = {}
+        for page in range(1, approx_pages + 1):
+            node_id = f"{doc_id}:page:{page}"
+            tree.append(
+                {
+                    "node_id": node_id,
+                    "title": f"Page {page}",
+                    "depth": 1,
+                    "page_start": page,
+                    "page_end": page,
+                    "char_start": 0,
+                    "char_end": 0,
+                    "children": [],
+                }
+            )
+            summaries[node_id] = "scanned page"
+        return tree, summaries
+
+    def _text_quality_ok(self, text: str) -> bool:
+        cleaned = text.strip()
+        if len(cleaned) < _MIN_TEXT_THRESHOLD:
+            return False
+        printable = sum(1 for ch in cleaned if ch.isprintable())
+        ratio = printable / max(1, len(cleaned))
+        return ratio >= _MIN_PRINTABLE_RATIO
+
+    def _vision_enabled(self) -> bool:
+        model_caps = self._model_caps.get(_DEFAULT_MODEL_ID)
+        if model_caps is None:
+            return False
+        return bool(self._runtime_caps.image_input and model_caps.supports_vision)
+
+    def _model_used_metadata(self, *, vision_used: bool) -> dict[str, object]:
+        model_caps = self._model_caps.get(_DEFAULT_MODEL_ID, self._default_model_caps())
+        return {
+            "agent_model_id": _DEFAULT_MODEL_ID,
+            "vision_model_id": _DEFAULT_MODEL_ID if vision_used else None,
+            "prompt_template_hash": self._navigator.prompt_template_hash(),
+            "ctx": model_caps.max_ctx,
+        }
+
+    @staticmethod
+    def _default_model_caps() -> ModelCapabilities:
+        return ModelCapabilities(
+            model_id=_DEFAULT_MODEL_ID,
+            supports_vision=False,
+            max_ctx=8192,
+            default_kv_cache=2048,
+        )
 
     def _cleanup_query_cache(self) -> None:
         now = self._now_fn()
@@ -600,6 +918,16 @@ class DocIndexService:
             raise ValueError("invalid payload")
         return payload
 
+    def _write_source_blob(self, doc_id: str, source_bytes: bytes) -> None:
+        path = self._root / _SOURCE_BLOB_DIR / f"{doc_id}.enc"
+        path.write_bytes(encrypt_bytes(source_bytes, self._key))
+
+    def _read_source_blob(self, doc_id: str) -> bytes:
+        path = self._root / _SOURCE_BLOB_DIR / f"{doc_id}.enc"
+        if not path.exists():
+            raise KeyError(f"source blob missing for doc_id: {doc_id}")
+        return decrypt_bytes(path.read_bytes(), self._key)
+
     def _load_records(self) -> list[DocumentIndexRecord]:
         payload = self._read_encrypted_json(self._root / _RECORDS_FILE, default=[])
         out: list[DocumentIndexRecord] = []
@@ -608,24 +936,29 @@ class DocIndexService:
         for raw in payload:
             if not isinstance(raw, dict):
                 continue
+            model_used = raw.get("model_used")
+            if not isinstance(model_used, dict):
+                model_used = self._model_used_metadata(vision_used=False)
             out.append(
                 DocumentIndexRecord(
                     doc_id=str(raw["doc_id"]),
-                    index_type=str(raw["index_type"]),
-                    version=str(raw["version"]),
+                    index_type=str(raw.get("index_type", "pageindex")),
+                    version=str(raw.get("version", "pageindex_v1")),
                     created_at=str(raw["created_at"]),
                     updated_at=str(raw["updated_at"]),
                     source_hash=str(raw["source_hash"]),
                     index_hash=str(raw["index_hash"]),
                     status=str(raw["status"]),  # type: ignore[arg-type]
                     error_summary=raw.get("error_summary"),
+                    requires_ocr=bool(raw.get("requires_ocr", False)),
+                    vision_enabled_at_build=bool(raw.get("vision_enabled_at_build", False)),
+                    model_used=model_used,
                 )
             )
         return out
 
     def _save_records(self, records: list[DocumentIndexRecord]) -> None:
-        payload = [asdict(x) for x in records]
-        self._write_encrypted_json(self._root / _RECORDS_FILE, payload)
+        self._write_encrypted_json(self._root / _RECORDS_FILE, [asdict(x) for x in records])
 
     @staticmethod
     def _find_record(records: list[DocumentIndexRecord], doc_id: str) -> DocumentIndexRecord | None:
@@ -653,8 +986,7 @@ class DocIndexService:
 
     def _write_encrypted_json(self, path: Path, payload: object) -> None:
         plaintext = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
-        encrypted = encrypt_bytes(plaintext, self._key)
-        path.write_bytes(encrypted)
+        path.write_bytes(encrypt_bytes(plaintext, self._key))
 
     def _load_or_create_key(self) -> bytes:
         path = self._root / _KEY_FILE
