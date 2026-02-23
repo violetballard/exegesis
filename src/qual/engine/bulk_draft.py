@@ -34,6 +34,7 @@ BulkDraftReason = Literal[
 BEST_MODEL_ID = "gpt-oss-120b"
 FAST_MODEL_ID = "magistral-small"
 EDITOR_MODEL_ID = "mistral-small"
+_BEHAVIOR_TIERS: tuple[int, ...] = (32, 64, 128, 256, 512)
 _BEST_ALLOWLIST: set[str] = {
     "draft_from_outline",
     "expand_outline",
@@ -46,7 +47,7 @@ _DRAFTING_MODE_MAX_CTX = 16_000
 
 @dataclass(frozen=True)
 class PackMetadata:
-    memory_tier_gb: int
+    pack_memory_tier_gb: int
     installed_models: tuple[str, ...]
 
     def contains_model(self, model_id: str) -> bool:
@@ -63,6 +64,21 @@ class BulkDraftCapabilities:
     supports_best_bulk: bool
     supports_best_bulk_resident: bool
     supports_best_bulk_ondemand: bool
+
+
+@dataclass(frozen=True)
+class MemoryTierSelection:
+    behavior_tier_gb: int
+    selected_pack_tier_gb: int
+    pack_matches_behavior_tier: bool
+    warn_safest_pack_fallback: bool
+
+
+@dataclass(frozen=True)
+class ContextHeadroomPolicy:
+    planner_multiplier: float
+    editor_multiplier: float
+    drafter_multiplier: float
 
 
 @dataclass(frozen=True)
@@ -140,15 +156,89 @@ EditorRunner = Callable[[BulkDraftRequest, DraftPassOutput], DraftPassOutput]
 
 
 def compute_capabilities(pack: PackMetadata, runtime: RuntimeSupport) -> BulkDraftCapabilities:
+    return compute_capabilities_for_behavior_tier(pack, runtime, behavior_tier_gb=pack.pack_memory_tier_gb)
+
+
+def compute_capabilities_for_unified_memory(
+    pack: PackMetadata,
+    runtime: RuntimeSupport,
+    *,
+    unified_memory_gb: int,
+) -> BulkDraftCapabilities:
+    behavior_tier_gb = map_unified_memory_to_behavior_tier(unified_memory_gb)
+    return compute_capabilities_for_behavior_tier(pack, runtime, behavior_tier_gb=behavior_tier_gb)
+
+
+def compute_capabilities_for_behavior_tier(
+    pack: PackMetadata,
+    runtime: RuntimeSupport,
+    *,
+    behavior_tier_gb: int,
+) -> BulkDraftCapabilities:
     runtime_supports_best = runtime.supports_model(BEST_MODEL_ID)
     supports_best_bulk = pack.contains_model(BEST_MODEL_ID) and runtime_supports_best
-    supports_best_bulk_resident = supports_best_bulk and pack.memory_tier_gb >= 256
-    supports_best_bulk_ondemand = supports_best_bulk and pack.memory_tier_gb >= 128
+    supports_best_bulk_ondemand = supports_best_bulk and behavior_tier_gb >= 128
+    supports_best_bulk_resident = supports_best_bulk and behavior_tier_gb >= 256
     return BulkDraftCapabilities(
         supports_best_bulk=supports_best_bulk,
         supports_best_bulk_resident=supports_best_bulk_resident,
         supports_best_bulk_ondemand=supports_best_bulk_ondemand,
     )
+
+
+def map_unified_memory_to_behavior_tier(unified_memory_gb: int) -> int:
+    if unified_memory_gb < 32:
+        raise ValueError("Minimum supported memory is 32GB unified.")
+    if unified_memory_gb <= 47:
+        return 32
+    if unified_memory_gb <= 95:
+        return 64
+    if unified_memory_gb <= 255:
+        return 128
+    if unified_memory_gb <= 511:
+        return 256
+    return 512
+
+
+def select_behavior_and_pack_tier(
+    *,
+    unified_memory_gb: int,
+    installed_pack_tiers: tuple[int, ...],
+) -> MemoryTierSelection:
+    behavior_tier_gb = map_unified_memory_to_behavior_tier(unified_memory_gb)
+    selected_pack_tier_gb = _select_pack_tier(behavior_tier_gb, installed_pack_tiers)
+    return MemoryTierSelection(
+        behavior_tier_gb=behavior_tier_gb,
+        selected_pack_tier_gb=selected_pack_tier_gb,
+        pack_matches_behavior_tier=selected_pack_tier_gb == behavior_tier_gb,
+        warn_safest_pack_fallback=selected_pack_tier_gb != behavior_tier_gb,
+    )
+
+
+def context_headroom_policy(unified_memory_gb: int) -> ContextHeadroomPolicy:
+    if 192 <= unified_memory_gb <= 255:
+        return ContextHeadroomPolicy(
+            planner_multiplier=1.25,
+            editor_multiplier=1.25,
+            drafter_multiplier=1.25,
+        )
+    return ContextHeadroomPolicy(
+        planner_multiplier=1.0,
+        editor_multiplier=1.0,
+        drafter_multiplier=1.0,
+    )
+
+
+def _select_pack_tier(behavior_tier_gb: int, installed_pack_tiers: tuple[int, ...]) -> int:
+    installed = set(installed_pack_tiers)
+    if behavior_tier_gb in installed:
+        return behavior_tier_gb
+
+    for tier in reversed(_BEHAVIOR_TIERS):
+        if tier < behavior_tier_gb and tier in installed:
+            return tier
+
+    raise ValueError("No supported pack tiers are installed.")
 
 
 def route_bulk_draft(payload: BulkDraftRoutingInput) -> BulkDraftRoutingDecision:
