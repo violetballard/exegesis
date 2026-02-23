@@ -91,6 +91,7 @@ Scope:
 - Ensure compatibility targets for multiple clients (including future Studio)
 - Add capabilities handshake and composable `GenericCard` primitives with safe unknown-card fallback
 - Enforce typed/allowlisted actions with engine-authoritative `PolicyGate`
+- Add deterministic terminal chat routing (Magistral default + Qwen escalation) with no UI model choice
 
 Exit criteria:
 - A2UI schema/versioning is documented and stable
