@@ -142,8 +142,7 @@ class VaultService:
             elif path == self._backup_state_path(path.parent):
                 self._unlink_if_exists(path)
             return None
-        schema_version = payload.get("schema_version", 0)
-        if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
+        if not self._is_compatible_payload(payload):
             if path == self._tmp_state_path(path.parent):
                 self._unlink_if_exists(path)
             elif path == self._backup_state_path(path.parent):
@@ -172,6 +171,9 @@ class VaultService:
             return False
         if not isinstance(payload, dict):
             return False
+        return self._is_compatible_payload(payload)
+
+    def _is_compatible_payload(self, payload: dict[str, object]) -> bool:
         schema_version = payload.get("schema_version", 0)
         if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
             return False
@@ -230,7 +232,9 @@ class VaultService:
         if not candidate:
             return None
         try:
-            datetime.fromisoformat(candidate.replace("Z", "+00:00"))
+            parsed = datetime.fromisoformat(candidate.replace("Z", "+00:00"))
         except ValueError:
             return None
-        return candidate
+        if parsed.tzinfo is None:
+            return None
+        return parsed.astimezone(UTC).isoformat()
