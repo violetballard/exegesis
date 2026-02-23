@@ -15,6 +15,11 @@ Client sends `A2UI_CAPABILITIES` at session start:
 
 Engine stores capabilities per session and adapts output to supported cards/blocks/actions.
 
+Reference clients:
+- CLI text fallback renderer
+- Local Web Console renderer (localhost-only reference client)
+- Future Exegesis Studio renderer
+
 ## Card Model
 
 Required default:
@@ -78,6 +83,11 @@ Each action includes:
 
 Studio validates actions and payloads client-side. Engine re-validates and enforces `PolicyGate`.
 
+Web Console follows the same action model:
+- client-side action/payload validation
+- engine-side allowlist and schema re-validation
+- engine-authoritative policy enforcement
+
 ## Security Invariants
 
 - No arbitrary HTML/CSS/JS from agent payloads
@@ -85,3 +95,13 @@ Studio validates actions and payloads client-side. Engine re-validates and enfor
 - No engine-driven OS dialogs
 - Policy-sensitive actions require explicit user confirmation and `PolicyGate` approval
 
+## Streaming Contract
+
+A2UI-compatible streaming clients should support event-driven updates for:
+- message deltas
+- cards
+- tool call/result blocks
+- progress
+- completion (`done`)
+
+SSE is the baseline transport for the local web console.

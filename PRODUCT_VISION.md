@@ -34,6 +34,7 @@ This is not only a chat interface. It is an agent runtime + workflow system.
 
 4. Operator-first control surface
 - CLI remains a first-class surface for development and reliability.
+- Engine ships a localhost-only OSS web console as a barebones reference/admin client.
 - UI can evolve on top without changing core contracts.
 - Model routing is automatic by default; user-facing model selection is not the primary control path.
 
@@ -51,6 +52,8 @@ This is not only a chat interface. It is an agent runtime + workflow system.
 - Advanced users may bind role-specific models through OpenAI-compatible local endpoints.
 - Endpoint policy is localhost-only for overrides to avoid accidental remote provider drift.
 - Overrides must preserve routing invariants and audit provenance.
+- Advanced config editing is centralized in the local web admin console, not Studio model-pickers.
+- Provider compatibility probing (`exegesis doctor` / admin probe report) is required so fallback modes are explicit to operators.
 
 ## Product Packaging Strategy
 

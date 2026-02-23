@@ -8,8 +8,16 @@ This file defines hard boundaries to keep the codebase understandable and refact
   - Owns user-facing rendering and display formatting.
   - Must not read/write storage directly.
 
+- `src/qual/webconsole/**`
+  - Owns localhost HTTP endpoints, auth/session middleware, and A2UI web rendering.
+  - Owns admin config views/edit flows for effective engine configuration.
+  - Must call engine/service interfaces only, never storage files directly.
+  - Must not bypass `PolicyGate` for typed actions.
+
 - `src/qual/engine/**`
   - Owns orchestration of user flows and app state transitions.
+  - Owns config resolution/validation/apply logic exposed to UI/CLI.
+  - Owns provider capability probing and fallback decisions from probe outputs.
   - Calls service interfaces in lower layers.
   - Must not implement crypto or raw database logic.
 
@@ -32,25 +40,31 @@ This file defines hard boundaries to keep the codebase understandable and refact
 
 Allowed direction only:
 - `ui -> engine`
+- `webconsole -> engine`
 - `commands -> drafting|context|engine` (via public entrypoints)
 - `engine -> context|storage|metrics|drafting`
+- `engine -> config|context|storage|metrics|drafting`
 - `context -> (no engine/ui imports)`
 - `storage -> (no engine/ui imports)`
 - `metrics -> (no ui imports)`
 
 Disallowed examples:
 - `ui -> storage`
+- `webconsole -> storage`
 - `ui -> metrics/db`
 - `engine -> metrics/crypto internals`
+- `webconsole -> config files on disk`
 - `commands -> storage`
 
 ## Integration Contracts
 
 - Each cross-module concern gets one thin entrypoint:
+  - config: effective-resolver + validator + apply + revision-history entrypoints only
   - metrics: recorder/report/export entrypoints only
   - storage: vault/context store entrypoints only
   - commands: public command runner only
 - Model/provider routing must be centralized in engine policy modules, not scattered across commands/UI.
+- Provider capability probes must run through one engine probe service and persist auditable capability reports.
 - Role overrides (if enabled) must flow through a single validated endpoint profile resolver.
 - No feature lane should import private helper modules from another lane.
 

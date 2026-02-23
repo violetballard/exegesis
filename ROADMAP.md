@@ -58,6 +58,7 @@ Scope:
 - Define and lock encryption-at-rest default behavior and key lifecycle policy
 - Define role-based auto-routing contract and power-user override policy
 - Define localhost-only gating for OpenAI-compatible override endpoints
+- Add provider-compatibility probe contract for OpenAI-compatible runtimes (`exegesis doctor` + admin re-probe)
 
 Exit criteria:
 - Contract changes documented and intentional
@@ -65,6 +66,7 @@ Exit criteria:
 - Main branch in publishable state
 - Encryption-by-default is enforced for persistent local state
 - Override behavior is deterministic, localhost-gated, and auditable
+- Provider capability detection and fallback behavior are explicit, testable, and operator-visible
 
 ## Milestone 4: Retrieval Layer (Planned)
 
@@ -94,11 +96,16 @@ Scope:
 - Add capabilities handshake and composable `GenericCard` primitives with safe unknown-card fallback
 - Enforce typed/allowlisted actions with engine-authoritative `PolicyGate`
 - Add deterministic terminal chat routing (Magistral default + Qwen escalation) with no UI model choice
+- Add OSS local web console reference client (`exegesis serve`) with localhost-only token auth, SSE transcript stream, and safe A2UI rendering
+- Add web-console admin config editor as canonical advanced-control surface (effective config view, validated edits, revision rollback)
+- Add Studio "Open Admin Console..." token-bridge flow so Studio stays model-picker-free
 
 Exit criteria:
 - A2UI schema/versioning is documented and stable
 - Core workflows can emit A2UI payloads and CLI fallback views
 - Output contracts are test-covered and backward-compatible by policy
+- Web console can execute MVP flow (vault -> corpus/context -> terminal -> drafts -> export/audit) against the same engine PolicyGate
+- Web console settings/config page supports safe advanced edits with audit trail and rollback
 
 ## Milestone 6: Studio Readiness Handoff (Planned)
 
@@ -109,6 +116,7 @@ Scope:
 - Define Engine-to-Studio boundary and repo split handoff package
 - Prepare integration docs for separate `Exegesis Studio` project bootstrapping
 - Add final-document preview/export contract (`export.preview`/`export.final`) with encrypted preview artifacts and TTL cleanup
+- Keep web console intentionally barebones while preserving API/A2UI parity for Studio handoff
 
 Exit criteria:
 - Engine contracts are ready for external client consumption
