@@ -137,12 +137,12 @@ class ContextBasketStore:
             return
         if not self._is_valid_payload(self._path):
             return
+        tmp = self._backup_path.with_suffix(".tmp")
         try:
-            tmp = self._backup_path.with_suffix(".tmp")
             tmp.write_bytes(self._path.read_bytes())
             tmp.replace(self._backup_path)
         except OSError:
-            return
+            self._unlink_if_exists(tmp)
 
     def _is_valid_payload(self, path: Path) -> bool:
         try:
