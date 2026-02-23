@@ -59,6 +59,7 @@ Scope:
 - Define role-based auto-routing contract and power-user override policy
 - Define localhost-only gating for OpenAI-compatible override endpoints
 - Add provider-compatibility probe contract for OpenAI-compatible runtimes (`exegesis doctor` + admin re-probe)
+- Lock shared Engine/Studio config schema (`exegesis.yml`) and precedence rules
 
 Exit criteria:
 - Contract changes documented and intentional
@@ -67,6 +68,7 @@ Exit criteria:
 - Encryption-by-default is enforced for persistent local state
 - Override behavior is deterministic, localhost-gated, and auditable
 - Provider capability detection and fallback behavior are explicit, testable, and operator-visible
+- Config source-of-truth and override precedence are explicit and testable
 
 ## Milestone 4: Retrieval Layer (Planned)
 

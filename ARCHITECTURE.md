@@ -42,7 +42,6 @@ Allowed direction only:
 - `ui -> engine`
 - `webconsole -> engine`
 - `commands -> drafting|context|engine` (via public entrypoints)
-- `engine -> context|storage|metrics|drafting`
 - `engine -> config|context|storage|metrics|drafting`
 - `context -> (no engine/ui imports)`
 - `storage -> (no engine/ui imports)`

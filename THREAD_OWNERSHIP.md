@@ -25,6 +25,13 @@ Use these branch lanes to avoid duplicate work and merge conflicts.
   - Shared by approval only:
     - `src/qual/app.py`
 
+- `codex/feat-webconsole*`
+  - Owned paths:
+    - `src/qual/webconsole/**`
+  - Shared by approval only:
+    - `WEB_CONSOLE_SPEC.md`
+    - `PROVIDER_COMPAT_PROBE_SPEC.md`
+
 ## Integrator-Locked Files
 
 Only integrator/release lanes should edit these unless explicitly approved:
