@@ -12,6 +12,7 @@ from src.qual.webconsole.api.validators import (
     parse_action_ref,
     parse_provider_probe_request,
     require_object,
+    sanitize_probe_report,
 )
 from src.qual.webconsole.auth.session import CSRF_HEADER_NAME, Session, SessionStore, parse_cookie_session_id
 
@@ -56,6 +57,7 @@ class WebConsoleApi:
         if request.method == "POST" and request.path == "/api/a2ui/capabilities":
             session = self._require_session(request)
             self._require_csrf(request, session)
+            self._require_json_content_type(request)
             payload = self._parse_json(request.body)
             capabilities = parse_a2ui_capabilities(payload)
             self.capability_sessions.register(session.session_id, capabilities)
@@ -70,11 +72,12 @@ class WebConsoleApi:
             )
         if request.method == "GET" and request.path == "/api/provider/probe_report":
             self._require_session(request)
-            report = self.probe_service.get_probe_report()
+            report = sanitize_probe_report(self.probe_service.get_probe_report())
             return ApiResponse(status=200, payload={"ok": True, "report": report})
         if request.method == "POST" and request.path == "/api/provider/probe":
             session = self._require_session(request)
             self._require_csrf(request, session)
+            self._require_json_content_type(request)
             # Accept optional JSON body for forward-compatible request shape.
             payload = self._parse_json(request.body) if request.body else {}
             probe_request = parse_provider_probe_request(payload)
@@ -86,13 +89,14 @@ class WebConsoleApi:
                     ).enforce_localhost_llm()
                 except PermissionError as exc:
                     raise ApiError(status=403, message=str(exc)) from exc
-            report = self.probe_service.run_probe()
+            report = sanitize_probe_report(self.probe_service.run_probe())
             return ApiResponse(status=200, payload={"ok": True, "report": report})
         if request.method == "POST" and request.path == "/api/actions/execute":
             if self.action_gateway is None:
                 raise ApiError(status=503, message="Action gateway is not configured")
             session = self._require_session(request)
             self._require_csrf(request, session)
+            self._require_json_content_type(request)
             payload = self._parse_json(request.body)
             action = parse_action_ref(payload)
             result = self.action_gateway.execute(session_id=session.session_id, action=action)
@@ -124,3 +128,8 @@ class WebConsoleApi:
         sent = request.headers.get(CSRF_HEADER_NAME)
         if not sent or sent != session.csrf_token:
             raise ApiError(status=403, message="Invalid CSRF token")
+
+    def _require_json_content_type(self, request: ApiRequest) -> None:
+        content_type = request.headers.get("content-type", "")
+        if "application/json" not in content_type:
+            raise ApiError(status=415, message="Content-Type must be application/json")
