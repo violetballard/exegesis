@@ -1,0 +1,27 @@
+<section id="terminal-root" class="panel" data-session-id="{{session_id}}" data-stream-url="{{stream_url}}" data-send-url="{{send_url}}" data-actions-url="{{actions_url}}">
+  <h2>Terminal Transcript</h2>
+  <p class="muted">Streaming over SSE. Only structured payload rendering is supported.</p>
+
+  <div class="terminal-columns">
+    <section class="card-column">
+      <h3>Transcript</h3>
+      <pre id="terminal-transcript" class="transcript" aria-live="polite"></pre>
+    </section>
+
+    <section class="card-column">
+      <h3>Cards</h3>
+      <div id="terminal-cards" class="cards"></div>
+    </section>
+
+    <section class="card-column">
+      <h3>Events</h3>
+      <ul id="terminal-events" class="events"></ul>
+    </section>
+  </div>
+
+  <form id="terminal-send-form" class="send-form" autocomplete="off">
+    <label for="terminal-input">Send message</label>
+    <textarea id="terminal-input" name="message" rows="3" placeholder="Type a message"></textarea>
+    <button type="submit">Send</button>
+  </form>
+</section>
