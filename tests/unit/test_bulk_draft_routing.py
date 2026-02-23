@@ -12,7 +12,11 @@ from src.qual.engine.bulk_draft import (
     DraftPassOutput,
     PackMetadata,
     compute_capabilities,
+    compute_capabilities_for_unified_memory,
+    context_headroom_policy,
     execute_bulk_draft,
+    map_unified_memory_to_behavior_tier,
+    select_behavior_and_pack_tier,
     route_bulk_draft,
 )
 
@@ -45,15 +49,64 @@ class _ResidentStub:
 
 
 class BulkDraftRoutingTests(unittest.TestCase):
+    def test_unified_memory_maps_to_expected_behavior_tiers(self) -> None:
+        self.assertEqual(map_unified_memory_to_behavior_tier(32), 32)
+        self.assertEqual(map_unified_memory_to_behavior_tier(48), 64)
+        self.assertEqual(map_unified_memory_to_behavior_tier(64), 64)
+        self.assertEqual(map_unified_memory_to_behavior_tier(96), 128)
+        self.assertEqual(map_unified_memory_to_behavior_tier(128), 128)
+        self.assertEqual(map_unified_memory_to_behavior_tier(192), 128)
+        self.assertEqual(map_unified_memory_to_behavior_tier(256), 256)
+        self.assertEqual(map_unified_memory_to_behavior_tier(512), 512)
+
+    def test_unified_memory_below_32_is_blocked(self) -> None:
+        with self.assertRaises(ValueError):
+            map_unified_memory_to_behavior_tier(31)
+
+    def test_192_gets_128_behavior_with_headroom_adjustment(self) -> None:
+        selection = select_behavior_and_pack_tier(unified_memory_gb=192, installed_pack_tiers=(64, 128, 256))
+        policy = context_headroom_policy(192)
+        self.assertEqual(selection.behavior_tier_gb, 128)
+        self.assertEqual(selection.selected_pack_tier_gb, 128)
+        self.assertAlmostEqual(policy.planner_multiplier, 1.25)
+        self.assertAlmostEqual(policy.editor_multiplier, 1.25)
+        self.assertAlmostEqual(policy.drafter_multiplier, 1.25)
+
+    def test_pack_selection_falls_back_to_next_lower_only(self) -> None:
+        selection = select_behavior_and_pack_tier(unified_memory_gb=512, installed_pack_tiers=(64, 128, 256))
+        self.assertEqual(selection.behavior_tier_gb, 512)
+        self.assertEqual(selection.selected_pack_tier_gb, 256)
+        self.assertFalse(selection.pack_matches_behavior_tier)
+        self.assertTrue(selection.warn_safest_pack_fallback)
+
     def test_128gb_pack_with_model_supports_ondemand_not_resident(self) -> None:
-        pack = PackMetadata(memory_tier_gb=128, installed_models=(BEST_MODEL_ID,))
+        pack = PackMetadata(pack_memory_tier_gb=128, installed_models=(BEST_MODEL_ID,))
         caps = compute_capabilities(pack, _RuntimeStub({BEST_MODEL_ID}))
         self.assertTrue(caps.supports_best_bulk)
         self.assertFalse(caps.supports_best_bulk_resident)
         self.assertTrue(caps.supports_best_bulk_ondemand)
 
+    def test_96_mapped_to_128_behavior_supports_best_ondemand(self) -> None:
+        pack = PackMetadata(pack_memory_tier_gb=128, installed_models=(BEST_MODEL_ID,))
+        caps = compute_capabilities_for_unified_memory(
+            pack,
+            _RuntimeStub({BEST_MODEL_ID}),
+            unified_memory_gb=96,
+        )
+        self.assertTrue(caps.supports_best_bulk_ondemand)
+
+    def test_192_mapped_to_128_behavior_supports_best_ondemand_not_resident(self) -> None:
+        pack = PackMetadata(pack_memory_tier_gb=128, installed_models=(BEST_MODEL_ID,))
+        caps = compute_capabilities_for_unified_memory(
+            pack,
+            _RuntimeStub({BEST_MODEL_ID}),
+            unified_memory_gb=192,
+        )
+        self.assertTrue(caps.supports_best_bulk_ondemand)
+        self.assertFalse(caps.supports_best_bulk_resident)
+
     def test_256gb_pack_supports_resident(self) -> None:
-        pack = PackMetadata(memory_tier_gb=256, installed_models=(BEST_MODEL_ID,))
+        pack = PackMetadata(pack_memory_tier_gb=256, installed_models=(BEST_MODEL_ID,))
         caps = compute_capabilities(pack, _RuntimeStub({BEST_MODEL_ID}))
         self.assertTrue(caps.supports_best_bulk_resident)
 

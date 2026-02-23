@@ -37,11 +37,27 @@ All other operations force `fast`.
 
 ## Capability Gates
 
-Compute from installed pack metadata + runtime support:
+Compute from behavior tier + installed pack metadata + runtime support.
+Behavior tier is auto-mapped from unified memory:
+
+- `<32` => unsupported (minimum supported memory is 32GB unified)
+- `32..47` => `32`
+- `48..95` => `64`
+- `96..191` => `128`
+- `192..255` => `128` (extra headroom profile; no new SKU)
+- `256..511` => `256`
+- `>=512` => `512`
+
+Pack selection:
+- prefer exact `pack_memory_tier_gb == behavior_tier_gb`
+- if missing, choose next-lower pack only (`512 -> 256 -> 128 -> 64 -> 32`)
+- never auto-select a higher tier
+
+Capability gates:
 
 - `supports_best_bulk := pack.contains_model("gpt-oss-120b") AND runtime.supports_model("gpt-oss-120b")`
-- `supports_best_bulk_resident := supports_best_bulk AND pack.memory_tier_gb >= 256`
-- `supports_best_bulk_ondemand := supports_best_bulk AND pack.memory_tier_gb >= 128`
+- `supports_best_bulk_resident := supports_best_bulk AND behavior_tier_gb >= 256`
+- `supports_best_bulk_ondemand := supports_best_bulk AND behavior_tier_gb >= 128`
 
 If `supports_best_bulk` is false, best is never selected.
 If `supports_best_bulk` is true but `supports_best_bulk_ondemand` is false, route as unsupported.
