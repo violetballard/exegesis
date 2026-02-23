@@ -80,15 +80,17 @@ Exit criteria:
 - Retrieval paths are auditable and deterministic
 - RAG behavior is documented as part of output contracts
 
-## Milestone 5: A2UI Presentation Layer (Planned)
+## Milestone 5: A2UI Presentation Layer (In Progress)
 
-Status: planned
+Status: in_progress
 
 Scope:
 - Define `A2UI` output contract for agent-produced presentation artifacts
 - Add agent-side card/section/action payload generation with deterministic schemas
 - Provide CLI rendering fallback for the same structured payloads
 - Ensure compatibility targets for multiple clients (including future Studio)
+- Add capabilities handshake and composable `GenericCard` primitives with safe unknown-card fallback
+- Enforce typed/allowlisted actions with engine-authoritative `PolicyGate`
 
 Exit criteria:
 - A2UI schema/versioning is documented and stable
