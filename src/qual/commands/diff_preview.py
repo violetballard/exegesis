@@ -215,6 +215,7 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
 
     drafting = DraftingService()
     diff = drafting.propose_diff(original, proposed)
+    summary_source = diff
     if suppress_file_headers:
         diff = _suppress_file_headers(diff)
     if not diff:
@@ -231,12 +232,12 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
             + "\n\n"
         )
     if _env_enabled(SUMMARY_ONLY_ENV):
-        return f"{banner}{_summarize_diff(diff)}"
+        return f"{banner}{_summarize_diff(summary_source)}"
 
     output = diff
     if len(diff) > max_chars:
         output = _truncate_diff(diff, max_chars)
 
     if _env_enabled(INCLUDE_SUMMARY_ENV):
-        return f"{banner}{output}\n\n{_summarize_diff(diff)}"
+        return f"{banner}{output}\n\n{_summarize_diff(summary_source)}"
     return f"{banner}{output}"
