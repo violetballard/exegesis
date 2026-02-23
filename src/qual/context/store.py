@@ -23,7 +23,9 @@ class ContextBasketStore:
         return self._path.with_suffix(".tmp")
 
     def load(self) -> ContextBasket:
+        had_primary = self._path.exists()
         payload = self._load_payload(self._path)
+        invalid_primary = had_primary and payload is None
         loaded_from_tmp = False
         loaded_from_backup = False
         if payload is None:
@@ -33,6 +35,8 @@ class ContextBasketStore:
             payload = self._load_payload(self._backup_path)
             loaded_from_backup = payload is not None
         if payload is None:
+            if invalid_primary and not (loaded_from_tmp or loaded_from_backup):
+                self.save(ContextBasket())
             return ContextBasket()
 
         should_rewrite = False

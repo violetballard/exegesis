@@ -55,6 +55,21 @@ class ContextBasketStoreTests(unittest.TestCase):
             rewritten = json.loads((root / "context_basket.json").read_text(encoding="utf-8"))
             self.assertEqual("backup", rewritten.get("recovered_from"))
 
+    def test_invalid_primary_without_fallback_self_heals_empty_state(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            primary = root / "context_basket.json"
+            primary.write_text("{not-json", encoding="utf-8")
+            store = ContextBasketStore(root)
+
+            basket = store.load()
+
+            self.assertEqual([], basket.item_ids)
+            self.assertTrue(primary.exists())
+            rewritten = json.loads(primary.read_text(encoding="utf-8"))
+            self.assertEqual([], rewritten.get("item_ids"))
+            self.assertNotIn("recovered_from", rewritten)
+
 
 if __name__ == "__main__":
     unittest.main()
