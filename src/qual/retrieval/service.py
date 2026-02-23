@@ -3,13 +3,17 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Literal, Protocol
+from typing import Any, Literal
 
 from src.qual.audit import AuditLog
-from src.qual.docindex.service import DocIndexBuildOptions, DocIndexQueryConstraints, DocIndexService
+from src.qual.docindex.service import DocIndexBuildOptions, DocIndexService
+from src.qual.engine.retrieval.embeddings_strategy import EmbeddingsStrategy
+from src.qual.engine.retrieval.fts_strategy import FTSStrategy
+from src.qual.engine.retrieval.interface import StrategyRun
+from src.qual.engine.retrieval.pageindex_strategy import PageIndexStrategy
 from src.qual.metrics.crypto import decrypt_bytes, encrypt_bytes
 
 _RETRIEVAL_DIR = ".retrieval"
@@ -58,34 +62,6 @@ class RetrievalResult:
     audit_ref: str
 
 
-@dataclass(frozen=True)
-class _StrategyRun:
-    strategy_id: str
-    hits: list[RetrievalHit]
-    elapsed_ms: int
-    cache_used: bool
-
-
-class RetrievalStrategy(Protocol):
-    id: str
-
-    def supports(self, query: RetrievalQuery) -> bool:
-        ...
-
-    def retrieve(self, query: RetrievalQuery, *, candidate_doc_ids: tuple[str, ...]) -> _StrategyRun:
-        ...
-
-
-class _EmbeddingsPlaceholderStrategy:
-    id = "embeddings"
-
-    def supports(self, query: RetrievalQuery) -> bool:
-        return False
-
-    def retrieve(self, query: RetrievalQuery, *, candidate_doc_ids: tuple[str, ...]) -> _StrategyRun:
-        return _StrategyRun(strategy_id=self.id, hits=[], elapsed_ms=0, cache_used=False)
-
-
 class RetrievalService:
     def __init__(self, vault_root: Path, *, audit_log: AuditLog, now_fn=None) -> None:
         self._root = vault_root / _RETRIEVAL_DIR
@@ -95,7 +71,9 @@ class RetrievalService:
         self._now_fn = now_fn or (lambda: datetime.now(UTC))
         self._key = self._load_or_create_key()
         self._docindex = DocIndexService(vault_root, audit_log=audit_log, now_fn=self._now_fn)
-        self._embeddings = _EmbeddingsPlaceholderStrategy()
+        self._fts = FTSStrategy(self._run_fts_hits, now_fn=self._now_fn)
+        self._pageindex = PageIndexStrategy(self._docindex, self._read_doc_text, now_fn=self._now_fn)
+        self._embeddings = EmbeddingsStrategy()
 
     def add_or_update_document(
         self,
@@ -134,11 +112,11 @@ class RetrievalService:
         fts_shortlist = self._candidate_docs_from_fts(query) if not self._is_doc_scoped(query.scope) else ()
         candidate_doc_ids = self._candidate_docs_from_scope(query.scope, fallback=fts_shortlist)
 
-        strategy_runs: list[_StrategyRun] = []
-        fts_run = self._retrieve_fts(query, candidate_doc_ids=candidate_doc_ids)
+        strategy_runs: list[StrategyRun] = []
+        fts_run = self._fts.retrieve(query, candidate_doc_ids=candidate_doc_ids)
         strategy_runs.append(fts_run)
 
-        pageindex_run = self._retrieve_pageindex(query, candidate_doc_ids=candidate_doc_ids)
+        pageindex_run = self._pageindex.retrieve(query, candidate_doc_ids=candidate_doc_ids)
         if pageindex_run.hits:
             strategy_runs.append(pageindex_run)
 
@@ -166,8 +144,7 @@ class RetrievalService:
         )
         return RetrievalResult(query=query, hits=merged_hits, diagnostics=diagnostics, audit_ref=audit.event_id)
 
-    def _retrieve_fts(self, query: RetrievalQuery, *, candidate_doc_ids: tuple[str, ...]) -> _StrategyRun:
-        started = self._now_fn()
+    def _run_fts_hits(self, query: RetrievalQuery, candidate_doc_ids: tuple[str, ...]) -> list[RetrievalHit]:
         all_entries = self._load_fts_entries()
         scope_doc = self._doc_scope_id(query.scope)
         filtered = []
@@ -206,58 +183,28 @@ class RetrievalService:
                     node_path=None,
                 )
             )
-        elapsed_ms = max(0, int((self._now_fn() - started).total_seconds() * 1000))
-        return _StrategyRun(strategy_id="fts", hits=hits, elapsed_ms=elapsed_ms, cache_used=False)
+        return hits
 
-    def _retrieve_pageindex(self, query: RetrievalQuery, *, candidate_doc_ids: tuple[str, ...]) -> _StrategyRun:
-        started = self._now_fn()
-        hits: list[RetrievalHit] = []
-        for doc_id in candidate_doc_ids:
-            if self._docindex.get_record_status(doc_id) != "ready":
-                continue
-            if not self._is_long_structured_doc(doc_id):
-                continue
-            try:
-                result = self._docindex.query(
-                    doc_id,
-                    self._read_doc_text(doc_id).encode("utf-8"),
-                    query.query_text,
-                    DocIndexQueryConstraints(
-                        max_results=3,
-                        section_hint=query.constraints.section_hint,
-                        require_page_ranges=True,
-                    ),
-                    options=DocIndexBuildOptions(confidentiality_profile=query.confidentiality_profile),
-                )
-            except Exception:
-                continue
-            for item in result.hits:
-                excerpt_ids = item.get("excerpt_ids", [])
-                excerpt_id = str(excerpt_ids[0]) if excerpt_ids else None
-                range_payload: dict[str, object]
-                if "page_range" in item:
-                    range_payload = {"page_range": dict(item["page_range"])}
-                else:
-                    range_payload = {"char_range": dict(item.get("span_range", {}))}
-                hits.append(
-                    RetrievalHit(
-                        doc_id=doc_id,
-                        excerpt_id=excerpt_id,
-                        span=range_payload,
-                        title_hint=self._safe_title_hint(query, str(item.get("doc_id", doc_id))),
-                        score=float(item.get("score", 0.5)),
-                        source_strategy="pageindex",
-                        rationale=str(item.get("rationale", "")),
-                        node_path=item.get("node_path"),  # type: ignore[arg-type]
-                    )
-                )
-        elapsed_ms = max(0, int((self._now_fn() - started).total_seconds() * 1000))
-        return _StrategyRun(strategy_id="pageindex", hits=hits, elapsed_ms=elapsed_ms, cache_used=False)
-
-    def _merge_hits(self, runs: list[_StrategyRun], *, max_results: int) -> list[RetrievalHit]:
+    def _merge_hits(self, runs: list[StrategyRun], *, max_results: int) -> list[RetrievalHit]:
         combined: list[RetrievalHit] = []
         for run in runs:
-            combined.extend(run.hits)
+            for hit in run.hits:
+                if isinstance(hit, RetrievalHit):
+                    combined.append(hit)
+                    continue
+                if isinstance(hit, dict):
+                    combined.append(
+                        RetrievalHit(
+                            doc_id=str(hit["doc_id"]),
+                            excerpt_id=hit.get("excerpt_id"),
+                            span=dict(hit.get("span", {})),
+                            title_hint=hit.get("title_hint"),
+                            score=float(hit.get("score", 0.0)),
+                            source_strategy=hit.get("source_strategy", "fts"),  # type: ignore[arg-type]
+                            rationale=hit.get("rationale"),
+                            node_path=hit.get("node_path"),
+                        )
+                    )
         with_excerpt = [hit for hit in combined if hit.excerpt_id is not None]
         without_excerpt = [hit for hit in combined if hit.excerpt_id is None]
         ordered = sorted(with_excerpt, key=lambda h: h.score, reverse=True) + sorted(
@@ -276,7 +223,7 @@ class RetrievalService:
         return out
 
     def _candidate_docs_from_fts(self, query: RetrievalQuery) -> tuple[str, ...]:
-        run = self._retrieve_fts(
+        run = self._fts.retrieve(
             RetrievalQuery(
                 query_text=query.query_text,
                 scope=query.scope,

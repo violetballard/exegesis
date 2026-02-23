@@ -5,6 +5,7 @@
 - Single retrieval contract for FTS, PageIndex, and future embeddings.
 - Deterministic auto pipeline with no UI strategy selector.
 - Always return actionable excerpt-centric hits for context set assembly.
+- PageIndex runs as an internal retrieval strategy inside the existing sidecar process (not a second agent).
 
 ## Core Types
 
@@ -38,4 +39,7 @@ Unified hit shape includes:
 
 - Confidential profile is local-only.
 - Audit event `retrieval_executed` stores query hash + strategy diagnostics, not raw query text.
-
+- PageIndex strategy must use shared engine services:
+  - `PolicyGate`
+  - `OpenAICompatClient`
+  - `VaultStore`
