@@ -10,6 +10,18 @@
     "ProgressBlock",
     "CodeBlock",
   ]);
+  var ALLOWED_ACTION_IDS = new Set([
+    "apply_patch",
+    "reject_patch",
+    "open_section",
+    "open_corpus_item",
+    "pin_to_context_set",
+    "create_context_set",
+    "run_agent",
+    "refresh_license",
+    "export_document",
+    "copy_to_clipboard",
+  ]);
 
   function parseJSON(input) {
     try {
@@ -138,12 +150,25 @@
           return block && typeof block === "object" && PRIMITIVE_BLOCK_TYPES.has(String(block.type || ""));
         })
       : [];
+    var actions = Array.isArray(card.actions)
+      ? card.actions.filter(function (action) {
+          return (
+            action &&
+            typeof action === "object" &&
+            ALLOWED_ACTION_IDS.has(String(action.id || "")) &&
+            typeof action.label === "string" &&
+            action.label.trim() &&
+            action.payload &&
+            typeof action.payload === "object"
+          );
+        })
+      : [];
     return {
       type: "GenericCard",
       title: String(card.title || "Untitled"),
       subtitle: typeof card.subtitle === "string" ? card.subtitle : "",
       blocks: blocks,
-      actions: Array.isArray(card.actions) ? card.actions : [],
+      actions: actions,
     };
   }
 
@@ -222,10 +247,26 @@
       if (!(target instanceof HTMLButtonElement)) {
         return;
       }
-      if (!target.dataset.actionId) {
+      var actionId = String(target.dataset.actionId || "");
+      if (!actionId || !ALLOWED_ACTION_IDS.has(actionId)) {
         return;
       }
       var payload = parseJSON(target.dataset.actionPayload || "{}") || {};
+      if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+        return;
+      }
+
+      if (actionId === "copy_to_clipboard") {
+        var text = typeof payload.text === "string" ? payload.text : "";
+        if (!text) {
+          return;
+        }
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+          navigator.clipboard.writeText(text);
+        }
+        return;
+      }
+
       var endpoint = root.dataset.actionsUrl || "/api/actions/execute";
       fetch(endpoint, {
         method: "POST",
@@ -234,7 +275,7 @@
           "x-csrf-token": getCSRFToken(),
         },
         credentials: "same-origin",
-        body: JSON.stringify({ id: target.dataset.actionId, payload: payload }),
+        body: JSON.stringify({ id: actionId, payload: payload }),
       });
     });
   }
