@@ -32,6 +32,18 @@ ALLOWED_ACTION_IDS: tuple[str, ...] = (
 
 _BLOCK_SET = set(PRIMITIVE_BLOCK_TYPES)
 _ACTION_SET = set(ALLOWED_ACTION_IDS)
+_ACTION_SCHEMAS: dict[str, dict[str, type]] = {
+    "apply_patch": {"patch_id": str},
+    "reject_patch": {"patch_id": str},
+    "open_section": {"section_id": str},
+    "open_corpus_item": {"item_id": str},
+    "pin_to_context_set": {"item_id": str},
+    "create_context_set": {"name": str},
+    "run_agent": {"operation": str},
+    "refresh_license": {},
+    "export_document": {"format": str},
+    "copy_to_clipboard": {"text": str},
+}
 
 
 def materialize_card(raw_card: dict[str, Any]) -> dict[str, Any]:
@@ -111,6 +123,8 @@ def _safe_actions(raw_actions: Any) -> list[dict[str, Any]]:
             continue
         if not isinstance(payload, dict):
             continue
+        if not _payload_matches_schema(action_id, payload):
+            continue
         safe.append(action)
     return safe
 
@@ -126,3 +140,15 @@ def _discover_nested_primitive_blocks(raw_card: dict[str, Any]) -> list[dict[str
         if str(block.get("type", "")) in _BLOCK_SET:
             blocks.append(block)
     return blocks
+
+
+def _payload_matches_schema(action_id: str, payload: dict[str, Any]) -> bool:
+    schema = _ACTION_SCHEMAS.get(action_id)
+    if schema is None:
+        return False
+    for key, value_type in schema.items():
+        if key not in payload:
+            return False
+        if not isinstance(payload[key], value_type):
+            return False
+    return True

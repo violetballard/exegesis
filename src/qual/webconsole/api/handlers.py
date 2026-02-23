@@ -4,9 +4,15 @@ from dataclasses import dataclass, field
 import json
 from typing import Any, Protocol
 
+from src.qual.engine.policy_gate import PolicyGate
 from src.qual.ui.a2ui import A2UISessionStore
 from src.qual.webconsole.api.actions import ActionGateway
-from src.qual.webconsole.api.validators import parse_a2ui_capabilities, parse_action_ref, require_object
+from src.qual.webconsole.api.validators import (
+    parse_a2ui_capabilities,
+    parse_action_ref,
+    parse_provider_probe_request,
+    require_object,
+)
 from src.qual.webconsole.auth.session import CSRF_HEADER_NAME, Session, SessionStore, parse_cookie_session_id
 
 
@@ -71,7 +77,15 @@ class WebConsoleApi:
             self._require_csrf(request, session)
             # Accept optional JSON body for forward-compatible request shape.
             payload = self._parse_json(request.body) if request.body else {}
-            require_object(payload)
+            probe_request = parse_provider_probe_request(payload)
+            if probe_request.base_url is not None:
+                try:
+                    PolicyGate(
+                        confidentiality_profile=probe_request.confidentiality_profile,
+                        llm_base_url=probe_request.base_url,
+                    ).enforce_localhost_llm()
+                except PermissionError as exc:
+                    raise ApiError(status=403, message=str(exc)) from exc
             report = self.probe_service.run_probe()
             return ApiResponse(status=200, payload={"ok": True, "report": report})
         if request.method == "POST" and request.path == "/api/actions/execute":

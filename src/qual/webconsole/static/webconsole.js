@@ -22,6 +22,18 @@
     "export_document",
     "copy_to_clipboard",
   ]);
+  var ACTION_SCHEMAS = {
+    apply_patch: { patch_id: "string" },
+    reject_patch: { patch_id: "string" },
+    open_section: { section_id: "string" },
+    open_corpus_item: { item_id: "string" },
+    pin_to_context_set: { item_id: "string" },
+    create_context_set: { name: "string" },
+    run_agent: { operation: "string" },
+    refresh_license: {},
+    export_document: { format: "string" },
+    copy_to_clipboard: { text: "string" },
+  };
 
   function parseJSON(input) {
     try {
@@ -40,6 +52,24 @@
       el.textContent = text;
     }
     return el;
+  }
+
+  function payloadMatchesSchema(actionId, payload) {
+    var schema = ACTION_SCHEMAS[actionId];
+    if (!schema) {
+      return false;
+    }
+    var keys = Object.keys(schema);
+    for (var i = 0; i < keys.length; i += 1) {
+      var key = keys[i];
+      if (!(key in payload)) {
+        return false;
+      }
+      if (typeof payload[key] !== schema[key]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   function renderBlock(block) {
@@ -152,14 +182,18 @@
       : [];
     var actions = Array.isArray(card.actions)
       ? card.actions.filter(function (action) {
+          var actionId = String((action && action.id) || "");
+          var payload = action && action.payload;
           return (
             action &&
             typeof action === "object" &&
-            ALLOWED_ACTION_IDS.has(String(action.id || "")) &&
+            ALLOWED_ACTION_IDS.has(actionId) &&
             typeof action.label === "string" &&
             action.label.trim() &&
-            action.payload &&
-            typeof action.payload === "object"
+            payload &&
+            typeof payload === "object" &&
+            !Array.isArray(payload) &&
+            payloadMatchesSchema(actionId, payload)
           );
         })
       : [];
@@ -253,6 +287,9 @@
       }
       var payload = parseJSON(target.dataset.actionPayload || "{}") || {};
       if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+        return;
+      }
+      if (!payloadMatchesSchema(actionId, payload)) {
         return;
       }
 
