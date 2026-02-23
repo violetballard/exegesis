@@ -250,6 +250,15 @@
     return fromMeta && fromMeta.content ? fromMeta.content : "";
   }
 
+  function setStreamStatus(root, status, label) {
+    var statusNode = root.querySelector("#terminal-stream-status");
+    if (!statusNode) {
+      return;
+    }
+    statusNode.className = "status-pill status-" + status;
+    statusNode.textContent = label;
+  }
+
   function bindTerminalSend(root) {
     var form = root.querySelector("#terminal-send-form");
     if (!form) {
@@ -328,10 +337,24 @@
     var streamUrl = root.dataset.streamUrl;
     if (!streamUrl) {
       appendEvent(eventsNode, "error", { reason: "missing stream url" });
+      setStreamStatus(root, "disconnected", "Missing stream URL");
       return;
     }
+    if (root._terminalSource) {
+      root._terminalSource.close();
+      root._terminalSource = null;
+    }
+    setStreamStatus(root, "connecting", "Connecting...");
     var source = new EventSource(streamUrl, { withCredentials: true });
     var streamClosed = false;
+    root._terminalSource = source;
+
+    source.onopen = function () {
+      if (streamClosed) {
+        return;
+      }
+      setStreamStatus(root, "connected", "Connected");
+    };
 
     source.addEventListener("message.delta", function (event) {
       var payload = parseJSON(event.data) || {};
@@ -361,7 +384,9 @@
       }
       appendEvent(eventsNode, "done", parseJSON(event.data) || {});
       streamClosed = true;
+      setStreamStatus(root, "completed", "Completed");
       source.close();
+      root._terminalSource = null;
     });
 
     source.onerror = function () {
@@ -370,7 +395,9 @@
       }
       appendEvent(eventsNode, "error", { reason: "stream disconnected" });
       streamClosed = true;
+      setStreamStatus(root, "disconnected", "Disconnected");
       source.close();
+      root._terminalSource = null;
     };
   }
 
@@ -476,6 +503,12 @@
       bindTerminalSend(terminalRoot);
       bindCardActions(terminalRoot);
       startTerminalStream(terminalRoot);
+      var reconnectButton = terminalRoot.querySelector("[data-stream-reconnect]");
+      if (reconnectButton) {
+        reconnectButton.addEventListener("click", function () {
+          startTerminalStream(terminalRoot);
+        });
+      }
     }
     var probePanel = document.getElementById("provider-probe-panel");
     if (probePanel) {
