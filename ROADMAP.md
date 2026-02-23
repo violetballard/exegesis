@@ -58,6 +58,7 @@ Scope:
 - Define and lock encryption-at-rest default behavior and key lifecycle policy
 - Define role-based auto-routing contract and power-user override policy
 - Define localhost-only gating for OpenAI-compatible override endpoints
+- Add provider-compatibility probe contract for OpenAI-compatible runtimes (`exegesis doctor` + admin re-probe)
 
 Exit criteria:
 - Contract changes documented and intentional
@@ -65,6 +66,7 @@ Exit criteria:
 - Main branch in publishable state
 - Encryption-by-default is enforced for persistent local state
 - Override behavior is deterministic, localhost-gated, and auditable
+- Provider capability detection and fallback behavior are explicit, testable, and operator-visible
 
 ## Milestone 4: Retrieval Layer (Planned)
 

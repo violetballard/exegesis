@@ -53,6 +53,7 @@ This is not only a chat interface. It is an agent runtime + workflow system.
 - Endpoint policy is localhost-only for overrides to avoid accidental remote provider drift.
 - Overrides must preserve routing invariants and audit provenance.
 - Advanced config editing is centralized in the local web admin console, not Studio model-pickers.
+- Provider compatibility probing (`exegesis doctor` / admin probe report) is required so fallback modes are explicit to operators.
 
 ## Product Packaging Strategy
 

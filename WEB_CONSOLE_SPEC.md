@@ -91,6 +91,10 @@ Capabilities:
 - Security/profile validation:
   - Confidential profile blocks remote endpoints unless user explicitly switches profile and confirms
 - Revision history + rollback to recent saved revisions
+- Provider compatibility report panel with:
+  - current probe results
+  - degraded-mode warnings
+  - explicit "Re-run probe" action
 
 Recommended safeguards:
 - Optional re-auth (vault passphrase or short-lived admin token) before save
@@ -149,6 +153,8 @@ Token constraints:
 - `POST /api/config/save`
 - `GET /api/config/revisions`
 - `POST /api/config/revert`
+- `GET /api/provider/probe_report`
+- `POST /api/provider/probe`
 - Minimal vault/corpus/context/draft/export/audit endpoints
 
 `/api/actions/execute` must enforce:
@@ -179,6 +185,7 @@ Record (hashed metadata only; avoid plaintext secrets/config dumps):
 - `config_saved` (with config hash)
 - `config_reverted`
 - `profile_changed` (when applicable)
+- `provider_probe_run`
 
 ## Acceptance Criteria
 
@@ -195,3 +202,4 @@ Record (hashed metadata only; avoid plaintext secrets/config dumps):
 3. Same engine `PolicyGate` applies regardless of client (CLI, Web Console, Studio).
 4. No remote network dependency is required for baseline web console operation.
 5. Studio can open admin console via one-time localhost token flow without adding in-Studio model pickers.
+6. Admin config UI exposes provider capability probe results and supports on-demand re-probe.

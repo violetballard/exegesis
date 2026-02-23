@@ -17,6 +17,7 @@ This file defines hard boundaries to keep the codebase understandable and refact
 - `src/qual/engine/**`
   - Owns orchestration of user flows and app state transitions.
   - Owns config resolution/validation/apply logic exposed to UI/CLI.
+  - Owns provider capability probing and fallback decisions from probe outputs.
   - Calls service interfaces in lower layers.
   - Must not implement crypto or raw database logic.
 
@@ -63,6 +64,7 @@ Disallowed examples:
   - storage: vault/context store entrypoints only
   - commands: public command runner only
 - Model/provider routing must be centralized in engine policy modules, not scattered across commands/UI.
+- Provider capability probes must run through one engine probe service and persist auditable capability reports.
 - Role overrides (if enabled) must flow through a single validated endpoint profile resolver.
 - No feature lane should import private helper modules from another lane.
 
