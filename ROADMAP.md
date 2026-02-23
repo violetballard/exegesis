@@ -74,6 +74,7 @@ Scope:
 - Ingestion pipeline for context/vault documents (chunk + index metadata)
 - Retrieval orchestration in engine before drafting/diff generation
 - Source-attribution model for retrieved chunks
+- Add PageIndex-style within-document retrieval with encrypted index payloads, query cache, and audit trace
 
 Exit criteria:
 - Agent uses retrieved chunks by default for generation flows
