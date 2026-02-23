@@ -34,6 +34,7 @@
     export_document: { format: "string" },
     copy_to_clipboard: { text: "string" },
   };
+  var MAX_EVENT_ROWS = 200;
 
   function parseJSON(input) {
     try {
@@ -239,6 +240,9 @@
       return;
     }
     eventsNode.appendChild(createElement("li", "", eventType + ": " + JSON.stringify(payload)));
+    while (eventsNode.children.length > MAX_EVENT_ROWS) {
+      eventsNode.removeChild(eventsNode.firstChild);
+    }
   }
 
   function getCSRFToken() {
@@ -327,6 +331,7 @@
       return;
     }
     var source = new EventSource(streamUrl, { withCredentials: true });
+    var streamClosed = false;
 
     source.addEventListener("message.delta", function (event) {
       var payload = parseJSON(event.data) || {};
@@ -351,12 +356,21 @@
     });
 
     source.addEventListener("done", function (event) {
+      if (streamClosed) {
+        return;
+      }
       appendEvent(eventsNode, "done", parseJSON(event.data) || {});
+      streamClosed = true;
       source.close();
     });
 
     source.onerror = function () {
+      if (streamClosed) {
+        return;
+      }
       appendEvent(eventsNode, "error", { reason: "stream disconnected" });
+      streamClosed = true;
+      source.close();
     };
   }
 
