@@ -1,0 +1,34 @@
+<div id="provider-probe-panel" data-probe-report-url="{{probe_report_url}}" data-probe-rerun-url="{{probe_rerun_url}}">
+  <div class="kv-grid">
+    <div><strong>Base URL</strong><span>{{provider_base_url}}</span></div>
+    <div><strong>Timestamp</strong><span>{{timestamp}}</span></div>
+    <div><strong>Streaming</strong><span>{{streaming}}</span></div>
+    <div><strong>Tool calling</strong><span>{{tool_calling}}</span></div>
+    <div><strong>Vision</strong><span>{{vision}}</span></div>
+  </div>
+
+  <div class="probe-columns">
+    <section>
+      <h4>Role Availability</h4>
+      <ul id="probe-role-list">
+        {{role_lines}}
+      </ul>
+    </section>
+    <section>
+      <h4>Recommended Actions</h4>
+      <ul id="probe-actions-list">
+        {{action_lines}}
+      </ul>
+    </section>
+  </div>
+
+  <div class="probe-actions-row">
+    <button type="button" data-probe-rerun>Re-run probe</button>
+    <button type="button" data-probe-refresh>Refresh report</button>
+  </div>
+
+  <details>
+    <summary>Raw report JSON</summary>
+    <pre id="probe-report-raw" class="code-json">{{raw_report_json}}</pre>
+  </details>
+</div>

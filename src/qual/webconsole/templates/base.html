@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{csrf_token}}">
+    <title>{{title}} | Exegesis Web Console</title>
+    <link rel="stylesheet" href="/static/webconsole.css">
+    <script src="/static/webconsole.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>Exegesis Web Console</h1>
+      <nav>
+        <a href="/terminal">Terminal</a>
+        <a href="/settings">Settings</a>
+      </nav>
+    </header>
+    <main class="page">{{content}}</main>
+  </body>
+</html>
