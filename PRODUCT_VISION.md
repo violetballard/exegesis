@@ -52,6 +52,7 @@ This is not only a chat interface. It is an agent runtime + workflow system.
 - Advanced users may bind role-specific models through OpenAI-compatible local endpoints.
 - Endpoint policy is localhost-only for overrides to avoid accidental remote provider drift.
 - Overrides must preserve routing invariants and audit provenance.
+- Advanced config editing is centralized in the local web admin console, not Studio model-pickers.
 
 ## Product Packaging Strategy
 

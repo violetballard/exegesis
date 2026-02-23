@@ -10,11 +10,13 @@ This file defines hard boundaries to keep the codebase understandable and refact
 
 - `src/qual/webconsole/**`
   - Owns localhost HTTP endpoints, auth/session middleware, and A2UI web rendering.
+  - Owns admin config views/edit flows for effective engine configuration.
   - Must call engine/service interfaces only, never storage files directly.
   - Must not bypass `PolicyGate` for typed actions.
 
 - `src/qual/engine/**`
   - Owns orchestration of user flows and app state transitions.
+  - Owns config resolution/validation/apply logic exposed to UI/CLI.
   - Calls service interfaces in lower layers.
   - Must not implement crypto or raw database logic.
 
@@ -40,6 +42,7 @@ Allowed direction only:
 - `webconsole -> engine`
 - `commands -> drafting|context|engine` (via public entrypoints)
 - `engine -> context|storage|metrics|drafting`
+- `engine -> config|context|storage|metrics|drafting`
 - `context -> (no engine/ui imports)`
 - `storage -> (no engine/ui imports)`
 - `metrics -> (no ui imports)`
@@ -49,11 +52,13 @@ Disallowed examples:
 - `webconsole -> storage`
 - `ui -> metrics/db`
 - `engine -> metrics/crypto internals`
+- `webconsole -> config files on disk`
 - `commands -> storage`
 
 ## Integration Contracts
 
 - Each cross-module concern gets one thin entrypoint:
+  - config: effective-resolver + validator + apply + revision-history entrypoints only
   - metrics: recorder/report/export entrypoints only
   - storage: vault/context store entrypoints only
   - commands: public command runner only

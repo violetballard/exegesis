@@ -95,12 +95,15 @@ Scope:
 - Enforce typed/allowlisted actions with engine-authoritative `PolicyGate`
 - Add deterministic terminal chat routing (Magistral default + Qwen escalation) with no UI model choice
 - Add OSS local web console reference client (`exegesis serve`) with localhost-only token auth, SSE transcript stream, and safe A2UI rendering
+- Add web-console admin config editor as canonical advanced-control surface (effective config view, validated edits, revision rollback)
+- Add Studio "Open Admin Console..." token-bridge flow so Studio stays model-picker-free
 
 Exit criteria:
 - A2UI schema/versioning is documented and stable
 - Core workflows can emit A2UI payloads and CLI fallback views
 - Output contracts are test-covered and backward-compatible by policy
 - Web console can execute MVP flow (vault -> corpus/context -> terminal -> drafts -> export/audit) against the same engine PolicyGate
+- Web console settings/config page supports safe advanced edits with audit trail and rollback
 
 ## Milestone 6: Studio Readiness Handoff (Planned)
 
