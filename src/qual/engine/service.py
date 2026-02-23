@@ -15,6 +15,8 @@ class BootstrapState:
     vault_transition: str
     context_source: str
     context_transition: str
+    context_health: str
+    transition_summary: str
     original_context_items: int
     active_context_items: int
     repaired_context_items: int
@@ -47,14 +49,20 @@ class EngineService:
         basket.item_ids = sanitized
         if sanitized != original_item_ids:
             basket_store.save(basket)
+        context_transition = self._context_transition(
+            has_persisted=bool(original_item_ids),
+            repaired_count=repaired_count,
+        )
         bootstrap = BootstrapState(
             flow_state="ready" if not vault.is_locked else "vault-locked",
             vault_transition=vault_transition,
             context_source="persisted" if original_item_ids else "empty",
-            context_transition=self._context_transition(
+            context_transition=context_transition,
+            context_health=self._context_health(
                 has_persisted=bool(original_item_ids),
                 repaired_count=repaired_count,
             ),
+            transition_summary=f"{vault_transition}/{context_transition}",
             original_context_items=len(original_item_ids),
             active_context_items=len(sanitized),
             repaired_context_items=repaired_count,
@@ -92,3 +100,11 @@ class EngineService:
         if repaired_count > 0:
             return "loaded-repaired"
         return "loaded-clean"
+
+    @staticmethod
+    def _context_health(*, has_persisted: bool, repaired_count: int) -> str:
+        if not has_persisted:
+            return "fresh"
+        if repaired_count == 0:
+            return "clean"
+        return "repaired"
