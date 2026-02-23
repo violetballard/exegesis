@@ -34,6 +34,7 @@ This is not only a chat interface. It is an agent runtime + workflow system.
 
 4. Operator-first control surface
 - CLI remains a first-class surface for development and reliability.
+- Engine ships a localhost-only OSS web console as a barebones reference/admin client.
 - UI can evolve on top without changing core contracts.
 - Model routing is automatic by default; user-facing model selection is not the primary control path.
 

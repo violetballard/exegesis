@@ -94,11 +94,13 @@ Scope:
 - Add capabilities handshake and composable `GenericCard` primitives with safe unknown-card fallback
 - Enforce typed/allowlisted actions with engine-authoritative `PolicyGate`
 - Add deterministic terminal chat routing (Magistral default + Qwen escalation) with no UI model choice
+- Add OSS local web console reference client (`exegesis serve`) with localhost-only token auth, SSE transcript stream, and safe A2UI rendering
 
 Exit criteria:
 - A2UI schema/versioning is documented and stable
 - Core workflows can emit A2UI payloads and CLI fallback views
 - Output contracts are test-covered and backward-compatible by policy
+- Web console can execute MVP flow (vault -> corpus/context -> terminal -> drafts -> export/audit) against the same engine PolicyGate
 
 ## Milestone 6: Studio Readiness Handoff (Planned)
 
@@ -109,6 +111,7 @@ Scope:
 - Define Engine-to-Studio boundary and repo split handoff package
 - Prepare integration docs for separate `Exegesis Studio` project bootstrapping
 - Add final-document preview/export contract (`export.preview`/`export.final`) with encrypted preview artifacts and TTL cleanup
+- Keep web console intentionally barebones while preserving API/A2UI parity for Studio handoff
 
 Exit criteria:
 - Engine contracts are ready for external client consumption

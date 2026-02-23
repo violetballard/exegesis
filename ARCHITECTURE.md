@@ -8,6 +8,11 @@ This file defines hard boundaries to keep the codebase understandable and refact
   - Owns user-facing rendering and display formatting.
   - Must not read/write storage directly.
 
+- `src/qual/webconsole/**`
+  - Owns localhost HTTP endpoints, auth/session middleware, and A2UI web rendering.
+  - Must call engine/service interfaces only, never storage files directly.
+  - Must not bypass `PolicyGate` for typed actions.
+
 - `src/qual/engine/**`
   - Owns orchestration of user flows and app state transitions.
   - Calls service interfaces in lower layers.
@@ -32,6 +37,7 @@ This file defines hard boundaries to keep the codebase understandable and refact
 
 Allowed direction only:
 - `ui -> engine`
+- `webconsole -> engine`
 - `commands -> drafting|context|engine` (via public entrypoints)
 - `engine -> context|storage|metrics|drafting`
 - `context -> (no engine/ui imports)`
@@ -40,6 +46,7 @@ Allowed direction only:
 
 Disallowed examples:
 - `ui -> storage`
+- `webconsole -> storage`
 - `ui -> metrics/db`
 - `engine -> metrics/crypto internals`
 - `commands -> storage`
