@@ -105,6 +105,7 @@ Scope:
 - Freeze Engine contracts required by UI clients
 - Define Engine-to-Studio boundary and repo split handoff package
 - Prepare integration docs for separate `Exegesis Studio` project bootstrapping
+- Add final-document preview/export contract (`export.preview`/`export.final`) with encrypted preview artifacts and TTL cleanup
 
 Exit criteria:
 - Engine contracts are ready for external client consumption
