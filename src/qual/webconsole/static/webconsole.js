@@ -270,6 +270,15 @@
     infoNode.textContent = label || "";
   }
 
+  function setAutoRetryButtonLabel(root) {
+    var button = root.querySelector("[data-stream-autoretry-toggle]");
+    if (!button) {
+      return;
+    }
+    var enabled = root._autoRetryEnabled !== false;
+    button.textContent = enabled ? "Auto-retry: on" : "Auto-retry: off";
+  }
+
   function clearReconnectState(root) {
     if (root._reconnectTimer) {
       clearTimeout(root._reconnectTimer);
@@ -283,6 +292,10 @@
   }
 
   function scheduleReconnect(root) {
+    if (root._autoRetryEnabled === false) {
+      setRetryInfo(root, "Auto-reconnect off");
+      return;
+    }
     var attempts = Number(root._retryAttempt || 0) + 1;
     root._retryAttempt = attempts;
     if (attempts > MAX_RECONNECT_ATTEMPTS) {
@@ -551,6 +564,8 @@
   function init() {
     var terminalRoot = document.getElementById("terminal-root");
     if (terminalRoot) {
+      terminalRoot._autoRetryEnabled = true;
+      setAutoRetryButtonLabel(terminalRoot);
       bindTerminalSend(terminalRoot);
       bindCardActions(terminalRoot);
       startTerminalStream(terminalRoot);
@@ -560,6 +575,19 @@
           terminalRoot._retryAttempt = 0;
           clearReconnectState(terminalRoot);
           startTerminalStream(terminalRoot);
+        });
+      }
+      var autoRetryButton = terminalRoot.querySelector("[data-stream-autoretry-toggle]");
+      if (autoRetryButton) {
+        autoRetryButton.addEventListener("click", function () {
+          terminalRoot._autoRetryEnabled = terminalRoot._autoRetryEnabled === false;
+          setAutoRetryButtonLabel(terminalRoot);
+          if (terminalRoot._autoRetryEnabled === false) {
+            clearReconnectState(terminalRoot);
+            setRetryInfo(terminalRoot, "Auto-reconnect off");
+          } else if (!terminalRoot._terminalSource) {
+            setRetryInfo(terminalRoot, "Auto-reconnect enabled");
+          }
         });
       }
     }
