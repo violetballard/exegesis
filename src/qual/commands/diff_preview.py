@@ -29,6 +29,7 @@ SUMMARY_JSON_INDENT_ENV = "QUAL_DIFF_SUMMARY_JSON_INDENT"
 SUMMARY_JSON_SORT_KEYS_ENV = "QUAL_DIFF_SUMMARY_JSON_SORT_KEYS"
 SUMMARY_JSON_ENSURE_ASCII_ENV = "QUAL_DIFF_SUMMARY_JSON_ENSURE_ASCII"
 SUMMARY_JSON_INCLUDE_SCHEMA_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_SCHEMA"
+SUMMARY_JSON_INCLUDE_TRUNCATION_MODE_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_TRUNCATION_MODE"
 SUMMARY_JSON_SCHEMA_VERSION = "diff_summary.v1"
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
@@ -164,6 +165,8 @@ def _summarize_diff(diff: str) -> str:
         }
         if _env_enabled(SUMMARY_JSON_INCLUDE_SCHEMA_ENV):
             payload["schema"] = SUMMARY_JSON_SCHEMA_VERSION
+        if _env_enabled(SUMMARY_JSON_INCLUDE_TRUNCATION_MODE_ENV):
+            payload["truncation_strategy"] = _truncation_strategy()
         if _env_enabled(INCLUDE_SUMMARY_DETAILS_ENV):
             payload["changed"] = added + removed
             payload["net"] = added - removed
@@ -237,6 +240,7 @@ def _options_banner(
         f"summary_json_sort_keys={str(_summary_json_sort_keys()).lower()}, "
         f"summary_json_ensure_ascii={str(_summary_json_ensure_ascii()).lower()}, "
         f"summary_json_include_schema={str(_env_enabled(SUMMARY_JSON_INCLUDE_SCHEMA_ENV)).lower()}, "
+        f"summary_json_include_truncation_mode={str(_env_enabled(SUMMARY_JSON_INCLUDE_TRUNCATION_MODE_ENV)).lower()}, "
         f"suppress_hunk_headers={str(_env_enabled(SUPPRESS_HUNK_HEADERS_ENV)).lower()}, "
         f"max_output_lines={max_lines_value}, "
         f"max_output_chars={max_chars}, "
