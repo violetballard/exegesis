@@ -30,6 +30,7 @@ SUMMARY_JSON_SORT_KEYS_ENV = "QUAL_DIFF_SUMMARY_JSON_SORT_KEYS"
 SUMMARY_JSON_ENSURE_ASCII_ENV = "QUAL_DIFF_SUMMARY_JSON_ENSURE_ASCII"
 SUMMARY_JSON_INCLUDE_SCHEMA_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_SCHEMA"
 SUMMARY_JSON_INCLUDE_TRUNCATION_MODE_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_TRUNCATION_MODE"
+SUMMARY_JSON_INCLUDE_FLAGS_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_FLAGS"
 SUMMARY_JSON_SCHEMA_VERSION = "diff_summary.v1"
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
@@ -167,6 +168,8 @@ def _summarize_diff(diff: str) -> str:
             payload["schema"] = SUMMARY_JSON_SCHEMA_VERSION
         if _env_enabled(SUMMARY_JSON_INCLUDE_TRUNCATION_MODE_ENV):
             payload["truncation_strategy"] = _truncation_strategy()
+        if _env_enabled(SUMMARY_JSON_INCLUDE_FLAGS_ENV):
+            payload["enabled_flags"] = _enabled_normalization_flags()
         if _env_enabled(INCLUDE_SUMMARY_DETAILS_ENV):
             payload["changed"] = added + removed
             payload["net"] = added - removed
@@ -222,6 +225,23 @@ def _summary_json_ensure_ascii() -> bool:
     return True
 
 
+def _enabled_normalization_flags() -> list[str]:
+    flags: list[str] = []
+    if _env_enabled(STRIP_ANSI_ENV):
+        flags.append("strip_ansi")
+    if _env_enabled(CANONICALIZE_INLINE_WHITESPACE_ENV):
+        flags.append("canonicalize_inline_whitespace")
+    if _env_enabled(IGNORE_CASE_ENV):
+        flags.append("ignore_case")
+    if _env_enabled(IGNORE_EDGE_BLANK_LINES_ENV):
+        flags.append("ignore_edge_blank_lines")
+    if _env_enabled(IGNORE_ALL_BLANK_LINES_ENV):
+        flags.append("ignore_all_blank_lines")
+    if _env_enabled(IGNORE_TRAILING_WHITESPACE_ENV):
+        flags.append("ignore_trailing_whitespace")
+    return flags
+
+
 def _options_banner(
     *, ignore_trailing_whitespace: bool, suppress_file_headers: bool, max_chars: int, max_lines: int | None
 ) -> str:
@@ -241,6 +261,7 @@ def _options_banner(
         f"summary_json_ensure_ascii={str(_summary_json_ensure_ascii()).lower()}, "
         f"summary_json_include_schema={str(_env_enabled(SUMMARY_JSON_INCLUDE_SCHEMA_ENV)).lower()}, "
         f"summary_json_include_truncation_mode={str(_env_enabled(SUMMARY_JSON_INCLUDE_TRUNCATION_MODE_ENV)).lower()}, "
+        f"summary_json_include_flags={str(_env_enabled(SUMMARY_JSON_INCLUDE_FLAGS_ENV)).lower()}, "
         f"suppress_hunk_headers={str(_env_enabled(SUPPRESS_HUNK_HEADERS_ENV)).lower()}, "
         f"max_output_lines={max_lines_value}, "
         f"max_output_chars={max_chars}, "
