@@ -41,18 +41,26 @@ class OneTimeTokenStore:
     def issue(self, *, purpose: str, ttl_seconds: int = 60) -> str:
         if ttl_seconds <= 0:
             raise ValueError("ttl_seconds must be positive")
+        self._prune_expired()
         token = secrets.token_urlsafe(24)
         expires_at = datetime.now(UTC) + timedelta(seconds=ttl_seconds)
         self._tokens[token] = _OneTimeToken(token=token, purpose=purpose, expires_at=expires_at)
         return token
 
     def consume(self, token: str, *, purpose: str) -> bool:
+        self._prune_expired()
         entry = self._tokens.pop(token, None)
         if entry is None:
             return False
         if entry.purpose != purpose:
             return False
         return not entry.is_expired()
+
+    def _prune_expired(self) -> None:
+        now = datetime.now(UTC)
+        expired = [key for key, value in self._tokens.items() if value.is_expired(now=now)]
+        for key in expired:
+            self._tokens.pop(key, None)
 
 
 class SessionStore:
@@ -64,6 +72,7 @@ class SessionStore:
     def create(self, *, ttl_seconds: int = 1800) -> Session:
         if ttl_seconds <= 0:
             raise ValueError("ttl_seconds must be positive")
+        self._prune_expired()
         session = Session(
             session_id=secrets.token_urlsafe(24),
             csrf_token=secrets.token_urlsafe(18),
@@ -73,16 +82,20 @@ class SessionStore:
         return session
 
     def get(self, session_id: str) -> Session | None:
+        self._prune_expired()
         session = self._sessions.get(session_id)
         if session is None:
-            return None
-        if session.is_expired():
-            self._sessions.pop(session_id, None)
             return None
         return session
 
     def clear(self, session_id: str) -> None:
         self._sessions.pop(session_id, None)
+
+    def _prune_expired(self) -> None:
+        now = datetime.now(UTC)
+        expired = [key for key, value in self._sessions.items() if value.is_expired(now=now)]
+        for key in expired:
+            self._sessions.pop(key, None)
 
 
 def parse_cookie_session_id(cookie_header: str | None) -> str | None:

@@ -50,6 +50,7 @@ class ApiResponse:
 class ApiError(Exception):
     status: int
     message: str
+    headers: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -60,7 +61,20 @@ class WebConsoleApi:
     action_gateway: ActionGateway | None = None
     secure_cookie: bool = False
 
+    _ALLOWED_METHODS_BY_PATH: dict[str, tuple[str, ...]] = field(
+        default_factory=lambda: {
+            "/api/a2ui/capabilities": ("POST",),
+            "/api/provider/probe_report": ("GET",),
+            "/api/provider/probe": ("POST",),
+            "/api/actions/execute": ("POST",),
+            "/api/auth/logout": ("POST",),
+        },
+        init=False,
+        repr=False,
+    )
+
     def dispatch(self, request: ApiRequest) -> ApiResponse:
+        self._enforce_method_if_known(request)
         if request.method == "POST" and request.path == "/api/a2ui/capabilities":
             session = self._require_session(request)
             self._require_csrf(request, session)
@@ -149,3 +163,15 @@ class WebConsoleApi:
         content_type = request.headers.get("content-type", "")
         if "application/json" not in content_type:
             raise ApiError(status=415, message="Content-Type must be application/json")
+
+    def _enforce_method_if_known(self, request: ApiRequest) -> None:
+        allowed = self._ALLOWED_METHODS_BY_PATH.get(request.path)
+        if allowed is None:
+            return
+        if request.method in allowed:
+            return
+        raise ApiError(
+            status=405,
+            message="Method not allowed",
+            headers={"Allow": ", ".join(allowed)},
+        )

@@ -86,7 +86,7 @@ class _WebConsoleHandler(BaseHTTPRequestHandler):
             response = self.server.api.dispatch(request)
             self._write_json(response.status, response.payload, response.headers)
         except ApiError as exc:
-            self._write_json(exc.status, {"ok": False, "error": exc.message})
+            self._write_json(exc.status, {"ok": False, "error": exc.message}, exc.headers)
         except Exception:
             self._write_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"ok": False, "error": "internal_error"})
 
