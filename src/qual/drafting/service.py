@@ -20,6 +20,7 @@ class DiffSummary:
     net_line_delta: int
     total_changed_lines: int
     hunk_count: int
+    changed_line_ratio: float
 
 
 class DraftingService:
@@ -63,26 +64,18 @@ class DraftingService:
 
     def summarize_orchestration(self, orchestration: DiffOrchestration) -> DiffSummary:
         if not self.has_meaningful_change(orchestration=orchestration):
-            return DiffSummary(
-                changed=False,
-                added_lines=0,
-                removed_lines=0,
-                net_line_delta=0,
-                total_changed_lines=0,
-                hunk_count=0,
-            )
+            return self._empty_summary()
         diff_text = self._build_unified_diff(
             orchestration.before_lines,
             orchestration.after_lines,
         )
         added, removed, hunk_count = self._parse_diff_metrics(diff_text)
-        return DiffSummary(
-            changed=True,
+        return self._summary_from_metrics(
             added_lines=added,
             removed_lines=removed,
-            net_line_delta=added - removed,
-            total_changed_lines=added + removed,
             hunk_count=hunk_count,
+            before_line_count=len(orchestration.before_lines),
+            after_line_count=len(orchestration.after_lines),
         )
 
     @staticmethod
@@ -105,6 +98,40 @@ class DraftingService:
             elif line.startswith("-"):
                 removed += 1
         return added, removed, hunk_count
+
+    @staticmethod
+    def _empty_summary() -> DiffSummary:
+        return DiffSummary(
+            changed=False,
+            added_lines=0,
+            removed_lines=0,
+            net_line_delta=0,
+            total_changed_lines=0,
+            hunk_count=0,
+            changed_line_ratio=0.0,
+        )
+
+    @staticmethod
+    def _summary_from_metrics(
+        *,
+        added_lines: int,
+        removed_lines: int,
+        hunk_count: int,
+        before_line_count: int,
+        after_line_count: int,
+    ) -> DiffSummary:
+        total_changed = added_lines + removed_lines
+        baseline_lines = max(before_line_count, after_line_count)
+        ratio = 0.0 if baseline_lines == 0 else total_changed / baseline_lines
+        return DiffSummary(
+            changed=True,
+            added_lines=added_lines,
+            removed_lines=removed_lines,
+            net_line_delta=added_lines - removed_lines,
+            total_changed_lines=total_changed,
+            hunk_count=hunk_count,
+            changed_line_ratio=ratio,
+        )
 
     @staticmethod
     def _normalize_newlines(value: str) -> str:

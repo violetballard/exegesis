@@ -17,6 +17,8 @@ class ShellUI:
             f"- flow_state: {runtime.bootstrap.flow_state}\n"
             f"- vault_transition: {runtime.bootstrap.vault_transition}\n"
             f"- context_transition: {runtime.bootstrap.context_transition}\n"
+            f"- context_health: {runtime.bootstrap.context_health}\n"
+            f"- transition_summary: {runtime.bootstrap.transition_summary}\n"
             f"- context_source: {runtime.bootstrap.context_source}\n"
             f"- context_status: {context_status}\n"
             f"- context_items: {runtime.bootstrap.active_context_items}"
@@ -27,11 +29,12 @@ class ShellUI:
     @staticmethod
     def _context_status(runtime: EngineRuntime) -> str:
         transition = runtime.bootstrap.context_transition
+        health = runtime.bootstrap.context_health
         if transition == "fresh":
             return "fresh context initialized"
-        repaired = runtime.bootstrap.repaired_context_items
-        if transition == "loaded-clean":
+        if health == "clean":
             return "persisted context loaded cleanly"
+        repaired = runtime.bootstrap.repaired_context_items
         label = "item" if repaired == 1 else "items"
         return f"persisted context repaired ({repaired} {label})"
 
