@@ -159,7 +159,7 @@ class ContextBasketStore:
         self, payload: dict[str, object], *, strict_metadata: bool
     ) -> tuple[list[str], bool] | None:
         schema_version = payload.get("schema_version", 0)
-        if not isinstance(schema_version, int):
+        if type(schema_version) is not int:
             if strict_metadata:
                 return None
             should_rewrite = True

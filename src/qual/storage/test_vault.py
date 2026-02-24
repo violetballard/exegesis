@@ -130,6 +130,31 @@ class VaultServiceTests(unittest.TestCase):
             rewritten = json.loads(primary.read_text(encoding="utf-8"))
             self.assertEqual(1, rewritten.get("schema_version"))
 
+    def test_bool_schema_version_is_rewritten_to_canonical(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            project_root = root / "demo"
+            project_root.mkdir(parents=True, exist_ok=True)
+            primary = project_root / ".vault_state.json"
+            primary.write_text(
+                json.dumps(
+                    {
+                        "schema_version": True,
+                        "project_name": "demo",
+                        "is_locked": False,
+                        "updated_at": "2026-01-01T00:00:00+00:00",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            service = VaultService()
+
+            state = service.create_or_open(root, "demo")
+
+            self.assertFalse(state.is_locked)
+            rewritten = json.loads(primary.read_text(encoding="utf-8"))
+            self.assertEqual(1, rewritten.get("schema_version"))
+
 
 if __name__ == "__main__":
     unittest.main()

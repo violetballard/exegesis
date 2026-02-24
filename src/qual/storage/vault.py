@@ -182,7 +182,7 @@ class VaultService:
 
     def _is_compatible_payload(self, payload: dict[str, object], *, strict_schema: bool) -> bool:
         schema_version = payload.get("schema_version", 0)
-        if not isinstance(schema_version, int):
+        if type(schema_version) is not int:
             if strict_schema:
                 return False
             schema_value = 0
