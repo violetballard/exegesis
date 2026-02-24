@@ -149,7 +149,7 @@ class VaultService:
             elif path == self._backup_state_path(path.parent):
                 self._unlink_if_exists(path)
             return None
-        if not self._is_compatible_payload(payload):
+        if not self._is_compatible_payload(payload, strict_schema=False):
             if path == self._tmp_state_path(path.parent):
                 self._unlink_if_exists(path)
             elif path == self._backup_state_path(path.parent):
@@ -178,11 +178,17 @@ class VaultService:
             return False
         if not isinstance(payload, dict):
             return False
-        return self._is_compatible_payload(payload)
+        return self._is_compatible_payload(payload, strict_schema=True)
 
-    def _is_compatible_payload(self, payload: dict[str, object]) -> bool:
+    def _is_compatible_payload(self, payload: dict[str, object], *, strict_schema: bool) -> bool:
         schema_version = payload.get("schema_version", 0)
-        if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
+        if not isinstance(schema_version, int):
+            if strict_schema:
+                return False
+            schema_value = 0
+        else:
+            schema_value = schema_version
+        if schema_value > _SCHEMA_VERSION:
             return False
         if "is_locked" in payload and self._parse_is_locked(payload.get("is_locked")) is None:
             return False

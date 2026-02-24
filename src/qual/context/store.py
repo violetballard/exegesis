@@ -159,12 +159,19 @@ class ContextBasketStore:
         self, payload: dict[str, object], *, strict_metadata: bool
     ) -> tuple[list[str], bool] | None:
         schema_version = payload.get("schema_version", 0)
-        if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
+        if not isinstance(schema_version, int):
+            if strict_metadata:
+                return None
+            should_rewrite = True
+            schema_value = 0
+        else:
+            should_rewrite = schema_version != _SCHEMA_VERSION
+            schema_value = schema_version
+        if schema_value > _SCHEMA_VERSION:
             return None
         parsed_items = self._parse_item_ids(payload.get("item_ids", []))
         if parsed_items is None:
             return None
-        should_rewrite = schema_version != _SCHEMA_VERSION
         parsed_recovered_from = self._parse_recovered_from(payload.get("recovered_from"))
         if "recovered_from" in payload:
             if parsed_recovered_from is None:

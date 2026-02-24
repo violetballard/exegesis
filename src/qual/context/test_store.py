@@ -92,6 +92,28 @@ class ContextBasketStoreTests(unittest.TestCase):
             rewritten = json.loads((root / "context_basket.json").read_text(encoding="utf-8"))
             self.assertEqual("backup", rewritten.get("recovered_from"))
 
+    def test_non_int_schema_version_is_rewritten_to_canonical(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            primary = root / "context_basket.json"
+            primary.write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1",
+                        "item_ids": ["x"],
+                        "updated_at": "2026-01-01T00:00:00+00:00",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            store = ContextBasketStore(root)
+
+            basket = store.load()
+
+            self.assertEqual(["x"], basket.item_ids)
+            rewritten = json.loads(primary.read_text(encoding="utf-8"))
+            self.assertEqual(1, rewritten.get("schema_version"))
+
 
 if __name__ == "__main__":
     unittest.main()
