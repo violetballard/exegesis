@@ -14,7 +14,13 @@ from src.qual.webconsole.api.validators import (
     require_object,
     sanitize_probe_report,
 )
-from src.qual.webconsole.auth.session import CSRF_HEADER_NAME, Session, SessionStore, parse_cookie_session_id
+from src.qual.webconsole.auth.session import (
+    CSRF_HEADER_NAME,
+    Session,
+    SessionStore,
+    parse_cookie_session_id,
+    serialize_cleared_session_cookie,
+)
 
 
 class ProviderProbeService(Protocol):
@@ -52,6 +58,7 @@ class WebConsoleApi:
     capability_sessions: A2UISessionStore
     probe_service: ProviderProbeService
     action_gateway: ActionGateway | None = None
+    secure_cookie: bool = False
 
     def dispatch(self, request: ApiRequest) -> ApiResponse:
         if request.method == "POST" and request.path == "/api/a2ui/capabilities":
@@ -101,6 +108,15 @@ class WebConsoleApi:
             action = parse_action_ref(payload)
             result = self.action_gateway.execute(session_id=session.session_id, action=action)
             return ApiResponse(status=200, payload={"ok": True, "result": result})
+        if request.method == "POST" and request.path == "/api/auth/logout":
+            session = self._require_session(request)
+            self._require_csrf(request, session)
+            self.session_store.clear(session.session_id)
+            return ApiResponse(
+                status=200,
+                payload={"ok": True},
+                headers={"Set-Cookie": serialize_cleared_session_cookie(secure=self.secure_cookie)},
+            )
         raise ApiError(status=404, message="Not found")
 
     def _parse_json(self, body: bytes) -> dict[str, Any]:

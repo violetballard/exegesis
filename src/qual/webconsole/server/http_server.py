@@ -160,6 +160,7 @@ class WebConsoleServer:
             capability_sessions=self.capability_sessions,
             probe_service=self.probe_service,
             action_gateway=self.action_gateway,
+            secure_cookie=self.config.secure_cookie,
         )
         self._server = _ApiServer(
             (self.config.host, self.config.port),
