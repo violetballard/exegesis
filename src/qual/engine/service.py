@@ -17,6 +17,8 @@ class BootstrapState:
     context_transition: str
     context_health: str
     transition_summary: str
+    context_repair_ratio: float
+    bootstrap_signature: str
     original_context_items: int
     active_context_items: int
     repaired_context_items: int
@@ -53,16 +55,24 @@ class EngineService:
             has_persisted=bool(original_item_ids),
             repaired_count=repaired_count,
         )
+        context_health = self._context_health(
+            has_persisted=bool(original_item_ids),
+            repaired_count=repaired_count,
+        )
+        context_repair_ratio = self._context_repair_ratio(
+            original_count=len(original_item_ids),
+            repaired_count=repaired_count,
+        )
+        flow_state = "ready" if not vault.is_locked else "vault-locked"
         bootstrap = BootstrapState(
-            flow_state="ready" if not vault.is_locked else "vault-locked",
+            flow_state=flow_state,
             vault_transition=vault_transition,
             context_source="persisted" if original_item_ids else "empty",
             context_transition=context_transition,
-            context_health=self._context_health(
-                has_persisted=bool(original_item_ids),
-                repaired_count=repaired_count,
-            ),
+            context_health=context_health,
             transition_summary=f"{vault_transition}/{context_transition}",
+            context_repair_ratio=context_repair_ratio,
+            bootstrap_signature=f"{flow_state}|{vault_transition}|{context_health}",
             original_context_items=len(original_item_ids),
             active_context_items=len(sanitized),
             repaired_context_items=repaired_count,
@@ -108,3 +118,9 @@ class EngineService:
         if repaired_count == 0:
             return "clean"
         return "repaired"
+
+    @staticmethod
+    def _context_repair_ratio(*, original_count: int, repaired_count: int) -> float:
+        if original_count == 0:
+            return 0.0
+        return repaired_count / original_count
