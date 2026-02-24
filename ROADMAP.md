@@ -170,3 +170,23 @@ Current sprint model:
 - Integrator finalizes into main after full gates
 
 If this cadence changes, update this section and `INTEGRATION.md` together.
+
+## Fall 2026 Runway Integration (Engine Scope)
+
+Reference mapping doc:
+- `FALL_2026_RUNWAY_INTEGRATION.md`
+
+Scope boundary:
+- Engine repo tracks policy, contracts, run loops, retrieval, A2UI/tooling, export/audit, and release hardening.
+- Studio-native UI/runtime implementation details are tracked downstream in the Studio project.
+
+Timeline mapping:
+- Now -> late March: Milestones 1 + 3 security/policy and MVP-loop definition
+- April: Milestones 4 + 5 context/evidence + terminal/A2UI/tooling contracts
+- May: Milestone 4 retrieval hardening + Milestone 6 export contract start
+- June: Milestone 6 handoff contracts + runtime probe/doctor hardening + export contract completion
+- July: Milestones 3 + 6 release-readiness docs, demo artifacts, alpha blocker triage
+- Aug 1-15: cohort hardening + release candidate freeze
+
+Runway policy decision:
+- Checklist text that suggested "no embeddings" is superseded by current canonical scope; MVP retrieval remains `fts|pageindex|embeddings`.

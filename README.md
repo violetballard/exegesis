@@ -21,6 +21,7 @@ Future commercial UI package name: `Exegesis Studio` (separate project after Eng
 - UI evolution loop addendum (A2UI proposals -> review -> promotion): `UI_EVOLUTION_LOOP_ADDENDUM.md`
 - Project profiles + PolicyGate + audit spec: `PROJECT_PROFILES_POLICYGATE_SPEC.md`
 - Multi-provider update (OpenAI-compatible + Anthropic with confidential gating): `MULTI_PROVIDER_SUPPORT_SPEC_UPDATE.md`
+- Fall 2026 runway integration (engine milestone mapping): `FALL_2026_RUNWAY_INTEGRATION.md`
 
 ## Quick Commands
 
