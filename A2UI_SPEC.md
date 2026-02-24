@@ -35,8 +35,10 @@ Optional specialized cards:
 - `EvidenceCard`
 - `QuestionsCard`
 - `RunLogCard`
+- `UIPatternProposal` (dev mode suggestion card only)
 
 Engine emits specialized cards only when client support is declared; otherwise it emits `GenericCard`.
+`UIPatternProposal` never changes runtime behavior by itself; it is review/backlog input only.
 
 ## Primitive Blocks
 
@@ -45,6 +47,8 @@ Required safe blocks:
 - `KeyValueBlock`
 - `ListBlock`
 - `TableBlock`
+- `FormBlock` (JSON-schema-based)
+- `DiffBlock`
 - `AlertBlock`
 - `ProgressBlock`
 - `CodeBlock`
@@ -88,12 +92,19 @@ Web Console follows the same action model:
 - engine-side allowlist and schema re-validation
 - engine-authoritative policy enforcement
 
+`UIPatternProposal` rules:
+- must declare `required_actions` as a strict subset of allowlisted action IDs
+- proposals requiring new runtime action IDs must be rejected or revised
+- proposals are data-only and must not include executable UI code
+
 ## Security Invariants
 
 - No arbitrary HTML/CSS/JS from agent payloads
 - No unknown runtime action execution
 - No engine-driven OS dialogs
 - Policy-sensitive actions require explicit user confirmation and `PolicyGate` approval
+- No runtime creation of new action types
+- No automatic runtime promotion of proposed cards
 
 ## Streaming Contract
 

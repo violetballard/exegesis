@@ -55,11 +55,36 @@ This is not only a chat interface. It is an agent runtime + workflow system.
 - Advanced config editing is centralized in the local web admin console, not Studio model-pickers.
 - Provider compatibility probing (`exegesis doctor` / admin probe report) is required so fallback modes are explicit to operators.
 
+8. Profile-mode policy and online providers (launch)
+- Engine is authoritative for profile mode: `confidential` (default) or `standard`.
+- Confidential mode allows only localhost OpenAI-compatible providers.
+- Standard mode may allow `local_openai`, `openai_cloud`, and `anthropic` under PolicyGate when online overrides are explicitly enabled.
+- Default cloud send policy for non-local runs is `context_sets_only`.
+- Full-document cloud send is never default and requires explicit per-run approval with audit logging.
+- UI must show provider used per run.
+- UI must show a persistent indicator/banner when online overrides are enabled.
+- IRB-sensitive projects must be hard-locked to confidential mode.
+- Confidential mode must block network-required tools at engine policy level.
+
+9. Launch packaging constraints
+- Launch remains local-first with a 32GB minimum supported workstation tier.
+- Online-provider use is an explicit override capability, not a separate online-only SKU.
+- Standard-mode projects may run on lower-memory machines when local inference is not required.
+
+10. Anonymous telemetry policy (launch)
+- Telemetry is opt-in only and OFF by default.
+- Telemetry schema is aggregate-only and content-free by hard allowlist.
+- Telemetry is independent of profile mode and may be sent from confidential projects when explicitly enabled.
+- UI must support send-now, send-on-quit prompt (unchecked default), and payload preview.
+- Optional proposal export bundles must remain explicit user-triggered actions with preview and no background send.
+
 ## Product Packaging Strategy
 
 - Build and stabilize `Exegesis Engine` first as the base qualitative research/writing agent.
 - Use Engine outputs and contracts to drive UI generation and interaction patterns.
 - Create `Exegesis Studio` as a separate project once Engine contracts are stable enough for client consumption.
+- Launch Studio as local-first (32GB minimum) with optional standard-profile online overrides.
+- Do not ship an online-only low-memory SKU at launch.
 
 ## Non-Goals
 
