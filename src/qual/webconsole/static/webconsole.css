@@ -63,6 +63,11 @@ body {
   gap: 0.5rem;
 }
 
+.retry-info {
+  min-width: 10.5rem;
+  font-size: 0.85rem;
+}
+
 .status-pill {
   border-radius: 999px;
   padding: 0.2rem 0.55rem;

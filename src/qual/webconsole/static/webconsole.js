@@ -35,6 +35,9 @@
     copy_to_clipboard: { text: "string" },
   };
   var MAX_EVENT_ROWS = 200;
+  var MAX_RECONNECT_ATTEMPTS = 5;
+  var RECONNECT_BASE_MS = 1000;
+  var RECONNECT_MAX_MS = 10000;
 
   function parseJSON(input) {
     try {
@@ -259,6 +262,50 @@
     statusNode.textContent = label;
   }
 
+  function setRetryInfo(root, label) {
+    var infoNode = root.querySelector("#terminal-retry-info");
+    if (!infoNode) {
+      return;
+    }
+    infoNode.textContent = label || "";
+  }
+
+  function clearReconnectState(root) {
+    if (root._reconnectTimer) {
+      clearTimeout(root._reconnectTimer);
+      root._reconnectTimer = null;
+    }
+    if (root._reconnectTickTimer) {
+      clearInterval(root._reconnectTickTimer);
+      root._reconnectTickTimer = null;
+    }
+    setRetryInfo(root, "");
+  }
+
+  function scheduleReconnect(root) {
+    var attempts = Number(root._retryAttempt || 0) + 1;
+    root._retryAttempt = attempts;
+    if (attempts > MAX_RECONNECT_ATTEMPTS) {
+      setRetryInfo(root, "Auto-reconnect paused");
+      return;
+    }
+    var delayMs = Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * Math.pow(2, attempts - 1));
+    var remainingSeconds = Math.ceil(delayMs / 1000);
+    setRetryInfo(root, "Retrying in " + String(remainingSeconds) + "s");
+    root._reconnectTickTimer = setInterval(function () {
+      remainingSeconds -= 1;
+      if (remainingSeconds <= 0) {
+        clearReconnectState(root);
+        return;
+      }
+      setRetryInfo(root, "Retrying in " + String(remainingSeconds) + "s");
+    }, 1000);
+    root._reconnectTimer = setTimeout(function () {
+      clearReconnectState(root);
+      startTerminalStream(root);
+    }, delayMs);
+  }
+
   function bindTerminalSend(root) {
     var form = root.querySelector("#terminal-send-form");
     if (!form) {
@@ -340,6 +387,7 @@
       setStreamStatus(root, "disconnected", "Missing stream URL");
       return;
     }
+    clearReconnectState(root);
     if (root._terminalSource) {
       root._terminalSource.close();
       root._terminalSource = null;
@@ -353,6 +401,7 @@
       if (streamClosed) {
         return;
       }
+      root._retryAttempt = 0;
       setStreamStatus(root, "connected", "Connected");
     };
 
@@ -385,6 +434,7 @@
       appendEvent(eventsNode, "done", parseJSON(event.data) || {});
       streamClosed = true;
       setStreamStatus(root, "completed", "Completed");
+      clearReconnectState(root);
       source.close();
       root._terminalSource = null;
     });
@@ -398,6 +448,7 @@
       setStreamStatus(root, "disconnected", "Disconnected");
       source.close();
       root._terminalSource = null;
+      scheduleReconnect(root);
     };
   }
 
@@ -506,6 +557,8 @@
       var reconnectButton = terminalRoot.querySelector("[data-stream-reconnect]");
       if (reconnectButton) {
         reconnectButton.addEventListener("click", function () {
+          terminalRoot._retryAttempt = 0;
+          clearReconnectState(terminalRoot);
           startTerminalStream(terminalRoot);
         });
       }
