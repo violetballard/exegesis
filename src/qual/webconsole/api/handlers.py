@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import json
 from typing import Any, Protocol
+from urllib.parse import urlparse
 
 from src.qual.engine.policy_gate import PolicyGate
 from src.qual.ui.a2ui import A2UISessionStore
@@ -29,6 +30,9 @@ class ProviderProbeService(Protocol):
 
     def run_probe(self) -> dict[str, Any]:
         ...
+
+
+_LOCALHOST_HOSTS = frozenset({"127.0.0.1", "localhost"})
 
 
 @dataclass(frozen=True)
@@ -76,6 +80,7 @@ class WebConsoleApi:
     def dispatch(self, request: ApiRequest) -> ApiResponse:
         self._enforce_method_if_known(request)
         if request.method == "POST" and request.path == "/api/a2ui/capabilities":
+            self._require_local_origin(request)
             session = self._require_session(request)
             self._require_csrf(request, session)
             self._require_json_content_type(request)
@@ -96,6 +101,7 @@ class WebConsoleApi:
             report = sanitize_probe_report(self.probe_service.get_probe_report())
             return ApiResponse(status=200, payload={"ok": True, "report": report})
         if request.method == "POST" and request.path == "/api/provider/probe":
+            self._require_local_origin(request)
             session = self._require_session(request)
             self._require_csrf(request, session)
             self._require_json_content_type(request)
@@ -113,6 +119,7 @@ class WebConsoleApi:
             report = sanitize_probe_report(self.probe_service.run_probe())
             return ApiResponse(status=200, payload={"ok": True, "report": report})
         if request.method == "POST" and request.path == "/api/actions/execute":
+            self._require_local_origin(request)
             if self.action_gateway is None:
                 raise ApiError(status=503, message="Action gateway is not configured")
             session = self._require_session(request)
@@ -123,6 +130,7 @@ class WebConsoleApi:
             result = self.action_gateway.execute(session_id=session.session_id, action=action)
             return ApiResponse(status=200, payload={"ok": True, "result": result})
         if request.method == "POST" and request.path == "/api/auth/logout":
+            self._require_local_origin(request)
             session = self._require_session(request)
             self._require_csrf(request, session)
             self.session_store.clear(session.session_id)
@@ -175,3 +183,34 @@ class WebConsoleApi:
             message="Method not allowed",
             headers={"Allow": ", ".join(allowed)},
         )
+
+    def _require_local_origin(self, request: ApiRequest) -> None:
+        host_name, host_port = _parse_host_header(request.headers.get("host", ""))
+        if host_name not in _LOCALHOST_HOSTS:
+            raise ApiError(status=403, message="Localhost host header is required")
+
+        origin = request.headers.get("origin")
+        referer = request.headers.get("referer")
+        if not origin and not referer:
+            # Non-browser callers may omit origin headers.
+            return
+
+        source = origin or referer or ""
+        parsed = urlparse(source)
+        if parsed.hostname not in _LOCALHOST_HOSTS:
+            raise ApiError(status=403, message="Non-local origin is not allowed")
+        if host_port and parsed.port and parsed.port != host_port:
+            raise ApiError(status=403, message="Origin port does not match host")
+
+
+def _parse_host_header(raw_host: str) -> tuple[str, int | None]:
+    value = raw_host.strip()
+    if not value:
+        return "", None
+    if ":" not in value:
+        return value.lower(), None
+    head, tail = value.rsplit(":", 1)
+    try:
+        return head.lower(), int(tail)
+    except ValueError:
+        return value.lower(), None
