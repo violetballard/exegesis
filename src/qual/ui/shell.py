@@ -20,11 +20,13 @@ class ShellUI:
             f"- context_transition: {runtime.bootstrap.context_transition}\n"
             f"- context_health: {runtime.bootstrap.context_health}\n"
             f"- transition_summary: {runtime.bootstrap.transition_summary}\n"
+            f"- bootstrap_health_summary: {runtime.bootstrap.bootstrap_health_summary}\n"
             f"- context_repair_ratio: {runtime.bootstrap.context_repair_ratio:.2%}\n"
             f"- context_source: {runtime.bootstrap.context_source}\n"
             f"- context_status: {context_status}\n"
             f"- context_items: {runtime.bootstrap.active_context_items}"
             f" (from {runtime.bootstrap.original_context_items})\n"
+            f"- context_delta_items: {runtime.bootstrap.context_delta_items:+d}\n"
             f"- context_preview: {preview}"
         )
 

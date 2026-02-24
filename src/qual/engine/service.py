@@ -19,6 +19,8 @@ class BootstrapState:
     transition_summary: str
     context_repair_ratio: float
     bootstrap_signature: str
+    context_delta_items: int
+    bootstrap_health_summary: str
     original_context_items: int
     active_context_items: int
     repaired_context_items: int
@@ -63,6 +65,7 @@ class EngineService:
             original_count=len(original_item_ids),
             repaired_count=repaired_count,
         )
+        context_delta_items = len(sanitized) - len(original_item_ids)
         flow_state = "ready" if not vault.is_locked else "vault-locked"
         bootstrap = BootstrapState(
             flow_state=flow_state,
@@ -73,6 +76,11 @@ class EngineService:
             transition_summary=f"{vault_transition}/{context_transition}",
             context_repair_ratio=context_repair_ratio,
             bootstrap_signature=f"{flow_state}|{vault_transition}|{context_health}",
+            context_delta_items=context_delta_items,
+            bootstrap_health_summary=self._bootstrap_health_summary(
+                context_health=context_health,
+                context_repair_ratio=context_repair_ratio,
+            ),
             original_context_items=len(original_item_ids),
             active_context_items=len(sanitized),
             repaired_context_items=repaired_count,
@@ -124,3 +132,7 @@ class EngineService:
         if original_count == 0:
             return 0.0
         return repaired_count / original_count
+
+    @staticmethod
+    def _bootstrap_health_summary(*, context_health: str, context_repair_ratio: float) -> str:
+        return f"{context_health}:{context_repair_ratio:.2%}"

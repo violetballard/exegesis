@@ -21,6 +21,7 @@ class DiffSummary:
     total_changed_lines: int
     hunk_count: int
     changed_line_ratio: float
+    line_coverage_ratio: float
     change_intensity: str
 
 
@@ -110,6 +111,7 @@ class DraftingService:
             total_changed_lines=0,
             hunk_count=0,
             changed_line_ratio=0.0,
+            line_coverage_ratio=0.0,
             change_intensity="none",
         )
 
@@ -125,6 +127,11 @@ class DraftingService:
         total_changed = added_lines + removed_lines
         baseline_lines = max(before_line_count, after_line_count)
         ratio = 0.0 if baseline_lines == 0 else total_changed / baseline_lines
+        coverage_ratio = DraftingService._line_coverage_ratio(
+            total_changed_lines=total_changed,
+            before_line_count=before_line_count,
+            after_line_count=after_line_count,
+        )
         intensity = DraftingService._classify_change_intensity(ratio=ratio)
         return DiffSummary(
             changed=True,
@@ -134,6 +141,7 @@ class DraftingService:
             total_changed_lines=total_changed,
             hunk_count=hunk_count,
             changed_line_ratio=ratio,
+            line_coverage_ratio=coverage_ratio,
             change_intensity=intensity,
         )
 
@@ -144,6 +152,18 @@ class DraftingService:
         if ratio <= 0.75:
             return "medium"
         return "high"
+
+    @staticmethod
+    def _line_coverage_ratio(
+        *,
+        total_changed_lines: int,
+        before_line_count: int,
+        after_line_count: int,
+    ) -> float:
+        total_lines = before_line_count + after_line_count
+        if total_lines == 0:
+            return 0.0
+        return total_changed_lines / total_lines
 
     @staticmethod
     def _normalize_newlines(value: str) -> str:
