@@ -1,5 +1,11 @@
 <section id="terminal-root" class="panel" data-session-id="{{session_id}}" data-stream-url="{{stream_url}}" data-send-url="{{send_url}}" data-actions-url="{{actions_url}}">
-  <h2>Terminal Transcript</h2>
+  <div class="panel-head">
+    <h2>Terminal Transcript</h2>
+    <div class="stream-controls">
+      <span id="terminal-stream-status" class="status-pill status-connecting">Connecting...</span>
+      <button type="button" data-stream-reconnect>Reconnect</button>
+    </div>
+  </div>
   <p class="muted">Streaming over SSE. Only structured payload rendering is supported.</p>
 
   <div class="terminal-columns">
