@@ -80,6 +80,31 @@ class VaultServiceTests(unittest.TestCase):
 
             self.assertTrue(state.is_locked)
 
+    def test_invalid_primary_with_backup_uses_recovered_lock_state(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            project_root = root / "demo"
+            project_root.mkdir(parents=True, exist_ok=True)
+            (project_root / ".vault_state.json").write_text("{invalid", encoding="utf-8")
+            (project_root / ".vault_state.bak.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "project_name": "demo",
+                        "is_locked": False,
+                        "updated_at": "2026-01-01T00:00:00+00:00",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            service = VaultService()
+
+            state = service.create_or_open(root, "demo")
+
+            self.assertFalse(state.is_locked)
+            rewritten = json.loads((project_root / ".vault_state.json").read_text(encoding="utf-8"))
+            self.assertEqual("backup", rewritten.get("recovered_from"))
+
 
 if __name__ == "__main__":
     unittest.main()
