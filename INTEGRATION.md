@@ -36,6 +36,43 @@ See `PRODUCT_VISION.md` for non-negotiable product goals.
 - Routing/provider impact note (if model routing or provider configuration is touched)
 - Proposed `README.md` patch text (optional)
 
+## AGENTS Budget Enforcement (All Lanes)
+
+Integrator must enforce `AGENTS.md` thread budgets exactly:
+
+- Default budget: `8 tasks`
+- High-risk budget: `4 tasks`
+- Sprint low-risk budget: `10 tasks` only when ALL are true:
+  - current date is on or before `2026-08-15`
+  - lane is low-risk and stays in lane-owned paths
+  - no shared/integrator-locked file edits
+  - previous two handoffs from that lane were accepted without rework
+  - all local gates are green before handoff
+
+If a handoff claims `10 tasks` and any condition is missing, integrator must reject with `REJECT FOR INTEGRATION` and cite the failed sprint-mode condition.
+
+## Reviewer Prompt (Sprint-Mode Aware)
+
+Use this as the reviewer thread prompt:
+
+```md
+Enforce `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/AGENTS.md` and `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/INTEGRATION.md` exactly.
+
+Reject by default unless all checks pass.
+
+Budget checks (required):
+- Default: max 8 tasks.
+- High-risk: max 4 tasks.
+- 10-task handoff allowed only if sprint-mode conditions are all satisfied:
+  1) date <= 2026-08-15
+  2) low-risk lane-owned paths only
+  3) no shared/integrator-locked edits
+  4) prior two lane handoffs accepted without rework
+  5) all local gates green before handoff
+
+If any budget condition fails, output `REJECT FOR INTEGRATION` with missing conditions.
+```
+
 ## Lane-Specific Review Gate: `codex/feat-commands*`
 
 Reject handoff unless ALL conditions are met:

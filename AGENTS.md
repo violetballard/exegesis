@@ -6,13 +6,26 @@ Template selection rule: use `Thread Kickoff Template` by default, and use `High
 
 ## Recommended Thread Size
 
-- Default: `6 tasks` per feature thread.
-- Low-risk lanes: up to `8 tasks` if changes stay inside owned paths from `THREAD_OWNERSHIP.md`.
+- Default: `8 tasks` per feature thread.
+- Low-risk lanes: up to `8 tasks` by default; up to `10` only under `Timeline Sprint Mode` rules below.
 - High-risk work: cap at `4 tasks` when touching shared or integrator-locked files.
 
 Why not 10 by default:
 - At this repo's current size, 10-task batches increase conflict and rework risk at integration.
-- 6-task batches are large enough to reduce babysitting but small enough to keep review fast.
+- 8-task batches improve throughput while keeping review scope manageable.
+
+## Timeline Sprint Mode (Temporary)
+
+Active window: now through `2026-08-15` (RC freeze window).
+
+- During this window:
+  - default remains `8`
+  - low-risk threads may run at `10` only if ALL are true:
+    - changes stay in lane-owned paths only
+    - no shared/integrator-locked file edits
+    - previous `2` handoffs from that lane were accepted without rework
+    - all local gates are green before handoff
+- After `2026-08-15`, revert low-risk cap to `8` unless integrator re-authorizes.
 
 ## Task Definition
 
@@ -26,7 +39,7 @@ Do not split tasks into trivial subtasks to inflate counts.
 ## Autonomy Window
 
 A thread may continue without passoff until it hits one of these:
-- Task budget reached (`6` default, `8` low-risk, `4` high-risk)
+- Task budget reached (`8` default, `10` sprint low-risk, `4` high-risk)
 - Time budget reached (`45 minutes` active coding)
 - Size budget exceeded:
   - more than `12 files` changed, or
@@ -69,7 +82,7 @@ Use full required handoff fields from `INTEGRATION.md`.
 ## Quick Start Defaults
 
 Use these unless the integrator overrides:
-- `TASK_BUDGET=6`
+- `TASK_BUDGET=8`
 - `TIME_BUDGET_MIN=45`
 - `MAX_FILES_CHANGED=12`
 - `MAX_NET_LOC=500`
@@ -87,18 +100,20 @@ Copy/paste this at thread start and fill it in:
 - Scope goal: `<1-2 sentence outcome>`
 
 ### Budget
-- Task budget: `6` (set `8` only for low-risk owned-path work, `4` for high-risk/shared work)
+- Task budget: `8` (set `10` only in Timeline Sprint Mode for low-risk owned-path work, `4` for high-risk/shared work)
 - Time budget: `45m`
 - Size limits: `<=12 files`, `<=500 net LOC`
 - Max fix attempts per failing gate: `2`
 
-### Planned Tasks (max 6 by default)
+### Planned Tasks (max 8 by default)
 1. `<task 1: meaningful + testable>`
 2. `<task 2>`
 3. `<task 3>`
 4. `<task 4>`
 5. `<task 5>`
 6. `<task 6>`
+7. `<task 7>`
+8. `<task 8>`
 
 ### Stop Triggers
 - integrator-locked/shared-by-approval edits needed
