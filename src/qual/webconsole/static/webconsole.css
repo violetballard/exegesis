@@ -74,6 +74,15 @@ body {
   font-size: 0.85rem;
 }
 
+.shortcut-hint kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  background: #f3f4f6;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 0.25rem;
+  padding: 0.05rem 0.3rem;
+}
+
 .status-pill {
   border-radius: 999px;
   padding: 0.2rem 0.55rem;

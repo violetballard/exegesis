@@ -280,6 +280,14 @@
     button.setAttribute("aria-pressed", enabled ? "true" : "false");
   }
 
+  function isEditableTarget(target) {
+    if (!target || !(target instanceof Element)) {
+      return false;
+    }
+    var tag = target.tagName;
+    return tag === "INPUT" || tag === "TEXTAREA" || target.isContentEditable;
+  }
+
   function setControlState(root, state) {
     var reconnectButton = root.querySelector("[data-stream-reconnect]");
     if (reconnectButton) {
@@ -607,6 +615,33 @@
           }
         });
       }
+      document.addEventListener("keydown", function (event) {
+        if (!event.altKey || event.shiftKey || event.metaKey || event.ctrlKey) {
+          return;
+        }
+        if (isEditableTarget(event.target)) {
+          return;
+        }
+        var key = String(event.key || "").toLowerCase();
+        if (key === "r") {
+          event.preventDefault();
+          terminalRoot._retryAttempt = 0;
+          clearReconnectState(terminalRoot);
+          startTerminalStream(terminalRoot);
+          return;
+        }
+        if (key === "a") {
+          event.preventDefault();
+          terminalRoot._autoRetryEnabled = terminalRoot._autoRetryEnabled === false;
+          setAutoRetryButtonLabel(terminalRoot);
+          if (terminalRoot._autoRetryEnabled === false) {
+            clearReconnectState(terminalRoot);
+            setRetryInfo(terminalRoot, "Auto-reconnect off");
+          } else if (!terminalRoot._terminalSource) {
+            setRetryInfo(terminalRoot, "Auto-reconnect enabled");
+          }
+        }
+      });
     }
     var probePanel = document.getElementById("provider-probe-panel");
     if (probePanel) {
