@@ -188,6 +188,7 @@ class WebConsoleApi:
         host_name, host_port = _parse_host_header(request.headers.get("host", ""))
         if host_name not in _LOCALHOST_HOSTS:
             raise ApiError(status=403, message="Localhost host header is required")
+        self._require_local_fetch_site(request)
 
         origin = request.headers.get("origin")
         referer = request.headers.get("referer")
@@ -201,6 +202,15 @@ class WebConsoleApi:
             raise ApiError(status=403, message="Non-local origin is not allowed")
         if host_port and parsed.port and parsed.port != host_port:
             raise ApiError(status=403, message="Origin port does not match host")
+
+    def _require_local_fetch_site(self, request: ApiRequest) -> None:
+        fetch_site = request.headers.get("sec-fetch-site", "").strip().lower()
+        if not fetch_site:
+            # Non-browser callers may not send Fetch Metadata headers.
+            return
+        if fetch_site in {"same-origin", "same-site", "none"}:
+            return
+        raise ApiError(status=403, message="Cross-site fetch is not allowed")
 
 
 def _parse_host_header(raw_host: str) -> tuple[str, int | None]:
