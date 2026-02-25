@@ -31,6 +31,8 @@ SUMMARY_JSON_ENSURE_ASCII_ENV = "QUAL_DIFF_SUMMARY_JSON_ENSURE_ASCII"
 SUMMARY_JSON_INCLUDE_SCHEMA_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_SCHEMA"
 SUMMARY_JSON_INCLUDE_TRUNCATION_MODE_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_TRUNCATION_MODE"
 SUMMARY_JSON_INCLUDE_FLAGS_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_FLAGS"
+SUMMARY_JSON_INCLUDE_LIMITS_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_LIMITS"
+SUMMARY_JSON_INCLUDE_RENDER_MODE_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_RENDER_MODE"
 SUMMARY_JSON_SCHEMA_VERSION = "diff_summary.v1"
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
@@ -156,7 +158,7 @@ def _diff_stats(diff: str) -> tuple[int, int, int]:
     return added, removed, hunks
 
 
-def _summarize_diff(diff: str) -> str:
+def _summarize_diff(diff: str, *, render_mode: str | None = None) -> str:
     added, removed, hunks = _diff_stats(diff)
     if _env_enabled(SUMMARY_JSON_ENV):
         payload: dict[str, int | str] = {
@@ -170,6 +172,11 @@ def _summarize_diff(diff: str) -> str:
             payload["truncation_strategy"] = _truncation_strategy()
         if _env_enabled(SUMMARY_JSON_INCLUDE_FLAGS_ENV):
             payload["enabled_flags"] = _enabled_normalization_flags()
+        if _env_enabled(SUMMARY_JSON_INCLUDE_LIMITS_ENV):
+            payload["max_output_chars"] = _max_diff_output_chars()
+            payload["max_output_lines"] = _max_diff_output_lines() or 0
+        if _env_enabled(SUMMARY_JSON_INCLUDE_RENDER_MODE_ENV):
+            payload["render_mode"] = render_mode or "diff"
         if _env_enabled(INCLUDE_SUMMARY_DETAILS_ENV):
             payload["changed"] = added + removed
             payload["net"] = added - removed
@@ -262,6 +269,8 @@ def _options_banner(
         f"summary_json_include_schema={str(_env_enabled(SUMMARY_JSON_INCLUDE_SCHEMA_ENV)).lower()}, "
         f"summary_json_include_truncation_mode={str(_env_enabled(SUMMARY_JSON_INCLUDE_TRUNCATION_MODE_ENV)).lower()}, "
         f"summary_json_include_flags={str(_env_enabled(SUMMARY_JSON_INCLUDE_FLAGS_ENV)).lower()}, "
+        f"summary_json_include_limits={str(_env_enabled(SUMMARY_JSON_INCLUDE_LIMITS_ENV)).lower()}, "
+        f"summary_json_include_render_mode={str(_env_enabled(SUMMARY_JSON_INCLUDE_RENDER_MODE_ENV)).lower()}, "
         f"suppress_hunk_headers={str(_env_enabled(SUPPRESS_HUNK_HEADERS_ENV)).lower()}, "
         f"max_output_lines={max_lines_value}, "
         f"max_output_chars={max_chars}, "
@@ -380,7 +389,7 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
             + "\n\n"
         )
     if _env_enabled(SUMMARY_ONLY_ENV):
-        return f"{banner}{_summarize_diff(summary_source)}"
+        return f"{banner}{_summarize_diff(summary_source, render_mode='summary_only')}"
 
     output = diff
     if max_lines is not None:
@@ -389,5 +398,5 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
         output = _truncate_diff(output, max_chars)
 
     if _env_enabled(INCLUDE_SUMMARY_ENV):
-        return f"{banner}{output}\n\n{_summarize_diff(summary_source)}"
+        return f"{banner}{output}\n\n{_summarize_diff(summary_source, render_mode='diff_plus_summary')}"
     return f"{banner}{output}"
