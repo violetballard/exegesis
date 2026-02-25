@@ -33,6 +33,7 @@ SUMMARY_JSON_INCLUDE_TRUNCATION_MODE_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_TRUNC
 SUMMARY_JSON_INCLUDE_FLAGS_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_FLAGS"
 SUMMARY_JSON_INCLUDE_LIMITS_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_LIMITS"
 SUMMARY_JSON_INCLUDE_RENDER_MODE_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_RENDER_MODE"
+SUMMARY_JSON_INCLUDE_SUPPRESSION_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_SUPPRESSION"
 SUMMARY_JSON_SCHEMA_VERSION = "diff_summary.v1"
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
@@ -161,7 +162,7 @@ def _diff_stats(diff: str) -> tuple[int, int, int]:
 def _summarize_diff(diff: str, *, render_mode: str | None = None) -> str:
     added, removed, hunks = _diff_stats(diff)
     if _env_enabled(SUMMARY_JSON_ENV):
-        payload: dict[str, int | str] = {
+        payload: dict[str, int | str | list[str]] = {
             "added": added,
             "removed": removed,
             "hunks": hunks,
@@ -177,6 +178,8 @@ def _summarize_diff(diff: str, *, render_mode: str | None = None) -> str:
             payload["max_output_lines"] = _max_diff_output_lines() or 0
         if _env_enabled(SUMMARY_JSON_INCLUDE_RENDER_MODE_ENV):
             payload["render_mode"] = render_mode or "diff"
+        if _env_enabled(SUMMARY_JSON_INCLUDE_SUPPRESSION_ENV):
+            payload["suppression"] = _enabled_suppression_flags()
         if _env_enabled(INCLUDE_SUMMARY_DETAILS_ENV):
             payload["changed"] = added + removed
             payload["net"] = added - removed
@@ -249,6 +252,15 @@ def _enabled_normalization_flags() -> list[str]:
     return flags
 
 
+def _enabled_suppression_flags() -> list[str]:
+    flags: list[str] = []
+    if _env_enabled(SUPPRESS_FILE_HEADERS_ENV):
+        flags.append("suppress_file_headers")
+    if _env_enabled(SUPPRESS_HUNK_HEADERS_ENV):
+        flags.append("suppress_hunk_headers")
+    return flags
+
+
 def _options_banner(
     *, ignore_trailing_whitespace: bool, suppress_file_headers: bool, max_chars: int, max_lines: int | None
 ) -> str:
@@ -271,6 +283,7 @@ def _options_banner(
         f"summary_json_include_flags={str(_env_enabled(SUMMARY_JSON_INCLUDE_FLAGS_ENV)).lower()}, "
         f"summary_json_include_limits={str(_env_enabled(SUMMARY_JSON_INCLUDE_LIMITS_ENV)).lower()}, "
         f"summary_json_include_render_mode={str(_env_enabled(SUMMARY_JSON_INCLUDE_RENDER_MODE_ENV)).lower()}, "
+        f"summary_json_include_suppression={str(_env_enabled(SUMMARY_JSON_INCLUDE_SUPPRESSION_ENV)).lower()}, "
         f"suppress_hunk_headers={str(_env_enabled(SUPPRESS_HUNK_HEADERS_ENV)).lower()}, "
         f"max_output_lines={max_lines_value}, "
         f"max_output_chars={max_chars}, "
