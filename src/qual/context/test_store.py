@@ -158,6 +158,28 @@ class ContextBasketStoreTests(unittest.TestCase):
             rewritten = json.loads(primary.read_text(encoding="utf-8"))
             self.assertEqual(1, rewritten.get("schema_version"))
 
+    def test_invalid_primary_with_tmp_recovers_tmp_state(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "context_basket.json").write_text("{invalid", encoding="utf-8")
+            (root / "context_basket.tmp").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "item_ids": ["t1", "t2"],
+                        "updated_at": "2026-01-01T00:00:00+00:00",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            store = ContextBasketStore(root)
+
+            basket = store.load()
+
+            self.assertEqual(["t1", "t2"], basket.item_ids)
+            rewritten = json.loads((root / "context_basket.json").read_text(encoding="utf-8"))
+            self.assertEqual("tmp", rewritten.get("recovered_from"))
+
 
 if __name__ == "__main__":
     unittest.main()
