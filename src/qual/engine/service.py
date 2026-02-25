@@ -23,6 +23,8 @@ class BootstrapState:
     bootstrap_health_summary: str
     context_retention_ratio: float
     bootstrap_context_summary: str
+    context_stability: str
+    context_direction: str
     original_context_items: int
     active_context_items: int
     repaired_context_items: int
@@ -68,10 +70,12 @@ class EngineService:
             repaired_count=repaired_count,
         )
         context_delta_items = len(sanitized) - len(original_item_ids)
+        context_direction = self._context_direction(context_delta_items)
         context_retention_ratio = self._context_retention_ratio(
             original_count=len(original_item_ids),
             active_count=len(sanitized),
         )
+        context_stability = "stable" if context_delta_items == 0 and repaired_count == 0 else "changed"
         flow_state = "ready" if not vault.is_locked else "vault-locked"
         bootstrap = BootstrapState(
             flow_state=flow_state,
@@ -93,6 +97,8 @@ class EngineService:
                 context_health=context_health,
                 context_retention_ratio=context_retention_ratio,
             ),
+            context_stability=context_stability,
+            context_direction=context_direction,
             original_context_items=len(original_item_ids),
             active_context_items=len(sanitized),
             repaired_context_items=repaired_count,
@@ -163,3 +169,11 @@ class EngineService:
         context_retention_ratio: float,
     ) -> str:
         return f"{context_transition}|{context_health}|{context_retention_ratio:.2%}"
+
+    @staticmethod
+    def _context_direction(context_delta_items: int) -> str:
+        if context_delta_items > 0:
+            return "growth"
+        if context_delta_items < 0:
+            return "shrink"
+        return "flat"

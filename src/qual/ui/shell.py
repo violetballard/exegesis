@@ -22,6 +22,8 @@ class ShellUI:
             f"- transition_summary: {runtime.bootstrap.transition_summary}\n"
             f"- bootstrap_health_summary: {runtime.bootstrap.bootstrap_health_summary}\n"
             f"- bootstrap_context_summary: {runtime.bootstrap.bootstrap_context_summary}\n"
+            f"- context_stability: {runtime.bootstrap.context_stability}\n"
+            f"- context_direction: {runtime.bootstrap.context_direction}\n"
             f"- context_repair_ratio: {runtime.bootstrap.context_repair_ratio:.2%}\n"
             f"- context_retention_ratio: {runtime.bootstrap.context_retention_ratio:.2%}\n"
             f"- context_source: {runtime.bootstrap.context_source}\n"

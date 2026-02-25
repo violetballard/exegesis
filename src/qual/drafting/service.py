@@ -26,6 +26,8 @@ class DiffSummary:
     changed_vs_baseline_ratio: float
     line_coverage_ratio: float
     avg_lines_per_hunk: float
+    hunks_per_changed_line: float
+    added_to_removed_ratio: float
     change_intensity: str
 
 
@@ -120,6 +122,8 @@ class DraftingService:
             changed_vs_baseline_ratio=0.0,
             line_coverage_ratio=0.0,
             avg_lines_per_hunk=0.0,
+            hunks_per_changed_line=0.0,
+            added_to_removed_ratio=0.0,
             change_intensity="none",
         )
 
@@ -148,6 +152,14 @@ class DraftingService:
             total_changed_lines=total_changed,
             hunk_count=hunk_count,
         )
+        hunks_per_changed_line = DraftingService._hunks_per_changed_line(
+            total_changed_lines=total_changed,
+            hunk_count=hunk_count,
+        )
+        added_to_removed_ratio = DraftingService._added_to_removed_ratio(
+            added_lines=added_lines,
+            removed_lines=removed_lines,
+        )
         intensity = DraftingService._classify_change_intensity(ratio=changed_vs_baseline_ratio)
         return DiffSummary(
             changed=True,
@@ -162,6 +174,8 @@ class DraftingService:
             changed_vs_baseline_ratio=changed_vs_baseline_ratio,
             line_coverage_ratio=coverage_ratio,
             avg_lines_per_hunk=avg_lines_per_hunk,
+            hunks_per_changed_line=hunks_per_changed_line,
+            added_to_removed_ratio=added_to_removed_ratio,
             change_intensity=intensity,
         )
 
@@ -202,6 +216,18 @@ class DraftingService:
         if hunk_count == 0:
             return 0.0
         return total_changed_lines / hunk_count
+
+    @staticmethod
+    def _hunks_per_changed_line(*, total_changed_lines: int, hunk_count: int) -> float:
+        if total_changed_lines == 0:
+            return 0.0
+        return hunk_count / total_changed_lines
+
+    @staticmethod
+    def _added_to_removed_ratio(*, added_lines: int, removed_lines: int) -> float:
+        if removed_lines == 0:
+            return float(added_lines) if added_lines > 0 else 0.0
+        return added_lines / removed_lines
 
     @staticmethod
     def _normalize_newlines(value: str) -> str:
