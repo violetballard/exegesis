@@ -59,17 +59,17 @@ def ensure_lane_dirs(lane: str)->None:
     base=PACKETS_ROOT/lane
     (base/"inbox/feature").mkdir(parents=True, exist_ok=True)
     (base/"inbox/reviewer").mkdir(parents=True, exist_ok=True)
+    (base/"outbox/lane").mkdir(parents=True, exist_ok=True)
     (base/"outbox/integrator").mkdir(parents=True, exist_ok=True)
     (base/"archive").mkdir(parents=True, exist_ok=True)
 
 def lane_is_busy(lane: str)->bool:
     base=PACKETS_ROOT/lane
     if any((base/"inbox/feature").glob("*.md")): return True
-    reviewer=sorted((base/"inbox/reviewer").glob("*.md"), key=lambda p:p.stat().st_mtime, reverse=True)
-    if not reviewer: return False
-    archived=sorted((base/"archive").glob("F__*.md"), key=lambda p:p.stat().st_mtime, reverse=True)
-    if not archived: return True
-    return reviewer[0].stat().st_mtime > archived[0].stat().st_mtime
+    if any((base/"inbox/reviewer").glob("*.md")): return True
+    if any((base/"outbox/lane").glob("*.md")): return True
+    if any((base/"outbox/integrator").glob("*.md")): return True
+    return False
 
 def compute_changed_files(cwd: str, base_ref: str)->List[str]:
     out = git(f"diff --name-only {base_ref}...HEAD", cwd=cwd)

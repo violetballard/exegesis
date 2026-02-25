@@ -57,6 +57,7 @@ def ensure_lane_dirs(lane:str)->Path:
     d=PACKETS_ROOT/lane
     (d/"inbox/feature").mkdir(parents=True, exist_ok=True)
     (d/"inbox/reviewer").mkdir(parents=True, exist_ok=True)
+    (d/"outbox/lane").mkdir(parents=True, exist_ok=True)
     (d/"outbox/integrator").mkdir(parents=True, exist_ok=True)
     (d/"archive").mkdir(parents=True, exist_ok=True)
     return d
@@ -97,6 +98,17 @@ def integrator_prompt(approved:str)->str:
         f"{approved}\n"
     )
 
+def lane_action_packet(lane:str, feature_packet_name:str, reviewer_text:str)->str:
+    return (
+        "# Lane Action Packet (CHANGES_REQUESTED)\n\n"
+        f"- Lane: `{lane}`\n"
+        f"- Source feature packet: `{feature_packet_name}`\n\n"
+        "## Action required\n"
+        "- Apply reviewer requested fixes, update lane branch, and re-submit via planner.\n\n"
+        "## Reviewer packet\n\n"
+        f"{reviewer_text}\n"
+    )
+
 def write_text(p:Path,t:str)->None:
     p.parent.mkdir(parents=True, exist_ok=True); p.write_text(t)
 
@@ -125,7 +137,13 @@ def process_once(client:CodexMcpClient, acc:EventAccumulator, cfg:RouterConfig, 
                 if integ.strip():
                     write_text(lane_dir/"archive"/f"INTEGRATOR__{pkt_path.name}", integ)
             else:
-                write_text(lane_dir/"inbox/reviewer"/pkt_path.name.replace("F__","R__CHANGES__"), reviewer_text)
+                reviewer_name=pkt_path.name.replace("F__","R__CHANGES__")
+                write_text(lane_dir/"inbox/reviewer"/reviewer_name, reviewer_text)
+                action_name=pkt_path.name.replace("F__","L__ACTION__")
+                write_text(
+                    lane_dir/"outbox/lane"/action_name,
+                    lane_action_packet(lane, pkt_path.name, reviewer_text),
+                )
             cursor[lane]=pkt_path.name
             save_json(CURSOR_FILE,cursor)
             archive(pkt_path, lane_dir)

@@ -8,6 +8,7 @@ def ensure_dirs():
         base = Path(".codex/packets/lanes")/lane
         (base/"inbox/feature").mkdir(parents=True, exist_ok=True)
         (base/"inbox/reviewer").mkdir(parents=True, exist_ok=True)
+        (base/"outbox/lane").mkdir(parents=True, exist_ok=True)
         (base/"outbox/integrator").mkdir(parents=True, exist_ok=True)
         (base/"archive").mkdir(parents=True, exist_ok=True)
     Path(".codex/packet_router").mkdir(parents=True, exist_ok=True)
