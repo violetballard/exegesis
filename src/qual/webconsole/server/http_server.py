@@ -78,11 +78,11 @@ class _WebConsoleHandler(BaseHTTPRequestHandler):
         return
 
     def _handle(self) -> None:
-        path = urlsplit(self.path).path
-        body = self._read_body()
-        headers = {key.lower(): value for key, value in self.headers.items()}
-        request = ApiRequest(method=self.command, path=path, headers=headers, body=body)
         try:
+            path = urlsplit(self.path).path
+            body = self._read_body()
+            headers = {key.lower(): value for key, value in self.headers.items()}
+            request = ApiRequest(method=self.command, path=path, headers=headers, body=body)
             response = self.server.api.dispatch(request)
             self._write_json(response.status, response.payload, response.headers)
         except ApiError as exc:
