@@ -13,11 +13,15 @@ Run:
 
 from __future__ import annotations
 
+import json
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional
 
 ROOT = Path('.codex/packets/lanes')
+CONFIG_FILE = Path('.codex/packet_router/config.json')
+PLANNER_STATE_FILE = Path('.codex/packet_planner/state.json')
 
 @dataclass
 class LaneStatus:
@@ -26,6 +30,11 @@ class LaneStatus:
     reviewer_notes: List[Path]
     approved_integrator: List[Path]
     integrator_outputs: List[Path]
+    branch: Optional[str]
+    head_sha: Optional[str]
+    last_submitted_sha: Optional[str]
+    state: str
+    note: str
 
 def newest(paths: List[Path]) -> Optional[Path]:
     if not paths:
@@ -37,13 +46,49 @@ def fmt(p: Optional[Path]) -> str:
         return "-"
     return p.name
 
-def scan_lane(lane_dir: Path) -> LaneStatus:
+def _load_json(path: Path, default: Dict) -> Dict:
+    try:
+        return json.loads(path.read_text())
+    except Exception:
+        return default
+
+def _branch_head_sha(branch: Optional[str]) -> Optional[str]:
+    if not branch:
+        return None
+    try:
+        out = subprocess.check_output(["git", "rev-parse", branch], text=True, stderr=subprocess.DEVNULL).strip()
+        return out or None
+    except Exception:
+        return None
+
+def _derive_lane_state(
+    pending: List[Path],
+    reviewer: List[Path],
+    approved: List[Path],
+    head_sha: Optional[str],
+    last_submitted_sha: Optional[str],
+) -> tuple[str, str]:
+    if approved:
+        return ("ready_for_integrator", "approved packet waiting for integrator")
+    if pending:
+        return ("pending_review", "feature packet waiting for reviewer")
+    if reviewer:
+        if head_sha and last_submitted_sha and head_sha != last_submitted_sha:
+            return ("ready_for_reemit", "review notes present, lane advanced, planner should re-emit")
+        return ("waiting_feature_update", "review notes present, lane has not advanced yet")
+    return ("idle", "no pending/review/approved packets")
+
+def scan_lane(lane_dir: Path, lane_cfg: Dict, planner_lane_state: Dict) -> LaneStatus:
     lane = lane_dir.name
     pending = sorted((lane_dir/'inbox/feature').glob('*.md'))
     reviewer = sorted((lane_dir/'inbox/reviewer').glob('*.md'))
     approved = sorted((lane_dir/'outbox/integrator').glob('*.md'))
     integ = sorted((lane_dir/'archive').glob('INTEGRATOR__*.md'))
-    return LaneStatus(lane, pending, reviewer, approved, integ)
+    branch = (lane_cfg or {}).get("branch")
+    head_sha = _branch_head_sha(branch)
+    last_submitted_sha = (planner_lane_state or {}).get("last_submitted_sha")
+    state, note = _derive_lane_state(pending, reviewer, approved, head_sha, last_submitted_sha)
+    return LaneStatus(lane, pending, reviewer, approved, integ, branch, head_sha, last_submitted_sha, state, note)
 
 def main() -> None:
     if not ROOT.exists():
@@ -55,28 +100,56 @@ def main() -> None:
         print('No lanes found under .codex/packets/lanes.')
         return
 
-    statuses = [scan_lane(ld) for ld in lanes]
+    cfg = _load_json(CONFIG_FILE, {})
+    lane_cfg_map = (cfg.get("lanes") or {}) if isinstance(cfg, dict) else {}
+    planner_state = _load_json(PLANNER_STATE_FILE, {})
+    planner_lane_state_map = (planner_state.get("lanes") or {}) if isinstance(planner_state, dict) else {}
+
+    statuses = [
+        scan_lane(ld, lane_cfg_map.get(ld.name, {}), planner_lane_state_map.get(ld.name, {}))
+        for ld in lanes
+    ]
 
     # Header
     print('PIPELINE STATUS (filesystem truth)\n')
     total_pending = sum(len(s.pending_feature) for s in statuses)
     total_review = sum(len(s.reviewer_notes) for s in statuses)
     total_approved = sum(len(s.approved_integrator) for s in statuses)
-    print(f'Totals: pending_feature={total_pending}  reviewer_notes={total_review}  approved_for_integrator={total_approved}\n')
+    total_waiting_feature = sum(1 for s in statuses if s.state == "waiting_feature_update")
+    total_ready_reemit = sum(1 for s in statuses if s.state == "ready_for_reemit")
+    print(
+        "Totals: "
+        f"pending_feature={total_pending}  "
+        f"reviewer_notes={total_review}  "
+        f"approved_for_integrator={total_approved}  "
+        f"waiting_feature_update={total_waiting_feature}  "
+        f"ready_for_reemit={total_ready_reemit}\n"
+    )
 
     # Table-ish output
-    print(f"{'lane':28}  {'pending':7}  {'review':6}  {'approved':8}  {'latest pending':34}  {'latest review':34}  {'latest approved':34}  {'latest integrator':34}")
-    print('-'*180)
+    print(
+        f"{'lane':22}  {'pending':7}  {'review':6}  {'approved':8}  "
+        f"{'state':20}  {'head':8}  {'last_sub':8}  "
+        f"{'latest review':34}  {'latest integrator':34}"
+    )
+    print('-' * 190)
     for s in statuses:
-        lp = newest(s.pending_feature)
         lr = newest(s.reviewer_notes)
-        la = newest(s.approved_integrator)
         li = newest(s.integrator_outputs)
-        print(f"{s.lane:28}  {len(s.pending_feature):7d}  {len(s.reviewer_notes):6d}  {len(s.approved_integrator):8d}  {fmt(lp):34}  {fmt(lr):34}  {fmt(la):34}  {fmt(li):34}")
+        head_short = (s.head_sha or "-")[:8]
+        last_short = (s.last_submitted_sha or "-")[:8]
+        print(
+            f"{s.lane:22}  {len(s.pending_feature):7d}  {len(s.reviewer_notes):6d}  {len(s.approved_integrator):8d}  "
+            f"{s.state:20}  {head_short:8}  {last_short:8}  "
+            f"{fmt(lr):34}  {fmt(li):34}"
+        )
+        if s.note:
+            print(f"{'':22}  note: {s.note}")
 
     print('\nHints:')
     print('- If pending>0 and review=0: router likely hasn\'t run recently or is blocked waiting on Codex.')
-    print('- If review>0: lane needs changes (or reviewer is asking for clarification).')
+    print('- If state=waiting_feature_update: lane branch has not advanced since reviewer notes.')
+    print('- If state=ready_for_reemit: lane advanced and planner should emit a new feature packet.')
     print('- If approved>0: integrator run should fire; check for INTEGRATOR__ outputs in archive.')
 
 if __name__ == '__main__':
