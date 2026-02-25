@@ -93,7 +93,11 @@ class _WebConsoleHandler(BaseHTTPRequestHandler):
     def _read_body(self) -> bytes:
         if self.command != "POST":
             return b""
-        raw_length = self.headers.get("Content-Length", "0")
+        if self.headers.get("Transfer-Encoding"):
+            raise ApiError(status=400, message="Transfer-Encoding is not supported")
+        raw_length = self.headers.get("Content-Length")
+        if raw_length is None:
+            raise ApiError(status=411, message="Content-Length is required")
         try:
             size = int(raw_length)
         except ValueError:
