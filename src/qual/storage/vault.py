@@ -187,11 +187,16 @@ class VaultService:
                 return False
             schema_value = 0
         else:
-            schema_value = schema_version
-            if schema_version < 0 and strict_schema:
-                return False
+            if schema_version < 0:
+                if strict_schema:
+                    return False
+                schema_value = 0
+            else:
+                schema_value = schema_version
         if schema_value < 0:
-            return False
+            if strict_schema:
+                return False
+            schema_value = 0
         if schema_value > _SCHEMA_VERSION:
             return False
         if "is_locked" in payload and self._parse_is_locked(payload.get("is_locked")) is None:
