@@ -102,6 +102,9 @@ def main() -> None:
 
     cfg = _load_json(CONFIG_FILE, {})
     lane_cfg_map = (cfg.get("lanes") or {}) if isinstance(cfg, dict) else {}
+    inline_fixer = bool(cfg.get("inline_fixer", False)) if isinstance(cfg, dict) else False
+    backlog_fixer = bool(cfg.get("kick_fixers_on_reviewer_backlog", True)) if isinstance(cfg, dict) else True
+    max_packets_per_run = int(cfg.get("max_packets_per_run", 1)) if isinstance(cfg, dict) else 1
     planner_state = _load_json(PLANNER_STATE_FILE, {})
     planner_lane_state_map = (planner_state.get("lanes") or {}) if isinstance(planner_state, dict) else {}
 
@@ -124,6 +127,11 @@ def main() -> None:
         f"approved_for_integrator={total_approved}  "
         f"waiting_feature_update={total_waiting_feature}  "
         f"ready_for_reemit={total_ready_reemit}\n"
+    )
+    print(
+        f"Router config: inline_fixer={inline_fixer}  "
+        f"kick_fixers_on_reviewer_backlog={backlog_fixer}  "
+        f"max_packets_per_run={max_packets_per_run}\n"
     )
 
     # Table-ish output
@@ -151,6 +159,8 @@ def main() -> None:
     print('- If state=waiting_feature_update: lane branch has not advanced since reviewer notes.')
     print('- If state=ready_for_reemit: lane advanced and planner should emit a new feature packet.')
     print('- If approved>0: integrator run should fire; check for INTEGRATOR__ outputs in archive.')
+    if total_waiting_feature > 0 and (not inline_fixer or not backlog_fixer):
+        print('- auto-fixer handback is disabled by router config; reviewer notes may wait for manual feature commits.')
 
 if __name__ == '__main__':
     main()

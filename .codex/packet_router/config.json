@@ -4,6 +4,9 @@
   "idle_seconds": 1.2,
   "reviewer_timeout": 180,
   "integrator_timeout": 900,
+  "max_packets_per_run": 1,
+  "inline_fixer": true,
+  "kick_fixers_on_reviewer_backlog": true,
   "lanes": {
     "feat-context-storage": {
       "branch": "codex/feat-context-storage"

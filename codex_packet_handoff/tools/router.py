@@ -30,6 +30,7 @@ class RouterConfig:
     integrator_timeout: float
     max_packets_per_run: int
     inline_fixer: bool
+    kick_fixers_on_reviewer_backlog: bool
     lanes: Dict[str, Dict[str, Any]]
 
 def load_json(p: Path, default: Any) -> Any:
@@ -69,6 +70,7 @@ def load_cfg() -> RouterConfig:
         integrator_timeout=float(cfg.get("integrator_timeout", 900)),
         max_packets_per_run=int(cfg.get("max_packets_per_run", 1)),
         inline_fixer=bool(cfg.get("inline_fixer", False)),
+        kick_fixers_on_reviewer_backlog=bool(cfg.get("kick_fixers_on_reviewer_backlog", True)),
         lanes=dict(cfg.get("lanes", {})),
     )
 
@@ -232,6 +234,44 @@ def process_once(client: CodexMcpClient, cfg: RouterConfig, state: dict, repo_cw
                 state = run_fixer(client, cfg, state, lane, reviewer_text, repo_cwd)
     return processed, state, reviewer_tid, integrator_tid
 
+def process_reviewer_backlog(
+    client: CodexMcpClient,
+    cfg: RouterConfig,
+    state: dict,
+    repo_cwd: str,
+) -> Tuple[int, dict]:
+    """If inline fixer is enabled, kick feature fixers for reviewer backlog packets.
+
+    This handles the "stuck in reviewer notes with no new feature packet" state.
+    One kick per lane per newest reviewer packet filename.
+    """
+    if not cfg.inline_fixer or not cfg.kick_fixers_on_reviewer_backlog:
+        return 0, state
+
+    cursor = state.get("reviewer_fixer_cursor") or {}
+    kicked = 0
+    for lane in cfg.lanes.keys():
+        lane_dir = ensure_lane_dirs(lane)
+        # Do not interfere if there are fresh feature packets waiting for reviewer.
+        if any((lane_dir / "inbox/feature").glob("*.md")):
+            continue
+        notes = sorted((lane_dir / "inbox/reviewer").glob("*.md"), key=lambda p: p.stat().st_mtime)
+        if not notes:
+            continue
+        newest_note = notes[-1]
+        if cursor.get(lane) == newest_note.name:
+            continue
+        try:
+            reviewer_packet = newest_note.read_text()
+        except Exception:
+            continue
+        state = run_fixer(client, cfg, state, lane, reviewer_packet, repo_cwd)
+        cursor[lane] = newest_note.name
+        kicked += 1
+
+    state["reviewer_fixer_cursor"] = cursor
+    return kicked, state
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--daemon", action="store_true")
@@ -277,10 +317,11 @@ def main() -> None:
             if acquire_lease():
                 try:
                     n, state, reviewer_tid, integrator_tid = process_once(client, cfg, state, repo_cwd, reviewer_tid, integrator_tid)
+                    kicked, state = process_reviewer_backlog(client, cfg, state, repo_cwd)
                     state["reviewer_thread_id"] = reviewer_tid
                     state["integrator_thread_id"] = integrator_tid
                     save_json(STATE_FILE, state)
-                    print(f"[router] processed {n} packet(s)")
+                    print(f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s)")
                 finally:
                     release_lease()
             return
@@ -290,11 +331,12 @@ def main() -> None:
             if acquire_lease():
                 try:
                     n, state, reviewer_tid, integrator_tid = process_once(client, cfg, state, repo_cwd, reviewer_tid, integrator_tid)
+                    kicked, state = process_reviewer_backlog(client, cfg, state, repo_cwd)
                     state["reviewer_thread_id"] = reviewer_tid
                     state["integrator_thread_id"] = integrator_tid
                     save_json(STATE_FILE, state)
-                    if n:
-                        print(f"[router] processed {n} packet(s)")
+                    if n or kicked:
+                        print(f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s)")
                 finally:
                     release_lease()
             time.sleep(0.5)
