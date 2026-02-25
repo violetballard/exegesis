@@ -79,17 +79,13 @@ def ensure_lane_dirs(lane: str) -> None:
     (base/"outbox/integrator").mkdir(parents=True, exist_ok=True)
     (base/"archive").mkdir(parents=True, exist_ok=True)
 
-def lane_is_busy(lane: str) -> bool:
+def lane_has_pending_feature(lane: str) -> bool:
     base = PACKETS_ROOT / lane
-    if any((base/"inbox/feature").glob("*.md")):
-        return True
-    reviewer = sorted((base/"inbox/reviewer").glob("*.md"), key=lambda p: p.stat().st_mtime, reverse=True)
-    if not reviewer:
-        return False
-    archived = sorted((base/"archive").glob("F__*.md"), key=lambda p: p.stat().st_mtime, reverse=True)
-    if not archived:
-        return True
-    return reviewer[0].stat().st_mtime > archived[0].stat().st_mtime
+    return any((base/"inbox/feature").glob("*.md"))
+
+def lane_has_reviewer_notes(lane: str) -> bool:
+    base = PACKETS_ROOT / lane
+    return any((base/"inbox/reviewer").glob("*.md"))
 
 def read_lane_meta(lane: str) -> Json:
     p = Path(".codex/lane_meta")/f"{lane}.json"
@@ -154,7 +150,7 @@ def main()->None:
 
     for lane,lcfg in cfg["lanes"].items():
         ensure_lane_dirs(lane)
-        if lane_is_busy(lane):
+        if lane_has_pending_feature(lane):
             continue
         branch=str((lcfg or {}).get("branch") or f"codex/{lane}")
         lane_repo = find_worktree_for_branch(repo, branch)
@@ -169,7 +165,12 @@ def main()->None:
                     print(f"[planner] {lane}: cannot switch to {branch}:\n{out}\n{out2}")
                     continue
         sha=git("rev-parse HEAD", cwd=active_repo)
-        if (lane_state.get(lane) or {}).get("last_submitted_sha")==sha:
+        last_submitted_sha = (lane_state.get(lane) or {}).get("last_submitted_sha")
+        # Reviewer notes should block new packets until lane HEAD advances.
+        # This allows one-at-a-time re-review submissions from the feature lane.
+        if lane_has_reviewer_notes(lane) and (not last_submitted_sha or last_submitted_sha == sha):
+            continue
+        if last_submitted_sha == sha:
             continue
         meta=read_lane_meta(lane)
         miss=validate_meta(meta)
