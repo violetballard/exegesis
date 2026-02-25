@@ -64,6 +64,11 @@ body {
   gap: 0.5rem;
 }
 
+.stream-controls button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .retry-info {
   min-width: 10.5rem;
   font-size: 0.85rem;

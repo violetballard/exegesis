@@ -277,6 +277,17 @@
     }
     var enabled = root._autoRetryEnabled !== false;
     button.textContent = enabled ? "Auto-retry: on" : "Auto-retry: off";
+    button.setAttribute("aria-pressed", enabled ? "true" : "false");
+  }
+
+  function setControlState(root, state) {
+    var reconnectButton = root.querySelector("[data-stream-reconnect]");
+    if (reconnectButton) {
+      var connecting = state === "connecting";
+      reconnectButton.disabled = connecting;
+      reconnectButton.textContent = connecting ? "Connecting..." : "Reconnect";
+      reconnectButton.setAttribute("aria-disabled", connecting ? "true" : "false");
+    }
   }
 
   function clearReconnectState(root) {
@@ -398,6 +409,7 @@
     if (!streamUrl) {
       appendEvent(eventsNode, "error", { reason: "missing stream url" });
       setStreamStatus(root, "disconnected", "Missing stream URL");
+      setControlState(root, "disconnected");
       return;
     }
     clearReconnectState(root);
@@ -406,6 +418,7 @@
       root._terminalSource = null;
     }
     setStreamStatus(root, "connecting", "Connecting...");
+    setControlState(root, "connecting");
     var source = new EventSource(streamUrl, { withCredentials: true });
     var streamClosed = false;
     root._terminalSource = source;
@@ -416,6 +429,7 @@
       }
       root._retryAttempt = 0;
       setStreamStatus(root, "connected", "Connected");
+      setControlState(root, "connected");
     };
 
     source.addEventListener("message.delta", function (event) {
@@ -447,6 +461,7 @@
       appendEvent(eventsNode, "done", parseJSON(event.data) || {});
       streamClosed = true;
       setStreamStatus(root, "completed", "Completed");
+      setControlState(root, "completed");
       clearReconnectState(root);
       source.close();
       root._terminalSource = null;
@@ -459,6 +474,7 @@
       appendEvent(eventsNode, "error", { reason: "stream disconnected" });
       streamClosed = true;
       setStreamStatus(root, "disconnected", "Disconnected");
+      setControlState(root, "disconnected");
       source.close();
       root._terminalSource = null;
       scheduleReconnect(root);
@@ -566,6 +582,7 @@
     if (terminalRoot) {
       terminalRoot._autoRetryEnabled = true;
       setAutoRetryButtonLabel(terminalRoot);
+      setControlState(terminalRoot, "connecting");
       bindTerminalSend(terminalRoot);
       bindCardActions(terminalRoot);
       startTerminalStream(terminalRoot);
