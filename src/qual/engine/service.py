@@ -21,6 +21,8 @@ class BootstrapState:
     bootstrap_signature: str
     context_delta_items: int
     bootstrap_health_summary: str
+    context_retention_ratio: float
+    bootstrap_context_summary: str
     original_context_items: int
     active_context_items: int
     repaired_context_items: int
@@ -66,6 +68,10 @@ class EngineService:
             repaired_count=repaired_count,
         )
         context_delta_items = len(sanitized) - len(original_item_ids)
+        context_retention_ratio = self._context_retention_ratio(
+            original_count=len(original_item_ids),
+            active_count=len(sanitized),
+        )
         flow_state = "ready" if not vault.is_locked else "vault-locked"
         bootstrap = BootstrapState(
             flow_state=flow_state,
@@ -80,6 +86,12 @@ class EngineService:
             bootstrap_health_summary=self._bootstrap_health_summary(
                 context_health=context_health,
                 context_repair_ratio=context_repair_ratio,
+            ),
+            context_retention_ratio=context_retention_ratio,
+            bootstrap_context_summary=self._bootstrap_context_summary(
+                context_transition=context_transition,
+                context_health=context_health,
+                context_retention_ratio=context_retention_ratio,
             ),
             original_context_items=len(original_item_ids),
             active_context_items=len(sanitized),
@@ -134,5 +146,20 @@ class EngineService:
         return repaired_count / original_count
 
     @staticmethod
+    def _context_retention_ratio(*, original_count: int, active_count: int) -> float:
+        if original_count == 0:
+            return 1.0 if active_count == 0 else 0.0
+        return active_count / original_count
+
+    @staticmethod
     def _bootstrap_health_summary(*, context_health: str, context_repair_ratio: float) -> str:
         return f"{context_health}:{context_repair_ratio:.2%}"
+
+    @staticmethod
+    def _bootstrap_context_summary(
+        *,
+        context_transition: str,
+        context_health: str,
+        context_retention_ratio: float,
+    ) -> str:
+        return f"{context_transition}|{context_health}|{context_retention_ratio:.2%}"

@@ -18,10 +18,14 @@ class DiffSummary:
     added_lines: int
     removed_lines: int
     net_line_delta: int
+    before_line_count: int
+    after_line_count: int
     total_changed_lines: int
     hunk_count: int
     changed_line_ratio: float
+    changed_vs_baseline_ratio: float
     line_coverage_ratio: float
+    avg_lines_per_hunk: float
     change_intensity: str
 
 
@@ -108,10 +112,14 @@ class DraftingService:
             added_lines=0,
             removed_lines=0,
             net_line_delta=0,
+            before_line_count=0,
+            after_line_count=0,
             total_changed_lines=0,
             hunk_count=0,
             changed_line_ratio=0.0,
+            changed_vs_baseline_ratio=0.0,
             line_coverage_ratio=0.0,
+            avg_lines_per_hunk=0.0,
             change_intensity="none",
         )
 
@@ -126,22 +134,34 @@ class DraftingService:
     ) -> DiffSummary:
         total_changed = added_lines + removed_lines
         baseline_lines = max(before_line_count, after_line_count)
-        ratio = 0.0 if baseline_lines == 0 else total_changed / baseline_lines
+        changed_vs_baseline_ratio = DraftingService._changed_vs_baseline_ratio(
+            total_changed_lines=total_changed,
+            before_line_count=before_line_count,
+            after_line_count=after_line_count,
+        )
         coverage_ratio = DraftingService._line_coverage_ratio(
             total_changed_lines=total_changed,
             before_line_count=before_line_count,
             after_line_count=after_line_count,
         )
-        intensity = DraftingService._classify_change_intensity(ratio=ratio)
+        avg_lines_per_hunk = DraftingService._avg_lines_per_hunk(
+            total_changed_lines=total_changed,
+            hunk_count=hunk_count,
+        )
+        intensity = DraftingService._classify_change_intensity(ratio=changed_vs_baseline_ratio)
         return DiffSummary(
             changed=True,
             added_lines=added_lines,
             removed_lines=removed_lines,
             net_line_delta=added_lines - removed_lines,
+            before_line_count=before_line_count,
+            after_line_count=after_line_count,
             total_changed_lines=total_changed,
             hunk_count=hunk_count,
-            changed_line_ratio=ratio,
+            changed_line_ratio=changed_vs_baseline_ratio,
+            changed_vs_baseline_ratio=changed_vs_baseline_ratio,
             line_coverage_ratio=coverage_ratio,
+            avg_lines_per_hunk=avg_lines_per_hunk,
             change_intensity=intensity,
         )
 
@@ -164,6 +184,24 @@ class DraftingService:
         if total_lines == 0:
             return 0.0
         return total_changed_lines / total_lines
+
+    @staticmethod
+    def _changed_vs_baseline_ratio(
+        *,
+        total_changed_lines: int,
+        before_line_count: int,
+        after_line_count: int,
+    ) -> float:
+        baseline_lines = max(before_line_count, after_line_count)
+        if baseline_lines == 0:
+            return 0.0
+        return total_changed_lines / baseline_lines
+
+    @staticmethod
+    def _avg_lines_per_hunk(*, total_changed_lines: int, hunk_count: int) -> float:
+        if hunk_count == 0:
+            return 0.0
+        return total_changed_lines / hunk_count
 
     @staticmethod
     def _normalize_newlines(value: str) -> str:
