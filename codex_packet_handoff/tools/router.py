@@ -28,6 +28,8 @@ class RouterConfig:
     codex_cmd: str
     reviewer_timeout: float
     integrator_timeout: float
+    max_packets_per_run: int
+    inline_fixer: bool
     lanes: Dict[str, Dict[str, Any]]
 
 def load_json(p: Path, default: Any) -> Any:
@@ -65,6 +67,8 @@ def load_cfg() -> RouterConfig:
         codex_cmd=str(cfg.get("codex_cmd", "codex")),
         reviewer_timeout=float(cfg.get("reviewer_timeout", 180)),
         integrator_timeout=float(cfg.get("integrator_timeout", 900)),
+        max_packets_per_run=int(cfg.get("max_packets_per_run", 1)),
+        inline_fixer=bool(cfg.get("inline_fixer", False)),
         lanes=dict(cfg.get("lanes", {})),
     )
 
@@ -177,8 +181,9 @@ def run_fixer(client: CodexMcpClient, cfg: RouterConfig, state: dict, lane: str,
             sandbox="workspace-write",
             approval_policy="on-request",
             model=cfg.model,
+            timeout=cfg.integrator_timeout,
         )
-    tid, _ = client.codex_reply(tid, fixer_prompt(lane, branch, reviewer_packet, wt))
+    tid, _ = client.codex_reply(tid, fixer_prompt(lane, branch, reviewer_packet, wt), timeout=cfg.integrator_timeout)
     fixer_map[lane] = tid
     state["fixer_thread_ids"] = fixer_map
     return state
@@ -201,26 +206,30 @@ def process_once(client: CodexMcpClient, cfg: RouterConfig, state: dict, repo_cw
     for lane in cfg.lanes.keys():
         lane_dir = ensure_lane_dirs(lane)
         for pkt_path in list_new(lane_dir, cursor.get(lane)):
+            if processed >= cfg.max_packets_per_run:
+                return processed, state, reviewer_tid, integrator_tid
             pkt = pkt_path.read_text()
 
-            reviewer_tid, reviewer_text = client.codex_reply(reviewer_tid, reviewer_prompt(pkt))
+            reviewer_tid, reviewer_text = client.codex_reply(reviewer_tid, reviewer_prompt(pkt), timeout=cfg.reviewer_timeout)
             verdict = parse_verdict(reviewer_text)
 
             if verdict == "APPROVED":
                 write_text(lane_dir/"outbox/integrator"/pkt_path.name.replace("F__","R__APPROVED__"), reviewer_text)
-                integrator_tid, integ = client.codex_reply(integrator_tid, integrator_prompt(reviewer_text))
+                integrator_tid, integ = client.codex_reply(integrator_tid, integrator_prompt(reviewer_text), timeout=cfg.integrator_timeout)
                 if integ.strip():
                     write_text(lane_dir/"archive"/f"INTEGRATOR__{pkt_path.name}", integ)
             else:
                 outp = lane_dir/"inbox/reviewer"/pkt_path.name.replace("F__","R__CHANGES__")
                 write_text(outp, reviewer_text)
-                # trigger fixer to produce a new commit on lane branch
-                state = run_fixer(client, cfg, state, lane, reviewer_text, repo_cwd)
 
             cursor[lane] = pkt_path.name
             save_json(CURSOR_FILE, cursor)
             archive(pkt_path, lane_dir)
             processed += 1
+
+            # Inline fixer can be expensive; disabled by default for automation ticks.
+            if verdict != "APPROVED" and cfg.inline_fixer:
+                state = run_fixer(client, cfg, state, lane, reviewer_text, repo_cwd)
     return processed, state, reviewer_tid, integrator_tid
 
 def main() -> None:
@@ -244,6 +253,7 @@ def main() -> None:
             sandbox="read-only",
             approval_policy="on-request",
             model=cfg.model,
+            timeout=cfg.reviewer_timeout,
         )
     if not integrator_tid:
         integrator_tid, _ = client.codex(
@@ -252,6 +262,7 @@ def main() -> None:
             sandbox="workspace-write",
             approval_policy="on-request",
             model=cfg.model,
+            timeout=cfg.integrator_timeout,
         )
 
     state["reviewer_thread_id"] = reviewer_tid

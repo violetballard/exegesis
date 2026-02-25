@@ -113,15 +113,23 @@ class CodexMcpClient:
         return self.call("tools/call", {"name": name, "arguments": arguments}, timeout=timeout)
 
     # Codex tools
-    def codex(self, prompt: str, cwd: Optional[str], sandbox: str, approval_policy: str, model: str) -> Tuple[str, str]:
+    def codex(
+        self,
+        prompt: str,
+        cwd: Optional[str],
+        sandbox: str,
+        approval_policy: str,
+        model: str,
+        timeout: float = 600.0,
+    ) -> Tuple[str, str]:
         args: Json = {"prompt": prompt, "sandbox": sandbox, "approvalPolicy": approval_policy, "model": model}
         if cwd:
             args["cwd"] = cwd
-        result = self.tools_call("codex", args, timeout=600.0)
+        result = self.tools_call("codex", args, timeout=timeout)
         return _extract_thread_id(result), _extract_content(result)
 
-    def codex_reply(self, thread_id: str, prompt: str) -> Tuple[str, str]:
-        result = self.tools_call("codex-reply", {"threadId": thread_id, "prompt": prompt}, timeout=600.0)
+    def codex_reply(self, thread_id: str, prompt: str, timeout: float = 600.0) -> Tuple[str, str]:
+        result = self.tools_call("codex-reply", {"threadId": thread_id, "prompt": prompt}, timeout=timeout)
         return _extract_thread_id(result), _extract_content(result)
 
     # internal plumbing

@@ -53,6 +53,25 @@ def git(cmd: str, cwd: str) -> str:
         raise RuntimeError(out)
     return out.strip()
 
+def find_worktree_for_branch(repo_cwd: str, branch: str) -> Optional[str]:
+    ref = branch if branch.startswith("refs/") else f"refs/heads/{branch}"
+    rc, out = run("git worktree list --porcelain", cwd=repo_cwd, timeout=120)
+    if rc != 0:
+        return None
+    cur_wt: Optional[str] = None
+    cur_branch: Optional[str] = None
+    for ln in out.splitlines() + [""]:
+        if ln.startswith("worktree "):
+            cur_wt = ln[len("worktree "):].strip()
+        elif ln.startswith("branch "):
+            cur_branch = ln[len("branch "):].strip()
+        elif not ln.strip():
+            if cur_wt and cur_branch == ref:
+                return cur_wt
+            cur_wt = None
+            cur_branch = None
+    return None
+
 def ensure_lane_dirs(lane: str) -> None:
     base = PACKETS_ROOT / lane
     (base/"inbox/feature").mkdir(parents=True, exist_ok=True)
@@ -138,13 +157,18 @@ def main()->None:
         if lane_is_busy(lane):
             continue
         branch=str((lcfg or {}).get("branch") or f"codex/{lane}")
-        rc,out=run(f"git switch {branch}", cwd=repo, timeout=300)
-        if rc!=0:
-            rc,out2=run(f"git checkout {branch}", cwd=repo, timeout=300)
+        lane_repo = find_worktree_for_branch(repo, branch)
+        if lane_repo:
+            active_repo = lane_repo
+        else:
+            active_repo = repo
+            rc,out=run(f"git switch {branch}", cwd=repo, timeout=300)
             if rc!=0:
-                print(f"[planner] {lane}: cannot switch to {branch}:\n{out}\n{out2}")
-                continue
-        sha=git("rev-parse HEAD", cwd=repo)
+                rc,out2=run(f"git checkout {branch}", cwd=repo, timeout=300)
+                if rc!=0:
+                    print(f"[planner] {lane}: cannot switch to {branch}:\n{out}\n{out2}")
+                    continue
+        sha=git("rev-parse HEAD", cwd=active_repo)
         if (lane_state.get(lane) or {}).get("last_submitted_sha")==sha:
             continue
         meta=read_lane_meta(lane)
@@ -153,21 +177,21 @@ def main()->None:
             print(f"[planner] {lane}: lane_meta missing: {miss}")
             continue
         try:
-            files=compute_changed_files(repo, base_ref)
+            files=compute_changed_files(active_repo, base_ref)
         except Exception as e:
             print(f"[planner] {lane}: diff failed vs {base_ref}: {e}")
             continue
         env=os.environ.copy()
         if bool(meta.get("shared_file_exception")):
             env["SCOPE_ALLOW_SHARED"]="1"
-        scope_rc,scope_out=run("make scope-check", cwd=repo, env=env, timeout=900)
+        scope_rc,scope_out=run("make scope-check", cwd=active_repo, env=env, timeout=900)
         if scope_rc!=0:
             print(f"[planner] {lane}: scope-check FAIL:\n{scope_out}")
             continue
         results=[("make scope-check",0)]
         ok=True
         for cmd in gates:
-            rc,out=run(cmd, cwd=repo, env=env, timeout=3600)
+            rc,out=run(cmd, cwd=active_repo, env=env, timeout=3600)
             results.append((cmd,rc))
             if rc!=0:
                 ok=False
