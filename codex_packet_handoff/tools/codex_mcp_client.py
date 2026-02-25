@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """
-Bare JSON-RPC stdio client for `codex mcp-server`, speaking MCP "tools" protocol.
+codex_mcp_client.py
 
-Important: Codex MCP server exposes tools (not ad-hoc methods):
-- tools/list  -> lists tools (expect: "codex" and "codex-reply")
-- tools/call  -> call a tool
+Bare JSON-RPC over stdio client for `codex mcp-server`, using MCP tools protocol:
+- initialize
+- tools/list
+- tools/call
 
-We keep a long-lived session by storing threadId returned by codex()/codex-reply().
+We expect Codex to expose tools:
+- codex
+- codex-reply
+
+We return (threadId, content) from tool calls; content is pulled from structuredContent.content when present.
 """
 
 from __future__ import annotations
@@ -16,14 +21,13 @@ import os
 import subprocess
 import threading
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Tuple
 
 Json = Dict[str, Any]
 
 
 @dataclass
 class ApprovalPolicy:
-    # allow-all (as requested)
     allow_exec: bool = True
     allow_apply_patch: bool = True
 
@@ -61,11 +65,10 @@ class CodexMcpClient:
 
         threading.Thread(target=self._read_loop, daemon=True).start()
 
-        # MCP initialize handshake (best-effort). Some servers require this before tools/list/call.
+        # Best-effort initialize (some servers require it)
         try:
             self.initialize()
         except Exception:
-            # If the server doesn't require or doesn't implement initialize, we'll proceed anyway.
             pass
 
     def close(self) -> None:
@@ -76,7 +79,6 @@ class CodexMcpClient:
 
     def call(self, method: str, params: Optional[Json] = None, timeout: float = 180.0) -> Json:
         import queue
-
         with self._lock:
             req_id = self._next_id
             self._next_id += 1
@@ -95,47 +97,34 @@ class CodexMcpClient:
             raise RuntimeError(resp["error"])
         return resp["result"]
 
-    # ---- MCP core ----
-
+    # MCP core
     def initialize(self) -> Json:
-        # Minimal initialize payload; spec allows capability negotiation.
         return self.call(
             "initialize",
             {
                 "protocolVersion": "2025-06-18",
                 "capabilities": {"tools": {}},
-                "clientInfo": {"name": "codex_packet_handoff", "version": "0.1"},
+                "clientInfo": {"name": "codex_packet_handoff", "version": "0.2"},
             },
             timeout=30.0,
         )
 
-    def tools_list(self) -> Json:
-        return self.call("tools/list", {}, timeout=30.0)
-
-    def tools_call(self, name: str, arguments: Json, timeout: float = 180.0) -> Json:
+    def tools_call(self, name: str, arguments: Json, timeout: float = 600.0) -> Json:
         return self.call("tools/call", {"name": name, "arguments": arguments}, timeout=timeout)
 
-    # ---- Codex tools ----
-
-    def codex(self, prompt: str, cwd: Optional[str], sandbox: str, approval_policy: str, model: str) -> str:
-        """
-        Start a conversation. Returns threadId.
-        """
+    # Codex tools
+    def codex(self, prompt: str, cwd: Optional[str], sandbox: str, approval_policy: str, model: str) -> Tuple[str, str]:
         args: Json = {"prompt": prompt, "sandbox": sandbox, "approvalPolicy": approval_policy, "model": model}
         if cwd:
             args["cwd"] = cwd
         result = self.tools_call("codex", args, timeout=600.0)
-        return _extract_thread_id(result)
+        return _extract_thread_id(result), _extract_content(result)
 
-    def codex_reply(self, thread_id: str, prompt: str) -> str:
-        """
-        Continue a conversation. Returns threadId (same or updated).
-        """
+    def codex_reply(self, thread_id: str, prompt: str) -> Tuple[str, str]:
         result = self.tools_call("codex-reply", {"threadId": thread_id, "prompt": prompt}, timeout=600.0)
-        return _extract_thread_id(result)
+        return _extract_thread_id(result), _extract_content(result)
 
-    # ---- internal plumbing ----
-
+    # internal plumbing
     def _send(self, msg: Json) -> None:
         self.proc.stdin.write(json.dumps(msg, ensure_ascii=False) + "\n")
         self.proc.stdin.flush()
@@ -168,7 +157,7 @@ class CodexMcpClient:
                     self._on_notification(msg)
                 continue
 
-            # server->client request: approvals
+            # server->client request (approvals)
             if "method" in msg and "id" in msg:
                 self._handle_server_request(msg)
 
@@ -187,28 +176,23 @@ class CodexMcpClient:
 
 
 def _extract_thread_id(result: Json) -> str:
-    """
-    Tool result shape can vary; we try common places:
-    - result["threadId"]
-    - result["content"][0]["json"]["threadId"]
-    - result["content"][0]["text"] containing threadId JSON
-    """
-    if isinstance(result, dict) and isinstance(result.get("threadId"), str):
-        return result["threadId"]
-
-    content = result.get("content") if isinstance(result, dict) else None
-    if isinstance(content, list) and content:
-        first = content[0]
-        if isinstance(first, dict):
-            j = first.get("json")
-            if isinstance(j, dict) and isinstance(j.get("threadId"), str):
-                return j["threadId"]
-            # Sometimes tool returns text that includes a JSON object
-            t = first.get("text")
-            if isinstance(t, str):
-                # naive parse: look for "threadId":"..."
-                m = __import__("re").search(r'"threadId"\s*:\s*"([^"]+)"', t)
-                if m:
-                    return m.group(1)
-
+    if isinstance(result, dict):
+        sc = result.get("structuredContent")
+        if isinstance(sc, dict) and isinstance(sc.get("threadId"), str):
+            return sc["threadId"]
+        if isinstance(result.get("threadId"), str):
+            return result["threadId"]
     raise RuntimeError(f"Could not extract threadId from tool result: {result}")
+
+
+def _extract_content(result: Json) -> str:
+    if isinstance(result, dict):
+        sc = result.get("structuredContent")
+        if isinstance(sc, dict) and isinstance(sc.get("content"), str):
+            return sc["content"]
+        content = result.get("content")
+        if isinstance(content, list) and content:
+            first = content[0]
+            if isinstance(first, dict) and isinstance(first.get("text"), str):
+                return first["text"]
+    return ""

@@ -1,1 +1,1 @@
-Local automation helpers.
+Local automation helpers for Codex MCP packet routing.

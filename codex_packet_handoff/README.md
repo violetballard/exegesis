@@ -1,32 +1,43 @@
-# Codex packet handoff (inference mode + worktree-safe planner)
+# Codex self-contained automations: planner + router
 
-- Planner emits minimal packets (no lane_meta).
-- Reviewer infers/enforces plan mapping using ROADMAP.md / PRODUCT_VISION.md / ARCHITECTURE.md and rejects if unclear.
-- Planner uses detached checkout at the branch SHA so it won't conflict with Codex worktrees.
+This package is meant to be run via **Codex App Automations** so everything stays inside Codex.
 
-## Setup
+## One-time setup
+From repo root:
+
 ```bash
 python codex_packet_handoff/tools/setup.py
+python codex_packet_handoff/tools/init_lane_meta.py
 cp .codex/packet_router/example.json .codex/packet_router/config.json
 ```
 
-## Codex Automations (hourly-only UI)
-Create an hourly automation with prompt:
-- `Run the skill pipeline.tick`
+Fill each `.codex/lane_meta/<lane>.json` with required fields (roadmap items, vision capabilities, tasks completed, etc.).
+Planner refuses to emit if those are missing.
 
-That runs 25 minutes:
-- router every 1 minute
-- planner every 10 minutes
+## What runs on a schedule
+- Planner: `python codex_packet_handoff/tools/planner.py`
+- Router:  `python codex_packet_handoff/tools/router.py` (process once and exit)
 
+Reviewer is enforced **read-only**; Integrator is **workspace-write**.
 
-(Updated router now uses MCP tools `codex` and `codex-reply` via `tools/call`, which matches current Codex MCP server behavior.)
+## Add the skills (so automations are 1-liners)
+This zip includes skills under:
+`codex_packet_handoff/.agents/skills/{planner.run,router.run}`
 
+Copy the `.agents/skills/...` folders into your repo's `.agents/skills/`.
 
-## Status report (pause-and-peek)
-Run:
-- `python codex_packet_handoff/tools/status.py`
+## Create Codex Automations (Desktop)
+Create two recurring automations:
 
-Or in Codex, run the skill:
-- `status.report`
+### Automation 1 (Planner)
+Schedule: every 5–10 minutes  
+Prompt: `Run the skill planner.run`
 
-This summarizes per lane what is pending, in review, approved, and latest integrator output.
+### Automation 2 (Router)
+Schedule: every 1–2 minutes  
+Prompt: `Run the skill router.run`
+
+Tip: run Router more frequently than Planner. Planner is heavier (runs gates).
+
+## Notes
+Planner switches branches inside the automation's dedicated background worktree, so it won't disturb your interactive worktrees.

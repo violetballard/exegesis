@@ -1,43 +1,55 @@
 #!/usr/bin/env python3
+"""
+Event accumulator for Codex MCP notifications.
+
+Captures `codex/event` notifications and extracts text-like fields recursively.
+Treats "idle for idle_seconds" as end of a turn.
+"""
+
 from __future__ import annotations
-import threading, time
+
+import threading
+import time
 from typing import Any, Dict
+
 Json = Dict[str, Any]
 
 class EventAccumulator:
-    def __init__(self)->None:
+    def __init__(self) -> None:
         self._lock = threading.Lock()
-        self._last: Dict[str,float] = {}
-        self._buf: Dict[str,str] = {}
+        self._last_event_ts: Dict[str, float] = {}
+        self._text_buf: Dict[str, str] = {}
 
-    def on_notification(self, msg: Json)->None:
-        if msg.get("method") != "codex/event": return
-        p = msg.get("params",{}) or {}
-        cid = str(p.get("conversationId") or p.get("threadId") or "unknown")
-        txt = self._extract(p)
+    def on_notification(self, msg: Json) -> None:
+        if msg.get("method") != "codex/event":
+            return
+        params = msg.get("params", {}) or {}
+        cid = params.get("conversationId") or params.get("threadId") or "unknown"
+        extracted = self._extract_any_text(params)
         with self._lock:
-            self._last[cid]=time.time()
-            if txt:
-                self._buf[cid]=self._buf.get(cid,"")+txt
+            self._last_event_ts[str(cid)] = time.time()
+            if extracted:
+                self._text_buf[str(cid)] = self._text_buf.get(str(cid), "") + extracted
 
-    def clear(self, cid: str)->None:
+    def clear(self, conversation_id: str) -> None:
         with self._lock:
-            self._buf[str(cid)]=""
+            self._text_buf[str(conversation_id)] = ""
 
-    def wait_for_idle_text(self, cid: str, idle_seconds: float, timeout: float)->str:
-        cid=str(cid); start=time.time()
-        while time.time()-start < timeout:
+    def wait_for_idle_text(self, conversation_id: str, idle_seconds: float, timeout: float) -> str:
+        start = time.time()
+        cid = str(conversation_id)
+        while time.time() - start < timeout:
             with self._lock:
-                last=self._last.get(cid,0.0)
-            if last and (time.time()-last) >= idle_seconds:
+                last = self._last_event_ts.get(cid, 0.0)
+            if last and (time.time() - last) >= idle_seconds:
                 break
             time.sleep(0.05)
         with self._lock:
-            return (self._buf.get(cid,"") or "").strip()
+            return (self._text_buf.get(cid, "") or "").strip()
 
-    def _extract(self, obj: Any)->str:
-        texts=[]
-        def walk(x: Any):
+    def _extract_any_text(self, obj: Any) -> str:
+        texts = []
+        def walk(x: Any) -> None:
             if isinstance(x, dict):
                 for k,v in x.items():
                     if k in ("text","delta","content") and isinstance(v,str) and v.strip():
@@ -46,4 +58,4 @@ class EventAccumulator:
             elif isinstance(x, list):
                 for v in x: walk(v)
         walk(obj)
-        return ("\n".join(texts)+"\n") if texts else ""
+        return ("\n".join(texts) + "\n") if texts else ""
