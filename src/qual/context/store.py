@@ -165,8 +165,10 @@ class ContextBasketStore:
             should_rewrite = True
             schema_value = 0
         else:
-            should_rewrite = schema_version != _SCHEMA_VERSION
+            should_rewrite = schema_version != _SCHEMA_VERSION or schema_version < 0
             schema_value = schema_version
+            if schema_version < 0 and strict_metadata:
+                return None
         if schema_value > _SCHEMA_VERSION:
             return None
         parsed_items = self._parse_item_ids(payload.get("item_ids", []))
