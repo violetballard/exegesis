@@ -86,6 +86,39 @@ def _lane_counts(lane_dir: Path) -> Dict[str, int]:
     }
 
 
+def _collect_lane_totals() -> Dict[str, int]:
+    totals = {
+        "pending_feature": 0,
+        "reviewer_notes": 0,
+        "approved_for_integrator": 0,
+        "waiting_feature_update": 0,
+        "ready_for_reemit": 0,
+    }
+    if not PACKETS_ROOT.exists():
+        return totals
+    planner_state = _load_json(Path(".codex/packet_planner/state.json"), {})
+    planner_lanes = (planner_state.get("lanes") or {}) if isinstance(planner_state, dict) else {}
+    branch_map = _lane_branch_map()
+    for lane in LANES:
+        lane_dir = PACKETS_ROOT / lane
+        if not lane_dir.exists():
+            continue
+        c = _lane_counts(lane_dir)
+        totals["pending_feature"] += c["pending"]
+        totals["reviewer_notes"] += c["review"]
+        totals["approved_for_integrator"] += c["approved"]
+
+        if c["review"] <= 0:
+            continue
+        head = _branch_head(branch_map.get(lane, f"codex/{lane}"))
+        last_sub = str(((planner_lanes.get(lane) or {}).get("last_submitted_sha") or ""))[:8]
+        if head and last_sub and head != last_sub:
+            totals["ready_for_reemit"] += 1
+        else:
+            totals["waiting_feature_update"] += 1
+    return totals
+
+
 def _cooldowns() -> Dict[str, int]:
     cfg = _load_json(ROUTER_CFG, {})
     state = _load_json(ROUTER_STATE, {})
@@ -322,6 +355,37 @@ def main() -> None:
     print(f"router_errors={run.get('router_errors', '-')}")
     print(f"router_processed_total={run.get('router_processed_total', '-')}")
     print(f"fixer_kicked_total={run.get('fixer_kicked_total', '-')}")
+    print()
+
+    router_state = _load_json(ROUTER_STATE, {})
+    totals = _collect_lane_totals()
+    reviewer_queue = totals["pending_feature"]
+    integrator_queue = totals["approved_for_integrator"]
+    if reviewer_queue > 0 and integrator_queue == 0:
+        bottleneck = "reviewer"
+    elif integrator_queue > 0 and reviewer_queue == 0:
+        bottleneck = "integrator"
+    elif reviewer_queue > 0 and integrator_queue > 0:
+        bottleneck = "both"
+    elif totals["reviewer_notes"] > 0:
+        bottleneck = "reviewer/fixer handback loop"
+    else:
+        bottleneck = "none"
+
+    print("BACKLOG")
+    print(f"bottleneck={bottleneck}")
+    print(f"reviewer_queue_pending_feature={reviewer_queue}")
+    print(f"reviewer_notes_waiting={totals['reviewer_notes']}")
+    print(f"waiting_feature_update={totals['waiting_feature_update']}")
+    print(f"ready_for_reemit={totals['ready_for_reemit']}")
+    print(f"integrator_queue_approved={integrator_queue}")
+    print()
+
+    print("CONTROL PLANE")
+    print(f"reviewer_thread_id={router_state.get('reviewer_thread_id', '-')}")
+    print(f"integrator_thread_id={router_state.get('integrator_thread_id', '-')}")
+    fallback_jobs = router_state.get("fixer_fallback_jobs") or {}
+    print(f"fixer_fallback_jobs={len(fallback_jobs) if isinstance(fallback_jobs, dict) else 0}")
     print()
 
     print("LANES")
