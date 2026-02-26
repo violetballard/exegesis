@@ -13,4 +13,5 @@ Summarize:
 
 
 Note: lane_meta is not required in inference mode.
-Phase 1 migration note: this coordinator preserves existing planner/router packet contracts.
+Migration note: direct mode is the default runtime. Use subprocess mode only for break-glass fallback:
+- `python codex_packet_handoff/tools/agents_coordinator.py --execution-mode subprocess`

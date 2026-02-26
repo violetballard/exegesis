@@ -40,13 +40,19 @@ Prompt: `Run the skill router.run`
 
 Tip: run Router more frequently than Planner. Planner is heavier (runs gates).
 
-## Coordinator-first automation (recommended)
+## Coordinator-first automation (required)
 
 Use a single automation prompt:
 
 `Run the skill pipeline.tick`
 
-The skill now runs `agents_coordinator.py`, which wraps planner/router and prints one cycle summary while preserving packet/state compatibility.
+The skill runs `agents_coordinator.py` in direct mode by default:
+- planner execution is orchestrated by coordinator
+- reviewer/fixer/integrator routing uses a persistent direct session context
+- packet/state formats remain compatible with existing lane files
+
+Fallback mode exists for incident response only:
+- `python codex_packet_handoff/tools/agents_coordinator.py --execution-mode subprocess`
 
 ## Notes
 Planner switches branches inside the automation's dedicated background worktree, so it won't disturb your interactive worktrees.

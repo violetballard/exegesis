@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
+import importlib.util
 import json
 import os
 import re
@@ -9,9 +12,11 @@ import shutil
 import subprocess
 import sys
 import time
+import traceback
 from datetime import datetime, timezone
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 PLANNER_CMD = [sys.executable, "codex_packet_handoff/tools/planner.py"]
 ROUTER_CMD = [sys.executable, "codex_packet_handoff/tools/router.py"]
@@ -31,6 +36,16 @@ STATE_FILE = COORD_ROOT / "state.json"
 LEASE_FILE = COORD_ROOT / "lease.json"
 LANES = ["feat-context-storage", "feat-webconsole-core", "feat-webconsole-ui", "feat-ux-flow", "feat-commands"]
 
+@dataclass
+class DirectRouterCtx:
+    router_mod: object
+    cfg: object
+    state: Dict
+    repo_cwd: str
+    client: object
+    reviewer_tid: str
+    integrator_tid: str
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -42,6 +57,16 @@ def run_cmd(cmd: List[str]) -> Tuple[int, str]:
     if out:
         print(out, end="" if out.endswith("\n") else "\n")
     return p.returncode, out
+
+def _load_tool_module(module_name: str, relpath: str):
+    path = Path(relpath)
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Unable to load module from {path}")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = mod
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def load_json(path: Path, default: Dict) -> Dict:
@@ -102,6 +127,12 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--router-retries", type=int, default=1, help="Router retries per tick (default: 1)")
     ap.add_argument("--lease-ttl", type=int, default=300, help="Lease TTL in seconds (default: 300)")
     ap.add_argument("--preflight-only", action="store_true", help="Run preflight checks and exit")
+    ap.add_argument(
+        "--execution-mode",
+        choices=("direct", "subprocess"),
+        default="direct",
+        help="Coordinator execution mode (default: direct)",
+    )
     return ap.parse_args()
 
 
@@ -215,12 +246,135 @@ def _run_planner_with_retry(retries: int) -> Tuple[int, str, int]:
         print(f"[planner] retry attempt {attempts}/{retries + 1}")
         time.sleep(1)
 
+def _run_planner_direct_once() -> Tuple[int, str]:
+    planner_mod = _load_tool_module("packet_planner_runtime", "codex_packet_handoff/tools/planner.py")
+
+    buf = io.StringIO()
+    rc = 0
+    try:
+        with contextlib.redirect_stdout(buf):
+            planner_mod.main()
+    except SystemExit as exc:
+        code = exc.code
+        rc = int(code) if isinstance(code, int) else 1
+    except Exception:
+        rc = 1
+        traceback.print_exc(file=buf)
+    out = buf.getvalue()
+    if out:
+        print(out, end="" if out.endswith("\n") else "\n")
+    return rc, out
+
+def _run_planner_with_retry_direct(retries: int) -> Tuple[int, str, int]:
+    attempts = 0
+    while True:
+        attempts += 1
+        rc, out = _run_planner_direct_once()
+        if rc == 0:
+            return rc, out, attempts
+        if "Missing .codex/lane_meta/" in out:
+            run_cmd(INIT_META_CMD)
+        if attempts > retries + 1:
+            return rc, out, attempts
+        print(f"[planner] retry attempt {attempts}/{retries + 1}")
+        time.sleep(1)
+
 
 def _run_router_with_retry(retries: int) -> Tuple[int, str, int]:
     attempts = 0
     while True:
         attempts += 1
         rc, out = run_cmd(ROUTER_CMD)
+        if rc == 0:
+            return rc, out, attempts
+        if attempts > retries + 1:
+            return rc, out, attempts
+        print(f"[router] retry attempt {attempts}/{retries + 1}")
+        time.sleep(1)
+
+def _init_direct_router_ctx() -> DirectRouterCtx:
+    router_mod = _load_tool_module("packet_router_runtime", "codex_packet_handoff/tools/router.py")
+
+    cfg = router_mod.load_cfg()
+    state = router_mod.load_json(router_mod.STATE_FILE, {})
+    repo_cwd = str(Path.cwd())
+    client = router_mod.CodexMcpClient(
+        approval=router_mod.ApprovalPolicy(True, True),
+        codex_cmd=cfg.codex_cmd,
+    )
+
+    reviewer_tid = state.get("reviewer_thread_id")
+    integrator_tid = state.get("integrator_thread_id")
+    if not reviewer_tid:
+        reviewer_tid, _ = client.codex(
+            prompt="Ready as reviewer; I won't modify files.",
+            cwd=repo_cwd,
+            sandbox="read-only",
+            approval_policy="never",
+            model=cfg.model,
+            timeout=cfg.reviewer_timeout,
+        )
+    if not integrator_tid:
+        integrator_tid, _ = client.codex(
+            prompt="Ready as integrator.",
+            cwd=repo_cwd,
+            sandbox="workspace-write",
+            approval_policy="never",
+            model=cfg.model,
+            timeout=cfg.integrator_timeout,
+        )
+
+    state["reviewer_thread_id"] = reviewer_tid
+    state["integrator_thread_id"] = integrator_tid
+    router_mod.save_json(router_mod.STATE_FILE, state)
+    for lane in cfg.lanes.keys():
+        router_mod.ensure_lane_dirs(lane)
+
+    return DirectRouterCtx(
+        router_mod=router_mod,
+        cfg=cfg,
+        state=state,
+        repo_cwd=repo_cwd,
+        client=client,
+        reviewer_tid=reviewer_tid,
+        integrator_tid=integrator_tid,
+    )
+
+def _run_router_direct_once(ctx: DirectRouterCtx) -> Tuple[int, str]:
+    try:
+        n, ctx.state, ctx.reviewer_tid, ctx.integrator_tid = ctx.router_mod.process_once(
+            ctx.client,
+            ctx.cfg,
+            ctx.state,
+            ctx.repo_cwd,
+            ctx.reviewer_tid,
+            ctx.integrator_tid,
+        )
+        kicked, ctx.state = ctx.router_mod.process_reviewer_backlog(
+            ctx.client,
+            ctx.cfg,
+            ctx.state,
+            ctx.repo_cwd,
+        )
+        ctx.state["reviewer_thread_id"] = ctx.reviewer_tid
+        ctx.state["integrator_thread_id"] = ctx.integrator_tid
+        ctx.router_mod.save_json(ctx.router_mod.STATE_FILE, ctx.state)
+        out = f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s)\n"
+        print(out, end="")
+        return 0, out
+    except Exception:
+        buf = io.StringIO()
+        traceback.print_exc(file=buf)
+        out = buf.getvalue()
+        if out:
+            print(out, end="" if out.endswith("\n") else "\n")
+        return 1, out
+
+def _run_router_with_retry_direct(ctx: DirectRouterCtx, retries: int) -> Tuple[int, str, int]:
+    attempts = 0
+    while True:
+        attempts += 1
+        rc, out = _run_router_direct_once(ctx)
         if rc == 0:
             return rc, out, attempts
         if attempts > retries + 1:
@@ -242,6 +396,7 @@ def main() -> int:
         print("[coordinator] lease busy: another run is active")
         return 0
 
+    direct_ctx: Optional[DirectRouterCtx] = None
     try:
         ok, msg = _preflight_bootstrap()
         if not ok:
@@ -266,9 +421,11 @@ def main() -> int:
         router_processed_total = 0
         fixer_kicked_total = 0
         tick_events: List[Dict[str, object]] = []
+        if args.execution_mode == "direct":
+            direct_ctx = _init_direct_router_ctx()
 
         run_start = time.time()
-        print("[coordinator] phase=1 mode=legacy_subprocess_hardened")
+        print(f"[coordinator] phase=full_cutover mode={args.execution_mode}")
         for tick in range(1, args.ticks + 1):
             tick_start = time.time()
             tick_event: Dict[str, object] = {
@@ -281,7 +438,10 @@ def main() -> int:
 
             if (tick - 1) % args.planner_interval == 0:
                 print("[planner]")
-                planner_rc, planner_out, planner_attempts = _run_planner_with_retry(args.planner_retries)
+                if args.execution_mode == "direct":
+                    planner_rc, planner_out, planner_attempts = _run_planner_with_retry_direct(args.planner_retries)
+                else:
+                    planner_rc, planner_out, planner_attempts = _run_planner_with_retry(args.planner_retries)
                 emissions = _collect_emissions(planner_out)
                 planner_emitted.extend(emissions)
                 tick_event["planner"] = {
@@ -297,7 +457,11 @@ def main() -> int:
                         break
 
             print("[router]")
-            router_rc, router_out, router_attempts = _run_router_with_retry(args.router_retries)
+            if args.execution_mode == "direct":
+                assert direct_ctx is not None
+                router_rc, router_out, router_attempts = _run_router_with_retry_direct(direct_ctx, args.router_retries)
+            else:
+                router_rc, router_out, router_attempts = _run_router_with_retry(args.router_retries)
             stats = _collect_router_stats(router_out)
             router_processed_total += stats["processed"]
             fixer_kicked_total += stats["kicked"]
@@ -332,7 +496,7 @@ def main() -> int:
             "run_id": run_id,
             "started_at": utc_now(),
             "status": status,
-            "mode": "phase1_legacy_subprocess_hardened",
+            "mode": f"full_cutover_{args.execution_mode}",
             "ticks": args.ticks,
             "planner_interval": args.planner_interval,
             "planner_errors": planner_errors,
@@ -355,7 +519,7 @@ def main() -> int:
         )
 
         print("=== COORDINATOR SUMMARY ===")
-        print("[summary] mode: phase1_legacy_subprocess_hardened")
+        print(f"[summary] mode: full_cutover_{args.execution_mode}")
         if planner_emitted:
             print("[summary] planner emitted packets:")
             for lane, fn in planner_emitted:
@@ -373,6 +537,11 @@ def main() -> int:
 
         return 0 if status == "ok" else 1
     finally:
+        if direct_ctx is not None:
+            try:
+                direct_ctx.client.close()
+            except Exception:
+                pass
         release_lease()
 
 

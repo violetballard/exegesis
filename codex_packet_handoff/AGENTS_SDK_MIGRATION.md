@@ -55,9 +55,11 @@ Replace the current script-driven planner/router loop with an Agents SDK coordin
 ## Rollout Phases
 
 Current status (2026-02-26):
-- Phase 1 started and promoted:
+- Migration cutover is active:
   - `codex_packet_handoff/tools/agents_coordinator.py` is the automation entrypoint.
-  - Coordinator currently runs planner/router as subprocesses but adds heavier runtime controls:
+  - Default mode is `direct` (coordinator-managed runtime with persistent reviewer/integrator context).
+  - Subprocess mode remains available only as fallback (`--execution-mode subprocess`).
+  - Runtime controls in place:
     - preflight bootstrap
     - workspace write probe
     - single-run lease/lock
