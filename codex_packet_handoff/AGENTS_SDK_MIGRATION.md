@@ -55,9 +55,14 @@ Replace the current script-driven planner/router loop with an Agents SDK coordin
 ## Rollout Phases
 
 Current status (2026-02-26):
-- Migration cutover is active:
+- Migration cutover is active and event-driven:
   - `codex_packet_handoff/tools/agents_coordinator.py` is the automation entrypoint.
-  - Default mode is `direct` (coordinator-managed runtime with persistent reviewer/integrator context).
+  - Default mode is `direct` event-driven orchestration (no tick scheduler).
+  - Feature lanes follow a strict loop:
+    - feature packet emitted
+    - reviewer verdict
+    - if changes requested: lane remains blocked and loops through fixer -> re-review
+    - if approved: packet moves to integration and lane unblocks for next planning task
   - Subprocess mode remains available only as fallback (`--execution-mode subprocess`).
   - Runtime controls in place:
     - preflight bootstrap

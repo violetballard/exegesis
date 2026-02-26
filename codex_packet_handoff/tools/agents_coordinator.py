@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import argparse
 import contextlib
-import io
 import importlib.util
+import io
 import json
 import os
 import re
@@ -13,8 +13,8 @@ import subprocess
 import sys
 import time
 import traceback
-from datetime import datetime, timezone
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -34,7 +34,10 @@ COORD_ROOT = Path(".codex/packet_coordinator")
 RUNS_DIR = COORD_ROOT / "runs"
 STATE_FILE = COORD_ROOT / "state.json"
 LEASE_FILE = COORD_ROOT / "lease.json"
+ROUTER_CONFIG_FILE = Path(".codex/packet_router/config.json")
+ROUTER_EXAMPLE_FILE = Path(".codex/packet_router/example.json")
 LANES = ["feat-context-storage", "feat-webconsole-core", "feat-webconsole-ui", "feat-ux-flow", "feat-commands"]
+
 
 @dataclass
 class DirectRouterCtx:
@@ -57,6 +60,7 @@ def run_cmd(cmd: List[str]) -> Tuple[int, str]:
     if out:
         print(out, end="" if out.endswith("\n") else "\n")
     return p.returncode, out
+
 
 def _load_tool_module(module_name: str, relpath: str):
     path = Path(relpath)
@@ -88,8 +92,12 @@ def acquire_lease(ttl_seconds: int) -> bool:
         ts = float(lease.get("ts", 0))
         if now - ts < ttl_seconds:
             return False
-    save_json(LEASE_FILE, {"ts": now, "pid": os.getpid()})
+    save_json(LEASE_FILE, {"ts": now, "pid": os.getpid(), "updated_at": utc_now()})
     return True
+
+
+def touch_lease() -> None:
+    save_json(LEASE_FILE, {"ts": time.time(), "pid": os.getpid(), "updated_at": utc_now()})
 
 
 def release_lease() -> None:
@@ -103,50 +111,43 @@ def release_lease() -> None:
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(
         description=(
-            "Heavier coordinator runner for automation stability. "
-            "Wraps planner/router with preflight, retries, lock, and persisted run artifacts."
+            "Event-driven multi-agent coordinator for planner/reviewer/fixer/integrator handoff. "
+            "No tick scheduler; reacts to lane and state changes."
         )
     )
-    ap.add_argument("--ticks", type=int, default=50, help="Total number of ticks (default: 50)")
-    ap.add_argument("--minutes", type=int, default=0, help="If set >0, override ticks with minutes")
+    ap.add_argument("--daemon", action="store_true", help="Run continuously and react to events")
+    ap.add_argument("--once", action="store_true", help="Run event-driven drain cycle once and exit")
+    ap.add_argument("--poll-seconds", type=float, default=2.0, help="Polling interval for event detection (default: 2s)")
     ap.add_argument(
-        "--planner-interval",
-        type=int,
-        default=10,
-        help="Run planner every N ticks starting at tick 1 (default: 10)",
+        "--idle-grace-seconds",
+        type=float,
+        default=6.0,
+        help="In --once mode, idle time before exit after no changes (default: 6s)",
     )
-    ap.add_argument(
-        "--tick-seconds",
-        type=int,
-        default=60,
-        help="Target seconds per tick when sleeping (default: 60)",
-    )
-    ap.add_argument("--no-sleep", action="store_true", help="Do not sleep between ticks")
+    ap.add_argument("--max-cycles", type=int, default=200, help="Safety cap for cycles in --once mode")
     ap.add_argument("--stop-on-error", action="store_true", help="Exit immediately on planner/router error")
-    ap.add_argument("--planner-retries", type=int, default=1, help="Planner retries per tick (default: 1)")
-    ap.add_argument("--router-retries", type=int, default=1, help="Router retries per tick (default: 1)")
+    ap.add_argument("--planner-retries", type=int, default=1, help="Planner retries per cycle (default: 1)")
+    ap.add_argument("--router-retries", type=int, default=1, help="Router retries per cycle (default: 1)")
     ap.add_argument("--lease-ttl", type=int, default=300, help="Lease TTL in seconds (default: 300)")
     ap.add_argument("--preflight-only", action="store_true", help="Run preflight checks and exit")
     ap.add_argument(
         "--execution-mode",
         choices=("direct", "subprocess"),
         default="direct",
-        help="Coordinator execution mode (default: direct)",
+        help="Execution mode for planner/router runtime (default: direct)",
     )
     return ap.parse_args()
 
 
 def _validate_inputs(args: argparse.Namespace) -> int:
-    if args.minutes > 0:
-        args.ticks = args.minutes
-    if args.ticks <= 0:
-        print("[error] --ticks/--minutes must be > 0")
+    if args.poll_seconds <= 0:
+        print("[error] --poll-seconds must be > 0")
         return 2
-    if args.planner_interval <= 0:
-        print("[error] --planner-interval must be > 0")
+    if args.idle_grace_seconds < 0:
+        print("[error] --idle-grace-seconds must be >= 0")
         return 2
-    if args.tick_seconds <= 0:
-        print("[error] --tick-seconds must be > 0")
+    if args.max_cycles <= 0:
+        print("[error] --max-cycles must be > 0")
         return 2
     if args.planner_retries < 0 or args.router_retries < 0:
         print("[error] retries must be >= 0")
@@ -156,6 +157,11 @@ def _validate_inputs(args: argparse.Namespace) -> int:
         return 2
     if not Path("codex_packet_handoff/tools/router.py").exists():
         print("[error] Missing codex_packet_handoff/tools/router.py in current cwd")
+        return 2
+    if not args.daemon and not args.once:
+        args.once = True
+    if args.daemon and args.once:
+        print("[error] use only one of --daemon or --once")
         return 2
     return 0
 
@@ -189,14 +195,24 @@ def _collect_router_stats(router_output: str) -> Dict[str, int]:
 
 
 def _ensure_router_config() -> None:
-    cfg = Path(".codex/packet_router/config.json")
-    example = Path(".codex/packet_router/example.json")
-    if cfg.exists():
+    if ROUTER_CONFIG_FILE.exists():
         return
-    if example.exists():
-        cfg.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(example, cfg)
+    if ROUTER_EXAMPLE_FILE.exists():
+        ROUTER_CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(ROUTER_EXAMPLE_FILE, ROUTER_CONFIG_FILE)
         print("[preflight] created .codex/packet_router/config.json from example")
+
+
+def _load_lane_branches() -> Dict[str, str]:
+    cfg = load_json(ROUTER_CONFIG_FILE, {})
+    lanes = (cfg.get("lanes") or {}) if isinstance(cfg, dict) else {}
+    out: Dict[str, str] = {}
+    for lane in LANES:
+        lane_cfg = lanes.get(lane, {}) if isinstance(lanes, dict) else {}
+        branch = str((lane_cfg or {}).get("branch") or f"codex/{lane}")
+        out[lane] = branch
+    return out
+
 
 def _ensure_dirs() -> None:
     for lane in LANES:
@@ -232,7 +248,7 @@ def _preflight_bootstrap() -> Tuple[bool, str]:
     return True, "ok"
 
 
-def _run_planner_with_retry(retries: int) -> Tuple[int, str, int]:
+def _run_planner_subprocess(retries: int) -> Tuple[int, str, int]:
     attempts = 0
     while True:
         attempts += 1
@@ -246,9 +262,22 @@ def _run_planner_with_retry(retries: int) -> Tuple[int, str, int]:
         print(f"[planner] retry attempt {attempts}/{retries + 1}")
         time.sleep(1)
 
+
+def _run_router_subprocess(retries: int) -> Tuple[int, str, int]:
+    attempts = 0
+    while True:
+        attempts += 1
+        rc, out = run_cmd(ROUTER_CMD)
+        if rc == 0:
+            return rc, out, attempts
+        if attempts > retries + 1:
+            return rc, out, attempts
+        print(f"[router] retry attempt {attempts}/{retries + 1}")
+        time.sleep(1)
+
+
 def _run_planner_direct_once() -> Tuple[int, str]:
     planner_mod = _load_tool_module("packet_planner_runtime", "codex_packet_handoff/tools/planner.py")
-
     buf = io.StringIO()
     rc = 0
     try:
@@ -265,7 +294,8 @@ def _run_planner_direct_once() -> Tuple[int, str]:
         print(out, end="" if out.endswith("\n") else "\n")
     return rc, out
 
-def _run_planner_with_retry_direct(retries: int) -> Tuple[int, str, int]:
+
+def _run_planner_direct(retries: int) -> Tuple[int, str, int]:
     attempts = 0
     while True:
         attempts += 1
@@ -280,21 +310,8 @@ def _run_planner_with_retry_direct(retries: int) -> Tuple[int, str, int]:
         time.sleep(1)
 
 
-def _run_router_with_retry(retries: int) -> Tuple[int, str, int]:
-    attempts = 0
-    while True:
-        attempts += 1
-        rc, out = run_cmd(ROUTER_CMD)
-        if rc == 0:
-            return rc, out, attempts
-        if attempts > retries + 1:
-            return rc, out, attempts
-        print(f"[router] retry attempt {attempts}/{retries + 1}")
-        time.sleep(1)
-
 def _init_direct_router_ctx() -> DirectRouterCtx:
     router_mod = _load_tool_module("packet_router_runtime", "codex_packet_handoff/tools/router.py")
-
     cfg = router_mod.load_cfg()
     state = router_mod.load_json(router_mod.STATE_FILE, {})
     repo_cwd = str(Path.cwd())
@@ -340,6 +357,7 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
         integrator_tid=integrator_tid,
     )
 
+
 def _run_router_direct_once(ctx: DirectRouterCtx) -> Tuple[int, str]:
     try:
         n, ctx.state, ctx.reviewer_tid, ctx.integrator_tid = ctx.router_mod.process_once(
@@ -370,7 +388,8 @@ def _run_router_direct_once(ctx: DirectRouterCtx) -> Tuple[int, str]:
             print(out, end="" if out.endswith("\n") else "\n")
         return 1, out
 
-def _run_router_with_retry_direct(ctx: DirectRouterCtx, retries: int) -> Tuple[int, str, int]:
+
+def _run_router_direct(ctx: DirectRouterCtx, retries: int) -> Tuple[int, str, int]:
     attempts = 0
     while True:
         attempts += 1
@@ -383,6 +402,90 @@ def _run_router_with_retry_direct(ctx: DirectRouterCtx, retries: int) -> Tuple[i
         time.sleep(1)
 
 
+def _git_rev(branch: str) -> str:
+    p = subprocess.run(["git", "rev-parse", branch], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    if p.returncode != 0:
+        return ""
+    return (p.stdout or "").strip()
+
+
+def _lane_digest(lane: str) -> Dict[str, object]:
+    base = Path(".codex/packets/lanes") / lane
+    feat = sorted((base / "inbox/feature").glob("*.md"))
+    rev = sorted((base / "inbox/reviewer").glob("*.md"))
+    appr = sorted((base / "outbox/integrator").glob("*.md"))
+    arch = sorted((base / "archive").glob("*.md"))
+    def newest_name(paths: List[Path]) -> str:
+        if not paths:
+            return ""
+        return max(paths, key=lambda p: p.stat().st_mtime).name
+    return {
+        "pending_feature": len(feat),
+        "reviewer_notes": len(rev),
+        "approved": len(appr),
+        "archive": len(arch),
+        "latest_feature": newest_name(feat),
+        "latest_review": newest_name(rev),
+        "latest_approved": newest_name(appr),
+    }
+
+
+def _compute_snapshot(branch_map: Dict[str, str]) -> str:
+    planner_state = load_json(Path(".codex/packet_planner/state.json"), {})
+    router_state = load_json(Path(".codex/packet_router/state.json"), {})
+    payload: Dict[str, object] = {
+        "planner_state": planner_state,
+        "router_state_keys": sorted(router_state.keys()),
+        "lanes": {},
+        "heads": {},
+    }
+    lanes_payload: Dict[str, object] = {}
+    heads: Dict[str, str] = {}
+    for lane in LANES:
+        lanes_payload[lane] = _lane_digest(lane)
+        heads[lane] = _git_rev(branch_map.get(lane, f"codex/{lane}"))
+    payload["lanes"] = lanes_payload
+    payload["heads"] = heads
+    return json.dumps(payload, sort_keys=True)
+
+
+def _run_cycle(
+    args: argparse.Namespace,
+    direct_ctx: Optional[DirectRouterCtx],
+) -> Dict[str, object]:
+    cycle_event: Dict[str, object] = {"started_at": utc_now()}
+
+    print("[planner]")
+    if args.execution_mode == "direct":
+        planner_rc, planner_out, planner_attempts = _run_planner_direct(args.planner_retries)
+    else:
+        planner_rc, planner_out, planner_attempts = _run_planner_subprocess(args.planner_retries)
+    emissions = _collect_emissions(planner_out)
+    cycle_event["planner"] = {
+        "rc": planner_rc,
+        "attempts": planner_attempts,
+        "emitted": [{"lane": lane, "file": fn} for lane, fn in emissions],
+    }
+
+    print("[router]")
+    if args.execution_mode == "direct":
+        assert direct_ctx is not None
+        router_rc, router_out, router_attempts = _run_router_direct(direct_ctx, args.router_retries)
+    else:
+        router_rc, router_out, router_attempts = _run_router_subprocess(args.router_retries)
+    router_stats = _collect_router_stats(router_out)
+    cycle_event["router"] = {
+        "rc": router_rc,
+        "attempts": router_attempts,
+        "processed": router_stats["processed"],
+        "kicked": router_stats["kicked"],
+    }
+
+    cycle_event["activity"] = bool(emissions or router_stats["processed"] or router_stats["kicked"])
+    cycle_event["ended_at"] = utc_now()
+    return cycle_event
+
+
 def main() -> int:
     args = parse_args()
     rc = _validate_inputs(args)
@@ -391,12 +494,12 @@ def main() -> int:
 
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     run_file = RUNS_DIR / f"run__{run_id}.json"
+    direct_ctx: Optional[DirectRouterCtx] = None
 
     if not acquire_lease(args.lease_ttl):
         print("[coordinator] lease busy: another run is active")
         return 0
 
-    direct_ctx: Optional[DirectRouterCtx] = None
     try:
         ok, msg = _preflight_bootstrap()
         if not ok:
@@ -415,79 +518,78 @@ def main() -> int:
             print("[coordinator] preflight ok")
             return 0
 
-        planner_emitted: List[Tuple[str, str]] = []
-        planner_errors = 0
-        router_errors = 0
-        router_processed_total = 0
-        fixer_kicked_total = 0
-        tick_events: List[Dict[str, object]] = []
+        branch_map = _load_lane_branches()
         if args.execution_mode == "direct":
             direct_ctx = _init_direct_router_ctx()
 
-        run_start = time.time()
-        print(f"[coordinator] phase=full_cutover mode={args.execution_mode}")
-        for tick in range(1, args.ticks + 1):
-            tick_start = time.time()
-            tick_event: Dict[str, object] = {
-                "tick": tick,
-                "started_at": utc_now(),
-                "planner": None,
-                "router": None,
-            }
-            print(f"=== TICK {tick} START {utc_now()} ===")
+        planner_errors = 0
+        router_errors = 0
+        emitted_all: List[Tuple[str, str]] = []
+        router_processed_total = 0
+        fixer_kicked_total = 0
+        cycle_events: List[Dict[str, object]] = []
 
-            if (tick - 1) % args.planner_interval == 0:
-                print("[planner]")
-                if args.execution_mode == "direct":
-                    planner_rc, planner_out, planner_attempts = _run_planner_with_retry_direct(args.planner_retries)
-                else:
-                    planner_rc, planner_out, planner_attempts = _run_planner_with_retry(args.planner_retries)
-                emissions = _collect_emissions(planner_out)
-                planner_emitted.extend(emissions)
-                tick_event["planner"] = {
-                    "rc": planner_rc,
-                    "attempts": planner_attempts,
-                    "emitted": [{"lane": lane, "file": fn} for lane, fn in emissions],
-                }
-                if planner_rc != 0:
+        run_start = time.time()
+        mode_label = f"event_driven_{args.execution_mode}"
+        print(f"[coordinator] mode={mode_label}")
+
+        prev_snapshot = ""
+        idle_start = time.time()
+        cycles = 0
+
+        while True:
+            touch_lease()
+            snapshot = _compute_snapshot(branch_map)
+            should_run = (snapshot != prev_snapshot) or (cycles == 0)
+
+            if should_run:
+                print(f"=== EVENT CYCLE {cycles + 1} START {utc_now()} ===")
+                event = _run_cycle(args, direct_ctx)
+                cycles += 1
+                cycle_events.append(event)
+                prev_snapshot = _compute_snapshot(branch_map)
+
+                p = event.get("planner", {}) if isinstance(event.get("planner"), dict) else {}
+                r = event.get("router", {}) if isinstance(event.get("router"), dict) else {}
+                if int(p.get("rc", 0)) != 0:
                     planner_errors += 1
-                    print(f"[planner] exit_code={planner_rc}")
                     if args.stop_on_error:
-                        tick_events.append(tick_event)
+                        break
+                if int(r.get("rc", 0)) != 0:
+                    router_errors += 1
+                    if args.stop_on_error:
                         break
 
-            print("[router]")
-            if args.execution_mode == "direct":
-                assert direct_ctx is not None
-                router_rc, router_out, router_attempts = _run_router_with_retry_direct(direct_ctx, args.router_retries)
+                for item in p.get("emitted", []):
+                    if isinstance(item, dict):
+                        emitted_all.append((str(item.get("lane", "unknown")), str(item.get("file", ""))))
+                router_processed_total += int(r.get("processed", 0))
+                fixer_kicked_total += int(r.get("kicked", 0))
+
+                if bool(event.get("activity")):
+                    idle_start = time.time()
+
+                print(f"=== EVENT CYCLE {cycles} END ===")
             else:
-                router_rc, router_out, router_attempts = _run_router_with_retry(args.router_retries)
-            stats = _collect_router_stats(router_out)
-            router_processed_total += stats["processed"]
-            fixer_kicked_total += stats["kicked"]
-            tick_event["router"] = {
-                "rc": router_rc,
-                "attempts": router_attempts,
-                "processed": stats["processed"],
-                "kicked": stats["kicked"],
-            }
-            if router_rc != 0:
-                router_errors += 1
-                print(f"[router] exit_code={router_rc}")
-                if args.stop_on_error:
-                    tick_events.append(tick_event)
+                if args.once and (time.time() - idle_start) >= args.idle_grace_seconds:
                     break
+                if args.once and cycles >= args.max_cycles:
+                    print("[coordinator] max cycles reached in --once mode")
+                    break
+                if not args.daemon and args.once:
+                    time.sleep(args.poll_seconds)
+                else:
+                    time.sleep(args.poll_seconds)
+                    continue
 
-            elapsed = time.time() - tick_start
-            tick_event["duration_seconds"] = int(elapsed)
-            tick_events.append(tick_event)
-
-            sleep_for = int(args.tick_seconds - elapsed)
-            if tick < args.ticks and not args.no_sleep and sleep_for > 0:
-                print(f"[sleep] {sleep_for}s")
-                time.sleep(sleep_for)
-
-            print(f"=== TICK {tick} END ===")
+            if args.once and cycles >= args.max_cycles:
+                print("[coordinator] max cycles reached in --once mode")
+                break
+            if args.once and (time.time() - idle_start) >= args.idle_grace_seconds:
+                break
+            if args.daemon:
+                time.sleep(args.poll_seconds)
+                continue
 
         wall = int(time.time() - run_start)
         status = "ok" if (planner_errors == 0 and router_errors == 0) else "errors"
@@ -496,15 +598,14 @@ def main() -> int:
             "run_id": run_id,
             "started_at": utc_now(),
             "status": status,
-            "mode": f"full_cutover_{args.execution_mode}",
-            "ticks": args.ticks,
-            "planner_interval": args.planner_interval,
+            "mode": mode_label,
             "planner_errors": planner_errors,
             "router_errors": router_errors,
             "router_processed_total": router_processed_total,
             "fixer_kicked_total": fixer_kicked_total,
-            "planner_emitted": [{"lane": lane, "file": fn} for lane, fn in planner_emitted],
-            "tick_events": tick_events,
+            "planner_emitted": [{"lane": lane, "file": fn} for lane, fn in emitted_all],
+            "cycle_events": cycle_events,
+            "cycles": cycles,
             "wall_seconds": wall,
         }
         save_json(run_file, run_doc)
@@ -515,23 +616,25 @@ def main() -> int:
                 "last_status": status,
                 "last_run_file": str(run_file),
                 "last_updated_at": utc_now(),
+                "last_mode": mode_label,
             },
         )
 
         print("=== COORDINATOR SUMMARY ===")
-        print(f"[summary] mode: full_cutover_{args.execution_mode}")
-        if planner_emitted:
+        print(f"[summary] mode: {mode_label}")
+        if emitted_all:
             print("[summary] planner emitted packets:")
-            for lane, fn in planner_emitted:
+            for lane, fn in emitted_all:
                 print(f"- lane={lane} file={fn}")
         else:
             print("[summary] planner emitted packets: none")
         print(f"[summary] router processed total packets: {router_processed_total}")
         print(f"[summary] fixer kicked total tasks: {fixer_kicked_total}")
-        if not planner_emitted and router_processed_total == 0 and fixer_kicked_total == 0:
-            print("[summary] no activity this cycle")
+        if not emitted_all and router_processed_total == 0 and fixer_kicked_total == 0:
+            print("[summary] no activity this run")
         print(f"[summary] planner errors: {planner_errors}")
         print(f"[summary] router errors: {router_errors}")
+        print(f"[summary] cycles: {cycles}")
         print(f"[summary] wall seconds: {wall}")
         print(f"[summary] run artifact: {run_file}")
 

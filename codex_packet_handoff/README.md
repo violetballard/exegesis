@@ -46,10 +46,15 @@ Use a single automation prompt:
 
 `Run the skill pipeline.tick`
 
-The skill runs `agents_coordinator.py` in direct mode by default:
-- planner execution is orchestrated by coordinator
-- reviewer/fixer/integrator routing uses a persistent direct session context
+The skill runs `agents_coordinator.py --once` in direct event-driven mode by default:
+- no tick scheduler
+- planner/reviewer/fixer/integrator run when lane/state events occur
 - packet/state formats remain compatible with existing lane files
+- lanes remain blocked during feature↔review loop, and unblock for next planning after approval
+
+For continuous local orchestration via CLI:
+
+`python codex_packet_handoff/tools/agents_coordinator.py --daemon`
 
 Fallback mode exists for incident response only:
 - `python codex_packet_handoff/tools/agents_coordinator.py --execution-mode subprocess`
