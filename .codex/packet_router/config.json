@@ -8,6 +8,7 @@
   "inline_fixer": true,
   "kick_fixers_on_reviewer_backlog": true,
   "fixer_kick_timeout_seconds": 8,
+  "reviewer_fixer_retry_cooldown_seconds": 900,
   "lanes": {
     "feat-context-storage": {
       "branch": "codex/feat-context-storage"

@@ -33,6 +33,7 @@ class RouterConfig:
     inline_fixer: bool
     kick_fixers_on_reviewer_backlog: bool
     fixer_kick_timeout_seconds: float
+    reviewer_fixer_retry_cooldown_seconds: float
     lanes: Dict[str, Dict[str, Any]]
 
 def load_json(p: Path, default: Any) -> Any:
@@ -74,6 +75,7 @@ def load_cfg() -> RouterConfig:
         inline_fixer=bool(cfg.get("inline_fixer", False)),
         kick_fixers_on_reviewer_backlog=bool(cfg.get("kick_fixers_on_reviewer_backlog", True)),
         fixer_kick_timeout_seconds=float(cfg.get("fixer_kick_timeout_seconds", 8)),
+        reviewer_fixer_retry_cooldown_seconds=float(cfg.get("reviewer_fixer_retry_cooldown_seconds", 900)),
         lanes=dict(cfg.get("lanes", {})),
     )
 
@@ -324,6 +326,7 @@ def process_reviewer_backlog(
         return 0, state
 
     cursor = state.get("reviewer_fixer_cursor") or {}
+    retry_ts = state.get("reviewer_fixer_retry_ts") or {}
     kicked = 0
     for lane in cfg.lanes.keys():
         lane_dir = ensure_lane_dirs(lane)
@@ -335,13 +338,18 @@ def process_reviewer_backlog(
             continue
         newest_note = notes[-1]
         if cursor.get(lane) == newest_note.name:
-            continue
+            last_kick = float(retry_ts.get(lane, 0) or 0)
+            # Backward compatibility: if timestamp missing, allow one immediate retry.
+            if last_kick > 0 and (time.time() - last_kick) < cfg.reviewer_fixer_retry_cooldown_seconds:
+                continue
         reviewer_packet = _materialize_reviewer_packet(lane_dir, newest_note)
         state = run_fixer(client, cfg, state, lane, reviewer_packet, repo_cwd)
         cursor[lane] = newest_note.name
+        retry_ts[lane] = time.time()
         kicked += 1
 
     state["reviewer_fixer_cursor"] = cursor
+    state["reviewer_fixer_retry_ts"] = retry_ts
     return kicked, state
 
 def main() -> None:
