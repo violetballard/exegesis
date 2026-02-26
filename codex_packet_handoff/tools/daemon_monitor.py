@@ -20,6 +20,7 @@ LANES = ["feat-commands", "feat-context-storage", "feat-ux-flow", "feat-webconso
 VERDICT_RE = re.compile(r"Verdict:\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?", re.IGNORECASE)
 SHA_RE = re.compile(r"\b[0-9a-f]{40}\b", re.IGNORECASE)
 EXEC_RESULT_RE = re.compile(r"exited (\d+)|succeeded", re.IGNORECASE)
+REQUIRED_FIX_RE = re.compile(r"^\s*\d+\.\s+", re.MULTILINE)
 
 
 def _load_json(path: Path, default: Any) -> Any:
@@ -172,6 +173,14 @@ def _lane_latest_review_file(lane: str) -> Path | None:
     return notes[-1]
 
 
+def _lane_latest_feature_archive(lane: str) -> Path | None:
+    lane_dir = PACKETS_ROOT / lane / "archive"
+    notes = sorted(lane_dir.glob("F__*.md"), key=lambda p: p.stat().st_mtime)
+    if not notes:
+        return None
+    return notes[-1]
+
+
 def _lane_verdict_summary(lane: str) -> str:
     note = _lane_latest_review_file(lane)
     if note is None:
@@ -182,6 +191,45 @@ def _lane_verdict_summary(lane: str) -> str:
         return "review note present (verdict not explicit)"
     v = m.group(1).upper().replace(" ", "_")
     return v
+
+
+def _review_history_summary(lane: str) -> Dict[str, Any]:
+    rf = _lane_latest_review_file(lane)
+    if rf is None:
+        return {"state": "none", "required_fixes": 0, "age_s": None, "msg": "no reviewer note"}
+    txt = rf.read_text(errors="ignore")
+    lower = txt.lower()
+    if "session not found for thread_id" in lower:
+        state = "invalid_session_note"
+    else:
+        m = VERDICT_RE.search(txt)
+        state = (m.group(1).upper().replace(" ", "_") if m else "changes_requested_implicit")
+    required = len(REQUIRED_FIX_RE.findall(txt))
+    age_s = int(max(0, time.time() - rf.stat().st_mtime))
+    return {
+        "state": state,
+        "required_fixes": required,
+        "age_s": age_s,
+        "msg": rf.name,
+    }
+
+
+def _integrator_history_summary() -> Dict[str, Any]:
+    approved_now = 0
+    integrated_archived = 0
+    newest_integrator: Path | None = None
+    for lane in LANES:
+        lane_dir = PACKETS_ROOT / lane
+        approved_now += len(list((lane_dir / "outbox" / "integrator").glob("*.md")))
+        integ = sorted((lane_dir / "archive").glob("INTEGRATOR__*.md"), key=lambda p: p.stat().st_mtime)
+        integrated_archived += len(integ)
+        if integ and (newest_integrator is None or integ[-1].stat().st_mtime > newest_integrator.stat().st_mtime):
+            newest_integrator = integ[-1]
+    return {
+        "approved_now": approved_now,
+        "integrated_archived": integrated_archived,
+        "latest_integrator_file": newest_integrator.name if newest_integrator else "-",
+    }
 
 
 def _latest_fixer_log(lane: str) -> Path | None:
@@ -386,6 +434,23 @@ def main() -> None:
     print(f"integrator_thread_id={router_state.get('integrator_thread_id', '-')}")
     fallback_jobs = router_state.get("fixer_fallback_jobs") or {}
     print(f"fixer_fallback_jobs={len(fallback_jobs) if isinstance(fallback_jobs, dict) else 0}")
+    print()
+
+    print("REVIEWER HISTORY")
+    for lane in LANES:
+        hs = _review_history_summary(lane)
+        age = hs["age_s"]
+        age_txt = "-" if age is None else f"{age}s"
+        print(
+            f"{lane:22} state={hs['state']} required_fixes={hs['required_fixes']} age={age_txt} file={hs['msg']}"
+        )
+    print()
+
+    integ_h = _integrator_history_summary()
+    print("INTEGRATOR HISTORY")
+    print(f"approved_waiting_now={integ_h['approved_now']}")
+    print(f"integrated_archive_total={integ_h['integrated_archived']}")
+    print(f"latest_integrator_file={integ_h['latest_integrator_file']}")
     print()
 
     print("LANES")
