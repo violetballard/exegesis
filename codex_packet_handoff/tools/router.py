@@ -153,6 +153,30 @@ def _find_worktree_for_branch(repo_cwd: str, branch: str) -> Optional[str]:
             return wt
     return None
 
+
+def _sync_lane_runbook_files(repo_cwd: str, workdir: Optional[str]) -> None:
+    """Ensure lane worktrees have required operator docs used by automation prompts.
+
+    Some older lane worktrees were created before AGENTS.md existed, causing fixers
+    to churn on missing-file lookups instead of applying requested changes.
+    """
+    if not workdir:
+        return
+    root = Path(repo_cwd)
+    wt = Path(workdir)
+    for name in ("AGENTS.md", "INTEGRATION.md", "THREAD_OWNERSHIP.md"):
+        src = root / name
+        dst = wt / name
+        try:
+            if not src.exists():
+                continue
+            if dst.exists():
+                continue
+            dst.write_text(src.read_text())
+        except Exception:
+            # Best-effort only; fixer can still run without this sync.
+            continue
+
 def fixer_prompt(lane: str, branch: str, reviewer_packet: str, workdir: Optional[str]) -> str:
     if workdir:
         return (
@@ -181,6 +205,7 @@ def run_fixer(client: CodexMcpClient, cfg: RouterConfig, state: dict, lane: str,
     lane_cfg = cfg.lanes.get(lane, {}) or {}
     branch = str(lane_cfg.get("branch") or f"codex/{lane}")
     wt = _find_worktree_for_branch(repo_cwd, branch)
+    _sync_lane_runbook_files(repo_cwd, wt)
     fixer_map = state.get("fixer_thread_ids") or {}
     tid = fixer_map.get(lane)
     try:
@@ -249,7 +274,13 @@ def _materialize_reviewer_packet(lane_dir: Path, reviewer_note: Optional[Path], 
             note_text = reviewer_note.read_text().strip()
         except Exception:
             note_text = ""
+    invalid_note = False
     if note_text:
+        lower = note_text.lower()
+        # Recovery path: thread/session lookup failures are not actionable reviewer packets.
+        if "session not found for thread_id" in lower or "thread not found" in lower:
+            invalid_note = True
+    if note_text and not invalid_note:
         return note_text
 
     archived_feature = ""
