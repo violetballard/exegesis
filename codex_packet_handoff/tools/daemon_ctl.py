@@ -13,6 +13,7 @@ from typing import Optional
 COORD_DIR = Path(".codex/packet_coordinator")
 PID_FILE = COORD_DIR / "daemon.pid"
 LOG_FILE = COORD_DIR / "daemon.log"
+LEASE_FILE = COORD_DIR / "lease.json"
 CMD = [sys.executable, "codex_packet_handoff/tools/agents_coordinator.py", "--daemon"]
 PROC_MATCH = "codex_packet_handoff/tools/agents_coordinator.py --daemon"
 
@@ -56,6 +57,19 @@ def _find_matching_pids() -> list[int]:
     return out
 
 
+def _clear_stale_lease() -> None:
+    try:
+        if not LEASE_FILE.exists():
+            return
+        import json
+        data = json.loads(LEASE_FILE.read_text() or "{}")
+        pid = int(data.get("pid", 0) or 0)
+        if not pid or not _pid_alive(pid):
+            LEASE_FILE.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+
 def _status() -> int:
     pid = _read_pid()
     pids = _find_matching_pids()
@@ -71,6 +85,7 @@ def _status() -> int:
 
 def _start() -> int:
     _ensure_dirs()
+    _clear_stale_lease()
     pid = _read_pid()
     if pid and _pid_alive(pid):
         print(f"already_running pid={pid}")

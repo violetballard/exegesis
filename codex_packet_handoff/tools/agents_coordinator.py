@@ -46,7 +46,7 @@ class DirectRouterCtx:
     state: Dict
     repo_cwd: str
     client: object
-    reviewer_tid: str
+    reviewer_thread_ids: Dict[str, str]
     integrator_tid: str
 
 
@@ -320,17 +320,10 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
         codex_cmd=cfg.codex_cmd,
     )
 
-    reviewer_tid = state.get("reviewer_thread_id")
+    reviewer_thread_ids = state.get("reviewer_thread_ids") or {}
+    if not isinstance(reviewer_thread_ids, dict):
+        reviewer_thread_ids = {}
     integrator_tid = state.get("integrator_thread_id")
-    if not reviewer_tid:
-        reviewer_tid, _ = client.codex(
-            prompt="Ready as reviewer; I won't modify files.",
-            cwd=repo_cwd,
-            sandbox="read-only",
-            approval_policy="never",
-            model=cfg.model,
-            timeout=cfg.reviewer_timeout,
-        )
     if not integrator_tid:
         integrator_tid, _ = client.codex(
             prompt="Ready as integrator.",
@@ -341,7 +334,12 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
             timeout=cfg.integrator_timeout,
         )
 
-    state["reviewer_thread_id"] = reviewer_tid
+    state["reviewer_thread_ids"] = reviewer_thread_ids
+    if reviewer_thread_ids:
+        first_lane = sorted(reviewer_thread_ids.keys())[0]
+        state["reviewer_thread_id"] = reviewer_thread_ids.get(first_lane)
+    else:
+        state["reviewer_thread_id"] = None
     state["integrator_thread_id"] = integrator_tid
     router_mod.save_json(router_mod.STATE_FILE, state)
     for lane in cfg.lanes.keys():
@@ -353,19 +351,19 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
         state=state,
         repo_cwd=repo_cwd,
         client=client,
-        reviewer_tid=reviewer_tid,
+        reviewer_thread_ids=reviewer_thread_ids,
         integrator_tid=integrator_tid,
     )
 
 
 def _run_router_direct_once(ctx: DirectRouterCtx) -> Tuple[int, str]:
     try:
-        n, ctx.state, ctx.reviewer_tid, ctx.integrator_tid = ctx.router_mod.process_once(
+        n, ctx.state, ctx.reviewer_thread_ids, ctx.integrator_tid = ctx.router_mod.process_once(
             ctx.client,
             ctx.cfg,
             ctx.state,
             ctx.repo_cwd,
-            ctx.reviewer_tid,
+            ctx.reviewer_thread_ids,
             ctx.integrator_tid,
         )
         kicked, ctx.state = ctx.router_mod.process_reviewer_backlog(
@@ -374,7 +372,12 @@ def _run_router_direct_once(ctx: DirectRouterCtx) -> Tuple[int, str]:
             ctx.state,
             ctx.repo_cwd,
         )
-        ctx.state["reviewer_thread_id"] = ctx.reviewer_tid
+        ctx.state["reviewer_thread_ids"] = ctx.reviewer_thread_ids
+        if ctx.reviewer_thread_ids:
+            first_lane = sorted(ctx.reviewer_thread_ids.keys())[0]
+            ctx.state["reviewer_thread_id"] = ctx.reviewer_thread_ids.get(first_lane)
+        else:
+            ctx.state["reviewer_thread_id"] = None
         ctx.state["integrator_thread_id"] = ctx.integrator_tid
         ctx.router_mod.save_json(ctx.router_mod.STATE_FILE, ctx.state)
         out = f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s)\n"

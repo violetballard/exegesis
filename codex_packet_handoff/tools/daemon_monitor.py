@@ -526,7 +526,13 @@ def main() -> None:
     print()
 
     print("CONTROL PLANE")
-    print(f"reviewer_thread_id={router_state.get('reviewer_thread_id', '-')}")
+    reviewer_map = router_state.get("reviewer_thread_ids") or {}
+    if isinstance(reviewer_map, dict) and reviewer_map:
+        print(f"reviewer_thread_count={len(reviewer_map)}")
+        for lane in LANES:
+            print(f"reviewer_thread_{lane}={reviewer_map.get(lane, '-')}")
+    else:
+        print(f"reviewer_thread_id={router_state.get('reviewer_thread_id', '-')}")
     print(f"integrator_thread_id={router_state.get('integrator_thread_id', '-')}")
     fallback_jobs = router_state.get("fixer_fallback_jobs") or {}
     print(f"fixer_fallback_jobs={len(fallback_jobs) if isinstance(fallback_jobs, dict) else 0}")

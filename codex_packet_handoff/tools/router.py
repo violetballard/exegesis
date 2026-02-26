@@ -311,30 +311,63 @@ def _materialize_reviewer_packet(lane_dir: Path, reviewer_note: Optional[Path], 
         "Run required gates, identify likely defects in this lane branch, and prepare for re-review."
     )
 
-def process_once(client: CodexMcpClient, cfg: RouterConfig, state: dict, repo_cwd: str, reviewer_tid: str, integrator_tid: str) -> Tuple[int, dict, str, str]:
+def _ensure_lane_reviewer_thread(
+    client: CodexMcpClient,
+    cfg: RouterConfig,
+    repo_cwd: str,
+    lane: str,
+    reviewer_thread_ids: Dict[str, str],
+) -> str:
+    tid = reviewer_thread_ids.get(lane)
+    if tid:
+        return tid
+    tid, _ = client.codex(
+        prompt=f"Ready as reviewer for lane {lane}; I won't modify files.",
+        cwd=repo_cwd,
+        sandbox="read-only",
+        approval_policy="on-request",
+        model=cfg.model,
+        timeout=cfg.reviewer_timeout,
+    )
+    reviewer_thread_ids[lane] = tid
+    return tid
+
+
+def process_once(
+    client: CodexMcpClient,
+    cfg: RouterConfig,
+    state: dict,
+    repo_cwd: str,
+    reviewer_thread_ids: Dict[str, str],
+    integrator_tid: str,
+) -> Tuple[int, dict, Dict[str, str], str]:
     cursor = load_json(CURSOR_FILE, {})
     processed = 0
     for lane in cfg.lanes.keys():
         lane_dir = ensure_lane_dirs(lane)
         for pkt_path in list_new(lane_dir, cursor.get(lane)):
             if processed >= cfg.max_packets_per_run:
-                return processed, state, reviewer_tid, integrator_tid
+                return processed, state, reviewer_thread_ids, integrator_tid
             pkt = pkt_path.read_text()
 
+            reviewer_tid = _ensure_lane_reviewer_thread(client, cfg, repo_cwd, lane, reviewer_thread_ids)
             reviewer_tid, reviewer_text = client.codex_reply(reviewer_tid, reviewer_prompt(pkt), timeout=cfg.reviewer_timeout)
+            reviewer_thread_ids[lane] = reviewer_tid
             if _invalid_reviewer_output(reviewer_text):
                 # Recover from dead/invalid reviewer thread and retry once.
                 reviewer_tid, _ = client.codex(
-                    prompt="Ready as reviewer; I won't modify files.",
+                    prompt=f"Ready as reviewer for lane {lane}; I won't modify files.",
                     cwd=repo_cwd,
                     sandbox="read-only",
                     approval_policy="on-request",
                     model=cfg.model,
                     timeout=cfg.reviewer_timeout,
                 )
+                reviewer_thread_ids[lane] = reviewer_tid
                 reviewer_tid, reviewer_text = client.codex_reply(
                     reviewer_tid, reviewer_prompt(pkt), timeout=cfg.reviewer_timeout
                 )
+                reviewer_thread_ids[lane] = reviewer_tid
                 if _invalid_reviewer_output(reviewer_text):
                     reviewer_text = (
                         "Verdict: `CHANGES_REQUESTED`\n\n"
@@ -371,7 +404,7 @@ def process_once(client: CodexMcpClient, cfg: RouterConfig, state: dict, repo_cw
             # Inline fixer can be expensive; disabled by default for automation ticks.
             if verdict != "APPROVED" and cfg.inline_fixer:
                 state = run_fixer(client, cfg, state, lane, reviewer_text, repo_cwd)
-    return processed, state, reviewer_tid, integrator_tid
+    return processed, state, reviewer_thread_ids, integrator_tid
 
 def process_reviewer_backlog(
     client: CodexMcpClient,
@@ -425,18 +458,11 @@ def main() -> None:
 
     client = CodexMcpClient(approval=ApprovalPolicy(True, True), codex_cmd=cfg.codex_cmd)
 
-    reviewer_tid = state.get("reviewer_thread_id")
+    reviewer_thread_ids = state.get("reviewer_thread_ids") or {}
+    if not isinstance(reviewer_thread_ids, dict):
+        reviewer_thread_ids = {}
     integrator_tid = state.get("integrator_thread_id")
 
-    if not reviewer_tid:
-        reviewer_tid, _ = client.codex(
-            prompt="Ready as reviewer; I won't modify files.",
-            cwd=repo_cwd,
-            sandbox="read-only",
-            approval_policy="on-request",
-            model=cfg.model,
-            timeout=cfg.reviewer_timeout,
-        )
     if not integrator_tid:
         integrator_tid, _ = client.codex(
             prompt="Ready as integrator.",
@@ -447,7 +473,13 @@ def main() -> None:
             timeout=cfg.integrator_timeout,
         )
 
-    state["reviewer_thread_id"] = reviewer_tid
+    state["reviewer_thread_ids"] = reviewer_thread_ids
+    if reviewer_thread_ids:
+        # Backward-compatible status field.
+        first_lane = sorted(reviewer_thread_ids.keys())[0]
+        state["reviewer_thread_id"] = reviewer_thread_ids.get(first_lane)
+    else:
+        state["reviewer_thread_id"] = None
     state["integrator_thread_id"] = integrator_tid
     save_json(STATE_FILE, state)
 
@@ -458,9 +490,16 @@ def main() -> None:
         if not args.daemon:
             if acquire_lease():
                 try:
-                    n, state, reviewer_tid, integrator_tid = process_once(client, cfg, state, repo_cwd, reviewer_tid, integrator_tid)
+                    n, state, reviewer_thread_ids, integrator_tid = process_once(
+                        client, cfg, state, repo_cwd, reviewer_thread_ids, integrator_tid
+                    )
                     kicked, state = process_reviewer_backlog(client, cfg, state, repo_cwd)
-                    state["reviewer_thread_id"] = reviewer_tid
+                    state["reviewer_thread_ids"] = reviewer_thread_ids
+                    if reviewer_thread_ids:
+                        first_lane = sorted(reviewer_thread_ids.keys())[0]
+                        state["reviewer_thread_id"] = reviewer_thread_ids.get(first_lane)
+                    else:
+                        state["reviewer_thread_id"] = None
                     state["integrator_thread_id"] = integrator_tid
                     save_json(STATE_FILE, state)
                     print(f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s)")
@@ -472,9 +511,16 @@ def main() -> None:
         while True:
             if acquire_lease():
                 try:
-                    n, state, reviewer_tid, integrator_tid = process_once(client, cfg, state, repo_cwd, reviewer_tid, integrator_tid)
+                    n, state, reviewer_thread_ids, integrator_tid = process_once(
+                        client, cfg, state, repo_cwd, reviewer_thread_ids, integrator_tid
+                    )
                     kicked, state = process_reviewer_backlog(client, cfg, state, repo_cwd)
-                    state["reviewer_thread_id"] = reviewer_tid
+                    state["reviewer_thread_ids"] = reviewer_thread_ids
+                    if reviewer_thread_ids:
+                        first_lane = sorted(reviewer_thread_ids.keys())[0]
+                        state["reviewer_thread_id"] = reviewer_thread_ids.get(first_lane)
+                    else:
+                        state["reviewer_thread_id"] = None
                     state["integrator_thread_id"] = integrator_tid
                     save_json(STATE_FILE, state)
                     if n or kicked:
