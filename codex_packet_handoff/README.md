@@ -31,11 +31,11 @@ Copy the `.agents/skills/...` folders into your repo's `.agents/skills/`.
 Create two recurring automations:
 
 ### Automation 1 (Planner)
-Schedule: every 5–10 minutes  
+Schedule: every 5–10 minutes
 Prompt: `Run the skill planner.run`
 
 ### Automation 2 (Router)
-Schedule: every 1–2 minutes  
+Schedule: every 1–2 minutes
 Prompt: `Run the skill router.run`
 
 Tip: run Router more frequently than Planner. Planner is heavier (runs gates).
