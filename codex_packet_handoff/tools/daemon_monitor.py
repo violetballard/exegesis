@@ -295,6 +295,28 @@ def _reviewer_live_summary() -> Dict[str, Any]:
     }
 
 
+def _review_lane_status_row(lane: str, reviewer_map: Dict[str, str], cooldowns: Dict[str, int]) -> str:
+    lane_dir = PACKETS_ROOT / lane
+    counts = _lane_counts(lane_dir) if lane_dir.exists() else {"pending": 0, "review": 0, "approved": 0}
+    hs = _review_history_summary(lane)
+    detail = _detailed_conversation_summary(_latest_fixer_log(lane))
+    verdict = hs["state"]
+    age = hs["age_s"]
+    age_txt = "-" if age is None else f"{age}s"
+    tid = reviewer_map.get(lane, "-")
+    cd = cooldowns.get(lane)
+    cd_txt = "-" if cd is None else str(cd)
+    return (
+        f"{lane:22} "
+        f"thread={tid} "
+        f"queue=p{counts['pending']}/r{counts['review']} "
+        f"verdict={verdict} "
+        f"review_age={age_txt} "
+        f"fixer={detail['progress']} "
+        f"cooldown={cd_txt}"
+    )
+
+
 def _integrator_live_summary() -> Dict[str, Any]:
     approved_items: List[tuple[str, Path]] = []
     latest_integrator: tuple[str, Path] | None = None
@@ -562,6 +584,13 @@ def main() -> None:
     print(f"latest_summary={it_live['latest_line']}")
     print()
 
+    cds = _cooldowns()
+    print("REVIEW LANE STATUS")
+    reviewer_map_typed = reviewer_map if isinstance(reviewer_map, dict) else {}
+    for lane in LANES:
+        print(_review_lane_status_row(lane, reviewer_map_typed, cds))
+    print()
+
     print("REVIEWER HISTORY")
     for lane in LANES:
         hs = _review_history_summary(lane)
@@ -590,7 +619,6 @@ def main() -> None:
         print("(no packet lanes found)")
     print()
 
-    cds = _cooldowns()
     print("RETRY COOLDOWNS (seconds)")
     if cds:
         for lane in sorted(cds.keys()):
