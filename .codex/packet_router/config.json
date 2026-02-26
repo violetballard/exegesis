@@ -7,6 +7,7 @@
   "max_packets_per_run": 1,
   "inline_fixer": true,
   "kick_fixers_on_reviewer_backlog": true,
+  "fixer_kick_timeout_seconds": 8,
   "lanes": {
     "feat-context-storage": {
       "branch": "codex/feat-context-storage"

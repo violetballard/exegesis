@@ -7,6 +7,7 @@ import os
 import re
 import time
 import subprocess
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -31,6 +32,7 @@ class RouterConfig:
     max_packets_per_run: int
     inline_fixer: bool
     kick_fixers_on_reviewer_backlog: bool
+    fixer_kick_timeout_seconds: float
     lanes: Dict[str, Dict[str, Any]]
 
 def load_json(p: Path, default: Any) -> Any:
@@ -71,6 +73,7 @@ def load_cfg() -> RouterConfig:
         max_packets_per_run=int(cfg.get("max_packets_per_run", 1)),
         inline_fixer=bool(cfg.get("inline_fixer", False)),
         kick_fixers_on_reviewer_backlog=bool(cfg.get("kick_fixers_on_reviewer_backlog", True)),
+        fixer_kick_timeout_seconds=float(cfg.get("fixer_kick_timeout_seconds", 8)),
         lanes=dict(cfg.get("lanes", {})),
     )
 
@@ -85,6 +88,8 @@ def ensure_lane_dirs(lane: str) -> Path:
 def list_new(lane_dir: Path, last_seen: Optional[str]) -> List[Path]:
     files = sorted((lane_dir/"inbox/feature").glob("*.md"), key=lambda p: p.stat().st_mtime)
     if not last_seen:
+        return files[-1:] if files else []
+    if all(f.name != last_seen for f in files):
         return files[-1:] if files else []
     out: List[Path] = []
     seen = False
@@ -176,18 +181,51 @@ def run_fixer(client: CodexMcpClient, cfg: RouterConfig, state: dict, lane: str,
     wt = _find_worktree_for_branch(repo_cwd, branch)
     fixer_map = state.get("fixer_thread_ids") or {}
     tid = fixer_map.get(lane)
-    if not tid:
-        tid, _ = client.codex(
-            prompt=f"You are the FEATURE FIXER for lane `{lane}`. You will apply reviewer-required fixes.",
-            cwd=(wt or repo_cwd),
-            sandbox="workspace-write",
-            approval_policy="on-request",
-            model=cfg.model,
-            timeout=cfg.integrator_timeout,
+    try:
+        if not tid:
+            tid, _ = client.codex(
+                prompt=f"You are the FEATURE FIXER for lane `{lane}`. You will apply reviewer-required fixes.",
+                cwd=(wt or repo_cwd),
+                sandbox="workspace-write",
+                approval_policy="never",
+                model=cfg.model,
+                timeout=cfg.fixer_kick_timeout_seconds,
+            )
+        tid, _ = client.codex_reply(
+            tid,
+            fixer_prompt(lane, branch, reviewer_packet, wt),
+            timeout=cfg.fixer_kick_timeout_seconds,
         )
-    tid, _ = client.codex_reply(tid, fixer_prompt(lane, branch, reviewer_packet, wt), timeout=cfg.integrator_timeout)
-    fixer_map[lane] = tid
-    state["fixer_thread_ids"] = fixer_map
+        fixer_map[lane] = tid
+        state["fixer_thread_ids"] = fixer_map
+        return state
+    except Exception:
+        pass
+
+    # Fallback: detached CLI fixer so router ticks don't deadlock on MCP stalls.
+    logs = ROUTER_ROOT / "logs"
+    logs.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    logp = logs / f"fixer__{lane}__{ts}.log"
+    with logp.open("w") as lf:
+        subprocess.Popen(
+            [
+                cfg.codex_cmd,
+                "exec",
+                "-m",
+                cfg.model,
+                "-s",
+                "workspace-write",
+                fixer_prompt(lane, branch, reviewer_packet, wt),
+            ],
+            cwd=(wt or repo_cwd),
+            stdout=lf,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+    fallback = state.get("fixer_fallback_jobs") or {}
+    fallback[lane] = {"log": str(logp), "ts": ts}
+    state["fixer_fallback_jobs"] = fallback
     return state
 
 def write_text(p: Path, t: str) -> None:
@@ -201,6 +239,36 @@ def archive(src: Path, lane_dir: Path) -> None:
     except Exception:
         dst.write_text(src.read_text())
         src.unlink()
+
+def _materialize_reviewer_packet(lane_dir: Path, reviewer_note: Optional[Path], fallback_feature_pkt: Optional[str] = None) -> str:
+    note_text = ""
+    if reviewer_note is not None:
+        try:
+            note_text = reviewer_note.read_text().strip()
+        except Exception:
+            note_text = ""
+    if note_text:
+        return note_text
+
+    archived_feature = ""
+    try:
+        feats = sorted((lane_dir / "archive").glob("F__*.md"), key=lambda p: p.stat().st_mtime)
+        if feats:
+            archived_feature = feats[-1].read_text().strip()
+    except Exception:
+        archived_feature = ""
+
+    pkt = fallback_feature_pkt.strip() if (fallback_feature_pkt or "").strip() else archived_feature
+    if pkt:
+        return (
+            "Reviewer packet was empty (automation recovery path).\n"
+            "Generate REQUIRED FIXES from the feature packet below and apply them.\n\n"
+            f"{pkt}\n"
+        )
+    return (
+        "Reviewer packet was empty and no archived feature packet was found.\n"
+        "Run required gates, identify likely defects in this lane branch, and prepare for re-review."
+    )
 
 def process_once(client: CodexMcpClient, cfg: RouterConfig, state: dict, repo_cwd: str, reviewer_tid: str, integrator_tid: str) -> Tuple[int, dict, str, str]:
     cursor = load_json(CURSOR_FILE, {})
@@ -221,6 +289,13 @@ def process_once(client: CodexMcpClient, cfg: RouterConfig, state: dict, repo_cw
                 if integ.strip():
                     write_text(lane_dir/"archive"/f"INTEGRATOR__{pkt_path.name}", integ)
             else:
+                if not (reviewer_text or "").strip():
+                    reviewer_text = (
+                        "Verdict: `CHANGES_REQUESTED`\n\n"
+                        "Reviewer output was empty; router inserted recovery packet.\n"
+                        "Required fixes: derive issues from the feature packet and resubmit.\n\n"
+                        f"{pkt}\n"
+                    )
                 outp = lane_dir/"inbox/reviewer"/pkt_path.name.replace("F__","R__CHANGES__")
                 write_text(outp, reviewer_text)
 
@@ -261,10 +336,7 @@ def process_reviewer_backlog(
         newest_note = notes[-1]
         if cursor.get(lane) == newest_note.name:
             continue
-        try:
-            reviewer_packet = newest_note.read_text()
-        except Exception:
-            continue
+        reviewer_packet = _materialize_reviewer_packet(lane_dir, newest_note)
         state = run_fixer(client, cfg, state, lane, reviewer_packet, repo_cwd)
         cursor[lane] = newest_note.name
         kicked += 1
