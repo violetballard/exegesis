@@ -181,6 +181,14 @@ def _lane_latest_feature_archive(lane: str) -> Path | None:
     return notes[-1]
 
 
+def _lane_latest_feature_pending(lane: str) -> Path | None:
+    lane_dir = PACKETS_ROOT / lane / "inbox" / "feature"
+    notes = sorted(lane_dir.glob("*.md"), key=lambda p: p.stat().st_mtime)
+    if not notes:
+        return None
+    return notes[-1]
+
+
 def _lane_verdict_summary(lane: str) -> str:
     note = _lane_latest_review_file(lane)
     if note is None:
@@ -229,6 +237,94 @@ def _integrator_history_summary() -> Dict[str, Any]:
         "approved_now": approved_now,
         "integrated_archived": integrated_archived,
         "latest_integrator_file": newest_integrator.name if newest_integrator else "-",
+    }
+
+
+def _first_nonempty_line(path: Path | None, max_len: int = 140) -> str:
+    if path is None:
+        return "-"
+    try:
+        for ln in path.read_text(errors="ignore").splitlines():
+            s = ln.strip()
+            if not s:
+                continue
+            s = s.lstrip("#- ").strip()
+            if not s:
+                continue
+            if len(s) > max_len:
+                s = s[: max_len - 3] + "..."
+            return s
+    except Exception:
+        return "-"
+    return "-"
+
+
+def _reviewer_live_summary() -> Dict[str, Any]:
+    pending_items: List[tuple[str, Path]] = []
+    latest_review: tuple[str, Path] | None = None
+    invalid_count = 0
+    for lane in LANES:
+        pf = _lane_latest_feature_pending(lane)
+        if pf is not None:
+            pending_items.append((lane, pf))
+        rf = _lane_latest_review_file(lane)
+        if rf is not None:
+            if latest_review is None or rf.stat().st_mtime > latest_review[1].stat().st_mtime:
+                latest_review = (lane, rf)
+            txt = rf.read_text(errors="ignore").lower()
+            if "session not found for thread_id" in txt or "thread not found" in txt:
+                invalid_count += 1
+    pending_items.sort(key=lambda x: x[1].stat().st_mtime)
+    queue_lanes = [x[0] for x in pending_items]
+    if pending_items:
+        focus_lane = pending_items[0][0]
+        focus_age = int(max(0, time.time() - pending_items[0][1].stat().st_mtime))
+    else:
+        focus_lane = "-"
+        focus_age = 0
+    latest_note_lane = latest_review[0] if latest_review else "-"
+    latest_note_line = _first_nonempty_line(latest_review[1] if latest_review else None)
+    return {
+        "queue_count": len(pending_items),
+        "queue_lanes": queue_lanes,
+        "focus_lane": focus_lane,
+        "focus_age_s": focus_age,
+        "latest_note_lane": latest_note_lane,
+        "latest_note_line": latest_note_line,
+        "invalid_notes": invalid_count,
+    }
+
+
+def _integrator_live_summary() -> Dict[str, Any]:
+    approved_items: List[tuple[str, Path]] = []
+    latest_integrator: tuple[str, Path] | None = None
+    for lane in LANES:
+        out_dir = PACKETS_ROOT / lane / "outbox" / "integrator"
+        for f in out_dir.glob("*.md"):
+            approved_items.append((lane, f))
+        arc_dir = PACKETS_ROOT / lane / "archive"
+        integ = sorted(arc_dir.glob("INTEGRATOR__*.md"), key=lambda p: p.stat().st_mtime)
+        if integ:
+            f = integ[-1]
+            if latest_integrator is None or f.stat().st_mtime > latest_integrator[1].stat().st_mtime:
+                latest_integrator = (lane, f)
+    approved_items.sort(key=lambda x: x[1].stat().st_mtime)
+    queue_lanes = [x[0] for x in approved_items]
+    if approved_items:
+        focus_lane = approved_items[0][0]
+        focus_age = int(max(0, time.time() - approved_items[0][1].stat().st_mtime))
+    else:
+        focus_lane = "-"
+        focus_age = 0
+    latest_lane = latest_integrator[0] if latest_integrator else "-"
+    latest_line = _first_nonempty_line(latest_integrator[1] if latest_integrator else None)
+    return {
+        "queue_count": len(approved_items),
+        "queue_lanes": queue_lanes,
+        "focus_lane": focus_lane,
+        "focus_age_s": focus_age,
+        "latest_lane": latest_lane,
+        "latest_line": latest_line,
     }
 
 
@@ -436,6 +532,27 @@ def main() -> None:
     print(f"fixer_fallback_jobs={len(fallback_jobs) if isinstance(fallback_jobs, dict) else 0}")
     print()
 
+    rv_live = _reviewer_live_summary()
+    print("REVIEWER LIVE DISCUSSION")
+    print(f"queue_count={rv_live['queue_count']}")
+    print(f"queue_lanes={','.join(rv_live['queue_lanes']) if rv_live['queue_lanes'] else '-'}")
+    print(f"focus_lane={rv_live['focus_lane']}")
+    print(f"focus_lane_age_seconds={rv_live['focus_age_s'] if rv_live['focus_lane'] != '-' else '-'}")
+    print(f"latest_note_lane={rv_live['latest_note_lane']}")
+    print(f"latest_note_summary={rv_live['latest_note_line']}")
+    print(f"invalid_reviewer_notes={rv_live['invalid_notes']}")
+    print()
+
+    it_live = _integrator_live_summary()
+    print("INTEGRATOR LIVE DISCUSSION")
+    print(f"queue_count={it_live['queue_count']}")
+    print(f"queue_lanes={','.join(it_live['queue_lanes']) if it_live['queue_lanes'] else '-'}")
+    print(f"focus_lane={it_live['focus_lane']}")
+    print(f"focus_lane_age_seconds={it_live['focus_age_s'] if it_live['focus_lane'] != '-' else '-'}")
+    print(f"latest_lane={it_live['latest_lane']}")
+    print(f"latest_summary={it_live['latest_line']}")
+    print()
+
     print("REVIEWER HISTORY")
     for lane in LANES:
         hs = _review_history_summary(lane)
@@ -474,6 +591,20 @@ def main() -> None:
     print()
 
     branch_map = _lane_branch_map()
+    print("LANE LIVE SUMMARY")
+    for lane in LANES:
+        c = _lane_counts(PACKETS_ROOT / lane) if (PACKETS_ROOT / lane).exists() else {"pending": 0, "review": 0, "approved": 0}
+        logp = _latest_fixer_log(lane)
+        detail = _detailed_conversation_summary(logp)
+        age = "-"
+        if logp is not None:
+            age = f"{int(max(0, time.time() - logp.stat().st_mtime))}s"
+        print(
+            f"{lane:22} queue=p{c['pending']}/r{c['review']}/a{c['approved']} "
+            f"log_age={age} phase={detail['phase']} progress={detail['progress']}"
+        )
+    print()
+
     print("LANE CONVERSATIONS")
     for lane in LANES:
         branch = branch_map.get(lane, f"codex/{lane}")
