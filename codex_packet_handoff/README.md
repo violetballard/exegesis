@@ -69,10 +69,13 @@ Use these skills for day-to-day control:
   - stops coordinator daemon and clears stale pidfile
 - `daemon.monitor`
   - shows daemon running state, last run summary, per-lane queue counts, cooldowns, and daemon log tail
+- `daemon.resume_check`
+  - starts daemon (if needed), verifies status, and prints monitor + pipeline queue summary for safe resume
 
 Underlying commands:
 - `python codex_packet_handoff/tools/daemon_ctl.py start|stop|status`
 - `python codex_packet_handoff/tools/daemon_monitor.py`
+- `python codex_packet_handoff/tools/daemon_resume_check.py`
 
 ## Notes
 Planner switches branches inside the automation's dedicated background worktree, so it won't disturb your interactive worktrees.
