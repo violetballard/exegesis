@@ -59,5 +59,20 @@ For continuous local orchestration via CLI:
 Fallback mode exists for incident response only:
 - `python codex_packet_handoff/tools/agents_coordinator.py --execution-mode subprocess`
 
+## Daemon Operations Skills
+
+Use these skills for day-to-day control:
+
+- `daemon.start`
+  - starts coordinator daemon (or adopts an existing one)
+- `daemon.stop`
+  - stops coordinator daemon and clears stale pidfile
+- `daemon.monitor`
+  - shows daemon running state, last run summary, per-lane queue counts, cooldowns, and daemon log tail
+
+Underlying commands:
+- `python codex_packet_handoff/tools/daemon_ctl.py start|stop|status`
+- `python codex_packet_handoff/tools/daemon_monitor.py`
+
 ## Notes
 Planner switches branches inside the automation's dedicated background worktree, so it won't disturb your interactive worktrees.
