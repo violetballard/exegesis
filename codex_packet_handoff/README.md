@@ -17,6 +17,7 @@ Planner refuses to emit if those are missing.
 ## What runs on a schedule
 - Planner: `python codex_packet_handoff/tools/planner.py`
 - Router:  `python codex_packet_handoff/tools/router.py` (process once and exit)
+- Coordinator (Phase 1 wrapper): `python codex_packet_handoff/tools/agents_coordinator.py`
 
 Reviewer is enforced **read-only**; Integrator is **workspace-write**.
 
@@ -38,6 +39,14 @@ Schedule: every 1–2 minutes
 Prompt: `Run the skill router.run`
 
 Tip: run Router more frequently than Planner. Planner is heavier (runs gates).
+
+## Coordinator-first automation (recommended)
+
+Use a single automation prompt:
+
+`Run the skill pipeline.tick`
+
+The skill now runs `agents_coordinator.py`, which wraps planner/router and prints one cycle summary while preserving packet/state compatibility.
 
 ## Notes
 Planner switches branches inside the automation's dedicated background worktree, so it won't disturb your interactive worktrees.
