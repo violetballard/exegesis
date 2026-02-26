@@ -22,6 +22,7 @@ CURSOR_FILE = ROUTER_ROOT / "cursor.json"
 LEASE_FILE = ROUTER_ROOT / "lease.json"
 
 VERDICT_RE = re.compile(r"Verdict:\s*`(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`", re.IGNORECASE)
+INVALID_REVIEWER_RE = re.compile(r"session not found for thread_id|thread not found", re.IGNORECASE)
 
 @dataclass
 class RouterConfig:
@@ -108,6 +109,13 @@ def parse_verdict(text: str) -> str:
         return "CHANGES_REQUESTED"
     v = m.group(1).upper().replace(" ", "_")
     return "APPROVED" if v == "APPROVED" else "CHANGES_REQUESTED"
+
+
+def _invalid_reviewer_output(text: str) -> bool:
+    t = (text or "").strip()
+    if not t:
+        return True
+    return bool(INVALID_REVIEWER_RE.search(t))
 
 def reviewer_prompt(pkt: str) -> str:
     return (
@@ -314,6 +322,29 @@ def process_once(client: CodexMcpClient, cfg: RouterConfig, state: dict, repo_cw
             pkt = pkt_path.read_text()
 
             reviewer_tid, reviewer_text = client.codex_reply(reviewer_tid, reviewer_prompt(pkt), timeout=cfg.reviewer_timeout)
+            if _invalid_reviewer_output(reviewer_text):
+                # Recover from dead/invalid reviewer thread and retry once.
+                reviewer_tid, _ = client.codex(
+                    prompt="Ready as reviewer; I won't modify files.",
+                    cwd=repo_cwd,
+                    sandbox="read-only",
+                    approval_policy="on-request",
+                    model=cfg.model,
+                    timeout=cfg.reviewer_timeout,
+                )
+                reviewer_tid, reviewer_text = client.codex_reply(
+                    reviewer_tid, reviewer_prompt(pkt), timeout=cfg.reviewer_timeout
+                )
+                if _invalid_reviewer_output(reviewer_text):
+                    reviewer_text = (
+                        "Verdict: `CHANGES_REQUESTED`\n\n"
+                        "Reviewer response was invalid/unavailable; router inserted recovery packet.\n\n"
+                        "Required fixes before re-review:\n"
+                        "1. Re-submit with complete handoff fields required by INTEGRATION.md.\n"
+                        "2. Ensure roadmap/vision/architecture mapping is explicit and testable.\n"
+                        "3. Include concrete numbered fixes and gate outputs for reviewer verification.\n\n"
+                        f"{pkt}\n"
+                    )
             verdict = parse_verdict(reviewer_text)
 
             if verdict == "APPROVED":
