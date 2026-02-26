@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -14,6 +15,9 @@ ROUTER_CFG = Path(".codex/packet_router/config.json")
 DAEMON_PID = Path(".codex/packet_coordinator/daemon.pid")
 DAEMON_LOG = Path(".codex/packet_coordinator/daemon.log")
 RUNS_DIR = Path(".codex/packet_coordinator/runs")
+LOG_DIR = Path(".codex/packet_router/logs")
+LANES = ["feat-commands", "feat-context-storage", "feat-ux-flow", "feat-webconsole-core", "feat-webconsole-ui"]
+VERDICT_RE = re.compile(r"Verdict:\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?", re.IGNORECASE)
 
 
 def _load_json(path: Path, default: Any) -> Any:
@@ -103,6 +107,82 @@ def _tail_log(lines: int = 15) -> str:
     return "\n".join(txt[-lines:]) if txt else "(daemon log empty)"
 
 
+def _branch_head(branch: str) -> str:
+    p = subprocess.run(
+        ["git", "rev-parse", branch],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True,
+    )
+    if p.returncode != 0:
+        return "-"
+    return (p.stdout or "").strip()[:8]
+
+
+def _lane_branch_map() -> Dict[str, str]:
+    cfg = _load_json(ROUTER_CFG, {})
+    lanes = (cfg.get("lanes") or {}) if isinstance(cfg, dict) else {}
+    out: Dict[str, str] = {}
+    for lane in LANES:
+        lane_cfg = lanes.get(lane, {}) if isinstance(lanes, dict) else {}
+        out[lane] = str((lane_cfg or {}).get("branch") or f"codex/{lane}")
+    return out
+
+
+def _lane_latest_review_file(lane: str) -> Path | None:
+    lane_dir = PACKETS_ROOT / lane / "inbox" / "reviewer"
+    notes = sorted(lane_dir.glob("*.md"), key=lambda p: p.stat().st_mtime)
+    if not notes:
+        return None
+    return notes[-1]
+
+
+def _lane_verdict_summary(lane: str) -> str:
+    note = _lane_latest_review_file(lane)
+    if note is None:
+        return "no reviewer note"
+    txt = note.read_text(errors="ignore")
+    m = VERDICT_RE.search(txt)
+    if not m:
+        return "review note present (verdict not explicit)"
+    v = m.group(1).upper().replace(" ", "_")
+    return v
+
+
+def _latest_fixer_log(lane: str) -> Path | None:
+    files = sorted(LOG_DIR.glob(f"fixer__{lane}__*.log"), key=lambda p: p.stat().st_mtime, reverse=True)
+    return files[0] if files else None
+
+
+def _conversation_summary(log_path: Path | None) -> str:
+    if log_path is None:
+        return "no fixer log"
+    lines = log_path.read_text(errors="ignore").splitlines()
+    picked: list[str] = []
+    for ln in lines[-120:]:
+        s = ln.strip()
+        if not s:
+            continue
+        if s.startswith("thinking"):
+            picked.append("thinking")
+        elif s.startswith("exec"):
+            picked.append("exec")
+        elif "succeeded in" in s:
+            picked.append("exec succeeded")
+        elif "ERROR:" in s:
+            picked.append(s)
+        elif "hit your usage limit" in s:
+            picked.append("ERROR: usage limit")
+    if not picked:
+        return "idle/no recent tool activity"
+    # De-duplicate while keeping order.
+    out: list[str] = []
+    for item in picked:
+        if not out or out[-1] != item:
+            out.append(item)
+    return " -> ".join(out[-5:])
+
+
 def main() -> None:
     pid = _read_pid()
     running = bool(pid and _pid_alive(pid))
@@ -145,10 +225,22 @@ def main() -> None:
         print("(none)")
     print()
 
+    branch_map = _lane_branch_map()
+    print("LANE CONVERSATIONS")
+    for lane in LANES:
+        branch = branch_map.get(lane, f"codex/{lane}")
+        head = _branch_head(branch)
+        verdict = _lane_verdict_summary(lane)
+        logp = _latest_fixer_log(lane)
+        log_name = logp.name if logp else "-"
+        convo = _conversation_summary(logp)
+        print(f"{lane:22} head={head} verdict={verdict} log={log_name}")
+        print(f"  convo: {convo}")
+    print()
+
     print("DAEMON LOG TAIL")
     print(_tail_log())
 
 
 if __name__ == "__main__":
     main()
-
