@@ -54,6 +54,17 @@ Replace the current script-driven planner/router loop with an Agents SDK coordin
 
 ## Rollout Phases
 
+Current status (2026-02-26):
+- Phase 1 started and promoted:
+  - `codex_packet_handoff/tools/agents_coordinator.py` is the automation entrypoint.
+  - Coordinator currently runs planner/router as subprocesses but adds heavier runtime controls:
+    - preflight bootstrap
+    - workspace write probe
+    - single-run lease/lock
+    - planner/router retry loops
+    - persisted run artifacts under `.codex/packet_coordinator/runs/`
+    - persisted coordinator state under `.codex/packet_coordinator/state.json`
+
 ## Phase 0: Permissions + Runtime Baseline
 
 1. Keep automation at:
@@ -159,4 +170,3 @@ Packet contract invariant:
 Use this once coordinator is implemented:
 
 `Run the agents coordinator for one full 50-minute cycle using workspace mode. Enforce planner/reviewer/fixer/integrator handoff rules, keep packet/state compatibility with existing lane files, and output a single end-of-cycle summary with emissions, reviews, fixer advances, and integration results.`
-
