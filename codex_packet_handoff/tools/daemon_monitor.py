@@ -533,6 +533,9 @@ def main() -> None:
             print(f"reviewer_thread_{lane}={reviewer_map.get(lane, '-')}")
     else:
         print(f"reviewer_thread_id={router_state.get('reviewer_thread_id', '-')}")
+    missing = router_state.get("reviewer_thread_missing_lanes")
+    if isinstance(missing, list):
+        print(f"reviewer_thread_missing_lanes={','.join(str(x) for x in missing) if missing else '-'}")
     print(f"integrator_thread_id={router_state.get('integrator_thread_id', '-')}")
     fallback_jobs = router_state.get("fixer_fallback_jobs") or {}
     print(f"fixer_fallback_jobs={len(fallback_jobs) if isinstance(fallback_jobs, dict) else 0}")

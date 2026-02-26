@@ -323,6 +323,9 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
     reviewer_thread_ids = state.get("reviewer_thread_ids") or {}
     if not isinstance(reviewer_thread_ids, dict):
         reviewer_thread_ids = {}
+    reviewer_thread_ids = router_mod.ensure_all_reviewer_threads(
+        client, cfg, repo_cwd, reviewer_thread_ids
+    )
     integrator_tid = state.get("integrator_thread_id")
     if not integrator_tid:
         integrator_tid, _ = client.codex(

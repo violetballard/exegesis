@@ -333,6 +333,20 @@ def _ensure_lane_reviewer_thread(
     return tid
 
 
+def ensure_all_reviewer_threads(
+    client: CodexMcpClient,
+    cfg: RouterConfig,
+    repo_cwd: str,
+    reviewer_thread_ids: Dict[str, str],
+) -> Dict[str, str]:
+    for lane in cfg.lanes.keys():
+        try:
+            _ensure_lane_reviewer_thread(client, cfg, repo_cwd, lane, reviewer_thread_ids)
+        except Exception as exc:
+            print(f"[router] reviewer bootstrap skipped for {lane}: {exc}")
+    return reviewer_thread_ids
+
+
 def process_once(
     client: CodexMcpClient,
     cfg: RouterConfig,
@@ -461,6 +475,7 @@ def main() -> None:
     reviewer_thread_ids = state.get("reviewer_thread_ids") or {}
     if not isinstance(reviewer_thread_ids, dict):
         reviewer_thread_ids = {}
+    reviewer_thread_ids = ensure_all_reviewer_threads(client, cfg, repo_cwd, reviewer_thread_ids)
     integrator_tid = state.get("integrator_thread_id")
 
     if not integrator_tid:
@@ -474,6 +489,9 @@ def main() -> None:
         )
 
     state["reviewer_thread_ids"] = reviewer_thread_ids
+    state["reviewer_thread_missing_lanes"] = [
+        lane for lane in cfg.lanes.keys() if lane not in reviewer_thread_ids
+    ]
     if reviewer_thread_ids:
         # Backward-compatible status field.
         first_lane = sorted(reviewer_thread_ids.keys())[0]
@@ -495,6 +513,9 @@ def main() -> None:
                     )
                     kicked, state = process_reviewer_backlog(client, cfg, state, repo_cwd)
                     state["reviewer_thread_ids"] = reviewer_thread_ids
+                    state["reviewer_thread_missing_lanes"] = [
+                        lane for lane in cfg.lanes.keys() if lane not in reviewer_thread_ids
+                    ]
                     if reviewer_thread_ids:
                         first_lane = sorted(reviewer_thread_ids.keys())[0]
                         state["reviewer_thread_id"] = reviewer_thread_ids.get(first_lane)
@@ -516,6 +537,9 @@ def main() -> None:
                     )
                     kicked, state = process_reviewer_backlog(client, cfg, state, repo_cwd)
                     state["reviewer_thread_ids"] = reviewer_thread_ids
+                    state["reviewer_thread_missing_lanes"] = [
+                        lane for lane in cfg.lanes.keys() if lane not in reviewer_thread_ids
+                    ]
                     if reviewer_thread_ids:
                         first_lane = sorted(reviewer_thread_ids.keys())[0]
                         state["reviewer_thread_id"] = reviewer_thread_ids.get(first_lane)
