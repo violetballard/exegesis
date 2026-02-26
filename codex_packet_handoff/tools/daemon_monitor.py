@@ -6,7 +6,7 @@ import re
 import subprocess
 import time
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 PACKETS_ROOT = Path(".codex/packets/lanes")
 COORD_STATE = Path(".codex/packet_coordinator/state.json")
@@ -18,6 +18,8 @@ RUNS_DIR = Path(".codex/packet_coordinator/runs")
 LOG_DIR = Path(".codex/packet_router/logs")
 LANES = ["feat-commands", "feat-context-storage", "feat-ux-flow", "feat-webconsole-core", "feat-webconsole-ui"]
 VERDICT_RE = re.compile(r"Verdict:\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?", re.IGNORECASE)
+SHA_RE = re.compile(r"\b[0-9a-f]{40}\b", re.IGNORECASE)
+EXEC_RESULT_RE = re.compile(r"exited (\d+)|succeeded", re.IGNORECASE)
 
 
 def _load_json(path: Path, default: Any) -> Any:
@@ -183,6 +185,123 @@ def _conversation_summary(log_path: Path | None) -> str:
     return " -> ".join(out[-5:])
 
 
+def _compact_cmd(cmd_line: str) -> str:
+    s = cmd_line.strip()
+    s = re.sub(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.*\bWARN\b.*$", "", s).strip()
+    if " -lc " in s:
+        idx = s.find(" -lc ")
+        s = s[idx + 5 :].strip()
+    if s.startswith(("'", '"')) and s.endswith(("'", '"')) and len(s) >= 2:
+        s = s[1:-1]
+    s = " ".join(s.split())
+    if len(s) > 90:
+        s = s[:87] + "..."
+    return s
+
+
+def _detailed_conversation_summary(log_path: Path | None) -> Dict[str, Any]:
+    if log_path is None:
+        return {
+            "objective": "no fixer run yet",
+            "packet": "-",
+            "phase": "-",
+            "progress": "no activity",
+            "recent": [],
+            "blockers": [],
+            "head_sha": None,
+        }
+
+    lines = log_path.read_text(errors="ignore").splitlines()
+    objective = "Apply reviewer required fixes"
+    packet = "review packet present"
+    phase = "unknown"
+    head_sha: str | None = None
+
+    if any("Reviewer packet was empty" in ln for ln in lines):
+        packet = "reviewer packet empty; generated fixes from feature packet"
+    elif any("Session not found for thread_id" in ln for ln in lines):
+        packet = "reviewer thread missing/session-not-found fallback"
+
+    for ln in lines:
+        if "Apply the reviewer's REQUIRED FIXES" in ln:
+            objective = "Apply REQUIRED FIXES and produce a passing commit"
+            break
+
+    thinking_msgs: List[str] = []
+    cmd_outcomes: List[str] = []
+    blockers: List[str] = []
+    success = 0
+    fail = 0
+    i = 0
+    while i < len(lines):
+        ln = lines[i].rstrip()
+        if ln.strip() == "thinking":
+            if i + 1 < len(lines):
+                nxt = lines[i + 1].strip()
+                if nxt:
+                    thinking_msgs.append(nxt.strip("* "))
+            i += 1
+            continue
+        if ln.strip() == "exec":
+            if i + 1 < len(lines):
+                cmd_line = lines[i + 1].strip()
+                compact = _compact_cmd(cmd_line)
+                m = EXEC_RESULT_RE.search(cmd_line)
+                if m and m.group(1):
+                    rc = int(m.group(1))
+                    fail += 1
+                    cmd_outcomes.append(f"FAIL({rc}) {compact}")
+                    if "No such file or directory" in cmd_line:
+                        blockers.append("missing file/path in lane worktree")
+                else:
+                    success += 1
+                    cmd_outcomes.append(f"OK {compact}")
+            i += 1
+            continue
+        if "ERROR:" in ln:
+            blockers.append(ln.strip())
+        if "hit your usage limit" in ln:
+            blockers.append("usage limit hit")
+        if "No such file or directory" in ln:
+            blockers.append("missing file/path in lane worktree")
+        for sha in SHA_RE.findall(ln):
+            head_sha = sha
+        i += 1
+
+    if thinking_msgs:
+        phase = thinking_msgs[-1]
+    elif cmd_outcomes:
+        phase = "executing fixer commands"
+    else:
+        phase = "startup/no tool activity"
+
+    recent = cmd_outcomes[-4:]
+    if not recent and thinking_msgs:
+        recent = [f"thinking: {x}" for x in thinking_msgs[-2:]]
+
+    # Keep blocker list compact and de-duplicated.
+    uniq_blockers: List[str] = []
+    for b in blockers:
+        if b not in uniq_blockers:
+            uniq_blockers.append(b)
+    uniq_blockers = uniq_blockers[:3]
+
+    if success == 0 and fail == 0:
+        progress = "no commands executed"
+    else:
+        progress = f"commands ok={success} fail={fail}"
+
+    return {
+        "objective": objective,
+        "packet": packet,
+        "phase": phase,
+        "progress": progress,
+        "recent": recent,
+        "blockers": uniq_blockers,
+        "head_sha": head_sha,
+    }
+
+
 def main() -> None:
     pid = _read_pid()
     running = bool(pid and _pid_alive(pid))
@@ -234,8 +353,23 @@ def main() -> None:
         logp = _latest_fixer_log(lane)
         log_name = logp.name if logp else "-"
         convo = _conversation_summary(logp)
+        detail = _detailed_conversation_summary(logp)
         print(f"{lane:22} head={head} verdict={verdict} log={log_name}")
         print(f"  convo: {convo}")
+        print(f"  objective: {detail['objective']}")
+        print(f"  packet: {detail['packet']}")
+        print(f"  phase: {detail['phase']}")
+        print(f"  progress: {detail['progress']}")
+        if detail["head_sha"]:
+            print(f"  reported_sha: {detail['head_sha'][:8]}")
+        if detail["recent"]:
+            print("  recent:")
+            for item in detail["recent"]:
+                print(f"    - {item}")
+        if detail["blockers"]:
+            print("  blockers:")
+            for item in detail["blockers"]:
+                print(f"    - {item}")
     print()
 
     print("DAEMON LOG TAIL")
