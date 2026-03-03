@@ -264,7 +264,14 @@ def _sync_lane_runbook_files(repo_cwd: str, workdir: Optional[str]) -> None:
         return
     root = Path(repo_cwd)
     wt = Path(workdir)
-    for name in ("AGENTS.md", "INTEGRATION.md", "THREAD_OWNERSHIP.md"):
+    for name in (
+        "AGENTS.md",
+        "INTEGRATION.md",
+        "THREAD_OWNERSHIP.md",
+        "ROADMAP.md",
+        "PRODUCT_VISION.md",
+        "ARCHITECTURE.md",
+    ):
         src = root / name
         dst = wt / name
         try:
