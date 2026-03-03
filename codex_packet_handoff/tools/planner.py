@@ -53,6 +53,11 @@ def git(cmd: str, cwd: str) -> str:
         raise RuntimeError(out)
     return out.strip()
 
+
+def is_git_repo(cwd: str) -> bool:
+    rc, _ = run("git rev-parse --is-inside-work-tree", cwd=cwd, timeout=120)
+    return rc == 0
+
 def find_worktree_for_branch(repo_cwd: str, branch: str) -> Optional[str]:
     ref = branch if branch.startswith("refs/") else f"refs/heads/{branch}"
     rc, out = run("git worktree list --porcelain", cwd=repo_cwd, timeout=120)
@@ -168,7 +173,7 @@ def main()->None:
             continue
         branch=str((lcfg or {}).get("branch") or f"codex/{lane}")
         lane_repo = find_worktree_for_branch(repo, branch)
-        if lane_repo:
+        if lane_repo and is_git_repo(lane_repo):
             active_repo = lane_repo
         else:
             active_repo = repo
@@ -176,9 +181,20 @@ def main()->None:
             if rc!=0:
                 rc,out2=run(f"git checkout {branch}", cwd=repo, timeout=300)
                 if rc!=0:
-                    print(f"[planner] {lane}: cannot switch to {branch}:\n{out}\n{out2}")
+                    msg = out2 if out2.strip() else out
+                    if lane_repo and not is_git_repo(lane_repo):
+                        print(
+                            f"[planner] {lane}: stale worktree for {branch} at {lane_repo}; "
+                            f"cannot switch branch in repo (likely checked out elsewhere):\n{msg}"
+                        )
+                    else:
+                        print(f"[planner] {lane}: cannot switch to {branch}:\n{out}\n{out2}")
                     continue
-        sha=git("rev-parse HEAD", cwd=active_repo)
+        try:
+            sha=git("rev-parse HEAD", cwd=active_repo)
+        except Exception as e:
+            print(f"[planner] {lane}: unable to resolve HEAD in {active_repo}: {e}")
+            continue
         last_submitted_sha = (lane_state.get(lane) or {}).get("last_submitted_sha")
         # Reviewer notes should block new packets until lane HEAD advances.
         # This allows one-at-a-time re-review submissions from the feature lane.
