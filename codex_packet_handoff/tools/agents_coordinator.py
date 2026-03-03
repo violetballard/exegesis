@@ -436,6 +436,19 @@ def _lane_digest(lane: str) -> Dict[str, object]:
     }
 
 
+def _has_lane_backlog() -> bool:
+    """Return True when any lane has packets waiting for reviewer/fixer/integrator."""
+    for lane in LANES:
+        d = _lane_digest(lane)
+        if int(d.get("pending_feature", 0)) > 0:
+            return True
+        if int(d.get("reviewer_notes", 0)) > 0:
+            return True
+        if int(d.get("approved", 0)) > 0:
+            return True
+    return False
+
+
 def _compute_snapshot(branch_map: Dict[str, str]) -> str:
     planner_state = load_json(Path(".codex/packet_planner/state.json"), {})
     router_state = load_json(Path(".codex/packet_router/state.json"), {})
@@ -546,7 +559,8 @@ def main() -> int:
         while True:
             touch_lease()
             snapshot = _compute_snapshot(branch_map)
-            should_run = (snapshot != prev_snapshot) or (cycles == 0)
+            backlog_active = _has_lane_backlog()
+            should_run = (snapshot != prev_snapshot) or (cycles == 0) or backlog_active
 
             if should_run:
                 print(f"=== EVENT CYCLE {cycles + 1} START {utc_now()} ===")

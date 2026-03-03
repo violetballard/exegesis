@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import errno
+import os
 import re
 import subprocess
 import time
@@ -16,6 +18,8 @@ DAEMON_PID = Path(".codex/packet_coordinator/daemon.pid")
 DAEMON_LOG = Path(".codex/packet_coordinator/daemon.log")
 RUNS_DIR = Path(".codex/packet_coordinator/runs")
 LOG_DIR = Path(".codex/packet_router/logs")
+COORD_LEASE = Path(".codex/packet_coordinator/lease.json")
+LEASE_FRESH_SECONDS = 120
 LANES = ["feat-commands", "feat-context-storage", "feat-ux-flow", "feat-webconsole-core", "feat-webconsole-ui"]
 VERDICT_RE = re.compile(r"Verdict:\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?", re.IGNORECASE)
 SHA_RE = re.compile(r"\b[0-9a-f]{40}\b", re.IGNORECASE)
@@ -38,29 +42,57 @@ def _read_pid() -> int | None:
         return None
 
 
+def _lease_pid_ts() -> tuple[int | None, float | None]:
+    try:
+        data = _load_json(COORD_LEASE, {})
+        pid = int((data or {}).get("pid") or 0) or None
+        ts = float((data or {}).get("ts") or 0) or None
+        return pid, ts
+    except Exception:
+        return None, None
+
+
 def _pid_alive(pid: int) -> bool:
     try:
-        import os
         os.kill(pid, 0)
         return True
-    except OSError:
+    except OSError as exc:
+        if getattr(exc, "errno", None) == errno.EPERM:
+            return True
         return False
 
 
 def _matching_pids() -> list[int]:
-    p = subprocess.run(
-        ["pgrep", "-f", "codex_packet_handoff/tools/agents_coordinator.py --daemon"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        text=True,
-    )
+    # Sandboxed environments may block process listing tools. In that case,
+    # monitor uses pidfile + kill(0) as the source of truth.
+    try:
+        p = subprocess.run(
+            ["ps", "-axo", "pid=,command="],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except Exception:
+        return []
     if p.returncode != 0:
         return []
-    out = []
+    out: list[int] = []
     for ln in (p.stdout or "").splitlines():
-        ln = ln.strip()
-        if ln.isdigit():
-            out.append(int(ln))
+        row = ln.strip()
+        if not row:
+            continue
+        parts = row.split(None, 1)
+        if len(parts) != 2 or not parts[0].isdigit():
+            continue
+        pid = int(parts[0])
+        cmd = parts[1]
+        if pid == os.getpid():
+            continue
+        if "codex_packet_handoff/tools/agents_coordinator.py --daemon" not in cmd:
+            continue
+        if "daemon_monitor.py" in cmd or "daemon_ctl.py" in cmd or "pgrep" in cmd:
+            continue
+        out.append(pid)
     return out
 
 
@@ -503,7 +535,14 @@ def _detailed_conversation_summary(log_path: Path | None) -> Dict[str, Any]:
 
 def main() -> None:
     pid = _read_pid()
-    running = bool(pid and _pid_alive(pid))
+    lease_pid, lease_ts = _lease_pid_ts()
+    running = bool(
+        pid
+        and _pid_alive(pid)
+        and lease_pid == pid
+        and lease_ts
+        and (time.time() - lease_ts) <= LEASE_FRESH_SECONDS
+    )
     mpids = _matching_pids()
     print("DAEMON")
     print(f"running={running}")

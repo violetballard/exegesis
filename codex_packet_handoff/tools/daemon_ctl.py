@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import errno
 import os
 import signal
 import subprocess
@@ -16,6 +17,7 @@ LOG_FILE = COORD_DIR / "daemon.log"
 LEASE_FILE = COORD_DIR / "lease.json"
 CMD = [sys.executable, "codex_packet_handoff/tools/agents_coordinator.py", "--daemon"]
 PROC_MATCH = "codex_packet_handoff/tools/agents_coordinator.py --daemon"
+LEASE_FRESH_SECONDS = 120
 
 
 def _ensure_dirs() -> None:
@@ -26,7 +28,10 @@ def _pid_alive(pid: int) -> bool:
     try:
         os.kill(pid, 0)
         return True
-    except OSError:
+    except OSError as exc:
+        # In sandboxed environments, EPERM can mean "process exists but cannot be signaled".
+        if getattr(exc, "errno", None) == errno.EPERM:
+            return True
         return False
 
 
@@ -41,19 +46,36 @@ def _read_pid() -> Optional[int]:
 
 
 def _find_matching_pids() -> list[int]:
-    p = subprocess.run(
-        ["pgrep", "-f", PROC_MATCH],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        text=True,
-    )
+    # Sandboxed environments may block process listing tools. Fall back to
+    # pidfile-based checks when we cannot list the process table.
+    try:
+        p = subprocess.run(
+            ["ps", "-axo", "pid=,command="],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except Exception:
+        return []
     if p.returncode != 0:
         return []
-    out = []
+    out: list[int] = []
     for ln in (p.stdout or "").splitlines():
-        ln = ln.strip()
-        if ln.isdigit():
-            out.append(int(ln))
+        row = ln.strip()
+        if not row:
+            continue
+        parts = row.split(None, 1)
+        if len(parts) != 2 or not parts[0].isdigit():
+            continue
+        pid = int(parts[0])
+        cmd = parts[1]
+        if pid == os.getpid():
+            continue
+        if PROC_MATCH not in cmd:
+            continue
+        if "pgrep" in cmd or "daemon_ctl.py" in cmd:
+            continue
+        out.append(pid)
     return out
 
 
@@ -70,10 +92,31 @@ def _clear_stale_lease() -> None:
         pass
 
 
+def _lease_state() -> tuple[int | None, float | None]:
+    try:
+        import json
+        data = json.loads(LEASE_FILE.read_text() or "{}")
+        pid = int(data.get("pid", 0) or 0) or None
+        ts = float(data.get("ts", 0) or 0) or None
+        return pid, ts
+    except Exception:
+        return None, None
+
+
+def _is_running() -> bool:
+    pid = _read_pid()
+    if not pid or not _pid_alive(pid):
+        return False
+    lease_pid, lease_ts = _lease_state()
+    if lease_pid != pid or not lease_ts:
+        return False
+    return (time.time() - lease_ts) <= LEASE_FRESH_SECONDS
+
+
 def _status() -> int:
     pid = _read_pid()
     pids = _find_matching_pids()
-    running = bool((pid and _pid_alive(pid)) or pids)
+    running = _is_running()
     print(f"daemon_running={running}")
     print(f"pidfile_pid={pid or '-'}")
     print(f"matching_pids={','.join(str(x) for x in pids) if pids else '-'}")
@@ -87,18 +130,13 @@ def _start() -> int:
     _ensure_dirs()
     _clear_stale_lease()
     pid = _read_pid()
-    if pid and _pid_alive(pid):
+    if _is_running():
         print(f"already_running pid={pid}")
         print(f"log={LOG_FILE}")
         return 0
 
-    # If pid file is stale but matching process exists, adopt it.
-    pids = _find_matching_pids()
-    if pids:
-        PID_FILE.write_text(str(pids[0]))
-        print(f"already_running pid={pids[0]} (adopted)")
-        print(f"log={LOG_FILE}")
-        return 0
+    # Avoid false adoption in sandboxed environments where process listing may be noisy.
+    # If daemon is truly live, _is_running() above already returned True.
 
     with LOG_FILE.open("a") as lf:
         proc = subprocess.Popen(
