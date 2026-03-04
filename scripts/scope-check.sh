@@ -6,6 +6,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 branch="$(git rev-parse --abbrev-ref HEAD)"
 allow_shared="${SCOPE_ALLOW_SHARED:-0}"
 include_worktree="${SCOPE_INCLUDE_WORKTREE:-0}"
+ignore_lane_noise="${SCOPE_IGNORE_LANE_NOISE:-1}"
 
 # Use merge-base against integrator when available, otherwise main.
 if git show-ref --verify --quiet refs/heads/codex/integrator; then
@@ -42,6 +43,22 @@ shared_file_allowed() {
 
 is_allowed() {
   local f="$1"
+  if [[ "$ignore_lane_noise" == "1" ]]; then
+    case "$f" in
+      .codex/*|.agents/*|.git-*/**|.git-*/?|.git-box/*|.git-local/*|.git-real/*|.git-copy/*|.git-local-root/*|.git-worktree-local/*)
+        return 0
+        ;;
+      handoff/*|handoff.block/*|handoffs/*)
+        return 0
+        ;;
+      THREAD.md|THREAD_PACKET.md|AGENTS.md|INTEGRATION.md)
+        return 0
+        ;;
+      foo.txt|foo.lock|tmp_check.txt|tmpfile.md)
+        return 0
+        ;;
+    esac
+  fi
   case "$branch" in
     codex/integrator|main)
       return 0

@@ -269,6 +269,8 @@ def _sync_lane_runbook_files(repo_cwd: str, workdir: Optional[str]) -> None:
     for name in (
         "AGENTS.md",
         "INTEGRATION.md",
+        "THREAD.md",
+        "THREAD_PACKET.md",
         "THREAD_OWNERSHIP.md",
         "ROADMAP.md",
         "PRODUCT_VISION.md",
