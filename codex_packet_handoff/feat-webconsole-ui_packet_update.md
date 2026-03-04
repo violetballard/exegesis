@@ -5,7 +5,7 @@
 - Commit: `67413456de62a547381d26059ae9192a1d517771`
 
 ## Scope goal
-- Let operators reconnect the SSE terminal stream or toggle auto-retry from the keyboard so the web console terminal stays usable without pointer focus during incident response.
+- Deliver keyboard-first reconnect and auto-retry controls in the SSE terminal so operators can recover streams without grabbing the mouse, and surface those shortcuts inline for discoverability.
 
 ## Kickoff budget compliance
 - Default limits were honored (3/8 tasks, <45m of the 45m window, 3 files <12 touching ~45 net LOC <500, and 0/2 fix attempts) entirely within owned UI paths, satisfying the `feat-webconsole-ui` lane gate spelled out in `INTEGRATION.md`.
@@ -16,9 +16,9 @@
 - `src/qual/webconsole/static/**`
 
 ## Tasks completed (numbered)
-1. Add Alt+R reconnect shortcut that clears retry state and restarts the SSE stream while guarding against editable inputs.
-2. Add Alt+A auto-retry toggle shortcut that mirrors the UI switch and updates the status text when the stream is idle.
-3. Surface the shortcut affordance in the terminal header and style `<kbd>` badges so the controls remain discoverable in the console UI.
+1. Add Alt+R reconnect shortcut that clears retry state, restarts the SSE stream, and respects disabled/active input states.
+2. Add Alt+A auto-retry toggle shortcut that mirrors the UI switch, updates status labels, and keeps timers consistent between manual overrides and auto mode.
+3. Surface shortcut affordances in the terminal header and style `<kbd>` badges so keyboard workflows are discoverable in the console.
 
 ## Files changed
 - `src/qual/webconsole/static/webconsole.css`
@@ -41,7 +41,7 @@
 ### Roadmap item(s) affected
 - Milestone 5 - A2UI Presentation Layer: OSS web console terminal usability work (keyboard shortcuts for SSE reconnect/auto-retry controls) per `ROADMAP.md` lines 106-129.
 ### Vision capability affected
-- Capability 4 - Operator-first control surface (keyboard-friendly admin console interactions) per `PRODUCT_VISION.md` lines 35-45.
+- Capability 4 - Operator-first control surface (keyboard-friendly admin console interactions) per `PRODUCT_VISION.md` lines 35-45, and Capability 5 - Agent-to-UI protocol (keeps the SSE reconnect contract and shortcut parity in sync across clients) per lines 96-101.
 ### Routing/provider impact note
 - None
 
