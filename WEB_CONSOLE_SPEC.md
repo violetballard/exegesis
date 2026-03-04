@@ -66,29 +66,6 @@
 - Export
 - Audit (read-only)
 - Settings/Config (admin)
-- UI Proposals (dev mode)
-
-## Project Profile UX (Required)
-
-Project creation flow:
-- collect project name + location
-- IRB-sensitive checkbox:
-  - if enabled, force `confidential` mode and disable online option
-- mode selection:
-  - `confidential` default
-  - `online` opt-in only
-- if `online` selected:
-  - select `cloud_send_policy` (default `context_sets_only`)
-  - require acknowledgement confirmation before create
-  - provider setup path for API credentials
-
-Project settings flow:
-- `Enable Online Providers...` must require friction:
-  - explanation
-  - acknowledgement checkbox
-  - policy selection
-  - confirm action/token
-- `Disable Online Providers` should be one-step and revert mode to confidential for project.
 
 ## Configuration Ownership and Precedence
 
@@ -116,31 +93,15 @@ Capabilities:
 - Save-time schema validation with inline field errors
 - Security/profile validation:
   - Confidential profile blocks remote endpoints unless user explicitly switches profile and confirms
-  - Standard profile with online overrides enabled must display a persistent mode banner in app chrome
 - Revision history + rollback to recent saved revisions
 - Provider compatibility report panel with:
   - current probe results
   - degraded-mode warnings
   - explicit "Re-run probe" action
-- Telemetry/privacy controls:
-  - `Share anonymous usage metrics` toggle (default OFF)
-  - `Include UI proposal exports when I choose to send them` toggle (default OFF)
-  - `Send anonymous metrics now` action
-  - `Send on quit` toggle (default OFF)
-  - payload preview (`View raw JSON`) before send
 
 Recommended safeguards:
 - Optional re-auth (vault passphrase or short-lived admin token) before save
 - "Restart required" indicator for changes that cannot hot-apply
-
-## Online Mode UI Signaling (Required)
-
-- When profile mode is `standard` and online overrides are enabled, show a persistent `Online-enabled project` banner on all primary pages.
-- For each run/session in Terminal (and other run views), show provider attribution:
-  - provider family (`local_openai`, `openai_cloud`, `anthropic`)
-  - resolved model ID used for the run
-- For confidential projects, show `Local-only (confidential)` status.
-- If `irb_sensitive=true`, show clear badge/label that online overrides are disabled by policy.
 
 ## Config Domains in v1
 
@@ -181,39 +142,6 @@ Token constraints:
 - short TTL (recommended 60 seconds)
 - scoped to admin/config surface
 
-## Proposal Export (Dev/Power-user)
-
-- UI action: `Export UI Proposals & Metrics...`
-- Must be explicit user-triggered (never background).
-- Scope options:
-  - selected proposal(s)
-  - all proposals
-  - metrics summary only
-- Required preview step of exact fields and raw JSON before export.
-- Export bundle format:
-  - `proposals/<proposal_id>.json`
-  - `metrics/aggregates.json`
-  - `env/info.json`
-  - optional `signature.json`
-- Record audit event `proposal_bundle_exported` without storing file paths or payload content.
-
-## UI Proposal Review (Dev Mode)
-
-- `UI Proposals` page shows proposal list and detail views.
-- Required proposal detail panes:
-  - schema (`data_schema_json`)
-  - example payload
-  - rendered generic fallback layout
-  - required action IDs + allowlist validation status
-- Review actions:
-  - Accept for implementation
-  - Reject
-  - Request revision
-- Accepting a proposal must:
-  - create an implementation stub under `/ui_cards/<type_id>.md` or `/ui_cards/<type_id>.json`
-  - create backlog task metadata
-  - not alter runtime rendering behavior until code implementation ships
-
 ## Engine API Surface (minimum)
 
 - `POST /api/a2ui/capabilities`
@@ -230,13 +158,6 @@ Token constraints:
 - `POST /api/config/revert`
 - `GET /api/provider/probe_report`
 - `POST /api/provider/probe`
-- `POST /api/project/create`
-- `POST /api/project/set_profile`
-- `GET /api/ui/proposals`
-- `GET /api/ui/proposals/{proposal_id}`
-- `POST /api/ui/proposals/{proposal_id}/accept`
-- `POST /api/ui/proposals/{proposal_id}/reject`
-- `POST /api/ui/proposals/{proposal_id}/request_revision`
 - Minimal vault/corpus/context/draft/export/audit endpoints
 
 `/api/actions/execute` must enforce:
@@ -252,7 +173,6 @@ Token constraints:
 - `tool.result`
 - `progress`
 - `done`
-- `routing.provenance` (includes provider + model attribution for run header/UI badges)
 
 ## Packaging
 
@@ -269,18 +189,6 @@ Record (hashed metadata only; avoid plaintext secrets/config dumps):
 - `config_reverted`
 - `profile_changed` (when applicable)
 - `provider_probe_run`
-- `project_created`
-- `project_profile_change_requested`
-- `project_profile_changed`
-- `cloud_send_policy_changed`
-- `cloud_run_executed`
-- `cloud_run_blocked`
-- `cloud_full_doc_used`
-- `network_tool_blocked`
-- `ui_proposal_created`
-- `ui_proposal_accepted`
-- `ui_proposal_rejected`
-- `ui_proposal_revision_requested`
 
 ## Acceptance Criteria
 
@@ -298,7 +206,3 @@ Record (hashed metadata only; avoid plaintext secrets/config dumps):
 4. No remote network dependency is required for baseline web console operation.
 5. Studio can open admin console via one-time localhost token flow without adding in-Studio model pickers.
 6. Admin config UI exposes provider capability probe results and supports on-demand re-probe.
-7. Online-enabled projects show persistent banner state, and run views show provider/model attribution per run.
-8. Telemetry and proposal export controls are opt-in by default, previewable, and never background-sent by default.
-9. UI proposal review flow exists in dev mode, and proposal acceptance creates implementation stubs without runtime auto-promotion.
-10. Project profile UX enforces IRB-sensitive confidential lock, deliberate online enablement friction, and one-step online disable flow.

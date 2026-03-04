@@ -22,12 +22,12 @@
 - `provider.base_url`
 - `provider.api_key` (optional)
 - `models.*` role mapping
-- active profile mode (`confidential|standard`) + online override state
+- active profile mode (`confidential|standard`)
 
 ## Probe Flow
 
 1. Confidential localhost enforcement:
-   - If profile mode is confidential, fail fast unless host is `localhost` or `127.0.0.1`.
+   - If profile is confidential, fail fast unless host is `localhost` or `127.0.0.1`.
 2. Reachability:
    - `GET {base_url}/models`
    - Require HTTP 200 + parseable JSON.

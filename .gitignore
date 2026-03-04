@@ -6,10 +6,3 @@
 
 # Logs
 *.log
-.codex/
-
-# Local/generated artifacts
-tests/unit/__pycache__/
-codex_packet_handoff/tools/__pycache__/
-sandbox-project/
-codex_packet_handoff.zip

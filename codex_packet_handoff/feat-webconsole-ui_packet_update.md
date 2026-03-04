@@ -5,10 +5,10 @@
 - Commit: `67413456de62a547381d26059ae9192a1d517771`
 
 ## Scope goal
-- Deliver keyboard-first reconnect and auto-retry controls in the SSE terminal so operators can recover streams without grabbing the mouse, and surface those shortcuts inline for discoverability.
+- Deliver keyboard-first SSE recovery by wiring Alt+R reconnect and Alt+A auto-retry shortcuts plus inline `<kbd>` hints so operators can restart streams without grabbing the mouse, satisfying the Milestone 5 A2UI usability slice.
 
 ## Kickoff budget compliance
-- Default limits were honored (3/8 tasks, <45m of the 45m window, 3 files <12 touching ~45 net LOC <500, and 0/2 fix attempts) entirely within owned UI paths, satisfying the `feat-webconsole-ui` lane gate spelled out in `INTEGRATION.md`.
+- Default `feat-webconsole-ui` limits were honored: 3/8 tasks, ~35m inside the 45m window, 3 of <=12 files, ~45 of <=500 net LOC, and 1/2 fix attempts—all within lane-owned UI paths so the lane gate called out in `INTEGRATION.md` stays green.
 
 ## Lane/owned paths
 - `src/qual/webconsole/render/**`
@@ -16,14 +16,15 @@
 - `src/qual/webconsole/static/**`
 
 ## Tasks completed (numbered)
-1. Add Alt+R reconnect shortcut that clears retry state, restarts the SSE stream, and respects disabled/active input states.
-2. Add Alt+A auto-retry toggle shortcut that mirrors the UI switch, updates status labels, and keeps timers consistent between manual overrides and auto mode.
-3. Surface shortcut affordances in the terminal header and style `<kbd>` badges so keyboard workflows are discoverable in the console.
+1. Added the Alt+R reconnect shortcut that guards disabled states, clears retry metadata, and restarts the SSE stream without needing the button.
+2. Added the Alt+A auto-retry toggle shortcut that mirrors the UI switch, keeps timer metadata in sync, and updates button/label copy.
+3. Surfaced Alt+R/Alt+A hints inside the terminal header and styled `<kbd>` badges so keyboard workflows remain discoverable.
 
 ## Files changed
 - `src/qual/webconsole/static/webconsole.css`
 - `src/qual/webconsole/static/webconsole.js`
 - `src/qual/webconsole/templates/terminal.html`
+- (List pulled directly from commit `67413456de62a547381d26059ae9192a1d517771` to avoid referencing untouched files.)
 
 ## Commands run with results
 - `make scope-check`: PASS

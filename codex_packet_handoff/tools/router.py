@@ -380,10 +380,14 @@ def write_text(p: Path, t: str) -> None:
     p.write_text(t)
 
 def archive(src: Path, lane_dir: Path) -> None:
+    if not src.exists():
+        return
     dst = lane_dir/"archive"/src.name
     try:
         src.rename(dst)
     except Exception:
+        if not src.exists():
+            return
         dst.write_text(src.read_text())
         src.unlink()
 

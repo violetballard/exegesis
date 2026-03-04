@@ -1,15 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
 from src.qual.ui.a2ui import A2UICapabilities, ActionRef, validate_capabilities
-
-
-@dataclass(frozen=True)
-class ProviderProbeRequest:
-    confidentiality_profile: str
-    base_url: str | None
 
 
 def require_object(payload: Any, *, field: str = "body") -> dict[str, Any]:
@@ -53,39 +46,6 @@ def parse_action_ref(payload: Any) -> ActionRef:
     )
 
 
-def parse_provider_probe_request(payload: Any) -> ProviderProbeRequest:
-    body = require_object(payload)
-    confidentiality_profile = str(body.get("confidentiality_profile", "standard")).strip() or "standard"
-    if confidentiality_profile not in {"standard", "confidential"}:
-        raise ValueError("confidentiality_profile must be one of: standard, confidential")
-
-    base_url: str | None = None
-    provider = body.get("provider")
-    if provider is not None:
-        provider_obj = require_object(provider, field="provider")
-        provider_base = provider_obj.get("base_url")
-        if provider_base is not None:
-            if not isinstance(provider_base, str) or not provider_base.strip():
-                raise ValueError("provider.base_url must be a non-empty string when provided")
-            base_url = provider_base.strip()
-    elif body.get("base_url") is not None:
-        value = body.get("base_url")
-        if not isinstance(value, str) or not value.strip():
-            raise ValueError("base_url must be a non-empty string when provided")
-        base_url = value.strip()
-
-    return ProviderProbeRequest(confidentiality_profile=confidentiality_profile, base_url=base_url)
-
-
-_SENSITIVE_TOKENS = ("api_key", "token", "secret", "password", "authorization")
-
-
-def sanitize_probe_report(payload: Any) -> dict[str, Any]:
-    data = require_object(payload, field="probe_report")
-    sanitized = _sanitize_value(data)
-    return require_object(sanitized, field="probe_report")
-
-
 def _require_non_empty_str(payload: dict[str, Any], key: str) -> str:
     value = payload.get(key)
     if not isinstance(value, str) or not value.strip():
@@ -117,20 +77,3 @@ def _require_str_tuple(payload: dict[str, Any], key: str) -> tuple[str, ...]:
             raise ValueError(f"{key} must be a list of strings")
         items.append(item)
     return tuple(items)
-
-
-def _sanitize_value(value: Any) -> Any:
-    if isinstance(value, dict):
-        cleaned: dict[str, Any] = {}
-        for key, nested in value.items():
-            lowered = str(key).lower()
-            if any(token in lowered for token in _SENSITIVE_TOKENS):
-                cleaned[str(key)] = "<redacted>"
-                continue
-            cleaned[str(key)] = _sanitize_value(nested)
-        return cleaned
-    if isinstance(value, list):
-        return [_sanitize_value(item) for item in value]
-    if isinstance(value, (str, int, float, bool)) or value is None:
-        return value
-    return str(value)

@@ -17,7 +17,7 @@ LOG_FILE = COORD_DIR / "daemon.log"
 LEASE_FILE = COORD_DIR / "lease.json"
 CMD = [sys.executable, "codex_packet_handoff/tools/agents_coordinator.py", "--daemon"]
 PROC_MATCH = "codex_packet_handoff/tools/agents_coordinator.py --daemon"
-LEASE_FRESH_SECONDS = 120
+LEASE_FRESH_SECONDS = 3600
 
 
 def _ensure_dirs() -> None:

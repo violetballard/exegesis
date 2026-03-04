@@ -93,21 +93,24 @@ If any condition is missing, integrator response must be `REJECT FOR INTEGRATION
 
 Reject handoff unless ALL conditions are met:
 
-- Includes a completed AGENTS.md handoff packet.
-- Explicitly states kickoff budget/limits compliance.
-- Scope stays within UI-owned paths from `THREAD_OWNERSHIP.md`:
-  - `src/qual/webconsole/render/**`
-  - `src/qual/webconsole/templates/**`
-  - `src/qual/webconsole/static/**`
+- Includes a completed `AGENTS.md` kickoff + handoff packet with a 1-2 sentence scope goal.
+- Explicitly states that the default kickoff limits were observed (`<=8` tasks, `<=45m`, `<=12` files, `<=500` net LOC, `<=2` fix attempts) or documents an approved exception.
+- Maps the change to at least one roadmap item from `ROADMAP.md` (Milestone 5 A2UI / web-console usability work for this thread).
+- Maps the change to at least one required product capability from `PRODUCT_VISION.md` (capabilities #4 Operator-first control surface and/or #5 Agent-to-UI protocol for this thread).
 - Reports passing results for:
   - `./quality-format.sh --check`
   - `./quality-lint.sh`
   - `./quality-test.sh`
   - `./typecheck-test.sh`
   - `make ci`
-- Maps change to roadmap + product vision items per required handoff fields above.
 
 If any condition is missing, integrator response must be `REJECT FOR INTEGRATION` with missing items listed.
+
+### Current Thread Compliance (`codex/feat-webconsole-ui`, 2026-03-04)
+
+- Kickoff limits: 3/8 tasks, 3/12 files, 45/500 net LOC, 1/2 fix attempts, ~35m focused work (default budgets honored; no exceptions needed).
+- Roadmap mapping: Milestone 5 - A2UI Presentation Layer (terminal stream reconnect shortcuts improve admin-console usability).
+- Product vision mapping: Capability #4 Operator-first control surface and Capability #5 Agent-to-UI protocol (keyboard parity + SSE contract stability).
 
 ## Lane-Specific Review Gate: `codex/feat-webconsole-core`
 

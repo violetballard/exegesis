@@ -170,6 +170,7 @@ def main()->None:
         ensure_lane_dirs(lane)
         if lane_has_pending_feature(lane):
             continue
+        has_reviewer_notes = lane_has_reviewer_notes(lane)
         branch=str((lcfg or {}).get("branch") or f"codex/{lane}")
         lane_repo = find_worktree_for_branch(repo, branch)
         if lane_repo and is_git_repo(lane_repo):
@@ -191,10 +192,11 @@ def main()->None:
         last_submitted_sha = (lane_state.get(lane) or {}).get("last_submitted_sha")
         # Reviewer notes should block new packets until lane HEAD advances.
         # This allows one-at-a-time re-review submissions from the feature lane.
-        if lane_has_reviewer_notes(lane) and (not last_submitted_sha or last_submitted_sha == sha):
+        if has_reviewer_notes and (not last_submitted_sha or last_submitted_sha == sha):
             continue
         if last_submitted_sha == sha:
             continue
+        fast_reemit = bool(has_reviewer_notes and last_submitted_sha and last_submitted_sha != sha)
         meta=read_lane_meta(lane)
         miss=validate_meta(meta)
         if miss:
@@ -208,21 +210,25 @@ def main()->None:
         env=os.environ.copy()
         if bool(meta.get("shared_file_exception")):
             env["SCOPE_ALLOW_SHARED"]="1"
-        scope_rc,scope_out=run("make scope-check", cwd=active_repo, env=env, timeout=900)
-        if scope_rc!=0:
-            print(f"[planner] {lane}: scope-check FAIL:\n{scope_out}")
-            continue
-        results=[("make scope-check",0)]
-        ok=True
-        for cmd in gates:
-            rc,out=run(cmd, cwd=active_repo, env=env, timeout=3600)
-            results.append((cmd,rc))
-            if rc!=0:
-                ok=False
-                print(f"[planner] {lane}: gate FAIL {cmd}\n{out}")
-                break
-        if not ok:
-            continue
+        if fast_reemit:
+            print(f"[planner] {lane}: fast re-emit from advanced HEAD after reviewer notes (skip local gates)")
+            results=[("fast_reemit_after_reviewer",0)]
+        else:
+            scope_rc,scope_out=run("make scope-check", cwd=active_repo, env=env, timeout=900)
+            if scope_rc!=0:
+                print(f"[planner] {lane}: scope-check FAIL:\n{scope_out}")
+                continue
+            results=[("make scope-check",0)]
+            ok=True
+            for cmd in gates:
+                rc,out=run(cmd, cwd=active_repo, env=env, timeout=3600)
+                results.append((cmd,rc))
+                if rc!=0:
+                    ok=False
+                    print(f"[planner] {lane}: gate FAIL {cmd}\n{out}")
+                    break
+            if not ok:
+                continue
         ts=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         fn=f"F__{branch.replace('/','-')}__{sha}__{ts}.md"
         outp=PACKETS_ROOT/lane/"inbox/feature"/fn

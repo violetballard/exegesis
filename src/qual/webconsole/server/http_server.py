@@ -78,26 +78,22 @@ class _WebConsoleHandler(BaseHTTPRequestHandler):
         return
 
     def _handle(self) -> None:
+        path = urlsplit(self.path).path
+        body = self._read_body()
+        headers = {key.lower(): value for key, value in self.headers.items()}
+        request = ApiRequest(method=self.command, path=path, headers=headers, body=body)
         try:
-            path = urlsplit(self.path).path
-            body = self._read_body()
-            headers = {key.lower(): value for key, value in self.headers.items()}
-            request = ApiRequest(method=self.command, path=path, headers=headers, body=body)
             response = self.server.api.dispatch(request)
             self._write_json(response.status, response.payload, response.headers)
         except ApiError as exc:
-            self._write_json(exc.status, {"ok": False, "error": exc.message}, exc.headers)
+            self._write_json(exc.status, {"ok": False, "error": exc.message})
         except Exception:
             self._write_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"ok": False, "error": "internal_error"})
 
     def _read_body(self) -> bytes:
         if self.command != "POST":
             return b""
-        if self.headers.get("Transfer-Encoding"):
-            raise ApiError(status=400, message="Transfer-Encoding is not supported")
-        raw_length = self.headers.get("Content-Length")
-        if raw_length is None:
-            raise ApiError(status=411, message="Content-Length is required")
+        raw_length = self.headers.get("Content-Length", "0")
         try:
             size = int(raw_length)
         except ValueError:
@@ -164,7 +160,6 @@ class WebConsoleServer:
             capability_sessions=self.capability_sessions,
             probe_service=self.probe_service,
             action_gateway=self.action_gateway,
-            secure_cookie=self.config.secure_cookie,
         )
         self._server = _ApiServer(
             (self.config.host, self.config.port),

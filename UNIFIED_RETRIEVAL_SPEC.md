@@ -2,7 +2,7 @@
 
 ## Goal
 
-- Single retrieval contract for FTS, PageIndex, and embeddings.
+- Single retrieval contract for FTS, PageIndex, and future embeddings.
 - Deterministic auto pipeline with no UI strategy selector.
 - Always return actionable excerpt-centric hits for context set assembly.
 - PageIndex runs as an internal retrieval strategy inside the existing sidecar process (not a second agent).
@@ -23,7 +23,8 @@ Unified hit shape includes:
 ## Auto Pipeline
 
 1. Corpus shortlist:
-- FTS + embeddings (merged shortlist contract)
+- FTS now (top candidate docs)
+- embeddings later (same shortlist merge contract)
 
 2. Within-document deep retrieval:
 - PageIndex query for long structured docs with ready index

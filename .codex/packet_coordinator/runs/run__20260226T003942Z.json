@@ -1,0 +1,32 @@
+{
+  "fixer_kicked_total": 0,
+  "mode": "phase1_legacy_subprocess_hardened",
+  "planner_emitted": [],
+  "planner_errors": 0,
+  "planner_interval": 10,
+  "router_errors": 0,
+  "router_processed_total": 0,
+  "run_id": "20260226T003942Z",
+  "started_at": "2026-02-26T00:39:43Z",
+  "status": "ok",
+  "tick_events": [
+    {
+      "duration_seconds": 0,
+      "planner": {
+        "attempts": 1,
+        "emitted": [],
+        "rc": 0
+      },
+      "router": {
+        "attempts": 1,
+        "kicked": 0,
+        "processed": 0,
+        "rc": 0
+      },
+      "started_at": "2026-02-26T00:39:42Z",
+      "tick": 1
+    }
+  ],
+  "ticks": 1,
+  "wall_seconds": 0
+}

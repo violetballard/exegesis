@@ -58,17 +58,8 @@ Scope:
 - Define and lock encryption-at-rest default behavior and key lifecycle policy
 - Define role-based auto-routing contract and power-user override policy
 - Define localhost-only gating for OpenAI-compatible override endpoints
-- Define engine-authoritative profile modes (`confidential` default, `standard` online-capable)
-- Define provider allowlist by profile mode (`confidential`: localhost-only; `standard`: local + cloud providers)
-- Define and enforce default cloud-send policy (`context_sets_only`) and explicit audited full-doc override for non-local runs
-- Define project profile data model (`profile_mode`, `irb_sensitive`, `cloud_send_policy`, `online_overrides_enabled`) with hard IRB-to-confidential lock
-- Define deliberate confidential->standard online-override enablement flow (acknowledgement + confirm token) and easy online override disable path
-- Define and enforce UI signaling requirements for online-override-enabled projects (persistent banner + per-run provider indicator)
 - Add provider-compatibility probe contract for OpenAI-compatible runtimes (`exegesis doctor` + admin re-probe)
 - Lock shared Engine/Studio config schema (`exegesis.yml`) and precedence rules
-- Lock launch packaging constraints (no online-only SKU at launch; local-first 32GB minimum)
-- Define and enforce anonymous telemetry contract (opt-in only, aggregate-only schema, strict disallowed-field rejection)
-- Define optional proposal export bundle contract (previewable, user-triggered `.zip`, audit without path/content storage)
 
 Exit criteria:
 - Contract changes documented and intentional
@@ -78,14 +69,6 @@ Exit criteria:
 - Override behavior is deterministic, localhost-gated, and auditable
 - Provider capability detection and fallback behavior are explicit, testable, and operator-visible
 - Config source-of-truth and override precedence are explicit and testable
-- Non-local policy defaults are explicit and enforced (`context_sets_only` by default; full-doc cloud sends require explicit audited override)
-- Online-override-enabled projects show clear persistent mode/banner and per-run provider attribution in UI
-- IRB-sensitive projects are engine-blocked from standard-mode online overrides in all codepaths
-- Confidential mode blocks network-required tools at PolicyGate layer
-- Audit events capture profile changes, cloud-run decisions, and blocks without leaking content
-- Launch packaging explicitly excludes online-only SKU codepaths
-- Anonymous telemetry remains OFF by default, previewable before send, and allowed independent of profile mode
-- Proposal export + metrics bundle flow is explicit, previewable, and never background-sent by default
 
 ## Milestone 4: Retrieval Layer (Planned)
 
@@ -113,7 +96,6 @@ Scope:
 - Provide CLI rendering fallback for the same structured payloads
 - Ensure compatibility targets for multiple clients (including future Studio)
 - Add capabilities handshake and composable `GenericCard` primitives with safe unknown-card fallback
-- Add dev-mode `UIPatternProposal` workflow (proposal emit -> review -> implementation stub) with no runtime auto-promotion
 - Enforce typed/allowlisted actions with engine-authoritative `PolicyGate`
 - Add deterministic terminal chat routing (Magistral default + Qwen escalation) with no UI model choice
 - Add OSS local web console reference client (`exegesis serve`) with localhost-only token auth, SSE transcript stream, and safe A2UI rendering
@@ -124,9 +106,12 @@ Exit criteria:
 - A2UI schema/versioning is documented and stable
 - Core workflows can emit A2UI payloads and CLI fallback views
 - Output contracts are test-covered and backward-compatible by policy
-- Proposal review/promotion workflow is auditable and gated, and accepted proposals do not change runtime behavior until implemented
 - Web console can execute MVP flow (vault -> corpus/context -> terminal -> drafts -> export/audit) against the same engine PolicyGate
 - Web console settings/config page supports safe advanced edits with audit trail and rollback
+
+### Current Thread Alignment (2026-03-04)
+
+- `codex/feat-webconsole-ui`: Adds Alt+R reconnect and Alt+A auto-retry shortcuts plus inline hints inside the SSE terminal so operators can recover streams without leaving the keyboard, tightening the Milestone 5 usability slice for the OSS web console.
 
 ## Milestone 6: Studio Readiness Handoff (Planned)
 
@@ -170,23 +155,3 @@ Current sprint model:
 - Integrator finalizes into main after full gates
 
 If this cadence changes, update this section and `INTEGRATION.md` together.
-
-## Fall 2026 Runway Integration (Engine Scope)
-
-Reference mapping doc:
-- `FALL_2026_RUNWAY_INTEGRATION.md`
-
-Scope boundary:
-- Engine repo tracks policy, contracts, run loops, retrieval, A2UI/tooling, export/audit, and release hardening.
-- Studio-native UI/runtime implementation details are tracked downstream in the Studio project.
-
-Timeline mapping:
-- Now -> late March: Milestones 1 + 3 security/policy and MVP-loop definition
-- April: Milestones 4 + 5 context/evidence + terminal/A2UI/tooling contracts
-- May: Milestone 4 retrieval hardening + Milestone 6 export contract start
-- June: Milestone 6 handoff contracts + runtime probe/doctor hardening + export contract completion
-- July: Milestones 3 + 6 release-readiness docs, demo artifacts, alpha blocker triage
-- Aug 1-15: cohort hardening + release candidate freeze
-
-Runway policy decision:
-- Checklist text that suggested "no embeddings" is superseded by current canonical scope; MVP retrieval remains `fts|pageindex|embeddings`.

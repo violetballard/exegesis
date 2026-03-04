@@ -1,0 +1,59 @@
+{
+  "reviewer_conversation_id": "019c95ce-b991-7151-b604-e9228e99e4a2",
+  "integrator_conversation_id": "019c95ce-c626-7511-a6e2-546e0ddd8b93",
+  "reviewer_thread_id": "019cb980-d32d-7273-b93c-c462b763c20b",
+  "integrator_thread_id": "019c9678-682b-7590-b7f4-2ed5d744b76f",
+  "fixer_fallback_jobs": {
+    "feat-webconsole-ui": {
+      "log": ".codex/packet_router/logs/fixer__feat-webconsole-ui__20260304T165408Z.log",
+      "ts": "20260304T165408Z"
+    },
+    "feat-ux-flow": {
+      "log": ".codex/packet_router/logs/fixer__feat-ux-flow__20260304T165408Z.log",
+      "ts": "20260304T165408Z"
+    },
+    "feat-commands": {
+      "log": ".codex/packet_router/logs/fixer__feat-commands__20260304T165408Z.log",
+      "ts": "20260304T165408Z"
+    },
+    "feat-context-storage": {
+      "log": ".codex/packet_router/logs/fixer__feat-context-storage__20260304T165408Z.log",
+      "ts": "20260304T165408Z"
+    },
+    "feat-webconsole-core": {
+      "log": ".codex/packet_router/logs/fixer__feat-webconsole-core__20260304T165408Z.log",
+      "ts": "20260304T165408Z"
+    }
+  },
+  "reviewer_fixer_cursor": {
+    "feat-context-storage": "R__CHANGES__codex-feat-context-storage__2ebb2bafea437c49376b90f4d6de962654fcd38c__20260304T153519Z.md",
+    "feat-webconsole-core": "R__CHANGES__codex-feat-webconsole-core__e6251f70260935683392aacf10e4d8f8a96aa2be__20260226T191703Z.md",
+    "feat-webconsole-ui": "R__CHANGES__codex-feat-webconsole-ui__67413456de62a547381d26059ae9192a1d517771__20260226T064034Z.md",
+    "feat-ux-flow": "R__CHANGES__codex-feat-ux-flow__d4c2c40672bd533e40c607ad143213f77dc556e9__20260226T064036Z.md",
+    "feat-commands": "R__CHANGES__codex-feat-commands__dc72ab75bd3a30f6d14d336b587a5247a6bcd3e8__20260304T153913Z.md"
+  },
+  "reviewer_fixer_retry_ts": {
+    "feat-context-storage": 1772643248.059375,
+    "feat-webconsole-core": 1772643248.078367,
+    "feat-webconsole-ui": 1772643248.098243,
+    "feat-ux-flow": 1772643248.1195788,
+    "feat-commands": 1772643248.158299
+  },
+  "fixer_thread_ids": {
+    "feat-context-storage": "019c9b61-f33a-7eb2-8f08-cc77b9ca5266",
+    "feat-webconsole-core": "019c9b62-02fc-72e3-840b-b7945c353483"
+  },
+  "reviewer_thread_ids": {
+    "feat-webconsole-core": "019c9b62-0082-74b2-8cd2-2d201de6f193",
+    "feat-context-storage": "019cb97d-419b-75d0-a4f2-68a7e9848a17",
+    "feat-webconsole-ui": "019cb5d9-e0cf-79a1-aa0b-be735df49cf1",
+    "feat-ux-flow": "019cb5dd-fb95-7850-a55d-438afd6e968e",
+    "feat-commands": "019cb980-d32d-7273-b93c-c462b763c20b"
+  },
+  "reviewer_thread_missing_lanes": [],
+  "reviewer_quota_retry_ts": {
+    "feat-commands": 1772614566.95853,
+    "feat-context-storage": 1772614588.385963
+  },
+  "reviewer_quota_global_retry_ts": 1772614588.385963
+}

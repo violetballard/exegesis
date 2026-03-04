@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 import re
 from dataclasses import dataclass
@@ -22,19 +21,6 @@ IGNORE_CASE_ENV = "QUAL_DIFF_IGNORE_CASE"
 IGNORE_EDGE_BLANK_LINES_ENV = "QUAL_DIFF_IGNORE_EDGE_BLANK_LINES"
 IGNORE_ALL_BLANK_LINES_ENV = "QUAL_DIFF_IGNORE_ALL_BLANK_LINES"
 TRUNCATION_MARKER_ENV = "QUAL_DIFF_TRUNCATION_MARKER"
-MAX_DIFF_OUTPUT_LINES_ENV = "QUAL_DIFF_MAX_OUTPUT_LINES"
-SUPPRESS_HUNK_HEADERS_ENV = "QUAL_DIFF_SUPPRESS_HUNK_HEADERS"
-SUMMARY_JSON_ENV = "QUAL_DIFF_SUMMARY_JSON"
-SUMMARY_JSON_INDENT_ENV = "QUAL_DIFF_SUMMARY_JSON_INDENT"
-SUMMARY_JSON_SORT_KEYS_ENV = "QUAL_DIFF_SUMMARY_JSON_SORT_KEYS"
-SUMMARY_JSON_ENSURE_ASCII_ENV = "QUAL_DIFF_SUMMARY_JSON_ENSURE_ASCII"
-SUMMARY_JSON_INCLUDE_SCHEMA_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_SCHEMA"
-SUMMARY_JSON_INCLUDE_TRUNCATION_MODE_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_TRUNCATION_MODE"
-SUMMARY_JSON_INCLUDE_FLAGS_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_FLAGS"
-SUMMARY_JSON_INCLUDE_LIMITS_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_LIMITS"
-SUMMARY_JSON_INCLUDE_RENDER_MODE_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_RENDER_MODE"
-SUMMARY_JSON_INCLUDE_SUPPRESSION_ENV = "QUAL_DIFF_SUMMARY_JSON_INCLUDE_SUPPRESSION"
-SUMMARY_JSON_SCHEMA_VERSION = "diff_summary.v1"
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
 
@@ -111,10 +97,6 @@ def _suppress_file_headers(diff: str) -> str:
     return diff
 
 
-def _suppress_hunk_headers(diff: str) -> str:
-    return "".join(line for line in diff.splitlines(keepends=True) if not line.startswith("@@ "))
-
-
 def _max_diff_output_chars() -> int:
     raw = os.getenv(MAX_DIFF_OUTPUT_CHARS_ENV)
     if raw is None:
@@ -128,20 +110,7 @@ def _max_diff_output_chars() -> int:
     return parsed
 
 
-def _max_diff_output_lines() -> int | None:
-    raw = os.getenv(MAX_DIFF_OUTPUT_LINES_ENV)
-    if raw is None:
-        return None
-    try:
-        parsed = int(raw.strip())
-    except ValueError:
-        return None
-    if parsed <= 0:
-        return None
-    return parsed
-
-
-def _diff_stats(diff: str) -> tuple[int, int, int]:
+def _summarize_diff(diff: str) -> str:
     added = 0
     removed = 0
     hunks = 0
@@ -156,40 +125,6 @@ def _diff_stats(diff: str) -> tuple[int, int, int]:
             continue
         if line.startswith("-"):
             removed += 1
-    return added, removed, hunks
-
-
-def _summarize_diff(diff: str, *, render_mode: str | None = None) -> str:
-    added, removed, hunks = _diff_stats(diff)
-    if _env_enabled(SUMMARY_JSON_ENV):
-        payload: dict[str, int | str | list[str]] = {
-            "added": added,
-            "removed": removed,
-            "hunks": hunks,
-        }
-        if _env_enabled(SUMMARY_JSON_INCLUDE_SCHEMA_ENV):
-            payload["schema"] = SUMMARY_JSON_SCHEMA_VERSION
-        if _env_enabled(SUMMARY_JSON_INCLUDE_TRUNCATION_MODE_ENV):
-            payload["truncation_strategy"] = _truncation_strategy()
-        if _env_enabled(SUMMARY_JSON_INCLUDE_FLAGS_ENV):
-            payload["enabled_flags"] = _enabled_normalization_flags()
-        if _env_enabled(SUMMARY_JSON_INCLUDE_LIMITS_ENV):
-            payload["max_output_chars"] = _max_diff_output_chars()
-            payload["max_output_lines"] = _max_diff_output_lines() or 0
-        if _env_enabled(SUMMARY_JSON_INCLUDE_RENDER_MODE_ENV):
-            payload["render_mode"] = render_mode or "diff"
-        if _env_enabled(SUMMARY_JSON_INCLUDE_SUPPRESSION_ENV):
-            payload["suppression"] = _enabled_suppression_flags()
-        if _env_enabled(INCLUDE_SUMMARY_DETAILS_ENV):
-            payload["changed"] = added + removed
-            payload["net"] = added - removed
-        sort_keys = _summary_json_sort_keys()
-        ensure_ascii = _summary_json_ensure_ascii()
-        indent = _summary_json_indent()
-        if indent is None:
-            return json.dumps(payload, separators=(",", ":"), sort_keys=sort_keys, ensure_ascii=ensure_ascii)
-        return json.dumps(payload, indent=indent, sort_keys=sort_keys, ensure_ascii=ensure_ascii)
-
     summary = f"Diff summary: +{added} -{removed} (hunks: {hunks})"
     if _env_enabled(INCLUDE_SUMMARY_DETAILS_ENV):
         changed = added + removed
@@ -198,73 +133,7 @@ def _summarize_diff(diff: str, *, render_mode: str | None = None) -> str:
     return summary
 
 
-def _summary_json_indent() -> int | None:
-    raw = os.getenv(SUMMARY_JSON_INDENT_ENV)
-    if raw is None:
-        return None
-    try:
-        parsed = int(raw.strip())
-    except ValueError:
-        return None
-    if parsed <= 0:
-        return None
-    return parsed
-
-
-def _summary_json_sort_keys() -> bool:
-    raw = os.getenv(SUMMARY_JSON_SORT_KEYS_ENV)
-    if raw is None:
-        return True
-    value = raw.strip().lower()
-    if value in {"0", "false", "no", "off"}:
-        return False
-    if value in {"1", "true", "yes", "on"}:
-        return True
-    return True
-
-
-def _summary_json_ensure_ascii() -> bool:
-    raw = os.getenv(SUMMARY_JSON_ENSURE_ASCII_ENV)
-    if raw is None:
-        return True
-    value = raw.strip().lower()
-    if value in {"0", "false", "no", "off"}:
-        return False
-    if value in {"1", "true", "yes", "on"}:
-        return True
-    return True
-
-
-def _enabled_normalization_flags() -> list[str]:
-    flags: list[str] = []
-    if _env_enabled(STRIP_ANSI_ENV):
-        flags.append("strip_ansi")
-    if _env_enabled(CANONICALIZE_INLINE_WHITESPACE_ENV):
-        flags.append("canonicalize_inline_whitespace")
-    if _env_enabled(IGNORE_CASE_ENV):
-        flags.append("ignore_case")
-    if _env_enabled(IGNORE_EDGE_BLANK_LINES_ENV):
-        flags.append("ignore_edge_blank_lines")
-    if _env_enabled(IGNORE_ALL_BLANK_LINES_ENV):
-        flags.append("ignore_all_blank_lines")
-    if _env_enabled(IGNORE_TRAILING_WHITESPACE_ENV):
-        flags.append("ignore_trailing_whitespace")
-    return flags
-
-
-def _enabled_suppression_flags() -> list[str]:
-    flags: list[str] = []
-    if _env_enabled(SUPPRESS_FILE_HEADERS_ENV):
-        flags.append("suppress_file_headers")
-    if _env_enabled(SUPPRESS_HUNK_HEADERS_ENV):
-        flags.append("suppress_hunk_headers")
-    return flags
-
-
-def _options_banner(
-    *, ignore_trailing_whitespace: bool, suppress_file_headers: bool, max_chars: int, max_lines: int | None
-) -> str:
-    max_lines_value = "none" if max_lines is None else str(max_lines)
+def _options_banner(*, ignore_trailing_whitespace: bool, suppress_file_headers: bool, max_chars: int) -> str:
     return (
         "Diff options: "
         f"ignore_trailing_whitespace={str(ignore_trailing_whitespace).lower()}, "
@@ -274,18 +143,6 @@ def _options_banner(
         f"ignore_case={str(_env_enabled(IGNORE_CASE_ENV)).lower()}, "
         f"ignore_edge_blank_lines={str(_env_enabled(IGNORE_EDGE_BLANK_LINES_ENV)).lower()}, "
         f"ignore_all_blank_lines={str(_env_enabled(IGNORE_ALL_BLANK_LINES_ENV)).lower()}, "
-        f"summary_json={str(_env_enabled(SUMMARY_JSON_ENV)).lower()}, "
-        f"summary_json_indent={str(_summary_json_indent() or 0)}, "
-        f"summary_json_sort_keys={str(_summary_json_sort_keys()).lower()}, "
-        f"summary_json_ensure_ascii={str(_summary_json_ensure_ascii()).lower()}, "
-        f"summary_json_include_schema={str(_env_enabled(SUMMARY_JSON_INCLUDE_SCHEMA_ENV)).lower()}, "
-        f"summary_json_include_truncation_mode={str(_env_enabled(SUMMARY_JSON_INCLUDE_TRUNCATION_MODE_ENV)).lower()}, "
-        f"summary_json_include_flags={str(_env_enabled(SUMMARY_JSON_INCLUDE_FLAGS_ENV)).lower()}, "
-        f"summary_json_include_limits={str(_env_enabled(SUMMARY_JSON_INCLUDE_LIMITS_ENV)).lower()}, "
-        f"summary_json_include_render_mode={str(_env_enabled(SUMMARY_JSON_INCLUDE_RENDER_MODE_ENV)).lower()}, "
-        f"summary_json_include_suppression={str(_env_enabled(SUMMARY_JSON_INCLUDE_SUPPRESSION_ENV)).lower()}, "
-        f"suppress_hunk_headers={str(_env_enabled(SUPPRESS_HUNK_HEADERS_ENV)).lower()}, "
-        f"max_output_lines={max_lines_value}, "
         f"max_output_chars={max_chars}, "
         f"truncation_strategy={_truncation_strategy()}"
     )
@@ -301,50 +158,27 @@ def _truncation_strategy() -> str:
     return "middle"
 
 
-def _truncation_marker(omitted: int, *, unit: str = "characters") -> str:
+def _truncation_marker(omitted: int) -> str:
     custom = os.getenv(TRUNCATION_MARKER_ENV)
     if custom is not None and custom.strip():
         return custom.strip()
-    return f"... diff truncated ({omitted} {unit} omitted) ..."
+    return f"... diff truncated ({omitted} characters omitted) ..."
 
 
 def _truncate_diff(diff: str, max_chars: int) -> str:
     strategy = _truncation_strategy()
     if strategy == "tail":
         omitted = len(diff) - max_chars
-        return f"{diff[:max_chars]}\n{_truncation_marker(omitted, unit='characters')}"
+        return f"{diff[:max_chars]}\n{_truncation_marker(omitted)}"
 
     head_chars = max_chars // 2
     tail_chars = max_chars - head_chars
     omitted = len(diff) - (head_chars + tail_chars)
     return (
         f"{diff[:head_chars]}"
-        f"{_truncation_marker(omitted, unit='characters')}"
+        f"{_truncation_marker(omitted)}"
         f"{diff[-tail_chars:]}"
     )
-
-
-def _truncate_diff_lines(diff: str, max_lines: int) -> str:
-    lines = diff.splitlines(keepends=True)
-    if len(lines) <= max_lines:
-        return diff
-
-    strategy = _truncation_strategy()
-    omitted = len(lines) - max_lines
-    marker = _truncation_marker(omitted, unit="lines")
-    if strategy == "tail":
-        head = "".join(lines[:max_lines])
-        if head and not head.endswith("\n"):
-            head += "\n"
-        return f"{head}{marker}\n"
-
-    head_lines = max_lines // 2
-    tail_lines = max_lines - head_lines
-    head = "".join(lines[:head_lines])
-    tail = "".join(lines[-tail_lines:])
-    if head and not head.endswith("\n"):
-        head += "\n"
-    return f"{head}{marker}\n{tail}"
 
 
 def run_diff_preview(payload: DiffPreviewInput) -> str:
@@ -384,12 +218,9 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
     summary_source = diff
     if suppress_file_headers:
         diff = _suppress_file_headers(diff)
-    if _env_enabled(SUPPRESS_HUNK_HEADERS_ENV):
-        diff = _suppress_hunk_headers(diff)
     if not diff:
         return "No diff: inputs are identical."
     max_chars = _max_diff_output_chars()
-    max_lines = _max_diff_output_lines()
     banner = ""
     if include_options_banner:
         banner = (
@@ -397,19 +228,16 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
                 ignore_trailing_whitespace=ignore_trailing_whitespace,
                 suppress_file_headers=suppress_file_headers,
                 max_chars=max_chars,
-                max_lines=max_lines,
             )
             + "\n\n"
         )
     if _env_enabled(SUMMARY_ONLY_ENV):
-        return f"{banner}{_summarize_diff(summary_source, render_mode='summary_only')}"
+        return f"{banner}{_summarize_diff(summary_source)}"
 
     output = diff
-    if max_lines is not None:
-        output = _truncate_diff_lines(output, max_lines)
-    if len(output) > max_chars:
-        output = _truncate_diff(output, max_chars)
+    if len(diff) > max_chars:
+        output = _truncate_diff(diff, max_chars)
 
     if _env_enabled(INCLUDE_SUMMARY_ENV):
-        return f"{banner}{output}\n\n{_summarize_diff(summary_source, render_mode='diff_plus_summary')}"
+        return f"{banner}{output}\n\n{_summarize_diff(summary_source)}"
     return f"{banner}{output}"

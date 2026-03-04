@@ -23,9 +23,7 @@ class ContextBasketStore:
         return self._path.with_suffix(".tmp")
 
     def load(self) -> ContextBasket:
-        had_primary = self._path.exists()
         payload = self._load_payload(self._path)
-        invalid_primary = had_primary and payload is None
         loaded_from_tmp = False
         loaded_from_backup = False
         if payload is None:
@@ -35,8 +33,6 @@ class ContextBasketStore:
             payload = self._load_payload(self._backup_path)
             loaded_from_backup = payload is not None
         if payload is None:
-            if invalid_primary and not (loaded_from_tmp or loaded_from_backup):
-                self.save(ContextBasket())
             return ContextBasket()
 
         should_rewrite = False
@@ -47,13 +43,17 @@ class ContextBasketStore:
             basket = ContextBasket(item_ids=parsed_items)
             should_rewrite = True
         elif isinstance(payload, dict):
-            parsed_payload = self._parse_dict_payload(payload, strict_metadata=False)
-            if parsed_payload is None:
+            schema_version = payload.get("schema_version", 0)
+            if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
                 return ContextBasket()
-            parsed_items, should_rewrite = parsed_payload
+            parsed_items = self._parse_item_ids(payload.get("item_ids", []))
+            if parsed_items is None:
+                return ContextBasket()
             basket = ContextBasket(item_ids=parsed_items)
-            # Recovery marker should exist only when this load actually recovered from fallback files.
-            if "recovered_from" in payload and not (loaded_from_tmp or loaded_from_backup):
+            should_rewrite = schema_version != _SCHEMA_VERSION
+            if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
+                should_rewrite = True
+            if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
                 should_rewrite = True
         else:
             return ContextBasket()
@@ -153,44 +153,16 @@ class ContextBasketStore:
             return self._parse_item_ids(payload) is not None
         if not isinstance(payload, dict):
             return False
-        return self._parse_dict_payload(payload, strict_metadata=True) is not None
-
-    def _parse_dict_payload(
-        self, payload: dict[str, object], *, strict_metadata: bool
-    ) -> tuple[list[str], bool] | None:
         schema_version = payload.get("schema_version", 0)
-        if type(schema_version) is not int:
-            if strict_metadata:
-                return None
-            should_rewrite = True
-            schema_value = 0
-        else:
-            should_rewrite = schema_version != _SCHEMA_VERSION or schema_version < 0
-            schema_value = schema_version
-            if schema_version < 0 and strict_metadata:
-                return None
-        if schema_value > _SCHEMA_VERSION:
-            return None
-        parsed_items = self._parse_item_ids(payload.get("item_ids", []))
-        if parsed_items is None:
-            return None
-        parsed_recovered_from = self._parse_recovered_from(payload.get("recovered_from"))
-        if "recovered_from" in payload:
-            if parsed_recovered_from is None:
-                if strict_metadata:
-                    return None
-                should_rewrite = True
-            elif parsed_recovered_from != str(payload.get("recovered_from")).strip().lower():
-                should_rewrite = True
-        parsed_updated_at = self._parse_updated_at(payload.get("updated_at"))
-        if "updated_at" in payload:
-            if parsed_updated_at is None:
-                if strict_metadata:
-                    return None
-                should_rewrite = True
-            elif parsed_updated_at != str(payload.get("updated_at")).strip():
-                should_rewrite = True
-        return parsed_items, should_rewrite
+        if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
+            return False
+        if self._parse_item_ids(payload.get("item_ids", [])) is None:
+            return False
+        if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
+            return False
+        if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
+            return False
+        return True
 
     def _parse_item_ids(self, value: object) -> list[str] | None:
         if not isinstance(value, list):
@@ -217,12 +189,10 @@ class ContextBasketStore:
         if not candidate:
             return None
         try:
-            parsed = datetime.fromisoformat(candidate.replace("Z", "+00:00"))
+            datetime.fromisoformat(candidate.replace("Z", "+00:00"))
         except ValueError:
             return None
-        if parsed.tzinfo is None:
-            return None
-        return parsed.astimezone(UTC).isoformat()
+        return candidate
 
     def _unlink_if_exists(self, path: Path) -> None:
         try:
