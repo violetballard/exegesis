@@ -184,3 +184,61 @@ Use this variant when shared/integrator-locked files are likely, or when routing
 - risks/blockers
 - all required fields from `INTEGRATION.md`
 ```
+
+## Thread Kickoff – feat-webconsole-ui (2026-03-04)
+
+- Branch: `codex/feat-webconsole-ui`
+- Lane/owned paths: `src/qual/webconsole/**`
+- Scope goal: Deliver keyboard-first reconnect and auto-retry controls in the SSE terminal so operators can recover streams without grabbing the mouse, and surface those shortcuts inline so they are discoverable.
+
+### Budget
+- Task budget: `8` (this thread uses 3 tasks)
+- Time budget: `45m` (planned work fits inside one 30–35m block)
+- Size limits: `<=12 files`, `<=500` net LOC (expected: 3 files / ~45 LOC)
+- Max fix attempts per failing gate: `2`
+
+### Planned Tasks
+1. Add an `Alt+R` keyboard shortcut that triggers the reconnect action, respects disabled states, and resets retry metadata.
+2. Add an `Alt+A` shortcut that toggles auto-retry, syncs the button label, and keeps retry timers consistent with manual overrides.
+3. Surface shortcut hints plus focus-stable styling in the terminal template/CSS so operators immediately see and can trust the new affordances.
+
+### Stop Triggers
+- integrator-locked/shared-by-approval edits needed
+- unresolved test/lint/typecheck after 2 attempts
+- unresolved `make scope-check`
+- budget/size/time limit hit
+
+### Checkpoint Cadence
+- plan complete
+- first green tests
+- before risky/shared file edit
+- ready for handoff
+
+## Thread Handoff – feat-webconsole-ui (2026-03-04)
+
+- Branch: `codex/feat-webconsole-ui`
+- Scope completed: Terminal stream reconnect controls now expose Alt+R (manual reconnect) and Alt+A (auto-retry toggle) shortcuts plus inline hints so the keyboard-only workflow matches mouse controls.
+- Kickoff limits observed: 3/8 tasks, 3/12 files, 45/500 net LOC (per commit 67413456), 1/2 fix attempts, ~35m focused work.
+- Roadmap item(s): Milestone 5 – A2UI Presentation Layer (terminal/web-console usability slice).
+- Product vision capability: #4 Operator-first control surface and #5 Agent-to-UI protocol (shortcut parity keeps console state in sync across clients).
+
+### Tasks Completed
+1. Wire the Alt+R keyboard listener to the reconnect action, including disabled-state guarding and retry counter reset logic in `webconsole.js`.
+2. Wire the Alt+A listener so the auto-retry toggle updates UI state, button copy, and underlying retry timers in `webconsole.js`.
+3. Expose shortcut hints and monospace styling in `terminal.html`/`webconsole.css` so operators discover the new controls directly in the panel header.
+
+### Files Changed
+- `src/qual/webconsole/static/webconsole.css`
+- `src/qual/webconsole/static/webconsole.js`
+- `src/qual/webconsole/templates/terminal.html`
+
+### Commands Run
+- `make scope-check` – PASS (2026-03-04)
+- `./quality-format.sh --check` – PASS (2026-03-04)
+- `./quality-lint.sh` – PASS (2026-03-04) *(trimmed trailing whitespace in `feat-webconsole-ui-fix.patch` to satisfy lint)*
+- `./quality-test.sh` – PASS (2026-03-04)
+- `./typecheck-test.sh` – PASS (2026-03-04)
+- `make ci` – PASS (2026-03-04)
+
+### Risks / Blockers
+- None; reconnect controls remain scoped to owned webconsole paths and reuse existing SSE helpers.

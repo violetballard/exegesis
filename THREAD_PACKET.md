@@ -4,9 +4,9 @@
 
 - Branch: `codex/feat-webconsole-ui`
 - Lane/owned paths: `src/qual/webconsole/**`
-- Scope goal (per `AGENTS.md` template): Ship Alt+R reconnect and Alt+A auto-retry shortcuts plus inline hints so the SSE terminal can be recovered from the keyboard during incidents.
+- Scope goal (per `AGENTS.md` template): Deliver keyboard-first reconnect and auto-retry controls in the SSE terminal so operators can recover streams without grabbing the mouse, and surface those shortcuts inline so they are discoverable.
 - Roadmap alignment: `ROADMAP.md` Milestone 5 (A2UI/web-console usability slice, lines 106-129) so this work rolls up under the OSS console usability effort required before the RC freeze.
-- Vision alignment: `PRODUCT_VISION.md` Capability 4 (Operator-first control surface, lines 35-45) because the shortcuts maintain the keyboard-first admin experience promised in the vision doc.
+- Vision alignment: `PRODUCT_VISION.md` Capability 4 (Operator-first control surface, lines 35-45) and Capability 5 (Agent-to-UI protocol, lines 96-101) because the shortcuts keep the console keyboard-first while staying aligned with the SSE contract.
 - Lane gate compliance: Default `feat-webconsole-ui` limits were observed (3/8 tasks, <45m active coding, 3 files <12, ~45 net LOC <500, 0/2 fix attempts), satisfying the lane-specific gate in `INTEGRATION.md`.
 
 ### Budget
@@ -47,12 +47,12 @@
   - `src/qual/webconsole/static/webconsole.js`
   - `src/qual/webconsole/templates/terminal.html`
 - Commands run with results:
-  - `make scope-check` – PASS.
-  - `./quality-format.sh --check` – PASS.
-  - `./quality-lint.sh` – PASS.
-  - `./quality-test.sh` – PASS.
-  - `./typecheck-test.sh` – PASS.
-  - `make ci` – PASS.
-- Roadmap item(s) affected: `ROADMAP.md` Milestone 5 – A2UI/web-console usability hardening (keyboard shortcuts for terminal reconnect/auto-retry) lines 106-129.
-- Vision capability affected: `PRODUCT_VISION.md` Capability 4 – Operator-first control surface (keyboard-first admin console) lines 35-45.
+  - `make scope-check` - PASS.
+  - `./quality-format.sh --check` - PASS.
+  - `./quality-lint.sh` - PASS.
+  - `./quality-test.sh` - PASS.
+  - `./typecheck-test.sh` - PASS.
+  - `make ci` - PASS.
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 5 - A2UI/web-console usability hardening (keyboard shortcuts for terminal reconnect/auto-retry) lines 106-129.
+- Vision capability affected: `PRODUCT_VISION.md` Capability 4 - Operator-first control surface (keyboard-first admin console) lines 35-45, and Capability 5 - Agent-to-UI protocol (keeps the SSE reconnect contract discoverable) lines 96-101.
 - Risks/blockers: None; change stays within lane-owned UI paths and only adds shortcuts plus template copy.
