@@ -1,0 +1,146 @@
+From 5cbaa8c09aac6fa0f1453bf1839872e12a8da821 Mon Sep 17 00:00:00 2001
+From: Violet Ballard <violet@rvgames.company>
+Date: Wed, 4 Mar 2026 00:37:08 -0800
+Subject: [PATCH] Document feat-webconsole-ui kickoff + handoff
+
+---
+ THREAD_PACKET.md                              | 58 +++++++++++++++++++
+ codex_packet_handoff/feat-webconsole-ui.md    |  5 ++
+ .../feat-webconsole-ui_packet_update.md       | 49 ++++++++++++++++
+ 3 files changed, 112 insertions(+)
+ create mode 100644 THREAD_PACKET.md
+ create mode 100644 codex_packet_handoff/feat-webconsole-ui.md
+ create mode 100644 codex_packet_handoff/feat-webconsole-ui_packet_update.md
+
+diff --git a/THREAD_PACKET.md b/THREAD_PACKET.md
+new file mode 100644
+index 0000000..a44218c
+--- /dev/null
++++ b/THREAD_PACKET.md
+@@ -0,0 +1,58 @@
++# Thread Packet - codex/feat-webconsole-ui
++
++## Thread Kickoff
++
++- Branch: `codex/feat-webconsole-ui`
++- Lane/owned paths: `src/qual/webconsole/**`
++- Scope goal (per `AGENTS.md` Thread Kickoff Template): Ship keyboard shortcuts for the terminal SSE reconnect controls (Alt+R to reconnect, Alt+A to toggle auto-retry) plus an inline hint so web-console operators can recover streams without leaving the keyboard.
++- Roadmap alignment: `ROADMAP.md` -> Milestone 5 (A2UI/web-console usability hardening) so this change credits the OSS console usability workstream and satisfies the roadmap mapping checkpoint in `INTEGRATION.md`.
++- Vision alignment: `PRODUCT_VISION.md` -> Capability 4 (Operator-first control surface) because the shortcuts keep the web console aligned with the operator-centric control requirements.
++- Lane gate compliance: Default `feat-webconsole-ui` limits (<=8 tasks, <=45m active coding, <=12 files, <=500 net LOC, max 2 fix attempts) approved up front, and the roadmap + capability mappings below satisfy the lane’s `INTEGRATION.md` checkpoint.
++
++### Budget
++- Task budget: `8`
++- Time budget: `45m`
++- Size limits: `<=12 files`, `<=500` net LOC
++- Max fix attempts per failing gate: `2`
++
++### Planned Tasks
++1. Add Alt+R reconnect keyboard shortcut that clears reconnect state and restarts the SSE stream without clicking the button.
++2. Add Alt+A auto-retry toggle shortcut that mirrors the UI control and announces state inside the terminal status text.
++3. Surface shortcut hints and `<kbd>` styles in the terminal template so the new shortcuts are discoverable.
++
++### Stop Triggers
++- integrator-locked/shared-by-approval edits needed
++- unresolved test/lint/typecheck after 2 attempts
++- unresolved `make scope-check`
++- budget/size/time limit hit
++
++### Checkpoint Cadence
++- plan complete
++- first green tests
++- before risky/shared file edit
++- ready for handoff
++
++## Handoff Packet
++
++- Branch name: `codex/feat-webconsole-ui`
++- Scope goal (restated): Provide Alt+R/Alt+A shortcuts plus inline hints for the SSE reconnect controls so operators can recover streams without reaching for the mouse.
++- Scope completed: Added keyboard listeners that restart the stream or toggle auto-retry when Alt+R/Alt+A is pressed outside editable fields, and surfaced matching shortcut hints with styled `<kbd>` tags next to the terminal description text.
++- Kickoff budget compliance: 3 tasks delivered (<=8), <45m active coding, 3 files changed (`webconsole.css`, `webconsole.js`, `terminal.html`), ~45 net LOC (<500), and only the initial fix attempt was required, satisfying the `feat-webconsole-ui` lane gate in `INTEGRATION.md`.
++- Tasks completed:
++  1. Implemented the reconnect shortcut handler that resets retry state and restarts the SSE stream on Alt+R while guarding against editable targets.
++  2. Added the auto-retry toggle handler for Alt+A, including status text updates when auto-retry is disabled or enabled without an active stream.
++  3. Added the shortcut hint paragraph and `<kbd>` styling so the new shortcuts are visible in the terminal UI.
++- Files changed:
++  - `src/qual/webconsole/static/webconsole.css`
++  - `src/qual/webconsole/static/webconsole.js`
++  - `src/qual/webconsole/templates/terminal.html`
++- Commands run with results:
++  - `make scope-check` - passed (`feat-webconsole-ui` has no extra policy gates).
++  - `./quality-format.sh --check` - passed.
++  - `./quality-lint.sh` - passed.
++  - `./quality-test.sh` - passed.
++  - `./typecheck-test.sh` - passed.
++  - `make ci` - passed (reran the same checks above).
++- Roadmap item(s) affected: `ROADMAP.md` -> Milestone 5 (OSS console usability and A2UI hardening slice under "Web console can execute MVP flow" exit criteria lines 99-110).
++- Vision capability affected: `PRODUCT_VISION.md` -> Capability 4 (Operator-first control surface, lines 35-40) because the shortcuts preserve keyboard-first admin controls in the shipped reference client.
++- Risks/blockers: None; change stays fully within lane-owned paths and behind existing SSE stream controls.
+diff --git a/codex_packet_handoff/feat-webconsole-ui.md b/codex_packet_handoff/feat-webconsole-ui.md
+new file mode 100644
+index 0000000..58057df
+--- /dev/null
++++ b/codex_packet_handoff/feat-webconsole-ui.md
+@@ -0,0 +1,5 @@
++# Feature Packet Alias
++
++This file is an alias for reviewer/fixer workflows that reference `codex_packet_handoff/feat-webconsole-ui.md`.
++
++Canonical packet: `codex_packet_handoff/feat-webconsole-ui_packet_update.md`.
+diff --git a/codex_packet_handoff/feat-webconsole-ui_packet_update.md b/codex_packet_handoff/feat-webconsole-ui_packet_update.md
+new file mode 100644
+index 0000000..8362b02
+--- /dev/null
++++ b/codex_packet_handoff/feat-webconsole-ui_packet_update.md
+@@ -0,0 +1,49 @@
++# Feature -> Review Packet
++
++- Lane: `feat-webconsole-ui`
++- Branch: `codex/feat-webconsole-ui`
++- Commit: `67413456de62a547381d26059ae9192a1d517771`
++
++## Scope goal
++- Let operators reconnect the SSE terminal stream or toggle auto-retry from the keyboard so the web console terminal stays usable without pointer focus during incident response.
++
++## Kickoff budget compliance
++- Default limits were honored (3/8 tasks, ~30m of the 45m window, 3 files <12 touching ~45 net LOC <500, and 0/2 fix attempts) entirely within owned UI paths, satisfying the `feat-webconsole-ui` lane gate spelled out in `INTEGRATION.md`.
++
++## Lane/owned paths
++- `src/qual/webconsole/render/**`
++- `src/qual/webconsole/templates/**`
++- `src/qual/webconsole/static/**`
++
++## Tasks completed (numbered)
++1. Add Alt+R reconnect shortcut that clears retry state and restarts the SSE stream while guarding against editable inputs.
++2. Add Alt+A auto-retry toggle shortcut that mirrors the UI switch and updates the status text when the stream is idle.
++3. Surface the shortcut affordance in the terminal header and style `kbd` badges so the controls remain discoverable in the console UI.
++
++## Files changed
++- `src/qual/webconsole/static/webconsole.css`
++- `src/qual/webconsole/static/webconsole.js`
++- `src/qual/webconsole/templates/terminal.html`
++
++## Commands run with results
++- `make scope-check`: PASS
++- `./quality-format.sh --check`: PASS
++- `./quality-lint.sh`: PASS
++- `./quality-test.sh`: PASS
++- `./typecheck-test.sh`: PASS
++- `make ci`: PASS
++
++## Risks / blockers
++- Risk: `LOW`
++- Blockers: none
++
++## Required handoff fields
++### Roadmap item(s) affected
++- Milestone 5 - A2UI Presentation Layer: OSS web console terminal usability work (keyboard shortcuts for SSE reconnect/auto-retry controls).
++### Vision capability affected
++- Capability 4 - Operator-first control surface (keyboard-friendly admin console interactions).
++### Routing/provider impact note
++- None
++
++## Scope-check / ownership note
++- Shared/integrator-locked edits: `NO`
+--
+2.50.1 (Apple Git-155)

@@ -18,9 +18,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-PLANNER_CMD = [sys.executable, "codex_packet_handoff/tools/planner.py"]
-ROUTER_CMD = [sys.executable, "codex_packet_handoff/tools/router.py"]
-INIT_META_CMD = [sys.executable, "codex_packet_handoff/tools/init_lane_meta.py"]
+TOOLS_DIR = Path(__file__).resolve().parent
+REPO_ROOT = TOOLS_DIR.parent.parent
+PLANNER_PATH = REPO_ROOT / "codex_packet_handoff/tools/planner.py"
+ROUTER_PATH = REPO_ROOT / "codex_packet_handoff/tools/router.py"
+INIT_META_PATH = REPO_ROOT / "codex_packet_handoff/tools/init_lane_meta.py"
+
+PLANNER_CMD = [sys.executable, str(PLANNER_PATH)]
+ROUTER_CMD = [sys.executable, str(ROUTER_PATH)]
+INIT_META_CMD = [sys.executable, str(INIT_META_PATH)]
 
 EMITTED_RE = re.compile(r"\[planner\] emitted (?P<path>\S+)")
 ROUTER_RE = re.compile(
@@ -30,12 +36,12 @@ LANE_FILE_RE = re.compile(
     r"\.codex/packets/lanes/(?P<lane>[^/]+)/inbox/feature/(?P<filename>[^/\s]+\.md)"
 )
 
-COORD_ROOT = Path(".codex/packet_coordinator")
+COORD_ROOT = REPO_ROOT / ".codex/packet_coordinator"
 RUNS_DIR = COORD_ROOT / "runs"
 STATE_FILE = COORD_ROOT / "state.json"
 LEASE_FILE = COORD_ROOT / "lease.json"
-ROUTER_CONFIG_FILE = Path(".codex/packet_router/config.json")
-ROUTER_EXAMPLE_FILE = Path(".codex/packet_router/example.json")
+ROUTER_CONFIG_FILE = REPO_ROOT / ".codex/packet_router/config.json"
+ROUTER_EXAMPLE_FILE = REPO_ROOT / ".codex/packet_router/example.json"
 LANES = ["feat-context-storage", "feat-webconsole-core", "feat-webconsole-ui", "feat-ux-flow", "feat-commands"]
 
 
@@ -55,7 +61,7 @@ def utc_now() -> str:
 
 
 def run_cmd(cmd: List[str]) -> Tuple[int, str]:
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, cwd=str(REPO_ROOT))
     out = p.stdout or ""
     if out:
         print(out, end="" if out.endswith("\n") else "\n")
@@ -64,6 +70,8 @@ def run_cmd(cmd: List[str]) -> Tuple[int, str]:
 
 def _load_tool_module(module_name: str, relpath: str):
     path = Path(relpath)
+    if not path.is_absolute():
+        path = REPO_ROOT / path
     spec = importlib.util.spec_from_file_location(module_name, path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Unable to load module from {path}")
@@ -152,11 +160,11 @@ def _validate_inputs(args: argparse.Namespace) -> int:
     if args.planner_retries < 0 or args.router_retries < 0:
         print("[error] retries must be >= 0")
         return 2
-    if not Path("codex_packet_handoff/tools/planner.py").exists():
-        print("[error] Missing codex_packet_handoff/tools/planner.py in current cwd")
+    if not PLANNER_PATH.exists():
+        print(f"[error] Missing planner tool: {PLANNER_PATH}")
         return 2
-    if not Path("codex_packet_handoff/tools/router.py").exists():
-        print("[error] Missing codex_packet_handoff/tools/router.py in current cwd")
+    if not ROUTER_PATH.exists():
+        print(f"[error] Missing router tool: {ROUTER_PATH}")
         return 2
     if not args.daemon and not args.once:
         args.once = True
@@ -216,18 +224,18 @@ def _load_lane_branches() -> Dict[str, str]:
 
 def _ensure_dirs() -> None:
     for lane in LANES:
-        base = Path(".codex/packets/lanes") / lane
+        base = REPO_ROOT / ".codex/packets/lanes" / lane
         (base / "inbox/feature").mkdir(parents=True, exist_ok=True)
         (base / "inbox/reviewer").mkdir(parents=True, exist_ok=True)
         (base / "outbox/integrator").mkdir(parents=True, exist_ok=True)
         (base / "archive").mkdir(parents=True, exist_ok=True)
-    Path(".codex/packet_router").mkdir(parents=True, exist_ok=True)
-    Path(".codex/packet_planner").mkdir(parents=True, exist_ok=True)
-    Path(".codex/lane_meta").mkdir(parents=True, exist_ok=True)
+    (REPO_ROOT / ".codex/packet_router").mkdir(parents=True, exist_ok=True)
+    (REPO_ROOT / ".codex/packet_planner").mkdir(parents=True, exist_ok=True)
+    (REPO_ROOT / ".codex/lane_meta").mkdir(parents=True, exist_ok=True)
 
 
 def _permission_probe() -> None:
-    probe = Path(".codex/packets/_coordinator_write_probe")
+    probe = REPO_ROOT / ".codex/packets/_coordinator_write_probe"
     probe.parent.mkdir(parents=True, exist_ok=True)
     probe.write_text("ok")
     probe.unlink()
@@ -277,10 +285,10 @@ def _run_router_subprocess(retries: int) -> Tuple[int, str, int]:
 
 
 def _run_planner_direct_once() -> Tuple[int, str]:
-    planner_mod = _load_tool_module("packet_planner_runtime", "codex_packet_handoff/tools/planner.py")
     buf = io.StringIO()
     rc = 0
     try:
+        planner_mod = _load_tool_module("packet_planner_runtime", str(PLANNER_PATH))
         with contextlib.redirect_stdout(buf):
             planner_mod.main()
     except SystemExit as exc:
@@ -311,10 +319,10 @@ def _run_planner_direct(retries: int) -> Tuple[int, str, int]:
 
 
 def _init_direct_router_ctx() -> DirectRouterCtx:
-    router_mod = _load_tool_module("packet_router_runtime", "codex_packet_handoff/tools/router.py")
+    router_mod = _load_tool_module("packet_router_runtime", str(ROUTER_PATH))
     cfg = router_mod.load_cfg()
     state = router_mod.load_json(router_mod.STATE_FILE, {})
-    repo_cwd = str(Path.cwd())
+    repo_cwd = str(REPO_ROOT)
     client = router_mod.CodexMcpClient(
         approval=router_mod.ApprovalPolicy(True, True),
         codex_cmd=cfg.codex_cmd,
@@ -416,7 +424,7 @@ def _git_rev(branch: str) -> str:
 
 
 def _lane_digest(lane: str) -> Dict[str, object]:
-    base = Path(".codex/packets/lanes") / lane
+    base = REPO_ROOT / ".codex/packets/lanes" / lane
     feat = sorted((base / "inbox/feature").glob("*.md"))
     rev = sorted((base / "inbox/reviewer").glob("*.md"))
     appr = sorted((base / "outbox/integrator").glob("*.md"))
@@ -450,8 +458,8 @@ def _has_lane_backlog() -> bool:
 
 
 def _compute_snapshot(branch_map: Dict[str, str]) -> str:
-    planner_state = load_json(Path(".codex/packet_planner/state.json"), {})
-    router_state = load_json(Path(".codex/packet_router/state.json"), {})
+    planner_state = load_json(REPO_ROOT / ".codex/packet_planner/state.json", {})
+    router_state = load_json(REPO_ROOT / ".codex/packet_router/state.json", {})
     payload: Dict[str, object] = {
         "planner_state": planner_state,
         "router_state_keys": sorted(router_state.keys()),
@@ -539,7 +547,12 @@ def main() -> int:
 
         branch_map = _load_lane_branches()
         if args.execution_mode == "direct":
-            direct_ctx = _init_direct_router_ctx()
+            try:
+                direct_ctx = _init_direct_router_ctx()
+            except Exception as exc:
+                print(f"[coordinator] direct router init failed; falling back to subprocess mode: {exc}")
+                args.execution_mode = "subprocess"
+                direct_ctx = None
 
         planner_errors = 0
         router_errors = 0

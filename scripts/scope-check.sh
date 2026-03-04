@@ -32,8 +32,23 @@ shared_file_allowed() {
   [[ "$allow_shared" == "1" ]]
 }
 
+is_shared_handoff_doc() {
+  local f="$1"
+  case "$f" in
+    THREAD.md|THREAD_PACKET.md|handoff/*|handoffs/*|codex_packet_handoff/*.md)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 is_allowed() {
   local f="$1"
+  if is_shared_handoff_doc "$f"; then
+    shared_file_allowed && return 0
+  fi
   case "$branch" in
     codex/integrator|main)
       return 0

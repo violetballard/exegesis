@@ -164,7 +164,6 @@ def main()->None:
     state=load_json(STATE_FILE,{})
     lane_state=state.get("lanes",{})
     repo=str(Path.cwd())
-    orig=git("rev-parse --abbrev-ref HEAD", cwd=repo)
     run("git fetch --all --prune", cwd=repo, timeout=600)
 
     for lane,lcfg in cfg["lanes"].items():
@@ -176,20 +175,14 @@ def main()->None:
         if lane_repo and is_git_repo(lane_repo):
             active_repo = lane_repo
         else:
-            active_repo = repo
-            rc,out=run(f"git switch {branch}", cwd=repo, timeout=300)
-            if rc!=0:
-                rc,out2=run(f"git checkout {branch}", cwd=repo, timeout=300)
-                if rc!=0:
-                    msg = out2 if out2.strip() else out
-                    if lane_repo and not is_git_repo(lane_repo):
-                        print(
-                            f"[planner] {lane}: stale worktree for {branch} at {lane_repo}; "
-                            f"cannot switch branch in repo (likely checked out elsewhere):\n{msg}"
-                        )
-                    else:
-                        print(f"[planner] {lane}: cannot switch to {branch}:\n{out}\n{out2}")
-                    continue
+            # Do not switch branches in the main repo from planner automation.
+            # Lane automation is worktree-scoped; missing/stale worktrees should be fixed
+            # out-of-band without mutating main checkout state.
+            if lane_repo and not is_git_repo(lane_repo):
+                print(f"[planner] {lane}: stale non-git worktree for {branch} at {lane_repo}; skipping")
+            else:
+                print(f"[planner] {lane}: no usable worktree for {branch}; skipping")
+            continue
         try:
             sha=git("rev-parse HEAD", cwd=active_repo)
         except Exception as e:
@@ -237,7 +230,6 @@ def main()->None:
         print(f"[planner] emitted {outp}")
         lane_state[lane]={"last_submitted_sha":sha,"last_emitted_packet":fn}
 
-    run(f"git switch {orig}", cwd=repo, timeout=300)
     state["lanes"]=lane_state
     save_json(STATE_FILE,state)
 

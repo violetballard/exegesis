@@ -35,6 +35,22 @@ def _pid_alive(pid: int) -> bool:
         return False
 
 
+def _pid_matches_daemon(pid: int) -> bool:
+    try:
+        p = subprocess.run(
+            ["ps", "-p", str(pid), "-o", "command="],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except Exception:
+        return False
+    if p.returncode != 0:
+        return False
+    cmd = (p.stdout or "").strip()
+    return bool(cmd and PROC_MATCH in cmd)
+
+
 def _read_pid() -> Optional[int]:
     try:
         raw = PID_FILE.read_text().strip()
@@ -86,7 +102,7 @@ def _clear_stale_lease() -> None:
         import json
         data = json.loads(LEASE_FILE.read_text() or "{}")
         pid = int(data.get("pid", 0) or 0)
-        if not pid or not _pid_alive(pid):
+        if not pid or not _pid_alive(pid) or not _pid_matches_daemon(pid):
             LEASE_FILE.unlink(missing_ok=True)
     except Exception:
         pass
@@ -104,10 +120,12 @@ def _lease_state() -> tuple[int | None, float | None]:
 
 
 def _is_running() -> bool:
-    pid = _read_pid()
-    if not pid or not _pid_alive(pid):
-        return False
     lease_pid, lease_ts = _lease_state()
+    pid = _read_pid() or lease_pid
+    if not pid:
+        return False
+    if not _pid_alive(pid) or not _pid_matches_daemon(pid):
+        return False
     if lease_pid != pid or not lease_ts:
         return False
     return (time.time() - lease_ts) <= LEASE_FRESH_SECONDS
@@ -153,7 +171,8 @@ def _start() -> int:
 
 
 def _stop() -> int:
-    pid = _read_pid()
+    lease_pid, _ = _lease_state()
+    pid = _read_pid() or lease_pid
     stopped_any = False
     if pid and _pid_alive(pid):
         os.kill(pid, signal.SIGTERM)

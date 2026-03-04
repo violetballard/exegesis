@@ -39,6 +39,7 @@ class RouterConfig:
     kick_fixers_on_reviewer_backlog: bool
     fixer_kick_timeout_seconds: float
     reviewer_fixer_retry_cooldown_seconds: float
+    prefer_cli_fixer: bool
     lanes: Dict[str, Dict[str, Any]]
 
 def load_json(p: Path, default: Any) -> Any:
@@ -81,6 +82,7 @@ def load_cfg() -> RouterConfig:
         kick_fixers_on_reviewer_backlog=bool(cfg.get("kick_fixers_on_reviewer_backlog", True)),
         fixer_kick_timeout_seconds=float(cfg.get("fixer_kick_timeout_seconds", 8)),
         reviewer_fixer_retry_cooldown_seconds=float(cfg.get("reviewer_fixer_retry_cooldown_seconds", 900)),
+        prefer_cli_fixer=bool(cfg.get("prefer_cli_fixer", True)),
         lanes=dict(cfg.get("lanes", {})),
     )
 
@@ -323,28 +325,29 @@ def run_fixer(client: CodexMcpClient, cfg: RouterConfig, state: dict, lane: str,
     branch = str(lane_cfg.get("branch") or f"codex/{lane}")
     wt = _find_worktree_for_branch(repo_cwd, branch)
     _sync_lane_runbook_files(repo_cwd, wt)
-    fixer_map = state.get("fixer_thread_ids") or {}
-    tid = fixer_map.get(lane)
-    try:
-        if not tid:
-            tid, _ = client.codex(
-                prompt=f"You are the FEATURE FIXER for lane `{lane}`. You will apply reviewer-required fixes.",
-                cwd=(wt or repo_cwd),
-                sandbox="workspace-write",
-                approval_policy="never",
-                model=cfg.model,
+    if not cfg.prefer_cli_fixer:
+        fixer_map = state.get("fixer_thread_ids") or {}
+        tid = fixer_map.get(lane)
+        try:
+            if not tid:
+                tid, _ = client.codex(
+                    prompt=f"You are the FEATURE FIXER for lane `{lane}`. You will apply reviewer-required fixes.",
+                    cwd=(wt or repo_cwd),
+                    sandbox="workspace-write",
+                    approval_policy="never",
+                    model=cfg.model,
+                    timeout=cfg.fixer_kick_timeout_seconds,
+                )
+            tid, _ = client.codex_reply(
+                tid,
+                fixer_prompt(lane, branch, reviewer_packet, wt),
                 timeout=cfg.fixer_kick_timeout_seconds,
             )
-        tid, _ = client.codex_reply(
-            tid,
-            fixer_prompt(lane, branch, reviewer_packet, wt),
-            timeout=cfg.fixer_kick_timeout_seconds,
-        )
-        fixer_map[lane] = tid
-        state["fixer_thread_ids"] = fixer_map
-        return state
-    except Exception:
-        pass
+            fixer_map[lane] = tid
+            state["fixer_thread_ids"] = fixer_map
+            return state
+        except Exception:
+            pass
 
     # Fallback: detached CLI fixer so router ticks don't deadlock on MCP stalls.
     logs = ROUTER_ROOT / "logs"

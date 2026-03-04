@@ -62,6 +62,24 @@ def _pid_alive(pid: int) -> bool:
         return False
 
 
+def _pid_matches_daemon(pid: int) -> bool:
+    try:
+        p = subprocess.run(
+            ["ps", "-p", str(pid), "-o", "command="],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except Exception:
+        # In restricted environments, process table inspection may be blocked.
+        # Treat as unknown-but-acceptable and rely on lease freshness.
+        return True
+    if p.returncode != 0:
+        return True
+    cmd = (p.stdout or "").strip()
+    return bool(cmd and "codex_packet_handoff/tools/agents_coordinator.py --daemon" in cmd)
+
+
 def _matching_pids() -> list[int]:
     # Sandboxed environments may block process listing tools. In that case,
     # monitor uses pidfile + kill(0) as the source of truth.
@@ -536,9 +554,12 @@ def _detailed_conversation_summary(log_path: Path | None) -> Dict[str, Any]:
 def main() -> None:
     pid = _read_pid()
     lease_pid, lease_ts = _lease_pid_ts()
+    if not pid and lease_pid:
+        pid = lease_pid
     running = bool(
         pid
         and _pid_alive(pid)
+        and _pid_matches_daemon(pid)
         and lease_pid == pid
         and lease_ts
         and (time.time() - lease_ts) <= LEASE_FRESH_SECONDS
