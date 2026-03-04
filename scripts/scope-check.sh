@@ -5,9 +5,12 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 
 branch="$(git rev-parse --abbrev-ref HEAD)"
 allow_shared="${SCOPE_ALLOW_SHARED:-0}"
+include_worktree="${SCOPE_INCLUDE_WORKTREE:-0}"
 
-# Use merge-base against main so checks are stable across rebases.
-if git show-ref --verify --quiet refs/heads/main; then
+# Use merge-base against integrator when available, otherwise main.
+if git show-ref --verify --quiet refs/heads/codex/integrator; then
+  base_ref="codex/integrator"
+elif git show-ref --verify --quiet refs/heads/main; then
   base_ref="main"
 else
   base_ref="$(git rev-list --max-parents=0 HEAD | tail -n 1)"
@@ -15,13 +18,18 @@ fi
 
 merge_base="$(git merge-base HEAD "$base_ref")"
 
-changed_files="$(
-  {
-    git diff --name-only --diff-filter=ACMR "${merge_base}..HEAD"
-    git diff --name-only --diff-filter=ACMR
-    git diff --name-only --cached --diff-filter=ACMR
-  } | awk 'NF' | sort -u
-)"
+changed_files="$(git diff --name-only --diff-filter=ACMR "${merge_base}..HEAD" | awk 'NF' | sort -u)"
+
+# Optional: include staged/unstaged edits for stricter local preflight checks.
+if [[ "$include_worktree" == "1" ]]; then
+  changed_files="$(
+    {
+      printf '%s\n' "$changed_files"
+      git diff --name-only --diff-filter=ACMR
+      git diff --name-only --cached --diff-filter=ACMR
+    } | awk 'NF' | sort -u
+  )"
+fi
 
 if [[ -z "$changed_files" ]]; then
   log "scope-check: no changed files"
@@ -32,23 +40,8 @@ shared_file_allowed() {
   [[ "$allow_shared" == "1" ]]
 }
 
-is_shared_handoff_doc() {
-  local f="$1"
-  case "$f" in
-    THREAD.md|THREAD_PACKET.md|handoff/*|handoffs/*|codex_packet_handoff/*.md)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}
-
 is_allowed() {
   local f="$1"
-  if is_shared_handoff_doc "$f"; then
-    shared_file_allowed && return 0
-  fi
   case "$branch" in
     codex/integrator|main)
       return 0
@@ -71,6 +64,13 @@ is_allowed() {
       case "$f" in
         src/qual/ui/*|src/qual/ui/*/*|src/qual/drafting/*|src/qual/drafting/*/*|src/qual/engine/*|src/qual/engine/*/*) return 0 ;;
         src/qual/app.py) shared_file_allowed && return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-webconsole*)
+      case "$f" in
+        src/qual/webconsole/*|src/qual/webconsole/*/*|src/qual/webconsole/*/*/*) return 0 ;;
+        WEB_CONSOLE_SPEC.md|PROVIDER_COMPAT_PROBE_SPEC.md) shared_file_allowed && return 0 ;;
       esac
       return 1
       ;;
