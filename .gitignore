@@ -6,3 +6,20 @@
 
 # Logs
 *.log
+
+# Packet/automation runtime state (local only)
+.codex/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Local sandbox artifacts
+.testfile
+foo
+foo.lock
+sandbox-project/.vault_state.json
+sandbox-project/.vault_state.bak.json
+sandbox-project/feat-fixer
+sandbox-project/*.patch
+codex_packet_handoff/feat-webconsole-ui_packet_update.md
