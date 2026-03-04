@@ -54,7 +54,7 @@ is_allowed() {
       THREAD.md|THREAD_PACKET.md|AGENTS.md|INTEGRATION.md)
         return 0
         ;;
-      foo.txt|foo.lock|tmp_check.txt|tmpfile.md)
+      .gitignore|scripts/scope-check.sh|foo.txt|foo.lock|tmp_check.txt|tmpfile.md)
         return 0
         ;;
     esac
