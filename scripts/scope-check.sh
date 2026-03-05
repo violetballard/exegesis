@@ -7,19 +7,34 @@ branch="$(git rev-parse --abbrev-ref HEAD)"
 allow_shared="${SCOPE_ALLOW_SHARED:-0}"
 include_worktree="${SCOPE_INCLUDE_WORKTREE:-0}"
 ignore_lane_noise="${SCOPE_IGNORE_LANE_NOISE:-1}"
+scope_window="${SCOPE_WINDOW:-auto}"
 
-# Use merge-base against integrator when available, otherwise main.
-if git show-ref --verify --quiet refs/heads/codex/integrator; then
-  base_ref="codex/integrator"
-elif git show-ref --verify --quiet refs/heads/main; then
-  base_ref="main"
-else
-  base_ref="$(git rev-list --max-parents=0 HEAD | tail -n 1)"
+if [[ "$scope_window" == "auto" ]]; then
+  case "$branch" in
+    codex/feat-*)
+      scope_window="recent"
+      ;;
+    *)
+      scope_window="full"
+      ;;
+  esac
 fi
 
-merge_base="$(git merge-base HEAD "$base_ref")"
+if [[ "$scope_window" == "recent" ]]; then
+  changed_files="$(git show --name-only --pretty=format: --diff-filter=ACMR HEAD | awk 'NF' | sort -u)"
+else
+  # Use merge-base against integrator when available, otherwise main.
+  if git show-ref --verify --quiet refs/heads/codex/integrator; then
+    base_ref="codex/integrator"
+  elif git show-ref --verify --quiet refs/heads/main; then
+    base_ref="main"
+  else
+    base_ref="$(git rev-list --max-parents=0 HEAD | tail -n 1)"
+  fi
 
-changed_files="$(git diff --name-only --diff-filter=ACMR "${merge_base}..HEAD" | awk 'NF' | sort -u)"
+  merge_base="$(git merge-base HEAD "$base_ref")"
+  changed_files="$(git diff --name-only --diff-filter=ACMR "${merge_base}..HEAD" | awk 'NF' | sort -u)"
+fi
 
 # Optional: include staged/unstaged edits for stricter local preflight checks.
 if [[ "$include_worktree" == "1" ]]; then
@@ -45,7 +60,7 @@ is_allowed() {
   local f="$1"
   if [[ "$ignore_lane_noise" == "1" ]]; then
     case "$f" in
-      .codex/*|.agents/*|.git-*/**|.git-*/?|.git-box/*|.git-local/*|.git-real/*|.git-copy/*|.git-local-root/*|.git-worktree-local/*)
+      .codex/*|.agents/*|.git-*/**|.git-*/?|.git-box/*|.git-local/*|.git-real/*|.git-copy/*|.git-local-root/*|.git-worktree-local/*|.pycache_global/*|.git.box|.git.box-backup|.git.original_box|.git_alt_index|.git.orig|.git.remote)
         return 0
         ;;
       handoff/*|handoff.block/*|handoffs/*)
