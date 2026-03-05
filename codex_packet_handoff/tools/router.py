@@ -28,6 +28,11 @@ REVIEWER_QUOTA_RE = re.compile(
     re.IGNORECASE,
 )
 PACKET_SHA_RE = re.compile(r"__(?P<sha>[0-9a-f]{7,40})__")
+FIXER_QUOTA_RE = REVIEWER_QUOTA_RE
+FIXER_RETRY_AT_RE = re.compile(
+    r"try again at\s+([A-Za-z]{3}\s+\d{1,2}(?:st|nd|rd|th)?,\s+\d{4}\s+\d{1,2}:\d{2}\s+[AP]M)",
+    re.IGNORECASE,
+)
 
 @dataclass
 class RouterConfig:
@@ -40,6 +45,7 @@ class RouterConfig:
     kick_fixers_on_reviewer_backlog: bool
     fixer_kick_timeout_seconds: float
     reviewer_fixer_retry_cooldown_seconds: float
+    fixer_quota_retry_cooldown_seconds: float
     prefer_cli_fixer: bool
     lanes: Dict[str, Dict[str, Any]]
 
@@ -83,6 +89,7 @@ def load_cfg() -> RouterConfig:
         kick_fixers_on_reviewer_backlog=bool(cfg.get("kick_fixers_on_reviewer_backlog", True)),
         fixer_kick_timeout_seconds=float(cfg.get("fixer_kick_timeout_seconds", 8)),
         reviewer_fixer_retry_cooldown_seconds=float(cfg.get("reviewer_fixer_retry_cooldown_seconds", 900)),
+        fixer_quota_retry_cooldown_seconds=float(cfg.get("fixer_quota_retry_cooldown_seconds", 3600)),
         prefer_cli_fixer=bool(cfg.get("prefer_cli_fixer", True)),
         lanes=dict(cfg.get("lanes", {})),
     )
@@ -114,6 +121,24 @@ def list_new(lane_dir: Path, last_seen: Optional[str]) -> List[Path]:
 def _packet_sha(name: str) -> str:
     m = PACKET_SHA_RE.search(name or "")
     return (m.group("sha") if m else "").lower()
+
+
+def _latest_fixer_log(lane: str) -> Optional[Path]:
+    logs = ROUTER_ROOT / "logs"
+    files = sorted(logs.glob(f"fixer__{lane}__*.log"), key=lambda p: p.stat().st_mtime, reverse=True)
+    return files[0] if files else None
+
+
+def _parse_retry_epoch_from_quota_log(text: str) -> Optional[float]:
+    m = FIXER_RETRY_AT_RE.search(text or "")
+    if not m:
+        return None
+    token = re.sub(r"(\d{1,2})(st|nd|rd|th)", r"\1", m.group(1), flags=re.IGNORECASE)
+    try:
+        dt = datetime.strptime(token, "%b %d, %Y %I:%M %p")
+        return dt.replace(tzinfo=datetime.now().astimezone().tzinfo).timestamp()
+    except Exception:
+        return None
 
 def parse_verdict(text: str) -> str:
     m = VERDICT_RE.search(text or "")
@@ -623,9 +648,14 @@ def process_reviewer_backlog(
 
     cursor = state.get("reviewer_fixer_cursor") or {}
     retry_ts = state.get("reviewer_fixer_retry_ts") or {}
+    quota_retry_ts = state.get("fixer_quota_retry_ts") or {}
     kicked = 0
     for lane in cfg.lanes.keys():
         lane_dir = ensure_lane_dirs(lane)
+        now = time.time()
+        lane_quota_until = float(quota_retry_ts.get(lane, 0) or 0)
+        if lane_quota_until > now:
+            continue
         notes = sorted((lane_dir / "inbox/reviewer").glob("*.md"), key=lambda p: p.stat().st_mtime)
         if not notes:
             continue
@@ -645,20 +675,33 @@ def process_reviewer_backlog(
             else:
                 # Fresh feature packet exists; let reviewer flow handle it first.
                 continue
+        latest_log = _latest_fixer_log(lane)
+        if latest_log:
+            try:
+                text = latest_log.read_text(errors="ignore")
+            except Exception:
+                text = ""
+            if text and FIXER_QUOTA_RE.search(text):
+                retry_at = _parse_retry_epoch_from_quota_log(text)
+                if retry_at is None or retry_at <= now:
+                    retry_at = now + cfg.fixer_quota_retry_cooldown_seconds
+                quota_retry_ts[lane] = retry_at
+                continue
         newest_note = notes[-1]
         if cursor.get(lane) == newest_note.name:
             last_kick = float(retry_ts.get(lane, 0) or 0)
             # Backward compatibility: if timestamp missing, allow one immediate retry.
-            if last_kick > 0 and (time.time() - last_kick) < cfg.reviewer_fixer_retry_cooldown_seconds:
+            if last_kick > 0 and (now - last_kick) < cfg.reviewer_fixer_retry_cooldown_seconds:
                 continue
         reviewer_packet = _materialize_reviewer_packet(lane_dir, newest_note)
         state = run_fixer(client, cfg, state, lane, reviewer_packet, repo_cwd)
         cursor[lane] = newest_note.name
-        retry_ts[lane] = time.time()
+        retry_ts[lane] = now
         kicked += 1
 
     state["reviewer_fixer_cursor"] = cursor
     state["reviewer_fixer_retry_ts"] = retry_ts
+    state["fixer_quota_retry_ts"] = quota_retry_ts
     return kicked, state
 
 def main() -> None:
