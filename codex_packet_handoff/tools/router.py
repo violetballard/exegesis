@@ -27,6 +27,7 @@ REVIEWER_QUOTA_RE = re.compile(
     r"usage limit|try again at|rate limit|too many requests|quota",
     re.IGNORECASE,
 )
+PACKET_SHA_RE = re.compile(r"__(?P<sha>[0-9a-f]{7,40})__")
 
 @dataclass
 class RouterConfig:
@@ -108,6 +109,11 @@ def list_new(lane_dir: Path, last_seen: Optional[str]) -> List[Path]:
         if f.name == last_seen:
             seen = True
     return out
+
+
+def _packet_sha(name: str) -> str:
+    m = PACKET_SHA_RE.search(name or "")
+    return (m.group("sha") if m else "").lower()
 
 def parse_verdict(text: str) -> str:
     m = VERDICT_RE.search(text or "")
@@ -620,12 +626,25 @@ def process_reviewer_backlog(
     kicked = 0
     for lane in cfg.lanes.keys():
         lane_dir = ensure_lane_dirs(lane)
-        # Do not interfere if there are fresh feature packets waiting for reviewer.
-        if any((lane_dir / "inbox/feature").glob("*.md")):
-            continue
         notes = sorted((lane_dir / "inbox/reviewer").glob("*.md"), key=lambda p: p.stat().st_mtime)
         if not notes:
             continue
+        feature_pkts = sorted((lane_dir / "inbox/feature").glob("*.md"), key=lambda p: p.stat().st_mtime)
+        if feature_pkts:
+            newest_feature = feature_pkts[-1]
+            newest_note = notes[-1]
+            f_sha = _packet_sha(newest_feature.name)
+            r_sha = _packet_sha(newest_note.name)
+            stale_reemit = bool(
+                (f_sha and r_sha and f_sha == r_sha)
+                or (newest_feature.stat().st_mtime <= newest_note.stat().st_mtime)
+            )
+            if stale_reemit:
+                # Recovery: stale re-emits can block fixers indefinitely. Archive and continue.
+                archive(newest_feature, lane_dir)
+            else:
+                # Fresh feature packet exists; let reviewer flow handle it first.
+                continue
         newest_note = notes[-1]
         if cursor.get(lane) == newest_note.name:
             last_kick = float(retry_ts.get(lane, 0) or 0)
