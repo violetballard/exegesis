@@ -461,6 +461,7 @@ def _detailed_conversation_summary(log_path: Path | None) -> Dict[str, Any]:
         }
 
     lines = log_path.read_text(errors="ignore").splitlines()
+    log_age_seconds = int(max(0, time.time() - log_path.stat().st_mtime))
     objective = "Apply reviewer required fixes"
     packet = "review packet present"
     phase = "unknown"
@@ -535,6 +536,10 @@ def _detailed_conversation_summary(log_path: Path | None) -> Dict[str, Any]:
             uniq_blockers.append(b)
     uniq_blockers = uniq_blockers[:3]
 
+    # Suppress stale blocker noise from old fixer logs after lane hygiene corrections.
+    if log_age_seconds > 1800:
+        uniq_blockers = []
+
     if success == 0 and fail == 0:
         progress = "no commands executed"
     else:
@@ -548,6 +553,7 @@ def _detailed_conversation_summary(log_path: Path | None) -> Dict[str, Any]:
         "recent": recent,
         "blockers": uniq_blockers,
         "head_sha": head_sha,
+        "log_age_seconds": log_age_seconds,
     }
 
 
