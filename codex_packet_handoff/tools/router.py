@@ -393,6 +393,30 @@ def archive(src: Path, lane_dir: Path) -> None:
         dst.write_text(src.read_text())
         src.unlink()
 
+
+def archive_reviewer_notes(lane_dir: Path, keep: Optional[Path] = None) -> int:
+    """Archive reviewer notes in inbox/reviewer, optionally preserving one file.
+
+    Prevents unbounded reviewer note pileups during feature->review->fix loops.
+    """
+    moved = 0
+    notes = sorted((lane_dir / "inbox/reviewer").glob("*.md"), key=lambda p: p.stat().st_mtime)
+    comp_dir = lane_dir / "archive" / "reviewer_compacted"
+    comp_dir.mkdir(parents=True, exist_ok=True)
+    for note in notes:
+        if keep is not None and note.name == keep.name:
+            continue
+        dst = comp_dir / note.name
+        try:
+            note.rename(dst)
+        except Exception:
+            if not note.exists():
+                continue
+            dst.write_text(note.read_text())
+            note.unlink()
+        moved += 1
+    return moved
+
 def _materialize_reviewer_packet(lane_dir: Path, reviewer_note: Optional[Path], fallback_feature_pkt: Optional[str] = None) -> str:
     note_text = ""
     if reviewer_note is not None:
@@ -538,6 +562,8 @@ def process_once(
             verdict = parse_verdict(reviewer_text)
 
             if verdict == "APPROVED":
+                # Clear stale reviewer notes now that this lane packet is approved.
+                archive_reviewer_notes(lane_dir)
                 write_text(lane_dir/"outbox/integrator"/pkt_path.name.replace("F__","R__APPROVED__"), reviewer_text)
                 try:
                     integrator_tid, integ = client.codex_reply(
@@ -559,6 +585,8 @@ def process_once(
                         f"{pkt}\n"
                     )
                 outp = lane_dir/"inbox/reviewer"/pkt_path.name.replace("F__","R__CHANGES__")
+                # Keep a single active reviewer note per lane; archive any older notes.
+                archive_reviewer_notes(lane_dir)
                 write_text(outp, reviewer_text)
 
             cursor[lane] = pkt_path.name
