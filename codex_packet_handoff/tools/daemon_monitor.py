@@ -26,6 +26,7 @@ VERDICT_RE = re.compile(r"Verdict:\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUE
 SHA_RE = re.compile(r"\b[0-9a-f]{40}\b", re.IGNORECASE)
 EXEC_RESULT_RE = re.compile(r"exited (\d+)|succeeded", re.IGNORECASE)
 REQUIRED_FIX_RE = re.compile(r"^\s*\d+\.\s+", re.MULTILINE)
+LANE_NAME_RE = re.compile(r"feature lane agent for\s+`?([A-Za-z0-9._-]+)`?", re.IGNORECASE)
 
 
 def _load_json(path: Path, default: Any) -> Any:
@@ -139,7 +140,7 @@ def _manual_feature_sessions() -> list[dict[str, str]]:
         parts = row.split(None, 2)
         if len(parts) != 3 or not parts[0].isdigit():
             continue
-        lane_match = re.search(r"feature lane agent for\s+([A-Za-z0-9._-]+)", parts[2])
+        lane_match = LANE_NAME_RE.search(parts[2])
         rows.append(
             {
                 "pid": parts[0],
@@ -149,6 +150,18 @@ def _manual_feature_sessions() -> list[dict[str, str]]:
             }
         )
     return rows
+
+
+def _is_real_lane_path_error(line: str) -> bool:
+    lowered = line.lower()
+    if "no such file or directory" not in lowered:
+        return False
+    # Ignore Codex temp/snapshot cleanup noise; these are not lane worktree issues.
+    if ".codex/shell_snapshots/" in lowered:
+        return False
+    if "failed to delete shell snapshot" in lowered:
+        return False
+    return True
 
 
 def _manual_feature_logs(limit: int = 5) -> list[Path]:
@@ -545,7 +558,7 @@ def _detailed_conversation_summary(log_path: Path | None) -> Dict[str, Any]:
                     rc = int(m.group(1))
                     fail += 1
                     cmd_outcomes.append(f"FAIL({rc}) {compact}")
-                    if "No such file or directory" in cmd_line:
+                    if _is_real_lane_path_error(cmd_line):
                         blockers.append("missing file/path in lane worktree")
                 else:
                     success += 1
@@ -556,7 +569,7 @@ def _detailed_conversation_summary(log_path: Path | None) -> Dict[str, Any]:
             blockers.append(ln.strip())
         if "hit your usage limit" in ln:
             blockers.append("usage limit hit")
-        if "No such file or directory" in ln:
+        if _is_real_lane_path_error(ln):
             blockers.append("missing file/path in lane worktree")
         for sha in SHA_RE.findall(ln):
             head_sha = sha
