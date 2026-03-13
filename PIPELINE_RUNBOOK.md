@@ -8,6 +8,8 @@ This file is the operator-facing reference for the packet pipeline, daemon dashb
 - Rich dashboard: `python codex_packet_handoff/tools/daemon_monitor.py`
 - Start daemon: `python codex_packet_handoff/tools/daemon_ctl.py start`
 - Stop daemon: `python codex_packet_handoff/tools/daemon_ctl.py stop`
+- Process view: `ps -axo pid,etime,command | rg "codex exec|codex_packet_handoff/tools/agents_coordinator.py" || true`
+- Manual feature logs: `ls -1t .codex/feature_runner/logs/*.log | head`
 
 ## How To Read Status
 
@@ -27,6 +29,11 @@ Lane states:
 - per-lane reviewer status
 - latest fixer log summary for each lane
 - backlog bottleneck classification
+
+Manual feature sessions are separate from the daemon:
+- feature lanes may also be running as direct Codex CLI sessions outside the daemon
+- inspect them with the process view and `.codex/feature_runner/logs/`
+- if queue state is idle but feature sessions are active, the pipeline is waiting for new commits rather than stuck
 
 If `status.py` and `daemon_monitor.py` disagree, trust `status.py` for queue truth and use `daemon_monitor.py` for runtime diagnostics.
 
@@ -53,6 +60,18 @@ Current lane posture:
 - `feat-ux-flow`: restart from current main
 - `feat-webconsole-core`: restart from current main, high-risk template
 - `feat-webconsole-ui`: restart from current main
+
+## Managed Sessions
+
+Control-plane managed Codex sessions:
+- one reviewer session per lane
+- one integrator session
+
+Feature work may run in either of two modes:
+- daemon-triggered reviewer/fixer/integrator flow
+- manual feature-lane Codex sessions launched from kickoff packets
+
+When reporting status, include both the control-plane view and any manual feature-session activity.
 
 ## Required Docs For Reviewers And Fixers
 
