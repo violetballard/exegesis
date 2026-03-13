@@ -18,6 +18,7 @@ DAEMON_PID = Path(".codex/packet_coordinator/daemon.pid")
 DAEMON_LOG = Path(".codex/packet_coordinator/daemon.log")
 RUNS_DIR = Path(".codex/packet_coordinator/runs")
 LOG_DIR = Path(".codex/packet_router/logs")
+FEATURE_RUNNER_ROOT = Path(".codex/feature_runner")
 COORD_LEASE = Path(".codex/packet_coordinator/lease.json")
 LEASE_FRESH_SECONDS = 3600
 LANES = ["feat-commands", "feat-context-storage", "feat-ux-flow", "feat-webconsole-core", "feat-webconsole-ui"]
@@ -112,6 +113,49 @@ def _matching_pids() -> list[int]:
             continue
         out.append(pid)
     return out
+
+
+def _manual_feature_sessions() -> list[dict[str, str]]:
+    try:
+        p = subprocess.run(
+            ["ps", "-axo", "pid=,etime=,command="],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except Exception:
+        return []
+    if p.returncode != 0:
+        return []
+    rows: list[dict[str, str]] = []
+    for ln in (p.stdout or "").splitlines():
+        row = ln.strip()
+        if not row or "codex exec" not in row:
+            continue
+        if "FEATURE FIXER" in row:
+            continue
+        if "feature lane agent for" not in row:
+            continue
+        parts = row.split(None, 2)
+        if len(parts) != 3 or not parts[0].isdigit():
+            continue
+        lane_match = re.search(r"feature lane agent for\s+([A-Za-z0-9._-]+)", parts[2])
+        rows.append(
+            {
+                "pid": parts[0],
+                "etime": parts[1],
+                "lane": lane_match.group(1) if lane_match else "-",
+                "command": parts[2],
+            }
+        )
+    return rows
+
+
+def _manual_feature_logs(limit: int = 5) -> list[Path]:
+    log_dir = FEATURE_RUNNER_ROOT / "logs"
+    if not log_dir.exists():
+        return []
+    return sorted(log_dir.glob("*.log"), key=lambda p: p.stat().st_mtime, reverse=True)[:limit]
 
 
 def _latest_run() -> Dict[str, Any] | None:
@@ -629,6 +673,16 @@ def main() -> None:
     print(f"fixer_fallback_jobs={len(fallback_jobs) if isinstance(fallback_jobs, dict) else 0}")
     print()
 
+    manual_sessions = _manual_feature_sessions()
+    print("MANUAL FEATURE SESSIONS")
+    print(f"running_count={len(manual_sessions)}")
+    if manual_sessions:
+        for row in manual_sessions:
+            print(f"{row['lane']:22} pid={row['pid']} age={row['etime']}")
+    else:
+        print("(none)")
+    print()
+
     rv_live = _reviewer_live_summary()
     print("REVIEWER LIVE DISCUSSION")
     print(f"queue_count={rv_live['queue_count']}")
@@ -733,6 +787,22 @@ def main() -> None:
             print("  blockers:")
             for item in detail["blockers"]:
                 print(f"    - {item}")
+    print()
+
+    print("MANUAL FEATURE LOGS")
+    logs = _manual_feature_logs()
+    if not logs:
+        print("(none)")
+    else:
+        for logp in logs:
+            age = int(max(0, time.time() - logp.stat().st_mtime))
+            print(f"{logp.name} age={age}s")
+            try:
+                tail = logp.read_text(errors="ignore").splitlines()[-5:]
+            except Exception:
+                tail = ["(unable to read log)"]
+            for line in tail:
+                print(f"  {line[:200]}")
     print()
 
     print("DAEMON LOG TAIL")

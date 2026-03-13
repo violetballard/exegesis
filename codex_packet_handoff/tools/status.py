@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""status.py — quick pipeline status summary (local filesystem truth)
+"""status.py — pipeline queue truth (local filesystem state only)
 
 Prints per-lane:
 - pending feature packets
 - reviewer feedback packets
 - approved integrator packets
 - latest integrator output (if any)
+
+This script does not inspect live Codex sessions. Pair it with:
+  python codex_packet_handoff/tools/daemon_monitor.py
+for reviewer/integrator live state and manual feature-session activity.
 
 Run:
   python codex_packet_handoff/tools/status.py
@@ -114,7 +118,7 @@ def main() -> None:
     ]
 
     # Header
-    print('PIPELINE STATUS (filesystem truth)\n')
+    print('PIPELINE STATUS (filesystem truth only)\n')
     total_pending = sum(len(s.pending_feature) for s in statuses)
     total_review = sum(len(s.reviewer_notes) for s in statuses)
     total_approved = sum(len(s.approved_integrator) for s in statuses)
@@ -159,6 +163,8 @@ def main() -> None:
     print('- If state=waiting_feature_update: lane branch has not advanced since reviewer notes.')
     print('- If state=ready_for_reemit: lane advanced and planner should emit a new feature packet.')
     print('- If approved>0: integrator run should fire; check for INTEGRATOR__ outputs in archive.')
+    print('- This script ignores live reviewer/integrator sessions and manual feature-lane sessions by design.')
+    print('- For the full dashboard, also run daemon_monitor.py.')
     if total_waiting_feature > 0 and (not inline_fixer or not backlog_fixer):
         print('- auto-fixer handback is disabled by router config; reviewer notes may wait for manual feature commits.')
 
