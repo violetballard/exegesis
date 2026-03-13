@@ -8,6 +8,8 @@ Future commercial UI package name: `Exegesis Studio` (separate project after Eng
 
 - Product target and non-negotiables: `PRODUCT_VISION.md`
 - Roadmap and milestone status: `ROADMAP.md`
+- Pipeline dashboard and operator runbook: `PIPELINE_RUNBOOK.md`
+- Product architecture and contracts: `ARCHITECTURE.md`, `PRODUCT_VISION.md`, `INTEGRATION.md`
 - Architecture boundaries and dependency rules: `ARCHITECTURE.md`
 - Integration process and merge gates: `INTEGRATION.md`
 - Thread lane ownership and scope guardrails: `THREAD_OWNERSHIP.md`
