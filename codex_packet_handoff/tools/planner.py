@@ -141,7 +141,7 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     lines += [f"{i+1}. {str(t).strip()}" for i,t in enumerate(tasks)] if tasks else ["1. (missing)"]
     lines += ["","## Files changed"]
     lines += [f"- `{f}`" for f in files] if files else ["- (none detected)"]
-    lines += ["","## Commands run with results"]
+    lines += ["","## Commands run and outcomes"]
     for cmd,rc in gate_results:
         lines.append(f"- `{cmd}`: {rcstr(rc)}")
     lines += ["","## Risks / blockers", f"- Risk: `{str(meta.get('risk','LOW')).strip()}`","- Blockers: none",""]
