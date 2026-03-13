@@ -154,6 +154,24 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     lines += ["## Scope-check / ownership note", f"- Shared/integrator-locked edits: `{'YES' if bool(meta.get('shared_file_exception')) else 'NO'}`",""]
     return "\n".join(lines)
 
+
+def _normalize_gate_results(raw: Any) -> List[Tuple[str, int]]:
+    out: List[Tuple[str, int]] = []
+    if not isinstance(raw, list):
+        return out
+    for item in raw:
+        if not isinstance(item, (list, tuple)) or len(item) != 2:
+            continue
+        cmd = str(item[0]).strip()
+        try:
+            rc = int(item[1])
+        except Exception:
+            continue
+        if not cmd:
+            continue
+        out.append((cmd, rc))
+    return out
+
 def main()->None:
     cfg=load_json(CONFIG_FILE,None)
     if not cfg or "lanes" not in cfg:
@@ -189,7 +207,8 @@ def main()->None:
         except Exception as e:
             print(f"[planner] {lane}: unable to resolve HEAD in {active_repo}: {e}")
             continue
-        last_submitted_sha = (lane_state.get(lane) or {}).get("last_submitted_sha")
+        prev_lane_state = lane_state.get(lane) or {}
+        last_submitted_sha = prev_lane_state.get("last_submitted_sha")
         # Reviewer notes should block new packets until lane HEAD advances.
         # This allows one-at-a-time re-review submissions from the feature lane.
         if has_reviewer_notes and (not last_submitted_sha or last_submitted_sha == sha):
@@ -211,9 +230,14 @@ def main()->None:
         if bool(meta.get("shared_file_exception")):
             env["SCOPE_ALLOW_SHARED"]="1"
         if fast_reemit:
-            print(f"[planner] {lane}: fast re-emit from advanced HEAD after reviewer notes (skip local gates)")
-            results=[("fast_reemit_after_reviewer",0)]
-        else:
+            carried = _normalize_gate_results(prev_lane_state.get("last_gate_results"))
+            if carried:
+                print(f"[planner] {lane}: fast re-emit from advanced HEAD after reviewer notes (reuse prior gate results)")
+                results = carried
+            else:
+                print(f"[planner] {lane}: fast re-emit has no prior gate results; rerunning local gates")
+                fast_reemit = False
+        if not fast_reemit:
             scope_rc,scope_out=run("make scope-check", cwd=active_repo, env=env, timeout=900)
             if scope_rc!=0:
                 print(f"[planner] {lane}: scope-check FAIL:\n{scope_out}")
@@ -234,7 +258,11 @@ def main()->None:
         outp=PACKETS_ROOT/lane/"inbox/feature"/fn
         outp.write_text(build_packet(lane,branch,sha,meta,files,results))
         print(f"[planner] emitted {outp}")
-        lane_state[lane]={"last_submitted_sha":sha,"last_emitted_packet":fn}
+        lane_state[lane]={
+            "last_submitted_sha":sha,
+            "last_emitted_packet":fn,
+            "last_gate_results":[[cmd, rc] for cmd, rc in results],
+        }
 
     state["lanes"]=lane_state
     save_json(STATE_FILE,state)
