@@ -124,7 +124,9 @@ class CodexMcpClient:
         model: str,
         timeout: float = 600.0,
     ) -> Tuple[str, str]:
-        args: Json = {"prompt": prompt, "sandbox": sandbox, "approvalPolicy": approval_policy, "model": model}
+        args: Json = {"prompt": prompt, "sandbox": sandbox, "approvalPolicy": approval_policy}
+        if model:
+            args["model"] = model
         if cwd:
             args["cwd"] = cwd
         result = self.tools_call("codex", args, timeout=timeout)
