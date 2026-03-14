@@ -417,10 +417,6 @@ def _launch_one_lane(
             "workdir": workdir,
             "error": str(exc),
         }
-    finally:
-        client.close()
-
-
 def main() -> int:
     args = parse_args()
     launch_cfg = runtime_launch_config()
