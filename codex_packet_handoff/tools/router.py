@@ -38,6 +38,8 @@ FIXER_RETRY_AT_RE = re.compile(
 class RouterConfig:
     model: str
     codex_cmd: str
+    fallback_model: str
+    fallback_codex_cmd: str
     reviewer_timeout: float
     integrator_timeout: float
     max_packets_per_run: int
@@ -47,6 +49,8 @@ class RouterConfig:
     reviewer_fixer_retry_cooldown_seconds: float
     fixer_quota_retry_cooldown_seconds: float
     prefer_cli_fixer: bool
+    use_cli_reviewer_fallback: bool
+    use_cli_integrator_fallback: bool
     lanes: Dict[str, Dict[str, Any]]
 
 def load_json(p: Path, default: Any) -> Any:
@@ -82,6 +86,8 @@ def load_cfg() -> RouterConfig:
     return RouterConfig(
         model=str(cfg.get("model", "gpt-5.1-codex")),
         codex_cmd=str(cfg.get("codex_cmd", "codex")),
+        fallback_model=str(cfg.get("fallback_model") or os.environ.get("CODEX_FALLBACK_MODEL") or cfg.get("model", "gpt-5.1-codex")),
+        fallback_codex_cmd=str(cfg.get("fallback_codex_cmd") or os.environ.get("CODEX_FALLBACK_CMD") or cfg.get("codex_cmd", "codex")),
         reviewer_timeout=float(cfg.get("reviewer_timeout", 180)),
         integrator_timeout=float(cfg.get("integrator_timeout", 900)),
         max_packets_per_run=int(cfg.get("max_packets_per_run", 1)),
@@ -91,6 +97,8 @@ def load_cfg() -> RouterConfig:
         reviewer_fixer_retry_cooldown_seconds=float(cfg.get("reviewer_fixer_retry_cooldown_seconds", 900)),
         fixer_quota_retry_cooldown_seconds=float(cfg.get("fixer_quota_retry_cooldown_seconds", 3600)),
         prefer_cli_fixer=bool(cfg.get("prefer_cli_fixer", True)),
+        use_cli_reviewer_fallback=bool(cfg.get("use_cli_reviewer_fallback", True)),
+        use_cli_integrator_fallback=bool(cfg.get("use_cli_integrator_fallback", True)),
         lanes=dict(cfg.get("lanes", {})),
     )
 
@@ -263,6 +271,66 @@ def integrator_prompt(approved: str) -> str:
         f"{approved}\n"
     )
 
+
+def _run_cli_codex(
+    codex_cmd: str,
+    model: str,
+    sandbox: str,
+    cwd: str,
+    prompt: str,
+    timeout: float,
+) -> Tuple[int, str]:
+    p = subprocess.run(
+        [codex_cmd, "exec", "-m", model, "-s", sandbox, prompt],
+        cwd=cwd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=timeout,
+    )
+    return p.returncode, p.stdout or ""
+
+
+def _run_cli_reviewer(cfg: RouterConfig, repo_cwd: str, pkt: str, reason: str) -> Optional[str]:
+    if not cfg.use_cli_reviewer_fallback:
+        return None
+    try:
+        rc, out = _run_cli_codex(
+            cfg.fallback_codex_cmd,
+            cfg.fallback_model,
+            "read-only",
+            repo_cwd,
+            reviewer_prompt(pkt),
+            cfg.reviewer_timeout,
+        )
+    except Exception:
+        return None
+    if rc != 0:
+        return None
+    text = (out or "").strip()
+    if not text or _invalid_reviewer_output(text) or _is_reviewer_quota_output(text):
+        return None
+    return text
+
+
+def _run_cli_integrator(cfg: RouterConfig, repo_cwd: str, approved: str) -> Optional[str]:
+    if not cfg.use_cli_integrator_fallback:
+        return None
+    try:
+        rc, out = _run_cli_codex(
+            cfg.fallback_codex_cmd,
+            cfg.fallback_model,
+            "workspace-write",
+            repo_cwd,
+            integrator_prompt(approved),
+            cfg.integrator_timeout,
+        )
+    except Exception:
+        return None
+    if rc != 0:
+        return None
+    return (out or "").strip()
+
 def _find_worktree_for_branch(repo_cwd: str, branch: str) -> Optional[str]:
     # Normalize to refs/heads/...
     ref = branch
@@ -390,10 +458,10 @@ def run_fixer(client: CodexMcpClient, cfg: RouterConfig, state: dict, lane: str,
     with logp.open("w") as lf:
         subprocess.Popen(
             [
-                cfg.codex_cmd,
+                cfg.fallback_codex_cmd,
                 "exec",
                 "-m",
-                cfg.model,
+                cfg.fallback_model,
                 "-s",
                 "workspace-write",
                 fixer_prompt(lane, branch, reviewer_packet, wt),
@@ -547,7 +615,9 @@ def process_once(
             in_quota_cooldown = quota_retry_at > now or global_quota_retry_ts > now
             if in_quota_cooldown:
                 wait_s = int(max(quota_retry_at, global_quota_retry_ts) - now)
-                reviewer_text = _offline_reviewer_fallback(
+                reviewer_text = _run_cli_reviewer(
+                    cfg, repo_cwd, pkt, f"reviewer quota cooldown active ({wait_s}s remaining)"
+                ) or _offline_reviewer_fallback(
                     pkt, f"reviewer quota cooldown active ({wait_s}s remaining)"
                 )
             else:
@@ -561,7 +631,9 @@ def process_once(
                     retry_until = time.time() + 900
                     reviewer_quota_retry_ts[lane] = retry_until
                     global_quota_retry_ts = max(global_quota_retry_ts, retry_until)
-                    reviewer_text = _offline_reviewer_fallback(pkt, f"reviewer call failed/timed out: {exc}")
+                    reviewer_text = _run_cli_reviewer(
+                        cfg, repo_cwd, pkt, f"reviewer call failed/timed out: {exc}"
+                    ) or _offline_reviewer_fallback(pkt, f"reviewer call failed/timed out: {exc}")
             if _invalid_reviewer_output(reviewer_text):
                 # Recover from dead/invalid reviewer thread and retry once.
                 try:
@@ -582,14 +654,20 @@ def process_once(
                     retry_until = time.time() + 900
                     reviewer_quota_retry_ts[lane] = retry_until
                     global_quota_retry_ts = max(global_quota_retry_ts, retry_until)
-                    reviewer_text = _offline_reviewer_fallback(pkt, f"reviewer retry failed/timed out: {exc}")
+                    reviewer_text = _run_cli_reviewer(
+                        cfg, repo_cwd, pkt, f"reviewer retry failed/timed out: {exc}"
+                    ) or _offline_reviewer_fallback(pkt, f"reviewer retry failed/timed out: {exc}")
                 if _invalid_reviewer_output(reviewer_text):
-                    reviewer_text = _offline_reviewer_fallback(pkt, "reviewer output invalid/unavailable")
+                    reviewer_text = _run_cli_reviewer(
+                        cfg, repo_cwd, pkt, "reviewer output invalid/unavailable"
+                    ) or _offline_reviewer_fallback(pkt, "reviewer output invalid/unavailable")
             elif _is_reviewer_quota_output(reviewer_text):
                 retry_until = time.time() + 900
                 reviewer_quota_retry_ts[lane] = retry_until
                 global_quota_retry_ts = max(global_quota_retry_ts, retry_until)
-                reviewer_text = _offline_reviewer_fallback(pkt, "reviewer quota/rate-limit response")
+                reviewer_text = _run_cli_reviewer(
+                    cfg, repo_cwd, pkt, "reviewer quota/rate-limit response"
+                ) or _offline_reviewer_fallback(pkt, "reviewer quota/rate-limit response")
             verdict = parse_verdict(reviewer_text)
 
             if verdict == "APPROVED":
@@ -603,10 +681,14 @@ def process_once(
                     if integ.strip():
                         write_text(lane_dir/"archive"/f"INTEGRATOR__{pkt_path.name}", integ)
                 except Exception as exc:
-                    write_text(
-                        lane_dir / "archive" / f"INTEGRATOR__ERROR__{pkt_path.name}",
-                        f"Integrator call failed/timed out: {exc}",
-                    )
+                    integ = _run_cli_integrator(cfg, repo_cwd, reviewer_text)
+                    if integ:
+                        write_text(lane_dir/"archive"/f"INTEGRATOR__{pkt_path.name}", integ)
+                    else:
+                        write_text(
+                            lane_dir / "archive" / f"INTEGRATOR__ERROR__{pkt_path.name}",
+                            f"Integrator call failed/timed out: {exc}",
+                        )
             else:
                 if not (reviewer_text or "").strip():
                     reviewer_text = (
@@ -704,6 +786,43 @@ def process_reviewer_backlog(
     state["fixer_quota_retry_ts"] = quota_retry_ts
     return kicked, state
 
+
+def process_integrator_backlog(
+    client: CodexMcpClient,
+    cfg: RouterConfig,
+    state: dict,
+    repo_cwd: str,
+    integrator_tid: str,
+) -> Tuple[int, dict, str]:
+    processed = 0
+    approvals: List[Tuple[float, str, Path, Path]] = []
+    for lane in cfg.lanes.keys():
+        lane_dir = ensure_lane_dirs(lane)
+        for pkt in (lane_dir / "outbox/integrator").glob("*.md"):
+            approvals.append((pkt.stat().st_mtime, lane, lane_dir, pkt))
+    approvals.sort(key=lambda item: item[0])
+
+    for _, _lane, lane_dir, pkt in approvals:
+        if processed >= cfg.max_packets_per_run:
+            break
+        approved_text = pkt.read_text()
+        archive_hint = list((lane_dir / "archive").glob(f"INTEGRATOR__*{_packet_sha(pkt.name)}*.md"))
+        if archive_hint:
+            archive(pkt, lane_dir)
+            processed += 1
+            continue
+        try:
+            integrator_tid, integ = client.codex_reply(
+                integrator_tid, integrator_prompt(approved_text), timeout=cfg.integrator_timeout
+            )
+        except Exception:
+            integ = _run_cli_integrator(cfg, repo_cwd, approved_text)
+        if integ and integ.strip():
+            write_text(lane_dir / "archive" / f"INTEGRATOR__{pkt.name}", integ)
+            archive(pkt, lane_dir)
+            processed += 1
+    return processed, state, integrator_tid
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--daemon", action="store_true")
@@ -755,6 +874,9 @@ def main() -> None:
                         client, cfg, state, repo_cwd, reviewer_thread_ids, integrator_tid
                     )
                     kicked, state = process_reviewer_backlog(client, cfg, state, repo_cwd)
+                    integrated, state, integrator_tid = process_integrator_backlog(
+                        client, cfg, state, repo_cwd, integrator_tid
+                    )
                     state["reviewer_thread_ids"] = reviewer_thread_ids
                     state["reviewer_thread_missing_lanes"] = [
                         lane for lane in cfg.lanes.keys() if lane not in reviewer_thread_ids
@@ -766,7 +888,7 @@ def main() -> None:
                         state["reviewer_thread_id"] = None
                     state["integrator_thread_id"] = integrator_tid
                     save_json(STATE_FILE, state)
-                    print(f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s)")
+                    print(f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s), integrated {integrated} approval packet(s)")
                 finally:
                     release_lease()
             return
@@ -779,6 +901,9 @@ def main() -> None:
                         client, cfg, state, repo_cwd, reviewer_thread_ids, integrator_tid
                     )
                     kicked, state = process_reviewer_backlog(client, cfg, state, repo_cwd)
+                    integrated, state, integrator_tid = process_integrator_backlog(
+                        client, cfg, state, repo_cwd, integrator_tid
+                    )
                     state["reviewer_thread_ids"] = reviewer_thread_ids
                     state["reviewer_thread_missing_lanes"] = [
                         lane for lane in cfg.lanes.keys() if lane not in reviewer_thread_ids
@@ -790,8 +915,8 @@ def main() -> None:
                         state["reviewer_thread_id"] = None
                     state["integrator_thread_id"] = integrator_tid
                     save_json(STATE_FILE, state)
-                    if n or kicked:
-                        print(f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s)")
+                    if n or kicked or integrated:
+                        print(f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s), integrated {integrated} approval packet(s)")
                 finally:
                     release_lease()
             time.sleep(0.5)

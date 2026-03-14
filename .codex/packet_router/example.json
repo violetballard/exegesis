@@ -1,0 +1,43 @@
+{
+  "model": "gpt-5.1-codex",
+  "codex_cmd": "codex",
+  "fallback_model": "",
+  "fallback_codex_cmd": "",
+  "use_cli_reviewer_fallback": true,
+  "use_cli_integrator_fallback": true,
+  "idle_seconds": 1.2,
+  "reviewer_timeout": 180,
+  "integrator_timeout": 900,
+  "max_packets_per_run": 1,
+  "inline_fixer": true,
+  "kick_fixers_on_reviewer_backlog": true,
+  "fixer_kick_timeout_seconds": 8,
+  "reviewer_fixer_retry_cooldown_seconds": 900,
+  "lanes": {
+    "feat-context-storage": {
+      "branch": "codex/feat-context-storage"
+    },
+    "feat-webconsole-core": {
+      "branch": "codex/feat-webconsole-core"
+    },
+    "feat-webconsole-ui": {
+      "branch": "codex/feat-webconsole-ui"
+    },
+    "feat-ux-flow": {
+      "branch": "codex/feat-ux-flow"
+    },
+    "feat-commands": {
+      "branch": "codex/feat-commands"
+    }
+  },
+  "planner": {
+    "base_ref": "codex/integrator",
+    "required_gates": [
+      "./quality-format.sh --check",
+      "./quality-lint.sh",
+      "./quality-test.sh",
+      "./typecheck-test.sh",
+      "make ci"
+    ]
+  }
+}

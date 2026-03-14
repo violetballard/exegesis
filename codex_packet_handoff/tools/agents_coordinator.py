@@ -30,7 +30,9 @@ INIT_META_CMD = [sys.executable, str(INIT_META_PATH)]
 
 EMITTED_RE = re.compile(r"\[planner\] emitted (?P<path>\S+)")
 ROUTER_RE = re.compile(
-    r"\[router\]\s+processed\s+(?P<processed>\d+)\s+packet\(s\)(?:,\s+kicked\s+(?P<kicked>\d+)\s+reviewer-fixer task\(s\))?"
+    r"\[router\]\s+processed\s+(?P<processed>\d+)\s+packet\(s\)"
+    r"(?:,\s+kicked\s+(?P<kicked>\d+)\s+reviewer-fixer task\(s\))?"
+    r"(?:,\s+integrated\s+(?P<integrated>\d+)\s+approval packet\(s\))?"
 )
 LANE_FILE_RE = re.compile(
     r"\.codex/packets/lanes/(?P<lane>[^/]+)/inbox/feature/(?P<filename>[^/\s]+\.md)"
@@ -190,7 +192,7 @@ def _collect_emissions(planner_output: str) -> List[Tuple[str, str]]:
 
 
 def _collect_router_stats(router_output: str) -> Dict[str, int]:
-    out = {"processed": 0, "kicked": 0}
+    out = {"processed": 0, "kicked": 0, "integrated": 0}
     for line in router_output.splitlines():
         m = ROUTER_RE.search(line)
         if not m:
@@ -199,6 +201,9 @@ def _collect_router_stats(router_output: str) -> Dict[str, int]:
         kicked = m.group("kicked")
         if kicked:
             out["kicked"] += int(kicked)
+        integrated = m.group("integrated")
+        if integrated:
+            out["integrated"] += int(integrated)
     return out
 
 
@@ -383,6 +388,13 @@ def _run_router_direct_once(ctx: DirectRouterCtx) -> Tuple[int, str]:
             ctx.state,
             ctx.repo_cwd,
         )
+        integrated, ctx.state, ctx.integrator_tid = ctx.router_mod.process_integrator_backlog(
+            ctx.client,
+            ctx.cfg,
+            ctx.state,
+            ctx.repo_cwd,
+            ctx.integrator_tid,
+        )
         ctx.state["reviewer_thread_ids"] = ctx.reviewer_thread_ids
         if ctx.reviewer_thread_ids:
             first_lane = sorted(ctx.reviewer_thread_ids.keys())[0]
@@ -391,7 +403,7 @@ def _run_router_direct_once(ctx: DirectRouterCtx) -> Tuple[int, str]:
             ctx.state["reviewer_thread_id"] = None
         ctx.state["integrator_thread_id"] = ctx.integrator_tid
         ctx.router_mod.save_json(ctx.router_mod.STATE_FILE, ctx.state)
-        out = f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s)\n"
+        out = f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s), integrated {integrated} approval packet(s)\n"
         print(out, end="")
         return 0, out
     except Exception:
@@ -506,9 +518,10 @@ def _run_cycle(
         "attempts": router_attempts,
         "processed": router_stats["processed"],
         "kicked": router_stats["kicked"],
+        "integrated": router_stats["integrated"],
     }
 
-    cycle_event["activity"] = bool(emissions or router_stats["processed"] or router_stats["kicked"])
+    cycle_event["activity"] = bool(emissions or router_stats["processed"] or router_stats["kicked"] or router_stats["integrated"])
     cycle_event["ended_at"] = utc_now()
     return cycle_event
 
@@ -559,6 +572,7 @@ def main() -> int:
         emitted_all: List[Tuple[str, str]] = []
         router_processed_total = 0
         fixer_kicked_total = 0
+        integrator_processed_total = 0
         cycle_events: List[Dict[str, object]] = []
 
         run_start = time.time()
@@ -598,6 +612,7 @@ def main() -> int:
                         emitted_all.append((str(item.get("lane", "unknown")), str(item.get("file", ""))))
                 router_processed_total += int(r.get("processed", 0))
                 fixer_kicked_total += int(r.get("kicked", 0))
+                integrator_processed_total += int(r.get("integrated", 0))
 
                 if bool(event.get("activity")):
                     idle_start = time.time()
@@ -636,6 +651,7 @@ def main() -> int:
             "router_errors": router_errors,
             "router_processed_total": router_processed_total,
             "fixer_kicked_total": fixer_kicked_total,
+            "integrator_processed_total": integrator_processed_total,
             "planner_emitted": [{"lane": lane, "file": fn} for lane, fn in emitted_all],
             "cycle_events": cycle_events,
             "cycles": cycles,
@@ -663,7 +679,8 @@ def main() -> int:
             print("[summary] planner emitted packets: none")
         print(f"[summary] router processed total packets: {router_processed_total}")
         print(f"[summary] fixer kicked total tasks: {fixer_kicked_total}")
-        if not emitted_all and router_processed_total == 0 and fixer_kicked_total == 0:
+        print(f"[summary] integrator processed total approvals: {integrator_processed_total}")
+        if not emitted_all and router_processed_total == 0 and fixer_kicked_total == 0 and integrator_processed_total == 0:
             print("[summary] no activity this run")
         print(f"[summary] planner errors: {planner_errors}")
         print(f"[summary] router errors: {router_errors}")

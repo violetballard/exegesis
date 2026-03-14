@@ -23,6 +23,10 @@ def write_example_config():
     example = {
         "model": "gpt-5.1-codex",
         "codex_cmd": "codex",
+        "fallback_model": "",
+        "fallback_codex_cmd": "",
+        "use_cli_reviewer_fallback": True,
+        "use_cli_integrator_fallback": True,
         "idle_seconds": 1.2,
         "reviewer_timeout": 180,
         "integrator_timeout": 900,
