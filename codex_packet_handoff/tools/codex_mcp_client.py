@@ -21,7 +21,7 @@ import os
 import subprocess
 import threading
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 Json = Dict[str, Any]
 
@@ -44,9 +44,11 @@ class CodexMcpClient:
         approval: Optional[ApprovalPolicy] = None,
         on_notification: Optional[Callable[[Json], None]] = None,
         codex_cmd: str = "codex",
+        codex_args: Optional[List[str]] = None,
     ):
+        launch_cmd = [codex_cmd, *(codex_args or []), "mcp-server"]
         self.proc = subprocess.Popen(
-            [codex_cmd, "mcp-server"],
+            launch_cmd,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

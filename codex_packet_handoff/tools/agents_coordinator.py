@@ -53,7 +53,8 @@ class DirectRouterCtx:
     cfg: object
     state: Dict
     repo_cwd: str
-    client: object
+    reviewer_client: object
+    integrator_client: object
     reviewer_thread_ids: Dict[str, str]
     integrator_tid: str
 
@@ -328,25 +329,30 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
     cfg = router_mod.load_cfg()
     state = router_mod.load_json(router_mod.STATE_FILE, {})
     repo_cwd = str(REPO_ROOT)
-    client = router_mod.CodexMcpClient(
-        approval=router_mod.ApprovalPolicy(True, True),
-        codex_cmd=cfg.codex_cmd,
+    reviewer_client = router_mod._build_mcp_client(
+        router_mod._profile_for_role(cfg, "reviewer", local=False),
+        router_mod.ApprovalPolicy(True, True),
+    )
+    integrator_client = router_mod._build_mcp_client(
+        router_mod._profile_for_role(cfg, "integrator", local=False),
+        router_mod.ApprovalPolicy(True, True),
     )
 
     reviewer_thread_ids = state.get("reviewer_thread_ids") or {}
     if not isinstance(reviewer_thread_ids, dict):
         reviewer_thread_ids = {}
     reviewer_thread_ids = router_mod.ensure_all_reviewer_threads(
-        client, cfg, repo_cwd, state, reviewer_thread_ids
+        reviewer_client, cfg, repo_cwd, state, reviewer_thread_ids
     )
     integrator_tid = state.get("integrator_thread_id")
     if not integrator_tid and router_mod._runtime_mode(cfg, state) != "local_fallback":
-        integrator_tid, _ = client.codex(
+        integrator_profile = router_mod._profile_for_role(cfg, "integrator", local=False)
+        integrator_tid, _ = integrator_client.codex(
             prompt="Ready as integrator.",
             cwd=repo_cwd,
             sandbox="workspace-write",
             approval_policy="never",
-            model=cfg.model,
+            model=integrator_profile.model,
             timeout=cfg.integrator_timeout,
         )
 
@@ -366,7 +372,8 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
         cfg=cfg,
         state=state,
         repo_cwd=repo_cwd,
-        client=client,
+        reviewer_client=reviewer_client,
+        integrator_client=integrator_client,
         reviewer_thread_ids=reviewer_thread_ids,
         integrator_tid=integrator_tid,
     )
@@ -375,7 +382,8 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
 def _run_router_direct_once(ctx: DirectRouterCtx) -> Tuple[int, str]:
     try:
         n, ctx.state, ctx.reviewer_thread_ids, ctx.integrator_tid = ctx.router_mod.process_once(
-            ctx.client,
+            ctx.reviewer_client,
+            ctx.integrator_client,
             ctx.cfg,
             ctx.state,
             ctx.repo_cwd,
@@ -383,13 +391,13 @@ def _run_router_direct_once(ctx: DirectRouterCtx) -> Tuple[int, str]:
             ctx.integrator_tid,
         )
         kicked, ctx.state = ctx.router_mod.process_reviewer_backlog(
-            ctx.client,
+            ctx.reviewer_client,
             ctx.cfg,
             ctx.state,
             ctx.repo_cwd,
         )
         integrated, ctx.state, ctx.integrator_tid = ctx.router_mod.process_integrator_backlog(
-            ctx.client,
+            ctx.integrator_client,
             ctx.cfg,
             ctx.state,
             ctx.repo_cwd,
@@ -692,7 +700,12 @@ def main() -> int:
     finally:
         if direct_ctx is not None:
             try:
-                direct_ctx.client.close()
+                direct_ctx.reviewer_client.close()
+            except Exception:
+                pass
+            try:
+                if direct_ctx.integrator_client is not direct_ctx.reviewer_client:
+                    direct_ctx.integrator_client.close()
             except Exception:
                 pass
         release_lease()

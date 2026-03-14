@@ -42,17 +42,47 @@ If `status.py` and `daemon_monitor.py` disagree, trust `status.py` for queue tru
 
 The orchestrator can run cloud-first and fall back to local Codex CLI when quota/rate limits hit.
 
-Config lives in `.codex/packet_router/config.json`:
+Config lives in `.codex/packet_router/config.json`.
+
+Legacy keys still work:
 - `model` / `codex_cmd`: cloud-primary launcher
 - `fallback_codex_cmd`: local fallback executable, usually `codex`
-- `fallback_codex_args`: extra fallback launcher flags, for example `["--oss"]`
+- `fallback_codex_args`: extra fallback launcher flags
 - `fallback_model`: optional local model id
 - `fallback_model_args`: extra args passed after `-m <model>`
+
+Preferred setup uses named launcher profiles:
+- `profiles.<name>`:
+  - `codex_cmd`
+  - `codex_args`
+  - `model`
+  - `model_args`
+- `role_profiles`:
+  - `orchestrator`
+  - `cloud_probe`
+  - `feature_cloud` / `feature_local`
+  - `reviewer_cloud` / `reviewer_local`
+  - `integrator_cloud` / `integrator_local`
+  - `fixer_cloud` / `fixer_local`
 
 Recommended local fallback:
 - prefer a local CLI profile via `fallback_codex_args`, for example `["-p", "gpt-oss-120b-lms"]`
 - this is the most reliable option when your machine already has a working local provider profile in `~/.codex/config.toml`
 - if you prefer `--oss`, leave `fallback_model` empty unless you know your CLI/provider expects a specific local model id
+
+Recommended role split:
+- `orchestrator`: smaller local profile for supervision
+- `worker_cloud`: cloud coding/review/integration model
+- `worker_local`: larger local coding/review/integration model for quota windows
+
+Current project config uses:
+- `profiles.orchestrator` -> `codex -p gwen3.5-35b-lms`
+- `profiles.worker_cloud` -> `codex exec -m gpt-5.1-codex`
+- `profiles.worker_local` -> `codex -p gpt-oss-120b-lms`
+
+Note:
+- the coordinator itself is deterministic Python, not an LLM thread
+- the role profiles control the Codex sessions it launches for feature/reviewer/fixer/integrator work
 
 Why leave `fallback_model` empty:
 - when `--oss` is active, the CLI/provider can select its configured local model

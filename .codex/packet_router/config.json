@@ -8,6 +8,44 @@
     "gpt-oss-120b-lms"
   ],
   "fallback_model_args": [],
+  "profiles": {
+    "orchestrator": {
+      "codex_cmd": "codex",
+      "codex_args": [
+        "-p",
+        "gwen3.5-35b-lms"
+      ],
+      "model": "",
+      "model_args": []
+    },
+    "worker_cloud": {
+      "codex_cmd": "codex",
+      "codex_args": [],
+      "model": "gpt-5.1-codex",
+      "model_args": []
+    },
+    "worker_local": {
+      "codex_cmd": "codex",
+      "codex_args": [
+        "-p",
+        "gpt-oss-120b-lms"
+      ],
+      "model": "",
+      "model_args": []
+    }
+  },
+  "role_profiles": {
+    "orchestrator": "orchestrator",
+    "cloud_probe": "worker_cloud",
+    "feature_cloud": "worker_cloud",
+    "feature_local": "worker_local",
+    "reviewer_cloud": "worker_cloud",
+    "reviewer_local": "worker_local",
+    "integrator_cloud": "worker_cloud",
+    "integrator_local": "worker_local",
+    "fixer_cloud": "worker_cloud",
+    "fixer_local": "worker_local"
+  },
   "runtime_mode_default": "cloud_primary",
   "auto_switch_to_local_on_quota": true,
   "auto_probe_cloud_recovery": true,

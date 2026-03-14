@@ -58,7 +58,17 @@ class RouterConfig:
     prefer_cli_fixer: bool
     use_cli_reviewer_fallback: bool
     use_cli_integrator_fallback: bool
+    profiles: Dict[str, "LaunchProfile"]
+    role_profiles: Dict[str, str]
     lanes: Dict[str, Dict[str, Any]]
+
+
+@dataclass
+class LaunchProfile:
+    codex_cmd: str
+    codex_args: List[str]
+    model: str
+    model_args: List[str]
 
 def load_json(p: Path, default: Any) -> Any:
     try:
@@ -86,6 +96,50 @@ def release_lease() -> None:
     except Exception:
         pass
 
+
+def _normalize_profile(raw: Dict[str, Any], *, fallback_cmd: str = "codex", fallback_model: str = "") -> LaunchProfile:
+    cmd = str(raw.get("codex_cmd") or fallback_cmd or "codex")
+    cmd_args = [str(x) for x in list(raw.get("codex_args") or [])]
+    if "model" in raw:
+        model = str(raw.get("model") or "")
+    else:
+        model = str(fallback_model or "")
+    model_args = [str(x) for x in list(raw.get("model_args") or [])]
+    if "--oss" in cmd_args and model == fallback_model:
+        model = ""
+    return LaunchProfile(codex_cmd=cmd, codex_args=cmd_args, model=model, model_args=model_args)
+
+
+def _default_profiles(cfg: Dict[str, Any]) -> Dict[str, LaunchProfile]:
+    cloud_cmd = str(cfg.get("codex_cmd", "codex"))
+    cloud_model = str(cfg.get("model", "gpt-5.1-codex"))
+    fallback_cmd = str(cfg.get("fallback_codex_cmd") or cloud_cmd)
+    fallback_model = str(cfg.get("fallback_model") or "")
+    fallback_cmd_args = [str(x) for x in list(cfg.get("fallback_codex_args") or [])]
+    fallback_model_args = [str(x) for x in list(cfg.get("fallback_model_args") or [])]
+    if "--oss" in fallback_cmd_args and fallback_model == cloud_model:
+        fallback_model = ""
+    return {
+        "orchestrator": LaunchProfile(cloud_cmd, [], cloud_model, []),
+        "worker_cloud": LaunchProfile(cloud_cmd, [], cloud_model, []),
+        "worker_local": LaunchProfile(fallback_cmd, fallback_cmd_args, fallback_model, fallback_model_args),
+    }
+
+
+def _default_role_profiles() -> Dict[str, str]:
+    return {
+        "orchestrator": "orchestrator",
+        "cloud_probe": "worker_cloud",
+        "feature_cloud": "worker_cloud",
+        "feature_local": "worker_local",
+        "reviewer_cloud": "worker_cloud",
+        "reviewer_local": "worker_local",
+        "integrator_cloud": "worker_cloud",
+        "integrator_local": "worker_local",
+        "fixer_cloud": "worker_cloud",
+        "fixer_local": "worker_local",
+    }
+
 def load_cfg() -> RouterConfig:
     cfg = load_json(CONFIG_FILE, None)
     if not cfg:
@@ -108,6 +162,19 @@ def load_cfg() -> RouterConfig:
         fallback_model_args = env_model_args.split() if env_model_args else []
     if "--oss" in [str(x) for x in fallback_cmd_args] and fallback_model == cfg.get("model", "gpt-5.1-codex"):
         fallback_model = ""
+    profiles = _default_profiles(cfg)
+    for name, raw in dict(cfg.get("profiles") or {}).items():
+        if isinstance(raw, dict):
+            base = profiles.get(str(name), LaunchProfile("codex", [], "", []))
+            profiles[str(name)] = _normalize_profile(
+                raw,
+                fallback_cmd=base.codex_cmd,
+                fallback_model=base.model,
+            )
+    role_profiles = _default_role_profiles()
+    for key, value in dict(cfg.get("role_profiles") or {}).items():
+        if value:
+            role_profiles[str(key)] = str(value)
     return RouterConfig(
         model=str(cfg.get("model", "gpt-5.1-codex")),
         codex_cmd=str(cfg.get("codex_cmd", "codex")),
@@ -131,6 +198,8 @@ def load_cfg() -> RouterConfig:
         prefer_cli_fixer=bool(cfg.get("prefer_cli_fixer", True)),
         use_cli_reviewer_fallback=bool(cfg.get("use_cli_reviewer_fallback", True)),
         use_cli_integrator_fallback=bool(cfg.get("use_cli_integrator_fallback", True)),
+        profiles=profiles,
+        role_profiles=role_profiles,
         lanes=dict(cfg.get("lanes", {})),
     )
 
@@ -207,6 +276,26 @@ def _runtime_mode(cfg: RouterConfig, state: Dict[str, Any]) -> str:
     return mode if mode in ("cloud_primary", "local_fallback") else "cloud_primary"
 
 
+def _profile_name_for_role(cfg: RouterConfig, role: str, *, local: Optional[bool] = None) -> str:
+    if local is None:
+        return str(cfg.role_profiles.get(role) or role)
+    suffix = "local" if local else "cloud"
+    return str(cfg.role_profiles.get(f"{role}_{suffix}") or cfg.role_profiles.get(role) or ("worker_local" if local else "worker_cloud"))
+
+
+def _profile_for_role(cfg: RouterConfig, role: str, *, local: Optional[bool] = None) -> LaunchProfile:
+    name = _profile_name_for_role(cfg, role, local=local)
+    prof = cfg.profiles.get(name)
+    if prof:
+        return prof
+    defaults = _default_profiles({"codex_cmd": cfg.codex_cmd, "model": cfg.model, "fallback_codex_cmd": cfg.fallback_codex_cmd, "fallback_codex_args": cfg.fallback_codex_args, "fallback_model": cfg.fallback_model, "fallback_model_args": cfg.fallback_model_args})
+    return defaults["worker_local" if local else "worker_cloud"]
+
+
+def _build_mcp_client(profile: LaunchProfile, approval: ApprovalPolicy) -> CodexMcpClient:
+    return CodexMcpClient(approval=approval, codex_cmd=profile.codex_cmd, codex_args=profile.codex_args)
+
+
 def _set_runtime_mode(
     cfg: RouterConfig,
     state: Dict[str, Any],
@@ -238,7 +327,6 @@ def _switch_to_local_fallback(
 
 
 def _maybe_restore_cloud(
-    client: CodexMcpClient,
     cfg: RouterConfig,
     state: Dict[str, Any],
     repo_cwd: str,
@@ -251,15 +339,20 @@ def _maybe_restore_cloud(
     now = time.time()
     if retry_at > now:
         return state
+    probe = _profile_for_role(cfg, "cloud_probe", local=False)
     try:
-        _tid, out = client.codex(
-            prompt="Reply with OK only.",
-            cwd=repo_cwd,
-            sandbox="read-only",
-            approval_policy="never",
-            model=cfg.model,
-            timeout=cfg.cloud_probe_timeout_seconds,
+        rc, out = _run_cli_codex(
+            probe.codex_cmd,
+            probe.codex_args,
+            probe.model,
+            probe.model_args,
+            "read-only",
+            repo_cwd,
+            "Reply with OK only.",
+            cfg.cloud_probe_timeout_seconds,
         )
+        if rc != 0:
+            return _switch_to_local_fallback(cfg, state, f"cloud probe exited {rc}")
         text = (out or "").strip()
         if text and not _is_reviewer_quota_output(text) and not _invalid_reviewer_output(text):
             return _set_runtime_mode(cfg, state, "cloud_primary", reason="cloud probe succeeded", retry_at=0)
@@ -400,12 +493,13 @@ def _run_cli_codex(
 def _run_cli_reviewer(cfg: RouterConfig, repo_cwd: str, pkt: str, reason: str) -> Optional[str]:
     if not cfg.use_cli_reviewer_fallback:
         return None
+    prof = _profile_for_role(cfg, "reviewer", local=True)
     try:
         rc, out = _run_cli_codex(
-            cfg.fallback_codex_cmd,
-            cfg.fallback_codex_args,
-            cfg.fallback_model,
-            cfg.fallback_model_args,
+            prof.codex_cmd,
+            prof.codex_args,
+            prof.model,
+            prof.model_args,
             "read-only",
             repo_cwd,
             reviewer_prompt(pkt),
@@ -424,12 +518,13 @@ def _run_cli_reviewer(cfg: RouterConfig, repo_cwd: str, pkt: str, reason: str) -
 def _run_cli_integrator(cfg: RouterConfig, repo_cwd: str, approved: str) -> Optional[str]:
     if not cfg.use_cli_integrator_fallback:
         return None
+    prof = _profile_for_role(cfg, "integrator", local=True)
     try:
         rc, out = _run_cli_codex(
-            cfg.fallback_codex_cmd,
-            cfg.fallback_codex_args,
-            cfg.fallback_model,
-            cfg.fallback_model_args,
+            prof.codex_cmd,
+            prof.codex_args,
+            prof.model,
+            prof.model_args,
             "workspace-write",
             repo_cwd,
             integrator_prompt(approved),
@@ -561,6 +656,8 @@ def run_fixer(client: CodexMcpClient, cfg: RouterConfig, state: dict, lane: str,
             pass
 
     # Fallback: detached CLI fixer so router ticks don't deadlock on MCP stalls.
+    local_mode = _runtime_mode(cfg, state) == "local_fallback"
+    prof = _profile_for_role(cfg, "fixer", local=local_mode)
     logs = ROUTER_ROOT / "logs"
     logs.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -568,11 +665,11 @@ def run_fixer(client: CodexMcpClient, cfg: RouterConfig, state: dict, lane: str,
     with logp.open("w") as lf:
         subprocess.Popen(
             [
-                cfg.fallback_codex_cmd,
-                *cfg.fallback_codex_args,
+                prof.codex_cmd,
+                *prof.codex_args,
                 "exec",
-                *(["-m", cfg.fallback_model] if cfg.fallback_model else []),
-                *cfg.fallback_model_args,
+                *(["-m", prof.model] if prof.model else []),
+                *prof.model_args,
                 "-s",
                 "workspace-write",
                 fixer_prompt(lane, branch, reviewer_packet, wt),
@@ -664,7 +761,7 @@ def _materialize_reviewer_packet(lane_dir: Path, reviewer_note: Optional[Path], 
     )
 
 def _ensure_lane_reviewer_thread(
-    client: CodexMcpClient,
+    reviewer_client: CodexMcpClient,
     cfg: RouterConfig,
     repo_cwd: str,
     lane: str,
@@ -673,12 +770,13 @@ def _ensure_lane_reviewer_thread(
     tid = reviewer_thread_ids.get(lane)
     if tid:
         return tid
-    tid, _ = client.codex(
+    reviewer_profile = _profile_for_role(cfg, "reviewer", local=False)
+    tid, _ = reviewer_client.codex(
         prompt=f"Ready as reviewer for lane {lane}; I won't modify files.",
         cwd=repo_cwd,
         sandbox="read-only",
         approval_policy="on-request",
-        model=cfg.model,
+        model=reviewer_profile.model,
         timeout=cfg.reviewer_timeout,
     )
     reviewer_thread_ids[lane] = tid
@@ -686,7 +784,7 @@ def _ensure_lane_reviewer_thread(
 
 
 def ensure_all_reviewer_threads(
-    client: CodexMcpClient,
+    reviewer_client: CodexMcpClient,
     cfg: RouterConfig,
     repo_cwd: str,
     state: Dict[str, Any],
@@ -696,21 +794,22 @@ def ensure_all_reviewer_threads(
         return reviewer_thread_ids
     for lane in cfg.lanes.keys():
         try:
-            _ensure_lane_reviewer_thread(client, cfg, repo_cwd, lane, reviewer_thread_ids)
+            _ensure_lane_reviewer_thread(reviewer_client, cfg, repo_cwd, lane, reviewer_thread_ids)
         except Exception as exc:
             print(f"[router] reviewer bootstrap skipped for {lane}: {exc}")
     return reviewer_thread_ids
 
 
 def process_once(
-    client: CodexMcpClient,
+    reviewer_client: CodexMcpClient,
+    integrator_client: CodexMcpClient,
     cfg: RouterConfig,
     state: dict,
     repo_cwd: str,
     reviewer_thread_ids: Dict[str, str],
     integrator_tid: str,
 ) -> Tuple[int, dict, Dict[str, str], str]:
-    state = _maybe_restore_cloud(client, cfg, state, repo_cwd)
+    state = _maybe_restore_cloud(cfg, state, repo_cwd)
     cursor = load_json(CURSOR_FILE, {})
     reviewer_quota_retry_ts = state.get("reviewer_quota_retry_ts") or {}
     global_quota_retry_ts = float(state.get("reviewer_quota_global_retry_ts", 0) or 0)
@@ -743,8 +842,8 @@ def process_once(
                 )
             else:
                 try:
-                    reviewer_tid = _ensure_lane_reviewer_thread(client, cfg, repo_cwd, lane, reviewer_thread_ids)
-                    reviewer_tid, reviewer_text = client.codex_reply(
+                    reviewer_tid = _ensure_lane_reviewer_thread(reviewer_client, cfg, repo_cwd, lane, reviewer_thread_ids)
+                    reviewer_tid, reviewer_text = reviewer_client.codex_reply(
                         reviewer_tid, reviewer_prompt(pkt), timeout=cfg.reviewer_timeout
                     )
                     reviewer_thread_ids[lane] = reviewer_tid
@@ -760,16 +859,17 @@ def process_once(
             if _invalid_reviewer_output(reviewer_text):
                 # Recover from dead/invalid reviewer thread and retry once.
                 try:
-                    reviewer_tid, _ = client.codex(
+                    reviewer_profile = _profile_for_role(cfg, "reviewer", local=False)
+                    reviewer_tid, _ = reviewer_client.codex(
                         prompt=f"Ready as reviewer for lane {lane}; I won't modify files.",
                         cwd=repo_cwd,
                         sandbox="read-only",
                         approval_policy="on-request",
-                        model=cfg.model,
+                        model=reviewer_profile.model,
                         timeout=cfg.reviewer_timeout,
                     )
                     reviewer_thread_ids[lane] = reviewer_tid
-                    reviewer_tid, reviewer_text = client.codex_reply(
+                    reviewer_tid, reviewer_text = reviewer_client.codex_reply(
                         reviewer_tid, reviewer_prompt(pkt), timeout=cfg.reviewer_timeout
                     )
                     reviewer_thread_ids[lane] = reviewer_tid
@@ -804,7 +904,7 @@ def process_once(
                 integ = ""
                 if _runtime_mode(cfg, state) != "local_fallback":
                     try:
-                        integrator_tid, integ = client.codex_reply(
+                        integrator_tid, integ = integrator_client.codex_reply(
                             integrator_tid, integrator_prompt(reviewer_text), timeout=cfg.integrator_timeout
                         )
                     except Exception as exc:
@@ -840,13 +940,13 @@ def process_once(
 
             # Inline fixer can be expensive; disabled by default for automation ticks.
             if verdict != "APPROVED" and cfg.inline_fixer:
-                state = run_fixer(client, cfg, state, lane, reviewer_text, repo_cwd)
+                state = run_fixer(reviewer_client, cfg, state, lane, reviewer_text, repo_cwd)
     state["reviewer_quota_retry_ts"] = reviewer_quota_retry_ts
     state["reviewer_quota_global_retry_ts"] = global_quota_retry_ts
     return processed, state, reviewer_thread_ids, integrator_tid
 
 def process_reviewer_backlog(
-    client: CodexMcpClient,
+    reviewer_client: CodexMcpClient,
     cfg: RouterConfig,
     state: dict,
     repo_cwd: str,
@@ -906,9 +1006,9 @@ def process_reviewer_backlog(
             # Backward compatibility: if timestamp missing, allow one immediate retry.
             if last_kick > 0 and (now - last_kick) < cfg.reviewer_fixer_retry_cooldown_seconds:
                 continue
-        state = _maybe_restore_cloud(client, cfg, state, repo_cwd)
+        state = _maybe_restore_cloud(cfg, state, repo_cwd)
         reviewer_packet = _materialize_reviewer_packet(lane_dir, newest_note)
-        state = run_fixer(client, cfg, state, lane, reviewer_packet, repo_cwd)
+        state = run_fixer(reviewer_client, cfg, state, lane, reviewer_packet, repo_cwd)
         cursor[lane] = newest_note.name
         retry_ts[lane] = now
         kicked += 1
@@ -920,13 +1020,13 @@ def process_reviewer_backlog(
 
 
 def process_integrator_backlog(
-    client: CodexMcpClient,
+    integrator_client: CodexMcpClient,
     cfg: RouterConfig,
     state: dict,
     repo_cwd: str,
     integrator_tid: str,
 ) -> Tuple[int, dict, str]:
-    state = _maybe_restore_cloud(client, cfg, state, repo_cwd)
+    state = _maybe_restore_cloud(cfg, state, repo_cwd)
     processed = 0
     approvals: List[Tuple[float, str, Path, Path]] = []
     for lane in cfg.lanes.keys():
@@ -948,7 +1048,7 @@ def process_integrator_backlog(
             integ = _run_cli_integrator(cfg, repo_cwd, approved_text)
         else:
             try:
-                integrator_tid, integ = client.codex_reply(
+                integrator_tid, integ = integrator_client.codex_reply(
                     integrator_tid, integrator_prompt(approved_text), timeout=cfg.integrator_timeout
                 )
             except Exception as exc:
@@ -970,22 +1070,24 @@ def main() -> None:
     state = load_json(STATE_FILE, {})
     repo_cwd = str(Path.cwd())
 
-    client = CodexMcpClient(approval=ApprovalPolicy(True, True), codex_cmd=cfg.codex_cmd)
-    state = _maybe_restore_cloud(client, cfg, state, repo_cwd)
+    reviewer_client = _build_mcp_client(_profile_for_role(cfg, "reviewer", local=False), ApprovalPolicy(True, True))
+    integrator_client = _build_mcp_client(_profile_for_role(cfg, "integrator", local=False), ApprovalPolicy(True, True))
+    state = _maybe_restore_cloud(cfg, state, repo_cwd)
 
     reviewer_thread_ids = state.get("reviewer_thread_ids") or {}
     if not isinstance(reviewer_thread_ids, dict):
         reviewer_thread_ids = {}
-    reviewer_thread_ids = ensure_all_reviewer_threads(client, cfg, repo_cwd, state, reviewer_thread_ids)
+    reviewer_thread_ids = ensure_all_reviewer_threads(reviewer_client, cfg, repo_cwd, state, reviewer_thread_ids)
     integrator_tid = state.get("integrator_thread_id")
 
     if not integrator_tid and _runtime_mode(cfg, state) != "local_fallback":
-        integrator_tid, _ = client.codex(
+        integrator_profile = _profile_for_role(cfg, "integrator", local=False)
+        integrator_tid, _ = integrator_client.codex(
             prompt="Ready as integrator.",
             cwd=repo_cwd,
             sandbox="workspace-write",
             approval_policy="on-request",
-            model=cfg.model,
+            model=integrator_profile.model,
             timeout=cfg.integrator_timeout,
         )
 
@@ -1010,11 +1112,11 @@ def main() -> None:
             if acquire_lease():
                 try:
                     n, state, reviewer_thread_ids, integrator_tid = process_once(
-                        client, cfg, state, repo_cwd, reviewer_thread_ids, integrator_tid
+                        reviewer_client, integrator_client, cfg, state, repo_cwd, reviewer_thread_ids, integrator_tid
                     )
-                    kicked, state = process_reviewer_backlog(client, cfg, state, repo_cwd)
+                    kicked, state = process_reviewer_backlog(reviewer_client, cfg, state, repo_cwd)
                     integrated, state, integrator_tid = process_integrator_backlog(
-                        client, cfg, state, repo_cwd, integrator_tid
+                        integrator_client, cfg, state, repo_cwd, integrator_tid
                     )
                     state["reviewer_thread_ids"] = reviewer_thread_ids
                     state["reviewer_thread_missing_lanes"] = [
@@ -1037,11 +1139,11 @@ def main() -> None:
             if acquire_lease():
                 try:
                     n, state, reviewer_thread_ids, integrator_tid = process_once(
-                        client, cfg, state, repo_cwd, reviewer_thread_ids, integrator_tid
+                        reviewer_client, integrator_client, cfg, state, repo_cwd, reviewer_thread_ids, integrator_tid
                     )
-                    kicked, state = process_reviewer_backlog(client, cfg, state, repo_cwd)
+                    kicked, state = process_reviewer_backlog(reviewer_client, cfg, state, repo_cwd)
                     integrated, state, integrator_tid = process_integrator_backlog(
-                        client, cfg, state, repo_cwd, integrator_tid
+                        integrator_client, cfg, state, repo_cwd, integrator_tid
                     )
                     state["reviewer_thread_ids"] = reviewer_thread_ids
                     state["reviewer_thread_missing_lanes"] = [
@@ -1060,7 +1162,9 @@ def main() -> None:
                     release_lease()
             time.sleep(0.5)
     finally:
-        client.close()
+        reviewer_client.close()
+        if integrator_client is not reviewer_client:
+            integrator_client.close()
 
 if __name__ == "__main__":
     main()

@@ -23,6 +23,47 @@ def load_json(path: Path, default):
         return default
 
 
+def _normalize_profile(raw: Dict[str, object], fallback_cmd: str, fallback_model: str) -> Dict[str, object]:
+    cmd_args = list(raw.get("codex_args") or [])
+    if "model" in raw:
+        model = str(raw.get("model") or "")
+    else:
+        model = fallback_model
+    if "--oss" in [str(x) for x in cmd_args] and model == fallback_model:
+        model = ""
+    return {
+        "cmd": str(raw.get("codex_cmd") or fallback_cmd or "codex"),
+        "cmd_args": [str(x) for x in cmd_args],
+        "model": model,
+        "model_args": [str(x) for x in list(raw.get("model_args") or [])],
+    }
+
+
+def _resolved_profiles(cfg: Dict[str, object]) -> Dict[str, Dict[str, object]]:
+    cloud = {
+        "cmd": str(cfg.get("codex_cmd") or "codex"),
+        "cmd_args": [],
+        "model": str(cfg.get("model") or ""),
+        "model_args": [],
+    }
+    local = {
+        "cmd": str(cfg.get("fallback_codex_cmd") or cfg.get("codex_cmd") or "codex"),
+        "cmd_args": [str(x) for x in list(cfg.get("fallback_codex_args") or [])],
+        "model": str(cfg.get("fallback_model") or ""),
+        "model_args": [str(x) for x in list(cfg.get("fallback_model_args") or [])],
+    }
+    out = {
+        "orchestrator": cloud,
+        "worker_cloud": cloud,
+        "worker_local": local,
+    }
+    for name, raw in dict(cfg.get("profiles") or {}).items():
+        if isinstance(raw, dict):
+            base = out.get(str(name), cloud)
+            out[str(name)] = _normalize_profile(raw, str(base["cmd"]), str(base["model"]))
+    return out
+
+
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(description="Launch feature lane Codex CLI sessions using router runtime mode.")
     ap.add_argument("--lanes", nargs="*", default=LANES, help="Lane names to launch")
@@ -59,28 +100,15 @@ def runtime_launch_config() -> Dict[str, object]:
     cfg = load_json(CONFIG_FILE, {})
     state = load_json(STATE_FILE, {})
     mode = str(state.get("runtime_mode") or cfg.get("runtime_mode_default") or "cloud_primary")
-    if mode == "local_fallback":
-        if "fallback_model" in cfg:
-            fallback_model = str(cfg.get("fallback_model") or "")
-        else:
-            fallback_model = str(cfg.get("model") or "")
-        fallback_cmd_args = list(cfg.get("fallback_codex_args") or [])
-        if "--oss" in [str(x) for x in fallback_cmd_args] and fallback_model == str(cfg.get("model") or ""):
-            fallback_model = ""
-        return {
-            "mode": mode,
-            "cmd": str(cfg.get("fallback_codex_cmd") or cfg.get("codex_cmd") or "codex"),
-            "cmd_args": fallback_cmd_args,
-            "model": fallback_model,
-            "model_args": list(cfg.get("fallback_model_args") or []),
-        }
-    return {
-        "mode": mode,
-        "cmd": str(cfg.get("codex_cmd") or "codex"),
-        "cmd_args": [],
-        "model": str(cfg.get("model") or ""),
-        "model_args": [],
+    role_profiles = {
+        "feature_cloud": "worker_cloud",
+        "feature_local": "worker_local",
+        **{str(k): str(v) for k, v in dict(cfg.get("role_profiles") or {}).items() if v},
     }
+    profiles = _resolved_profiles(cfg)
+    profile_name = role_profiles["feature_local" if mode == "local_fallback" else "feature_cloud"]
+    prof = profiles[profile_name]
+    return {"mode": mode, **prof}
 
 
 def build_prompt(lane: str, workdir: str) -> str:
