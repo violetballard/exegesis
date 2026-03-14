@@ -21,6 +21,7 @@ LOG_DIR = Path(".codex/packet_router/logs")
 FEATURE_RUNNER_ROOT = Path(".codex/feature_runner")
 COORD_LEASE = Path(".codex/packet_coordinator/lease.json")
 LEASE_FRESH_SECONDS = 3600
+STALE_LOG_SECONDS = 1800
 LANES = ["feat-commands", "feat-context-storage", "feat-ux-flow", "feat-webconsole-core", "feat-webconsole-ui"]
 VERDICT_RE = re.compile(r"Verdict:\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?", re.IGNORECASE)
 SHA_RE = re.compile(r"\b[0-9a-f]{40}\b", re.IGNORECASE)
@@ -445,8 +446,12 @@ def _integrator_live_summary() -> Dict[str, Any]:
     else:
         focus_lane = "-"
         focus_age = 0
-    latest_lane = latest_integrator[0] if latest_integrator else "-"
-    latest_line = _first_nonempty_line(latest_integrator[1] if latest_integrator else None)
+    if approved_items:
+        latest_lane = latest_integrator[0] if latest_integrator else "-"
+        latest_line = _first_nonempty_line(latest_integrator[1] if latest_integrator else None)
+    else:
+        latest_lane = "-"
+        latest_line = "-"
     return {
         "queue_count": len(approved_items),
         "queue_lanes": queue_lanes,
@@ -765,10 +770,20 @@ def main() -> None:
     for lane in LANES:
         c = _lane_counts(PACKETS_ROOT / lane) if (PACKETS_ROOT / lane).exists() else {"pending": 0, "review": 0, "approved": 0}
         logp = _latest_fixer_log(lane)
-        detail = _detailed_conversation_summary(logp)
         age = "-"
+        stale_idle = False
         if logp is not None:
-            age = f"{int(max(0, time.time() - logp.stat().st_mtime))}s"
+            age_s = int(max(0, time.time() - logp.stat().st_mtime))
+            age = f"{age_s}s"
+            stale_idle = c["pending"] == 0 and c["review"] == 0 and c["approved"] == 0 and age_s >= STALE_LOG_SECONDS
+        detail = (
+            {
+                "phase": "no active packet",
+                "progress": "idle/no live lane work",
+            }
+            if stale_idle
+            else _detailed_conversation_summary(logp)
+        )
         print(
             f"{lane:22} queue=p{c['pending']}/r{c['review']}/a{c['approved']} "
             f"log_age={age} phase={detail['phase']} progress={detail['progress']}"
@@ -782,8 +797,25 @@ def main() -> None:
         verdict = _lane_verdict_summary(lane)
         logp = _latest_fixer_log(lane)
         log_name = logp.name if logp else "-"
-        convo = _conversation_summary(logp)
-        detail = _detailed_conversation_summary(logp)
+        counts = _lane_counts(PACKETS_ROOT / lane) if (PACKETS_ROOT / lane).exists() else {"pending": 0, "review": 0, "approved": 0}
+        stale_idle = False
+        if logp is not None:
+            age_s = int(max(0, time.time() - logp.stat().st_mtime))
+            stale_idle = counts["pending"] == 0 and counts["review"] == 0 and counts["approved"] == 0 and age_s >= STALE_LOG_SECONDS
+        if stale_idle:
+            convo = "idle/no active lane packet"
+            detail = {
+                "objective": "no active fixer run",
+                "packet": "-",
+                "phase": "no active packet",
+                "progress": "idle/no live lane work",
+                "recent": [],
+                "blockers": [],
+                "head_sha": None,
+            }
+        else:
+            convo = _conversation_summary(logp)
+            detail = _detailed_conversation_summary(logp)
         print(f"{lane:22} head={head} verdict={verdict} log={log_name}")
         print(f"  convo: {convo}")
         print(f"  objective: {detail['objective']}")
