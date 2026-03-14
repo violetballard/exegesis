@@ -5,7 +5,7 @@
   "fallback_codex_cmd": "codex",
   "fallback_codex_args": [
     "-p",
-    "gpt-oss-120b-lms"
+    "gpt-oss-20b-lms"
   ],
   "fallback_model_args": [],
   "profiles": {
@@ -13,7 +13,7 @@
       "codex_cmd": "codex",
       "codex_args": [
         "-p",
-        "gwen3.5-35b-lms"
+        "gpt-oss-20b-lms"
       ],
       "model": "",
       "model_args": []
@@ -21,14 +21,14 @@
     "worker_cloud": {
       "codex_cmd": "codex",
       "codex_args": [],
-      "model": "gpt-5.1-codex",
+      "model": "gpt-5.4",
       "model_args": []
     },
     "worker_local": {
       "codex_cmd": "codex",
       "codex_args": [
         "-p",
-        "gpt-oss-120b-lms"
+        "gpt-oss-20b-lms"
       ],
       "model": "",
       "model_args": []

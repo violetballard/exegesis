@@ -9,19 +9,19 @@
     "orchestrator": {
       "codex_cmd": "codex",
       "codex_args": [],
-      "model": "gpt-5.1-codex",
+      "model": "gpt-oss-20b",
       "model_args": []
     },
     "worker_cloud": {
       "codex_cmd": "codex",
       "codex_args": [],
-      "model": "gpt-5.1-codex",
+      "model": "gpt-5.4",
       "model_args": []
     },
     "worker_local": {
       "codex_cmd": "codex",
       "codex_args": [],
-      "model": "",
+      "model": "gpt-oss-20b",
       "model_args": []
     }
   },
