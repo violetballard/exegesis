@@ -1,6 +1,6 @@
 ---
 name: planner.run
-description: Emit feature→review packets into .codex by running the local planner.
+description: "Emit feature→review packets into .codex by running the local planner."
 ---
 
 Execute from repo root:

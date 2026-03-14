@@ -1,12 +1,18 @@
 {
   "model": "gpt-5.1-codex",
   "codex_cmd": "codex",
-  "fallback_model": "gpt-oss-120b",
+  "fallback_model": "",
   "fallback_codex_cmd": "codex",
   "fallback_codex_args": [
-    "--oss"
+    "-p",
+    "gpt-oss-120b-lms"
   ],
   "fallback_model_args": [],
+  "runtime_mode_default": "cloud_primary",
+  "auto_switch_to_local_on_quota": true,
+  "auto_probe_cloud_recovery": true,
+  "cloud_probe_cooldown_seconds": 1800,
+  "cloud_probe_timeout_seconds": 30,
   "use_cli_reviewer_fallback": true,
   "use_cli_integrator_fallback": true,
   "idle_seconds": 1.2,

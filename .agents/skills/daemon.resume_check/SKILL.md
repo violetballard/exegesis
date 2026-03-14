@@ -1,6 +1,6 @@
 ---
 name: daemon.resume_check
-description: Safely resume automation after a pause by starting daemon, verifying status, and printing the full pipeline dashboard.
+description: "Safely resume automation after a pause by starting daemon, verifying status, and printing the full pipeline dashboard."
 ---
 
 Run from repo root:

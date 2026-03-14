@@ -1,6 +1,6 @@
 ---
 name: pipeline.tick
-description: Run the event-driven coordinator to process planner/review/fix/integrate handoffs until idle.
+description: "Run the event-driven coordinator to process planner/review/fix/integrate handoffs until idle."
 ---
 
 Run from repo root:

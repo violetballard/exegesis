@@ -42,6 +42,11 @@ class RouterConfig:
     fallback_codex_cmd: str
     fallback_codex_args: List[str]
     fallback_model_args: List[str]
+    runtime_mode_default: str
+    auto_switch_to_local_on_quota: bool
+    auto_probe_cloud_recovery: bool
+    cloud_probe_cooldown_seconds: float
+    cloud_probe_timeout_seconds: float
     reviewer_timeout: float
     integrator_timeout: float
     max_packets_per_run: int
@@ -86,7 +91,13 @@ def load_cfg() -> RouterConfig:
     if not cfg:
         raise SystemExit(f"Missing {CONFIG_FILE} (copy example.json).")
     fallback_cmd = str(cfg.get("fallback_codex_cmd") or os.environ.get("CODEX_FALLBACK_CMD") or cfg.get("codex_cmd", "codex"))
-    fallback_model = str(cfg.get("fallback_model") or os.environ.get("CODEX_FALLBACK_MODEL") or cfg.get("model", "gpt-5.1-codex"))
+    env_fallback_model = os.environ.get("CODEX_FALLBACK_MODEL")
+    if "fallback_model" in cfg:
+        fallback_model = str(cfg.get("fallback_model") or "")
+    elif env_fallback_model is not None:
+        fallback_model = str(env_fallback_model)
+    else:
+        fallback_model = str(cfg.get("model", "gpt-5.1-codex"))
     fallback_cmd_args = cfg.get("fallback_codex_args")
     if not isinstance(fallback_cmd_args, list):
         env_args = (os.environ.get("CODEX_FALLBACK_ARGS") or "").strip()
@@ -95,6 +106,8 @@ def load_cfg() -> RouterConfig:
     if not isinstance(fallback_model_args, list):
         env_model_args = (os.environ.get("CODEX_FALLBACK_MODEL_ARGS") or "").strip()
         fallback_model_args = env_model_args.split() if env_model_args else []
+    if "--oss" in [str(x) for x in fallback_cmd_args] and fallback_model == cfg.get("model", "gpt-5.1-codex"):
+        fallback_model = ""
     return RouterConfig(
         model=str(cfg.get("model", "gpt-5.1-codex")),
         codex_cmd=str(cfg.get("codex_cmd", "codex")),
@@ -102,6 +115,11 @@ def load_cfg() -> RouterConfig:
         fallback_codex_cmd=fallback_cmd,
         fallback_codex_args=[str(x) for x in fallback_cmd_args],
         fallback_model_args=[str(x) for x in fallback_model_args],
+        runtime_mode_default=str(cfg.get("runtime_mode_default", "cloud_primary")),
+        auto_switch_to_local_on_quota=bool(cfg.get("auto_switch_to_local_on_quota", True)),
+        auto_probe_cloud_recovery=bool(cfg.get("auto_probe_cloud_recovery", True)),
+        cloud_probe_cooldown_seconds=float(cfg.get("cloud_probe_cooldown_seconds", 1800)),
+        cloud_probe_timeout_seconds=float(cfg.get("cloud_probe_timeout_seconds", 30)),
         reviewer_timeout=float(cfg.get("reviewer_timeout", 180)),
         integrator_timeout=float(cfg.get("integrator_timeout", 900)),
         max_packets_per_run=int(cfg.get("max_packets_per_run", 1)),
@@ -182,6 +200,72 @@ def _is_reviewer_quota_output(text: str) -> bool:
     if not t:
         return False
     return bool(REVIEWER_QUOTA_RE.search(t))
+
+
+def _runtime_mode(cfg: RouterConfig, state: Dict[str, Any]) -> str:
+    mode = str(state.get("runtime_mode") or cfg.runtime_mode_default or "cloud_primary")
+    return mode if mode in ("cloud_primary", "local_fallback") else "cloud_primary"
+
+
+def _set_runtime_mode(
+    cfg: RouterConfig,
+    state: Dict[str, Any],
+    mode: str,
+    *,
+    reason: str = "",
+    retry_at: Optional[float] = None,
+) -> Dict[str, Any]:
+    state["runtime_mode"] = mode
+    state["last_mode_switch_at"] = time.time()
+    if reason:
+        state["last_quota_reason"] = reason
+    if retry_at is not None:
+        state["cloud_retry_at"] = retry_at
+    elif mode == "cloud_primary":
+        state["cloud_retry_at"] = 0
+    return state
+
+
+def _switch_to_local_fallback(
+    cfg: RouterConfig,
+    state: Dict[str, Any],
+    reason: str,
+    retry_at: Optional[float] = None,
+) -> Dict[str, Any]:
+    if retry_at is None or retry_at <= time.time():
+        retry_at = time.time() + cfg.cloud_probe_cooldown_seconds
+    return _set_runtime_mode(cfg, state, "local_fallback", reason=reason, retry_at=retry_at)
+
+
+def _maybe_restore_cloud(
+    client: CodexMcpClient,
+    cfg: RouterConfig,
+    state: Dict[str, Any],
+    repo_cwd: str,
+) -> Dict[str, Any]:
+    if _runtime_mode(cfg, state) != "local_fallback":
+        return state
+    if not cfg.auto_probe_cloud_recovery:
+        return state
+    retry_at = float(state.get("cloud_retry_at", 0) or 0)
+    now = time.time()
+    if retry_at > now:
+        return state
+    try:
+        _tid, out = client.codex(
+            prompt="Reply with OK only.",
+            cwd=repo_cwd,
+            sandbox="read-only",
+            approval_policy="never",
+            model=cfg.model,
+            timeout=cfg.cloud_probe_timeout_seconds,
+        )
+        text = (out or "").strip()
+        if text and not _is_reviewer_quota_output(text) and not _invalid_reviewer_output(text):
+            return _set_runtime_mode(cfg, state, "cloud_primary", reason="cloud probe succeeded", retry_at=0)
+    except Exception as exc:
+        return _switch_to_local_fallback(cfg, state, f"cloud probe failed: {exc}")
+    return _switch_to_local_fallback(cfg, state, "cloud probe returned invalid/empty output")
 
 
 def _offline_reviewer_fallback(pkt: str, reason: str) -> str:
@@ -452,7 +536,7 @@ def run_fixer(client: CodexMcpClient, cfg: RouterConfig, state: dict, lane: str,
     branch = str(lane_cfg.get("branch") or f"codex/{lane}")
     wt = _find_worktree_for_branch(repo_cwd, branch)
     _sync_lane_runbook_files(repo_cwd, wt)
-    if not cfg.prefer_cli_fixer:
+    if _runtime_mode(cfg, state) != "local_fallback" and not cfg.prefer_cli_fixer:
         fixer_map = state.get("fixer_thread_ids") or {}
         tid = fixer_map.get(lane)
         try:
@@ -605,8 +689,11 @@ def ensure_all_reviewer_threads(
     client: CodexMcpClient,
     cfg: RouterConfig,
     repo_cwd: str,
+    state: Dict[str, Any],
     reviewer_thread_ids: Dict[str, str],
 ) -> Dict[str, str]:
+    if _runtime_mode(cfg, state) == "local_fallback":
+        return reviewer_thread_ids
     for lane in cfg.lanes.keys():
         try:
             _ensure_lane_reviewer_thread(client, cfg, repo_cwd, lane, reviewer_thread_ids)
@@ -623,6 +710,7 @@ def process_once(
     reviewer_thread_ids: Dict[str, str],
     integrator_tid: str,
 ) -> Tuple[int, dict, Dict[str, str], str]:
+    state = _maybe_restore_cloud(client, cfg, state, repo_cwd)
     cursor = load_json(CURSOR_FILE, {})
     reviewer_quota_retry_ts = state.get("reviewer_quota_retry_ts") or {}
     global_quota_retry_ts = float(state.get("reviewer_quota_global_retry_ts", 0) or 0)
@@ -639,13 +727,19 @@ def process_once(
             reviewer_text = ""
             now = time.time()
             quota_retry_at = float(reviewer_quota_retry_ts.get(lane, 0) or 0)
-            in_quota_cooldown = quota_retry_at > now or global_quota_retry_ts > now
+            runtime_local = _runtime_mode(cfg, state) == "local_fallback"
+            in_quota_cooldown = runtime_local or quota_retry_at > now or global_quota_retry_ts > now
             if in_quota_cooldown:
                 wait_s = int(max(quota_retry_at, global_quota_retry_ts) - now)
+                reason = (
+                    f"runtime local fallback active ({wait_s}s remaining)"
+                    if runtime_local
+                    else f"reviewer quota cooldown active ({wait_s}s remaining)"
+                )
                 reviewer_text = _run_cli_reviewer(
-                    cfg, repo_cwd, pkt, f"reviewer quota cooldown active ({wait_s}s remaining)"
+                    cfg, repo_cwd, pkt, reason
                 ) or _offline_reviewer_fallback(
-                    pkt, f"reviewer quota cooldown active ({wait_s}s remaining)"
+                    pkt, reason
                 )
             else:
                 try:
@@ -658,6 +752,8 @@ def process_once(
                     retry_until = time.time() + 900
                     reviewer_quota_retry_ts[lane] = retry_until
                     global_quota_retry_ts = max(global_quota_retry_ts, retry_until)
+                    if cfg.auto_switch_to_local_on_quota:
+                        state = _switch_to_local_fallback(cfg, state, f"reviewer call failed/timed out: {exc}", retry_until)
                     reviewer_text = _run_cli_reviewer(
                         cfg, repo_cwd, pkt, f"reviewer call failed/timed out: {exc}"
                     ) or _offline_reviewer_fallback(pkt, f"reviewer call failed/timed out: {exc}")
@@ -681,6 +777,8 @@ def process_once(
                     retry_until = time.time() + 900
                     reviewer_quota_retry_ts[lane] = retry_until
                     global_quota_retry_ts = max(global_quota_retry_ts, retry_until)
+                    if cfg.auto_switch_to_local_on_quota:
+                        state = _switch_to_local_fallback(cfg, state, f"reviewer retry failed/timed out: {exc}", retry_until)
                     reviewer_text = _run_cli_reviewer(
                         cfg, repo_cwd, pkt, f"reviewer retry failed/timed out: {exc}"
                     ) or _offline_reviewer_fallback(pkt, f"reviewer retry failed/timed out: {exc}")
@@ -692,6 +790,8 @@ def process_once(
                 retry_until = time.time() + 900
                 reviewer_quota_retry_ts[lane] = retry_until
                 global_quota_retry_ts = max(global_quota_retry_ts, retry_until)
+                if cfg.auto_switch_to_local_on_quota:
+                    state = _switch_to_local_fallback(cfg, state, "reviewer quota/rate-limit response", retry_until)
                 reviewer_text = _run_cli_reviewer(
                     cfg, repo_cwd, pkt, "reviewer quota/rate-limit response"
                 ) or _offline_reviewer_fallback(pkt, "reviewer quota/rate-limit response")
@@ -701,21 +801,25 @@ def process_once(
                 # Clear stale reviewer notes now that this lane packet is approved.
                 archive_reviewer_notes(lane_dir)
                 write_text(lane_dir/"outbox/integrator"/pkt_path.name.replace("F__","R__APPROVED__"), reviewer_text)
-                try:
-                    integrator_tid, integ = client.codex_reply(
-                        integrator_tid, integrator_prompt(reviewer_text), timeout=cfg.integrator_timeout
-                    )
-                    if integ.strip():
-                        write_text(lane_dir/"archive"/f"INTEGRATOR__{pkt_path.name}", integ)
-                except Exception as exc:
-                    integ = _run_cli_integrator(cfg, repo_cwd, reviewer_text)
-                    if integ:
-                        write_text(lane_dir/"archive"/f"INTEGRATOR__{pkt_path.name}", integ)
-                    else:
-                        write_text(
-                            lane_dir / "archive" / f"INTEGRATOR__ERROR__{pkt_path.name}",
-                            f"Integrator call failed/timed out: {exc}",
+                integ = ""
+                if _runtime_mode(cfg, state) != "local_fallback":
+                    try:
+                        integrator_tid, integ = client.codex_reply(
+                            integrator_tid, integrator_prompt(reviewer_text), timeout=cfg.integrator_timeout
                         )
+                    except Exception as exc:
+                        if cfg.auto_switch_to_local_on_quota:
+                            state = _switch_to_local_fallback(cfg, state, f"integrator call failed/timed out: {exc}")
+                        integ = _run_cli_integrator(cfg, repo_cwd, reviewer_text) or ""
+                        if not integ:
+                            write_text(
+                                lane_dir / "archive" / f"INTEGRATOR__ERROR__{pkt_path.name}",
+                                f"Integrator call failed/timed out: {exc}",
+                            )
+                else:
+                    integ = _run_cli_integrator(cfg, repo_cwd, reviewer_text)
+                if integ and integ.strip():
+                    write_text(lane_dir/"archive"/f"INTEGRATOR__{pkt_path.name}", integ)
             else:
                 if not (reviewer_text or "").strip():
                     reviewer_text = (
@@ -802,6 +906,7 @@ def process_reviewer_backlog(
             # Backward compatibility: if timestamp missing, allow one immediate retry.
             if last_kick > 0 and (now - last_kick) < cfg.reviewer_fixer_retry_cooldown_seconds:
                 continue
+        state = _maybe_restore_cloud(client, cfg, state, repo_cwd)
         reviewer_packet = _materialize_reviewer_packet(lane_dir, newest_note)
         state = run_fixer(client, cfg, state, lane, reviewer_packet, repo_cwd)
         cursor[lane] = newest_note.name
@@ -821,6 +926,7 @@ def process_integrator_backlog(
     repo_cwd: str,
     integrator_tid: str,
 ) -> Tuple[int, dict, str]:
+    state = _maybe_restore_cloud(client, cfg, state, repo_cwd)
     processed = 0
     approvals: List[Tuple[float, str, Path, Path]] = []
     for lane in cfg.lanes.keys():
@@ -838,12 +944,17 @@ def process_integrator_backlog(
             archive(pkt, lane_dir)
             processed += 1
             continue
-        try:
-            integrator_tid, integ = client.codex_reply(
-                integrator_tid, integrator_prompt(approved_text), timeout=cfg.integrator_timeout
-            )
-        except Exception:
+        if _runtime_mode(cfg, state) == "local_fallback":
             integ = _run_cli_integrator(cfg, repo_cwd, approved_text)
+        else:
+            try:
+                integrator_tid, integ = client.codex_reply(
+                    integrator_tid, integrator_prompt(approved_text), timeout=cfg.integrator_timeout
+                )
+            except Exception as exc:
+                if cfg.auto_switch_to_local_on_quota:
+                    state = _switch_to_local_fallback(cfg, state, f"integrator backlog call failed/timed out: {exc}")
+                integ = _run_cli_integrator(cfg, repo_cwd, approved_text)
         if integ and integ.strip():
             write_text(lane_dir / "archive" / f"INTEGRATOR__{pkt.name}", integ)
             archive(pkt, lane_dir)
@@ -860,14 +971,15 @@ def main() -> None:
     repo_cwd = str(Path.cwd())
 
     client = CodexMcpClient(approval=ApprovalPolicy(True, True), codex_cmd=cfg.codex_cmd)
+    state = _maybe_restore_cloud(client, cfg, state, repo_cwd)
 
     reviewer_thread_ids = state.get("reviewer_thread_ids") or {}
     if not isinstance(reviewer_thread_ids, dict):
         reviewer_thread_ids = {}
-    reviewer_thread_ids = ensure_all_reviewer_threads(client, cfg, repo_cwd, reviewer_thread_ids)
+    reviewer_thread_ids = ensure_all_reviewer_threads(client, cfg, repo_cwd, state, reviewer_thread_ids)
     integrator_tid = state.get("integrator_thread_id")
 
-    if not integrator_tid:
+    if not integrator_tid and _runtime_mode(cfg, state) != "local_fallback":
         integrator_tid, _ = client.codex(
             prompt="Ready as integrator.",
             cwd=repo_cwd,

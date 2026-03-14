@@ -1,6 +1,6 @@
 ---
 name: daemon.start
-description: Start the event-driven coordinator daemon and immediately verify the pipeline dashboard state.
+description: "Start the event-driven coordinator daemon and immediately verify the pipeline dashboard state."
 ---
 
 Run from repo root:

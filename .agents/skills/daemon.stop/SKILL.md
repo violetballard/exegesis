@@ -1,6 +1,6 @@
 ---
 name: daemon.stop
-description: Stop the event-driven coordinator daemon and clear stale pidfile.
+description: "Stop the event-driven coordinator daemon and clear stale pidfile."
 ---
 
 Run from repo root:

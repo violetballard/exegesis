@@ -244,6 +244,20 @@ def _cooldowns() -> Dict[str, int]:
     return out
 
 
+def _runtime_state() -> Dict[str, Any]:
+    cfg = _load_json(ROUTER_CFG, {})
+    state = _load_json(ROUTER_STATE, {})
+    retry_at = float((state or {}).get("cloud_retry_at") or 0)
+    now = time.time()
+    retry_in = int(max(0, retry_at - now)) if retry_at else 0
+    return {
+        "mode": str((state or {}).get("runtime_mode") or (cfg or {}).get("runtime_mode_default") or "cloud_primary"),
+        "retry_at": retry_at,
+        "retry_in": retry_in,
+        "reason": str((state or {}).get("last_quota_reason") or "-"),
+    }
+
+
 def _tail_log(lines: int = 15) -> str:
     if not DAEMON_LOG.exists():
         return "(no daemon log yet)"
@@ -641,6 +655,7 @@ def main() -> None:
     print()
 
     run = _latest_run() or {}
+    runtime = _runtime_state()
     print("LAST RUN")
     print(f"status={run.get('status', '-')}")
     print(f"mode={run.get('mode', '-')}")
@@ -676,6 +691,9 @@ def main() -> None:
     print()
 
     print("CONTROL PLANE")
+    print(f"runtime_mode={runtime['mode']}")
+    print(f"cloud_retry_in_seconds={runtime['retry_in']}")
+    print(f"last_quota_reason={runtime['reason']}")
     reviewer_map = router_state.get("reviewer_thread_ids") or {}
     if isinstance(reviewer_map, dict) and reviewer_map:
         print(f"reviewer_thread_count={len(reviewer_map)}")

@@ -29,6 +29,7 @@ Lane states:
 - per-lane reviewer status
 - latest fixer log summary for each lane
 - backlog bottleneck classification
+- runtime mode and cloud retry state
 
 Manual feature sessions are separate from the daemon:
 - feature lanes may also be running as direct Codex CLI sessions outside the daemon
@@ -36,6 +37,32 @@ Manual feature sessions are separate from the daemon:
 - if queue state is idle but feature sessions are active, the pipeline is waiting for new commits rather than stuck
 
 If `status.py` and `daemon_monitor.py` disagree, trust `status.py` for queue truth and use `daemon_monitor.py` for runtime diagnostics.
+
+## CLI-First Runtime Mode
+
+The orchestrator can run cloud-first and fall back to local Codex CLI when quota/rate limits hit.
+
+Config lives in `.codex/packet_router/config.json`:
+- `model` / `codex_cmd`: cloud-primary launcher
+- `fallback_codex_cmd`: local fallback executable, usually `codex`
+- `fallback_codex_args`: extra fallback launcher flags, for example `["--oss"]`
+- `fallback_model`: optional local model id
+- `fallback_model_args`: extra args passed after `-m <model>`
+
+Recommended local fallback:
+- prefer a local CLI profile via `fallback_codex_args`, for example `["-p", "gpt-oss-120b-lms"]`
+- this is the most reliable option when your machine already has a working local provider profile in `~/.codex/config.toml`
+- if you prefer `--oss`, leave `fallback_model` empty unless you know your CLI/provider expects a specific local model id
+
+Why leave `fallback_model` empty:
+- when `--oss` is active, the CLI/provider can select its configured local model
+- forcing a model id here can break fallback on accounts that do not accept that id
+
+Useful commands:
+- inspect runtime mode: `python codex_packet_handoff/tools/runtime_mode_ctl.py status`
+- force local mode now: `python codex_packet_handoff/tools/runtime_mode_ctl.py local_fallback --reason "manual switch"`
+- switch back to cloud: `python codex_packet_handoff/tools/runtime_mode_ctl.py cloud_primary --reason "manual switch"`
+- launch feature lanes using current runtime mode: `python codex_packet_handoff/tools/launch_feature_lanes.py`
 
 ## Reset Rule
 

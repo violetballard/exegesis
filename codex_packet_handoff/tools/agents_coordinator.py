@@ -337,10 +337,10 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
     if not isinstance(reviewer_thread_ids, dict):
         reviewer_thread_ids = {}
     reviewer_thread_ids = router_mod.ensure_all_reviewer_threads(
-        client, cfg, repo_cwd, reviewer_thread_ids
+        client, cfg, repo_cwd, state, reviewer_thread_ids
     )
     integrator_tid = state.get("integrator_thread_id")
-    if not integrator_tid:
+    if not integrator_tid and router_mod._runtime_mode(cfg, state) != "local_fallback":
         integrator_tid, _ = client.codex(
             prompt="Ready as integrator.",
             cwd=repo_cwd,

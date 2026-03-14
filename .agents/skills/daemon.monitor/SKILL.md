@@ -1,6 +1,6 @@
 ---
 name: daemon.monitor
-description: Show the full live pipeline dashboard: daemon state, queue truth, reviewer/integrator status, lane summaries, and manual feature-session activity.
+description: "Show the full live pipeline dashboard: daemon state, queue truth, reviewer/integrator status, lane summaries, and manual feature-session activity."
 ---
 
 Run from repo root:

@@ -1,6 +1,6 @@
 ---
 name: router.run
-description: Route pending packets through reviewer/integrator once (automation-friendly).
+description: "Route pending packets through reviewer/integrator once (automation-friendly)."
 ---
 
 Execute from repo root:

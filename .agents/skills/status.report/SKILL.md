@@ -1,6 +1,6 @@
 ---
 name: status.report
-description: Show the real full status report for daemon, reviewer lanes, integrator, and feature-lane activity.
+description: "Show the real full status report for daemon, reviewer lanes, integrator, and feature-lane activity."
 ---
 
 Run from repo root:
