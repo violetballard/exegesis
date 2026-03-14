@@ -21,7 +21,10 @@ CONFIG_FILE = ROUTER_ROOT / "config.json"
 CURSOR_FILE = ROUTER_ROOT / "cursor.json"
 LEASE_FILE = ROUTER_ROOT / "lease.json"
 
-VERDICT_RE = re.compile(r"Verdict:\s*`(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`", re.IGNORECASE)
+VERDICT_RE = re.compile(
+    r"(?:\*\*Verdict\*\*|Verdict:)\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?",
+    re.IGNORECASE,
+)
 INVALID_REVIEWER_RE = re.compile(r"session not found for thread_id|thread not found", re.IGNORECASE)
 REVIEWER_QUOTA_RE = re.compile(
     r"usage limit|try again at|rate limit|too many requests|quota",

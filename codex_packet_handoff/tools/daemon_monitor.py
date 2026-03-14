@@ -23,7 +23,10 @@ COORD_LEASE = Path(".codex/packet_coordinator/lease.json")
 LEASE_FRESH_SECONDS = 3600
 STALE_LOG_SECONDS = 1800
 LANES = ["feat-commands", "feat-context-storage", "feat-ux-flow", "feat-webconsole-core", "feat-webconsole-ui"]
-VERDICT_RE = re.compile(r"Verdict:\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?", re.IGNORECASE)
+VERDICT_RE = re.compile(
+    r"(?:\*\*Verdict\*\*|Verdict:)\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?",
+    re.IGNORECASE,
+)
 SHA_RE = re.compile(r"\b[0-9a-f]{40}\b", re.IGNORECASE)
 EXEC_RESULT_RE = re.compile(r"exited (\d+)|succeeded", re.IGNORECASE)
 REQUIRED_FIX_RE = re.compile(r"^\s*\d+\.\s+", re.MULTILINE)
