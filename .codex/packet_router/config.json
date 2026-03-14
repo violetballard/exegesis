@@ -5,7 +5,7 @@
   "fallback_codex_cmd": "codex",
   "fallback_codex_args": [
     "-p",
-    "gpt-oss-20b-lms"
+    "gpt-oss-120b-lms"
   ],
   "fallback_model_args": [],
   "profiles": {
@@ -28,7 +28,7 @@
       "codex_cmd": "codex",
       "codex_args": [
         "-p",
-        "gpt-oss-20b-lms"
+        "gpt-oss-120b-lms"
       ],
       "model": "",
       "model_args": []
