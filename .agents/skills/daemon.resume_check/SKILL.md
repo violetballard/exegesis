@@ -9,6 +9,10 @@ Run from repo root:
 - `python codex_packet_handoff/tools/daemon_monitor.py`
 - `ps -axo pid,etime,command | rg "codex exec|codex_packet_handoff/tools/agents_coordinator.py" || true`
 
+CLI-first note:
+- assume the operator launched Codex CLI with `codex -p gpt-oss-20b-lms -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+- use only the Python scripts above for resume/status control
+
 This performs:
 1. `daemon_ctl.py start`
 2. `daemon_ctl.py status` (must show running)

@@ -6,6 +6,10 @@ description: "Run the event-driven coordinator to process planner/review/fix/int
 Run from repo root:
 - `python codex_packet_handoff/tools/agents_coordinator.py --once`
 
+CLI-first note:
+- assume the operator launched Codex CLI with `codex -p gpt-oss-20b-lms -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+- this skill should call the Python coordinator directly rather than using app-side automation features
+
 Summarize:
 - Any packets emitted by planner (lane + filename)
 - Any packets processed by router

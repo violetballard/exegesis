@@ -76,8 +76,8 @@ Recommended role split:
 - `worker_local`: larger local coding/review/integration model for quota windows
 
 Current project config uses:
-- `profiles.orchestrator` -> `codex -p gwen3.5-35b-lms`
-- `profiles.worker_cloud` -> `codex exec -m gpt-5.1-codex`
+- `profiles.orchestrator` -> `codex -p gpt-oss-20b-lms`
+- `profiles.worker_cloud` -> `codex exec -m gpt-5.4`
 - `profiles.worker_local` -> `codex -p gpt-oss-120b-lms`
 
 Note:
@@ -93,6 +93,47 @@ Useful commands:
 - force local mode now: `python codex_packet_handoff/tools/runtime_mode_ctl.py local_fallback --reason "manual switch"`
 - switch back to cloud: `python codex_packet_handoff/tools/runtime_mode_ctl.py cloud_primary --reason "manual switch"`
 - launch feature lanes using current runtime mode: `python codex_packet_handoff/tools/launch_feature_lanes.py`
+
+## CLI Runbook
+
+Launch your operator session from Codex CLI on the local orchestrator profile:
+- `codex -p gpt-oss-20b-lms -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+
+### Normal Day
+
+Use this when cloud quota is available and you want workers to use cloud by default:
+1. `python codex_packet_handoff/tools/runtime_mode_ctl.py cloud_primary --reason "normal day"`
+2. `python codex_packet_handoff/tools/daemon_ctl.py start`
+3. `python codex_packet_handoff/tools/daemon_monitor.py`
+4. If you want to seed feature work manually from kickoff packets:
+   `python codex_packet_handoff/tools/launch_feature_lanes.py`
+
+Behavior:
+- your interactive Codex CLI stays on local `gpt-oss-20b`
+- cloud worker launches use `gpt-5.4`
+- if quota text or rate-limit text appears, router flips to `local_fallback`
+
+### Quota Exhausted
+
+Use this when cloud quota is gone and you want to keep feeding the pipeline locally:
+1. `python codex_packet_handoff/tools/runtime_mode_ctl.py local_fallback --reason "quota exhausted"`
+2. `python codex_packet_handoff/tools/daemon_ctl.py start`
+3. `python codex_packet_handoff/tools/daemon_monitor.py`
+4. If you need fresh local feature sessions:
+   `python codex_packet_handoff/tools/launch_feature_lanes.py`
+
+Behavior:
+- orchestrator remains local `gpt-oss-20b`
+- local worker launches use `gpt-oss-120b`
+- router will keep probing cloud after cooldown and can switch back automatically
+
+### Quick Checks
+
+- queue truth: `python codex_packet_handoff/tools/status.py`
+- full dashboard: `python codex_packet_handoff/tools/daemon_monitor.py`
+- planner only: `python codex_packet_handoff/tools/planner.py`
+- router once: `python codex_packet_handoff/tools/router.py`
+- one coordinator drain cycle: `python codex_packet_handoff/tools/agents_coordinator.py --once`
 
 Quota safeguard:
 - reviewer, fixer, and integrator outputs are scanned for quota/rate-limit text

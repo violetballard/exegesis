@@ -6,4 +6,7 @@ description: "Emit feature→review packets into .codex by running the local pla
 Execute from repo root:
 - `python codex_packet_handoff/tools/planner.py`
 
+CLI-first note:
+- run from a Codex CLI session launched with `codex -p gpt-oss-20b-lms -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+
 Then summarize emitted packets (lane + filename). If none: "No packets emitted."

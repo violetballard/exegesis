@@ -8,6 +8,10 @@ Run from repo root:
 - `python codex_packet_handoff/tools/status.py`
 - `python codex_packet_handoff/tools/daemon_monitor.py`
 
+CLI-first note:
+- assume the operator launched Codex CLI with `codex -p gpt-oss-20b-lms -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+- do not rely on app automations; use the Python scripts above as the source of control
+
 Then print:
 - whether it started or was already running
 - daemon PID

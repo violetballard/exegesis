@@ -6,4 +6,8 @@ description: "Route pending packets through reviewer/integrator once (automation
 Execute from repo root:
 - `python codex_packet_handoff/tools/router.py`
 
+CLI-first note:
+- run from a Codex CLI session launched with `codex -p gpt-oss-20b-lms -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+- this script is the direct control surface for one routing pass
+
 Then summarize what was processed.

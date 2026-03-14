@@ -9,6 +9,10 @@ Run from repo root:
 - `ps -axo pid,etime,command | rg "codex exec|codex_packet_handoff/tools/agents_coordinator.py" || true`
 - `for f in $(ls -1t .codex/feature_runner/logs/*.log 2>/dev/null | head -n 5); do echo "FILE:$f"; tail -n 30 "$f"; done`
 
+CLI-first note:
+- assume the operator launched Codex CLI with `codex -p gpt-oss-20b-lms -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+- use the Python scripts above; do not infer daemon state from chat history alone
+
 If daemon is not running, also run:
 - `python codex_packet_handoff/tools/daemon_ctl.py status`
 
