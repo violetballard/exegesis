@@ -31,6 +31,7 @@ SHA_RE = re.compile(r"\b[0-9a-f]{40}\b", re.IGNORECASE)
 EXEC_RESULT_RE = re.compile(r"exited (\d+)|succeeded", re.IGNORECASE)
 REQUIRED_FIX_RE = re.compile(r"^\s*\d+\.\s+", re.MULTILINE)
 LANE_NAME_RE = re.compile(r"feature lane agent for\s+`?([A-Za-z0-9._-]+)`?", re.IGNORECASE)
+CODEX_EXEC_RE = re.compile(r"\bcodex\b.*\bexec\b", re.IGNORECASE)
 
 
 def _load_json(path: Path, default: Any) -> Any:
@@ -135,7 +136,7 @@ def _manual_feature_sessions() -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     for ln in (p.stdout or "").splitlines():
         row = ln.strip()
-        if not row or "codex exec" not in row:
+        if not row or not CODEX_EXEC_RE.search(row):
             continue
         if "FEATURE FIXER" in row:
             continue
@@ -154,6 +155,21 @@ def _manual_feature_sessions() -> list[dict[str, str]]:
             }
         )
     return rows
+
+
+def _latest_feature_runner_log(lane: str) -> Path | None:
+    log_dir = FEATURE_RUNNER_ROOT / "logs"
+    files = sorted(log_dir.glob(f"{lane}__*.log"), key=lambda p: p.stat().st_mtime, reverse=True)
+    return files[0] if files else None
+
+
+def _manual_feature_session_map() -> Dict[str, dict[str, str]]:
+    out: Dict[str, dict[str, str]] = {}
+    for row in _manual_feature_sessions():
+        lane = row.get("lane") or "-"
+        if lane != "-" and lane not in out:
+            out[lane] = row
+    return out
 
 
 def _is_real_lane_path_error(line: str) -> bool:
@@ -661,6 +677,47 @@ def _detailed_conversation_summary(log_path: Path | None) -> Dict[str, Any]:
     }
 
 
+def _feature_runner_state(lane: str, live_sessions: Dict[str, dict[str, str]]) -> Dict[str, Any]:
+    live = live_sessions.get(lane)
+    if live:
+        return {
+            "state": "live",
+            "summary": f"manual feature worker running pid={live['pid']} age={live['etime']}",
+            "log": None,
+            "age_s": None,
+        }
+    logp = _latest_feature_runner_log(lane)
+    if logp is None:
+        return {
+            "state": "none",
+            "summary": "no recent feature launch",
+            "log": None,
+            "age_s": None,
+        }
+    age_s = int(max(0, time.time() - logp.stat().st_mtime))
+    size = logp.stat().st_size
+    if age_s <= 300 and size == 0:
+        return {
+            "state": "recent_empty",
+            "summary": f"recent feature launch exited/no output yet (log_age={age_s}s)",
+            "log": logp.name,
+            "age_s": age_s,
+        }
+    if age_s <= 300:
+        return {
+            "state": "recent_log",
+            "summary": f"recent feature launch produced output (log_age={age_s}s)",
+            "log": logp.name,
+            "age_s": age_s,
+        }
+    return {
+        "state": "stale",
+        "summary": f"no live feature worker; last launch log is stale (log_age={age_s}s)",
+        "log": logp.name,
+        "age_s": age_s,
+    }
+
+
 def main() -> None:
     pid = _read_pid()
     lease_pid, lease_ts = _lease_pid_ts()
@@ -739,6 +796,7 @@ def main() -> None:
     print()
 
     manual_sessions = _manual_feature_sessions()
+    manual_session_map = _manual_feature_session_map()
     print("MANUAL FEATURE SESSIONS")
     print(f"running_count={len(manual_sessions)}")
     if manual_sessions:
@@ -817,6 +875,7 @@ def main() -> None:
     for lane in LANES:
         c = _lane_counts(PACKETS_ROOT / lane) if (PACKETS_ROOT / lane).exists() else {"pending": 0, "review": 0, "approved": 0}
         logp = _latest_fixer_log(lane)
+        feature_state = _feature_runner_state(lane, manual_session_map)
         age = "-"
         stale_idle = False
         if logp is not None:
@@ -826,11 +885,16 @@ def main() -> None:
         detail = (
             {
                 "phase": "no active packet",
-                "progress": "idle/no live lane work",
+                "progress": feature_state["summary"],
             }
             if stale_idle
             else _detailed_conversation_summary(logp)
         )
+        if c["pending"] == 0 and c["review"] == 0 and c["approved"] == 0 and feature_state["state"] in {"live", "recent_empty", "recent_log"}:
+            detail = {
+                "phase": "feature lane execution",
+                "progress": feature_state["summary"],
+            }
         print(
             f"{lane:22} queue=p{c['pending']}/r{c['review']}/a{c['approved']} "
             f"log_age={age} phase={detail['phase']} progress={detail['progress']}"
@@ -844,18 +908,30 @@ def main() -> None:
         verdict = _lane_verdict_summary(lane)
         logp = _latest_fixer_log(lane)
         log_name = logp.name if logp else "-"
+        feature_state = _feature_runner_state(lane, manual_session_map)
         counts = _lane_counts(PACKETS_ROOT / lane) if (PACKETS_ROOT / lane).exists() else {"pending": 0, "review": 0, "approved": 0}
         stale_idle = False
         if logp is not None:
             age_s = int(max(0, time.time() - logp.stat().st_mtime))
             stale_idle = counts["pending"] == 0 and counts["review"] == 0 and counts["approved"] == 0 and age_s >= STALE_LOG_SECONDS
-        if stale_idle:
+        if counts["pending"] == 0 and counts["review"] == 0 and counts["approved"] == 0 and feature_state["state"] in {"live", "recent_empty", "recent_log"}:
+            convo = feature_state["summary"]
+            detail = {
+                "objective": "produce the next lane commit and handoff packet",
+                "packet": "-",
+                "phase": "feature lane execution",
+                "progress": feature_state["summary"],
+                "recent": [feature_state["log"]] if feature_state["log"] else [],
+                "blockers": [],
+                "head_sha": None,
+            }
+        elif stale_idle:
             convo = "idle/no active lane packet"
             detail = {
                 "objective": "no active fixer run",
                 "packet": "-",
                 "phase": "no active packet",
-                "progress": "idle/no live lane work",
+                "progress": feature_state["summary"],
                 "recent": [],
                 "blockers": [],
                 "head_sha": None,
