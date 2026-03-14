@@ -3,7 +3,9 @@
   "codex_cmd": "codex",
   "fallback_model": "gpt-oss-120b",
   "fallback_codex_cmd": "codex",
-  "fallback_codex_args": [],
+  "fallback_codex_args": [
+    "--oss"
+  ],
   "fallback_model_args": [],
   "use_cli_reviewer_fallback": true,
   "use_cli_integrator_fallback": true,
