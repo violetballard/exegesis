@@ -120,8 +120,17 @@ def runtime_launch_config() -> Dict[str, object]:
     }
     profiles = _resolved_profiles(cfg)
     profile_name = role_profiles["feature_local" if mode == "local_fallback" else "feature_cloud"]
+    local_profile_name = role_profiles["feature_local"]
     prof = profiles[profile_name]
-    return {"mode": mode, "profile_name": profile_name, **prof}
+    local_prof = profiles[local_profile_name]
+    return {
+        "mode": mode,
+        "profile_name": profile_name,
+        "launch_timeout_seconds": float(cfg.get("feature_launch_timeout_seconds", 120)),
+        "local_profile_name": local_profile_name,
+        "local_profile": local_prof,
+        **prof,
+    }
 
 
 def build_prompt(lane: str, workdir: str) -> str:
@@ -246,30 +255,39 @@ def _launch_one_lane(
         },
         "Managed feature lane launch started.",
     )
-    client = _open_client(launch_cfg)
-    try:
-        if thread_id:
-            thread_id, content = client.codex_reply(
-                str(thread_id),
-                "Resume work from the current lane branch and continue toward the next valid handoff.",
-                timeout=900.0,
-            )
-            action = "resumed"
-        else:
-            thread_id, content = client.codex(
+    def _attempt(profile_cfg: Dict[str, object], *, existing_thread_id: str | None) -> tuple[str, str, str]:
+        client = _open_client(profile_cfg)
+        try:
+            if existing_thread_id:
+                next_thread_id, content = client.codex_reply(
+                    str(existing_thread_id),
+                    "Resume work from the current lane branch and continue toward the next valid handoff.",
+                    timeout=float(profile_cfg.get("launch_timeout_seconds", launch_cfg["launch_timeout_seconds"])),
+                )
+                return next_thread_id, content, "resumed"
+            next_thread_id, content = client.codex(
                 prompt=prompt,
                 cwd=workdir,
                 sandbox="workspace-write",
                 approval_policy="never",
-                model=str(launch_cfg["model"]),
-                timeout=900.0,
+                model=str(profile_cfg["model"]),
+                timeout=float(profile_cfg.get("launch_timeout_seconds", launch_cfg["launch_timeout_seconds"])),
             )
-            action = "launched"
+            return next_thread_id, content, "launched"
+        finally:
+            client.close()
+
+    try:
+        effective_cfg = dict(launch_cfg)
+        if thread_id:
+            thread_id, content, action = _attempt(effective_cfg, existing_thread_id=str(thread_id))
+        else:
+            thread_id, content, action = _attempt(effective_cfg, existing_thread_id=None)
         header = {
             "lane": lane,
             "thread_id": thread_id,
-            "mode": launch_cfg["mode"],
-            "profile": launch_cfg["profile_name"],
+            "mode": effective_cfg["mode"],
+            "profile": effective_cfg["profile_name"],
             "workdir": workdir,
             "action": action,
             "launched_at": _ts(),
@@ -279,8 +297,8 @@ def _launch_one_lane(
             feature_state,
             lane,
             status="managed_thread",
-            mode=str(launch_cfg["mode"]),
-            profile=str(launch_cfg["profile_name"]),
+            mode=str(effective_cfg["mode"]),
+            profile=str(effective_cfg["profile_name"]),
             workdir=workdir,
             prompt_path=prompt_path,
             log_path=log_path,
@@ -291,12 +309,79 @@ def _launch_one_lane(
             "lane": lane,
             "status": action,
             "thread_id": thread_id,
-            "mode": launch_cfg["mode"],
-            "profile": launch_cfg["profile_name"],
+            "mode": effective_cfg["mode"],
+            "profile": effective_cfg["profile_name"],
             "workdir": workdir,
             "log": str(log_path),
         }
     except Exception as exc:
+        if str(launch_cfg["mode"]) == "cloud_primary":
+            fallback_cfg = dict(launch_cfg["local_profile"])
+            fallback_cfg["mode"] = "local_fallback"
+            fallback_cfg["profile_name"] = launch_cfg["local_profile_name"]
+            fallback_cfg["launch_timeout_seconds"] = launch_cfg["launch_timeout_seconds"]
+            _set_lane_state(
+                feature_state,
+                lane,
+                status="launching",
+                mode=str(fallback_cfg["mode"]),
+                profile=str(fallback_cfg["profile_name"]),
+                workdir=workdir,
+                prompt_path=prompt_path,
+                log_path=log_path,
+                thread_id="",
+                error=f"cloud launch failed: {exc}",
+                action="local_fallback",
+            )
+            _write_log(
+                log_path,
+                {
+                    "lane": lane,
+                    "thread_id": "",
+                    "mode": fallback_cfg["mode"],
+                    "profile": fallback_cfg["profile_name"],
+                    "workdir": workdir,
+                    "action": "local_fallback",
+                    "launched_at": _ts(),
+                    "status": "launching",
+                },
+                f"Cloud launch failed, retrying locally: {exc}",
+            )
+            try:
+                thread_id, content, action = _attempt(fallback_cfg, existing_thread_id=None)
+                header = {
+                    "lane": lane,
+                    "thread_id": thread_id,
+                    "mode": fallback_cfg["mode"],
+                    "profile": fallback_cfg["profile_name"],
+                    "workdir": workdir,
+                    "action": action,
+                    "launched_at": _ts(),
+                }
+                _write_log(log_path, header, content)
+                _set_lane_state(
+                    feature_state,
+                    lane,
+                    status="managed_thread",
+                    mode=str(fallback_cfg["mode"]),
+                    profile=str(fallback_cfg["profile_name"]),
+                    workdir=workdir,
+                    prompt_path=prompt_path,
+                    log_path=log_path,
+                    thread_id=str(thread_id),
+                    action=f"local_{action}",
+                )
+                return {
+                    "lane": lane,
+                    "status": f"local_{action}",
+                    "thread_id": thread_id,
+                    "mode": fallback_cfg["mode"],
+                    "profile": fallback_cfg["profile_name"],
+                    "workdir": workdir,
+                    "log": str(log_path),
+                }
+            except Exception as fallback_exc:
+                exc = RuntimeError(f"cloud launch failed: {exc}; local fallback failed: {fallback_exc}")
         _set_lane_state(
             feature_state,
             lane,
