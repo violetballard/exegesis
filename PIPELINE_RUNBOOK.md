@@ -94,6 +94,11 @@ Useful commands:
 - switch back to cloud: `python codex_packet_handoff/tools/runtime_mode_ctl.py cloud_primary --reason "manual switch"`
 - launch feature lanes using current runtime mode: `python codex_packet_handoff/tools/launch_feature_lanes.py`
 
+Quota safeguard:
+- reviewer, fixer, and integrator outputs are scanned for quota/rate-limit text
+- if quota text is detected, router flips to `local_fallback` and records `last_quota_reason`
+- this applies even when the tool returned plain text instead of raising an exception
+
 ## Reset Rule
 
 If a review/fixer cycle becomes stale:

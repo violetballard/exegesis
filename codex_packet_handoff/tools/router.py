@@ -249,6 +249,28 @@ def _parse_retry_epoch_from_quota_log(text: str) -> Optional[float]:
     except Exception:
         return None
 
+
+def _quota_retry_epoch(cfg: RouterConfig, text: str, *, default_seconds: Optional[float] = None) -> float:
+    retry_at = _parse_retry_epoch_from_quota_log(text)
+    if retry_at is not None and retry_at > time.time():
+        return retry_at
+    seconds = default_seconds if default_seconds is not None else cfg.cloud_probe_cooldown_seconds
+    return time.time() + float(seconds)
+
+
+def _apply_quota_text_safeguard(
+    cfg: RouterConfig,
+    state: Dict[str, Any],
+    text: str,
+    *,
+    reason: str,
+    default_seconds: Optional[float] = None,
+) -> Dict[str, Any]:
+    if not text or not REVIEWER_QUOTA_RE.search(text):
+        return state
+    retry_at = _quota_retry_epoch(cfg, text, default_seconds=default_seconds)
+    return _switch_to_local_fallback(cfg, state, reason, retry_at)
+
 def parse_verdict(text: str) -> str:
     m = VERDICT_RE.search(text or "")
     if not m:
@@ -856,6 +878,12 @@ def process_once(
                     reviewer_text = _run_cli_reviewer(
                         cfg, repo_cwd, pkt, f"reviewer call failed/timed out: {exc}"
                     ) or _offline_reviewer_fallback(pkt, f"reviewer call failed/timed out: {exc}")
+            state = _apply_quota_text_safeguard(
+                cfg,
+                state,
+                reviewer_text,
+                reason=f"reviewer output quota text on lane {lane}",
+            )
             if _invalid_reviewer_output(reviewer_text):
                 # Recover from dead/invalid reviewer thread and retry once.
                 try:
@@ -918,6 +946,12 @@ def process_once(
                             )
                 else:
                     integ = _run_cli_integrator(cfg, repo_cwd, reviewer_text)
+                state = _apply_quota_text_safeguard(
+                    cfg,
+                    state,
+                    integ or "",
+                    reason=f"integrator output quota text on lane {lane}",
+                )
                 if integ and integ.strip():
                     write_text(lane_dir/"archive"/f"INTEGRATOR__{pkt_path.name}", integ)
             else:
@@ -995,10 +1029,20 @@ def process_reviewer_backlog(
             except Exception:
                 text = ""
             if text and FIXER_QUOTA_RE.search(text):
-                retry_at = _parse_retry_epoch_from_quota_log(text)
-                if retry_at is None or retry_at <= now:
-                    retry_at = now + cfg.fixer_quota_retry_cooldown_seconds
+                retry_at = _quota_retry_epoch(
+                    cfg,
+                    text,
+                    default_seconds=cfg.fixer_quota_retry_cooldown_seconds,
+                )
                 quota_retry_ts[lane] = retry_at
+                if cfg.auto_switch_to_local_on_quota:
+                    state = _apply_quota_text_safeguard(
+                        cfg,
+                        state,
+                        text,
+                        reason=f"fixer log quota text on lane {lane}",
+                        default_seconds=cfg.fixer_quota_retry_cooldown_seconds,
+                    )
                 continue
         newest_note = notes[-1]
         if cursor.get(lane) == newest_note.name:
@@ -1055,6 +1099,12 @@ def process_integrator_backlog(
                 if cfg.auto_switch_to_local_on_quota:
                     state = _switch_to_local_fallback(cfg, state, f"integrator backlog call failed/timed out: {exc}")
                 integ = _run_cli_integrator(cfg, repo_cwd, approved_text)
+        state = _apply_quota_text_safeguard(
+            cfg,
+            state,
+            integ or "",
+            reason=f"integrator output quota text on approval packet {pkt.name}",
+        )
         if integ and integ.strip():
             write_text(lane_dir / "archive" / f"INTEGRATOR__{pkt.name}", integ)
             archive(pkt, lane_dir)
