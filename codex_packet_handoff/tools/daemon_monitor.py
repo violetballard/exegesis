@@ -19,6 +19,7 @@ DAEMON_LOG = Path(".codex/packet_coordinator/daemon.log")
 RUNS_DIR = Path(".codex/packet_coordinator/runs")
 LOG_DIR = Path(".codex/packet_router/logs")
 FEATURE_RUNNER_ROOT = Path(".codex/feature_runner")
+FEATURE_STATE = FEATURE_RUNNER_ROOT / "state.json"
 COORD_LEASE = Path(".codex/packet_coordinator/lease.json")
 LEASE_FRESH_SECONDS = 3600
 STALE_LOG_SECONDS = 1800
@@ -189,6 +190,12 @@ def _manual_feature_logs(limit: int = 5) -> list[Path]:
     if not log_dir.exists():
         return []
     return sorted(log_dir.glob("*.log"), key=lambda p: p.stat().st_mtime, reverse=True)[:limit]
+
+
+def _feature_thread_state() -> Dict[str, Dict[str, Any]]:
+    data = _load_json(FEATURE_STATE, {})
+    lanes = data.get("lanes") if isinstance(data, dict) else {}
+    return lanes if isinstance(lanes, dict) else {}
 
 
 def _latest_run() -> Dict[str, Any] | None:
@@ -686,6 +693,33 @@ def _feature_runner_state(lane: str, live_sessions: Dict[str, dict[str, str]]) -
             "log": None,
             "age_s": None,
         }
+    thread_state = _feature_thread_state().get(lane)
+    if isinstance(thread_state, dict):
+        log_name = Path(str(thread_state.get("log_path") or "")).name if thread_state.get("log_path") else None
+        launched_at = str(thread_state.get("last_launch_at") or "-")
+        if thread_state.get("thread_id"):
+            return {
+                "state": "managed_thread",
+                "summary": f"managed feature thread={thread_state.get('thread_id')} last_action={thread_state.get('last_action', '-')} launched_at={launched_at}",
+                "log": log_name,
+                "age_s": None,
+            }
+        status = str(thread_state.get("status") or "")
+        if status == "launching":
+            return {
+                "state": "launching",
+                "summary": f"managed feature launch in progress last_action={thread_state.get('last_action', '-')} launched_at={launched_at}",
+                "log": log_name,
+                "age_s": None,
+            }
+        if status == "error":
+            err = str(thread_state.get("error") or "launch failed")
+            return {
+                "state": "error",
+                "summary": f"managed feature launch error: {err}",
+                "log": log_name,
+                "age_s": None,
+            }
     logp = _latest_feature_runner_log(lane)
     if logp is None:
         return {
@@ -797,8 +831,10 @@ def main() -> None:
 
     manual_sessions = _manual_feature_sessions()
     manual_session_map = _manual_feature_session_map()
+    feature_threads = _feature_thread_state()
     print("MANUAL FEATURE SESSIONS")
     print(f"running_count={len(manual_sessions)}")
+    print(f"managed_thread_count={sum(1 for lane in LANES if isinstance(feature_threads.get(lane), dict) and feature_threads.get(lane, {}).get('thread_id'))}")
     if manual_sessions:
         for row in manual_sessions:
             print(f"{row['lane']:22} pid={row['pid']} age={row['etime']}")
@@ -890,7 +926,7 @@ def main() -> None:
             if stale_idle
             else _detailed_conversation_summary(logp)
         )
-        if c["pending"] == 0 and c["review"] == 0 and c["approved"] == 0 and feature_state["state"] in {"live", "recent_empty", "recent_log"}:
+        if c["pending"] == 0 and c["review"] == 0 and c["approved"] == 0 and feature_state["state"] in {"live", "recent_empty", "recent_log", "managed_thread", "launching", "error"}:
             detail = {
                 "phase": "feature lane execution",
                 "progress": feature_state["summary"],
@@ -914,7 +950,7 @@ def main() -> None:
         if logp is not None:
             age_s = int(max(0, time.time() - logp.stat().st_mtime))
             stale_idle = counts["pending"] == 0 and counts["review"] == 0 and counts["approved"] == 0 and age_s >= STALE_LOG_SECONDS
-        if counts["pending"] == 0 and counts["review"] == 0 and counts["approved"] == 0 and feature_state["state"] in {"live", "recent_empty", "recent_log"}:
+        if counts["pending"] == 0 and counts["review"] == 0 and counts["approved"] == 0 and feature_state["state"] in {"live", "recent_empty", "recent_log", "managed_thread", "launching", "error"}:
             convo = feature_state["summary"]
             detail = {
                 "objective": "produce the next lane commit and handoff packet",
