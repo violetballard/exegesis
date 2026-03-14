@@ -40,6 +40,8 @@ class RouterConfig:
     codex_cmd: str
     fallback_model: str
     fallback_codex_cmd: str
+    fallback_codex_args: List[str]
+    fallback_model_args: List[str]
     reviewer_timeout: float
     integrator_timeout: float
     max_packets_per_run: int
@@ -83,11 +85,23 @@ def load_cfg() -> RouterConfig:
     cfg = load_json(CONFIG_FILE, None)
     if not cfg:
         raise SystemExit(f"Missing {CONFIG_FILE} (copy example.json).")
+    fallback_cmd = str(cfg.get("fallback_codex_cmd") or os.environ.get("CODEX_FALLBACK_CMD") or cfg.get("codex_cmd", "codex"))
+    fallback_model = str(cfg.get("fallback_model") or os.environ.get("CODEX_FALLBACK_MODEL") or cfg.get("model", "gpt-5.1-codex"))
+    fallback_cmd_args = cfg.get("fallback_codex_args")
+    if not isinstance(fallback_cmd_args, list):
+        env_args = (os.environ.get("CODEX_FALLBACK_ARGS") or "").strip()
+        fallback_cmd_args = env_args.split() if env_args else []
+    fallback_model_args = cfg.get("fallback_model_args")
+    if not isinstance(fallback_model_args, list):
+        env_model_args = (os.environ.get("CODEX_FALLBACK_MODEL_ARGS") or "").strip()
+        fallback_model_args = env_model_args.split() if env_model_args else []
     return RouterConfig(
         model=str(cfg.get("model", "gpt-5.1-codex")),
         codex_cmd=str(cfg.get("codex_cmd", "codex")),
-        fallback_model=str(cfg.get("fallback_model") or os.environ.get("CODEX_FALLBACK_MODEL") or cfg.get("model", "gpt-5.1-codex")),
-        fallback_codex_cmd=str(cfg.get("fallback_codex_cmd") or os.environ.get("CODEX_FALLBACK_CMD") or cfg.get("codex_cmd", "codex")),
+        fallback_model=fallback_model,
+        fallback_codex_cmd=fallback_cmd,
+        fallback_codex_args=[str(x) for x in fallback_cmd_args],
+        fallback_model_args=[str(x) for x in fallback_model_args],
         reviewer_timeout=float(cfg.get("reviewer_timeout", 180)),
         integrator_timeout=float(cfg.get("integrator_timeout", 900)),
         max_packets_per_run=int(cfg.get("max_packets_per_run", 1)),
@@ -274,14 +288,22 @@ def integrator_prompt(approved: str) -> str:
 
 def _run_cli_codex(
     codex_cmd: str,
+    codex_args: List[str],
     model: str,
+    model_args: List[str],
     sandbox: str,
     cwd: str,
     prompt: str,
     timeout: float,
 ) -> Tuple[int, str]:
+    cmd = [codex_cmd, *codex_args, "exec"]
+    if model:
+        cmd.extend(["-m", model])
+    if model_args:
+        cmd.extend(model_args)
+    cmd.extend(["-s", sandbox, prompt])
     p = subprocess.run(
-        [codex_cmd, "exec", "-m", model, "-s", sandbox, prompt],
+        cmd,
         cwd=cwd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -297,7 +319,9 @@ def _run_cli_reviewer(cfg: RouterConfig, repo_cwd: str, pkt: str, reason: str) -
     try:
         rc, out = _run_cli_codex(
             cfg.fallback_codex_cmd,
+            cfg.fallback_codex_args,
             cfg.fallback_model,
+            cfg.fallback_model_args,
             "read-only",
             repo_cwd,
             reviewer_prompt(pkt),
@@ -319,7 +343,9 @@ def _run_cli_integrator(cfg: RouterConfig, repo_cwd: str, approved: str) -> Opti
     try:
         rc, out = _run_cli_codex(
             cfg.fallback_codex_cmd,
+            cfg.fallback_codex_args,
             cfg.fallback_model,
+            cfg.fallback_model_args,
             "workspace-write",
             repo_cwd,
             integrator_prompt(approved),
@@ -459,9 +485,10 @@ def run_fixer(client: CodexMcpClient, cfg: RouterConfig, state: dict, lane: str,
         subprocess.Popen(
             [
                 cfg.fallback_codex_cmd,
+                *cfg.fallback_codex_args,
                 "exec",
-                "-m",
-                cfg.fallback_model,
+                *(["-m", cfg.fallback_model] if cfg.fallback_model else []),
+                *cfg.fallback_model_args,
                 "-s",
                 "workspace-write",
                 fixer_prompt(lane, branch, reviewer_packet, wt),

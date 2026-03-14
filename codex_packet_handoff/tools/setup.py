@@ -25,6 +25,8 @@ def write_example_config():
         "codex_cmd": "codex",
         "fallback_model": "",
         "fallback_codex_cmd": "",
+        "fallback_codex_args": [],
+        "fallback_model_args": [],
         "use_cli_reviewer_fallback": True,
         "use_cli_integrator_fallback": True,
         "idle_seconds": 1.2,

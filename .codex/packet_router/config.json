@@ -1,8 +1,10 @@
 {
   "model": "gpt-5.1-codex",
   "codex_cmd": "codex",
-  "fallback_model": "",
-  "fallback_codex_cmd": "",
+  "fallback_model": "gpt-oss-120b",
+  "fallback_codex_cmd": "codex",
+  "fallback_codex_args": [],
+  "fallback_model_args": [],
   "use_cli_reviewer_fallback": true,
   "use_cli_integrator_fallback": true,
   "idle_seconds": 1.2,
