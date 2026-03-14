@@ -265,6 +265,31 @@ def _tail_log(lines: int = 15) -> str:
     return "\n".join(txt[-lines:]) if txt else "(daemon log empty)"
 
 
+def _active_blocker_summary(totals: Dict[str, int]) -> str:
+    if totals["approved_for_integrator"] > 0:
+        return f"integrator backlog active ({totals['approved_for_integrator']} approved packet(s) waiting)"
+    if totals["pending_feature"] > 0:
+        return f"reviewer backlog active ({totals['pending_feature']} feature packet(s) waiting)"
+    if totals["ready_for_reemit"] > 0:
+        return f"planner re-emit needed ({totals['ready_for_reemit']} lane(s) advanced past review notes)"
+    if totals["waiting_feature_update"] > 0:
+        return f"feature rework needed ({totals['waiting_feature_update']} lane(s) still on reviewer notes)"
+    return "none"
+
+
+def _tail_scope_check_note(totals: Dict[str, int], tail: str) -> str:
+    if not tail or tail.startswith("(no daemon log") or tail.startswith("(daemon log empty)"):
+        return "daemon log has no recent scope-check lines"
+    lowered = tail.lower()
+    if "scope-check" not in lowered:
+        return "daemon log tail has no scope-check chatter"
+    if totals["pending_feature"] == 0 and totals["approved_for_integrator"] == 0 and totals["waiting_feature_update"] > 0:
+        return "scope-check lines in daemon log tail look historical; current blocker is reviewer handback, not a live scope-check failure"
+    if totals["pending_feature"] == 0 and totals["approved_for_integrator"] == 0 and totals["waiting_feature_update"] == 0:
+        return "scope-check lines in daemon log tail look historical; queue truth shows no live scope-check blocker"
+    return "scope-check lines appear in daemon log tail; confirm against queue truth before treating them as a live blocker"
+
+
 def _branch_head(branch: str) -> str:
     p = subprocess.run(
         ["git", "rev-parse", branch],
@@ -683,6 +708,7 @@ def main() -> None:
 
     print("BACKLOG")
     print(f"bottleneck={bottleneck}")
+    print(f"active_blocker={_active_blocker_summary(totals)}")
     print(f"reviewer_queue_pending_feature={reviewer_queue}")
     print(f"reviewer_notes_waiting={totals['reviewer_notes']}")
     print(f"waiting_feature_update={totals['waiting_feature_update']}")
@@ -868,8 +894,10 @@ def main() -> None:
                 print(f"  {line[:200]}")
     print()
 
+    tail = _tail_log()
     print("DAEMON LOG TAIL")
-    print(_tail_log())
+    print(f"note={_tail_scope_check_note(totals, tail)}")
+    print(tail)
 
 
 if __name__ == "__main__":

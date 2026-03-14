@@ -163,6 +163,7 @@ def main() -> None:
     print('- If state=waiting_feature_update: lane branch has not advanced since reviewer notes.')
     print('- If state=ready_for_reemit: lane advanced and planner should emit a new feature packet.')
     print('- If approved>0: integrator run should fire; check for INTEGRATOR__ outputs in archive.')
+    print('- Queue truth beats daemon-log chatter: stale scope-check text in older logs does not mean a live scope-check blocker.')
     print('- This script ignores live reviewer/integrator sessions and manual feature-lane sessions by design.')
     print('- For the full dashboard, also run daemon_monitor.py.')
     if total_waiting_feature > 0 and (not inline_fixer or not backlog_fixer):
