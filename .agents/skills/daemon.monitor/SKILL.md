@@ -19,12 +19,18 @@ If daemon is not running, also run:
 Then summarize all of these together:
 - filesystem truth per lane from `status.py`
 - daemon running/stopped state
-- backlog bottleneck
+- backlog bottleneck and `active_blocker` from `daemon_monitor.py`
 - reviewer lane state for all five lanes
 - reviewer thread ids and integrator thread id
 - latest live discussion summary for reviewer, integrator, and each feature lane
 - whether manual feature sessions are running outside daemon
 - whether the system is actively progressing, idle, or blocked
+
+Reading order:
+1. Treat `status.py` as queue truth.
+2. In `daemon_monitor.py`, read `BACKLOG.active_blocker` before reading any daemon-log tail.
+3. Treat `DAEMON LOG TAIL` as secondary diagnostic evidence only.
+4. If daemon-log tail mentions `scope-check` but queue truth shows no pending scope-related blocker, label it as stale historical noise and do not escalate it as the live cause.
 
 Reference:
 - `PIPELINE_RUNBOOK.md`

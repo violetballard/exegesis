@@ -38,6 +38,12 @@ Manual feature sessions are separate from the daemon:
 
 If `status.py` and `daemon_monitor.py` disagree, trust `status.py` for queue truth and use `daemon_monitor.py` for runtime diagnostics.
 
+Operator reading order:
+1. Read `status.py` totals and lane states first.
+2. Read `daemon_monitor.py` and look at `BACKLOG.active_blocker` before any lane conversation or daemon-log tail.
+3. Treat `DAEMON LOG TAIL` as secondary diagnostic context only.
+4. If daemon-log tail mentions `scope-check` but queue truth does not show a current scope-related blocker, label it as stale historical noise.
+
 ## CLI-First Runtime Mode
 
 The orchestrator can run cloud-first and fall back to local Codex CLI when quota/rate limits hit.

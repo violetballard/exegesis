@@ -15,10 +15,17 @@ CLI-first note:
 
 Then summarize:
 - filesystem truth per lane (`status.py`)
-- daemon state, reviewer/integrator queues, and latest lane discussion (`daemon_monitor.py`)
+- daemon state, reviewer/integrator queues, `active_blocker`, and latest lane discussion (`daemon_monitor.py`)
 - manual feature-lane Codex activity from process list / feature runner logs
 - whether the pipeline is actively progressing, idle, or blocked
 - whether any stale fixer/log noise should be ignored because the queue is clean
+
+Reading order:
+1. Start with `status.py` totals and lane states.
+2. Use `daemon_monitor.py` to read `bottleneck` and `active_blocker`.
+3. Only then read reviewer/integrator/lane discussion and daemon-log tail.
+4. If daemon-log tail conflicts with queue truth, say so explicitly and prefer queue truth.
+5. If `scope-check` appears only in daemon-log tail, call it stale unless queue state points to a current scope-driven stop.
 
 Reference:
 - `PIPELINE_RUNBOOK.md`
