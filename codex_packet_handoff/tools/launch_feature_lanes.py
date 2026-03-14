@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from codex_mcp_client import ApprovalPolicy, CodexMcpClient
 
@@ -16,6 +18,7 @@ KICKOFF_DIR = REPO_ROOT / ".codex/kickoff_packets"
 FEATURE_ROOT = REPO_ROOT / ".codex/feature_runner"
 FEATURE_STATE_FILE = FEATURE_ROOT / "state.json"
 LANES = ["feat-commands", "feat-context-storage", "feat-ux-flow", "feat-webconsole-core", "feat-webconsole-ui"]
+STATE_LOCK = threading.Lock()
 
 
 def load_json(path: Path, default: Any) -> Any:
@@ -178,20 +181,159 @@ def _set_lane_state(
     error: str = "",
     action: str = "",
 ) -> None:
-    lanes_state = feature_state.setdefault("lanes", {})
-    lanes_state[lane] = {
-        "status": status,
-        "thread_id": thread_id,
-        "mode": mode,
-        "profile": profile,
-        "workdir": workdir,
-        "prompt_path": str(prompt_path),
-        "log_path": str(log_path),
-        "last_launch_at": _ts(),
-        "last_action": action or status,
-        "error": error,
-    }
-    save_json(FEATURE_STATE_FILE, feature_state)
+    with STATE_LOCK:
+        lanes_state = feature_state.setdefault("lanes", {})
+        lanes_state[lane] = {
+            "status": status,
+            "thread_id": thread_id,
+            "mode": mode,
+            "profile": profile,
+            "workdir": workdir,
+            "prompt_path": str(prompt_path),
+            "log_path": str(log_path),
+            "last_launch_at": _ts(),
+            "last_action": action or status,
+            "error": error,
+        }
+        save_json(FEATURE_STATE_FILE, feature_state)
+
+
+def _launch_one_lane(
+    lane: str,
+    *,
+    args: argparse.Namespace,
+    launch_cfg: Dict[str, object],
+    worktrees: Dict[str, str],
+    prompts_dir: Path,
+    logs_dir: Path,
+    feature_state: Dict[str, Any],
+) -> Dict[str, Any]:
+    branch = f"refs/heads/codex/{lane}"
+    workdir = worktrees.get(branch)
+    if not workdir:
+        return {"lane": lane, "status": "skipped", "reason": f"no worktree for {branch}"}
+
+    prompt = build_prompt(lane, workdir)
+    prompt_path = prompts_dir / f"{lane}__{_ts()}.md"
+    prompt_path.write_text(prompt)
+    log_path = logs_dir / f"{lane}__{_ts()}.log"
+    lane_state = feature_state.get("lanes", {}).get(lane) if isinstance(feature_state.get("lanes", {}).get(lane), dict) else {}
+    thread_id = None if args.restart_existing else lane_state.get("thread_id")
+    initial_action = "resume" if thread_id else "launch"
+    _set_lane_state(
+        feature_state,
+        lane,
+        status="launching",
+        mode=str(launch_cfg["mode"]),
+        profile=str(launch_cfg["profile_name"]),
+        workdir=workdir,
+        prompt_path=prompt_path,
+        log_path=log_path,
+        thread_id=str(thread_id or ""),
+        action=initial_action,
+    )
+    _write_log(
+        log_path,
+        {
+            "lane": lane,
+            "thread_id": str(thread_id or ""),
+            "mode": launch_cfg["mode"],
+            "profile": launch_cfg["profile_name"],
+            "workdir": workdir,
+            "action": initial_action,
+            "launched_at": _ts(),
+            "status": "launching",
+        },
+        "Managed feature lane launch started.",
+    )
+    client = _open_client(launch_cfg)
+    try:
+        if thread_id:
+            thread_id, content = client.codex_reply(
+                str(thread_id),
+                "Resume work from the current lane branch and continue toward the next valid handoff.",
+                timeout=900.0,
+            )
+            action = "resumed"
+        else:
+            thread_id, content = client.codex(
+                prompt=prompt,
+                cwd=workdir,
+                sandbox="workspace-write",
+                approval_policy="never",
+                model=str(launch_cfg["model"]),
+                timeout=900.0,
+            )
+            action = "launched"
+        header = {
+            "lane": lane,
+            "thread_id": thread_id,
+            "mode": launch_cfg["mode"],
+            "profile": launch_cfg["profile_name"],
+            "workdir": workdir,
+            "action": action,
+            "launched_at": _ts(),
+        }
+        _write_log(log_path, header, content)
+        _set_lane_state(
+            feature_state,
+            lane,
+            status="managed_thread",
+            mode=str(launch_cfg["mode"]),
+            profile=str(launch_cfg["profile_name"]),
+            workdir=workdir,
+            prompt_path=prompt_path,
+            log_path=log_path,
+            thread_id=str(thread_id),
+            action=action,
+        )
+        return {
+            "lane": lane,
+            "status": action,
+            "thread_id": thread_id,
+            "mode": launch_cfg["mode"],
+            "profile": launch_cfg["profile_name"],
+            "workdir": workdir,
+            "log": str(log_path),
+        }
+    except Exception as exc:
+        _set_lane_state(
+            feature_state,
+            lane,
+            status="error",
+            mode=str(launch_cfg["mode"]),
+            profile=str(launch_cfg["profile_name"]),
+            workdir=workdir,
+            prompt_path=prompt_path,
+            log_path=log_path,
+            thread_id=str(thread_id or ""),
+            error=str(exc),
+            action=initial_action,
+        )
+        _write_log(
+            log_path,
+            {
+                "lane": lane,
+                "thread_id": str(thread_id or ""),
+                "mode": launch_cfg["mode"],
+                "profile": launch_cfg["profile_name"],
+                "workdir": workdir,
+                "action": initial_action,
+                "launched_at": _ts(),
+                "status": "error",
+            },
+            str(exc),
+        )
+        return {
+            "lane": lane,
+            "status": "error",
+            "mode": launch_cfg["mode"],
+            "profile": launch_cfg["profile_name"],
+            "workdir": workdir,
+            "error": str(exc),
+        }
+    finally:
+        client.close()
 
 
 def main() -> int:
@@ -224,137 +366,23 @@ def main() -> int:
         print(json.dumps({"runtime_mode": launch_cfg["mode"], "launched": launched}, indent=2))
         return 0
 
-    client = _open_client(launch_cfg)
-    try:
-        for lane in args.lanes:
-            branch = f"refs/heads/codex/{lane}"
-            workdir = worktrees.get(branch)
-            if not workdir:
-                launched.append({"lane": lane, "status": "skipped", "reason": f"no worktree for {branch}"})
-                continue
-            prompt = build_prompt(lane, workdir)
-            prompt_path = prompts_dir / f"{lane}__{_ts()}.md"
-            prompt_path.write_text(prompt)
-            log_path = logs_dir / f"{lane}__{_ts()}.log"
-            lane_state = lanes_state.get(lane) if isinstance(lanes_state.get(lane), dict) else {}
-            thread_id = None if args.restart_existing else lane_state.get("thread_id")
-            _set_lane_state(
-                feature_state,
+    max_workers = min(len(args.lanes), 5)
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [
+            executor.submit(
+                _launch_one_lane,
                 lane,
-                status="launching",
-                mode=str(launch_cfg["mode"]),
-                profile=str(launch_cfg["profile_name"]),
-                workdir=workdir,
-                prompt_path=prompt_path,
-                log_path=log_path,
-                thread_id=str(thread_id or ""),
-                action="resume" if thread_id else "launch",
+                args=args,
+                launch_cfg=launch_cfg,
+                worktrees=worktrees,
+                prompts_dir=prompts_dir,
+                logs_dir=logs_dir,
+                feature_state=feature_state,
             )
-            _write_log(
-                log_path,
-                {
-                    "lane": lane,
-                    "thread_id": str(thread_id or ""),
-                    "mode": launch_cfg["mode"],
-                    "profile": launch_cfg["profile_name"],
-                    "workdir": workdir,
-                    "action": "resume" if thread_id else "launch",
-                    "launched_at": _ts(),
-                    "status": "launching",
-                },
-                "Managed feature lane launch started.",
-            )
-            try:
-                if thread_id:
-                    thread_id, content = client.codex_reply(
-                        str(thread_id),
-                        "Resume work from the current lane branch and continue toward the next valid handoff.",
-                        timeout=900.0,
-                    )
-                    action = "resumed"
-                else:
-                    thread_id, content = client.codex(
-                        prompt=prompt,
-                        cwd=workdir,
-                        sandbox="workspace-write",
-                        approval_policy="never",
-                        model=str(launch_cfg["model"]),
-                        timeout=900.0,
-                    )
-                    action = "launched"
-                header = {
-                    "lane": lane,
-                    "thread_id": thread_id,
-                    "mode": launch_cfg["mode"],
-                    "profile": launch_cfg["profile_name"],
-                    "workdir": workdir,
-                    "action": action,
-                    "launched_at": _ts(),
-                }
-                _write_log(log_path, header, content)
-                _set_lane_state(
-                    feature_state,
-                    lane,
-                    status="managed_thread",
-                    mode=str(launch_cfg["mode"]),
-                    profile=str(launch_cfg["profile_name"]),
-                    workdir=workdir,
-                    prompt_path=prompt_path,
-                    log_path=log_path,
-                    thread_id=str(thread_id),
-                    action=action,
-                )
-                launched.append(
-                    {
-                        "lane": lane,
-                        "status": action,
-                        "thread_id": thread_id,
-                        "mode": launch_cfg["mode"],
-                        "profile": launch_cfg["profile_name"],
-                        "workdir": workdir,
-                        "log": str(log_path),
-                    }
-                )
-            except Exception as exc:
-                _set_lane_state(
-                    feature_state,
-                    lane,
-                    status="error",
-                    mode=str(launch_cfg["mode"]),
-                    profile=str(launch_cfg["profile_name"]),
-                    workdir=workdir,
-                    prompt_path=prompt_path,
-                    log_path=log_path,
-                    thread_id=str(thread_id or ""),
-                    error=str(exc),
-                    action="resume" if thread_id else "launch",
-                )
-                _write_log(
-                    log_path,
-                    {
-                        "lane": lane,
-                        "thread_id": str(thread_id or ""),
-                        "mode": launch_cfg["mode"],
-                        "profile": launch_cfg["profile_name"],
-                        "workdir": workdir,
-                        "action": "resume" if thread_id else "launch",
-                        "launched_at": _ts(),
-                        "status": "error",
-                    },
-                    str(exc),
-                )
-                launched.append(
-                    {
-                        "lane": lane,
-                        "status": "error",
-                        "mode": launch_cfg["mode"],
-                        "profile": launch_cfg["profile_name"],
-                        "workdir": workdir,
-                        "error": str(exc),
-                    }
-                )
-    finally:
-        client.close()
+            for lane in args.lanes
+        ]
+        for fut in as_completed(futures):
+            launched.append(fut.result())
 
     print(json.dumps({"runtime_mode": launch_cfg["mode"], "launched": launched}, indent=2))
     return 0
