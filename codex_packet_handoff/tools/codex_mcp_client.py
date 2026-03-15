@@ -18,8 +18,10 @@ from __future__ import annotations
 
 import json
 import os
+import queue
 import subprocess
 import threading
+from collections import deque
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -64,8 +66,10 @@ class CodexMcpClient:
         self._next_id = 1
         self._pending: Dict[int, "queue.Queue[Json]"] = {}
         self._lock = threading.Lock()
+        self._stderr_tail: deque[str] = deque(maxlen=20)
 
         threading.Thread(target=self._read_loop, daemon=True).start()
+        threading.Thread(target=self._read_stderr_loop, daemon=True).start()
 
         # Best-effort initialize (some servers require it)
         try:
@@ -80,23 +84,24 @@ class CodexMcpClient:
             pass
 
     def call(self, method: str, params: Optional[Json] = None, timeout: float = 180.0) -> Json:
-        import queue
         with self._lock:
             req_id = self._next_id
             self._next_id += 1
             q: "queue.Queue[Json]" = queue.Queue(maxsize=1)
             self._pending[req_id] = q
 
-        self._send({"jsonrpc": "2.0", "id": req_id, "method": method, "params": params or {}})
+        self._send({"jsonrpc": "2.0", "id": req_id, "method": method, "params": params or {}}, method=method)
 
         try:
             resp = q.get(timeout=timeout)
+        except queue.Empty as exc:
+            raise TimeoutError(self._format_process_error(f"{method} timed out after {timeout:.0f}s")) from exc
         finally:
             with self._lock:
                 self._pending.pop(req_id, None)
 
         if "error" in resp:
-            raise RuntimeError(resp["error"])
+            raise RuntimeError(self._format_process_error(f"{method} returned error: {resp['error']}"))
         return resp["result"]
 
     # MCP core
@@ -137,9 +142,12 @@ class CodexMcpClient:
         return _extract_thread_id(result), _extract_content(result)
 
     # internal plumbing
-    def _send(self, msg: Json) -> None:
-        self.proc.stdin.write(json.dumps(msg, ensure_ascii=False) + "\n")
-        self.proc.stdin.flush()
+    def _send(self, msg: Json, *, method: str = "request") -> None:
+        try:
+            self.proc.stdin.write(json.dumps(msg, ensure_ascii=False) + "\n")
+            self.proc.stdin.flush()
+        except Exception as exc:
+            raise RuntimeError(self._format_process_error(f"failed to send {method}: {exc}")) from exc
 
     def _read_loop(self) -> None:
         while True:
@@ -173,6 +181,17 @@ class CodexMcpClient:
             if "method" in msg and "id" in msg:
                 self._handle_server_request(msg)
 
+    def _read_stderr_loop(self) -> None:
+        if not self.proc.stderr:
+            return
+        while True:
+            line = self.proc.stderr.readline()
+            if not line:
+                return
+            text = line.strip()
+            if text:
+                self._stderr_tail.append(text)
+
     def _handle_server_request(self, msg: Json) -> None:
         method = msg.get("method")
         req_id = msg.get("id")
@@ -185,6 +204,17 @@ class CodexMcpClient:
             decision = "allow" if self._approval.approve_patch() else "deny"
 
         self._send({"jsonrpc": "2.0", "id": req_id, "result": {"decision": decision}})
+
+    def _format_process_error(self, message: str) -> str:
+        stderr_tail = " | ".join(self._stderr_tail)
+        if self.proc.poll() is not None:
+            detail = f"process exited rc={self.proc.returncode}"
+            if stderr_tail:
+                detail += f"; stderr_tail={stderr_tail}"
+            return f"{message}; {detail}"
+        if stderr_tail:
+            return f"{message}; stderr_tail={stderr_tail}"
+        return message
 
 
 def _extract_thread_id(result: Json) -> str:
