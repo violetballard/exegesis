@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
@@ -176,6 +177,24 @@ def _write_log(log_path: Path, header: Dict[str, Any], content: str) -> None:
     log_path.write_text("\n".join(lines))
 
 
+def _spawn_direct_exec(profile_cfg: Dict[str, object], *, workdir: str, prompt: str, log_path: Path) -> int:
+    cmd: List[str] = [str(profile_cfg["cmd"]), *[str(x) for x in list(profile_cfg["cmd_args"])], "exec"]
+    model = str(profile_cfg.get("model") or "")
+    if model:
+        cmd.extend(["-m", model])
+    cmd.extend([str(x) for x in list(profile_cfg.get("model_args") or [])])
+    cmd.extend(["-s", "workspace-write", prompt])
+    with log_path.open("a") as lf:
+        proc = subprocess.Popen(
+            cmd,
+            cwd=workdir,
+            stdout=lf,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+    return proc.pid
+
+
 def _set_lane_state(
     feature_state: Dict[str, Any],
     lane: str,
@@ -189,6 +208,7 @@ def _set_lane_state(
     thread_id: str = "",
     error: str = "",
     action: str = "",
+    pid: int = 0,
 ) -> None:
     with STATE_LOCK:
         lanes_state = feature_state.setdefault("lanes", {})
@@ -203,6 +223,7 @@ def _set_lane_state(
             "last_launch_at": _ts(),
             "last_action": action or status,
             "error": error,
+            "pid": pid,
         }
         save_json(FEATURE_STATE_FILE, feature_state)
 
@@ -240,6 +261,7 @@ def _launch_one_lane(
         log_path=log_path,
         thread_id=str(thread_id or ""),
         action=initial_action,
+        pid=0,
     )
     _write_log(
         log_path,
@@ -332,6 +354,7 @@ def _launch_one_lane(
                 thread_id="",
                 error=f"cloud launch failed: {exc}",
                 action="local_fallback",
+                pid=0,
             )
             _write_log(
                 log_path,
@@ -370,6 +393,7 @@ def _launch_one_lane(
                     log_path=log_path,
                     thread_id=str(thread_id),
                     action=f"local_{action}",
+                    pid=0,
                 )
                 return {
                     "lane": lane,
@@ -382,39 +406,47 @@ def _launch_one_lane(
                 }
             except Exception as fallback_exc:
                 exc = RuntimeError(f"cloud launch failed: {exc}; local fallback failed: {fallback_exc}")
+        direct_profile = dict(launch_cfg.get("local_profile") or launch_cfg)
+        direct_profile["mode"] = "local_fallback"
+        direct_profile["profile_name"] = str(launch_cfg.get("local_profile_name") or launch_cfg["profile_name"])
+        pid = _spawn_direct_exec(direct_profile, workdir=workdir, prompt=prompt, log_path=log_path)
         _set_lane_state(
             feature_state,
             lane,
-            status="error",
-            mode=str(launch_cfg["mode"]),
-            profile=str(launch_cfg["profile_name"]),
+            status="direct_exec_running",
+            mode=str(direct_profile["mode"]),
+            profile=str(direct_profile["profile_name"]),
             workdir=workdir,
             prompt_path=prompt_path,
             log_path=log_path,
-            thread_id=str(thread_id or ""),
+            thread_id="",
             error=str(exc),
-            action=initial_action,
+            action="direct_exec_fallback",
+            pid=pid,
         )
         _write_log(
             log_path,
             {
                 "lane": lane,
-                "thread_id": str(thread_id or ""),
-                "mode": launch_cfg["mode"],
-                "profile": launch_cfg["profile_name"],
+                "thread_id": "",
+                "mode": direct_profile["mode"],
+                "profile": direct_profile["profile_name"],
                 "workdir": workdir,
-                "action": initial_action,
+                "action": "direct_exec_fallback",
                 "launched_at": _ts(),
-                "status": "error",
+                "status": "direct_exec_running",
+                "pid": pid,
             },
-            str(exc),
+            f"Managed launch failed, spawned direct exec fallback: {exc}",
         )
         return {
             "lane": lane,
-            "status": "error",
-            "mode": launch_cfg["mode"],
-            "profile": launch_cfg["profile_name"],
+            "status": "direct_exec_running",
+            "mode": direct_profile["mode"],
+            "profile": direct_profile["profile_name"],
             "workdir": workdir,
+            "pid": pid,
+            "log": str(log_path),
             "error": str(exc),
         }
 def main() -> int:
