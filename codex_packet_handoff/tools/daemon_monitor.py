@@ -721,10 +721,17 @@ def _feature_runner_state(lane: str, live_sessions: Dict[str, dict[str, str]]) -
                 "age_s": None,
             }
         if status == "direct_exec_running":
-            pid = str(thread_state.get("pid") or "-")
+            pid = int(thread_state.get("pid") or 0)
+            if _pid_alive(pid):
+                return {
+                    "state": "direct_exec_running",
+                    "summary": f"direct exec fallback running pid={pid}",
+                    "log": log_name,
+                    "age_s": None,
+                }
             return {
-                "state": "direct_exec_running",
-                "summary": f"direct exec fallback running pid={pid}",
+                "state": "error",
+                "summary": f"stale direct exec state (pid {pid} is not alive)",
                 "log": log_name,
                 "age_s": None,
             }

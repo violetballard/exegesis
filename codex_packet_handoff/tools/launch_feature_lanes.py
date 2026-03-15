@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import threading
 from datetime import datetime, timezone
@@ -32,6 +33,16 @@ def load_json(path: Path, default: Any) -> Any:
 def save_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2, sort_keys=True))
+
+
+def _pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
 
 
 def _normalize_profile(raw: Dict[str, object], fallback_cmd: str, fallback_model: str) -> Dict[str, object]:
@@ -248,6 +259,24 @@ def _launch_one_lane(
     prompt_path.write_text(prompt)
     log_path = logs_dir / f"{lane}__{_ts()}.log"
     lane_state = feature_state.get("lanes", {}).get(lane) if isinstance(feature_state.get("lanes", {}).get(lane), dict) else {}
+    if str(lane_state.get("status") or "") == "direct_exec_running":
+        pid = int(lane_state.get("pid") or 0)
+        if not _pid_alive(pid):
+            _set_lane_state(
+                feature_state,
+                lane,
+                status="error",
+                mode=str(lane_state.get("mode") or launch_cfg["mode"]),
+                profile=str(lane_state.get("profile") or launch_cfg["profile_name"]),
+                workdir=str(lane_state.get("workdir") or workdir),
+                prompt_path=Path(str(lane_state.get("prompt_path") or prompt_path)),
+                log_path=Path(str(lane_state.get("log_path") or log_path)),
+                thread_id="",
+                error=f"stale direct exec pid {pid}",
+                action="stale_direct_exec",
+                pid=0,
+            )
+            lane_state = feature_state.get("lanes", {}).get(lane, {})
     thread_id = None if args.restart_existing else lane_state.get("thread_id")
     initial_action = "resume" if thread_id else "launch"
     _set_lane_state(
