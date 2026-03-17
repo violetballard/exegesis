@@ -56,8 +56,28 @@ shared_file_allowed() {
   [[ "$allow_shared" == "1" ]]
 }
 
+is_approved_shared_test() {
+  local f="$1"
+  case "$branch" in
+    codex/feat-context-storage*)
+      case "$f" in
+        tests/unit/test_context_storage_recovery.py) return 0 ;;
+      esac
+      ;;
+    codex/feat-webconsole*)
+      case "$f" in
+        tests/unit/test_webconsole_render_pages.py) return 0 ;;
+      esac
+      ;;
+  esac
+  return 1
+}
+
 is_allowed() {
   local f="$1"
+  if shared_file_allowed && is_approved_shared_test "$f"; then
+    return 0
+  fi
   if [[ "$ignore_lane_noise" == "1" ]]; then
     case "$f" in
       .codex/*|.agents/*|.git-*/**|.git-*/?|.git-box/*|.git-local/*|.git-real/*|.git-copy/*|.git-local-root/*|.git-worktree-local/*|.pycache_global/*|.git.box|.git.box-backup|.git.original_box|.git_alt_index|.git.orig|.git.remote)
