@@ -172,10 +172,14 @@ class ContextBasketStore:
         if not isinstance(value, list):
             return None
         parsed: list[str] = []
+        saw_invalid = False
         for raw in value:
             if not isinstance(raw, str):
-                return None
+                saw_invalid = True
+                continue
             parsed.append(raw)
+        if saw_invalid and not parsed:
+            return None
         return parsed
 
     def _parse_schema_version(self, payload: dict[str, object]) -> int | None:

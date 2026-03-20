@@ -59,6 +59,40 @@ class ContextStoreRecoveryTests(unittest.TestCase):
             ["first"],
         )
 
+    def test_mixed_invalid_item_ids_are_salvaged_and_rewritten(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "item_ids": [" keep ", 7, "", "keep", " second "],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["keep", "second"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["keep", "second"])
+        self.assertEqual(payload.get("schema_version"), 1)
+
+    def test_legacy_list_payload_salvages_valid_entries(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps([" first ", None, "second", "first", "  "]),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first", "second"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["first", "second"])
+        self.assertEqual(payload.get("schema_version"), 1)
+
 class VaultRecoveryTests(unittest.TestCase):
     def setUp(self) -> None:
         self._tmp = tempfile.TemporaryDirectory()
