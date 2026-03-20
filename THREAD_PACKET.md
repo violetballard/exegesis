@@ -14,16 +14,16 @@
 ## Scope completed
 - Preserved the lane-owned `diff_preview` contract hardening work in `src/qual/commands/diff_preview.py`, including labeled output, JSON payloads, no-diff responses, diff statistics, and fingerprint gating via `QUAL_DIFF_INCLUDE_FINGERPRINT`.
 - Restored the reviewer-required shared regression coverage in `tests/unit/test_diff_preview.py` for JSON fingerprint-disabled payloads, labeled JSON output, no-diff JSON shape, summary-only fingerprint behavior, truncated text fingerprint behavior, and the JSON fingerprint-enabled object contract.
-- Added the explicit `feat-commands` shared-test approval entries in `THREAD_OWNERSHIP.md` and `scripts/scope-check.sh` so the reviewer-required regression test is part of the submitted branch and passes the required scope gates.
-- Regenerated this handoff packet from the actual `codex/integrator...HEAD` branch delta so the scope summary, ownership note, roadmap mapping, changed-file list, and command outcomes match the submitted branch.
+- Removed the branch-local shared-test approval from `scripts/scope-check.sh` and `THREAD_OWNERSHIP.md` so the approval now lives only in this packet instead of lane policy enforcement.
+- Regenerated this handoff packet from the actual `codex/feat-commands` branch delta so the scope summary, ownership note, roadmap mapping, changed-file list, and command outcomes match the submitted branch.
 
 ## Kickoff budget/limits compliance
-- Stayed within the high-risk budget. The submitted branch delta contains one lane-owned command file, one reviewer-required shared regression test, two approval-record files, and this packet.
+- Stayed within the high-risk budget. The submitted branch delta contains one lane-owned command file, one reviewer-required shared regression test, two policy files, and this packet.
 
 ## Tasks completed (numbered)
 1. Preserved the lane-owned `src/qual/commands/diff_preview.py` contract hardening work so JSON output follows the same fingerprint gate as text output and returns `fingerprint: null` when disabled.
 2. Restored the focused shared regression tests in `tests/unit/test_diff_preview.py` for the reviewed `diff_preview` JSON and fingerprint contracts.
-3. Added the `feat-commands` shared-test approval entries in `THREAD_OWNERSHIP.md` and `scripts/scope-check.sh` so the shared regression file is explicitly approved for this branch.
+3. Removed the shared-test approval from lane policy enforcement and captured the approval as an explicit note in this packet instead.
 4. Regenerated the feature handoff packet so every field matches the submitted branch state.
 
 ## Files changed for submitted branch delta
@@ -35,13 +35,12 @@
 
 ## Commands run and outcomes
 - Validation date: `2026-03-20`
-- `python -m unittest discover -s tests/unit -p 'test_diff_preview.py'`: PASS
-- `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
-- `make ci`: PASS
+- `make scope-check`: FAIL
+- `make ci`: FAIL
 
 ## Risks / blockers
 - Risk: `LOW`
@@ -63,4 +62,4 @@
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `YES`
-- Shared-file exception note: `tests/unit/test_diff_preview.py` is included only to satisfy the reviewer-required regression coverage for the submitted `diff_preview` contract change, and `THREAD_OWNERSHIP.md` plus `scripts/scope-check.sh` record the approved `feat-commands` shared-test exception.
+- Shared-file exception note: `tests/unit/test_diff_preview.py` is included only to satisfy the reviewer-required regression coverage for the submitted `diff_preview` contract change, and the approval note is recorded in this packet rather than as a branch-local policy exception.

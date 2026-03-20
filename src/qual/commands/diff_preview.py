@@ -200,6 +200,7 @@ def _diff_fingerprint(diff: str) -> dict[str, object]:
 
 def _no_diff_result(message: str) -> str:
     if _resolve_output_format() == "json":
+        summary_only = _env_enabled(SUMMARY_ONLY_ENV)
         return _json_result(
             {
                 "diff": "",
@@ -207,7 +208,7 @@ def _no_diff_result(message: str) -> str:
                 "message": message,
                 "status": "no_diff",
                 "summary": None,
-                "summary_only": False,
+                "summary_only": summary_only,
                 "truncated": False,
             }
         )
