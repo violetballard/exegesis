@@ -214,6 +214,12 @@ def _no_diff_result(message: str) -> str:
     return message
 
 
+def _emitted_diff_payload(*, output: str, summary_only: bool) -> str:
+    if summary_only:
+        return ""
+    return output
+
+
 def _text_or_json_result(
     *,
     summary_source: str,
@@ -389,7 +395,7 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
     if len(diff) > max_chars:
         output = _truncate_diff(diff, max_chars)
         truncated = True
-    fingerprint = _diff_fingerprint(summary_source)
+    fingerprint = _diff_fingerprint(_emitted_diff_payload(output=output, summary_only=summary_only))
 
     return _text_or_json_result(
         summary_source=summary_source,
