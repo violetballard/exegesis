@@ -101,8 +101,36 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
         payload = json.loads(output)
         self.assertIsNone(payload["fingerprint"])
         self.assertEqual(payload["status"], "ok")
+        self.assertEqual(
+            payload["labels"],
+            {
+                "applied": True,
+                "original": "original",
+                "proposed": "proposed",
+            },
+        )
+        self.assertEqual(
+            payload["summary"]["stats"],
+            {"added": 1, "changed": 2, "hunks": 1, "net": 0, "removed": 1},
+        )
         self.assertEqual(payload["summary"]["text"], "Diff summary: +1 -1 (hunks: 1)")
         self.assertIn("--- original", payload["diff"])
+
+    def test_json_output_includes_fingerprint_when_flag_enabled(self) -> None:
+        with _env(
+            **{
+                OUTPUT_FORMAT_ENV: "json",
+                INCLUDE_FINGERPRINT_ENV: "1",
+                INCLUDE_SUMMARY_ENV: "1",
+            }
+        ):
+            output = run_diff_preview(DiffPreviewInput("a\nold\n", "a\nnew\n"))
+
+        payload = json.loads(output)
+        self.assertEqual(payload["fingerprint"]["algorithm"], "sha256")
+        self.assertEqual(payload["fingerprint"]["char_count"], len(payload["diff"]))
+        self.assertEqual(payload["fingerprint"]["line_count"], len(payload["diff"].splitlines()))
+        self.assertTrue(payload["fingerprint"]["sha256"])
 
 
 if __name__ == "__main__":

@@ -220,6 +220,12 @@ def _emitted_diff_payload(*, output: str, summary_only: bool) -> str:
     return output
 
 
+def _emitted_fingerprint_payload(fingerprint: dict[str, object]) -> dict[str, object] | None:
+    if not _env_enabled(INCLUDE_FINGERPRINT_ENV):
+        return None
+    return fingerprint
+
+
 def _text_or_json_result(
     *,
     summary_source: str,
@@ -238,9 +244,9 @@ def _text_or_json_result(
 ) -> str:
     banner = ""
     summary = _summarize_diff(summary_source)
-    include_fingerprint = _env_enabled(INCLUDE_FINGERPRINT_ENV)
+    emitted_fingerprint = _emitted_fingerprint_payload(fingerprint)
     fingerprint_line = ""
-    if include_fingerprint:
+    if emitted_fingerprint is not None:
         fingerprint_line = f"Diff fingerprint: sha256:{fingerprint['sha256']}"
     if include_options_banner:
         banner = (
@@ -254,8 +260,8 @@ def _text_or_json_result(
     if _resolve_output_format() == "json":
         return _json_result(
             {
-                "diff": "" if summary_only else output,
-                "fingerprint": fingerprint if include_fingerprint else None,
+                "diff": _emitted_diff_payload(output=output, summary_only=summary_only),
+                "fingerprint": emitted_fingerprint,
                 "labels": {
                     "applied": labels_applied,
                     "original": original_label,
