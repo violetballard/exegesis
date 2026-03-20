@@ -2,8 +2,8 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Validated code head before this packet-refresh commit: `290e704847d2fca8287a1e12c4b7875c5c732b3a`
-- Branch head note: this tracked packet is part of the submitted branch head, so the final exact HEAD SHA for the packet-refresh commit is reported in the accompanying handoff response to avoid self-referential SHA drift inside the committed file itself.
+- Verified branch head before this packet-refresh commit: `b1f729500cdec2587aba4929cfc7fe68cd99c31a`
+- Branch head note: this tracked packet is part of the submitted branch head, so the final exact HEAD SHA for this packet-refresh commit is reported in the accompanying handoff response to avoid self-referential SHA drift inside the committed file itself.
 
 ## Scope goal
 - Harden `diff_preview` output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.
@@ -37,7 +37,7 @@
 
 ## Commands run and outcomes
 - Validation date: `2026-03-20`
-- Gate evidence note: the behavior changes in this branch were validated from code head `290e704847d2fca8287a1e12c4b7875c5c732b3a`, and this final packet-refresh commit changes only `THREAD_PACKET.md` so the command results still describe the submitted branch behavior accurately.
+- Gate evidence note: the behavior changes in this branch were validated from branch head `b1f729500cdec2587aba4929cfc7fe68cd99c31a`, and this final packet-refresh commit changes only `THREAD_PACKET.md` so the command results still describe the submitted branch behavior accurately.
 - `python -m unittest tests.unit.test_diff_preview`: PASS
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
