@@ -1,6 +1,35 @@
 {
   "lanes": {
-    "feat-a2ui-contract": {},
+    "feat-a2ui-contract": {
+      "last_submitted_sha": "aa875cd03ea2a8e092f527610640827baa7b7b5a",
+      "last_emitted_packet": "F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md",
+      "last_gate_results": [
+        [
+          "make scope-check",
+          0
+        ],
+        [
+          "./quality-format.sh --check",
+          0
+        ],
+        [
+          "./quality-lint.sh",
+          0
+        ],
+        [
+          "./quality-test.sh",
+          0
+        ],
+        [
+          "./typecheck-test.sh",
+          0
+        ],
+        [
+          "make ci",
+          0
+        ]
+      ]
+    },
     "feat-commands": {},
     "feat-console": {},
     "feat-context-storage": {},

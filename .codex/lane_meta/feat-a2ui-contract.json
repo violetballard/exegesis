@@ -4,12 +4,12 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - keep typed and allowlisted A2UI actions on the same engine-authoritative contract used by direct action refs.",
-    "Milestone 5: A2UI Presentation Layer - preserve CLI rendering fallback for the same structured payloads and normalized action refs.",
-    "Milestone 5: A2UI Presentation Layer - keep the client-agnostic A2UI contract aligned with the capabilities handshake surface for future console consumers."
+    "Milestone 5: A2UI Presentation Layer - define and preserve the A2UI output contract for agent-produced presentation artifacts.",
+    "Milestone 5: A2UI Presentation Layer - provide CLI rendering fallback for the same structured A2UI payloads.",
+    "Milestone 5: A2UI Presentation Layer - enforce typed and allowlisted actions through the engine-authoritative PolicyGate."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Keep the Milestone 5 A2UI presentation contract typed and allowlisted, preserve CLI fallback on the same contract, and stay aligned with the capabilities handshake surface.",
+  "scope_goal": "Keep the Milestone 5 A2UI output contract stable, preserve CLI fallback on the same structured payloads, and keep actions typed, allowlisted, and engine-authoritative.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Normalized direct ActionRef execution through the same typed and allowlisted contract used for card filtering before capability checks, PolicyGate evaluation, and executor dispatch.",
