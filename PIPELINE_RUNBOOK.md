@@ -76,6 +76,10 @@ Recommended local fallback:
 - this is the most reliable option when your machine already has a working local provider profile in `~/.codex/config.toml`
 - if you prefer `--oss`, leave `fallback_model` empty unless you know your CLI/provider expects a specific local model id
 
+Cloud-first launch note:
+- set `disable_local_fallback_on_cloud_timeout=true` when you want feature lanes to stay in cloud mode instead of auto-dropping to local fallback after startup timeouts
+- raise `feature_launch_timeout_seconds` when managed cloud lane startup is slower than the default
+
 Recommended role split:
 - `orchestrator`: smaller local profile for supervision
 - `worker_cloud`: cloud coding/review/integration model
