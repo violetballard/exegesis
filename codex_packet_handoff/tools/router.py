@@ -21,8 +21,12 @@ CONFIG_FILE = ROUTER_ROOT / "config.json"
 CURSOR_FILE = ROUTER_ROOT / "cursor.json"
 LEASE_FILE = ROUTER_ROOT / "lease.json"
 
-VERDICT_RE = re.compile(
-    r"(?:\*\*Verdict\*\*|Verdict:)\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?",
+VERDICT_INLINE_RE = re.compile(
+    r"^\s*(?:\*\*)?(?:\d+\.\s*)?(?:\*\*)?Verdict(?:\*\*)?:?\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?\s*$",
+    re.IGNORECASE,
+)
+VERDICT_ONLY_RE = re.compile(
+    r"^\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?\s*$",
     re.IGNORECASE,
 )
 INVALID_REVIEWER_RE = re.compile(r"session not found for thread_id|thread not found", re.IGNORECASE)
@@ -280,11 +284,45 @@ def _apply_quota_text_safeguard(
     return _switch_to_local_fallback(cfg, state, reason, retry_at)
 
 def parse_verdict(text: str) -> str:
-    m = VERDICT_RE.search(text or "")
-    if not m:
-        return "CHANGES_REQUESTED"
-    v = m.group(1).upper().replace(" ", "_")
-    return "APPROVED" if v == "APPROVED" else "CHANGES_REQUESTED"
+    lines = (text or "").splitlines()
+    for idx, raw in enumerate(lines):
+        line = raw.strip()
+        if not line:
+            continue
+        m = VERDICT_INLINE_RE.match(line)
+        if m:
+            v = m.group(1).upper().replace(" ", "_")
+            return "APPROVED" if v == "APPROVED" else "CHANGES_REQUESTED"
+        if "verdict" in line.lower():
+            for nxt in lines[idx + 1 : idx + 4]:
+                nxt_line = nxt.strip()
+                if not nxt_line:
+                    continue
+                m2 = VERDICT_ONLY_RE.match(nxt_line)
+                if m2:
+                    v = m2.group(1).upper().replace(" ", "_")
+                    return "APPROVED" if v == "APPROVED" else "CHANGES_REQUESTED"
+                break
+    return "CHANGES_REQUESTED"
+
+
+def clear_stale_integrator_handoffs(lane_dir: Path, packet_name: str) -> int:
+    outbox = lane_dir / "outbox" / "integrator"
+    if not outbox.exists():
+        return 0
+    pattern = packet_name.replace("F__", "R__APPROVED__")
+    moved = 0
+    stale_dir = lane_dir / "archive" / "stale"
+    stale_dir.mkdir(parents=True, exist_ok=True)
+    for path in outbox.glob(pattern):
+        target = stale_dir / path.name
+        counter = 1
+        while target.exists():
+            target = stale_dir / f"{path.stem}__stale{counter}{path.suffix}"
+            counter += 1
+        path.rename(target)
+        moved += 1
+    return moved
 
 
 def _invalid_reviewer_output(text: str) -> bool:
@@ -973,6 +1011,7 @@ def process_once(
                 outp = lane_dir/"inbox/reviewer"/pkt_path.name.replace("F__","R__CHANGES__")
                 # Keep a single active reviewer note per lane; archive any older notes.
                 archive_reviewer_notes(lane_dir)
+                clear_stale_integrator_handoffs(lane_dir, pkt_path.name)
                 write_text(outp, reviewer_text)
 
             cursor[lane] = pkt_path.name
