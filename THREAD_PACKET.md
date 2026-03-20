@@ -17,7 +17,7 @@
 - Regenerated this handoff packet after removing the out-of-lane scope-policy change so review maps to the remaining in-scope branch delta.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget; the submitted branch delta is 3 files changed and remains well within the lane size limits. The change stays centered on the `diff_preview` command contract with one focused shared test file.
+- Stayed within the default lane budget; the submitted branch delta is 3 files changed and remains well within the lane size limits. The change stays centered on the `diff_preview` command contract with one focused shared test file and no policy-script edits.
 
 ## Approved exception note
 - Focused shared test coverage remains limited to `tests/unit/test_diff_preview.py` for the `diff_preview` command contract.
@@ -25,7 +25,8 @@
 ## Tasks completed (numbered)
 1. Corrected diff fingerprinting to hash the emitted diff payload after labels, header suppression, truncation, and summary-only handling so the reported SHA-256 verifies the artifact users receive.
 2. Added focused unit coverage for JSON command output, no-diff JSON shape, labeled diff output, and fingerprint correctness across emitted contract paths.
-3. Regenerated the feature handoff packet so the submitted branch state has concrete scope, file, roadmap, vision, and gate evidence instead of stale or generic metadata.
+3. Removed the out-of-lane scope-policy edit so the submitted branch stays limited to the `diff_preview` contract plus focused shared test coverage.
+4. Regenerated the feature handoff packet so the submitted branch state has concrete scope, file, roadmap, vision, and gate evidence instead of stale or generic metadata.
 
 ## Files changed for submitted branch delta
 - `THREAD_PACKET.md`
@@ -59,7 +60,7 @@
 - Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first surface while exposing a concrete JSON contract that matches the submitted behavior change and is covered by focused tests.
 
 ### Routing/provider impact note
-- None. This change only affects local diff-preview output formatting, verification metadata, and focused `diff_preview` test coverage.
+- None. This change only affects local diff-preview output formatting, verification metadata, and focused `diff_preview` test coverage; no policy or routing files change in the submitted branch.
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `NO`
