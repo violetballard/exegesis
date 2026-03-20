@@ -124,7 +124,7 @@ class ContextBasketStore:
             elif path == self._backup_path:
                 self._unlink_if_exists(path)
             return None
-        if not self._is_supported_payload(payload):
+        if not self._is_loadable_payload(payload):
             if path == self._path:
                 self._quarantine_invalid_file()
             elif path == self._tmp_path():
@@ -153,7 +153,7 @@ class ContextBasketStore:
             return False
         return self._is_supported_payload(payload)
 
-    def _is_supported_payload(self, payload: object) -> bool:
+    def _is_loadable_payload(self, payload: object) -> bool:
         if isinstance(payload, list):
             return self._parse_item_ids(payload) is not None
         if not isinstance(payload, dict):
@@ -161,6 +161,17 @@ class ContextBasketStore:
         if self._parse_schema_version(payload) is None:
             return False
         if self._parse_item_ids(payload.get("item_ids", [])) is None:
+            return False
+        return True
+
+    def _is_supported_payload(self, payload: object) -> bool:
+        if not self._is_loadable_payload(payload):
+            return False
+        if not isinstance(payload, dict):
+            return True
+        if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
+            return False
+        if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
             return False
         return True
 

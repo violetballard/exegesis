@@ -136,7 +136,7 @@ class VaultService:
             elif path == self._backup_state_path(path.parent):
                 self._unlink_if_exists(path)
             return None
-        if not self._is_supported_payload(payload):
+        if not self._is_loadable_payload(payload):
             if path.name == _STATE_FILE:
                 self._quarantine_invalid_state(path.parent)
             elif path == self._tmp_state_path(path.parent):
@@ -167,7 +167,7 @@ class VaultService:
             return False
         return self._is_supported_payload(payload)
 
-    def _is_supported_payload(self, payload: object) -> bool:
+    def _is_loadable_payload(self, payload: object) -> bool:
         if not isinstance(payload, dict):
             return False
         if self._parse_schema_version(payload) is None:
@@ -175,6 +175,15 @@ class VaultService:
         if "is_locked" in payload and self._parse_is_locked(payload.get("is_locked")) is None:
             return False
         if "project_name" in payload and self._parse_project_name(payload.get("project_name")) is None:
+            return False
+        return True
+
+    def _is_supported_payload(self, payload: object) -> bool:
+        if not self._is_loadable_payload(payload):
+            return False
+        if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
+            return False
+        if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
             return False
         return True
 
