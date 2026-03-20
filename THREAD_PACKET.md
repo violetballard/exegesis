@@ -5,11 +5,12 @@
 - Tasks completed:
   1. Returned deterministic FTS excerpt IDs and retrieval-backed `fetch_excerpt()` output inside `src/qual/retrieval/service.py`.
   2. Preserved `doc_hits` relevance order so document-level ranking matches the top-ranked underlying excerpt hit.
-  3. Added focused unit coverage for deterministic provenance and document ranking order.
+  3. Added focused unit coverage for deterministic provenance, document ranking order, and retrieval-service excerpt fetch behavior.
   4. Completed the handoff metadata required by `INTEGRATION.md` with explicit retrieval-lane ownership and roadmap/vision mapping for the MVP FTS work.
 - Files changed:
   - `.codex/lane_meta/feat-retrieval-fts.json`
   - `THREAD_PACKET.md`
+  - `src/qual/retrieval/__init__.py`
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`
 - Commands run with results:
@@ -22,7 +23,7 @@
   - `./typecheck-test.sh` -> passed (`python3 -m compileall -q src`, exit `0`)
   - `make ci` -> passed (includes scope-check, format, lint, typecheck, smoke, and unit test gates)
 - Reviewer fix closure:
-  - `#1` removed the non-owned `src/qual/engine/tools/excerpt_tools.py` change from this handoff so the lane stays within retrieval-owned behavior.
+  - `#1` removed `src/qual/engine/tools/excerpt_tools.py` from this lane by reverting the engine-owned helper to its pre-branch state and keeping the excerpt-fetch validation in retrieval-owned tests.
   - `#2` restored the correct low-risk/default-budget classification because the branch no longer carries engine-lane edits.
   - `#3` replaced the inaccurate ownership note with retrieval-owned-path-only framing in both the packet and lane metadata.
   - `#4` roadmap/vision notes now explicitly map only the retrieval-owned MVP work; the earlier engine-facing compatibility shim is out of scope for this handoff.
@@ -31,7 +32,7 @@
   - first green tests: `python -m unittest tests.unit.test_unified_retrieval` passed (`Ran 7 tests`, `OK`) after the scope correction
   - ready for handoff: all required local gates passed on `2026-03-20`
 - Risks/blockers:
-  - No shared, integrator-locked, or cross-lane behavior changes remain in this handoff.
+  - No shared, integrator-locked, or cross-lane files remain in this handoff.
   - Engine-facing compatibility for `fts_*` excerpt IDs is intentionally out of scope for this lane and should be handled in an engine-owned lane if still required.
 - Roadmap item(s) affected:
   - Retrieval-owned MVP work: `Milestone 4: Retrieval Layer` -> FTS-first ingestion/index path for context/vault documents
