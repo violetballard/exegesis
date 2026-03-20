@@ -112,6 +112,12 @@ class UnifiedRetrievalTests(unittest.TestCase):
             title_hint="Memo Beta",
             text="coding comparison",
         )
+        self.service.add_or_update_document(
+            doc_id="doc-memo-3",
+            doc_type="memo",
+            title_hint="Memo Gamma",
+            text="memo comparison",
+        )
 
         result = self.service.retrieve_auto(
             RetrievalQuery(
@@ -128,6 +134,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(result.doc_hits[0].top_excerpt_id, result.hits[0].excerpt_id)
         self.assertEqual(result.doc_hits[0].doc_id, "doc-memo-1")
         self.assertEqual(result.doc_hits[1].doc_id, "doc-memo-2")
+        ordered_doc_ids = []
+        seen_doc_ids = set()
+        for hit in result.hits:
+            if hit.doc_id in seen_doc_ids:
+                continue
+            seen_doc_ids.add(hit.doc_id)
+            ordered_doc_ids.append(hit.doc_id)
+        self.assertEqual([doc_hit.doc_id for doc_hit in result.doc_hits], ordered_doc_ids)
 
     def test_engine_excerpt_tool_fetches_fts_excerpt_ids(self) -> None:
         result = self.service.retrieve_auto(

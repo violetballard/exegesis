@@ -299,7 +299,7 @@ class RetrievalService:
         return tuple(doc_ids)
 
     @staticmethod
-    def _hit_sort_key(hit: RetrievalHit) -> tuple[float, str, str, int, int]:
+    def _hit_sort_key(hit: RetrievalHit) -> tuple[float, str, str, int, int, str]:
         char_range = hit.span.get("char_range", {}) if isinstance(hit.span, dict) else {}
         if not isinstance(char_range, dict):
             char_range = {}
@@ -309,6 +309,7 @@ class RetrievalService:
             hit.doc_id,
             int(char_range.get("start", -1)),
             int(char_range.get("end", -1)),
+            hit.excerpt_id or "",
         )
 
     def _candidate_docs_from_scope(self, scope: str, *, fallback: tuple[str, ...]) -> tuple[str, ...]:
