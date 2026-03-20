@@ -27,6 +27,11 @@
   - `#1` packet now includes `Scope completed`, the real changed-file list, and concrete roadmap/vision mappings for MVP FTS retrieval work
   - `#2` engine-facing excerpt fetching resolves retrieval-backed `fts_*` excerpt IDs through `src.qual.engine.tools.excerpt_tools.fetch_excerpt()`
   - `#3` `doc_hits` preserve first-seen relevance order from ranked excerpt hits, with focused unit coverage proving document-level ranking follows top-ranked hits
+- Checkpoint status:
+  - plan complete
+  - first green tests: `python -m unittest tests.unit.test_unified_retrieval` passed before the full gate rerun
+  - before risky/shared file edit: limited `src/qual/engine/tools/excerpt_tools.py` scope to engine-facing excerpt fetch compatibility only
+  - ready for handoff: all required local gates passed on `2026-03-20`
 - Risks/blockers:
   - Cross-lane edit in `src/qual/engine/tools/excerpt_tools.py` is intentionally minimal and limited to the reviewer-required engine-facing excerpt fetch path.
   - `pin_to_context_set()` remains `DocIndexService`-specific; this fix only broadens engine excerpt resolution for retrieval-backed IDs.
