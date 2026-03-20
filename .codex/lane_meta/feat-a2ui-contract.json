@@ -1,23 +1,23 @@
 {
-  "approved_exception_note": "Operational metadata exception for branch-local .codex files only: .codex/kickoff_packets/feat-a2ui-contract.md records kickoff scope, .codex/lane_meta/feat-a2ui-contract.json stores required roadmap/vision handoff fields, .codex/packet_planner/state.json is the planner state pointer, and .codex/packets/lanes/feat-a2ui-contract/inbox/feature/F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md is the reviewer handoff carrier. No product-code ownership exception is requested beyond those operational files.",
+  "approved_exception_note": "Operational metadata exception for branch-local .codex files only. This lane record describes commit 82645ebdc85872c97ab0e4e89fe931237d5d035e as a metadata-only handoff and does not claim product-code changes in the reviewed diff. No product-code ownership exception is requested.",
   "kickoff_budget_note": "",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - define and preserve the A2UI output contract for agent-produced presentation artifacts.",
-    "Milestone 5: A2UI Presentation Layer - provide CLI rendering fallback for the same structured A2UI payloads.",
-    "Milestone 5: A2UI Presentation Layer - enforce typed and allowlisted actions through the engine-authoritative PolicyGate."
+    "Milestone 5: A2UI Presentation Layer - keep the A2UI output contract tracked in lane handoff metadata for the reviewed commit.",
+    "Milestone 5: A2UI Presentation Layer - record CLI fallback and typed action expectations in the handoff packet without claiming product-code changes.",
+    "Milestone 5: A2UI Presentation Layer - keep the review packet auditable by matching the file list to the actual commit diff."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Keep the Milestone 5 A2UI output contract stable, preserve CLI fallback on the same structured payloads, and keep actions typed, allowlisted, and engine-authoritative.",
+  "scope_goal": "Record a metadata-only handoff for commit 82645ebd so the A2UI lane packet is auditable and does not claim source or test changes that are not present in the reviewed diff.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Normalized direct ActionRef execution through the same typed and allowlisted contract used for card filtering before capability checks, PolicyGate evaluation, and executor dispatch.",
-    "Rejected malformed direct ActionRef values and passed canonicalized direct ActionRef values to the executor so engine-authoritative execution stays aligned with studio and terminal paths.",
-    "Preserved CLI fallback rendering for GenericCard and unknown-card payloads, including explicit text fallbacks for unsupported or malformed blocks on the same A2UI contract."
+    "Rewrote the lane handoff metadata to describe the reviewed commit as a metadata-only update.",
+    "Removed product-code claims from the file list so the packet matches the actual reviewed diff.",
+    "Kept the Milestone 5 A2UI roadmap and vision references aligned to the handoff record rather than feature implementation."
   ],
   "vision_capabilities": [
-    "Capability 5: Agent-to-UI protocol (A2UI) - structured cards, actions, metadata, and CLI text fallback stay on the same contract.",
-    "Capability 4: Operator-first control surface - CLI remains a first-class fallback surface over the same engine-produced artifacts."
+    "Capability 5: Agent-to-UI protocol (A2UI) - structured cards, actions, metadata, and CLI text fallback remain documented in the handoff record.",
+    "Capability 4: Operator-first control surface - CLI remains the documented fallback surface for the A2UI contract."
   ]
 }
