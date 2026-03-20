@@ -10,7 +10,7 @@
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`
 - Commands run with results:
-  - Final re-review validation rerun on `2026-03-20` in this lane worktree after applying reviewer-required fixes
+  - Final re-review validation rerun on `2026-03-20` in this lane worktree against reviewer-required fixes `#1-#3`
   - `python -m unittest tests.unit.test_unified_retrieval` -> passed (`Ran 7 tests`, `OK`)
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -18,6 +18,10 @@
   - `./quality-test.sh` -> passed (`Ran 74 tests`, `OK`)
   - `./typecheck-test.sh` -> passed (`python3 -m compileall -q src`, exit `0`)
   - `make ci` -> passed (includes scope-check, format, lint, typecheck, smoke, and unit test gates)
+- Reviewer fix closure:
+  - `#1` packet now includes `Scope completed`, the real changed-file list, and concrete roadmap/vision mappings for MVP FTS retrieval work
+  - `#2` engine-facing excerpt fetching resolves retrieval-backed `fts_*` excerpt IDs through `src.qual.engine.tools.excerpt_tools.fetch_excerpt()`
+  - `#3` `doc_hits` preserve first-seen relevance order from ranked excerpt hits, with focused unit coverage proving document-level ranking follows top-ranked hits
 - Risks/blockers:
   - Cross-lane edit in `src/qual/engine/tools/excerpt_tools.py` is intentionally minimal and limited to the reviewer-required engine-facing excerpt fetch path.
   - `pin_to_context_set()` remains `DocIndexService`-specific; this fix only broadens engine excerpt resolution for retrieval-backed IDs.
