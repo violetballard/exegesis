@@ -2,32 +2,28 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Reviewed commit: `89b05722ac3754da2ab6aa5398a0ca44fb8f2b81`
-- Branch head note: the reviewed commit is metadata-only and deletes `THREAD_PACKET.md` only.
+- Reviewed commit: `1c89542b7b9bcee6f00d94ac4a24c3026755a8ff`
+- Branch head note: this packet documents the actual reviewed delta. That delta is a guardrail-only revert in `scripts/scope-check.sh`.
 
 ## Scope goal
-- Document the actual reviewed delta accurately: commit `89b05722ac3754da2ab6aa5398a0ca44fb8f2b81` removes this packet file and does not change product behavior.
+- Revert the shared policy change in `scripts/scope-check.sh` and keep the handoff metadata aligned with that policy-only branch state. No product behavior changed.
 
 ## Lane/owned paths
-- `THREAD_PACKET.md`
+- Shared policy file: `scripts/scope-check.sh`
 
 ## Scope completed
-- Rewrote the packet so it matches the actual reviewed commit instead of describing the stale `diff_preview` product-change submission.
-- Removed every claim that `src/qual/commands/diff_preview.py` or `tests/unit/test_diff_preview.py` changed in this commit.
-- Kept the scope strictly metadata-only; no product, routing, or policy files changed.
-
-## Kickoff budget/limits compliance
-- Treated this as a metadata-only fix with no product impact.
-- The reviewed commit delta contains one file: `THREAD_PACKET.md`, deleted.
+- Rewrote the handoff packet so it matches the actual reviewed commit `1c89542b7b9bcee6f00d94ac4a24c3026755a8ff`.
+- Removed the stale `diff_preview` claims from the handoff so the packet no longer mentions `src/qual/commands/diff_preview.py` or `tests/unit/test_diff_preview.py`.
+- Kept the reviewed delta limited to a guardrail-only policy revert in `scripts/scope-check.sh`; no product behavior changed.
 
 ## Tasks completed (numbered)
-1. Replaced the stale feature handoff packet with one that reflects the actual reviewed commit state.
-2. Removed the false `diff_preview` code/test change claims from the branch narrative.
-3. Updated the scope, roadmap/vision mapping, and changed-file list to describe a deletion-only commit.
-4. Added a direct note that if the intent is to review the earlier `diff_preview` code change, review the correct commit instead.
+1. Rewrote the handoff packet to match the actual reviewed commit `1c89542b7b9bcee6f00d94ac4a24c3026755a8ff`.
+2. Removed claims that `src/qual/commands/diff_preview.py` and `tests/unit/test_diff_preview.py` changed in this commit.
+3. Updated scope, files changed, and required handoff fields so they all describe the same policy-only branch state.
+4. Set roadmap and vision impact to `none` because the reviewed change only reverts shared policy enforcement.
 
-## Files changed for reviewed commit
-- `THREAD_PACKET.md` deleted
+## Files changed for submitted branch delta
+- `scripts/scope-check.sh`
 
 ## Commands run and outcomes
 - Validation date: `2026-03-20`
@@ -39,23 +35,20 @@
 - `make ci`: PASS
 
 ## Risks / blockers
-- Risk: `LOW`
+- Risk: `low`
 - Blockers: none
-- Note: this commit only changes handoff metadata; no routing/provider or product behavior changed.
+- Note: this is a guardrail-only revert; no routing/provider or product behavior changed.
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- None. This commit only aligns the handoff packet and does not change product scope.
+- none
 
 ### Vision capability affected
-- None. This commit is metadata-only and does not add or change user-facing capability.
+- none
 
 ### Routing/provider impact note
-- None. This change only updates handoff metadata; no routing/provider behavior changed.
-
-### Review target note
-- If the intention is to review the earlier `diff_preview` code change, point review at that commit instead of this metadata-only commit.
+- None. This change only reverts `scripts/scope-check.sh`.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO`
-- Shared-file exception note: none. This submission only edits `THREAD_PACKET.md`.
+- Shared/integrator-locked edits: `YES`
+- Approval rationale: the reviewed change is a narrow shared-policy revert in `scripts/scope-check.sh` and does not touch runtime/product code.
