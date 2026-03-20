@@ -6,6 +6,7 @@
   - `.codex/lane_meta/feat-retrieval-fts.json`
   - `THREAD_PACKET.md`
   - `src/qual/engine/tools/excerpt_tools.py`
+  - `src/qual/retrieval/__init__.py`
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`
 - Commands run with results:
