@@ -110,6 +110,7 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         loaded = self.store.load()
 
         self.assertEqual(loaded.item_ids, ["first", "second"])
+        self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("item_ids"), ["first", "second"])
         self.assertNotIn("recovered_from", payload)
@@ -131,6 +132,7 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         loaded = self.store.load()
 
         self.assertEqual(loaded.item_ids, ["first", "second"])
+        self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("item_ids"), ["first", "second"])
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
@@ -151,6 +153,7 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         loaded = self.store.load()
 
         self.assertEqual(loaded.item_ids, ["first", "second"])
+        self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("item_ids"), ["first", "second"])
         self.assertNotIn("recovered_from", payload)
@@ -223,6 +226,7 @@ class VaultRecoveryTests(unittest.TestCase):
         reopened = self.svc.create_or_open(self.root, "p4")
 
         self.assertFalse(reopened.is_locked)
+        self.assertFalse((state.root_dir / ".vault_state.corrupt.json").exists())
         payload = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("project_name"), "p4")
         self.assertFalse(payload.get("is_locked"))
@@ -247,6 +251,7 @@ class VaultRecoveryTests(unittest.TestCase):
         reopened = self.svc.create_or_open(self.root, "p5")
 
         self.assertFalse(reopened.is_locked)
+        self.assertFalse((state.root_dir / ".vault_state.corrupt.json").exists())
         payload = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("project_name"), "p5")
         self.assertFalse(payload.get("is_locked"))
@@ -270,6 +275,7 @@ class VaultRecoveryTests(unittest.TestCase):
         reopened = self.svc.create_or_open(self.root, "p6")
 
         self.assertFalse(reopened.is_locked)
+        self.assertFalse((state.root_dir / ".vault_state.corrupt.json").exists())
         payload = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("project_name"), "p6")
         self.assertFalse(payload.get("is_locked"))
