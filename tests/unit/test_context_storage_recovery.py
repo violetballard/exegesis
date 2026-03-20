@@ -59,6 +59,23 @@ class ContextStoreRecoveryTests(unittest.TestCase):
             ["first"],
         )
 
+    def test_invalid_primary_payload_recovers_from_backup(self) -> None:
+        self.store.save(ContextBasket(item_ids=["first"]))
+        self.store.save(ContextBasket(item_ids=["second"]))  # Creates backup with "first".
+        self.store._path.write_text(
+            json.dumps({"schema_version": 1, "item_ids": {"bad": "shape"}}),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first"])
+        self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
+        self.assertEqual(
+            json.loads(self.store._path.read_text(encoding="utf-8")).get("item_ids"),
+            ["first"],
+        )
+
 
 class VaultRecoveryTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -94,6 +111,22 @@ class VaultRecoveryTests(unittest.TestCase):
         # Successful recovery rewrites primary and clears stale quarantine artifacts.
         self.assertFalse((state.root_dir / ".vault_state.corrupt.json").exists())
         self.assertIsInstance(reopened.is_locked, bool)
+        self.assertTrue((state.root_dir / ".vault_state.json").exists())
+
+    def test_invalid_primary_payload_recovers_from_backup(self) -> None:
+        state = self.svc.create_or_open(self.root, "p4")
+        self.svc.lock(state)
+        self.svc.unlock(state)  # Backup now exists with locked=True.
+        state_path = state.root_dir / ".vault_state.json"
+        state_path.write_text(
+            json.dumps({"schema_version": 1, "project_name": "p4", "is_locked": 7}),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p4")
+
+        self.assertTrue(reopened.is_locked)
+        self.assertFalse((state.root_dir / ".vault_state.corrupt.json").exists())
         self.assertTrue((state.root_dir / ".vault_state.json").exists())
 
     def test_project_name_mismatch_forces_locked_state(self) -> None:

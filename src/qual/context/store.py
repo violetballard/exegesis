@@ -124,13 +124,15 @@ class ContextBasketStore:
             elif path == self._backup_path:
                 self._unlink_if_exists(path)
             return None
-        if isinstance(payload, (dict, list)):
-            return payload
-        if path == self._tmp_path():
-            self._unlink_if_exists(path)
-        elif path == self._backup_path:
-            self._unlink_if_exists(path)
-        return None
+        if not self._is_supported_payload(payload):
+            if path == self._path:
+                self._quarantine_invalid_file()
+            elif path == self._tmp_path():
+                self._unlink_if_exists(path)
+            elif path == self._backup_path:
+                self._unlink_if_exists(path)
+            return None
+        return payload
 
     def _write_backup(self) -> None:
         if not self._path.exists():
@@ -149,6 +151,9 @@ class ContextBasketStore:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             return False
+        return self._is_supported_payload(payload)
+
+    def _is_supported_payload(self, payload: object) -> bool:
         if isinstance(payload, list):
             return self._parse_item_ids(payload) is not None
         if not isinstance(payload, dict):

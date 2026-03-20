@@ -136,15 +136,10 @@ class VaultService:
             elif path == self._backup_state_path(path.parent):
                 self._unlink_if_exists(path)
             return None
-        if not isinstance(payload, dict):
-            if path == self._tmp_state_path(path.parent):
-                self._unlink_if_exists(path)
-            elif path == self._backup_state_path(path.parent):
-                self._unlink_if_exists(path)
-            return None
-        schema_version = payload.get("schema_version", 0)
-        if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
-            if path == self._tmp_state_path(path.parent):
+        if not self._is_supported_payload(payload):
+            if path.name == _STATE_FILE:
+                self._quarantine_invalid_state(path.parent)
+            elif path == self._tmp_state_path(path.parent):
                 self._unlink_if_exists(path)
             elif path == self._backup_state_path(path.parent):
                 self._unlink_if_exists(path)
@@ -170,6 +165,9 @@ class VaultService:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             return False
+        return self._is_supported_payload(payload)
+
+    def _is_supported_payload(self, payload: object) -> bool:
         if not isinstance(payload, dict):
             return False
         schema_version = payload.get("schema_version", 0)
