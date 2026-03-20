@@ -14,11 +14,11 @@
 ## Scope completed
 - Preserved the lane-owned `diff_preview` contract hardening work in `src/qual/commands/diff_preview.py`, including labeled output, JSON payloads, no-diff responses, diff statistics, and fingerprint gating via `QUAL_DIFF_INCLUDE_FINGERPRINT`.
 - Kept the reviewer-required shared regression coverage in `tests/unit/test_diff_preview.py` as the only shared-file exception for the expanded `diff_preview` contract.
-- Left lane policy enforcement unchanged and documented the shared-file exception here rather than self-authorized in `THREAD_OWNERSHIP.md` or `scripts/scope-check.sh`.
+- Left lane policy enforcement unchanged so the shared-file exception is documented here rather than self-authorized in branch-local policy.
 - Regenerated this handoff packet from the actual `codex/feat-commands` branch delta so the scope summary, ownership note, roadmap mapping, changed-file list, and command outcomes match the submitted branch.
 
 ## Kickoff budget/limits compliance
-- Stayed within the high-risk budget. The submitted branch delta contains one lane-owned command file, one reviewer-required shared regression test, and this packet.
+- Stayed within the high-risk budget. The submitted branch delta contains three files: one lane-owned command file, one reviewer-required shared regression test, and this packet.
 
 ## Tasks completed (numbered)
 1. Preserved the lane-owned `src/qual/commands/diff_preview.py` contract hardening work so JSON output follows the same fingerprint gate as text output and returns `fingerprint: null` when disabled.
@@ -27,9 +27,9 @@
 4. Regenerated the feature handoff packet so every field matches the submitted branch state.
 
 ## Files changed for submitted branch delta
-- `THREAD_PACKET.md`
 - `src/qual/commands/diff_preview.py`
 - `tests/unit/test_diff_preview.py`
+- `THREAD_PACKET.md`
 
 ## Commands run and outcomes
 - Validation date: `2026-03-20`
@@ -56,7 +56,7 @@
 - Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON contract by covering the reviewer-requested output cases with focused regression tests.
 
 ### Routing/provider impact note
-- None. This change affects local `diff_preview` output formatting plus the reviewer-required shared regression test; no routing/provider behavior changed.
+- None. This change affects local `diff_preview` output formatting and the reviewer-required shared regression test; no routing/provider behavior changed.
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `YES`
