@@ -1,11 +1,6 @@
 {
-  "scope_goal": "Harden context basket and vault persistence recovery so malformed optional metadata is salvaged and rewritten without discarding valid local state, and cover that recovery contract with focused tests.",
-  "tasks_completed": [
-    "Updated context basket recovery to treat malformed optional metadata as salvageable while still rejecting unrecoverable schema or item-id payloads.",
-    "Updated vault state recovery to preserve valid lock/project state when optional metadata fields are malformed, then rewrite normalized persisted state.",
-    "Normalized context basket item-id handling so mixed invalid entries can be salvaged and rewritten instead of forcing a full discard.",
-    "Added focused metadata-only corruption tests for both context basket and vault persistence paths, including backup-promotion recovery cases."
-  ],
+  "scope_goal": "Restart this lane from current main with strict owned-path-only context and vault persistence hardening; prior branch state is reference-only and must not be promoted as-is.",
+  "tasks_completed": [],
   "risk": "MEDIUM",
   "roadmap_items": [
     "Milestone 1 - Bootstrap Flow Stabilization: context basket and vault persistence hardening."
@@ -16,6 +11,6 @@
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
   "shared_file_exception": true,
-  "kickoff_budget_note": "Thread Kickoff Template budget applied: task budget `8`, time budget `45m`, size limits `<=12 files` and `<=500 net LOC`, max fix attempts per failing gate `2`. Tasks completed: `4 of 8`. Budget status: within limits at `4` files changed with `367` insertions and `33` deletions versus `codex/integrator`; this lane stayed within the time window and did not exceed the `2`-attempt gate-fix limit.",
-  "approved_exception_note": "Approved shared test-file exception only: `tests/unit/test_context_storage_recovery.py`. Runtime edits stay within `src/qual/context/**` and `src/qual/storage/**`. No shared-by-approval source files were edited, and no integrator-locked files were edited."
+  "kickoff_budget_note": "Reset-required lane after ownership and repo-hygiene drift in the stale March 5 review generation.",
+  "approved_exception_note": "Approved shared-file exception for tests/unit/test_context_storage_recovery.py to cover the vault recovery regression alongside the owned-path storage fix."
 }
