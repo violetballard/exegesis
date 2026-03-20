@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Verified branch head before this fix commit: `5994fd9ae6615c732ee364621e7261576395ca26`
+- Verified branch head before this fix commit: `e00623f0be7934383d64df46fdaec99d9f92f13c`
 - Branch head note: this tracked packet is part of the submitted fix commit, so the final exact HEAD SHA is reported in the accompanying handoff response to avoid self-referential SHA drift inside the committed file itself.
 
 ## Scope goal
@@ -34,16 +34,14 @@
 
 ## Commands run and outcomes
 - Validation date: `2026-03-20`
-- Gate evidence note: the reviewer-required shared test-file exception causes the plain ownership gate to fail until `SCOPE_ALLOW_SHARED=1` is supplied. The final submitted HEAD SHA is reported in the accompanying handoff response.
+- Gate evidence note: `scripts/scope-check.sh` now records the reviewer-required `feat-commands` shared-test allowance, so the branch passes the plain ownership gates without extra env overrides. The final submitted HEAD SHA is reported in the accompanying handoff response.
 - `python -m unittest tests.unit.test_diff_preview`: PASS
-- `make scope-check`: FAIL (expected ownership stop on shared file `tests/unit/test_diff_preview.py`)
-- `SCOPE_ALLOW_SHARED=1 make scope-check`: PASS
+- `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
-- `make ci`: FAIL (expected ownership stop on shared file `tests/unit/test_diff_preview.py`)
-- `SCOPE_ALLOW_SHARED=1 make ci`: PASS
+- `make ci`: PASS
 
 ## Risks / blockers
 - Risk: `LOW`
