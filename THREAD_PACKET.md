@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Verified branch head before this fix commit: `72c5f868fb0b6c44e80e26ae49d3da89d94c9487`
+- Verified branch head before this fix commit: `a45f7ac2b308b1ba31ccffb12c23b0fc4d368a33`
 - Branch head note: this tracked packet is part of the submitted fix commit, so the final exact `HEAD` SHA is reported in the accompanying handoff response to avoid self-referential SHA drift inside the committed file itself.
 
 ## Scope goal
@@ -14,7 +14,7 @@
 ## Scope completed
 - Preserved the lane-owned `diff_preview` contract hardening work in `src/qual/commands/diff_preview.py`, including labeled output, JSON payloads, no-diff responses, diff statistics, and fingerprint gating via `QUAL_DIFF_INCLUDE_FINGERPRINT`.
 - Kept the reviewer-required shared regression coverage in `tests/unit/test_diff_preview.py` as the only shared-file exception for the expanded `diff_preview` contract.
-- Left lane policy enforcement unchanged so the shared-file exception is documented here rather than self-authorized in `THREAD_OWNERSHIP.md` or `scripts/scope-check.sh`.
+- Left lane policy enforcement unchanged and documented the shared-file exception here rather than self-authorized in `THREAD_OWNERSHIP.md` or `scripts/scope-check.sh`.
 - Regenerated this handoff packet from the actual `codex/feat-commands` branch delta so the scope summary, ownership note, roadmap mapping, changed-file list, and command outcomes match the submitted branch.
 
 ## Kickoff budget/limits compliance
@@ -56,8 +56,8 @@
 - Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON contract by covering the reviewer-requested output cases with focused regression tests.
 
 ### Routing/provider impact note
-- None. This change affects local `diff_preview` output formatting, the reviewer-required shared regression test, and the corresponding scope-check approval entries; no routing/provider behavior changed.
+- None. This change affects local `diff_preview` output formatting plus the reviewer-required shared regression test; no routing/provider behavior changed.
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `YES`
-- Shared-file exception note: `tests/unit/test_diff_preview.py` is the only shared-file exception in this submission, and the approval note is recorded in this packet rather than as a branch-local policy exception.
+- Shared-file exception note: `tests/unit/test_diff_preview.py` is the only shared-file exception in this submission.
