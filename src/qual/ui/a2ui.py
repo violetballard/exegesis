@@ -124,7 +124,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
             {
                 "type": "CodeBlock",
                 "language": "json",
-                "code": _canonical_json(card),
+                "code": _render_payload_preview(card, max_payload_bytes=capabilities.max_payload_bytes),
             },
         ],
         "actions": [],
@@ -138,10 +138,14 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
         return _filter_card_actions(card, capabilities)
     if card_type in set(capabilities.cards_supported):
         return _filter_card_actions(card, capabilities)
-    return build_unknown_card(card)
+    return build_unknown_card(card, max_payload_bytes=capabilities.max_payload_bytes)
 
 
-def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
+def build_unknown_card(
+    raw_card: dict[str, Any],
+    *,
+    max_payload_bytes: int | None = None,
+) -> dict[str, Any]:
     type_name = str(raw_card.get("type", "<missing>"))
     nested_blocks = raw_card.get("blocks")
     blocks: list[dict[str, Any]] = []
@@ -153,7 +157,7 @@ def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
         {
             "type": "CodeBlock",
             "language": "json",
-            "code": json.dumps(raw_card, indent=2, sort_keys=True, ensure_ascii=True),
+            "code": _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes, pretty=True),
             "collapsed": True,
         }
     )
@@ -162,7 +166,11 @@ def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
         "title": f"Unsupported card type: {type_name}",
         "blocks": blocks,
         "actions": [
-            {"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": _canonical_json(raw_card)}}
+            {
+                "id": "copy_to_clipboard",
+                "label": "Copy JSON",
+                "payload": {"text": _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes)},
+            }
         ],
     }
 
@@ -245,6 +253,7 @@ def _filter_card_actions(card: dict[str, Any], capabilities: A2UICapabilities) -
         return card
     supported = set(capabilities.actions_supported)
     filtered: list[dict[str, Any]] = []
+    seen: set[str] = set()
     for action in actions:
         if not isinstance(action, dict):
             continue
@@ -256,7 +265,24 @@ def _filter_card_actions(card: dict[str, Any], capabilities: A2UICapabilities) -
             _validate_action_payload(action_id, payload)
         except ValueError:
             continue
+        action_key = _canonical_json(
+            {
+                "id": action_id,
+                "label": str(action.get("label", "")),
+                "payload": payload,
+            }
+        )
+        if action_key in seen:
+            continue
+        seen.add(action_key)
         filtered.append(action)
+    filtered.sort(
+        key=lambda action: (
+            str(action.get("id", "")),
+            str(action.get("label", "")),
+            _canonical_json(action.get("payload", {})),
+        )
+    )
     out = dict(card)
     out["actions"] = filtered
     return out
@@ -279,6 +305,34 @@ def _validate_action_payload(action_id: str, payload: dict[str, Any]) -> None:
 
 def _canonical_json(payload: dict[str, Any]) -> str:
     return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+
+
+def _render_payload_preview(
+    payload: dict[str, Any],
+    *,
+    max_payload_bytes: int | None,
+    pretty: bool = False,
+) -> str:
+    rendered = json.dumps(
+        payload,
+        indent=2 if pretty else None,
+        sort_keys=True,
+        separators=None if pretty else (",", ":"),
+        ensure_ascii=True,
+    )
+    if max_payload_bytes is None or len(rendered.encode("utf-8")) <= max_payload_bytes:
+        return rendered
+    if max_payload_bytes <= 0:
+        return "[payload omitted: max_payload_bytes <= 0]"
+
+    budget = max_payload_bytes
+    suffix = f"\n...[truncated to {max_payload_bytes} bytes]" if pretty else f"...[truncated to {max_payload_bytes} bytes]"
+    suffix_bytes = len(suffix.encode("utf-8"))
+    if suffix_bytes >= budget:
+        return suffix[:budget]
+
+    prefix = rendered.encode("utf-8")[: budget - suffix_bytes].decode("utf-8", errors="ignore")
+    return f"{prefix}{suffix}"
 
 
 def _render_terminal_actions(actions: Any) -> list[str]:
