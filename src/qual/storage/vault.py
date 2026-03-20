@@ -182,6 +182,8 @@ class VaultService:
         # Backup rotation stays strict so rewritten state drops malformed metadata fields.
         if not self._is_loadable_payload(payload):
             return False
+        if "project_name" in payload and self._parse_project_name(payload.get("project_name")) is None:
+            return False
         if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
             return False
         if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:

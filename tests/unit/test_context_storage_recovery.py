@@ -264,6 +264,7 @@ class VaultRecoveryTests(unittest.TestCase):
         reopened = self.svc.create_or_open(self.root, "p3-invalid")
 
         self.assertTrue(reopened.is_locked)
+        self.assertFalse((state.root_dir / ".vault_state.corrupt.json").exists())
         payload = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("project_name"), "p3-invalid")
         self.assertTrue(payload.get("is_locked"))
