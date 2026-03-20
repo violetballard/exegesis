@@ -63,6 +63,7 @@ class RetrievalDocHit:
     top_score: float
     source_strategy: Literal["fts"]
     excerpt_count: int
+    provenance: dict[str, object]
 
 
 @dataclass(frozen=True)
@@ -162,13 +163,15 @@ class RetrievalService:
     def _run_fts_hits(self, query: RetrievalQuery, candidate_doc_ids: tuple[str, ...]) -> list[RetrievalHit]:
         all_entries = self._load_fts_entries()
         scope_doc = self._doc_scope_id(query.scope)
+        candidate_doc_id_set = set(candidate_doc_ids)
+        allowed_doc_types = set(query.constraints.doc_types)
         filtered = []
         for entry in all_entries:
             if scope_doc is not None and entry["doc_id"] != scope_doc:
                 continue
-            if candidate_doc_ids and entry["doc_id"] not in set(candidate_doc_ids):
+            if candidate_doc_id_set and entry["doc_id"] not in candidate_doc_id_set:
                 continue
-            if query.constraints.doc_types and entry["doc_type"] not in set(query.constraints.doc_types):
+            if allowed_doc_types and entry["doc_type"] not in allowed_doc_types:
                 continue
             filtered.append(entry)
         tokens = [x for x in query.query_text.lower().split() if x]
@@ -176,13 +179,15 @@ class RetrievalService:
         for entry in filtered:
             score = 0.0
             text_lower = str(entry["text_lower"])
+            matched_terms: list[str] = []
             for token in tokens:
                 if token in text_lower:
                     score += 1.0
+                    matched_terms.append(token)
             if query.constraints.prefer_exact_matches and query.query_text.lower() in text_lower:
                 score += 2.0
             if score > 0:
-                ranked.append((score, entry))
+                ranked.append((score, {**entry, "matched_terms": tuple(matched_terms)}))
         ranked.sort(
             key=lambda item: (
                 -item[0],
@@ -193,7 +198,7 @@ class RetrievalService:
             )
         )
         hits: list[RetrievalHit] = []
-        for score, entry in ranked[: max(25, query.constraints.max_results)]:
+        for rank, (score, entry) in enumerate(ranked[: max(25, query.constraints.max_results)], start=1):
             doc_id = str(entry["doc_id"])
             excerpt_text = self._read_fts_excerpt_text(entry)
             hits.append(
@@ -207,7 +212,7 @@ class RetrievalService:
                     source_strategy="fts",
                     rationale="token_overlap",
                     node_path=None,
-                    provenance=self._build_fts_provenance(doc_id=doc_id, entry=entry, text=excerpt_text),
+                    provenance=self._build_fts_provenance(doc_id=doc_id, entry=entry, text=excerpt_text, rank=rank),
                 )
             )
         return hits
@@ -263,6 +268,7 @@ class RetrievalService:
             doc_meta = meta.get(doc_id, {})
             doc_hit_list = grouped[doc_id]
             top_hit = doc_hit_list[0]
+            doc_rank = len(doc_hits) + 1
             doc_hits.append(
                 RetrievalDocHit(
                     doc_id=doc_id,
@@ -272,6 +278,15 @@ class RetrievalService:
                     top_score=top_hit.score,
                     source_strategy="fts",
                     excerpt_count=len(doc_hit_list),
+                    provenance={
+                        "doc_id": doc_id,
+                        "source_hash": str(doc_meta.get("source_hash", "")),
+                        "top_excerpt_id": top_hit.excerpt_id,
+                        "top_excerpt_rank": top_hit.provenance.get("rank"),
+                        "doc_rank": doc_rank,
+                        "excerpt_count": len(doc_hit_list),
+                        "source_strategy": "fts",
+                    },
                 )
             )
         return doc_hits
@@ -390,14 +405,27 @@ class RetrievalService:
         char_end = int(entry["char_end"])
         return self._read_doc_text(doc_id)[char_start:char_end]
 
-    def _build_fts_provenance(self, *, doc_id: str, entry: dict[str, object], text: str) -> dict[str, object]:
+    def _build_fts_provenance(
+        self,
+        *,
+        doc_id: str,
+        entry: dict[str, object],
+        text: str,
+        rank: int | None = None,
+    ) -> dict[str, object]:
         meta = self._load_doc_meta().get(doc_id, {})
+        matched_terms = entry.get("matched_terms", ())
+        if not isinstance(matched_terms, tuple):
+            matched_terms = tuple(str(term) for term in matched_terms if isinstance(term, str))
         return {
             "doc_id": doc_id,
             "source_hash": str(meta.get("source_hash", "")),
             "excerpt_id": str(entry["excerpt_id"]),
             "span": {"char_range": {"start": int(entry["char_start"]), "end": int(entry["char_end"])}},
             "hash": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+            "matched_terms": matched_terms,
+            "match_count": len(matched_terms),
+            "rank": rank,
             "source_strategy": "fts",
         }
 
