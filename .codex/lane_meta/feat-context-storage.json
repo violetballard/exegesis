@@ -17,5 +17,5 @@
   "proposed_readme_patch": "",
   "shared_file_exception": true,
   "kickoff_budget_note": "Thread Kickoff Template budget applied: task budget `8`, time budget `45m`, size limits `<=12 files` and `<=500 net LOC`, max fix attempts per failing gate `2`. Tasks completed: `4 of 8`. Budget status: within limits at `4` files changed with `367` insertions and `33` deletions versus `codex/integrator`; this lane stayed within the time window and did not exceed the `2`-attempt gate-fix limit.",
-  "approved_exception_note": "Ownership note: runtime edits stay within the lane-owned paths `src/qual/context/**` and `src/qual/storage/**`. The only non-owned change is the approved test file `tests/unit/test_context_storage_recovery.py`; there are no shared-by-approval source-file edits and no integrator-locked edits."
+  "approved_exception_note": "Approved shared test-file exception only: `tests/unit/test_context_storage_recovery.py`. Runtime edits stay within `src/qual/context/**` and `src/qual/storage/**`. No shared-by-approval source files were edited, and no integrator-locked files were edited."
 }
