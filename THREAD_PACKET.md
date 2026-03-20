@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Verified branch head before this packet-refresh commit: `9a97d3d5f3ecb268840cee413a8f8d778c475ba5`
+- Verified branch head before this packet-refresh commit: `6442610b806d637b9194cda0de80fce5368a76e0`
 - Branch head note: this tracked packet is part of the submitted branch head, so the final exact HEAD SHA for this packet-refresh commit is reported in the accompanying handoff response to avoid self-referential SHA drift inside the committed file itself.
 
 ## Scope goal
@@ -37,7 +37,7 @@
 
 ## Commands run and outcomes
 - Validation date: `2026-03-20`
-- Gate evidence note: the behavior changes in this branch were validated from branch head `9a97d3d5f3ecb268840cee413a8f8d778c475ba5`, and this final packet-refresh commit changes only `THREAD_PACKET.md` so the command results still describe the submitted branch behavior accurately.
+- Gate evidence note: the behavior changes in this branch were validated from branch head `6442610b806d637b9194cda0de80fce5368a76e0`, and this final packet-refresh commit changes only `THREAD_PACKET.md` so the command results still describe the submitted branch behavior accurately.
 - `python -m unittest tests.unit.test_diff_preview`: PASS
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
