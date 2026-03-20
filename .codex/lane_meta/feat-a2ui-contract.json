@@ -1,5 +1,5 @@
 {
-  "approved_exception_note": "",
+  "approved_exception_note": "Operational metadata exception for branch-local .codex files only: .codex/kickoff_packets/feat-a2ui-contract.md records kickoff scope, .codex/lane_meta/feat-a2ui-contract.json stores required roadmap/vision handoff fields, .codex/packet_planner/state.json is the planner state pointer, and .codex/packets/lanes/feat-a2ui-contract/inbox/feature/F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md is the reviewer handoff carrier. No product-code ownership exception is requested beyond those operational files.",
   "kickoff_budget_note": "",
   "proposed_readme_patch": "",
   "risk": "LOW",
