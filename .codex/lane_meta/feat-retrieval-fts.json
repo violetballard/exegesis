@@ -5,7 +5,7 @@
   "risk": "LOW",
   "roadmap_items": [],
   "routing_provider_impact": "None",
-  "scope_goal": "",
+  "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows.",
   "shared_file_exception": false,
   "tasks_completed": [],
   "vision_capabilities": []

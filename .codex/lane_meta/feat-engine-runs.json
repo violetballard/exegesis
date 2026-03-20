@@ -5,7 +5,7 @@
   "risk": "LOW",
   "roadmap_items": [],
   "routing_provider_impact": "None",
-  "scope_goal": "",
+  "scope_goal": "Harden the engine run lifecycle so retrieval, patching, provenance, and export flow through one deterministic pipeline.",
   "shared_file_exception": false,
   "tasks_completed": [],
   "vision_capabilities": []
