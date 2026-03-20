@@ -226,7 +226,7 @@ class VaultService:
         value = payload.get("schema_version")
         if isinstance(value, bool) or not isinstance(value, int):
             return None
-        if value < 1 or value > _SCHEMA_VERSION:
+        if value < 0 or value > _SCHEMA_VERSION:
             return None
         return value
 
