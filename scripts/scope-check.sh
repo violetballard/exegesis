@@ -70,7 +70,7 @@ is_approved_shared_test() {
 
 is_allowed() {
   local f="$1"
-  if is_approved_shared_test "$f"; then
+  if shared_file_allowed && is_approved_shared_test "$f"; then
     return 0
   fi
   if [[ "$ignore_lane_noise" == "1" ]]; then
