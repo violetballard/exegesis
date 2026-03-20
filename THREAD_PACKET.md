@@ -2,30 +2,34 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Reviewed commit: `89b05722ac3754da2ab6aa5398a0ca44fb8f2b81`
-- Branch head note: the reviewed commit is metadata-only and deletes `THREAD_PACKET.md` only.
+- Verified branch head before this fix commit: `1840cf45f5b8dc67a0d3a5e3cf0a8e7857fe1c0c`
+- Branch head note: this tracked packet is part of the submitted fix commit, so the final exact `HEAD` SHA is reported in the accompanying handoff response to avoid self-referential SHA drift inside the committed file itself.
 
 ## Scope goal
-- Document the actual reviewed delta accurately: commit `89b05722ac3754da2ab6aa5398a0ca44fb8f2b81` removes this packet file and does not change product behavior.
+- Harden the `diff_preview` command contract and keep the reviewer-required shared regression coverage so text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.
 
 ## Lane/owned paths
-- `THREAD_PACKET.md`
+- `src/qual/commands/**`
 
 ## Scope completed
-- Rewrote the packet so it matches the actual reviewed commit instead of describing the stale `diff_preview` product-change submission.
-- Removed every claim that `src/qual/commands/diff_preview.py` or `tests/unit/test_diff_preview.py` changed in this commit.
-- Kept the scope strictly metadata-only; no product, routing, or policy files changed.
+- Preserved the lane-owned `diff_preview` contract hardening work in `src/qual/commands/diff_preview.py`, including labeled output, JSON payloads, no-diff responses, diff statistics, and fingerprint gating via `QUAL_DIFF_INCLUDE_FINGERPRINT`.
+- Kept the reviewer-required shared regression coverage in `tests/unit/test_diff_preview.py` as the only shared-file exception for the expanded `diff_preview` contract.
+- Left lane policy enforcement unchanged; no policy or routing file was edited in this branch.
+- Regenerated this handoff packet from the actual `codex/feat-commands` branch delta so the scope summary, ownership note, roadmap mapping, changed-file list, and command outcomes match the submitted branch.
 
 ## Kickoff budget/limits compliance
-- Stayed within the high-risk budget for a metadata-only fix. The reviewed commit delta contains one file: `THREAD_PACKET.md`, deleted.
+- Stayed within the high-risk budget. The submitted branch delta contains three files: one lane-owned command file, one reviewer-required shared regression test, and this packet.
 
 ## Tasks completed (numbered)
-1. Replaced the stale feature handoff packet with one that reflects the actual reviewed commit state.
-2. Removed the false `diff_preview` code/test change claims from the branch narrative.
-3. Updated the scope, roadmap/vision mapping, and changed-file list to describe a deletion-only commit.
+1. Preserved the lane-owned `src/qual/commands/diff_preview.py` contract hardening work so JSON output follows the same fingerprint gate as text output and returns `fingerprint: null` when disabled.
+2. Restored the focused shared regression tests in `tests/unit/test_diff_preview.py` for the reviewed `diff_preview` JSON and fingerprint contracts.
+3. Kept the shared-test approval external to lane policy enforcement and captured the exception as an explicit note in this packet instead.
+4. Regenerated the feature handoff packet so every field matches the submitted branch state.
 
-## Files changed for reviewed commit
-- `THREAD_PACKET.md` deleted
+## Files changed for submitted branch delta
+- `src/qual/commands/diff_preview.py`
+- `tests/unit/test_diff_preview.py`
+- `THREAD_PACKET.md`
 
 ## Commands run and outcomes
 - Validation date: `2026-03-20`
@@ -39,21 +43,21 @@
 ## Risks / blockers
 - Risk: `LOW`
 - Blockers: none
-- Note: this commit only changes handoff metadata; no routing/provider or product behavior changed.
+- Note: no routing/provider behavior changed.
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- None. This commit only aligns the handoff packet and does not change product scope.
+- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` command behavior so JSON and text honor the same fingerprint gate.
+- Milestone 2 - Test Hardening: preserve the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON fingerprint-disabled payload shape, JSON fingerprint-enabled behavior, no-diff JSON shape, summary-only fingerprint behavior, and truncated text fingerprint behavior.
+- Milestone 3 - Product Readiness: lock the user-facing `diff_preview` fingerprint and structured output contract across text and JSON output.
 
 ### Vision capability affected
-- None. This commit is metadata-only and does not add or change user-facing capability.
+- Capability 3 - Auditable generation: the command makes fingerprint metadata explicitly optional in both text and JSON formats, avoiding silent metadata leakage when the gate is disabled.
+- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON contract by covering the reviewer-requested output cases with focused regression tests.
 
 ### Routing/provider impact note
-- None. This change only updates handoff metadata; no routing/provider behavior changed.
-
-### Review target note
-- If the intention is to review the earlier `diff_preview` code change, point review at that commit instead of this metadata-only commit.
+- None. This change affects local `diff_preview` output formatting and the reviewer-required shared regression test; no routing/provider behavior changed.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO`
-- Shared-file exception note: none. This submission only edits `THREAD_PACKET.md`.
+- Shared/integrator-locked edits: `YES`
+- Shared-file exception note: `tests/unit/test_diff_preview.py` is the only shared-file exception in this submission.
