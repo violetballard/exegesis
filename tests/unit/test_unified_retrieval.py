@@ -150,6 +150,24 @@ class UnifiedRetrievalTests(unittest.TestCase):
             ordered_doc_ids.append(hit.doc_id)
         self.assertEqual([doc_hit.doc_id for doc_hit in result.doc_hits], ordered_doc_ids)
 
+    def test_retrieval_service_fetches_fts_excerpt_ids(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="lookup",
+                constraints=RetrievalConstraints(max_results=3),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+        excerpt = self.service.fetch_excerpt(excerpt_id or "")
+        self.assertEqual(excerpt["excerpt_id"], excerpt_id)
+        self.assertEqual(excerpt["provenance"]["source_strategy"], "fts")
+        self.assertTrue(excerpt["text"])
+
     def test_retrieval_audit_uses_query_hash_not_plaintext(self) -> None:
         query_text = "highly sensitive question text"
         self.service.retrieve_auto(

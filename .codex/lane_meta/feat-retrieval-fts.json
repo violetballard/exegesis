@@ -1,6 +1,6 @@
 {
   "approved_exception_note": "",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 4 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 4 completed tasks, retrieval-owned behavior only, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [

@@ -10,29 +10,28 @@
 - Files changed:
   - `.codex/lane_meta/feat-retrieval-fts.json`
   - `THREAD_PACKET.md`
-  - `src/qual/retrieval/__init__.py`
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`
 - Commands run with results:
   - Final re-review validation rerun on `2026-03-20` in this lane worktree against reviewer-required fixes `#1-#4`
-  - `python -m unittest tests.unit.test_unified_retrieval` -> passed (`Ran 6 tests`, `OK`)
+  - `python -m unittest tests.unit.test_unified_retrieval` -> passed (`Ran 7 tests`, `OK`)
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
-  - `./quality-test.sh` -> passed (`Ran 73 tests`, `OK`)
+  - `./quality-test.sh` -> passed (`Ran 74 tests`, `OK`)
   - `./typecheck-test.sh` -> passed (`python3 -m compileall -q src`, exit `0`)
   - `make ci` -> passed (includes scope-check, format, lint, typecheck, smoke, and unit test gates)
 - Reviewer fix closure:
-  - `#1` removed the non-owned `src/qual/engine/tools/excerpt_tools.py` change so this lane now stays inside retrieval-owned paths.
+  - `#1` removed the retrieval-lane behavior change from the non-owned `src/qual/engine/tools/excerpt_tools.py` file by restoring its generic protocol-based helper signature, so this lane no longer depends on an engine-lane compatibility shim.
   - `#2` restored the correct low-risk/default-budget classification because the branch no longer carries engine-lane edits.
   - `#3` replaced the inaccurate ownership note with retrieval-owned-path-only framing in both the packet and lane metadata.
   - `#4` roadmap/vision notes now explicitly map only the retrieval-owned MVP work; the earlier engine-facing compatibility shim is out of scope for this handoff.
 - Checkpoint status:
   - plan complete
-  - first green tests: `python -m unittest tests.unit.test_unified_retrieval` passed (`Ran 6 tests`, `OK`) after the scope correction
+  - first green tests: `python -m unittest tests.unit.test_unified_retrieval` passed (`Ran 7 tests`, `OK`) after the scope correction
   - ready for handoff: all required local gates passed on `2026-03-20`
 - Risks/blockers:
-  - No shared, integrator-locked, or cross-lane files remain in this handoff.
+  - No shared, integrator-locked, or cross-lane behavior changes remain in this handoff.
   - Engine-facing compatibility for `fts_*` excerpt IDs is intentionally out of scope for this lane and should be handled in an engine-owned lane if still required.
 - Roadmap item(s) affected:
   - Retrieval-owned MVP work: `Milestone 4: Retrieval Layer` -> FTS-first ingestion/index path for context/vault documents
