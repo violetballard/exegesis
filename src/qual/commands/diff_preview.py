@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -25,6 +26,7 @@ TRUNCATION_MARKER_ENV = "QUAL_DIFF_TRUNCATION_MARKER"
 ORIGINAL_LABEL_ENV = "QUAL_DIFF_ORIGINAL_LABEL"
 PROPOSED_LABEL_ENV = "QUAL_DIFF_PROPOSED_LABEL"
 OUTPUT_FORMAT_ENV = "QUAL_DIFF_OUTPUT_FORMAT"
+INCLUDE_FINGERPRINT_ENV = "QUAL_DIFF_INCLUDE_FINGERPRINT"
 MAX_FILE_LABEL_CHARS = 120
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
@@ -186,11 +188,22 @@ def _json_result(payload: dict[str, object]) -> str:
     return json.dumps(payload, sort_keys=True)
 
 
+def _diff_fingerprint(diff: str) -> dict[str, object]:
+    digest = hashlib.sha256(diff.encode("utf-8")).hexdigest()
+    return {
+        "algorithm": "sha256",
+        "char_count": len(diff),
+        "line_count": len(diff.splitlines()),
+        "sha256": digest,
+    }
+
+
 def _no_diff_result(message: str) -> str:
     if _resolve_output_format() == "json":
         return _json_result(
             {
                 "diff": "",
+                "fingerprint": None,
                 "message": message,
                 "status": "no_diff",
                 "summary": None,
@@ -215,9 +228,13 @@ def _text_or_json_result(
     labels_applied: bool,
     original_label: str,
     proposed_label: str,
+    fingerprint: dict[str, object],
 ) -> str:
     banner = ""
     summary = _summarize_diff(summary_source)
+    fingerprint_line = ""
+    if _env_enabled(INCLUDE_FINGERPRINT_ENV):
+        fingerprint_line = f"Diff fingerprint: sha256:{fingerprint['sha256']}"
     if include_options_banner:
         banner = (
             _options_banner(
@@ -231,6 +248,7 @@ def _text_or_json_result(
         return _json_result(
             {
                 "diff": "" if summary_only else output,
+                "fingerprint": fingerprint,
                 "labels": {
                     "applied": labels_applied,
                     "original": original_label,
@@ -260,9 +278,16 @@ def _text_or_json_result(
             }
         )
     if summary_only:
+        if fingerprint_line:
+            return f"{banner}{summary}\n{fingerprint_line}"
         return f"{banner}{summary}"
     if include_summary:
-        return f"{banner}{output}\n\n{summary}"
+        result = f"{banner}{output}\n\n{summary}"
+        if fingerprint_line:
+            return f"{result}\n{fingerprint_line}"
+        return result
+    if fingerprint_line:
+        return f"{banner}{output}\n\n{fingerprint_line}"
     return f"{banner}{output}"
 
 
@@ -364,6 +389,7 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
     if len(diff) > max_chars:
         output = _truncate_diff(diff, max_chars)
         truncated = True
+    fingerprint = _diff_fingerprint(summary_source)
 
     return _text_or_json_result(
         summary_source=summary_source,
@@ -378,4 +404,5 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
         labels_applied=not suppress_file_headers,
         original_label=original_label,
         proposed_label=proposed_label,
+        fingerprint=fingerprint,
     )
