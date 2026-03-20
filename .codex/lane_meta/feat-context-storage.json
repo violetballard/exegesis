@@ -1,15 +1,6 @@
 {
-  "scope_goal": "Harden context basket and vault persistence recovery so valid local state is salvaged and rewritten safely, then emit a review packet for the exact branch head with matching scope, files changed, gate outcomes, ownership, and budget accounting.",
-  "tasks_completed": [
-    "Hardened context basket persistence to quarantine unreadable files, salvage valid item IDs, and rewrite normalized state after recovery.",
-    "Hardened vault state persistence to recover from corrupt primary/tmp/backup files while preserving safe lock behavior.",
-    "Accepted metadata-only corruption in persisted basket and vault payloads so valid core state is salvaged and rewritten instead of discarded.",
-    "Added focused recovery tests for mixed invalid basket entries and legacy basket payload salvage.",
-    "Added explicit metadata-only corruption coverage for both context basket and vault persistence paths, including assertions that metadata-only corruption is rewritten instead of quarantined.",
-    "Re-ran the required scope, format, lint, test, typecheck, and CI gates on the reviewed branch state and confirmed they all pass.",
-    "Tightened AGENTS budget reporting and ownership notes so the handoff states the completed task count, in-budget status, and that the only non-owned product/test change is the approved recovery test file.",
-    "Prepared the lane metadata needed to regenerate a review packet for the exact reviewed branch head so commit SHA, files changed, and gate outcomes can be refreshed after the final fix commit."
-  ],
+  "scope_goal": "Restart this lane from current main with strict owned-path-only context and vault persistence hardening; prior branch state is reference-only and must not be promoted as-is.",
+  "tasks_completed": [],
   "risk": "MEDIUM",
   "roadmap_items": [
     "Milestone 1 - Bootstrap Flow Stabilization: context basket and vault persistence hardening."
@@ -20,7 +11,6 @@
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
   "shared_file_exception": true,
-  "kickoff_budget_note": "Thread Kickoff Template budget applied: task budget `8`, time budget `45m`, size limits `<=12 files` and `<=500 net LOC`, max fix attempts per failing gate `2`. Tasks completed: `8 of 8`. Budget status: within limits for this handoff; the branch remains under the AGENTS time, file-count, net-LOC, and gate-fix-attempt limits, and the exact reviewed HEAD metrics are refreshed when the final packet is emitted.",
-  "approved_exception_note": "Ownership note: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned product/test change is the approved recovery coverage file `tests/unit/test_context_storage_recovery.py`. Supporting automation metadata files also differ on this branch (`.codex/lane_meta/feat-context-storage.json`, `.codex/packet_planner/state.json`, `codex_packet_handoff/tools/init_lane_meta.py`, and `codex_packet_handoff/tools/planner.py`), but no shared-by-approval source files or integrator-locked files were edited.",
-  "integrator_locked_edits": false
+  "kickoff_budget_note": "Reset-required lane after ownership and repo-hygiene drift in the stale March 5 review generation.",
+  "approved_exception_note": "Approved shared-file exception for tests/unit/test_context_storage_recovery.py to cover the vault recovery regression alongside the owned-path storage fix."
 }

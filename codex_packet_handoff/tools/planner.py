@@ -130,16 +130,14 @@ def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
     lines=[]
-    approved_exception_note = str(meta.get("approved_exception_note", "")).strip()
-    integrator_locked_edits = bool(meta.get("integrator_locked_edits"))
     lines += ["# Feature → Review Packet",""]
     lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
     lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
     if str(meta.get("kickoff_budget_note","")).strip():
         lines += ["## Kickoff budget/limits compliance", f"- {meta['kickoff_budget_note'].strip()}", ""]
-    if approved_exception_note:
-        lines += ["## Approved exception note", f"- {approved_exception_note}", ""]
+    if str(meta.get("approved_exception_note","")).strip():
+        lines += ["## Approved exception note", f"- {meta['approved_exception_note'].strip()}", ""]
     lines += ["## Tasks completed (numbered)"]
     tasks=list(meta.get("tasks_completed") or [])
     lines += [f"{i+1}. {str(t).strip()}" for i,t in enumerate(tasks)] if tasks else ["1. (missing)"]
@@ -155,10 +153,7 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     prp=str(meta.get("proposed_readme_patch","")).strip()
     if prp:
         lines += ["### Proposed README patch text","```diff",prp,"```",""]
-    lines += ["## Scope-check / ownership note", f"- Non-owned edits: `{'YES' if bool(meta.get('shared_file_exception')) else 'NO'}`"]
-    if approved_exception_note:
-        lines.append(f"- Ownership detail: {approved_exception_note}")
-    lines += [f"- Integrator-locked edits: `{'YES' if integrator_locked_edits else 'NO'}`", ""]
+    lines += ["## Scope-check / ownership note", f"- Shared/integrator-locked edits: `{'YES' if bool(meta.get('shared_file_exception')) else 'NO'}`",""]
     return "\n".join(lines)
 
 
