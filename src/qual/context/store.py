@@ -162,10 +162,6 @@ class ContextBasketStore:
             return False
         if self._parse_item_ids(payload.get("item_ids", [])) is None:
             return False
-        if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
-            return False
-        if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
-            return False
         return True
 
     def _parse_item_ids(self, value: object) -> list[str] | None:

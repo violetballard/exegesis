@@ -93,6 +93,28 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("item_ids"), ["first", "second"])
         self.assertEqual(payload.get("schema_version"), 1)
 
+    def test_invalid_metadata_is_salvaged_and_rewritten(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "not-a-timestamp",
+                    "recovered_from": "manual",
+                    "item_ids": ["first", "second"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first", "second"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["first", "second"])
+        self.assertNotIn("recovered_from", payload)
+        self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
+
 class VaultRecoveryTests(unittest.TestCase):
     def setUp(self) -> None:
         self._tmp = tempfile.TemporaryDirectory()
@@ -140,6 +162,31 @@ class VaultRecoveryTests(unittest.TestCase):
         reopened = self.svc.create_or_open(self.root, "p3")
 
         self.assertTrue(reopened.is_locked)
+
+    def test_invalid_metadata_is_salvaged_and_rewritten(self) -> None:
+        state = self.svc.create_or_open(self.root, "p4")
+        state_path = state.root_dir / ".vault_state.json"
+        state_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "p4",
+                    "is_locked": False,
+                    "updated_at": "not-a-timestamp",
+                    "recovered_from": "manual",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p4")
+
+        self.assertFalse(reopened.is_locked)
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p4")
+        self.assertFalse(payload.get("is_locked"))
+        self.assertNotIn("recovered_from", payload)
+        self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
 
 
 if __name__ == "__main__":

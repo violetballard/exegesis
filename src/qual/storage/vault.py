@@ -176,10 +176,6 @@ class VaultService:
             return False
         if "project_name" in payload and self._parse_project_name(payload.get("project_name")) is None:
             return False
-        if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
-            return False
-        if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
-            return False
         return True
 
     def _unlink_if_exists(self, path: Path) -> None:
