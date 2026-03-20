@@ -3,11 +3,14 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Scope completed: Preserved relevance-ordered `doc_hits`, exposed retrieval-backed excerpt fetching through the engine excerpt tool so `fts_*` IDs resolve in engine-facing flows, added focused unit coverage, and updated the handoff mapping for MVP FTS retrieval work.
 - Files changed:
+  - `.codex/lane_meta/feat-retrieval-fts.json`
   - `THREAD_PACKET.md`
   - `src/qual/engine/tools/excerpt_tools.py`
+  - `src/qual/retrieval/__init__.py`
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`
 - Commands run with results:
+  - Re-review refresh on `2026-03-20` in this lane worktree
   - `python -m unittest tests.unit.test_unified_retrieval` -> passed (`Ran 7 tests`, `OK`)
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed

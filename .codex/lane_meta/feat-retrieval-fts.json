@@ -1,12 +1,26 @@
 {
   "approved_exception_note": "",
-  "kickoff_budget_note": "",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 4 completed tasks, no shared or integrator-locked edits, and all required local gates rerun before handoff.",
   "proposed_readme_patch": "",
   "risk": "LOW",
-  "roadmap_items": [],
+  "roadmap_items": [
+    "Milestone 4: Retrieval Layer -> FTS-first ingestion/index path for context/vault documents",
+    "Milestone 4: Retrieval Layer -> Retrieval orchestration in engine before drafting/diff generation",
+    "Milestone 4: Retrieval Layer -> Source-attribution model for retrieved chunks",
+    "Milestone 2: Test Hardening -> Add focused unit coverage for core behaviors"
+  ],
   "routing_provider_impact": "None",
   "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows.",
   "shared_file_exception": false,
-  "tasks_completed": [],
-  "vision_capabilities": []
+  "tasks_completed": [
+    "Returned deterministic FTS excerpt IDs and retrieval-backed `fetch_excerpt()` support so engine excerpt tooling can resolve `fts_*` IDs.",
+    "Preserved `doc_hits` relevance order so document-level ranking matches the top-ranked underlying excerpt hit.",
+    "Added focused unit coverage for both document ranking order and engine-facing FTS excerpt fetch behavior.",
+    "Completed the handoff metadata required by INTEGRATION.md with concrete scope, file, roadmap, and vision mapping for MVP FTS retrieval work."
+  ],
+  "vision_capabilities": [
+    "2. Retrieval-first context handling",
+    "3. Auditable generation",
+    "4. Operator-first control surface"
+  ]
 }
