@@ -4,17 +4,17 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - add agent-side card/section/action payload generation with deterministic schemas.",
-    "Milestone 5: A2UI Presentation Layer - provide CLI rendering fallback for the same structured payloads.",
-    "Milestone 5: A2UI Presentation Layer - enforce typed/allowlisted actions with engine-authoritative PolicyGate."
+    "Milestone 5: A2UI Presentation Layer - keep typed and allowlisted A2UI actions on the same engine-authoritative contract used by direct action refs.",
+    "Milestone 5: A2UI Presentation Layer - preserve CLI rendering fallback for the same structured payloads and normalized action refs.",
+    "Milestone 5: A2UI Presentation Layer - keep the client-agnostic A2UI contract aligned with the capabilities handshake surface for future console consumers."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Stabilize the A2UI schema and CLI fallback rendering used by engine-driven MVP workflows.",
+  "scope_goal": "Keep the Milestone 5 A2UI presentation contract typed and allowlisted, preserve CLI fallback on the same contract, and stay aligned with the capabilities handshake surface.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Normalized direct ActionRef execution through the same typed and allowlisted contract used for card filtering before capability checks, PolicyGate evaluation, and executor dispatch.",
     "Rejected malformed direct ActionRef values and passed canonicalized direct ActionRef values to the executor so engine-authoritative execution stays aligned with studio and terminal paths.",
-    "Preserved CLI fallback rendering for GenericCard and unknown-card payloads, including explicit text fallbacks for unsupported or malformed blocks."
+    "Preserved CLI fallback rendering for GenericCard and unknown-card payloads, including explicit text fallbacks for unsupported or malformed blocks on the same A2UI contract."
   ],
   "vision_capabilities": [
     "Capability 5: Agent-to-UI protocol (A2UI) - structured cards, actions, metadata, and CLI text fallback stay on the same contract.",
