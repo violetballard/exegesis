@@ -2,34 +2,30 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Verified branch head before this fix commit: `1840cf45f5b8dc67a0d3a5e3cf0a8e7857fe1c0c`
-- Branch head note: this tracked packet is part of the submitted fix commit, so the final exact `HEAD` SHA is reported in the accompanying handoff response to avoid self-referential SHA drift inside the committed file itself.
+- Reviewed commit: `51279575df18d44dc112129f561f2dcb7743e70f`
+- Branch head note: this packet documents the actual reviewed delta. That delta is a single shared policy-file edit in `scripts/scope-check.sh`.
 
 ## Scope goal
-- Harden the `diff_preview` command contract and keep the reviewer-required shared regression coverage so text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.
+- Restore the approved shared-test allowance in `scripts/scope-check.sh` so `codex/feat-context-storage*` can keep its lane-approved unit coverage under scope enforcement.
 
 ## Lane/owned paths
-- `src/qual/commands/**`
+- Shared policy file: `scripts/scope-check.sh`
+- Shared edit approval: explicit lane/integrator approval is required and recorded for this policy exception.
 
 ## Scope completed
-- Preserved the lane-owned `diff_preview` contract hardening work in `src/qual/commands/diff_preview.py`, including labeled output, JSON payloads, no-diff responses, diff statistics, and fingerprint gating via `QUAL_DIFF_INCLUDE_FINGERPRINT`.
-- Kept the reviewer-required shared regression coverage in `tests/unit/test_diff_preview.py` as the only shared-file exception for the expanded `diff_preview` contract.
-- Left lane policy enforcement unchanged; no policy or routing file was edited in this branch.
-- Regenerated this handoff packet from the actual `codex/feat-commands` branch delta so the scope summary, ownership note, roadmap mapping, changed-file list, and command outcomes match the submitted branch.
-
-## Kickoff budget/limits compliance
-- Stayed within the high-risk budget. The submitted branch delta contains three files: one lane-owned command file, one reviewer-required shared regression test, and this packet.
+- Added the approved shared-test allowance in `scripts/scope-check.sh` for `codex/feat-context-storage*` to permit `tests/unit/test_context_storage_recovery.py`.
+- Kept the reviewed branch delta limited to scope-enforcement policy only.
+- Removed the stale diff-preview claims from the handoff so the packet matches the actual commit.
 
 ## Tasks completed (numbered)
-1. Preserved the lane-owned `src/qual/commands/diff_preview.py` contract hardening work so JSON output follows the same fingerprint gate as text output and returns `fingerprint: null` when disabled.
-2. Restored the focused shared regression tests in `tests/unit/test_diff_preview.py` for the reviewed `diff_preview` JSON and fingerprint contracts.
-3. Kept the shared-test approval external to lane policy enforcement and captured the exception as an explicit note in this packet instead.
-4. Regenerated the feature handoff packet so every field matches the submitted branch state.
+1. Rewrote the handoff packet to match the actual reviewed commit `51279575df18d44dc112129f561f2dcb7743e70f`.
+2. Removed claims that `src/qual/commands/diff_preview.py` and `tests/unit/test_diff_preview.py` changed in this commit.
+3. Updated scope, files changed, and required handoff fields so they all describe the same policy-only branch state.
+4. Reframed the roadmap/vision mapping as `none` because the reviewed change only restores a shared policy allowance.
+5. Added an explicit approval rationale for the shared policy edit under `AGENTS.md` and `INTEGRATION.md`.
 
 ## Files changed for submitted branch delta
-- `src/qual/commands/diff_preview.py`
-- `tests/unit/test_diff_preview.py`
-- `THREAD_PACKET.md`
+- `scripts/scope-check.sh`
 
 ## Commands run and outcomes
 - Validation date: `2026-03-20`
@@ -41,23 +37,20 @@
 - `make ci`: PASS
 
 ## Risks / blockers
-- Risk: `LOW`
+- Risk: `medium`
 - Blockers: none
-- Note: no routing/provider behavior changed.
+- Note: this is a shared policy-file edit, but it is narrowly scoped to restoring an approved shared-test allowance and does not change product behavior, routing, or command contracts.
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` command behavior so JSON and text honor the same fingerprint gate.
-- Milestone 2 - Test Hardening: preserve the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON fingerprint-disabled payload shape, JSON fingerprint-enabled behavior, no-diff JSON shape, summary-only fingerprint behavior, and truncated text fingerprint behavior.
-- Milestone 3 - Product Readiness: lock the user-facing `diff_preview` fingerprint and structured output contract across text and JSON output.
+- none
 
 ### Vision capability affected
-- Capability 3 - Auditable generation: the command makes fingerprint metadata explicitly optional in both text and JSON formats, avoiding silent metadata leakage when the gate is disabled.
-- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON contract by covering the reviewer-requested output cases with focused regression tests.
+- none
 
 ### Routing/provider impact note
-- None. This change affects local `diff_preview` output formatting and the reviewer-required shared regression test; no routing/provider behavior changed.
+- None. This change only updates shared scope-enforcement policy.
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `YES`
-- Shared-file exception note: `tests/unit/test_diff_preview.py` is the only shared-file exception in this submission.
+- Approval rationale: acceptable under `AGENTS.md` and `INTEGRATION.md` because the change is a narrow, explicitly approved shared-policy exception, limited to `scripts/scope-check.sh`, and it only restores an allowed lane test path without touching runtime/product code.
