@@ -1,18 +1,18 @@
 {
-  "approved_exception_note": "Operational metadata exception for branch-local .codex files only. This lane record tracks commit 596d1df12b42c336a77ef146cd3201e9dec3da3a as a metadata-only handoff and does not claim changes to src/qual/ui/a2ui.py or tests/unit/test_a2ui_contract.py. No product-code ownership exception is requested.",
+  "approved_exception_note": "Operational metadata exception for branch-local .codex files only. This lane record tracks commit 0b977aca8c6452369cfd29fb561e0850a5b0abaa as a metadata-only handoff and does not claim changes to src/qual/ui/a2ui.py or tests/unit/test_a2ui_contract.py. No product-code ownership exception is requested.",
   "kickoff_budget_note": "",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - keep the review packet aligned to the metadata-only wrapper commit 596d1df12b42c336a77ef146cd3201e9dec3da3a.",
+    "Milestone 5: A2UI Presentation Layer - keep the review packet aligned to the metadata-only wrapper commit 0b977aca8c6452369cfd29fb561e0850a5b0abaa.",
     "Milestone 5: A2UI Presentation Layer - keep the file list and commit mapping auditable against the metadata-only diff.",
     "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to packet-alignment changes and no product-code claims."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Record a metadata-only handoff for commit 596d1df12b42c336a77ef146cd3201e9dec3da3a so the A2UI lane packet is auditable and does not claim source or test changes that are not present in the reviewed diff.",
+  "scope_goal": "Record a metadata-only handoff for commit 0b977aca8c6452369cfd29fb561e0850a5b0abaa so the A2UI lane packet is auditable and does not claim source or test changes that are not present in the reviewed diff.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Rewrote the lane handoff metadata to describe commit 596d1df12b42c336a77ef146cd3201e9dec3da3a as a metadata-only update.",
+    "Rewrote the lane handoff metadata to describe commit 0b977aca8c6452369cfd29fb561e0850a5b0abaa as a metadata-only update.",
     "Kept the submitted file list limited to the branch-local .codex wrapper files and removed source/test file claims.",
     "Aligned the Milestone 5 A2UI roadmap and vision references to the packet-alignment change rather than feature implementation."
   ],
