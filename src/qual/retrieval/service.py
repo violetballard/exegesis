@@ -10,10 +10,8 @@ from typing import Any, Literal
 
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions, DocIndexService
-from src.qual.engine.retrieval.embeddings_strategy import EmbeddingsStrategy
 from src.qual.engine.retrieval.fts_strategy import FTSStrategy
 from src.qual.engine.retrieval.interface import StrategyRun
-from src.qual.engine.retrieval.pageindex_strategy import PageIndexStrategy
 from src.qual.metrics.crypto import decrypt_bytes, encrypt_bytes
 
 _RETRIEVAL_DIR = ".retrieval"
@@ -46,17 +44,31 @@ class RetrievalQuery:
 class RetrievalHit:
     doc_id: str
     excerpt_id: str | None
+    excerpt_text: str | None
     span: dict[str, object]
     title_hint: str | None
     score: float
-    source_strategy: Literal["fts", "pageindex", "embeddings"]
+    source_strategy: Literal["fts"]
     rationale: str | None
     node_path: list[dict[str, str]] | None
+    provenance: dict[str, object]
+
+
+@dataclass(frozen=True)
+class RetrievalDocHit:
+    doc_id: str
+    title_hint: str | None
+    source_hash: str
+    top_excerpt_id: str | None
+    top_score: float
+    source_strategy: Literal["fts"]
+    excerpt_count: int
 
 
 @dataclass(frozen=True)
 class RetrievalResult:
     query: RetrievalQuery
+    doc_hits: list[RetrievalDocHit]
     hits: list[RetrievalHit]
     diagnostics: dict[str, object]
     audit_ref: str
@@ -72,8 +84,6 @@ class RetrievalService:
         self._key = self._load_or_create_key()
         self._docindex = DocIndexService(vault_root, audit_log=audit_log, now_fn=self._now_fn)
         self._fts = FTSStrategy(self._run_fts_hits, now_fn=self._now_fn)
-        self._pageindex = PageIndexStrategy(self._docindex, self._read_doc_text, now_fn=self._now_fn)
-        self._embeddings = EmbeddingsStrategy()
 
     def add_or_update_document(
         self,
@@ -112,24 +122,17 @@ class RetrievalService:
         fts_shortlist = self._candidate_docs_from_fts(query) if not self._is_doc_scoped(query.scope) else ()
         candidate_doc_ids = self._candidate_docs_from_scope(query.scope, fallback=fts_shortlist)
 
-        strategy_runs: list[StrategyRun] = []
         fts_run = self._fts.retrieve(query, candidate_doc_ids=candidate_doc_ids)
-        strategy_runs.append(fts_run)
-
-        pageindex_run = self._pageindex.retrieve(query, candidate_doc_ids=candidate_doc_ids)
-        if pageindex_run.hits:
-            strategy_runs.append(pageindex_run)
-
-        if self._embeddings.supports(query):
-            strategy_runs.append(self._embeddings.retrieve(query, candidate_doc_ids=candidate_doc_ids))
-
-        merged_hits = self._merge_hits(strategy_runs, max_results=query.constraints.max_results)
+        merged_hits = self._merge_hits([fts_run], max_results=query.constraints.max_results)
+        doc_hits = self._build_doc_hits(merged_hits)
         elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
         diagnostics = {
-            "strategies_used": [run.strategy_id for run in strategy_runs],
-            "elapsed_ms_by_strategy": {run.strategy_id: run.elapsed_ms for run in strategy_runs},
-            "caches_used": {run.strategy_id: run.cache_used for run in strategy_runs},
+            "strategies_used": [fts_run.strategy_id],
+            "elapsed_ms_by_strategy": {fts_run.strategy_id: fts_run.elapsed_ms},
+            "caches_used": {fts_run.strategy_id: fts_run.cache_used},
             "elapsed_ms_total": elapsed_ms_total,
+            "doc_hits_count": len(doc_hits),
+            "excerpt_hits_count": len(merged_hits),
         }
         query_hash = hashlib.sha256(query.query_text.encode("utf-8")).hexdigest()
         audit = self._audit.record(
@@ -142,7 +145,13 @@ class RetrievalService:
                 "hits_count": len(merged_hits),
             },
         )
-        return RetrievalResult(query=query, hits=merged_hits, diagnostics=diagnostics, audit_ref=audit.event_id)
+        return RetrievalResult(
+            query=query,
+            doc_hits=doc_hits,
+            hits=merged_hits,
+            diagnostics=diagnostics,
+            audit_ref=audit.event_id,
+        )
 
     def fetch_excerpt(self, excerpt_id: str) -> dict[str, object]:
         fts_excerpt = self._find_fts_excerpt(excerpt_id)
@@ -185,16 +194,20 @@ class RetrievalService:
         )
         hits: list[RetrievalHit] = []
         for score, entry in ranked[: max(25, query.constraints.max_results)]:
+            doc_id = str(entry["doc_id"])
+            excerpt_text = self._read_fts_excerpt_text(entry)
             hits.append(
                 RetrievalHit(
-                    doc_id=str(entry["doc_id"]),
+                    doc_id=doc_id,
                     excerpt_id=str(entry["excerpt_id"]),
+                    excerpt_text=excerpt_text,
                     span={"char_range": {"start": int(entry["char_start"]), "end": int(entry["char_end"])}},
                     title_hint=self._safe_title_hint(query, str(entry.get("title_hint") or "")),
                     score=min(1.0, round(score / max(1.0, len(tokens)), 3)),
                     source_strategy="fts",
                     rationale="token_overlap",
                     node_path=None,
+                    provenance=self._build_fts_provenance(doc_id=doc_id, entry=entry, text=excerpt_text),
                 )
             )
         return hits
@@ -211,12 +224,14 @@ class RetrievalService:
                         RetrievalHit(
                             doc_id=str(hit["doc_id"]),
                             excerpt_id=hit.get("excerpt_id"),
+                            excerpt_text=hit.get("excerpt_text"),
                             span=dict(hit.get("span", {})),
                             title_hint=hit.get("title_hint"),
                             score=float(hit.get("score", 0.0)),
                             source_strategy=hit.get("source_strategy", "fts"),  # type: ignore[arg-type]
                             rationale=hit.get("rationale"),
                             node_path=hit.get("node_path"),
+                            provenance=dict(hit.get("provenance", {})),
                         )
                     )
         with_excerpt = [hit for hit in combined if hit.excerpt_id is not None]
@@ -233,6 +248,30 @@ class RetrievalService:
             if len(out) >= max_results:
                 break
         return out
+
+    def _build_doc_hits(self, hits: list[RetrievalHit]) -> list[RetrievalDocHit]:
+        meta = self._load_doc_meta()
+        grouped: dict[str, list[RetrievalHit]] = {}
+        for hit in hits:
+            grouped.setdefault(hit.doc_id, []).append(hit)
+
+        doc_hits: list[RetrievalDocHit] = []
+        for doc_id in sorted(grouped):
+            doc_meta = meta.get(doc_id, {})
+            doc_hit_list = sorted(grouped[doc_id], key=self._hit_sort_key)
+            top_hit = doc_hit_list[0]
+            doc_hits.append(
+                RetrievalDocHit(
+                    doc_id=doc_id,
+                    title_hint=top_hit.title_hint,
+                    source_hash=str(doc_meta.get("source_hash", "")),
+                    top_excerpt_id=top_hit.excerpt_id,
+                    top_score=top_hit.score,
+                    source_strategy="fts",
+                    excerpt_count=len(doc_hit_list),
+                )
+            )
+        return doc_hits
 
     def _candidate_docs_from_fts(self, query: RetrievalQuery) -> tuple[str, ...]:
         run = self._fts.retrieve(
@@ -333,18 +372,30 @@ class RetrievalService:
             doc_id = str(entry["doc_id"])
             char_start = int(entry["char_start"])
             char_end = int(entry["char_end"])
-            text = self._read_doc_text(doc_id)[char_start:char_end]
+            text = self._read_fts_excerpt_text(entry)
             return {
                 "excerpt_id": excerpt_id,
                 "text": text,
-                "provenance": {
-                    "doc_id": doc_id,
-                    "span": {"char_range": {"start": char_start, "end": char_end}},
-                    "hash": hashlib.sha256(text.encode("utf-8")).hexdigest(),
-                    "source_strategy": "fts",
-                },
+                "provenance": self._build_fts_provenance(doc_id=doc_id, entry=entry, text=text),
             }
         return None
+
+    def _read_fts_excerpt_text(self, entry: dict[str, object]) -> str:
+        doc_id = str(entry["doc_id"])
+        char_start = int(entry["char_start"])
+        char_end = int(entry["char_end"])
+        return self._read_doc_text(doc_id)[char_start:char_end]
+
+    def _build_fts_provenance(self, *, doc_id: str, entry: dict[str, object], text: str) -> dict[str, object]:
+        meta = self._load_doc_meta().get(doc_id, {})
+        return {
+            "doc_id": doc_id,
+            "source_hash": str(meta.get("source_hash", "")),
+            "excerpt_id": str(entry["excerpt_id"]),
+            "span": {"char_range": {"start": int(entry["char_start"]), "end": int(entry["char_end"])}},
+            "hash": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+            "source_strategy": "fts",
+        }
 
     def _load_fts_entries(self) -> list[dict[str, object]]:
         payload = self._read_encrypted_json(self._root / _FTS_FILE, default=[])

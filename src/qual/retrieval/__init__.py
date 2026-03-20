@@ -1,5 +1,6 @@
 from src.qual.retrieval.service import (
     RetrievalConstraints,
+    RetrievalDocHit,
     RetrievalHit,
     RetrievalQuery,
     RetrievalResult,
@@ -10,6 +11,7 @@ __all__ = [
     "RetrievalService",
     "RetrievalQuery",
     "RetrievalConstraints",
+    "RetrievalDocHit",
     "RetrievalHit",
     "RetrievalResult",
 ]

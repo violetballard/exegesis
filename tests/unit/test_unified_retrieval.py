@@ -48,9 +48,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
             )
         )
         self.assertTrue(result.hits)
+        self.assertTrue(result.doc_hits)
         self.assertIn("fts", result.diagnostics["strategies_used"])
+        self.assertEqual(result.diagnostics["strategies_used"], ["fts"])
 
-    def test_fts_and_pageindex_return_unified_hit_shape_with_excerpt_ids(self) -> None:
+    def test_fts_returns_excerpt_hits_with_deterministic_provenance(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
                 query_text="discussion theory",
@@ -60,13 +62,15 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 confidentiality_profile="confidential",
             )
         )
-        strategies = set(result.diagnostics["strategies_used"])
-        self.assertIn("fts", strategies)
-        self.assertIn("pageindex", strategies)
+        self.assertEqual(result.diagnostics["strategies_used"], ["fts"])
         for hit in result.hits:
             self.assertIsNotNone(hit.excerpt_id)
-            self.assertIn(hit.source_strategy, {"fts", "pageindex"})
-            self.assertTrue("page_range" in hit.span or "char_range" in hit.span)
+            self.assertEqual(hit.source_strategy, "fts")
+            self.assertIsNotNone(hit.excerpt_text)
+            self.assertIn("char_range", hit.span)
+            self.assertEqual(hit.provenance["doc_id"], hit.doc_id)
+            self.assertEqual(hit.provenance["excerpt_id"], hit.excerpt_id)
+            self.assertEqual(hit.provenance["source_strategy"], "fts")
 
     def test_doc_scope_falls_back_to_fts_when_pageindex_missing(self) -> None:
         result = self.service.retrieve_auto(
@@ -80,6 +84,25 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertTrue(result.hits)
         self.assertEqual({hit.source_strategy for hit in result.hits}, {"fts"})
+
+    def test_retrieve_auto_returns_stable_doc_hits_for_downstream_consumers(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+        self.assertTrue(result.doc_hits)
+        doc_hit = next(item for item in result.doc_hits if item.doc_id == "doc-memo-1")
+        self.assertEqual(doc_hit.source_strategy, "fts")
+        self.assertTrue(doc_hit.source_hash)
+        self.assertIsNotNone(doc_hit.top_excerpt_id)
+        self.assertGreaterEqual(doc_hit.excerpt_count, 1)
+        self.assertEqual(result.diagnostics["doc_hits_count"], len(result.doc_hits))
+        self.assertEqual(result.diagnostics["excerpt_hits_count"], len(result.hits))
 
     def test_retrieval_audit_uses_query_hash_not_plaintext(self) -> None:
         query_text = "highly sensitive question text"
