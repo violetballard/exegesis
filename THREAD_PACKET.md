@@ -24,6 +24,7 @@
 - Roadmap item(s) affected:
   - `Milestone 4: Retrieval Layer` -> FTS-first ingestion/index path for context/vault documents
   - `Milestone 4: Retrieval Layer` -> Retrieval orchestration in engine before drafting/diff generation
+  - `Milestone 4: Retrieval Layer` -> Source-attribution model for retrieved chunks
   - `Milestone 2: Test Hardening` -> Add focused unit coverage for core behaviors
 - Vision capability affected:
   - `2. Retrieval-first context handling` -> SQLite FTS is the current MVP retrieval path and generation consumes retrieved chunks
