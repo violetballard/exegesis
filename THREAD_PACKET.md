@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Verified branch head before this packet-restoration commit: `c1ac9b9b3a17f30f13b2f4ac68c167fff6b4ba47`
+- Verified branch head before this packet-alignment commit: `bf503a54b80e20c592029fd24e287a64b91c4473`
 - Branch head note: this tracked packet is part of the submitted follow-up commit, so the final exact `HEAD` SHA is reported in the accompanying handoff response to avoid self-referential SHA drift inside the committed file itself.
 
 ## Scope goal
@@ -35,6 +35,7 @@
 ## Commands run and outcomes
 - Validation date: `2026-03-20`
 - `make scope-check`: PASS
+- `SCOPE_WINDOW=full make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
@@ -61,4 +62,4 @@
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `YES`
-- Shared-file exception note: `tests/unit/test_diff_preview.py` is included only to satisfy the reviewer-required regression coverage for the submitted `diff_preview` contract change, and `scripts/scope-check.sh` records that approved `feat-commands` shared-test exception so `make scope-check` validates the submitted branch state accurately.
+- Shared-file exception note: `tests/unit/test_diff_preview.py` is included only to satisfy the reviewer-required regression coverage for the submitted `diff_preview` contract change, and `scripts/scope-check.sh` records that approved `feat-commands` shared-test exception so both `make scope-check` and `SCOPE_WINDOW=full make scope-check` validate the submitted branch state accurately.
