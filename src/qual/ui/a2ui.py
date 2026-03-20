@@ -203,18 +203,7 @@ def validate_primitive_block(block: Any) -> None:
 
 
 def validate_action_ref(action: Any) -> None:
-    if not isinstance(action, dict):
-        raise ValueError("ActionRef must be an object")
-    action_id = str(action.get("id", ""))
-    if action_id not in _ALLOWED_ACTION_SET:
-        raise ValueError(f"Unsupported action id: {action_id}")
-    label = action.get("label")
-    if not isinstance(label, str) or not label.strip():
-        raise ValueError("Action label is required")
-    payload = action.get("payload")
-    if not isinstance(payload, dict):
-        raise ValueError("Action payload must be an object")
-    _validate_action_payload(action_id, payload)
+    _normalize_action(action, supported_actions=_ALLOWED_ACTION_SET)
 
 
 def execute_action_with_policy_gate(
@@ -255,37 +244,65 @@ def _filter_card_actions(card: dict[str, Any], capabilities: A2UICapabilities) -
     filtered: list[dict[str, Any]] = []
     seen: set[str] = set()
     for action in actions:
-        if not isinstance(action, dict):
-            continue
-        action_id = str(action.get("id", ""))
-        payload = action.get("payload")
-        if action_id not in supported or not isinstance(payload, dict):
-            continue
         try:
-            _validate_action_payload(action_id, payload)
+            normalized = _normalize_action(action, supported_actions=supported)
         except ValueError:
             continue
-        action_key = _canonical_json(
-            {
-                "id": action_id,
-                "label": str(action.get("label", "")),
-                "payload": payload,
-            }
-        )
+        action_key = _canonical_json(normalized)
         if action_key in seen:
             continue
         seen.add(action_key)
-        filtered.append(action)
-    filtered.sort(
-        key=lambda action: (
-            str(action.get("id", "")),
-            str(action.get("label", "")),
-            _canonical_json(action.get("payload", {})),
-        )
-    )
+        filtered.append(normalized)
+    filtered.sort(key=_canonical_json)
     out = dict(card)
     out["actions"] = filtered
     return out
+
+
+def _normalize_action(action: Any, *, supported_actions: set[str]) -> dict[str, Any]:
+    if not isinstance(action, dict):
+        raise ValueError("ActionRef must be an object")
+    action_id = str(action.get("id", "")).strip()
+    if action_id not in supported_actions:
+        raise ValueError(f"Unsupported action id: {action_id}")
+    label = action.get("label")
+    if not isinstance(label, str) or not label.strip():
+        raise ValueError("Action label is required")
+    payload = action.get("payload")
+    if not isinstance(payload, dict):
+        raise ValueError("Action payload must be an object")
+    _validate_action_payload(action_id, payload)
+
+    normalized: dict[str, Any] = {
+        "id": action_id,
+        "label": label.strip(),
+        "payload": dict(payload),
+    }
+    confirm = action.get("confirm")
+    if confirm is not None:
+        normalized["confirm"] = _normalize_confirm(confirm)
+    policy_sensitive = action.get("policy_sensitive", False)
+    if not isinstance(policy_sensitive, bool):
+        raise ValueError("Action policy_sensitive must be a bool")
+    if policy_sensitive:
+        normalized["policy_sensitive"] = True
+    return normalized
+
+
+def _normalize_confirm(confirm: Any) -> dict[str, str]:
+    if not isinstance(confirm, dict):
+        raise ValueError("Action confirm must be an object")
+    title = confirm.get("title")
+    message = confirm.get("message")
+    if not isinstance(title, str) or not title.strip():
+        raise ValueError("Action confirm title is required")
+    if not isinstance(message, str) or not message.strip():
+        raise ValueError("Action confirm message is required")
+    extra_keys = set(confirm) - {"title", "message"}
+    if extra_keys:
+        extras = ", ".join(sorted(extra_keys))
+        raise ValueError(f"Unexpected confirm field(s): {extras}")
+    return {"title": title.strip(), "message": message.strip()}
 
 
 def _validate_action_payload(action_id: str, payload: dict[str, Any]) -> None:

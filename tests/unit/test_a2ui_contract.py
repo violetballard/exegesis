@@ -132,6 +132,7 @@ class A2UIContractTests(unittest.TestCase):
                 {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
                 {"id": "run_agent", "label": "Run", "payload": {"operation": "x"}},
                 {"id": "apply_patch", "label": "Broken", "payload": {}},
+                {"id": "apply_patch", "label": "   ", "payload": {"patch_id": "p3"}},
             ],
         }
         filtered = studio_materialize_card(card, caps)
@@ -154,6 +155,54 @@ class A2UIContractTests(unittest.TestCase):
         }
         filtered = studio_materialize_card(card, caps)
         self.assertEqual(filtered["actions"], [])
+
+    def test_filtered_actions_preserve_distinct_policy_and_confirm_variants(self) -> None:
+        caps = _capabilities(actions_supported=("apply_patch",))
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
+            "actions": [
+                {
+                    "id": "apply_patch",
+                    "label": "Apply",
+                    "payload": {"patch_id": "p1"},
+                    "confirm": {"title": "Approve", "message": "Apply patch?"},
+                },
+                {
+                    "id": "apply_patch",
+                    "label": "Apply",
+                    "payload": {"patch_id": "p1"},
+                    "policy_sensitive": True,
+                },
+                {
+                    "id": "apply_patch",
+                    "label": "Apply",
+                    "payload": {"patch_id": "p1"},
+                    "confirm": {"title": " ", "message": "Apply patch?"},
+                },
+            ],
+        }
+
+        filtered = studio_materialize_card(card, caps)
+
+        self.assertEqual(
+            filtered["actions"],
+            [
+                {
+                    "id": "apply_patch",
+                    "label": "Apply",
+                    "payload": {"patch_id": "p1"},
+                    "confirm": {"title": "Approve", "message": "Apply patch?"},
+                },
+                {
+                    "id": "apply_patch",
+                    "label": "Apply",
+                    "payload": {"patch_id": "p1"},
+                    "policy_sensitive": True,
+                },
+            ],
+        )
 
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []
