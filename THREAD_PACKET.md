@@ -2,29 +2,27 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Verified branch head before this fix commit: `7d2db85f8f5121d8debd696dd59ee6ab2d58d0e3`
-- Branch head note: this tracked packet is part of the submitted fix commit, so the final exact HEAD SHA is reported in the accompanying handoff response to avoid self-referential SHA drift inside the committed file itself.
+- Verified branch head before this fix commit: `e8ddc8970e94eacd6bf38ee567f9e8c0821e78d9`
+- Branch head note: this tracked packet is part of the submitted fix commit, so the final exact `HEAD` SHA is reported in the accompanying handoff response to avoid self-referential SHA drift inside the committed file itself.
 
 ## Scope goal
-- Harden the `diff_preview` command contract and keep the reviewer-required focused regression coverage so text and JSON responses stay deterministic, auditable, and ready for CLI-first operator use.
+- Harden the `diff_preview` command contract and keep the reviewer-required shared regression coverage so text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
 
 ## Scope completed
-- Preserved the lane-owned `diff_preview` contract hardening work in `src/qual/commands/diff_preview.py`, including labeled output, structured JSON payloads, stable no-diff responses, diff statistics, and fingerprint gating via `QUAL_DIFF_INCLUDE_FINGERPRINT`.
-- Kept focused regression coverage in `tests/unit/test_diff_preview.py` for the contract cases present on this branch: JSON fingerprint-disabled output, JSON fingerprint-enabled output, labeled JSON output, stable no-diff JSON payloads, summary-only fingerprint behavior, and labeled/truncated text fingerprint behavior.
-- Tightened the summary-only JSON regression so the test also locks the emitted `summary_only` flag.
-- Regenerated this handoff packet from the actual corrected `codex/integrator...HEAD` branch delta.
+- Preserved the lane-owned `diff_preview` contract hardening in `src/qual/commands/diff_preview.py`, including labeled output, JSON payloads, no-diff responses, diff statistics, and fingerprint gating via `QUAL_DIFF_INCLUDE_FINGERPRINT`.
+- Restored focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON fingerprint-disabled payload shape, labeled JSON output, no-diff JSON shape, summary-only fingerprint behavior, truncated text fingerprint behavior, and the JSON fingerprint-enabled object contract.
+- Regenerated this handoff packet from the actual `codex/integrator...HEAD` submitted delta so the recorded scope, ownership note, roadmap mapping, and changed-file list match the branch under review.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget. The submitted branch delta contains one lane-owned command file, one reviewer-required shared regression test, and this packet.
+- Stayed within the high-risk budget. The submitted branch delta contains `3` files total: this handoff packet, the lane-owned command file, and the shared regression-test file.
 
 ## Tasks completed (numbered)
-1. Preserved the lane-owned `src/qual/commands/diff_preview.py` contract hardening work so JSON output follows the same fingerprint gate as text output and returns `fingerprint: null` when disabled.
-2. Kept the focused shared regression tests in `tests/unit/test_diff_preview.py` for the reviewed `diff_preview` JSON and fingerprint contracts.
-3. Tightened the summary-only JSON regression so the branch also locks the emitted `summary_only` flag.
-4. Regenerated the feature handoff packet so every field matches the corrected submitted branch state.
+1. Preserved the lane-owned `src/qual/commands/diff_preview.py` contract work so text and JSON output continue to honor the same fingerprint gate.
+2. Restored the submitted branch's shared regression-test change in `tests/unit/test_diff_preview.py`, keeping focused test-hardening scope paired with the command change.
+3. Regenerated the feature handoff packet so every reported field matches the actual `codex/integrator...HEAD` submitted branch delta.
 
 ## Files changed for submitted branch delta
 - `THREAD_PACKET.md`
@@ -33,32 +31,31 @@
 
 ## Commands run and outcomes
 - Validation date: `2026-03-20`
-- `python -m unittest discover -s tests/unit -p 'test_diff_preview.py'`: PASS
-- `make scope-check`: PASS
-- `./quality-format.sh --check`: PASS
-- `./quality-lint.sh`: PASS
-- `./quality-test.sh`: PASS
-- `./typecheck-test.sh`: PASS
-- `make ci`: PASS
+- `make scope-check`: pending
+- `./quality-format.sh --check`: pending
+- `./quality-lint.sh`: pending
+- `./quality-test.sh`: pending
+- `./typecheck-test.sh`: pending
+- `make ci`: pending
 
 ## Risks / blockers
 - Risk: `LOW`
 - Blockers: none
-- Note: no routing/provider behavior changed.
+- Note: no routing/provider behavior changed. The only non-owned path in the submitted delta is the reviewer-required focused shared regression test.
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1 - Bootstrap Flow Stabilization: add the targeted `diff_preview` command-contract regressions identified during review.
-- Milestone 2 - Test Hardening: keep the focused regression coverage for the submitted `diff_preview` JSON, fingerprint, no-diff, truncation, and summary-only contract cases.
-- Milestone 3 - Product Readiness: define and lock the user-facing `diff_preview` fingerprint and structured output contract across text and JSON output.
+- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` command behavior so JSON and text honor the same fingerprint gate.
+- Milestone 2 - Test Hardening: the submitted branch includes the shared `tests/unit/test_diff_preview.py` regression-test delta, so it still maps to focused test hardening in addition to the command change.
+- Milestone 3 - Product Readiness: lock the user-facing `diff_preview` fingerprint and structured output contract across text and JSON output.
 
 ### Vision capability affected
 - Capability 3 - Auditable generation: the command makes fingerprint metadata explicitly optional in both text and JSON formats, avoiding silent metadata leakage when the gate is disabled.
-- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON contract by covering the reviewer-requested output cases with focused regression tests.
+- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON contract, and the submitted branch still carries the paired shared regression-test coverage in `tests/unit/test_diff_preview.py`.
 
 ### Routing/provider impact note
-- None. This change affects local `diff_preview` output formatting plus the reviewer-required shared regression test; no routing/provider behavior changed.
+- None. This change affects local `diff_preview` output formatting and the submitted shared regression-test delta; no routing/provider behavior changed.
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `YES`
-- Shared-file exception note: `tests/unit/test_diff_preview.py` is included only to satisfy the reviewer-required regression coverage for the submitted `diff_preview` contract change.
+- Shared-file note: `tests/unit/test_diff_preview.py` is part of the submitted branch delta, so this handoff includes shared regression-test scope and cannot be represented as lane-owned-only work.
