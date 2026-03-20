@@ -1,8 +1,8 @@
 {
-  "approved_exception_note": "",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 4 completed tasks, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
+  "approved_exception_note": "Approved cross-lane exception for `src/qual/engine/tools/excerpt_tools.py` to keep the engine-facing `fetch_excerpt()` path compatible with retrieval-owned `fts_*` excerpt IDs required by the FTS-first MVP.",
+  "kickoff_budget_note": "Classified as high-risk per AGENTS.md because the branch includes one engine-owned file outside the retrieval lane. Work stayed within the 4-task high-risk budget, and all required local gates were rerun on 2026-03-20 before handoff.",
   "proposed_readme_patch": "",
-  "risk": "LOW",
+  "risk": "HIGH",
   "roadmap_items": [
     "Milestone 4: Retrieval Layer -> FTS-first ingestion/index path for context/vault documents",
     "Milestone 4: Retrieval Layer -> Retrieval orchestration in engine before drafting/diff generation",
@@ -10,13 +10,13 @@
     "Milestone 2: Test Hardening -> Add focused unit coverage for core behaviors"
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows.",
-  "shared_file_exception": false,
+  "scope_goal": "Build the FTS-first retrieval MVP in retrieval-owned paths, plus the minimal engine-facing compatibility shim needed so engine excerpt flows can resolve retrieval-backed `fts_*` IDs.",
+  "shared_file_exception": true,
   "tasks_completed": [
     "Returned deterministic FTS excerpt IDs and retrieval-backed `fetch_excerpt()` support so engine excerpt tooling can resolve `fts_*` IDs.",
     "Preserved `doc_hits` relevance order so document-level ranking matches the top-ranked underlying excerpt hit.",
     "Added focused unit coverage for both document ranking order and engine-facing FTS excerpt fetch behavior.",
-    "Completed the handoff metadata required by INTEGRATION.md with concrete scope, file, roadmap, and vision mapping for MVP FTS retrieval work."
+    "Completed the handoff metadata required by INTEGRATION.md with explicit high-risk ownership, exception, and MVP alignment notes for the retrieval work plus the engine-facing compatibility shim."
   ],
   "vision_capabilities": [
     "2. Retrieval-first context handling",
