@@ -3,10 +3,21 @@
   "kickoff_budget_note": "",
   "proposed_readme_patch": "",
   "risk": "LOW",
-  "roadmap_items": [],
+  "roadmap_items": [
+    "Milestone 5: A2UI Presentation Layer - add agent-side card/section/action payload generation with deterministic schemas.",
+    "Milestone 5: A2UI Presentation Layer - provide CLI rendering fallback for the same structured payloads.",
+    "Milestone 5: A2UI Presentation Layer - enforce typed/allowlisted actions with engine-authoritative PolicyGate."
+  ],
   "routing_provider_impact": "None",
   "scope_goal": "Stabilize the A2UI schema and CLI fallback rendering used by engine-driven MVP workflows.",
   "shared_file_exception": false,
-  "tasks_completed": [],
-  "vision_capabilities": []
+  "tasks_completed": [
+    "Bound A2UI card actions to canonical allowlisted schemas so malformed, duplicate, and unsupported actions are filtered before client rendering or execution.",
+    "Preserved CLI fallback rendering for GenericCard and unknown-card payloads, including explicit text fallbacks for unsupported or malformed blocks.",
+    "Extended A2UI contract tests to cover action payload validation, engine-authoritative policy gating, and terminal fallback rendering behavior."
+  ],
+  "vision_capabilities": [
+    "Capability 5: Agent-to-UI protocol (A2UI) - structured cards, actions, metadata, and CLI text fallback stay on the same contract.",
+    "Capability 4: Operator-first control surface - CLI remains a first-class fallback surface over the same engine-produced artifacts."
+  ]
 }
