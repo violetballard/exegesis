@@ -1,23 +1,23 @@
 {
-  "approved_exception_note": "Operational metadata exception for branch-local .codex files only. This lane record describes commit 462c67edc4de9ffedd9be7ebe665400cbeeb5615 as a metadata-only handoff and does not claim product-code changes in the reviewed diff. No product-code ownership exception is requested.",
+  "approved_exception_note": "Operational metadata exception for branch-local .codex files only. This lane record tracks commit 89283bb9e7cd11c0e02514a04ec3e1256cd7307c and aligns the review packet with the actual product-code diff. No product-code ownership exception is requested.",
   "kickoff_budget_note": "",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - keep the review packet aligned to the metadata-only handoff record for commit 462c67ed.",
-    "Milestone 5: A2UI Presentation Layer - document CLI fallback and typed action expectations without claiming product-code changes.",
+    "Milestone 5: A2UI Presentation Layer - keep the review packet aligned to the implementation commit that preserves clipboard payload and action order.",
+    "Milestone 5: A2UI Presentation Layer - document CLI fallback and typed action expectations for the source/test diff.",
     "Milestone 5: A2UI Presentation Layer - keep the file list and commit mapping auditable against the actual diff."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Record a metadata-only handoff for commit 46267ed so the A2UI lane packet is auditable and does not claim source or test changes that are not present in the reviewed diff.",
+  "scope_goal": "Resubmit the A2UI review packet for commit 89283bb9 so the lane handoff is auditable against the actual source and test changes that preserve clipboard payload and action order.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Rewrote the lane handoff metadata to describe commit 46267ed as a metadata-only update.",
-    "Matched the file list to the actual reviewed diff and removed source/test file claims.",
-    "Kept the Milestone 5 A2UI roadmap and vision references aligned to the audit record rather than feature implementation."
+    "Rewrote the lane handoff metadata to describe the reviewed implementation commit instead of the metadata-only wrapper commit.",
+    "Restored the product-code file claims so the packet matches the actual reviewed diff.",
+    "Kept the Milestone 5 A2UI roadmap and vision references aligned to the source and test implementation."
   ],
   "vision_capabilities": [
-    "Capability 5: Agent-to-UI protocol (A2UI) - structured cards, actions, metadata, and CLI text fallback remain documented in the handoff record.",
+    "Capability 5: Agent-to-UI protocol (A2UI) - structured cards, actions, metadata, and CLI text fallback remain documented for the implementation commit.",
     "Capability 4: Operator-first control surface - CLI remains the documented fallback surface for the A2UI contract."
   ]
 }
