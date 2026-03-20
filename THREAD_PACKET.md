@@ -35,6 +35,8 @@
 - `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
+- Validation date: `2026-03-20`
+- Gate evidence note: each command below was rerun against the submitted `codex/feat-commands` branch state immediately before handoff so the results describe the real reviewed delta rather than the earlier seed commit.
 - `python -m unittest tests.unit.test_diff_preview`: PASS
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
@@ -50,13 +52,13 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` command contract so emitted CLI/JSON output stays deterministic under labels, truncation, and summary-only controls.
-- Milestone 2 - Test Hardening: add focused unit coverage for JSON output, no-diff JSON shape, custom labels, and fingerprint verification of emitted diff artifacts.
-- Milestone 3 - Product Readiness: keep the user-facing diff preview contract explicit and auditable by matching fingerprint metadata to the exact emitted artifact.
+- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` command surface by making labeled, suppressed-header, truncated, and summary-only output deterministic on the actual submitted branch.
+- Milestone 2 - Test Hardening: add focused unit coverage for the exact new command-output contract paths introduced on this branch, including JSON success output, JSON no-diff shape, custom labels, and fingerprint verification.
+- Milestone 3 - Product Readiness: lock the emitted diff fingerprint semantics to the exact user-visible artifact so downstream CLI/automation consumers can verify what the command actually returned.
 
 ### Vision capability affected
-- Capability 3 - Auditable generation: the advertised fingerprint now verifies the exact diff payload emitted to operators and automation.
-- Capability 4 - Operator-first control surface: `diff_preview` remains a CLI-first command surface with a stable JSON fallback contract for downstream consumers.
+- Capability 3 - Auditable generation: the emitted SHA-256 fingerprint now verifies the exact diff payload returned by the command, including label application and truncation behavior.
+- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first surface while exposing a concrete JSON contract that matches the submitted behavior change and is covered by focused tests.
 
 ### Routing/provider impact note
 - None. This change only affects local diff-preview output formatting, verification metadata, and lane scope-check handling for the approved shared test.
