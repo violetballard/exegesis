@@ -7,6 +7,7 @@ from pathlib import Path
 
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions
+from src.qual.engine.tools.excerpt_tools import fetch_excerpt as engine_fetch_excerpt
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
 
 
@@ -103,6 +104,48 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertGreaterEqual(doc_hit.excerpt_count, 1)
         self.assertEqual(result.diagnostics["doc_hits_count"], len(result.doc_hits))
         self.assertEqual(result.diagnostics["excerpt_hits_count"], len(result.hits))
+
+    def test_doc_hits_follow_top_ranked_excerpt_order(self) -> None:
+        self.service.add_or_update_document(
+            doc_id="doc-memo-2",
+            doc_type="memo",
+            title_hint="Memo Beta",
+            text="coding comparison",
+        )
+
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="coding comparison memo alpha",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=6),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        self.assertGreaterEqual(len(result.doc_hits), 2)
+        self.assertEqual(result.doc_hits[0].doc_id, result.hits[0].doc_id)
+        self.assertEqual(result.doc_hits[0].top_excerpt_id, result.hits[0].excerpt_id)
+        self.assertEqual(result.doc_hits[0].doc_id, "doc-memo-1")
+        self.assertEqual(result.doc_hits[1].doc_id, "doc-memo-2")
+
+    def test_engine_excerpt_tool_fetches_fts_excerpt_ids(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="lookup",
+                constraints=RetrievalConstraints(max_results=3),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+        excerpt = engine_fetch_excerpt(self.service, excerpt_id=excerpt_id or "")
+        self.assertEqual(excerpt["excerpt_id"], excerpt_id)
+        self.assertEqual(excerpt["provenance"]["source_strategy"], "fts")
+        self.assertTrue(excerpt["text"])
 
     def test_retrieval_audit_uses_query_hash_not_plaintext(self) -> None:
         query_text = "highly sensitive question text"

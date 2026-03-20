@@ -1,0 +1,30 @@
+## Thread Handoff Packet
+
+- Branch name: `codex/feat-retrieval-fts`
+- Scope completed: Preserved relevance-ordered `doc_hits`, exposed retrieval-backed excerpt fetching through the engine excerpt tool so `fts_*` IDs resolve in engine-facing flows, added focused unit coverage, and updated the handoff mapping for MVP FTS retrieval work.
+- Files changed:
+  - `THREAD_PACKET.md`
+  - `src/qual/engine/tools/excerpt_tools.py`
+  - `src/qual/retrieval/service.py`
+  - `tests/unit/test_unified_retrieval.py`
+- Commands run with results:
+  - `python -m unittest tests.unit.test_unified_retrieval` -> passed (`Ran 7 tests`, `OK`)
+  - `make scope-check` -> passed
+  - `./quality-format.sh --check` -> passed
+  - `./quality-lint.sh` -> passed
+  - `./quality-test.sh` -> passed (`Ran 74 tests`, `OK`)
+  - `./typecheck-test.sh` -> passed
+  - `make ci` -> passed
+- Risks/blockers:
+  - Cross-lane edit in `src/qual/engine/tools/excerpt_tools.py` is intentionally minimal and limited to the reviewer-required engine-facing excerpt fetch path.
+  - `pin_to_context_set()` remains `DocIndexService`-specific; this fix only broadens engine excerpt resolution for retrieval-backed IDs.
+- Roadmap item(s) affected:
+  - `Milestone 4: Retrieval Layer` -> FTS-first ingestion/index path for context/vault documents
+  - `Milestone 4: Retrieval Layer` -> Retrieval orchestration in engine before drafting/diff generation
+  - `Milestone 2: Test Hardening` -> Add focused unit coverage for core behaviors
+- Vision capability affected:
+  - `2. Retrieval-first context handling` -> SQLite FTS is the current MVP retrieval path and generation consumes retrieved chunks
+  - `3. Auditable generation` -> retrieval evidence remains deterministic and traceable
+  - `4. Operator-first control surface` -> engine-facing contracts stay usable from CLI/engine flows
+- Routing/provider impact note: None. No model routing or provider configuration was touched.
+- Proposed `README.md` patch text: None.

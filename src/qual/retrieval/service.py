@@ -252,13 +252,16 @@ class RetrievalService:
     def _build_doc_hits(self, hits: list[RetrievalHit]) -> list[RetrievalDocHit]:
         meta = self._load_doc_meta()
         grouped: dict[str, list[RetrievalHit]] = {}
+        doc_order: list[str] = []
         for hit in hits:
+            if hit.doc_id not in grouped:
+                doc_order.append(hit.doc_id)
             grouped.setdefault(hit.doc_id, []).append(hit)
 
         doc_hits: list[RetrievalDocHit] = []
-        for doc_id in sorted(grouped):
+        for doc_id in doc_order:
             doc_meta = meta.get(doc_id, {})
-            doc_hit_list = sorted(grouped[doc_id], key=self._hit_sort_key)
+            doc_hit_list = grouped[doc_id]
             top_hit = doc_hit_list[0]
             doc_hits.append(
                 RetrievalDocHit(
