@@ -59,6 +59,18 @@ class ContextStoreRecoveryTests(unittest.TestCase):
             ["first"],
         )
 
+    def test_corrupt_primary_recovery_from_backup_omits_recovered_from_marker(self) -> None:
+        self.store.save(ContextBasket(item_ids=["first"]))
+        self.store.save(ContextBasket(item_ids=["second"]))  # Creates backup with "first".
+        self.store._path.write_text("{bad", encoding="utf-8")
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["first"])
+        self.assertNotIn("recovered_from", payload)
+
     def test_mixed_invalid_item_ids_are_salvaged_and_rewritten(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text(
@@ -240,6 +252,20 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertFalse((state.root_dir / ".vault_state.corrupt.json").exists())
         self.assertIsInstance(reopened.is_locked, bool)
         self.assertTrue((state.root_dir / ".vault_state.json").exists())
+
+    def test_corrupt_primary_recovery_from_backup_omits_recovered_from_marker(self) -> None:
+        state = self.svc.create_or_open(self.root, "p2-provenance")
+        self.svc.lock(state)
+        self.svc.unlock(state)  # Backup now exists.
+        state_path = state.root_dir / ".vault_state.json"
+        state_path.write_text("{bad", encoding="utf-8")
+
+        reopened = self.svc.create_or_open(self.root, "p2-provenance")
+
+        self.assertIsInstance(reopened.is_locked, bool)
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p2-provenance")
+        self.assertNotIn("recovered_from", payload)
 
     def test_project_name_mismatch_forces_locked_state(self) -> None:
         state = self.svc.create_or_open(self.root, "p3")

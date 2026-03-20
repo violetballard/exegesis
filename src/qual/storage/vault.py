@@ -170,6 +170,8 @@ class VaultService:
 
     def _is_loadable_payload(self, payload: object) -> bool:
         # Optional metadata can be malformed while the persisted lock state remains recoverable.
+        # In particular, an invalid stored project_name must still load so create_or_open()
+        # can force the vault back into a safe locked state before rewriting canonical metadata.
         if not isinstance(payload, dict):
             return False
         if self._parse_schema_version(payload) is None:

@@ -65,10 +65,12 @@ class ContextBasketStore:
             should_rewrite = True
 
         recovered_from: str | None = None
-        if loaded_from_tmp and primary_missing:
-            recovered_from = "tmp"
-        elif loaded_from_backup and primary_missing:
-            recovered_from = "backup"
+        # Only persist provenance when recovery promoted fallback state into a missing primary.
+        if primary_missing:
+            if loaded_from_tmp:
+                recovered_from = "tmp"
+            elif loaded_from_backup:
+                recovered_from = "backup"
         if loaded_from_tmp or loaded_from_backup or should_rewrite:
             self.save(basket, recovered_from=recovered_from)
         return basket
