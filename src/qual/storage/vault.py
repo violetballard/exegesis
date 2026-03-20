@@ -107,10 +107,13 @@ class VaultService:
         normalized_recovered_from = self._parse_recovered_from(recovered_from)
         if normalized_recovered_from is not None:
             payload["recovered_from"] = normalized_recovered_from
+        # Preserve the prior primary if the rewrite fails, then resync backup to the
+        # latest valid state once the atomic replace succeeds.
         self._write_backup(state.root_dir)
         tmp = self._tmp_state_path(state.root_dir)
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
         tmp.replace(self._state_path(state.root_dir))
+        self._write_backup(state.root_dir)
         self._clear_quarantine_state(state.root_dir)
 
     def _quarantine_invalid_state(self, root_dir: Path) -> None:
