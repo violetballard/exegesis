@@ -22,7 +22,7 @@
   - `./typecheck-test.sh` -> passed (`python3 -m compileall -q src`, exit `0`)
   - `make ci` -> passed (includes scope-check, format, lint, typecheck, smoke, and unit test gates)
 - Reviewer fix closure:
-  - `#1` removed the retrieval-lane behavior change from the non-owned `src/qual/engine/tools/excerpt_tools.py` file by restoring its generic protocol-based helper signature, so this lane no longer depends on an engine-lane compatibility shim.
+  - `#1` removed the non-owned `src/qual/engine/tools/excerpt_tools.py` change from this handoff so the lane stays within retrieval-owned behavior.
   - `#2` restored the correct low-risk/default-budget classification because the branch no longer carries engine-lane edits.
   - `#3` replaced the inaccurate ownership note with retrieval-owned-path-only framing in both the packet and lane metadata.
   - `#4` roadmap/vision notes now explicitly map only the retrieval-owned MVP work; the earlier engine-facing compatibility shim is out of scope for this handoff.
