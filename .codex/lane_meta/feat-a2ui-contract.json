@@ -5,19 +5,19 @@
   "risk": "LOW",
   "roadmap_items": [
     "Milestone 5: A2UI Presentation Layer - keep the review packet aligned to the metadata-only wrapper commit 596d1df12b42c336a77ef146cd3201e9dec3da3a.",
-    "Milestone 5: A2UI Presentation Layer - document CLI fallback and typed action expectations without claiming product-code changes.",
-    "Milestone 5: A2UI Presentation Layer - keep the file list and commit mapping auditable against the actual diff."
+    "Milestone 5: A2UI Presentation Layer - keep the file list and commit mapping auditable against the metadata-only diff.",
+    "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to packet-alignment changes and no product-code claims."
   ],
   "routing_provider_impact": "None",
   "scope_goal": "Record a metadata-only handoff for commit 596d1df12b42c336a77ef146cd3201e9dec3da3a so the A2UI lane packet is auditable and does not claim source or test changes that are not present in the reviewed diff.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Rewrote the lane handoff metadata to describe commit 596d1df12b42c336a77ef146cd3201e9dec3da3a as a metadata-only update.",
-    "Matched the file list to the actual reviewed diff and removed source/test file claims.",
-    "Kept the Milestone 5 A2UI roadmap and vision references aligned to the packet alignment change rather than feature implementation."
+    "Kept the submitted file list limited to the branch-local .codex wrapper files and removed source/test file claims.",
+    "Aligned the Milestone 5 A2UI roadmap and vision references to the packet-alignment change rather than feature implementation."
   ],
   "vision_capabilities": [
-    "Capability 5: Agent-to-UI protocol (A2UI) - structured cards, actions, metadata, and CLI text fallback remain documented in the handoff record for the packet-alignment change.",
-    "Capability 4: Operator-first control surface - CLI remains the documented fallback surface for the A2UI contract."
+    "Capability 5: Agent-to-UI protocol (A2UI) - the handoff record stays aligned to the packet-only metadata change.",
+    "Capability 4: Operator-first control surface - the packet preserves the operator-facing audit trail for the A2UI contract."
   ]
 }
