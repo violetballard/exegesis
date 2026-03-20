@@ -13,14 +13,14 @@ class ContextBasket:
             return ""
         return item_id.strip()
 
-    def add(self, item_id: str) -> None:
+    def add(self, item_id: object) -> None:
         normalized = self._normalize_item_id(item_id)
         if not normalized:
             return
         if normalized not in self.item_ids:
             self.item_ids.append(normalized)
 
-    def remove(self, item_id: str) -> None:
+    def remove(self, item_id: object) -> None:
         normalized = self._normalize_item_id(item_id)
         if not normalized:
             return
