@@ -115,6 +115,26 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertNotIn("recovered_from", payload)
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
 
+    def test_invalid_updated_at_only_is_salvaged_and_rewritten(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "not-a-timestamp",
+                    "item_ids": ["first", "second"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first", "second"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["first", "second"])
+        self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
+
 class VaultRecoveryTests(unittest.TestCase):
     def setUp(self) -> None:
         self._tmp = tempfile.TemporaryDirectory()
@@ -187,6 +207,29 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertFalse(payload.get("is_locked"))
         self.assertNotIn("recovered_from", payload)
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
+
+    def test_invalid_recovered_from_only_is_salvaged_and_rewritten(self) -> None:
+        state = self.svc.create_or_open(self.root, "p5")
+        state_path = state.root_dir / ".vault_state.json"
+        state_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "p5",
+                    "is_locked": False,
+                    "recovered_from": "manual",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p5")
+
+        self.assertFalse(reopened.is_locked)
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p5")
+        self.assertFalse(payload.get("is_locked"))
+        self.assertNotIn("recovered_from", payload)
 
 
 if __name__ == "__main__":
