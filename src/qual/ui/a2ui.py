@@ -206,6 +206,26 @@ def validate_action_ref(action: Any) -> None:
     _normalize_action(action, supported_actions=_ALLOWED_ACTION_SET)
 
 
+def normalize_action_ref(action: ActionRef) -> ActionRef:
+    action_dict: dict[str, Any] = {
+        "id": action.id,
+        "label": action.label,
+        "payload": action.payload,
+    }
+    if action.confirm is not None:
+        action_dict["confirm"] = action.confirm
+    if action.policy_sensitive:
+        action_dict["policy_sensitive"] = action.policy_sensitive
+    normalized = _normalize_action(action_dict, supported_actions=_ALLOWED_ACTION_SET)
+    return ActionRef(
+        id=str(normalized["id"]),
+        label=str(normalized["label"]),
+        payload=dict(normalized["payload"]),
+        confirm=dict(normalized["confirm"]) if "confirm" in normalized else None,
+        policy_sensitive=bool(normalized.get("policy_sensitive", False)),
+    )
+
+
 def execute_action_with_policy_gate(
     *,
     action: ActionRef,
@@ -213,14 +233,16 @@ def execute_action_with_policy_gate(
     policy_gate: PolicyGate,
     executor: Callable[[ActionRef], Any],
 ) -> Any:
-    if action.id not in _ALLOWED_ACTION_SET:
-        raise ValueError("Unknown action id")
-    if action.id not in set(capabilities.actions_supported):
+    normalized_action = normalize_action_ref(action)
+    if normalized_action.id not in set(capabilities.actions_supported):
         raise ValueError("Action not supported by client")
-    _validate_action_payload(action.id, action.payload)
-    if not policy_gate.allow_action(action.id, action.payload, policy_sensitive=action.policy_sensitive):
+    if not policy_gate.allow_action(
+        normalized_action.id,
+        normalized_action.payload,
+        policy_sensitive=normalized_action.policy_sensitive,
+    ):
         raise PermissionError("PolicyGate blocked action")
-    return executor(action)
+    return executor(normalized_action)
 
 
 def render_terminal_card(card: dict[str, Any]) -> str:

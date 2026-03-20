@@ -10,6 +10,7 @@ from src.qual.ui.a2ui import (
     build_unknown_card,
     engine_prepare_card,
     execute_action_with_policy_gate,
+    normalize_action_ref,
     render_terminal_card,
     studio_materialize_card,
     validate_capabilities,
@@ -230,6 +231,64 @@ class A2UIContractTests(unittest.TestCase):
             executor=lambda a: executed.append(a.id),
         )
         self.assertEqual(executed, ["export_document"])
+
+    def test_normalize_action_ref_trims_and_preserves_optional_fields(self) -> None:
+        normalized = normalize_action_ref(
+            ActionRef(
+                id=" apply_patch ",
+                label=" Apply ",
+                payload={"patch_id": "p1"},
+                confirm={"title": " Approve ", "message": " Apply patch? "},
+                policy_sensitive=True,
+            )
+        )
+
+        self.assertEqual(normalized.id, "apply_patch")
+        self.assertEqual(normalized.label, "Apply")
+        self.assertEqual(normalized.confirm, {"title": "Approve", "message": "Apply patch?"})
+        self.assertTrue(normalized.policy_sensitive)
+
+    def test_execute_action_rejects_malformed_direct_actionref(self) -> None:
+        with self.assertRaises(ValueError):
+            execute_action_with_policy_gate(
+                action=ActionRef(
+                    id="apply_patch",
+                    label="Apply",
+                    payload={"patch_id": "p1"},
+                    confirm={"title": "", "message": "Apply patch?"},
+                ),
+                capabilities=_capabilities(actions_supported=("apply_patch",)),
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: action.id,
+            )
+
+    def test_execute_action_passes_normalized_actionref_to_executor(self) -> None:
+        observed: list[ActionRef] = []
+
+        execute_action_with_policy_gate(
+            action=ActionRef(
+                id=" export_document ",
+                label=" Export ",
+                payload={"format": "md"},
+                confirm={"title": " Confirm ", "message": " Export now? "},
+            ),
+            capabilities=_capabilities(actions_supported=("export_document",)),
+            policy_gate=_PolicyGateStub(True),
+            executor=lambda action: observed.append(action),
+        )
+
+        self.assertEqual(
+            observed,
+            [
+                ActionRef(
+                    id="export_document",
+                    label="Export",
+                    payload={"format": "md"},
+                    confirm={"title": "Confirm", "message": "Export now?"},
+                    policy_sensitive=False,
+                )
+            ],
+        )
 
     def test_terminal_can_render_inline_generic_and_unknown_cards(self) -> None:
         generic = {
