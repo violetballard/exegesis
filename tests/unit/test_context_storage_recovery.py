@@ -158,6 +158,28 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("item_ids"), ["first", "second"])
         self.assertNotIn("recovered_from", payload)
 
+    def test_backup_with_invalid_metadata_is_salvaged_and_rewritten(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "not-a-timestamp",
+                    "recovered_from": "manual",
+                    "item_ids": ["first", "second"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first", "second"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["first", "second"])
+        self.assertEqual(payload.get("recovered_from"), "backup")
+        self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
+
 
 class VaultRecoveryTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -280,6 +302,32 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("project_name"), "p6")
         self.assertFalse(payload.get("is_locked"))
         self.assertNotIn("recovered_from", payload)
+
+    def test_backup_with_invalid_metadata_is_salvaged_and_rewritten(self) -> None:
+        state = self.svc.create_or_open(self.root, "p7")
+        backup_path = state.root_dir / ".vault_state.bak.json"
+        backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "p7",
+                    "is_locked": False,
+                    "updated_at": "not-a-timestamp",
+                    "recovered_from": "manual",
+                }
+            ),
+            encoding="utf-8",
+        )
+        (state.root_dir / ".vault_state.json").unlink()
+
+        reopened = self.svc.create_or_open(self.root, "p7")
+
+        self.assertFalse(reopened.is_locked)
+        payload = json.loads((state.root_dir / ".vault_state.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p7")
+        self.assertFalse(payload.get("is_locked"))
+        self.assertEqual(payload.get("recovered_from"), "backup")
+        self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
 
 
 if __name__ == "__main__":
