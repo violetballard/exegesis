@@ -2,6 +2,11 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Scope completed: Preserved relevance-ordered `doc_hits`, exposed retrieval-backed excerpt fetching through the engine excerpt tool so `fts_*` IDs resolve in engine-facing flows, added focused unit coverage, and updated the handoff mapping for MVP FTS retrieval work.
+- Tasks completed:
+  1. Returned deterministic FTS excerpt IDs and retrieval-backed `fetch_excerpt()` support so engine excerpt tooling can resolve `fts_*` IDs.
+  2. Preserved `doc_hits` relevance order so document-level ranking matches the top-ranked underlying excerpt hit.
+  3. Added focused unit coverage for both document ranking order and engine-facing FTS excerpt fetch behavior.
+  4. Completed the handoff metadata required by `INTEGRATION.md` with concrete scope, file, roadmap, and vision mapping for MVP FTS retrieval work.
 - Files changed:
   - `.codex/lane_meta/feat-retrieval-fts.json`
   - `THREAD_PACKET.md`
