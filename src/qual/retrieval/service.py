@@ -19,6 +19,9 @@ _KEY_FILE = "retrieval_v1.key"
 _DOC_META_FILE = "doc_meta_v1.enc.json"
 _FTS_FILE = "fts_entries_v1.enc.json"
 _DOC_BLOBS = "doc_blobs"
+_FTS_SEGMENT_CHARS = 400
+_FTS_SEGMENT_OVERLAP_CHARS = 80
+_FTS_BOUNDARY_SCAN_CHARS = 40
 
 
 @dataclass(frozen=True)
@@ -361,11 +364,9 @@ class RetrievalService:
 
     def _upsert_fts_entries(self, *, doc_id: str, doc_type: str, title_hint: str | None, text: str) -> None:
         entries = [x for x in self._load_fts_entries() if x["doc_id"] != doc_id]
-        for start in range(0, len(text), 400):
-            segment = text[start : start + 400]
+        for start, end, segment in self._iter_fts_segments(text):
             if not segment:
                 continue
-            end = start + len(segment)
             entries.append(
                 {
                     "doc_id": doc_id,
@@ -378,6 +379,47 @@ class RetrievalService:
                 }
             )
         self._write_encrypted_json(self._root / _FTS_FILE, entries)
+
+    def _iter_fts_segments(self, text: str) -> list[tuple[int, int, str]]:
+        if not text:
+            return []
+        step = max(1, _FTS_SEGMENT_CHARS - _FTS_SEGMENT_OVERLAP_CHARS)
+        segments: list[tuple[int, int, str]] = []
+        seen_ranges: set[tuple[int, int]] = set()
+        for raw_start in range(0, len(text), step):
+            raw_end = min(len(text), raw_start + _FTS_SEGMENT_CHARS)
+            start = self._segment_start(text, raw_start)
+            end = self._segment_end(text, raw_end)
+            if end <= start:
+                continue
+            segment_range = (start, end)
+            if segment_range in seen_ranges:
+                continue
+            seen_ranges.add(segment_range)
+            segments.append((start, end, text[start:end]))
+            if raw_end >= len(text):
+                break
+        return segments
+
+    @staticmethod
+    def _segment_start(text: str, raw_start: int) -> int:
+        if raw_start <= 0:
+            return 0
+        scan_start = max(0, raw_start - _FTS_BOUNDARY_SCAN_CHARS)
+        for index in range(raw_start, scan_start, -1):
+            if text[index - 1].isspace():
+                return index
+        return raw_start
+
+    @staticmethod
+    def _segment_end(text: str, raw_end: int) -> int:
+        if raw_end >= len(text):
+            return len(text)
+        scan_end = min(len(text), raw_end + _FTS_BOUNDARY_SCAN_CHARS)
+        for index in range(raw_end, scan_end):
+            if text[index].isspace():
+                return index
+        return raw_end
 
     @staticmethod
     def _make_fts_excerpt_id(*, doc_id: str, char_start: int, char_end: int, text: str) -> str:
