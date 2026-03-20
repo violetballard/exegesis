@@ -144,6 +144,12 @@ class RetrievalService:
         )
         return RetrievalResult(query=query, hits=merged_hits, diagnostics=diagnostics, audit_ref=audit.event_id)
 
+    def fetch_excerpt(self, excerpt_id: str) -> dict[str, object]:
+        fts_excerpt = self._find_fts_excerpt(excerpt_id)
+        if fts_excerpt is not None:
+            return fts_excerpt
+        return self._docindex.fetch_excerpt(excerpt_id)
+
     def _run_fts_hits(self, query: RetrievalQuery, candidate_doc_ids: tuple[str, ...]) -> list[RetrievalHit]:
         all_entries = self._load_fts_entries()
         scope_doc = self._doc_scope_id(query.scope)
@@ -168,7 +174,15 @@ class RetrievalService:
                 score += 2.0
             if score > 0:
                 ranked.append((score, entry))
-        ranked.sort(key=lambda item: item[0], reverse=True)
+        ranked.sort(
+            key=lambda item: (
+                -item[0],
+                str(item[1]["doc_id"]),
+                int(item[1]["char_start"]),
+                int(item[1]["char_end"]),
+                str(item[1]["excerpt_id"]),
+            )
+        )
         hits: list[RetrievalHit] = []
         for score, entry in ranked[: max(25, query.constraints.max_results)]:
             hits.append(
@@ -207,9 +221,7 @@ class RetrievalService:
                     )
         with_excerpt = [hit for hit in combined if hit.excerpt_id is not None]
         without_excerpt = [hit for hit in combined if hit.excerpt_id is None]
-        ordered = sorted(with_excerpt, key=lambda h: h.score, reverse=True) + sorted(
-            without_excerpt, key=lambda h: h.score, reverse=True
-        )
+        ordered = sorted(with_excerpt, key=self._hit_sort_key) + sorted(without_excerpt, key=self._hit_sort_key)
         seen: set[str] = set()
         out: list[RetrievalHit] = []
         for hit in ordered:
@@ -243,6 +255,19 @@ class RetrievalService:
             if len(doc_ids) >= 25:
                 break
         return tuple(doc_ids)
+
+    @staticmethod
+    def _hit_sort_key(hit: RetrievalHit) -> tuple[float, str, str, int, int]:
+        char_range = hit.span.get("char_range", {}) if isinstance(hit.span, dict) else {}
+        if not isinstance(char_range, dict):
+            char_range = {}
+        return (
+            -hit.score,
+            hit.source_strategy,
+            hit.doc_id,
+            int(char_range.get("start", -1)),
+            int(char_range.get("end", -1)),
+        )
 
     def _candidate_docs_from_scope(self, scope: str, *, fallback: tuple[str, ...]) -> tuple[str, ...]:
         if scope.startswith("doc:"):
@@ -282,18 +307,44 @@ class RetrievalService:
             segment = text[start : start + 400]
             if not segment:
                 continue
+            end = start + len(segment)
             entries.append(
                 {
                     "doc_id": doc_id,
                     "doc_type": doc_type,
                     "title_hint": title_hint,
-                    "excerpt_id": str(uuid.uuid4()),
+                    "excerpt_id": self._make_fts_excerpt_id(doc_id=doc_id, char_start=start, char_end=end, text=segment),
                     "char_start": start,
-                    "char_end": start + len(segment),
+                    "char_end": end,
                     "text_lower": segment.lower(),
                 }
             )
         self._write_encrypted_json(self._root / _FTS_FILE, entries)
+
+    @staticmethod
+    def _make_fts_excerpt_id(*, doc_id: str, char_start: int, char_end: int, text: str) -> str:
+        payload = f"{doc_id}:{char_start}:{char_end}:{hashlib.sha256(text.encode('utf-8')).hexdigest()}"
+        return f"fts_{hashlib.sha256(payload.encode('utf-8')).hexdigest()[:24]}"
+
+    def _find_fts_excerpt(self, excerpt_id: str) -> dict[str, object] | None:
+        for entry in self._load_fts_entries():
+            if str(entry.get("excerpt_id")) != excerpt_id:
+                continue
+            doc_id = str(entry["doc_id"])
+            char_start = int(entry["char_start"])
+            char_end = int(entry["char_end"])
+            text = self._read_doc_text(doc_id)[char_start:char_end]
+            return {
+                "excerpt_id": excerpt_id,
+                "text": text,
+                "provenance": {
+                    "doc_id": doc_id,
+                    "span": {"char_range": {"start": char_start, "end": char_end}},
+                    "hash": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+                    "source_strategy": "fts",
+                },
+            }
+        return None
 
     def _load_fts_entries(self) -> list[dict[str, object]]:
         payload = self._read_encrypted_json(self._root / _FTS_FILE, default=[])
