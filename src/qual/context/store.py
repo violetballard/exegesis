@@ -154,6 +154,7 @@ class ContextBasketStore:
         return self._is_supported_payload(payload)
 
     def _is_loadable_payload(self, payload: object) -> bool:
+        # Optional metadata can be malformed without invalidating the recoverable basket.
         if isinstance(payload, list):
             return self._parse_item_ids(payload) is not None
         if not isinstance(payload, dict):
@@ -165,6 +166,7 @@ class ContextBasketStore:
         return True
 
     def _is_supported_payload(self, payload: object) -> bool:
+        # Backup rotation stays strict so we do not preserve malformed metadata as canonical.
         if not self._is_loadable_payload(payload):
             return False
         if not isinstance(payload, dict):

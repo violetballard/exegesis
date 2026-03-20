@@ -168,6 +168,7 @@ class VaultService:
         return self._is_supported_payload(payload)
 
     def _is_loadable_payload(self, payload: object) -> bool:
+        # Optional metadata can be malformed while the persisted lock state remains recoverable.
         if not isinstance(payload, dict):
             return False
         if self._parse_schema_version(payload) is None:
@@ -179,6 +180,7 @@ class VaultService:
         return True
 
     def _is_supported_payload(self, payload: object) -> bool:
+        # Backup rotation stays strict so rewritten state drops malformed metadata fields.
         if not self._is_loadable_payload(payload):
             return False
         if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
