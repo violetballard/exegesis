@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Verified branch head before this packet-refresh commit: `8b119e15aecf6efe177cda5cb74a8b78e24e1032`
+- Verified branch head before this packet-refresh commit: `e8a2d67eb658bc2e7cfda5bc57e82432b56acdd3`
 - Branch head note: this tracked packet is part of the submitted branch head, so the final exact HEAD SHA for this packet-refresh commit is reported in the accompanying handoff response to avoid self-referential SHA drift inside the committed file itself.
 
 ## Scope goal
@@ -15,7 +15,7 @@
 - Corrected `diff_preview` fingerprint semantics so SHA-256 is derived from the exact emitted diff payload after label application, header suppression, truncation, and summary-only handling.
 - Added focused command-contract tests for JSON output, no-diff JSON shape, custom labels, and fingerprint correctness.
 - Repaired lane scope checking so the approved shared-test exception for `tests/unit/test_diff_preview.py` is honored during lane verification.
-- Regenerated this handoff packet from the real `main...codex/feat-commands` delta at `8b119e15aecf6efe177cda5cb74a8b78e24e1032` so review maps to the branch state actually being submitted.
+- Regenerated this handoff packet from the real `main...codex/feat-commands` delta at `e8a2d67eb658bc2e7cfda5bc57e82432b56acdd3` so review maps to the branch state actually being submitted.
 
 ## Kickoff budget/limits compliance
 - Stayed within the default lane budget; the submitted branch delta is 4 files changed and remains well within the lane size limits. One shared test file was added under an approved exception, and `scripts/scope-check.sh` was updated so the documented shared-test exception path works for this lane.
@@ -37,7 +37,7 @@
 
 ## Commands run and outcomes
 - Validation date: `2026-03-20`
-- Gate evidence note: the behavior changes in this branch were revalidated from branch head `8b119e15aecf6efe177cda5cb74a8b78e24e1032` immediately before this final packet refresh. This commit updates only `THREAD_PACKET.md`; the final submitted HEAD SHA is reported in the accompanying handoff response.
+- Gate evidence note: the behavior changes in this branch were revalidated from branch head `e8a2d67eb658bc2e7cfda5bc57e82432b56acdd3` immediately before this final packet refresh. This commit updates only `THREAD_PACKET.md`; the final submitted HEAD SHA is reported in the accompanying handoff response.
 - `python -m unittest tests.unit.test_diff_preview`: PASS
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
