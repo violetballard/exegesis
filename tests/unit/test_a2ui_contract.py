@@ -98,6 +98,23 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(len(filtered["actions"]), 1)
         self.assertEqual(filtered["actions"][0]["id"], "apply_patch")
 
+    def test_action_payload_schema_rejects_extra_fields(self) -> None:
+        caps = _capabilities(actions_supported=("apply_patch",))
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
+            "actions": [
+                {
+                    "id": "apply_patch",
+                    "label": "Apply",
+                    "payload": {"patch_id": "p1", "force": True},
+                }
+            ],
+        }
+        filtered = studio_materialize_card(card, caps)
+        self.assertEqual(filtered["actions"], [])
+
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []
         action = ActionRef(
@@ -130,14 +147,26 @@ class A2UIContractTests(unittest.TestCase):
             "type": "GenericCard",
             "title": "Run Log",
             "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+            "actions": [
+                {"id": "export_document", "label": "Export", "payload": {"format": "md"}},
+                {"id": "export_document", "label": "Broken", "payload": {"format": "md", "extra": 1}},
+            ],
         }
         text = render_terminal_card(generic)
         self.assertIn("[GenericCard] Run Log", text)
         self.assertIn("Hello", text)
+        self.assertIn("Actions:", text)
+        self.assertIn("- Export (export_document)", text)
+        self.assertNotIn("Broken", text)
 
         unknown = build_unknown_card({"type": "FutureCard", "payload": 1})
+        self.assertEqual(
+            unknown["actions"][0]["payload"]["text"],
+            '{"payload":1,"type":"FutureCard"}',
+        )
         unknown_text = render_terminal_card(unknown)
         self.assertIn("[UnknownCard] Unsupported card type: FutureCard", unknown_text)
+        self.assertIn("- Copy JSON (copy_to_clipboard)", unknown_text)
 
 
 if __name__ == "__main__":

@@ -125,7 +125,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
             {
                 "type": "CodeBlock",
                 "language": "json",
-                "code": json.dumps(card, separators=(",", ":"), ensure_ascii=True),
+                "code": _canonical_json(card),
             },
         ],
         "actions": [],
@@ -163,7 +163,7 @@ def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
         "title": f"Unsupported card type: {type_name}",
         "blocks": blocks,
         "actions": [
-            {"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": json.dumps(raw_card)}}
+            {"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": _canonical_json(raw_card)}}
         ],
     }
 
@@ -259,6 +259,10 @@ def render_terminal_card(card: dict[str, Any]) -> str:
                         lines.append(f"- {item.get('label', '')}")
         elif block_type == "TableBlock":
             lines.append("[table]")
+    rendered_actions = _render_terminal_actions(card.get("actions"))
+    if rendered_actions:
+        lines.append("Actions:")
+        lines.extend(rendered_actions)
     return "\n".join(lines)
 
 
@@ -289,8 +293,33 @@ def _validate_action_payload(action_id: str, payload: dict[str, Any]) -> None:
     schema = _ACTION_SCHEMAS.get(action_id)
     if schema is None:
         raise ValueError(f"No schema for action id: {action_id}")
+    extra_keys = set(payload) - set(schema)
+    if extra_keys:
+        extras = ", ".join(sorted(extra_keys))
+        raise ValueError(f"Unexpected payload field for {action_id}: {extras}")
     for key, value_type in schema.items():
         if key not in payload:
             raise ValueError(f"Missing payload field for {action_id}: {key}")
         if not isinstance(payload[key], value_type):
             raise ValueError(f"Invalid payload type for {action_id}:{key}")
+
+
+def _canonical_json(payload: dict[str, Any]) -> str:
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+
+
+def _render_terminal_actions(actions: Any) -> list[str]:
+    if not isinstance(actions, list):
+        return []
+    lines: list[str] = []
+    for action in actions:
+        if not isinstance(action, dict):
+            continue
+        try:
+            validate_action_ref(action)
+        except ValueError:
+            continue
+        label = str(action["label"]).strip()
+        action_id = str(action["id"]).strip()
+        lines.append(f"- {label} ({action_id})")
+    return lines
