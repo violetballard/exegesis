@@ -23,8 +23,10 @@ LANE_OWNED_PATHS = {
     "feat-commands": ["src/qual/commands/**"],
     "feat-context-storage": ["src/qual/context/**", "src/qual/storage/**"],
     "feat-ux-flow": ["src/qual/ui/**", "src/qual/drafting/**", "src/qual/engine/**"],
-    "feat-webconsole-core": ["src/qual/webconsole/server/**", "src/qual/webconsole/api/**", "src/qual/webconsole/auth/**"],
-    "feat-webconsole-ui": ["src/qual/webconsole/render/**", "src/qual/webconsole/templates/**", "src/qual/webconsole/static/**"],
+    "feat-retrieval-fts": ["src/qual/retrieval/**", "src/qual/engine/retrieval/**"],
+    "feat-a2ui-contract": ["src/qual/ui/**"],
+    "feat-engine-runs": ["src/qual/engine/**"],
+    "feat-console": ["src/qual/console/**"],
 }
 
 Json = Dict[str, Any]
@@ -184,7 +186,9 @@ def main()->None:
     repo=str(Path.cwd())
     run("git fetch --all --prune", cwd=repo, timeout=600)
 
-    for lane,lcfg in cfg["lanes"].items():
+    for lane, lcfg in cfg["lanes"].items():
+        if not bool((lcfg or {}).get("enabled", True)):
+            continue
         ensure_lane_dirs(lane)
         if lane_has_pending_feature(lane):
             continue

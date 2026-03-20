@@ -24,13 +24,33 @@ Use these branch lanes to avoid duplicate work and merge conflicts.
     - `src/qual/engine/**`
   - Shared by approval only:
     - `src/qual/app.py`
+  - Current status:
+    - paused for the current engine-first MVP push
 
-- `codex/feat-webconsole*`
+- `codex/feat-retrieval-fts*`
   - Owned paths:
-    - `src/qual/webconsole/**`
-  - Shared by approval only:
-    - `WEB_CONSOLE_SPEC.md`
-    - `PROVIDER_COMPAT_PROBE_SPEC.md`
+    - `src/qual/retrieval/**`
+    - `src/qual/engine/retrieval/**`
+  - Current status:
+    - active for the MVP push
+
+- `codex/feat-a2ui-contract*`
+  - Owned paths:
+    - `src/qual/ui/**`
+  - Current status:
+    - active for the MVP push
+
+- `codex/feat-engine-runs*`
+  - Owned paths:
+    - `src/qual/engine/**`
+  - Current status:
+    - active for the MVP push
+
+- `codex/feat-console*`
+  - Reserved for future `Exegesis Console` work.
+  - Current status:
+    - defined in config
+    - disabled until engine/A2UI MVP is ready
 
 ## Integrator-Locked Files
 

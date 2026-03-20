@@ -19,7 +19,15 @@ STATE_FILE = REPO_ROOT / ".codex/packet_router/state.json"
 KICKOFF_DIR = REPO_ROOT / ".codex/kickoff_packets"
 FEATURE_ROOT = REPO_ROOT / ".codex/feature_runner"
 FEATURE_STATE_FILE = FEATURE_ROOT / "state.json"
-LANES = ["feat-commands", "feat-context-storage", "feat-ux-flow", "feat-webconsole-core", "feat-webconsole-ui"]
+DEFAULT_LANES = [
+    "feat-commands",
+    "feat-context-storage",
+    "feat-ux-flow",
+    "feat-retrieval-fts",
+    "feat-a2ui-contract",
+    "feat-engine-runs",
+    "feat-console",
+]
 STATE_LOCK = threading.Lock()
 
 
@@ -33,6 +41,14 @@ def load_json(path: Path, default: Any) -> Any:
 def save_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2, sort_keys=True))
+
+
+def _enabled_lanes() -> List[str]:
+    cfg = load_json(CONFIG_FILE, {})
+    lanes = cfg.get("lanes") if isinstance(cfg, dict) else {}
+    if isinstance(lanes, dict) and lanes:
+        return [name for name, lane_cfg in lanes.items() if bool((lane_cfg or {}).get("enabled", True))]
+    return list(DEFAULT_LANES)
 
 
 def _pid_alive(pid: int) -> bool:
@@ -88,7 +104,7 @@ def _resolved_profiles(cfg: Dict[str, object]) -> Dict[str, Dict[str, object]]:
 
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(description="Launch or resume feature lane managed Codex sessions.")
-    ap.add_argument("--lanes", nargs="*", default=LANES, help="Lane names to launch")
+    ap.add_argument("--lanes", nargs="*", default=None, help="Lane names to launch")
     ap.add_argument("--restart-existing", action="store_true", help="Start a fresh managed session even if lane state exists")
     ap.add_argument("--dry-run", action="store_true", help="Print resolved launch plan without starting managed sessions")
     return ap.parse_args()
@@ -480,6 +496,8 @@ def _launch_one_lane(
         }
 def main() -> int:
     args = parse_args()
+    if args.lanes is None:
+        args.lanes = _enabled_lanes()
     launch_cfg = runtime_launch_config()
     worktrees = branch_worktrees()
     prompts_dir = FEATURE_ROOT / "prompts"

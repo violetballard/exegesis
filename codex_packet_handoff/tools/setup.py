@@ -3,7 +3,15 @@ from __future__ import annotations
 from pathlib import Path
 import json
 
-LANES = ['feat-context-storage', 'feat-webconsole-core', 'feat-webconsole-ui', 'feat-ux-flow', 'feat-commands']
+LANES = [
+    'feat-context-storage',
+    'feat-ux-flow',
+    'feat-commands',
+    'feat-retrieval-fts',
+    'feat-a2ui-contract',
+    'feat-engine-runs',
+    'feat-console',
+]
 
 def ensure_dirs():
     for lane in LANES:
@@ -19,7 +27,8 @@ def ensure_dirs():
 def write_example_config():
     lanes_cfg = {}
     for lane in LANES:
-        lanes_cfg[lane] = {"branch": f"codex/{lane}"}
+        lanes_cfg[lane] = {"branch": f"codex/{lane}", "enabled": True}
+    lanes_cfg["feat-console"]["enabled"] = False
     example = {
         "model": "gpt-5.1-codex",
         "codex_cmd": "codex",

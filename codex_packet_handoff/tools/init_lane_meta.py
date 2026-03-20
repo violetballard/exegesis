@@ -3,7 +3,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-LANES = ['feat-context-storage', 'feat-webconsole-core', 'feat-webconsole-ui', 'feat-ux-flow', 'feat-commands']
+LANES = [
+    'feat-context-storage',
+    'feat-ux-flow',
+    'feat-commands',
+    'feat-retrieval-fts',
+    'feat-a2ui-contract',
+    'feat-engine-runs',
+    'feat-console',
+]
 TEMPLATE = {
   "scope_goal": "",
   "tasks_completed": [],

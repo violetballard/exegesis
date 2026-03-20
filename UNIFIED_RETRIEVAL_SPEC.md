@@ -1,5 +1,15 @@
 # Unified Retrieval Interface Spec
 
+Status: active in narrowed MVP form.
+
+Current MVP scope:
+- FTS-first retrieval only
+- excerpt-centric hits with provenance
+- no PageIndex requirement
+- no embeddings requirement
+
+The broader multi-strategy design below should be treated as deferred follow-on architecture, not current execution scope.
+
 ## Goal
 
 - Single retrieval contract for FTS, PageIndex, and future embeddings.

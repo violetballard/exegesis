@@ -63,19 +63,32 @@
   "reviewer_fixer_retry_cooldown_seconds": 120,
   "lanes": {
     "feat-context-storage": {
-      "branch": "codex/feat-context-storage"
-    },
-    "feat-webconsole-core": {
-      "branch": "codex/feat-webconsole-core"
-    },
-    "feat-webconsole-ui": {
-      "branch": "codex/feat-webconsole-ui"
+      "branch": "codex/feat-context-storage",
+      "enabled": true
     },
     "feat-ux-flow": {
-      "branch": "codex/feat-ux-flow"
+      "branch": "codex/feat-ux-flow",
+      "enabled": false
     },
     "feat-commands": {
-      "branch": "codex/feat-commands"
+      "branch": "codex/feat-commands",
+      "enabled": true
+    },
+    "feat-retrieval-fts": {
+      "branch": "codex/feat-retrieval-fts",
+      "enabled": true
+    },
+    "feat-a2ui-contract": {
+      "branch": "codex/feat-a2ui-contract",
+      "enabled": true
+    },
+    "feat-engine-runs": {
+      "branch": "codex/feat-engine-runs",
+      "enabled": true
+    },
+    "feat-console": {
+      "branch": "codex/feat-console",
+      "enabled": false
     }
   },
   "planner": {

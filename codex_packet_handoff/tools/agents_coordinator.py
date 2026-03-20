@@ -44,7 +44,15 @@ STATE_FILE = COORD_ROOT / "state.json"
 LEASE_FILE = COORD_ROOT / "lease.json"
 ROUTER_CONFIG_FILE = REPO_ROOT / ".codex/packet_router/config.json"
 ROUTER_EXAMPLE_FILE = REPO_ROOT / ".codex/packet_router/example.json"
-LANES = ["feat-context-storage", "feat-webconsole-core", "feat-webconsole-ui", "feat-ux-flow", "feat-commands"]
+DEFAULT_LANES = [
+    "feat-context-storage",
+    "feat-ux-flow",
+    "feat-commands",
+    "feat-retrieval-fts",
+    "feat-a2ui-contract",
+    "feat-engine-runs",
+    "feat-console",
+]
 
 
 @dataclass
@@ -94,6 +102,22 @@ def load_json(path: Path, default: Dict) -> Dict:
 def save_json(path: Path, data: Dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2, sort_keys=True))
+
+
+def _all_configured_lanes() -> List[str]:
+    cfg = load_json(ROUTER_CONFIG_FILE, {})
+    lanes = cfg.get("lanes") if isinstance(cfg, dict) else {}
+    if isinstance(lanes, dict) and lanes:
+        return list(lanes.keys())
+    return list(DEFAULT_LANES)
+
+
+def _enabled_lanes() -> List[str]:
+    cfg = load_json(ROUTER_CONFIG_FILE, {})
+    lanes = cfg.get("lanes") if isinstance(cfg, dict) else {}
+    if isinstance(lanes, dict) and lanes:
+        return [name for name, lane_cfg in lanes.items() if bool((lane_cfg or {}).get("enabled", True))]
+    return list(DEFAULT_LANES)
 
 
 def acquire_lease(ttl_seconds: int) -> bool:
@@ -221,7 +245,7 @@ def _load_lane_branches() -> Dict[str, str]:
     cfg = load_json(ROUTER_CONFIG_FILE, {})
     lanes = (cfg.get("lanes") or {}) if isinstance(cfg, dict) else {}
     out: Dict[str, str] = {}
-    for lane in LANES:
+    for lane in _enabled_lanes():
         lane_cfg = lanes.get(lane, {}) if isinstance(lanes, dict) else {}
         branch = str((lane_cfg or {}).get("branch") or f"codex/{lane}")
         out[lane] = branch
@@ -229,7 +253,7 @@ def _load_lane_branches() -> Dict[str, str]:
 
 
 def _ensure_dirs() -> None:
-    for lane in LANES:
+    for lane in _all_configured_lanes():
         base = REPO_ROOT / ".codex/packets/lanes" / lane
         (base / "inbox/feature").mkdir(parents=True, exist_ok=True)
         (base / "inbox/reviewer").mkdir(parents=True, exist_ok=True)
@@ -466,7 +490,7 @@ def _lane_digest(lane: str) -> Dict[str, object]:
 
 def _has_lane_backlog() -> bool:
     """Return True when any lane has packets waiting for reviewer/fixer/integrator."""
-    for lane in LANES:
+    for lane in _enabled_lanes():
         d = _lane_digest(lane)
         if int(d.get("pending_feature", 0)) > 0:
             return True
@@ -488,7 +512,7 @@ def _compute_snapshot(branch_map: Dict[str, str]) -> str:
     }
     lanes_payload: Dict[str, object] = {}
     heads: Dict[str, str] = {}
-    for lane in LANES:
+    for lane in _enabled_lanes():
         lanes_payload[lane] = _lane_digest(lane)
         heads[lane] = _git_rev(branch_map.get(lane, f"codex/{lane}"))
     payload["lanes"] = lanes_payload

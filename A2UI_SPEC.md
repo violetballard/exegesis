@@ -17,7 +17,7 @@ Engine stores capabilities per session and adapts output to supported cards/bloc
 
 Reference clients:
 - CLI text fallback renderer
-- Local Web Console renderer (localhost-only reference client)
+- Future `Exegesis Console` renderer
 - Future Exegesis Studio renderer
 
 ## Card Model
@@ -83,7 +83,7 @@ Each action includes:
 
 Studio validates actions and payloads client-side. Engine re-validates and enforces `PolicyGate`.
 
-Web Console follows the same action model:
+Any future console client follows the same action model:
 - client-side action/payload validation
 - engine-side allowlist and schema re-validation
 - engine-authoritative policy enforcement
@@ -104,4 +104,4 @@ A2UI-compatible streaming clients should support event-driven updates for:
 - progress
 - completion (`done`)
 
-SSE is the baseline transport for the local web console.
+Streaming transport is client-specific. CLI remains the current baseline consumer.

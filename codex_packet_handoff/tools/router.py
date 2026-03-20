@@ -178,6 +178,11 @@ def load_cfg() -> RouterConfig:
     for key, value in dict(cfg.get("role_profiles") or {}).items():
         if value:
             role_profiles[str(key)] = str(value)
+    lane_cfg_map = {
+        str(name): dict(lane_cfg or {})
+        for name, lane_cfg in dict(cfg.get("lanes", {})).items()
+        if bool((lane_cfg or {}).get("enabled", True))
+    }
     return RouterConfig(
         model=str(cfg.get("model", "gpt-5.1-codex")),
         codex_cmd=str(cfg.get("codex_cmd", "codex")),
@@ -203,7 +208,7 @@ def load_cfg() -> RouterConfig:
         use_cli_integrator_fallback=bool(cfg.get("use_cli_integrator_fallback", True)),
         profiles=profiles,
         role_profiles=role_profiles,
-        lanes=dict(cfg.get("lanes", {})),
+        lanes=lane_cfg_map,
     )
 
 def ensure_lane_dirs(lane: str) -> Path:

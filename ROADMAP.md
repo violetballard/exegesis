@@ -58,7 +58,7 @@ Scope:
 - Define and lock encryption-at-rest default behavior and key lifecycle policy
 - Define role-based auto-routing contract and power-user override policy
 - Define localhost-only gating for OpenAI-compatible override endpoints
-- Add provider-compatibility probe contract for OpenAI-compatible runtimes (`exegesis doctor` + admin re-probe)
+- Add provider-compatibility probe contract for OpenAI-compatible runtimes (`exegesis doctor`)
 - Lock shared Engine/Studio config schema (`exegesis.yml`) and precedence rules
 
 Exit criteria:
@@ -75,11 +75,10 @@ Exit criteria:
 Status: planned
 
 Scope:
-- Ingestion pipeline for context/vault documents (chunk + index metadata)
+- FTS-first ingestion/index path for context/vault documents
 - Retrieval orchestration in engine before drafting/diff generation
 - Source-attribution model for retrieved chunks
-- Add PageIndex-style within-document retrieval with encrypted index payloads, query cache, and audit trace
-- Add unified retrieval interface (`retrieve_auto`) with pluggable `fts|pageindex|embeddings` strategy contract
+- Defer PageIndex/embeddings until after the demo push
 
 Exit criteria:
 - Agent uses retrieved chunks by default for generation flows
@@ -94,24 +93,33 @@ Scope:
 - Define `A2UI` output contract for agent-produced presentation artifacts
 - Add agent-side card/section/action payload generation with deterministic schemas
 - Provide CLI rendering fallback for the same structured payloads
-- Ensure compatibility targets for multiple clients (including future Studio)
+- Keep the surface client-agnostic so `Exegesis Console` can consume it next
 - Add capabilities handshake and composable `GenericCard` primitives with safe unknown-card fallback
 - Enforce typed/allowlisted actions with engine-authoritative `PolicyGate`
-- Add deterministic terminal chat routing (Magistral default + Qwen escalation) with no UI model choice
-- Add OSS local web console reference client (`exegesis serve`) with localhost-only token auth, SSE transcript stream, and safe A2UI rendering
-- Add web-console admin config editor as canonical advanced-control surface (effective config view, validated edits, revision rollback)
-- Add Studio "Open Admin Console..." token-bridge flow so Studio stays model-picker-free
+- Defer dedicated web-console work
 
 Exit criteria:
 - A2UI schema/versioning is documented and stable
 - Core workflows can emit A2UI payloads and CLI fallback views
 - Output contracts are test-covered and backward-compatible by policy
-- Web console can execute MVP flow (vault -> corpus/context -> terminal -> drafts -> export/audit) against the same engine PolicyGate
-- Web console settings/config page supports safe advanced edits with audit trail and rollback
+- CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate
+- A2UI output is stable enough for the first `Exegesis Console` build
 
-### Current Thread Alignment (2026-03-04)
+## MVP Focus Through 2026-05-04
 
-- `codex/feat-webconsole-ui`: Adds Alt+R reconnect and Alt+A auto-retry shortcuts plus inline hints inside the SSE terminal so operators can recover streams without leaving the keyboard, tightening the Milestone 5 usability slice for the OSS web console.
+Current active implementation emphasis:
+- `feat-commands`
+- `feat-context-storage`
+- `feat-retrieval-fts`
+- `feat-a2ui-contract`
+- `feat-engine-runs`
+
+Defined but not active:
+- `feat-console`
+
+Deferred/paused for the current MVP push:
+- `feat-console`
+- `feat-ux-flow`
 
 ## Milestone 6: Studio Readiness Handoff (Planned)
 
@@ -122,7 +130,7 @@ Scope:
 - Define Engine-to-Studio boundary and repo split handoff package
 - Prepare integration docs for separate `Exegesis Studio` project bootstrapping
 - Add final-document preview/export contract (`export.preview`/`export.final`) with encrypted preview artifacts and TTL cleanup
-- Keep web console intentionally barebones while preserving API/A2UI parity for Studio handoff
+- Keep `Exegesis Console` thin and engine-driven while preserving A2UI parity for Studio handoff
 
 Exit criteria:
 - Engine contracts are ready for external client consumption

@@ -8,11 +8,10 @@ This file defines hard boundaries to keep the codebase understandable and refact
   - Owns user-facing rendering and display formatting.
   - Must not read/write storage directly.
 
-- `src/qual/webconsole/**`
-  - Owns localhost HTTP endpoints, auth/session middleware, and A2UI web rendering.
-  - Owns admin config views/edit flows for effective engine configuration.
-  - Must call engine/service interfaces only, never storage files directly.
-  - Must not bypass `PolicyGate` for typed actions.
+- `src/qual/console/**`
+  - Owns the future `Exegesis Console` operator surface.
+  - Will consume engine/A2UI contracts rather than introducing separate business logic.
+  - Is intentionally deferred until the engine and A2UI contracts are stable enough to drive it.
 
 - `src/qual/engine/**`
   - Owns orchestration of user flows and app state transitions.
@@ -40,7 +39,7 @@ This file defines hard boundaries to keep the codebase understandable and refact
 
 Allowed direction only:
 - `ui -> engine`
-- `webconsole -> engine`
+- `console -> engine`
 - `commands -> drafting|context|engine` (via public entrypoints)
 - `engine -> config|context|storage|metrics|drafting`
 - `context -> (no engine/ui imports)`
@@ -49,10 +48,10 @@ Allowed direction only:
 
 Disallowed examples:
 - `ui -> storage`
-- `webconsole -> storage`
+- `console -> storage`
 - `ui -> metrics/db`
 - `engine -> metrics/crypto internals`
-- `webconsole -> config files on disk`
+- `console -> config files on disk`
 - `commands -> storage`
 
 ## Integration Contracts
@@ -64,6 +63,7 @@ Disallowed examples:
   - commands: public command runner only
 - Model/provider routing must be centralized in engine policy modules, not scattered across commands/UI.
 - Provider capability probes must run through one engine probe service and persist auditable capability reports.
+- Retrieval is FTS-first for the current MVP. PageIndex/embeddings are deferred until after the May 4 demo push.
 - Role overrides (if enabled) must flow through a single validated endpoint profile resolver.
 - No feature lane should import private helper modules from another lane.
 

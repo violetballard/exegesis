@@ -167,8 +167,9 @@ Current lane posture:
 - `feat-commands`: restart from current main
 - `feat-context-storage`: restart from current main
 - `feat-ux-flow`: restart from current main
-- `feat-webconsole-core`: restart from current main, high-risk template
-- `feat-webconsole-ui`: restart from current main
+- `feat-retrieval-fts`: start from current main
+- `feat-a2ui-contract`: start from current main
+- `feat-engine-runs`: start from current main
 
 ## Managed Sessions
 

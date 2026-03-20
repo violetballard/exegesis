@@ -91,7 +91,10 @@ def scan_lane(lane_dir: Path, lane_cfg: Dict, planner_lane_state: Dict) -> LaneS
     branch = (lane_cfg or {}).get("branch")
     head_sha = _branch_head_sha(branch)
     last_submitted_sha = (planner_lane_state or {}).get("last_submitted_sha")
-    state, note = _derive_lane_state(pending, reviewer, approved, head_sha, last_submitted_sha)
+    if not bool((lane_cfg or {}).get("enabled", True)):
+        state, note = ("disabled", "lane disabled in router config")
+    else:
+        state, note = _derive_lane_state(pending, reviewer, approved, head_sha, last_submitted_sha)
     return LaneStatus(lane, pending, reviewer, approved, integ, branch, head_sha, last_submitted_sha, state, note)
 
 def main() -> None:
@@ -99,13 +102,17 @@ def main() -> None:
         print('No .codex/packets/lanes found. Run setup.py first.')
         return
 
-    lanes = sorted([p for p in ROOT.iterdir() if p.is_dir()], key=lambda p: p.name)
+    cfg = _load_json(CONFIG_FILE, {})
+    lane_cfg_map = (cfg.get("lanes") or {}) if isinstance(cfg, dict) else {}
+    configured_names = list(lane_cfg_map.keys()) if isinstance(lane_cfg_map, dict) and lane_cfg_map else []
+    if configured_names:
+        lanes = [ROOT / name for name in configured_names if (ROOT / name).exists()]
+    else:
+        lanes = sorted([p for p in ROOT.iterdir() if p.is_dir()], key=lambda p: p.name)
     if not lanes:
         print('No lanes found under .codex/packets/lanes.')
         return
 
-    cfg = _load_json(CONFIG_FILE, {})
-    lane_cfg_map = (cfg.get("lanes") or {}) if isinstance(cfg, dict) else {}
     inline_fixer = bool(cfg.get("inline_fixer", False)) if isinstance(cfg, dict) else False
     backlog_fixer = bool(cfg.get("kick_fixers_on_reviewer_backlog", True)) if isinstance(cfg, dict) else True
     max_packets_per_run = int(cfg.get("max_packets_per_run", 1)) if isinstance(cfg, dict) else 1

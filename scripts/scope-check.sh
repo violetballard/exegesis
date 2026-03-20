@@ -64,11 +64,6 @@ is_approved_shared_test() {
         tests/unit/test_context_storage_recovery.py) return 0 ;;
       esac
       ;;
-    codex/feat-webconsole*)
-      case "$f" in
-        tests/unit/test_webconsole_render_pages.py) return 0 ;;
-      esac
-      ;;
   esac
   return 1
 }
@@ -116,13 +111,6 @@ is_allowed() {
       case "$f" in
         src/qual/ui/*|src/qual/ui/*/*|src/qual/drafting/*|src/qual/drafting/*/*|src/qual/engine/*|src/qual/engine/*/*) return 0 ;;
         src/qual/app.py) shared_file_allowed && return 0 ;;
-      esac
-      return 1
-      ;;
-    codex/feat-webconsole*)
-      case "$f" in
-        src/qual/webconsole/*|src/qual/webconsole/*/*|src/qual/webconsole/*/*/*) return 0 ;;
-        WEB_CONSOLE_SPEC.md|PROVIDER_COMPAT_PROBE_SPEC.md) shared_file_allowed && return 0 ;;
       esac
       return 1
       ;;

@@ -1,4 +1,8 @@
-# PageIndex Retrieval Spec
+# PageIndex Retrieval Spec (Deferred)
+
+Status: deferred until after the current MVP / demo push.
+
+Current MVP retrieval is SQLite FTS-first with excerpt provenance. PageIndex is not part of the active near-term implementation plan.
 
 ## Purpose
 

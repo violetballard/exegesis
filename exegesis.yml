@@ -101,7 +101,7 @@ roles:
   vision: magistral-small   # power users can set another vision model ID later
 
 policy:
-  # Enforced by engine regardless of client (Studio/Web Console).
+  # Enforced by engine regardless of client surface.
   tool_calling:
     strict_json_only: true
     schema_validation: true

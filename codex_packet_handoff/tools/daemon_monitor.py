@@ -23,7 +23,15 @@ FEATURE_STATE = FEATURE_RUNNER_ROOT / "state.json"
 COORD_LEASE = Path(".codex/packet_coordinator/lease.json")
 LEASE_FRESH_SECONDS = 3600
 STALE_LOG_SECONDS = 1800
-LANES = ["feat-commands", "feat-context-storage", "feat-ux-flow", "feat-webconsole-core", "feat-webconsole-ui"]
+DEFAULT_LANES = [
+    "feat-commands",
+    "feat-context-storage",
+    "feat-ux-flow",
+    "feat-retrieval-fts",
+    "feat-a2ui-contract",
+    "feat-engine-runs",
+    "feat-console",
+]
 VERDICT_RE = re.compile(
     r"(?:\*\*Verdict\*\*|Verdict:)\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?",
     re.IGNORECASE,
@@ -40,6 +48,26 @@ def _load_json(path: Path, default: Any) -> Any:
         return json.loads(path.read_text())
     except Exception:
         return default
+
+
+def _lane_config_map() -> Dict[str, Dict[str, Any]]:
+    cfg = _load_json(ROUTER_CFG, {})
+    lanes = cfg.get("lanes") if isinstance(cfg, dict) else {}
+    if isinstance(lanes, dict) and lanes:
+        return {str(name): dict(lane_cfg or {}) for name, lane_cfg in lanes.items()}
+    return {lane: {"enabled": True} for lane in DEFAULT_LANES}
+
+
+def _configured_lanes() -> List[str]:
+    lane_map = _lane_config_map()
+    return list(lane_map.keys()) if lane_map else list(DEFAULT_LANES)
+
+
+def _enabled_lanes() -> List[str]:
+    lane_map = _lane_config_map()
+    return [lane for lane, lane_cfg in lane_map.items() if bool((lane_cfg or {}).get("enabled", True))]
+
+
 
 
 def _read_pid() -> int | None:
@@ -234,7 +262,7 @@ def _collect_lane_totals() -> Dict[str, int]:
     planner_state = _load_json(Path(".codex/packet_planner/state.json"), {})
     planner_lanes = (planner_state.get("lanes") or {}) if isinstance(planner_state, dict) else {}
     branch_map = _lane_branch_map()
-    for lane in LANES:
+    for lane in _enabled_lanes():
         lane_dir = PACKETS_ROOT / lane
         if not lane_dir.exists():
             continue
@@ -332,7 +360,7 @@ def _lane_branch_map() -> Dict[str, str]:
     cfg = _load_json(ROUTER_CFG, {})
     lanes = (cfg.get("lanes") or {}) if isinstance(cfg, dict) else {}
     out: Dict[str, str] = {}
-    for lane in LANES:
+    for lane in _enabled_lanes():
         lane_cfg = lanes.get(lane, {}) if isinstance(lanes, dict) else {}
         out[lane] = str((lane_cfg or {}).get("branch") or f"codex/{lane}")
     return out
@@ -399,7 +427,7 @@ def _integrator_history_summary() -> Dict[str, Any]:
     approved_now = 0
     integrated_archived = 0
     newest_integrator: Path | None = None
-    for lane in LANES:
+    for lane in _enabled_lanes():
         lane_dir = PACKETS_ROOT / lane
         approved_now += len(list((lane_dir / "outbox" / "integrator").glob("*.md")))
         integ = sorted((lane_dir / "archive").glob("INTEGRATOR__*.md"), key=lambda p: p.stat().st_mtime)
@@ -436,7 +464,7 @@ def _reviewer_live_summary() -> Dict[str, Any]:
     pending_items: List[tuple[str, Path]] = []
     latest_review: tuple[str, Path] | None = None
     invalid_count = 0
-    for lane in LANES:
+    for lane in _enabled_lanes():
         pf = _lane_latest_feature_pending(lane)
         if pf is not None:
             pending_items.append((lane, pf))
@@ -493,7 +521,7 @@ def _review_lane_status_row(lane: str, reviewer_map: Dict[str, str], cooldowns: 
 def _integrator_live_summary() -> Dict[str, Any]:
     approved_items: List[tuple[str, Path]] = []
     latest_integrator: tuple[str, Path] | None = None
-    for lane in LANES:
+    for lane in _enabled_lanes():
         out_dir = PACKETS_ROOT / lane / "outbox" / "integrator"
         for f in out_dir.glob("*.md"):
             approved_items.append((lane, f))
@@ -832,7 +860,7 @@ def main() -> None:
     reviewer_map = router_state.get("reviewer_thread_ids") or {}
     if isinstance(reviewer_map, dict) and reviewer_map:
         print(f"reviewer_thread_count={len(reviewer_map)}")
-        for lane in LANES:
+        for lane in _configured_lanes():
             print(f"reviewer_thread_{lane}={reviewer_map.get(lane, '-')}")
     else:
         print(f"reviewer_thread_id={router_state.get('reviewer_thread_id', '-')}")
@@ -849,7 +877,7 @@ def main() -> None:
     feature_threads = _feature_thread_state()
     print("MANUAL FEATURE SESSIONS")
     print(f"running_count={len(manual_sessions)}")
-    print(f"managed_thread_count={sum(1 for lane in LANES if isinstance(feature_threads.get(lane), dict) and feature_threads.get(lane, {}).get('thread_id'))}")
+    print(f"managed_thread_count={sum(1 for lane in _configured_lanes() if isinstance(feature_threads.get(lane), dict) and feature_threads.get(lane, {}).get('thread_id'))}")
     if manual_sessions:
         for row in manual_sessions:
             print(f"{row['lane']:22} pid={row['pid']} age={row['etime']}")
@@ -881,12 +909,12 @@ def main() -> None:
     cds = _cooldowns()
     print("REVIEW LANE STATUS")
     reviewer_map_typed = reviewer_map if isinstance(reviewer_map, dict) else {}
-    for lane in LANES:
+    for lane in _configured_lanes():
         print(_review_lane_status_row(lane, reviewer_map_typed, cds))
     print()
 
     print("REVIEWER HISTORY")
-    for lane in LANES:
+    for lane in _configured_lanes():
         hs = _review_history_summary(lane)
         age = hs["age_s"]
         age_txt = "-" if age is None else f"{age}s"
@@ -923,7 +951,7 @@ def main() -> None:
 
     branch_map = _lane_branch_map()
     print("LANE LIVE SUMMARY")
-    for lane in LANES:
+    for lane in _configured_lanes():
         c = _lane_counts(PACKETS_ROOT / lane) if (PACKETS_ROOT / lane).exists() else {"pending": 0, "review": 0, "approved": 0}
         logp = _latest_fixer_log(lane)
         feature_state = _feature_runner_state(lane, manual_session_map)
@@ -953,7 +981,7 @@ def main() -> None:
     print()
 
     print("LANE CONVERSATIONS")
-    for lane in LANES:
+    for lane in _configured_lanes():
         branch = branch_map.get(lane, f"codex/{lane}")
         head = _branch_head(branch)
         verdict = _lane_verdict_summary(lane)
