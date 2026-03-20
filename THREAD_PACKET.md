@@ -10,13 +10,13 @@
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`
 - Commands run with results:
-  - Re-review refresh on `2026-03-20` in this lane worktree
+  - Re-review validation rerun on `2026-03-20` in this lane worktree after applying reviewer-required fixes
   - `python -m unittest tests.unit.test_unified_retrieval` -> passed (`Ran 7 tests`, `OK`)
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
   - `./quality-test.sh` -> passed (`Ran 74 tests`, `OK`)
-  - `./typecheck-test.sh` -> passed
+  - `./typecheck-test.sh` -> passed (`python3 -m compileall -q src`)
   - `make ci` -> passed
 - Risks/blockers:
   - Cross-lane edit in `src/qual/engine/tools/excerpt_tools.py` is intentionally minimal and limited to the reviewer-required engine-facing excerpt fetch path.
