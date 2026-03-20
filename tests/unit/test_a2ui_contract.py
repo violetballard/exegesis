@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import unittest
 from dataclasses import dataclass
 
@@ -139,6 +140,27 @@ class A2UIContractTests(unittest.TestCase):
         filtered = studio_materialize_card(card, caps)
         self.assertEqual(len(filtered["actions"]), 1)
         self.assertEqual(filtered["actions"][0]["id"], "apply_patch")
+
+    def test_filtered_actions_preserve_input_order(self) -> None:
+        caps = _capabilities(actions_supported=("reject_patch", "copy_to_clipboard", "apply_patch"))
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
+            "actions": [
+                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p2"}},
+                {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "payload"}},
+                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p2"}},
+            ],
+        }
+
+        filtered = studio_materialize_card(card, caps)
+
+        self.assertEqual(
+            [action["id"] for action in filtered["actions"]],
+            ["reject_patch", "copy_to_clipboard", "apply_patch"],
+        )
 
     def test_action_payload_schema_rejects_extra_fields(self) -> None:
         caps = _capabilities(actions_supported=("apply_patch",))
@@ -307,10 +329,13 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("- Export (export_document)", text)
         self.assertNotIn("Broken", text)
 
-        unknown = build_unknown_card({"type": "FutureCard", "payload": 1})
+        raw_unknown = {"type": "FutureCard", "payload": {"body": "x" * 200}}
+        unknown = build_unknown_card(raw_unknown, max_payload_bytes=80)
+        self.assertTrue(unknown["blocks"][0]["code"].startswith("{"))
+        self.assertIn("[truncated to 80 bytes]", unknown["blocks"][0]["code"])
         self.assertEqual(
             unknown["actions"][0]["payload"]["text"],
-            '{"payload":1,"type":"FutureCard"}',
+            json.dumps(raw_unknown, sort_keys=True, separators=(",", ":"), ensure_ascii=True),
         )
         unknown_text = render_terminal_card(unknown)
         self.assertIn("[UnknownCard] Unsupported card type: FutureCard", unknown_text)

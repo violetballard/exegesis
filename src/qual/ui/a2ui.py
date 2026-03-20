@@ -169,7 +169,7 @@ def build_unknown_card(
             {
                 "id": "copy_to_clipboard",
                 "label": "Copy JSON",
-                "payload": {"text": _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes)},
+                "payload": {"text": _render_payload_preview(raw_card, max_payload_bytes=None)},
             }
         ],
     }
@@ -275,7 +275,6 @@ def _filter_card_actions(card: dict[str, Any], capabilities: A2UICapabilities) -
             continue
         seen.add(action_key)
         filtered.append(normalized)
-    filtered.sort(key=_canonical_json)
     out = dict(card)
     out["actions"] = filtered
     return out
