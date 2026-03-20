@@ -14,7 +14,7 @@
 ## Scope completed
 - Preserved the lane-owned `diff_preview` contract hardening work in `src/qual/commands/diff_preview.py`, including labeled output, JSON payloads, no-diff responses, diff statistics, and fingerprint gating via `QUAL_DIFF_INCLUDE_FINGERPRINT`.
 - Kept the reviewer-required shared regression coverage in `tests/unit/test_diff_preview.py` as the only shared-file exception for the expanded `diff_preview` contract.
-- Left lane policy enforcement unchanged so the shared-file exception is documented here rather than self-authorized in branch-local policy.
+- Left lane policy enforcement unchanged; no policy or routing file was edited in this branch.
 - Regenerated this handoff packet from the actual `codex/feat-commands` branch delta so the scope summary, ownership note, roadmap mapping, changed-file list, and command outcomes match the submitted branch.
 
 ## Kickoff budget/limits compliance
