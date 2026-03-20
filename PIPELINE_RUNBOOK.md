@@ -124,6 +124,7 @@ Behavior:
 - your interactive Codex CLI stays on local `gpt-oss-20b`
 - cloud worker launches use `gpt-5.4-mini`
 - integrator cloud launches use `gpt-5.4`
+- reviewer/router throughput is capped by `max_packets_per_run`; current default is `3`, so multiple reviewer lanes can advance per event cycle without loosening integrator policy
 - if quota text or rate-limit text appears, router flips to `local_fallback`
 
 ### Quota Exhausted
