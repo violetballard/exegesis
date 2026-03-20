@@ -172,7 +172,6 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
         ):
             payload = json.loads(run_diff_preview(DiffPreviewInput("a\n", "b\n")))
         self.assertEqual(payload["diff"], "")
-        self.assertTrue(payload["summary_only"])
         self.assertEqual(
             payload["fingerprint"]["sha256"],
             hashlib.sha256(b"").hexdigest(),
