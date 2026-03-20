@@ -3,7 +3,36 @@
     "feat-a2ui-contract": {},
     "feat-commands": {},
     "feat-console": {},
-    "feat-context-storage": {},
+    "feat-context-storage": {
+      "last_submitted_sha": "9190f1c1868a68272dd48b6c908ef97e0e0722ba",
+      "last_emitted_packet": "F__codex-feat-context-storage__9190f1c1868a68272dd48b6c908ef97e0e0722ba__20260320T200122Z.md",
+      "last_gate_results": [
+        [
+          "make scope-check",
+          0
+        ],
+        [
+          "./quality-format.sh --check",
+          0
+        ],
+        [
+          "./quality-lint.sh",
+          0
+        ],
+        [
+          "./quality-test.sh",
+          0
+        ],
+        [
+          "./typecheck-test.sh",
+          0
+        ],
+        [
+          "make ci",
+          0
+        ]
+      ]
+    },
     "feat-engine-runs": {},
     "feat-retrieval-fts": {},
     "feat-ux-flow": {}
