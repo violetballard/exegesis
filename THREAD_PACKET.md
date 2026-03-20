@@ -10,14 +10,14 @@
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`
 - Commands run with results:
-  - Re-review validation rerun on `2026-03-20` in this lane worktree after applying reviewer-required fixes
+  - Final re-review validation rerun on `2026-03-20` in this lane worktree after applying reviewer-required fixes
   - `python -m unittest tests.unit.test_unified_retrieval` -> passed (`Ran 7 tests`, `OK`)
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
   - `./quality-test.sh` -> passed (`Ran 74 tests`, `OK`)
-  - `./typecheck-test.sh` -> passed (`python3 -m compileall -q src`)
-  - `make ci` -> passed
+  - `./typecheck-test.sh` -> passed (`python3 -m compileall -q src`, exit `0`)
+  - `make ci` -> passed (includes scope-check, format, lint, typecheck, smoke, and unit test gates)
 - Risks/blockers:
   - Cross-lane edit in `src/qual/engine/tools/excerpt_tools.py` is intentionally minimal and limited to the reviewer-required engine-facing excerpt fetch path.
   - `pin_to_context_set()` remains `DocIndexService`-specific; this fix only broadens engine excerpt resolution for retrieval-backed IDs.
