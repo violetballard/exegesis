@@ -22,7 +22,8 @@ TEMPLATE = {
   "proposed_readme_patch": "",
   "shared_file_exception": False,
   "kickoff_budget_note": "",
-  "approved_exception_note": ""
+  "approved_exception_note": "",
+  "integrator_locked_edits": False
 }
 
 if __name__ == "__main__":
