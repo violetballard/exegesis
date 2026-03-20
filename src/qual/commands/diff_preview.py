@@ -345,11 +345,7 @@ def _truncate_diff(diff: str, max_chars: int) -> str:
     head_chars = max_chars // 2
     tail_chars = max_chars - head_chars
     omitted = len(diff) - (head_chars + tail_chars)
-    return (
-        f"{diff[:head_chars]}"
-        f"{_truncation_marker(omitted)}"
-        f"{diff[-tail_chars:]}"
-    )
+    return f"{diff[:head_chars]}{_truncation_marker(omitted)}{diff[-tail_chars:]}"
 
 
 def run_diff_preview(payload: DiffPreviewInput) -> str:
