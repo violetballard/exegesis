@@ -148,29 +148,7 @@ def apply_meta_defaults(meta: Json, missing: List[str]) -> Json:
 
 def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
     out = git(f"diff --name-only {base_ref}...HEAD", cwd=cwd)
-    files = [ln.strip() for ln in out.splitlines() if ln.strip()]
-    if files:
-        return files
-
-    # Re-emitted packets should still report the current branch's concrete work.
-    # If the base diff is empty for any reason, fall back to the files touched by
-    # commits that are unique to the lane branch.
-    commits = git(f"rev-list {base_ref}..HEAD", cwd=cwd)
-    commit_list = [ln.strip() for ln in commits.splitlines() if ln.strip()]
-    if not commit_list:
-        return []
-
-    seen: set[str] = set()
-    fallback: List[str] = []
-    for commit in reversed(commit_list):
-        names = git(f"show --format= --name-only {commit}", cwd=cwd)
-        for line in names.splitlines():
-            path = line.strip()
-            if not path or path in seen:
-                continue
-            seen.add(path)
-            fallback.append(path)
-    return fallback
+    return [ln.strip() for ln in out.splitlines() if ln.strip()]
 
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
