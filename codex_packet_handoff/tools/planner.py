@@ -30,6 +30,16 @@ LANE_OWNED_PATHS = {
 }
 
 Json = Dict[str, Any]
+STRICT_META_FIELDS = (
+    "tasks_completed",
+    "roadmap_items",
+    "vision_capabilities",
+)
+PLACEHOLDER_TOKENS = (
+    "pending reviewer/integrator confirmation",
+    "reviewer handback update",
+    "see lane commits for concrete changes",
+)
 
 def load_json(p: Path, default: Any) -> Any:
     try: return json.loads(p.read_text())
@@ -103,20 +113,33 @@ def read_lane_meta(lane: str) -> Json:
 def validate_meta(meta: Json) -> List[str]:
     missing=[]
     for k in ("tasks_completed","risk","roadmap_items","vision_capabilities","routing_provider_impact"):
-        if k not in meta: missing.append(k); continue
+        if k not in meta:
+            missing.append(k)
+            continue
         v=meta[k]
-        if isinstance(v,list) and len(v)==0: missing.append(k)
-        if isinstance(v,str) and not v.strip(): missing.append(k)
+        if isinstance(v,list):
+            vals = [str(item).strip() for item in v if str(item).strip()]
+            if not vals:
+                missing.append(k)
+                continue
+            if k in STRICT_META_FIELDS and any(
+                token in item.lower()
+                for item in vals
+                for token in PLACEHOLDER_TOKENS
+            ):
+                missing.append(k)
+                continue
+        if isinstance(v,str):
+            sval = v.strip()
+            if not sval:
+                missing.append(k)
+                continue
+            if k in STRICT_META_FIELDS and any(token in sval.lower() for token in PLACEHOLDER_TOKENS):
+                missing.append(k)
     return missing
 
 def apply_meta_defaults(meta: Json, missing: List[str]) -> Json:
     out = dict(meta or {})
-    if "tasks_completed" in missing:
-        out["tasks_completed"] = ["(auto) reviewer handback update; see lane commits for concrete changes"]
-    if "roadmap_items" in missing:
-        out["roadmap_items"] = ["(auto) roadmap mapping pending reviewer/integrator confirmation"]
-    if "vision_capabilities" in missing:
-        out["vision_capabilities"] = ["(auto) capability mapping pending reviewer/integrator confirmation"]
     if "risk" in missing:
         out["risk"] = "MEDIUM"
     if "routing_provider_impact" in missing:
@@ -245,6 +268,13 @@ def main()->None:
         meta=read_lane_meta(lane)
         miss=validate_meta(meta)
         if miss:
+            blocking = [field for field in miss if field in STRICT_META_FIELDS]
+            if blocking:
+                print(
+                    f"[planner] {lane}: lane_meta missing required handoff fields: {blocking}; "
+                    "skipping packet emission until lane metadata is corrected"
+                )
+                continue
             print(f"[planner] {lane}: lane_meta missing: {miss} (using auto defaults)")
             meta = apply_meta_defaults(meta, miss)
         try:
