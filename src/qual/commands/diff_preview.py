@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import re
 from dataclasses import dataclass
@@ -21,6 +22,10 @@ IGNORE_CASE_ENV = "QUAL_DIFF_IGNORE_CASE"
 IGNORE_EDGE_BLANK_LINES_ENV = "QUAL_DIFF_IGNORE_EDGE_BLANK_LINES"
 IGNORE_ALL_BLANK_LINES_ENV = "QUAL_DIFF_IGNORE_ALL_BLANK_LINES"
 TRUNCATION_MARKER_ENV = "QUAL_DIFF_TRUNCATION_MARKER"
+ORIGINAL_LABEL_ENV = "QUAL_DIFF_ORIGINAL_LABEL"
+PROPOSED_LABEL_ENV = "QUAL_DIFF_PROPOSED_LABEL"
+OUTPUT_FORMAT_ENV = "QUAL_DIFF_OUTPUT_FORMAT"
+MAX_FILE_LABEL_CHARS = 120
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
 
@@ -97,6 +102,31 @@ def _suppress_file_headers(diff: str) -> str:
     return diff
 
 
+def _resolve_file_label(env_name: str, default: str) -> str:
+    raw = os.getenv(env_name)
+    if raw is None:
+        return default
+    label = _strip_ansi(raw)
+    label = re.sub(r"[\x00-\x1f\x7f]+", " ", label)
+    label = " ".join(label.split())
+    label = re.sub(r"^(?:\+\+\+|---)\s*", "", label)
+    label = label[:MAX_FILE_LABEL_CHARS].rstrip()
+    if not label:
+        return default
+    return label
+
+
+def _apply_file_labels(diff: str) -> str:
+    lines = diff.splitlines(keepends=True)
+    if len(lines) < 2 or not lines[0].startswith("--- ") or not lines[1].startswith("+++ "):
+        return diff
+    original_label = _resolve_file_label(ORIGINAL_LABEL_ENV, "original")
+    proposed_label = _resolve_file_label(PROPOSED_LABEL_ENV, "proposed")
+    lines[0] = f"--- {original_label}\n"
+    lines[1] = f"+++ {proposed_label}\n"
+    return "".join(lines)
+
+
 def _max_diff_output_chars() -> int:
     raw = os.getenv(MAX_DIFF_OUTPUT_CHARS_ENV)
     if raw is None:
@@ -110,7 +140,7 @@ def _max_diff_output_chars() -> int:
     return parsed
 
 
-def _summarize_diff(diff: str) -> str:
+def _diff_stats(diff: str) -> dict[str, int]:
     added = 0
     removed = 0
     hunks = 0
@@ -125,12 +155,115 @@ def _summarize_diff(diff: str) -> str:
             continue
         if line.startswith("-"):
             removed += 1
-    summary = f"Diff summary: +{added} -{removed} (hunks: {hunks})"
+    return {
+        "added": added,
+        "removed": removed,
+        "hunks": hunks,
+        "changed": added + removed,
+        "net": added - removed,
+    }
+
+
+def _summarize_diff(diff: str) -> str:
+    stats = _diff_stats(diff)
+    summary = f"Diff summary: +{stats['added']} -{stats['removed']} (hunks: {stats['hunks']})"
     if _env_enabled(INCLUDE_SUMMARY_DETAILS_ENV):
-        changed = added + removed
-        net = added - removed
-        summary = f"{summary} [changed: {changed}, net: {net:+d}]"
+        summary = f"{summary} [changed: {stats['changed']}, net: {stats['net']:+d}]"
     return summary
+
+
+def _resolve_output_format() -> str:
+    raw = os.getenv(OUTPUT_FORMAT_ENV)
+    if raw is None:
+        return "text"
+    value = raw.strip().lower()
+    if value == "json":
+        return "json"
+    return "text"
+
+
+def _json_result(payload: dict[str, object]) -> str:
+    return json.dumps(payload, sort_keys=True)
+
+
+def _no_diff_result(message: str) -> str:
+    if _resolve_output_format() == "json":
+        return _json_result(
+            {
+                "diff": "",
+                "message": message,
+                "status": "no_diff",
+                "summary": None,
+                "summary_only": False,
+                "truncated": False,
+            }
+        )
+    return message
+
+
+def _text_or_json_result(
+    *,
+    summary_source: str,
+    output: str,
+    max_chars: int,
+    suppress_file_headers: bool,
+    ignore_trailing_whitespace: bool,
+    summary_only: bool,
+    include_summary: bool,
+    include_options_banner: bool,
+    truncated: bool,
+    labels_applied: bool,
+    original_label: str,
+    proposed_label: str,
+) -> str:
+    banner = ""
+    summary = _summarize_diff(summary_source)
+    if include_options_banner:
+        banner = (
+            _options_banner(
+                ignore_trailing_whitespace=ignore_trailing_whitespace,
+                suppress_file_headers=suppress_file_headers,
+                max_chars=max_chars,
+            )
+            + "\n\n"
+        )
+    if _resolve_output_format() == "json":
+        return _json_result(
+            {
+                "diff": "" if summary_only else output,
+                "labels": {
+                    "applied": labels_applied,
+                    "original": original_label,
+                    "proposed": proposed_label,
+                },
+                "options": {
+                    "canonicalize_inline_whitespace": _env_enabled(CANONICALIZE_INLINE_WHITESPACE_ENV),
+                    "ignore_all_blank_lines": _env_enabled(IGNORE_ALL_BLANK_LINES_ENV),
+                    "ignore_case": _env_enabled(IGNORE_CASE_ENV),
+                    "ignore_edge_blank_lines": _env_enabled(IGNORE_EDGE_BLANK_LINES_ENV),
+                    "ignore_trailing_whitespace": ignore_trailing_whitespace,
+                    "include_options_banner": include_options_banner,
+                    "include_summary": include_summary,
+                    "max_output_chars": max_chars,
+                    "strip_ansi": _env_enabled(STRIP_ANSI_ENV),
+                    "suppress_file_headers": suppress_file_headers,
+                    "truncation_strategy": _truncation_strategy(),
+                },
+                "status": "ok",
+                "summary": {
+                    "details_enabled": _env_enabled(INCLUDE_SUMMARY_DETAILS_ENV),
+                    "stats": _diff_stats(summary_source),
+                    "text": summary,
+                },
+                "summary_only": summary_only,
+                "truncated": truncated,
+            }
+        )
+    if summary_only:
+        return f"{banner}{summary}"
+    if include_summary:
+        return f"{banner}{output}\n\n{summary}"
+    return f"{banner}{output}"
 
 
 def _options_banner(*, ignore_trailing_whitespace: bool, suppress_file_headers: bool, max_chars: int) -> str:
@@ -187,6 +320,8 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
     ignore_trailing_whitespace = _env_enabled(IGNORE_TRAILING_WHITESPACE_ENV)
     suppress_file_headers = _env_enabled(SUPPRESS_FILE_HEADERS_ENV)
     include_options_banner = _env_enabled(INCLUDE_OPTIONS_BANNER_ENV)
+    summary_only = _env_enabled(SUMMARY_ONLY_ENV)
+    include_summary = _env_enabled(INCLUDE_SUMMARY_ENV)
 
     if _env_enabled(STRIP_ANSI_ENV):
         original = _strip_ansi(original)
@@ -208,36 +343,39 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
         proposed = _normalize_trailing_whitespace(proposed)
 
     if not original and not proposed:
-        return "No diff: both inputs are empty."
+        return _no_diff_result("No diff: both inputs are empty.")
 
     if original == proposed:
-        return "No diff: inputs are identical after normalization."
+        return _no_diff_result("No diff: inputs are identical after normalization.")
 
     drafting = DraftingService()
     diff = drafting.propose_diff(original, proposed)
     summary_source = diff
+    original_label = _resolve_file_label(ORIGINAL_LABEL_ENV, "original")
+    proposed_label = _resolve_file_label(PROPOSED_LABEL_ENV, "proposed")
+    diff = _apply_file_labels(diff)
     if suppress_file_headers:
         diff = _suppress_file_headers(diff)
     if not diff:
-        return "No diff: inputs are identical."
+        return _no_diff_result("No diff: inputs are identical.")
     max_chars = _max_diff_output_chars()
-    banner = ""
-    if include_options_banner:
-        banner = (
-            _options_banner(
-                ignore_trailing_whitespace=ignore_trailing_whitespace,
-                suppress_file_headers=suppress_file_headers,
-                max_chars=max_chars,
-            )
-            + "\n\n"
-        )
-    if _env_enabled(SUMMARY_ONLY_ENV):
-        return f"{banner}{_summarize_diff(summary_source)}"
-
     output = diff
+    truncated = False
     if len(diff) > max_chars:
         output = _truncate_diff(diff, max_chars)
+        truncated = True
 
-    if _env_enabled(INCLUDE_SUMMARY_ENV):
-        return f"{banner}{output}\n\n{_summarize_diff(summary_source)}"
-    return f"{banner}{output}"
+    return _text_or_json_result(
+        summary_source=summary_source,
+        output=output,
+        max_chars=max_chars,
+        suppress_file_headers=suppress_file_headers,
+        ignore_trailing_whitespace=ignore_trailing_whitespace,
+        summary_only=summary_only,
+        include_summary=include_summary,
+        include_options_banner=include_options_banner,
+        truncated=truncated,
+        labels_applied=not suppress_file_headers,
+        original_label=original_label,
+        proposed_label=proposed_label,
+    )
