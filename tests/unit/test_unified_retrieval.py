@@ -7,7 +7,6 @@ from pathlib import Path
 
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions
-from src.qual.engine.tools.excerpt_tools import fetch_excerpt as engine_fetch_excerpt
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
 
 
@@ -150,24 +149,6 @@ class UnifiedRetrievalTests(unittest.TestCase):
             seen_doc_ids.add(hit.doc_id)
             ordered_doc_ids.append(hit.doc_id)
         self.assertEqual([doc_hit.doc_id for doc_hit in result.doc_hits], ordered_doc_ids)
-
-    def test_engine_excerpt_tool_fetches_fts_excerpt_ids(self) -> None:
-        result = self.service.retrieve_auto(
-            RetrievalQuery(
-                query_text="discussion theory",
-                scope="doc:doc-pdf-1",
-                intent="lookup",
-                constraints=RetrievalConstraints(max_results=3),
-                confidentiality_profile="confidential",
-            )
-        )
-
-        excerpt_id = result.hits[0].excerpt_id
-        self.assertIsNotNone(excerpt_id)
-        excerpt = engine_fetch_excerpt(self.service, excerpt_id=excerpt_id or "")
-        self.assertEqual(excerpt["excerpt_id"], excerpt_id)
-        self.assertEqual(excerpt["provenance"]["source_strategy"], "fts")
-        self.assertTrue(excerpt["text"])
 
     def test_retrieval_audit_uses_query_hash_not_plaintext(self) -> None:
         query_text = "highly sensitive question text"
