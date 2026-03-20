@@ -25,14 +25,15 @@ class ContextBasketStore:
     def load(self) -> ContextBasket:
         primary_missing = not self._path.exists()
         payload = self._load_payload(self._path)
-        loaded_from_tmp = False
-        loaded_from_backup = False
+        recovered_source: str | None = None
         if payload is None:
             payload = self._load_payload(self._tmp_path())
-            loaded_from_tmp = payload is not None
+            if payload is not None:
+                recovered_source = "tmp"
         if payload is None:
             payload = self._load_payload(self._backup_path)
-            loaded_from_backup = payload is not None
+            if payload is not None:
+                recovered_source = "backup"
         if payload is None:
             return ContextBasket()
 
@@ -64,14 +65,11 @@ class ContextBasketStore:
         if basket.item_ids != prior:
             should_rewrite = True
 
-        recovered_from: str | None = None
-        # Only persist provenance when recovery promoted fallback state into a missing primary.
-        if primary_missing:
-            if loaded_from_tmp:
-                recovered_from = "tmp"
-            elif loaded_from_backup:
-                recovered_from = "backup"
-        if loaded_from_tmp or loaded_from_backup or should_rewrite:
+        recovered_from = self._recovery_marker(
+            primary_missing=primary_missing,
+            recovered_source=recovered_source,
+        )
+        if recovered_source is not None or should_rewrite:
             self.save(basket, recovered_from=recovered_from)
         return basket
 
@@ -223,6 +221,11 @@ class ContextBasketStore:
         except ValueError:
             return None
         return candidate
+
+    def _recovery_marker(self, *, primary_missing: bool, recovered_source: str | None) -> str | None:
+        if not primary_missing:
+            return None
+        return self._parse_recovered_from(recovered_source)
 
     def _unlink_if_exists(self, path: Path) -> None:
         try:
