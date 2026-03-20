@@ -78,8 +78,7 @@ class A2UISessionStore:
         self._by_session: dict[str, A2UICapabilities] = {}
 
     def register(self, session_id: str, capabilities: A2UICapabilities) -> None:
-        if capabilities.a2ui_version < 1:
-            raise ValueError("Unsupported a2ui version")
+        validate_capabilities(capabilities)
         self._by_session[session_id] = capabilities
 
     def get(self, session_id: str) -> A2UICapabilities:
@@ -105,11 +104,11 @@ def validate_capabilities(capabilities: A2UICapabilities) -> None:
 def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
     card_type = str(card.get("type", "")).strip()
     if card_type == GENERIC_CARD_TYPE:
-        validate_generic_card(card)
-        return card
+        validate_generic_card(card, strict_actions=False)
+        return _filter_card_actions(card, capabilities)
 
     if card_type in set(capabilities.cards_supported):
-        return card
+        return _filter_card_actions(card, capabilities)
 
     # Safe fallback for unsupported specialized cards.
     return {
@@ -136,9 +135,9 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
     card_type = str(card.get("type", "")).strip()
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card, strict_actions=False)
-        return _studio_filter_actions(card, capabilities)
+        return _filter_card_actions(card, capabilities)
     if card_type in set(capabilities.cards_supported):
-        return _studio_filter_actions(card, capabilities)
+        return _filter_card_actions(card, capabilities)
     return build_unknown_card(card)
 
 
@@ -232,33 +231,7 @@ def render_terminal_card(card: dict[str, Any]) -> str:
     card_type = str(card.get("type", "Card"))
     lines = [f"[{card_type}] {title}"]
     for block in card.get("blocks", []):
-        if not isinstance(block, dict):
-            continue
-        block_type = block.get("type")
-        if block_type == "MarkdownBlock":
-            lines.append(str(block.get("markdown", "")))
-        elif block_type == "AlertBlock":
-            lines.append(f"{block.get('severity', 'info').upper()}: {block.get('message', '')}")
-        elif block_type == "CodeBlock":
-            lines.append(str(block.get("code", "")))
-        elif block_type == "ProgressBlock":
-            lines.append(f"{block.get('title', 'progress')}: {block.get('status_text', '')}")
-        elif block_type == "KeyValueBlock":
-            items = block.get("items", [])
-            if isinstance(items, list):
-                for item in items:
-                    if isinstance(item, dict):
-                        lines.append(f"- {item.get('key', '')}: {item.get('value', '')}")
-        elif block_type == "ListBlock":
-            items = block.get("items", [])
-            if isinstance(items, list):
-                for item in items:
-                    if isinstance(item, str):
-                        lines.append(f"- {item}")
-                    elif isinstance(item, dict):
-                        lines.append(f"- {item.get('label', '')}")
-        elif block_type == "TableBlock":
-            lines.append("[table]")
+        lines.extend(_render_terminal_block(block))
     rendered_actions = _render_terminal_actions(card.get("actions"))
     if rendered_actions:
         lines.append("Actions:")
@@ -266,7 +239,7 @@ def render_terminal_card(card: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _studio_filter_actions(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
+def _filter_card_actions(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
     actions = card.get("actions")
     if not isinstance(actions, list):
         return card
@@ -323,3 +296,42 @@ def _render_terminal_actions(actions: Any) -> list[str]:
         action_id = str(action["id"]).strip()
         lines.append(f"- {label} ({action_id})")
     return lines
+
+
+def _render_terminal_block(block: Any) -> list[str]:
+    if not isinstance(block, dict):
+        return ["[unsupported block: malformed]"]
+    block_type = str(block.get("type", "")).strip()
+    if not block_type:
+        return ["[unsupported block: missing type]"]
+    if block_type == "MarkdownBlock":
+        return [str(block.get("markdown", ""))]
+    if block_type == "AlertBlock":
+        return [f"{block.get('severity', 'info').upper()}: {block.get('message', '')}"]
+    if block_type == "CodeBlock":
+        return [str(block.get("code", ""))]
+    if block_type == "ProgressBlock":
+        return [f"{block.get('title', 'progress')}: {block.get('status_text', '')}"]
+    if block_type == "KeyValueBlock":
+        items = block.get("items", [])
+        if not isinstance(items, list):
+            return ["[KeyValueBlock: invalid items]"]
+        return [
+            f"- {item.get('key', '')}: {item.get('value', '')}"
+            for item in items
+            if isinstance(item, dict)
+        ] or ["[KeyValueBlock: empty]"]
+    if block_type == "ListBlock":
+        items = block.get("items", [])
+        if not isinstance(items, list):
+            return ["[ListBlock: invalid items]"]
+        lines: list[str] = []
+        for item in items:
+            if isinstance(item, str):
+                lines.append(f"- {item}")
+            elif isinstance(item, dict):
+                lines.append(f"- {item.get('label', '')}")
+        return lines or ["[ListBlock: empty]"]
+    if block_type == "TableBlock":
+        return ["[table]"]
+    return [f"[unsupported block: {block_type}]"]

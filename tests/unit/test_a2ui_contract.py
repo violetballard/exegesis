@@ -67,12 +67,52 @@ class A2UIContractTests(unittest.TestCase):
         store.register("sess-1", caps)
         self.assertEqual(store.get("sess-1").client_name, "Exegesis Studio")
 
+    def test_session_store_rejects_invalid_capabilities(self) -> None:
+        store = A2UISessionStore()
+        with self.assertRaises(ValueError):
+            store.register(
+                "sess-2",
+                _capabilities(
+                    actions_supported=("apply_patch", "launch_missiles"),
+                ),
+            )
+
     def test_engine_falls_back_to_generic_for_unsupported_specialized_card(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
         payload = {"type": "ProposedEditCard", "title": "Patch"}
         card = engine_prepare_card(payload, caps)
         self.assertEqual(card["type"], "GenericCard")
         self.assertEqual(card["blocks"][0]["type"], "AlertBlock")
+
+    def test_engine_filters_invalid_actions_for_supported_cards(self) -> None:
+        caps = _capabilities(actions_supported=("apply_patch",))
+        specialized = engine_prepare_card(
+            {
+                "type": "ProposedEditCard",
+                "title": "Patch",
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "run_agent", "label": "Run", "payload": {"operation": "x"}},
+                    {"id": "apply_patch", "label": "Broken", "payload": {}},
+                ],
+            },
+            caps,
+        )
+        self.assertEqual(specialized["actions"], [{"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}}])
+
+        generic = engine_prepare_card(
+            {
+                "type": "GenericCard",
+                "title": "Patch",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p2"}},
+                    {"id": "run_agent", "label": "Run", "payload": {"operation": "x"}},
+                ],
+            },
+            caps,
+        )
+        self.assertEqual(generic["actions"], [{"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p2"}}])
 
     def test_studio_renders_unknown_card_for_unsupported_type(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
@@ -167,6 +207,25 @@ class A2UIContractTests(unittest.TestCase):
         unknown_text = render_terminal_card(unknown)
         self.assertIn("[UnknownCard] Unsupported card type: FutureCard", unknown_text)
         self.assertIn("- Copy JSON (copy_to_clipboard)", unknown_text)
+
+    def test_terminal_fallback_renders_unsupported_or_malformed_blocks(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Fallback",
+            "blocks": [
+                {"type": "ChartBlock", "series": [1, 2, 3]},
+                {"markdown": "missing type"},
+                "not-a-block",
+                {"type": "ListBlock", "items": "broken"},
+            ],
+            "actions": [],
+        }
+
+        text = render_terminal_card(card)
+        self.assertIn("[unsupported block: ChartBlock]", text)
+        self.assertIn("[unsupported block: missing type]", text)
+        self.assertIn("[unsupported block: malformed]", text)
+        self.assertIn("[ListBlock: invalid items]", text)
 
 
 if __name__ == "__main__":
