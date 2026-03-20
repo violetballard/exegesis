@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import json
 import os
 import unittest
 from contextlib import contextmanager
 
 from src.qual.commands.diff_preview import (
+    INCLUDE_FINGERPRINT_ENV,
     INCLUDE_SUMMARY_ENV,
     MAX_DIFF_OUTPUT_CHARS_ENV,
+    OUTPUT_FORMAT_ENV,
     SUMMARY_ONLY_ENV,
     SUPPRESS_FILE_HEADERS_ENV,
     DiffPreviewInput,
@@ -84,6 +87,22 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
             identical = run_diff_preview(DiffPreviewInput("same\n", "same\n"))
         self.assertEqual(both_empty, "No diff: both inputs are empty.")
         self.assertEqual(identical, "No diff: inputs are identical after normalization.")
+
+    def test_json_output_omits_fingerprint_when_flag_unset(self) -> None:
+        with _env(
+            **{
+                OUTPUT_FORMAT_ENV: "json",
+                INCLUDE_FINGERPRINT_ENV: None,
+                INCLUDE_SUMMARY_ENV: "1",
+            }
+        ):
+            output = run_diff_preview(DiffPreviewInput("a\nold\n", "a\nnew\n"))
+
+        payload = json.loads(output)
+        self.assertIsNone(payload["fingerprint"])
+        self.assertEqual(payload["status"], "ok")
+        self.assertEqual(payload["summary"]["text"], "Diff summary: +1 -1 (hunks: 1)")
+        self.assertIn("--- original", payload["diff"])
 
 
 if __name__ == "__main__":

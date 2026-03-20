@@ -238,8 +238,9 @@ def _text_or_json_result(
 ) -> str:
     banner = ""
     summary = _summarize_diff(summary_source)
+    include_fingerprint = _env_enabled(INCLUDE_FINGERPRINT_ENV)
     fingerprint_line = ""
-    if _env_enabled(INCLUDE_FINGERPRINT_ENV):
+    if include_fingerprint:
         fingerprint_line = f"Diff fingerprint: sha256:{fingerprint['sha256']}"
     if include_options_banner:
         banner = (
@@ -254,7 +255,7 @@ def _text_or_json_result(
         return _json_result(
             {
                 "diff": "" if summary_only else output,
-                "fingerprint": fingerprint,
+                "fingerprint": fingerprint if include_fingerprint else None,
                 "labels": {
                     "applied": labels_applied,
                     "original": original_label,
