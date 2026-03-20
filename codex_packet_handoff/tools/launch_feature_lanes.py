@@ -29,6 +29,7 @@ DEFAULT_LANES = [
     "feat-console",
 ]
 STATE_LOCK = threading.Lock()
+STALE_THREAD_RE = "session not found for thread_id"
 
 
 def load_json(path: Path, default: Any) -> Any:
@@ -345,10 +346,48 @@ def _launch_one_lane(
         finally:
             client.close()
 
+    def _is_stale_thread_error(exc: Exception) -> bool:
+        return STALE_THREAD_RE in str(exc).lower()
+
     try:
         effective_cfg = dict(launch_cfg)
         if thread_id:
-            thread_id, content, action = _attempt(effective_cfg, existing_thread_id=str(thread_id))
+            try:
+                thread_id, content, action = _attempt(effective_cfg, existing_thread_id=str(thread_id))
+            except Exception as exc:
+                if not _is_stale_thread_error(exc):
+                    raise
+                stale_id = str(thread_id)
+                thread_id = None
+                _write_log(
+                    log_path,
+                    {
+                        "lane": lane,
+                        "thread_id": stale_id,
+                        "mode": effective_cfg["mode"],
+                        "profile": effective_cfg["profile_name"],
+                        "workdir": workdir,
+                        "action": "stale_thread_retry",
+                        "launched_at": _ts(),
+                        "status": "launching",
+                    },
+                    f"Managed feature resume failed with stale thread id; relaunching fresh: {exc}",
+                )
+                _set_lane_state(
+                    feature_state,
+                    lane,
+                    status="launching",
+                    mode=str(effective_cfg["mode"]),
+                    profile=str(effective_cfg["profile_name"]),
+                    workdir=workdir,
+                    prompt_path=prompt_path,
+                    log_path=log_path,
+                    thread_id="",
+                    error="",
+                    action="stale_thread_retry",
+                    pid=0,
+                )
+                thread_id, content, action = _attempt(effective_cfg, existing_thread_id=None)
         else:
             thread_id, content, action = _attempt(effective_cfg, existing_thread_id=None)
         header = {
