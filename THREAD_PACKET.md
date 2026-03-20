@@ -31,12 +31,12 @@
 
 ## Commands run and outcomes
 - Validation date: `2026-03-20`
-- `make scope-check`: pending
-- `./quality-format.sh --check`: pending
-- `./quality-lint.sh`: pending
-- `./quality-test.sh`: pending
-- `./typecheck-test.sh`: pending
-- `make ci`: pending
+- `make scope-check`: PASS
+- `./quality-format.sh --check`: PASS
+- `./quality-lint.sh`: PASS
+- `./quality-test.sh`: PASS
+- `./typecheck-test.sh`: PASS
+- `make ci`: PASS
 
 ## Risks / blockers
 - Risk: `LOW`
