@@ -23,6 +23,12 @@
     "worker_cloud": {
       "codex_cmd": "codex",
       "codex_args": [],
+      "model": "gpt-5.4-mini",
+      "model_args": []
+    },
+    "integrator_cloud": {
+      "codex_cmd": "codex",
+      "codex_args": [],
       "model": "gpt-5.4",
       "model_args": []
     },
@@ -44,7 +50,7 @@
     "feature_local": "worker_local",
     "reviewer_cloud": "worker_cloud",
     "reviewer_local": "worker_local",
-    "integrator_cloud": "worker_cloud",
+    "integrator_cloud": "integrator_cloud",
     "integrator_local": "worker_local",
     "fixer_cloud": "worker_cloud",
     "fixer_local": "worker_local"

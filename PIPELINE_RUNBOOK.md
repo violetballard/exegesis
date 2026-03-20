@@ -82,12 +82,14 @@ Cloud-first launch note:
 
 Recommended role split:
 - `orchestrator`: smaller local profile for supervision
-- `worker_cloud`: cloud coding/review/integration model
+- `worker_cloud`: cloud coding/review/fixer model
+- `integrator_cloud`: cloud integration model
 - `worker_local`: larger local coding/review/integration model for quota windows
 
 Current project config uses:
 - `profiles.orchestrator` -> `codex --oss --local-provider lmstudio -m gpt-oss-20b`
-- `profiles.worker_cloud` -> `codex exec -m gpt-5.4`
+- `profiles.worker_cloud` -> `codex exec -m gpt-5.4-mini`
+- `profiles.integrator_cloud` -> `codex exec -m gpt-5.4`
 - `profiles.worker_local` -> `codex --oss --local-provider lmstudio -m gpt-oss-120b`
 
 Note:
@@ -120,7 +122,8 @@ Use this when cloud quota is available and you want workers to use cloud by defa
 
 Behavior:
 - your interactive Codex CLI stays on local `gpt-oss-20b`
-- cloud worker launches use `gpt-5.4`
+- cloud worker launches use `gpt-5.4-mini`
+- integrator cloud launches use `gpt-5.4`
 - if quota text or rate-limit text appears, router flips to `local_fallback`
 
 ### Quota Exhausted
