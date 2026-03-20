@@ -8,8 +8,10 @@ class ContextBasket:
     item_ids: list[str] = field(default_factory=list)
 
     @staticmethod
-    def _normalize_item_id(item_id: str) -> str:
-        return str(item_id).strip()
+    def _normalize_item_id(item_id: object) -> str:
+        if not isinstance(item_id, str):
+            return ""
+        return item_id.strip()
 
     def add(self, item_id: str) -> None:
         normalized = self._normalize_item_id(item_id)

@@ -43,8 +43,8 @@ class ContextBasketStore:
             basket = ContextBasket(item_ids=parsed_items)
             should_rewrite = True
         elif isinstance(payload, dict):
-            schema_version = payload.get("schema_version", 0)
-            if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
+            schema_version = self._parse_schema_version(payload)
+            if schema_version is None:
                 return ContextBasket()
             parsed_items = self._parse_item_ids(payload.get("item_ids", []))
             if parsed_items is None:
@@ -158,8 +158,7 @@ class ContextBasketStore:
             return self._parse_item_ids(payload) is not None
         if not isinstance(payload, dict):
             return False
-        schema_version = payload.get("schema_version", 0)
-        if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
+        if self._parse_schema_version(payload) is None:
             return False
         if self._parse_item_ids(payload.get("item_ids", [])) is None:
             return False
@@ -174,10 +173,20 @@ class ContextBasketStore:
             return None
         parsed: list[str] = []
         for raw in value:
-            if isinstance(raw, (dict, list)):
+            if not isinstance(raw, str):
                 return None
-            parsed.append(str(raw))
+            parsed.append(raw)
         return parsed
+
+    def _parse_schema_version(self, payload: dict[str, object]) -> int | None:
+        if "schema_version" not in payload:
+            return 0
+        value = payload.get("schema_version")
+        if isinstance(value, bool) or not isinstance(value, int):
+            return None
+        if value < 1 or value > _SCHEMA_VERSION:
+            return None
+        return value
 
     def _parse_recovered_from(self, value: object) -> str | None:
         if not isinstance(value, str):

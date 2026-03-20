@@ -170,8 +170,7 @@ class VaultService:
     def _is_supported_payload(self, payload: object) -> bool:
         if not isinstance(payload, dict):
             return False
-        schema_version = payload.get("schema_version", 0)
-        if isinstance(schema_version, int) and schema_version > _SCHEMA_VERSION:
+        if self._parse_schema_version(payload) is None:
             return False
         if "is_locked" in payload and self._parse_is_locked(payload.get("is_locked")) is None:
             return False
@@ -204,6 +203,16 @@ class VaultService:
                 return False
             return None
         return None
+
+    def _parse_schema_version(self, payload: dict[str, object]) -> int | None:
+        if "schema_version" not in payload:
+            return 0
+        value = payload.get("schema_version")
+        if isinstance(value, bool) or not isinstance(value, int):
+            return None
+        if value < 1 or value > _SCHEMA_VERSION:
+            return None
+        return value
 
     def _parse_project_name(self, value: object) -> str | None:
         if not isinstance(value, str):
