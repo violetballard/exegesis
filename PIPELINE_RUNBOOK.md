@@ -72,7 +72,7 @@ Preferred setup uses named launcher profiles:
   - `fixer_cloud` / `fixer_local`
 
 Recommended local fallback:
-- prefer a local CLI profile via `fallback_codex_args`, for example `["-p", "gpt-oss-120b-lms"]`
+- prefer explicit LM Studio args via `fallback_codex_args`, for example `["--oss", "--local-provider", "lmstudio"]` plus `fallback_model="gpt-oss-120b"`
 - this is the most reliable option when your machine already has a working local provider profile in `~/.codex/config.toml`
 - if you prefer `--oss`, leave `fallback_model` empty unless you know your CLI/provider expects a specific local model id
 
@@ -82,9 +82,9 @@ Recommended role split:
 - `worker_local`: larger local coding/review/integration model for quota windows
 
 Current project config uses:
-- `profiles.orchestrator` -> `codex -p gpt-oss-20b-lms`
+- `profiles.orchestrator` -> `codex --oss --local-provider lmstudio -m gpt-oss-20b`
 - `profiles.worker_cloud` -> `codex exec -m gpt-5.4`
-- `profiles.worker_local` -> `codex -p gpt-oss-120b-lms`
+- `profiles.worker_local` -> `codex --oss --local-provider lmstudio -m gpt-oss-120b`
 
 Note:
 - the coordinator itself is deterministic Python, not an LLM thread
@@ -103,7 +103,7 @@ Useful commands:
 ## CLI Runbook
 
 Launch your operator session from Codex CLI on the local orchestrator profile:
-- `codex -p gpt-oss-20b-lms -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+- `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
 
 ### Normal Day
 
