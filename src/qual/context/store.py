@@ -23,6 +23,7 @@ class ContextBasketStore:
         return self._path.with_suffix(".tmp")
 
     def load(self) -> ContextBasket:
+        primary_missing = not self._path.exists()
         payload = self._load_payload(self._path)
         loaded_from_tmp = False
         loaded_from_backup = False
@@ -64,9 +65,9 @@ class ContextBasketStore:
             should_rewrite = True
 
         recovered_from: str | None = None
-        if loaded_from_tmp:
+        if loaded_from_tmp and primary_missing:
             recovered_from = "tmp"
-        elif loaded_from_backup:
+        elif loaded_from_backup and primary_missing:
             recovered_from = "backup"
         if loaded_from_tmp or loaded_from_backup or should_rewrite:
             self.save(basket, recovered_from=recovered_from)

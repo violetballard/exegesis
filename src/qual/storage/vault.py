@@ -76,16 +76,17 @@ class VaultService:
 
     def _read_state(self, root_dir: Path) -> tuple[dict[str, object], str | None]:
         state_path = self._state_path(root_dir)
+        primary_missing = not state_path.exists()
         payload = self._load_payload(state_path)
         recovered_from: str | None = None
         if payload is None:
             payload = self._load_payload(self._tmp_state_path(root_dir))
             if payload is not None:
-                recovered_from = "tmp"
+                recovered_from = "tmp" if primary_missing else None
         if payload is None:
             payload = self._load_payload(self._backup_state_path(root_dir))
             if payload is not None:
-                recovered_from = "backup"
+                recovered_from = "backup" if primary_missing else None
         if payload is None:
             return {}, None
         if not isinstance(payload, dict):
@@ -174,8 +175,6 @@ class VaultService:
         if self._parse_schema_version(payload) is None:
             return False
         if "is_locked" in payload and self._parse_is_locked(payload.get("is_locked")) is None:
-            return False
-        if "project_name" in payload and self._parse_project_name(payload.get("project_name")) is None:
             return False
         return True
 

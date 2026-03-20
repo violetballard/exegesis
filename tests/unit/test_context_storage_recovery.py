@@ -158,6 +158,30 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("item_ids"), ["first", "second"])
         self.assertNotIn("recovered_from", payload)
 
+    def test_backup_with_invalid_metadata_is_salvaged_and_promoted(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text("{bad", encoding="utf-8")
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "not-a-timestamp",
+                    "recovered_from": "manual",
+                    "item_ids": ["first", "second"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first", "second"])
+        self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["first", "second"])
+        self.assertNotIn("recovered_from", payload)
+        self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
+
     def test_backup_with_invalid_metadata_is_salvaged_and_rewritten(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._backup_path.write_text(
@@ -228,6 +252,21 @@ class VaultRecoveryTests(unittest.TestCase):
         reopened = self.svc.create_or_open(self.root, "p3")
 
         self.assertTrue(reopened.is_locked)
+
+    def test_invalid_project_name_metadata_forces_locked_state_and_rewrites(self) -> None:
+        state = self.svc.create_or_open(self.root, "p3-invalid")
+        state_path = state.root_dir / ".vault_state.json"
+        state_path.write_text(
+            json.dumps({"schema_version": 1, "project_name": "../bad", "is_locked": False}),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p3-invalid")
+
+        self.assertTrue(reopened.is_locked)
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p3-invalid")
+        self.assertTrue(payload.get("is_locked"))
 
     def test_invalid_metadata_is_salvaged_and_rewritten(self) -> None:
         state = self.svc.create_or_open(self.root, "p4")
@@ -302,6 +341,34 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("project_name"), "p6")
         self.assertFalse(payload.get("is_locked"))
         self.assertNotIn("recovered_from", payload)
+
+    def test_backup_with_invalid_metadata_is_salvaged_and_promoted(self) -> None:
+        state = self.svc.create_or_open(self.root, "p7")
+        state_path = state.root_dir / ".vault_state.json"
+        backup_path = state.root_dir / ".vault_state.bak.json"
+        state_path.write_text("{bad", encoding="utf-8")
+        backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "p7",
+                    "is_locked": False,
+                    "updated_at": "not-a-timestamp",
+                    "recovered_from": "manual",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p7")
+
+        self.assertFalse(reopened.is_locked)
+        self.assertFalse((state.root_dir / ".vault_state.corrupt.json").exists())
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p7")
+        self.assertFalse(payload.get("is_locked"))
+        self.assertNotIn("recovered_from", payload)
+        self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
 
     def test_backup_with_invalid_metadata_is_salvaged_and_rewritten(self) -> None:
         state = self.svc.create_or_open(self.root, "p7")
