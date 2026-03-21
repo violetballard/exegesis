@@ -1,9 +1,10 @@
 {
-  "scope_goal": "Reissue the context-storage handoff so it matches the reviewed source-only recovery implementation exactly.",
+  "scope_goal": "Re-submit the actual context-storage recovery implementation with empty-seed regression coverage.",
   "tasks_completed": [
-    "Restored empty-recovery handling in src/qual/context/store.py.",
-    "Restored empty-recovery handling in src/qual/context/set_store.py.",
-    "Reissued the handoff metadata so the file list stays commit-accurate."
+    "Canonicalized empty recovery handling in src/qual/context/store.py and src/qual/context/set_store.py.",
+    "Added empty-seed regression coverage in tests/unit/test_context_storage_recovery_lane.py.",
+    "Kept canonical empty recovery payloads free of recovered_from provenance.",
+    "Re-ran the required local gates on the code-bearing feature commit and confirmed they pass."
   ],
   "risk": "LOW",
   "roadmap_items": [
@@ -20,6 +21,6 @@
     ".codex/lane_meta/feat-context-storage.json",
     "THREAD_PACKET.md"
   ],
-  "kickoff_budget_note": "Handoff metadata aligned to the reviewed source-only context-storage recovery diff and its actual file list.",
+  "kickoff_budget_note": "Handoff metadata aligned to the reviewed artifact 155dd1a0f4bce0f27c184b52740ce7f1be048e53 and its actual file list.",
   "approved_exception_note": ""
 }
