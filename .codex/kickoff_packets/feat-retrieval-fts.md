@@ -9,7 +9,7 @@
 
 ## Scope completed
 
-Delivered behavior: FTS-first retrieval is active for `vault`, `collection:`, and `doc:` scopes. `src/qual/retrieval/service.py` forwards those queries to the owned retrieval engine, `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, and `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred. `section:` remains rejected until fallback support exists. This handoff excludes `src/qual/engine/tools/retrieval_tools.py`.
+Delivered behavior: FTS-first retrieval is active for `vault`, `collection:`, and `doc:` scopes. `src/qual/retrieval/service.py` forwards those queries to the owned retrieval engine, `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, and `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred. `section:` remains rejected until fallback support exists. The handoff stays within the lane-owned retrieval paths.
 
 ### Prior commit references (reference only)
 - `src/qual/engine/retrieval/__init__.py`
@@ -50,3 +50,4 @@ Delivered behavior: FTS-first retrieval is active for `vault`, `collection:`, an
 - Preserve commit accuracy between the packet, lane metadata, and handoff artifacts.
 - Do not imply unrelated retrieval tooling scope or cross-lane `section:` targeting.
 - Ownership note: this handoff stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`.
+- Approved exception note: `src/qual/engine/tools/retrieval_tools.py` is a dead helper deletion with no remaining references, and the reviewed handoff surface still stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`.
