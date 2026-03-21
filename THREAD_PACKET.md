@@ -4,13 +4,13 @@
 - Scope goal: Canonicalize recovered and persisted context-set records so load/rewrite behavior produces normalized records, deduplicated item IDs, and stable recovery output.
 - Scope completed: Implemented canonical context-set record handling in `src/qual/context/set_store.py` by tightening rewrite detection for parsed records, preserving normalized record ordering, and ensuring malformed or metadata-laden records are rewritten into the canonical on-disk form. Added focused recovery coverage for extra metadata, trimmed identifiers, and canonical rewrite behavior in `tests/unit/test_context_storage_recovery.py`.
 - Tasks completed:
-  1. Updated `ContextSetStore` rewrite detection so record-by-record comparisons trigger rewrites when stored context-set entries differ from their canonical parsed form.
+  1. Updated `ContextSetStore` rewrite detection so parsed records are compared against their canonical form before deciding whether a rewrite is needed.
   2. Kept context-set normalization focused on record canonicalization, including trimmed IDs, deduplicated `item_ids`, and rejection of malformed entries.
   3. Added recovery test coverage for canonical rewrite cases with extra metadata and normalized payloads.
   4. Rewrote the handoff packet to match the actual branch head and the reviewed commit scope.
 - Files changed:
   - `src/qual/context/set_store.py`
-  - `tests/unit/test_context_storage_recovery.py`
+  - `tests/unit/test_context_storage_recovery.py` (reviewed test coverage outside lane-owned paths; requires shared-file approval)
 - Commands run with results:
   - `git show --stat --name-only --oneline 5b33b8a30607023f8d12f76e7198d6c885da594d --` -> confirmed the reviewed commit touches `src/qual/context/set_store.py` and `tests/unit/test_context_storage_recovery.py`
   - `git show --unified=80 5b33b8a30607023f8d12f76e7198d6c885da594d -- src/qual/context/set_store.py tests/unit/test_context_storage_recovery.py` -> confirmed the exact canonicalization and recovery-test changes
@@ -31,7 +31,7 @@
   - first green tests: `./quality-test.sh` passed (`Ran 137 tests`, `OK`)
   - ready for handoff: all required local gates passed with the lane-approved scope override
 - Risks/blockers:
-  - `make scope-check` requires `SCOPE_ALLOW_SHARED=1` on this lane because `tests/unit/test_context_storage_recovery.py` is treated as an approved shared test.
+  - `make scope-check` and `make ci` require `SCOPE_ALLOW_SHARED=1` on this lane because `tests/unit/test_context_storage_recovery.py` is treated as an approved shared test.
 - Roadmap item(s) affected:
   - `Milestone 2: Test Hardening` -> add focused unit coverage for core behaviors and persistence edge cases
   - `Milestone 3: Product Readiness` -> tighten user-facing output contracts by keeping persisted context state canonical and reviewable
