@@ -1,10 +1,9 @@
 {
-  "scope_goal": "Restore a commit-accurate handoff for the context-storage review artifact and keep the reviewed diff limited to the actual metadata and comment updates.",
+  "scope_goal": "Narrow the reviewed context-storage handoff to the actual empty-recovery normalization work in the two context-store implementations.",
   "tasks_completed": [
-    "Aligned the handoff to the exact files changed by the metadata-and-comment update diff.",
-    "Removed unsupported test-file claims from the packet.",
-    "Rewrote the scope text so it matches the reviewed artifact only.",
-    "Re-ran the required lane gates for the reviewed artifact and recorded the results here."
+    "Canonicalized empty recovery state handling in src/qual/context/store.py.",
+    "Canonicalized empty recovery state handling in src/qual/context/set_store.py.",
+    "Kept canonical empty payloads provenance-free by not inventing recovered_from."
   ],
   "risk": "LOW",
   "roadmap_items": [
@@ -21,6 +20,6 @@
     ".codex/lane_meta/feat-context-storage.json",
     "THREAD_PACKET.md"
   ],
-  "kickoff_budget_note": "Handoff metadata aligned to the reviewed artifact and its actual file list.",
+  "kickoff_budget_note": "Handoff metadata aligned to the reviewed feature commit 155dd1a0f4bce0f27c184b52740ce7f1be048e53 and its actual file list.",
   "approved_exception_note": ""
 }
