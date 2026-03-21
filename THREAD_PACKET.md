@@ -1,8 +1,8 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Scope goal: Align `THREAD_PACKET.md` with the reviewed docs-only commit so the handoff accurately describes the real diff.
-- Scope completed: Rewrote `THREAD_PACKET.md` to describe the actual `THREAD_PACKET.md` alignment change and removed stale storage and persistence-recovery claims.
+- Scope goal: Correct the handoff packet so it matches the actual docs-only `THREAD_PACKET.md` commit on this branch.
+- Scope completed: Rewrote `THREAD_PACKET.md` to describe the packet correction itself, with no storage or persistence-recovery claims.
 - Tasks completed:
   1. Reframed the packet around the actual docs-only `THREAD_PACKET.md` change.
   2. Restricted `Files changed` to the real diff: `THREAD_PACKET.md`.
@@ -31,8 +31,8 @@
 - Risks/blockers:
   - None.
 - Roadmap item(s) affected:
-  - `Milestone 0: Foundation` for ownership and integration runbook alignment.
+  - None; this is a handoff packet correction only.
 - Vision capability affected:
-  - `Operator-first control surface` because the packet keeps the review and integration workflow explicit for the CLI-first engine process.
+  - None; no product capability changed.
 - Routing/provider impact note:
   - None.
