@@ -349,7 +349,7 @@ def canonical_command(name: str) -> str:
         return name.strip()
     spec = _COMMAND_LOOKUP_BY_ALIAS.get(normalized)
     if spec is None:
-        return name.strip()
+        return normalized
     return spec.name
 
 
