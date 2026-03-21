@@ -18,7 +18,7 @@
     "src/qual/retrieval/service.py",
     "tests/unit/test_unified_retrieval.py"
   ],
-  "scope_completed": "The retrieval FTS implementation now returns deterministic excerpt IDs, serves retrieval-backed fetch_excerpt() output, preserves doc_hits relevance order for document ranking, and has focused unit coverage for provenance and service behavior. This cleanup only updates handoff metadata so the handoff points at that implementation cleanly, and it keeps PageIndex/embeddings deferred rather than required MVP paths.",
+  "scope_completed": "The related retrieval FTS implementation returns deterministic excerpt IDs, serves retrieval-backed fetch_excerpt() output, preserves doc_hits relevance order for document ranking, and has focused unit coverage for provenance and service behavior. This cleanup only updates handoff metadata so the handoff points at that implementation cleanly, and it keeps PageIndex/embeddings deferred rather than required MVP paths.",
   "scope_goal": "Apply the reviewer-required packet fixes for the retrieval FTS handoff metadata by clearly labeling the docs-only cleanup commit while naming the reviewed FTS implementation files separately.",
   "shared_file_exception": false,
   "tasks_completed": [

@@ -3,9 +3,10 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Reviewed cleanup commit: `300bd4c7053b5fd221d6c87a1be98bf5b5f9bc74`
 - Related implementation commit: `2c16551a6b3576eb9031d55a98525c21e04be255`
+- Reviewed commit type: Metadata-only cleanup of retrieval handoff packet.
 - Scope goal: Apply the reviewer-required packet fixes for the retrieval FTS handoff metadata by clearly labeling the docs-only cleanup commit while naming the related FTS implementation files separately.
-- Scope completed: The retrieval FTS implementation now returns deterministic excerpt IDs, serves retrieval-backed `fetch_excerpt()` output, preserves `doc_hits` relevance order for document ranking, and has focused unit coverage for provenance and service behavior. This cleanup only updates packet metadata so the handoff points at that implementation cleanly, and it keeps PageIndex/embeddings deferred rather than required MVP paths.
-- Related implementation files:
+- Scope completed: The related retrieval FTS implementation returns deterministic excerpt IDs, serves retrieval-backed `fetch_excerpt()` output, preserves `doc_hits` relevance order for document ranking, and has focused unit coverage for provenance and service behavior. This cleanup only updates packet metadata so the handoff points at that implementation cleanly, and it keeps PageIndex/embeddings deferred rather than required MVP paths.
+- Related implementation files (reference only):
   - `src/qual/engine/retrieval/__init__.py`
   - `src/qual/engine/retrieval/payload.py`
   - `src/qual/retrieval/service.py`
