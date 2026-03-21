@@ -1,8 +1,8 @@
 {
-  "scope_goal": "Describe the actual code-bearing feature commit, keep the docs-only packet correction explicit, and make the handoff commit-accurate.",
+  "scope_goal": "Describe the actual code-bearing feature commit, keep the docs-only packet reconciliation explicit, and make the handoff commit-accurate.",
   "tasks_completed": [
     "Repointed the handoff packet to the actual code-bearing feature commit 075a61ad1c92b85fb4df2fae54bbb9163f53aa12.",
-    "Made the docs-only packet correction commit explicit so it is not mistaken for reviewed implementation work.",
+    "Updated the packet to name the real branch head so it is not mistaken for reviewed implementation work.",
     "Re-ran the required local gates on the code-bearing feature commit and confirmed they pass.",
     "Removed stale shared-test allowance metadata because the reviewed commit no longer includes a shared file.",
     "Separated the feature code files from the reporting artifacts so the handoff stays unambiguous.",
