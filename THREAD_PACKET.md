@@ -29,8 +29,9 @@
   - These gate results were rerun against the implementation-retargeted packet state.
 - Reviewer fix closure:
   - `#1` retargeted the packet to the retrieval implementation commit that contains the source and test changes.
-  - `#2` removed any non-owned tooling paths from the feature delta and kept the file set inside lane-owned retrieval paths.
-  - `#3` replaced the cleanup framing with a concrete scope-completed summary that matches the final retrieval code state.
+  - `#2` added the concrete scope-completed summary required by INTEGRATION.md.
+  - `#3` kept PageIndex and embeddings deferred so retrieval remains FTS-first for the MVP.
+  - `#4` reran the required gates against the implementation-retargeted packet state and captured the passing results.
 - Checkpoint status:
   - plan complete
   - first green tests: `./quality-test.sh` passed
