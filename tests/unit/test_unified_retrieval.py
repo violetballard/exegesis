@@ -14,12 +14,12 @@ from src.qual.engine.retrieval import build_retrieval_citation_bundle_from_resul
 from src.qual.engine.retrieval import build_retrieval_context_bundle_from_result as engine_build_retrieval_context_bundle_from_result
 from src.qual.engine.retrieval import build_retrieval_downstream_payload_from_result as engine_build_retrieval_downstream_payload_from_result
 from src.qual.engine.retrieval import build_retrieval_source_bundle_from_result as engine_build_retrieval_source_bundle_from_result
-from src.qual.engine.tools.retrieval_tools import retrieve_fts as engine_retrieve_fts
-from src.qual.engine.tools.retrieval_tools import retrieve_fts_payload as engine_retrieve_fts_payload
 from src.qual.engine.retrieval.payload import build_retrieval_citation_bundle_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
-from src.qual.engine.tools.retrieval_tools import retrieve_auto as engine_retrieve_auto
-from src.qual.engine.tools.retrieval_tools import retrieve_auto_payload as engine_retrieve_auto_payload
+from src.qual.retrieval import retrieve_auto as engine_retrieve_auto
+from src.qual.retrieval import retrieve_auto_payload as engine_retrieve_auto_payload
+from src.qual.retrieval import retrieve_fts as engine_retrieve_fts
+from src.qual.retrieval import retrieve_fts_payload as engine_retrieve_fts_payload
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
 
 
