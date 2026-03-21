@@ -1,9 +1,9 @@
 {
-  "scope_goal": "Describe the actual branch-head recovery fix and remove the stale docs-only alignment story.",
+  "scope_goal": "Describe the actual feature commit and document the approved non-owned recovery test exception with scope-check policy context.",
   "tasks_completed": [
-    "Tightened src/qual/context/set_store.py so empty context_sets payloads with malformed optional metadata are quarantined.",
-    "Added the focused quarantine regression test in tests/unit/test_context_storage_recovery.py.",
-    "Re-ran the required local gates on the current branch head and confirmed they pass."
+    "Repointed the handoff packet to the actual feature commit ca626d4b61e3a6bdb163d471c515bdd144cc3283.",
+    "Documented the approved non-owned recovery test exception for tests/unit/test_context_storage_recovery.py with scope-check policy context.",
+    "Re-ran the required local gates on the corrected branch head and confirmed they pass."
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
@@ -17,6 +17,6 @@
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
   "shared_file_exception": true,
-  "kickoff_budget_note": "Handoff metadata aligned to the reviewed feature commit; approved non-owned test coverage requires SCOPE_ALLOW_SHARED=1.",
-  "approved_exception_note": "Ownership note: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned change is the approved recovery coverage file `tests/unit/test_context_storage_recovery.py`, which is permitted by `scripts/scope-check.sh` when `SCOPE_ALLOW_SHARED=1`. No shared-by-approval source files or integrator-locked files were edited."
+  "kickoff_budget_note": "Handoff metadata aligned to the reviewed feature commit; approved non-owned test coverage requires SCOPE_ALLOW_SHARED=1 and is recorded in commit 5b30935c.",
+  "approved_exception_note": "Ownership note: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned change is `tests/unit/test_context_storage_recovery.py`; `scripts/scope-check.sh` allows this exact file for `codex/feat-context-storage*` when `SCOPE_ALLOW_SHARED=1`, and the approved exception was recorded in `docs(context-storage): record approved test-file exception` (`5b30935c`). No shared-by-approval source files or integrator-locked files were edited."
 }

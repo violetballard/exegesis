@@ -1,9 +1,9 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Current commit: `70e00e5e46026b92a2c8e750e86425f6ddf9cb66`
+- Current commit: `ca626d4b61e3a6bdb163d471c515bdd144cc3283`
 - Reviewed feature commit: `ca626d4b61e3a6bdb163d471c515bdd144cc3283`
-- Scope goal: Anchor the handoff packet to the actual context-storage feature commit and record the approved non-owned test-file exception clearly.
+- Scope goal: Anchor the handoff packet to the actual context-storage feature commit and record the approved non-owned test-file exception with policy context.
 - Scope completed: Tightened context-set recovery so an empty `context_sets` payload with malformed optional metadata remains quarantined instead of being treated as a clean supported state.
 - Scope completed: Added regression coverage for empty `context_sets` payloads with invalid metadata so quarantine behavior is preserved and rewritten state stays auditable.
 - Scope completed: Removed the stale vault-recovery and item-id-salvage claims that were not present in the reviewed feature commit.
@@ -46,5 +46,5 @@
 - Scope-check / ownership note:
   - Approved shared test-file exception only: `YES`
   - Shared-by-approval source edits: `NO`
-  - Ownership detail: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned change is the approved recovery coverage file `tests/unit/test_context_storage_recovery.py`, which is permitted by the lane policy in `scripts/scope-check.sh` when `SCOPE_ALLOW_SHARED=1`. No shared-by-approval source files were edited.
+  - Ownership detail: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned change is `tests/unit/test_context_storage_recovery.py`; it is covered by the lane policy in `scripts/scope-check.sh`, which allows this exact file for `codex/feat-context-storage*` when `SCOPE_ALLOW_SHARED=1`. The approved exception was recorded in `docs(context-storage): record approved test-file exception` (`5b30935c`). No shared-by-approval source files were edited.
   - Integrator-locked edits: `NO`
