@@ -130,13 +130,21 @@ def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
 
 def select_packet_files(lane: str, meta: Json, diff_files: List[str]) -> List[str]:
     related = [str(f).strip() for f in (meta.get("related_implementation_files") or []) if str(f).strip()]
-    if related:
+    patterns = LANE_OWNED_PATHS.get(lane, [])
+
+    def _is_owned(path: str) -> bool:
+        return bool(patterns) and any(fnmatch(path, pattern) for pattern in patterns)
+
+    owned_related = [f for f in related if _is_owned(f)]
+    if owned_related:
+        return owned_related
+
+    if related and not patterns:
         return related
 
-    patterns = LANE_OWNED_PATHS.get(lane, [])
     if not patterns:
         return diff_files
-    return [f for f in diff_files if any(fnmatch(f, pattern) for pattern in patterns)]
+    return [f for f in diff_files if _is_owned(f)]
 
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
