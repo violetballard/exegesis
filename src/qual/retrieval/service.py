@@ -7,7 +7,7 @@ import sqlite3
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any, Iterator, Literal
@@ -131,12 +131,20 @@ class RetrievalService:
         started = self._now_fn()
         query_fingerprint = self._query_fingerprint(query)
         fts_shortlist_limit = self._fts_shortlist_limit(query.constraints.max_results)
+        date_range = query.constraints.date_range
         self._active_query_fingerprint = query_fingerprint
         try:
             fts_shortlist = self._candidate_docs_from_fts(query, limit=fts_shortlist_limit) if not self._is_doc_scoped(query.scope) else ()
+            if date_range is not None:
+                fts_shortlist = self._filter_candidate_doc_ids_by_date_range(fts_shortlist, date_range)
             candidate_doc_ids = self._candidate_docs_from_scope(query.scope, fallback=fts_shortlist)
+            if date_range is not None:
+                candidate_doc_ids = self._filter_candidate_doc_ids_by_date_range(candidate_doc_ids, date_range)
             effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
-            fts_run = self._fts.retrieve(query, candidate_doc_ids=candidate_doc_ids)
+            if candidate_doc_ids or date_range is None:
+                fts_run = self._fts.retrieve(query, candidate_doc_ids=candidate_doc_ids)
+            else:
+                fts_run = StrategyRun(strategy_id=self._fts.id, hits=[], elapsed_ms=0, cache_used=False)
             merged_hits = self._merge_hits([fts_run], max_results=query.constraints.max_results)
             doc_hits = self._build_doc_hits(query, merged_hits, query_fingerprint=query_fingerprint)
             retrieval_manifest = self._build_retrieval_manifest(doc_hits, merged_hits)
@@ -152,6 +160,7 @@ class RetrievalService:
                 "query_scope": query.scope,
                 "query_intent": query.intent,
                 "doc_scope_id": self._doc_scope_id(query.scope),
+                "date_range": list(date_range) if date_range is not None else None,
                 "fts_shortlist_limit": fts_shortlist_limit,
                 "candidate_doc_count": effective_candidate_doc_count,
                 "fts_shortlist_count": len(fts_shortlist),
@@ -173,6 +182,7 @@ class RetrievalService:
                     "query_fingerprint": query_fingerprint,
                     "retrieval_mode": diagnostics["retrieval_mode"],
                     "query_scope": query.scope,
+                    "date_range": diagnostics["date_range"],
                     "strategies_used": diagnostics["strategies_used"],
                     "elapsed_ms_by_strategy": diagnostics["elapsed_ms_by_strategy"],
                     "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
@@ -254,6 +264,7 @@ class RetrievalService:
                 query_intent=query.intent,
                 query_fingerprint=self._active_query_fingerprint,
                 candidate_doc_count=effective_candidate_doc_count,
+                query_date_range=query.constraints.date_range,
             )
             hits.append(
                 RetrievalHit(
@@ -378,6 +389,7 @@ class RetrievalService:
                         "retrieval_mode": "fts_first",
                         "query_scope": query.scope,
                         "query_intent": query.intent,
+                        "query_date_range": list(query.constraints.date_range) if query.constraints.date_range is not None else None,
                     },
                 )
             )
@@ -458,10 +470,21 @@ class RetrievalService:
             return fallback
         return fallback
 
+    def _filter_candidate_doc_ids_by_date_range(
+        self,
+        candidate_doc_ids: tuple[str, ...],
+        date_range: tuple[str, str],
+    ) -> tuple[str, ...]:
+        if not candidate_doc_ids:
+            return ()
+        filtered: list[str] = []
+        for doc_id in candidate_doc_ids:
+            if self._doc_matches_date_range(doc_id, date_range):
+                filtered.append(doc_id)
+        return tuple(filtered)
+
     @staticmethod
     def _effective_candidate_doc_count(scope: str, candidate_doc_ids: tuple[str, ...]) -> int:
-        if scope.startswith("doc:"):
-            return 1
         return len(candidate_doc_ids)
 
     @staticmethod
@@ -473,6 +496,32 @@ class RetrievalService:
         if scope.startswith("doc:"):
             return scope.split(":", 1)[1]
         return None
+
+    def _doc_matches_date_range(self, doc_id: str, date_range: tuple[str, str]) -> bool:
+        meta = self._load_doc_meta().get(doc_id)
+        if meta is None:
+            return False
+        updated_at = meta.get("updated_at")
+        if not isinstance(updated_at, str) or not updated_at:
+            return False
+        updated_date = self._parse_date_value(updated_at)
+        if updated_date is None:
+            return False
+        start_date = self._parse_date_value(date_range[0])
+        end_date = self._parse_date_value(date_range[1])
+        if start_date is None or end_date is None:
+            return False
+        return start_date <= updated_date <= end_date
+
+    @staticmethod
+    def _parse_date_value(value: str) -> date | None:
+        try:
+            return datetime.fromisoformat(value).date()
+        except ValueError:
+            try:
+                return date.fromisoformat(value)
+            except ValueError:
+                return None
 
     def _is_long_structured_doc(self, doc_id: str) -> bool:
         meta = self._load_doc_meta().get(doc_id)
@@ -596,6 +645,7 @@ class RetrievalService:
         fts_rank: float | None = None,
         query_scope: str | None = None,
         query_intent: str | None = None,
+        query_date_range: tuple[str, str] | None = None,
         query_fingerprint: str | None = None,
         candidate_doc_count: int | None = None,
     ) -> dict[str, object]:
@@ -621,6 +671,8 @@ class RetrievalService:
             provenance["query_scope"] = query_scope
         if query_intent is not None:
             provenance["query_intent"] = query_intent
+        if query_date_range is not None:
+            provenance["query_date_range"] = list(query_date_range)
         if query_fingerprint is not None:
             provenance["query_fingerprint"] = query_fingerprint
         if candidate_doc_count is not None:
