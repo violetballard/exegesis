@@ -185,9 +185,7 @@ def build_retrieval_source_bundle_from_result(
 ) -> dict[str, object]:
     """Return the deterministic retrieval source bundle for downstream engine flows."""
     bundle_source = getattr(result, "source_bundle", None)
-    if callable(bundle_source) and not callable(getattr(result, "to_downstream_payload", None)) and not callable(
-        getattr(result, "as_dict", None)
-    ):
+    if callable(bundle_source):
         return copy.deepcopy(bundle_source())
     payload = build_retrieval_downstream_payload_from_result(result)
     source_bundle = payload.get("retrieval_source_bundle")
