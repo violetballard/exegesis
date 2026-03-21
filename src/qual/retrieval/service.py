@@ -1117,6 +1117,10 @@ class RetrievalService:
         normalized["text_hash"] = text_hash
         if "doc_id" not in normalized and isinstance(provenance.get("doc_id"), str):
             normalized["doc_id"] = provenance["doc_id"]
+        if "source_hash" not in normalized and isinstance(provenance.get("source_hash"), str):
+            normalized["source_hash"] = provenance["source_hash"]
+        if "doc_type" not in normalized and isinstance(provenance.get("doc_type"), str):
+            normalized["doc_type"] = provenance["doc_type"]
         canonical_span = RetrievalService._canonicalize_span(normalized.get("span"))
         if canonical_span is None and isinstance(normalized.get("span"), dict):
             canonical_span = dict(normalized["span"])
@@ -1131,7 +1135,7 @@ class RetrievalService:
             provenance_backend = provenance.get("retrieval_backend")
             if isinstance(provenance_backend, str) and provenance_backend:
                 retrieval_backend = provenance_backend
-            elif source_strategy == "fts":
+            else:
                 retrieval_backend = self._retrieval_policy.retrieval_backend
         if isinstance(retrieval_backend, str) and retrieval_backend:
             normalized["retrieval_backend"] = retrieval_backend
@@ -1140,7 +1144,7 @@ class RetrievalService:
             provenance_mode = provenance.get("retrieval_mode")
             if isinstance(provenance_mode, str) and provenance_mode:
                 retrieval_mode = provenance_mode
-            elif source_strategy == "fts":
+            else:
                 retrieval_mode = self._retrieval_policy.retrieval_mode
         if isinstance(retrieval_mode, str) and retrieval_mode:
             normalized["retrieval_mode"] = retrieval_mode
@@ -1149,6 +1153,8 @@ class RetrievalService:
             provenance_policy = provenance.get("retrieval_policy")
             if isinstance(provenance_policy, dict):
                 retrieval_policy = provenance_policy
+            else:
+                retrieval_policy = self._retrieval_policy.as_snapshot()
         if isinstance(retrieval_policy, dict):
             normalized["retrieval_policy"] = dict(retrieval_policy)
         excerpt_fingerprint = normalized.get("excerpt_fingerprint")

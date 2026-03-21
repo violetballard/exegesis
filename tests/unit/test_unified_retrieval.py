@@ -488,6 +488,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["doc_id"], "doc-pdf-1")
         self.assertIn("span", excerpt)
         self.assertIn("text_hash", excerpt)
+        self.assertEqual(excerpt["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(excerpt["retrieval_mode"], "fts_first")
+        self.assertEqual(excerpt["retrieval_policy"]["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(excerpt["retrieval_policy"]["retrieval_mode"], "fts_first")
         self.assertEqual(excerpt["provenance"]["source_strategy"], "pageindex")
         self.assertEqual(excerpt["provenance"]["doc_id"], "doc-pdf-1")
 
