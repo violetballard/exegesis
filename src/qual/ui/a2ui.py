@@ -572,6 +572,10 @@ def render_terminal_card(card: dict[str, Any]) -> str:
     subtitle = card.get("subtitle")
     if isinstance(subtitle, str) and subtitle.strip():
         lines.append(subtitle.strip())
+    elif card_type == UNKNOWN_CARD_TYPE:
+        lines.append(UNKNOWN_FALLBACK_SUBTITLE)
+    elif card_type == GENERIC_CARD_TYPE and _is_fallback_card_debug(card.get("debug")):
+        lines.append(GENERIC_FALLBACK_SUBTITLE)
     version = card.get("a2ui_version")
     if type(version) is int:
         lines.append(f"A2UI v{version}")

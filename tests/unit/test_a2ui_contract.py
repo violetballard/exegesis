@@ -10,11 +10,13 @@ from src.qual.ui.a2ui import (
     a2ui_contract_fingerprint,
     build_unknown_card,
     describe_a2ui_contract,
+    GENERIC_FALLBACK_SUBTITLE,
     engine_prepare_card,
     execute_action_with_policy_gate,
     normalize_action_ref,
     render_terminal_card,
     studio_materialize_card,
+    UNKNOWN_FALLBACK_SUBTITLE,
     validate_generic_card,
     validate_unknown_card,
     validate_capabilities,
@@ -1486,6 +1488,28 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertIn("[UnknownCard] Fallback", text)
         self.assertIn("Fallback: unknown card", text)
+
+    def test_terminal_renderer_synthesizes_canonical_fallback_subtitles(self) -> None:
+        generic = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Fallback view for FutureCard",
+                "debug": {"fallback_kind": "generic", "source_card_type": "FutureCard"},
+                "blocks": [],
+                "actions": [],
+            }
+        )
+        unknown = render_terminal_card(
+            {
+                "type": "UnknownCard",
+                "title": "Unsupported card type: FutureCard",
+                "blocks": [],
+                "actions": [],
+            }
+        )
+
+        self.assertIn(GENERIC_FALLBACK_SUBTITLE, generic)
+        self.assertIn(UNKNOWN_FALLBACK_SUBTITLE, unknown)
 
     def test_terminal_renderer_surfaces_missing_actions_for_unknown_fallbacks(self) -> None:
         unknown = build_unknown_card(
