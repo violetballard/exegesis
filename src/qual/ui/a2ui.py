@@ -105,10 +105,11 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
     card_type = str(card.get("type", "")).strip()
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card, strict_actions=False)
-        return _filter_card_actions(card, capabilities)
+        return _materialize_versioned_card(card, capabilities)
 
     if card_type in set(capabilities.cards_supported):
-        return _filter_card_actions(card, capabilities)
+        _validate_card_version(card)
+        return _materialize_versioned_card(card, capabilities)
 
     # Safe fallback for unsupported specialized cards.
     return {
@@ -137,9 +138,10 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
     card_type = str(card.get("type", "")).strip()
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card, strict_actions=False)
-        return _filter_card_actions(card, capabilities)
+        return _materialize_versioned_card(card, capabilities)
     if card_type in set(capabilities.cards_supported):
-        return _filter_card_actions(card, capabilities)
+        _validate_card_version(card)
+        return _materialize_versioned_card(card, capabilities)
     return build_unknown_card(card, max_payload_bytes=capabilities.max_payload_bytes)
 
 
@@ -205,6 +207,16 @@ def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) 
     if strict_actions:
         for action in actions:
             validate_action_ref(action)
+
+
+def _validate_card_version(card: dict[str, Any]) -> None:
+    version = card.get("a2ui_version")
+    if version is None:
+        return
+    if not isinstance(version, int):
+        raise ValueError("Card a2ui_version must be an int")
+    if version != A2UI_VERSION:
+        raise ValueError("Unsupported card a2ui_version")
 
 
 def validate_primitive_block(block: Any) -> None:
@@ -296,6 +308,12 @@ def _filter_card_actions(card: dict[str, Any], capabilities: A2UICapabilities) -
         filtered.append(normalized)
     out = dict(card)
     out["actions"] = filtered
+    return out
+
+
+def _materialize_versioned_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
+    out = _filter_card_actions(card, capabilities)
+    out["a2ui_version"] = A2UI_VERSION
     return out
 
 

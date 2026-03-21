@@ -124,6 +124,7 @@ class A2UIContractTests(unittest.TestCase):
             },
             caps,
         )
+        self.assertEqual(specialized["a2ui_version"], 1)
         self.assertEqual(specialized["actions"], [{"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}}])
 
         generic = engine_prepare_card(
@@ -138,7 +139,21 @@ class A2UIContractTests(unittest.TestCase):
             },
             caps,
         )
+        self.assertEqual(generic["a2ui_version"], 1)
         self.assertEqual(generic["actions"], [{"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p2"}}])
+
+    def test_engine_rejects_version_mismatched_supported_cards(self) -> None:
+        caps = _capabilities(cards_supported=("ProposedEditCard",))
+        with self.assertRaises(ValueError):
+            engine_prepare_card(
+                {
+                    "type": "ProposedEditCard",
+                    "a2ui_version": 2,
+                    "title": "Patch",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
+                },
+                caps,
+            )
 
     def test_studio_renders_unknown_card_for_unsupported_type(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
@@ -146,6 +161,7 @@ class A2UIContractTests(unittest.TestCase):
         card = studio_materialize_card(payload, caps)
         self.assertEqual(card["type"], "UnknownCard")
         self.assertIn("Unsupported card type", card["title"])
+        self.assertEqual(card["a2ui_version"], 1)
         self.assertEqual(card["actions"][0]["id"], "copy_to_clipboard")
 
     def test_unknown_or_invalid_actions_are_filtered_client_side(self) -> None:
