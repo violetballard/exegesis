@@ -109,12 +109,27 @@ class RetrievalHit:
             "node_path": copy.deepcopy(self.node_path),
             "provenance": copy.deepcopy(self.provenance),
         }
+        query_fingerprint = self.provenance.get("query_fingerprint")
+        if isinstance(query_fingerprint, str) and query_fingerprint:
+            payload["query_fingerprint"] = query_fingerprint
+        query_scope = self.provenance.get("query_scope")
+        if isinstance(query_scope, str) and query_scope:
+            payload["query_scope"] = query_scope
+        query_intent = self.provenance.get("query_intent")
+        if isinstance(query_intent, str) and query_intent:
+            payload["query_intent"] = query_intent
         source_hash = self.provenance.get("source_hash")
         if isinstance(source_hash, str) and source_hash:
             payload["source_hash"] = source_hash
         doc_type = self.provenance.get("doc_type")
         if isinstance(doc_type, str) and doc_type:
             payload["doc_type"] = doc_type
+        retrieval_backend = self.provenance.get("retrieval_backend")
+        if isinstance(retrieval_backend, str) and retrieval_backend:
+            payload["retrieval_backend"] = retrieval_backend
+        retrieval_mode = self.provenance.get("retrieval_mode")
+        if isinstance(retrieval_mode, str) and retrieval_mode:
+            payload["retrieval_mode"] = retrieval_mode
         doc_fingerprint = self.provenance.get("doc_fingerprint")
         if isinstance(doc_fingerprint, str) and doc_fingerprint:
             payload["doc_fingerprint"] = doc_fingerprint
@@ -170,6 +185,21 @@ class RetrievalDocHit:
             "excerpt_count": self.excerpt_count,
             "provenance": copy.deepcopy(self.provenance),
         }
+        query_fingerprint = self.provenance.get("query_fingerprint")
+        if isinstance(query_fingerprint, str) and query_fingerprint:
+            payload["query_fingerprint"] = query_fingerprint
+        query_scope = self.provenance.get("query_scope")
+        if isinstance(query_scope, str) and query_scope:
+            payload["query_scope"] = query_scope
+        query_intent = self.provenance.get("query_intent")
+        if isinstance(query_intent, str) and query_intent:
+            payload["query_intent"] = query_intent
+        retrieval_backend = self.provenance.get("retrieval_backend")
+        if isinstance(retrieval_backend, str) and retrieval_backend:
+            payload["retrieval_backend"] = retrieval_backend
+        retrieval_mode = self.provenance.get("retrieval_mode")
+        if isinstance(retrieval_mode, str) and retrieval_mode:
+            payload["retrieval_mode"] = retrieval_mode
         doc_type = self.provenance.get("doc_type")
         if isinstance(doc_type, str) and doc_type:
             payload["doc_type"] = doc_type
