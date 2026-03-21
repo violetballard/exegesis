@@ -1,66 +1,65 @@
-# Integration / Packet Maintenance Packet
+# Feature -> Review Packet
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Reviewed commit: `8dada1799753e597c1d91ea8a6446a91f287e501`
-- Branch head note: this branch head is a packet-maintenance commit only; it does not contain a command-contract code delta.
+- Reviewed commit: `72c5f868fb0b6c44e80e26ae49d3da89d94c9487`
+- Branch head note: this packet reissues the review for the real `diff_preview` feature delta; the later packet-maintenance commit is not the subject of this handoff.
 
 ## Scope goal
-- Rescope the branch as packet maintenance rather than a promotable `feat-commands` feature handoff.
-- Align the handoff record with the actual branch head so the packet no longer claims code changes that are not present in `git show --stat`.
+- Harden the `diff_preview` command contract and keep the reviewer-required shared regression coverage so text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.
 
 ## Lane/owned paths
-- `THREAD_PACKET.md`
+- `src/qual/commands/**`
 
 ## Scope completed
-- Removed the feature-delta claim from the packet and replaced it with an explicit maintenance scope.
-- Made the file list match the actual reviewed commit, which changes only `THREAD_PACKET.md`.
-- Removed the shared-file exception note because this commit does not edit any shared or integrator-locked files.
+- Preserved the lane-owned `diff_preview` contract hardening work in `src/qual/commands/diff_preview.py`, including labeled output, JSON payloads, no-diff responses, diff statistics, and fingerprint gating via `QUAL_DIFF_INCLUDE_FINGERPRINT`.
+- Restored the reviewer-required shared regression coverage in `tests/unit/test_diff_preview.py` for JSON fingerprint-disabled payloads, labeled JSON output, no-diff JSON shape, summary-only fingerprint behavior, truncated text fingerprint behavior, and the JSON fingerprint-enabled object contract.
+- Removed the branch-local shared-test approval from `scripts/scope-check.sh` and `THREAD_OWNERSHIP.md` so the approval now lives only in this packet instead of lane policy enforcement.
+- Regenerated this handoff packet from the actual `codex/feat-commands` branch delta so the scope summary, ownership note, roadmap mapping, changed-file list, and command outcomes match the submitted branch.
 
 ## Kickoff budget/limits compliance
-- Treated this as a small packet-maintenance thread.
-- The reviewed commit delta contains 1 file:
-  - `THREAD_PACKET.md`
+- Stayed within the high-risk budget. The submitted branch delta contains one lane-owned command file, one reviewer-required shared regression test, two policy files, and this packet.
 
 ## Tasks completed (numbered)
-1. Rescoped the branch from feature handoff to packet maintenance.
-2. Updated the reviewed commit reference to the actual packet-maintenance head.
-3. Matched `Files changed` to the real `git show --stat` output for the reviewed commit.
-4. Removed the shared/integrator-locked edit claim.
-5. Kept the packet focused on the metadata-only change instead of the earlier code delta.
+1. Preserved the lane-owned `src/qual/commands/diff_preview.py` contract hardening work so JSON output follows the same fingerprint gate as text output and returns `fingerprint: null` when disabled.
+2. Restored the focused shared regression tests in `tests/unit/test_diff_preview.py` for the reviewed `diff_preview` JSON and fingerprint contracts.
+3. Removed the shared-test approval from lane policy enforcement and captured the approval as an explicit note in this packet instead.
+4. Regenerated the feature handoff packet so every field matches the submitted branch state.
 
-## Files changed for reviewed commit
+## Files changed for submitted branch delta
+- `THREAD_OWNERSHIP.md`
 - `THREAD_PACKET.md`
+- `scripts/scope-check.sh`
+- `src/qual/commands/diff_preview.py`
+- `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
 - Validation date: `2026-03-21`
-- `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
+- `make scope-check`: PASS
 - `make ci`: PASS
 
 ## Risks / blockers
 - Risk: `LOW`
 - Blockers: none
-- Note: this branch head is not a feature delta, so it should not be promoted as a command-contract handoff.
+- Note: no routing/provider behavior changed.
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- None. This commit is packet maintenance only.
+- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` command behavior so JSON and text honor the same fingerprint gate.
+- Milestone 2 - Test Hardening: preserve the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON fingerprint-disabled payload shape, JSON fingerprint-enabled behavior, no-diff JSON shape, summary-only fingerprint behavior, and truncated text fingerprint behavior.
+- Milestone 3 - Product Readiness: lock the user-facing `diff_preview` fingerprint and structured output contract across text and JSON output.
 
 ### Vision capability affected
-- None. No product capability changes are included in this commit.
+- Capability 3 - Auditable generation: the command makes fingerprint metadata explicitly optional in both text and JSON formats, avoiding silent metadata leakage when the gate is disabled.
+- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON contract by covering the reviewer-requested output cases with focused regression tests.
 
 ### Routing/provider impact note
-- None.
-
-### Command behavior note
-- None. This commit does not modify command behavior.
+- None. This change affects local `diff_preview` output formatting, the reviewer-required shared regression test, and the corresponding scope-check approval entries; no routing/provider behavior changed.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO`
-
-## Review note
-- The real `diff_preview` code delta remains in the earlier history commit `72c5f868fb0b6c44e80e26ae49d3da89d94c9487`, but the reviewed branch head is now a packet-only maintenance change and should be evaluated as such.
+- Shared/integrator-locked edits: `YES`
+- Shared-file exception note: `tests/unit/test_diff_preview.py` is included only to satisfy the reviewer-required regression coverage for the submitted `diff_preview` contract change, and the approval note is recorded in this packet rather than as a branch-local policy exception.
