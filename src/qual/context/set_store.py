@@ -175,7 +175,8 @@ class ContextSetStore:
         records: list[ContextSetRecord]
         if payload is not None and not self._has_context_set_records(payload):
             # Materialize empty canonical state when it is the only usable
-            # payload, but do not invent recovery provenance.
+            # payload, but do not invent recovery provenance from the artifact
+            # set.
             rewrite_empty_recovery = True
             recovered_source = None
         if isinstance(payload, list):

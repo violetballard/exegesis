@@ -99,7 +99,8 @@ class ContextBasketStore:
         normalized_recovered_from = None
         if payload is not None and not self._has_recovery_payload_items(payload):
             # Canonical empty state should still be materialized when it is the
-            # only recoverable payload, but without claiming a recovery source.
+            # only recoverable payload, but without claiming a recovery source
+            # from the recovery artifact set.
             rewrite_empty_recovery = True
             recovered_source = None
         if isinstance(payload, list):
