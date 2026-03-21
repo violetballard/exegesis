@@ -97,7 +97,7 @@ class ContextBasketStore:
         should_rewrite = False
         rewrite_empty_recovery = False
         normalized_recovered_from = None
-        if payload is not None and not self._has_recovery_payload_items(payload):
+        if self._is_empty_recovery_payload(payload):
             # Canonical empty state should still be materialized when it is the
             # only recoverable payload, but without claiming a recovery source.
             rewrite_empty_recovery = True
@@ -598,6 +598,9 @@ class ContextBasketStore:
             return bool(self._parse_item_ids(payload))
         item_ids = self._parse_item_ids(payload.get("item_ids")) if "item_ids" in payload else None
         return bool(item_ids)
+
+    def _is_empty_recovery_payload(self, payload: dict[str, object] | list[object] | None) -> bool:
+        return payload is not None and not self._has_recovery_payload_items(payload)
 
     def _primary_item_ids_need_recovery(self, payload: dict[str, object] | list[object] | None) -> bool:
         if isinstance(payload, dict):
