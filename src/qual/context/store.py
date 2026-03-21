@@ -164,6 +164,8 @@ class ContextBasketStore:
             self._backup_path,
             self._seed_state_path(),
             self._tmp_path(),
+            self._backup_tmp_path(),
+            self._seed_tmp_path(),
             self._corrupt_path(),
         ):
             self._unlink_if_exists(path)

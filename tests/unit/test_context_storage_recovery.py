@@ -46,6 +46,18 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertFalse(self.store._backup_path.with_name("context_basket.bak.corrupt.json").exists())
         self.assertFalse(self.store._seed_state_path().with_name("context_basket.seed.corrupt.json").exists())
 
+    def test_clear_removes_temporary_primary_backup_and_seed_files(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._tmp_path().write_text("{\"schema_version\": 1}", encoding="utf-8")
+        self.store._backup_tmp_path().write_text("{\"schema_version\": 1}", encoding="utf-8")
+        self.store._seed_tmp_path().write_text("{\"schema_version\": 1}", encoding="utf-8")
+
+        self.store.clear()
+
+        self.assertFalse(self.store._tmp_path().exists())
+        self.assertFalse(self.store._backup_tmp_path().exists())
+        self.assertFalse(self.store._seed_tmp_path().exists())
+
     def test_future_schema_primary_not_rotated_into_backup(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text(
