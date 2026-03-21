@@ -1,5 +1,6 @@
 {
   "approved_exception_note": "",
+  "handoff_alignment_commit": "203906231e9c47371b6d7bc4028bc4f60e764581",
   "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 4 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff.",
   "implementation_commit": "36893f06df85409c4595d64adb8af60455c086a6",
   "cleanup_commit": "dc8f79e4abeb30de51854fdd84d35b97993955b8",
@@ -14,20 +15,17 @@
   "routing_provider_impact": "None",
   "related_implementation_files": [
     "src/qual/engine/retrieval/__init__.py",
-    "src/qual/engine/tools/retrieval_tools.py",
     "src/qual/retrieval/service.py",
     "tests/unit/test_unified_retrieval.py"
   ],
-  "scope_completed": "The reviewed implementation routes retrieve_auto() through the retrieval service's canonical FTS-first payload path, exposes retrieve_auto_payload() for downstream consumers, re-exports primary_strategy_id from the engine retrieval package, and adds focused unit coverage for payload parity and package-export behavior. The cleanup commit dc8f79e4abeb30de51854fdd84d35b97993955b8 adds the explicit deferred-policy boundary in src/qual/engine/retrieval/policy.py. PageIndex and embeddings remain deferred and are not required MVP paths; they appear only as deferred strategy identifiers there, not as active strategy implementations.",
-  "scope_goal": "Expose the canonical auto retrieval payload inside retrieval-owned paths while preserving the FTS-first MVP contract for downstream engine generation flows.",
+  "scope_completed": "This commit updates the handoff artifacts only. It records that the retrieval implementation lives in 36893f06df85409c4595d64adb8af60455c086a6, that the deferred-policy boundary lives in dc8f79e4abeb30de51854fdd84d35b97993955b8, and that 203906231e9c47371b6d7bc4028bc4f60e764581 does not add retrieval code changes. The handoff now keeps the file list restricted to the docs files actually changed here and removes the stale cross-lane retrieval-tool claim.",
+  "scope_goal": "Re-anchor the retrieval handoff packet to the earlier implementation while keeping the current commit strictly limited to docs-only handoff alignment.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Routed retrieve_auto() through the canonical retrieval-service FTS-first payload path.",
-    "Exposed retrieve_auto_payload() and primary_strategy_id() through the engine retrieval surface.",
-    "Added focused unit coverage for canonical payload parity and package-export behavior.",
-    "Rewrote the handoff metadata so the reviewed code files and handoff-only artifacts are separated explicitly.",
-    "Added an explicit cleanup-commit pointer so the docs-only follow-up is not confused with the reviewed implementation commit.",
-    "Added an explicit deferred-policy boundary note in the cleanup commit so PageIndex and embeddings stay out of the required path set."
+    "Re-anchored the packet to the earlier retrieval implementation and deferred-policy cleanup commits.",
+    "Marked the current commit as docs-only and removed claims that it delivered retrieval code changes.",
+    "Removed the stale cross-lane retrieval-tool reference from the handoff surface.",
+    "Kept the file list restricted to the docs files actually changed in this commit."
   ],
   "vision_capabilities": [
     "2. Retrieval-first context handling",

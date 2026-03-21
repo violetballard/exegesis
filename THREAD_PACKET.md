@@ -1,32 +1,29 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Reviewed implementation commit: `36893f06df85409c4595d64adb8af60455c086a6`
-- Cleanup / handoff alignment commit: `dc8f79e4abeb30de51854fdd84d35b97993955b8`
-- Reviewed commit type: Canonical auto payload plumbing for the FTS-first MVP.
+- Feature implementation commit: `36893f06df85409c4595d64adb8af60455c086a6`
+- Deferred-policy cleanup commit: `dc8f79e4abeb30de51854fdd84d35b97993955b8`
+- Current handoff alignment commit: `203906231e9c47371b6d7bc4028bc4f60e764581`
+- Reviewed commit type: Docs-only handoff alignment; no retrieval code changes in this commit.
 
 ## Scope Goal
 
-Expose the canonical auto retrieval payload inside retrieval-owned paths while preserving the FTS-first MVP contract for downstream engine generation flows.
+Re-anchor the retrieval handoff packet to the earlier FTS-first implementation while keeping the current commit strictly limited to docs-only handoff alignment.
 
 ## Scope Completed
 
-The reviewed implementation routes `retrieve_auto()` through the retrieval service's canonical FTS-first payload path, exposes `retrieve_auto_payload()` for downstream consumers, re-exports `primary_strategy_id` from the engine retrieval package, and adds focused unit coverage for payload parity and package-export behavior. The cleanup commit `dc8f79e4abeb30de51854fdd84d35b97993955b8` adds the explicit deferred-policy boundary in `src/qual/engine/retrieval/policy.py`. PageIndex and embeddings remain deferred and are not required MVP paths; they appear only as deferred strategy identifiers there, not as active strategy implementations.
+This commit updates the handoff artifacts only. It states that the reviewed retrieval implementation lives in `36893f06df85409c4595d64adb8af60455c086a6`, that the deferred-policy boundary lives in `dc8f79e4abeb30de51854fdd84d35b97993955b8`, and that `203906231e9c47371b6d7bc4028bc4f60e764581` does not add retrieval code changes. The packet now keeps the file list restricted to the docs files actually changed here and removes the stale cross-lane retrieval-tool claim.
 
 ## Code-Diff Evidence
 
-- `src/qual/engine/retrieval/__init__.py`: re-exports the retrieval package entrypoints used by downstream engine consumers.
-- `src/qual/engine/tools/retrieval_tools.py`: routes auto retrieval through the canonical retrieval-service payload path.
-- `src/qual/retrieval/service.py`: provides the FTS-first payload implementation and deterministic downstream payload shaping.
-- `tests/unit/test_unified_retrieval.py`: covers payload parity, export behavior, and downstream-facing retrieval results.
-- `src/qual/engine/retrieval/policy.py`: records the deferred strategy identifiers in the cleanup commit so PageIndex and embeddings remain explicit boundary markers, not required paths.
-- No `pageindex_strategy.py` or `embeddings_strategy.py` files are part of the reviewed handoff surface; those paths remain deferred and are not required MVP paths.
+- `.codex/kickoff_packets/feat-retrieval-fts.md`: re-anchors the handoff metadata to the actual commit boundary.
+- `.codex/lane_meta/feat-retrieval-fts.json`: mirrors the same scope and file-list correction in structured form.
+- `THREAD_PACKET.md`: records the docs-only nature of this commit and the earlier implementation/cleanup commits it points to.
 
 ### Related implementation files
 
 - Reviewed code files:
   - `src/qual/engine/retrieval/__init__.py`
-  - `src/qual/engine/tools/retrieval_tools.py`
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`
 - Cleanup boundary file:
@@ -36,20 +33,11 @@ The reviewed implementation routes `retrieve_auto()` through the retrieval servi
   - `.codex/lane_meta/feat-retrieval-fts.json`
   - `THREAD_PACKET.md`
 - Tasks completed:
-  1. Routed `retrieve_auto()` through the canonical retrieval-service FTS-first payload path.
-  2. Exposed `retrieve_auto_payload()` and `primary_strategy_id()` through the engine retrieval surface.
-  3. Added focused unit coverage for canonical payload parity and package-export behavior.
-  4. Rewrote the handoff packet metadata so the reviewed code files and handoff-only artifacts are separated explicitly.
-  5. Added an explicit cleanup-commit pointer so the docs-only follow-up is not confused with the reviewed implementation commit.
-  6. Added an in-code policy note that keeps the deferred PageIndex and embeddings boundary explicit.
+  1. Re-anchored the packet to the earlier retrieval implementation and deferred-policy cleanup commits.
+  2. Marked the current commit as docs-only and removed claims that it delivered retrieval code changes.
+  3. Removed the stale cross-lane retrieval-tool reference from the handoff surface.
+  4. Kept the file list restricted to the docs files actually changed in this commit.
 - Files changed:
-  - Reviewed implementation code:
-    - `src/qual/engine/retrieval/__init__.py`
-    - `src/qual/engine/tools/retrieval_tools.py`
-    - `src/qual/retrieval/service.py`
-    - `tests/unit/test_unified_retrieval.py`
-  - Cleanup boundary file:
-    - `src/qual/engine/retrieval/policy.py`
   - Handoff-only artifacts:
     - `.codex/kickoff_packets/feat-retrieval-fts.md`
     - `.codex/lane_meta/feat-retrieval-fts.json`
@@ -57,6 +45,7 @@ The reviewed implementation routes `retrieve_auto()` through the retrieval servi
 - Commit split:
   - implementation: `36893f06df85409c4595d64adb8af60455c086a6`
   - cleanup: `dc8f79e4abeb30de51854fdd84d35b97993955b8`
+  - handoff alignment: `203906231e9c47371b6d7bc4028bc4f60e764581`
 - Commands run with results:
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -64,19 +53,19 @@ The reviewed implementation routes `retrieve_auto()` through the retrieval servi
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
-  - These gate results were rerun against the handoff packet fix state.
+  - `make ci` re-ran the full gate stack after the docs-only fix.
 - Reviewer fix closure:
-  - `#1` split the reviewed code files from the handoff-only artifacts and kept the reviewed patch surface exact.
-  - `#2` added a concrete scope-completed summary tied to the reviewed commit.
-  - `#3` narrowed the task summary to the canonical auto payload plumbing actually delivered by `36893f06df85409c4595d64adb8af60455c086a6`.
-  - `#4` reran the required gates after the handoff packet fix and captured the passing results.
+  - `#1` re-anchored the packet to the actual reviewed commit boundaries and stated that `203906231e9c47371b6d7bc4028bc4f60e764581` is docs-only.
+  - `#2` rewrote `Files changed` so it only lists the docs files changed here.
+  - `#3` added a concrete `Scope completed` paragraph describing the docs-only handoff alignment.
+  - `#4` removed the stale cross-lane retrieval-tool claim from the handoff surface.
 - Checkpoint status:
   - plan complete
   - first green tests: `./quality-test.sh` passed
   - ready for handoff: all required local gates passed
 - Risks/blockers:
-  - No blockers. The packet wording is now explicit about the retrieval implementation boundary and the reviewed patch surface.
-  - No PageIndex or embeddings implementation files were changed in the reviewed surface; their names remain deferred policy identifiers only.
+  - No blockers.
+  - The earlier retrieval implementation remains in `36893f06df85409c4595d64adb8af60455c086a6`; this commit only documents that boundary.
 - Roadmap item(s) affected:
   - Milestone 4: Retrieval Layer -> FTS-first ingestion/index path for context/vault documents
   - Milestone 4: Retrieval Layer -> Retrieval orchestration data needed before drafting/diff generation
