@@ -1547,6 +1547,18 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("[GenericCard] Fallback", text)
         self.assertNotIn("Actions:", text)
 
+    def test_terminal_renderer_reports_explicit_empty_actions_list(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Fallback",
+                "blocks": [],
+                "actions": [],
+            }
+        )
+
+        self.assertIn("Actions: none available", text)
+
     def test_terminal_renderer_normalizes_missing_card_metadata(self) -> None:
         text = render_terminal_card(
             {

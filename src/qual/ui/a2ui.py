@@ -574,11 +574,14 @@ def render_terminal_card(card: dict[str, Any]) -> str:
         lines.extend(rendered_debug)
     for block in _iter_card_entries(card.get("blocks")):
         lines.extend(_render_terminal_block(block))
-    rendered_actions = _render_terminal_actions(card.get("actions"))
+    actions = card.get("actions")
+    rendered_actions = _render_terminal_actions(actions)
     if rendered_actions:
         lines.append("Actions:")
         lines.extend(rendered_actions)
-    elif _is_fallback_card_debug(card.get("debug")):
+    elif isinstance(actions, list) and (
+        _is_fallback_card_debug(card.get("debug")) or card_type == UNKNOWN_CARD_TYPE or actions == []
+    ):
         lines.append("Actions: none available")
     return "\n".join(lines)
 
