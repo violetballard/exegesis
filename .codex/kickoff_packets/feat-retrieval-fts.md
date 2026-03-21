@@ -1,15 +1,15 @@
 # Lane Kickoff: feat-retrieval-fts
 
 - Branch: `codex/feat-retrieval-fts`
-- Lane/owned paths: `src/qual/retrieval/**`
-- Scope goal: Canonicalize FTS excerpt payloads in `src/qual/retrieval/service.py` so retrieval-backed fetches return stable payloads for downstream consumers.
+- Lane/owned paths: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`
+- Scope goal: Align the kickoff packet, lane metadata, and handoff packet with the reviewed docs-only commit so the lane record matches the actual diff.
 
 ### Priority outcomes
-1. Normalize excerpt payloads and provenance fields in the retrieval service.
-2. Keep section-scoped retrieval unsupported until the retrieval layer can resolve a concrete target.
-3. Avoid widening the reviewed diff into PageIndex, embeddings, or doc-ranking work.
+1. Remove stale retrieval-implementation claims from the handoff artifacts.
+2. Keep the reviewed commit description limited to the three metadata files actually changed.
+3. Avoid implying any retrieval source-code, PageIndex, or routing changes in this promotion.
 
 ### Guardrails
-- Keep the change limited to retrieval-owned paths.
-- Preserve deterministic and auditable retrieval output.
-- Separate source changes from handoff and lane metadata artifacts.
+- Keep the change limited to handoff and lane metadata artifacts.
+- Preserve commit accuracy between the packet, lane metadata, and git history.
+- Do not reference unreviewed retrieval source files.

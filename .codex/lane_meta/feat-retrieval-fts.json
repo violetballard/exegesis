@@ -1,21 +1,16 @@
 {
   "approved_exception_note": "",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, a single promoted source file, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 3 promoted metadata files, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
   "proposed_readme_patch": "",
   "risk": "LOW",
-  "roadmap_items": [
-    "Milestone 4: Retrieval Layer -> Retrieval orchestration data needed before drafting/diff generation"
-  ],
+  "roadmap_items": [],
   "routing_provider_impact": "None",
-  "scope_goal": "Canonicalize FTS excerpt payloads in the retrieval service so retrieval-backed fetches return stable FTS-shaped payloads.",
+  "scope_goal": "Align the kickoff packet, lane metadata, and handoff packet with the reviewed docs-only commit so the lane record matches the actual diff.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Canonicalized retrieval-service excerpt payloads in `src/qual/retrieval/service.py` so FTS-backed fetches return normalized dictionaries.",
-    "Verified the reviewed commit scope is limited to the single source file changed in `3884e2aab86962a6aeb62a35f169282869d16ae5`.",
-    "Regenerated the kickoff packet, handoff packet, and lane metadata so they describe the promoted source change accurately."
+    "Regenerated the kickoff packet so it describes the reviewed commit as docs-only handoff alignment.",
+    "Regenerated the lane metadata so its scope, budget note, roadmap, and task list match the actual diff.",
+    "Regenerated the handoff packet so it lists the exact changed files and does not imply unreviewed retrieval source changes."
   ],
-  "vision_capabilities": [
-    "2. Retrieval-first context handling",
-    "3. Auditable generation"
-  ]
+  "vision_capabilities": []
 }
