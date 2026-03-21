@@ -9,7 +9,7 @@
 
 ## Scope completed
 
-Delivered behavior: `vault`, `collection:`, and `doc:` retrieval requests now route through `src/qual/retrieval/service.py` into the owned retrieval engine. `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred, and `section:` remains rejected until fallback support exists. This completed scope stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**` only.
+Delivered behavior: `vault`, `collection:`, and `doc:` retrieval requests now route through `src/qual/retrieval/service.py` into the owned retrieval engine. `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred, and `section:` remains rejected until fallback support exists. This completed scope stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**` only, with no `codex_packet_handoff/tools/*` or `src/qual/engine/tools/*` edits included in this handoff.
 
 ### Prior commit references (reference only)
 - `src/qual/engine/retrieval/__init__.py`

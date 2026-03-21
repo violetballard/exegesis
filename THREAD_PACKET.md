@@ -12,7 +12,7 @@ Document the retrieval handoff boundary while keeping the lane-owned retrieval s
 
 ## Scope completed
 
-Delivered behavior: `vault`, `collection:`, and `doc:` retrieval requests now route through `src/qual/retrieval/service.py` into the owned retrieval engine. `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred, and `section:` remains rejected until fallback support exists. This completed scope stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**` only.
+Delivered behavior: `vault`, `collection:`, and `doc:` retrieval requests now route through `src/qual/retrieval/service.py` into the owned retrieval engine. `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred, and `section:` remains rejected until fallback support exists. This completed scope stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**` only, with no `codex_packet_handoff/tools/*` or `src/qual/engine/tools/*` edits included in this handoff.
 
 ## Files changed
 
@@ -25,6 +25,7 @@ Delivered behavior: `vault`, `collection:`, and `doc:` retrieval requests now ro
 - Shared/integrator-locked edits: `NO`
 - Non-owned source files promoted: `NO`
 - Non-retrieval tooling edits approved: `NO`
+- Out-of-lane tooling files excluded from this resubmission: `YES`
 
 ## Tasks completed
 
