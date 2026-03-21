@@ -302,8 +302,9 @@ class ContextBasketStore:
 
     def _write_backup_payload(self, payload: dict[str, object]) -> bool:
         tmp = self._backup_path.with_suffix(".tmp")
+        canonical_payload = self._backup_payload(payload)
         try:
-            tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+            tmp.write_text(json.dumps(canonical_payload, indent=2, sort_keys=True), encoding="utf-8")
             tmp.replace(self._backup_path)
         except OSError:
             self._unlink_if_exists(tmp)
