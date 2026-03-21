@@ -6,14 +6,15 @@ engine's retrieval orchestration code.
 
 from src.qual.engine.retrieval.fts_strategy import FTSStrategy
 from src.qual.engine.retrieval.interface import RetrievalStrategy, StrategyRun
+from src.qual.engine.retrieval.policy import FTS_FIRST_POLICY
 
-ACTIVE_STRATEGY_IDS = ("fts",)
+ACTIVE_STRATEGY_IDS = FTS_FIRST_POLICY.active_strategy_ids
 
 
 def active_strategy_ids() -> tuple[str, ...]:
     """Return the deterministic strategy set enabled for the MVP."""
 
-    return ACTIVE_STRATEGY_IDS
+    return FTS_FIRST_POLICY.active_strategy_ids
 
 
 __all__ = [

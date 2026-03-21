@@ -14,8 +14,7 @@ from typing import Any, Iterator, Literal
 
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions, DocIndexService
-from src.qual.engine.retrieval import ACTIVE_STRATEGY_IDS
-from src.qual.engine.retrieval.fts_strategy import FTSStrategy
+from src.qual.engine.retrieval import FTS_FIRST_POLICY, FTSStrategy
 from src.qual.engine.retrieval.interface import StrategyRun
 from src.qual.metrics.crypto import decrypt_bytes, encrypt_bytes
 
@@ -95,6 +94,7 @@ class RetrievalService:
         self._key = self._load_or_create_key()
         self._docindex = DocIndexService(vault_root, audit_log=audit_log, now_fn=self._now_fn)
         self._fts = FTSStrategy(self._run_fts_hits, now_fn=self._now_fn)
+        self._retrieval_policy = FTS_FIRST_POLICY
         self._active_query_fingerprint: str | None = None
 
     def add_or_update_document(
@@ -174,9 +174,10 @@ class RetrievalService:
             )
             elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
             diagnostics = {
-                "retrieval_backend": "sqlite_fts",
-                "retrieval_mode": "fts_first",
-                "active_strategy_ids": list(ACTIVE_STRATEGY_IDS),
+                "retrieval_backend": self._retrieval_policy.retrieval_backend,
+                "retrieval_mode": self._retrieval_policy.retrieval_mode,
+                "active_strategy_ids": list(self._retrieval_policy.active_strategy_ids),
+                "deferred_strategy_ids": list(self._retrieval_policy.deferred_strategy_ids),
                 "query_fingerprint": query_fingerprint,
                 "query_scope": query.scope,
                 "query_intent": query.intent,
@@ -186,7 +187,7 @@ class RetrievalService:
                 "candidate_doc_count": effective_candidate_doc_count,
                 "fts_shortlist_count": len(fts_shortlist),
                 "fts_shortlist_doc_ids": list(fts_shortlist),
-                "strategies_used": list(ACTIVE_STRATEGY_IDS),
+                "strategies_used": list(self._retrieval_policy.active_strategy_ids),
                 "elapsed_ms_by_strategy": {fts_run.strategy_id: fts_run.elapsed_ms},
                 "caches_used": {fts_run.strategy_id: fts_run.cache_used},
                 "elapsed_ms_total": elapsed_ms_total,
@@ -206,6 +207,7 @@ class RetrievalService:
                     "query_scope": query.scope,
                     "date_range": diagnostics["date_range"],
                     "active_strategy_ids": diagnostics["active_strategy_ids"],
+                    "deferred_strategy_ids": diagnostics["deferred_strategy_ids"],
                     "strategies_used": diagnostics["strategies_used"],
                     "elapsed_ms_by_strategy": diagnostics["elapsed_ms_by_strategy"],
                     "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
@@ -420,8 +422,8 @@ class RetrievalService:
                             }
                         ),
                         "excerpt_count": len(doc_hit_list),
-                        "source_strategy": "fts",
-                        "retrieval_mode": "fts_first",
+                        "source_strategy": self._retrieval_policy.active_strategy_ids[0],
+                        "retrieval_mode": self._retrieval_policy.retrieval_mode,
                         "query_scope": query.scope,
                         "query_intent": query.intent,
                         "query_date_range": list(query.constraints.date_range) if query.constraints.date_range is not None else None,
@@ -430,8 +432,7 @@ class RetrievalService:
             )
         return doc_hits
 
-    @staticmethod
-    def _build_retrieval_manifest(doc_hits: list[RetrievalDocHit], hits: list[RetrievalHit]) -> dict[str, object]:
+    def _build_retrieval_manifest(self, doc_hits: list[RetrievalDocHit], hits: list[RetrievalHit]) -> dict[str, object]:
         doc_fingerprints = [str(doc_hit.provenance.get("doc_fingerprint", "")) for doc_hit in doc_hits]
         doc_identity_fingerprints = [
             str(doc_hit.provenance.get("doc_identity_fingerprint", "")) for doc_hit in doc_hits
@@ -454,10 +455,12 @@ class RetrievalService:
             "excerpt_ids": [hit.excerpt_id for hit in hits if hit.excerpt_id is not None],
             "excerpt_fingerprints": excerpt_fingerprints,
             "excerpt_text_hashes": excerpt_text_hashes,
+            "active_strategy_ids": list(self._retrieval_policy.active_strategy_ids),
+            "deferred_strategy_ids": list(self._retrieval_policy.deferred_strategy_ids),
         }
 
-    @staticmethod
     def _build_retrieval_evidence(
+        self,
         *,
         query: RetrievalQuery,
         doc_hits: list[RetrievalDocHit],
@@ -506,9 +509,10 @@ class RetrievalService:
             "query_fingerprint": query_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
-            "retrieval_backend": "sqlite_fts",
-            "retrieval_mode": "fts_first",
-            "active_strategy_ids": list(ACTIVE_STRATEGY_IDS),
+            "retrieval_backend": self._retrieval_policy.retrieval_backend,
+            "retrieval_mode": self._retrieval_policy.retrieval_mode,
+            "active_strategy_ids": list(self._retrieval_policy.active_strategy_ids),
+            "deferred_strategy_ids": list(self._retrieval_policy.deferred_strategy_ids),
             "doc_citations": doc_citations,
             "excerpt_citations": excerpt_citations,
             "retrieval_manifest": dict(retrieval_manifest),
@@ -527,6 +531,8 @@ class RetrievalService:
             "excerpt_fingerprints": retrieval_manifest.get("excerpt_fingerprints", []),
             "top_excerpt_text_hashes": retrieval_manifest.get("top_excerpt_text_hashes", []),
             "excerpt_text_hashes": retrieval_manifest.get("excerpt_text_hashes", []),
+            "active_strategy_ids": retrieval_manifest.get("active_strategy_ids", []),
+            "deferred_strategy_ids": retrieval_manifest.get("deferred_strategy_ids", []),
         }
         return RetrievalService._stable_fingerprint(payload)
 
@@ -771,8 +777,8 @@ class RetrievalService:
             "rank": rank,
             "fts_rank": fts_rank,
             "source_strategy": "fts",
-            "retrieval_backend": "sqlite_fts",
-            "retrieval_mode": "fts_first",
+            "retrieval_backend": self._retrieval_policy.retrieval_backend,
+            "retrieval_mode": self._retrieval_policy.retrieval_mode,
         }
         if query_scope is not None:
             provenance["query_scope"] = query_scope
@@ -795,8 +801,8 @@ class RetrievalService:
         )
         return provenance
 
-    @staticmethod
     def _normalize_excerpt_payload(
+        self,
         excerpt: dict[str, object],
         *,
         source_strategy: Literal["fts", "pageindex"],
@@ -829,7 +835,7 @@ class RetrievalService:
             if isinstance(provenance_backend, str) and provenance_backend:
                 retrieval_backend = provenance_backend
             elif source_strategy == "fts":
-                retrieval_backend = "sqlite_fts"
+                retrieval_backend = self._retrieval_policy.retrieval_backend
         if isinstance(retrieval_backend, str) and retrieval_backend:
             normalized["retrieval_backend"] = retrieval_backend
         retrieval_mode = normalized.get("retrieval_mode")
@@ -838,7 +844,7 @@ class RetrievalService:
             if isinstance(provenance_mode, str) and provenance_mode:
                 retrieval_mode = provenance_mode
             elif source_strategy == "fts":
-                retrieval_mode = "fts_first"
+                retrieval_mode = self._retrieval_policy.retrieval_mode
         if isinstance(retrieval_mode, str) and retrieval_mode:
             normalized["retrieval_mode"] = retrieval_mode
         excerpt_fingerprint = normalized.get("excerpt_fingerprint")
