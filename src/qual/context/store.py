@@ -99,7 +99,10 @@ class ContextBasketStore:
                 refresh_backup=True,
             )
         elif backup_payload is None or backup_missing or self._backup_needs_refresh(backup_payload, basket):
-            self._write_backup()
+            if isinstance(payload, dict):
+                self._write_backup_payload(self._backup_payload(payload))
+            else:
+                self._write_backup()
             self._clear_quarantine_file()
             self._unlink_if_exists(self._seed_state_path())
         else:
@@ -132,7 +135,7 @@ class ContextBasketStore:
             self._unlink_if_exists(tmp)
             raise
         if refresh_backup:
-            self._write_backup()
+            self._write_backup_payload(self._backup_payload(payload))
         elif not self._backup_path.exists():
             self._write_seed(payload)
         self._clear_quarantine_file()
@@ -226,12 +229,23 @@ class ContextBasketStore:
             return
         if not self._is_valid_payload(self._path):
             return
+        payload = json.loads(self._path.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            return
+        self._write_backup_payload(payload)
+
+    def _write_backup_payload(self, payload: dict[str, object]) -> None:
         tmp = self._backup_path.with_suffix(".tmp")
         try:
-            tmp.write_bytes(self._path.read_bytes())
+            tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
             tmp.replace(self._backup_path)
         except OSError:
             self._unlink_if_exists(tmp)
+
+    def _backup_payload(self, payload: dict[str, object]) -> dict[str, object]:
+        backup_payload = dict(payload)
+        backup_payload.pop("recovered_from", None)
+        return backup_payload
 
     def _write_seed(self, payload: dict[str, object] | list[object]) -> None:
         seed = self._seed_state_path()

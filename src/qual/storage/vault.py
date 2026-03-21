@@ -125,7 +125,7 @@ class VaultService:
         except OSError:
             self._unlink_if_exists(tmp)
             raise
-        self._write_backup(state.root_dir)
+        self._write_backup_payload(state.root_dir, self._backup_payload(payload))
         self._clear_quarantine_state(state.root_dir)
 
     def _quarantine_invalid_state(self, root_dir: Path) -> None:
@@ -188,13 +188,24 @@ class VaultService:
             return
         if not self._is_valid_payload(state_path):
             return
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            return
+        self._write_backup_payload(root_dir, payload)
+
+    def _write_backup_payload(self, root_dir: Path, payload: dict[str, object]) -> None:
         backup_path = self._backup_state_path(root_dir)
         tmp = backup_path.with_suffix(".tmp")
         try:
-            tmp.write_bytes(state_path.read_bytes())
+            tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
             tmp.replace(backup_path)
         except OSError:
             self._unlink_if_exists(tmp)
+
+    def _backup_payload(self, payload: dict[str, object]) -> dict[str, object]:
+        backup_payload = dict(payload)
+        backup_payload.pop("recovered_from", None)
+        return backup_payload
 
     def _is_valid_payload(self, path: Path) -> bool:
         try:
