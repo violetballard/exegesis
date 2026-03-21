@@ -1,13 +1,14 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Make unknown-card rendering copy-only in `src/qual/ui/a2ui.py` and keep terminal fallback rendering aligned with the same copy-only fallback rule.
-- Scope completed: Hardened unknown-card rendering so it emits only the canonical copy-to-clipboard action, and updated terminal fallback rendering to respect that copy-only fallback rule.
+- Scope goal: Align the review packet with a metadata-only handoff update so it accurately describes the actual commit and its lack of product-code impact.
+- Scope completed: Rewrote the packet to describe a metadata-only handoff update, corrected the changed-files list to match the actual diff, and tightened the scope, task, and roadmap fields to auditability-only work.
 - Tasks completed:
-  1. Updated unknown-card rendering in `src/qual/ui/a2ui.py` so fallback cards keep only the canonical `copy_to_clipboard` action and preserve the read-only clipboard payload.
-  2. Adjusted terminal fallback rendering in `src/qual/ui/a2ui.py` so unknown-card output follows the copy-only fallback rule instead of exposing broader actions.
+  1. Reframed the packet scope so it describes a metadata-only handoff update instead of product behavior changes.
+  2. Removed runtime and test files from the changed-files narrative so the packet matches the actual diff.
+  3. Updated the task summary, roadmap mapping, and vision mapping to reflect packet alignment and auditability only.
 - Files changed:
-  - `src/qual/ui/a2ui.py`
+  - `THREAD_PACKET.md`
 - Commands run with results:
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -16,13 +17,11 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - Risks/blockers:
-  - No known blockers. The change is intentionally narrow and stays inside unknown-card materialization and terminal fallback display.
-  - Future fallback rendering changes must preserve the copy-only constraint so terminal fallback stays read-only.
+  - No known blockers. This change is limited to packet metadata and handoff accuracy.
+  - Future review packets should keep the scope aligned to the actual diff to avoid claiming product changes that are not present.
 - Roadmap item(s) affected:
-  - Milestone 5: A2UI Presentation Layer - make unknown-card fallback rendering copy-only in the A2UI materialization path.
-  - Milestone 5: A2UI Presentation Layer - keep terminal fallback rendering aligned with the read-only unknown-card behavior.
+  - None. This is a metadata-only handoff update with no roadmap or product feature impact.
 - Vision capability affected:
-  - Capability 5: Agent-to-UI protocol (A2UI) - unknown-card fallback now exposes a canonical copy-only action payload.
-  - Capability 4: Operator-first control surface - terminal fallback stays predictable because it presents read-only unknown-card output.
+  - None. This is a packet alignment change with no capability-level behavior change.
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.
