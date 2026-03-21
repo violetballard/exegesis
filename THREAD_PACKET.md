@@ -7,6 +7,7 @@
 - Scope completed: Marked the branch head as a packet-alignment commit rather than feature implementation work.
 - Scope completed: Kept the recovery feature reference anchored to the earlier owned-path commit that actually changed source and test files.
 - Scope completed: Removed the false claim that the current commit carries the context-storage recovery implementation.
+- Scope completed: Recorded the approved non-owned recovery test coverage file as an explicit exception instead of treating it as a shared-source edit.
 - Tasks completed:
   1. Marked `d0ed1b1f368f5fea3ee13c47bcf3afff8019fdcb` as a docs-only packet-alignment commit.
   2. Kept `369f2d8f84afbb9805b3219abe8e7ed62d4662c2` as the actual recovery feature commit referenced by the packet.
@@ -14,13 +15,12 @@
   4. Reconciled the handoff text with the real ownership boundary for this commit.
 - Files changed on this branch head:
   - `THREAD_PACKET.md`
+  - `.codex/lane_meta/feat-context-storage.json`
 - Reviewed feature commit files:
   - `src/qual/context/set_store.py`
   - `src/qual/context/store.py`
   - `src/qual/storage/vault.py`
   - `tests/unit/test_context_storage_recovery.py`
-- Shared/integrator-locked edits:
-  - `NO`
 - Commands run with results:
   - `git rev-parse --short HEAD` -> confirmed the branch head is `d0ed1b1f`
   - `git show --stat --name-only --oneline 369f2d8f` -> confirmed the real recovery feature commit spans the context/storage recovery source changes and recovery test coverage
@@ -51,3 +51,8 @@
   - Capability 3 - Auditable generation through deterministic recovery and rewrite behavior for persisted local state.
 - Routing/provider impact note:
   - None.
+- Scope-check / ownership note:
+  - Approved shared test-file exception only: `YES`
+  - Shared-by-approval source edits: `NO`
+  - Ownership detail: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned change is the approved recovery coverage file `tests/unit/test_context_storage_recovery.py`. No shared-by-approval source files were edited.
+  - Integrator-locked edits: `NO`
