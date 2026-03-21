@@ -1,15 +1,15 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Strengthen the A2UI contract metadata for primitive blocks and preserve CLI fallback visibility for unknown cards.
-- Scope completed: Updated the A2UI contract manifest so primitive blocks declare their field schemas, and made terminal rendering explicitly show an `UnknownCard` fallback notice when no debug fallback text is present.
+- Scope goal: Align the handoff packet with the reviewed commit so it accurately documents a metadata-only update.
+- Scope completed: Reworked the packet to describe the reviewed diff as a handoff-packet-only change, with no product-code or test-file claims.
 - Tasks completed:
-  1. Converted `describe_a2ui_contract()` primitive-block metadata from a bare type list into typed records that include the required field names for each primitive block.
-  2. Added a terminal-renderer fallback notice for `UnknownCard` cards that do not already carry debug fallback text.
-  3. Extended unit coverage to assert the primitive-block manifest shape and the unknown-card terminal fallback text.
+  1. Rewrote the scope statement so it matches the reviewed commit's metadata-only nature.
+  2. Replaced the implementation-oriented task list with packet-alignment and auditability work.
+  3. Corrected the changed-files list so it reflects only the actual diff for the reviewed commit.
+  4. Removed unsupported roadmap, vision, and product-impact claims that did not correspond to the reviewed diff.
 - Files changed:
-  - `src/qual/ui/a2ui.py`
-  - `tests/unit/test_a2ui_contract.py`
+  - `THREAD_PACKET.md`
 - Commands run with results:
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -18,13 +18,9 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - Risks/blockers:
-  - No shared, integrator-locked, or cross-lane files are included in the reviewed diff.
-  - The fallback notice is terminal-only; other renderers still rely on their existing fallback paths.
-- Roadmap item(s) affected:
-  - `Milestone 5: A2UI Presentation Layer` -> Define `A2UI` output contract for agent-produced presentation artifacts
-  - `Milestone 5: A2UI Presentation Layer` -> Add capabilities handshake and composable `GenericCard` primitives with safe unknown-card fallback
-  - `Milestone 5: A2UI Presentation Layer` -> Provide CLI rendering fallback for the same structured payloads
-- Vision capability affected:
-  - `5. Agent-to-UI protocol (A2UI)` -> Agent emits structured presentation artifacts and CLI remains able to render a text fallback of the same underlying artifacts
+  - This packet now documents a metadata-only handoff update and should not be read as evidence of code or test changes.
+  - No shared, integrator-locked, or cross-lane files are listed in the reviewed diff.
+- Roadmap item(s) affected: None.
+- Vision capability affected: None.
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.
