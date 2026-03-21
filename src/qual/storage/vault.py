@@ -55,7 +55,7 @@ class VaultService:
             elif primary_unavailable:
                 if raw_state.get("recovered_from") != normalized_recovered_from:
                     needs_rewrite = True
-            elif not needs_rewrite:
+            else:
                 normalized_recovered_from = None
                 needs_rewrite = True
         if not has_is_locked or self._requires_safe_lock(raw_state, safe_project_name):

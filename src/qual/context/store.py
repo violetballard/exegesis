@@ -112,7 +112,7 @@ class ContextBasketStore:
                 elif primary_missing:
                     if payload.get("recovered_from") != normalized_recovered_from:
                         should_rewrite = True
-                elif not should_rewrite:
+                else:
                     normalized_recovered_from = None
                     should_rewrite = True
         else:
