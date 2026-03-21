@@ -477,10 +477,15 @@ class ContextSetStore:
         return True
 
     def _parse_context_sets(self, value: object) -> list[ContextSetRecord] | None:
-        if not isinstance(value, list):
-            return None
         records: list[ContextSetRecord] = []
-        for raw in value:
+        raw_values: list[object]
+        if isinstance(value, list):
+            raw_values = value
+        elif isinstance(value, dict):
+            raw_values = [value]
+        else:
+            return None
+        for raw in raw_values:
             record = self._parse_record(raw)
             if record is None:
                 continue
