@@ -5,10 +5,10 @@
   "risk": "LOW",
   "roadmap_items": [
     "Stable hit-set fingerprinting: keep retrieval fingerprints deterministic in `src/qual/retrieval/service.py`.",
-    "Test hardening: preserve coverage around fingerprint stability and provenance ordering."
+    "Test hardening: preserve coverage around fingerprint stability and hit-set ordering."
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The reviewed commit `ac341a8783b540b3bc7f134f2204d0ee646d0f45` changes only `src/qual/retrieval/service.py` and adds stable hit-set fingerprinting.",
+  "scope_completed": "The reviewed commit `ac341a8783b540b3bc7f134f2204d0ee646d0f45` changes only `src/qual/retrieval/service.py` and adds stable hit-set fingerprinting so retrieval diagnostics, manifest data, and downstream payloads stay deterministic.",
   "scope_goal": "Record the commit-accurate retrieval-service change in `src/qual/retrieval/service.py`: stable hit-set fingerprinting for retrieval results, with the handoff metadata kept aligned to that exact diff.",
   "shared_file_exception": false,
   "tasks_completed": [
@@ -19,6 +19,6 @@
   ],
   "vision_capabilities": [
     "Stable retrieval hit-set fingerprints",
-    "Deterministic retrieval provenance"
+    "Deterministic retrieval hit-set ordering"
   ]
 }
