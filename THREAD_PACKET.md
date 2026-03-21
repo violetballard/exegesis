@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-context-storage`
 - Scope goal: Realign the handoff packet so it matches the reviewed docs-only commit.
-- Scope completed: Rewrote `THREAD_PACKET.md` to describe the actual `THREAD_PACKET.md` alignment change and removed the stale storage/persistence recovery claims.
+- Scope completed: Rewrote `THREAD_PACKET.md` to describe the actual `THREAD_PACKET.md` alignment change, removed the stale storage/persistence recovery claims, and kept the commit explicitly docs-only.
 - Tasks completed:
   1. Reframed the packet around the docs-only handoff alignment change.
   2. Restricted `Files changed` to the actual diff: `THREAD_PACKET.md`.
