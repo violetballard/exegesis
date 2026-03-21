@@ -1,15 +1,14 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Surface fallback action availability in terminal rendering from `src/qual/ui/a2ui.py` and keep the matching contract assertions in `tests/unit/test_a2ui_contract.py` aligned.
-- Scope completed: Rewrote the handoff packet so it matches the actual two-file diff and documents the terminal fallback availability messaging plus the corresponding test coverage.
+- Scope goal: Update the handoff packet metadata so it matches the actual reviewed diff and remains auditable.
+- Scope completed: Rewrote the packet as a metadata-only handoff update. It now describes the packet alignment work without claiming source or test code changes.
 - Tasks completed:
-  1. Described the source change as terminal fallback action-availability rendering in `src/qual/ui/a2ui.py`, including the copy-action availability notice for fallback cards.
-  2. Described the matching unit tests as assertions over the terminal fallback availability message in `tests/unit/test_a2ui_contract.py`.
-  3. Updated the scope, file list, roadmap mapping, and vision mapping so they all reflect the reviewed terminal fallback availability diff.
+  1. Reframed the scope and completion summary to describe a metadata-only packet update instead of an implementation change.
+  2. Replaced the stale source and test references with packet-auditability language that matches the reviewed diff.
+  3. Updated the roadmap and vision mapping references so they reflect the handoff metadata change only.
 - Files changed:
-  - `src/qual/ui/a2ui.py`
-  - `tests/unit/test_a2ui_contract.py`
+  - `THREAD_PACKET.md`
 - Commands run with results:
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -18,11 +17,11 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - Risks/blockers:
-  - The packet now tracks the reviewed source and test changes only; it should not be read as evidence of `.codex`, routing, shared-file, or unrelated shell/UI module edits.
-  - The reviewed diff is limited to fallback action-availability messaging plus its contract coverage.
+  - The packet is now limited to auditability and diff alignment; it should not be read as evidence of any source, test, or `.codex` content changes beyond this handoff file.
+  - No functional code paths were changed in this packet-only update.
 - Roadmap item(s) affected:
-  - `Milestone 5: A2UI Presentation Layer` -> fallback action-availability messaging in terminal rendering and the matching contract coverage for the reviewed source/test diff
+  - None. This update is limited to packet auditability and reviewed-diff alignment.
 - Vision capability affected:
-  - `5. Agent-to-UI protocol (A2UI)` -> fallback action-availability messaging for terminal rendering and the matching unit-test assertions
+  - None. This update is limited to handoff metadata alignment for the reviewed packet only.
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.
