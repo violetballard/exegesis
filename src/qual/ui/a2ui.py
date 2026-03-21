@@ -89,11 +89,11 @@ class A2UISessionStore:
 
 
 def validate_capabilities(capabilities: A2UICapabilities) -> None:
-    if capabilities.a2ui_version != A2UI_VERSION:
+    if type(capabilities.a2ui_version) is not int or capabilities.a2ui_version != A2UI_VERSION:
         raise ValueError("Unsupported a2ui version")
     if not capabilities.client_name.strip():
         raise ValueError("client_name is required")
-    if capabilities.max_payload_bytes <= 0:
+    if type(capabilities.max_payload_bytes) is not int or capabilities.max_payload_bytes <= 0:
         raise ValueError("max_payload_bytes must be positive")
     if not isinstance(capabilities.supports_streaming, bool):
         raise ValueError("supports_streaming must be a bool")
@@ -225,7 +225,7 @@ def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) 
         raise ValueError("Card type must be GenericCard")
     version = card.get("a2ui_version")
     if version is not None:
-        if not isinstance(version, int):
+        if type(version) is not int:
             raise ValueError("GenericCard a2ui_version must be an int")
         if version != A2UI_VERSION:
             raise ValueError("Unsupported GenericCard a2ui_version")
@@ -252,7 +252,7 @@ def _validate_card_version(card: dict[str, Any]) -> None:
     version = card.get("a2ui_version")
     if version is None:
         return
-    if not isinstance(version, int):
+    if type(version) is not int:
         raise ValueError("Card a2ui_version must be an int")
     if version != A2UI_VERSION:
         raise ValueError("Unsupported card a2ui_version")
@@ -317,7 +317,7 @@ def render_terminal_card(card: dict[str, Any]) -> str:
     if isinstance(subtitle, str) and subtitle.strip():
         lines.append(subtitle.strip())
     version = card.get("a2ui_version")
-    if isinstance(version, int):
+    if type(version) is int:
         lines.append(f"A2UI v{version}")
     for block in _iter_card_entries(card.get("blocks")):
         lines.extend(_render_terminal_block(block))

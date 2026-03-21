@@ -166,6 +166,52 @@ class A2UIContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             store.register("sess-2i", caps)
 
+    def test_session_store_rejects_bool_version_and_payload_size(self) -> None:
+        store = A2UISessionStore()
+        with self.assertRaises(ValueError):
+            store.register(
+                "sess-2i-1",
+                A2UICapabilities(
+                    a2ui_version=True,  # type: ignore[arg-type]
+                    client_name="Exegesis Studio",
+                    cards_supported=("RunLogCard",),
+                    primitive_blocks_supported=(
+                        "MarkdownBlock",
+                        "KeyValueBlock",
+                        "ListBlock",
+                        "TableBlock",
+                        "AlertBlock",
+                        "ProgressBlock",
+                        "CodeBlock",
+                    ),
+                    actions_supported=("apply_patch",),
+                    max_payload_bytes=1_000_000,
+                    supports_streaming=True,
+                ),
+            )
+
+        with self.assertRaises(ValueError):
+            store.register(
+                "sess-2i-2",
+                A2UICapabilities(
+                    a2ui_version=1,
+                    client_name="Exegesis Studio",
+                    cards_supported=("RunLogCard",),
+                    primitive_blocks_supported=(
+                        "MarkdownBlock",
+                        "KeyValueBlock",
+                        "ListBlock",
+                        "TableBlock",
+                        "AlertBlock",
+                        "ProgressBlock",
+                        "CodeBlock",
+                    ),
+                    actions_supported=("apply_patch",),
+                    max_payload_bytes=True,  # type: ignore[arg-type]
+                    supports_streaming=True,
+                ),
+            )
+
     def test_session_store_rejects_canonical_primitive_block_types_only(self) -> None:
         store = A2UISessionStore()
         with self.assertRaises(ValueError):
@@ -290,6 +336,33 @@ class A2UIContractTests(unittest.TestCase):
                 {
                     "type": "ProposedEditCard",
                     "a2ui_version": 2,
+                    "title": "Patch",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
+                },
+                caps,
+            )
+
+    def test_engine_rejects_bool_a2ui_version_on_generic_card(self) -> None:
+        caps = _capabilities(cards_supported=("RunLogCard",))
+        with self.assertRaises(ValueError):
+            engine_prepare_card(
+                {
+                    "type": "GenericCard",
+                    "a2ui_version": True,  # type: ignore[arg-type]
+                    "title": "Patch",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
+                    "actions": [],
+                },
+                caps,
+            )
+
+    def test_engine_rejects_bool_a2ui_version_on_supported_card(self) -> None:
+        caps = _capabilities(cards_supported=("ProposedEditCard",))
+        with self.assertRaises(ValueError):
+            engine_prepare_card(
+                {
+                    "type": "ProposedEditCard",
+                    "a2ui_version": True,  # type: ignore[arg-type]
                     "title": "Patch",
                     "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
                 },
@@ -614,6 +687,20 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertIn("[GenericCard] Fallback", text)
         self.assertNotIn("Actions:", text)
+
+    def test_terminal_renderer_ignores_bool_a2ui_version(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Fallback",
+                "a2ui_version": True,  # type: ignore[arg-type]
+                "blocks": [],
+                "actions": [],
+            }
+        )
+
+        self.assertNotIn("A2UI vTrue", text)
+        self.assertNotIn("A2UI v1", text)
 
 
 if __name__ == "__main__":
