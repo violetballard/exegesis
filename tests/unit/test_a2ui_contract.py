@@ -85,6 +85,22 @@ class A2UIContractTests(unittest.TestCase):
             },
         )
         self.assertEqual(
+            manifest["fallbacks"],
+            {
+                "generic_card": {
+                    "type": "GenericCard",
+                    "action_policy": "client_allowlist",
+                    "allowed_actions": ["copy_to_clipboard"],
+                },
+                "unknown_card": {
+                    "type": "UnknownCard",
+                    "action_policy": "copy_to_clipboard_only",
+                    "allowed_actions": ["copy_to_clipboard"],
+                    "default_preview_bytes": 8192,
+                },
+            },
+        )
+        self.assertEqual(
             manifest["schemas"]["cards"],
             [
                 {

@@ -9,6 +9,7 @@ A2UI_VERSION = 1
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
 DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES = 8_192
+FALLBACK_COPY_ACTION_ID = "copy_to_clipboard"
 _RESERVED_CARD_TYPES: tuple[str, ...] = (GENERIC_CARD_TYPE, UNKNOWN_CARD_TYPE)
 
 ALLOWED_ACTION_IDS: tuple[str, ...] = (
@@ -129,6 +130,19 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
             "generic": GENERIC_CARD_TYPE,
             "unknown": UNKNOWN_CARD_TYPE,
             "reserved": list(_RESERVED_CARD_TYPES),
+        },
+        "fallbacks": {
+            "generic_card": {
+                "type": GENERIC_CARD_TYPE,
+                "action_policy": "client_allowlist",
+                "allowed_actions": [FALLBACK_COPY_ACTION_ID],
+            },
+            "unknown_card": {
+                "type": UNKNOWN_CARD_TYPE,
+                "action_policy": "copy_to_clipboard_only",
+                "allowed_actions": [FALLBACK_COPY_ACTION_ID],
+                "default_preview_bytes": DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES,
+            },
         },
         "schemas": _build_a2ui_schema_manifest(),
         "primitive_blocks": [
@@ -329,9 +343,9 @@ def build_unknown_card(
     )
     supported_action_set = _canonicalize_supported_actions(supported_actions)
     actions: list[dict[str, Any]] = []
-    if "copy_to_clipboard" in supported_action_set:
+    if FALLBACK_COPY_ACTION_ID in supported_action_set:
         copy_action = {
-            "id": "copy_to_clipboard",
+            "id": FALLBACK_COPY_ACTION_ID,
             "label": "Copy JSON",
             "payload": {"text": clipboard_preview},
         }
@@ -477,9 +491,9 @@ def _filter_card_actions(card: dict[str, Any], capabilities: A2UICapabilities) -
 def _filter_read_only_fallback_actions(actions: Any, *, supported_actions: set[str]) -> list[dict[str, Any]]:
     """Keep only safe copy actions in a fallback card."""
 
-    if "copy_to_clipboard" not in supported_actions:
+    if FALLBACK_COPY_ACTION_ID not in supported_actions:
         return []
-    return _filter_supported_actions(actions, supported_actions={"copy_to_clipboard"})
+    return _filter_supported_actions(actions, supported_actions={FALLBACK_COPY_ACTION_ID})
 
 
 def _filter_supported_actions(actions: Any, *, supported_actions: set[str]) -> list[dict[str, Any]]:
