@@ -144,7 +144,6 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     lines += ["# Feature → Review Packet",""]
     lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
-    lines += ["## Scope completed", f"- {str(meta.get('scope_completed','')).strip() or '(missing)'}", ""]
     lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
     if str(meta.get("kickoff_budget_note","")).strip():
         lines += ["## Kickoff budget/limits compliance", f"- {meta['kickoff_budget_note'].strip()}", ""]
@@ -242,7 +241,6 @@ def main()->None:
         except Exception as e:
             print(f"[planner] {lane}: diff failed vs {base_ref}: {e}")
             continue
-        files = select_packet_files(lane, meta, files)
         env=os.environ.copy()
         if bool(meta.get("shared_file_exception")):
             env["SCOPE_ALLOW_SHARED"]="1"
