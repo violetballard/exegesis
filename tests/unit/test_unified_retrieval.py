@@ -439,6 +439,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["source_strategy"], "fts")
         self.assertEqual(excerpt["retrieval_backend"], "sqlite_fts")
         self.assertEqual(excerpt["retrieval_mode"], "fts_first")
+        self.assertEqual(excerpt["retrieval_policy"]["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(excerpt["retrieval_policy"]["retrieval_mode"], "fts_first")
         self.assertEqual(excerpt["source_hash"], result.hits[0].provenance["source_hash"])
         self.assertEqual(excerpt["text_hash"], result.hits[0].provenance["excerpt_text_hash"])
         self.assertEqual(excerpt["provenance"]["source_strategy"], "fts")
@@ -447,6 +449,26 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["provenance"]["hash"], result.hits[0].provenance["hash"])
         self.assertEqual(excerpt["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
         self.assertTrue(excerpt["text"])
+
+    def test_retrieval_hits_surface_top_level_retrieval_context(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        hit = result.hits[0].as_dict()
+        doc_hit = result.doc_hits[0].as_dict()
+        self.assertEqual(hit["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(hit["retrieval_mode"], "fts_first")
+        self.assertEqual(hit["retrieval_policy"]["active_strategy_ids"], ["fts"])
+        self.assertEqual(doc_hit["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(doc_hit["retrieval_mode"], "fts_first")
+        self.assertEqual(doc_hit["retrieval_policy"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
 
     def test_retrieval_service_normalizes_pageindex_excerpt_payloads(self) -> None:
         query_result = self.service._docindex.query(

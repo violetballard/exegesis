@@ -79,7 +79,7 @@ class RetrievalHit:
     provenance: dict[str, object]
 
     def as_dict(self) -> dict[str, object]:
-        return {
+        payload = {
             "doc_id": self.doc_id,
             "excerpt_id": self.excerpt_id,
             "excerpt_text": self.excerpt_text,
@@ -91,6 +91,16 @@ class RetrievalHit:
             "node_path": [dict(node) for node in self.node_path] if self.node_path is not None else None,
             "provenance": dict(self.provenance),
         }
+        retrieval_backend = self.provenance.get("retrieval_backend")
+        if isinstance(retrieval_backend, str) and retrieval_backend:
+            payload["retrieval_backend"] = retrieval_backend
+        retrieval_mode = self.provenance.get("retrieval_mode")
+        if isinstance(retrieval_mode, str) and retrieval_mode:
+            payload["retrieval_mode"] = retrieval_mode
+        retrieval_policy = self.provenance.get("retrieval_policy")
+        if isinstance(retrieval_policy, dict):
+            payload["retrieval_policy"] = dict(retrieval_policy)
+        return payload
 
 
 @dataclass(frozen=True)
@@ -105,7 +115,7 @@ class RetrievalDocHit:
     provenance: dict[str, object]
 
     def as_dict(self) -> dict[str, object]:
-        return {
+        payload = {
             "doc_id": self.doc_id,
             "title_hint": self.title_hint,
             "source_hash": self.source_hash,
@@ -115,6 +125,16 @@ class RetrievalDocHit:
             "excerpt_count": self.excerpt_count,
             "provenance": dict(self.provenance),
         }
+        retrieval_backend = self.provenance.get("retrieval_backend")
+        if isinstance(retrieval_backend, str) and retrieval_backend:
+            payload["retrieval_backend"] = retrieval_backend
+        retrieval_mode = self.provenance.get("retrieval_mode")
+        if isinstance(retrieval_mode, str) and retrieval_mode:
+            payload["retrieval_mode"] = retrieval_mode
+        retrieval_policy = self.provenance.get("retrieval_policy")
+        if isinstance(retrieval_policy, dict):
+            payload["retrieval_policy"] = dict(retrieval_policy)
+        return payload
 
 
 @dataclass(frozen=True)
@@ -573,6 +593,9 @@ class RetrievalService:
                         "top_match_count": top_hit.provenance.get("match_count"),
                         "top_excerpt_rank": top_hit.provenance.get("rank"),
                         "top_fts_rank": top_hit.provenance.get("fts_rank"),
+                        "retrieval_backend": top_hit.provenance.get(
+                            "retrieval_backend", self._retrieval_policy.retrieval_backend
+                        ),
                         "retrieval_policy": self._retrieval_policy.as_snapshot(),
                         "doc_rank": doc_rank,
                         "doc_identity_fingerprint": doc_identity_fingerprint,
@@ -1096,6 +1119,13 @@ class RetrievalService:
                 retrieval_mode = self._retrieval_policy.retrieval_mode
         if isinstance(retrieval_mode, str) and retrieval_mode:
             normalized["retrieval_mode"] = retrieval_mode
+        retrieval_policy = normalized.get("retrieval_policy")
+        if not isinstance(retrieval_policy, dict):
+            provenance_policy = provenance.get("retrieval_policy")
+            if isinstance(provenance_policy, dict):
+                retrieval_policy = provenance_policy
+        if isinstance(retrieval_policy, dict):
+            normalized["retrieval_policy"] = dict(retrieval_policy)
         excerpt_fingerprint = normalized.get("excerpt_fingerprint")
         if not isinstance(excerpt_fingerprint, str) or not excerpt_fingerprint:
             provenance_excerpt_fingerprint = provenance.get("excerpt_fingerprint")
