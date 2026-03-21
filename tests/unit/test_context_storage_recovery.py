@@ -1080,6 +1080,54 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("project_name"), "p3-missing-lock-quarantine")
         self.assertTrue(payload.get("is_locked"))
 
+    def test_missing_project_name_metadata_recovers_from_backup_before_safe_rewrite(self) -> None:
+        state = self.svc.create_or_open(self.root, "p3-missing-project")
+        state_path = state.root_dir / ".vault_state.json"
+        backup_path = state.root_dir / ".vault_state.bak.json"
+        state_path.write_text(
+            json.dumps({"schema_version": 1, "is_locked": False}),
+            encoding="utf-8",
+        )
+        backup_path.write_text(
+            json.dumps({"schema_version": 1, "project_name": "p3-missing-project", "is_locked": False}),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p3-missing-project")
+
+        self.assertFalse(reopened.is_locked)
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p3-missing-project")
+        self.assertFalse(payload.get("is_locked"))
+        self.assertEqual(payload.get("recovered_from"), "backup")
+
+    def test_missing_is_locked_metadata_recovers_from_backup_before_safe_rewrite(self) -> None:
+        state = self.svc.create_or_open(self.root, "p3-missing-lock-backup")
+        state_path = state.root_dir / ".vault_state.json"
+        backup_path = state.root_dir / ".vault_state.bak.json"
+        state_path.write_text(
+            json.dumps({"schema_version": 1, "project_name": "p3-missing-lock-backup"}),
+            encoding="utf-8",
+        )
+        backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "p3-missing-lock-backup",
+                    "is_locked": False,
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p3-missing-lock-backup")
+
+        self.assertFalse(reopened.is_locked)
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p3-missing-lock-backup")
+        self.assertFalse(payload.get("is_locked"))
+        self.assertEqual(payload.get("recovered_from"), "backup")
+
     def test_explicit_legacy_schema_version_zero_is_salvaged_and_rewritten(self) -> None:
         state = self.svc.create_or_open(self.root, "p3-legacy")
         state_path = state.root_dir / ".vault_state.json"

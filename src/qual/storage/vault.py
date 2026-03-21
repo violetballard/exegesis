@@ -29,7 +29,7 @@ class VaultService:
         project_root = root_dir / safe_project_name
         project_root.mkdir(parents=True, exist_ok=True)
         (project_root / "attachments").mkdir(exist_ok=True)
-        raw_state, recovered_source, primary_unavailable = self._read_state(project_root)
+        raw_state, recovered_source, primary_unavailable = self._read_state(project_root, safe_project_name)
         state_path = self._state_path(project_root)
         raw_project_name = raw_state.get("project_name") if "project_name" in raw_state else None
         normalized_project_name = (
@@ -145,7 +145,11 @@ class VaultService:
     def _corrupt_state_path(self, root_dir: Path) -> Path:
         return self._state_path(root_dir).with_suffix(".corrupt.json")
 
-    def _read_state(self, root_dir: Path) -> tuple[dict[str, object], str | None, bool]:
+    def _read_state(
+        self,
+        root_dir: Path,
+        expected_project_name: str,
+    ) -> tuple[dict[str, object], str | None, bool]:
         state_path = self._state_path(root_dir)
         primary_missing = not state_path.exists()
         primary_payload = self._load_payload(state_path)
@@ -157,12 +161,29 @@ class VaultService:
 
         payload: dict[str, object] | None
         recovered_source: str | None
-        if primary_payload is not None:
+        primary_needs_recovery = (
+            primary_payload is not None
+            and self._primary_state_needs_recovery(primary_payload, expected_project_name)
+        )
+        if primary_payload is not None and not primary_needs_recovery:
             payload = primary_payload
             recovered_source = None
             self._clear_quarantine_state(root_dir)
             self._clear_temporary_state(root_dir)
             self._clear_seed_state(root_dir)
+        elif primary_needs_recovery:
+            self._quarantine_invalid_state(root_dir)
+            payload, recovered_source = self._prefer_recovery_payload(
+                tmp_payload,
+                backup_tmp_payload,
+                backup_payload,
+                seed_tmp_payload,
+                seed_payload,
+                expected_project_name,
+            )
+            if payload is None:
+                payload = primary_payload
+                recovered_source = None
         elif tmp_payload is not None:
             payload = tmp_payload
             recovered_source = "tmp"
@@ -184,7 +205,10 @@ class VaultService:
             return {}, None, primary_payload is None
         if not isinstance(payload, dict):
             return {}, None, primary_payload is None
-        return payload, recovered_source, primary_payload is None
+        primary_unavailable = primary_payload is None
+        if primary_needs_recovery and recovered_source is not None:
+            primary_unavailable = True
+        return payload, recovered_source, primary_unavailable
 
     def _write_state(self, state: VaultState, recovered_from: str | None = None) -> None:
         state.root_dir.mkdir(parents=True, exist_ok=True)
@@ -365,6 +389,45 @@ class VaultService:
         if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
             return False
         return True
+
+    def _primary_state_needs_recovery(self, payload: dict[str, object], expected_project_name: str) -> bool:
+        if "project_name" not in payload or "is_locked" not in payload:
+            return True
+        project_name = self._parse_project_name(payload.get("project_name"))
+        if project_name is None or project_name != expected_project_name:
+            return True
+        return self._parse_is_locked(payload.get("is_locked")) is None
+
+    def _is_recoverable_state(self, payload: object, expected_project_name: str) -> bool:
+        if not isinstance(payload, dict):
+            return False
+        project_name = self._parse_project_name(payload.get("project_name"))
+        if project_name is None or project_name != expected_project_name:
+            return False
+        return self._parse_is_locked(payload.get("is_locked")) is not None
+
+    def _prefer_recovery_payload(
+        self,
+        tmp_payload: dict[str, object] | None,
+        backup_tmp_payload: dict[str, object] | None,
+        backup_payload: dict[str, object] | None,
+        seed_tmp_payload: dict[str, object] | None,
+        seed_payload: dict[str, object] | None,
+        expected_project_name: str,
+    ) -> tuple[dict[str, object] | None, str | None]:
+        for candidate, recovered_source in (
+            (tmp_payload, "tmp"),
+            (backup_tmp_payload, "backup_tmp"),
+            (backup_payload, "backup"),
+            (seed_tmp_payload, "seed_tmp"),
+            (seed_payload, "seed"),
+        ):
+            if candidate is None:
+                continue
+            if not self._is_recoverable_state(candidate, expected_project_name):
+                continue
+            return candidate, recovered_source
+        return None, None
 
     def _unlink_if_exists(self, path: Path) -> None:
         try:
