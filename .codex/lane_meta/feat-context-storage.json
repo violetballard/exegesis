@@ -1,5 +1,5 @@
 {
-  "scope_goal": "Resubmit the actual context-storage recovery implementation and its regression coverage instead of a packet-only handoff.",
+  "scope_goal": "Reissue a commit-accurate handoff for the actual context-storage recovery change with regression coverage.",
   "tasks_completed": [
     "Restored empty-recovery handling in src/qual/context/store.py.",
     "Restored empty-recovery handling in src/qual/context/set_store.py.",
@@ -20,6 +20,6 @@
     ".codex/lane_meta/feat-context-storage.json",
     "THREAD_PACKET.md"
   ],
-  "kickoff_budget_note": "Handoff metadata aligned to the code-bearing context-storage recovery fix in src/qual/context/store.py, src/qual/context/set_store.py, and tests/unit/test_context_storage_recovery_lane.py.",
+  "kickoff_budget_note": "Handoff metadata aligned to the reviewed artifact 155dd1a0f4bce0f27c184b52740ce7f1be048e53 and its actual file list.",
   "approved_exception_note": ""
 }
