@@ -1,23 +1,27 @@
 {
   "approved_exception_note": "",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 1 reviewed handoff file, no shared or integrator-locked edits, and required local gates rerun before handoff.",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, retrieval-owned code files plus handoff artifacts, no shared or integrator-locked edits, and required local gates rerun before handoff.",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Handoff packet scope accuracy: keep the reviewed commit description aligned with git history.",
-    "Metadata consistency for docs-only commits: keep packet, kickoff metadata, and lane metadata in sync."
+    "Milestone 4: Retrieval Layer -> FTS-first ingestion/index path for context/vault documents",
+    "Milestone 4: Retrieval Layer -> Retrieval orchestration data needed before drafting/diff generation",
+    "Milestone 4: Retrieval Layer -> Source-attribution model for retrieved chunks",
+    "Milestone 2: Test Hardening -> Add focused unit coverage for core behaviors"
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The reviewed commit `9339a5d3160ac1caca4a7ab32cac1881b6b894b1` only updates `THREAD_PACKET.md`; this is handoff metadata work, not retrieval source-code work.",
-  "scope_goal": "Tighten the handoff packet so it matches commit `9339a5d3160ac1caca4a7ab32cac1881b6b894b1` exactly.",
+  "scope_completed": "The retrieval FTS MVP work stays in retrieval-owned code paths, while the packet now lists handoff artifacts separately so the ownership boundary is explicit. `section:` queries remain rejected as a compatibility safeguard until PageIndex can resolve concrete section targets.",
+  "scope_goal": "Apply the reviewer-required packet fixes for the retrieval FTS MVP handoff by separating feature code files from handoff artifacts and documenting the `section:` compatibility boundary.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Reconciled the packet with commit `9339a5d3160ac1caca4a7ab32cac1881b6b894b1`, confirming the reviewed diff changes only the packet artifact.",
-    "Removed implementation-file references from the metadata because they are not part of the reviewed commit.",
-    "Added an explicit `scope_completed` field and tightened the packet wording to stay committed to docs-only handoff scope."
+    "Split the packet's file listing into feature code files and handoff artifacts so the ownership boundary is explicit.",
+    "Added an explicit compatibility note for `section:` rejection so the packet does not imply a broader retrieval-contract change.",
+    "Kept the lane metadata aligned with the packet wording and the retrieval MVP scope."
   ],
   "vision_capabilities": [
-    "Handoff packet scope accuracy",
-    "Metadata consistency for docs-only commits"
-  ]
+    "2. Retrieval-first context handling",
+    "3. Auditable generation",
+    "4. Operator-first control surface"
+  ],
+  "compatibility_note": "section scope rejection is a compatibility guard until PageIndex can resolve concrete section targets."
 }
