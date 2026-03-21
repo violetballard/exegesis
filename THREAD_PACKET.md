@@ -46,7 +46,7 @@
 
 - Scope-check / ownership note:
   - Shared/integrator-locked edits: NO.
-  - No shared or integrator-locked files are part of the reviewed commit.
+  - No shared or integrator-locked files are part of the reviewed diff.
   - Ownership is lane-clean for `src/qual/context/**`.
   - No explicit approval is required because no shared files are part of the reviewed commit.
 
