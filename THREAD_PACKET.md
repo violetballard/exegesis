@@ -2,32 +2,32 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Reviewed commit: `5cfdb205c78540d423fd2939f86218a361104533`
-- Branch head note: the reviewed commit wires a command catalog entry resolver and exports it from the commands package.
+- Reviewed commit: `4fe5bfad2b1fccdc5650d85494602987c4020b52`
+- Branch head note: the reviewed commit normalizes unknown canonical command names in the command catalog.
 
 ## Scope goal
-- Document the actual reviewed delta accurately: commit `5cfdb205c78540d423fd2939f86218a361104533` wires a single-command catalog resolver into the command package and does not change diff-preview behavior.
+- Document the actual reviewed delta accurately: commit `4fe5bfad2b1fccdc5650d85494602987c4020b52` changes `canonical_command()` so unknown canonical inputs normalize to the stripped normalized token instead of echoing the raw input back.
 
 ## Lane/owned paths
 - `THREAD_PACKET.md`
 
 ## Scope completed
-- Added `command_catalog_entry()` in `src/qual/commands/catalog.py` so callers can resolve a single catalog entry by name.
-- Exported `command_catalog_entry` from `src/qual/commands/__init__.py` for package-level access.
-- Kept the change limited to command discovery/lookup plumbing; this commit does not touch `src/qual/commands/diff_preview.py` or `tests/unit/test_diff_preview.py`.
+- Updated `canonical_command()` in `src/qual/commands/catalog.py` so unknown canonical names now return the normalized token when no catalog spec matches.
+- Kept the change limited to command-layer canonicalization behavior in `src/qual/commands/catalog.py`.
+- This commit does not touch `src/qual/commands/diff_preview.py`, `tests/unit/test_diff_preview.py`, or any packet-related files.
 
 ## Kickoff budget/limits compliance
-- Treated this as a small command-layer feature thread within lane-owned paths.
-- The reviewed commit delta contains two files: `src/qual/commands/__init__.py` and `src/qual/commands/catalog.py`.
+- Treated this as a small command-layer hardening thread within lane-owned paths.
+- The reviewed commit delta contains one file: `src/qual/commands/catalog.py`.
 
 ## Tasks completed (numbered)
-1. Confirmed the reviewed delta is the command catalog resolver wiring in `src/qual/commands/catalog.py` and `src/qual/commands/__init__.py`.
-2. Rewrote the handoff packet so the scope, files changed, and completion notes match the actual command-layer commit.
-3. Re-mapped the change to the command-layer milestone in `ROADMAP.md` and the operator-first control surface in `PRODUCT_VISION.md`.
-4. Ran the required local gates against the final packet state.
+1. Confirmed the reviewed delta is the `canonical_command()` normalization change in `src/qual/commands/catalog.py`.
+2. Rewrote the handoff packet so the scope, completion notes, and file list match the actual branch state.
+3. Re-mapped the change to command-layer hardening in `ROADMAP.md` Milestone 1 and the CLI/operator control surface in `PRODUCT_VISION.md`.
+4. Verified the packet does not claim changes to `src/qual/commands/diff_preview.py`, `tests/unit/test_diff_preview.py`, or `THREAD_PACKET.md` beyond this metadata update.
+5. Ran the required local gates against the final packet state.
 
 ## Files changed for reviewed commit
-- `src/qual/commands/__init__.py`
 - `src/qual/commands/catalog.py`
 
 ## Commands run and outcomes
@@ -42,20 +42,20 @@
 ## Risks / blockers
 - Risk: `LOW`
 - Blockers: none
-- Note: this change only adds command catalog lookup plumbing; it does not alter routing/provider behavior or command contract payloads.
+- Note: this change only adjusts unknown-name canonicalization; it does not alter routing/provider behavior or command contract payloads.
 
 ## Required handoff fields
 ### Roadmap item(s) affected
 - Milestone 1: Bootstrap Flow Stabilization. The change sits in the command-layer hardening portion of the milestone.
 
 ### Vision capability affected
-- Operator-first control surface. The resolver improves CLI-side command discovery and package-level command catalog access.
+- Operator-first control surface. The canonicalization change improves CLI-side command handling and operator-facing command resolution.
 
 ### Routing/provider impact note
 - None. This change only affects command catalog discovery and lookup, not provider routing or model configuration.
 
 ### Command behavior note
-- This affects CLI command discovery/lookup only. It does not change command contract behavior, diff-preview output, or command execution semantics.
+- This affects CLI command normalization only. It does not change command contract behavior, diff-preview output, or command execution semantics.
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `NO`
