@@ -59,7 +59,7 @@ class VaultService:
         if "recovered_from" in raw_state:
             if normalized_recovered_from is None:
                 needs_rewrite = True
-            elif primary_unavailable:
+            elif primary_unavailable or not has_is_locked:
                 if raw_state.get("recovered_from") != normalized_recovered_from:
                     needs_rewrite = True
             else:
@@ -160,13 +160,13 @@ class VaultService:
             recovered_source = "tmp"
         elif backup_tmp_payload is not None:
             payload = backup_tmp_payload
-            recovered_source = "backup"
+            recovered_source = "backup_tmp"
         elif backup_payload is not None:
             payload = backup_payload
             recovered_source = "backup"
         elif seed_tmp_payload is not None:
             payload = seed_tmp_payload
-            recovered_source = "seed"
+            recovered_source = "seed_tmp"
         elif seed_payload is not None:
             payload = seed_payload
             recovered_source = "seed"
@@ -414,6 +414,10 @@ class VaultService:
         normalized = value.strip().lower()
         if normalized in {"tmp", "backup", "seed"}:
             return normalized
+        if normalized == "backup_tmp":
+            return "backup"
+        if normalized == "seed_tmp":
+            return "seed"
         return None
 
     def _recovery_marker(self, *, primary_unavailable: bool, recovered_source: str | None) -> str | None:

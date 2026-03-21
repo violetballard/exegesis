@@ -122,7 +122,7 @@ class ContextBasketStore:
                 normalized_recovered_from = self._parse_recovered_from(payload.get("recovered_from"))
                 if normalized_recovered_from is None:
                     should_rewrite = True
-                elif primary_missing:
+                elif primary_missing or primary_missing_item_ids:
                     if payload.get("recovered_from") != normalized_recovered_from:
                         should_rewrite = True
                 else:
@@ -434,6 +434,10 @@ class ContextBasketStore:
         normalized = value.strip().lower()
         if normalized in {"tmp", "backup", "seed"}:
             return normalized
+        if normalized == "backup_tmp":
+            return "backup"
+        if normalized == "seed_tmp":
+            return "seed"
         return None
 
     def _parse_updated_at(self, value: object) -> str | None:
