@@ -84,13 +84,16 @@ class ContextBasketStore:
             if "item_ids" not in payload:
                 self._discard_payload_source(recovered_source)
                 return ContextBasket()
-            parsed_items = self._parse_item_ids(payload.get("item_ids"))
+            raw_item_ids = payload.get("item_ids")
+            parsed_items = self._parse_item_ids(raw_item_ids)
             if parsed_items is None:
                 self._discard_payload_source(recovered_source)
                 return ContextBasket()
             normalized_items = self._normalize_item_ids(parsed_items)
             basket = ContextBasket(item_ids=normalized_items)
             should_rewrite = schema_version != _SCHEMA_VERSION or normalized_items != parsed_items
+            if self._has_dropped_item_ids(raw_item_ids):
+                should_rewrite = True
             if self._has_unknown_fields(payload):
                 should_rewrite = True
             if "updated_at" not in payload:
@@ -403,10 +406,13 @@ class ContextBasketStore:
             return True
         if "item_ids" not in payload:
             return True
-        parsed_items = self._parse_item_ids(payload.get("item_ids"))
+        raw_item_ids = payload.get("item_ids")
+        parsed_items = self._parse_item_ids(raw_item_ids)
         if parsed_items is None:
             return True
         if parsed_items != self._normalize_item_ids(parsed_items):
+            return True
+        if self._has_dropped_item_ids(raw_item_ids):
             return True
         if self._has_unknown_fields(payload):
             return True
@@ -425,6 +431,11 @@ class ContextBasketStore:
 
     def _has_unknown_fields(self, payload: dict[str, object]) -> bool:
         return any(key not in _CANONICAL_DICT_KEYS for key in payload)
+
+    def _has_dropped_item_ids(self, item_ids: object) -> bool:
+        if not isinstance(item_ids, list):
+            return True
+        return any(not self._normalize_item_id(item_id) for item_id in item_ids)
 
     def _recovery_marker(self, *, primary_missing: bool, recovered_source: str | None) -> str | None:
         if not primary_missing:

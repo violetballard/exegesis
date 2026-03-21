@@ -120,6 +120,27 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("item_ids"), ["keep", "7", "2.5", "second"])
         self.assertEqual(payload.get("schema_version"), 1)
 
+    def test_invalid_item_id_entries_force_primary_rewrite_even_when_remaining_ids_match(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "item_ids": ["first", None],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["first"])
+        self.assertEqual(payload.get("schema_version"), 1)
+        self.assertNotEqual(payload.get("updated_at"), "2026-03-20T12:00:00+00:00")
+
     def test_valid_primary_wins_over_stale_tmp_payload(self) -> None:
         self.store.save(ContextBasket(item_ids=["primary"]))
         self.store._tmp_path().write_text(
@@ -288,6 +309,32 @@ class ContextStoreRecoveryTests(unittest.TestCase):
                     "schema_version": 1,
                     "updated_at": "2026-03-20T12:00:00+00:00",
                     "item_ids": ["first", " first ", "first"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first"])
+        primary_payload_after = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload_after.get("updated_at"), primary_payload_before.get("updated_at"))
+        self.assertEqual(primary_payload_after.get("item_ids"), ["first"])
+        self.assertEqual(backup_payload.get("item_ids"), ["first"])
+        self.assertEqual(backup_payload.get("schema_version"), 1)
+        self.assertEqual(backup_payload.get("updated_at"), primary_payload_after.get("updated_at"))
+        self.assertNotIn("recovered_from", backup_payload)
+
+    def test_primary_load_refreshes_invalid_backup_item_ids_without_rewriting_primary(self) -> None:
+        self.store.save(ContextBasket(item_ids=["first"]))
+        primary_payload_before = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "item_ids": ["first", None],
                 }
             ),
             encoding="utf-8",
