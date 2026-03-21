@@ -140,6 +140,13 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
             },
         )
 
+    def test_json_no_diff_both_empty_reflects_summary_only_env(self) -> None:
+        with _env(**{OUTPUT_FORMAT_ENV: "json", SUMMARY_ONLY_ENV: "1"}):
+            payload = json.loads(run_diff_preview(DiffPreviewInput("", "")))
+        self.assertEqual(payload["status"], "no_diff")
+        self.assertTrue(payload["summary_only"])
+        self.assertEqual(payload["message"], "No diff: both inputs are empty.")
+
     def test_json_no_diff_summary_only_reflects_env(self) -> None:
         with _env(**{OUTPUT_FORMAT_ENV: "json", SUMMARY_ONLY_ENV: "1"}):
             payload = json.loads(run_diff_preview(DiffPreviewInput("same\n", "same\n")))
