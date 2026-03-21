@@ -1280,6 +1280,24 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn('- Export (export_document; payload: {"format":"md"})', text)
         self.assertIn('- Export (export_document; payload: {"format":"txt"})', text)
 
+    def test_terminal_renderer_preserves_supported_action_order(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+                "actions": [
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p2"}},
+                    {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "payload"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p2"}},
+                ],
+            }
+        )
+
+        self.assertLess(text.index("- Reject (reject_patch)"), text.index("- Copy (copy_to_clipboard)"))
+        self.assertLess(text.index("- Copy (copy_to_clipboard)"), text.index("- Apply (apply_patch)"))
+
     def test_terminal_renderer_shows_payloads_for_duplicate_action_labels(self) -> None:
         text = render_terminal_card(
             {

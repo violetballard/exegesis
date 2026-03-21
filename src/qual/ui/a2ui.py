@@ -1289,8 +1289,6 @@ def _canonicalize_supported_action_list(
             continue
         seen.add(action_key)
         filtered.append(normalized)
-
-    filtered.sort(key=_canonical_json)
     return filtered
 
 
