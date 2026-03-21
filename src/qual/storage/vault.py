@@ -37,7 +37,9 @@ class VaultService:
         )
         if state_path.exists() and (
             "is_locked" not in raw_state
+            or "project_name" not in raw_state
             or (raw_project_name is not None and normalized_project_name is None)
+            or not self._is_supported_payload(raw_state)
         ):
             self._quarantine_invalid_state(project_root)
         has_is_locked = "is_locked" in raw_state

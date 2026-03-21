@@ -45,10 +45,14 @@ class ContextBasketStore:
         seed_payload, _ = self._load_payload(self._seed_state_path())
         primary_missing_item_ids = isinstance(primary_payload, dict) and "item_ids" not in primary_payload
         primary_item_ids_need_recovery = self._primary_item_ids_need_recovery(primary_payload)
+        primary_needs_quarantine = primary_item_ids_need_recovery or (
+            isinstance(primary_payload, dict)
+            and (primary_missing_item_ids or not self._is_supported_payload(primary_payload))
+        )
 
         payload: dict[str, object] | list[object] | None
         recovered_source: str | None
-        if isinstance(primary_payload, dict) and "item_ids" not in primary_payload:
+        if primary_needs_quarantine:
             self._quarantine_invalid_file()
         if primary_missing_item_ids or primary_item_ids_need_recovery:
             payload, recovered_source = self._prefer_recovery_payload(
