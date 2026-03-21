@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import json
 import tempfile
 import unittest
@@ -35,6 +36,11 @@ class ContextStoreRecoveryTests(unittest.TestCase):
 
         self.assertEqual(basket.item_ids, ["2.5"])
 
+    def test_context_basket_drops_non_finite_numeric_item_ids(self) -> None:
+        basket = ContextBasket(item_ids=[" keep ", math.nan, math.inf, -math.inf, 7])
+
+        self.assertEqual(basket.item_ids, ["keep", "7"])
+
     def test_numeric_item_ids_survive_store_round_trip(self) -> None:
         basket = ContextBasket(item_ids=[" keep ", 7, 2.5, False, None, "7"])
 
@@ -44,6 +50,26 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(loaded.item_ids, ["keep", "7", "2.5"])
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("item_ids"), ["keep", "7", "2.5"])
+
+    def test_non_finite_numeric_item_ids_are_dropped_and_rewritten_on_load(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "item_ids": [" keep ", math.nan, math.inf, -math.inf, 7],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["keep", "7"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["keep", "7"])
+        self.assertEqual(payload.get("schema_version"), 1)
 
     def test_clear_removes_primary_backup_and_corrupt(self) -> None:
         self.store.save(ContextBasket(item_ids=["a"]))

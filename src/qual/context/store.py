@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -380,7 +381,11 @@ class ContextBasketStore:
             return item_id.strip()
         if isinstance(item_id, bool):
             return ""
-        if isinstance(item_id, (int, float)):
+        if isinstance(item_id, int):
+            return str(item_id).strip()
+        if isinstance(item_id, float):
+            if not math.isfinite(item_id):
+                return ""
             return str(item_id).strip()
         return ""
 

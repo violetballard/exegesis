@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 
 
@@ -15,7 +16,11 @@ class ContextBasket:
         if not isinstance(item_id, str):
             if isinstance(item_id, bool):
                 return ""
-            if isinstance(item_id, (int, float)):
+            if isinstance(item_id, int):
+                return str(item_id).strip()
+            if isinstance(item_id, float):
+                if not math.isfinite(item_id):
+                    return ""
                 return str(item_id).strip()
             return ""
         return item_id.strip()
