@@ -95,6 +95,7 @@ class VaultService:
         if primary_payload is not None:
             payload = primary_payload
             recovered_source = None
+            self._clear_quarantine_state(root_dir)
             self._clear_temporary_state(root_dir)
         elif tmp_payload is not None:
             payload = tmp_payload
