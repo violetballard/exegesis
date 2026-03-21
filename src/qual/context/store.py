@@ -79,18 +79,19 @@ class ContextBasketStore:
         elif isinstance(payload, dict):
             schema_version = self._parse_schema_version(payload)
             if "item_ids" not in payload:
-                self._discard_payload_source(recovered_source)
-                return ContextBasket()
-            raw_item_ids = payload.get("item_ids")
-            parsed_items = self._parse_item_ids(raw_item_ids)
-            if parsed_items is None:
-                self._discard_payload_source(recovered_source)
-                return ContextBasket()
-            normalized_items = self._normalize_item_ids(parsed_items)
-            basket = ContextBasket(item_ids=normalized_items)
-            should_rewrite = schema_version != _SCHEMA_VERSION or normalized_items != parsed_items
-            if self._has_dropped_item_ids(raw_item_ids):
+                basket = ContextBasket()
                 should_rewrite = True
+            else:
+                raw_item_ids = payload.get("item_ids")
+                parsed_items = self._parse_item_ids(raw_item_ids)
+                if parsed_items is None:
+                    self._discard_payload_source(recovered_source)
+                    return ContextBasket()
+                normalized_items = self._normalize_item_ids(parsed_items)
+                basket = ContextBasket(item_ids=normalized_items)
+                should_rewrite = schema_version != _SCHEMA_VERSION or normalized_items != parsed_items
+                if self._has_dropped_item_ids(raw_item_ids):
+                    should_rewrite = True
             if self._has_unknown_fields(payload):
                 should_rewrite = True
             if "updated_at" not in payload:
@@ -355,9 +356,7 @@ class ContextBasketStore:
             return self._parse_item_ids(payload) is not None
         if not isinstance(payload, dict):
             return False
-        if "item_ids" not in payload:
-            return False
-        if self._parse_item_ids(payload.get("item_ids")) is None:
+        if "item_ids" in payload and self._parse_item_ids(payload.get("item_ids")) is None:
             return False
         return True
 
