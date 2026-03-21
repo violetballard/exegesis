@@ -2,12 +2,12 @@
 
 - Branch: `codex/feat-a2ui-contract`
 - Lane/owned paths: `src/qual/ui/**`
-- Scope goal: Keep the `Milestone 5: A2UI Presentation Layer` contract typed and allowlisted, preserve CLI fallback on the same contract, and align the lane with the capabilities handshake surface for future `Exegesis Console` consumption.
+- Scope goal: Harden the `Milestone 5: A2UI Presentation Layer` contract in `src/qual/ui/a2ui.py` by enforcing canonical, duplicate-free capability allowlists for cards and actions while keeping the existing A2UI fallback behavior stable for future `Exegesis Console` consumption.
 
 ### Priority outcomes
-1. Keep card/action schemas deterministic and versionable.
-2. Keep CLI fallback rendering reliable on the same contract as structured A2UI payloads.
-3. Enforce safe unknown-card and typed/allowlisted action behavior.
+1. Keep card and action allowlists canonical and duplicate-free at the handshake boundary.
+2. Keep the A2UI fallback path stable while capability validation tightens.
+3. Keep contract tests aligned with the validation rules in `src/qual/ui/a2ui.py`.
 
 ### Guardrails
 - No dedicated web client work.
