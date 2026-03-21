@@ -2,7 +2,7 @@
   "approved_exception_note": "",
   "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 4 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff.",
   "implementation_commit": "36893f06df85409c4595d64adb8af60455c086a6",
-  "cleanup_commit": "",
+  "cleanup_commit": "453e8664dadcee989a2579a97179e87db04b1607",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
@@ -25,7 +25,8 @@
     "Routed retrieve_auto() through the canonical retrieval-service FTS-first payload path.",
     "Exposed retrieve_auto_payload() and primary_strategy_id() through the engine retrieval surface.",
     "Added focused unit coverage for canonical payload parity and package-export behavior.",
-    "Rewrote the handoff metadata so the reviewed code files and handoff-only artifacts are separated explicitly."
+    "Rewrote the handoff metadata so the reviewed code files and handoff-only artifacts are separated explicitly.",
+    "Added an explicit cleanup-commit pointer so the docs-only follow-up is not confused with the reviewed implementation commit."
   ],
   "vision_capabilities": [
     "2. Retrieval-first context handling",

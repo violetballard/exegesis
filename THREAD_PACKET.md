@@ -2,6 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Reviewed implementation commit: `36893f06df85409c4595d64adb8af60455c086a6`
+- Cleanup / handoff alignment commit: `453e8664dadcee989a2579a97179e87db04b1607`
 - Reviewed commit type: Canonical auto payload plumbing for the FTS-first MVP.
 
 ## Scope Goal
@@ -11,6 +12,14 @@ Expose the canonical auto retrieval payload inside retrieval-owned paths while p
 ## Scope Completed
 
 The reviewed implementation routes `retrieve_auto()` through the retrieval service's canonical FTS-first payload path, exposes `retrieve_auto_payload()` for downstream consumers, re-exports `primary_strategy_id` from the engine retrieval package, and adds focused unit coverage for payload parity and package-export behavior. PageIndex and embeddings remain deferred and are not required MVP paths.
+
+## Code-Diff Evidence
+
+- `src/qual/engine/retrieval/__init__.py`: re-exports the retrieval package entrypoints used by downstream engine consumers.
+- `src/qual/engine/tools/retrieval_tools.py`: routes auto retrieval through the canonical retrieval-service payload path.
+- `src/qual/retrieval/service.py`: provides the FTS-first payload implementation and deterministic downstream payload shaping.
+- `tests/unit/test_unified_retrieval.py`: covers payload parity, export behavior, and downstream-facing retrieval results.
+- No `pageindex_strategy.py` or `embeddings_strategy.py` files are part of the reviewed handoff surface; those paths remain deferred and are not required MVP paths.
 
 ### Related implementation files
 
@@ -28,6 +37,7 @@ The reviewed implementation routes `retrieve_auto()` through the retrieval servi
   2. Exposed `retrieve_auto_payload()` and `primary_strategy_id()` through the engine retrieval surface.
   3. Added focused unit coverage for canonical payload parity and package-export behavior.
   4. Rewrote the handoff packet metadata so the reviewed code files and handoff-only artifacts are separated explicitly.
+  5. Added an explicit cleanup-commit pointer so the docs-only follow-up is not confused with the reviewed implementation commit.
 - Files changed:
   - Reviewed implementation code:
     - `src/qual/engine/retrieval/__init__.py`
@@ -38,6 +48,9 @@ The reviewed implementation routes `retrieve_auto()` through the retrieval servi
     - `.codex/kickoff_packets/feat-retrieval-fts.md`
     - `.codex/lane_meta/feat-retrieval-fts.json`
     - `THREAD_PACKET.md`
+  - Commit split:
+    - implementation: `36893f06df85409c4595d64adb8af60455c086a6`
+    - cleanup: `453e8664dadcee989a2579a97179e87db04b1607`
 - Commands run with results:
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
