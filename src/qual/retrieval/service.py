@@ -333,16 +333,13 @@ class RetrievalService:
     def _candidate_docs_from_scope(self, scope: str, *, fallback: tuple[str, ...]) -> tuple[str, ...]:
         if scope.startswith("doc:"):
             return (scope.split(":", 1)[1],)
-        if scope.startswith("section:"):
-            # section->doc resolution is deferred; use shortlist fallback now.
-            return fallback
         if scope.startswith("collection:"):
             return fallback
         return fallback
 
     @staticmethod
     def _is_doc_scoped(scope: str) -> bool:
-        return scope.startswith("doc:") or scope.startswith("section:")
+        return scope.startswith("doc:")
 
     @staticmethod
     def _doc_scope_id(scope: str) -> str | None:
@@ -500,9 +497,9 @@ class RetrievalService:
     def _validate_query(self, query: RetrievalQuery) -> None:
         if not query.query_text.strip():
             raise ValueError("query_text is required")
-        if query.scope not in {"vault"} and not any(
-            query.scope.startswith(prefix) for prefix in ("collection:", "doc:", "section:")
-        ):
+        if query.scope.startswith("section:"):
+            raise ValueError("section scope is unsupported until PageIndex resolves section targets")
+        if query.scope not in {"vault"} and not any(query.scope.startswith(prefix) for prefix in ("collection:", "doc:")):
             raise ValueError("unsupported scope")
         if query.confidentiality_profile == "confidential":
             # No network strategies are enabled in this retrieval implementation.

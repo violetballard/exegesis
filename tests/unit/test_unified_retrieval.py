@@ -88,6 +88,18 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(result.hits)
         self.assertEqual({hit.source_strategy for hit in result.hits}, {"fts"})
 
+    def test_section_scope_is_rejected_until_pageindex_can_resolve_it(self) -> None:
+        with self.assertRaisesRegex(ValueError, "section scope is unsupported"):
+            self.service.retrieve_auto(
+                RetrievalQuery(
+                    query_text="discussion theory",
+                    scope="section:discussion",
+                    intent="lookup",
+                    constraints=RetrievalConstraints(max_results=4, section_hint="discussion"),
+                    confidentiality_profile="confidential",
+                )
+            )
+
     def test_retrieve_auto_returns_stable_doc_hits_for_downstream_consumers(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
