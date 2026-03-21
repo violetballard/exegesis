@@ -482,6 +482,10 @@ def _validate_fallback_card(
     debug = card.get("debug")
     if not isinstance(debug, dict):
         raise ValueError("Fallback card debug is required")
+    extra_debug_keys = set(debug) - {"contract_version", "fallback_kind", "source_card_type"}
+    if extra_debug_keys:
+        extras = ", ".join(sorted(extra_debug_keys))
+        raise ValueError(f"Fallback card debug contains unexpected field(s): {extras}")
     contract_version = debug.get("contract_version")
     if type(contract_version) is not int or contract_version != A2UI_CONTRACT_VERSION:
         raise ValueError("Fallback card debug contract_version is invalid")
