@@ -1,11 +1,12 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
+- Reviewed commit: `5abcd521073aa743c5c81b865419ad4053565a83` (`THREAD_PACKET.md` only)
 - Scope goal: Correct the handoff packet so it matches the actual docs-only change on this branch.
-- Scope completed: Rewrote `THREAD_PACKET.md` so the packet describes the docs-only scope correction and no longer implies persistence-recovery code changed.
+- Scope completed: Rewrote `THREAD_PACKET.md` so the packet states the actual diff is only `THREAD_PACKET.md`, describes the docs-only scope correction, and no longer implies persistence-recovery code changed.
 - Tasks completed:
   1. Reframed the packet around the actual docs-only `THREAD_PACKET.md` change set.
-  2. Replaced the stale vault/set-store/basket recovery narrative with a precise description of the packet-scope correction.
+  2. Replaced the stale vault/set-store/basket recovery narrative with a precise description of the packet-scope correction and one-file diff.
   3. Updated `Files changed` to match the actual diff only.
   4. Removed the persistence-recovery claims so the handoff now matches the reviewed commit content.
 - Files changed:
