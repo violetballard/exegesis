@@ -126,7 +126,11 @@ class ContextBasketStore:
         self._write_backup()
         tmp = self._tmp_path()
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
-        tmp.replace(self._path)
+        try:
+            tmp.replace(self._path)
+        except OSError:
+            self._unlink_if_exists(tmp)
+            raise
         if refresh_backup:
             self._write_backup()
         elif not self._backup_path.exists():

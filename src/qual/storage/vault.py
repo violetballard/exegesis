@@ -120,7 +120,11 @@ class VaultService:
         self._write_backup(state.root_dir)
         tmp = self._tmp_state_path(state.root_dir)
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
-        tmp.replace(self._state_path(state.root_dir))
+        try:
+            tmp.replace(self._state_path(state.root_dir))
+        except OSError:
+            self._unlink_if_exists(tmp)
+            raise
         self._write_backup(state.root_dir)
         self._clear_quarantine_state(state.root_dir)
 

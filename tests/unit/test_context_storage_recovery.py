@@ -4,6 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from src.qual.context.basket import ContextBasket
 from src.qual.context.store import ContextBasketStore
@@ -104,6 +105,24 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("item_ids"), ["primary"])
         self.assertFalse(self.store._tmp_path().exists())
+
+    def test_save_cleans_up_tmp_when_primary_replace_fails(self) -> None:
+        self.store.save(ContextBasket(item_ids=["first"]))
+
+        original_replace = Path.replace
+
+        def failing_replace(path: Path, target: Path) -> Path:
+            if path == self.store._tmp_path() and target == self.store._path:
+                raise OSError("simulated replace failure")
+            return original_replace(path, target)
+
+        with patch.object(Path, "replace", autospec=True, side_effect=failing_replace):
+            with self.assertRaises(OSError):
+                self.store.save(ContextBasket(item_ids=["second"]))
+
+        self.assertFalse(self.store._tmp_path().exists())
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["first"])
 
     def test_legacy_list_payload_salvages_valid_entries(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
@@ -389,6 +408,27 @@ class VaultRecoveryTests(unittest.TestCase):
         payload = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertFalse(payload.get("is_locked"))
         self.assertFalse(tmp_path.exists())
+
+    def test_write_state_cleans_up_tmp_when_primary_replace_fails(self) -> None:
+        state = self.svc.create_or_open(self.root, "p2-replace")
+        state_path = state.root_dir / ".vault_state.json"
+        original_payload = json.loads(state_path.read_text(encoding="utf-8"))
+
+        original_replace = Path.replace
+
+        def failing_replace(path: Path, target: Path) -> Path:
+            if path == state_path.with_suffix(".tmp") and target == state_path:
+                raise OSError("simulated replace failure")
+            return original_replace(path, target)
+
+        with patch.object(Path, "replace", autospec=True, side_effect=failing_replace):
+            with self.assertRaises(OSError):
+                self.svc._write_state(state)
+
+        self.assertFalse(state_path.with_suffix(".tmp").exists())
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), original_payload.get("project_name"))
+        self.assertEqual(payload.get("is_locked"), original_payload.get("is_locked"))
 
     def test_project_name_mismatch_forces_locked_state(self) -> None:
         state = self.svc.create_or_open(self.root, "p3")
