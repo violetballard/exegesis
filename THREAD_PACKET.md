@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-context-storage`
 - Scope goal: Correct the handoff packet so it matches the actual docs-only change on this branch.
-- Scope completed: Rewrote `THREAD_PACKET.md` to remove the stale persistence-recovery narrative and describe the real scope correction: the handoff packet now matches the branch's actual diff.
+- Scope completed: Rewrote `THREAD_PACKET.md` so the packet describes the docs-only scope correction and no longer implies persistence-recovery code changed.
 - Tasks completed:
   1. Reframed the packet around the actual docs-only `THREAD_PACKET.md` change set.
   2. Replaced the stale vault/set-store/basket recovery narrative with a precise description of the packet-scope correction.
@@ -31,8 +31,8 @@
 - Risks/blockers:
   - None.
 - Roadmap item(s) affected:
-  - `Context storage handoff packet correction`
+  - None.
 - Vision capability affected:
-  - `Project-scoped context storage with accurate handoff metadata`
+  - None.
 - Routing/provider impact note:
   - None.
