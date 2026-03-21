@@ -1779,6 +1779,22 @@ class A2UIContractTests(unittest.TestCase):
                 max_payload_bytes=-1,
             )
 
+    def test_unknown_card_handles_zero_preview_budget(self) -> None:
+        unknown = build_unknown_card(
+            {
+                "type": "FutureCard",
+                "title": "Future",
+                "payload": {"body": "x" * 32},
+            },
+            max_payload_bytes=0,
+            supported_actions=("copy_to_clipboard",),
+        )
+
+        self.assertEqual(unknown["blocks"][-1]["code"], "")
+        self.assertEqual(unknown["actions"][0]["payload"]["text"], "")
+        self.assertEqual(len(unknown["blocks"][-1]["code"].encode("utf-8")), 0)
+        self.assertEqual(len(unknown["actions"][0]["payload"]["text"].encode("utf-8")), 0)
+
     def test_unknown_card_handles_non_json_payload_values(self) -> None:
         class _OpaqueValue:
             pass

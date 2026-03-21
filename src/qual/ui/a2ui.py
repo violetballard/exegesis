@@ -908,7 +908,7 @@ def _render_payload_preview(
     if max_payload_bytes is None or len(rendered.encode("utf-8")) <= max_payload_bytes:
         return rendered
     if max_payload_bytes <= 0:
-        return "[payload omitted: max_payload_bytes <= 0]"
+        return ""
 
     budget = max_payload_bytes
     suffix = f"\n...[truncated to {max_payload_bytes} bytes]" if pretty else f"...[truncated to {max_payload_bytes} bytes]"
