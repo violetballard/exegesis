@@ -280,8 +280,12 @@ class ContextBasketStore:
     def _discard_payload_source(self, recovered_source: str | None) -> None:
         if recovered_source == "tmp":
             self._unlink_if_exists(self._tmp_path())
+        elif recovered_source == "backup_tmp":
+            self._unlink_if_exists(self._backup_tmp_path())
         elif recovered_source == "backup":
             self._unlink_if_exists(self._backup_path)
+        elif recovered_source == "seed_tmp":
+            self._unlink_if_exists(self._seed_tmp_path())
         elif recovered_source == "seed":
             self._unlink_if_exists(self._seed_state_path())
         else:
@@ -499,6 +503,10 @@ class ContextBasketStore:
     def _recovery_marker(self, *, primary_unavailable: bool, recovered_source: str | None) -> str | None:
         if not primary_unavailable:
             return None
+        if recovered_source == "backup_tmp":
+            return "backup"
+        if recovered_source == "seed_tmp":
+            return "seed"
         return self._parse_recovered_from(recovered_source)
 
     def _prefer_recovery_payload(
@@ -511,9 +519,9 @@ class ContextBasketStore:
     ) -> tuple[dict[str, object] | list[object] | None, str | None]:
         for candidate, recovered_source in (
             (tmp_payload, "tmp"),
-            (backup_tmp_payload, "backup"),
+            (backup_tmp_payload, "backup_tmp"),
             (backup_payload, "backup"),
-            (seed_tmp_payload, "seed"),
+            (seed_tmp_payload, "seed_tmp"),
             (seed_payload, "seed"),
         ):
             if candidate is None:
