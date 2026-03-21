@@ -527,8 +527,15 @@ class ContextSetStore:
             return True
         if len(parsed_records) != len(raw_records):
             return True
-        normalized_records = self._normalize_records(parsed_records)
-        return [asdict(record) for record in normalized_records] != [asdict(record) for record in parsed_records]
+        for raw_record, parsed_record in zip(raw_records, parsed_records):
+            if self._record_needs_rewrite(raw_record, parsed_record):
+                return True
+        return False
+
+    def _record_needs_rewrite(self, raw_record: object, parsed_record: ContextSetRecord) -> bool:
+        if not isinstance(raw_record, dict):
+            return True
+        return raw_record != asdict(parsed_record)
 
     def _parse_schema_version(self, payload: dict[str, object]) -> int | None:
         if "schema_version" not in payload:
