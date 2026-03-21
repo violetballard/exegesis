@@ -359,7 +359,6 @@ class VaultService:
         if not candidate:
             return None
         try:
-            datetime.fromisoformat(candidate.replace("Z", "+00:00"))
+            return datetime.fromisoformat(candidate.replace("Z", "+00:00")).isoformat()
         except ValueError:
             return None
-        return candidate
