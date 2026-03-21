@@ -1697,6 +1697,20 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("Fallback: unknown card", text)
         self.assertIn("Action policy: copy_to_clipboard_only", text)
 
+    def test_terminal_renderer_infers_unknown_fallback_without_debug(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "UnknownCard",
+                "title": "Unsupported card type: FutureCard",
+                "blocks": [],
+                "actions": [],
+            }
+        )
+
+        self.assertIn("[UnknownCard] Unsupported card type: FutureCard", text)
+        self.assertIn("Fallback: unknown from FutureCard", text)
+        self.assertIn("Action policy: copy_to_clipboard_only", text)
+
     def test_terminal_renderer_infers_generic_fallback_without_debug(self) -> None:
         text = render_terminal_card(
             {

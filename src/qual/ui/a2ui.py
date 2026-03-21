@@ -1060,6 +1060,9 @@ def _render_terminal_debug(debug: Any) -> list[str]:
 def _render_terminal_fallback_notice(card_type: str, title: str, *, debug: Any) -> list[str]:
     if not isinstance(debug, dict):
         if card_type == UNKNOWN_CARD_TYPE:
+            source_card_type = _infer_unknown_fallback_source(title)
+            if source_card_type is not None:
+                return [f"Fallback: unknown from {_render_terminal_inline_text(source_card_type)}"]
             return ["Fallback: unknown card"]
         if card_type == GENERIC_CARD_TYPE:
             source_card_type = _infer_generic_fallback_source(title)
@@ -1102,6 +1105,14 @@ def _infer_generic_fallback_source(title: str) -> str | None:
     if not title.startswith(GENERIC_FALLBACK_TITLE_PREFIX):
         return None
     source_card_type = title[len(GENERIC_FALLBACK_TITLE_PREFIX) :].strip()
+    return source_card_type or None
+
+
+def _infer_unknown_fallback_source(title: str) -> str | None:
+    prefix = "Unsupported card type: "
+    if not title.startswith(prefix):
+        return None
+    source_card_type = title[len(prefix) :].strip()
     return source_card_type or None
 
 
