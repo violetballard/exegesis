@@ -56,6 +56,12 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         mvp_role="project-open",
     ),
     CommandSpec(
+        name="retrieve",
+        aliases=("retrieval", "lookup"),
+        description="Run the project retrieval flow.",
+        mvp_role="retrieval-invocation",
+    ),
+    CommandSpec(
         name="diff-preview",
         aliases=("diff", "diff_preview"),
         description="Preview unified diff output.",
@@ -84,6 +90,7 @@ _COMMAND_NAME_BY_ALIAS = _build_command_name_index(COMMAND_SPECS)
 
 _MVP_FLOW_COMMAND_NAMES: tuple[str, ...] = (
     "bootstrap",
+    "retrieve",
     "context-basket",
     "diff-preview",
     "terminal",

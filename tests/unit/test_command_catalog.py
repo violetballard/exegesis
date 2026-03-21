@@ -25,7 +25,14 @@ class CommandCatalogTests(unittest.TestCase):
 
         self.assertEqual(
             command_names(),
-            ("bootstrap", "diff-preview", "context-basket", "terminal", "export-preview"),
+            (
+                "bootstrap",
+                "retrieve",
+                "diff-preview",
+                "context-basket",
+                "terminal",
+                "export-preview",
+            ),
         )
         self.assertTrue(all(isinstance(entry, CommandCatalogEntry) for entry in entries))
         self.assertEqual([entry.name for entry in entries], list(command_names()))
@@ -37,6 +44,17 @@ class CommandCatalogTests(unittest.TestCase):
                 description="Run the project bootstrap flow.",
                 mvp_role="project-open",
                 lookup_names=("bootstrap", "open", "project-open", "project"),
+                in_mvp_flow=True,
+            ),
+        )
+        self.assertEqual(
+            entries[1],
+            CommandCatalogEntry(
+                name="retrieve",
+                aliases=("retrieval", "lookup"),
+                description="Run the project retrieval flow.",
+                mvp_role="retrieval-invocation",
+                lookup_names=("retrieve", "retrieval", "lookup"),
                 in_mvp_flow=True,
             ),
         )
@@ -71,8 +89,10 @@ class CommandCatalogTests(unittest.TestCase):
     def test_alias_canonicalization_stays_tolerant_for_known_commands(self) -> None:
         self.assertEqual(canonical_command("project-open"), "bootstrap")
         self.assertEqual(canonical_command("diff_preview"), "diff-preview")
+        self.assertEqual(canonical_command("lookup"), "retrieve")
         self.assertEqual(canonical_command("unknown-command"), "unknown-command")
         self.assertEqual(command_spec("open").name, "bootstrap")
+        self.assertEqual(command_spec("lookup").name, "retrieve")
         self.assertIsNone(command_spec("not-a-command"))
         self.assertEqual(command_lookup_names()[0], "bootstrap")
 
