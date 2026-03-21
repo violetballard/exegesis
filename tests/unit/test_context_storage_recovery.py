@@ -369,6 +369,37 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertNotIn("recovered_from", payload)
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
 
+    def test_backup_with_malformed_optional_metadata_is_rewritten_canonically(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text("{bad", encoding="utf-8")
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": " 2026-03-20T12:00:00+00:00 ",
+                    "recovered_from": " BACKUP ",
+                    "item_ids": [" first ", "second", "first"],
+                    "extra": "ignored",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first", "second"])
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("item_ids"), ["first", "second"])
+        self.assertEqual(primary_payload.get("recovered_from"), "backup")
+        self.assertEqual(primary_payload.get("updated_at"), primary_payload.get("updated_at").strip())
+        self.assertNotEqual(primary_payload.get("updated_at"), " 2026-03-20T12:00:00+00:00 ")
+        self.assertNotIn("extra", primary_payload)
+        self.assertEqual(backup_payload.get("item_ids"), ["first", "second"])
+        self.assertEqual(backup_payload.get("schema_version"), 1)
+        self.assertNotIn("recovered_from", backup_payload)
+        self.assertNotIn("extra", backup_payload)
+
     def test_primary_load_refreshes_malformed_backup_without_rewriting_primary(self) -> None:
         self.store.save(ContextBasket(item_ids=["first"]))
         primary_payload_before = json.loads(self.store._path.read_text(encoding="utf-8"))
@@ -1021,6 +1052,41 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertFalse(payload.get("is_locked"))
         self.assertEqual(payload.get("recovered_from"), "backup")
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
+
+    def test_backup_with_malformed_optional_metadata_is_rewritten_canonically(self) -> None:
+        state = self.svc.create_or_open(self.root, "p7-metadata")
+        state_path = state.root_dir / ".vault_state.json"
+        backup_path = state.root_dir / ".vault_state.bak.json"
+        state_path.write_text("{bad", encoding="utf-8")
+        backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": " p7-metadata ",
+                    "is_locked": "false",
+                    "updated_at": " 2026-03-20T12:00:00+00:00 ",
+                    "recovered_from": " BACKUP ",
+                    "extra": "ignored",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p7-metadata")
+
+        self.assertFalse(reopened.is_locked)
+        primary_payload = json.loads(state_path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("project_name"), "p7-metadata")
+        self.assertIs(primary_payload.get("is_locked"), False)
+        self.assertEqual(primary_payload.get("recovered_from"), "backup")
+        self.assertEqual(primary_payload.get("updated_at"), primary_payload.get("updated_at").strip())
+        self.assertNotEqual(primary_payload.get("updated_at"), " 2026-03-20T12:00:00+00:00 ")
+        self.assertNotIn("extra", primary_payload)
+        self.assertEqual(backup_payload.get("project_name"), "p7-metadata")
+        self.assertIs(backup_payload.get("is_locked"), False)
+        self.assertNotIn("recovered_from", backup_payload)
+        self.assertNotIn("extra", backup_payload)
 
     def test_seed_with_invalid_metadata_is_salvaged_and_rewritten(self) -> None:
         state_root = self.root / "p7-seed"
