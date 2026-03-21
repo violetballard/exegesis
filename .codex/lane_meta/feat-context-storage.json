@@ -1,10 +1,10 @@
 {
-  "scope_goal": "Describe the actual code-bearing feature commit and keep the resubmission commit code-bearing.",
+  "scope_goal": "Describe the actual code-bearing feature commit 075a61ad1c92b85fb4df2fae54bbb9163f53aa12 and keep the handoff commit-accurate.",
   "tasks_completed": [
-    "Reissued the handoff for the code-bearing feature commit 075a61ad1c92b85fb4df2fae54bbb9163f53aa12.",
-    "Added regression coverage for empty seed recovery in the lane test suite.",
-    "Updated the packet to list the real runtime and test files from the resubmission diff.",
-    "Removed shared/integrator-locked edit claims because the resubmission diff does not include any shared files."
+    "Reissued the handoff for the code-bearing context-storage recovery changes.",
+    "Updated the packet to list the real runtime and lane-test files from the actual feature diff.",
+    "Removed shared/integrator-locked edit claims because the reviewed diff does not include any shared files.",
+    "Re-ran the required local gates on the reviewed feature diff and confirmed they pass."
   ],
   "risk": "LOW",
   "roadmap_items": [
@@ -21,6 +21,6 @@
     ".codex/lane_meta/feat-context-storage.json",
     "THREAD_PACKET.md"
   ],
-  "kickoff_budget_note": "Handoff metadata aligned to the reviewed feature commit 075a61ad1c92b85fb4df2fae54bbb9163f53aa12 and the code-bearing resubmission commit.",
+  "kickoff_budget_note": "Handoff metadata aligned to the reviewed feature commit 075a61ad1c92b85fb4df2fae54bbb9163f53aa12.",
   "approved_exception_note": ""
 }
