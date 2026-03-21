@@ -1,23 +1,23 @@
 {
   "approved_exception_note": "",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 1 reviewed file, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 3 reviewed handoff files, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Retrieval query normalization: keep doc-type and date-range constraint canonicalization stable.",
-    "Retrieval test-hardening: preserve deterministic fingerprinting and matching for equivalent constraints."
+    "Handoff packet accuracy: keep the packet aligned with the reviewed commit.",
+    "Lane metadata consistency: keep the `.codex` metadata synchronized with `THREAD_PACKET.md`."
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The reviewed commit `e3d489aa19f925d44264e6e8ad38e4f620a32771` updates `src/qual/retrieval/service.py` only; it adds deterministic canonicalization for query doc types and date-range constraints inside retrieval query normalization.",
-  "scope_goal": "Canonicalize query constraints in `src/qual/retrieval/service.py` so equivalent retrieval requests normalize to stable doc-type and date-range fingerprints.",
+  "scope_completed": "The reviewed commit `906da0fb55c16ae5599e6af1ac0f6a35a8f98fdf` updates handoff artifacts only; it reconciles the kickoff packet, lane metadata, and `THREAD_PACKET.md` with the actual commit scope.",
+  "scope_goal": "Align the kickoff packet, lane metadata, and handoff packet so they match the reviewed docs-only commit exactly.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Reconciled the packet with commit `e3d489aa19f925d44264e6e8ad38e4f620a32771`, confirming the reviewed diff only changes `src/qual/retrieval/service.py`.",
-    "Removed unrelated engine/retrieval and test files from the changed-files list because they are not part of the reviewed commit.",
-    "Added an explicit `scope_completed` field and tightened the roadmap and vision mapping to query normalization and test-hardening."
+    "Reconciled the packet with commit `906da0fb55c16ae5599e6af1ac0f6a35a8f98fdf`, confirming the reviewed diff only changes handoff artifacts.",
+    "Removed unrelated retrieval source-file and PageIndex references from the metadata because they are not part of the reviewed commit.",
+    "Added an explicit `scope_completed` field and tightened the roadmap and vision mapping to docs-only alignment."
   ],
   "vision_capabilities": [
-    "Retrieval query normalization",
-    "Deterministic retrieval fingerprinting"
+    "Commit-accurate handoff records",
+    "Docs-only promotion alignment"
   ]
 }
