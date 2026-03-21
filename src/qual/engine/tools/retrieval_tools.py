@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
 
 
@@ -36,3 +37,29 @@ def retrieve_auto(
         confidentiality_profile=confidentiality_profile,  # type: ignore[arg-type]
     )
     return service.retrieve_auto(query)
+
+
+def retrieve_auto_payload(
+    service: RetrievalService,
+    *,
+    query_text: str,
+    scope: str,
+    intent: str,
+    constraints: dict[str, object] | None = None,
+    confidentiality_profile: str = "confidential",
+) -> dict[str, object]:
+    """Return the canonical downstream payload for FTS-first retrieval.
+
+    Engine callers that need deterministic provenance for drafting or export
+    should use this helper instead of reassembling the result object by hand.
+    """
+
+    result = retrieve_auto(
+        service,
+        query_text=query_text,
+        scope=scope,
+        intent=intent,
+        constraints=constraints,
+        confidentiality_profile=confidentiality_profile,
+    )
+    return build_retrieval_downstream_payload_from_result(result)

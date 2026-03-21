@@ -10,6 +10,7 @@ from src.qual.docindex.service import DocIndexBuildOptions
 from src.qual.docindex.service import DocIndexQueryConstraints
 import src.qual.engine.retrieval as engine_retrieval
 from src.qual.engine.tools.retrieval_tools import retrieve_auto as engine_retrieve_auto
+from src.qual.engine.tools.retrieval_tools import retrieve_auto_payload as engine_retrieve_auto_payload
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
 
 
@@ -516,6 +517,68 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(result.diagnostics["retrieval_manifest"]["doc_ids"], [hit.doc_id for hit in result.doc_hits])
         self.assertEqual(result.diagnostics["retrieval_backend"], "sqlite_fts")
         self.assertEqual(result.diagnostics["retrieval_mode"], "fts_first")
+
+    def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
+        payload = engine_retrieve_auto_payload(
+            self.service,
+            query_text="memo comparison",
+            scope="vault",
+            intent="compare",
+            constraints={"max_results": 4, "doc_types": ["memo"]},
+            confidentiality_profile="confidential",
+        )
+
+        self.assertEqual(payload["policy"], payload["retrieval_policy"])
+        self.assertEqual(payload["retrieval_summary"]["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(payload["retrieval_summary"]["retrieval_mode"], "fts_first")
+        self.assertEqual(payload["retrieval_summary"]["doc_ids"], [item["doc_id"] for item in payload["doc_hits"]])
+        self.assertEqual(
+            payload["retrieval_summary"]["excerpt_ids"],
+            [item["excerpt_id"] for item in payload["excerpt_hits"] if item["excerpt_id"] is not None],
+        )
+        self.assertEqual(
+            payload["retrieval_provenance"]["doc_citations"],
+            [
+                {
+                    "doc_id": item["doc_id"],
+                    "doc_fingerprint": item["provenance"]["doc_fingerprint"],
+                    "doc_identity_fingerprint": item["provenance"]["doc_identity_fingerprint"],
+                    "doc_rank": item["provenance"]["doc_rank"],
+                    "top_excerpt_id": item["top_excerpt_id"],
+                    "top_excerpt_fingerprint": item["provenance"]["top_excerpt_fingerprint"],
+                    "top_excerpt_text_hash": item["provenance"]["top_excerpt_text_hash"],
+                }
+                for item in payload["doc_hits"]
+            ],
+        )
+        self.assertEqual(
+            payload["retrieval_provenance"]["excerpt_citations"],
+            [
+                {
+                    "doc_id": item["doc_id"],
+                    "excerpt_id": item["excerpt_id"],
+                    "excerpt_fingerprint": item["provenance"]["excerpt_fingerprint"],
+                    "excerpt_text_hash": item["provenance"]["excerpt_text_hash"],
+                    "rank": item["provenance"]["rank"],
+                    "span": item["provenance"]["span"],
+                }
+                for item in payload["excerpt_hits"]
+                if item["excerpt_id"] is not None
+            ],
+        )
+        payload["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
+        payload["doc_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
+
+        refreshed = engine_retrieve_auto_payload(
+            self.service,
+            query_text="memo comparison",
+            scope="vault",
+            intent="compare",
+            constraints={"max_results": 4, "doc_types": ["memo"]},
+            confidentiality_profile="confidential",
+        )
+        self.assertNotIn("mutated-doc-id", refreshed["retrieval_summary"]["doc_ids"])
+        self.assertNotEqual(refreshed["doc_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
 
     def test_retrieval_audit_uses_query_hash_not_plaintext(self) -> None:
         query_text = "highly sensitive question text"
