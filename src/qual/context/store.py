@@ -127,7 +127,11 @@ class ContextBasketStore:
                 recovered_from=recovered_from,
                 refresh_backup=True,
             )
-        elif backup_payload is None or backup_missing or self._backup_needs_refresh(backup_payload, basket):
+        elif backup_payload is None or backup_missing or self._backup_needs_refresh(
+            backup_payload,
+            basket,
+            payload if isinstance(payload, dict) else None,
+        ):
             backup_written = False
             if isinstance(payload, dict):
                 backup_written = self._write_backup_payload(self._backup_payload(payload))
@@ -405,6 +409,7 @@ class ContextBasketStore:
         self,
         payload: dict[str, object] | list[object] | None,
         basket: ContextBasket,
+        primary_payload: dict[str, object] | None = None,
     ) -> bool:
         if payload is None:
             return False
@@ -432,6 +437,11 @@ class ContextBasketStore:
             return True
         if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
             return True
+        if primary_payload is not None:
+            primary_updated_at = self._parse_updated_at(primary_payload.get("updated_at"))
+            backup_updated_at = self._parse_updated_at(payload.get("updated_at"))
+            if primary_updated_at is not None and backup_updated_at != primary_updated_at:
+                return True
         return False
 
     def _normalize_item_ids(self, item_ids: list[str]) -> list[str]:
