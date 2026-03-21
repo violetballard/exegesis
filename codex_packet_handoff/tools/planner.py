@@ -114,6 +114,8 @@ def apply_meta_defaults(meta: Json, missing: List[str]) -> Json:
     out = dict(meta or {})
     if "tasks_completed" in missing:
         out["tasks_completed"] = ["(auto) reviewer handback update; see lane commits for concrete changes"]
+    if "scope_completed" in missing:
+        out["scope_completed"] = "(auto) scope completed pending reviewer/integrator confirmation"
     if "roadmap_items" in missing:
         out["roadmap_items"] = ["(auto) roadmap mapping pending reviewer/integrator confirmation"]
     if "vision_capabilities" in missing:

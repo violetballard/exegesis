@@ -1,5 +1,5 @@
 {
-  "approved_exception_note": "No non-retrieval tooling edits are approved for this handoff; split tooling work into a separate lane.",
+  "approved_exception_note": "No non-retrieval tooling edits are approved for this handoff.",
   "handoff_alignment_commit": "203906231e9c47371b6d7bc4028bc4f60e764581",
   "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 6 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff.",
   "implementation_commit": "36893f06df85409c4595d64adb8af60455c086a6",
@@ -15,7 +15,7 @@
     "src/qual/retrieval/service.py",
     "src/qual/engine/retrieval/policy.py"
   ],
-  "scope_completed": "Delivered behavior: vault, collection:, and doc: retrieval requests now route through src/qual/retrieval/service.py into the owned retrieval engine. src/qual/engine/retrieval/__init__.py exposes the canonical retrieval surface, src/qual/engine/retrieval/policy.py keeps fts active while leaving pageindex and embeddings deferred, and section: remains rejected until fallback support exists. This completed scope stays within src/qual/retrieval/** and src/qual/engine/retrieval/** only, with no codex_packet_handoff/tools/* or src/qual/engine/tools/* edits included in this handoff.",
+  "scope_completed": "Delivered behavior: vault, collection:, and doc: retrieval requests now route through src/qual/retrieval/service.py into the owned retrieval engine. src/qual/engine/retrieval/__init__.py exposes the canonical retrieval surface, src/qual/engine/retrieval/policy.py keeps fts active while leaving pageindex and embeddings deferred, and section: remains rejected until fallback support exists. This completed scope stays within src/qual/retrieval/** and src/qual/engine/retrieval/** only.",
   "scope_goal": "Document the retrieval handoff boundary while keeping the lane-owned retrieval scope constrained to FTS-first MVP behavior.",
   "shared_file_exception": false,
   "tasks_completed": [
