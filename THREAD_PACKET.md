@@ -1,40 +1,57 @@
-## Thread Handoff Packet
+# Feature → Review Packet
 
-- Branch name: `codex/feat-context-storage`
-- Reviewed commit: `1abd90ef71ae0c37f8da5c71b153e26530fa4972`
-- Scope goal: Resubmit the handoff for the actual mixed-scope cleanup commit so the packet, file list, and gate claims match the reviewed diff.
-- Scope completed: Corrected the handoff metadata for the mixed-scope cleanup commit that removes planner noise filtering from `codex_packet_handoff/tools/planner.py`, normalizes `.codex/packet_planner/state.json`, and updates the lane exception note in `.codex/lane_meta/feat-context-storage.json`.
-- Tasks completed:
-  1. Removed the stale `PACKET_PLANNER_NOISE` exclusion from the planner so packet generation reports the real diff set.
-  2. Updated the lane exception wording in `.codex/lane_meta/feat-context-storage.json` to match the approved shared-file exception note.
-  3. Normalized `.codex/packet_planner/state.json` formatting while preserving lane membership.
-  4. Re-ran the required gate suite on the corrected scope and verified the cleanup commit still passes.
-- Files changed:
-  - `.codex/lane_meta/feat-context-storage.json`
-  - `.codex/packet_planner/state.json`
-  - `codex_packet_handoff/tools/planner.py`
-- Commands run with results:
-  - `make scope-check` -> passed
-  - `./quality-format.sh --check` -> passed
-  - `./quality-lint.sh` -> passed
-  - `./quality-test.sh` -> passed
-  - `./typecheck-test.sh` -> passed
-  - `make ci` -> passed
-- Reviewer fix closure:
-  - `#1` packet now describes the actual `1abd90ef...` cleanup commit instead of the stale storage-feature scope.
-  - `#2` the file list now matches the real diff for that commit.
-  - `#3` the commit is explicitly described as planner/tooling cleanup rather than a storage feature handoff.
-  - `#4` gate results are tied to the corrected scope and match the reviewed change set.
-- Checkpoint status:
-  - plan complete
-  - first green tests: `make scope-check` passed after the packet correction
-  - ready for handoff: all required local gates passed on `2026-03-20`
-- Risks/blockers:
-  - This is a tooling/integration cleanup, not `src/qual/context/**` or `src/qual/storage/**` feature work.
-  - No shared, integrator-locked, or cross-lane source files were changed by the reviewed commit.
-- Roadmap item(s) affected:
-  - `Milestone 1: Bootstrap Flow Stabilization` -> command and diff-preview behavior hardening
-- Vision capability affected:
-  - `4. Operator-first control surface` -> CLI/operator behavior stays deterministic and aligned with reported diffs
-- Routing/provider impact note: None. No model routing or provider configuration was touched.
-- Proposed `README.md` patch text: None.
+- Lane: `feat-context-storage`
+- Branch: `codex/feat-context-storage`
+- Commit: `5cd2c4a5a44ce18409b52e44db51a9824f411a5c`
+
+## Scope goal
+- Harden context basket and vault persistence recovery so malformed optional metadata is salvaged and rewritten without discarding valid local state, and cover that recovery contract with focused tests.
+
+## Lane/owned paths
+- `src/qual/context/**`
+- `src/qual/storage/**`
+
+## Kickoff budget/limits compliance
+- Thread Kickoff Template budget applied: task budget `8`, time budget `45m`, size limits `<=12 files` and `<=500 net LOC`, max fix attempts per failing gate `2`. Tasks completed: `4 of 8`. Budget status: within limits at `4` files changed with `399` insertions and `35` deletions versus `codex/integrator`; this lane stayed within the time window and did not exceed the `2`-attempt gate-fix limit.
+
+## Approved exception note
+- Ownership note: runtime edits stay within the lane-owned paths `src/qual/context/**` and `src/qual/storage/**`. Approved shared-file exception covers `tests/unit/test_context_storage_recovery.py` for the vault recovery regression alongside the owned-path storage fix. There are no shared-by-approval source-file edits and no integrator-locked edits.
+
+## Tasks completed (numbered)
+1. Updated context basket recovery to treat malformed optional metadata as salvageable while still rejecting unrecoverable schema or item-id payloads.
+2. Updated vault state recovery to preserve valid lock and project metadata when optional metadata fields are malformed, then rewrite normalized persisted state.
+3. Added focused metadata-only corruption tests for both context basket and vault persistence paths, including backup-promotion recovery cases.
+4. Added corrupt-primary recovery tests and explicit rewrite behavior so fallback provenance is not persisted when the primary file was present but corrupt.
+
+## Files changed
+- `src/qual/context/basket.py`
+- `src/qual/context/store.py`
+- `src/qual/storage/vault.py`
+- `tests/unit/test_context_storage_recovery.py`
+
+## Commands run and outcomes
+- `make scope-check`: FAIL (approved non-owned test file requires `SCOPE_ALLOW_SHARED=1`)
+- `SCOPE_ALLOW_SHARED=1 make scope-check`: PASS
+- `./quality-format.sh --check`: PASS
+- `./quality-lint.sh`: PASS
+- `./quality-test.sh`: PASS
+- `./typecheck-test.sh`: PASS
+- `SCOPE_ALLOW_SHARED=1 make ci`: PASS
+
+## Risks / blockers
+- Risk: `MEDIUM`
+- Blockers: none
+
+## Required handoff fields
+### Roadmap item(s) affected
+- Milestone 1 - Bootstrap Flow Stabilization: context basket and vault persistence hardening.
+### Vision capability affected
+- Capability 1 - Local-first state and identity.
+### Routing/provider impact note
+- None
+
+## Scope-check / ownership note
+- Approved shared test-file exception only: `YES`
+- Shared-by-approval source edits: `NO`
+- Ownership detail: runtime edits stay within the lane-owned paths `src/qual/context/**` and `src/qual/storage/**`. Approved shared-file exception covers `tests/unit/test_context_storage_recovery.py` for the vault recovery regression alongside the owned-path storage fix. No shared-by-approval source files were edited, and no integrator-locked files were edited.
+- Integrator-locked edits: `NO`
