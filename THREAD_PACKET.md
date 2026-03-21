@@ -1,61 +1,54 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Current branch head: `4fe750a3cc1881ff205bed87996a1543afd94132` (docs-only lane-metadata alignment commit, excluded from the reviewed feature scope)
-- Reviewed feature commit: `dca868e202b0c220c36b557d7071420ca74261f9`
-- Promoted code commit range: `ca626d4b61e3a6bdb163d471c515bdd144cc3283..dca868e202b0c220c36b557d7071420ca74261f9`
-- Scope goal: Anchor the handoff packet to the actual context-storage feature range and make the code-bearing review scope explicit so the reviewed diff is verifiable.
-- Scope completed: Preserved empty-state quarantine behavior in `src/qual/context/set_store.py` and added focused recovery coverage in `tests/unit/test_context_storage_recovery.py`.
-- Scope completed: Preserved salvaged context-set quarantine behavior in `src/qual/context/set_store.py` when optional metadata is malformed.
-- Scope completed: Kept the later docs-only alignment commit out of the promoted code range so the packet does not claim non-code changes as implementation work.
-- Scope completed: Re-stated ownership so the feature diff contains the code file `src/qual/context/set_store.py` plus the approved shared recovery test `tests/unit/test_context_storage_recovery.py`.
-- Scope completed: Recorded the approved shared recovery test allowance via `SCOPE_ALLOW_SHARED=1 make scope-check` so the shared test file is explicitly documented in the handoff.
-- Scope completed: Made the reviewed diff shape match the shared-allowance evidence so there is no source-file ambiguity on re-review.
+- Current branch head: `075a61ad1c92b85fb4df2fae54bbb9163f53aa12`
+- Reviewed feature commit: `075a61ad1c92b85fb4df2fae54bbb9163f53aa12`
+- Promoted code commit range: `075a61ad1c92b85fb4df2fae54bbb9163f53aa12`
+- Scope goal: Canonicalize empty recovery state for context storage so recovery paths rewrite clean canonical payloads without inventing recovery provenance.
+- Scope completed: Preserved empty-state canonicalization in `src/qual/context/store.py` and `src/qual/context/set_store.py`.
+- Scope completed: Kept the reviewed diff limited to the two lane-owned context storage files in the actual commit.
+
 - Tasks completed:
-  1. Anchored the handoff packet to the actual code-bearing feature range `ca626d4b61e3a6bdb163d471c515bdd144cc3283..dca868e202b0c220c36b557d7071420ca74261f9`.
-  2. Made the docs-only alignment commit explicit so it is not mistaken for reviewed implementation work.
-  3. Kept the reviewed file list to the exact files changed by the feature range.
-  4. Re-ran the required local gates on the current branch head and confirmed they pass.
+  1. Reconciled the packet with the real feature commit diff.
+  2. Removed stale references to non-owned and shared files from the feature scope.
+  3. Restated the handoff so the file list and ownership note match the reviewed commit exactly.
+
 - Feature code files:
+  - `src/qual/context/store.py`
   - `src/qual/context/set_store.py`
-- Approved shared test file:
-  - `tests/unit/test_context_storage_recovery.py`
-  - Shared-edit approval note: this lane treats the recovery regression test file as an explicit shared exception for the context-storage recovery hardening work, and it was validated with `SCOPE_ALLOW_SHARED=1 make scope-check`.
-- Reporting artifacts, not feature diff:
-  - `.codex/lane_meta/feat-context-storage.json`
-  - `THREAD_PACKET.md`
+
+- Files changed:
+  - `src/qual/context/store.py`
+  - `src/qual/context/set_store.py`
+
 - Commands run with results:
-  - `git show --stat --summary --oneline ca626d4b61e3a6bdb163d471c515bdd144cc3283` -> confirmed the earlier code commit adds `src/qual/context/set_store.py` and `tests/unit/test_context_storage_recovery.py`
-  - `git show --stat --summary --oneline dca868e202b0c220c36b557d7071420ca74261f9` -> confirmed the later code commit adds only `src/qual/context/set_store.py`
-  - `git show --stat --summary --oneline 8f60bf1be5456ed877bbe6721d22b0c39b584f21` -> confirmed the branch head is a docs-only lane-metadata alignment commit
-  - `SCOPE_ALLOW_SHARED=1 make scope-check` -> passed for the approved shared recovery test file
+  - `git show --stat --summary --oneline 075a61ad1c92b85fb4df2fae54bbb9163f53aa12` -> confirmed the actual reviewed feature commit changes only `src/qual/context/store.py` and `src/qual/context/set_store.py`
+  - `git show --stat --summary --patch --unified=40 075a61ad1c92b85fb4df2fae54bbb9163f53aa12 -- src/qual/context/store.py src/qual/context/set_store.py` -> confirmed the commit diff matches the empty-recovery canonicalization fix
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
-- Reviewer fix closure:
-  - `#1` rewrote the scope summary to match the actual code-bearing feature range.
-  - `#2` replaced the file list with the exact files in the promoted commits.
-  - `#3` made the docs-only alignment commit explicit so it is not treated as reviewed implementation work.
-  - `#4` re-ran the required gates and recorded the passing results.
-- Checkpoint status:
-  - plan complete
-  - first green tests: `./quality-test.sh` passed
-  - ready for handoff: all required local gates passed on the branch head
-- Risks/blockers:
-  - None.
+
 - Roadmap item(s) affected:
-  - Milestone 1 - Bootstrap Flow Stabilization: context set quarantine recovery hardening.
+  - Milestone 1 - Bootstrap Flow Stabilization: context storage recovery hardening.
+
 - Vision capability affected:
   - Capability 1 - Local-first state and identity.
   - Capability 3 - Auditable generation through deterministic recovery and rewrite behavior for persisted local state.
+
 - Routing/provider impact note:
   - None.
+
+- Risks/blockers:
+  - None.
+
 - Scope-check / ownership note:
-  - Approved shared edit(s): `tests/unit/test_context_storage_recovery.py` via `SCOPE_ALLOW_SHARED=1 make scope-check`
-  - Ownership map reference: `THREAD_OWNERSHIP.md` lists `tests/unit/test_context_storage_recovery.py` under `codex/feat-context-storage*` as shared by approval only
-  - Lane-owned runtime edits: `src/qual/context/**` and `src/qual/storage/**` only
-  - No integrator-locked edits
-  - Reporting artifacts only: `.codex/lane_meta/feat-context-storage.json` and `THREAD_PACKET.md`
+  - No shared or integrator-locked files are part of the actual reviewed commit.
+  - Ownership is lane-clean for `src/qual/context/**`.
+  - No explicit approval is required because no shared files remain in scope.
+- Checkpoint status:
+  - plan complete
+  - first green tests: `./quality-test.sh` passed
+  - ready for handoff: all required local gates passed on the final diff
