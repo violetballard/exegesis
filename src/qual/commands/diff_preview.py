@@ -198,8 +198,7 @@ def _diff_fingerprint(diff: str) -> dict[str, object]:
     }
 
 
-def _no_diff_payload(message: str) -> dict[str, object]:
-    summary_only = _env_enabled(SUMMARY_ONLY_ENV)
+def _no_diff_payload(message: str, *, summary_only: bool) -> dict[str, object]:
     return {
         "diff": "",
         "fingerprint": None,
@@ -211,9 +210,9 @@ def _no_diff_payload(message: str) -> dict[str, object]:
     }
 
 
-def _no_diff_result(message: str) -> str:
+def _no_diff_result(message: str, *, summary_only: bool) -> str:
     if _resolve_output_format() == "json":
-        return _json_result(_no_diff_payload(message))
+        return _json_result(_no_diff_payload(message, summary_only=summary_only))
     return message
 
 
@@ -380,10 +379,13 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
         proposed = _normalize_trailing_whitespace(proposed)
 
     if not original and not proposed:
-        return _no_diff_result("No diff: both inputs are empty.")
+        return _no_diff_result("No diff: both inputs are empty.", summary_only=summary_only)
 
     if original == proposed:
-        return _no_diff_result("No diff: inputs are identical after normalization.")
+        return _no_diff_result(
+            "No diff: inputs are identical after normalization.",
+            summary_only=summary_only,
+        )
 
     drafting = DraftingService()
     diff = drafting.propose_diff(original, proposed)
@@ -394,7 +396,7 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
     if suppress_file_headers:
         diff = _suppress_file_headers(diff)
     if not diff:
-        return _no_diff_result("No diff: inputs are identical.")
+        return _no_diff_result("No diff: inputs are identical.", summary_only=summary_only)
     max_chars = _max_diff_output_chars()
     output = diff
     truncated = False
