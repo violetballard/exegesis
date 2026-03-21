@@ -1,14 +1,14 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Keep the handoff packet aligned with the metadata-only diff in `THREAD_PACKET.md` and make the review scope explicitly audit-only.
-- Scope completed: Rewrote the packet to describe packet alignment and auditability only, with no product-code, test-file, or `.codex` claims.
+- Scope goal: Align `THREAD_PACKET.md` with the reviewed diff by documenting a metadata-only handoff update and nothing else.
+- Scope completed: Rewrote `THREAD_PACKET.md` only, so the packet now describes packet alignment and auditability only and makes no product-code, test-file, or `.codex` claims.
 - Tasks completed:
   1. Reframed the scope to describe a metadata-only handoff update.
   2. Removed unsupported references to `src/qual/ui/a2ui.py`, `tests/unit/test_a2ui_contract.py`, and `.codex/...` files.
-  3. Verified that the changed-files list contains only `THREAD_PACKET.md` and that the roadmap and vision mappings are audit notes, not implementation claims.
+  3. Verified that the changed-files list contains only `THREAD_PACKET.md` and that the roadmap and vision mappings match the one-file metadata-only diff.
 - Files changed:
-  - `THREAD_PACKET.md`
+  - `THREAD_PACKET.md` only
 - Commands run with results:
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -18,7 +18,7 @@
   - `make ci` -> passed
 - Risks/blockers:
   - This packet now documents a metadata-only handoff update and should not be read as evidence of code, test, routing, or `.codex` file changes.
-  - The reviewed diff contains no shared, integrator-locked, or cross-lane files.
+  - The reviewed diff contains no shared, integrator-locked, or cross-lane files; the file list is limited to `THREAD_PACKET.md`.
 - Roadmap item(s) affected:
   - `Milestone 5: A2UI Presentation Layer` -> packet metadata alignment only; no product-code, test, or routing change in this commit
 - Vision capability affected:
