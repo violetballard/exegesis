@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import fnmatch, json, os, subprocess
+import json, os, subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -129,12 +129,6 @@ def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
 
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
-    def owns_path(path: str) -> bool:
-        owned_patterns = LANE_OWNED_PATHS.get(lane, [])
-        for pattern in owned_patterns:
-            if fnmatch.fnmatch(path, pattern):
-                return True
-        return False
 
     lines=[]
     lines += ["# Feature → Review Packet",""]
@@ -160,16 +154,7 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     prp=str(meta.get("proposed_readme_patch","")).strip()
     if prp:
         lines += ["### Proposed README patch text","```diff",prp,"```",""]
-    has_lane_owned_source_changes = any(owns_path(f) for f in files)
-    has_approved_non_owned_updates = bool(meta.get("shared_file_exception")) and any(
-        not owns_path(f) for f in files
-    )
-    lines += [
-        "## Scope-check / ownership note",
-        f"- Lane-owned source changes: `{'YES' if has_lane_owned_source_changes else 'NO'}`",
-        f"- Approved non-owned metadata/state updates: `{'YES' if has_approved_non_owned_updates else 'NO'}`",
-        "",
-    ]
+    lines += ["## Scope-check / ownership note", f"- Shared/integrator-locked edits: `{'YES' if bool(meta.get('shared_file_exception')) else 'NO'}`",""]
     return "\n".join(lines)
 
 
