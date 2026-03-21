@@ -1093,6 +1093,31 @@ class A2UIContractTests(unittest.TestCase):
         self.assertLessEqual(len(unknown["blocks"][-1]["code"].encode("utf-8")), 8192)
         self.assertLessEqual(len(unknown["actions"][0]["payload"]["text"].encode("utf-8")), 8192)
 
+    def test_unknown_card_handles_non_json_payload_values(self) -> None:
+        class _OpaqueValue:
+            pass
+
+        raw_unknown = {
+            "type": "FutureCard",
+            "title": "Future",
+            "payload": {
+                "opaque": _OpaqueValue(),
+                "nested": [_OpaqueValue()],
+                "loop": None,
+            },
+        }
+        raw_unknown["payload"]["loop"] = raw_unknown["payload"]
+
+        unknown = build_unknown_card(raw_unknown, supported_actions=("copy_to_clipboard",))
+        unknown_text = render_terminal_card(unknown)
+
+        self.assertEqual(unknown["type"], "UnknownCard")
+        self.assertIn("<non-json:_OpaqueValue>", unknown["blocks"][-1]["code"])
+        self.assertIn("<non-json:_OpaqueValue>", unknown["actions"][0]["payload"]["text"])
+        self.assertIn("<cycle:dict>", unknown["blocks"][-1]["code"])
+        self.assertIn("Fallback: unknown from FutureCard", unknown_text)
+        self.assertIn("- Copy JSON (copy_to_clipboard)", unknown_text)
+
     def test_terminal_fallback_renders_unsupported_or_malformed_blocks(self) -> None:
         card = {
             "type": "GenericCard",

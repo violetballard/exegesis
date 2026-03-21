@@ -600,8 +600,9 @@ def _render_payload_preview(
     max_payload_bytes: int | None,
     pretty: bool = False,
 ) -> str:
+    sanitized_payload = _sanitize_json_preview_value(payload)
     rendered = json.dumps(
-        payload,
+        sanitized_payload,
         indent=2 if pretty else None,
         sort_keys=True,
         separators=None if pretty else (",", ":"),
@@ -620,6 +621,60 @@ def _render_payload_preview(
 
     prefix = rendered.encode("utf-8")[: budget - suffix_bytes].decode("utf-8", errors="ignore")
     return f"{prefix}{suffix}"
+
+
+def _sanitize_json_preview_value(value: Any, *, _seen_ids: set[int] | None = None) -> Any:
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    if _seen_ids is None:
+        _seen_ids = set()
+
+    value_id = id(value)
+    if value_id in _seen_ids:
+        return f"<cycle:{type(value).__name__}>"
+
+    if isinstance(value, dict):
+        _seen_ids.add(value_id)
+        try:
+            sanitized_items = [
+                (str(key), _sanitize_json_preview_value(value[key], _seen_ids=_seen_ids))
+                for key in sorted(value, key=lambda item: str(item))
+            ]
+            return {key: sanitized_value for key, sanitized_value in sanitized_items}
+        finally:
+            _seen_ids.remove(value_id)
+
+    if isinstance(value, list):
+        _seen_ids.add(value_id)
+        try:
+            return [_sanitize_json_preview_value(item, _seen_ids=_seen_ids) for item in value]
+        finally:
+            _seen_ids.remove(value_id)
+
+    if isinstance(value, tuple):
+        _seen_ids.add(value_id)
+        try:
+            return [_sanitize_json_preview_value(item, _seen_ids=_seen_ids) for item in value]
+        finally:
+            _seen_ids.remove(value_id)
+
+    if isinstance(value, set):
+        _seen_ids.add(value_id)
+        try:
+            sanitized_items = [_sanitize_json_preview_value(item, _seen_ids=_seen_ids) for item in value]
+            return sorted(sanitized_items, key=_canonical_json_sort_key)
+        finally:
+            _seen_ids.remove(value_id)
+
+    return f"<non-json:{type(value).__name__}>"
+
+
+def _canonical_json_sort_key(value: Any) -> str:
+    if isinstance(value, dict):
+        return _canonical_json({str(key): value[key] for key in sorted(value, key=lambda item: str(item))})
+    if isinstance(value, list):
+        return _canonical_json({"items": value})
+    return str(value)
 
 
 def _render_terminal_actions(actions: Any) -> list[str]:
