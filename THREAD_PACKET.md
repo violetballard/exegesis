@@ -1,29 +1,29 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Current branch head: `550086af1186963e6807ee1f8e8be526d3af1d16` (code-bearing context-storage recovery commit)
-- Reviewed feature commit: `550086af1186963e6807ee1f8e8be526d3af1d16`
-- Promoted code commit range: `550086af1186963e6807ee1f8e8be526d3af1d16`
-- Scope goal: Re-submit the actual context-storage recovery implementation.
-- Scope completed: Centralized empty recovery checks in `src/qual/context/store.py` and `src/qual/context/set_store.py`.
+- Current branch head: `handoff fix commit on codex/feat-context-storage`
+- Reviewed feature commit: `803b90dd07af3c7de7344c343da9381df0f91dd8`
+- Promoted code commit range: `803b90dd07af3c7de7344c343da9381df0f91dd8`
+- Scope goal: Reissue a commit-accurate handoff for the reviewed context-storage recovery change.
+- Scope completed: Restored the empty-recovery helper behavior in `src/qual/context/store.py` and `src/qual/context/set_store.py`.
 - Scope completed: Kept canonical empty recovery payloads free of synthetic `recovered_from` provenance.
+- Scope completed: Aligned the handoff metadata file with the reviewed commit's exact file list.
 - Tasks completed:
-  1. Restored empty-recovery handling in `src/qual/context/store.py`.
-  2. Restored empty-recovery handling in `src/qual/context/set_store.py`.
-  3. Reissued the handoff packet so the branch metadata matches the reviewed commit exactly.
+  1. Corrected `Files changed` to match the reviewed commit contents exactly.
+  2. Narrowed `Scope completed` to the actual empty-recovery normalization work in the context-store implementations.
+  3. Recorded the lane metadata file in the commit-accurate file list and ownership note.
 
 - Feature code files:
+  - `.codex/lane_meta/feat-context-storage.json`
   - `src/qual/context/store.py`
   - `src/qual/context/set_store.py`
 
 - Files changed:
-  - `THREAD_PACKET.md`
+  - `.codex/lane_meta/feat-context-storage.json`
   - `src/qual/context/store.py`
   - `src/qual/context/set_store.py`
 
 - Commands run with results:
-  - `git show --stat --summary --oneline 550086af1186963e6807ee1f8e8be526d3af1d16` -> confirmed the reviewed artifact changes `THREAD_PACKET.md`, `src/qual/context/store.py`, and `src/qual/context/set_store.py`
-  - `git show --stat --summary --patch --unified=40 550086af1186963e6807ee1f8e8be526d3af1d16 -- src/qual/context/set_store.py src/qual/context/store.py` -> confirmed the reviewed artifact is limited to the empty-recovery normalization changes in the two context-store implementations
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -47,7 +47,7 @@
 - Scope-check / ownership note:
   - Shared/integrator-locked edits: NO.
   - No shared or integrator-locked files are part of the reviewed diff.
-  - Ownership is lane-clean for `src/qual/context/**`.
+  - Ownership is lane-clean for `src/qual/context/**` and `src/qual/storage/**`; the metadata update is limited to `.codex/lane_meta/feat-context-storage.json`.
   - No explicit approval is required because no shared files are part of the reviewed commit.
 
 - Checkpoint status:
