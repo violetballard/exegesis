@@ -198,20 +198,22 @@ def _diff_fingerprint(diff: str) -> dict[str, object]:
     }
 
 
+def _no_diff_payload(message: str) -> dict[str, object]:
+    summary_only = _env_enabled(SUMMARY_ONLY_ENV)
+    return {
+        "diff": "",
+        "fingerprint": None,
+        "message": message,
+        "status": "no_diff",
+        "summary": None,
+        "summary_only": summary_only,
+        "truncated": False,
+    }
+
+
 def _no_diff_result(message: str) -> str:
     if _resolve_output_format() == "json":
-        summary_only = _env_enabled(SUMMARY_ONLY_ENV)
-        return _json_result(
-            {
-                "diff": "",
-                "fingerprint": None,
-                "message": message,
-                "status": "no_diff",
-                "summary": None,
-                "summary_only": summary_only,
-                "truncated": False,
-            }
-        )
+        return _json_result(_no_diff_payload(message))
     return message
 
 
