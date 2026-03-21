@@ -790,6 +790,20 @@ class A2UIContractTests(unittest.TestCase):
         self.assertLessEqual(len(unknown["blocks"][-1]["code"].encode("utf-8")), 48)
         self.assertLessEqual(len(unknown["actions"][0]["payload"]["text"].encode("utf-8")), 48)
 
+    def test_unknown_card_uses_safe_default_preview_budget(self) -> None:
+        raw_unknown = {
+            "type": "FutureCard",
+            "title": "Future",
+            "payload": {"body": "x" * 20_000},
+        }
+
+        unknown = build_unknown_card(raw_unknown)
+
+        self.assertIn("[truncated to 8192 bytes]", unknown["blocks"][-1]["code"])
+        self.assertIn("[truncated to 8192 bytes]", unknown["actions"][0]["payload"]["text"])
+        self.assertLessEqual(len(unknown["blocks"][-1]["code"].encode("utf-8")), 8192)
+        self.assertLessEqual(len(unknown["actions"][0]["payload"]["text"].encode("utf-8")), 8192)
+
     def test_terminal_fallback_renders_unsupported_or_malformed_blocks(self) -> None:
         card = {
             "type": "GenericCard",

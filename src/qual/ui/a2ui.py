@@ -8,6 +8,7 @@ from typing import Any, Callable, Protocol
 A2UI_VERSION = 1
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
+DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES = 8_192
 _RESERVED_CARD_TYPES: tuple[str, ...] = (GENERIC_CARD_TYPE, UNKNOWN_CARD_TYPE)
 
 ALLOWED_ACTION_IDS: tuple[str, ...] = (
@@ -107,7 +108,7 @@ def describe_a2ui_contract() -> dict[str, Any]:
         "actions": [
             {
                 "id": action_id,
-                "payload_fields": list(schema),
+                "payload_fields": sorted(schema),
             }
             for action_id, schema in sorted(_ACTION_SCHEMAS.items())
         ],
@@ -221,12 +222,19 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
 def build_unknown_card(
     raw_card: dict[str, Any],
     *,
-    max_payload_bytes: int | None = None,
+    max_payload_bytes: int | None = DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES,
     supported_actions: tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
     type_name = _normalize_card_type(raw_card)
-    rendered_preview = _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes, pretty=True)
-    clipboard_preview = _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes)
+    effective_max_payload_bytes = (
+        DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES if max_payload_bytes is None else max_payload_bytes
+    )
+    rendered_preview = _render_payload_preview(
+        raw_card,
+        max_payload_bytes=effective_max_payload_bytes,
+        pretty=True,
+    )
+    clipboard_preview = _render_payload_preview(raw_card, max_payload_bytes=effective_max_payload_bytes)
     blocks = _extract_safe_primitive_blocks(raw_card)
     blocks.append(
         {
