@@ -139,6 +139,7 @@ class RetrievalService:
             fts_run = self._fts.retrieve(query, candidate_doc_ids=candidate_doc_ids)
             merged_hits = self._merge_hits([fts_run], max_results=query.constraints.max_results)
             doc_hits = self._build_doc_hits(query, merged_hits, query_fingerprint=query_fingerprint)
+            retrieval_manifest = self._build_retrieval_manifest(doc_hits, merged_hits)
             elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
             diagnostics = {
                 "retrieval_backend": "sqlite_fts",
@@ -156,6 +157,7 @@ class RetrievalService:
                 "elapsed_ms_total": elapsed_ms_total,
                 "doc_hits_count": len(doc_hits),
                 "excerpt_hits_count": len(merged_hits),
+                "retrieval_manifest": retrieval_manifest,
             }
             query_hash = hashlib.sha256(query.query_text.encode("utf-8")).hexdigest()
             audit = self._audit.record(
@@ -169,6 +171,7 @@ class RetrievalService:
                     "elapsed_ms_by_strategy": diagnostics["elapsed_ms_by_strategy"],
                     "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
                     "hits_count": len(merged_hits),
+                    "retrieval_manifest": retrieval_manifest,
                 },
             )
         finally:
@@ -370,6 +373,15 @@ class RetrievalService:
                 )
             )
         return doc_hits
+
+    @staticmethod
+    def _build_retrieval_manifest(doc_hits: list[RetrievalDocHit], hits: list[RetrievalHit]) -> dict[str, object]:
+        return {
+            "doc_ids": [doc_hit.doc_id for doc_hit in doc_hits],
+            "doc_fingerprints": [str(doc_hit.provenance.get("doc_fingerprint", "")) for doc_hit in doc_hits],
+            "top_excerpt_ids": [doc_hit.top_excerpt_id for doc_hit in doc_hits],
+            "excerpt_ids": [hit.excerpt_id for hit in hits if hit.excerpt_id is not None],
+        }
 
     def _candidate_docs_from_fts(self, query: RetrievalQuery, *, limit: int) -> tuple[str, ...]:
         run = self._fts.retrieve(

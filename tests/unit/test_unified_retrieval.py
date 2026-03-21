@@ -178,6 +178,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertIn("top_fts_rank", doc_hit.provenance)
         self.assertEqual(result.diagnostics["doc_hits_count"], len(result.doc_hits))
         self.assertEqual(result.diagnostics["excerpt_hits_count"], len(result.hits))
+        manifest = result.diagnostics["retrieval_manifest"]
+        self.assertEqual(manifest["doc_ids"], [item.doc_id for item in result.doc_hits])
+        self.assertEqual(manifest["doc_fingerprints"], [item.provenance["doc_fingerprint"] for item in result.doc_hits])
+        self.assertEqual(manifest["top_excerpt_ids"], [item.top_excerpt_id for item in result.doc_hits])
+        self.assertEqual(manifest["excerpt_ids"], [item.excerpt_id for item in result.hits if item.excerpt_id is not None])
 
     def test_doc_hits_follow_top_ranked_excerpt_order(self) -> None:
         self.service.add_or_update_document(
@@ -311,6 +316,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertIn("query_fingerprint", event["metadata"])
         self.assertIn("strategies_used", event["metadata"])
         self.assertIn("elapsed_ms_by_strategy", event["metadata"])
+        self.assertIn("retrieval_manifest", event["metadata"])
 
 
 if __name__ == "__main__":
