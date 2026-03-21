@@ -27,12 +27,11 @@
   - ready for handoff: all required local gates passed in this cleanup pass
 - Risks/blockers:
   - No blockers. The reviewed diff is limited to `src/qual/retrieval/service.py`.
-  - The packet should stay aligned with the reviewed commit if the retrieval service changes again.
 - Roadmap item(s) affected:
   - Stable hit-set fingerprinting: keep retrieval fingerprints deterministic in `src/qual/retrieval/service.py`.
-  - Test hardening: preserve coverage around fingerprint stability and provenance ordering.
+  - Test hardening: preserve coverage around fingerprint stability and hit-set ordering.
 - Vision capability affected:
   - Stable retrieval hit-set fingerprints
-  - Deterministic retrieval output hardening
+  - Deterministic retrieval hit-set ordering
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.
