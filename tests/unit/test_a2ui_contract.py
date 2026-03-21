@@ -15,6 +15,8 @@ from src.qual.ui.a2ui import (
     normalize_action_ref,
     render_terminal_card,
     studio_materialize_card,
+    validate_generic_card,
+    validate_unknown_card,
     validate_capabilities,
 )
 
@@ -454,10 +456,41 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual([action["id"] for action in card["actions"]], ["copy_to_clipboard"])
         self.assertEqual(card["actions"][0]["label"], "Copy")
+        self.assertEqual(card["type"], "GenericCard")
+        self.assertEqual(card["debug"], {"fallback_kind": "generic", "source_card_type": "ProposedEditCard"})
+        validate_generic_card(card)
 
         text = render_terminal_card(card)
         self.assertIn("- Copy (copy_to_clipboard)", text)
         self.assertNotIn("- Apply (apply_patch)", text)
+
+    def test_unknown_card_validator_accepts_sanitized_fallback_cards(self) -> None:
+        unknown = build_unknown_card(
+            {
+                "type": "FutureCard",
+                "title": "Future",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "safe"}],
+            },
+            supported_actions=("copy_to_clipboard",),
+        )
+
+        validate_unknown_card(unknown)
+
+    def test_unknown_card_validator_rejects_non_copy_actions(self) -> None:
+        with self.assertRaises(ValueError):
+            validate_unknown_card(
+                {
+                    "type": "UnknownCard",
+                    "title": "Unsupported card type: FutureCard",
+                    "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
+                    "a2ui_version": 1,
+                    "debug": {"fallback_kind": "unknown", "source_card_type": "FutureCard"},
+                    "blocks": [],
+                    "actions": [
+                        {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    ],
+                }
+            )
 
     def test_engine_fallback_sanitizes_safe_primitive_blocks(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))

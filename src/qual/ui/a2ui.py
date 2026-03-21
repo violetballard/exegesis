@@ -276,7 +276,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
         return _materialize_versioned_card(card, capabilities)
 
     # Safe fallback for unsupported specialized cards.
-    return {
+    fallback_card = {
         "type": GENERIC_CARD_TYPE,
         "title": f"Fallback view for {card_type or 'Unknown'}",
         "subtitle": "Rendered as GenericCard because client does not support this specialized card.",
@@ -301,6 +301,20 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
             supported_actions=set(capabilities.actions_supported),
         ),
     }
+    _validate_fallback_card(
+        fallback_card,
+        expected_type=GENERIC_CARD_TYPE,
+        expected_fallback_kind="generic",
+    )
+    return fallback_card
+
+
+def validate_unknown_card(card: dict[str, Any]) -> None:
+    _validate_fallback_card(
+        card,
+        expected_type=UNKNOWN_CARD_TYPE,
+        expected_fallback_kind="unknown",
+    )
 
 
 def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
@@ -311,11 +325,12 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
     if card_type in set(capabilities.cards_supported):
         _validate_card_version(card)
         return _materialize_versioned_card(card, capabilities)
-    return build_unknown_card(
+    fallback_card = build_unknown_card(
         card,
         max_payload_bytes=capabilities.max_payload_bytes,
         supported_actions=capabilities.actions_supported,
     )
+    return fallback_card
 
 
 def build_unknown_card(
@@ -355,7 +370,7 @@ def build_unknown_card(
             supported_actions={FALLBACK_COPY_ACTION_ID},
         )
         actions.append(copy_action)
-    return {
+    card = {
         "type": UNKNOWN_CARD_TYPE,
         "title": f"Unsupported card type: {type_name}",
         "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
@@ -364,6 +379,8 @@ def build_unknown_card(
         "blocks": blocks,
         "actions": actions,
     }
+    _validate_fallback_card(card, expected_type=UNKNOWN_CARD_TYPE, expected_fallback_kind="unknown")
+    return card
 
 
 def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
@@ -393,6 +410,49 @@ def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) 
             raise ValueError("GenericCard actions must be a list")
         for action in actions:
             validate_action_ref(action)
+
+
+def _validate_fallback_card(
+    card: dict[str, Any],
+    *,
+    expected_type: str,
+    expected_fallback_kind: str,
+) -> None:
+    if card.get("type") != expected_type:
+        raise ValueError(f"Fallback card type must be {expected_type}")
+    version = card.get("a2ui_version")
+    if type(version) is not int:
+        raise ValueError("Fallback card a2ui_version must be an int")
+    if version != A2UI_VERSION:
+        raise ValueError("Unsupported fallback card a2ui_version")
+    title = card.get("title")
+    if not isinstance(title, str) or not title.strip():
+        raise ValueError("Fallback card title is required")
+    subtitle = card.get("subtitle")
+    if not isinstance(subtitle, str) or not subtitle.strip():
+        raise ValueError("Fallback card subtitle is required")
+    blocks = card.get("blocks")
+    if not isinstance(blocks, list):
+        raise ValueError("Fallback card blocks must be a list")
+    for block in blocks:
+        validate_primitive_block(block)
+    actions = card.get("actions")
+    if not isinstance(actions, list):
+        raise ValueError("Fallback card actions must be a list")
+    for action in actions:
+        validate_action_ref(action)
+        action_id = action.get("id") if isinstance(action, dict) else None
+        if action_id != FALLBACK_COPY_ACTION_ID:
+            raise ValueError("Fallback card actions must be copy_to_clipboard only")
+    debug = card.get("debug")
+    if not isinstance(debug, dict):
+        raise ValueError("Fallback card debug is required")
+    fallback_kind = debug.get("fallback_kind")
+    source_card_type = debug.get("source_card_type")
+    if fallback_kind != expected_fallback_kind:
+        raise ValueError("Fallback card debug fallback_kind is invalid")
+    if not isinstance(source_card_type, str) or not source_card_type.strip():
+        raise ValueError("Fallback card debug source_card_type is required")
 
 
 def _validate_card_version(card: dict[str, Any]) -> None:
