@@ -1,30 +1,32 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Reviewed feature commit: `075a61ad1c92b85fb4df2fae54bbb9163f53aa12`
-- Promoted code commit range: `075a61ad1c92b85fb4df2fae54bbb9163f53aa12`
-- Scope goal: Canonicalize empty recovery state for context storage so recovery paths materialize clean canonical payloads without inventing recovery provenance.
-- Scope completed: Canonicalized empty recovery state in `src/qual/context/store.py` and `src/qual/context/set_store.py`.
-- Scope completed: Added lane-local regression coverage in `tests/unit/test_context_storage_recovery_lane.py` for empty seed recovery.
-- Scope completed: Kept recovery provenance unset for canonical-empty fallback payloads.
+- Reviewed feature commit: `155dd1a0f4bce0f27c184b52740ce7f1be048e53`
+- Promoted code commit range: `155dd1a0f4bce0f27c184b52740ce7f1be048e53`
+- Scope goal: Add empty-seed regression coverage for context storage recovery so canonical empty payloads stay provenance-free.
+- Scope completed: Added empty-seed regression coverage in `tests/unit/test_context_storage_recovery_lane.py`.
+- Scope completed: Kept canonical empty recovery payloads free of `recovered_from` provenance in `src/qual/context/store.py` and `src/qual/context/set_store.py`.
 - Tasks completed:
-  1. Canonicalized empty recovery state in the context basket and context set stores.
-  2. Added regression tests for empty seed recovery in both context storage paths.
-  3. Prevented empty recoverable payloads from inventing `recovered_from` provenance.
+  1. Added empty-seed regression coverage for the context basket recovery path.
+  2. Added empty-seed regression coverage for the context set recovery path.
+  3. Verified canonical empty payloads do not invent `recovered_from` provenance.
   4. Re-ran the required lane gates on the reviewed feature commit and recorded the results here.
 
 - Feature code files:
   - `src/qual/context/store.py`
   - `src/qual/context/set_store.py`
+  - `tests/unit/test_context_storage_recovery_lane.py`
 
 - Files changed:
+  - `.codex/lane_meta/feat-context-storage.json`
+  - `THREAD_PACKET.md`
   - `src/qual/context/store.py`
   - `src/qual/context/set_store.py`
   - `tests/unit/test_context_storage_recovery_lane.py`
 
 - Commands run with results:
-  - `git show --stat --summary --oneline 075a61ad1c92b85fb4df2fae54bbb9163f53aa12` -> confirmed the actual reviewed feature commit changes only `src/qual/context/store.py` and `src/qual/context/set_store.py`
-  - `git show --stat --summary --patch --unified=40 075a61ad1c92b85fb4df2fae54bbb9163f53aa12 -- src/qual/context/store.py src/qual/context/set_store.py` -> confirmed the commit diff matches the empty-recovery canonicalization fix
+  - `git show --stat --summary --oneline 155dd1a0f4bce0f27c184b52740ce7f1be048e53` -> confirmed the reviewed feature commit changes `.codex/lane_meta/feat-context-storage.json`, `THREAD_PACKET.md`, `src/qual/context/set_store.py`, `src/qual/context/store.py`, and `tests/unit/test_context_storage_recovery_lane.py`
+  - `git show --stat --summary --patch --unified=40 155dd1a0f4bce0f27c184b52740ce7f1be048e53 -- .codex/lane_meta/feat-context-storage.json THREAD_PACKET.md src/qual/context/set_store.py src/qual/context/store.py tests/unit/test_context_storage_recovery_lane.py` -> confirmed the reviewed artifact adds empty-seed regression coverage and aligns the handoff metadata
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -47,8 +49,8 @@
 
 - Scope-check / ownership note:
   - Shared/integrator-locked edits: NO.
-  - No shared or integrator-locked files are part of the actual reviewed diff.
-  - Ownership is lane-clean for `src/qual/context/**` and `src/qual/storage/**`.
+  - No shared or integrator-locked files are part of the reviewed diff.
+  - Ownership is lane-clean for `src/qual/context/**` and `tests/unit/test_context_storage_recovery_lane.py`.
   - No explicit approval is required because no shared files remain in scope.
 - Checkpoint status:
   - plan complete
