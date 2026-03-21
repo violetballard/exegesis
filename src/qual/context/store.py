@@ -7,6 +7,7 @@ from pathlib import Path
 from src.qual.context.basket import ContextBasket
 
 _SCHEMA_VERSION = 1
+_CANONICAL_DICT_KEYS = {"schema_version", "updated_at", "item_ids", "recovered_from"}
 
 
 class ContextBasketStore:
@@ -90,6 +91,8 @@ class ContextBasketStore:
             normalized_items = self._normalize_item_ids(parsed_items)
             basket = ContextBasket(item_ids=normalized_items)
             should_rewrite = schema_version != _SCHEMA_VERSION or normalized_items != parsed_items
+            if self._has_unknown_fields(payload):
+                should_rewrite = True
             if "updated_at" not in payload:
                 should_rewrite = True
             if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
@@ -400,6 +403,8 @@ class ContextBasketStore:
             return True
         if parsed_items != self._normalize_item_ids(parsed_items):
             return True
+        if self._has_unknown_fields(payload):
+            return True
         if "updated_at" not in payload:
             return True
         if "recovered_from" in payload:
@@ -412,6 +417,9 @@ class ContextBasketStore:
 
     def _normalize_item_ids(self, item_ids: list[str]) -> list[str]:
         return ContextBasket(item_ids=list(item_ids)).item_ids
+
+    def _has_unknown_fields(self, payload: dict[str, object]) -> bool:
+        return any(key not in _CANONICAL_DICT_KEYS for key in payload)
 
     def _recovery_marker(self, *, primary_missing: bool, recovered_source: str | None) -> str | None:
         if not primary_missing:

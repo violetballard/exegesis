@@ -10,6 +10,7 @@ from src.qual.config import validate_project_name
 _STATE_FILE = ".vault_state.json"
 _BACKUP_STATE_FILE = ".vault_state.bak.json"
 _SCHEMA_VERSION = 1
+_CANONICAL_DICT_KEYS = {"schema_version", "updated_at", "project_name", "is_locked", "recovered_from"}
 
 
 @dataclass
@@ -257,6 +258,8 @@ class VaultService:
         # Backup rotation stays strict so rewritten state drops malformed metadata fields.
         if not self._is_loadable_payload(payload):
             return False
+        if isinstance(payload, dict) and self._has_unknown_fields(payload):
+            return False
         if "project_name" in payload and self._parse_project_name(payload.get("project_name")) is None:
             return False
         if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
@@ -325,6 +328,9 @@ class VaultService:
         if not primary_missing:
             return None
         return self._parse_recovered_from(recovered_source)
+
+    def _has_unknown_fields(self, payload: dict[str, object]) -> bool:
+        return any(key not in _CANONICAL_DICT_KEYS for key in payload)
 
     def _parse_updated_at(self, value: object) -> str | None:
         if not isinstance(value, str):
