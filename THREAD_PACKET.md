@@ -49,7 +49,6 @@ Breaking compatibility note: `section:` scopes remain intentionally rejected in 
   6. Tightened the roadmap and vision mapping so it describes the handoff boundary rather than feature delivery.
   7. Documented the section-scope compatibility boundary for the current FTS-first MVP path.
 - Files changed:
-- Handoff-only artifacts:
   - `.codex/kickoff_packets/feat-retrieval-fts.md`
   - `.codex/lane_meta/feat-retrieval-fts.json`
   - `THREAD_PACKET.md`
