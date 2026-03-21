@@ -2,11 +2,11 @@
 
 - Branch name: `codex/feat-a2ui-contract`
 - Scope goal: Perform a metadata-only handoff update in `THREAD_PACKET.md` with no product-code, runtime, roadmap, or capability impact.
-- Scope completed: Rewrote the packet to describe packet maintenance and auditability only, confirmed the reviewed diff is limited to `THREAD_PACKET.md`, and marked the roadmap/vision fields as explicitly no-impact metadata.
+- Scope completed: Updated the handoff packet to describe packet maintenance and auditability only, with the reviewed diff limited to `THREAD_PACKET.md`.
 - Task summary:
-  1. Reframed the packet scope so it clearly describes packet maintenance and auditability only, rather than feature, behavior, or runtime changes.
-  2. Kept the changed-files list limited to `THREAD_PACKET.md`, which matches the reviewed diff exactly and excludes unrelated UI and test paths.
-  3. Updated the roadmap and vision mapping to state explicitly that this handoff has no product-code, roadmap, or capability impact.
+  1. Reframed the packet scope to describe packet maintenance and auditability only.
+  2. Kept the changed-files list aligned to the actual reviewed diff by listing only `THREAD_PACKET.md`.
+  3. Marked the roadmap and vision mapping as explicitly no-impact for product-code, roadmap, and capability concerns.
 - Changed-files list:
   - `THREAD_PACKET.md`
 - Commands run with results:
@@ -20,7 +20,7 @@
   - No known blockers. This change is limited to packet metadata and handoff accuracy, with no product-code or runtime effect.
   - Future review packets should keep the scope aligned to the actual diff to avoid claiming product changes that are not present.
 - Roadmap/vision mapping:
-  - Roadmap item(s) affected: None. This is a metadata-only handoff update with no roadmap, product, or feature impact.
-  - Vision capability affected: None. This is audit-only packet alignment with no capability-level or product-code change.
+  - Roadmap item(s) affected: None. This commit has no roadmap, capability, or product-code impact.
+  - Vision capability affected: None. This commit is audit-only packet maintenance with no capability-level change.
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.
