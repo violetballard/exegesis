@@ -133,6 +133,64 @@ class A2UIContractTests(unittest.TestCase):
                 _capabilities(actions_supported=("apply_patch", "apply_patch")),
             )
 
+    def test_session_store_rejects_non_bool_streaming_flag(self) -> None:
+        store = A2UISessionStore()
+        caps = A2UICapabilities(
+            a2ui_version=1,
+            client_name="Exegesis Studio",
+            cards_supported=("ProposedEditCard",),
+            primitive_blocks_supported=(
+                "MarkdownBlock",
+                "KeyValueBlock",
+                "ListBlock",
+                "TableBlock",
+                "AlertBlock",
+                "ProgressBlock",
+                "CodeBlock",
+            ),
+            actions_supported=(
+                "apply_patch",
+                "reject_patch",
+                "open_section",
+                "open_corpus_item",
+                "pin_to_context_set",
+                "create_context_set",
+                "run_agent",
+                "refresh_license",
+                "export_document",
+                "copy_to_clipboard",
+            ),
+            max_payload_bytes=1_000_000,
+            supports_streaming="yes",  # type: ignore[arg-type]
+        )
+        with self.assertRaises(ValueError):
+            store.register("sess-2i", caps)
+
+    def test_session_store_rejects_canonical_primitive_block_types_only(self) -> None:
+        store = A2UISessionStore()
+        with self.assertRaises(ValueError):
+            store.register(
+                "sess-2j",
+                A2UICapabilities(
+                    a2ui_version=1,
+                    client_name="Exegesis Studio",
+                    cards_supported=("RunLogCard",),
+                    primitive_blocks_supported=(
+                        "MarkdownBlock",
+                        "KeyValueBlock",
+                        "ListBlock",
+                        "TableBlock",
+                        "AlertBlock",
+                        "ProgressBlock",
+                        "CodeBlock",
+                        " CodeBlock ",
+                    ),
+                    actions_supported=("apply_patch",),
+                    max_payload_bytes=1_000_000,
+                    supports_streaming=True,
+                ),
+            )
+
     def test_session_store_rejects_future_a2ui_version(self) -> None:
         store = A2UISessionStore()
         with self.assertRaises(ValueError):
@@ -489,6 +547,8 @@ class A2UIContractTests(unittest.TestCase):
                 {"markdown": "missing type"},
                 "not-a-block",
                 {"type": "ListBlock", "items": "broken"},
+                {"type": "KeyValueBlock", "items": [{"value": "missing key"}, {"key": " ", "value": "ignored"}, {"key": "Owner", "value": "  "}]},
+                {"type": "ListBlock", "items": ["   ", {"label": "  "}, {"label": "Kept"}]},
             ],
             "actions": [],
         }
@@ -498,6 +558,8 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("[unsupported block: missing type]", text)
         self.assertIn("[unsupported block: malformed]", text)
         self.assertIn("[ListBlock: invalid items]", text)
+        self.assertIn("- Owner: <blank>", text)
+        self.assertIn("- Kept", text)
 
     def test_terminal_renderer_ignores_non_list_blocks_and_actions(self) -> None:
         card = {

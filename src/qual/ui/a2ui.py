@@ -95,6 +95,8 @@ def validate_capabilities(capabilities: A2UICapabilities) -> None:
         raise ValueError("client_name is required")
     if capabilities.max_payload_bytes <= 0:
         raise ValueError("max_payload_bytes must be positive")
+    if not isinstance(capabilities.supports_streaming, bool):
+        raise ValueError("supports_streaming must be a bool")
     seen_cards: set[str] = set()
     for card_type in capabilities.cards_supported:
         if not isinstance(card_type, str) or not card_type.strip():
@@ -107,7 +109,17 @@ def validate_capabilities(capabilities: A2UICapabilities) -> None:
         if canonical_card_type in seen_cards:
             raise ValueError(f"Duplicate supported card type: {canonical_card_type}")
         seen_cards.add(canonical_card_type)
-    if not _PRIMITIVE_BLOCK_SET.issubset(set(capabilities.primitive_blocks_supported)):
+    seen_blocks: set[str] = set()
+    for block_type in capabilities.primitive_blocks_supported:
+        if not isinstance(block_type, str) or not block_type.strip():
+            raise ValueError("Supported primitive block types must be non-empty strings")
+        canonical_block_type = block_type.strip()
+        if block_type != canonical_block_type:
+            raise ValueError(f"Supported primitive block types must be canonical, got: {block_type!r}")
+        if canonical_block_type in seen_blocks:
+            raise ValueError(f"Duplicate supported primitive block type: {canonical_block_type}")
+        seen_blocks.add(canonical_block_type)
+    if not _PRIMITIVE_BLOCK_SET.issubset(seen_blocks):
         raise ValueError("Missing required primitive block support")
     seen_actions: set[str] = set()
     for action_id in capabilities.actions_supported:
@@ -495,11 +507,16 @@ def _render_terminal_block(block: Any) -> list[str]:
         items = block.get("items", [])
         if not isinstance(items, list):
             return ["[KeyValueBlock: invalid items]"]
-        return [
-            f"- {item.get('key', '')}: {item.get('value', '')}"
-            for item in items
-            if isinstance(item, dict)
-        ] or ["[KeyValueBlock: empty]"]
+        lines: list[str] = []
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            key = str(item.get("key", "")).strip()
+            if not key:
+                continue
+            value = str(item.get("value", "")).strip() or "<blank>"
+            lines.append(f"- {key}: {value}")
+        return lines or ["[KeyValueBlock: empty]"]
     if block_type == "ListBlock":
         items = block.get("items", [])
         if not isinstance(items, list):
@@ -507,9 +524,13 @@ def _render_terminal_block(block: Any) -> list[str]:
         lines: list[str] = []
         for item in items:
             if isinstance(item, str):
-                lines.append(f"- {item}")
+                rendered_item = item.strip()
+                if rendered_item:
+                    lines.append(f"- {rendered_item}")
             elif isinstance(item, dict):
-                lines.append(f"- {item.get('label', '')}")
+                label = str(item.get("label", "")).strip()
+                if label:
+                    lines.append(f"- {label}")
         return lines or ["[ListBlock: empty]"]
     if block_type == "TableBlock":
         return ["[table]"]
