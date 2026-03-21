@@ -127,6 +127,49 @@ class A2UIContractTests(unittest.TestCase):
                 ),
             )
 
+    def test_session_store_rejects_non_sequence_capability_fields(self) -> None:
+        store = A2UISessionStore()
+        base_kwargs = {
+            "a2ui_version": 1,
+            "client_name": "Exegesis Studio",
+            "cards_supported": ("ProposedEditCard",),
+            "primitive_blocks_supported": (
+                "MarkdownBlock",
+                "KeyValueBlock",
+                "ListBlock",
+                "TableBlock",
+                "AlertBlock",
+                "ProgressBlock",
+                "CodeBlock",
+            ),
+            "actions_supported": (
+                "apply_patch",
+                "reject_patch",
+                "open_section",
+                "open_corpus_item",
+                "pin_to_context_set",
+                "create_context_set",
+                "run_agent",
+                "refresh_license",
+                "export_document",
+                "copy_to_clipboard",
+            ),
+            "max_payload_bytes": 1_000_000,
+            "supports_streaming": True,
+        }
+
+        for field_name, override in (
+            ("cards_supported", "RunLogCard"),
+            ("primitive_blocks_supported", "MarkdownBlock"),
+            ("actions_supported", "copy_to_clipboard"),
+        ):
+            with self.subTest(field_name=field_name):
+                with self.assertRaises(ValueError):
+                    store.register(
+                        f"sess-{field_name}",
+                        A2UICapabilities(**{**base_kwargs, field_name: override}),
+                    )
+
     def test_session_store_rejects_reserved_card_types(self) -> None:
         store = A2UISessionStore()
         with self.assertRaises(ValueError):

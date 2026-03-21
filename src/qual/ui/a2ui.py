@@ -153,37 +153,49 @@ def validate_capabilities(capabilities: A2UICapabilities) -> None:
         raise ValueError("max_payload_bytes must be positive")
     if not isinstance(capabilities.supports_streaming, bool):
         raise ValueError("supports_streaming must be a bool")
+    cards_supported = _validate_supported_string_sequence(
+        capabilities.cards_supported,
+        field_name="cards_supported",
+    )
     seen_cards: set[str] = set()
-    for card_type in capabilities.cards_supported:
-        if not isinstance(card_type, str) or not card_type.strip():
+    for card_type in cards_supported:
+        if not card_type.strip():
             raise ValueError("Supported card types must be non-empty strings")
-        canonical_card_type = card_type.strip()
-        if card_type != canonical_card_type:
+        if card_type != card_type.strip():
             raise ValueError(f"Supported card types must be canonical, got: {card_type!r}")
+        canonical_card_type = card_type
         if canonical_card_type in _RESERVED_CARD_TYPES:
             raise ValueError(f"Reserved card type cannot be advertised as supported: {canonical_card_type}")
         if canonical_card_type in seen_cards:
             raise ValueError(f"Duplicate supported card type: {canonical_card_type}")
         seen_cards.add(canonical_card_type)
+    primitive_blocks_supported = _validate_supported_string_sequence(
+        capabilities.primitive_blocks_supported,
+        field_name="primitive_blocks_supported",
+    )
     seen_blocks: set[str] = set()
-    for block_type in capabilities.primitive_blocks_supported:
-        if not isinstance(block_type, str) or not block_type.strip():
+    for block_type in primitive_blocks_supported:
+        if not block_type.strip():
             raise ValueError("Supported primitive block types must be non-empty strings")
-        canonical_block_type = block_type.strip()
-        if block_type != canonical_block_type:
+        if block_type != block_type.strip():
             raise ValueError(f"Supported primitive block types must be canonical, got: {block_type!r}")
+        canonical_block_type = block_type
         if canonical_block_type in seen_blocks:
             raise ValueError(f"Duplicate supported primitive block type: {canonical_block_type}")
         seen_blocks.add(canonical_block_type)
     if not _PRIMITIVE_BLOCK_SET.issubset(seen_blocks):
         raise ValueError("Missing required primitive block support")
+    actions_supported = _validate_supported_string_sequence(
+        capabilities.actions_supported,
+        field_name="actions_supported",
+    )
     seen_actions: set[str] = set()
-    for action_id in capabilities.actions_supported:
-        if not isinstance(action_id, str) or not action_id.strip():
+    for action_id in actions_supported:
+        if not action_id.strip():
             raise ValueError("Supported action ids must be non-empty strings")
-        canonical_action_id = action_id.strip()
-        if action_id != canonical_action_id:
+        if action_id != action_id.strip():
             raise ValueError(f"Supported action ids must be canonical, got: {action_id!r}")
+        canonical_action_id = action_id
         if canonical_action_id not in _ALLOWED_ACTION_SET:
             raise ValueError(f"Unknown action in capabilities: {canonical_action_id}")
         if canonical_action_id in seen_actions:
@@ -746,6 +758,17 @@ def _canonicalize_supported_actions(supported_actions: tuple[str, ...] | None) -
         if normalized_action_id in _ALLOWED_ACTION_SET:
             canonical_actions.add(normalized_action_id)
     return canonical_actions
+
+
+def _validate_supported_string_sequence(values: Any, *, field_name: str) -> tuple[str, ...]:
+    if not isinstance(values, (list, tuple)):
+        raise ValueError(f"{field_name} must be a list or tuple of strings")
+    validated: list[str] = []
+    for value in values:
+        if not isinstance(value, str):
+            raise ValueError(f"{field_name} must contain only strings")
+        validated.append(value)
+    return tuple(validated)
 
 
 def _render_terminal_block(block: Any) -> list[str]:
