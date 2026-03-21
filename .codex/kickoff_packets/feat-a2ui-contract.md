@@ -7,7 +7,7 @@
 
 ### Priority outcomes
 1. Keep the reviewed file list limited to the packet artifacts that actually changed in this metadata-only handoff.
-2. Keep the scope statement aligned with packet auditability, diff alignment, and reviewability only.
+2. Keep the scope statement aligned with packet auditability and diff alignment only.
 3. Keep the packet language separated from unsupported product-code and test-code claims.
 
 ### Guardrails

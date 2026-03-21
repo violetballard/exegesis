@@ -5,7 +5,7 @@
   "risk": "LOW",
   "roadmap_items": [
     "Milestone 5: A2UI Presentation Layer - keep the handoff packet aligned to the metadata-only update in the `.codex` packet files and `THREAD_PACKET.md`.",
-    "Milestone 5: A2UI Presentation Layer - keep the reviewed file list auditable against the four-file packet diff that actually changed.",
+    "Milestone 5: A2UI Presentation Layer - keep the reviewed file list auditable against the packet diff that actually changed.",
     "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to packet alignment, auditability, and reviewability only."
   ],
   "routing_provider_impact": "None",
