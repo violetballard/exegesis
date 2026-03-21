@@ -224,6 +224,8 @@ class RetrievalResult:
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
             "citation_status": citation_status,
+            "doc_count": len(self.doc_hits),
+            "excerpt_count": len(self.hits),
             "doc_citations": [
                 {
                     "doc_id": doc_hit.doc_id,
@@ -815,6 +817,15 @@ class RetrievalService:
             "deferred_strategy_ids": list(self._retrieval_policy.deferred_strategy_ids),
             "doc_hits_fingerprint": retrieval_manifest.get("doc_hits_fingerprint"),
             "excerpt_hits_fingerprint": retrieval_manifest.get("excerpt_hits_fingerprint"),
+            "citation_status": {
+                "required": query.constraints.require_citations,
+                "available": bool(hits),
+                "satisfied": (not query.constraints.require_citations) or bool(hits),
+                "doc_count": len(doc_hits),
+                "excerpt_count": len(hits),
+            },
+            "doc_count": len(doc_hits),
+            "excerpt_count": len(hits),
             "doc_citations": doc_citations,
             "excerpt_citations": excerpt_citations,
             "retrieval_manifest": dict(retrieval_manifest),

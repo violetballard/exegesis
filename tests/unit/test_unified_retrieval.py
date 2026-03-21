@@ -322,6 +322,12 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_evidence"], result.diagnostics["retrieval_evidence"])
         self.assertEqual(payload["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
         self.assertEqual(payload["retrieval_evidence"], result.evidence)
+        self.assertEqual(payload["retrieval_provenance"]["citation_status"], payload["retrieval_summary"]["citation_status"])
+        self.assertEqual(payload["retrieval_provenance"]["doc_count"], len(result.doc_hits))
+        self.assertEqual(payload["retrieval_provenance"]["excerpt_count"], len(result.hits))
+        self.assertEqual(payload["retrieval_evidence"]["citation_status"], payload["retrieval_summary"]["citation_status"])
+        self.assertEqual(payload["retrieval_evidence"]["doc_count"], len(result.doc_hits))
+        self.assertEqual(payload["retrieval_evidence"]["excerpt_count"], len(result.hits))
 
     def test_downstream_payload_is_snapshot_safe(self) -> None:
         result = self.service.retrieve_auto(
