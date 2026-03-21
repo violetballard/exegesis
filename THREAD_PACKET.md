@@ -1,12 +1,12 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Record a metadata-only handoff update so the review packet stays aligned with the actual `THREAD_PACKET.md` diff and remains auditable.
+- Scope goal: Record a metadata-only handoff update so the review packet and lane metadata stay aligned with the actual four-file diff and remain auditable.
 - Scope completed: Rewrote the handoff packet to describe packet alignment work only. This change is metadata-only and does not claim any source-code or test-code changes.
 - Tasks completed:
   1. Reframed the scope summary so it describes a metadata-only packet handoff instead of a product implementation change.
-  2. Removed stale source and test file references from the changed-files discussion so it matches the actual diff.
-  3. Updated the roadmap, vision, and routing notes to state that this handoff has no product-code impact.
+  2. Removed stale source and test file references from the changed-files discussion so it matches the actual four-file metadata diff.
+  3. Updated the roadmap and vision notes to state that this handoff has no product-code impact.
 - Files changed:
   - `THREAD_PACKET.md`
   - `.codex/kickoff_packets/feat-a2ui-contract.md`
@@ -25,7 +25,7 @@
 - Roadmap item(s) affected:
   - Milestone 5: A2UI Presentation Layer - keep the handoff record aligned to the metadata-only packet update.
   - Milestone 5: A2UI Presentation Layer - keep the file list auditable against the actual `.codex` and `THREAD_PACKET.md` diff.
-  - Milestone 5: A2UI Presentation Layer - keep the wording limited to packet alignment and reviewability, not UI behavior.
+  - Milestone 5: A2UI Presentation Layer - keep the wording limited to packet alignment and reviewability only.
 - Vision capability affected:
   - Capability 5: Agent-to-UI protocol (A2UI) - the handoff record stays aligned to the packet metadata contract.
   - Capability 4: Operator-first control surface - the packet preserves the operator-facing audit trail for the metadata-only update.

@@ -5,16 +5,17 @@
   "risk": "LOW",
   "roadmap_items": [
     "Milestone 5: A2UI Presentation Layer - keep the review packet aligned to the metadata-only handoff update.",
-    "Milestone 5: A2UI Presentation Layer - keep the file list auditable against the `.codex` packet artifacts and THREAD_PACKET.md that actually changed.",
-    "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to packet alignment and auditability."
+    "Milestone 5: A2UI Presentation Layer - keep the file list auditable against the `.codex` packet artifacts that actually changed.",
+    "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to packet alignment and auditability only."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Record a metadata-only handoff update so the A2UI lane packet is auditable and matches the packet-alignment diff across the `.codex` files and THREAD_PACKET.md.",
+  "scope_goal": "Record a metadata-only handoff update so the A2UI lane packet is auditable and matches the packet-alignment diff across the `.codex` files.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Rewrote the lane handoff metadata to describe a metadata-only packet alignment update in the `.codex` files and THREAD_PACKET.md.",
+    "Rewrote the lane handoff metadata to describe a metadata-only packet alignment update in the `.codex` files.",
     "Kept the reviewed file list limited to the packet artifacts that actually changed and removed unsupported source-code and test-code claims from the handoff.",
-    "Aligned the Milestone 5 A2UI roadmap and vision references to packet auditability and reviewability only."
+    "Aligned the Milestone 5 A2UI roadmap references to packet auditability and reviewability only.",
+    "Kept the lane record scoped to metadata-only packet alignment with no product-code impact."
   ],
   "vision_capabilities": [
     "Capability 5: Agent-to-UI protocol (A2UI) - the handoff record stays aligned to the packet metadata contract.",

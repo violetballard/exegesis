@@ -3,10 +3,11 @@
 - Branch: `codex/feat-a2ui-contract`
 - Lane/owned paths: `.codex/kickoff_packets/feat-a2ui-contract.md`, `.codex/lane_meta/feat-a2ui-contract.json`, `.codex/packets/lanes/feat-a2ui-contract/inbox/feature/F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md`, `THREAD_PACKET.md`
 - Scope goal: Record a metadata-only handoff update for `feat-a2ui-contract` so the lane packet stays auditable and accurately describes the packet-alignment work reflected in the `.codex` files and `THREAD_PACKET.md`.
+  The reviewed packet diff remains metadata-only and does not claim product-code changes.
 
 ### Priority outcomes
 1. Keep the reviewed file list limited to the `.codex` packet artifacts that actually changed.
-2. Keep the scope statement aligned with metadata-only packet alignment and auditability.
+2. Keep the scope statement aligned with metadata-only packet alignment and auditability only.
 3. Keep the packet language separated from unsupported product-code, UI-behavior, and test-implementation claims.
 
 ### Guardrails
