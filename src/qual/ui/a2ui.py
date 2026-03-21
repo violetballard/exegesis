@@ -325,7 +325,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
                 "title": "Card fallback",
                 "message": "Rendered as GenericCard because client does not support this specialized card.",
             },
-            *_extract_safe_primitive_blocks(card),
+            *_extract_safe_primitive_blocks(card, allow_code_block=False),
             {
                 "type": "CodeBlock",
                 "language": "json",
@@ -385,7 +385,7 @@ def build_unknown_card(
         max_payload_bytes=effective_max_payload_bytes,
         pretty=True,
     )
-    blocks = _extract_safe_primitive_blocks(raw_card)
+    blocks = _extract_safe_primitive_blocks(raw_card, allow_code_block=False)
     blocks.append(
         {
             "type": "CodeBlock",
@@ -768,7 +768,7 @@ def _materialize_unknown_card(card: dict[str, Any], capabilities: A2UICapabiliti
         "subtitle": UNKNOWN_FALLBACK_SUBTITLE,
         "a2ui_version": A2UI_VERSION,
         "debug": _build_fallback_debug(source_card_type, fallback_kind="unknown"),
-        "blocks": _extract_safe_primitive_blocks(safe_card),
+        "blocks": _extract_safe_primitive_blocks(safe_card, allow_code_block=False),
         "actions": [],
     }
     return build_unknown_card(
@@ -1200,20 +1200,20 @@ def _fallback_subtitle(fallback_kind: str) -> str:
     raise ValueError(f"Unsupported fallback kind: {fallback_kind}")
 
 
-def _extract_safe_primitive_blocks(card: dict[str, Any]) -> list[dict[str, Any]]:
+def _extract_safe_primitive_blocks(card: dict[str, Any], *, allow_code_block: bool = True) -> list[dict[str, Any]]:
     nested_blocks = card.get("blocks")
     if not isinstance(nested_blocks, (list, tuple)):
         return []
 
     safe_blocks: list[dict[str, Any]] = []
     for block in nested_blocks:
-        sanitized_block = _sanitize_safe_primitive_block(block)
+        sanitized_block = _sanitize_safe_primitive_block(block, allow_code_block=allow_code_block)
         if sanitized_block is not None:
             safe_blocks.append(sanitized_block)
     return safe_blocks
 
 
-def _sanitize_safe_primitive_block(block: Any) -> dict[str, Any] | None:
+def _sanitize_safe_primitive_block(block: Any, *, allow_code_block: bool = True) -> dict[str, Any] | None:
     if not isinstance(block, dict):
         return None
     block_type = str(block.get("type", "")).strip()
@@ -1240,6 +1240,8 @@ def _sanitize_safe_primitive_block(block: Any) -> dict[str, Any] | None:
             sanitized["title"] = title
         return sanitized
     if block_type == "CodeBlock":
+        if not allow_code_block:
+            return None
         code = block.get("code")
         if not isinstance(code, str):
             return None

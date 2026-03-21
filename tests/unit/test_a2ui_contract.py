@@ -879,6 +879,26 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["blocks"][4], {"type": "ProgressBlock", "title": "Sync", "status_text": "Working"})
         self.assertEqual(card["blocks"][5], {"type": "TableBlock", "rows": [[1, 2, 3]]})
 
+    def test_engine_fallback_omits_source_code_blocks_from_read_only_view(self) -> None:
+        caps = _capabilities(cards_supported=("RunLogCard",))
+        card = engine_prepare_card(
+            {
+                "type": "ProposedEditCard",
+                "title": "Patch",
+                "blocks": [
+                    {"type": "MarkdownBlock", "markdown": "Kept"},
+                    {"type": "CodeBlock", "language": "python", "code": "print('source block')", "collapsed": False},
+                ],
+            },
+            caps,
+        )
+
+        self.assertEqual([block["type"] for block in card["blocks"]], ["AlertBlock", "MarkdownBlock", "CodeBlock"])
+        self.assertEqual(len(card["blocks"]), 3)
+        self.assertEqual(card["blocks"][1], {"type": "MarkdownBlock", "markdown": "Kept"})
+        self.assertEqual(card["blocks"][2]["language"], "json")
+        self.assertTrue(card["blocks"][2]["code"].startswith("{"))
+
     def test_engine_falls_back_to_generic_for_missing_card_type(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
         card = engine_prepare_card(
