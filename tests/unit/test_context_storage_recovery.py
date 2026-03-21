@@ -1239,6 +1239,30 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("project_name"), "p3-missing-lock")
         self.assertTrue(payload.get("is_locked"))
 
+    def test_missing_updated_at_metadata_is_salvaged_and_rewritten(self) -> None:
+        state = self.svc.create_or_open(self.root, "p3-missing-updated")
+        state_path = state.root_dir / ".vault_state.json"
+        state_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "p3-missing-updated",
+                    "is_locked": False,
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p3-missing-updated")
+
+        self.assertFalse(reopened.is_locked)
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p3-missing-updated")
+        self.assertFalse(payload.get("is_locked"))
+        self.assertIn("updated_at", payload)
+        self.assertIsInstance(payload.get("updated_at"), str)
+        self.assertEqual(payload.get("updated_at"), payload.get("updated_at").strip())
+
     def test_missing_is_locked_metadata_quarantines_before_locked_rewrite(self) -> None:
         state = self.svc.create_or_open(self.root, "p3-missing-lock-quarantine")
         state_path = state.root_dir / ".vault_state.json"

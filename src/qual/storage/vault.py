@@ -73,6 +73,8 @@ class VaultService:
             else:
                 normalized_recovered_from = None
                 needs_rewrite = True
+        if "updated_at" not in raw_state:
+            needs_rewrite = True
         if not has_is_locked or self._requires_safe_lock(raw_state, safe_project_name):
             # If metadata does not match directory identity, prefer a safe default.
             is_locked = True
