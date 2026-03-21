@@ -3,7 +3,15 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Reviewed implementation commit: `2c16551a6b3576eb9031d55a98525c21e04be255`
 - Reviewed commit type: Retrieval implementation for the FTS-first MVP.
-- Scope completed: The retrieval FTS implementation returns deterministic excerpt IDs, serves retrieval-backed `fetch_excerpt()` output, preserves `doc_hits` relevance order for document ranking, and has focused unit coverage for deterministic provenance, document ranking, and retrieval-service excerpt fetch behavior. PageIndex and embeddings remain deferred and are not required MVP paths.
+
+## Scope Goal
+
+Build the FTS-first retrieval MVP with deterministic excerpt, provenance, and document-ranking output inside retrieval-owned paths for downstream engine generation flows.
+
+## Scope Completed
+
+The reviewed retrieval implementation returns deterministic excerpt IDs, serves retrieval-backed `fetch_excerpt()` output, preserves `doc_hits` relevance order for document ranking, and adds focused unit coverage for deterministic provenance, document ranking, and retrieval-service excerpt fetch behavior. PageIndex and embeddings remain deferred and are not required MVP paths.
+
 - Related implementation files (reference only):
   - `src/qual/engine/retrieval/__init__.py`
   - `src/qual/engine/retrieval/payload.py`
