@@ -414,9 +414,9 @@ def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) 
     if subtitle is not None and not isinstance(subtitle, str):
         raise ValueError("GenericCard subtitle must be a string when provided")
     blocks = card.get("blocks")
-    if strict_actions:
+    if blocks is not None:
         if not isinstance(blocks, list):
-            raise ValueError("GenericCard blocks must be a list")
+            raise ValueError("GenericCard blocks must be a list when provided")
         for block in blocks:
             validate_primitive_block(block)
     actions = card.get("actions", [])
@@ -674,7 +674,13 @@ def _materialize_generic_card(card: dict[str, Any], capabilities: A2UICapabiliti
     validate_generic_card(card, strict_actions=False)
     out = _canonicalize_card_top_level_fields(card)
     out["blocks"] = _extract_safe_primitive_blocks(out)
-    out["actions"] = _filter_supported_actions(out.get("actions"), supported_actions=set(capabilities.actions_supported))
+    actions = out.get("actions")
+    if actions is None:
+        out["actions"] = []
+    elif not isinstance(actions, list):
+        raise ValueError("GenericCard actions must be a list when provided")
+    else:
+        out["actions"] = _filter_supported_actions(actions, supported_actions=set(capabilities.actions_supported))
     out["title"] = _normalize_card_text(out.get("title"), fallback="<untitled>")
     subtitle = _normalize_card_text(out.get("subtitle"))
     if subtitle is None:
