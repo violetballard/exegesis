@@ -59,6 +59,32 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertGreaterEqual(result.diagnostics["candidate_doc_count"], 0)
         self.assertGreaterEqual(result.diagnostics["fts_shortlist_count"], 0)
 
+    def test_retrieve_auto_emits_stable_query_fingerprint(self) -> None:
+        query = RetrievalQuery(
+            query_text="discussion theory",
+            scope="doc:doc-pdf-1",
+            intent="outline_support",
+            constraints=RetrievalConstraints(max_results=6, section_hint="discussion"),
+            confidentiality_profile="confidential",
+        )
+        first = self.service.retrieve_auto(query)
+        second = self.service.retrieve_auto(query)
+        first_fingerprint = first.diagnostics["query_fingerprint"]
+        self.assertEqual(first_fingerprint, second.diagnostics["query_fingerprint"])
+        self.assertEqual(first_fingerprint, first.hits[0].provenance["query_fingerprint"])
+        self.assertEqual(first_fingerprint, first.doc_hits[0].provenance["query_fingerprint"])
+
+        variant = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="outline_support",
+                constraints=RetrievalConstraints(max_results=6, section_hint="discussion", prefer_exact_matches=True),
+                confidentiality_profile="confidential",
+            )
+        )
+        self.assertNotEqual(first_fingerprint, variant.diagnostics["query_fingerprint"])
+
     def test_fts_returns_excerpt_hits_with_deterministic_provenance(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
@@ -83,6 +109,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             self.assertIn("fts_rank", hit.provenance)
             self.assertEqual(hit.provenance["query_scope"], "doc:doc-pdf-1")
             self.assertEqual(hit.provenance["query_intent"], "outline_support")
+            self.assertEqual(hit.provenance["query_fingerprint"], result.diagnostics["query_fingerprint"])
             self.assertIn("candidate_doc_count", hit.provenance)
             self.assertEqual(hit.provenance["match_count"], len(hit.provenance["matched_terms"]))
             self.assertTrue(hit.provenance["matched_terms"])
@@ -138,6 +165,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(doc_hit.provenance["retrieval_mode"], "fts_first")
         self.assertEqual(doc_hit.provenance["query_scope"], "vault")
         self.assertEqual(doc_hit.provenance["query_intent"], "compare")
+        self.assertEqual(doc_hit.provenance["query_fingerprint"], result.diagnostics["query_fingerprint"])
         self.assertIn("top_fts_rank", doc_hit.provenance)
         self.assertEqual(result.diagnostics["doc_hits_count"], len(result.doc_hits))
         self.assertEqual(result.diagnostics["excerpt_hits_count"], len(result.hits))
@@ -233,6 +261,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         lines = [json.loads(line) for line in payload.splitlines()]
         event = next(item for item in lines if item["name"] == "retrieval_executed")
         self.assertIn("query_hash", event["metadata"])
+        self.assertIn("query_fingerprint", event["metadata"])
         self.assertIn("strategies_used", event["metadata"])
         self.assertIn("elapsed_ms_by_strategy", event["metadata"])
 
