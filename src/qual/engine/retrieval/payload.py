@@ -10,6 +10,11 @@ class RetrievalDownstreamPayloadSource(Protocol):
         """Return the stable retrieval payload consumed by downstream engine flows."""
 
 
+class RetrievalCitationBundleSource(Protocol):
+    def citation_bundle(self) -> dict[str, object]:
+        """Return the deterministic citation snapshot consumed by downstream engine flows."""
+
+
 @dataclass(frozen=True)
 class RetrievalDownstreamPayload:
     """Deterministic downstream retrieval contract for engine consumers."""
@@ -106,3 +111,26 @@ def build_retrieval_downstream_payload_from_result(
     if callable(payload_source):
         return copy.deepcopy(payload_source())
     return copy.deepcopy(result.to_downstream_payload())
+
+
+def build_retrieval_citation_bundle_from_result(
+    result: RetrievalDownstreamPayloadSource | RetrievalCitationBundleSource,
+) -> dict[str, object]:
+    """Return the deterministic doc and excerpt citation snapshot for a result."""
+    bundle_source = getattr(result, "citation_bundle", None)
+    if callable(bundle_source):
+        return copy.deepcopy(bundle_source())
+    payload = build_retrieval_downstream_payload_from_result(result)
+    provenance = payload.get("retrieval_provenance", {})
+    summary = payload.get("retrieval_summary", {})
+    if not isinstance(provenance, dict):
+        provenance = {}
+    if not isinstance(summary, dict):
+        summary = {}
+    return {
+        "citation_status": copy.deepcopy(summary.get("citation_status", provenance.get("citation_status", {}))),
+        "doc_count": provenance.get("doc_count", summary.get("doc_count")),
+        "excerpt_count": provenance.get("excerpt_count", summary.get("excerpt_count")),
+        "doc_citations": copy.deepcopy(provenance.get("doc_citations", [])),
+        "excerpt_citations": copy.deepcopy(provenance.get("excerpt_citations", [])),
+    }

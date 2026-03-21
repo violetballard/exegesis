@@ -218,13 +218,8 @@ class RetrievalResult:
         engine flows do not have to reassemble or reinterpret retrieval state.
         """
         retrieval_policy = dict(self.diagnostics["retrieval_policy"])
-        citation_status = {
-            "required": self.query.constraints.require_citations,
-            "available": bool(self.hits),
-            "satisfied": (not self.query.constraints.require_citations) or bool(self.hits),
-            "doc_count": len(self.doc_hits),
-            "excerpt_count": len(self.hits),
-        }
+        citation_bundle = self.citation_bundle()
+        citation_status = dict(citation_bundle["citation_status"])
         doc_fingerprints = [_optional_text(doc_hit.provenance.get("doc_fingerprint")) for doc_hit in self.doc_hits]
         doc_identity_fingerprints = [
             _optional_text(doc_hit.provenance.get("doc_identity_fingerprint")) for doc_hit in self.doc_hits
@@ -252,39 +247,10 @@ class RetrievalResult:
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
             "citation_status": citation_status,
-            "doc_count": len(self.doc_hits),
-            "excerpt_count": len(self.hits),
-            "doc_citations": [
-                {
-                    "doc_id": doc_hit.doc_id,
-                    "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
-                    "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
-                    "doc_rank": doc_hit.provenance.get("doc_rank"),
-                    "top_excerpt_id": doc_hit.top_excerpt_id,
-                    "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
-                    "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
-                }
-                for doc_hit in self.doc_hits
-            ],
-            "excerpt_citations": [
-                {
-                    "doc_id": hit.doc_id,
-                    "excerpt_id": hit.excerpt_id,
-                    "doc_type": hit.provenance.get("doc_type"),
-                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
-                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
-                    "match_count": hit.provenance.get("match_count"),
-                    "matched_terms": hit.provenance.get("matched_terms"),
-                    "fts_rank": hit.provenance.get("fts_rank"),
-                    "rank": hit.provenance.get("rank"),
-                    "span": hit.provenance.get("span"),
-                    "source_strategy": hit.provenance.get("source_strategy"),
-                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
-                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
-                }
-                for hit in self.hits
-                if hit.excerpt_id is not None
-            ],
+            "doc_count": citation_bundle["doc_count"],
+            "excerpt_count": citation_bundle["excerpt_count"],
+            "doc_citations": citation_bundle["doc_citations"],
+            "excerpt_citations": citation_bundle["excerpt_citations"],
         }
         return build_retrieval_downstream_payload(
             query={
@@ -354,6 +320,52 @@ class RetrievalResult:
             retrieval_evidence=dict(self.evidence),
             retrieval_provenance=retrieval_provenance,
         )
+
+    def citation_bundle(self) -> dict[str, object]:
+        """Return deterministic doc and excerpt citations for downstream flows."""
+        citation_status = {
+            "required": self.query.constraints.require_citations,
+            "available": bool(self.hits),
+            "satisfied": (not self.query.constraints.require_citations) or bool(self.hits),
+            "doc_count": len(self.doc_hits),
+            "excerpt_count": len(self.hits),
+        }
+        return {
+            "citation_status": citation_status,
+            "doc_count": len(self.doc_hits),
+            "excerpt_count": len(self.hits),
+            "doc_citations": [
+                {
+                    "doc_id": doc_hit.doc_id,
+                    "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
+                    "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
+                    "doc_rank": doc_hit.provenance.get("doc_rank"),
+                    "top_excerpt_id": doc_hit.top_excerpt_id,
+                    "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
+                    "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
+                }
+                for doc_hit in self.doc_hits
+            ],
+            "excerpt_citations": [
+                {
+                    "doc_id": hit.doc_id,
+                    "excerpt_id": hit.excerpt_id,
+                    "doc_type": hit.provenance.get("doc_type"),
+                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                    "match_count": hit.provenance.get("match_count"),
+                    "matched_terms": hit.provenance.get("matched_terms"),
+                    "fts_rank": hit.provenance.get("fts_rank"),
+                    "rank": hit.provenance.get("rank"),
+                    "span": hit.provenance.get("span"),
+                    "source_strategy": hit.provenance.get("source_strategy"),
+                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
+                }
+                for hit in self.hits
+                if hit.excerpt_id is not None
+            ],
+        }
 
     def as_downstream_payload(self) -> dict[str, object]:
         """Return the canonical downstream payload using result-oriented naming."""
