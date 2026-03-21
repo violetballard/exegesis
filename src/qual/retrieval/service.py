@@ -134,6 +134,7 @@ class RetrievalResult:
         manifest, and evidence in one deterministic structure so downstream
         engine flows do not have to reassemble or reinterpret retrieval state.
         """
+        retrieval_policy = dict(self.diagnostics["retrieval_policy"])
         return build_retrieval_downstream_payload(
             query={
                 "query_text": self.query.query_text,
@@ -151,12 +152,7 @@ class RetrievalResult:
                 },
                 "confidentiality_profile": self.query.confidentiality_profile,
             },
-            policy={
-                "retrieval_backend": self.diagnostics["retrieval_backend"],
-                "retrieval_mode": self.diagnostics["retrieval_mode"],
-                "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
-                "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
-            },
+            policy=retrieval_policy,
             audit_ref=self.audit_ref,
             result_fingerprint=self.result_fingerprint,
             retrieval_summary={
@@ -164,6 +160,7 @@ class RetrievalResult:
                 "result_fingerprint": self.result_fingerprint,
                 "retrieval_backend": self.diagnostics["retrieval_backend"],
                 "retrieval_mode": self.diagnostics["retrieval_mode"],
+                "retrieval_policy": retrieval_policy,
                 "doc_count": len(self.doc_hits),
                 "excerpt_count": len(self.hits),
                 "doc_ids": [doc_hit.doc_id for doc_hit in self.doc_hits],
@@ -242,6 +239,7 @@ class RetrievalService:
     def _run_fts_first_retrieval(self, query: RetrievalQuery) -> RetrievalResult:
         started = self._now_fn()
         query_fingerprint = self._query_fingerprint(query)
+        retrieval_policy = self._retrieval_policy.as_snapshot()
         fts_shortlist_limit = self._fts_shortlist_limit(query.constraints.max_results)
         date_range = query.constraints.date_range
         fts_candidate_scan_limit = self._fts_candidate_scan_limit(fts_shortlist_limit, date_range=date_range)
@@ -283,10 +281,11 @@ class RetrievalService:
             )
             elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
             diagnostics = {
-                "retrieval_backend": self._retrieval_policy.retrieval_backend,
-                "retrieval_mode": self._retrieval_policy.retrieval_mode,
-                "active_strategy_ids": list(self._retrieval_policy.active_strategy_ids),
-                "deferred_strategy_ids": list(self._retrieval_policy.deferred_strategy_ids),
+                "retrieval_policy": retrieval_policy,
+                "retrieval_backend": retrieval_policy["retrieval_backend"],
+                "retrieval_mode": retrieval_policy["retrieval_mode"],
+                "active_strategy_ids": list(retrieval_policy["active_strategy_ids"]),
+                "deferred_strategy_ids": list(retrieval_policy["deferred_strategy_ids"]),
                 "query_fingerprint": query_fingerprint,
                 "query_scope": query.scope,
                 "query_intent": query.intent,
@@ -313,6 +312,7 @@ class RetrievalService:
                 metadata={
                     "query_hash": query_hash,
                     "query_fingerprint": query_fingerprint,
+                    "retrieval_policy": retrieval_policy,
                     "retrieval_mode": diagnostics["retrieval_mode"],
                     "query_scope": query.scope,
                     "date_range": diagnostics["date_range"],
@@ -517,6 +517,7 @@ class RetrievalService:
                         "top_match_count": top_hit.provenance.get("match_count"),
                         "top_excerpt_rank": top_hit.provenance.get("rank"),
                         "top_fts_rank": top_hit.provenance.get("fts_rank"),
+                        "retrieval_policy": self._retrieval_policy.as_snapshot(),
                         "doc_rank": doc_rank,
                         "doc_identity_fingerprint": doc_identity_fingerprint,
                         "doc_fingerprint": self._stable_fingerprint(
@@ -563,6 +564,7 @@ class RetrievalService:
             "excerpt_ids": [hit.excerpt_id for hit in hits if hit.excerpt_id is not None],
             "excerpt_fingerprints": excerpt_fingerprints,
             "excerpt_text_hashes": excerpt_text_hashes,
+            "retrieval_policy": self._retrieval_policy.as_snapshot(),
             "active_strategy_ids": list(self._retrieval_policy.active_strategy_ids),
             "deferred_strategy_ids": list(self._retrieval_policy.deferred_strategy_ids),
         }
@@ -617,6 +619,7 @@ class RetrievalService:
             "query_fingerprint": query_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
+            "retrieval_policy": self._retrieval_policy.as_snapshot(),
             "retrieval_backend": self._retrieval_policy.retrieval_backend,
             "retrieval_mode": self._retrieval_policy.retrieval_mode,
             "active_strategy_ids": list(self._retrieval_policy.active_strategy_ids),
@@ -634,6 +637,7 @@ class RetrievalService:
     ) -> str:
         payload = {
             "query_fingerprint": query_fingerprint,
+            "retrieval_policy": retrieval_manifest.get("retrieval_policy", {}),
             "doc_fingerprints": retrieval_manifest.get("doc_fingerprints", []),
             "top_excerpt_fingerprints": retrieval_manifest.get("top_excerpt_fingerprints", []),
             "excerpt_fingerprints": retrieval_manifest.get("excerpt_fingerprints", []),
@@ -933,6 +937,7 @@ class RetrievalService:
             "source_strategy": "fts",
             "retrieval_backend": self._retrieval_policy.retrieval_backend,
             "retrieval_mode": self._retrieval_policy.retrieval_mode,
+            "retrieval_policy": self._retrieval_policy.as_snapshot(),
         }
         if query_scope is not None:
             provenance["query_scope"] = query_scope

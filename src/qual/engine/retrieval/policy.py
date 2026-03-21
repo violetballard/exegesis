@@ -10,13 +10,18 @@ class RetrievalPolicy:
     active_strategy_ids: tuple[str, ...]
     deferred_strategy_ids: tuple[str, ...]
 
-    def as_dict(self) -> dict[str, object]:
+    def as_snapshot(self) -> dict[str, object]:
         return {
             "retrieval_backend": self.retrieval_backend,
             "retrieval_mode": self.retrieval_mode,
             "active_strategy_ids": list(self.active_strategy_ids),
             "deferred_strategy_ids": list(self.deferred_strategy_ids),
         }
+
+    def as_dict(self) -> dict[str, object]:
+        """Backward-compatible alias for older retrieval callers."""
+
+        return self.as_snapshot()
 
 
 FTS_FIRST_POLICY = RetrievalPolicy(
