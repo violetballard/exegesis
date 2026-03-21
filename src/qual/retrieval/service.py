@@ -92,6 +92,27 @@ class RetrievalHit:
             "node_path": copy.deepcopy(self.node_path),
             "provenance": copy.deepcopy(self.provenance),
         }
+        doc_fingerprint = self.provenance.get("doc_fingerprint")
+        if isinstance(doc_fingerprint, str) and doc_fingerprint:
+            payload["doc_fingerprint"] = doc_fingerprint
+        doc_identity_fingerprint = self.provenance.get("doc_identity_fingerprint")
+        if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
+            payload["doc_identity_fingerprint"] = doc_identity_fingerprint
+        excerpt_fingerprint = self.provenance.get("excerpt_fingerprint")
+        if isinstance(excerpt_fingerprint, str) and excerpt_fingerprint:
+            payload["excerpt_fingerprint"] = excerpt_fingerprint
+        excerpt_text_hash = self.provenance.get("excerpt_text_hash") or self.provenance.get("hash")
+        if isinstance(excerpt_text_hash, str) and excerpt_text_hash:
+            payload["excerpt_text_hash"] = excerpt_text_hash
+        rank = self.provenance.get("rank")
+        if isinstance(rank, int):
+            payload["rank"] = rank
+        matched_terms = self.provenance.get("matched_terms")
+        if isinstance(matched_terms, list):
+            payload["matched_terms"] = copy.deepcopy(matched_terms)
+        match_count = self.provenance.get("match_count")
+        if isinstance(match_count, int):
+            payload["match_count"] = match_count
         retrieval_backend = self.provenance.get("retrieval_backend")
         if isinstance(retrieval_backend, str) and retrieval_backend:
             payload["retrieval_backend"] = retrieval_backend
@@ -126,6 +147,27 @@ class RetrievalDocHit:
             "excerpt_count": self.excerpt_count,
             "provenance": copy.deepcopy(self.provenance),
         }
+        doc_fingerprint = self.provenance.get("doc_fingerprint")
+        if isinstance(doc_fingerprint, str) and doc_fingerprint:
+            payload["doc_fingerprint"] = doc_fingerprint
+        doc_identity_fingerprint = self.provenance.get("doc_identity_fingerprint")
+        if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
+            payload["doc_identity_fingerprint"] = doc_identity_fingerprint
+        top_excerpt_fingerprint = self.provenance.get("top_excerpt_fingerprint")
+        if isinstance(top_excerpt_fingerprint, str) and top_excerpt_fingerprint:
+            payload["top_excerpt_fingerprint"] = top_excerpt_fingerprint
+        top_excerpt_text_hash = self.provenance.get("top_excerpt_text_hash")
+        if isinstance(top_excerpt_text_hash, str) and top_excerpt_text_hash:
+            payload["top_excerpt_text_hash"] = top_excerpt_text_hash
+        top_excerpt_span = self.provenance.get("top_excerpt_span")
+        if isinstance(top_excerpt_span, dict):
+            payload["top_excerpt_span"] = copy.deepcopy(top_excerpt_span)
+        top_excerpt_rank = self.provenance.get("top_excerpt_rank")
+        if isinstance(top_excerpt_rank, int):
+            payload["top_excerpt_rank"] = top_excerpt_rank
+        top_fts_rank = self.provenance.get("top_fts_rank")
+        if isinstance(top_fts_rank, (int, float)):
+            payload["top_fts_rank"] = top_fts_rank
         retrieval_backend = self.provenance.get("retrieval_backend")
         if isinstance(retrieval_backend, str) and retrieval_backend:
             payload["retrieval_backend"] = retrieval_backend

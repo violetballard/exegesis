@@ -185,6 +185,12 @@ class UnifiedRetrievalTests(unittest.TestCase):
             self.assertIsInstance(hit.provenance["matched_terms"], list)
             self.assertEqual(hit.provenance["match_count"], len(hit.provenance["matched_terms"]))
             self.assertTrue(hit.provenance["matched_terms"])
+            hit_payload = hit.as_dict()
+            self.assertEqual(hit_payload["excerpt_fingerprint"], hit.provenance["excerpt_fingerprint"])
+            self.assertEqual(hit_payload["excerpt_text_hash"], hit.provenance["excerpt_text_hash"])
+            self.assertEqual(hit_payload["rank"], hit.provenance["rank"])
+            self.assertEqual(hit_payload["match_count"], hit.provenance["match_count"])
+            self.assertEqual(hit_payload["matched_terms"], hit.provenance["matched_terms"])
 
     def test_doc_scope_falls_back_to_fts_when_pageindex_missing(self) -> None:
         result = self.service.retrieve_auto(
@@ -243,6 +249,12 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(doc_hit.provenance["query_intent"], "compare")
         self.assertEqual(doc_hit.provenance["query_fingerprint"], result.diagnostics["query_fingerprint"])
         self.assertIn("top_fts_rank", doc_hit.provenance)
+        doc_hit_payload = doc_hit.as_dict()
+        self.assertEqual(doc_hit_payload["doc_fingerprint"], doc_hit.provenance["doc_fingerprint"])
+        self.assertEqual(doc_hit_payload["doc_identity_fingerprint"], doc_hit.provenance["doc_identity_fingerprint"])
+        self.assertEqual(doc_hit_payload["top_excerpt_fingerprint"], doc_hit.provenance["top_excerpt_fingerprint"])
+        self.assertEqual(doc_hit_payload["top_excerpt_text_hash"], doc_hit.provenance["top_excerpt_text_hash"])
+        self.assertEqual(doc_hit_payload["top_excerpt_rank"], doc_hit.provenance["top_excerpt_rank"])
         self.assertEqual(result.diagnostics["doc_hits_count"], len(result.doc_hits))
         self.assertEqual(result.diagnostics["excerpt_hits_count"], len(result.hits))
         manifest = result.diagnostics["retrieval_manifest"]
@@ -569,6 +581,19 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 for item in payload["excerpt_hits"]
                 if item["excerpt_id"] is not None
             ],
+        )
+        self.assertEqual(payload["doc_hits"][0]["doc_fingerprint"], payload["doc_hits"][0]["provenance"]["doc_fingerprint"])
+        self.assertEqual(
+            payload["doc_hits"][0]["doc_identity_fingerprint"],
+            payload["doc_hits"][0]["provenance"]["doc_identity_fingerprint"],
+        )
+        self.assertEqual(
+            payload["excerpt_hits"][0]["excerpt_fingerprint"],
+            payload["excerpt_hits"][0]["provenance"]["excerpt_fingerprint"],
+        )
+        self.assertEqual(
+            payload["excerpt_hits"][0]["excerpt_text_hash"],
+            payload["excerpt_hits"][0]["provenance"]["excerpt_text_hash"],
         )
         payload["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
         payload["doc_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
