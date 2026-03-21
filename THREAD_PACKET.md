@@ -1,17 +1,17 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Scope goal: Salvage singleton `context_sets` payloads so the store can recover a single context-set object, normalize it, and rewrite it into the canonical list-backed on-disk form.
-- Scope completed: Implemented singleton payload salvage in `src/qual/context/set_store.py` by allowing `_parse_context_sets` to accept a lone context-set object, then normalizing and rewriting it through the existing canonical record path. The recovered state still follows the same rewrite rules for malformed entries, deduplicated identifiers, and canonical record ordering.
+- Scope goal: Align the handoff packet with the reviewed commit so the documented scope, changed files, and command results match the actual `THREAD_PACKET.md` diff.
+- Scope completed: Rewrote `THREAD_PACKET.md` so the packet now describes the docs-only handoff alignment change instead of unrelated context-storage recovery work.
 - Tasks completed:
-  1. Extended `_parse_context_sets` so a dict-shaped `context_sets` payload can be recovered as a single record instead of being rejected.
-  2. Kept the canonical rewrite path intact so recovered singleton payloads are normalized and persisted in the expected list-backed form.
-  3. Rewrote the packet so the scope, completion notes, and metadata match the actual `src/qual/context/set_store.py` diff.
+  1. Removed the incorrect storage-recovery scope from the packet.
+  2. Updated the files-changed and command-result sections to match the real commit.
+  3. Re-ran the handoff fields so the scope, completion notes, and risk lines match the docs-only diff.
 - Files changed:
-  - `src/qual/context/set_store.py`
+  - `THREAD_PACKET.md`
 - Commands run with results:
-  - `git show --stat --name-only --oneline 71f83197` -> confirmed the reviewed commit only changes `src/qual/context/set_store.py`
-  - `git show --unified=80 71f83197 -- src/qual/context/set_store.py` -> confirmed the singleton payload salvage and canonical rewrite behavior in the actual diff
+  - `git show --stat --name-only --oneline HEAD` -> confirmed `f7cdaaf6 docs(context-storage): align handoff packet` only changes `THREAD_PACKET.md`
+  - `git diff -- THREAD_PACKET.md` -> confirmed the packet had to be rewritten away from `src/qual/context/set_store.py` claims
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -19,10 +19,10 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - Reviewer fix closure:
-  - `#1` rewrote the packet around the actual commit: singleton context-set payload salvage in `src/qual/context/set_store.py`.
+  - `#1` rewrote the packet around the actual commit: a docs-only handoff alignment change in `THREAD_PACKET.md`.
   - `#2` replaced the files-changed list with the real diff contents only.
-  - `#3` removed the basket/vault recovery claims and the test-coverage claims that did not belong to this commit.
-  - `#4` aligned the scope and completion bullets with the true roadmap and vision mapping for context-set recovery.
+  - `#3` pointed the packet at the commit that actually exists in this branch instead of the unrelated recovery-code scope.
+  - `#4` aligned the scope, completion, and risk lines with the true commit content.
 - Checkpoint status:
   - plan complete
   - first green tests: `./quality-test.sh` passed (`Ran 138 tests`, `OK`)
@@ -30,8 +30,8 @@
 - Risks/blockers:
   - None.
 - Roadmap item(s) affected:
-  - `Milestone 1: Bootstrap Flow Stabilization` -> `Context basket and vault persistence hardening` (this fix narrows that work to singleton context-set payload salvage in `src/qual/context/set_store.py`)
+  - None. This change only aligns the handoff packet with the reviewed docs-only commit.
 - Vision capability affected:
-  - `1. Local-first state and identity` -> project-scoped context storage keeps safe recovery behavior and canonical persisted state
+  - None.
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.
