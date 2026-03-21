@@ -476,6 +476,78 @@ class A2UIContractTests(unittest.TestCase):
 
         validate_unknown_card(unknown)
 
+    def test_engine_preserves_unknown_cards_as_unknown_fallbacks(self) -> None:
+        unknown = engine_prepare_card(
+            {
+                "type": "UnknownCard",
+                "title": " Unsupported card type: FutureCard ",
+                "subtitle": " Read-only fallback view with safe primitive blocks and raw JSON preview. ",
+                "a2ui_version": 1,
+                "debug": {"fallback_kind": "unknown", "source_card_type": "FutureCard"},
+                "blocks": [
+                    {"type": "MarkdownBlock", "markdown": "safe"},
+                    {"type": "ListBlock", "items": ["alpha", "beta"]},
+                ],
+                "actions": [
+                    {"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": "{}"}},
+                ],
+            },
+            _capabilities(actions_supported=("apply_patch",)),
+        )
+
+        self.assertEqual(unknown["type"], "UnknownCard")
+        self.assertEqual(unknown["title"], "Unsupported card type: FutureCard")
+        self.assertEqual(
+            unknown["subtitle"],
+            "Read-only fallback view with safe primitive blocks and raw JSON preview.",
+        )
+        self.assertEqual(
+            unknown["blocks"],
+            [
+                {"type": "MarkdownBlock", "markdown": "safe"},
+                {"type": "ListBlock", "items": ["alpha", "beta"]},
+            ],
+        )
+        self.assertEqual(unknown["actions"], [])
+
+        text = render_terminal_card(unknown)
+        self.assertIn("[UnknownCard] Unsupported card type: FutureCard", text)
+        self.assertIn("Fallback: unknown from FutureCard", text)
+        self.assertIn("- fallback_kind: unknown", text)
+
+    def test_studio_preserves_unknown_cards_and_copy_action_when_supported(self) -> None:
+        unknown = studio_materialize_card(
+            {
+                "type": "UnknownCard",
+                "title": " Unsupported card type: FutureCard ",
+                "subtitle": " Read-only fallback view with safe primitive blocks and raw JSON preview. ",
+                "a2ui_version": 1,
+                "debug": {"fallback_kind": "unknown", "source_card_type": "FutureCard"},
+                "blocks": [
+                    {"type": "MarkdownBlock", "markdown": "safe"},
+                    {"type": "KeyValueBlock", "items": [{"key": "Owner", "value": "alice"}]},
+                ],
+                "actions": [
+                    {"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": "{}"}},
+                ],
+            },
+            _capabilities(actions_supported=("copy_to_clipboard",)),
+        )
+
+        self.assertEqual(unknown["type"], "UnknownCard")
+        self.assertEqual(unknown["title"], "Unsupported card type: FutureCard")
+        self.assertEqual(
+            unknown["blocks"],
+            [
+                {"type": "MarkdownBlock", "markdown": "safe"},
+                {"type": "KeyValueBlock", "items": [{"key": "Owner", "value": "alice"}]},
+            ],
+        )
+        self.assertEqual(
+            unknown["actions"],
+            [{"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": "{}"}}],
+        )
+
     def test_unknown_card_validator_rejects_non_copy_actions(self) -> None:
         with self.assertRaises(ValueError):
             validate_unknown_card(

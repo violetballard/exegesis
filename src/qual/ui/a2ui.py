@@ -270,6 +270,8 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
     card_type = _normalize_card_type(card)
     if card_type == GENERIC_CARD_TYPE:
         return _materialize_generic_card(card, capabilities)
+    if card_type == UNKNOWN_CARD_TYPE:
+        return _materialize_unknown_card(card, capabilities)
 
     if card_type in set(capabilities.cards_supported):
         _validate_card_version(card)
@@ -322,6 +324,8 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
     card_type = _normalize_card_type(card)
     if card_type == GENERIC_CARD_TYPE:
         return _materialize_generic_card(card, capabilities)
+    if card_type == UNKNOWN_CARD_TYPE:
+        return _materialize_unknown_card(card, capabilities)
     if card_type in set(capabilities.cards_supported):
         _validate_card_version(card)
         return _materialize_versioned_card(card, capabilities)
@@ -598,6 +602,24 @@ def _materialize_generic_card(card: dict[str, Any], capabilities: A2UICapabiliti
     out = dict(card)
     out["blocks"] = _extract_safe_primitive_blocks(out)
     out["actions"] = _filter_supported_actions(out.get("actions"), supported_actions=set(capabilities.actions_supported))
+    out["title"] = _normalize_card_text(out.get("title"), fallback="<untitled>")
+    subtitle = _normalize_card_text(out.get("subtitle"))
+    if subtitle is None:
+        out.pop("subtitle", None)
+    else:
+        out["subtitle"] = subtitle
+    out["a2ui_version"] = A2UI_VERSION
+    return out
+
+
+def _materialize_unknown_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
+    validate_unknown_card(card)
+    out = dict(card)
+    out["blocks"] = _extract_safe_primitive_blocks(out)
+    out["actions"] = _filter_read_only_fallback_actions(
+        out.get("actions"),
+        supported_actions=set(capabilities.actions_supported),
+    )
     out["title"] = _normalize_card_text(out.get("title"), fallback="<untitled>")
     subtitle = _normalize_card_text(out.get("subtitle"))
     if subtitle is None:
