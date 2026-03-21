@@ -1,7 +1,7 @@
 {
-  "scope_goal": "Describe the actual code-bearing feature commit and make the docs-only alignment commit explicit so the reviewed diff stays verifiable.",
+  "scope_goal": "Describe the actual code-bearing feature range and make the docs-only alignment commit explicit so the reviewed diff stays verifiable.",
   "tasks_completed": [
-    "Repointed the handoff packet to the actual code-bearing feature commit dca868e202b0c220c36b557d7071420ca74261f9.",
+    "Repointed the handoff packet to the actual code-bearing feature range ca626d4b61e3a6bdb163d471c515bdd144cc3283..dca868e202b0c220c36b557d7071420ca74261f9.",
     "Made the docs-only alignment commit explicit so it is not mistaken for reviewed implementation work.",
     "Re-ran the required local gates on the branch head and confirmed they pass."
   ],
@@ -17,6 +17,6 @@
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
   "shared_file_exception": false,
-  "kickoff_budget_note": "Handoff metadata aligned to the reviewed feature commit; the later docs-only alignment commit is excluded from the promoted code range.",
-  "approved_exception_note": "Ownership note: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The reviewed diff contains only `src/qual/context/set_store.py`, so no shared-by-approval source files, test files, or integrator-locked files were edited."
+  "kickoff_budget_note": "Handoff metadata aligned to the reviewed feature range; the later docs-only alignment commit is excluded from the promoted code range.",
+  "approved_exception_note": "Ownership note: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The reviewed diff contains only `src/qual/context/set_store.py` and `tests/unit/test_context_storage_recovery.py`, so no shared-by-approval source files or integrator-locked files were edited."
 }
