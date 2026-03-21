@@ -175,7 +175,6 @@ class ContextBasketStore:
         normalized_recovered_from = self._parse_recovered_from(recovered_from)
         if normalized_recovered_from is not None:
             payload["recovered_from"] = normalized_recovered_from
-        backup_written = self._write_backup()
         tmp = self._tmp_path()
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
         try:
@@ -183,15 +182,13 @@ class ContextBasketStore:
         except OSError:
             self._unlink_if_exists(tmp)
             raise
-        if refresh_backup:
-            backup_written = self._write_backup_payload(self._backup_payload(payload))
-            if not backup_written:
-                # Seed keeps the latest canonical basket recoverable if backup
-                # rotation cannot be completed after the primary rewrite.
-                self._write_seed(self._backup_payload(payload))
-        elif not backup_written or not self._backup_path.exists():
-            self._write_seed(self._backup_payload(payload))
-        self._clear_recovery_artifacts(preserve_seed=not (self._backup_path.exists() and backup_written))
+        backup_payload = self._backup_payload(payload)
+        backup_written = self._write_backup_payload(backup_payload)
+        if not backup_written:
+            # Seed keeps the latest canonical basket recoverable if backup
+            # rotation cannot be completed after the primary rewrite.
+            self._write_seed(backup_payload)
+        self._clear_recovery_artifacts(preserve_seed=not backup_written)
 
     def clear(self) -> None:
         for path in (

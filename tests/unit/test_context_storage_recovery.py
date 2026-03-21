@@ -51,6 +51,17 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("item_ids"), ["keep", "7", "2.5"])
 
+    def test_save_refreshes_backup_to_latest_primary(self) -> None:
+        self.store.save(ContextBasket(item_ids=["first"]))
+        self.store.save(ContextBasket(item_ids=["second"]))
+
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(primary_payload.get("item_ids"), ["second"])
+        self.assertEqual(backup_payload.get("item_ids"), ["second"])
+        self.assertEqual(backup_payload.get("schema_version"), 1)
+
     def test_non_finite_numeric_item_ids_are_dropped_and_rewritten_on_load(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text(
@@ -119,10 +130,13 @@ class ContextStoreRecoveryTests(unittest.TestCase):
 
         self.store.save(ContextBasket(item_ids=["a"]))
 
-        self.assertFalse(self.store._backup_path.exists())
+        self.assertTrue(self.store._backup_path.exists())
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("schema_version"), 1)
         self.assertEqual(payload.get("item_ids"), ["a"])
+        self.assertEqual(backup_payload.get("schema_version"), 1)
+        self.assertEqual(backup_payload.get("item_ids"), ["a"])
 
     def test_corrupt_primary_quarantines_and_recovers_from_backup(self) -> None:
         self.store.save(ContextBasket(item_ids=["first"]))
@@ -131,12 +145,12 @@ class ContextStoreRecoveryTests(unittest.TestCase):
 
         loaded = self.store.load()
 
-        self.assertEqual(loaded.item_ids, ["first"])
+        self.assertEqual(loaded.item_ids, ["second"])
         # Successful recovery rewrites primary and clears stale quarantine artifacts.
         self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
         self.assertEqual(
             json.loads(self.store._path.read_text(encoding="utf-8")).get("item_ids"),
-            ["first"],
+            ["second"],
         )
 
     def test_corrupt_primary_recovery_from_backup_records_recovery_source(self) -> None:
@@ -146,9 +160,9 @@ class ContextStoreRecoveryTests(unittest.TestCase):
 
         loaded = self.store.load()
 
-        self.assertEqual(loaded.item_ids, ["first"])
+        self.assertEqual(loaded.item_ids, ["second"])
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
-        self.assertEqual(payload.get("item_ids"), ["first"])
+        self.assertEqual(payload.get("item_ids"), ["second"])
         self.assertEqual(payload.get("recovered_from"), "backup")
 
     def test_mixed_scalar_and_non_scalar_item_ids_are_salvaged_and_rewritten(self) -> None:
@@ -524,7 +538,7 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("item_ids"), ["first"])
         self.assertNotIn("recovered_from", payload)
 
-    def test_save_preserves_seed_when_backup_refresh_fails_before_primary_rewrite(self) -> None:
+    def test_save_preserves_seed_when_backup_refresh_fails_after_primary_rewrite(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._backup_path.write_text(
             json.dumps(
@@ -537,7 +551,7 @@ class ContextStoreRecoveryTests(unittest.TestCase):
             encoding="utf-8",
         )
 
-        with patch.object(ContextBasketStore, "_write_backup", return_value=False):
+        with patch.object(ContextBasketStore, "_write_backup_payload", return_value=False):
             self.store.save(ContextBasket(item_ids=["current"]))
 
         self.assertTrue(self.store._seed_state_path().exists())
@@ -545,6 +559,8 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(seed_payload.get("schema_version"), 1)
         self.assertEqual(seed_payload.get("item_ids"), ["current"])
         self.assertNotIn("recovered_from", seed_payload)
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(backup_payload.get("item_ids"), ["stale"])
 
     def test_refresh_backup_failure_seed_fallback_omits_recovered_from(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
