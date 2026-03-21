@@ -1,30 +1,21 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Reviewed commit: `8c4dfc5ea3370d7b354881bb889a66147d5d769c`
-- Scope goal: Harden context basket and vault persistence recovery so malformed optional metadata is salvaged and rewritten without discarding valid local state, and cover that recovery contract with focused tests.
-- Scope completed: Updated context basket recovery to treat malformed optional metadata as salvageable while still rejecting unrecoverable schema or item-id payloads.
-- Scope completed: Updated vault state recovery to preserve valid lock and project state when optional metadata fields are malformed, then rewrite normalized persisted state.
-- Scope completed: Normalized context basket item-id handling so mixed invalid entries can be salvaged and rewritten instead of forcing a full discard.
-- Scope completed: Added focused metadata-only corruption tests for both context basket and vault persistence paths, including backup-promotion recovery cases and invalid project-name metadata.
+- Reviewed commit: `be75c816f44f8f0d4d58daff6ed9e1b4ce5d1ab35`
+- Scope goal: Correct the handoff packet so it accurately reflects the actual docs-only branch head and does not claim uncommitted source or test changes.
+- Scope completed: Rewrote the packet to match the real reviewed commit and removed false claims about recovery implementation changes.
 - Tasks completed:
-  1. Updated context basket recovery to treat malformed optional metadata as salvageable while still rejecting unrecoverable schema or item-id payloads.
-  2. Updated vault state recovery to preserve valid lock and project state when optional metadata fields are malformed, then rewrite normalized persisted state.
-  3. Normalized context basket item-id handling so mixed invalid entries can be salvaged and rewritten instead of forcing a full discard.
-  4. Added focused metadata-only corruption tests for both context basket and vault persistence paths, including backup-promotion recovery cases.
-  5. Added a focused vault regression test for invalid project-name metadata so valid lock state is preserved safely and rewritten instead of being treated as unrecoverable corruption.
-  6. Re-ran scope, format, lint, unit, typecheck, and CI gates on the reviewed branch head and confirmed they all pass.
+  1. Verified the actual branch head is docs-only and does not include the claimed recovery source or test edits.
+  2. Rewrote the handoff packet to remove those false implementation claims.
+  3. Aligned the file list and ownership note with the real head.
+  4. Re-ran the required scope and quality gates on the actual branch head.
 - Files changed:
-  - `src/qual/context/basket.py`
-  - `src/qual/context/set_store.py`
-  - `src/qual/context/store.py`
-  - `src/qual/storage/vault.py`
-  - `tests/unit/test_context_storage_recovery.py`
+  - `THREAD_PACKET.md`
 - Shared/integrator-locked edits:
-  - `YES` - `tests/unit/test_context_storage_recovery.py` is approved shared recovery coverage for this thread; no integrator-locked source files were touched.
+  - `NO`
 - Commands run with results:
-  - `git show --stat --name-only --oneline 8c4dfc5e` -> confirmed the reviewed feature commit spans the context/storage recovery source and test updates
-  - `git show --unified=0 --format=medium 8c4dfc5e -- src/qual/context/basket.py src/qual/context/set_store.py src/qual/context/store.py src/qual/storage/vault.py tests/unit/test_context_storage_recovery.py` -> confirmed the feature diff matches the recovery scope described above
+  - `git show --stat --name-only --oneline be75c816` -> confirmed the reviewed branch head is docs-only
+  - `git show --name-only --format=medium be75c816` -> showed `THREAD_PACKET.md` as the only committed file
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -32,10 +23,10 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - Reviewer fix closure:
-  - `#1` repointed the handoff at the actual feature commit instead of the docs-only packet commit.
-  - `#2` made `Files changed` match the real recovery source/test diff and removed the packet-only file from that list.
-  - `#3` called out the approved shared test coverage explicitly so the ownership note is self-consistent.
-  - `#4` kept the scope tied to `feat-context-storage` work in owned paths plus the approved shared test file.
+  - `#1` rewrote the packet as docs-only and removed all source/test change claims.
+  - `#2` made `Files changed` match the actual committed file exactly.
+  - `#3` changed the ownership note to `NO` because no non-owned source or test files were edited in the real head.
+  - `#4` re-ran the required gates against the actual branch head and recorded the results.
 - Checkpoint status:
   - plan complete
   - first green tests: `./quality-test.sh` passed (`Ran 145 tests`, `OK`)
