@@ -163,7 +163,7 @@ class ContextBasketStore:
             primary_needs_quarantine
             and primary_payload is not None
             and recovered_source is None
-            and not self._has_recovery_payload_items(primary_payload)
+            and primary_item_ids_need_recovery
         )
         if recovered_source is not None or should_rewrite:
             # Keep the backup aligned with the latest canonical basket whenever we

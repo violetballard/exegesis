@@ -382,6 +382,28 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("item_ids"), ["first", "second"])
         self.assertNotIn("recovered_from", payload)
 
+    def test_empty_basket_with_malformed_metadata_is_rewritten_without_leaving_corrupt_artifacts(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "recovered_from": "manual",
+                    "item_ids": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, [])
+        self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), [])
+        self.assertNotIn("recovered_from", payload)
+
     def test_backup_with_invalid_metadata_is_salvaged_and_promoted(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text("{bad", encoding="utf-8")
