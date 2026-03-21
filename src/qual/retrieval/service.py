@@ -587,7 +587,7 @@ class RetrievalService:
 
     def _run_fts_hits(self, query: RetrievalQuery, candidate_doc_ids: tuple[str, ...]) -> list[RetrievalHit]:
         match_query, query_terms = self._build_fts_match_query(query.query_text)
-        exact_phrase = query.query_text.casefold().strip()
+        exact_phrase = self._normalized_query_text(query.query_text)
         scope_doc = self._doc_scope_id(query.scope)
         allowed_doc_types = self._normalized_doc_types(query.constraints.doc_types)
         effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
@@ -1398,7 +1398,7 @@ class RetrievalService:
             "prefer_exact_matches": query.constraints.prefer_exact_matches,
         }
         payload = {
-            "query_text": query.query_text.casefold().strip(),
+            "query_text": RetrievalService._normalized_query_text(query.query_text),
             "scope": query.scope,
             "intent": query.intent,
             "constraints": normalized_constraints,
@@ -1564,3 +1564,7 @@ class RetrievalService:
             seen.add(term)
             terms.append(term)
         return tuple(terms)
+
+    @staticmethod
+    def _normalized_query_text(query_text: str) -> str:
+        return " ".join(query_text.casefold().split())

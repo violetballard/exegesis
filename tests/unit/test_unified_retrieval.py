@@ -124,6 +124,29 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertNotEqual(first_fingerprint, variant.diagnostics["query_fingerprint"])
         self.assertNotEqual(first.result_fingerprint, variant.result_fingerprint)
 
+    def test_retrieve_auto_normalizes_whitespace_in_query_fingerprint(self) -> None:
+        compact = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="outline_support",
+                constraints=RetrievalConstraints(max_results=6, section_hint="discussion", prefer_exact_matches=True),
+                confidentiality_profile="confidential",
+            )
+        )
+        spaced = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="  discussion   theory  ",
+                scope="doc:doc-pdf-1",
+                intent="outline_support",
+                constraints=RetrievalConstraints(max_results=6, section_hint="discussion", prefer_exact_matches=True),
+                confidentiality_profile="confidential",
+            )
+        )
+        self.assertEqual(compact.diagnostics["query_fingerprint"], spaced.diagnostics["query_fingerprint"])
+        self.assertEqual([hit.excerpt_id for hit in compact.hits], [hit.excerpt_id for hit in spaced.hits])
+        self.assertEqual(compact.result_fingerprint, spaced.result_fingerprint)
+
     def test_retrieve_auto_reports_stable_fts_shortlist_doc_ids(self) -> None:
         query = RetrievalQuery(
             query_text="theory implications",
