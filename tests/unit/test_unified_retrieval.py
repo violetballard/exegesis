@@ -693,10 +693,17 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 {
                     "doc_id": item["doc_id"],
                     "excerpt_id": item["excerpt_id"],
+                    "doc_type": item["provenance"]["doc_type"],
                     "excerpt_fingerprint": item["provenance"]["excerpt_fingerprint"],
                     "excerpt_text_hash": item["provenance"]["excerpt_text_hash"],
                     "rank": item["provenance"]["rank"],
                     "span": item["provenance"]["span"],
+                    "match_count": item["provenance"]["match_count"],
+                    "matched_terms": item["provenance"]["matched_terms"],
+                    "fts_rank": item["provenance"]["fts_rank"],
+                    "source_strategy": item["provenance"]["source_strategy"],
+                    "retrieval_backend": item["provenance"]["retrieval_backend"],
+                    "retrieval_mode": item["provenance"]["retrieval_mode"],
                 }
                 for item in payload["excerpt_hits"]
                 if item["excerpt_id"] is not None

@@ -270,10 +270,17 @@ class RetrievalResult:
                 {
                     "doc_id": hit.doc_id,
                     "excerpt_id": hit.excerpt_id,
+                    "doc_type": hit.provenance.get("doc_type"),
                     "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
                     "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                    "match_count": hit.provenance.get("match_count"),
+                    "matched_terms": hit.provenance.get("matched_terms"),
+                    "fts_rank": hit.provenance.get("fts_rank"),
                     "rank": hit.provenance.get("rank"),
                     "span": hit.provenance.get("span"),
+                    "source_strategy": hit.provenance.get("source_strategy"),
+                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
                 }
                 for hit in self.hits
                 if hit.excerpt_id is not None
@@ -864,6 +871,7 @@ class RetrievalService:
                 {
                     "doc_id": hit.doc_id,
                     "excerpt_id": hit.excerpt_id,
+                    "doc_type": hit.provenance.get("doc_type"),
                     "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
                     "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                     "span": hit.provenance.get("span"),
@@ -871,6 +879,9 @@ class RetrievalService:
                     "match_count": hit.provenance.get("match_count"),
                     "rank": hit.provenance.get("rank"),
                     "fts_rank": hit.provenance.get("fts_rank"),
+                    "source_strategy": hit.provenance.get("source_strategy"),
+                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
                 }
             )
 
