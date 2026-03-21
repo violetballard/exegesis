@@ -3,39 +3,40 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Reviewed commit: `1ba5ff27a0f06e4d90bc4de5ee5d44fce6d9a5c0`
-- Branch head note: this packet reissues the reviewed code-bearing commit above and keeps the no-diff `summary_only` path explicit.
+- Branch head note: this packet reissues the reviewed code-bearing commit above and adds focused text-mode regression coverage.
 
 ## Scope goal
-- Reissue the handoff against the actual code-bearing `diff_preview` `summary_only` payload fix so the packet reflects the feature commit that changed `src/qual/commands/diff_preview.py`.
+- Reissue the handoff against the actual `diff_preview` summary-only payload fix and keep the no-diff text path explicit through the follow-up regression coverage.
 
 ## Lane/owned paths
-- `src/qual/commands/**`
+- `tests/unit/test_diff_preview.py`
 
 ## Scope completed
-- Preserved the lane-owned `diff_preview` no-diff JSON contract hardening in `src/qual/commands/diff_preview.py`, including the explicit `summary_only` state in the no-diff JSON payload.
-- Kept the emitted fingerprint text path aligned with the fingerprint object used for the no-diff short-circuit.
-- Kept the payload state threaded directly into both the JSON and text no-diff paths.
+- Preserved the no-diff `summary_only` contract in `tests/unit/test_diff_preview.py` by covering the text path when the fingerprint flag is enabled.
+- Kept the packet aligned with the actual regression delta instead of claiming a new command implementation change.
 
 ## Kickoff budget/limits compliance
-- Stayed within the low-risk budget. The reviewed branch delta matches `git show --stat` for `1ba5ff27a0f06e4d90bc4de5ee5d44fce6d9a5c0`: `1 file changed, 9 insertions(+), 7 deletions(-)`.
+- Stayed within the low-risk budget. The reviewed branch delta remains confined to the packet update plus focused regression coverage.
 - Submitted files:
-  - `src/qual/commands/diff_preview.py`
+  - `THREAD_PACKET.md`
+  - `tests/unit/test_diff_preview.py`
 
 ## Tasks completed (numbered)
-1. Kept the no-diff `summary_only` state explicit in `src/qual/commands/diff_preview.py`.
-2. Reissued the feature handoff packet so every field matches the reviewed code delta.
+1. Added text-mode regression coverage for the no-diff `summary_only` path when the fingerprint flag is enabled.
+2. Reissued the handoff packet so the branch metadata matches the code-bearing delta.
 
 ## Files changed for reviewed branch delta
-- `src/qual/commands/diff_preview.py`
+- `THREAD_PACKET.md`
+- `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
 - Validation date: `2026-03-21`
-- `make scope-check`: PASS
-- `./quality-format.sh --check`: PASS
-- `./quality-lint.sh`: PASS
-- `./quality-test.sh`: PASS
-- `./typecheck-test.sh`: PASS
-- `make ci`: PASS
+- `make scope-check`: pending
+- `./quality-format.sh --check`: pending
+- `./quality-lint.sh`: pending
+- `./quality-test.sh`: pending
+- `./typecheck-test.sh`: pending
+- `make ci`: pending
 
 ## Risks / blockers
 - Risk: `LOW`
@@ -44,13 +45,14 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` no-diff payload so JSON and text stay deterministic on empty-diff responses.
+- Milestone 2 - Test Hardening: keep focused unit coverage for the `diff_preview` regression path and prevent duplicate assertions from obscuring the real coverage signal.
 
 ### Vision capability affected
-- Capability 3 - Auditable generation: the command keeps the no-diff JSON `summary_only` state explicit and deterministic, avoiding silent contract drift.
+- Capability 3 - Auditable generation: the regression test keeps the `diff_preview` contract readable and reviewable.
+- Capability 4 - Operator-first control surface: the CLI-facing `diff_preview` behavior stays covered by a focused regression test.
 
 ### Routing/provider impact note
-- None. This change affects local `diff_preview` output formatting only; no routing/provider behavior changed.
+- None. This change affects packet text and test coverage only; no routing/provider behavior changed.
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `NO`
