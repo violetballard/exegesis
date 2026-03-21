@@ -79,6 +79,7 @@ class RetrievalResult:
     doc_hits: list[RetrievalDocHit]
     hits: list[RetrievalHit]
     diagnostics: dict[str, object]
+    evidence: dict[str, object]
     audit_ref: str
     result_fingerprint: str
 
@@ -148,6 +149,13 @@ class RetrievalService:
             merged_hits = self._merge_hits([fts_run], max_results=query.constraints.max_results)
             doc_hits = self._build_doc_hits(query, merged_hits, query_fingerprint=query_fingerprint)
             retrieval_manifest = self._build_retrieval_manifest(doc_hits, merged_hits)
+            retrieval_evidence = self._build_retrieval_evidence(
+                query=query,
+                doc_hits=doc_hits,
+                hits=merged_hits,
+                retrieval_manifest=retrieval_manifest,
+                query_fingerprint=query_fingerprint,
+            )
             result_fingerprint = self._build_result_fingerprint(
                 query_fingerprint=query_fingerprint,
                 retrieval_manifest=retrieval_manifest,
@@ -172,6 +180,7 @@ class RetrievalService:
                 "doc_hits_count": len(doc_hits),
                 "excerpt_hits_count": len(merged_hits),
                 "retrieval_manifest": retrieval_manifest,
+                "retrieval_evidence": retrieval_evidence,
                 "result_fingerprint": result_fingerprint,
             }
             query_hash = hashlib.sha256(query.query_text.encode("utf-8")).hexdigest()
@@ -189,6 +198,7 @@ class RetrievalService:
                     "hits_count": len(merged_hits),
                     "fts_shortlist_doc_ids": diagnostics["fts_shortlist_doc_ids"],
                     "retrieval_manifest": retrieval_manifest,
+                    "retrieval_evidence": retrieval_evidence,
                     "result_fingerprint": result_fingerprint,
                 },
             )
@@ -199,6 +209,7 @@ class RetrievalService:
             doc_hits=doc_hits,
             hits=merged_hits,
             diagnostics=diagnostics,
+            evidence=retrieval_evidence,
             audit_ref=audit.event_id,
             result_fingerprint=result_fingerprint,
         )
@@ -429,6 +440,63 @@ class RetrievalService:
             "excerpt_ids": [hit.excerpt_id for hit in hits if hit.excerpt_id is not None],
             "excerpt_fingerprints": excerpt_fingerprints,
             "excerpt_text_hashes": excerpt_text_hashes,
+        }
+
+    @staticmethod
+    def _build_retrieval_evidence(
+        *,
+        query: RetrievalQuery,
+        doc_hits: list[RetrievalDocHit],
+        hits: list[RetrievalHit],
+        retrieval_manifest: dict[str, object],
+        query_fingerprint: str,
+    ) -> dict[str, object]:
+        doc_citations: list[dict[str, object]] = []
+        for doc_hit in doc_hits:
+            doc_citations.append(
+                {
+                    "doc_id": doc_hit.doc_id,
+                    "doc_type": doc_hit.provenance.get("doc_type"),
+                    "source_hash": doc_hit.source_hash,
+                    "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
+                    "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
+                    "top_excerpt_id": doc_hit.top_excerpt_id,
+                    "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
+                    "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
+                    "top_excerpt_span": doc_hit.provenance.get("top_excerpt_span"),
+                    "excerpt_ids": list(doc_hit.provenance.get("excerpt_ids", [])),
+                    "excerpt_count": doc_hit.excerpt_count,
+                    "matched_terms": doc_hit.provenance.get("top_matched_terms"),
+                }
+            )
+
+        excerpt_citations: list[dict[str, object]] = []
+        for hit in hits:
+            if hit.excerpt_id is None:
+                continue
+            excerpt_citations.append(
+                {
+                    "doc_id": hit.doc_id,
+                    "excerpt_id": hit.excerpt_id,
+                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                    "span": hit.provenance.get("span"),
+                    "matched_terms": hit.provenance.get("matched_terms"),
+                    "match_count": hit.provenance.get("match_count"),
+                    "rank": hit.provenance.get("rank"),
+                    "fts_rank": hit.provenance.get("fts_rank"),
+                }
+            )
+
+        return {
+            "query_fingerprint": query_fingerprint,
+            "query_scope": query.scope,
+            "query_intent": query.intent,
+            "retrieval_backend": "sqlite_fts",
+            "retrieval_mode": "fts_first",
+            "doc_citations": doc_citations,
+            "excerpt_citations": excerpt_citations,
+            "retrieval_manifest": dict(retrieval_manifest),
         }
 
     @staticmethod
