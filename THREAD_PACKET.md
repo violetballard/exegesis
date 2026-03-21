@@ -1,7 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Current commit: `47a827bc6347cae19c5aed5de3f899a73ab97f1c`
+- Current commit: `d234ad2b115ae4aee36871ea84a5d6dcfb9f5bd3`
 - Reviewed feature commit: `369f2d8f84afbb9805b3219abe8e7ed62d4662c2`
 - Scope goal: Realign the handoff packet to the actual recovery feature commit and mark the current branch head as docs-only packet alignment.
 - Scope completed: Marked the branch head as a packet-alignment commit rather than feature implementation work.
@@ -23,7 +23,7 @@
 - Shared/integrator-locked edits:
   - `NO`
 - Commands run with results:
-  - `git rev-parse --short HEAD` -> confirmed the branch head is `47a827bc`
+  - `git rev-parse --short HEAD` -> confirmed the branch head is the packet-alignment commit
   - `git show --stat --name-only --oneline 369f2d8f` -> confirmed the real recovery feature commit spans the context/storage recovery source changes and recovery test coverage
   - `git show --unified=0 --format=medium 369f2d8f -- src/qual/context/set_store.py src/qual/context/store.py src/qual/storage/vault.py tests/unit/test_context_storage_recovery.py` -> confirmed the feature diff matches the earlier owned-path recovery scope plus the approved shared test file described above
   - `make scope-check` -> passed
