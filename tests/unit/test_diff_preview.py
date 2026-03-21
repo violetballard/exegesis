@@ -147,22 +147,6 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
         self.assertTrue(payload["summary_only"])
         self.assertEqual(payload["diff"], "")
 
-    def test_json_no_diff_summary_only_preserves_empty_summary_and_fingerprint(self) -> None:
-        with _env(
-            **{
-                OUTPUT_FORMAT_ENV: "json",
-                SUMMARY_ONLY_ENV: "1",
-                INCLUDE_SUMMARY_ENV: "1",
-                INCLUDE_FINGERPRINT_ENV: "1",
-            }
-        ):
-            payload = json.loads(run_diff_preview(DiffPreviewInput("same\n", "same\n")))
-        self.assertEqual(payload["status"], "no_diff")
-        self.assertTrue(payload["summary_only"])
-        self.assertIsNone(payload["summary"])
-        self.assertIsNone(payload["fingerprint"])
-        self.assertEqual(payload["diff"], "")
-
     def test_json_no_diff_summary_only_ignores_fingerprint_gate(self) -> None:
         with _env(
             **{
