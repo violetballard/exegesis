@@ -126,7 +126,6 @@ def apply_meta_defaults(meta: Json, missing: List[str]) -> Json:
 def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
     out = git(f"diff --name-only {base_ref}...HEAD", cwd=cwd)
     return [ln.strip() for ln in out.splitlines() if ln.strip()]
-
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
     lines=[]
