@@ -159,11 +159,12 @@ class ContextSetStore:
         normalized_recovered_from = None
         records: list[ContextSetRecord]
         if isinstance(payload, list):
-            records = self._parse_context_sets(payload)
-            if records is None:
+            parsed_records = self._parse_context_sets(payload)
+            if parsed_records is None:
                 self._discard_payload_source(recovered_source)
                 return []
-            should_rewrite = True
+            records = self._normalize_records(parsed_records)
+            should_rewrite = self._records_need_rewrite(payload, parsed_records) or records != parsed_records
         elif isinstance(payload, dict):
             schema_version = self._parse_schema_version(payload)
             if "context_sets" not in payload:
@@ -171,15 +172,18 @@ class ContextSetStore:
                 should_rewrite = True
             else:
                 raw_context_sets = payload.get("context_sets")
-                records = self._parse_context_sets(raw_context_sets)
-                if records is None:
+                parsed_records = self._parse_context_sets(raw_context_sets)
+                if parsed_records is None:
                     records = []
                     should_rewrite = True
-                should_rewrite = (
-                    should_rewrite
-                    or schema_version != _SCHEMA_VERSION
-                    or self._records_need_rewrite(raw_context_sets, records)
-                )
+                else:
+                    records = self._normalize_records(parsed_records)
+                    should_rewrite = (
+                        should_rewrite
+                        or schema_version != _SCHEMA_VERSION
+                        or self._records_need_rewrite(raw_context_sets, parsed_records)
+                        or records != parsed_records
+                    )
             if self._has_unknown_fields(payload):
                 should_rewrite = True
             if "updated_at" not in payload:
@@ -530,6 +534,8 @@ class ContextSetStore:
         for raw_record, parsed_record in zip(raw_records, parsed_records):
             if self._record_needs_rewrite(raw_record, parsed_record):
                 return True
+        if self._normalize_records(parsed_records) != parsed_records:
+            return True
         return False
 
     def _record_needs_rewrite(self, raw_record: object, parsed_record: ContextSetRecord) -> bool:

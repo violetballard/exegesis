@@ -1002,6 +1002,46 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("context_sets")[0]["updated_at"], "2026-03-20T12:00:00+00:00")
         self.assertNotIn("extra", payload.get("context_sets")[0])
 
+    def test_duplicate_context_set_entries_are_collapsed_and_rewritten(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "context_sets": [
+                        {
+                            "context_set_id": "set-1",
+                            "name": "Evidence",
+                            "item_ids": ["first"],
+                            "created_at": "2026-03-20T11:00:00+00:00",
+                            "updated_at": "2026-03-20T12:00:00+00:00",
+                        },
+                        {
+                            "context_set_id": "set-1",
+                            "name": "Evidence",
+                            "item_ids": ["second"],
+                            "created_at": "2026-03-20T11:05:00+00:00",
+                            "updated_at": "2026-03-20T12:05:00+00:00",
+                        },
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, "set-1")
+        self.assertEqual(loaded[0].item_ids, ["first"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(len(payload.get("context_sets", [])), 1)
+        self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["first"])
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(len(backup_payload.get("context_sets", [])), 1)
+        self.assertEqual(backup_payload.get("context_sets")[0]["item_ids"], ["first"])
+
 
 class VaultRecoveryTests(unittest.TestCase):
     def setUp(self) -> None:
