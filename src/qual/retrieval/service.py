@@ -15,7 +15,7 @@ from typing import Any, Iterator, Literal, cast
 
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions, DocIndexService
-from src.qual.engine.retrieval import FTS_FIRST_POLICY, FTSStrategy, retrieval_policy_snapshot
+from src.qual.engine.retrieval import FTS_FIRST_POLICY, FTSStrategy, primary_strategy_id, retrieval_policy_snapshot
 from src.qual.engine.retrieval.interface import StrategyRun
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload
 from src.qual.metrics.crypto import decrypt_bytes, encrypt_bytes
@@ -702,10 +702,11 @@ class RetrievalService:
                 top_hit.provenance.get("excerpt_text_hash") or top_hit.provenance.get("hash") or ""
             )
             top_excerpt_text_length = len(top_hit.excerpt_text or "")
+            source_hash = self._doc_source_hash(doc_id, doc_meta=doc_meta)
             doc_identity_fingerprint = self._stable_fingerprint(
                 {
                     "doc_id": doc_id,
-                    "source_hash": str(doc_meta.get("source_hash", "")),
+                    "source_hash": source_hash,
                     "doc_type": str(doc_meta.get("doc_type", "")),
                 }
             )
@@ -713,14 +714,14 @@ class RetrievalService:
                 RetrievalDocHit(
                     doc_id=doc_id,
                     title_hint=top_hit.title_hint,
-                    source_hash=str(doc_meta.get("source_hash", "")),
+                    source_hash=source_hash,
                     top_excerpt_id=top_hit.excerpt_id,
                     top_score=top_hit.score,
                     source_strategy="fts",
                     excerpt_count=len(doc_hit_list),
                     provenance={
                         "doc_id": doc_id,
-                        "source_hash": str(doc_meta.get("source_hash", "")),
+                        "source_hash": source_hash,
                         "doc_type": str(doc_meta.get("doc_type", "")),
                         "query_fingerprint": query_fingerprint,
                         "excerpt_ids": [hit.excerpt_id for hit in doc_hit_list if hit.excerpt_id is not None],
@@ -744,7 +745,7 @@ class RetrievalService:
                         "doc_fingerprint": self._stable_fingerprint(
                             {
                                 "doc_id": doc_id,
-                                "source_hash": str(doc_meta.get("source_hash", "")),
+                                "source_hash": source_hash,
                                 "doc_type": str(doc_meta.get("doc_type", "")),
                                 "top_excerpt_id": top_hit.excerpt_id,
                                 "top_excerpt_fingerprint": top_excerpt_fingerprint,
@@ -752,7 +753,7 @@ class RetrievalService:
                             }
                         ),
                         "excerpt_count": len(doc_hit_list),
-                        "source_strategy": cast(list[str], retrieval_policy["active_strategy_ids"])[0],
+                        "source_strategy": primary_strategy_id(),
                         "retrieval_mode": cast(str, retrieval_policy["retrieval_mode"]),
                         "query_scope": query.scope,
                         "query_intent": query.intent,
@@ -1167,7 +1168,7 @@ class RetrievalService:
                     "excerpt_id": excerpt_id,
                     "doc_id": doc_id,
                     "doc_type": str(row["doc_type"]),
-                    "source_hash": str(self._load_doc_meta().get(doc_id, {}).get("source_hash", "")),
+                    "source_hash": self._doc_source_hash(doc_id),
                     "source_strategy": "fts",
                     "span": {"char_range": {"start": int(row["char_start"]), "end": int(row["char_end"])}},
                     "text": text,
@@ -1203,9 +1204,10 @@ class RetrievalService:
     ) -> dict[str, object]:
         meta = self._load_doc_meta().get(doc_id, {})
         text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        source_hash = self._doc_source_hash(doc_id, doc_meta=meta)
         provenance = {
             "doc_id": doc_id,
-            "source_hash": str(meta.get("source_hash", "")),
+            "source_hash": source_hash,
             "doc_type": str(meta.get("doc_type", "")),
             "excerpt_id": excerpt_id,
             "span": {"char_range": {"start": char_start, "end": char_end}},
@@ -1234,7 +1236,7 @@ class RetrievalService:
         provenance["excerpt_fingerprint"] = self._stable_fingerprint(
             {
                 "doc_id": doc_id,
-                "source_hash": provenance["source_hash"],
+                "source_hash": source_hash,
                 "excerpt_id": excerpt_id,
                 "span": provenance["span"],
                 "excerpt_text_hash": text_hash,
@@ -1405,6 +1407,18 @@ class RetrievalService:
         if not blob.exists():
             raise KeyError(f"unknown doc_id: {doc_id}")
         return decrypt_bytes(blob.read_bytes(), self._key).decode("utf-8")
+
+    def _doc_source_hash(self, doc_id: str, *, doc_meta: dict[str, object] | None = None) -> str:
+        if doc_meta is None:
+            doc_meta = self._load_doc_meta().get(doc_id, {})
+        source_hash = doc_meta.get("source_hash")
+        if isinstance(source_hash, str) and source_hash:
+            return source_hash
+        try:
+            text = self._read_doc_text(doc_id)
+        except KeyError:
+            return ""
+        return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
     def _validate_query(self, query: RetrievalQuery) -> None:
         if not query.query_text.strip():

@@ -32,6 +32,12 @@ def deferred_strategy_ids() -> tuple[str, ...]:
     return FTS_FIRST_POLICY.deferred_strategy_ids
 
 
+def primary_strategy_id() -> str:
+    """Return the single active retrieval strategy for the MVP."""
+
+    return FTS_FIRST_POLICY.active_strategy_ids[0]
+
+
 def fts_first_policy_snapshot() -> dict[str, object]:
     return FTS_FIRST_POLICY.as_snapshot()
 

@@ -11,6 +11,7 @@ from src.qual.engine.retrieval.policy import (
     active_strategy_ids as _active_strategy_ids,
     deferred_strategy_ids as _deferred_strategy_ids,
     fts_first_policy_snapshot as _fts_first_policy_snapshot,
+    primary_strategy_id as _primary_strategy_id,
 )
 
 ACTIVE_STRATEGY_IDS = _active_strategy_ids()
@@ -33,6 +34,12 @@ def retrieval_policy_snapshot() -> dict[str, object]:
     """Return the canonical FTS-first retrieval policy snapshot."""
 
     return _fts_first_policy_snapshot()
+
+
+def primary_strategy_id() -> str:
+    """Return the only active retrieval strategy used by the MVP."""
+
+    return _primary_strategy_id()
 
 
 __all__ = [
