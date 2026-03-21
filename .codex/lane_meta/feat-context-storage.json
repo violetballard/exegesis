@@ -1,6 +1,11 @@
 {
   "scope_goal": "Restart this lane from current main with strict owned-path-only context and vault persistence hardening; prior branch state is reference-only and must not be promoted as-is.",
-  "tasks_completed": [],
+  "tasks_completed": [
+    "Updated context basket recovery to treat malformed optional metadata as salvageable while still rejecting unrecoverable schema or item-id payloads.",
+    "Updated vault state recovery to preserve valid lock and project metadata when optional metadata fields are malformed, then rewrite normalized persisted state.",
+    "Added focused metadata-only corruption tests for both context basket and vault persistence paths, including backup-promotion recovery cases.",
+    "Added corrupt-primary recovery tests and explicit rewrite behavior so fallback provenance is not persisted when the primary file was present but corrupt."
+  ],
   "risk": "MEDIUM",
   "roadmap_items": [
     "Milestone 1 - Bootstrap Flow Stabilization: context basket and vault persistence hardening."
@@ -12,5 +17,5 @@
   "proposed_readme_patch": "",
   "shared_file_exception": true,
   "kickoff_budget_note": "Reset-required lane after ownership and repo-hygiene drift in the stale March 5 review generation.",
-  "approved_exception_note": "Approved shared-file exception for tests/unit/test_context_storage_recovery.py to cover the vault recovery regression alongside the owned-path storage fix."
+  "approved_exception_note": "Approved shared-file exception for tests/unit/test_context_storage_recovery.py only, to cover the vault recovery regression."
 }
