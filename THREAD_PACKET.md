@@ -3,13 +3,14 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Reviewed commit: `a032bd4936d775be2e31941c3b982b520cbe7323`
-- Branch head note: this packet reissues the reviewed code-bearing commit above.
+- Branch head note: this packet reissues the reviewed code-bearing commit above and records the follow-up no-diff regression hardening.
 
 ## Scope goal
-- Reissue the handoff against the actual `diff_preview` no-diff fingerprint emission fix so the packet reflects the commit that changed `src/qual/commands/diff_preview.py` and `tests/unit/test_diff_preview.py`.
+- Reissue the handoff against the actual `diff_preview` no-diff fingerprint emission fix and keep the summary-only no-diff path explicit through the follow-up regression coverage.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
+- `tests/unit/test_diff_preview.py`
 
 ## Scope completed
 - Preserved the lane-owned `diff_preview` no-diff JSON contract hardening in `src/qual/commands/diff_preview.py`, including the explicit `summary_only` state in the no-diff JSON payload.
