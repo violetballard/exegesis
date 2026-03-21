@@ -11,6 +11,8 @@ GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
 DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES = 8_192
 FALLBACK_COPY_ACTION_ID = "copy_to_clipboard"
+GENERIC_FALLBACK_SUBTITLE = "Rendered as GenericCard because client does not support this specialized card."
+UNKNOWN_FALLBACK_SUBTITLE = "Read-only fallback view with safe primitive blocks and raw JSON preview."
 _RESERVED_CARD_TYPES: tuple[str, ...] = (GENERIC_CARD_TYPE, UNKNOWN_CARD_TYPE)
 
 ALLOWED_ACTION_IDS: tuple[str, ...] = (
@@ -286,8 +288,8 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
     )
     fallback_card = {
         "type": GENERIC_CARD_TYPE,
-        "title": f"Fallback view for {card_type or 'Unknown'}",
-        "subtitle": "Rendered as GenericCard because client does not support this specialized card.",
+        "title": _build_fallback_title(GENERIC_CARD_TYPE, source_card_type=card_type),
+        "subtitle": GENERIC_FALLBACK_SUBTITLE,
         "a2ui_version": A2UI_VERSION,
         "debug": _build_fallback_debug(card_type, fallback_kind="generic"),
         "blocks": [
@@ -371,8 +373,8 @@ def build_unknown_card(
         actions.append(_build_copy_to_clipboard_action(clipboard_preview))
     card = {
         "type": UNKNOWN_CARD_TYPE,
-        "title": f"Unsupported card type: {type_name}",
-        "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
+        "title": _build_fallback_title(UNKNOWN_CARD_TYPE, source_card_type=type_name),
+        "subtitle": UNKNOWN_FALLBACK_SUBTITLE,
         "a2ui_version": A2UI_VERSION,
         "debug": _build_fallback_debug(type_name, fallback_kind="unknown"),
         "blocks": blocks,
@@ -448,10 +450,16 @@ def _validate_fallback_card(
         raise ValueError("Fallback card debug is required")
     fallback_kind = debug.get("fallback_kind")
     source_card_type = debug.get("source_card_type")
-    if fallback_kind != expected_fallback_kind:
+    if not isinstance(fallback_kind, str) or fallback_kind.strip() != expected_fallback_kind:
         raise ValueError("Fallback card debug fallback_kind is invalid")
-    if not isinstance(source_card_type, str) or not source_card_type.strip():
+    if not isinstance(source_card_type, str) or source_card_type.strip() != source_card_type or not source_card_type.strip():
         raise ValueError("Fallback card debug source_card_type is required")
+    expected_title = _build_fallback_title(expected_type, source_card_type=source_card_type)
+    if title.strip() != expected_title:
+        raise ValueError("Fallback card title is invalid")
+    expected_subtitle = _fallback_subtitle(expected_fallback_kind)
+    if subtitle.strip() != expected_subtitle:
+        raise ValueError("Fallback card subtitle is invalid")
 
 
 def _validate_card_version(card: dict[str, Any]) -> None:
@@ -989,6 +997,22 @@ def _build_fallback_debug(source_card_type: str, *, fallback_kind: str) -> dict[
         "fallback_kind": fallback_kind,
         "source_card_type": source_card_type,
     }
+
+
+def _build_fallback_title(expected_type: str, *, source_card_type: str) -> str:
+    if expected_type == GENERIC_CARD_TYPE:
+        return f"Fallback view for {source_card_type}"
+    if expected_type == UNKNOWN_CARD_TYPE:
+        return f"Unsupported card type: {source_card_type}"
+    raise ValueError(f"Unsupported fallback card type: {expected_type}")
+
+
+def _fallback_subtitle(fallback_kind: str) -> str:
+    if fallback_kind == "generic":
+        return GENERIC_FALLBACK_SUBTITLE
+    if fallback_kind == "unknown":
+        return UNKNOWN_FALLBACK_SUBTITLE
+    raise ValueError(f"Unsupported fallback kind: {fallback_kind}")
 
 
 def _extract_safe_primitive_blocks(card: dict[str, Any]) -> list[dict[str, Any]]:
