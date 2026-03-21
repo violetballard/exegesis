@@ -10,6 +10,7 @@ from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions
 from src.qual.docindex.service import DocIndexQueryConstraints
 import src.qual.engine.retrieval as engine_retrieval
+from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
 from src.qual.engine.tools.retrieval_tools import retrieve_auto as engine_retrieve_auto
 from src.qual.engine.tools.retrieval_tools import retrieve_auto_payload as engine_retrieve_auto_payload
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
@@ -348,6 +349,46 @@ class UnifiedRetrievalTests(unittest.TestCase):
         refreshed = result.to_downstream_payload()
         self.assertNotIn("mutated-doc-id", refreshed["retrieval_summary"]["doc_ids"])
         self.assertNotEqual(refreshed["doc_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
+
+    def test_retrieval_result_as_dict_alias_matches_downstream_payload(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        payload = result.as_dict()
+        baseline = result.to_downstream_payload()
+        self.assertEqual(payload, baseline)
+        payload["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
+        self.assertNotIn("mutated-doc-id", result.as_dict()["retrieval_summary"]["doc_ids"])
+
+    def test_retrieval_payload_helper_accepts_as_dict_only_sources(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _DictOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def as_dict(self) -> dict[str, object]:
+                return self._payload
+
+        payload = build_retrieval_downstream_payload_from_result(_DictOnlySource(result.as_dict()))
+        self.assertEqual(payload["retrieval_summary"]["doc_ids"], [item.doc_id for item in result.doc_hits])
+        payload["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
+        self.assertNotIn("mutated-doc-id", build_retrieval_downstream_payload_from_result(_DictOnlySource(result.as_dict()))["retrieval_summary"]["doc_ids"])
 
     def test_doc_identity_fingerprint_stays_stable_across_query_variants(self) -> None:
         long_doc_text = (

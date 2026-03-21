@@ -102,4 +102,7 @@ def build_retrieval_downstream_payload_from_result(
     payload_source = getattr(result, "as_downstream_payload", None)
     if callable(payload_source):
         return copy.deepcopy(payload_source())
+    payload_source = getattr(result, "as_dict", None)
+    if callable(payload_source):
+        return copy.deepcopy(payload_source())
     return copy.deepcopy(result.to_downstream_payload())

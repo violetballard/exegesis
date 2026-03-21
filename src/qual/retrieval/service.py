@@ -328,6 +328,17 @@ class RetrievalResult:
 
         return self.to_downstream_payload()
 
+    def as_dict(self) -> dict[str, object]:
+        """Return the canonical downstream payload using dict-oriented naming.
+
+        Retrieval consumers already treat hits and doc hits as dict-shaped
+        snapshots. Keeping a plain ``as_dict`` alias on the result object makes
+        the retrieval contract easier to consume in generic code without
+        changing the underlying payload shape.
+        """
+
+        return self.to_downstream_payload()
+
 
 class RetrievalService:
     def __init__(self, vault_root: Path, *, audit_log: AuditLog, now_fn=None) -> None:
