@@ -787,11 +787,29 @@ def _render_terminal_actions(actions: Any) -> list[str]:
         identity_key = _canonical_json({"id": action_id, "label": label})
         if identity_counts.get(identity_key, 0) > 1 and identity_key in rendered_identity:
             payload_preview = _render_payload_preview(action["payload"], max_payload_bytes=96)
-            lines.append(f"- {label} ({action_id}; payload: {payload_preview})")
+            lines.append(
+                f"- {label} ({action_id}{_render_action_variant_suffix(action)}; payload: {payload_preview})"
+            )
             continue
         rendered_identity.add(identity_key)
-        lines.append(f"- {label} ({action_id})")
+        lines.append(f"- {label} ({action_id}{_render_action_variant_suffix(action)})")
     return lines
+
+
+def _render_action_variant_suffix(action: dict[str, Any]) -> str:
+    suffix_parts: list[str] = []
+    confirm = action.get("confirm")
+    if isinstance(confirm, dict):
+        confirm_title = confirm.get("title")
+        if isinstance(confirm_title, str) and confirm_title.strip():
+            suffix_parts.append(f"confirm: {confirm_title.strip()}")
+        else:
+            suffix_parts.append("confirm")
+    if action.get("policy_sensitive") is True:
+        suffix_parts.append("policy-sensitive")
+    if not suffix_parts:
+        return ""
+    return "; " + "; ".join(suffix_parts)
 
 
 def _render_terminal_debug(debug: Any) -> list[str]:
