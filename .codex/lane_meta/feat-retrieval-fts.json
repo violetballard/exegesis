@@ -8,11 +8,11 @@
     "Docs-only metadata consistency: keep packet, kickoff metadata, and lane metadata in sync for the three handoff artifacts only."
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The reviewed commit `025cf16bca8b3625b974de1a89f9f3d340d310c3` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; this is handoff metadata work, not retrieval source-code work.",
-  "scope_goal": "Tighten the handoff packet so it matches commit `025cf16bca8b3625b974de1a89f9f3d340d310c3` exactly.",
+  "scope_completed": "The reviewed commit `ec1a8bf31040b972f186e7a55abe07cb33ac7a62` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; this is handoff metadata work, not retrieval source-code work.",
+  "scope_goal": "Tighten the handoff packet so it matches commit `ec1a8bf31040b972f186e7a55abe07cb33ac7a62` exactly.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Reconciled the packet with commit `025cf16bca8b3625b974de1a89f9f3d340d310c3`, confirming the reviewed diff changes only the three handoff artifacts.",
+    "Reconciled the packet with commit `ec1a8bf31040b972f186e7a55abe07cb33ac7a62`, confirming the reviewed diff changes only the three handoff artifacts.",
     "Removed implementation-file references from the metadata because they are not part of the reviewed commit.",
     "Added an explicit `scope_completed` field and tightened the packet wording to stay committed to docs-only handoff scope."
   ],
