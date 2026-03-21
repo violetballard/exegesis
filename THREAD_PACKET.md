@@ -1,7 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Reviewed commit: `54415cb39bb0c27a836540442608c4e649e5a411` (`THREAD_PACKET.md` only)
+- Reviewed commit: `cd11c1654a9a891a7a35e782c6da583568785ea5` (`THREAD_PACKET.md` only)
 - Scope goal: Align the handoff packet with the actual one-file docs-only diff at HEAD; this commit does not change context-storage behavior.
 - Scope completed: Rewrote `THREAD_PACKET.md` so the packet describes only the packet-text correction in this commit and does not imply any storage, context, or recovery code changed.
 - Tasks completed:
