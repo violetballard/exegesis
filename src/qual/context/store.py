@@ -47,7 +47,6 @@ class ContextBasketStore:
         if primary_payload is not None:
             payload = primary_payload
             recovered_source = None
-            self._clear_recovery_artifacts()
         elif tmp_payload is not None:
             payload = tmp_payload
             recovered_source = "tmp"
@@ -128,6 +127,19 @@ class ContextBasketStore:
                 recovered_from=recovered_from,
                 refresh_backup=True,
             )
+        elif primary_payload is not None and (
+            backup_payload is None
+            or backup_missing
+            or self._backup_needs_refresh(
+                backup_payload,
+                basket,
+                payload if isinstance(payload, dict) else None,
+            )
+        ):
+            backup_written = self._write_backup()
+            self._clear_recovery_artifacts(preserve_seed=not backup_written)
+            if not backup_written:
+                self._write_seed(self._backup_payload(payload))
         elif backup_payload is None or backup_missing or self._backup_needs_refresh(
             backup_payload,
             basket,
