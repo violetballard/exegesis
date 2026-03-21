@@ -140,6 +140,17 @@ def command_catalog_index() -> dict[str, CommandCatalogEntry]:
     return {entry.name: entry for entry in command_catalog_entries()}
 
 
+def command_catalog_lookup_index() -> dict[str, CommandCatalogEntry]:
+    lookup_index: dict[str, CommandSpec] = command_lookup_index()
+    return {
+        lookup_name: _build_command_catalog_entry(
+            spec,
+            in_mvp_flow=spec.name in _MVP_FLOW_COMMAND_NAME_SET,
+        )
+        for lookup_name, spec in lookup_index.items()
+    }
+
+
 def command_catalog_entries_for_role(mvp_role: str) -> tuple[CommandCatalogEntry, ...]:
     return _command_catalog_entries_for_specs(command_specs_for_role(mvp_role))
 
@@ -279,6 +290,7 @@ def _validate_command_catalog_contract() -> None:
     spec_names = command_names()
     if len(spec_names) != len(set(spec_names)):
         raise ValueError("Command catalog contains duplicate names.")
+    lookup_names = command_lookup_names()
     flow_names = command_mvp_flow_names()
     if len(flow_names) != len(set(flow_names)):
         raise ValueError("MVP flow command list contains duplicate names.")
@@ -289,6 +301,8 @@ def _validate_command_catalog_contract() -> None:
         )
     if tuple(entry.name for entry in command_catalog_entries()) != spec_names:
         raise ValueError("Command catalog entries are out of sync with command definitions.")
+    if tuple(command_catalog_lookup_index()) != lookup_names:
+        raise ValueError("Command catalog lookup entries are out of sync with lookup definitions.")
     if tuple(entry.name for entry in command_mvp_flow_entries()) != flow_names:
         raise ValueError("MVP flow catalog entries are out of sync with flow definitions.")
 

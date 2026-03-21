@@ -8,6 +8,7 @@ from src.qual.commands import (
     command_catalog_entries,
     command_catalog_entries_for_role,
     command_lookup_names,
+    command_catalog_lookup_index,
     command_lookup_names_for_role,
     command_mvp_flow_entries,
     command_mvp_flow_lookup_index,
@@ -76,6 +77,19 @@ class CommandCatalogTests(unittest.TestCase):
                 tuple(name for entry in role_entries for name in entry.lookup_names),
                 command_lookup_names_for_role(role),
             )
+
+    def test_lookup_index_exposes_full_catalog_entries_for_aliases(self) -> None:
+        lookup_index = command_catalog_lookup_index()
+
+        self.assertEqual(tuple(lookup_index), command_lookup_names())
+        self.assertEqual(lookup_index["bootstrap"].name, "bootstrap")
+        self.assertEqual(lookup_index["project-open"].description, "Run the project bootstrap flow.")
+        self.assertEqual(lookup_index["lookup"].mvp_role, "retrieval-invocation")
+        self.assertTrue(lookup_index["handoff"].in_mvp_flow)
+        self.assertEqual(
+            lookup_index["handoff"].lookup_names,
+            ("export-preview", "export", "handoff"),
+        )
 
     def test_mvp_flow_entries_cover_all_smoke_commands(self) -> None:
         entries = command_mvp_flow_entries()
