@@ -35,8 +35,10 @@ def _validate_command_spec(spec: CommandSpec) -> None:
         raise ValueError(f"Command name must be normalized: {spec.name}")
     if not spec.description.strip():
         raise ValueError(f"Command description cannot be blank: {spec.name}")
+    if not spec.mvp_role.strip():
+        raise ValueError(f"Command role cannot be blank: {spec.name}")
 
-    seen_aliases: set[str] = set()
+    seen_aliases: set[str] = {normalized_name}
     for alias in spec.aliases:
         normalized = _normalize_token(alias)
         if not normalized:
@@ -83,7 +85,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     ),
     CommandSpec(
         name="diff-preview",
-        aliases=("diff", "diff_preview"),
+        aliases=("diff",),
         description="Preview unified diff output.",
         mvp_role="patch-review",
     ),

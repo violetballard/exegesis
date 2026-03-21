@@ -4,6 +4,7 @@ import unittest
 
 from src.qual.commands import (
     CommandCatalogEntry,
+    CommandSpec,
     canonical_command,
     command_catalog_entries,
     command_catalog_entries_for_role,
@@ -23,6 +24,7 @@ from src.qual.commands import (
     command_names_for_role,
     command_spec,
 )
+from src.qual.commands.catalog import _validate_command_spec
 
 
 class CommandCatalogTests(unittest.TestCase):
@@ -145,6 +147,27 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_spec("lookup").name, "retrieve")
         self.assertIsNone(command_spec("not-a-command"))
         self.assertEqual(command_lookup_names()[0], "bootstrap")
+
+    def test_spec_validation_rejects_blank_roles_and_name_collisions(self) -> None:
+        with self.assertRaises(ValueError):
+            _validate_command_spec(
+                CommandSpec(
+                    name="bootstrap",
+                    aliases=("bootstrap",),
+                    description="Run the project bootstrap flow.",
+                    mvp_role="project-open",
+                )
+            )
+
+        with self.assertRaises(ValueError):
+            _validate_command_spec(
+                CommandSpec(
+                    name="bootstrap",
+                    aliases=(),
+                    description="Run the project bootstrap flow.",
+                    mvp_role="",
+                )
+            )
 
 
 if __name__ == "__main__":
