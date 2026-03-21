@@ -126,6 +126,13 @@ def command_catalog_entries_for_role(mvp_role: str) -> tuple[CommandCatalogEntry
     )
 
 
+def command_catalog_entry(name: str) -> CommandCatalogEntry | None:
+    spec = command_spec(name)
+    if spec is None:
+        return None
+    return _build_command_catalog_entry(spec, in_mvp_flow=spec.name in _MVP_FLOW_COMMAND_NAME_SET)
+
+
 def _lookup_names_for_specs(specs: tuple[CommandSpec, ...]) -> tuple[str, ...]:
     names: list[str] = []
     seen: set[str] = set()
@@ -173,6 +180,7 @@ def command_mvp_flow_specs() -> tuple[CommandSpec, ...]:
 
 
 _MVP_FLOW_SPECS: tuple[CommandSpec, ...] = command_mvp_flow_specs()
+_MVP_FLOW_COMMAND_NAME_SET: frozenset[str] = frozenset(spec.name for spec in _MVP_FLOW_SPECS)
 
 
 def command_specs_for_role(mvp_role: str) -> tuple[CommandSpec, ...]:
