@@ -332,8 +332,6 @@ class VaultService:
         # can force the vault back into a safe locked state before rewriting canonical metadata.
         if not isinstance(payload, dict):
             return False
-        if self._parse_schema_version(payload) is None:
-            return False
         if "is_locked" in payload and self._parse_is_locked(payload.get("is_locked")) is None:
             return False
         return True
@@ -341,6 +339,8 @@ class VaultService:
     def _is_supported_payload(self, payload: object) -> bool:
         # Backup rotation stays strict so rewritten state drops malformed metadata fields.
         if not self._is_loadable_payload(payload):
+            return False
+        if self._parse_schema_version(payload) is None:
             return False
         if isinstance(payload, dict) and self._has_unknown_fields(payload):
             return False

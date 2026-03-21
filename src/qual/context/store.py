@@ -79,9 +79,6 @@ class ContextBasketStore:
             should_rewrite = True
         elif isinstance(payload, dict):
             schema_version = self._parse_schema_version(payload)
-            if schema_version is None:
-                self._discard_payload_source(recovered_source)
-                return ContextBasket()
             if "item_ids" not in payload:
                 self._discard_payload_source(recovered_source)
                 return ContextBasket()
@@ -343,8 +340,6 @@ class ContextBasketStore:
             return self._parse_item_ids(payload) is not None
         if not isinstance(payload, dict):
             return False
-        if self._parse_schema_version(payload) is None:
-            return False
         if "item_ids" not in payload:
             return False
         if self._parse_item_ids(payload.get("item_ids")) is None:
@@ -357,6 +352,8 @@ class ContextBasketStore:
             return False
         if not isinstance(payload, dict):
             return True
+        if self._parse_schema_version(payload) is None:
+            return False
         if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
             return False
         if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
