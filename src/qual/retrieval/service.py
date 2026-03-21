@@ -155,6 +155,13 @@ class RetrievalResult:
         engine flows do not have to reassemble or reinterpret retrieval state.
         """
         retrieval_policy = dict(self.diagnostics["retrieval_policy"])
+        citation_status = {
+            "required": self.query.constraints.require_citations,
+            "available": bool(self.hits),
+            "satisfied": (not self.query.constraints.require_citations) or bool(self.hits),
+            "doc_count": len(self.doc_hits),
+            "excerpt_count": len(self.hits),
+        }
         doc_fingerprints = [doc_hit.provenance.get("doc_fingerprint") for doc_hit in self.doc_hits]
         doc_identity_fingerprints = [doc_hit.provenance.get("doc_identity_fingerprint") for doc_hit in self.doc_hits]
         top_excerpt_fingerprints = [doc_hit.provenance.get("top_excerpt_fingerprint") for doc_hit in self.doc_hits]
@@ -173,6 +180,7 @@ class RetrievalResult:
             "retrieval_policy": retrieval_policy,
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
+            "citation_status": citation_status,
             "doc_citations": [
                 {
                     "doc_id": doc_hit.doc_id,
@@ -242,6 +250,13 @@ class RetrievalResult:
                 "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
                 "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
                 "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
+                "citation_status": {
+                    "required": self.query.constraints.require_citations,
+                    "available": bool(self.hits),
+                    "satisfied": (not self.query.constraints.require_citations) or bool(self.hits),
+                    "doc_count": len(self.doc_hits),
+                    "excerpt_count": len(self.hits),
+                },
             },
             doc_hits=[doc_hit.as_dict() for doc_hit in self.doc_hits],
             excerpt_hits=[hit.as_dict() for hit in self.hits],
@@ -339,6 +354,15 @@ class RetrievalService:
                 fts_run = StrategyRun(strategy_id=self._fts.id, hits=[], elapsed_ms=0, cache_used=False)
             merged_hits = self._merge_hits([fts_run], max_results=query.constraints.max_results)
             doc_hits = self._build_doc_hits(query, merged_hits, query_fingerprint=query_fingerprint)
+            citation_status = {
+                "required": query.constraints.require_citations,
+                "available": bool(merged_hits),
+                "satisfied": (not query.constraints.require_citations) or bool(merged_hits),
+                "doc_count": len(doc_hits),
+                "excerpt_count": len(merged_hits),
+            }
+            if query.constraints.require_citations and not citation_status["satisfied"]:
+                raise ValueError("citation-required retrieval returned no excerpt hits")
             retrieval_manifest = self._build_retrieval_manifest(doc_hits, merged_hits)
             retrieval_evidence = self._build_retrieval_evidence(
                 query=query,
@@ -376,6 +400,7 @@ class RetrievalService:
                 "excerpt_hits_count": len(merged_hits),
                 "doc_hits_fingerprint": retrieval_manifest["doc_hits_fingerprint"],
                 "excerpt_hits_fingerprint": retrieval_manifest["excerpt_hits_fingerprint"],
+                "citation_status": citation_status,
                 "retrieval_manifest": retrieval_manifest,
                 "retrieval_evidence": retrieval_evidence,
                 "result_fingerprint": result_fingerprint,
