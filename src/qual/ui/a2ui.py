@@ -262,7 +262,7 @@ def build_unknown_card(
             "collapsed": True,
         }
     )
-    supported_action_set = set(supported_actions) if supported_actions is not None else _ALLOWED_ACTION_SET
+    supported_action_set = _canonicalize_supported_actions(supported_actions)
     actions: list[dict[str, Any]] = []
     if "copy_to_clipboard" in supported_action_set:
         copy_action = {
@@ -709,8 +709,37 @@ def _sanitize_safe_primitive_block(block: Any) -> dict[str, Any] | None:
             return None
         return {"type": block_type, "items": sanitized_items}
     if block_type == "TableBlock":
-        return {"type": block_type}
+        rows = block.get("rows")
+        if not isinstance(rows, list):
+            return None
+        sanitized_rows: list[list[Any]] = []
+        for row in rows:
+            if not isinstance(row, list):
+                continue
+            sanitized_row: list[Any] = []
+            for cell in row:
+                if isinstance(cell, (str, int, float, bool)) or cell is None:
+                    sanitized_row.append(cell)
+            if sanitized_row:
+                sanitized_rows.append(sanitized_row)
+        if not sanitized_rows:
+            return None
+        return {"type": block_type, "rows": sanitized_rows}
     return None
+
+
+def _canonicalize_supported_actions(supported_actions: tuple[str, ...] | None) -> set[str]:
+    if supported_actions is None:
+        return set(_ALLOWED_ACTION_SET)
+
+    canonical_actions: set[str] = set()
+    for action_id in supported_actions:
+        if not isinstance(action_id, str):
+            continue
+        normalized_action_id = action_id.strip()
+        if normalized_action_id in _ALLOWED_ACTION_SET:
+            canonical_actions.add(normalized_action_id)
+    return canonical_actions
 
 
 def _render_terminal_block(block: Any) -> list[str]:

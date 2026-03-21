@@ -320,7 +320,10 @@ class A2UIContractTests(unittest.TestCase):
         }
         card = engine_prepare_card(payload, caps)
         self.assertEqual(card["type"], "GenericCard")
-        self.assertEqual([block["type"] for block in card["blocks"]], ["AlertBlock", "MarkdownBlock", "ListBlock", "CodeBlock"])
+        self.assertEqual(
+            [block["type"] for block in card["blocks"]],
+            ["AlertBlock", "MarkdownBlock", "ListBlock", "CodeBlock"],
+        )
 
         text = render_terminal_card(card)
         self.assertIn("Fallback: generic from ProposedEditCard", text)
@@ -358,7 +361,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["blocks"][2], {"type": "KeyValueBlock", "items": [{"key": "Owner", "value": "alice"}]})
         self.assertEqual(card["blocks"][3], {"type": "ListBlock", "items": ["first", {"label": "second"}]})
         self.assertEqual(card["blocks"][4], {"type": "ProgressBlock", "title": "Sync", "status_text": "Working"})
-        self.assertEqual(card["blocks"][5], {"type": "TableBlock"})
+        self.assertEqual(card["blocks"][5], {"type": "TableBlock", "rows": [[1, 2, 3]]})
 
     def test_engine_falls_back_to_generic_for_missing_card_type(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
@@ -568,7 +571,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["blocks"][1], {"type": "ListBlock", "items": ["first", {"label": "second"}]})
         self.assertEqual(card["blocks"][2], {"type": "KeyValueBlock", "items": [{"key": "Owner", "value": "alice"}]})
         self.assertEqual(card["blocks"][3], {"type": "ProgressBlock", "title": "Sync", "status_text": "Working"})
-        self.assertEqual(card["blocks"][4], {"type": "TableBlock"})
+        self.assertEqual(card["blocks"][4], {"type": "TableBlock", "rows": [[1, 2, 3]]})
         self.assertEqual(card["blocks"][5]["type"], "CodeBlock")
         self.assertEqual(card["actions"][0]["id"], "copy_to_clipboard")
 
@@ -596,6 +599,47 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["type"], "UnknownCard")
         self.assertEqual([action["id"] for action in card["actions"]], ["copy_to_clipboard"])
         self.assertEqual(card["actions"][0]["label"], "Copy JSON")
+
+    def test_unknown_card_canonicalizes_supported_actions_before_copy_action(self) -> None:
+        raw_unknown = {"type": "FutureCard", "title": "Future"}
+
+        unknown = build_unknown_card(
+            raw_unknown,
+            supported_actions=(" copy_to_clipboard ", "copy_to_clipboard", "apply_patch"),
+        )
+
+        self.assertEqual([action["id"] for action in unknown["actions"]], ["copy_to_clipboard"])
+
+    def test_unknown_card_preserves_safe_table_rows(self) -> None:
+        raw_unknown = {
+            "type": "FutureCard",
+            "title": "Future",
+            "blocks": [
+                {
+                    "type": "TableBlock",
+                    "rows": [
+                        ["left", "right"],
+                        ["alpha", None, 2],
+                        ["drop", {"nested": True}],
+                        "ignored",
+                    ],
+                }
+            ],
+        }
+
+        unknown = build_unknown_card(raw_unknown)
+
+        self.assertEqual(
+            unknown["blocks"][0],
+            {
+                "type": "TableBlock",
+                "rows": [
+                    ["left", "right"],
+                    ["alpha", None, 2],
+                    ["drop"],
+                ],
+            },
+        )
 
     def test_studio_rejects_invalid_capabilities_before_materialization(self) -> None:
         caps = A2UICapabilities(
