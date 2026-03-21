@@ -309,6 +309,11 @@ class RetrievalResult:
             retrieval_provenance=retrieval_provenance,
         )
 
+    def as_downstream_payload(self) -> dict[str, object]:
+        """Return the canonical downstream payload using result-oriented naming."""
+
+        return self.to_downstream_payload()
+
 
 class RetrievalService:
     def __init__(self, vault_root: Path, *, audit_log: AuditLog, now_fn=None) -> None:
@@ -362,6 +367,11 @@ class RetrievalService:
         """
         self._validate_query(query)
         return self._run_fts_first_retrieval(query)
+
+    def retrieve_fts_payload(self, query: RetrievalQuery) -> dict[str, object]:
+        """Return the canonical downstream payload for a single FTS retrieval."""
+
+        return self.retrieve_fts(query).as_downstream_payload()
 
     def retrieve_auto(self, query: RetrievalQuery) -> RetrievalResult:
         return self.retrieve_fts(query)

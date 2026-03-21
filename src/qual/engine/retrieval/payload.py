@@ -87,5 +87,7 @@ def build_retrieval_downstream_payload_from_result(
     retrieval contract without holding onto the mutable service object that
     produced it.
     """
-
+    payload_source = getattr(result, "as_downstream_payload", None)
+    if callable(payload_source):
+        return copy.deepcopy(payload_source())
     return copy.deepcopy(result.to_downstream_payload())
