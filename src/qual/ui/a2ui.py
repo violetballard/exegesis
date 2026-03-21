@@ -474,16 +474,7 @@ def _validate_fallback_card(
     actions = card.get("actions")
     if not isinstance(actions, list):
         raise ValueError("Fallback card actions must be a list")
-    seen_actions: set[str] = set()
-    for action in actions:
-        validate_action_ref(action)
-        action_id = action.get("id") if isinstance(action, dict) else None
-        if action_id != FALLBACK_COPY_ACTION_ID:
-            raise ValueError("Fallback card actions must be copy_to_clipboard only")
-        action_key = _canonical_json(action)
-        if action_key in seen_actions:
-            raise ValueError("Fallback card actions must not contain duplicates")
-        seen_actions.add(action_key)
+    _validate_canonical_read_only_fallback_actions(actions)
     debug = card.get("debug")
     if not isinstance(debug, dict):
         raise ValueError("Fallback card debug is required")
@@ -754,7 +745,6 @@ def _materialize_generic_card(card: dict[str, Any], capabilities: A2UICapabiliti
 
 
 def _materialize_unknown_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
-    validate_unknown_card(card)
     out = _canonicalize_card_top_level_fields(card)
     out["blocks"] = _extract_safe_primitive_blocks(out)
     out["actions"] = _build_unknown_card_actions(

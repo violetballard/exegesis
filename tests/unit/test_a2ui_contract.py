@@ -705,6 +705,54 @@ class A2UIContractTests(unittest.TestCase):
                 }
             )
 
+    def test_unknown_card_validator_rejects_non_canonical_copy_actions(self) -> None:
+        with self.assertRaises(ValueError):
+            validate_unknown_card(
+                {
+                    "type": "UnknownCard",
+                    "title": "Unsupported card type: FutureCard",
+                    "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
+                    "a2ui_version": 1,
+                    "debug": {
+                        "contract_version": 2,
+                        "fallback_kind": "unknown",
+                        "source_card_type": "FutureCard",
+                    },
+                    "blocks": [],
+                    "actions": [
+                        {
+                            "id": "copy_to_clipboard",
+                            "label": "Copy",
+                            "payload": {"text": "{}"},
+                        },
+                    ],
+                }
+            )
+
+        with self.assertRaises(ValueError):
+            validate_unknown_card(
+                {
+                    "type": "UnknownCard",
+                    "title": "Unsupported card type: FutureCard",
+                    "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
+                    "a2ui_version": 1,
+                    "debug": {
+                        "contract_version": 2,
+                        "fallback_kind": "unknown",
+                        "source_card_type": "FutureCard",
+                    },
+                    "blocks": [],
+                    "actions": [
+                        {
+                            "id": "copy_to_clipboard",
+                            "label": "Copy JSON",
+                            "payload": {"text": "{}"},
+                            "policy_sensitive": True,
+                        },
+                    ],
+                }
+            )
+
     def test_unknown_card_validator_rejects_extra_fields(self) -> None:
         with self.assertRaises(ValueError):
             validate_unknown_card(
