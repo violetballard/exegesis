@@ -7,6 +7,9 @@ from dataclasses import dataclass, field
 class ContextBasket:
     item_ids: list[str] = field(default_factory=list)
 
+    def __post_init__(self) -> None:
+        self.normalize()
+
     @staticmethod
     def _normalize_item_id(item_id: object) -> str:
         if not isinstance(item_id, str):

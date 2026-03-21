@@ -87,8 +87,9 @@ class ContextBasketStore:
             if parsed_items is None:
                 self._discard_payload_source(recovered_source)
                 return ContextBasket()
-            basket = ContextBasket(item_ids=parsed_items)
-            should_rewrite = schema_version != _SCHEMA_VERSION
+            normalized_items = self._normalize_item_ids(parsed_items)
+            basket = ContextBasket(item_ids=normalized_items)
+            should_rewrite = schema_version != _SCHEMA_VERSION or normalized_items != parsed_items
             if "updated_at" not in payload:
                 should_rewrite = True
             if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
@@ -98,11 +99,6 @@ class ContextBasketStore:
         else:
             self._discard_payload_source(recovered_source)
             return ContextBasket()
-
-        prior = list(basket.item_ids)
-        basket.normalize()
-        if basket.item_ids != prior:
-            should_rewrite = True
 
         recovered_from = self._recovery_marker(
             primary_missing=primary_missing,
@@ -408,9 +404,7 @@ class ContextBasketStore:
         return False
 
     def _normalize_item_ids(self, item_ids: list[str]) -> list[str]:
-        basket = ContextBasket(item_ids=list(item_ids))
-        basket.normalize()
-        return basket.item_ids
+        return ContextBasket(item_ids=list(item_ids)).item_ids
 
     def _recovery_marker(self, *, primary_missing: bool, recovered_source: str | None) -> str | None:
         if not primary_missing:
