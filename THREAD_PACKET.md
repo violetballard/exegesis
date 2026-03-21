@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Reviewed commit: `de30983b0e77276935cd5f7f878d64833ad20b58`
-- Branch head note: this packet reissues the reviewed test-only restore commit above.
+- Branch head note: this packet reissues the reviewed test-only regression restore commit above.
 
 ## Scope goal
 - Reissue the handoff against the actual test-only `diff_preview` regression restore so the packet reflects the commit that changed `tests/unit/test_diff_preview.py` only.
