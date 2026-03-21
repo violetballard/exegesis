@@ -146,6 +146,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
                 "title": "Card fallback",
                 "message": "Rendered as GenericCard because client does not support this specialized card.",
             },
+            *_extract_safe_primitive_blocks(card),
             {
                 "type": "CodeBlock",
                 "language": "json",
@@ -178,12 +179,7 @@ def build_unknown_card(
     supported_actions: tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
     type_name = str(raw_card.get("type", "<missing>"))
-    nested_blocks = raw_card.get("blocks")
-    blocks: list[dict[str, Any]] = []
-    if isinstance(nested_blocks, list):
-        for block in nested_blocks:
-            if isinstance(block, dict) and str(block.get("type", "")) in _PRIMITIVE_BLOCK_SET:
-                blocks.append(block)
+    blocks = _extract_safe_primitive_blocks(raw_card)
     blocks.append(
         {
             "type": "CodeBlock",
@@ -462,6 +458,18 @@ def _iter_card_entries(entries: Any) -> list[Any]:
     if not isinstance(entries, list):
         return []
     return entries
+
+
+def _extract_safe_primitive_blocks(card: dict[str, Any]) -> list[dict[str, Any]]:
+    nested_blocks = card.get("blocks")
+    if not isinstance(nested_blocks, list):
+        return []
+
+    safe_blocks: list[dict[str, Any]] = []
+    for block in nested_blocks:
+        if isinstance(block, dict) and str(block.get("type", "")) in _PRIMITIVE_BLOCK_SET:
+            safe_blocks.append(block)
+    return safe_blocks
 
 
 def _render_terminal_block(block: Any) -> list[str]:

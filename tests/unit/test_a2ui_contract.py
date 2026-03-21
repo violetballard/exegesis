@@ -159,10 +159,23 @@ class A2UIContractTests(unittest.TestCase):
 
     def test_engine_falls_back_to_generic_for_unsupported_specialized_card(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
-        payload = {"type": "ProposedEditCard", "title": "Patch"}
+        payload = {
+            "type": "ProposedEditCard",
+            "title": "Patch",
+            "blocks": [
+                {"type": "MarkdownBlock", "markdown": "Safe content"},
+                {"type": "ChartBlock", "series": [1, 2, 3]},
+                {"type": "ListBlock", "items": ["alpha", "beta"]},
+            ],
+        }
         card = engine_prepare_card(payload, caps)
         self.assertEqual(card["type"], "GenericCard")
-        self.assertEqual(card["blocks"][0]["type"], "AlertBlock")
+        self.assertEqual([block["type"] for block in card["blocks"]], ["AlertBlock", "MarkdownBlock", "ListBlock", "CodeBlock"])
+
+        text = render_terminal_card(card)
+        self.assertIn("Safe content", text)
+        self.assertIn("- alpha", text)
+        self.assertNotIn("[unsupported block: ChartBlock]", text)
 
     def test_engine_filters_invalid_actions_for_supported_cards(self) -> None:
         caps = _capabilities(actions_supported=("apply_patch",))
@@ -430,10 +443,19 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("- Export (export_document)", text)
         self.assertNotIn("Broken", text)
 
-        raw_unknown = {"type": "FutureCard", "payload": {"body": "x" * 200}}
+        raw_unknown = {
+            "type": "FutureCard",
+            "blocks": [
+                {"type": "MarkdownBlock", "markdown": "Recovered"},
+                {"type": "ChartBlock", "series": [1, 2, 3]},
+            ],
+            "payload": {"body": "x" * 200},
+        }
         unknown = build_unknown_card(raw_unknown, max_payload_bytes=80)
-        self.assertTrue(unknown["blocks"][0]["code"].startswith("{"))
-        self.assertIn("[truncated to 80 bytes]", unknown["blocks"][0]["code"])
+        self.assertEqual([block["type"] for block in unknown["blocks"][:2]], ["MarkdownBlock", "CodeBlock"])
+        self.assertIn("Recovered", render_terminal_card(unknown))
+        self.assertTrue(unknown["blocks"][1]["code"].startswith("{"))
+        self.assertIn("[truncated to 80 bytes]", unknown["blocks"][1]["code"])
         self.assertEqual(
             unknown["actions"][0]["payload"]["text"],
             json.dumps(raw_unknown, sort_keys=True, separators=(",", ":"), ensure_ascii=True),
