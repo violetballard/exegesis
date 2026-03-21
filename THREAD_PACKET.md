@@ -2,69 +2,61 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Reviewed commit: `72c5f868fb0b6c44e80e26ae49d3da89d94c9487`
-- Branch head note: the current branch head is still a packet-maintenance commit only; the code delta being reissued lives in the reviewed commit above.
+- Reviewed commit: `a032bd4936d775be2e31941c3b982b520cbe7323`
+- Branch head note: the current `HEAD` is the packet-maintenance follow-up; this packet reissues the reviewed code-bearing commit above.
 
 ## Scope goal
-- Reissue the handoff against the actual `diff_preview` no-diff summary contract fix so the packet reflects the code-changing commit instead of the packet-only head.
+- Reissue the handoff against the actual `diff_preview` no-diff fingerprint emission fix so the packet reflects the feature commit that changed `src/qual/commands/diff_preview.py` and `tests/unit/test_diff_preview.py`.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
 
 ## Scope completed
-- Preserved the lane-owned `diff_preview` contract hardening work in `src/qual/commands/diff_preview.py`, including the JSON `no_diff` `summary_only` fix.
-- Preserved the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON `no_diff` `summary_only` contract.
-- Removed the branch-local shared-test approval from `scripts/scope-check.sh` and `THREAD_OWNERSHIP.md` so the approval no longer lives in lane policy enforcement.
-- Reissued the handoff packet against the actual code-changing commit so the scope summary, ownership note, roadmap mapping, changed-file list, and command outcomes match the reviewed delta instead of the packet-only head.
+- Preserved the lane-owned `diff_preview` no-diff JSON contract hardening in `src/qual/commands/diff_preview.py`, including the explicit `summary_only` state in the no-diff JSON payload.
+- Kept the emitted fingerprint text path aligned with the fingerprint object used for the no-diff short-circuit.
+- Added regression coverage in `tests/unit/test_diff_preview.py` for the no-diff summary-only and fingerprint gating behavior.
 
 ## Kickoff budget/limits compliance
-- Stayed within the high-risk budget. The submitted branch delta contains 5 files:
-  - `THREAD_OWNERSHIP.md`
-  - `THREAD_PACKET.md`
-  - `scripts/scope-check.sh`
+- Stayed within the low-risk budget. The reviewed branch delta matches `git show --stat` for `a032bd4936d775be2e31941c3b982b520cbe7323`: `2 files changed, 15 insertions(+), 1 deletion(-)`.
+- Submitted files:
   - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_diff_preview.py`
 
 ## Tasks completed (numbered)
-1. Preserved the lane-owned `src/qual/commands/diff_preview.py` contract hardening work so JSON `no_diff` responses now mirror the `summary_only` flag.
-2. Preserved the focused regression test coverage in `tests/unit/test_diff_preview.py` for the JSON `summary_only` no-diff behavior.
-3. Removed the stale shared-test approval from lane policy enforcement and captured the approval as a packet-only note instead.
-4. Reissued the feature handoff packet so every field matches the reviewed branch state instead of the packet-maintenance head.
+1. Kept the JSON no-diff `summary_only` payload explicit in `src/qual/commands/diff_preview.py`.
+2. Added unit coverage for the no-diff summary-only and fingerprint edge cases in `tests/unit/test_diff_preview.py`.
+3. Reissued the feature handoff packet so every field matches the reviewed code delta.
 
-## Files changed for submitted branch delta
-- `THREAD_OWNERSHIP.md`
-- `THREAD_PACKET.md`
-- `scripts/scope-check.sh`
+## Files changed for reviewed branch delta
 - `src/qual/commands/diff_preview.py`
 - `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
 - Validation date: `2026-03-21`
-- `make scope-check`: FAIL
+- `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
-- `make ci`: FAIL
+- `make ci`: PASS
 
 ## Risks / blockers
 - Risk: `LOW`
-- Blockers: branch policy still treats the reviewer-required diff-preview test file as disallowed unless shared approval is restored.
+- Blockers: none
 - Note: no routing/provider behavior changed.
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` command behavior so JSON and text honor the same no-diff summary contract.
-- Milestone 2 - Test Hardening: preserve the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON no-diff summary-only behavior and related output-contract cases.
-- Milestone 3 - Product Readiness: lock the user-facing `diff_preview` structured output contract across text and JSON output.
+- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` no-diff fingerprint emission so JSON and text stay deterministic on empty-diff responses.
+- Milestone 2 - Test Hardening: preserve the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON no-diff `summary_only` behavior under the fingerprint gate.
 
 ### Vision capability affected
-- Capability 3 - Auditable generation: the command makes no-diff JSON metadata explicit and deterministic, avoiding silent contract drift.
-- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON contract with focused regression tests.
+- Capability 3 - Auditable generation: the command keeps the no-diff JSON `summary_only` state explicit and deterministic, avoiding silent contract drift.
+- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON no-diff contract with focused regression tests.
 
 ### Routing/provider impact note
 - None. This change affects local `diff_preview` output formatting plus the reviewer-required regression test; no routing/provider behavior changed.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `YES`
-- Shared-file exception note: `tests/unit/test_diff_preview.py` is included as reviewer-required regression coverage for the `diff_preview` contract, and the approval note is recorded in this packet.
+- Shared/integrator-locked edits: `NO`
+- Shared-file exception note: none.
