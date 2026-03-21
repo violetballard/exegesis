@@ -984,6 +984,7 @@ def _canonical_json_sort_key(value: Any) -> str:
 
 def _render_terminal_actions(actions: Any) -> list[str]:
     normalized_actions = _canonicalize_supported_action_list(actions, supported_actions=_ALLOWED_ACTION_SET)
+    normalized_actions = sorted(normalized_actions, key=_canonical_json)
 
     identity_counts: dict[str, int] = {}
     for action in normalized_actions:
