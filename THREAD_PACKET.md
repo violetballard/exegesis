@@ -24,7 +24,6 @@ FTS-first retrieval is active for `vault`, `collection:`, and `doc:` scopes. `sr
 
 - Shared/integrator-locked edits: `NO`
 - Non-owned source files promoted: `NO`
-- Non-retrieval tooling edits approved: `NO`
 
 ## Tasks completed
 
