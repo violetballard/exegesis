@@ -25,5 +25,5 @@
     "3. Auditable generation",
     "4. Operator-first control surface"
   ],
-  "compatibility_note": "section scope rejection is a compatibility guard until PageIndex can resolve concrete section targets."
+  "compatibility_note": "Temporary compatibility guard: section queries are rejected until PageIndex can resolve concrete section targets."
 }

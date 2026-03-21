@@ -24,7 +24,7 @@
 - `THREAD_PACKET.md`
 
 ### Compatibility note
-- `section:` queries are intentionally rejected for now; callers should use excerpt or document scopes until PageIndex can resolve concrete section targets.
+- Temporary compatibility guard: `section:` queries are rejected for now because PageIndex cannot resolve concrete section targets yet.
 
 ### Guardrails
 - Keep the change limited to the handoff metadata boundary and commit-label consistency.

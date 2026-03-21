@@ -31,7 +31,7 @@
 - Risks/blockers:
   - No blockers. The packet wording is now explicit about the docs-only cleanup boundary and the `section:` fallback behavior.
 - Compatibility note:
-  - `section:` queries remain rejected until PageIndex can resolve concrete section targets.
+  - Temporary compatibility guard: `section:` queries are rejected until PageIndex can resolve concrete section targets.
 - Roadmap item(s) affected:
   - None; this commit only updates handoff metadata.
 - Vision capability affected:
