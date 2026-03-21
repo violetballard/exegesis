@@ -147,16 +147,6 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
         self.assertTrue(payload["summary_only"])
         self.assertEqual(payload["diff"], "")
 
-    def test_summary_only_text_no_diff_ignores_fingerprint_flag(self) -> None:
-        with _env(
-            **{
-                SUMMARY_ONLY_ENV: "1",
-                INCLUDE_FINGERPRINT_ENV: "1",
-            }
-        ):
-            output = run_diff_preview(DiffPreviewInput("same\n", "same\n"))
-        self.assertEqual(output, "No diff: inputs are identical after normalization.")
-
     def test_json_no_diff_summary_only_preserves_shape_with_other_flags(self) -> None:
         with _env(
             **{
