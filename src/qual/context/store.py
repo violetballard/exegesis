@@ -125,6 +125,7 @@ class ContextBasketStore:
             self._unlink_if_exists(self._seed_state_path())
         return basket
 
+
     def save(
         self,
         basket: ContextBasket,
