@@ -20,7 +20,7 @@
   "shared_file_exception": false,
   "tasks_completed": [
     "Re-anchored the packet to the retrieval feature commit and kept the lane-owned file list narrow.",
-    "Removed the off-lane retrieval-tool path from the handoff surface.",
+    "Removed the off-lane retrieval-tool reference from the handoff surface.",
     "Added a concrete Scope completed statement for the delivered FTS-first behavior.",
     "Preserved the roadmap and vision mapping while keeping PageIndex and embeddings deferred.",
     "Documented the section-scope compatibility boundary for the current FTS-first MVP path."

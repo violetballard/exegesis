@@ -4,7 +4,7 @@
 - Feature implementation commit: `36893f06df85409c4595d64adb8af60455c086a6`
 - Deferred-policy cleanup commit: `dc8f79e4abeb30de51854fdd84d35b97993955b8`
 - Current handoff alignment commit: `203906231e9c47371b6d7bc4028bc4f60e764581`
-- Reviewed commit type: Docs-only handoff alignment; no retrieval code changes in this commit.
+- Reviewed commit type: Retrieval feature implementation with deferred-policy cleanup.
 
 ## Scope Goal
 
@@ -12,7 +12,7 @@ Deliver the canonical FTS-first retrieval surface for the MVP and keep the hando
 
 ## Scope completed
 
-The delivered retrieval path is FTS-first for `vault`, `collection:`, and `doc:` scopes. `src/qual/retrieval/service.py` routes those queries through the engine-owned FTS path, `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, and `src/qual/engine/retrieval/policy.py` keeps `fts` as the only active strategy while leaving `pageindex` and `embeddings` deferred. `section:` remains intentionally rejected until fallback support exists. This handoff does not include `src/qual/engine/tools/retrieval_tools.py`; the reviewed surface stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`.
+The delivered retrieval path is FTS-first for `vault`, `collection:`, and `doc:` scopes. `src/qual/retrieval/service.py` routes those queries through the engine-owned FTS path, `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, and `src/qual/engine/retrieval/policy.py` keeps `fts` as the only active strategy while leaving `pageindex` and `embeddings` deferred. `section:` remains intentionally rejected until fallback support exists.
 
 ## Files changed
 
@@ -44,8 +44,8 @@ Breaking compatibility note: `section:` scopes remain intentionally rejected in 
   - `src/qual/engine/retrieval/policy.py`
 - Tasks completed:
   1. Re-anchored the packet to the retrieval feature commit and kept the lane-owned file list narrow.
-  2. Removed the off-lane retrieval-tool path from the handoff surface.
-  3. Added a concrete `Scope completed` section for the delivered FTS-first behavior.
+  2. Added a concrete `Scope completed` section describing the delivered retrieval behavior.
+  3. Rewrote `Files changed` so it only lists the lane-owned retrieval source files.
   4. Preserved the roadmap and vision mapping while keeping `PageIndex` and embeddings deferred.
   5. Documented the `section:` compatibility boundary for the current FTS-first MVP path.
 - Files changed:

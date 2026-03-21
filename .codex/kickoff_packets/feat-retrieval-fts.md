@@ -32,7 +32,7 @@ The delivered retrieval path is FTS-first for `vault`, `collection:`, and `doc:`
 
 ### Tasks
 1. Re-anchor the packet to the retrieval feature commit and keep the lane-owned file list narrow.
-2. Remove the off-lane retrieval-tool path from the handoff surface.
+2. Remove the off-lane retrieval-tool reference from the handoff surface.
 3. Add a concrete scope-completed summary that explains the delivered FTS-first behavior.
 4. Preserve the roadmap and vision mapping while keeping `PageIndex` and embeddings deferred.
 5. Document the `section:` compatibility boundary as an intentional MVP limitation until fallback support is restored.
