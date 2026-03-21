@@ -766,6 +766,23 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertFalse((state.root_dir / ".vault_state.tmp.corrupt.json").exists())
         self.assertFalse((state.root_dir / ".vault_state.bak.tmp.corrupt.json").exists())
 
+    def test_empty_load_clears_orphaned_quarantine_and_temporary_files(self) -> None:
+        state_root = self.root / "p2-empty"
+        state_root.mkdir(parents=True, exist_ok=True)
+        state_root.joinpath(".vault_state.corrupt.json").write_text("{bad", encoding="utf-8")
+        state_root.joinpath(".vault_state.tmp").write_text(
+            json.dumps({"schema_version": 1, "project_name": "p2-empty", "is_locked": True}),
+            encoding="utf-8",
+        )
+        state_root.joinpath(".vault_state.tmp.corrupt.json").write_text("{bad", encoding="utf-8")
+
+        reopened = self.svc.create_or_open(self.root, "p2-empty")
+
+        self.assertIsInstance(reopened.is_locked, bool)
+        self.assertFalse(state_root.joinpath(".vault_state.corrupt.json").exists())
+        self.assertFalse(state_root.joinpath(".vault_state.tmp").exists())
+        self.assertFalse(state_root.joinpath(".vault_state.tmp.corrupt.json").exists())
+
     def test_project_name_mismatch_forces_locked_state(self) -> None:
         state = self.svc.create_or_open(self.root, "p3")
         state_path = state.root_dir / ".vault_state.json"

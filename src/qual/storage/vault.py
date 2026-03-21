@@ -165,6 +165,8 @@ class VaultService:
             payload = seed_payload
             recovered_source = "seed"
         else:
+            self._clear_quarantine_state(root_dir)
+            self._clear_temporary_state(root_dir)
             return {}, None, primary_payload is None
         if not isinstance(payload, dict):
             return {}, None, primary_payload is None
