@@ -447,6 +447,30 @@ class UnifiedRetrievalTests(unittest.TestCase):
         payload["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
         self.assertNotIn("mutated-doc-id", build_retrieval_downstream_payload_from_result(_DictOnlySource(result.as_dict()))["retrieval_summary"]["doc_ids"])
 
+    def test_retrieval_source_bundle_helper_accepts_source_bundle_only_sources(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        bundle = engine_build_retrieval_source_bundle_from_result(_SourceBundleOnlySource(result.source_bundle()))
+        self.assertEqual(bundle["retrieval_summary"]["doc_ids"], [item.doc_id for item in result.doc_hits])
+        bundle["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
+        refreshed = engine_build_retrieval_source_bundle_from_result(_SourceBundleOnlySource(result.source_bundle()))
+        self.assertNotIn("mutated-doc-id", refreshed["retrieval_summary"]["doc_ids"])
+
     def test_doc_identity_fingerprint_stays_stable_across_query_variants(self) -> None:
         long_doc_text = (
             "alpha marker opens the first retrieval window. "
