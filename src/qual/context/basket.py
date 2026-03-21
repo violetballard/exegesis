@@ -14,6 +14,7 @@ class ContextBasket:
         return item_id.strip()
 
     def add(self, item_id: object) -> None:
+        self.normalize()
         normalized = self._normalize_item_id(item_id)
         if not normalized:
             return
@@ -21,6 +22,7 @@ class ContextBasket:
             self.item_ids.append(normalized)
 
     def remove(self, item_id: object) -> None:
+        self.normalize()
         normalized = self._normalize_item_id(item_id)
         if not normalized:
             return
