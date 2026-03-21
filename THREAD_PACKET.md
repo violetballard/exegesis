@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Scope goal: Tighten the handoff packet so it matches commit `3187be3a382ba1b1fc52297a1c393b1ed8ce3904` exactly.
 - Reviewed commit type: Docs-only handoff metadata alignment.
-- Scope completed: The reviewed commit `3187be3a382ba1b1fc52297a1c393b1ed8ce3904` only updated `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`.
+- Scope completed: The reviewed commit `3187be3a382ba1b1fc52297a1c393b1ed8ce3904` only updated `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; this is handoff metadata work, not retrieval source-code work.
 - Tasks completed:
     1. Rewrote the scope goal so it tracks the reviewed commit exactly.
     2. Added an explicit `Scope completed` field that says the commit only updated handoff artifacts.
@@ -33,9 +33,9 @@
   - No blockers. The reviewed diff is limited to the three handoff artifacts listed above.
 - Roadmap item(s) affected:
   - Handoff packet scope accuracy: keep the reviewed commit description aligned with git history.
-  - Metadata consistency for docs-only commits: keep packet, kickoff metadata, and lane metadata in sync.
+  - Docs-only metadata consistency: keep packet, kickoff metadata, and lane metadata in sync for the three handoff artifacts only.
 - Vision capability affected:
   - Handoff packet scope accuracy
-  - Metadata consistency for docs-only commits
-- Routing/provider impact note: None. No model routing, provider configuration, or retrieval behavior was touched.
+  - Docs-only metadata consistency
+- Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.
