@@ -1409,6 +1409,8 @@ class RetrievalService:
     def _validate_query(self, query: RetrievalQuery) -> None:
         if not query.query_text.strip():
             raise ValueError("query_text is required")
+        if not self._query_terms(query.query_text):
+            raise ValueError("query_text must contain at least one searchable term")
         if query.scope.startswith("section:"):
             raise ValueError("section scope is unsupported until FTS fallback can resolve section targets")
         if query.scope not in {"vault"} and not any(query.scope.startswith(prefix) for prefix in ("collection:", "doc:")):
@@ -1504,17 +1506,10 @@ class RetrievalService:
 
     @staticmethod
     def _build_fts_match_query(query_text: str) -> tuple[str, tuple[str, ...]]:
-        terms: list[str] = []
-        seen: set[str] = set()
-        for term in re.findall(r"\w+", query_text.casefold()):
-            if term in seen:
-                continue
-            seen.add(term)
-            terms.append(term)
+        terms = RetrievalService._query_terms(query_text)
         if terms:
             return " OR ".join(f'"{term}"' for term in terms), tuple(terms)
-        cleaned = query_text.strip().casefold().replace('"', '""')
-        return f'"{cleaned}"', ()
+        raise ValueError("query_text must contain at least one searchable term")
 
     @staticmethod
     def _normalized_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
@@ -1524,3 +1519,14 @@ class RetrievalService:
     def _matched_query_terms(query_terms: tuple[str, ...], text: str) -> tuple[str, ...]:
         text_lower = text.casefold()
         return tuple(term for term in query_terms if term in text_lower)
+
+    @staticmethod
+    def _query_terms(query_text: str) -> tuple[str, ...]:
+        terms: list[str] = []
+        seen: set[str] = set()
+        for term in re.findall(r"\w+", query_text.casefold()):
+            if term in seen:
+                continue
+            seen.add(term)
+            terms.append(term)
+        return tuple(terms)
