@@ -84,6 +84,9 @@ class ContextBasketStore:
                 )
             elif self._backup_needs_refresh(backup_payload, basket):
                 self._write_backup()
+                self._clear_quarantine_file()
+            else:
+                self._clear_quarantine_file()
             return basket
         return ContextBasket()
 

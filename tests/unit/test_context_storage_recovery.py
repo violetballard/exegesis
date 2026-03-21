@@ -236,6 +236,17 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertNotEqual(backup_payload.get("updated_at"), "not-a-timestamp")
         self.assertNotIn("recovered_from", backup_payload)
 
+    def test_healthy_primary_load_clears_stale_corrupt_marker(self) -> None:
+        self.store.save(ContextBasket(item_ids=["first"]))
+        self.store._path.with_suffix(".corrupt.json").write_text("{bad", encoding="utf-8")
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first"])
+        self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["first"])
+
     def test_backup_with_invalid_metadata_is_salvaged_and_rewritten(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._backup_path.write_text(
