@@ -355,9 +355,9 @@ class ContextBasketStore:
         parsed_items = self._parse_item_ids(payload.get("item_ids"))
         if parsed_items is None:
             return True
-        if self._normalize_item_ids(parsed_items) != basket.item_ids:
+        if "recovered_from" in payload:
             return True
-        if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
+        if self._normalize_item_ids(parsed_items) != basket.item_ids:
             return True
         if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
             return True
