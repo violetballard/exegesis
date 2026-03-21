@@ -56,7 +56,10 @@ class ContextBasketStore:
             if schema_version is None:
                 self._discard_payload_source(recovered_source)
                 return ContextBasket()
-            parsed_items = self._parse_item_ids(payload.get("item_ids", []))
+            if "item_ids" not in payload:
+                self._discard_payload_source(recovered_source)
+                return ContextBasket()
+            parsed_items = self._parse_item_ids(payload.get("item_ids"))
             if parsed_items is None:
                 self._discard_payload_source(recovered_source)
                 return ContextBasket()
@@ -215,7 +218,9 @@ class ContextBasketStore:
             return False
         if self._parse_schema_version(payload) is None:
             return False
-        if self._parse_item_ids(payload.get("item_ids", [])) is None:
+        if "item_ids" not in payload:
+            return False
+        if self._parse_item_ids(payload.get("item_ids")) is None:
             return False
         return True
 
@@ -240,8 +245,6 @@ class ContextBasketStore:
             if not normalized:
                 continue
             parsed.append(normalized)
-        if not parsed:
-            return None
         return parsed
 
     def _normalize_item_id(self, item_id: object) -> str:
@@ -294,7 +297,9 @@ class ContextBasketStore:
             return True
         if self._parse_schema_version(payload) != _SCHEMA_VERSION:
             return True
-        parsed_items = self._parse_item_ids(payload.get("item_ids", []))
+        if "item_ids" not in payload:
+            return True
+        parsed_items = self._parse_item_ids(payload.get("item_ids"))
         if parsed_items is None:
             return True
         if self._normalize_item_ids(parsed_items) != basket.item_ids:
