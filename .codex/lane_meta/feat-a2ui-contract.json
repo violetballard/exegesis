@@ -4,21 +4,21 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - keep the review packet aligned to the metadata-only handoff update.",
-    "Milestone 5: A2UI Presentation Layer - keep the file list auditable against the `.codex` packet artifacts that actually changed.",
-    "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to packet alignment and auditability only."
+    "Milestone 5: A2UI Presentation Layer - keep the handoff packet aligned to the metadata-only update in the `.codex` packet files and `THREAD_PACKET.md`.",
+    "Milestone 5: A2UI Presentation Layer - keep the reviewed file list auditable against the four-file packet diff that actually changed.",
+    "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to packet alignment, auditability, and reviewability only."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Record a metadata-only handoff update so the A2UI lane packet is auditable and matches the packet-alignment diff across the `.codex` files.",
+  "scope_goal": "Record a metadata-only handoff update so the A2UI lane packet is auditable and matches the packet-alignment diff across the `.codex` packet files and `THREAD_PACKET.md`.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Rewrote the lane handoff metadata to describe a metadata-only packet alignment update in the `.codex` files.",
+    "Rewrote the lane handoff metadata to describe a metadata-only packet alignment update in the `.codex` packet files and `THREAD_PACKET.md`.",
     "Kept the reviewed file list limited to the packet artifacts that actually changed and removed unsupported source-code and test-code claims from the handoff.",
-    "Aligned the Milestone 5 A2UI roadmap references to packet auditability and reviewability only.",
+    "Aligned the Milestone 5 A2UI roadmap references to packet auditability, diff alignment, and reviewability only.",
     "Kept the lane record scoped to metadata-only packet alignment with no product-code impact."
   ],
   "vision_capabilities": [
-    "Capability 5: Agent-to-UI protocol (A2UI) - the handoff record stays aligned to the packet metadata contract.",
+    "Capability 5: Agent-to-UI protocol (A2UI) - the handoff record stays aligned to the packet metadata contract and the metadata-only diff.",
     "Capability 4: Operator-first control surface - the packet preserves the operator-facing audit trail for the metadata-only update."
   ]
 }
