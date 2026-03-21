@@ -217,9 +217,19 @@ class RetrievalService:
         query_fingerprint = self._query_fingerprint(query)
         fts_shortlist_limit = self._fts_shortlist_limit(query.constraints.max_results)
         date_range = query.constraints.date_range
+        fts_candidate_scan_limit = self._fts_candidate_scan_limit(fts_shortlist_limit, date_range=date_range)
         self._active_query_fingerprint = query_fingerprint
         try:
-            fts_shortlist = self._candidate_docs_from_fts(query, limit=fts_shortlist_limit) if not self._is_doc_scoped(query.scope) else ()
+            fts_shortlist = (
+                self._candidate_docs_from_fts(
+                    query,
+                    limit=fts_shortlist_limit,
+                    date_range=date_range,
+                    scan_limit=fts_candidate_scan_limit,
+                )
+                if not self._is_doc_scoped(query.scope)
+                else ()
+            )
             if date_range is not None:
                 fts_shortlist = self._filter_candidate_doc_ids_by_date_range(fts_shortlist, date_range)
             candidate_doc_ids = self._candidate_docs_from_scope(query.scope, fallback=fts_shortlist)
@@ -256,6 +266,7 @@ class RetrievalService:
                 "doc_scope_id": self._doc_scope_id(query.scope),
                 "date_range": list(date_range) if date_range is not None else None,
                 "fts_shortlist_limit": fts_shortlist_limit,
+                "fts_candidate_scan_limit": fts_candidate_scan_limit,
                 "candidate_doc_count": effective_candidate_doc_count,
                 "fts_shortlist_count": len(fts_shortlist),
                 "fts_shortlist_doc_ids": list(fts_shortlist),
@@ -606,31 +617,77 @@ class RetrievalService:
         }
         return RetrievalService._stable_fingerprint(payload)
 
-    def _candidate_docs_from_fts(self, query: RetrievalQuery, *, limit: int) -> tuple[str, ...]:
-        run = self._fts.retrieve(
-            RetrievalQuery(
-                query_text=query.query_text,
-                scope=query.scope,
-                intent=query.intent,
-                constraints=RetrievalConstraints(max_results=limit, doc_types=query.constraints.doc_types),
-                confidentiality_profile=query.confidentiality_profile,
-            ),
-            candidate_doc_ids=(),
-        )
+    def _candidate_docs_from_fts(
+        self,
+        query: RetrievalQuery,
+        *,
+        limit: int,
+        date_range: tuple[str, str] | None = None,
+        scan_limit: int | None = None,
+    ) -> tuple[str, ...]:
+        if date_range is None:
+            run = self._fts.retrieve(
+                RetrievalQuery(
+                    query_text=query.query_text,
+                    scope=query.scope,
+                    intent=query.intent,
+                    constraints=RetrievalConstraints(max_results=limit, doc_types=query.constraints.doc_types),
+                    confidentiality_profile=query.confidentiality_profile,
+                ),
+                candidate_doc_ids=(),
+            )
+            doc_ids: list[str] = []
+            seen = set()
+            for hit in run.hits:
+                if hit.doc_id in seen:
+                    continue
+                seen.add(hit.doc_id)
+                doc_ids.append(hit.doc_id)
+                if len(doc_ids) >= limit:
+                    break
+            return tuple(doc_ids)
+
+        effective_scan_limit = scan_limit if scan_limit is not None else self._fts_candidate_scan_limit(limit, date_range=date_range)
         doc_ids: list[str] = []
-        seen = set()
-        for hit in run.hits:
-            if hit.doc_id in seen:
-                continue
-            seen.add(hit.doc_id)
-            doc_ids.append(hit.doc_id)
-            if len(doc_ids) >= limit:
+        seen: set[str] = set()
+        batch_limit = max(25, min(limit, effective_scan_limit))
+        while True:
+            run = self._fts.retrieve(
+                RetrievalQuery(
+                    query_text=query.query_text,
+                    scope=query.scope,
+                    intent=query.intent,
+                    constraints=RetrievalConstraints(max_results=batch_limit, doc_types=query.constraints.doc_types),
+                    confidentiality_profile=query.confidentiality_profile,
+                ),
+                candidate_doc_ids=(),
+            )
+            for hit in run.hits:
+                if hit.doc_id in seen:
+                    continue
+                seen.add(hit.doc_id)
+                if not self._doc_matches_date_range(hit.doc_id, date_range):
+                    continue
+                doc_ids.append(hit.doc_id)
+                if len(doc_ids) >= limit:
+                    return tuple(doc_ids)
+            if len(run.hits) < batch_limit or batch_limit >= effective_scan_limit:
                 break
+            next_batch_limit = min(effective_scan_limit, max(batch_limit + 1, batch_limit * 2))
+            if next_batch_limit == batch_limit:
+                break
+            batch_limit = next_batch_limit
         return tuple(doc_ids)
 
     @staticmethod
     def _fts_shortlist_limit(max_results: int) -> int:
         return max(25, max_results)
+
+    @staticmethod
+    def _fts_candidate_scan_limit(limit: int, *, date_range: tuple[str, str] | None) -> int:
+        if date_range is None:
+            return limit
+        return max(limit, limit * 4, 100)
 
     @staticmethod
     def _hit_sort_key(hit: RetrievalHit) -> tuple[float, str, str, int, int, str]:
