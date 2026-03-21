@@ -28,9 +28,10 @@ class VaultService:
         project_root.mkdir(parents=True, exist_ok=True)
         (project_root / "attachments").mkdir(exist_ok=True)
         raw_state, recovered_source, primary_missing = self._read_state(project_root)
-        parsed_is_locked = self._parse_is_locked(raw_state.get("is_locked", False))
+        has_is_locked = "is_locked" in raw_state
+        parsed_is_locked = self._parse_is_locked(raw_state.get("is_locked")) if has_is_locked else None
         is_locked = parsed_is_locked if parsed_is_locked is not None else False
-        if self._requires_safe_lock(raw_state, safe_project_name):
+        if not has_is_locked or self._requires_safe_lock(raw_state, safe_project_name):
             # If metadata does not match directory identity, prefer a safe default.
             is_locked = True
         state = VaultState(

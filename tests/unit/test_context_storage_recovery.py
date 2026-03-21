@@ -418,6 +418,21 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("project_name"), "p3-invalid")
         self.assertTrue(payload.get("is_locked"))
 
+    def test_missing_is_locked_metadata_forces_locked_state_and_rewrites(self) -> None:
+        state = self.svc.create_or_open(self.root, "p3-missing-lock")
+        state_path = state.root_dir / ".vault_state.json"
+        state_path.write_text(
+            json.dumps({"schema_version": 1, "project_name": "p3-missing-lock"}),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p3-missing-lock")
+
+        self.assertTrue(reopened.is_locked)
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p3-missing-lock")
+        self.assertTrue(payload.get("is_locked"))
+
     def test_explicit_legacy_schema_version_zero_is_salvaged_and_rewritten(self) -> None:
         state = self.svc.create_or_open(self.root, "p3-legacy")
         state_path = state.root_dir / ".vault_state.json"
