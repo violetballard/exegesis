@@ -116,13 +116,18 @@ class ContextBasketStore:
                 refresh_backup=True,
             )
         elif backup_payload is None or backup_missing or self._backup_needs_refresh(backup_payload, basket):
+            backup_written = False
             if isinstance(payload, dict):
-                self._write_backup_payload(self._backup_payload(payload))
+                backup_written = self._write_backup_payload(self._backup_payload(payload))
             else:
                 self._write_backup()
+                backup_written = True
             self._clear_quarantine_file()
             self._clear_temporary_files()
-            self._unlink_if_exists(self._seed_state_path())
+            if backup_written:
+                self._unlink_if_exists(self._seed_state_path())
+            else:
+                self._write_seed(self._backup_payload(payload) if isinstance(payload, dict) else payload)
         else:
             self._clear_quarantine_file()
             self._clear_temporary_files()
