@@ -134,6 +134,14 @@ def build_retrieval_citation_bundle_from_result(
         summary = {}
     if not isinstance(diagnostics, dict):
         diagnostics = {}
+    active_strategy_ids = provenance.get(
+        "active_strategy_ids",
+        summary.get("active_strategy_ids", diagnostics.get("active_strategy_ids", [])),
+    )
+    deferred_strategy_ids = provenance.get(
+        "deferred_strategy_ids",
+        summary.get("deferred_strategy_ids", diagnostics.get("deferred_strategy_ids", [])),
+    )
     return {
         "query_fingerprint": provenance.get("query_fingerprint", summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))),
         "result_fingerprint": provenance.get("result_fingerprint", summary.get("result_fingerprint", diagnostics.get("result_fingerprint"))),
@@ -145,6 +153,8 @@ def build_retrieval_citation_bundle_from_result(
                 summary.get("retrieval_policy", diagnostics.get("retrieval_policy", {})),
             )
         ),
+        "active_strategy_ids": list(active_strategy_ids) if isinstance(active_strategy_ids, (list, tuple)) else [],
+        "deferred_strategy_ids": list(deferred_strategy_ids) if isinstance(deferred_strategy_ids, (list, tuple)) else [],
         "citation_status": copy.deepcopy(summary.get("citation_status", provenance.get("citation_status", {}))),
         "doc_count": provenance.get("doc_count", summary.get("doc_count")),
         "excerpt_count": provenance.get("excerpt_count", summary.get("excerpt_count")),

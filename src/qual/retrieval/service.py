@@ -218,6 +218,8 @@ class RetrievalResult:
         engine flows do not have to reassemble or reinterpret retrieval state.
         """
         retrieval_policy = dict(self.diagnostics["retrieval_policy"])
+        active_strategy_ids = list(self.diagnostics["active_strategy_ids"])
+        deferred_strategy_ids = list(self.diagnostics["deferred_strategy_ids"])
         citation_bundle = self.citation_bundle()
         citation_status = dict(citation_bundle["citation_status"])
         doc_fingerprints = [_optional_text(doc_hit.provenance.get("doc_fingerprint")) for doc_hit in self.doc_hits]
@@ -244,6 +246,8 @@ class RetrievalResult:
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
             "retrieval_policy": retrieval_policy,
+            "active_strategy_ids": active_strategy_ids,
+            "deferred_strategy_ids": deferred_strategy_ids,
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
             "citation_status": citation_status,
@@ -324,6 +328,8 @@ class RetrievalResult:
 
     def citation_bundle(self) -> dict[str, object]:
         """Return deterministic doc and excerpt citations for downstream flows."""
+        active_strategy_ids = list(self.diagnostics["active_strategy_ids"])
+        deferred_strategy_ids = list(self.diagnostics["deferred_strategy_ids"])
         citation_status = {
             "required": self.query.constraints.require_citations,
             "available": bool(self.hits),
@@ -337,6 +343,8 @@ class RetrievalResult:
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
             "retrieval_policy": copy.deepcopy(self.diagnostics["retrieval_policy"]),
+            "active_strategy_ids": active_strategy_ids,
+            "deferred_strategy_ids": deferred_strategy_ids,
             "citation_status": citation_status,
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
