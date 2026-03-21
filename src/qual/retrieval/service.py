@@ -624,6 +624,24 @@ class RetrievalService:
                 canonical_span = dict(provenance["span"])
         if canonical_span is not None:
             normalized["span"] = canonical_span
+        retrieval_backend = normalized.get("retrieval_backend")
+        if not isinstance(retrieval_backend, str) or not retrieval_backend:
+            provenance_backend = provenance.get("retrieval_backend")
+            if isinstance(provenance_backend, str) and provenance_backend:
+                retrieval_backend = provenance_backend
+            elif source_strategy == "fts":
+                retrieval_backend = "sqlite_fts"
+        if isinstance(retrieval_backend, str) and retrieval_backend:
+            normalized["retrieval_backend"] = retrieval_backend
+        retrieval_mode = normalized.get("retrieval_mode")
+        if not isinstance(retrieval_mode, str) or not retrieval_mode:
+            provenance_mode = provenance.get("retrieval_mode")
+            if isinstance(provenance_mode, str) and provenance_mode:
+                retrieval_mode = provenance_mode
+            elif source_strategy == "fts":
+                retrieval_mode = "fts_first"
+        if isinstance(retrieval_mode, str) and retrieval_mode:
+            normalized["retrieval_mode"] = retrieval_mode
         excerpt_fingerprint = normalized.get("excerpt_fingerprint")
         if not isinstance(excerpt_fingerprint, str) or not excerpt_fingerprint:
             provenance_excerpt_fingerprint = provenance.get("excerpt_fingerprint")
@@ -647,6 +665,10 @@ class RetrievalService:
                 normalized_provenance["span"] = canonical_span
             normalized_provenance["text_hash"] = text_hash
             normalized_provenance["excerpt_fingerprint"] = excerpt_fingerprint
+            if isinstance(retrieval_backend, str) and retrieval_backend:
+                normalized_provenance["retrieval_backend"] = retrieval_backend
+            if isinstance(retrieval_mode, str) and retrieval_mode:
+                normalized_provenance["retrieval_mode"] = retrieval_mode
             normalized["provenance"] = normalized_provenance
         return normalized
 
