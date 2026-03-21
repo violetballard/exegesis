@@ -1,14 +1,15 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Scope goal: Record the commit-accurate change in `src/qual/retrieval/service.py`: add stable hit-set fingerprints for retrieval results.
-- Scope completed: The reviewed commit `ac341a8783b540b3bc7f134f2204d0ee646d0f45` changes only `src/qual/retrieval/service.py`, adding stable hit-set fingerprints to retrieval output.
+- Scope goal: Capture the commit-accurate retrieval fingerprinting change in `src/qual/retrieval/service.py` and its focused test update.
+- Scope completed: The reviewed commit `ac341a8783b540b3bc7f134f2204d0ee646d0f45` adds stable hit-set fingerprints in `src/qual/retrieval/service.py` and updates `tests/unit/test_unified_retrieval.py` to cover the stable result shape.
 - Tasks completed:
-    1. Rewrote the scope goal and task framing to describe stable hit-set fingerprinting in `src/qual/retrieval/service.py`.
-    2. Tightened the kickoff packet, lane metadata, and handoff packet to the reviewed commit scope only.
-    3. Added an explicit `Scope completed` field that states the reviewed commit changes only `src/qual/retrieval/service.py`.
+    1. Rewrote the scope goal to describe stable hit-set fingerprinting in `src/qual/retrieval/service.py`.
+    2. Added an explicit `Scope completed` field that names the actual code and test files changed by `ac341a8783b540b3bc7f134f2204d0ee646d0f45`.
+    3. Tightened the roadmap and vision mapping to retrieval fingerprinting stability and focused test-hardening only.
 - Files changed:
   - `src/qual/retrieval/service.py`
+  - `tests/unit/test_unified_retrieval.py`
 - Commands run with results:
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -18,8 +19,8 @@
   - `make ci` -> passed
 - Reviewer fix closure:
   - `#1` rewrote the scope goal and tasks to describe stable hit-set fingerprinting in `src/qual/retrieval/service.py`.
-  - `#2` removed unrelated packet references so the claimed file list matches commit `ac341a8783b540b3bc7f134f2204d0ee646d0f45` exactly.
-  - `#3` added an explicit `Scope completed` field for the actual code change.
+  - `#2` removed unrelated packet references and matched the file list to the reviewed commit exactly.
+  - `#3` added an explicit `Scope completed` field for the actual code and test changes.
   - `#4` tightened roadmap and vision mapping to retrieval fingerprinting and stability only.
 - Checkpoint status:
   - plan complete
