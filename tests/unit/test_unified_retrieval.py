@@ -259,11 +259,49 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_policy"]["retrieval_mode"], "fts_first")
         self.assertEqual(payload["retrieval_policy"]["active_strategy_ids"], ["fts"])
         self.assertEqual(payload["retrieval_policy"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(payload["retrieval_summary"]["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(payload["retrieval_summary"]["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(payload["retrieval_summary"]["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(payload["retrieval_summary"]["retrieval_mode"], "fts_first")
+        self.assertEqual(payload["retrieval_summary"]["doc_count"], len(result.doc_hits))
+        self.assertEqual(payload["retrieval_summary"]["excerpt_count"], len(result.hits))
+        self.assertEqual(payload["retrieval_summary"]["doc_ids"], [item.doc_id for item in result.doc_hits])
+        self.assertEqual(
+            payload["retrieval_summary"]["excerpt_ids"],
+            [item.excerpt_id for item in result.hits if item.excerpt_id is not None],
+        )
+        self.assertEqual(
+            payload["retrieval_summary"]["primary_doc_id"],
+            result.doc_hits[0].doc_id if result.doc_hits else None,
+        )
+        self.assertEqual(
+            payload["retrieval_summary"]["primary_excerpt_id"],
+            result.hits[0].excerpt_id if result.hits else None,
+        )
         self.assertEqual(payload["retrieval_diagnostics"]["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_evidence"], result.diagnostics["retrieval_evidence"])
         self.assertEqual(payload["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
         self.assertEqual(payload["retrieval_evidence"], result.evidence)
+
+    def test_downstream_payload_is_snapshot_safe(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        payload = result.to_downstream_payload()
+        payload["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
+        payload["doc_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
+
+        refreshed = result.to_downstream_payload()
+        self.assertNotIn("mutated-doc-id", refreshed["retrieval_summary"]["doc_ids"])
+        self.assertNotEqual(refreshed["doc_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
 
     def test_doc_identity_fingerprint_stays_stable_across_query_variants(self) -> None:
         long_doc_text = (

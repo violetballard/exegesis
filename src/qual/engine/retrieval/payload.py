@@ -12,6 +12,7 @@ class RetrievalDownstreamPayload:
     policy: dict[str, object]
     audit_ref: str
     result_fingerprint: str
+    retrieval_summary: dict[str, object]
     doc_hits: list[dict[str, object]]
     excerpt_hits: list[dict[str, object]]
     retrieval_diagnostics: dict[str, object]
@@ -23,12 +24,14 @@ class RetrievalDownstreamPayload:
         diagnostics = copy.deepcopy(self.retrieval_diagnostics)
         manifest = copy.deepcopy(self.retrieval_manifest)
         evidence = copy.deepcopy(self.retrieval_evidence)
+        summary = copy.deepcopy(self.retrieval_summary)
         return {
             "query": copy.deepcopy(self.query),
             "policy": policy,
             "retrieval_policy": copy.deepcopy(policy),
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
+            "retrieval_summary": summary,
             "doc_hits": [copy.deepcopy(doc_hit) for doc_hit in self.doc_hits],
             "excerpt_hits": [copy.deepcopy(hit) for hit in self.excerpt_hits],
             "retrieval_diagnostics": diagnostics,
@@ -43,6 +46,7 @@ def build_retrieval_downstream_payload(
     policy: dict[str, object],
     audit_ref: str,
     result_fingerprint: str,
+    retrieval_summary: dict[str, object],
     doc_hits: list[dict[str, object]],
     excerpt_hits: list[dict[str, object]],
     retrieval_diagnostics: dict[str, object],
@@ -54,6 +58,7 @@ def build_retrieval_downstream_payload(
         policy=policy,
         audit_ref=audit_ref,
         result_fingerprint=result_fingerprint,
+        retrieval_summary=retrieval_summary,
         doc_hits=doc_hits,
         excerpt_hits=excerpt_hits,
         retrieval_diagnostics=retrieval_diagnostics,
