@@ -306,7 +306,26 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertFalse(self.store._backup_path.with_name("context_basket.bak.corrupt.json").exists())
         self.assertFalse(self.store._seed_state_path().with_name("context_basket.seed.corrupt.json").exists())
 
-    def test_backup_with_invalid_metadata_is_salvaged_and_rewritten(self) -> None:
+    def test_empty_load_clears_orphaned_quarantine_markers(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.with_suffix(".corrupt.json").write_text("{bad", encoding="utf-8")
+        self.store._backup_path.with_name("context_basket.bak.corrupt.json").write_text(
+            "{bad",
+            encoding="utf-8",
+        )
+        self.store._seed_state_path().with_name("context_basket.seed.corrupt.json").write_text(
+            "{bad",
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, [])
+        self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
+        self.assertFalse(self.store._backup_path.with_name("context_basket.bak.corrupt.json").exists())
+        self.assertFalse(self.store._seed_state_path().with_name("context_basket.seed.corrupt.json").exists())
+
+    def test_backup_with_invalid_metadata_is_salvaged_and_promoted(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._backup_path.write_text(
             json.dumps(
@@ -598,7 +617,7 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertNotIn("recovered_from", payload)
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
 
-    def test_backup_with_invalid_metadata_is_salvaged_and_rewritten(self) -> None:
+    def test_backup_with_invalid_metadata_is_salvaged_and_rewritten_after_primary_missing(self) -> None:
         state = self.svc.create_or_open(self.root, "p7")
         backup_path = state.root_dir / ".vault_state.bak.json"
         backup_path.write_text(

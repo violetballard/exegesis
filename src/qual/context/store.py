@@ -63,6 +63,8 @@ class ContextBasketStore:
             payload = seed_payload
             recovered_source = "seed"
         else:
+            self._clear_quarantine_file()
+            self._clear_temporary_files()
             return ContextBasket()
 
         should_rewrite = False
