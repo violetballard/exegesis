@@ -2,6 +2,7 @@
   "approved_exception_note": "",
   "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, handoff-artifact-only cleanup, no shared or integrator-locked edits, and required local gates rerun before handoff.",
   "implementation_commit": "2c16551a6b3576eb9031d55a98525c21e04be255",
+  "cleanup_commit": "300bd4c7053b5fd221d6c87a1be98bf5b5f9bc74",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
@@ -11,7 +12,7 @@
     "Milestone 2: Test Hardening -> Add focused unit coverage for core behaviors"
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "This cleanup only updates packet metadata. It does not change retrieval runtime behavior, and it does not add or modify `src/qual/engine/retrieval/pageindex_strategy.py` or `src/qual/engine/retrieval/embeddings_strategy.py`; `pageindex` and `embeddings` remain deferred in `FTS_FIRST_POLICY.deferred_strategy_ids`, so they are not required runtime paths. The packet now separates the implementation history from the docs-only cleanup and keeps the `section:` compatibility note explicit.",
+  "scope_completed": "This cleanup only updates handoff metadata. The packet now labels the reviewed commit as docs-only cleanup, keeps the `section:` compatibility note explicit, and aligns the file list with the actual changed files.",
   "scope_goal": "Apply the reviewer-required packet fixes for the retrieval FTS handoff metadata by clearly labeling the docs-only cleanup commit and keeping the reviewed file list aligned with the cleanup diff.",
   "shared_file_exception": false,
   "tasks_completed": [
@@ -24,5 +25,5 @@
     "3. Auditable generation",
     "4. Operator-first control surface"
   ],
-  "compatibility_note": "section scope rejection is a compatibility guard until PageIndex can resolve concrete section targets; src/qual/engine/retrieval/pageindex_strategy.py and src/qual/engine/retrieval/embeddings_strategy.py are not present in this worktree, so no cleanup changes were made there; pageindex and embeddings remain deferred-only in the FTS-first policy snapshot."
+  "compatibility_note": "section scope rejection is a compatibility guard until PageIndex can resolve concrete section targets."
 }

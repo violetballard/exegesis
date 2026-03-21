@@ -1,10 +1,10 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Reviewed implementation commit: `2c16551a6b3576eb9031d55a98525c21e04be255`
 - Reviewed cleanup commit: `300bd4c7053b5fd221d6c87a1be98bf5b5f9bc74`
+- Related implementation commit: `2c16551a6b3576eb9031d55a98525c21e04be255`
 - Scope goal: Apply the reviewer-required packet fixes for the retrieval FTS handoff metadata by clearly labeling the docs-only cleanup commit and keeping the reviewed file list aligned with the cleanup diff.
-- Scope completed: This handoff cleanup only updates packet metadata. It does not change retrieval runtime behavior, and it does not add or modify `src/qual/engine/retrieval/pageindex_strategy.py` or `src/qual/engine/retrieval/embeddings_strategy.py`; `pageindex` and `embeddings` remain deferred in `FTS_FIRST_POLICY.deferred_strategy_ids`, so they are not required runtime paths. The packet now separates the feature implementation history from the docs-only cleanup and keeps the `section:` compatibility note explicit.
+- Scope completed: This handoff cleanup only updates packet metadata. The packet now labels the reviewed commit as docs-only cleanup, keeps the `section:` compatibility note explicit, and aligns the file list with the actual changed files.
 - Tasks completed:
   1. Labeled the reviewed commit as docs-only cleanup instead of implying a retrieval code change.
   2. Replaced the feature-code file list with the actual handoff artifact diff so the reviewed files match the commit.
@@ -32,16 +32,9 @@
   - No blockers. The packet wording is now explicit about the docs-only cleanup boundary and the `section:` fallback behavior.
 - Compatibility note:
   - `section:` queries remain rejected until PageIndex can resolve concrete section targets.
-  - `src/qual/engine/retrieval/pageindex_strategy.py` and `src/qual/engine/retrieval/embeddings_strategy.py` are not present in this worktree, so no cleanup changes were made there.
-  - `pageindex` and `embeddings` stay deferred-only in the FTS-first policy snapshot.
 - Roadmap item(s) affected:
-  - Milestone 4: Retrieval Layer -> FTS-first ingestion/index path for context/vault documents
-  - Milestone 4: Retrieval Layer -> Retrieval orchestration data needed before drafting/diff generation
-  - Milestone 4: Retrieval Layer -> Source-attribution model for retrieved chunks
-  - Milestone 2: Test Hardening -> Add focused unit coverage for core behaviors
+  - None; this commit only updates handoff metadata.
 - Vision capability affected:
-  - 2. Retrieval-first context handling
-  - 3. Auditable generation
-  - 4. Operator-first control surface
+  - None; this commit does not change runtime behavior.
 - Routing/provider impact note: None.
 - Proposed `README.md` patch text: None.
