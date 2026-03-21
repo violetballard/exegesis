@@ -518,6 +518,12 @@ def _materialize_versioned_card(card: dict[str, Any], capabilities: A2UICapabili
     out = dict(card)
     out["blocks"] = _extract_safe_primitive_blocks(out)
     out = _filter_card_actions(out, capabilities)
+    out["title"] = _normalize_card_text(out.get("title"), fallback="<untitled>")
+    subtitle = _normalize_card_text(out.get("subtitle"))
+    if subtitle is None:
+        out.pop("subtitle", None)
+    else:
+        out["subtitle"] = subtitle
     out["a2ui_version"] = A2UI_VERSION
     return out
 
@@ -527,6 +533,12 @@ def _materialize_generic_card(card: dict[str, Any], capabilities: A2UICapabiliti
     out = dict(card)
     out["blocks"] = _extract_safe_primitive_blocks(out)
     out["actions"] = _filter_supported_actions(out.get("actions"), supported_actions=set(capabilities.actions_supported))
+    out["title"] = _normalize_card_text(out.get("title"), fallback="<untitled>")
+    subtitle = _normalize_card_text(out.get("subtitle"))
+    if subtitle is None:
+        out.pop("subtitle", None)
+    else:
+        out["subtitle"] = subtitle
     out["a2ui_version"] = A2UI_VERSION
     return out
 
@@ -825,6 +837,17 @@ def _normalize_card_title(card: dict[str, Any]) -> str:
         return "<untitled>"
     title = raw_title.strip()
     return title if title else "<untitled>"
+
+
+def _normalize_card_text(value: Any, *, fallback: str | None = None) -> str | None:
+    if value is None:
+        return fallback
+    if not isinstance(value, str):
+        return fallback
+    normalized = value.strip()
+    if normalized:
+        return normalized
+    return fallback
 
 
 def _build_fallback_debug(source_card_type: str, *, fallback_kind: str) -> dict[str, str]:

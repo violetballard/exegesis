@@ -537,7 +537,8 @@ class A2UIContractTests(unittest.TestCase):
         card = engine_prepare_card(
             {
                 "type": "RunLogCard",
-                "title": "Run Log",
+                "title": " Run Log ",
+                "subtitle": "  Demo output  ",
                 "blocks": None,
                 "actions": None,
             },
@@ -545,6 +546,8 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         self.assertEqual(card["a2ui_version"], 1)
+        self.assertEqual(card["title"], "Run Log")
+        self.assertEqual(card["subtitle"], "Demo output")
         self.assertEqual(card["blocks"], [])
         self.assertEqual(card["actions"], [])
 
@@ -553,7 +556,8 @@ class A2UIContractTests(unittest.TestCase):
         card = engine_prepare_card(
             {
                 "type": "GenericCard",
-                "title": "Patch",
+                "title": " Patch ",
+                "subtitle": "  Ready to copy  ",
                 "blocks": None,
                 "actions": [
                     {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "hello"}},
@@ -565,6 +569,8 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         self.assertEqual(card["a2ui_version"], 1)
+        self.assertEqual(card["title"], "Patch")
+        self.assertEqual(card["subtitle"], "Ready to copy")
         self.assertEqual(card["blocks"], [])
         self.assertEqual(
             card["actions"],
