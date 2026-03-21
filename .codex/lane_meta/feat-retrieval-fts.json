@@ -3,14 +3,18 @@
   "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 2 reviewed files, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
   "proposed_readme_patch": "",
   "risk": "LOW",
-  "roadmap_items": [],
+  "roadmap_items": [
+    "Milestone 4: Retrieval Layer (Planned) - FTS-first ingestion/index path for context/vault documents"
+  ],
   "routing_provider_impact": "None",
-  "scope_goal": "Align the handoff packet and lane metadata with the reviewed docs-only commit so the lane record matches the actual diff.",
+  "scope_goal": "Canonicalize doc type filters in the retrieval service and stabilize the associated FTS query fingerprints.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Reconciled the packet with commit `44116a6740ae818eccaf88fa988239fd6c34f18a`, confirming the reviewed diff only changes `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`.",
-    "Removed `src/qual/engine/retrieval/pageindex_strategy.py` and every source-change claim from the handoff because the reviewed diff is packet-only.",
-    "Added an explicit `Scope completed` field and kept roadmap and vision items empty so the packet stays limited to handoff alignment."
+    "Reconciled the packet with commit `ea2020bc57294b46cdf997e99020bb9f43dd3244`, confirming the reviewed diff only changes `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`.",
+    "Removed `src/qual/engine/retrieval/pageindex_strategy.py` and `src/qual/retrieval/__init__.py` from the changed-files list because they are not part of the reviewed commit.",
+    "Added an explicit `Scope completed` field and trimmed the roadmap and vision mapping to FTS retrieval normalization plus test hardening."
   ],
-  "vision_capabilities": []
+  "vision_capabilities": [
+    "Retrieval-first context handling"
+  ]
 }
