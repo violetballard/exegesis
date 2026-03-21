@@ -9,6 +9,7 @@ from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions
 from src.qual.docindex.service import DocIndexQueryConstraints
 import src.qual.engine.retrieval as engine_retrieval
+from src.qual.engine.tools.retrieval_tools import retrieve_auto as engine_retrieve_auto
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
 
 
@@ -477,6 +478,22 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertFalse(hasattr(engine_retrieval, "EmbeddingsStrategy"))
         self.assertEqual(engine_retrieval.ACTIVE_STRATEGY_IDS, ("fts",))
         self.assertEqual(engine_retrieval.active_strategy_ids(), ("fts",))
+
+    def test_engine_retrieval_tool_forwards_document_filters(self) -> None:
+        result = engine_retrieve_auto(
+            self.service,
+            query_text="notes",
+            scope="vault",
+            intent="compare",
+            constraints={"max_results": 5, "doc_types": ["pdf"]},
+            confidentiality_profile="confidential",
+        )
+
+        self.assertTrue(result.doc_hits)
+        self.assertEqual({hit.provenance["doc_type"] for hit in result.doc_hits}, {"pdf"})
+        self.assertEqual(result.diagnostics["retrieval_manifest"]["doc_ids"], [hit.doc_id for hit in result.doc_hits])
+        self.assertEqual(result.diagnostics["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(result.diagnostics["retrieval_mode"], "fts_first")
 
     def test_retrieval_audit_uses_query_hash_not_plaintext(self) -> None:
         query_text = "highly sensitive question text"

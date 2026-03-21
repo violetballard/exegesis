@@ -2,6 +2,12 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass
+from typing import Protocol
+
+
+class RetrievalDownstreamPayloadSource(Protocol):
+    def to_downstream_payload(self) -> dict[str, object]:
+        """Return the stable retrieval payload consumed by downstream engine flows."""
 
 
 @dataclass(frozen=True)
@@ -70,3 +76,16 @@ def build_retrieval_downstream_payload(
         retrieval_evidence=retrieval_evidence,
         retrieval_provenance=retrieval_provenance,
     ).as_dict()
+
+
+def build_retrieval_downstream_payload_from_result(
+    result: RetrievalDownstreamPayloadSource,
+) -> dict[str, object]:
+    """Return a snapshot-safe copy of a retrieval result payload.
+
+    Engine callers use this helper when they want the canonical downstream
+    retrieval contract without holding onto the mutable service object that
+    produced it.
+    """
+
+    return copy.deepcopy(result.to_downstream_payload())
