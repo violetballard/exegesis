@@ -12,7 +12,7 @@
     "Milestone 2: Test Hardening -> Add focused unit coverage for core behaviors"
   ],
   "routing_provider_impact": "None",
-  "reviewed_implementation_files": [
+  "related_implementation_files": [
     "src/qual/engine/retrieval/__init__.py",
     "src/qual/engine/retrieval/payload.py",
     "src/qual/retrieval/service.py",

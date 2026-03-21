@@ -3,9 +3,9 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Reviewed cleanup commit: `300bd4c7053b5fd221d6c87a1be98bf5b5f9bc74`
 - Related implementation commit: `2c16551a6b3576eb9031d55a98525c21e04be255`
-- Scope goal: Apply the reviewer-required packet fixes for the retrieval FTS handoff metadata by clearly labeling the docs-only cleanup commit while naming the reviewed FTS implementation files separately.
-- Scope completed: This handoff cleanup only updates packet metadata. The packet now labels the reviewed commit as docs-only cleanup, keeps the reviewed FTS implementation files in a separate reference set, and keeps the `section:` compatibility note explicit without folding it into the cleanup diff.
-- Reviewed implementation files:
+- Scope goal: Apply the reviewer-required packet fixes for the retrieval FTS handoff metadata by clearly labeling the docs-only cleanup commit while naming the related FTS implementation files separately.
+- Scope completed: This handoff cleanup only updates packet metadata. The packet now labels the reviewed commit as docs-only cleanup, keeps the related FTS implementation files in a separate reference set, and keeps the `section:` compatibility note explicit without folding it into the cleanup diff.
+- Related implementation files:
   - `src/qual/engine/retrieval/__init__.py`
   - `src/qual/engine/retrieval/payload.py`
   - `src/qual/retrieval/service.py`
