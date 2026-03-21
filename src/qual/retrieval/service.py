@@ -351,7 +351,6 @@ class RetrievalService:
         self._docindex = DocIndexService(vault_root, audit_log=audit_log, now_fn=self._now_fn)
         self._fts = FTSStrategy(self._run_fts_hits, now_fn=self._now_fn)
         self._retrieval_policy = FTS_FIRST_POLICY
-        self._active_query_fingerprint: str | None = None
 
     def add_or_update_document(
         self,
@@ -408,117 +407,113 @@ class RetrievalService:
         fts_shortlist_limit = self._fts_shortlist_limit(query.constraints.max_results)
         date_range = query.constraints.date_range
         fts_candidate_scan_limit = self._fts_candidate_scan_limit(fts_shortlist_limit, date_range=date_range)
-        self._active_query_fingerprint = query_fingerprint
-        try:
-            fts_shortlist = (
-                self._candidate_docs_from_fts(
-                    query,
-                    limit=fts_shortlist_limit,
-                    date_range=date_range,
-                    scan_limit=fts_candidate_scan_limit,
-                )
-                if not self._is_doc_scoped(query.scope)
-                else ()
-            )
-            if date_range is not None:
-                fts_shortlist = self._filter_candidate_doc_ids_by_date_range(fts_shortlist, date_range)
-            candidate_doc_ids = self._candidate_docs_from_scope(query.scope, fallback=fts_shortlist)
-            if date_range is not None:
-                candidate_doc_ids = self._filter_candidate_doc_ids_by_date_range(candidate_doc_ids, date_range)
-            effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
-            if candidate_doc_ids or date_range is None:
-                fts_run = self._fts.retrieve(query, candidate_doc_ids=candidate_doc_ids)
-            else:
-                fts_run = StrategyRun(strategy_id=self._fts.id, hits=[], elapsed_ms=0, cache_used=False)
-            merged_hits = self._merge_hits([fts_run], max_results=query.constraints.max_results)
-            doc_hits = self._build_doc_hits(
+        fts_shortlist = (
+            self._candidate_docs_from_fts(
                 query,
-                merged_hits,
-                query_fingerprint=query_fingerprint,
-                retrieval_policy=retrieval_policy,
+                limit=fts_shortlist_limit,
+                date_range=date_range,
+                scan_limit=fts_candidate_scan_limit,
             )
-            citation_status = {
-                "required": query.constraints.require_citations,
-                "available": bool(merged_hits),
-                "satisfied": (not query.constraints.require_citations) or bool(merged_hits),
-                "doc_count": len(doc_hits),
-                "excerpt_count": len(merged_hits),
-            }
-            if query.constraints.require_citations and not citation_status["satisfied"]:
-                raise ValueError("citation-required retrieval returned no excerpt hits")
-            retrieval_manifest = self._build_retrieval_manifest(
-                doc_hits,
-                merged_hits,
-                retrieval_policy=retrieval_policy,
-            )
-            retrieval_evidence = self._build_retrieval_evidence(
-                query=query,
-                doc_hits=doc_hits,
-                hits=merged_hits,
-                retrieval_manifest=retrieval_manifest,
-                query_fingerprint=query_fingerprint,
-                retrieval_policy=retrieval_policy,
-            )
-            result_fingerprint = self._build_result_fingerprint(
-                query_fingerprint=query_fingerprint,
-                retrieval_manifest=retrieval_manifest,
-            )
-            elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
-            diagnostics = {
-                "retrieval_policy": retrieval_policy,
-                "retrieval_backend": retrieval_policy["retrieval_backend"],
-                "retrieval_mode": retrieval_policy["retrieval_mode"],
-                "active_strategy_ids": list(retrieval_policy["active_strategy_ids"]),
-                "deferred_strategy_ids": list(retrieval_policy["deferred_strategy_ids"]),
+            if not self._is_doc_scoped(query.scope)
+            else ()
+        )
+        if date_range is not None:
+            fts_shortlist = self._filter_candidate_doc_ids_by_date_range(fts_shortlist, date_range)
+        candidate_doc_ids = self._candidate_docs_from_scope(query.scope, fallback=fts_shortlist)
+        if date_range is not None:
+            candidate_doc_ids = self._filter_candidate_doc_ids_by_date_range(candidate_doc_ids, date_range)
+        effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
+        if candidate_doc_ids or date_range is None:
+            fts_run = self._fts.retrieve(query, candidate_doc_ids=candidate_doc_ids)
+        else:
+            fts_run = StrategyRun(strategy_id=self._fts.id, hits=[], elapsed_ms=0, cache_used=False)
+        merged_hits = self._merge_hits([fts_run], max_results=query.constraints.max_results)
+        doc_hits = self._build_doc_hits(
+            query,
+            merged_hits,
+            query_fingerprint=query_fingerprint,
+            retrieval_policy=retrieval_policy,
+        )
+        citation_status = {
+            "required": query.constraints.require_citations,
+            "available": bool(merged_hits),
+            "satisfied": (not query.constraints.require_citations) or bool(merged_hits),
+            "doc_count": len(doc_hits),
+            "excerpt_count": len(merged_hits),
+        }
+        if query.constraints.require_citations and not citation_status["satisfied"]:
+            raise ValueError("citation-required retrieval returned no excerpt hits")
+        retrieval_manifest = self._build_retrieval_manifest(
+            doc_hits,
+            merged_hits,
+            retrieval_policy=retrieval_policy,
+        )
+        retrieval_evidence = self._build_retrieval_evidence(
+            query=query,
+            doc_hits=doc_hits,
+            hits=merged_hits,
+            retrieval_manifest=retrieval_manifest,
+            query_fingerprint=query_fingerprint,
+            retrieval_policy=retrieval_policy,
+        )
+        result_fingerprint = self._build_result_fingerprint(
+            query_fingerprint=query_fingerprint,
+            retrieval_manifest=retrieval_manifest,
+        )
+        elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
+        diagnostics = {
+            "retrieval_policy": retrieval_policy,
+            "retrieval_backend": retrieval_policy["retrieval_backend"],
+            "retrieval_mode": retrieval_policy["retrieval_mode"],
+            "active_strategy_ids": list(retrieval_policy["active_strategy_ids"]),
+            "deferred_strategy_ids": list(retrieval_policy["deferred_strategy_ids"]),
+            "query_fingerprint": query_fingerprint,
+            "query_scope": query.scope,
+            "query_intent": query.intent,
+            "doc_scope_id": self._doc_scope_id(query.scope),
+            "date_range": list(date_range) if date_range is not None else None,
+            "fts_shortlist_limit": fts_shortlist_limit,
+            "fts_candidate_scan_limit": fts_candidate_scan_limit,
+            "candidate_doc_count": effective_candidate_doc_count,
+            "fts_shortlist_count": len(fts_shortlist),
+            "fts_shortlist_doc_ids": list(fts_shortlist),
+            "strategies_used": list(retrieval_policy["active_strategy_ids"]),
+            "elapsed_ms_by_strategy": {fts_run.strategy_id: fts_run.elapsed_ms},
+            "caches_used": {fts_run.strategy_id: fts_run.cache_used},
+            "elapsed_ms_total": elapsed_ms_total,
+            "doc_hits_count": len(doc_hits),
+            "excerpt_hits_count": len(merged_hits),
+            "doc_hits_fingerprint": retrieval_manifest["doc_hits_fingerprint"],
+            "excerpt_hits_fingerprint": retrieval_manifest["excerpt_hits_fingerprint"],
+            "citation_status": citation_status,
+            "retrieval_manifest": retrieval_manifest,
+            "retrieval_evidence": retrieval_evidence,
+            "result_fingerprint": result_fingerprint,
+        }
+        query_hash = hashlib.sha256(query.query_text.encode("utf-8")).hexdigest()
+        audit = self._audit.record(
+            name="retrieval_executed",
+            metadata={
+                "query_hash": query_hash,
                 "query_fingerprint": query_fingerprint,
+                "retrieval_policy": retrieval_policy,
+                "retrieval_mode": diagnostics["retrieval_mode"],
                 "query_scope": query.scope,
-                "query_intent": query.intent,
-                "doc_scope_id": self._doc_scope_id(query.scope),
-                "date_range": list(date_range) if date_range is not None else None,
-                "fts_shortlist_limit": fts_shortlist_limit,
-                "fts_candidate_scan_limit": fts_candidate_scan_limit,
-                "candidate_doc_count": effective_candidate_doc_count,
-                "fts_shortlist_count": len(fts_shortlist),
-                "fts_shortlist_doc_ids": list(fts_shortlist),
-                "strategies_used": list(retrieval_policy["active_strategy_ids"]),
-                "elapsed_ms_by_strategy": {fts_run.strategy_id: fts_run.elapsed_ms},
-                "caches_used": {fts_run.strategy_id: fts_run.cache_used},
-                "elapsed_ms_total": elapsed_ms_total,
-                "doc_hits_count": len(doc_hits),
-                "excerpt_hits_count": len(merged_hits),
-                "doc_hits_fingerprint": retrieval_manifest["doc_hits_fingerprint"],
-                "excerpt_hits_fingerprint": retrieval_manifest["excerpt_hits_fingerprint"],
-                "citation_status": citation_status,
+                "date_range": diagnostics["date_range"],
+                "active_strategy_ids": diagnostics["active_strategy_ids"],
+                "deferred_strategy_ids": diagnostics["deferred_strategy_ids"],
+                "strategies_used": diagnostics["strategies_used"],
+                "elapsed_ms_by_strategy": diagnostics["elapsed_ms_by_strategy"],
+                "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
+                "hits_count": len(merged_hits),
+                "fts_shortlist_doc_ids": diagnostics["fts_shortlist_doc_ids"],
                 "retrieval_manifest": retrieval_manifest,
                 "retrieval_evidence": retrieval_evidence,
+                "doc_hits_fingerprint": retrieval_manifest["doc_hits_fingerprint"],
+                "excerpt_hits_fingerprint": retrieval_manifest["excerpt_hits_fingerprint"],
                 "result_fingerprint": result_fingerprint,
-            }
-            query_hash = hashlib.sha256(query.query_text.encode("utf-8")).hexdigest()
-            audit = self._audit.record(
-                name="retrieval_executed",
-                metadata={
-                    "query_hash": query_hash,
-                    "query_fingerprint": query_fingerprint,
-                    "retrieval_policy": retrieval_policy,
-                    "retrieval_mode": diagnostics["retrieval_mode"],
-                    "query_scope": query.scope,
-                    "date_range": diagnostics["date_range"],
-                    "active_strategy_ids": diagnostics["active_strategy_ids"],
-                    "deferred_strategy_ids": diagnostics["deferred_strategy_ids"],
-                    "strategies_used": diagnostics["strategies_used"],
-                    "elapsed_ms_by_strategy": diagnostics["elapsed_ms_by_strategy"],
-                    "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
-                    "hits_count": len(merged_hits),
-                    "fts_shortlist_doc_ids": diagnostics["fts_shortlist_doc_ids"],
-                    "retrieval_manifest": retrieval_manifest,
-                    "retrieval_evidence": retrieval_evidence,
-                    "doc_hits_fingerprint": retrieval_manifest["doc_hits_fingerprint"],
-                    "excerpt_hits_fingerprint": retrieval_manifest["excerpt_hits_fingerprint"],
-                    "result_fingerprint": result_fingerprint,
-                },
-            )
-        finally:
-            self._active_query_fingerprint = None
+            },
+        )
         return RetrievalResult(
             query=query,
             doc_hits=doc_hits,
@@ -588,7 +583,7 @@ class RetrievalService:
                 fts_rank=float(row["fts_rank"]),
                 query_scope=query.scope,
                 query_intent=query.intent,
-                query_fingerprint=self._active_query_fingerprint,
+                query_fingerprint=self._query_fingerprint(query),
                 candidate_doc_count=effective_candidate_doc_count,
                 query_date_range=query.constraints.date_range,
             )

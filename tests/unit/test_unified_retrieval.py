@@ -10,6 +10,8 @@ from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions
 from src.qual.docindex.service import DocIndexQueryConstraints
 import src.qual.engine.retrieval as engine_retrieval
+from src.qual.engine.tools.retrieval_tools import retrieve_fts as engine_retrieve_fts
+from src.qual.engine.tools.retrieval_tools import retrieve_fts_payload as engine_retrieve_fts_payload
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
 from src.qual.engine.tools.retrieval_tools import retrieve_auto as engine_retrieve_auto
 from src.qual.engine.tools.retrieval_tools import retrieve_auto_payload as engine_retrieve_auto_payload
@@ -606,6 +608,51 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(result.diagnostics["retrieval_manifest"]["doc_ids"], [hit.doc_id for hit in result.doc_hits])
         self.assertEqual(result.diagnostics["retrieval_backend"], "sqlite_fts")
         self.assertEqual(result.diagnostics["retrieval_mode"], "fts_first")
+
+    def test_engine_retrieval_tool_exposes_explicit_fts_entrypoint(self) -> None:
+        payload = {
+            "max_results": 5,
+            "doc_types": ["memo"],
+            "prefer_exact_matches": True,
+        }
+        direct = engine_retrieve_fts(
+            self.service,
+            query_text="memo comparison",
+            scope="vault",
+            intent="compare",
+            constraints=payload,
+            confidentiality_profile="confidential",
+        )
+        auto = engine_retrieve_auto(
+            self.service,
+            query_text="memo comparison",
+            scope="vault",
+            intent="compare",
+            constraints=payload,
+            confidentiality_profile="confidential",
+        )
+        direct_payload = direct.to_downstream_payload()
+        auto_payload = auto.to_downstream_payload()
+        direct_payload.pop("audit_ref")
+        auto_payload.pop("audit_ref")
+        direct_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        auto_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        direct_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        auto_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        self.assertEqual(direct_payload, auto_payload)
+        self.assertEqual(direct.diagnostics["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(direct.diagnostics["retrieval_mode"], "fts_first")
+
+        direct_payload = engine_retrieve_fts_payload(
+            self.service,
+            query_text="memo comparison",
+            scope="vault",
+            intent="compare",
+            constraints=payload,
+            confidentiality_profile="confidential",
+        )
+        self.assertEqual(direct_payload["retrieval_summary"]["doc_ids"], [item.doc_id for item in direct.doc_hits])
+        self.assertEqual(direct_payload["retrieval_summary"]["excerpt_ids"], [item.excerpt_id for item in direct.hits if item.excerpt_id is not None])
 
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(

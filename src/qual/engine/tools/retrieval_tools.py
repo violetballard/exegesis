@@ -4,15 +4,14 @@ from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
 
 
-def retrieve_auto(
-    service: RetrievalService,
+def _build_retrieval_query(
     *,
     query_text: str,
     scope: str,
     intent: str,
     constraints: dict[str, object] | None = None,
     confidentiality_profile: str = "confidential",
-):
+) -> RetrievalQuery:
     payload = constraints if constraints is not None else {}
     doc_types = payload.get("doc_types", ())
     if isinstance(doc_types, str):
@@ -22,7 +21,7 @@ def retrieve_auto(
         date_range = (date_range,)
     if date_range is not None:
         date_range = tuple(str(value) for value in date_range)
-    query = RetrievalQuery(
+    return RetrievalQuery(
         query_text=query_text,
         scope=scope,
         intent=intent,  # type: ignore[arg-type]
@@ -36,7 +35,66 @@ def retrieve_auto(
         ),
         confidentiality_profile=confidentiality_profile,  # type: ignore[arg-type]
     )
-    return service.retrieve_auto(query)
+
+
+def retrieve_fts(
+    service: RetrievalService,
+    *,
+    query_text: str,
+    scope: str,
+    intent: str,
+    constraints: dict[str, object] | None = None,
+    confidentiality_profile: str = "confidential",
+):
+    query = _build_retrieval_query(
+        query_text=query_text,
+        scope=scope,
+        intent=intent,
+        constraints=constraints,
+        confidentiality_profile=confidentiality_profile,
+    )
+    return service.retrieve_fts(query)
+
+
+def retrieve_fts_payload(
+    service: RetrievalService,
+    *,
+    query_text: str,
+    scope: str,
+    intent: str,
+    constraints: dict[str, object] | None = None,
+    confidentiality_profile: str = "confidential",
+) -> dict[str, object]:
+    """Return the canonical downstream payload for FTS-first retrieval."""
+
+    result = retrieve_fts(
+        service,
+        query_text=query_text,
+        scope=scope,
+        intent=intent,
+        constraints=constraints,
+        confidentiality_profile=confidentiality_profile,
+    )
+    return build_retrieval_downstream_payload_from_result(result)
+
+
+def retrieve_auto(
+    service: RetrievalService,
+    *,
+    query_text: str,
+    scope: str,
+    intent: str,
+    constraints: dict[str, object] | None = None,
+    confidentiality_profile: str = "confidential",
+):
+    return retrieve_fts(
+        service,
+        query_text=query_text,
+        scope=scope,
+        intent=intent,
+        constraints=constraints,
+        confidentiality_profile=confidentiality_profile,
+    )
 
 
 def retrieve_auto_payload(
@@ -54,7 +112,7 @@ def retrieve_auto_payload(
     should use this helper instead of reassembling the result object by hand.
     """
 
-    result = retrieve_auto(
+    result = retrieve_fts(
         service,
         query_text=query_text,
         scope=scope,
