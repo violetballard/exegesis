@@ -82,6 +82,8 @@ class ContextBasketStore:
                     recovered_from=recovered_from,
                     refresh_backup=refresh_backup,
                 )
+            elif self._backup_needs_refresh(backup_payload, basket):
+                self._write_backup()
             return basket
         return ContextBasket()
 
@@ -248,6 +250,33 @@ class ContextBasketStore:
         except ValueError:
             return None
         return candidate
+
+    def _backup_needs_refresh(
+        self,
+        payload: dict[str, object] | list[object] | None,
+        basket: ContextBasket,
+    ) -> bool:
+        if payload is None:
+            return False
+        if isinstance(payload, list):
+            return True
+        if self._parse_schema_version(payload) != _SCHEMA_VERSION:
+            return True
+        parsed_items = self._parse_item_ids(payload.get("item_ids", []))
+        if parsed_items is None:
+            return True
+        if self._normalize_item_ids(parsed_items) != basket.item_ids:
+            return True
+        if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
+            return True
+        if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
+            return True
+        return False
+
+    def _normalize_item_ids(self, item_ids: list[str]) -> list[str]:
+        basket = ContextBasket(item_ids=list(item_ids))
+        basket.normalize()
+        return basket.item_ids
 
     def _recovery_marker(self, *, primary_missing: bool, recovered_source: str | None) -> str | None:
         if not primary_missing:
