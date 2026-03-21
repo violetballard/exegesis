@@ -12,7 +12,7 @@ Document the retrieval handoff boundary while keeping the lane-owned retrieval s
 
 ## Scope completed
 
-Delivered behavior: FTS-first retrieval is active for `vault`, `collection:`, and `doc:` scopes. `src/qual/retrieval/service.py` forwards those queries to the owned retrieval engine, `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, and `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred. `section:` remains rejected until fallback support exists. This handoff stays within the lane-owned retrieval paths.
+Delivered behavior: FTS-first retrieval is active for `vault`, `collection:`, and `doc:` scopes. `src/qual/retrieval/service.py` forwards those queries to the owned retrieval engine, `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, and `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred. `section:` remains rejected until fallback support exists. The handoff is limited to `src/qual/retrieval/**` and `src/qual/engine/retrieval/**` and excludes unrelated tooling files.
 
 ## Files changed
 
@@ -46,8 +46,9 @@ Breaking compatibility note: `section:` scopes remain intentionally rejected in 
   1. Re-anchored the packet to the retrieval feature commit and kept the lane-owned file list narrow.
   2. Added a concrete `Scope completed` section describing the delivered retrieval behavior.
   3. Rewrote `Files changed` so it only lists the lane-owned retrieval source files.
-  4. Preserved the roadmap and vision mapping while keeping `PageIndex` and embeddings deferred.
-  5. Documented the `section:` compatibility boundary for the current FTS-first MVP path.
+  4. Kept the changed-file list constrained to `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`.
+  5. Preserved the roadmap and vision mapping while keeping `PageIndex` and embeddings deferred.
+  6. Documented the `section:` compatibility boundary for the current FTS-first MVP path.
 - Files changed:
   - `src/qual/retrieval/service.py`
   - `src/qual/engine/retrieval/__init__.py`
