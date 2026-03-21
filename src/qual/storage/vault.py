@@ -245,7 +245,7 @@ class VaultService:
 
     def _requires_safe_lock(self, payload: dict[str, object], expected_project_name: str) -> bool:
         if "project_name" not in payload:
-            return False
+            return True
         stored_project_name = self._parse_project_name(payload.get("project_name"))
         if stored_project_name is None:
             return True
