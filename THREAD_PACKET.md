@@ -2,13 +2,13 @@
 
 - Branch name: `codex/feat-a2ui-contract`
 - Scope goal: Record a metadata-only handoff update in `THREAD_PACKET.md` only, with no product-code, test, routing, shared, or `.codex` changes.
-- Scope completed: Rewrote `THREAD_PACKET.md` only so the packet now matches the actual diff and documents packet alignment and auditability only.
+- Scope completed: Rewrote `THREAD_PACKET.md` only so the packet now matches the actual diff and documents packet alignment plus auditability only.
 - Tasks completed:
   1. Reframed the handoff as a metadata-only update with `THREAD_PACKET.md` as the only changed file.
   2. Kept the changed-files list limited to `THREAD_PACKET.md` only and matched it to the reviewed diff.
-  3. Aligned the roadmap and vision notes with packet alignment and auditability only, without describing runtime behavior changes.
+  3. Aligned the roadmap and vision notes with packet alignment plus auditability only, without describing runtime behavior changes.
 - Files changed:
-  - `THREAD_PACKET.md` only, matching the reviewed diff
+  - `THREAD_PACKET.md` only, matching the reviewed diff exactly
 - Commands run with results:
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
