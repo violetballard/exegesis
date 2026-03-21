@@ -3,28 +3,31 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Reviewed commit: `de30983b0e77276935cd5f7f878d64833ad20b58`
-- Branch head note: this packet reissues the reviewed test-only regression restore commit above.
+- Branch head note: this packet documents the maintenance follow-up that deduplicates the restored test coverage above.
 
 ## Scope goal
-- Reissue the handoff against the actual test-only `diff_preview` regression restore so the packet reflects the commit that changed `tests/unit/test_diff_preview.py` only.
+- Rescope the handoff as packet maintenance plus test deduplication. The actual diff is limited to `THREAD_PACKET.md` and the removal of duplicate `summary_only` no-diff assertions in `tests/unit/test_diff_preview.py`.
 
 ## Lane/owned paths
-- `src/qual/commands/**`
+- `tests/unit/**`
 
 ## Scope completed
-- Restored and extended `tests/unit/test_diff_preview.py` coverage for `summary_only` no-diff fingerprint behavior.
-- Kept the regression checks focused on deterministic no-diff output semantics in the test suite.
+- Updated the packet so the review text matches the real maintenance delta.
+- Removed the duplicated `summary_only` no-diff assertions from `tests/unit/test_diff_preview.py`.
 
 ## Kickoff budget/limits compliance
-- Stayed within the low-risk budget. The reviewed branch delta matches `git show --stat` for `de30983b0e77276935cd5f7f878d64833ad20b58`: `1 file changed, 43 insertions(+), 1 deletion(-)`.
+- Stayed within the low-risk budget. The reviewed branch delta is the packet cleanup plus the test deduplication in `tests/unit/test_diff_preview.py`.
 - Submitted files:
+  - `THREAD_PACKET.md`
   - `tests/unit/test_diff_preview.py`
 
 ## Tasks completed (numbered)
-1. Restored unit coverage for the no-diff `summary_only` fingerprint behavior in `tests/unit/test_diff_preview.py`.
-2. Narrowed the handoff packet so every field matches the reviewed test-only commit.
+1. Reframed the packet from a restore commit to maintenance-only review text.
+2. Removed duplicate `summary_only` no-diff assertions from `tests/unit/test_diff_preview.py`.
+3. Updated the handoff fields so they match the actual branch delta.
 
 ## Files changed for reviewed branch delta
+- `THREAD_PACKET.md`
 - `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
@@ -43,13 +46,14 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 2 - Test Hardening: preserve the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON no-diff `summary_only` behavior under the fingerprint gate.
+- None; this commit is packet maintenance plus test deduplication, not feature work.
 
 ### Vision capability affected
-- Capability 4 - Operator-first control surface: `diff_preview` keeps deterministic operator-visible no-diff output coverage through focused regression tests.
+- None.
 
 ### Routing/provider impact note
-- None. This change is test-only and does not affect routing/provider behavior.
+- None. This change affects packet text and test deduplication only; no routing/provider behavior changed.
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `NO`
+- Shared-file exception note: none.
