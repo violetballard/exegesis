@@ -6,7 +6,7 @@
 - Branch head note: the reviewed commit wires a command catalog entry resolver and exports it from the commands package.
 
 ## Scope goal
-- Document the actual reviewed delta accurately: commit `5cfdb205c78540d423fd2939f86218a361104533` adds catalog entry lookup/wiring in the command layer and does not change diff-preview behavior.
+- Document the actual reviewed delta accurately: commit `5cfdb205c78540d423fd2939f86218a361104533` wires a single-command catalog resolver into the command package and does not change diff-preview behavior.
 
 ## Lane/owned paths
 - `THREAD_PACKET.md`
@@ -14,17 +14,17 @@
 ## Scope completed
 - Added `command_catalog_entry()` in `src/qual/commands/catalog.py` so callers can resolve a single catalog entry by name.
 - Exported `command_catalog_entry` from `src/qual/commands/__init__.py` for package-level access.
-- Kept the change limited to command discovery/lookup plumbing; no diff-preview implementation or tests changed in this commit.
+- Kept the change limited to command discovery/lookup plumbing; this commit does not touch `src/qual/commands/diff_preview.py` or `tests/unit/test_diff_preview.py`.
 
 ## Kickoff budget/limits compliance
 - Treated this as a small command-layer feature thread within lane-owned paths.
 - The reviewed commit delta contains two files: `src/qual/commands/__init__.py` and `src/qual/commands/catalog.py`.
 
 ## Tasks completed (numbered)
-1. Added the single-entry catalog resolver in the command catalog module.
-2. Re-exported the resolver from the commands package for direct CLI-facing imports.
-3. Rewrote the packet so the scope, files changed, and handoff metadata match commit `5cfdb205c78540d423fd2939f86218a361104533`.
-4. Verified the final reviewed state with the required local gates.
+1. Confirmed the reviewed delta is the command catalog resolver wiring in `src/qual/commands/catalog.py` and `src/qual/commands/__init__.py`.
+2. Rewrote the handoff packet so the scope, files changed, and completion notes match the actual command-layer commit.
+3. Re-mapped the change to the command-layer milestone in `ROADMAP.md` and the operator-first control surface in `PRODUCT_VISION.md`.
+4. Ran the required local gates against the final packet state.
 
 ## Files changed for reviewed commit
 - `src/qual/commands/__init__.py`
