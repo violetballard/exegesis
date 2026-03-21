@@ -4,6 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from src.qual.context.basket import ContextBasket
 from src.qual.context.store import ContextBasketStore
@@ -303,6 +304,22 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(backup_payload.get("schema_version"), 1)
         self.assertEqual(backup_payload.get("updated_at"), primary_payload_after.get("updated_at"))
         self.assertNotIn("recovered_from", backup_payload)
+
+    def test_refresh_backup_failure_preserves_seed_fallback(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        with (
+            patch.object(ContextBasketStore, "_write_backup", return_value=None),
+            patch.object(ContextBasketStore, "_write_backup_payload", return_value=False),
+        ):
+            self.store.save(ContextBasket(item_ids=["first"]), refresh_backup=True)
+
+        self.assertTrue(self.store._path.exists())
+        self.assertFalse(self.store._backup_path.exists())
+        self.assertTrue(self.store._seed_state_path().exists())
+        payload = json.loads(self.store._seed_state_path().read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("schema_version"), 1)
+        self.assertEqual(payload.get("item_ids"), ["first"])
+        self.assertNotIn("recovered_from", payload)
 
     def test_healthy_primary_load_clears_stale_corrupt_marker(self) -> None:
         self.store.save(ContextBasket(item_ids=["first"]))

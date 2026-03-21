@@ -135,6 +135,7 @@ class ContextBasketStore:
     ) -> None:
         basket.normalize()
         self._path.parent.mkdir(parents=True, exist_ok=True)
+        backup_written = False
         payload = {
             "schema_version": _SCHEMA_VERSION,
             "updated_at": datetime.now(UTC).isoformat(),
@@ -152,12 +153,16 @@ class ContextBasketStore:
             self._unlink_if_exists(tmp)
             raise
         if refresh_backup:
-            self._write_backup_payload(self._backup_payload(payload))
+            backup_written = self._write_backup_payload(self._backup_payload(payload))
+            if not backup_written:
+                # Seed keeps the latest canonical basket recoverable if backup
+                # rotation cannot be completed after the primary rewrite.
+                self._write_seed(payload)
         elif not self._backup_path.exists():
             self._write_seed(payload)
         self._clear_quarantine_file()
         self._clear_temporary_files()
-        if self._backup_path.exists():
+        if self._backup_path.exists() and (not refresh_backup or backup_written):
             self._unlink_if_exists(self._seed_state_path())
 
     def clear(self) -> None:
@@ -270,13 +275,15 @@ class ContextBasketStore:
             return
         self._write_backup_payload(payload)
 
-    def _write_backup_payload(self, payload: dict[str, object]) -> None:
+    def _write_backup_payload(self, payload: dict[str, object]) -> bool:
         tmp = self._backup_path.with_suffix(".tmp")
         try:
             tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
             tmp.replace(self._backup_path)
         except OSError:
             self._unlink_if_exists(tmp)
+            return False
+        return True
 
     def _backup_payload(self, payload: dict[str, object]) -> dict[str, object]:
         backup_payload = dict(payload)
