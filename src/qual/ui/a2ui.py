@@ -1113,6 +1113,8 @@ def _normalize_preview_budget(max_payload_bytes: int | None) -> int:
         return DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES
     if type(max_payload_bytes) is not int:
         raise ValueError("max_payload_bytes must be an int or None")
+    if max_payload_bytes < 0:
+        raise ValueError("max_payload_bytes must be non-negative")
     return max_payload_bytes
 
 

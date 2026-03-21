@@ -1575,6 +1575,17 @@ class A2UIContractTests(unittest.TestCase):
         self.assertLessEqual(len(unknown["blocks"][-1]["code"].encode("utf-8")), 8192)
         self.assertLessEqual(len(unknown["actions"][0]["payload"]["text"].encode("utf-8")), 8192)
 
+    def test_unknown_card_rejects_negative_preview_budget(self) -> None:
+        with self.assertRaises(ValueError):
+            build_unknown_card(
+                {
+                    "type": "FutureCard",
+                    "title": "Future",
+                    "payload": {"body": "x" * 32},
+                },
+                max_payload_bytes=-1,
+            )
+
     def test_unknown_card_handles_non_json_payload_values(self) -> None:
         class _OpaqueValue:
             pass
