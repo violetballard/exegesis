@@ -1,0 +1,16 @@
+{
+  "scope_goal": "Restart this lane from current main with strict owned-path-only context and vault persistence hardening; prior branch state is reference-only and must not be promoted as-is.",
+  "tasks_completed": [],
+  "risk": "MEDIUM",
+  "roadmap_items": [
+    "Milestone 1 - Bootstrap Flow Stabilization: context basket and vault persistence hardening."
+  ],
+  "vision_capabilities": [
+    "Capability 1 - Local-first state and identity."
+  ],
+  "routing_provider_impact": "None",
+  "proposed_readme_patch": "",
+  "shared_file_exception": true,
+  "kickoff_budget_note": "Reset-required lane after ownership and repo-hygiene drift in the stale March 5 review generation.",
+  "approved_exception_note": "Approved shared-file exception for tests/unit/test_context_storage_recovery.py to cover the vault recovery regression alongside the owned-path storage fix."
+}
