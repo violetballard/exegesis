@@ -250,7 +250,7 @@ def _text_or_json_result(
     emitted_fingerprint = _emitted_fingerprint_payload(fingerprint)
     fingerprint_line = ""
     if emitted_fingerprint is not None:
-        fingerprint_line = f"Diff fingerprint: sha256:{fingerprint['sha256']}"
+        fingerprint_line = f"Diff fingerprint: sha256:{emitted_fingerprint['sha256']}"
     if include_options_banner:
         banner = (
             _options_banner(
