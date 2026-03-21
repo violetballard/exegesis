@@ -11,11 +11,11 @@ from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any, Iterator, Literal
+from typing import Any, Iterator, Literal, cast
 
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions, DocIndexService
-from src.qual.engine.retrieval import FTS_FIRST_POLICY, FTSStrategy
+from src.qual.engine.retrieval import FTS_FIRST_POLICY, FTSStrategy, retrieval_policy_snapshot
 from src.qual.engine.retrieval.interface import StrategyRun
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload
 from src.qual.metrics.crypto import decrypt_bytes, encrypt_bytes
@@ -381,7 +381,7 @@ class RetrievalService:
     def _run_fts_first_retrieval(self, query: RetrievalQuery) -> RetrievalResult:
         started = self._now_fn()
         query_fingerprint = self._query_fingerprint(query)
-        retrieval_policy = self._retrieval_policy.as_snapshot()
+        retrieval_policy = retrieval_policy_snapshot()
         fts_shortlist_limit = self._fts_shortlist_limit(query.constraints.max_results)
         date_range = query.constraints.date_range
         fts_candidate_scan_limit = self._fts_candidate_scan_limit(fts_shortlist_limit, date_range=date_range)
@@ -408,7 +408,12 @@ class RetrievalService:
             else:
                 fts_run = StrategyRun(strategy_id=self._fts.id, hits=[], elapsed_ms=0, cache_used=False)
             merged_hits = self._merge_hits([fts_run], max_results=query.constraints.max_results)
-            doc_hits = self._build_doc_hits(query, merged_hits, query_fingerprint=query_fingerprint)
+            doc_hits = self._build_doc_hits(
+                query,
+                merged_hits,
+                query_fingerprint=query_fingerprint,
+                retrieval_policy=retrieval_policy,
+            )
             citation_status = {
                 "required": query.constraints.require_citations,
                 "available": bool(merged_hits),
@@ -418,13 +423,18 @@ class RetrievalService:
             }
             if query.constraints.require_citations and not citation_status["satisfied"]:
                 raise ValueError("citation-required retrieval returned no excerpt hits")
-            retrieval_manifest = self._build_retrieval_manifest(doc_hits, merged_hits)
+            retrieval_manifest = self._build_retrieval_manifest(
+                doc_hits,
+                merged_hits,
+                retrieval_policy=retrieval_policy,
+            )
             retrieval_evidence = self._build_retrieval_evidence(
                 query=query,
                 doc_hits=doc_hits,
                 hits=merged_hits,
                 retrieval_manifest=retrieval_manifest,
                 query_fingerprint=query_fingerprint,
+                retrieval_policy=retrieval_policy,
             )
             result_fingerprint = self._build_result_fingerprint(
                 query_fingerprint=query_fingerprint,
@@ -447,7 +457,7 @@ class RetrievalService:
                 "candidate_doc_count": effective_candidate_doc_count,
                 "fts_shortlist_count": len(fts_shortlist),
                 "fts_shortlist_doc_ids": list(fts_shortlist),
-                "strategies_used": list(self._retrieval_policy.active_strategy_ids),
+                "strategies_used": list(retrieval_policy["active_strategy_ids"]),
                 "elapsed_ms_by_strategy": {fts_run.strategy_id: fts_run.elapsed_ms},
                 "caches_used": {fts_run.strategy_id: fts_run.cache_used},
                 "elapsed_ms_total": elapsed_ms_total,
@@ -621,6 +631,7 @@ class RetrievalService:
         hits: list[RetrievalHit],
         *,
         query_fingerprint: str | None,
+        retrieval_policy: dict[str, object],
     ) -> list[RetrievalDocHit]:
         meta = self._load_doc_meta()
         grouped: dict[str, list[RetrievalHit]] = {}
@@ -674,9 +685,10 @@ class RetrievalService:
                         "top_excerpt_rank": top_hit.provenance.get("rank"),
                         "top_fts_rank": top_hit.provenance.get("fts_rank"),
                         "retrieval_backend": top_hit.provenance.get(
-                            "retrieval_backend", self._retrieval_policy.retrieval_backend
+                            "retrieval_backend",
+                            cast(str, retrieval_policy["retrieval_backend"]),
                         ),
-                        "retrieval_policy": self._retrieval_policy.as_snapshot(),
+                        "retrieval_policy": dict(retrieval_policy),
                         "doc_rank": doc_rank,
                         "doc_identity_fingerprint": doc_identity_fingerprint,
                         "doc_fingerprint": self._stable_fingerprint(
@@ -690,8 +702,8 @@ class RetrievalService:
                             }
                         ),
                         "excerpt_count": len(doc_hit_list),
-                        "source_strategy": self._retrieval_policy.active_strategy_ids[0],
-                        "retrieval_mode": self._retrieval_policy.retrieval_mode,
+                        "source_strategy": cast(list[str], retrieval_policy["active_strategy_ids"])[0],
+                        "retrieval_mode": cast(str, retrieval_policy["retrieval_mode"]),
                         "query_scope": query.scope,
                         "query_intent": query.intent,
                         "query_date_range": list(query.constraints.date_range) if query.constraints.date_range is not None else None,
@@ -700,7 +712,13 @@ class RetrievalService:
             )
         return doc_hits
 
-    def _build_retrieval_manifest(self, doc_hits: list[RetrievalDocHit], hits: list[RetrievalHit]) -> dict[str, object]:
+    def _build_retrieval_manifest(
+        self,
+        doc_hits: list[RetrievalDocHit],
+        hits: list[RetrievalHit],
+        *,
+        retrieval_policy: dict[str, object],
+    ) -> dict[str, object]:
         doc_fingerprints = [str(doc_hit.provenance.get("doc_fingerprint", "")) for doc_hit in doc_hits]
         doc_identity_fingerprints = [
             str(doc_hit.provenance.get("doc_identity_fingerprint", "")) for doc_hit in doc_hits
@@ -755,9 +773,9 @@ class RetrievalService:
             "excerpt_text_hashes": excerpt_text_hashes,
             "doc_hits_fingerprint": doc_hits_fingerprint,
             "excerpt_hits_fingerprint": excerpt_hits_fingerprint,
-            "retrieval_policy": self._retrieval_policy.as_snapshot(),
-            "active_strategy_ids": list(self._retrieval_policy.active_strategy_ids),
-            "deferred_strategy_ids": list(self._retrieval_policy.deferred_strategy_ids),
+            "retrieval_policy": dict(retrieval_policy),
+            "active_strategy_ids": list(cast(list[str], retrieval_policy["active_strategy_ids"])),
+            "deferred_strategy_ids": list(cast(list[str], retrieval_policy["deferred_strategy_ids"])),
         }
 
     def _build_retrieval_evidence(
@@ -768,6 +786,7 @@ class RetrievalService:
         hits: list[RetrievalHit],
         retrieval_manifest: dict[str, object],
         query_fingerprint: str,
+        retrieval_policy: dict[str, object],
     ) -> dict[str, object]:
         doc_citations: list[dict[str, object]] = []
         for doc_hit in doc_hits:
@@ -810,11 +829,11 @@ class RetrievalService:
             "query_fingerprint": query_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
-            "retrieval_policy": self._retrieval_policy.as_snapshot(),
-            "retrieval_backend": self._retrieval_policy.retrieval_backend,
-            "retrieval_mode": self._retrieval_policy.retrieval_mode,
-            "active_strategy_ids": list(self._retrieval_policy.active_strategy_ids),
-            "deferred_strategy_ids": list(self._retrieval_policy.deferred_strategy_ids),
+            "retrieval_policy": dict(retrieval_policy),
+            "retrieval_backend": cast(str, retrieval_policy["retrieval_backend"]),
+            "retrieval_mode": cast(str, retrieval_policy["retrieval_mode"]),
+            "active_strategy_ids": list(cast(list[str], retrieval_policy["active_strategy_ids"])),
+            "deferred_strategy_ids": list(cast(list[str], retrieval_policy["deferred_strategy_ids"])),
             "doc_hits_fingerprint": retrieval_manifest.get("doc_hits_fingerprint"),
             "excerpt_hits_fingerprint": retrieval_manifest.get("excerpt_hits_fingerprint"),
             "citation_status": {

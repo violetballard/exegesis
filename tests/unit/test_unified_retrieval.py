@@ -4,6 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from typing import cast
 
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions
@@ -516,13 +517,38 @@ class UnifiedRetrievalTests(unittest.TestCase):
     def test_engine_retrieval_package_exports_are_fts_only(self) -> None:
         self.assertEqual(
             engine_retrieval.__all__,
-            ["StrategyRun", "RetrievalStrategy", "FTSStrategy", "ACTIVE_STRATEGY_IDS", "active_strategy_ids"],
+            [
+                "StrategyRun",
+                "RetrievalStrategy",
+                "FTSStrategy",
+                "FTS_FIRST_POLICY",
+                "ACTIVE_STRATEGY_IDS",
+                "DEFERRED_STRATEGY_IDS",
+                "active_strategy_ids",
+                "deferred_strategy_ids",
+                "retrieval_policy_snapshot",
+            ],
         )
         self.assertTrue(hasattr(engine_retrieval, "FTSStrategy"))
         self.assertFalse(hasattr(engine_retrieval, "PageIndexStrategy"))
         self.assertFalse(hasattr(engine_retrieval, "EmbeddingsStrategy"))
         self.assertEqual(engine_retrieval.ACTIVE_STRATEGY_IDS, ("fts",))
+        self.assertEqual(engine_retrieval.DEFERRED_STRATEGY_IDS, ("pageindex", "embeddings"))
         self.assertEqual(engine_retrieval.active_strategy_ids(), ("fts",))
+        self.assertEqual(engine_retrieval.deferred_strategy_ids(), ("pageindex", "embeddings"))
+
+    def test_engine_retrieval_policy_snapshot_is_stable_and_copy_safe(self) -> None:
+        first = engine_retrieval.retrieval_policy_snapshot()
+        second = engine_retrieval.retrieval_policy_snapshot()
+
+        self.assertEqual(first, second)
+        self.assertEqual(first["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(first["retrieval_mode"], "fts_first")
+        self.assertEqual(first["active_strategy_ids"], ["fts"])
+        self.assertEqual(first["deferred_strategy_ids"], ["pageindex", "embeddings"])
+
+        cast(list[str], first["active_strategy_ids"]).append("mutated")
+        self.assertEqual(engine_retrieval.retrieval_policy_snapshot()["active_strategy_ids"], ["fts"])
 
     def test_engine_retrieval_tool_forwards_document_filters(self) -> None:
         result = engine_retrieve_auto(

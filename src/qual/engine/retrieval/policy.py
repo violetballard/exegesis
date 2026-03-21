@@ -24,6 +24,18 @@ class RetrievalPolicy:
         return self.as_snapshot()
 
 
+def active_strategy_ids() -> tuple[str, ...]:
+    return FTS_FIRST_POLICY.active_strategy_ids
+
+
+def deferred_strategy_ids() -> tuple[str, ...]:
+    return FTS_FIRST_POLICY.deferred_strategy_ids
+
+
+def fts_first_policy_snapshot() -> dict[str, object]:
+    return FTS_FIRST_POLICY.as_snapshot()
+
+
 FTS_FIRST_POLICY = RetrievalPolicy(
     retrieval_backend="sqlite_fts",
     retrieval_mode="fts_first",
