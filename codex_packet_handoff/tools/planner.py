@@ -131,7 +131,6 @@ def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
 def select_packet_files(lane: str, meta: Json, diff_files: List[str]) -> List[str]:
     related = [str(f).strip() for f in (meta.get("related_implementation_files") or []) if str(f).strip()]
     patterns = LANE_OWNED_PATHS.get(lane, [])
-
     def _is_owned(path: str) -> bool:
         return bool(patterns) and any(fnmatch(path, pattern) for pattern in patterns)
 

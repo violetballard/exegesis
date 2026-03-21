@@ -53,3 +53,4 @@ Delivered behavior: `vault`, `collection:`, and `doc:` retrieval requests now ro
 
 ### Scope-check / ownership note
 - Non-retrieval tooling edits approved: `NO`
+- Out-of-lane tooling files excluded from this resubmission: `YES`
