@@ -80,6 +80,7 @@ class RetrievalResult:
     hits: list[RetrievalHit]
     diagnostics: dict[str, object]
     audit_ref: str
+    result_fingerprint: str
 
 
 class RetrievalService:
@@ -139,6 +140,10 @@ class RetrievalService:
             merged_hits = self._merge_hits([fts_run], max_results=query.constraints.max_results)
             doc_hits = self._build_doc_hits(query, merged_hits, query_fingerprint=query_fingerprint)
             retrieval_manifest = self._build_retrieval_manifest(doc_hits, merged_hits)
+            result_fingerprint = self._build_result_fingerprint(
+                query_fingerprint=query_fingerprint,
+                retrieval_manifest=retrieval_manifest,
+            )
             elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
             diagnostics = {
                 "retrieval_backend": "sqlite_fts",
@@ -158,6 +163,7 @@ class RetrievalService:
                 "doc_hits_count": len(doc_hits),
                 "excerpt_hits_count": len(merged_hits),
                 "retrieval_manifest": retrieval_manifest,
+                "result_fingerprint": result_fingerprint,
             }
             query_hash = hashlib.sha256(query.query_text.encode("utf-8")).hexdigest()
             audit = self._audit.record(
@@ -173,6 +179,7 @@ class RetrievalService:
                     "hits_count": len(merged_hits),
                     "fts_shortlist_doc_ids": diagnostics["fts_shortlist_doc_ids"],
                     "retrieval_manifest": retrieval_manifest,
+                    "result_fingerprint": result_fingerprint,
                 },
             )
         finally:
@@ -183,6 +190,7 @@ class RetrievalService:
             hits=merged_hits,
             diagnostics=diagnostics,
             audit_ref=audit.event_id,
+            result_fingerprint=result_fingerprint,
         )
 
     def fetch_excerpt(self, excerpt_id: str) -> dict[str, object]:
@@ -377,12 +385,31 @@ class RetrievalService:
 
     @staticmethod
     def _build_retrieval_manifest(doc_hits: list[RetrievalDocHit], hits: list[RetrievalHit]) -> dict[str, object]:
+        doc_fingerprints = [str(doc_hit.provenance.get("doc_fingerprint", "")) for doc_hit in doc_hits]
+        top_excerpt_fingerprints = [str(doc_hit.provenance.get("top_excerpt_fingerprint", "")) for doc_hit in doc_hits]
+        excerpt_fingerprints = [str(hit.provenance.get("excerpt_fingerprint", "")) for hit in hits if hit.excerpt_id is not None]
         return {
             "doc_ids": [doc_hit.doc_id for doc_hit in doc_hits],
-            "doc_fingerprints": [str(doc_hit.provenance.get("doc_fingerprint", "")) for doc_hit in doc_hits],
+            "doc_fingerprints": doc_fingerprints,
             "top_excerpt_ids": [doc_hit.top_excerpt_id for doc_hit in doc_hits],
+            "top_excerpt_fingerprints": top_excerpt_fingerprints,
             "excerpt_ids": [hit.excerpt_id for hit in hits if hit.excerpt_id is not None],
+            "excerpt_fingerprints": excerpt_fingerprints,
         }
+
+    @staticmethod
+    def _build_result_fingerprint(
+        *,
+        query_fingerprint: str,
+        retrieval_manifest: dict[str, object],
+    ) -> str:
+        payload = {
+            "query_fingerprint": query_fingerprint,
+            "doc_fingerprints": retrieval_manifest.get("doc_fingerprints", []),
+            "top_excerpt_fingerprints": retrieval_manifest.get("top_excerpt_fingerprints", []),
+            "excerpt_fingerprints": retrieval_manifest.get("excerpt_fingerprints", []),
+        }
+        return RetrievalService._stable_fingerprint(payload)
 
     def _candidate_docs_from_fts(self, query: RetrievalQuery, *, limit: int) -> tuple[str, ...]:
         run = self._fts.retrieve(
