@@ -150,6 +150,10 @@ def command_catalog_entries() -> tuple[CommandCatalogEntry, ...]:
     return _command_catalog_entries_for_specs(COMMAND_SPECS)
 
 
+def command_catalog_entries_for_names(command_names: tuple[str, ...]) -> tuple[CommandCatalogEntry, ...]:
+    return _command_catalog_entries_for_specs(_flow_specs(command_names, flow_label="command set"))
+
+
 def command_catalog_index() -> dict[str, CommandCatalogEntry]:
     return {entry.name: entry for entry in command_catalog_entries()}
 
@@ -296,7 +300,7 @@ def command_mvp_flow_lookup_names() -> tuple[str, ...]:
 
 
 def command_mvp_flow_entries() -> tuple[CommandCatalogEntry, ...]:
-    return _command_catalog_entries_for_specs(_MVP_FLOW_SPECS)
+    return command_catalog_entries_for_names(_MVP_FLOW_COMMAND_NAMES)
 
 
 def command_mvp_flow_index() -> dict[str, CommandCatalogEntry]:
@@ -324,7 +328,7 @@ def command_demo_flow_lookup_surface() -> tuple[tuple[str, tuple[str, ...]], ...
 
 
 def command_demo_flow_entries() -> tuple[CommandCatalogEntry, ...]:
-    return _command_catalog_entries_for_specs(_DEMO_FLOW_SPECS)
+    return command_catalog_entries_for_names(_DEMO_FLOW_COMMAND_NAMES)
 
 
 def command_demo_flow_index() -> dict[str, CommandCatalogEntry]:

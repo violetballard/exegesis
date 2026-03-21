@@ -7,6 +7,7 @@ from src.qual.commands import (
     CommandSpec,
     canonical_command,
     command_catalog_entries,
+    command_catalog_entries_for_names,
     command_catalog_entries_for_role,
     command_demo_flow_entries,
     command_demo_flow_lookup_index,
@@ -83,6 +84,27 @@ class CommandCatalogTests(unittest.TestCase):
                 tuple(name for entry in role_entries for name in entry.lookup_names),
                 command_lookup_names_for_role(role),
             )
+
+    def test_name_filtered_entries_preserve_order_and_contract_details(self) -> None:
+        entries = command_catalog_entries_for_names(("export-preview", "bootstrap"))
+
+        self.assertEqual([entry.name for entry in entries], ["export-preview", "bootstrap"])
+        self.assertTrue(all(entry.in_mvp_flow for entry in entries))
+        self.assertEqual(
+            entries[0],
+            CommandCatalogEntry(
+                name="export-preview",
+                aliases=("export", "handoff"),
+                description="Prepare export handoff artifacts.",
+                mvp_role="export-handoff",
+                lookup_names=("export-preview", "export", "handoff"),
+                in_mvp_flow=True,
+            ),
+        )
+
+    def test_name_filtered_entries_reject_unknown_names(self) -> None:
+        with self.assertRaises(ValueError):
+            command_catalog_entries_for_names(("bootstrap", "not-a-command"))
 
     def test_lookup_index_exposes_full_catalog_entries_for_aliases(self) -> None:
         lookup_index = command_catalog_lookup_index()
