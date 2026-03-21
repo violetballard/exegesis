@@ -8,6 +8,7 @@ from pathlib import Path
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions
 from src.qual.docindex.service import DocIndexQueryConstraints
+import src.qual.engine.retrieval as engine_retrieval
 from src.qual.engine.retrieval.pageindex_strategy import PageIndexStrategy
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
 
@@ -276,6 +277,15 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(run.strategy_id, "pageindex")
         self.assertEqual(run.hits, [])
         self.assertEqual(run.elapsed_ms, 0)
+
+    def test_engine_retrieval_package_exports_are_fts_only(self) -> None:
+        self.assertEqual(
+            engine_retrieval.__all__,
+            ["StrategyRun", "RetrievalStrategy", "FTSStrategy"],
+        )
+        self.assertTrue(hasattr(engine_retrieval, "FTSStrategy"))
+        self.assertFalse(hasattr(engine_retrieval, "PageIndexStrategy"))
+        self.assertFalse(hasattr(engine_retrieval, "EmbeddingsStrategy"))
 
     def test_retrieval_audit_uses_query_hash_not_plaintext(self) -> None:
         query_text = "highly sensitive question text"
