@@ -12,6 +12,7 @@ from src.qual.docindex.service import DocIndexQueryConstraints
 import src.qual.engine.retrieval as engine_retrieval
 from src.qual.engine.tools.retrieval_tools import retrieve_fts as engine_retrieve_fts
 from src.qual.engine.tools.retrieval_tools import retrieve_fts_payload as engine_retrieve_fts_payload
+from src.qual.engine.retrieval.payload import build_retrieval_citation_bundle_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
 from src.qual.engine.tools.retrieval_tools import retrieve_auto as engine_retrieve_auto
 from src.qual.engine.tools.retrieval_tools import retrieve_auto_payload as engine_retrieve_auto_payload
@@ -332,6 +333,15 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_evidence"]["citation_status"], payload["retrieval_summary"]["citation_status"])
         self.assertEqual(payload["retrieval_evidence"]["doc_count"], len(result.doc_hits))
         self.assertEqual(payload["retrieval_evidence"]["excerpt_count"], len(result.hits))
+        self.assertEqual(payload["retrieval_citation_bundle"], result.citation_bundle())
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["doc_citations"],
+            payload["retrieval_provenance"]["doc_citations"],
+        )
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["excerpt_citations"],
+            payload["retrieval_provenance"]["excerpt_citations"],
+        )
 
     def test_downstream_payload_is_snapshot_safe(self) -> None:
         result = self.service.retrieve_auto(
@@ -351,6 +361,25 @@ class UnifiedRetrievalTests(unittest.TestCase):
         refreshed = result.to_downstream_payload()
         self.assertNotIn("mutated-doc-id", refreshed["retrieval_summary"]["doc_ids"])
         self.assertNotEqual(refreshed["doc_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
+
+    def test_retrieval_citation_bundle_helper_is_snapshot_safe(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        bundle = build_retrieval_citation_bundle_from_result(result)
+        self.assertEqual(bundle, result.citation_bundle())
+        bundle["doc_citations"][0]["doc_id"] = "mutated-doc-id"
+        self.assertNotEqual(
+            build_retrieval_citation_bundle_from_result(result)["doc_citations"][0]["doc_id"],
+            "mutated-doc-id",
+        )
 
     def test_retrieval_result_as_dict_alias_matches_downstream_payload(self) -> None:
         result = self.service.retrieve_auto(

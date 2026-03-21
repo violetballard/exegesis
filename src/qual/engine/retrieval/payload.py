@@ -26,6 +26,7 @@ class RetrievalDownstreamPayload:
     retrieval_backend: str
     retrieval_mode: str
     citation_status: dict[str, object]
+    retrieval_citation_bundle: dict[str, object]
     retrieval_summary: dict[str, object]
     doc_hits: list[dict[str, object]]
     excerpt_hits: list[dict[str, object]]
@@ -50,6 +51,7 @@ class RetrievalDownstreamPayload:
             "retrieval_backend": self.retrieval_backend,
             "retrieval_mode": self.retrieval_mode,
             "citation_status": copy.deepcopy(self.citation_status),
+            "retrieval_citation_bundle": copy.deepcopy(self.retrieval_citation_bundle),
             "retrieval_summary": summary,
             "doc_hits": [copy.deepcopy(doc_hit) for doc_hit in self.doc_hits],
             "excerpt_hits": [copy.deepcopy(hit) for hit in self.excerpt_hits],
@@ -69,6 +71,7 @@ def build_retrieval_downstream_payload(
     retrieval_backend: str,
     retrieval_mode: str,
     citation_status: dict[str, object],
+    retrieval_citation_bundle: dict[str, object],
     retrieval_summary: dict[str, object],
     doc_hits: list[dict[str, object]],
     excerpt_hits: list[dict[str, object]],
@@ -85,6 +88,7 @@ def build_retrieval_downstream_payload(
         retrieval_backend=retrieval_backend,
         retrieval_mode=retrieval_mode,
         citation_status=citation_status,
+        retrieval_citation_bundle=retrieval_citation_bundle,
         retrieval_summary=retrieval_summary,
         doc_hits=doc_hits,
         excerpt_hits=excerpt_hits,

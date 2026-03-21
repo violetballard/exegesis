@@ -281,6 +281,7 @@ class RetrievalResult:
                 "doc_count": len(self.doc_hits),
                 "excerpt_count": len(self.hits),
             },
+            retrieval_citation_bundle=citation_bundle,
             retrieval_summary={
                 "query_fingerprint": self.diagnostics["query_fingerprint"],
                 "result_fingerprint": self.result_fingerprint,
