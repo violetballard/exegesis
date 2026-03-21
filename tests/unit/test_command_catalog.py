@@ -10,6 +10,7 @@ from src.qual.commands import (
     command_lookup_names,
     command_lookup_names_for_role,
     command_mvp_flow_entries,
+    command_mvp_flow_lookup_index,
     command_mvp_flow_lookup_names,
     command_mvp_flow_names,
     command_mvp_roles,
@@ -85,6 +86,19 @@ class CommandCatalogTests(unittest.TestCase):
             command_mvp_flow_lookup_names(),
             tuple(name for entry in entries for name in entry.lookup_names),
         )
+
+    def test_mvp_flow_lookup_index_resolves_flow_aliases(self) -> None:
+        lookup_index = command_mvp_flow_lookup_index()
+
+        self.assertEqual(
+            tuple(lookup_index),
+            command_mvp_flow_lookup_names(),
+        )
+        self.assertEqual(lookup_index["bootstrap"].name, "bootstrap")
+        self.assertEqual(lookup_index["project-open"].name, "bootstrap")
+        self.assertEqual(lookup_index["retrieval"].name, "retrieve")
+        self.assertEqual(lookup_index["diff-preview"].name, "diff-preview")
+        self.assertEqual(lookup_index["handoff"].name, "export-preview")
 
     def test_alias_canonicalization_stays_tolerant_for_known_commands(self) -> None:
         self.assertEqual(canonical_command("project-open"), "bootstrap")

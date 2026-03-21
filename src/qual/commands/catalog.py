@@ -246,6 +246,10 @@ def command_mvp_flow_index() -> dict[str, CommandCatalogEntry]:
     return {entry.name: entry for entry in command_mvp_flow_entries()}
 
 
+def command_mvp_flow_lookup_index() -> dict[str, CommandSpec]:
+    return _build_command_lookup_index(_MVP_FLOW_SPECS)
+
+
 def canonical_command(name: str) -> str:
     normalized = _normalize_token(name)
     if not normalized:
