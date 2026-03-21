@@ -47,6 +47,16 @@ _PRIMITIVE_BLOCK_SCHEMAS: dict[str, tuple[str, ...]] = {
     "CodeBlock": ("code", "language", "collapsed"),
 }
 
+_PRIMITIVE_BLOCK_REQUIRED_FIELDS: dict[str, tuple[str, ...]] = {
+    "MarkdownBlock": ("markdown",),
+    "KeyValueBlock": ("items",),
+    "ListBlock": ("items",),
+    "TableBlock": ("rows",),
+    "AlertBlock": ("message",),
+    "ProgressBlock": ("status_text",),
+    "CodeBlock": ("code",),
+}
+
 _ACTION_SCHEMAS: dict[str, dict[str, type]] = {
     "apply_patch": {"patch_id": str},
     "reject_patch": {"patch_id": str},
@@ -343,6 +353,7 @@ def validate_primitive_block(block: Any) -> None:
     block_type = str(block.get("type", ""))
     if block_type not in _PRIMITIVE_BLOCK_SET:
         raise ValueError(f"Unsupported primitive block: {block_type}")
+    _validate_primitive_block_fields(block_type, block)
 
 
 def validate_action_ref(action: Any) -> None:
@@ -522,6 +533,61 @@ def _validate_action_payload(action_id: str, payload: dict[str, Any]) -> None:
             raise ValueError(f"Missing payload field for {action_id}: {key}")
         if not isinstance(payload[key], value_type):
             raise ValueError(f"Invalid payload type for {action_id}:{key}")
+
+
+def _validate_primitive_block_fields(block_type: str, block: dict[str, Any]) -> None:
+    schema_fields = set(_PRIMITIVE_BLOCK_SCHEMAS[block_type])
+    required_fields = set(_PRIMITIVE_BLOCK_REQUIRED_FIELDS[block_type])
+    extra_keys = set(block) - ({"type"} | schema_fields)
+    if extra_keys:
+        extras = ", ".join(sorted(extra_keys))
+        raise ValueError(f"Unexpected primitive block field(s) for {block_type}: {extras}")
+    for field_name in required_fields:
+        if field_name not in block:
+            raise ValueError(f"Missing primitive block field for {block_type}: {field_name}")
+    if block_type == "MarkdownBlock":
+        if not isinstance(block["markdown"], str):
+            raise ValueError("Invalid primitive block field for MarkdownBlock: markdown")
+        return
+    if block_type == "KeyValueBlock":
+        if not isinstance(block["items"], list):
+            raise ValueError("Invalid primitive block field for KeyValueBlock: items")
+        return
+    if block_type == "ListBlock":
+        if not isinstance(block["items"], list):
+            raise ValueError("Invalid primitive block field for ListBlock: items")
+        return
+    if block_type == "TableBlock":
+        if not isinstance(block["rows"], list):
+            raise ValueError("Invalid primitive block field for TableBlock: rows")
+        return
+    if block_type == "AlertBlock":
+        if not isinstance(block["message"], str):
+            raise ValueError("Invalid primitive block field for AlertBlock: message")
+        severity = block.get("severity")
+        if severity is not None and not isinstance(severity, str):
+            raise ValueError("Invalid primitive block field for AlertBlock: severity")
+        title = block.get("title")
+        if title is not None and not isinstance(title, str):
+            raise ValueError("Invalid primitive block field for AlertBlock: title")
+        return
+    if block_type == "ProgressBlock":
+        if not isinstance(block["status_text"], str):
+            raise ValueError("Invalid primitive block field for ProgressBlock: status_text")
+        title = block.get("title")
+        if title is not None and not isinstance(title, str):
+            raise ValueError("Invalid primitive block field for ProgressBlock: title")
+        return
+    if block_type == "CodeBlock":
+        if not isinstance(block["code"], str):
+            raise ValueError("Invalid primitive block field for CodeBlock: code")
+        language = block.get("language")
+        if language is not None and not isinstance(language, str):
+            raise ValueError("Invalid primitive block field for CodeBlock: language")
+        collapsed = block.get("collapsed")
+        if collapsed is not None and not isinstance(collapsed, bool):
+            raise ValueError("Invalid primitive block field for CodeBlock: collapsed")
+        return
 
 
 def _canonical_json(payload: dict[str, Any]) -> str:
