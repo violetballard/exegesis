@@ -7,6 +7,7 @@
 - Scope goal: Canonicalize empty recovery state for context storage so recovery paths rewrite clean canonical payloads without inventing recovery provenance.
 - Scope completed: Preserved empty-state canonicalization in `src/qual/context/store.py` and `src/qual/context/set_store.py`.
 - Scope completed: Kept the reviewed diff limited to the two lane-owned context storage files in the actual commit.
+- Scope completed: Kept the later docs-only packet reconciliation commit out of the promoted code range so the handoff stays commit-accurate.
 
 - Tasks completed:
   1. Reconciled the packet with the real feature commit diff.
@@ -47,7 +48,7 @@
 
 - Scope-check / ownership note:
   - No shared or integrator-locked files are part of the actual reviewed commit.
-  - Ownership is lane-clean for `src/qual/context/**`.
+  - Ownership is lane-clean for `src/qual/context/**` and `src/qual/storage/**`.
   - No explicit approval is required because no shared files remain in scope.
 - Checkpoint status:
   - plan complete
