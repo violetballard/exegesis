@@ -4,21 +4,21 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - version fallback debug metadata so fallback cards carry an explicit contract marker.",
-    "Milestone 5: A2UI Presentation Layer - keep fallback assertions synchronized with the versioned fallback debug payload.",
-    "Milestone 5: A2UI Presentation Layer - keep fallback consumers aligned with the contract version recorded in debug metadata."
+    "Milestone 5: A2UI Presentation Layer - harden read-only fallback previews by filtering source CodeBlock entries from unsupported-card fallback views.",
+    "Milestone 5: A2UI Presentation Layer - keep contract assertions synchronized with the sanitized fallback preview output.",
+    "Milestone 5: A2UI Presentation Layer - preserve safe primitive blocks and JSON previews while omitting source code blocks from fallback views."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Version fallback card debug metadata in src/qual/ui/a2ui.py and keep the contract assertions aligned with the versioned fallback debug payload.",
+  "scope_goal": "Harden fallback previews in src/qual/ui/a2ui.py by excluding source CodeBlock entries from the read-only fallback view and keep the contract assertions aligned with that sanitized output.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Added contract_version: 2 to the fallback debug metadata built in src/qual/ui/a2ui.py for both generic and unknown fallback cards.",
-    "Updated tests/unit/test_a2ui_contract.py to assert the versioned fallback debug payload in the generic and unknown fallback paths.",
-    "Rewrote the lane metadata to match the actual fallback debug metadata versioning change and its contract assertions.",
+    "Updated the engine and unknown-card fallback paths in src/qual/ui/a2ui.py to exclude source CodeBlock entries from read-only fallback previews while preserving safe primitive blocks and the synthetic JSON preview.",
+    "Added contract coverage in tests/unit/test_a2ui_contract.py to verify the sanitized fallback preview output omits source code blocks.",
+    "Rewrote the lane metadata to match the actual fallback-preview hardening change and its matching assertions.",
     "Kept the lane record scoped to one source file plus matching tests with no routing or provider impact."
   ],
   "vision_capabilities": [
-    "Capability 5: Agent-to-UI protocol (A2UI) - fallback cards now expose versioned debug metadata as part of the user-facing protocol.",
-    "Capability 4: Operator-first control surface - fallback consumers can rely on an explicit debug contract version when reading card metadata."
+    "Capability 5: Agent-to-UI protocol (A2UI) - fallback previews now sanitize unsupported-card read-only views by omitting source code blocks while preserving safe primitive content and JSON previews.",
+    "Capability 4: Operator-first control surface - fallback consumers can rely on sanitized read-only previews that do not surface source code blocks."
   ]
 }
