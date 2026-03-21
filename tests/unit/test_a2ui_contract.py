@@ -474,10 +474,14 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("Debug:", text)
         self.assertIn("- fallback_kind: generic", text)
         self.assertIn("- source_card_type: ProposedEditCard", text)
+        self.assertIn("- contract_version: 2", text)
         self.assertIn("Safe content", text)
         self.assertIn("- alpha", text)
         self.assertNotIn("[unsupported block: ChartBlock]", text)
-        self.assertEqual(card["debug"], {"fallback_kind": "generic", "source_card_type": "ProposedEditCard"})
+        self.assertEqual(
+            card["debug"],
+            {"contract_version": 2, "fallback_kind": "generic", "source_card_type": "ProposedEditCard"},
+        )
 
     def test_engine_fallback_keeps_only_read_only_copy_action(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
@@ -497,7 +501,10 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["actions"][0]["label"], "Copy JSON")
         self.assertIn("ProposedEditCard", card["actions"][0]["payload"]["text"])
         self.assertEqual(card["type"], "GenericCard")
-        self.assertEqual(card["debug"], {"fallback_kind": "generic", "source_card_type": "ProposedEditCard"})
+        self.assertEqual(
+            card["debug"],
+            {"contract_version": 2, "fallback_kind": "generic", "source_card_type": "ProposedEditCard"},
+        )
         validate_generic_card(card)
 
         text = render_terminal_card(card)
@@ -542,7 +549,11 @@ class A2UIContractTests(unittest.TestCase):
                 "title": " Unsupported card type: FutureCard ",
                 "subtitle": " Read-only fallback view with safe primitive blocks and raw JSON preview. ",
                 "a2ui_version": 1,
-                "debug": {"fallback_kind": "unknown", "source_card_type": "FutureCard"},
+                "debug": {
+                    "contract_version": 2,
+                    "fallback_kind": "unknown",
+                    "source_card_type": "FutureCard",
+                },
                 "blocks": [
                     {"type": "MarkdownBlock", "markdown": "safe"},
                     {"type": "ListBlock", "items": ["alpha", "beta"]},
@@ -573,6 +584,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("[UnknownCard] Unsupported card type: FutureCard", text)
         self.assertIn("Fallback: unknown from FutureCard", text)
         self.assertIn("Action policy: copy_to_clipboard_only", text)
+        self.assertIn("- contract_version: 2", text)
         self.assertIn("- fallback_kind: unknown", text)
 
     def test_engine_unknown_card_synthesizes_copy_action_when_supported(self) -> None:
@@ -582,7 +594,11 @@ class A2UIContractTests(unittest.TestCase):
                 "title": "Unsupported card type: FutureCard",
                 "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
                 "a2ui_version": 1,
-                "debug": {"fallback_kind": "unknown", "source_card_type": "FutureCard"},
+                "debug": {
+                    "contract_version": 2,
+                    "fallback_kind": "unknown",
+                    "source_card_type": "FutureCard",
+                },
                 "blocks": [
                     {"type": "MarkdownBlock", "markdown": "safe"},
                 ],
@@ -602,7 +618,11 @@ class A2UIContractTests(unittest.TestCase):
                 "title": "Unsupported card type: FutureCard",
                 "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
                 "a2ui_version": 1,
-                "debug": {"fallback_kind": "unknown", "source_card_type": "FutureCard"},
+                "debug": {
+                    "contract_version": 2,
+                    "fallback_kind": "unknown",
+                    "source_card_type": "FutureCard",
+                },
                 "blocks": [
                     {"type": "MarkdownBlock", "markdown": "safe"},
                 ],
@@ -633,7 +653,11 @@ class A2UIContractTests(unittest.TestCase):
                 "title": " Unsupported card type: FutureCard ",
                 "subtitle": " Read-only fallback view with safe primitive blocks and raw JSON preview. ",
                 "a2ui_version": 1,
-                "debug": {"fallback_kind": "unknown", "source_card_type": "FutureCard"},
+                "debug": {
+                    "contract_version": 2,
+                    "fallback_kind": "unknown",
+                    "source_card_type": "FutureCard",
+                },
                 "blocks": [
                     {"type": "MarkdownBlock", "markdown": "safe"},
                     {"type": "KeyValueBlock", "items": [{"key": "Owner", "value": "alice"}]},
@@ -669,7 +693,11 @@ class A2UIContractTests(unittest.TestCase):
                     "title": "Unsupported card type: FutureCard",
                     "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
                     "a2ui_version": 1,
-                    "debug": {"fallback_kind": "unknown", "source_card_type": "FutureCard"},
+                    "debug": {
+                        "contract_version": 2,
+                        "fallback_kind": "unknown",
+                        "source_card_type": "FutureCard",
+                    },
                     "blocks": [],
                     "actions": [
                         {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
@@ -685,7 +713,11 @@ class A2UIContractTests(unittest.TestCase):
                     "title": "Unsupported card type: FutureCard",
                     "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
                     "a2ui_version": 1,
-                    "debug": {"fallback_kind": "unknown", "source_card_type": "FutureCard"},
+                    "debug": {
+                        "contract_version": 2,
+                        "fallback_kind": "unknown",
+                        "source_card_type": "FutureCard",
+                    },
                     "blocks": [],
                     "actions": [],
                     "trace_id": "abc123",
@@ -732,7 +764,10 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         self.assertEqual(card["title"], "Fallback view for <missing>")
-        self.assertEqual(card["debug"], {"fallback_kind": "generic", "source_card_type": "<missing>"})
+        self.assertEqual(
+            card["debug"],
+            {"contract_version": 2, "fallback_kind": "generic", "source_card_type": "<missing>"},
+        )
 
     def test_engine_filters_invalid_actions_for_supported_cards(self) -> None:
         caps = _capabilities(actions_supported=("apply_patch",))
@@ -952,7 +987,10 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("Unsupported card type", card["title"])
         self.assertEqual(card["a2ui_version"], 1)
         self.assertEqual(card["actions"][0]["id"], "copy_to_clipboard")
-        self.assertEqual(card["debug"], {"fallback_kind": "unknown", "source_card_type": "QuestionsCard"})
+        self.assertEqual(
+            card["debug"],
+            {"contract_version": 2, "fallback_kind": "unknown", "source_card_type": "QuestionsCard"},
+        )
 
     def test_studio_unknown_card_synthesizes_copy_action_when_supported(self) -> None:
         caps = _capabilities(actions_supported=("copy_to_clipboard",))
@@ -962,7 +1000,11 @@ class A2UIContractTests(unittest.TestCase):
                 "title": "Unsupported card type: FutureCard",
                 "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
                 "a2ui_version": 1,
-                "debug": {"fallback_kind": "unknown", "source_card_type": "FutureCard"},
+                "debug": {
+                    "contract_version": 2,
+                    "fallback_kind": "unknown",
+                    "source_card_type": "FutureCard",
+                },
                 "blocks": [
                     {"type": "MarkdownBlock", "markdown": "safe"},
                 ],
@@ -978,13 +1020,19 @@ class A2UIContractTests(unittest.TestCase):
         caps = _capabilities(cards_supported=("RunLogCard",))
         card = studio_materialize_card({"type": None, "foo": "bar"}, caps)
         self.assertEqual(card["title"], "Unsupported card type: <missing>")
-        self.assertEqual(card["debug"], {"fallback_kind": "unknown", "source_card_type": "<missing>"})
+        self.assertEqual(
+            card["debug"],
+            {"contract_version": 2, "fallback_kind": "unknown", "source_card_type": "<missing>"},
+        )
 
     def test_studio_renders_unknown_card_for_non_string_type(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
         card = studio_materialize_card({"type": 123, "title": "Questions", "foo": "bar"}, caps)
         self.assertEqual(card["title"], "Unsupported card type: <missing>")
-        self.assertEqual(card["debug"], {"fallback_kind": "unknown", "source_card_type": "<missing>"})
+        self.assertEqual(
+            card["debug"],
+            {"contract_version": 2, "fallback_kind": "unknown", "source_card_type": "<missing>"},
+        )
 
     def test_unknown_card_sanitizes_safe_primitive_blocks(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
@@ -1492,6 +1540,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("[UnknownCard] Unsupported card type: FutureCard", unknown_text)
         self.assertIn("Fallback: unknown from FutureCard", unknown_text)
         self.assertIn("Debug:", unknown_text)
+        self.assertIn("- contract_version: 2", unknown_text)
         self.assertIn("- fallback_kind: unknown", unknown_text)
         self.assertIn("- source_card_type: FutureCard", unknown_text)
         self.assertIn("- Copy JSON (copy_to_clipboard)", unknown_text)
@@ -1532,7 +1581,11 @@ class A2UIContractTests(unittest.TestCase):
             {
                 "type": "GenericCard",
                 "title": "Fallback view for FutureCard",
-                "debug": {"fallback_kind": "generic", "source_card_type": "FutureCard"},
+                "debug": {
+                    "contract_version": 2,
+                    "fallback_kind": "generic",
+                    "source_card_type": "FutureCard",
+                },
                 "blocks": [],
                 "actions": [],
             }
@@ -1548,6 +1601,7 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertIn(GENERIC_FALLBACK_SUBTITLE, generic)
         self.assertIn(UNKNOWN_FALLBACK_SUBTITLE, unknown)
+        self.assertIn("- contract_version: 2", generic)
 
     def test_terminal_renderer_uses_canonical_fallback_subtitles_over_raw_values(self) -> None:
         generic = render_terminal_card(
@@ -1555,7 +1609,11 @@ class A2UIContractTests(unittest.TestCase):
                 "type": "GenericCard",
                 "title": "Fallback view for FutureCard",
                 "subtitle": "raw subtitle should not leak",
-                "debug": {"fallback_kind": "generic", "source_card_type": "FutureCard"},
+                "debug": {
+                    "contract_version": 2,
+                    "fallback_kind": "generic",
+                    "source_card_type": "FutureCard",
+                },
                 "blocks": [],
                 "actions": [],
             }

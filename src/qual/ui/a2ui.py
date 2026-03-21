@@ -487,6 +487,9 @@ def _validate_fallback_card(
     debug = card.get("debug")
     if not isinstance(debug, dict):
         raise ValueError("Fallback card debug is required")
+    contract_version = debug.get("contract_version")
+    if type(contract_version) is not int or contract_version != A2UI_CONTRACT_VERSION:
+        raise ValueError("Fallback card debug contract_version is invalid")
     fallback_kind = debug.get("fallback_kind")
     source_card_type = debug.get("source_card_type")
     if not isinstance(fallback_kind, str) or fallback_kind.strip() != expected_fallback_kind:
@@ -1127,8 +1130,9 @@ def _normalize_card_text(value: Any, *, fallback: str | None = None) -> str | No
     return fallback
 
 
-def _build_fallback_debug(source_card_type: str, *, fallback_kind: str) -> dict[str, str]:
+def _build_fallback_debug(source_card_type: str, *, fallback_kind: str) -> dict[str, Any]:
     return {
+        "contract_version": A2UI_CONTRACT_VERSION,
         "fallback_kind": fallback_kind,
         "source_card_type": source_card_type,
     }
