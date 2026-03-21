@@ -109,6 +109,30 @@ class A2UIContractTests(unittest.TestCase):
                 _capabilities(cards_supported=(" RunLogCard ",)),
             )
 
+    def test_session_store_rejects_duplicate_supported_card_types(self) -> None:
+        store = A2UISessionStore()
+        with self.assertRaises(ValueError):
+            store.register(
+                "sess-2f",
+                _capabilities(cards_supported=("RunLogCard", "RunLogCard")),
+            )
+
+    def test_session_store_rejects_canonical_action_ids_only(self) -> None:
+        store = A2UISessionStore()
+        with self.assertRaises(ValueError):
+            store.register(
+                "sess-2g",
+                _capabilities(actions_supported=("apply_patch", " copy_to_clipboard ")),
+            )
+
+    def test_session_store_rejects_duplicate_supported_action_ids(self) -> None:
+        store = A2UISessionStore()
+        with self.assertRaises(ValueError):
+            store.register(
+                "sess-2h",
+                _capabilities(actions_supported=("apply_patch", "apply_patch")),
+            )
+
     def test_session_store_rejects_future_a2ui_version(self) -> None:
         store = A2UISessionStore()
         with self.assertRaises(ValueError):

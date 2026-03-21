@@ -95,18 +95,32 @@ def validate_capabilities(capabilities: A2UICapabilities) -> None:
         raise ValueError("client_name is required")
     if capabilities.max_payload_bytes <= 0:
         raise ValueError("max_payload_bytes must be positive")
+    seen_cards: set[str] = set()
     for card_type in capabilities.cards_supported:
         if not isinstance(card_type, str) or not card_type.strip():
             raise ValueError("Supported card types must be non-empty strings")
-        if card_type != card_type.strip():
+        canonical_card_type = card_type.strip()
+        if card_type != canonical_card_type:
             raise ValueError(f"Supported card types must be canonical, got: {card_type!r}")
-        if card_type in _RESERVED_CARD_TYPES:
-            raise ValueError(f"Reserved card type cannot be advertised as supported: {card_type}")
+        if canonical_card_type in _RESERVED_CARD_TYPES:
+            raise ValueError(f"Reserved card type cannot be advertised as supported: {canonical_card_type}")
+        if canonical_card_type in seen_cards:
+            raise ValueError(f"Duplicate supported card type: {canonical_card_type}")
+        seen_cards.add(canonical_card_type)
     if not _PRIMITIVE_BLOCK_SET.issubset(set(capabilities.primitive_blocks_supported)):
         raise ValueError("Missing required primitive block support")
+    seen_actions: set[str] = set()
     for action_id in capabilities.actions_supported:
-        if action_id not in _ALLOWED_ACTION_SET:
-            raise ValueError(f"Unknown action in capabilities: {action_id}")
+        if not isinstance(action_id, str) or not action_id.strip():
+            raise ValueError("Supported action ids must be non-empty strings")
+        canonical_action_id = action_id.strip()
+        if action_id != canonical_action_id:
+            raise ValueError(f"Supported action ids must be canonical, got: {action_id!r}")
+        if canonical_action_id not in _ALLOWED_ACTION_SET:
+            raise ValueError(f"Unknown action in capabilities: {canonical_action_id}")
+        if canonical_action_id in seen_actions:
+            raise ValueError(f"Duplicate supported action id: {canonical_action_id}")
+        seen_actions.add(canonical_action_id)
 
 
 def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
