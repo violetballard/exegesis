@@ -3,28 +3,27 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Reviewed commit: `a032bd4936d775be2e31941c3b982b520cbe7323`
-- Branch head note: this packet records the reviewed two-file code delta; the final exact `HEAD` SHA is reported in the accompanying handoff response to avoid self-referential SHA drift inside the committed file itself.
+- Branch head note: this packet reissues review against the code-bearing `diff_preview` fix; the packet-only follow-up commit is not the reviewed delta.
 
 ## Scope goal
-- Capture the actual no-diff fingerprint emission fix in the text path and the focused JSON no-diff `summary_only` regression test.
+- Reissue the handoff against the actual `diff_preview` no-diff fingerprint emission fix so the packet reflects the code-bearing commit and its tests.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
 
 ## Scope completed
-- Kept the reviewed `src/qual/commands/diff_preview.py` change narrow: the text no-diff path now emits the fingerprint from the gated payload.
-- Kept the focused `tests/unit/test_diff_preview.py` regression for the JSON no-diff `summary_only` case when fingerprint output is enabled.
-- Removed any claim that shared or integrator-locked files were edited.
+- Aligned the lane-owned `diff_preview` text fingerprint emission with the fingerprint object actually returned from the no-diff short-circuit.
+- Kept the no-diff JSON shape stable in `src/qual/commands/diff_preview.py`, including the explicit `summary_only` state.
+- Added unit coverage in `tests/unit/test_diff_preview.py` for the no-diff fingerprint and summary-only behavior.
 
 ## Kickoff budget/limits compliance
-- Stayed within the low-risk budget. The submitted branch delta contains two files:
+- Stayed within the low-risk budget. The reviewed code delta contains 2 files:
   - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_diff_preview.py`
 
 ## Tasks completed (numbered)
-1. Kept the `src/qual/commands/diff_preview.py` no-diff fingerprint emission fix limited to the text path.
-2. Kept the `tests/unit/test_diff_preview.py` JSON no-diff `summary_only` regression focused on the fingerprint-enabled case.
-3. Reissued the feature handoff packet so the scope, file list, roadmap, and ownership note match the reviewed delta.
+1. Aligned text fingerprint emission with the emitted no-diff fingerprint payload in `src/qual/commands/diff_preview.py`.
+2. Added unit tests covering the no-diff fingerprint gate and the stable no-diff JSON shape in `tests/unit/test_diff_preview.py`.
 
 ## Files changed for submitted branch delta
 - `src/qual/commands/diff_preview.py`
@@ -46,15 +45,15 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1 - Bootstrap Flow Stabilization: keep `diff_preview` no-diff output deterministic when the text path emits a fingerprint.
-- Milestone 2 - Test Hardening: preserve the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON no-diff `summary_only` case with fingerprint output enabled.
+- Milestone 1 - Bootstrap Flow Stabilization: keep `diff_preview` no-diff emission aligned across text and JSON paths so empty-diff responses stay deterministic.
+- Milestone 2 - Test Hardening: add coverage for the no-diff fingerprint gate and the stable no-diff JSON shape.
 
 ### Vision capability affected
-- Capability 3 - Auditable generation: no-diff JSON responses surface `summary_only` explicitly and deterministically.
-- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON no-diff contract for the covered case.
+- Capability 3 - Auditable generation: the command makes the no-diff fingerprint and JSON payload deterministic and inspectable.
+- Capability 4 - Operator-first control surface: `diff_preview` preserves a stable CLI-first and JSON no-diff contract for the focused summary-only path.
 
 ### Routing/provider impact note
-- None. This change affects local `diff_preview` output formatting and its unit coverage; no routing/provider behavior changed.
+- None. This change affects local `diff_preview` output formatting and unit coverage; no routing/provider behavior changed.
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `NO`
