@@ -3,16 +3,18 @@
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Reviewed implementation commit: `36893f06df85409c4595d64adb8af60455c086a6`
-- Cleanup / handoff alignment commit: `453e8664dadcee989a2579a97179e87db04b1607`
+- Cleanup / handoff alignment commit: `dc8f79e4abeb30de51854fdd84d35b97993955b8`
 - Reviewed commit type: Canonical auto payload plumbing for the FTS-first MVP.
-- Scope completed: The reviewed implementation routes `retrieve_auto()` through the retrieval service's canonical FTS-first payload path, exposes `retrieve_auto_payload()` for downstream consumers, re-exports `primary_strategy_id` from the engine retrieval package, and adds focused unit coverage for payload parity and package-export behavior. PageIndex and embeddings remain deferred and are not required MVP paths; they appear only as deferred strategy identifiers in `src/qual/engine/retrieval/policy.py`, not as active strategy implementations.
+- Scope completed: The reviewed implementation routes `retrieve_auto()` through the retrieval service's canonical FTS-first payload path, exposes `retrieve_auto_payload()` for downstream consumers, re-exports `primary_strategy_id` from the engine retrieval package, and adds focused unit coverage for payload parity and package-export behavior. The cleanup commit `dc8f79e4abeb30de51854fdd84d35b97993955b8` adds the explicit deferred-policy boundary in `src/qual/engine/retrieval/policy.py`. PageIndex and embeddings remain deferred and are not required MVP paths; they appear only as deferred strategy identifiers there, not as active strategy implementations.
 
 ### Related implementation files (reference only)
 - `src/qual/engine/retrieval/__init__.py`
-- `src/qual/engine/retrieval/policy.py`
 - `src/qual/engine/tools/retrieval_tools.py`
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
+
+### Cleanup boundary note
+- `src/qual/engine/retrieval/policy.py`
 
 ### Code-diff evidence
 - `src/qual/engine/retrieval/__init__.py`: re-exports retrieval package entrypoints used by downstream engine consumers.
@@ -20,6 +22,7 @@
 - `src/qual/engine/tools/retrieval_tools.py`: routes auto retrieval through the canonical retrieval-service payload path.
 - `src/qual/retrieval/service.py`: provides the FTS-first payload implementation and deterministic downstream payload shaping.
 - `tests/unit/test_unified_retrieval.py`: covers payload parity, export behavior, and downstream-facing retrieval results.
+- `src/qual/engine/retrieval/policy.py`: records the deferred strategy identifiers in the cleanup commit so PageIndex and embeddings remain explicit boundary markers, not required paths.
 - No PageIndex or embeddings path is required by this handoff; those strategies remain deferred.
 
 ### Priority outcomes

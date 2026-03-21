@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Reviewed implementation commit: `36893f06df85409c4595d64adb8af60455c086a6`
-- Cleanup / handoff alignment commit: `453e8664dadcee989a2579a97179e87db04b1607`
+- Cleanup / handoff alignment commit: `dc8f79e4abeb30de51854fdd84d35b97993955b8`
 - Reviewed commit type: Canonical auto payload plumbing for the FTS-first MVP.
 
 ## Scope Goal
@@ -11,25 +11,26 @@ Expose the canonical auto retrieval payload inside retrieval-owned paths while p
 
 ## Scope Completed
 
-The reviewed implementation routes `retrieve_auto()` through the retrieval service's canonical FTS-first payload path, exposes `retrieve_auto_payload()` for downstream consumers, re-exports `primary_strategy_id` from the engine retrieval package, and adds focused unit coverage for payload parity and package-export behavior. PageIndex and embeddings remain deferred and are not required MVP paths; they appear only as deferred strategy identifiers in `src/qual/engine/retrieval/policy.py`, not as active strategy implementations.
+The reviewed implementation routes `retrieve_auto()` through the retrieval service's canonical FTS-first payload path, exposes `retrieve_auto_payload()` for downstream consumers, re-exports `primary_strategy_id` from the engine retrieval package, and adds focused unit coverage for payload parity and package-export behavior. The cleanup commit `dc8f79e4abeb30de51854fdd84d35b97993955b8` adds the explicit deferred-policy boundary in `src/qual/engine/retrieval/policy.py`. PageIndex and embeddings remain deferred and are not required MVP paths; they appear only as deferred strategy identifiers there, not as active strategy implementations.
 
 ## Code-Diff Evidence
 
 - `src/qual/engine/retrieval/__init__.py`: re-exports the retrieval package entrypoints used by downstream engine consumers.
-- `src/qual/engine/retrieval/policy.py`: records the FTS-first policy snapshot and the deferred strategy identifiers used in downstream payloads.
 - `src/qual/engine/tools/retrieval_tools.py`: routes auto retrieval through the canonical retrieval-service payload path.
 - `src/qual/retrieval/service.py`: provides the FTS-first payload implementation and deterministic downstream payload shaping.
 - `tests/unit/test_unified_retrieval.py`: covers payload parity, export behavior, and downstream-facing retrieval results.
+- `src/qual/engine/retrieval/policy.py`: records the deferred strategy identifiers in the cleanup commit so PageIndex and embeddings remain explicit boundary markers, not required paths.
 - No `pageindex_strategy.py` or `embeddings_strategy.py` files are part of the reviewed handoff surface; those paths remain deferred and are not required MVP paths.
 
 ### Related implementation files
 
 - Reviewed code files:
   - `src/qual/engine/retrieval/__init__.py`
-  - `src/qual/engine/retrieval/policy.py`
   - `src/qual/engine/tools/retrieval_tools.py`
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`
+- Cleanup boundary file:
+  - `src/qual/engine/retrieval/policy.py`
 - Handoff-only artifacts updated in this fix commit:
   - `.codex/kickoff_packets/feat-retrieval-fts.md`
   - `.codex/lane_meta/feat-retrieval-fts.json`
@@ -44,17 +45,18 @@ The reviewed implementation routes `retrieve_auto()` through the retrieval servi
 - Files changed:
   - Reviewed implementation code:
     - `src/qual/engine/retrieval/__init__.py`
-    - `src/qual/engine/retrieval/policy.py`
     - `src/qual/engine/tools/retrieval_tools.py`
     - `src/qual/retrieval/service.py`
     - `tests/unit/test_unified_retrieval.py`
+  - Cleanup boundary file:
+    - `src/qual/engine/retrieval/policy.py`
   - Handoff-only artifacts:
     - `.codex/kickoff_packets/feat-retrieval-fts.md`
     - `.codex/lane_meta/feat-retrieval-fts.json`
     - `THREAD_PACKET.md`
-  - Commit split:
-    - implementation: `36893f06df85409c4595d64adb8af60455c086a6`
-    - cleanup: `453e8664dadcee989a2579a97179e87db04b1607`
+- Commit split:
+  - implementation: `36893f06df85409c4595d64adb8af60455c086a6`
+  - cleanup: `dc8f79e4abeb30de51854fdd84d35b97993955b8`
 - Commands run with results:
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
