@@ -607,7 +607,12 @@ class RetrievalService:
             provenance = {}
         normalized = dict(excerpt)
         normalized["source_strategy"] = source_strategy
-        normalized["text_hash"] = provenance.get("hash") or provenance.get("excerpt_text_hash") or normalized.get("text_hash")
+        text_hash = provenance.get("hash") or provenance.get("excerpt_text_hash") or normalized.get("text_hash")
+        if not isinstance(text_hash, str) or not text_hash:
+            text_value = normalized.get("text")
+            if isinstance(text_value, str) and text_value:
+                text_hash = hashlib.sha256(text_value.encode("utf-8")).hexdigest()
+        normalized["text_hash"] = text_hash
         if "doc_id" not in normalized and isinstance(provenance.get("doc_id"), str):
             normalized["doc_id"] = provenance["doc_id"]
         canonical_span = RetrievalService._canonicalize_span(normalized.get("span"))
@@ -619,6 +624,20 @@ class RetrievalService:
                 canonical_span = dict(provenance["span"])
         if canonical_span is not None:
             normalized["span"] = canonical_span
+        excerpt_fingerprint = normalized.get("excerpt_fingerprint")
+        if not isinstance(excerpt_fingerprint, str) or not excerpt_fingerprint:
+            provenance_excerpt_fingerprint = provenance.get("excerpt_fingerprint")
+            if isinstance(provenance_excerpt_fingerprint, str) and provenance_excerpt_fingerprint:
+                excerpt_fingerprint = provenance_excerpt_fingerprint
+        if not isinstance(excerpt_fingerprint, str) or not excerpt_fingerprint:
+            excerpt_fingerprint = RetrievalService._build_excerpt_fingerprint(
+                doc_id=str(normalized.get("doc_id") or provenance.get("doc_id") or ""),
+                excerpt_id=str(normalized.get("excerpt_id") or provenance.get("excerpt_id") or ""),
+                span=canonical_span,
+                text_hash=str(text_hash or ""),
+                source_hash=str(normalized.get("source_hash") or provenance.get("source_hash") or ""),
+            )
+        normalized["excerpt_fingerprint"] = excerpt_fingerprint
         if "provenance" in normalized:
             normalized_provenance = {
                 **provenance,
@@ -626,6 +645,8 @@ class RetrievalService:
             }
             if canonical_span is not None:
                 normalized_provenance["span"] = canonical_span
+            normalized_provenance["text_hash"] = text_hash
+            normalized_provenance["excerpt_fingerprint"] = excerpt_fingerprint
             normalized["provenance"] = normalized_provenance
         return normalized
 
@@ -644,6 +665,24 @@ class RetrievalService:
                 "end": int(char_range["end"]),
             }
         }
+
+    @staticmethod
+    def _build_excerpt_fingerprint(
+        *,
+        doc_id: str | None,
+        excerpt_id: str | None,
+        span: dict[str, object] | None,
+        text_hash: str | None,
+        source_hash: str | None = None,
+    ) -> str:
+        payload = {
+            "doc_id": doc_id,
+            "excerpt_id": excerpt_id,
+            "span": span,
+            "text_hash": text_hash,
+            "source_hash": source_hash,
+        }
+        return RetrievalService._stable_fingerprint(payload)
 
     @staticmethod
     def _query_fingerprint(query: RetrievalQuery) -> str:
