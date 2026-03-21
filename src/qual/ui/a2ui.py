@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from typing import Any, Callable, Protocol
@@ -86,6 +87,38 @@ class A2UISessionStore:
         if session_id not in self._by_session:
             raise KeyError(f"Unknown session: {session_id}")
         return self._by_session[session_id]
+
+
+def describe_a2ui_contract() -> dict[str, Any]:
+    """Return the stable, versioned A2UI contract manifest.
+
+    The manifest is intentionally JSON-serializable so clients can fingerprint
+    the contract they negotiated without having to mirror internal module state.
+    """
+
+    return {
+        "a2ui_version": A2UI_VERSION,
+        "cards": {
+            "generic": GENERIC_CARD_TYPE,
+            "unknown": UNKNOWN_CARD_TYPE,
+            "reserved": list(_RESERVED_CARD_TYPES),
+        },
+        "primitive_blocks": list(REQUIRED_PRIMITIVE_BLOCKS),
+        "actions": [
+            {
+                "id": action_id,
+                "payload_fields": list(schema),
+            }
+            for action_id, schema in sorted(_ACTION_SCHEMAS.items())
+        ],
+    }
+
+
+def a2ui_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the current contract manifest."""
+
+    manifest = describe_a2ui_contract()
+    return hashlib.sha256(_canonical_json(manifest).encode("utf-8")).hexdigest()
 
 
 def validate_capabilities(capabilities: A2UICapabilities) -> None:

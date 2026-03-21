@@ -7,7 +7,9 @@ from src.qual.ui.a2ui import (
     A2UICapabilities,
     A2UISessionStore,
     ActionRef,
+    a2ui_contract_fingerprint,
     build_unknown_card,
+    describe_a2ui_contract,
     engine_prepare_card,
     execute_action_with_policy_gate,
     normalize_action_ref,
@@ -67,6 +69,39 @@ class A2UIContractTests(unittest.TestCase):
         validate_capabilities(caps)
         store.register("sess-1", caps)
         self.assertEqual(store.get("sess-1").client_name, "Exegesis Studio")
+
+    def test_contract_manifest_is_versioned_and_fingerprintable(self) -> None:
+        manifest = describe_a2ui_contract()
+
+        self.assertEqual(manifest["a2ui_version"], 1)
+        self.assertEqual(
+            manifest["cards"],
+            {
+                "generic": "GenericCard",
+                "unknown": "UnknownCard",
+                "reserved": ["GenericCard", "UnknownCard"],
+            },
+        )
+        self.assertEqual(
+            [entry["id"] for entry in manifest["actions"]],
+            [
+                "apply_patch",
+                "copy_to_clipboard",
+                "create_context_set",
+                "export_document",
+                "open_corpus_item",
+                "open_section",
+                "pin_to_context_set",
+                "refresh_license",
+                "reject_patch",
+                "run_agent",
+            ],
+        )
+        self.assertEqual(
+            [entry["id"] for entry in manifest["actions"]],
+            sorted(entry["id"] for entry in manifest["actions"]),
+        )
+        self.assertEqual(len(a2ui_contract_fingerprint()), 64)
 
     def test_session_store_rejects_invalid_capabilities(self) -> None:
         store = A2UISessionStore()
