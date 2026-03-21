@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 
 
 @dataclass(frozen=True)
@@ -12,7 +13,8 @@ class CommandSpec:
 
 
 def _normalize_token(value: str) -> str:
-    return value.strip().casefold().replace("_", "-")
+    # Collapse common shell separators so aliases stay stable across caller styles.
+    return re.sub(r"[-_\s]+", "-", value.strip().casefold())
 
 
 def _build_command_spec_index(specs: tuple[CommandSpec, ...]) -> dict[str, CommandSpec]:
@@ -73,6 +75,19 @@ def command_specs() -> tuple[CommandSpec, ...]:
     return COMMAND_SPECS
 
 
+def command_lookup_names() -> tuple[str, ...]:
+    names: list[str] = []
+    seen: set[str] = set()
+    for spec in COMMAND_SPECS:
+        for alias in (spec.name, *spec.aliases):
+            normalized = _normalize_token(alias)
+            if normalized in seen:
+                continue
+            seen.add(normalized)
+            names.append(normalized)
+    return tuple(names)
+
+
 def command_spec(name: str) -> CommandSpec | None:
     canonical = canonical_command(name)
     return _COMMAND_SPEC_BY_NAME.get(canonical)
@@ -83,6 +98,39 @@ def command_aliases(name: str) -> tuple[str, ...]:
     if spec is None:
         return ()
     return spec.aliases
+
+
+def command_mvp_role(name: str) -> str:
+    spec = command_spec(name)
+    if spec is None:
+        return ""
+    return spec.mvp_role
+
+
+def command_specs_for_role(mvp_role: str) -> tuple[CommandSpec, ...]:
+    normalized_role = mvp_role.strip().casefold()
+    if not normalized_role:
+        return ()
+    return tuple(spec for spec in COMMAND_SPECS if spec.mvp_role.casefold() == normalized_role)
+
+
+def command_names_for_role(mvp_role: str) -> tuple[str, ...]:
+    return tuple(spec.name for spec in command_specs_for_role(mvp_role))
+
+
+def command_mvp_roles() -> tuple[str, ...]:
+    roles: list[str] = []
+    seen: set[str] = set()
+    for spec in COMMAND_SPECS:
+        role = spec.mvp_role.strip()
+        if not role:
+            continue
+        normalized = role.casefold()
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        roles.append(role)
+    return tuple(roles)
 
 
 def canonical_command(name: str) -> str:
