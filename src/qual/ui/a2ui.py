@@ -280,7 +280,10 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
                 "code": _render_payload_preview(card, max_payload_bytes=capabilities.max_payload_bytes),
             },
         ],
-        "actions": _filter_supported_actions(card.get("actions"), supported_actions=set(capabilities.actions_supported)),
+        "actions": _filter_read_only_fallback_actions(
+            card.get("actions"),
+            supported_actions=set(capabilities.actions_supported),
+        ),
     }
 
 
@@ -469,6 +472,14 @@ def _filter_card_actions(card: dict[str, Any], capabilities: A2UICapabilities) -
     out = dict(card)
     out["actions"] = filtered
     return out
+
+
+def _filter_read_only_fallback_actions(actions: Any, *, supported_actions: set[str]) -> list[dict[str, Any]]:
+    """Keep only safe copy actions in a fallback card."""
+
+    if "copy_to_clipboard" not in supported_actions:
+        return []
+    return _filter_supported_actions(actions, supported_actions={"copy_to_clipboard"})
 
 
 def _filter_supported_actions(actions: Any, *, supported_actions: set[str]) -> list[dict[str, Any]]:

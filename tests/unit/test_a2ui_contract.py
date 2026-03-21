@@ -421,6 +421,27 @@ class A2UIContractTests(unittest.TestCase):
         self.assertNotIn("[unsupported block: ChartBlock]", text)
         self.assertEqual(card["debug"], {"fallback_kind": "generic", "source_card_type": "ProposedEditCard"})
 
+    def test_engine_fallback_keeps_only_read_only_copy_action(self) -> None:
+        caps = _capabilities(cards_supported=("RunLogCard",))
+        card = engine_prepare_card(
+            {
+                "type": "ProposedEditCard",
+                "title": "Patch",
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "safe"}},
+                ],
+            },
+            caps,
+        )
+
+        self.assertEqual([action["id"] for action in card["actions"]], ["copy_to_clipboard"])
+        self.assertEqual(card["actions"][0]["label"], "Copy")
+
+        text = render_terminal_card(card)
+        self.assertIn("- Copy (copy_to_clipboard)", text)
+        self.assertNotIn("- Apply (apply_patch)", text)
+
     def test_engine_fallback_sanitizes_safe_primitive_blocks(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
         card = engine_prepare_card(
