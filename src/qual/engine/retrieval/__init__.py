@@ -13,6 +13,7 @@ from src.qual.engine.retrieval.policy import (
     fts_first_policy_snapshot as _fts_first_policy_snapshot,
     primary_strategy_id as _primary_strategy_id,
 )
+from src.qual.engine.retrieval.payload import build_retrieval_source_bundle_from_result
 
 ACTIVE_STRATEGY_IDS = _active_strategy_ids()
 DEFERRED_STRATEGY_IDS = _deferred_strategy_ids()
