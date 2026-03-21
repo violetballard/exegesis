@@ -403,8 +403,7 @@ def _filter_supported_actions(actions: Any, *, supported_actions: set[str]) -> l
 
 def _materialize_versioned_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
     out = dict(card)
-    if not isinstance(out.get("blocks"), list):
-        out["blocks"] = []
+    out["blocks"] = _extract_safe_primitive_blocks(out)
     out = _filter_card_actions(out, capabilities)
     out["a2ui_version"] = A2UI_VERSION
     return out

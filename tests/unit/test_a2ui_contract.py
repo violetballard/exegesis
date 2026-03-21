@@ -409,6 +409,35 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["blocks"], [])
         self.assertEqual(card["actions"], [])
 
+    def test_engine_materializes_supported_card_with_sanitized_blocks(self) -> None:
+        caps = _capabilities(cards_supported=("RunLogCard",), actions_supported=("apply_patch",))
+        card = engine_prepare_card(
+            {
+                "type": "RunLogCard",
+                "title": "Patch",
+                "blocks": [
+                    {"type": "MarkdownBlock", "markdown": "Kept"},
+                    {"type": "MarkdownBlock", "markdown": 123},
+                    {"type": "ChartBlock", "series": [1, 2, 3]},
+                    {"type": "ListBlock", "items": ["first", {"label": " second "}, " "]},
+                ],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "run_agent", "label": "Run", "payload": {"operation": "x"}},
+                ],
+            },
+            caps,
+        )
+
+        self.assertEqual(
+            card["blocks"],
+            [
+                {"type": "MarkdownBlock", "markdown": "Kept"},
+                {"type": "ListBlock", "items": ["first", {"label": "second"}]},
+            ],
+        )
+        self.assertEqual(card["actions"], [{"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}}])
+
     def test_engine_rejects_version_mismatched_supported_cards(self) -> None:
         caps = _capabilities(cards_supported=("ProposedEditCard",))
         with self.assertRaises(ValueError):
