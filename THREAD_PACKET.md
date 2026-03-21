@@ -1,13 +1,13 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Scope goal: Describe the actual docs-only `THREAD_PACKET.md` change.
-- Scope completed: Rewrote `THREAD_PACKET.md` to match the real diff and removed the stale storage and recovery code claims.
+- Scope goal: Realign the handoff packet so it matches the reviewed docs-only commit.
+- Scope completed: Rewrote `THREAD_PACKET.md` to describe the actual `THREAD_PACKET.md` alignment change and removed the stale storage/persistence recovery claims.
 - Tasks completed:
   1. Reframed the packet around the docs-only handoff alignment change.
   2. Restricted `Files changed` to the actual diff: `THREAD_PACKET.md`.
   3. Removed the persistence-recovery code claims from the packet narrative.
-  4. Verified the packet now matches the reviewed commit scope.
+  4. Added roadmap/vision mapping that fits a documentation-only handoff.
 - Files changed:
   - `THREAD_PACKET.md`
 - Commands run with results:
@@ -29,4 +29,11 @@
   - first green tests: `./quality-test.sh` passed (`Ran 138 tests`, `OK`)
   - ready for handoff: all required local gates passed
 - Risks/blockers:
+  - None.
+- Roadmap item(s) affected:
+  - `Milestone 1: Bootstrap Flow Stabilization` for lane-level context and handoff hygiene.
+  - `Milestone 2: Test Hardening` for the packet's reference to the existing verification envelope.
+- Vision capability affected:
+  - `Local-first state and identity` because this lane's documentation keeps the storage/context ownership story aligned, even though this commit is docs-only.
+- Routing/provider impact note:
   - None.
