@@ -979,6 +979,55 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("recovered_from"), "backup")
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
 
+    def test_backup_write_failure_preserves_seed_fallback(self) -> None:
+        with patch.object(VaultService, "_write_backup_payload", return_value=False):
+            state = self.svc.create_or_open(self.root, "p8")
+
+        state_path = state.root_dir / ".vault_state.json"
+        backup_path = state.root_dir / ".vault_state.bak.json"
+        seed_path = state.root_dir / ".vault_state.seed.json"
+
+        self.assertTrue(state_path.exists())
+        self.assertFalse(backup_path.exists())
+        self.assertTrue(seed_path.exists())
+        payload = json.loads(seed_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p8")
+        self.assertIs(payload.get("is_locked"), True)
+        self.assertNotIn("recovered_from", payload)
+
+        state_path.unlink()
+
+        reopened = self.svc.create_or_open(self.root, "p8")
+
+        self.assertIsInstance(reopened.is_locked, bool)
+        primary_payload = json.loads(state_path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("project_name"), "p8")
+        self.assertEqual(primary_payload.get("recovered_from"), "seed")
+        self.assertEqual(backup_payload.get("project_name"), "p8")
+        self.assertNotIn("recovered_from", backup_payload)
+        self.assertFalse(seed_path.exists())
+
+    def test_healthy_primary_load_clears_stale_seed_state(self) -> None:
+        state = self.svc.create_or_open(self.root, "p8-clean")
+        seed_path = state.root_dir / ".vault_state.seed.json"
+        seed_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "p8-clean",
+                    "is_locked": False,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p8-clean")
+
+        self.assertIsInstance(reopened.is_locked, bool)
+        self.assertFalse(seed_path.exists())
+
     def test_backup_with_invalid_metadata_is_salvaged_and_rewritten_after_primary_missing(self) -> None:
         state = self.svc.create_or_open(self.root, "p7")
         backup_path = state.root_dir / ".vault_state.bak.json"

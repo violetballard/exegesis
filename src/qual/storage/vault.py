@@ -9,6 +9,7 @@ from src.qual.config import validate_project_name
 
 _STATE_FILE = ".vault_state.json"
 _BACKUP_STATE_FILE = ".vault_state.bak.json"
+_SEED_STATE_FILE = ".vault_state.seed.json"
 _SCHEMA_VERSION = 1
 _CANONICAL_DICT_KEYS = {"schema_version", "updated_at", "project_name", "is_locked", "recovered_from"}
 
@@ -77,7 +78,10 @@ class VaultService:
                 or normalized_recovered_from,
             )
         else:
-            self._write_backup(project_root)
+            backup_written = self._write_backup(project_root)
+            if not backup_written:
+                self._write_seed(project_root, self._backup_payload(raw_state))
+            self._clear_recovery_artifacts(project_root, preserve_seed=not backup_written)
         return state
 
     def lock(self, state: VaultState) -> None:
@@ -92,12 +96,16 @@ class VaultService:
         for path in (
             self._state_path(state.root_dir),
             self._backup_state_path(state.root_dir),
+            self._seed_state_path(state.root_dir),
             self._tmp_state_path(state.root_dir),
             self._backup_tmp_state_path(state.root_dir),
+            self._seed_tmp_state_path(state.root_dir),
             self._corrupt_state_path(state.root_dir),
             self._corrupt_path_for(self._backup_state_path(state.root_dir)),
+            self._corrupt_path_for(self._seed_state_path(state.root_dir)),
             self._corrupt_path_for(self._tmp_state_path(state.root_dir)),
             self._corrupt_path_for(self._backup_tmp_state_path(state.root_dir)),
+            self._corrupt_path_for(self._seed_tmp_state_path(state.root_dir)),
         ):
             self._unlink_if_exists(path)
         state.is_locked = True
@@ -114,6 +122,12 @@ class VaultService:
     def _backup_tmp_state_path(self, root_dir: Path) -> Path:
         return self._backup_state_path(root_dir).with_suffix(".tmp")
 
+    def _seed_state_path(self, root_dir: Path) -> Path:
+        return root_dir / _SEED_STATE_FILE
+
+    def _seed_tmp_state_path(self, root_dir: Path) -> Path:
+        return self._seed_state_path(root_dir).with_suffix(".tmp")
+
     def _corrupt_state_path(self, root_dir: Path) -> Path:
         return self._state_path(root_dir).with_suffix(".corrupt.json")
 
@@ -124,6 +138,8 @@ class VaultService:
         tmp_payload = self._load_payload(self._tmp_state_path(root_dir))
         backup_tmp_payload = self._load_payload(self._backup_tmp_state_path(root_dir))
         backup_payload = self._load_payload(self._backup_state_path(root_dir))
+        seed_tmp_payload = self._load_payload(self._seed_tmp_state_path(root_dir))
+        seed_payload = self._load_payload(self._seed_state_path(root_dir))
 
         payload: dict[str, object] | None
         recovered_source: str | None
@@ -132,6 +148,7 @@ class VaultService:
             recovered_source = None
             self._clear_quarantine_state(root_dir)
             self._clear_temporary_state(root_dir)
+            self._clear_seed_state(root_dir)
         elif tmp_payload is not None:
             payload = tmp_payload
             recovered_source = "tmp"
@@ -141,6 +158,12 @@ class VaultService:
         elif backup_payload is not None:
             payload = backup_payload
             recovered_source = "backup"
+        elif seed_tmp_payload is not None:
+            payload = seed_tmp_payload
+            recovered_source = "seed"
+        elif seed_payload is not None:
+            payload = seed_payload
+            recovered_source = "seed"
         else:
             return {}, None, primary_payload is None
         if not isinstance(payload, dict):
@@ -168,9 +191,10 @@ class VaultService:
         except OSError:
             self._unlink_if_exists(tmp)
             raise
-        self._write_backup_payload(state.root_dir, self._backup_payload(payload))
-        self._clear_quarantine_state(state.root_dir)
-        self._clear_temporary_state(state.root_dir)
+        backup_written = self._write_backup_payload(state.root_dir, self._backup_payload(payload))
+        if not backup_written:
+            self._write_seed(state.root_dir, self._backup_payload(payload))
+        self._clear_recovery_artifacts(state.root_dir, preserve_seed=not backup_written)
 
     def _quarantine_invalid_state(self, root_dir: Path) -> None:
         state_path = self._state_path(root_dir)
@@ -184,6 +208,12 @@ class VaultService:
             return
         self._quarantine_path(backup_path)
 
+    def _quarantine_invalid_seed(self, root_dir: Path) -> None:
+        seed_path = self._seed_state_path(root_dir)
+        if not seed_path.exists():
+            return
+        self._quarantine_path(seed_path)
+
     def _quarantine_path(self, path: Path) -> None:
         corrupt = self._corrupt_path_for(path)
         self._unlink_if_exists(corrupt)
@@ -195,12 +225,24 @@ class VaultService:
     def _clear_quarantine_state(self, root_dir: Path) -> None:
         self._unlink_if_exists(self._corrupt_state_path(root_dir))
         self._unlink_if_exists(self._corrupt_path_for(self._backup_state_path(root_dir)))
+        self._unlink_if_exists(self._corrupt_path_for(self._seed_state_path(root_dir)))
         self._unlink_if_exists(self._corrupt_path_for(self._tmp_state_path(root_dir)))
         self._unlink_if_exists(self._corrupt_path_for(self._backup_tmp_state_path(root_dir)))
+        self._unlink_if_exists(self._corrupt_path_for(self._seed_tmp_state_path(root_dir)))
 
     def _clear_temporary_state(self, root_dir: Path) -> None:
         self._unlink_if_exists(self._tmp_state_path(root_dir))
         self._unlink_if_exists(self._backup_tmp_state_path(root_dir))
+        self._unlink_if_exists(self._seed_tmp_state_path(root_dir))
+
+    def _clear_seed_state(self, root_dir: Path) -> None:
+        self._unlink_if_exists(self._seed_state_path(root_dir))
+
+    def _clear_recovery_artifacts(self, root_dir: Path, *, preserve_seed: bool = False) -> None:
+        self._clear_quarantine_state(root_dir)
+        self._clear_temporary_state(root_dir)
+        if not preserve_seed:
+            self._clear_seed_state(root_dir)
 
     def _corrupt_path_for(self, path: Path) -> Path:
         if path.name.endswith(".tmp"):
@@ -221,6 +263,8 @@ class VaultService:
                 self._quarantine_path(path)
             elif path == self._backup_state_path(path.parent):
                 self._quarantine_invalid_backup(path.parent)
+            elif path == self._seed_state_path(path.parent):
+                self._quarantine_invalid_seed(path.parent)
             return None
         if not self._is_loadable_payload(payload):
             if path.name == _STATE_FILE:
@@ -229,29 +273,44 @@ class VaultService:
                 self._quarantine_path(path)
             elif path == self._backup_state_path(path.parent):
                 self._quarantine_invalid_backup(path.parent)
+            elif path == self._seed_state_path(path.parent):
+                self._quarantine_invalid_seed(path.parent)
             return None
         return payload
 
-    def _write_backup(self, root_dir: Path) -> None:
+    def _write_backup(self, root_dir: Path) -> bool:
         state_path = self._state_path(root_dir)
         if not state_path.exists():
-            return
+            return False
         if not self._is_valid_payload(state_path):
-            return
+            return False
         payload = json.loads(state_path.read_text(encoding="utf-8"))
         if not isinstance(payload, dict):
-            return
-        self._write_backup_payload(root_dir, payload)
+            return False
+        return self._write_backup_payload(root_dir, payload)
 
-    def _write_backup_payload(self, root_dir: Path, payload: dict[str, object]) -> None:
+    def _write_backup_payload(self, root_dir: Path, payload: dict[str, object]) -> bool:
         backup_path = self._backup_state_path(root_dir)
-        tmp = backup_path.with_suffix(".tmp")
+        tmp = self._backup_tmp_state_path(root_dir)
         canonical_payload = self._backup_payload(payload)
         try:
             tmp.write_text(json.dumps(canonical_payload, indent=2, sort_keys=True), encoding="utf-8")
             tmp.replace(backup_path)
         except OSError:
             self._unlink_if_exists(tmp)
+            return False
+        return True
+
+    def _write_seed(self, root_dir: Path, payload: dict[str, object]) -> bool:
+        seed_path = self._seed_state_path(root_dir)
+        tmp = self._seed_tmp_state_path(root_dir)
+        try:
+            tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+            tmp.replace(seed_path)
+        except OSError:
+            self._unlink_if_exists(tmp)
+            return False
+        return True
 
     def _backup_payload(self, payload: dict[str, object]) -> dict[str, object]:
         backup_payload = dict(payload)
@@ -345,7 +404,7 @@ class VaultService:
         if not isinstance(value, str):
             return None
         normalized = value.strip().lower()
-        if normalized in {"tmp", "backup"}:
+        if normalized in {"tmp", "backup", "seed"}:
             return normalized
         return None
 
