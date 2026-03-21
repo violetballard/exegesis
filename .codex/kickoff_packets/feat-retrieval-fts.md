@@ -1,21 +1,23 @@
 # Lane Kickoff: feat-retrieval-fts
 
 - Branch: `codex/feat-retrieval-fts`
-- Lane/owned paths: `src/qual/retrieval/service.py`
-- Scope goal: Record the commit-accurate retrieval-service change in `src/qual/retrieval/service.py`: add stable hit-set fingerprints for retrieval results.
-- Scope completed: The reviewed commit `ac341a8783b540b3bc7f134f2204d0ee646d0f45` changes only `src/qual/retrieval/service.py`, adding stable hit-set fingerprints to retrieval diagnostics, manifest data, and downstream payload shaping.
+- Lane/owned paths: `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/policy.py`, `src/qual/retrieval/service.py`
+- Scope goal: Record the commit-accurate FTS provenance hardening and `primary_strategy_id` plumbing in retrieval policy and service.
+- Scope completed: The reviewed commit `5588e19ac01c380b6369781afe145f4f3850a5ba` changes `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/policy.py`, and `src/qual/retrieval/service.py` to harden FTS provenance and expose the primary retrieval strategy.
 
 ### Priority outcomes
 1. Keep the kickoff packet, lane metadata, and handoff packet commit-accurate.
-2. State clearly that the reviewed change is stable hit-set fingerprinting in `src/qual/retrieval/service.py`.
-3. Avoid implying ingestion, routing, PageIndex, or broader retrieval-engine changes.
+2. State clearly that the reviewed change is FTS provenance hardening plus `primary_strategy_id` plumbing.
+3. Avoid implying ingestion, routing, PageIndex, embeddings, or broader retrieval-engine changes.
 
 ### Tasks
-1. Add stable hit-set fingerprints in `src/qual/retrieval/service.py`.
-2. Keep retrieval provenance handling and downstream payload shape deterministic.
+1. Harden FTS provenance handling in `src/qual/retrieval/service.py`.
+2. Expose the primary retrieval strategy through retrieval policy and engine exports.
 3. Preserve a narrow, commit-accurate file list and metadata for the reviewed diff.
 
 ### Files changed
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/policy.py`
 - `src/qual/retrieval/service.py`
 
 ### Guardrails

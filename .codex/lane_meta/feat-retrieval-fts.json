@@ -4,21 +4,21 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Hit-set fingerprinting: keep retrieval result fingerprints stable and explicit in `src/qual/retrieval/service.py`.",
-    "Test hardening: preserve coverage around retrieval fingerprint stability and result shape."
+    "FTS provenance stability: keep retrieval provenance handling explicit and stable in `src/qual/retrieval/service.py`.",
+    "FTS-first policy plumbing: keep `primary_strategy_id` exposure narrow and consistent in retrieval exports."
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The reviewed commit `ac341a8783b540b3bc7f134f2204d0ee646d0f45` changes only `src/qual/retrieval/service.py`, adding stable hit-set fingerprints to retrieval output.",
-  "scope_goal": "Record the commit-accurate retrieval-service change in `src/qual/retrieval/service.py`: add stable hit-set fingerprints for retrieval results.",
+  "scope_completed": "The reviewed commit `5588e19ac01c380b6369781afe145f4f3850a5ba` changes `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/policy.py`, and `src/qual/retrieval/service.py` to harden FTS provenance and expose the primary retrieval strategy.",
+  "scope_goal": "Record the commit-accurate FTS provenance hardening and `primary_strategy_id` plumbing in retrieval policy and service.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Reconciled the packet with commit `ac341a8783b540b3bc7f134f2204d0ee646d0f45`, confirming the reviewed diff only changes `src/qual/retrieval/service.py`.",
-    "Removed unrelated multi-file retrieval claims from the metadata because they are not part of the reviewed commit.",
-    "Added an explicit `scope_completed` field and tightened the roadmap and vision mapping to hit-set fingerprinting stability and focused test hardening.",
+    "Reconciled the packet with commit `5588e19ac01c380b6369781afe145f4f3850a5ba`, confirming the reviewed diff changes only `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/policy.py`, and `src/qual/retrieval/service.py`.",
+    "Removed unrelated retrieval claims from the metadata because they are not part of the reviewed commit.",
+    "Added an explicit `scope_completed` field and tightened the roadmap and vision mapping to FTS provenance stability and FTS-first policy plumbing.",
     "Added an explicit `Files changed` list to the kickoff packet so it matches the reviewed commit exactly."
   ],
   "vision_capabilities": [
-    "Retrieval hit-set fingerprinting stability",
-    "Focused retrieval test hardening"
+    "FTS provenance stability",
+    "FTS-first policy plumbing"
   ]
 }
