@@ -10,7 +10,6 @@
 
 ## Lane/owned paths
 - `src/qual/commands/**`
-- `tests/unit/test_diff_preview.py` (reviewer-required shared regression coverage; approval note below)
 
 ## Scope completed
 - Preserved the lane-owned `diff_preview` no-diff JSON contract hardening in `src/qual/commands/diff_preview.py`, including the explicit `summary_only` state in the no-diff JSON payload.
@@ -34,12 +33,12 @@
 
 ## Commands run and outcomes
 - Validation date: `2026-03-21`
-- `make scope-check`: pending
-- `./quality-format.sh --check`: pending
-- `./quality-lint.sh`: pending
-- `./quality-test.sh`: pending
-- `./typecheck-test.sh`: pending
-- `make ci`: pending
+- `make scope-check`: PASS
+- `./quality-format.sh --check`: PASS
+- `./quality-lint.sh`: PASS
+- `./quality-test.sh`: PASS
+- `./typecheck-test.sh`: PASS
+- `make ci`: PASS
 
 ## Risks / blockers
 - Risk: `LOW`
@@ -59,5 +58,5 @@
 - None. This change affects local `diff_preview` output formatting plus the reviewer-required regression test; no routing/provider behavior changed.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `YES`
-- Approval note: `tests/unit/test_diff_preview.py` is shared-by-approval under `THREAD_OWNERSHIP.md`; this packet records reviewer-required shared regression coverage only.
+- Shared/integrator-locked edits: `NO`
+- Shared-file exception note: none.
