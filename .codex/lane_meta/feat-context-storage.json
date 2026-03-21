@@ -5,6 +5,7 @@
     "Made the docs-only alignment commit explicit so it is not mistaken for reviewed implementation work.",
     "Re-ran the required local gates on the branch head and confirmed they pass.",
     "Recorded the approved shared recovery test allowance via SCOPE_ALLOW_SHARED=1 make scope-check.",
+    "Separated the feature code files from the reporting artifacts so the handoff stays unambiguous.",
     "Made the reviewed diff shape match the shared-allowance evidence so the handoff stays unambiguous."
   ],
   "risk": "LOW",
@@ -19,6 +20,10 @@
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
   "shared_file_exception": true,
+  "reporting_artifacts": [
+    ".codex/lane_meta/feat-context-storage.json",
+    "THREAD_PACKET.md"
+  ],
   "kickoff_budget_note": "Handoff metadata aligned to the reviewed feature range; the later docs-only alignment commit is excluded from the promoted code range, and the approved shared recovery test is documented explicitly.",
-  "approved_exception_note": "Ownership note: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The reviewed diff contains only `src/qual/context/set_store.py` and the approved shared recovery test `tests/unit/test_context_storage_recovery.py`, and the shared allowance was verified with `SCOPE_ALLOW_SHARED=1 make scope-check`, so no integrator-locked files were edited."
+  "approved_exception_note": "Approved shared edit(s): `tests/unit/test_context_storage_recovery.py` via `SCOPE_ALLOW_SHARED=1 make scope-check`. Lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**` only, no integrator-locked files were edited, and `.codex/lane_meta/feat-context-storage.json` plus `THREAD_PACKET.md` are reporting artifacts rather than feature-diff source edits."
 }
