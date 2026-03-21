@@ -12,5 +12,5 @@
   "proposed_readme_patch": "",
   "shared_file_exception": true,
   "kickoff_budget_note": "Reset-required lane after ownership and repo-hygiene drift in the stale March 5 review generation.",
-  "approved_exception_note": "Approved shared-file exception covers tests/unit/test_context_storage_recovery.py for the vault recovery regression alongside the owned-path storage fix."
+  "approved_exception_note": "Approved shared-file exception for tests/unit/test_context_storage_recovery.py to cover the vault recovery regression alongside the owned-path storage fix."
 }

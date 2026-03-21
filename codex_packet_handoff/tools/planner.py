@@ -10,7 +10,6 @@ PACKETS_ROOT = Path(".codex/packets/lanes")
 PLANNER_ROOT = Path(".codex/packet_planner")
 STATE_FILE = PLANNER_ROOT / "state.json"
 CONFIG_FILE = Path(".codex/packet_router/config.json")
-PACKET_PLANNER_NOISE = {".codex/packet_planner/state.json"}
 
 REQUIRED_GATES_DEFAULT = [
     "./quality-format.sh --check",
@@ -126,7 +125,7 @@ def apply_meta_defaults(meta: Json, missing: List[str]) -> Json:
 
 def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
     out = git(f"diff --name-only {base_ref}...HEAD", cwd=cwd)
-    return [ln.strip() for ln in out.splitlines() if ln.strip() and ln.strip() not in PACKET_PLANNER_NOISE]
+    return [ln.strip() for ln in out.splitlines() if ln.strip()]
 
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
