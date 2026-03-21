@@ -127,14 +127,34 @@ def build_retrieval_citation_bundle_from_result(
     payload = build_retrieval_downstream_payload_from_result(result)
     provenance = payload.get("retrieval_provenance", {})
     summary = payload.get("retrieval_summary", {})
+    diagnostics = payload.get("retrieval_diagnostics", {})
     if not isinstance(provenance, dict):
         provenance = {}
     if not isinstance(summary, dict):
         summary = {}
+    if not isinstance(diagnostics, dict):
+        diagnostics = {}
     return {
+        "query_fingerprint": provenance.get("query_fingerprint", summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))),
+        "result_fingerprint": provenance.get("result_fingerprint", summary.get("result_fingerprint", diagnostics.get("result_fingerprint"))),
+        "retrieval_backend": provenance.get("retrieval_backend", summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))),
+        "retrieval_mode": provenance.get("retrieval_mode", summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))),
+        "retrieval_policy": copy.deepcopy(
+            provenance.get(
+                "retrieval_policy",
+                summary.get("retrieval_policy", diagnostics.get("retrieval_policy", {})),
+            )
+        ),
         "citation_status": copy.deepcopy(summary.get("citation_status", provenance.get("citation_status", {}))),
         "doc_count": provenance.get("doc_count", summary.get("doc_count")),
         "excerpt_count": provenance.get("excerpt_count", summary.get("excerpt_count")),
+        "doc_hits_fingerprint": provenance.get(
+            "doc_hits_fingerprint", summary.get("doc_hits_fingerprint", diagnostics.get("doc_hits_fingerprint"))
+        ),
+        "excerpt_hits_fingerprint": provenance.get(
+            "excerpt_hits_fingerprint",
+            summary.get("excerpt_hits_fingerprint", diagnostics.get("excerpt_hits_fingerprint")),
+        ),
         "doc_citations": copy.deepcopy(provenance.get("doc_citations", [])),
         "excerpt_citations": copy.deepcopy(provenance.get("excerpt_citations", [])),
     }

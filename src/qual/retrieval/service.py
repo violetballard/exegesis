@@ -332,9 +332,16 @@ class RetrievalResult:
             "excerpt_count": len(self.hits),
         }
         return {
+            "query_fingerprint": self.diagnostics["query_fingerprint"],
+            "result_fingerprint": self.result_fingerprint,
+            "retrieval_backend": self.diagnostics["retrieval_backend"],
+            "retrieval_mode": self.diagnostics["retrieval_mode"],
+            "retrieval_policy": copy.deepcopy(self.diagnostics["retrieval_policy"]),
             "citation_status": citation_status,
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
+            "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
+            "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
             "doc_citations": [
                 {
                     "doc_id": doc_hit.doc_id,
