@@ -7,7 +7,6 @@
   1. Rewrote the scope statement so it matches the reviewed commit's metadata-only nature.
   2. Replaced the implementation-oriented task list with packet-alignment and auditability work.
   3. Corrected the changed-files list so it reflects only the actual diff for the reviewed commit.
-  4. Removed unsupported roadmap, vision, and product-impact claims that did not correspond to the reviewed diff.
 - Files changed:
   - `THREAD_PACKET.md`
 - Commands run with results:
@@ -20,7 +19,9 @@
 - Risks/blockers:
   - This packet now documents a metadata-only handoff update and should not be read as evidence of code or test changes.
   - No shared, integrator-locked, or cross-lane files are listed in the reviewed diff.
-- Roadmap item(s) affected: None.
-- Vision capability affected: None.
+- Roadmap item(s) affected:
+  - `Milestone 5: A2UI Presentation Layer` -> packet metadata alignment for the lane's current A2UI milestone
+- Vision capability affected:
+  - `5. Agent-to-UI protocol (A2UI)` -> handoff metadata alignment only; no runtime behavior changed
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.
