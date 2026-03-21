@@ -27,9 +27,24 @@ def _normalize_token(value: str) -> str:
     return re.sub(r"[-_\s]+", "-", value.strip().casefold())
 
 
+def _validate_command_spec(spec: CommandSpec) -> None:
+    if not spec.name.strip():
+        raise ValueError("Command name cannot be blank.")
+
+    seen_aliases: set[str] = set()
+    for alias in spec.aliases:
+        normalized = _normalize_token(alias)
+        if not normalized:
+            raise ValueError(f"Command alias cannot be blank: {spec.name}")
+        if normalized in seen_aliases:
+            raise ValueError(f"Duplicate command alias within spec: {alias}")
+        seen_aliases.add(normalized)
+
+
 def _build_command_spec_index(specs: tuple[CommandSpec, ...]) -> dict[str, CommandSpec]:
     index: dict[str, CommandSpec] = {}
     for spec in specs:
+        _validate_command_spec(spec)
         if spec.name in index:
             raise ValueError(f"Duplicate command name: {spec.name}")
         index[spec.name] = spec
