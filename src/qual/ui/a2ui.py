@@ -14,6 +14,12 @@ FALLBACK_COPY_ACTION_ID = "copy_to_clipboard"
 GENERIC_FALLBACK_SUBTITLE = "Rendered as GenericCard because client does not support this specialized card."
 UNKNOWN_FALLBACK_SUBTITLE = "Read-only fallback view with safe primitive blocks and raw JSON preview."
 _RESERVED_CARD_TYPES: tuple[str, ...] = (GENERIC_CARD_TYPE, UNKNOWN_CARD_TYPE)
+_SPECIALIZED_CARD_TYPES: tuple[str, ...] = (
+    "ProposedEditCard",
+    "EvidenceCard",
+    "QuestionsCard",
+    "RunLogCard",
+)
 
 ALLOWED_ACTION_IDS: tuple[str, ...] = (
     "apply_patch",
@@ -134,6 +140,7 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
             "generic": GENERIC_CARD_TYPE,
             "unknown": UNKNOWN_CARD_TYPE,
             "reserved": list(_RESERVED_CARD_TYPES),
+            "specialized": list(_SPECIALIZED_CARD_TYPES),
         },
         "fallbacks": {
             "generic_card": {

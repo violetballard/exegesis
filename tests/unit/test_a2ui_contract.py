@@ -85,6 +85,12 @@ class A2UIContractTests(unittest.TestCase):
                 "generic": "GenericCard",
                 "unknown": "UnknownCard",
                 "reserved": ["GenericCard", "UnknownCard"],
+                "specialized": [
+                    "ProposedEditCard",
+                    "EvidenceCard",
+                    "QuestionsCard",
+                    "RunLogCard",
+                ],
             },
         )
         self.assertEqual(
