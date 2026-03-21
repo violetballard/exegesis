@@ -28,62 +28,62 @@ class ContextBasketStore:
         tmp_payload = self._load_payload(self._tmp_path())
         backup_payload = self._load_payload(self._backup_path)
 
-        payload: dict[str, object] | list[object] | None
-        recovered_source: str | None
-        if tmp_payload is not None:
-            payload = tmp_payload
-            recovered_source = "tmp"
-        elif primary_payload is not None:
-            payload = primary_payload
-            recovered_source = None
-        elif backup_payload is not None:
-            payload = backup_payload
-            recovered_source = "backup"
-        else:
-            return ContextBasket()
-
-        should_rewrite = False
-        if isinstance(payload, list):
-            parsed_items = self._parse_item_ids(payload)
-            if parsed_items is None:
-                return ContextBasket()
-            basket = ContextBasket(item_ids=parsed_items)
-            should_rewrite = True
-        elif isinstance(payload, dict):
-            schema_version = self._parse_schema_version(payload)
-            if schema_version is None:
-                return ContextBasket()
-            parsed_items = self._parse_item_ids(payload.get("item_ids", []))
-            if parsed_items is None:
-                return ContextBasket()
-            basket = ContextBasket(item_ids=parsed_items)
-            should_rewrite = schema_version != _SCHEMA_VERSION
-            if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
-                should_rewrite = True
-            if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
-                should_rewrite = True
-        else:
-            return ContextBasket()
-
-        prior = list(basket.item_ids)
-        basket.normalize()
-        if basket.item_ids != prior:
-            should_rewrite = True
-
-        recovered_from = self._recovery_marker(
-            primary_missing=primary_missing,
-            recovered_source=recovered_source,
+        candidates: tuple[tuple[dict[str, object] | list[object] | None, str | None], ...] = (
+            (tmp_payload, "tmp"),
+            (primary_payload, None),
+            (backup_payload, "backup"),
         )
-        if recovered_source is not None or should_rewrite:
-            # Keep the backup aligned with the latest canonical basket whenever we
-            # rewrite state during load, not only when we recover from tmp/backup.
-            refresh_backup = recovered_source is not None or should_rewrite
-            self.save(
-                basket,
-                recovered_from=recovered_from,
-                refresh_backup=refresh_backup,
+        for payload, recovered_source in candidates:
+            if payload is None:
+                continue
+
+            should_rewrite = False
+            if isinstance(payload, list):
+                parsed_items = self._parse_item_ids(payload)
+                if parsed_items is None:
+                    self._discard_payload_source(recovered_source)
+                    continue
+                basket = ContextBasket(item_ids=parsed_items)
+                should_rewrite = True
+            elif isinstance(payload, dict):
+                schema_version = self._parse_schema_version(payload)
+                if schema_version is None:
+                    self._discard_payload_source(recovered_source)
+                    continue
+                parsed_items = self._parse_item_ids(payload.get("item_ids", []))
+                if parsed_items is None:
+                    self._discard_payload_source(recovered_source)
+                    continue
+                basket = ContextBasket(item_ids=parsed_items)
+                should_rewrite = schema_version != _SCHEMA_VERSION
+                if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
+                    should_rewrite = True
+                if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
+                    should_rewrite = True
+            else:
+                self._discard_payload_source(recovered_source)
+                continue
+
+            prior = list(basket.item_ids)
+            basket.normalize()
+            if basket.item_ids != prior:
+                should_rewrite = True
+
+            recovered_from = self._recovery_marker(
+                primary_missing=primary_missing,
+                recovered_source=recovered_source,
             )
-        return basket
+            if recovered_source is not None or should_rewrite:
+                # Keep the backup aligned with the latest canonical basket whenever we
+                # rewrite state during load, not only when we recover from tmp/backup.
+                refresh_backup = recovered_source is not None or should_rewrite
+                self.save(
+                    basket,
+                    recovered_from=recovered_from,
+                    refresh_backup=refresh_backup,
+                )
+            return basket
+        return ContextBasket()
 
     def save(
         self,
@@ -130,6 +130,14 @@ class ContextBasketStore:
 
     def _clear_quarantine_file(self) -> None:
         self._unlink_if_exists(self._corrupt_path())
+
+    def _discard_payload_source(self, recovered_source: str | None) -> None:
+        if recovered_source == "tmp":
+            self._unlink_if_exists(self._tmp_path())
+        elif recovered_source == "backup":
+            self._unlink_if_exists(self._backup_path)
+        else:
+            self._quarantine_invalid_file()
 
     def _load_payload(self, path: Path) -> dict[str, object] | list[object] | None:
         if not path.exists():
