@@ -39,6 +39,7 @@ class RetrievalDownstreamPayload:
     retrieval_manifest: dict[str, object]
     retrieval_evidence: dict[str, object]
     retrieval_provenance: dict[str, object]
+    retrieval_source_bundle: dict[str, object]
 
     def as_dict(self) -> dict[str, object]:
         policy = copy.deepcopy(self.policy)
@@ -47,6 +48,7 @@ class RetrievalDownstreamPayload:
         evidence = copy.deepcopy(self.retrieval_evidence)
         provenance = copy.deepcopy(self.retrieval_provenance)
         summary = copy.deepcopy(self.retrieval_summary)
+        source_bundle = copy.deepcopy(self.retrieval_source_bundle)
         return {
             "query": copy.deepcopy(self.query),
             "policy": policy,
@@ -64,6 +66,7 @@ class RetrievalDownstreamPayload:
             "retrieval_manifest": manifest,
             "retrieval_evidence": evidence,
             "retrieval_provenance": provenance,
+            "retrieval_source_bundle": source_bundle,
         }
 
 
@@ -84,6 +87,7 @@ def build_retrieval_downstream_payload(
     retrieval_manifest: dict[str, object],
     retrieval_evidence: dict[str, object],
     retrieval_provenance: dict[str, object],
+    retrieval_source_bundle: dict[str, object],
 ) -> dict[str, object]:
     return RetrievalDownstreamPayload(
         query=query,
@@ -101,6 +105,7 @@ def build_retrieval_downstream_payload(
         retrieval_manifest=retrieval_manifest,
         retrieval_evidence=retrieval_evidence,
         retrieval_provenance=retrieval_provenance,
+        retrieval_source_bundle=retrieval_source_bundle,
     ).as_dict()
 
 
@@ -180,6 +185,9 @@ def build_retrieval_source_bundle_from_result(
 ) -> dict[str, object]:
     """Return the deterministic retrieval source bundle for downstream engine flows."""
     payload = build_retrieval_downstream_payload_from_result(result)
+    source_bundle = payload.get("retrieval_source_bundle")
+    if isinstance(source_bundle, dict):
+        return copy.deepcopy(source_bundle)
     return {
         "query": copy.deepcopy(payload.get("query", {})),
         "policy": copy.deepcopy(payload.get("policy", payload.get("retrieval_policy", {}))),

@@ -256,6 +256,66 @@ class RetrievalResult:
             "doc_citations": citation_bundle["doc_citations"],
             "excerpt_citations": citation_bundle["excerpt_citations"],
         }
+        retrieval_source_bundle = {
+            "query": {
+                "query_text": self.query.query_text,
+                "scope": self.query.scope,
+                "intent": self.query.intent,
+                "constraints": {
+                    "max_results": self.query.constraints.max_results,
+                    "doc_types": list(self.query.constraints.doc_types),
+                    "date_range": list(self.query.constraints.date_range)
+                    if self.query.constraints.date_range is not None
+                    else None,
+                    "require_citations": self.query.constraints.require_citations,
+                    "section_hint": self.query.constraints.section_hint,
+                    "prefer_exact_matches": self.query.constraints.prefer_exact_matches,
+                },
+                "confidentiality_profile": self.query.confidentiality_profile,
+            },
+            "policy": copy.deepcopy(retrieval_policy),
+            "retrieval_backend": self.diagnostics["retrieval_backend"],
+            "retrieval_mode": self.diagnostics["retrieval_mode"],
+            "citation_status": copy.deepcopy(citation_status),
+            "retrieval_citation_bundle": copy.deepcopy(citation_bundle),
+            "retrieval_summary": {
+                "query_fingerprint": self.diagnostics["query_fingerprint"],
+                "result_fingerprint": self.result_fingerprint,
+                "retrieval_backend": self.diagnostics["retrieval_backend"],
+                "retrieval_mode": self.diagnostics["retrieval_mode"],
+                "retrieval_policy": copy.deepcopy(retrieval_policy),
+                "doc_count": len(self.doc_hits),
+                "excerpt_count": len(self.hits),
+                "doc_ids": [doc_hit.doc_id for doc_hit in self.doc_hits],
+                "doc_fingerprints": doc_fingerprints,
+                "doc_identity_fingerprints": doc_identity_fingerprints,
+                "excerpt_ids": [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None],
+                "excerpt_fingerprints": excerpt_fingerprints,
+                "excerpt_text_hashes": excerpt_text_hashes,
+                "top_excerpt_fingerprints": top_excerpt_fingerprints,
+                "top_excerpt_text_hashes": top_excerpt_text_hashes,
+                "primary_doc_id": self.doc_hits[0].doc_id if self.doc_hits else None,
+                "primary_excerpt_id": self.hits[0].excerpt_id if self.hits else None,
+                "primary_doc_fingerprint": self.doc_hits[0].provenance.get("doc_fingerprint") if self.doc_hits else None,
+                "primary_excerpt_fingerprint": self.hits[0].provenance.get("excerpt_fingerprint") if self.hits else None,
+                "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
+                "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
+                "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
+                "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
+                "citation_status": {
+                    "required": self.query.constraints.require_citations,
+                    "available": bool(self.hits),
+                    "satisfied": (not self.query.constraints.require_citations) or bool(self.hits),
+                    "doc_count": len(self.doc_hits),
+                    "excerpt_count": len(self.hits),
+                },
+            },
+            "doc_hits": [doc_hit.as_dict() for doc_hit in self.doc_hits],
+            "excerpt_hits": [hit.as_dict() for hit in self.hits],
+            "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
+            "retrieval_evidence": copy.deepcopy(self.evidence),
+            "retrieval_provenance": copy.deepcopy(retrieval_provenance),
+        }
         return build_retrieval_downstream_payload(
             query={
                 "query_text": self.query.query_text,
@@ -324,6 +384,7 @@ class RetrievalResult:
             retrieval_manifest=dict(self.diagnostics["retrieval_manifest"]),
             retrieval_evidence=dict(self.evidence),
             retrieval_provenance=retrieval_provenance,
+            retrieval_source_bundle=retrieval_source_bundle,
         )
 
     def citation_bundle(self) -> dict[str, object]:
