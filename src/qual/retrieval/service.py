@@ -54,7 +54,10 @@ class RetrievalConstraints:
     def __post_init__(self) -> None:
         object.__setattr__(self, "doc_types", _canonicalize_doc_types(self.doc_types))
         if self.date_range is not None:
-            object.__setattr__(self, "date_range", tuple(str(value).strip() for value in self.date_range))
+            normalized = tuple(str(value).strip() for value in self.date_range)
+            if len(normalized) != 2 or any(not value for value in normalized):
+                raise ValueError("date_range must contain exactly two non-empty values")
+            object.__setattr__(self, "date_range", normalized)
 
 
 @dataclass(frozen=True)
@@ -271,6 +274,15 @@ class RetrievalResult:
             policy=retrieval_policy,
             audit_ref=self.audit_ref,
             result_fingerprint=self.result_fingerprint,
+            retrieval_backend=self.diagnostics["retrieval_backend"],
+            retrieval_mode=self.diagnostics["retrieval_mode"],
+            citation_status={
+                "required": self.query.constraints.require_citations,
+                "available": bool(self.hits),
+                "satisfied": (not self.query.constraints.require_citations) or bool(self.hits),
+                "doc_count": len(self.doc_hits),
+                "excerpt_count": len(self.hits),
+            },
             retrieval_summary={
                 "query_fingerprint": self.diagnostics["query_fingerprint"],
                 "result_fingerprint": self.result_fingerprint,

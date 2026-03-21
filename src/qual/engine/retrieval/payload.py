@@ -18,6 +18,9 @@ class RetrievalDownstreamPayload:
     policy: dict[str, object]
     audit_ref: str
     result_fingerprint: str
+    retrieval_backend: str
+    retrieval_mode: str
+    citation_status: dict[str, object]
     retrieval_summary: dict[str, object]
     doc_hits: list[dict[str, object]]
     excerpt_hits: list[dict[str, object]]
@@ -39,6 +42,9 @@ class RetrievalDownstreamPayload:
             "retrieval_policy": copy.deepcopy(policy),
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
+            "retrieval_backend": self.retrieval_backend,
+            "retrieval_mode": self.retrieval_mode,
+            "citation_status": copy.deepcopy(self.citation_status),
             "retrieval_summary": summary,
             "doc_hits": [copy.deepcopy(doc_hit) for doc_hit in self.doc_hits],
             "excerpt_hits": [copy.deepcopy(hit) for hit in self.excerpt_hits],
@@ -55,6 +61,9 @@ def build_retrieval_downstream_payload(
     policy: dict[str, object],
     audit_ref: str,
     result_fingerprint: str,
+    retrieval_backend: str,
+    retrieval_mode: str,
+    citation_status: dict[str, object],
     retrieval_summary: dict[str, object],
     doc_hits: list[dict[str, object]],
     excerpt_hits: list[dict[str, object]],
@@ -68,6 +77,9 @@ def build_retrieval_downstream_payload(
         policy=policy,
         audit_ref=audit_ref,
         result_fingerprint=result_fingerprint,
+        retrieval_backend=retrieval_backend,
+        retrieval_mode=retrieval_mode,
+        citation_status=citation_status,
         retrieval_summary=retrieval_summary,
         doc_hits=doc_hits,
         excerpt_hits=excerpt_hits,
