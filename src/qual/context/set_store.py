@@ -105,6 +105,10 @@ class ContextSetStore:
     def _seed_state_path(self) -> Path:
         return self._seed_path
 
+    def _quarantine_missing_context_sets_payload(self, path: Path, payload: object) -> None:
+        if isinstance(payload, dict) and "context_sets" not in payload:
+            self._quarantine_path(path)
+
     def load(self) -> list[ContextSetRecord]:
         primary_missing = not self._path.exists()
         backup_missing = not self._backup_path.exists()
@@ -114,6 +118,11 @@ class ContextSetStore:
         backup_payload, _ = self._load_payload(self._backup_path)
         seed_tmp_payload, _ = self._load_payload(self._seed_tmp_path())
         seed_payload, _ = self._load_payload(self._seed_state_path())
+        self._quarantine_missing_context_sets_payload(self._tmp_path(), tmp_payload)
+        self._quarantine_missing_context_sets_payload(self._backup_tmp_path(), backup_tmp_payload)
+        self._quarantine_missing_context_sets_payload(self._backup_path, backup_payload)
+        self._quarantine_missing_context_sets_payload(self._seed_tmp_path(), seed_tmp_payload)
+        self._quarantine_missing_context_sets_payload(self._seed_state_path(), seed_payload)
 
         primary_needs_quarantine = self._primary_context_sets_need_recovery(primary_payload)
         if primary_needs_quarantine:
