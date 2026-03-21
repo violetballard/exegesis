@@ -9,7 +9,6 @@ from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions
 from src.qual.docindex.service import DocIndexQueryConstraints
 import src.qual.engine.retrieval as engine_retrieval
-from src.qual.engine.retrieval.pageindex_strategy import PageIndexStrategy
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
 
 
@@ -54,6 +53,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(result.doc_hits)
         self.assertEqual(result.diagnostics["retrieval_backend"], "sqlite_fts")
         self.assertEqual(result.diagnostics["retrieval_mode"], "fts_first")
+        self.assertEqual(result.diagnostics["active_strategy_ids"], ["fts"])
         self.assertIn("fts", result.diagnostics["strategies_used"])
         self.assertEqual(result.diagnostics["strategies_used"], ["fts"])
         self.assertEqual(result.diagnostics["query_scope"], "vault")
@@ -364,29 +364,16 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["provenance"]["source_strategy"], "pageindex")
         self.assertEqual(excerpt["provenance"]["doc_id"], "doc-pdf-1")
 
-    def test_pageindex_strategy_is_deferred_for_fts_first_mvp(self) -> None:
-        strategy = PageIndexStrategy(self.service._docindex, self.service._read_doc_text)
-        query = RetrievalQuery(
-            query_text="discussion theory",
-            scope="vault",
-            intent="lookup",
-            constraints=RetrievalConstraints(max_results=4),
-            confidentiality_profile="confidential",
-        )
-        self.assertFalse(strategy.supports(query))
-        run = strategy.retrieve(query, candidate_doc_ids=("doc-pdf-1",))
-        self.assertEqual(run.strategy_id, "pageindex")
-        self.assertEqual(run.hits, [])
-        self.assertEqual(run.elapsed_ms, 0)
-
     def test_engine_retrieval_package_exports_are_fts_only(self) -> None:
         self.assertEqual(
             engine_retrieval.__all__,
-            ["StrategyRun", "RetrievalStrategy", "FTSStrategy"],
+            ["StrategyRun", "RetrievalStrategy", "FTSStrategy", "ACTIVE_STRATEGY_IDS", "active_strategy_ids"],
         )
         self.assertTrue(hasattr(engine_retrieval, "FTSStrategy"))
         self.assertFalse(hasattr(engine_retrieval, "PageIndexStrategy"))
         self.assertFalse(hasattr(engine_retrieval, "EmbeddingsStrategy"))
+        self.assertEqual(engine_retrieval.ACTIVE_STRATEGY_IDS, ("fts",))
+        self.assertEqual(engine_retrieval.active_strategy_ids(), ("fts",))
 
     def test_retrieval_audit_uses_query_hash_not_plaintext(self) -> None:
         query_text = "highly sensitive question text"

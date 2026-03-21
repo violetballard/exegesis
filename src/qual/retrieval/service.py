@@ -14,6 +14,7 @@ from typing import Any, Iterator, Literal
 
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions, DocIndexService
+from src.qual.engine.retrieval import ACTIVE_STRATEGY_IDS
 from src.qual.engine.retrieval.fts_strategy import FTSStrategy
 from src.qual.engine.retrieval.interface import StrategyRun
 from src.qual.metrics.crypto import decrypt_bytes, encrypt_bytes
@@ -175,6 +176,7 @@ class RetrievalService:
             diagnostics = {
                 "retrieval_backend": "sqlite_fts",
                 "retrieval_mode": "fts_first",
+                "active_strategy_ids": list(ACTIVE_STRATEGY_IDS),
                 "query_fingerprint": query_fingerprint,
                 "query_scope": query.scope,
                 "query_intent": query.intent,
@@ -184,7 +186,7 @@ class RetrievalService:
                 "candidate_doc_count": effective_candidate_doc_count,
                 "fts_shortlist_count": len(fts_shortlist),
                 "fts_shortlist_doc_ids": list(fts_shortlist),
-                "strategies_used": [fts_run.strategy_id],
+                "strategies_used": list(ACTIVE_STRATEGY_IDS),
                 "elapsed_ms_by_strategy": {fts_run.strategy_id: fts_run.elapsed_ms},
                 "caches_used": {fts_run.strategy_id: fts_run.cache_used},
                 "elapsed_ms_total": elapsed_ms_total,
@@ -203,6 +205,7 @@ class RetrievalService:
                     "retrieval_mode": diagnostics["retrieval_mode"],
                     "query_scope": query.scope,
                     "date_range": diagnostics["date_range"],
+                    "active_strategy_ids": diagnostics["active_strategy_ids"],
                     "strategies_used": diagnostics["strategies_used"],
                     "elapsed_ms_by_strategy": diagnostics["elapsed_ms_by_strategy"],
                     "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
@@ -505,6 +508,7 @@ class RetrievalService:
             "query_intent": query.intent,
             "retrieval_backend": "sqlite_fts",
             "retrieval_mode": "fts_first",
+            "active_strategy_ids": list(ACTIVE_STRATEGY_IDS),
             "doc_citations": doc_citations,
             "excerpt_citations": excerpt_citations,
             "retrieval_manifest": dict(retrieval_manifest),
