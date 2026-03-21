@@ -44,12 +44,13 @@ class ContextBasketStore:
         seed_tmp_payload, _ = self._load_payload(self._seed_tmp_path())
         seed_payload, _ = self._load_payload(self._seed_state_path())
         primary_missing_item_ids = isinstance(primary_payload, dict) and "item_ids" not in primary_payload
+        primary_item_ids_need_recovery = self._primary_item_ids_need_recovery(primary_payload)
 
         payload: dict[str, object] | list[object] | None
         recovered_source: str | None
         if isinstance(primary_payload, dict) and "item_ids" not in primary_payload:
             self._quarantine_invalid_file()
-        if primary_missing_item_ids:
+        if primary_missing_item_ids or primary_item_ids_need_recovery:
             payload, recovered_source = self._prefer_recovery_payload(
                 tmp_payload,
                 backup_tmp_payload,
@@ -101,11 +102,16 @@ class ContextBasketStore:
                 raw_item_ids = payload.get("item_ids")
                 parsed_items = self._parse_item_ids(raw_item_ids)
                 if parsed_items is None:
-                    self._discard_payload_source(recovered_source)
-                    return ContextBasket()
+                    basket = ContextBasket()
+                    parsed_items = []
+                    should_rewrite = True
                 normalized_items = self._normalize_item_ids(parsed_items)
                 basket = ContextBasket(item_ids=normalized_items)
-                should_rewrite = schema_version != _SCHEMA_VERSION or normalized_items != parsed_items
+                should_rewrite = (
+                    should_rewrite
+                    or schema_version != _SCHEMA_VERSION
+                    or normalized_items != parsed_items
+                )
                 if self._has_dropped_item_ids(raw_item_ids):
                     should_rewrite = True
             if self._has_unknown_fields(payload):
@@ -133,7 +139,12 @@ class ContextBasketStore:
             return ContextBasket()
 
         recovered_from = self._recovery_marker(
-            primary_unavailable=primary_missing or primary_payload is None or primary_missing_item_ids,
+            primary_unavailable=(
+                primary_missing
+                or primary_payload is None
+                or primary_missing_item_ids
+                or primary_item_ids_need_recovery
+            ),
             recovered_source=recovered_source,
         ) or normalized_recovered_from
         if recovered_source is not None or should_rewrite:
@@ -536,6 +547,22 @@ class ContextBasketStore:
                 continue
             return candidate, recovered_source
         return None, None
+
+    def _primary_item_ids_need_recovery(self, payload: dict[str, object] | list[object] | None) -> bool:
+        if isinstance(payload, dict):
+            if "item_ids" not in payload:
+                return True
+            raw_item_ids = payload.get("item_ids")
+            parsed_item_ids = self._parse_item_ids(raw_item_ids)
+            if parsed_item_ids is None:
+                return True
+            return not parsed_item_ids and self._has_dropped_item_ids(raw_item_ids)
+        if isinstance(payload, list):
+            parsed_item_ids = self._parse_item_ids(payload)
+            if parsed_item_ids is None:
+                return True
+            return not parsed_item_ids and self._has_dropped_item_ids(payload)
+        return False
 
     def _unlink_if_exists(self, path: Path) -> None:
         try:
