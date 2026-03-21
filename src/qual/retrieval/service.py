@@ -380,8 +380,6 @@ class RetrievalService:
                     "doc_id": doc_id,
                     "source_hash": str(doc_meta.get("source_hash", "")),
                     "doc_type": str(doc_meta.get("doc_type", "")),
-                    "top_excerpt_id": top_hit.excerpt_id,
-                    "top_excerpt_fingerprint": top_excerpt_fingerprint,
                 }
             )
             doc_hits.append(

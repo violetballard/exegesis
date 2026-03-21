@@ -243,20 +243,33 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertIn("excerpt_text_hashes", manifest)
 
     def test_doc_identity_fingerprint_stays_stable_across_query_variants(self) -> None:
+        long_doc_text = (
+            "alpha marker opens the first retrieval window. "
+            + "filler text " * 60
+            + "omega marker closes the second retrieval window. "
+            + "filler text " * 60
+            + "tail marker for deterministic segmenting."
+        )
+        self.service.add_or_update_document(
+            doc_id="doc-memo-identity",
+            doc_type="memo",
+            title_hint="Memo Identity",
+            text=long_doc_text,
+        )
         base = self.service.retrieve_auto(
             RetrievalQuery(
-                query_text="discussion theory",
-                scope="doc:doc-pdf-1",
-                intent="outline_support",
+                query_text="alpha marker",
+                scope="doc:doc-memo-identity",
+                intent="lookup",
                 constraints=RetrievalConstraints(max_results=4),
                 confidentiality_profile="confidential",
             )
         )
         variant = self.service.retrieve_auto(
             RetrievalQuery(
-                query_text="discussion theory unrelated_term",
-                scope="doc:doc-pdf-1",
-                intent="outline_support",
+                query_text="omega marker",
+                scope="doc:doc-memo-identity",
+                intent="lookup",
                 constraints=RetrievalConstraints(max_results=4),
                 confidentiality_profile="confidential",
             )
@@ -267,7 +280,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
             base.doc_hits[0].provenance["doc_identity_fingerprint"],
             variant.doc_hits[0].provenance["doc_identity_fingerprint"],
         )
-        self.assertEqual(
+        self.assertNotEqual(
+            base.doc_hits[0].provenance["top_excerpt_id"],
+            variant.doc_hits[0].provenance["top_excerpt_id"],
+        )
+        self.assertNotEqual(
             base.doc_hits[0].provenance["top_excerpt_fingerprint"],
             variant.doc_hits[0].provenance["top_excerpt_fingerprint"],
         )
