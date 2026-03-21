@@ -106,6 +106,7 @@ class A2UIContractTests(unittest.TestCase):
                         {
                             "id": "copy_to_clipboard",
                             "label": "Copy JSON",
+                            "version": 1,
                             "payload_fields": ["text"],
                         }
                     ],
@@ -119,6 +120,7 @@ class A2UIContractTests(unittest.TestCase):
                         {
                             "id": "copy_to_clipboard",
                             "label": "Copy JSON",
+                            "version": 1,
                             "payload_fields": ["text"],
                         }
                     ],
@@ -162,19 +164,20 @@ class A2UIContractTests(unittest.TestCase):
             [
                 {
                     "type": "ActionRef",
+                    "version": 1,
                     "required_fields": ["id", "label", "payload"],
                     "optional_fields": ["confirm", "policy_sensitive"],
                     "payload_schemas": [
-                        {"id": "apply_patch", "fields": ["patch_id"]},
-                        {"id": "copy_to_clipboard", "fields": ["text"]},
-                        {"id": "create_context_set", "fields": ["name"]},
-                        {"id": "export_document", "fields": ["format"]},
-                        {"id": "open_corpus_item", "fields": ["item_id"]},
-                        {"id": "open_section", "fields": ["section_id"]},
-                        {"id": "pin_to_context_set", "fields": ["item_id"]},
-                        {"id": "refresh_license", "fields": []},
-                        {"id": "reject_patch", "fields": ["patch_id"]},
-                        {"id": "run_agent", "fields": ["operation"]},
+                        {"id": "apply_patch", "version": 1, "fields": ["patch_id"]},
+                        {"id": "copy_to_clipboard", "version": 1, "fields": ["text"]},
+                        {"id": "create_context_set", "version": 1, "fields": ["name"]},
+                        {"id": "export_document", "version": 1, "fields": ["format"]},
+                        {"id": "open_corpus_item", "version": 1, "fields": ["item_id"]},
+                        {"id": "open_section", "version": 1, "fields": ["section_id"]},
+                        {"id": "pin_to_context_set", "version": 1, "fields": ["item_id"]},
+                        {"id": "refresh_license", "version": 1, "fields": []},
+                        {"id": "reject_patch", "version": 1, "fields": ["patch_id"]},
+                        {"id": "run_agent", "version": 1, "fields": ["operation"]},
                     ],
                 }
             ],

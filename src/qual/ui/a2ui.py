@@ -7,6 +7,7 @@ from typing import Any, Callable, Protocol
 
 A2UI_VERSION = 1
 A2UI_CONTRACT_VERSION = 2
+A2UI_ACTION_SCHEMA_VERSION = 1
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
 DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES = 8_192
@@ -169,6 +170,7 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
         "actions": [
             {
                 "id": action_id,
+                "version": A2UI_ACTION_SCHEMA_VERSION,
                 "payload_fields": sorted(schema),
             }
             for action_id, schema in sorted(_ACTION_SCHEMAS.items())
@@ -181,6 +183,7 @@ def _build_read_only_fallback_action_manifest() -> list[dict[str, Any]]:
         {
             "id": FALLBACK_COPY_ACTION_ID,
             "label": "Copy JSON",
+            "version": A2UI_ACTION_SCHEMA_VERSION,
             "payload_fields": ["text"],
         }
     ]
@@ -209,11 +212,13 @@ def _build_a2ui_schema_manifest() -> dict[str, Any]:
         "actions": [
             {
                 "type": "ActionRef",
+                "version": A2UI_ACTION_SCHEMA_VERSION,
                 "required_fields": ["id", "label", "payload"],
                 "optional_fields": ["confirm", "policy_sensitive"],
                 "payload_schemas": [
                     {
                         "id": action_id,
+                        "version": A2UI_ACTION_SCHEMA_VERSION,
                         "fields": sorted(schema),
                     }
                     for action_id, schema in sorted(_ACTION_SCHEMAS.items())
