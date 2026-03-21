@@ -130,6 +130,7 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
             "unknown": UNKNOWN_CARD_TYPE,
             "reserved": list(_RESERVED_CARD_TYPES),
         },
+        "schemas": _build_a2ui_schema_manifest(),
         "primitive_blocks": [
             {
                 "type": block_type,
@@ -143,6 +144,41 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
                 "payload_fields": sorted(schema),
             }
             for action_id, schema in sorted(_ACTION_SCHEMAS.items())
+        ],
+    }
+
+
+def _build_a2ui_schema_manifest() -> dict[str, Any]:
+    return {
+        "cards": [
+            {
+                "type": GENERIC_CARD_TYPE,
+                "version": A2UI_VERSION,
+                "required_fields": ["type", "title"],
+                "optional_fields": ["a2ui_version", "subtitle", "blocks", "actions", "debug"],
+                "action_policy": "client_allowlist",
+            },
+            {
+                "type": UNKNOWN_CARD_TYPE,
+                "version": A2UI_VERSION,
+                "required_fields": ["type", "title", "subtitle", "a2ui_version", "debug", "blocks", "actions"],
+                "optional_fields": [],
+                "action_policy": "copy_to_clipboard_only",
+            },
+        ],
+        "actions": [
+            {
+                "type": "ActionRef",
+                "required_fields": ["id", "label", "payload"],
+                "optional_fields": ["confirm", "policy_sensitive"],
+                "payload_schemas": [
+                    {
+                        "id": action_id,
+                        "fields": sorted(schema),
+                    }
+                    for action_id, schema in sorted(_ACTION_SCHEMAS.items())
+                ],
+            }
         ],
     }
 

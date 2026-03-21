@@ -85,6 +85,47 @@ class A2UIContractTests(unittest.TestCase):
             },
         )
         self.assertEqual(
+            manifest["schemas"]["cards"],
+            [
+                {
+                    "type": "GenericCard",
+                    "version": 1,
+                    "required_fields": ["type", "title"],
+                    "optional_fields": ["a2ui_version", "subtitle", "blocks", "actions", "debug"],
+                    "action_policy": "client_allowlist",
+                },
+                {
+                    "type": "UnknownCard",
+                    "version": 1,
+                    "required_fields": ["type", "title", "subtitle", "a2ui_version", "debug", "blocks", "actions"],
+                    "optional_fields": [],
+                    "action_policy": "copy_to_clipboard_only",
+                },
+            ],
+        )
+        self.assertEqual(
+            manifest["schemas"]["actions"],
+            [
+                {
+                    "type": "ActionRef",
+                    "required_fields": ["id", "label", "payload"],
+                    "optional_fields": ["confirm", "policy_sensitive"],
+                    "payload_schemas": [
+                        {"id": "apply_patch", "fields": ["patch_id"]},
+                        {"id": "copy_to_clipboard", "fields": ["text"]},
+                        {"id": "create_context_set", "fields": ["name"]},
+                        {"id": "export_document", "fields": ["format"]},
+                        {"id": "open_corpus_item", "fields": ["item_id"]},
+                        {"id": "open_section", "fields": ["section_id"]},
+                        {"id": "pin_to_context_set", "fields": ["item_id"]},
+                        {"id": "refresh_license", "fields": []},
+                        {"id": "reject_patch", "fields": ["patch_id"]},
+                        {"id": "run_agent", "fields": ["operation"]},
+                    ],
+                }
+            ],
+        )
+        self.assertEqual(
             manifest["primitive_blocks"],
             [
                 {"type": "MarkdownBlock", "fields": ["markdown"]},
