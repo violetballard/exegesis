@@ -107,6 +107,12 @@ def describe_a2ui_contract() -> dict[str, Any]:
     the contract they negotiated without having to mirror internal module state.
     """
 
+    manifest = _build_a2ui_contract_manifest()
+    manifest["contract_fingerprint"] = a2ui_contract_fingerprint()
+    return manifest
+
+
+def _build_a2ui_contract_manifest() -> dict[str, Any]:
     return {
         "a2ui_version": A2UI_VERSION,
         "cards": {
@@ -134,7 +140,7 @@ def describe_a2ui_contract() -> dict[str, Any]:
 def a2ui_contract_fingerprint() -> str:
     """Return a stable fingerprint for the current contract manifest."""
 
-    manifest = describe_a2ui_contract()
+    manifest = _build_a2ui_contract_manifest()
     return hashlib.sha256(_canonical_json(manifest).encode("utf-8")).hexdigest()
 
 

@@ -74,6 +74,8 @@ class A2UIContractTests(unittest.TestCase):
         manifest = describe_a2ui_contract()
 
         self.assertEqual(manifest["a2ui_version"], 1)
+        self.assertEqual(manifest["contract_fingerprint"], a2ui_contract_fingerprint())
+        self.assertEqual(len(manifest["contract_fingerprint"]), 64)
         self.assertEqual(
             manifest["cards"],
             {
