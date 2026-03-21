@@ -1,7 +1,7 @@
 {
   "approved_exception_note": "",
   "handoff_alignment_commit": "203906231e9c47371b6d7bc4028bc4f60e764581",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 5 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff.",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 6 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff.",
   "implementation_commit": "36893f06df85409c4595d64adb8af60455c086a6",
   "cleanup_commit": "dc8f79e4abeb30de51854fdd84d35b97993955b8",
   "proposed_readme_patch": "",
@@ -15,13 +15,14 @@
     "src/qual/retrieval/service.py",
     "src/qual/engine/retrieval/policy.py"
   ],
-  "scope_completed": "Delivered behavior: FTS-first retrieval is active for vault, collection:, and doc: scopes. src/qual/retrieval/service.py forwards those queries to the owned retrieval engine, src/qual/engine/retrieval/__init__.py exposes the canonical retrieval surface, src/qual/engine/retrieval/policy.py keeps fts active while leaving pageindex and embeddings deferred, and section: remains rejected until fallback support exists. The handoff is limited to the lane-owned retrieval paths.",
+  "scope_completed": "Delivered behavior: FTS-first retrieval is active for vault, collection:, and doc: scopes. src/qual/retrieval/service.py forwards those queries to the owned retrieval engine, src/qual/engine/retrieval/__init__.py exposes the canonical retrieval surface, src/qual/engine/retrieval/policy.py keeps fts active while leaving pageindex and embeddings deferred, and section: remains rejected until fallback support exists. The handoff is limited to src/qual/retrieval/** and src/qual/engine/retrieval/**.",
   "scope_goal": "Document the retrieval handoff boundary while keeping the lane-owned retrieval scope constrained to FTS-first MVP behavior.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Re-anchored the packet to the retrieval feature commit and kept the lane-owned file list narrow.",
     "Kept the handoff surface within the lane-owned retrieval paths only.",
     "Added a concrete Scope completed statement for the delivered FTS-first behavior.",
+    "Kept the changed-file list constrained to src/qual/retrieval/** and src/qual/engine/retrieval/**.",
     "Preserved the roadmap and vision mapping while keeping PageIndex and embeddings deferred.",
     "Documented the section-scope compatibility boundary for the current FTS-first MVP path."
   ],
