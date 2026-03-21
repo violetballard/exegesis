@@ -1,9 +1,9 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Scope goal: Tighten the handoff packet so it matches commit `3f40de6888902f10aff343a81f76befd0552bfce` exactly.
-- Reviewed commit type: Docs-only handoff metadata tightening.
-- Scope completed: The reviewed commit `3f40de6888902f10aff343a81f76befd0552bfce` only updated `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`.
+- Scope goal: Tighten the handoff packet so it matches commit `3187be3a382ba1b1fc52297a1c393b1ed8ce3904` exactly.
+- Reviewed commit type: Docs-only handoff metadata alignment.
+- Scope completed: The reviewed commit `3187be3a382ba1b1fc52297a1c393b1ed8ce3904` only updated `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`.
 - Tasks completed:
     1. Rewrote the scope goal so it tracks the reviewed commit exactly.
     2. Added an explicit `Scope completed` field that says the commit only updated handoff artifacts.
@@ -20,9 +20,9 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - Reviewer fix closure:
-  - `#1` regenerated the packet so `Files changed` matches commit `3f40de6888902f10aff343a81f76befd0552bfce` exactly.
+  - `#1` regenerated the packet so `Files changed` matches commit `3187be3a382ba1b1fc52297a1c393b1ed8ce3904` exactly.
   - `#2` removed all implementation-file references from the packet because they are not part of the reviewed commit.
-  - `#3` rewrote the scope goal and tasks to describe the docs-only handoff metadata-tightening work.
+  - `#3` rewrote the scope goal and tasks to describe the docs-only handoff metadata-alignment work.
   - `#4` added an explicit `Scope completed` field stating that the commit only updated handoff artifacts.
   - `#5` trimmed roadmap and vision mapping so they stay focused on handoff metadata accuracy.
 - Checkpoint status:
