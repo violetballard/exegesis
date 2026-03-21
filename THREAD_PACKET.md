@@ -8,7 +8,7 @@
 - Scope completed: Kept the recovery feature reference anchored to the earlier owned-path commit that actually changed source and test files.
 - Scope completed: Removed the false claim that the current commit carries the context-storage recovery implementation.
 - Tasks completed:
-  1. Marked `47a827bc6347cae19c5aed5de3f899a73ab97f1c` as a docs-only packet-alignment commit.
+  1. Marked `d234ad2b115ae4aee36871ea84a5d6dcfb9f5bd3` as a docs-only packet-alignment commit.
   2. Kept `369f2d8f84afbb9805b3219abe8e7ed62d4662c2` as the actual recovery feature commit referenced by the packet.
   3. Removed the misleading source/test implementation claims from the branch-head commit.
   4. Reconciled the handoff text with the real ownership boundary for this commit.
@@ -23,7 +23,7 @@
 - Shared/integrator-locked edits:
   - `NO`
 - Commands run with results:
-  - `git rev-parse --short HEAD` -> confirmed the branch head is the packet-alignment commit
+  - `git rev-parse --short HEAD` -> confirmed the branch head is `d234ad2b`
   - `git show --stat --name-only --oneline 369f2d8f` -> confirmed the real recovery feature commit spans the context/storage recovery source changes and recovery test coverage
   - `git show --unified=0 --format=medium 369f2d8f -- src/qual/context/set_store.py src/qual/context/store.py src/qual/storage/vault.py tests/unit/test_context_storage_recovery.py` -> confirmed the feature diff matches the earlier owned-path recovery scope plus the approved shared test file described above
   - `make scope-check` -> passed
