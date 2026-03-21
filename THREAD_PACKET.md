@@ -1,8 +1,8 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Reviewed commit: `6c8617038b478078323bc3ada999ff6debe39acb` (`THREAD_PACKET.md` only)
-- Scope goal: Align the handoff packet with the actual one-file docs-only diff.
+- Reviewed commit: `0d8127dd5f20c01dcd647f6e138f978015fa5d41` (`THREAD_PACKET.md` only)
+- Scope goal: Align the handoff packet with the actual one-file docs-only diff at HEAD.
 - Scope completed: Rewrote `THREAD_PACKET.md` so the packet describes only the packet-text correction in this commit and does not imply any storage, context, or recovery code changed.
 - Tasks completed:
   1. Reframed the packet around the actual docs-only `THREAD_PACKET.md` change set.
@@ -11,6 +11,8 @@
   4. Kept the scope-completed bullets tied to the packet rewrite itself.
 - Files changed:
   - `THREAD_PACKET.md`
+- Shared/integrator-locked edits:
+  - `NO` - the lane stayed entirely within owned paths; no approved shared files were touched.
 - Commands run with results:
   - `git show --stat --name-only --oneline HEAD` -> confirmed the branch HEAD changes only `THREAD_PACKET.md`
   - `git show --unified=0 --format=medium HEAD -- THREAD_PACKET.md` -> confirmed the packet rewrite is a docs-only handoff correction
