@@ -384,6 +384,19 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("[unsupported block: malformed]", text)
         self.assertIn("[ListBlock: invalid items]", text)
 
+    def test_terminal_renderer_ignores_non_list_blocks_and_actions(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Fallback",
+            "blocks": None,
+            "actions": None,
+        }
+
+        text = render_terminal_card(card)
+
+        self.assertIn("[GenericCard] Fallback", text)
+        self.assertNotIn("Actions:", text)
+
 
 if __name__ == "__main__":
     unittest.main()
