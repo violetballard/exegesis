@@ -12,7 +12,7 @@ Document the retrieval handoff boundary while keeping the current commit strictl
 
 ## Scope completed
 
-This commit updates only the handoff artifacts in lane-owned docs paths. The completed scope is the three packet files: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, and `THREAD_PACKET.md`. It records that the reviewed retrieval implementation lives in `36893f06df85409c4595d64adb8af60455c086a6`, that the deferred-policy boundary lives in `dc8f79e4abeb30de51854fdd84d35b97993955b8`, and that `203906231e9c47371b6d7bc4028bc4f60e764581` does not add retrieval code changes. The handoff keeps the file list restricted to those docs files, states the owned retrieval behavior as FTS-first for `vault`, `collection:`, and `doc:` scopes, and documents `section:` as a compatibility break in the current MVP until fallback support exists. PageIndex and embeddings references remain deferred-only history, and the roadmap/vision mapping stays scoped to the docs-only handoff boundary rather than claiming feature delivery in this commit.
+This commit updates only the handoff artifacts in lane-owned docs paths. The completed scope is the three packet files: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, and `THREAD_PACKET.md`. It records that the reviewed retrieval implementation lives in `36893f06df85409c4595d64adb8af60455c086a6`, that the deferred-policy boundary lives in `dc8f79e4abeb30de51854fdd84d35b97993955b8`, and that `203906231e9c47371b6d7bc4028bc4f60e764581` does not add retrieval code changes. The handoff keeps the file list restricted to those docs files, states the owned retrieval behavior as FTS-first for `vault`, `collection:`, and `doc:` scopes, and documents `section:` as a compatibility break in the current MVP until fallback support exists. `src/qual/engine/tools/retrieval_tools.py` is explicitly not part of this handoff. PageIndex and embeddings references remain deferred-only history, and the roadmap/vision mapping stays scoped to the docs-only handoff boundary rather than claiming feature delivery in this commit.
 
 ## Compatibility Note
 
@@ -57,7 +57,7 @@ Breaking compatibility note: `section:` scopes remain intentionally rejected in 
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - Reviewer fix closure:
-  - `#1` re-anchored the packet to the actual reviewed commit boundaries and stated that `203906231e9c47371b6d7bc4028bc4f60e764581` is docs-only.
+  - `#1` keeps `src/qual/engine/tools/retrieval_tools.py` out of the reviewed handoff surface and states that `203906231e9c47371b6d7bc4028bc4f60e764581` is docs-only.
   - `#2` rewrote `Files changed` so it only lists the docs files changed here.
   - `#3` added a concrete `Scope completed` section describing the docs-only handoff alignment.
   - `#4` removed the stale cross-lane retrieval-tool claim from the handoff surface.
