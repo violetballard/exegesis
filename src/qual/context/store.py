@@ -116,6 +116,8 @@ class ContextBasketStore:
                     or schema_version != _SCHEMA_VERSION
                     or normalized_items != parsed_items
                 )
+                if isinstance(raw_item_ids, list) and parsed_items != raw_item_ids:
+                    should_rewrite = True
                 if self._has_dropped_item_ids(raw_item_ids):
                     should_rewrite = True
             if self._has_unknown_fields(payload):
@@ -486,6 +488,8 @@ class ContextBasketStore:
         raw_item_ids = payload.get("item_ids")
         parsed_items = self._parse_item_ids(raw_item_ids)
         if parsed_items is None:
+            return True
+        if isinstance(raw_item_ids, list) and parsed_items != raw_item_ids:
             return True
         if parsed_items != self._normalize_item_ids(parsed_items):
             return True
