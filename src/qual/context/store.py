@@ -166,7 +166,6 @@ class ContextBasketStore:
     ) -> None:
         basket.normalize()
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        backup_written = False
         payload = {
             "schema_version": _SCHEMA_VERSION,
             "updated_at": datetime.now(UTC).isoformat(),
@@ -183,7 +182,14 @@ class ContextBasketStore:
             self._unlink_if_exists(tmp)
             raise
         backup_payload = self._backup_payload(payload)
-        backup_written = self._write_backup_payload(backup_payload)
+        current_backup_payload, _ = self._load_payload(self._backup_path)
+        backup_written = (
+            refresh_backup
+            or current_backup_payload is None
+            or self._backup_needs_refresh(current_backup_payload, basket, payload)
+        )
+        if backup_written:
+            backup_written = self._write_backup_payload(backup_payload)
         if not backup_written:
             # Seed keeps the latest canonical basket recoverable if backup
             # rotation cannot be completed after the primary rewrite.

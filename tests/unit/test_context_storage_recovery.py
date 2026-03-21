@@ -4,7 +4,9 @@ import math
 import json
 import tempfile
 import unittest
+from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from src.qual.context.basket import ContextBasket
@@ -537,6 +539,29 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("schema_version"), 1)
         self.assertEqual(payload.get("item_ids"), ["first"])
         self.assertNotIn("recovered_from", payload)
+
+    def test_save_skips_canonical_backup_rewrite_without_forced_refresh(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        fixed_now = datetime(2026, 3, 20, 12, 0, 0, tzinfo=UTC)
+        payload = {
+            "schema_version": 1,
+            "updated_at": fixed_now.isoformat(),
+            "item_ids": ["first"],
+        }
+        self.store._path.write_text(json.dumps(payload), encoding="utf-8")
+        self.store._backup_path.write_text(json.dumps(payload), encoding="utf-8")
+
+        with (
+            patch(
+                "src.qual.context.store.datetime",
+                new=SimpleNamespace(now=lambda tz=None: fixed_now, fromisoformat=datetime.fromisoformat),
+            ),
+            patch.object(ContextBasketStore, "_write_backup_payload", wraps=self.store._write_backup_payload) as write_backup,
+        ):
+            self.store.save(ContextBasket(item_ids=["first"]))
+
+        self.assertEqual(write_backup.call_count, 0)
+        self.assertEqual(json.loads(self.store._backup_path.read_text(encoding="utf-8")), payload)
 
     def test_save_preserves_seed_when_backup_refresh_fails_after_primary_rewrite(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
