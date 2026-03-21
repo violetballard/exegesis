@@ -385,6 +385,7 @@ def build_unknown_card(
         supported_actions=supported_actions,
         max_payload_bytes=effective_max_payload_bytes,
     )
+    _validate_canonical_read_only_fallback_actions(actions)
     card = {
         "type": UNKNOWN_CARD_TYPE,
         "title": _build_fallback_title(UNKNOWN_CARD_TYPE, source_card_type=type_name),
@@ -654,6 +655,31 @@ def _filter_supported_actions(actions: Any, *, supported_actions: set[str]) -> l
         seen.add(action_key)
         filtered.append(normalized)
     return filtered
+
+
+def _validate_canonical_read_only_fallback_actions(actions: list[Any]) -> None:
+    seen_actions: set[str] = set()
+    for action in actions:
+        validate_action_ref(action)
+        if not isinstance(action, dict):
+            raise ValueError("Fallback card actions must be copy_to_clipboard only")
+        if action.get("id") != FALLBACK_COPY_ACTION_ID:
+            raise ValueError("Fallback card actions must be copy_to_clipboard only")
+        if action.get("label") != "Copy JSON":
+            raise ValueError("Fallback card actions must use the canonical Copy JSON label")
+        if "confirm" in action:
+            raise ValueError("Fallback card actions must not require confirmation")
+        if action.get("policy_sensitive") is True:
+            raise ValueError("Fallback card actions must not be policy-sensitive")
+        payload = action.get("payload")
+        if not isinstance(payload, dict) or set(payload) != {"text"}:
+            raise ValueError("Fallback card actions must use the canonical clipboard payload")
+        if not isinstance(payload.get("text"), str):
+            raise ValueError("Fallback card actions must use a string clipboard payload")
+        action_key = _canonical_json(action)
+        if action_key in seen_actions:
+            raise ValueError("Fallback card actions must not contain duplicates")
+        seen_actions.add(action_key)
 
 
 def _materialize_versioned_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
