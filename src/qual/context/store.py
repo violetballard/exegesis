@@ -36,12 +36,11 @@ class ContextBasketStore:
         primary_missing = not self._path.exists()
         backup_missing = not self._backup_path.exists()
         primary_payload, _ = self._load_payload(self._path)
-        tmp_payload, tmp_quarantined = self._load_payload(self._tmp_path())
-        backup_tmp_payload, backup_tmp_quarantined = self._load_payload(self._backup_tmp_path())
+        tmp_payload, _ = self._load_payload(self._tmp_path())
+        backup_tmp_payload, _ = self._load_payload(self._backup_tmp_path())
         backup_payload, _ = self._load_payload(self._backup_path)
-        seed_tmp_payload, seed_tmp_quarantined = self._load_payload(self._seed_tmp_path())
+        seed_tmp_payload, _ = self._load_payload(self._seed_tmp_path())
         seed_payload, _ = self._load_payload(self._seed_state_path())
-        saw_temporary_quarantine = tmp_quarantined or backup_tmp_quarantined or seed_tmp_quarantined
 
         if primary_payload is not None:
             payload = primary_payload
@@ -64,7 +63,7 @@ class ContextBasketStore:
             payload = seed_payload
             recovered_source = "seed"
         else:
-            self._clear_quarantine_file(preserve_temporary=saw_temporary_quarantine)
+            self._clear_quarantine_file()
             self._clear_temporary_files()
             return ContextBasket()
 
