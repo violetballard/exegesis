@@ -12,7 +12,7 @@ Document the retrieval handoff boundary while keeping the current commit strictl
 
 ## Scope completed
 
-This commit updates only the handoff artifacts in lane-owned docs paths. It records that the reviewed retrieval implementation lives in `36893f06df85409c4595d64adb8af60455c086a6`, that the deferred-policy boundary lives in `dc8f79e4abeb30de51854fdd84d35b97993955b8`, and that `203906231e9c47371b6d7bc4028bc4f60e764581` does not add retrieval code changes. The actual diff is limited to `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, and `THREAD_PACKET.md`; no non-owned source files are promoted. The packet keeps the file list restricted to those docs files, states the owned retrieval behavior as FTS-first for `vault`, `collection:`, and `doc:` scopes, and documents `section:` as a compatibility break in the current MVP until fallback support exists. PageIndex and embeddings references remain deferred-only history, and the roadmap/vision mapping stays scoped to the docs-only handoff boundary rather than claiming feature delivery in this commit.
+This commit updates only the handoff artifacts in lane-owned docs paths. It records that the reviewed retrieval implementation lives in `36893f06df85409c4595d64adb8af60455c086a6`, that the deferred-policy boundary lives in `dc8f79e4abeb30de51854fdd84d35b97993955b8`, and that `203906231e9c47371b6d7bc4028bc4f60e764581` does not add retrieval code changes. The actual diff is limited to `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, and `THREAD_PACKET.md`; no non-owned source files are promoted and `src/qual/engine/tools/retrieval_tools.py` is not part of this handoff. The packet keeps the file list restricted to those docs files, states the owned retrieval behavior as FTS-first for `vault`, `collection:`, and `doc:` scopes, and documents `section:` as a compatibility break in the current MVP until fallback support exists. PageIndex and embeddings references remain deferred-only history, and the roadmap/vision mapping stays scoped to the docs-only handoff boundary rather than claiming feature delivery in this commit.
 
 ## Compatibility Note
 
@@ -34,7 +34,6 @@ Breaking compatibility note: `section:` scopes remain intentionally rejected in 
 - Reviewed code files:
   - `src/qual/engine/retrieval/__init__.py`
   - `src/qual/retrieval/service.py`
-  - `tests/unit/test_unified_retrieval.py`
 - Cleanup boundary file:
   - `src/qual/engine/retrieval/policy.py`
 - Handoff-only artifacts updated in this fix commit:
@@ -46,13 +45,16 @@ Breaking compatibility note: `section:` scopes remain intentionally rejected in 
   2. Marked the current commit as docs-only and removed claims that it delivered retrieval code changes.
   3. Removed the stale cross-lane retrieval-tool reference from the handoff surface.
   4. Kept the file list restricted to the docs files actually changed in this commit.
-  5. Tightened the roadmap and vision mapping so it describes the handoff boundary rather than feature delivery.
-  6. Documented the section-scope compatibility boundary for the current FTS-first MVP path.
+  5. Added an explicit note that `src/qual/engine/tools/retrieval_tools.py` is not part of this handoff.
+  6. Tightened the roadmap and vision mapping so it describes the handoff boundary rather than feature delivery.
+  7. Documented the section-scope compatibility boundary for the current FTS-first MVP path.
 - Files changed:
-  - Handoff-only artifacts:
-    - `.codex/kickoff_packets/feat-retrieval-fts.md`
-    - `.codex/lane_meta/feat-retrieval-fts.json`
-    - `THREAD_PACKET.md`
+- Handoff-only artifacts:
+  - `.codex/kickoff_packets/feat-retrieval-fts.md`
+  - `.codex/lane_meta/feat-retrieval-fts.json`
+  - `THREAD_PACKET.md`
+- Explicitly excluded from this handoff:
+  - `src/qual/engine/tools/retrieval_tools.py`
 - Commit split:
   - implementation: `36893f06df85409c4595d64adb8af60455c086a6`
   - cleanup: `dc8f79e4abeb30de51854fdd84d35b97993955b8`
