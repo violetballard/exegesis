@@ -80,17 +80,22 @@ class VaultService:
     def _read_state(self, root_dir: Path) -> tuple[dict[str, object], str | None, bool]:
         state_path = self._state_path(root_dir)
         primary_missing = not state_path.exists()
-        payload = self._load_payload(state_path)
-        recovered_source: str | None = None
-        if payload is None:
-            payload = self._load_payload(self._tmp_state_path(root_dir))
-            if payload is not None:
-                recovered_source = "tmp"
-        if payload is None:
-            payload = self._load_payload(self._backup_state_path(root_dir))
-            if payload is not None:
-                recovered_source = "backup"
-        if payload is None:
+        primary_payload = self._load_payload(state_path)
+        tmp_payload = self._load_payload(self._tmp_state_path(root_dir))
+        backup_payload = self._load_payload(self._backup_state_path(root_dir))
+
+        payload: dict[str, object] | None
+        recovered_source: str | None
+        if tmp_payload is not None:
+            payload = tmp_payload
+            recovered_source = "tmp"
+        elif primary_payload is not None:
+            payload = primary_payload
+            recovered_source = None
+        elif backup_payload is not None:
+            payload = backup_payload
+            recovered_source = "backup"
+        else:
             return {}, None, primary_missing
         if not isinstance(payload, dict):
             return {}, None, primary_missing

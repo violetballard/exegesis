@@ -24,17 +24,22 @@ class ContextBasketStore:
 
     def load(self) -> ContextBasket:
         primary_missing = not self._path.exists()
-        payload = self._load_payload(self._path)
-        recovered_source: str | None = None
-        if payload is None:
-            payload = self._load_payload(self._tmp_path())
-            if payload is not None:
-                recovered_source = "tmp"
-        if payload is None:
-            payload = self._load_payload(self._backup_path)
-            if payload is not None:
-                recovered_source = "backup"
-        if payload is None:
+        primary_payload = self._load_payload(self._path)
+        tmp_payload = self._load_payload(self._tmp_path())
+        backup_payload = self._load_payload(self._backup_path)
+
+        payload: dict[str, object] | list[object] | None
+        recovered_source: str | None
+        if tmp_payload is not None:
+            payload = tmp_payload
+            recovered_source = "tmp"
+        elif primary_payload is not None:
+            payload = primary_payload
+            recovered_source = None
+        elif backup_payload is not None:
+            payload = backup_payload
+            recovered_source = "backup"
+        else:
             return ContextBasket()
 
         should_rewrite = False
@@ -70,10 +75,13 @@ class ContextBasketStore:
             recovered_source=recovered_source,
         )
         if recovered_source is not None or should_rewrite:
+            # Keep the backup aligned with the latest canonical basket whenever we
+            # rewrite state during load, not only when we recover from tmp/backup.
+            refresh_backup = recovered_source is not None or should_rewrite
             self.save(
                 basket,
                 recovered_from=recovered_from,
-                refresh_backup=recovered_source is not None,
+                refresh_backup=refresh_backup,
             )
         return basket
 
