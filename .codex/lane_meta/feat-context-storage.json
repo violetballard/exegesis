@@ -1,10 +1,10 @@
 {
-  "scope_goal": "Harden context basket, context set, and vault persistence recovery so malformed optional metadata is salvaged and rewritten without discarding valid local state, with approved shared recovery test coverage documented explicitly.",
+  "scope_goal": "Realign the context-storage handoff packet to the actual recovery feature commit and mark the current branch head as docs-only packet alignment.",
   "tasks_completed": [
-    "Repointed the handoff at the actual recovery feature commit.",
-    "Restored the approved shared recovery test file in the handoff metadata.",
-    "Kept the packet aligned with the owned-path storage recovery behavior.",
-    "Reran scope, format, lint, unit, typecheck, and CI gates on the feature commit and confirmed they all pass."
+    "Marked the branch head as a docs-only packet-alignment commit.",
+    "Kept the real recovery feature commit reference anchored in the handoff packet.",
+    "Removed the stale source/test implementation claims from the branch-head handoff.",
+    "Reran scope, format, lint, unit, typecheck, and CI gates on the branch head and confirmed they pass."
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
@@ -17,7 +17,7 @@
   ],
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
-  "shared_file_exception": true,
-  "kickoff_budget_note": "Handoff metadata aligned to the reviewed recovery fix with approved shared test coverage.",
-  "approved_exception_note": "Approved shared-file exception for tests/unit/test_context_storage_recovery.py to cover the vault recovery regression alongside the owned-path storage fix."
+  "shared_file_exception": false,
+  "kickoff_budget_note": "Handoff metadata aligned to the branch-head packet-only fix.",
+  "approved_exception_note": ""
 }

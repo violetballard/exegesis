@@ -1,50 +1,47 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Reviewed commit: `369f2d8f84afbb9805b3219abe8e7ed62d4662c2`
-- Scope goal: Harden context basket, context set, and vault persistence recovery so malformed recovery payloads are preserved, quarantined, and rewritten without discarding valid local state, and cover that recovery contract with focused tests.
-- Scope completed: Updated context basket recovery to preserve audit quarantines when malformed recovery payloads are rewritten.
-- Scope completed: Updated context set recovery to preserve audit quarantines when malformed recovery payloads are rewritten.
-- Scope completed: Updated vault state recovery to preserve valid lock and project state when recovery metadata is malformed, then rewrite normalized persisted state.
-- Scope completed: Hardened context basket and vault state recovery so malformed optional metadata is salvaged and normalized without discarding valid local state.
+- Current commit: `cefdd8d534952d03adf64be1c02568aea3daecd2`
+- Reviewed feature commit: `369f2d8f84afbb9805b3219abe8e7ed62d4662c2`
+- Scope goal: Realign the handoff packet to the actual recovery feature commit and mark this branch-head commit as docs-only packet alignment.
+- Scope completed: Marked the branch head as a packet-alignment commit rather than feature implementation work.
+- Scope completed: Kept the recovery feature reference anchored to the earlier owned-path commit that actually changed source and test files.
+- Scope completed: Removed the false claim that the current commit carries the context-storage recovery implementation.
 - Tasks completed:
-  1. Repointed the handoff at the actual recovery feature commit.
-  2. Replaced the stale file list with the reviewed commit's real source paths and approved shared recovery test coverage.
-  3. Documented the approved shared-file exception for the recovery regression test instead of treating it as owned-path-only work.
-  4. Kept the packet aligned with the actual owned-path recovery behavior.
-  5. Reran scope, format, lint, unit, typecheck, and CI gates on the feature commit and confirmed they all pass.
+  1. Marked `cefdd8d534952d03adf64be1c02568aea3daecd2` as a docs-only packet-alignment commit.
+  2. Kept `369f2d8f84afbb9805b3219abe8e7ed62d4662c2` as the actual recovery feature commit referenced by the packet.
+  3. Removed the misleading source/test implementation claims from the branch-head commit.
+  4. Reconciled the handoff text with the real ownership boundary for this commit.
+  5. Re-ran the required local gates on the branch head and confirmed they pass.
 - Files changed:
-  - `src/qual/context/set_store.py`
-  - `src/qual/context/store.py`
-  - `src/qual/storage/vault.py`
-  - `tests/unit/test_context_storage_recovery.py`
+  - `THREAD_PACKET.md`
+  - `.codex/lane_meta/feat-context-storage.json`
 - Shared/integrator-locked edits:
-  - `YES`
-  - `tests/unit/test_context_storage_recovery.py` (approved shared coverage for the vault recovery regression alongside the owned-path storage fix)
+  - `NO`
 - Commands run with results:
-  - `git show --stat --name-only --oneline 369f2d8f` -> confirmed the reviewed feature commit spans the context/storage recovery source changes and recovery test coverage
-  - `git show --unified=0 --format=medium 369f2d8f -- src/qual/context/set_store.py src/qual/context/store.py src/qual/storage/vault.py tests/unit/test_context_storage_recovery.py` -> confirmed the feature diff matches the owned-path recovery scope plus the approved shared test file described above
+  - `git show --stat --name-only --oneline 369f2d8f` -> confirmed the real recovery feature commit spans the context/storage recovery source changes and recovery test coverage
+  - `git show --unified=0 --format=medium 369f2d8f -- src/qual/context/set_store.py src/qual/context/store.py src/qual/storage/vault.py tests/unit/test_context_storage_recovery.py` -> confirmed the feature diff matches the earlier owned-path recovery scope plus the approved shared test file described above
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
-  - `./quality-test.sh` -> passed (`Ran 145 tests`, `OK`)
+  - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - Reviewer fix closure:
-  - `#1` repointed the handoff at the actual feature commit instead of the docs-only packet commit.
-  - `#2` made `Files changed` match the reviewed commit's real recovery source/test diff.
-  - `#3` recorded the approved shared recovery test file and rationale instead of collapsing the handoff to owned-path-only work.
-  - `#4` kept the scope tied to `feat-context-storage` work in owned paths.
-  - `#5` re-ran the required gates against the actual feature commit and recorded the passing results.
+  - `#1` made the branch head explicitly docs-only instead of implying it contains the recovery implementation.
+  - `#2` separated the branch-head commit from the actual recovery feature commit in the packet.
+  - `#3` removed the stale source/test file list from the branch-head handoff.
+  - `#4` reconciled the shared-file story with the real diff for this commit.
+  - `#5` re-ran the required gates on the branch head and recorded the passing results.
 - Checkpoint status:
   - plan complete
-  - first green tests: `./quality-test.sh` passed (`Ran 145 tests`, `OK`)
-  - ready for handoff: all required local gates passed
+  - first green tests: `./quality-test.sh` passed
+  - ready for handoff: all required local gates passed on the branch head
 - Risks/blockers:
   - None.
 - Roadmap item(s) affected:
-  - Milestone 1 - Bootstrap Flow Stabilization: context set and vault persistence hardening.
-  - Milestone 2 - Test Hardening: focused recovery coverage for malformed metadata and quarantine preservation.
+  - Milestone 1 - Bootstrap Flow Stabilization: packet alignment for the context-storage recovery handoff.
+  - Milestone 2 - Test Hardening: handoff traceability for the recovery coverage commit.
 - Vision capability affected:
   - Capability 1 - Local-first state and identity.
   - Capability 3 - Auditable generation through deterministic recovery and rewrite behavior for persisted local state.
