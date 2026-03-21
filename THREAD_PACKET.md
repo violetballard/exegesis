@@ -12,7 +12,7 @@ Document the retrieval handoff boundary while keeping the current commit strictl
 
 ## Scope Completed
 
-This commit updates only the handoff artifacts in lane-owned docs paths. It states that the reviewed retrieval implementation lives in `36893f06df85409c4595d64adb8af60455c086a6`, that the deferred-policy boundary lives in `dc8f79e4abeb30de51854fdd84d35b97993955b8`, and that `203906231e9c47371b6d7bc4028bc4f60e764581` does not add retrieval code changes. The actual diff is limited to `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, and `THREAD_PACKET.md`; no non-owned source files are promoted, and `src/qual/engine/tools/retrieval_tools.py` is not part of the promoted handoff. The packet keeps the file list restricted to those docs files, states the owned retrieval behavior as FTS-first for `vault`, `collection:`, and `doc:` scopes, and documents `section:` as a compatibility break in the current MVP until fallback support exists. PageIndex and embeddings references remain deferred-only history, and the roadmap/vision mapping stays scoped to the docs-only handoff boundary rather than claiming feature delivery in this commit.
+This commit updates only the handoff artifacts in lane-owned docs paths. It records that the reviewed retrieval implementation lives in `36893f06df85409c4595d64adb8af60455c086a6`, that the deferred-policy boundary lives in `dc8f79e4abeb30de51854fdd84d35b97993955b8`, and that `203906231e9c47371b6d7bc4028bc4f60e764581` does not add retrieval code changes. The actual diff is limited to `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, and `THREAD_PACKET.md`; no non-owned source files are promoted. The packet keeps the file list restricted to those docs files, states the owned retrieval behavior as FTS-first for `vault`, `collection:`, and `doc:` scopes, and documents `section:` as a compatibility break in the current MVP until fallback support exists. PageIndex and embeddings references remain deferred-only history, and the roadmap/vision mapping stays scoped to the docs-only handoff boundary rather than claiming feature delivery in this commit.
 
 ## Compatibility Note
 
@@ -22,7 +22,6 @@ Breaking compatibility note: `section:` scopes remain intentionally rejected in 
 
 - Shared/integrator-locked edits: `NO`
 - Non-owned source files promoted: `NO`
-- Explicitly excluded non-owned path: `src/qual/engine/tools/retrieval_tools.py`
 
 ## Code-Diff Evidence
 
@@ -69,7 +68,7 @@ Breaking compatibility note: `section:` scopes remain intentionally rejected in 
 - Reviewer fix closure:
   - `#1` re-anchored the packet to the actual reviewed commit boundaries and stated that `203906231e9c47371b6d7bc4028bc4f60e764581` is docs-only.
   - `#2` rewrote `Files changed` so it only lists the docs files changed here.
-  - `#3` added a concrete `Scope completed` paragraph describing the docs-only handoff alignment.
+  - `#3` added a concrete `Scope completed` section describing the docs-only handoff alignment.
   - `#4` removed the stale cross-lane retrieval-tool claim from the handoff surface.
   - `#5` tightened the roadmap/vision mapping to describe the handoff boundary rather than feature delivery.
   - `#6` documented the `section:` compatibility boundary for the current FTS-first MVP path.
