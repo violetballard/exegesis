@@ -571,14 +571,14 @@ class A2UIContractTests(unittest.TestCase):
             unknown["subtitle"],
             "Read-only fallback view with safe primitive blocks and raw JSON preview.",
         )
-        self.assertEqual(
-            unknown["blocks"],
-            [
-                {"type": "MarkdownBlock", "markdown": "safe"},
-                {"type": "ListBlock", "items": ["alpha", "beta"]},
-            ],
-        )
         self.assertEqual(unknown["actions"], [])
+        self.assertEqual(
+            [block["type"] for block in unknown["blocks"]],
+            ["MarkdownBlock", "ListBlock", "CodeBlock"],
+        )
+        self.assertEqual(unknown["blocks"][0], {"type": "MarkdownBlock", "markdown": "safe"})
+        self.assertEqual(unknown["blocks"][1], {"type": "ListBlock", "items": ["alpha", "beta"]})
+        self.assertIn('"type": "FutureCard"', unknown["blocks"][-1]["code"])
 
         text = render_terminal_card(unknown)
         self.assertIn("[UnknownCard] Unsupported card type: FutureCard", text)
@@ -619,7 +619,7 @@ class A2UIContractTests(unittest.TestCase):
             unknown["debug"],
             {"contract_version": 2, "fallback_kind": "unknown", "source_card_type": "FutureCard"},
         )
-        self.assertEqual(unknown["blocks"], [{"type": "MarkdownBlock", "markdown": "safe"}])
+        self.assertEqual([block["type"] for block in unknown["blocks"]], ["MarkdownBlock", "CodeBlock"])
         self.assertEqual(
             unknown["actions"],
             [
@@ -630,6 +630,7 @@ class A2UIContractTests(unittest.TestCase):
                 }
             ],
         )
+        self.assertNotIn("should not leak", unknown["blocks"][-1]["code"])
         self.assertNotIn("should not leak", render_terminal_card(unknown))
 
     def test_engine_unknown_card_synthesizes_copy_action_when_supported(self) -> None:
@@ -716,13 +717,11 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(unknown["type"], "UnknownCard")
         self.assertEqual(unknown["title"], "Unsupported card type: FutureCard")
-        self.assertEqual(
-            unknown["blocks"],
-            [
-                {"type": "MarkdownBlock", "markdown": "safe"},
-                {"type": "KeyValueBlock", "items": [{"key": "Owner", "value": "alice"}]},
-            ],
-        )
+        self.assertEqual([block["type"] for block in unknown["blocks"]], ["MarkdownBlock", "KeyValueBlock", "CodeBlock"])
+        self.assertEqual(unknown["blocks"][0], {"type": "MarkdownBlock", "markdown": "safe"})
+        self.assertEqual(unknown["blocks"][1], {"type": "KeyValueBlock", "items": [{"key": "Owner", "value": "alice"}]})
+        self.assertEqual(unknown["blocks"][2]["language"], "json")
+        self.assertTrue(unknown["blocks"][2]["collapsed"])
         self.assertEqual(
             unknown["actions"][0]["id"],
             "copy_to_clipboard",
@@ -1117,6 +1116,7 @@ class A2UIContractTests(unittest.TestCase):
             card["debug"],
             {"contract_version": 2, "fallback_kind": "unknown", "source_card_type": "<missing>"},
         )
+        self.assertEqual([block["type"] for block in card["blocks"]], ["CodeBlock"])
 
     def test_studio_renders_unknown_card_for_non_string_type(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
@@ -1126,6 +1126,7 @@ class A2UIContractTests(unittest.TestCase):
             card["debug"],
             {"contract_version": 2, "fallback_kind": "unknown", "source_card_type": "<missing>"},
         )
+        self.assertEqual([block["type"] for block in card["blocks"]], ["CodeBlock"])
 
     def test_unknown_card_sanitizes_safe_primitive_blocks(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
