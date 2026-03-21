@@ -186,7 +186,7 @@ class VaultService:
             if path.name == _STATE_FILE:
                 self._quarantine_invalid_state(path.parent)
             elif path.suffix == ".tmp":
-                self._unlink_if_exists(path)
+                self._quarantine_path(path)
             elif path == self._backup_state_path(path.parent):
                 self._quarantine_invalid_backup(path.parent)
             return None
@@ -194,7 +194,7 @@ class VaultService:
             if path.name == _STATE_FILE:
                 self._quarantine_invalid_state(path.parent)
             elif path.suffix == ".tmp":
-                self._unlink_if_exists(path)
+                self._quarantine_path(path)
             elif path == self._backup_state_path(path.parent):
                 self._quarantine_invalid_backup(path.parent)
             return None

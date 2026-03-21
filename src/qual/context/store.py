@@ -35,12 +35,13 @@ class ContextBasketStore:
     def load(self) -> ContextBasket:
         primary_missing = not self._path.exists()
         backup_missing = not self._backup_path.exists()
-        primary_payload = self._load_payload(self._path)
-        tmp_payload = self._load_payload(self._tmp_path())
-        backup_tmp_payload = self._load_payload(self._backup_tmp_path())
-        backup_payload = self._load_payload(self._backup_path)
-        seed_tmp_payload = self._load_payload(self._seed_tmp_path())
-        seed_payload = self._load_payload(self._seed_state_path())
+        primary_payload, _ = self._load_payload(self._path)
+        tmp_payload, tmp_quarantined = self._load_payload(self._tmp_path())
+        backup_tmp_payload, backup_tmp_quarantined = self._load_payload(self._backup_tmp_path())
+        backup_payload, _ = self._load_payload(self._backup_path)
+        seed_tmp_payload, seed_tmp_quarantined = self._load_payload(self._seed_tmp_path())
+        seed_payload, _ = self._load_payload(self._seed_state_path())
+        saw_temporary_quarantine = tmp_quarantined or backup_tmp_quarantined or seed_tmp_quarantined
 
         if primary_payload is not None:
             payload = primary_payload
@@ -63,7 +64,7 @@ class ContextBasketStore:
             payload = seed_payload
             recovered_source = "seed"
         else:
-            self._clear_quarantine_file()
+            self._clear_quarantine_file(preserve_temporary=saw_temporary_quarantine)
             self._clear_temporary_files()
             return ContextBasket()
 
@@ -203,13 +204,14 @@ class ContextBasketStore:
         except OSError:
             return
 
-    def _clear_quarantine_file(self) -> None:
+    def _clear_quarantine_file(self, preserve_temporary: bool = False) -> None:
         self._unlink_if_exists(self._corrupt_path())
         self._unlink_if_exists(self._corrupt_path_for(self._backup_path))
         self._unlink_if_exists(self._corrupt_path_for(self._seed_state_path()))
-        self._unlink_if_exists(self._corrupt_path_for(self._tmp_path()))
-        self._unlink_if_exists(self._corrupt_path_for(self._backup_tmp_path()))
-        self._unlink_if_exists(self._corrupt_path_for(self._seed_tmp_path()))
+        if not preserve_temporary:
+            self._unlink_if_exists(self._corrupt_path_for(self._tmp_path()))
+            self._unlink_if_exists(self._corrupt_path_for(self._backup_tmp_path()))
+            self._unlink_if_exists(self._corrupt_path_for(self._seed_tmp_path()))
 
     def _clear_temporary_files(self) -> None:
         self._unlink_if_exists(self._tmp_path())
@@ -233,32 +235,35 @@ class ContextBasketStore:
         else:
             self._quarantine_invalid_file()
 
-    def _load_payload(self, path: Path) -> dict[str, object] | list[object] | None:
+    def _load_payload(
+        self,
+        path: Path,
+    ) -> tuple[dict[str, object] | list[object] | None, bool]:
         if not path.exists():
-            return None
+            return None, False
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             if path == self._path:
                 self._quarantine_invalid_file()
             elif path.suffix == ".tmp":
-                self._unlink_if_exists(path)
+                self._quarantine_path(path)
             elif path == self._backup_path:
                 self._quarantine_invalid_backup()
             elif path == self._seed_state_path():
                 self._quarantine_invalid_seed()
-            return None
+            return None, path.suffix == ".tmp"
         if not self._is_loadable_payload(payload):
             if path == self._path:
                 self._quarantine_invalid_file()
             elif path.suffix == ".tmp":
-                self._unlink_if_exists(path)
+                self._quarantine_path(path)
             elif path == self._backup_path:
                 self._quarantine_invalid_backup()
             elif path == self._seed_state_path():
                 self._quarantine_invalid_seed()
-            return None
-        return payload
+            return None, path.suffix == ".tmp"
+        return payload, False
 
     def _write_backup(self) -> None:
         if not self._path.exists():
