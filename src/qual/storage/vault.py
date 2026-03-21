@@ -84,6 +84,12 @@ class VaultService:
             root_dir=project_root,
             is_locked=is_locked,
         )
+        preserve_primary_corrupt = bool(
+            needs_rewrite
+            and raw_state
+            and recovered_source is None
+            and not self._is_recoverable_state(raw_state, safe_project_name)
+        )
         if needs_rewrite:
             self._write_state(
                 state,
@@ -92,6 +98,7 @@ class VaultService:
                     recovered_source=recovered_source,
                 )
                 or normalized_recovered_from,
+                preserve_primary_corrupt=preserve_primary_corrupt,
             )
         else:
             backup_written = self._write_backup_payload(project_root, self._backup_payload(raw_state))
@@ -212,7 +219,12 @@ class VaultService:
             primary_unavailable = True
         return payload, recovered_source, primary_unavailable
 
-    def _write_state(self, state: VaultState, recovered_from: str | None = None) -> None:
+    def _write_state(
+        self,
+        state: VaultState,
+        recovered_from: str | None = None,
+        preserve_primary_corrupt: bool = False,
+    ) -> None:
         state.root_dir.mkdir(parents=True, exist_ok=True)
         payload = {
             "schema_version": _SCHEMA_VERSION,
@@ -236,7 +248,11 @@ class VaultService:
         backup_written = self._write_backup_payload(state.root_dir, self._backup_payload(payload))
         if not backup_written:
             self._write_seed(state.root_dir, self._backup_payload(payload))
-        self._clear_recovery_artifacts(state.root_dir, preserve_seed=not backup_written)
+        self._clear_recovery_artifacts(
+            state.root_dir,
+            preserve_seed=not backup_written,
+            preserve_primary_corrupt=preserve_primary_corrupt,
+        )
 
     def _quarantine_invalid_state(self, root_dir: Path) -> None:
         state_path = self._state_path(root_dir)
@@ -264,8 +280,13 @@ class VaultService:
         except OSError:
             return
 
-    def _clear_quarantine_state(self, root_dir: Path) -> None:
-        self._unlink_if_exists(self._corrupt_state_path(root_dir))
+    def _clear_quarantine_state(
+        self,
+        root_dir: Path,
+        preserve_primary_corrupt: bool = False,
+    ) -> None:
+        if not preserve_primary_corrupt:
+            self._unlink_if_exists(self._corrupt_state_path(root_dir))
         self._unlink_if_exists(self._corrupt_path_for(self._backup_state_path(root_dir)))
         self._unlink_if_exists(self._corrupt_path_for(self._seed_state_path(root_dir)))
         self._unlink_if_exists(self._corrupt_path_for(self._tmp_state_path(root_dir)))
@@ -280,8 +301,14 @@ class VaultService:
     def _clear_seed_state(self, root_dir: Path) -> None:
         self._unlink_if_exists(self._seed_state_path(root_dir))
 
-    def _clear_recovery_artifacts(self, root_dir: Path, *, preserve_seed: bool = False) -> None:
-        self._clear_quarantine_state(root_dir)
+    def _clear_recovery_artifacts(
+        self,
+        root_dir: Path,
+        *,
+        preserve_seed: bool = False,
+        preserve_primary_corrupt: bool = False,
+    ) -> None:
+        self._clear_quarantine_state(root_dir, preserve_primary_corrupt=preserve_primary_corrupt)
         self._clear_temporary_state(root_dir)
         if not preserve_seed:
             self._clear_seed_state(root_dir)

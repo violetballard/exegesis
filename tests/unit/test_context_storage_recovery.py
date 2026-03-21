@@ -499,6 +499,9 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("item_ids"), [])
         self.assertEqual(payload.get("schema_version"), 1)
+        self.assertTrue(self.store._path.with_suffix(".corrupt.json").exists())
+        quarantined_payload = json.loads(self.store._path.with_suffix(".corrupt.json").read_text(encoding="utf-8"))
+        self.assertNotIn("item_ids", quarantined_payload)
 
     def test_primary_load_refreshes_malformed_backup_without_rewriting_primary(self) -> None:
         self.store.save(ContextBasket(item_ids=["first"]))
@@ -1133,6 +1136,30 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(primary_payload.get("recovered_from"), "backup")
         self.assertEqual(backup_payload.get("context_sets")[0]["item_ids"], ["first", "second"])
         self.assertNotIn("recovered_from", backup_payload)
+        self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
+
+    def test_primary_missing_context_sets_preserves_audit_quarantine(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "recovered_from": "manual",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded, [])
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(self.store._path.with_suffix(".corrupt.json").read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("context_sets"), [])
+        self.assertEqual(primary_payload.get("schema_version"), 1)
+        self.assertTrue(self.store._path.with_suffix(".corrupt.json").exists())
+        self.assertNotIn("context_sets", quarantined_payload)
 
 
 class VaultRecoveryTests(unittest.TestCase):
@@ -1330,6 +1357,31 @@ class VaultRecoveryTests(unittest.TestCase):
         payload = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("project_name"), "p3-missing-lock")
         self.assertTrue(payload.get("is_locked"))
+
+    def test_missing_is_locked_metadata_preserves_audit_quarantine(self) -> None:
+        state_root = self.root / "p3-audit"
+        state_root.mkdir(parents=True, exist_ok=True)
+        state_path = state_root / ".vault_state.json"
+        state_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "p3-audit",
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p3-audit")
+
+        self.assertTrue(reopened.is_locked)
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads((state_root / ".vault_state.corrupt.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p3-audit")
+        self.assertTrue(payload.get("is_locked"))
+        self.assertTrue((state_root / ".vault_state.corrupt.json").exists())
+        self.assertNotIn("is_locked", quarantined_payload)
 
     def test_missing_updated_at_metadata_is_salvaged_and_rewritten(self) -> None:
         state = self.svc.create_or_open(self.root, "p3-missing-updated")

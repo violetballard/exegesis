@@ -220,8 +220,19 @@ class ContextSetStore:
             primary_unavailable=primary_missing or primary_payload is None or recovered_source is not None,
             recovered_source=recovered_source,
         ) or normalized_recovered_from
+        preserve_primary_corrupt = bool(
+            primary_needs_quarantine
+            and primary_payload is not None
+            and recovered_source is None
+            and not self._has_context_set_records(primary_payload)
+        )
         if recovered_source is not None or should_rewrite:
-            self.save(records, recovered_from=recovered_from, refresh_backup=True)
+            self.save(
+                records,
+                recovered_from=recovered_from,
+                refresh_backup=True,
+                preserve_primary_corrupt=preserve_primary_corrupt,
+            )
         elif primary_payload is not None and (
             backup_payload is None
             or backup_missing
@@ -253,6 +264,7 @@ class ContextSetStore:
         records: list[ContextSetRecord],
         recovered_from: str | None = None,
         refresh_backup: bool = False,
+        preserve_primary_corrupt: bool = False,
     ) -> None:
         normalized_records = self._normalize_records(records)
         self._path.parent.mkdir(parents=True, exist_ok=True)
@@ -282,7 +294,10 @@ class ContextSetStore:
             backup_written = self._write_backup_payload(backup_payload)
         if not backup_written:
             self._write_seed(backup_payload)
-        self._clear_recovery_artifacts(preserve_seed=not backup_written)
+        self._clear_recovery_artifacts(
+            preserve_seed=not backup_written,
+            preserve_primary_corrupt=preserve_primary_corrupt,
+        )
 
     def create_context_set(self, name: str, item_ids: list[object] | None = None) -> ContextSetRecord:
         now = datetime.now(UTC).isoformat()
@@ -347,8 +362,13 @@ class ContextSetStore:
         except OSError:
             return
 
-    def _clear_quarantine_file(self, preserve_temporary: bool = False) -> None:
-        self._unlink_if_exists(self._corrupt_path())
+    def _clear_quarantine_file(
+        self,
+        preserve_temporary: bool = False,
+        preserve_primary_corrupt: bool = False,
+    ) -> None:
+        if not preserve_primary_corrupt:
+            self._unlink_if_exists(self._corrupt_path())
         self._unlink_if_exists(self._corrupt_path_for(self._backup_path))
         self._unlink_if_exists(self._corrupt_path_for(self._seed_state_path()))
         if not preserve_temporary:
@@ -361,8 +381,12 @@ class ContextSetStore:
         self._unlink_if_exists(self._backup_tmp_path())
         self._unlink_if_exists(self._seed_tmp_path())
 
-    def _clear_recovery_artifacts(self, preserve_seed: bool = False) -> None:
-        self._clear_quarantine_file()
+    def _clear_recovery_artifacts(
+        self,
+        preserve_seed: bool = False,
+        preserve_primary_corrupt: bool = False,
+    ) -> None:
+        self._clear_quarantine_file(preserve_primary_corrupt=preserve_primary_corrupt)
         self._clear_temporary_files()
         if not preserve_seed:
             self._unlink_if_exists(self._seed_state_path())
