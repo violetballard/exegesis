@@ -1,8 +1,8 @@
 {
   "scope_goal": "Reissue a commit-accurate handoff for the actual context-storage recovery change.",
   "tasks_completed": [
-    "Restored the empty-recovery helper behavior in src/qual/context/store.py.",
-    "Restored the empty-recovery helper behavior in src/qual/context/set_store.py."
+    "Restored the empty-recovery helper behavior in src/qual/context/store.py and src/qual/context/set_store.py.",
+    "Reissued the handoff packet so the branch metadata matches reviewed commit 11b0b73761e6d1043b9e8acbca2718a463f3df6f exactly."
   ],
   "risk": "LOW",
   "roadmap_items": [
