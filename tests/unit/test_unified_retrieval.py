@@ -103,6 +103,29 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(first.diagnostics["fts_shortlist_doc_ids"], second.diagnostics["fts_shortlist_doc_ids"])
         self.assertIn("doc-pdf-1", first.diagnostics["fts_shortlist_doc_ids"])
 
+    def test_retrieve_auto_canonicalizes_doc_type_filters_in_fingerprints(self) -> None:
+        first = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4, doc_types=("Memo", "pdf")),
+                confidentiality_profile="confidential",
+            )
+        )
+        second = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4, doc_types=("pdf", "memo", "PDF")),
+                confidentiality_profile="confidential",
+            )
+        )
+        self.assertEqual(first.diagnostics["query_fingerprint"], second.diagnostics["query_fingerprint"])
+        self.assertEqual(first.diagnostics["retrieval_manifest"], second.diagnostics["retrieval_manifest"])
+        self.assertEqual([hit.doc_id for hit in first.hits], [hit.doc_id for hit in second.hits])
+
     def test_fts_returns_excerpt_hits_with_deterministic_provenance(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

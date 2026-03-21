@@ -206,7 +206,7 @@ class RetrievalService:
         match_query, query_terms = self._build_fts_match_query(query.query_text)
         exact_phrase = query.query_text.casefold().strip()
         scope_doc = self._doc_scope_id(query.scope)
-        allowed_doc_types = tuple(query.constraints.doc_types)
+        allowed_doc_types = self._normalized_doc_types(query.constraints.doc_types)
         effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
         select_exact_rank = "CASE WHEN instr(lower(text), ?) > 0 THEN 0 ELSE 1 END AS exact_rank" if query.constraints.prefer_exact_matches else "0 AS exact_rank"
         where_clauses = ["fts_entries MATCH ?"]
@@ -223,7 +223,7 @@ class RetrievalService:
             params.extend(candidate_doc_ids)
         if allowed_doc_types:
             placeholders = ",".join("?" for _ in allowed_doc_types)
-            where_clauses.append(f"doc_type IN ({placeholders})")
+            where_clauses.append(f"lower(doc_type) IN ({placeholders})")
             params.extend(allowed_doc_types)
         limit = max(25, query.constraints.max_results)
         params.append(limit)
@@ -750,7 +750,7 @@ class RetrievalService:
     def _query_fingerprint(query: RetrievalQuery) -> str:
         normalized_constraints = {
             "max_results": query.constraints.max_results,
-            "doc_types": list(query.constraints.doc_types),
+            "doc_types": list(RetrievalService._normalized_doc_types(query.constraints.doc_types)),
             "date_range": list(query.constraints.date_range) if query.constraints.date_range is not None else None,
             "require_citations": query.constraints.require_citations,
             "section_hint": query.constraints.section_hint,
@@ -896,6 +896,18 @@ class RetrievalService:
             return " OR ".join(f'"{term}"' for term in terms), tuple(terms)
         cleaned = query_text.strip().casefold().replace('"', '""')
         return f'"{cleaned}"', ()
+
+    @staticmethod
+    def _normalized_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
+        seen: set[str] = set()
+        normalized: list[str] = []
+        for doc_type in doc_types:
+            value = doc_type.strip().casefold()
+            if not value or value in seen:
+                continue
+            seen.add(value)
+            normalized.append(value)
+        return tuple(sorted(normalized))
 
     @staticmethod
     def _matched_query_terms(query_terms: tuple[str, ...], text: str) -> tuple[str, ...]:
