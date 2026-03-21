@@ -4,16 +4,16 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - keep the review packet aligned to commit 81b447ec13e01872335a85bb009b2f024621559e and its A2UI contract hardening diff.",
-    "Milestone 5: A2UI Presentation Layer - keep the file list and commit mapping auditable against the two-file product-code diff.",
-    "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to capability allowlist hardening, duplicate detection, and canonicalization claims."
+    "Milestone 5: A2UI Presentation Layer - keep the review packet aligned to commit 81b447ec13e01872335a85bb009b2f024621559e and the two-file A2UI contract hardening diff.",
+    "Milestone 5: A2UI Presentation Layer - keep the file list and commit mapping auditable against src/qual/ui/a2ui.py and tests/unit/test_a2ui_contract.py.",
+    "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to capability allowlist hardening, duplicate detection, and canonicalization."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Record a metadata-only handoff for commit 81b447ec13e01872335a85bb009b2f024621559e so the A2UI lane packet is auditable and matches the capability allowlist hardening diff without claiming packet-carrier files as product-code changes.",
+  "scope_goal": "Record a metadata-only handoff for commit 81b447ec13e01872335a85bb009b2f024621559e so the A2UI lane packet is auditable and matches the capability allowlist hardening, duplicate detection, and canonicalization diff without claiming packet-carrier files as product-code changes.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Rewrote the lane handoff metadata to describe commit 81b447ec13e01872335a85bb009b2f024621559e as an A2UI contract hardening update.",
-    "Kept the submitted file list limited to the actual product-code diff files and separated packet-carrier metadata from reviewed source/test changes.",
+    "Kept the reviewed file list limited to the actual product-code diff files and separated packet-carrier metadata from reviewed source/test changes.",
     "Aligned the Milestone 5 A2UI roadmap and vision references to capability allowlist validation, duplicate rejection, and canonicalization."
   ],
   "vision_capabilities": [
