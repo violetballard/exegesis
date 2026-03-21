@@ -363,6 +363,9 @@ class VaultService:
         if not candidate:
             return None
         try:
-            return datetime.fromisoformat(candidate.replace("Z", "+00:00")).isoformat()
+            parsed = datetime.fromisoformat(candidate.replace("Z", "+00:00"))
         except ValueError:
             return None
+        if parsed.tzinfo is None or parsed.utcoffset() is None:
+            return None
+        return parsed.astimezone(UTC).isoformat()

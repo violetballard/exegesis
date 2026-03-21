@@ -414,9 +414,12 @@ class ContextBasketStore:
         if not candidate:
             return None
         try:
-            return datetime.fromisoformat(candidate.replace("Z", "+00:00")).isoformat()
+            parsed = datetime.fromisoformat(candidate.replace("Z", "+00:00"))
         except ValueError:
             return None
+        if parsed.tzinfo is None or parsed.utcoffset() is None:
+            return None
+        return parsed.astimezone(UTC).isoformat()
 
     def _backup_needs_refresh(
         self,
@@ -448,12 +451,14 @@ class ContextBasketStore:
             return True
         if self._normalize_item_ids(parsed_items) != basket.item_ids:
             return True
-        if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
+        normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
+        if normalized_updated_at is None:
+            return True
+        if payload.get("updated_at") != normalized_updated_at:
             return True
         if primary_payload is not None:
             primary_updated_at = self._parse_updated_at(primary_payload.get("updated_at"))
-            backup_updated_at = self._parse_updated_at(payload.get("updated_at"))
-            if primary_updated_at is not None and backup_updated_at != primary_updated_at:
+            if primary_updated_at is not None and normalized_updated_at != primary_updated_at:
                 return True
         return False
 
