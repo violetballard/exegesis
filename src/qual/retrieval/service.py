@@ -140,10 +140,17 @@ class RetrievalResult:
                 "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
                 "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             },
+            "retrieval_policy": {
+                "retrieval_backend": self.diagnostics["retrieval_backend"],
+                "retrieval_mode": self.diagnostics["retrieval_mode"],
+                "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
+                "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
+            },
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
             "doc_hits": [doc_hit.as_dict() for doc_hit in self.doc_hits],
             "excerpt_hits": [hit.as_dict() for hit in self.hits],
+            "retrieval_diagnostics": dict(self.diagnostics),
             "retrieval_manifest": dict(self.diagnostics["retrieval_manifest"]),
             "retrieval_evidence": dict(self.evidence),
         }

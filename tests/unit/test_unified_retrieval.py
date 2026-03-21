@@ -242,6 +242,29 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertIn("top_excerpt_text_hashes", manifest)
         self.assertIn("excerpt_text_hashes", manifest)
 
+    def test_downstream_payload_exposes_policy_and_diagnostics_snapshot(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        payload = result.to_downstream_payload()
+        self.assertEqual(payload["policy"], payload["retrieval_policy"])
+        self.assertEqual(payload["retrieval_policy"]["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(payload["retrieval_policy"]["retrieval_mode"], "fts_first")
+        self.assertEqual(payload["retrieval_policy"]["active_strategy_ids"], ["fts"])
+        self.assertEqual(payload["retrieval_policy"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(payload["retrieval_diagnostics"]["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(payload["retrieval_diagnostics"]["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
+        self.assertEqual(payload["retrieval_diagnostics"]["retrieval_evidence"], result.diagnostics["retrieval_evidence"])
+        self.assertEqual(payload["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
+        self.assertEqual(payload["retrieval_evidence"], result.evidence)
+
     def test_doc_identity_fingerprint_stays_stable_across_query_variants(self) -> None:
         long_doc_text = (
             "alpha marker opens the first retrieval window. "
