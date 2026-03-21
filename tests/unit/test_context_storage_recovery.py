@@ -289,6 +289,23 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("item_ids"), ["first"])
 
+    def test_healthy_primary_load_clears_stale_backup_and_seed_corrupt_markers(self) -> None:
+        self.store.save(ContextBasket(item_ids=["first"]))
+        self.store._backup_path.with_name("context_basket.bak.corrupt.json").write_text(
+            "{bad",
+            encoding="utf-8",
+        )
+        self.store._seed_state_path().with_name("context_basket.seed.corrupt.json").write_text(
+            "{bad",
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first"])
+        self.assertFalse(self.store._backup_path.with_name("context_basket.bak.corrupt.json").exists())
+        self.assertFalse(self.store._seed_state_path().with_name("context_basket.seed.corrupt.json").exists())
+
     def test_backup_with_invalid_metadata_is_salvaged_and_rewritten(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._backup_path.write_text(
