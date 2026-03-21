@@ -1532,6 +1532,32 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn(GENERIC_FALLBACK_SUBTITLE, generic)
         self.assertIn(UNKNOWN_FALLBACK_SUBTITLE, unknown)
 
+    def test_terminal_renderer_uses_canonical_fallback_subtitles_over_raw_values(self) -> None:
+        generic = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Fallback view for FutureCard",
+                "subtitle": "raw subtitle should not leak",
+                "debug": {"fallback_kind": "generic", "source_card_type": "FutureCard"},
+                "blocks": [],
+                "actions": [],
+            }
+        )
+        unknown = render_terminal_card(
+            {
+                "type": "UnknownCard",
+                "title": "Unsupported card type: FutureCard",
+                "subtitle": "raw subtitle should not leak",
+                "blocks": [],
+                "actions": [],
+            }
+        )
+
+        self.assertIn(GENERIC_FALLBACK_SUBTITLE, generic)
+        self.assertNotIn("raw subtitle should not leak", generic)
+        self.assertIn(UNKNOWN_FALLBACK_SUBTITLE, unknown)
+        self.assertNotIn("raw subtitle should not leak", unknown)
+
     def test_terminal_renderer_surfaces_missing_actions_for_unknown_fallbacks(self) -> None:
         unknown = build_unknown_card(
             {
