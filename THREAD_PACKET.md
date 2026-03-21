@@ -14,7 +14,7 @@
   - `src/qual/storage/vault.py`
   - `tests/unit/test_context_storage_recovery.py`
 - Approved exception note:
-  - The only non-owned edit in this handoff is `tests/unit/test_context_storage_recovery.py`, which is the explicitly approved recovery coverage file. No shared-by-approval source files or integrator-locked files were edited, and `.codex/lane_meta/feat-context-storage.json` is not part of the submitted diff.
+  - The only non-owned edit in this handoff is `tests/unit/test_context_storage_recovery.py`, which is the explicitly approved recovery coverage file. No shared-by-approval source files or integrator-locked files were edited.
 - Commands run with results:
   - `make scope-check` -> failed without the approved shared-test override because `tests/unit/test_context_storage_recovery.py` is outside the lane-owned paths.
   - `SCOPE_ALLOW_SHARED=1 make scope-check` -> passed.
