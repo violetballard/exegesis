@@ -641,7 +641,11 @@ def _filter_read_only_fallback_actions(
 
     if FALLBACK_COPY_ACTION_ID not in supported_actions:
         return []
-    return [_build_copy_to_clipboard_action(_render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes))]
+    return [
+        _build_copy_to_clipboard_action(
+            _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes, pretty=True),
+        )
+    ]
 
 
 def _build_unknown_card_actions(
@@ -656,7 +660,11 @@ def _build_unknown_card_actions(
         canonical_supported_actions = _canonicalize_supported_actions(supported_actions)
     if FALLBACK_COPY_ACTION_ID not in canonical_supported_actions:
         return []
-    return [_build_copy_to_clipboard_action(_render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes))]
+    return [
+        _build_copy_to_clipboard_action(
+            _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes, pretty=True),
+        )
+    ]
 
 
 def _build_read_only_fallback_actions(
@@ -671,7 +679,7 @@ def _build_read_only_fallback_actions(
 
     return [
         _build_copy_to_clipboard_action(
-            _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes),
+            _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes, pretty=True),
         )
     ]
 
@@ -766,11 +774,6 @@ def _materialize_unknown_card(card: dict[str, Any], capabilities: A2UICapabiliti
         "blocks": _extract_safe_primitive_blocks(safe_card),
         "actions": [],
     }
-    preview_card["actions"] = _build_unknown_card_actions(
-        preview_card,
-        supported_actions=set(capabilities.actions_supported),
-        max_payload_bytes=capabilities.max_payload_bytes,
-    )
     return build_unknown_card(
         preview_card,
         max_payload_bytes=capabilities.max_payload_bytes,

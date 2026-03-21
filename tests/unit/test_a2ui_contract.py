@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import unittest
 from dataclasses import dataclass
 
@@ -658,7 +659,9 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual([action["id"] for action in unknown["actions"]], ["copy_to_clipboard"])
         self.assertEqual(unknown["actions"][0]["label"], "Copy JSON")
-        self.assertTrue(unknown["actions"][0]["payload"]["text"].startswith('{"a2ui_version":1,"actions":['))
+        payload = json.loads(unknown["actions"][0]["payload"]["text"])
+        self.assertEqual(payload["actions"], [])
+        self.assertEqual(unknown["blocks"][-1]["code"], unknown["actions"][0]["payload"]["text"])
 
     def test_engine_unknown_card_uses_canonical_copy_action_when_supported(self) -> None:
         unknown = engine_prepare_card(
@@ -693,7 +696,9 @@ class A2UIContractTests(unittest.TestCase):
                 }
             ],
         )
-        self.assertTrue(payload_text.startswith('{"a2ui_version":1,"actions":['))
+        payload = json.loads(payload_text)
+        self.assertEqual(payload["actions"], [])
+        self.assertEqual(unknown["blocks"][-1]["code"], payload_text)
 
     def test_studio_preserves_unknown_cards_and_copy_action_when_supported(self) -> None:
         unknown = studio_materialize_card(
@@ -730,7 +735,9 @@ class A2UIContractTests(unittest.TestCase):
             "copy_to_clipboard",
         )
         self.assertEqual(unknown["actions"][0]["label"], "Copy JSON")
-        self.assertTrue(unknown["actions"][0]["payload"]["text"].startswith('{"a2ui_version":1,"actions":['))
+        payload = json.loads(unknown["actions"][0]["payload"]["text"])
+        self.assertEqual(payload["actions"], [])
+        self.assertEqual(unknown["blocks"][2]["code"], unknown["actions"][0]["payload"]["text"])
 
     def test_unknown_card_validator_rejects_non_copy_actions(self) -> None:
         with self.assertRaises(ValueError):
