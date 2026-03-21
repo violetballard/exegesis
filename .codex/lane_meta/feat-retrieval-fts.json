@@ -1,25 +1,21 @@
 {
   "approved_exception_note": "",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 4 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, a single promoted source file, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 4: Retrieval Layer -> FTS-first ingestion/index path for context/vault documents",
     "Milestone 4: Retrieval Layer -> Retrieval orchestration data needed before drafting/diff generation",
-    "Milestone 4: Retrieval Layer -> Source-attribution model for retrieved chunks",
-    "Milestone 2: Test Hardening -> Add focused unit coverage for core behaviors"
+    "Milestone 4: Retrieval Layer -> Source-attribution model for retrieved chunks"
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt, provenance, and document-ranking output inside retrieval-owned paths for downstream engine generation flows.",
+  "scope_goal": "Canonicalize FTS excerpt payloads in the retrieval service so retrieval-backed fetches return stable FTS-shaped payloads.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Returned deterministic FTS excerpt IDs and retrieval-backed `fetch_excerpt()` output inside the retrieval service.",
-    "Preserved `doc_hits` relevance order so document-level ranking matches the top-ranked underlying excerpt hit.",
-    "Added focused unit coverage for deterministic provenance, document ranking order, and retrieval-service excerpt fetch behavior.",
-    "Completed the handoff metadata required by INTEGRATION.md with concrete scope, file, roadmap, and vision mapping for retrieval-owned MVP FTS work."
+    "Canonicalized retrieval-service excerpt payloads in `src/qual/retrieval/service.py` so FTS-backed fetches return normalized dictionaries.",
+    "Verified the reviewed commit scope is limited to the single source file changed in `3884e2aab86962a6aeb62a35f169282869d16ae5`.",
+    "Regenerated the handoff packet and lane metadata so they describe the promoted source change accurately."
   ],
   "vision_capabilities": [
-    "2. Retrieval-first context handling",
     "3. Auditable generation",
     "4. Operator-first control surface"
   ]
