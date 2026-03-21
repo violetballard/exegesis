@@ -1,11 +1,11 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Scope goal: Align the kickoff packet, lane metadata, and handoff packet so they match the reviewed docs-only commit exactly.
-- Scope completed: The reviewed commit `1d3609dc5770f34455882ff7203ee70285353fe8` updates handoff artifacts only; it reconciles the kickoff packet, lane metadata, and `THREAD_PACKET.md` with the actual commit scope.
+- Scope goal: Align the kickoff packet, lane metadata, and handoff packet so they match commit `7914712c2cad5082e8b2f8cdcbddb98e21865675` exactly.
+- Scope completed: The reviewed commit `7914712c2cad5082e8b2f8cdcbddb98e21865675` is docs-only handoff alignment work. It updates the kickoff packet, lane metadata, and `THREAD_PACKET.md` only.
 - Tasks completed:
   1. Rewrote the scope goal and task framing to describe docs-only handoff alignment.
-  2. Removed stale retrieval source-file references from the packet because they are not part of commit `1d3609dc5770f34455882ff7203ee70285353fe8`.
+  2. Removed stale retrieval source-file references from the packet because they are not part of commit `7914712c2cad5082e8b2f8cdcbddb98e21865675`.
   3. Added an explicit `Scope completed` field that states the commit only updated handoff artifacts.
 - Files changed:
   - `.codex/kickoff_packets/feat-retrieval-fts.md`
@@ -19,7 +19,7 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - Reviewer fix closure:
-  - `#1` reset the `Files changed` list so it matches commit `1d3609dc5770f34455882ff7203ee70285353fe8` exactly.
+  - `#1` reset the `Files changed` list so it matches commit `7914712c2cad5082e8b2f8cdcbddb98e21865675` exactly.
   - `#2` removed stale retrieval source-file references from the packet because they are not part of the reviewed commit.
   - `#3` rewrote the scope goal and tasks to describe docs-only handoff alignment.
   - `#4` added an explicit `Scope completed` field stating that the commit only updated handoff artifacts.
