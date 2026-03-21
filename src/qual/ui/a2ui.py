@@ -607,7 +607,7 @@ def render_terminal_card(card: dict[str, Any]) -> str:
     actions = card.get("actions")
     rendered_actions = _render_terminal_actions(actions)
     actions_present = actions is not None
-    actions_are_list = isinstance(actions, list)
+    actions_are_list = isinstance(actions, (list, tuple))
     filtered_actions = actions_are_list and len(rendered_actions) < len(actions)
     if rendered_actions:
         lines.append("Actions:")
@@ -1098,9 +1098,9 @@ def _infer_generic_fallback_source(title: str) -> str | None:
 
 
 def _iter_card_entries(entries: Any) -> list[Any]:
-    if not isinstance(entries, list):
+    if not isinstance(entries, (list, tuple)):
         return []
-    return entries
+    return list(entries)
 
 
 def _normalize_card_type(card: dict[str, Any]) -> str:
@@ -1166,7 +1166,7 @@ def _fallback_subtitle(fallback_kind: str) -> str:
 
 def _extract_safe_primitive_blocks(card: dict[str, Any]) -> list[dict[str, Any]]:
     nested_blocks = card.get("blocks")
-    if not isinstance(nested_blocks, list):
+    if not isinstance(nested_blocks, (list, tuple)):
         return []
 
     safe_blocks: list[dict[str, Any]] = []
@@ -1307,7 +1307,7 @@ def _canonicalize_supported_action_list(
     *,
     supported_actions: set[str],
 ) -> list[dict[str, Any]]:
-    if not isinstance(actions, list):
+    if not isinstance(actions, (list, tuple)):
         return []
 
     filtered: list[dict[str, Any]] = []

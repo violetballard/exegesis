@@ -1064,6 +1064,27 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["blocks"][5]["type"], "CodeBlock")
         self.assertEqual(card["actions"][0]["id"], "copy_to_clipboard")
 
+    def test_unknown_card_preserves_tuple_shaped_safe_blocks(self) -> None:
+        unknown = build_unknown_card(
+            {
+                "type": "FutureCard",
+                "title": "Future",
+                "blocks": (
+                    {"type": "MarkdownBlock", "markdown": "Recovered"},
+                    {"type": "ListBlock", "items": ["alpha", "beta"]},
+                ),
+            },
+            supported_actions=("copy_to_clipboard",),
+        )
+
+        self.assertEqual(
+            [block["type"] for block in unknown["blocks"][:-1]],
+            ["MarkdownBlock", "ListBlock"],
+        )
+        self.assertEqual(unknown["blocks"][0], {"type": "MarkdownBlock", "markdown": "Recovered"})
+        self.assertEqual(unknown["blocks"][1], {"type": "ListBlock", "items": ["alpha", "beta"]})
+        self.assertEqual(unknown["actions"][0]["id"], "copy_to_clipboard")
+
     def test_studio_unknown_card_omits_unavailable_clipboard_action(self) -> None:
         caps = _capabilities(actions_supported=("apply_patch",))
         payload = {"type": "QuestionsCard", "title": "Questions", "foo": "bar"}
@@ -1544,6 +1565,29 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("- fallback_kind: unknown", unknown_text)
         self.assertIn("- source_card_type: FutureCard", unknown_text)
         self.assertIn("- Copy JSON (copy_to_clipboard)", unknown_text)
+
+    def test_terminal_renderer_accepts_tuple_shaped_blocks_and_actions(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": (
+                    {"type": "MarkdownBlock", "markdown": "Hello"},
+                    {"type": "ListBlock", "items": ["alpha", "beta"]},
+                ),
+                "actions": (
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "payload"}},
+                ),
+            }
+        )
+
+        self.assertIn("Hello", text)
+        self.assertIn("- alpha", text)
+        self.assertIn("Actions:", text)
+        self.assertIn("- Apply (apply_patch)", text)
+        self.assertIn("- Copy (copy_to_clipboard)", text)
+        self.assertNotIn("Actions filtered out by allowlist or validation", text)
 
     def test_terminal_renderer_marks_unknown_cards_without_debug(self) -> None:
         text = render_terminal_card(
