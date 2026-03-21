@@ -1,21 +1,23 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Scope goal: Align the handoff packet and lane metadata with the reviewed docs-only commit so the lane record matches the actual diff.
-- Scope completed: The reviewed commit `44116a6740ae818eccaf88fa988239fd6c34f18a` is docs-only and updates `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`; it did not change retrieval source code.
+- Scope goal: Align the kickoff packet, lane metadata, and handoff packet with the reviewed docs-only commit so the lane record matches the actual diff.
+- Scope completed: The reviewed commit `6ec207e7f30e806990add7db9c4f4eb325d6bbbf` is docs-only and aligns the kickoff packet, lane metadata, and handoff packet; it did not change retrieval source code.
 - Tasks completed:
-  1. Reconciled the packet with commit `44116a6740ae818eccaf88fa988239fd6c34f18a`, which only changes `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`.
-  2. Removed `src/qual/engine/retrieval/pageindex_strategy.py` and every source-change claim from the handoff because the reviewed diff is packet-only.
-  3. Added an explicit `Scope completed` field and cleared roadmap and vision items that implied retrieval implementation work.
+  1. Regenerated the kickoff packet so it describes the reviewed commit as docs-only handoff alignment.
+  2. Regenerated the lane metadata so its scope, budget note, roadmap, and task list match the actual diff.
+  3. Regenerated the handoff packet so it lists the exact changed files and does not imply unreviewed retrieval source changes.
 - Files changed:
+  - `.codex/kickoff_packets/feat-retrieval-fts.md`
   - `.codex/lane_meta/feat-retrieval-fts.json`
   - `THREAD_PACKET.md`
 - Handoff artifacts:
+  - `.codex/kickoff_packets/feat-retrieval-fts.md`
   - `.codex/lane_meta/feat-retrieval-fts.json`
   - `THREAD_PACKET.md`
 - Commands run with results:
   - Final re-review validation rerun on `2026-03-20` in this lane worktree against reviewer-required fixes `#1-#4`
-  - `git show --stat --name-only --format=fuller 44116a6740ae818eccaf88fa988239fd6c34f18a` -> confirmed the reviewed commit only changes `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`
+  - `git show --stat --name-only --format=fuller 6ec207e7f30e806990add7db9c4f4eb325d6bbbf` -> confirmed the reviewed commit only changes `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, and `THREAD_PACKET.md`
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -24,16 +26,16 @@
   - `make ci` -> passed (includes scope-check, format, lint, typecheck, smoke, and unit test gates)
 - Reviewer fix closure:
   - `#1` regenerated `Files changed` to match the reviewed commit exactly.
-  - `#2` removed `src/qual/engine/retrieval/pageindex_strategy.py` and every source-change claim from the handoff because the reviewed diff is packet-only.
-  - `#3` rewrote the scope to describe the actual reviewed change instead of source implementation work.
-  - `#4` added an explicit `Scope completed` field and cleared roadmap/vision items that implied retrieval implementation work.
+  - `#2` removed stale retrieval source-change claims from the packet because they are not part of the reviewed diff.
+  - `#3` rewrote the scope to describe the actual reviewed change: handoff packet and lane metadata alignment, not retrieval implementation.
+  - `#4` added an explicit `Scope completed` field stating that the commit only aligned the handoff artifacts.
 - Checkpoint status:
   - plan complete
   - first green tests: `./quality-test.sh` passed (`Ran 78 tests`, `OK`)
   - ready for handoff: all required local gates passed on `2026-03-20`
 - Risks/blockers:
   - No shared, integrator-locked, or cross-lane source files are included in the reviewed commit.
-  - The handoff now describes the packet-only fix commit; broader retrieval MVP behavior remains in the lane's source work and is not implied by this review.
+  - The handoff now describes a docs-only alignment commit; broader retrieval MVP behavior remains in the lane's source work and is not implied by this review.
 - Roadmap item(s) affected:
   - None.
 - Vision capability affected:
