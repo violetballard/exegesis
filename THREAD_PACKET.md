@@ -66,5 +66,5 @@
 - None. This change affects local `diff_preview` output formatting plus the reviewer-required regression test; no routing/provider behavior changed.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO`
-- Shared-file exception note: `tests/unit/test_diff_preview.py` is included as reviewer-required regression coverage for the submitted `diff_preview` contract change, and the packet documents the policy-file cleanup that removed the stale branch-local approval.
+- Shared/integrator-locked edits: `YES`
+- Shared-file exception note: `tests/unit/test_diff_preview.py` is included as reviewer-required regression coverage for the `diff_preview` contract, and the approval note is recorded in this packet.
