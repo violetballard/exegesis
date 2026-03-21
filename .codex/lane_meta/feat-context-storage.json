@@ -1,15 +1,14 @@
 {
-  "scope_goal": "Realign the context-storage handoff packet to the actual recovery feature commit and mark the current branch head as docs-only packet alignment.",
+  "scope_goal": "Describe the actual branch-head recovery fix and remove the stale docs-only alignment story.",
   "tasks_completed": [
-    "Marked the branch head as a docs-only packet-alignment commit.",
-    "Kept the real recovery feature commit reference anchored in the handoff packet.",
-    "Removed the stale source/test implementation claims from the branch-head handoff.",
-    "Reran scope, format, lint, unit, typecheck, and CI gates on the branch head and confirmed they pass."
+    "Tightened src/qual/context/set_store.py so empty context_sets payloads with malformed optional metadata are quarantined.",
+    "Added the focused quarantine regression test in tests/unit/test_context_storage_recovery.py.",
+    "Re-ran the required local gates on the current branch head and confirmed they pass."
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 1 - Bootstrap Flow Stabilization: context set and vault persistence hardening.",
-    "Milestone 2 - Test Hardening: focused recovery coverage for malformed metadata and quarantine preservation."
+    "Milestone 1 - Bootstrap Flow Stabilization: context set quarantine recovery hardening.",
+    "Milestone 2 - Test Hardening: focused regression coverage for malformed metadata quarantine."
   ],
   "vision_capabilities": [
     "Capability 1 - Local-first state and identity.",
@@ -18,6 +17,6 @@
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
   "shared_file_exception": true,
-  "kickoff_budget_note": "Handoff metadata aligned to the branch-head packet-only fix.",
+  "kickoff_budget_note": "Handoff metadata aligned to the branch-head recovery fix.",
   "approved_exception_note": "Ownership note: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned change is the approved recovery coverage file `tests/unit/test_context_storage_recovery.py`. No shared-by-approval source files or integrator-locked files were edited."
 }
