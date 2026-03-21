@@ -71,14 +71,14 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("item_ids"), ["first"])
         self.assertNotIn("recovered_from", payload)
 
-    def test_mixed_invalid_item_ids_are_salvaged_and_rewritten(self) -> None:
+    def test_mixed_scalar_and_non_scalar_item_ids_are_salvaged_and_rewritten(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text(
             json.dumps(
                 {
                     "schema_version": 1,
                     "updated_at": "2026-03-20T12:00:00+00:00",
-                    "item_ids": [" keep ", 7, {"id": "discard"}, "", "keep", " second "],
+                    "item_ids": [" keep ", 7, {"id": "discard"}, "", 2.5, None, "keep", " second "],
                 }
             ),
             encoding="utf-8",
@@ -86,9 +86,9 @@ class ContextStoreRecoveryTests(unittest.TestCase):
 
         loaded = self.store.load()
 
-        self.assertEqual(loaded.item_ids, ["keep", "second"])
+        self.assertEqual(loaded.item_ids, ["keep", "7", "2.5", "second"])
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
-        self.assertEqual(payload.get("item_ids"), ["keep", "second"])
+        self.assertEqual(payload.get("item_ids"), ["keep", "7", "2.5", "second"])
         self.assertEqual(payload.get("schema_version"), 1)
 
     def test_valid_primary_wins_over_stale_tmp_payload(self) -> None:
