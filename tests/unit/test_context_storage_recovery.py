@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 from src.qual.context.basket import ContextBasket
 from src.qual.context.store import ContextBasketStore
+from src.qual.context.set_store import ContextSetStore
 from src.qual.storage.vault import VaultService
 
 
@@ -861,6 +862,106 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(backup_payload.get("item_ids"), ["first", "second"])
         self.assertNotEqual(backup_payload.get("updated_at"), "not-a-timestamp")
         self.assertEqual(backup_payload.get("schema_version"), 1)
+
+
+class ContextSetStoreRecoveryTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+        self.store = ContextSetStore(self.root)
+
+    def tearDown(self) -> None:
+        self._tmp.cleanup()
+
+    def test_create_context_set_normalizes_and_persists_item_ids(self) -> None:
+        record = self.store.create_context_set("  Evidence  ", [" keep ", 7, None, "7", 2.5, 2.5])
+
+        self.assertEqual(record.name, "Evidence")
+        self.assertEqual(record.item_ids, ["keep", "7", "2.5"])
+        loaded = self.store.load()
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, record.context_set_id)
+        self.assertEqual(loaded[0].name, "Evidence")
+        self.assertEqual(loaded[0].item_ids, ["keep", "7", "2.5"])
+
+    def test_pin_item_updates_existing_set_and_rewrites_canonical_state(self) -> None:
+        record = self.store.create_context_set("Evidence", ["first"])
+
+        updated = self.store.pin_item(record.context_set_id, " second ")
+
+        self.assertEqual(updated.context_set_id, record.context_set_id)
+        self.assertEqual(updated.item_ids, ["first", "second"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["first", "second"])
+        self.assertEqual(payload.get("schema_version"), 1)
+
+    def test_corrupt_primary_recovers_from_backup_and_records_recovery_source(self) -> None:
+        self.store._path.write_text("{bad", encoding="utf-8")
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "context_sets": [
+                        {
+                            "context_set_id": " set-1 ",
+                            "name": " Evidence ",
+                            "item_ids": [" first ", None, "second", "first"],
+                            "created_at": "2026-03-20T11:00:00+00:00",
+                            "updated_at": "2026-03-20T12:00:00+00:00",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, "set-1")
+        self.assertEqual(loaded[0].name, "Evidence")
+        self.assertEqual(loaded[0].item_ids, ["first", "second"])
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("recovered_from"), "backup")
+        self.assertEqual(primary_payload.get("context_sets")[0]["item_ids"], ["first", "second"])
+        self.assertEqual(backup_payload.get("context_sets")[0]["item_ids"], ["first", "second"])
+        self.assertNotIn("recovered_from", backup_payload)
+
+    def test_malformed_context_set_entries_are_salvaged_and_rewritten(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "not-a-timestamp",
+                    "context_sets": [
+                        {
+                            "context_set_id": " set-1 ",
+                            "name": " Evidence ",
+                            "item_ids": [" keep ", "", None, "keep", 7],
+                            "created_at": "2026-03-20T11:00:00+00:00",
+                            "updated_at": "2026-03-20T12:00:00+00:00",
+                        },
+                        {"context_set_id": "", "name": "drop me", "item_ids": ["x"]},
+                        "discard",
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, "set-1")
+        self.assertEqual(loaded[0].name, "Evidence")
+        self.assertEqual(loaded[0].item_ids, ["keep", "7"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("schema_version"), 1)
+        self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["keep", "7"])
+        self.assertEqual(payload.get("context_sets")[0]["name"], "Evidence")
 
 
 class VaultRecoveryTests(unittest.TestCase):
