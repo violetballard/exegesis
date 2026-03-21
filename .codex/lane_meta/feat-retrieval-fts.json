@@ -8,12 +8,12 @@
     "Lane metadata consistency: keep the `.codex` metadata synchronized with `THREAD_PACKET.md`."
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The reviewed commit `906da0fb55c16ae5599e6af1ac0f6a35a8f98fdf` updates handoff artifacts only; it reconciles the kickoff packet, lane metadata, and `THREAD_PACKET.md` with the actual commit scope.",
+  "scope_completed": "The reviewed commit `1d3609dc5770f34455882ff7203ee70285353fe8` updates handoff artifacts only; it reconciles the kickoff packet, lane metadata, and `THREAD_PACKET.md` with the actual commit scope.",
   "scope_goal": "Align the kickoff packet, lane metadata, and handoff packet so they match the reviewed docs-only commit exactly.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Reconciled the packet with commit `906da0fb55c16ae5599e6af1ac0f6a35a8f98fdf`, confirming the reviewed diff only changes handoff artifacts.",
-    "Removed unrelated retrieval source-file and PageIndex references from the metadata because they are not part of the reviewed commit.",
+    "Reconciled the packet with commit `1d3609dc5770f34455882ff7203ee70285353fe8`, confirming the reviewed diff only changes handoff artifacts.",
+    "Removed unrelated retrieval source-file references from the metadata because they are not part of the reviewed commit.",
     "Added an explicit `scope_completed` field and tightened the roadmap and vision mapping to docs-only alignment."
   ],
   "vision_capabilities": [
