@@ -1,20 +1,22 @@
 {
   "approved_exception_note": "",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 2 reviewed files, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 3 reviewed files, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 4: Retrieval Layer (Planned) - FTS-first ingestion/index path for context/vault documents"
+    "Retrieval orchestration policy: centralize FTS-first strategy selection and fallback metadata.",
+    "Auditable FTS-first retrieval behavior: keep diagnostics, provenance, and audit output aligned with policy."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Canonicalize doc type filters in the retrieval service and stabilize the associated FTS query fingerprints.",
+  "scope_goal": "Centralize the FTS-first retrieval policy in engine/retrieval and propagate policy metadata through retrieval diagnostics, provenance, and audit records.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Reconciled the packet with commit `ea2020bc57294b46cdf997e99020bb9f43dd3244`, confirming the reviewed diff only changes `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`.",
-    "Removed `src/qual/engine/retrieval/pageindex_strategy.py` and `src/qual/retrieval/__init__.py` from the changed-files list because they are not part of the reviewed commit.",
-    "Added an explicit `Scope completed` field and trimmed the roadmap and vision mapping to FTS retrieval normalization plus test hardening."
+    "Reconciled the packet with commit `d050e4016bb446424a031b3c0b9c21b26220c5a9`, confirming the reviewed diff only changes `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/policy.py`, and `src/qual/retrieval/service.py`.",
+    "Removed `src/qual/engine/retrieval/pageindex_strategy.py`, `src/qual/retrieval/__init__.py`, and `tests/unit/test_unified_retrieval.py` from the changed-files list because they are not part of the reviewed commit.",
+    "Added an explicit `Scope completed` field and tightened the roadmap and vision mapping to FTS-first policy centralization plus auditable diagnostics, provenance, and audit output."
   ],
   "vision_capabilities": [
-    "Retrieval-first context handling"
+    "FTS-first retrieval orchestration",
+    "Auditable retrieval provenance"
   ]
 }
