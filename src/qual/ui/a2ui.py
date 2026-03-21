@@ -596,7 +596,10 @@ def render_terminal_card(card: dict[str, Any]) -> str:
     for block in _iter_card_entries(card.get("blocks")):
         lines.extend(_render_terminal_block(block))
     actions = card.get("actions")
-    rendered_actions = _render_terminal_actions(actions)
+    rendered_actions = _render_terminal_actions(
+        actions,
+        supported_actions={FALLBACK_COPY_ACTION_ID} if card_type == UNKNOWN_CARD_TYPE else _ALLOWED_ACTION_SET,
+    )
     actions_present = actions is not None
     actions_are_list = isinstance(actions, (list, tuple))
     filtered_actions = actions_are_list and len(rendered_actions) < len(actions)
@@ -985,8 +988,8 @@ def _canonical_json_sort_key(value: Any) -> str:
     return str(value)
 
 
-def _render_terminal_actions(actions: Any) -> list[str]:
-    normalized_actions = _canonicalize_supported_action_list(actions, supported_actions=_ALLOWED_ACTION_SET)
+def _render_terminal_actions(actions: Any, *, supported_actions: set[str]) -> list[str]:
+    normalized_actions = _canonicalize_supported_action_list(actions, supported_actions=supported_actions)
     normalized_actions = sorted(normalized_actions, key=_canonical_json)
 
     identity_counts: dict[str, int] = {}
