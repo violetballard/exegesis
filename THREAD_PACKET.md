@@ -1,45 +1,42 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Reviewed commit: `8c4dfc5ea3370d7b354881bb889a66147d5d769c`
-- Scope goal: Harden context basket and vault persistence recovery so malformed optional metadata is salvaged and rewritten without discarding valid local state, and cover that recovery contract with focused tests.
-- Scope completed: Updated context basket recovery to treat malformed optional metadata as salvageable while still rejecting unrecoverable schema or item-id payloads.
-- Scope completed: Updated vault state recovery to preserve valid lock and project state when optional metadata fields are malformed, then rewrite normalized persisted state.
-- Scope completed: Normalized context basket item-id handling so mixed invalid entries can be salvaged and rewritten instead of forcing a full discard.
-- Scope completed: Added focused metadata-only corruption tests for both context basket and vault persistence paths, including backup-promotion recovery cases and invalid project-name metadata.
+- Reviewed commit: `369f2d8f84afbb9805b3219abe8e7ed62d4662c2` (`src/qual/context/set_store.py`, `src/qual/context/store.py`, `src/qual/storage/vault.py`, `tests/unit/test_context_storage_recovery.py`)
+- Scope goal: Preserve recoverable context-storage state when optional metadata is malformed, and rewrite normalized persisted state without discarding valid local data.
+- Scope completed: Updated context-set recovery to salvage malformed optional metadata while still quarantining unrecoverable primary payloads.
+- Scope completed: Updated vault recovery to preserve valid lock and project state when optional metadata fields are malformed, then rewrite normalized persisted state.
+- Scope completed: Normalized recovery rewrite behavior so valid local state is retained and canonical backups are refreshed instead of discarded.
+- Scope completed: Added focused metadata-only corruption tests for the context-set and vault recovery paths, including backup-promotion recovery cases and invalid project-name metadata.
 - Tasks completed:
-  1. Updated context basket recovery to treat malformed optional metadata as salvageable while still rejecting unrecoverable schema or item-id payloads.
-  2. Updated vault state recovery to preserve valid lock and project state when optional metadata fields are malformed, then rewrite normalized persisted state.
-  3. Normalized context basket item-id handling so mixed invalid entries can be salvaged and rewritten instead of forcing a full discard.
-  4. Added focused metadata-only corruption tests for both context basket and vault persistence paths, including backup-promotion recovery cases.
-  5. Added a focused vault regression test for invalid project-name metadata so valid lock state is preserved safely and rewritten instead of being treated as unrecoverable corruption.
-  6. Re-ran scope, format, lint, unit, typecheck, and CI gates on the reviewed branch head and confirmed they all pass.
+  1. Salvaged malformed optional metadata in context-set recovery while still rejecting unrecoverable primary payloads.
+  2. Preserved valid vault lock and project state when optional metadata was malformed, then rewrote normalized persisted state.
+  3. Refreshed canonical backup and quarantine handling so salvageable primary state is retained for auditability.
+  4. Added focused regression coverage for metadata-only corruption, backup promotion, and invalid project-name recovery.
 - Files changed:
-  - `src/qual/context/basket.py`
   - `src/qual/context/set_store.py`
   - `src/qual/context/store.py`
   - `src/qual/storage/vault.py`
   - `tests/unit/test_context_storage_recovery.py`
 - Shared/integrator-locked edits:
-  - `YES` - `tests/unit/test_context_storage_recovery.py` is approved shared recovery coverage; no integrator-locked source files were touched.
+  - `NO`
 - Commands run with results:
-  - `git show --stat --name-only --oneline 8c4dfc5e` -> confirmed the reviewed feature commit spans the context/storage recovery source and test updates
-  - `git show --unified=0 --format=medium 8c4dfc5e -- src/qual/context/basket.py src/qual/context/set_store.py src/qual/context/store.py src/qual/storage/vault.py tests/unit/test_context_storage_recovery.py` -> confirmed the feature diff matches the recovery scope described above
-  - `make scope-check` -> passed
-  - `./quality-format.sh --check` -> passed
-  - `./quality-lint.sh` -> passed
-  - `./quality-test.sh` -> passed (`Ran 145 tests`, `OK`)
-  - `./typecheck-test.sh` -> passed
-  - `make ci` -> passed
+  - `git show --stat --name-only --oneline 369f2d8f84afbb9805b3219abe8e7ed62d4662c2` -> confirmed the reviewed feature commit spans the context/storage recovery source and test updates
+  - `git show --unified=20 --format=medium 369f2d8f84afbb9805b3219abe8e7ed62d4662c2 -- src/qual/context/set_store.py src/qual/context/store.py src/qual/storage/vault.py tests/unit/test_context_storage_recovery.py` -> confirmed the recovery rewrite and regression coverage
+  - `make scope-check` -> pending rerun after packet correction
+  - `./quality-format.sh --check` -> pending rerun after packet correction
+  - `./quality-lint.sh` -> pending rerun after packet correction
+  - `./quality-test.sh` -> pending rerun after packet correction
+  - `./typecheck-test.sh` -> pending rerun after packet correction
+  - `make ci` -> pending rerun after packet correction
 - Reviewer fix closure:
-  - `#1` repointed the handoff at the actual feature commit instead of the docs-only packet commit.
-  - `#2` made `Files changed` match the real recovery source/test diff and removed the packet-only file from that list.
-  - `#3` called out the approved shared test coverage explicitly so the ownership note is self-consistent.
-  - `#4` kept the scope tied to `feat-context-storage` work in owned paths plus the approved shared test file.
+  - `#1` repointed the handoff at the actual recovery commit instead of the stale packet-only commit.
+  - `#2` made `Files changed` match the real recovery source/test diff.
+  - `#3` removed the unsupported shared-edit exception note.
+  - `#4` aligned the scope and task summaries with the recovery behavior in the reviewed commit.
 - Checkpoint status:
   - plan complete
-  - first green tests: `./quality-test.sh` passed (`Ran 145 tests`, `OK`)
-  - ready for handoff: all required local gates passed
+  - first green tests: pending rerun
+  - ready for handoff: pending gate rerun after packet correction
 - Risks/blockers:
   - None.
 - Roadmap item(s) affected:
