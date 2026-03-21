@@ -135,21 +135,14 @@ class ContextSetStore:
         elif primary_payload is not None:
             payload = primary_payload
             recovered_source = None
-        elif tmp_payload is not None:
-            payload = tmp_payload
-            recovered_source = "tmp"
-        elif backup_tmp_payload is not None:
-            payload = backup_tmp_payload
-            recovered_source = "backup"
-        elif backup_payload is not None:
-            payload = backup_payload
-            recovered_source = "backup"
-        elif seed_tmp_payload is not None:
-            payload = seed_tmp_payload
-            recovered_source = "seed"
-        elif seed_payload is not None:
-            payload = seed_payload
-            recovered_source = "seed"
+        elif primary_payload is None:
+            payload, recovered_source = self._prefer_recovery_payload(
+                tmp_payload,
+                backup_tmp_payload,
+                backup_payload,
+                seed_tmp_payload,
+                seed_payload,
+            )
         else:
             self._clear_quarantine_file()
             self._clear_temporary_files()
@@ -642,10 +635,24 @@ class ContextSetStore:
         ):
             if candidate is None:
                 continue
-            if isinstance(candidate, dict) and "context_sets" not in candidate:
+            if not self._is_preferred_recovery_payload(candidate):
                 continue
             return candidate, recovered_source
         return None, None
+
+    def _is_preferred_recovery_payload(self, payload: dict[str, object] | list[object]) -> bool:
+        if isinstance(payload, list):
+            if not payload:
+                return True
+            parsed_records = self._parse_context_sets(payload)
+            return parsed_records is not None and bool(parsed_records)
+        if "context_sets" not in payload:
+            return False
+        raw_context_sets = payload.get("context_sets")
+        if isinstance(raw_context_sets, list) and not raw_context_sets:
+            return True
+        parsed_records = self._parse_context_sets(raw_context_sets)
+        return parsed_records is not None and bool(parsed_records)
 
     def _primary_context_sets_need_recovery(self, payload: dict[str, object] | list[object] | None) -> bool:
         if isinstance(payload, dict):
