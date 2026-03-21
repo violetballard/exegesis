@@ -1,12 +1,12 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Scope goal: Regenerate the feat-retrieval-fts handoff so the reviewed commit `f51c0298789cd3665e9a2afd58cf8c5f1c241e98` is represented accurately.
-- Scope completed: The reviewed commit `f51c0298789cd3665e9a2afd58cf8c5f1c241e98` is packet-only and updates `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`; it did not change retrieval source code or `.codex/kickoff_packets/feat-retrieval-fts.md`.
+- Scope goal: Align the handoff packet and lane metadata with the reviewed docs-only commit so the lane record matches the actual diff.
+- Scope completed: The reviewed commit `44116a6740ae818eccaf88fa988239fd6c34f18a` is docs-only and updates `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`; it did not change retrieval source code.
 - Tasks completed:
-  1. Regenerated the lane metadata so its scope, budget note, and task list match the reviewed packet-only diff.
-  2. Regenerated the handoff packet so it lists the exact changed files and does not imply unreviewed retrieval source changes.
-  3. Kept the kickoff packet out of the reviewed file list because it is not part of the reviewed diff.
+  1. Reconciled the packet with commit `44116a6740ae818eccaf88fa988239fd6c34f18a`, confirming the reviewed diff only changes `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`.
+  2. Removed `src/qual/engine/retrieval/pageindex_strategy.py` and every source-change claim from the handoff because the reviewed diff is packet-only.
+  3. Added an explicit `Scope completed` field and kept roadmap and vision items empty so the packet stays limited to handoff alignment.
 - Files changed:
   - `.codex/lane_meta/feat-retrieval-fts.json`
   - `THREAD_PACKET.md`
@@ -14,8 +14,8 @@
   - `.codex/lane_meta/feat-retrieval-fts.json`
   - `THREAD_PACKET.md`
 - Commands run with results:
-  - Final re-review validation rerun on `2026-03-20` in this lane worktree against reviewer-required fixes `#1-#6`
-  - `git show --stat --name-only --format=fuller f51c0298789cd3665e9a2afd58cf8c5f1c241e98` -> confirmed the reviewed commit only changes `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`
+  - Final re-review validation rerun on `2026-03-20` in this lane worktree against reviewer-required fixes `#1-#5`
+  - `git show --stat --name-only --format=fuller 44116a6740ae818eccaf88fa988239fd6c34f18a` -> confirmed the reviewed commit only changes `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -24,11 +24,10 @@
   - `make ci` -> passed (includes scope-check, format, lint, typecheck, smoke, and unit test gates)
 - Reviewer fix closure:
   - `#1` regenerated `Files changed` to match the reviewed commit exactly.
-  - `#2` removed `.codex/kickoff_packets/feat-retrieval-fts.md` from the changed-files list because it is not part of the reviewed diff.
-  - `#3` removed stale retrieval source-change claims from the packet because they are not part of the reviewed diff.
-  - `#4` rewrote the scope to describe the actual reviewed change: lane metadata and handoff packet alignment, not retrieval implementation.
-  - `#5` added an explicit `Scope completed` field stating that the commit only updated handoff metadata artifacts.
-  - `#6` kept roadmap and vision mappings empty so the packet does not imply retrieval implementation or PageIndex changes.
+  - `#2` removed `src/qual/engine/retrieval/pageindex_strategy.py` and every source-change claim from the handoff because the reviewed diff is packet-only.
+  - `#3` rewrote the scope to describe the actual reviewed change: lane metadata and handoff packet alignment, not retrieval implementation.
+  - `#4` added an explicit `Scope completed` field stating that the commit only updated handoff metadata/artifacts.
+  - `#5` kept roadmap and vision mappings empty so the packet does not imply retrieval implementation or PageIndex changes.
 - Checkpoint status:
   - plan complete
   - first green tests: `./quality-test.sh` passed (`Ran 78 tests`, `OK`)

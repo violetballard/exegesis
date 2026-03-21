@@ -1,15 +1,15 @@
 {
   "approved_exception_note": "",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 2 promoted handoff artifacts, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 2 reviewed files, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [],
   "routing_provider_impact": "None",
-  "scope_goal": "Regenerate the feat-retrieval-fts handoff so the reviewed commit `f51c0298789cd3665e9a2afd58cf8c5f1c241e98` is represented accurately.",
+  "scope_goal": "Align the handoff packet and lane metadata with the reviewed docs-only commit so the lane record matches the actual diff.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Reconciled the packet with commit `f51c0298789cd3665e9a2afd58cf8c5f1c241e98`, which only changes `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`.",
-    "Removed `.codex/kickoff_packets/feat-retrieval-fts.md` from the changed-files claim and dropped stale source-file and PageIndex references because the reviewed diff is packet-only.",
+    "Reconciled the packet with commit `44116a6740ae818eccaf88fa988239fd6c34f18a`, confirming the reviewed diff only changes `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`.",
+    "Removed `src/qual/engine/retrieval/pageindex_strategy.py` and every source-change claim from the handoff because the reviewed diff is packet-only.",
     "Added an explicit `Scope completed` field and kept roadmap and vision items empty so the packet stays limited to handoff alignment."
   ],
   "vision_capabilities": []
