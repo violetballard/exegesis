@@ -227,6 +227,20 @@ class RetrievalService:
             doc_id = str(row["doc_id"])
             excerpt_text = str(row["text"])
             matched_terms = self._matched_query_terms(query_terms, excerpt_text)
+            provenance = self._build_fts_provenance(
+                doc_id=doc_id,
+                excerpt_id=str(row["excerpt_id"]),
+                char_start=int(row["char_start"]),
+                char_end=int(row["char_end"]),
+                text=excerpt_text,
+                matched_terms=matched_terms,
+                rank=rank,
+                fts_rank=float(row["fts_rank"]),
+                query_scope=query.scope,
+                query_intent=query.intent,
+                query_fingerprint=self._active_query_fingerprint,
+                candidate_doc_count=effective_candidate_doc_count,
+            )
             hits.append(
                 RetrievalHit(
                     doc_id=doc_id,
@@ -238,20 +252,7 @@ class RetrievalService:
                     source_strategy="fts",
                     rationale="sqlite_fts_match",
                     node_path=None,
-                    provenance=self._build_fts_provenance(
-                        doc_id=doc_id,
-                        excerpt_id=str(row["excerpt_id"]),
-                        char_start=int(row["char_start"]),
-                        char_end=int(row["char_end"]),
-                        text=excerpt_text,
-                        matched_terms=matched_terms,
-                        rank=rank,
-                        fts_rank=float(row["fts_rank"]),
-                        query_scope=query.scope,
-                        query_intent=query.intent,
-                        query_fingerprint=self._active_query_fingerprint,
-                        candidate_doc_count=effective_candidate_doc_count,
-                    ),
+                    provenance=provenance,
                 )
             )
         return hits
@@ -317,6 +318,7 @@ class RetrievalService:
             doc_hit_list = grouped[doc_id]
             top_hit = doc_hit_list[0]
             doc_rank = len(doc_hits) + 1
+            top_excerpt_fingerprint = str(top_hit.provenance.get("excerpt_fingerprint", ""))
             doc_hits.append(
                 RetrievalDocHit(
                     doc_id=doc_id,
@@ -329,16 +331,28 @@ class RetrievalService:
                     provenance={
                         "doc_id": doc_id,
                         "source_hash": str(doc_meta.get("source_hash", "")),
+                        "doc_type": str(doc_meta.get("doc_type", "")),
                         "query_fingerprint": query_fingerprint,
                         "excerpt_ids": [hit.excerpt_id for hit in doc_hit_list if hit.excerpt_id is not None],
                         "top_excerpt_id": top_hit.excerpt_id,
                         "top_excerpt_hash": top_hit.provenance.get("hash"),
+                        "top_excerpt_fingerprint": top_excerpt_fingerprint,
                         "top_excerpt_span": top_hit.provenance.get("span"),
                         "top_matched_terms": top_hit.provenance.get("matched_terms"),
                         "top_match_count": top_hit.provenance.get("match_count"),
                         "top_excerpt_rank": top_hit.provenance.get("rank"),
                         "top_fts_rank": top_hit.provenance.get("fts_rank"),
                         "doc_rank": doc_rank,
+                        "doc_fingerprint": self._stable_fingerprint(
+                            {
+                                "doc_id": doc_id,
+                                "source_hash": str(doc_meta.get("source_hash", "")),
+                                "doc_type": str(doc_meta.get("doc_type", "")),
+                                "top_excerpt_id": top_hit.excerpt_id,
+                                "top_excerpt_fingerprint": top_excerpt_fingerprint,
+                                "query_fingerprint": query_fingerprint,
+                            }
+                        ),
                         "excerpt_count": len(doc_hit_list),
                         "source_strategy": "fts",
                         "retrieval_mode": "fts_first",
@@ -542,7 +556,7 @@ class RetrievalService:
             "span": {"char_range": {"start": char_start, "end": char_end}},
             "hash": text_hash,
             "excerpt_text_hash": text_hash,
-            "matched_terms": matched_terms,
+            "matched_terms": list(matched_terms),
             "match_count": len(matched_terms),
             "rank": rank,
             "fts_rank": fts_rank,
@@ -558,6 +572,15 @@ class RetrievalService:
             provenance["query_fingerprint"] = query_fingerprint
         if candidate_doc_count is not None:
             provenance["candidate_doc_count"] = candidate_doc_count
+        provenance["excerpt_fingerprint"] = self._stable_fingerprint(
+            {
+                "doc_id": doc_id,
+                "source_hash": provenance["source_hash"],
+                "excerpt_id": excerpt_id,
+                "span": provenance["span"],
+                "excerpt_text_hash": text_hash,
+            }
+        )
         return provenance
 
     @staticmethod
@@ -626,6 +649,11 @@ class RetrievalService:
             "constraints": normalized_constraints,
             "confidentiality_profile": query.confidentiality_profile,
         }
+        serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+        return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _stable_fingerprint(payload: object) -> str:
         serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 

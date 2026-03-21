@@ -74,6 +74,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(first_fingerprint, second.diagnostics["query_fingerprint"])
         self.assertEqual(first_fingerprint, first.hits[0].provenance["query_fingerprint"])
         self.assertEqual(first_fingerprint, first.doc_hits[0].provenance["query_fingerprint"])
+        self.assertEqual(first.hits[0].provenance["excerpt_fingerprint"], second.hits[0].provenance["excerpt_fingerprint"])
+        self.assertEqual(first.doc_hits[0].provenance["doc_fingerprint"], second.doc_hits[0].provenance["doc_fingerprint"])
 
         variant = self.service.retrieve_auto(
             RetrievalQuery(
@@ -112,6 +114,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
             self.assertEqual(hit.provenance["query_intent"], "outline_support")
             self.assertEqual(hit.provenance["query_fingerprint"], result.diagnostics["query_fingerprint"])
             self.assertIn("candidate_doc_count", hit.provenance)
+            self.assertIn("excerpt_fingerprint", hit.provenance)
+            self.assertIsInstance(hit.provenance["matched_terms"], list)
             self.assertEqual(hit.provenance["match_count"], len(hit.provenance["matched_terms"]))
             self.assertTrue(hit.provenance["matched_terms"])
 
@@ -159,9 +163,12 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(doc_hit.provenance["doc_id"], doc_hit.doc_id)
         self.assertEqual(doc_hit.provenance["top_excerpt_id"], doc_hit.top_excerpt_id)
         self.assertIn("top_excerpt_hash", doc_hit.provenance)
+        self.assertIn("top_excerpt_fingerprint", doc_hit.provenance)
         self.assertIn("top_excerpt_span", doc_hit.provenance)
         self.assertIn("top_matched_terms", doc_hit.provenance)
         self.assertIn("top_match_count", doc_hit.provenance)
+        self.assertEqual(doc_hit.provenance["doc_type"], "memo")
+        self.assertIn("doc_fingerprint", doc_hit.provenance)
         self.assertEqual(doc_hit.provenance["source_strategy"], "fts")
         self.assertEqual(doc_hit.provenance["retrieval_mode"], "fts_first")
         self.assertEqual(doc_hit.provenance["query_scope"], "vault")
@@ -200,6 +207,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(result.doc_hits[0].top_excerpt_id, result.hits[0].excerpt_id)
         self.assertEqual(result.doc_hits[0].provenance["top_excerpt_rank"], 1)
         self.assertEqual(result.doc_hits[0].provenance["doc_rank"], 1)
+        self.assertIn("doc_fingerprint", result.doc_hits[0].provenance)
         ordered_doc_ids = []
         seen_doc_ids = set()
         for hit in result.hits:
@@ -231,6 +239,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["text_hash"], result.hits[0].provenance["excerpt_text_hash"])
         self.assertEqual(excerpt["provenance"]["source_strategy"], "fts")
         self.assertEqual(excerpt["provenance"]["hash"], result.hits[0].provenance["hash"])
+        self.assertEqual(excerpt["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
         self.assertTrue(excerpt["text"])
 
     def test_retrieval_service_normalizes_pageindex_excerpt_payloads(self) -> None:
