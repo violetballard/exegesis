@@ -741,26 +741,38 @@ def _canonical_json_sort_key(value: Any) -> str:
 def _render_terminal_actions(actions: Any) -> list[str]:
     if not isinstance(actions, list):
         return []
-    lines: list[str] = []
+    normalized_actions: list[dict[str, Any]] = []
     seen: set[str] = set()
     for action in actions:
         if not isinstance(action, dict):
             continue
         try:
-            validate_action_ref(action)
+            normalized = _normalize_action(action, supported_actions=_ALLOWED_ACTION_SET)
         except ValueError:
             continue
-        action_key = _canonical_json(
-            {
-                "id": str(action["id"]).strip(),
-                "label": str(action["label"]).strip(),
-            }
-        )
+        action_key = _canonical_json(normalized)
         if action_key in seen:
             continue
         seen.add(action_key)
-        label = str(action["label"]).strip()
-        action_id = str(action["id"]).strip()
+
+        normalized_actions.append(normalized)
+
+    identity_counts: dict[str, int] = {}
+    for action in normalized_actions:
+        identity_key = _canonical_json({"id": action["id"], "label": action["label"]})
+        identity_counts[identity_key] = identity_counts.get(identity_key, 0) + 1
+
+    lines: list[str] = []
+    rendered_identity: set[str] = set()
+    for action in normalized_actions:
+        label = action["label"]
+        action_id = action["id"]
+        identity_key = _canonical_json({"id": action_id, "label": label})
+        if identity_counts.get(identity_key, 0) > 1 and identity_key in rendered_identity:
+            payload_preview = _render_payload_preview(action["payload"], max_payload_bytes=96)
+            lines.append(f"- {label} ({action_id}; payload: {payload_preview})")
+            continue
+        rendered_identity.add(identity_key)
         lines.append(f"- {label} ({action_id})")
     return lines
 
