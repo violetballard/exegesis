@@ -1,15 +1,15 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Current branch head: `code-bearing context-storage recovery commit on codex/feat-context-storage`
-- Reviewed feature commit: `actual context-storage recovery implementation in the two context-store implementations`
-- Promoted code commit range: `source changes in src/qual/context/store.py and src/qual/context/set_store.py`
+- Current branch head: `dc6ed96e526869dc2bf55ae1a0a5b1c04f1df152` (handoff packet fix commit)
+- Reviewed feature commit: `550086af` (`fix(context-storage): centralize empty recovery checks`)
+- Promoted code commit range: `550086af`
 - Scope goal: Resubmit the actual context-storage recovery implementation instead of a packet-only handoff.
-- Scope completed: Restored the empty-recovery helper behavior in `src/qual/context/store.py` and `src/qual/context/set_store.py`.
-- Scope completed: Updated the matching handoff metadata to describe the source-only recovery fix.
+- Scope completed: Centralized empty-recovery checks in `src/qual/context/store.py` and `src/qual/context/set_store.py`.
+- Scope completed: Kept canonical empty recovery payloads free of synthetic `recovered_from` provenance.
 - Tasks completed:
-  1. Restored empty-recovery handling in `src/qual/context/store.py`.
-  2. Restored empty-recovery handling in `src/qual/context/set_store.py`.
+  1. Centralized empty-recovery checks in `src/qual/context/store.py`.
+  2. Centralized empty-recovery checks in `src/qual/context/set_store.py`.
 
 - Feature code files:
   - `src/qual/context/store.py`
@@ -18,12 +18,10 @@
 - Files changed:
   - `src/qual/context/store.py`
   - `src/qual/context/set_store.py`
-  - `.codex/lane_meta/feat-context-storage.json`
-  - `THREAD_PACKET.md`
 
 - Commands run with results:
-  - `git show --stat --summary --oneline 32faecb42887a2006cac565a617b1cb9cc37dca8` -> confirmed the previous reviewed artifact was packet-only
-  - `git show --stat --summary --oneline 155dd1a0f4bce0f27c184b52740ce7f1be048e53` -> confirmed the actual code-bearing context-storage recovery changes live in `src/qual/context/store.py` and `src/qual/context/set_store.py`
+  - `git show --stat --summary --oneline 550086af` -> confirmed the reviewed feature commit changes only `src/qual/context/store.py` and `src/qual/context/set_store.py`
+  - `git show --stat --summary --patch --unified=40 550086af -- src/qual/context/set_store.py src/qual/context/store.py` -> confirmed the reviewed feature commit is limited to the empty-recovery normalization changes in the two context-store implementations
   - `make scope-check` -> pending
   - `./quality-format.sh --check` -> pending
   - `./quality-lint.sh` -> pending
