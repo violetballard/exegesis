@@ -4,21 +4,21 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - render terminal action lists with payload-aware disambiguation when labels collide.",
-    "Milestone 5: A2UI Presentation Layer - keep contract assertions synchronized with the terminal rendering format.",
-    "Milestone 5: A2UI Presentation Layer - keep terminal fallback output aligned with the structured action payloads exposed by the contract."
+    "Milestone 5: A2UI Presentation Layer - version fallback debug metadata so fallback cards carry an explicit contract marker.",
+    "Milestone 5: A2UI Presentation Layer - keep fallback assertions synchronized with the versioned fallback debug payload.",
+    "Milestone 5: A2UI Presentation Layer - keep fallback consumers aligned with the contract version recorded in debug metadata."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Make terminal A2UI rendering show payloads for duplicate action labels and keep the contract assertions aligned with that exact output.",
+  "scope_goal": "Version fallback card debug metadata in src/qual/ui/a2ui.py and keep the contract assertions aligned with the versioned fallback debug payload.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Changed the terminal action renderer so duplicate action labels always include payload previews alongside the action id and any variant suffixes.",
-    "Updated the A2UI contract tests to assert the duplicate-label payload lines and the variant-bearing payload presentation.",
-    "Rewrote the lane metadata to describe the actual code diff rather than the older metadata-only packet alignment work.",
-    "Kept the lane record scoped to terminal rendering and matching tests with no routing or provider impact."
+    "Added contract_version: 2 to the fallback debug metadata built in src/qual/ui/a2ui.py for both generic and unknown fallback cards.",
+    "Updated tests/unit/test_a2ui_contract.py to assert the versioned fallback debug payload in the generic and unknown fallback paths.",
+    "Rewrote the lane metadata to match the actual fallback debug metadata versioning change and its contract assertions.",
+    "Kept the lane record scoped to one source file plus matching tests with no routing or provider impact."
   ],
   "vision_capabilities": [
-    "Capability 5: Agent-to-UI protocol (A2UI) - terminal rendering now exposes payloads for duplicate action labels as part of the user-facing protocol.",
-    "Capability 4: Operator-first control surface - terminal fallback remains the consumer of the structured payloads, now with clearer disambiguation."
+    "Capability 5: Agent-to-UI protocol (A2UI) - fallback cards now expose versioned debug metadata as part of the user-facing protocol.",
+    "Capability 4: Operator-first control surface - fallback consumers can rely on an explicit debug contract version when reading card metadata."
   ]
 }
