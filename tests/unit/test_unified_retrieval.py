@@ -49,6 +49,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertTrue(result.hits)
         self.assertTrue(result.doc_hits)
+        self.assertEqual(result.diagnostics["retrieval_backend"], "sqlite_fts")
         self.assertIn("fts", result.diagnostics["strategies_used"])
         self.assertEqual(result.diagnostics["strategies_used"], ["fts"])
 
@@ -63,6 +64,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             )
         )
         self.assertEqual(result.diagnostics["strategies_used"], ["fts"])
+        self.assertEqual(result.diagnostics["retrieval_backend"], "sqlite_fts")
         for index, hit in enumerate(result.hits, start=1):
             self.assertIsNotNone(hit.excerpt_id)
             self.assertEqual(hit.source_strategy, "fts")
@@ -72,6 +74,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             self.assertEqual(hit.provenance["excerpt_id"], hit.excerpt_id)
             self.assertEqual(hit.provenance["source_strategy"], "fts")
             self.assertEqual(hit.provenance["rank"], index)
+            self.assertIn("fts_rank", hit.provenance)
             self.assertEqual(hit.provenance["match_count"], len(hit.provenance["matched_terms"]))
             self.assertTrue(hit.provenance["matched_terms"])
 
@@ -119,6 +122,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(doc_hit.provenance["doc_id"], doc_hit.doc_id)
         self.assertEqual(doc_hit.provenance["top_excerpt_id"], doc_hit.top_excerpt_id)
         self.assertEqual(doc_hit.provenance["source_strategy"], "fts")
+        self.assertIn("top_fts_rank", doc_hit.provenance)
         self.assertEqual(result.diagnostics["doc_hits_count"], len(result.doc_hits))
         self.assertEqual(result.diagnostics["excerpt_hits_count"], len(result.hits))
 
@@ -151,8 +155,6 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(result.doc_hits[0].top_excerpt_id, result.hits[0].excerpt_id)
         self.assertEqual(result.doc_hits[0].provenance["top_excerpt_rank"], 1)
         self.assertEqual(result.doc_hits[0].provenance["doc_rank"], 1)
-        self.assertEqual(result.doc_hits[0].doc_id, "doc-memo-1")
-        self.assertEqual(result.doc_hits[1].doc_id, "doc-memo-2")
         ordered_doc_ids = []
         seen_doc_ids = set()
         for hit in result.hits:

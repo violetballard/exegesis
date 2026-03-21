@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
+import sqlite3
 import uuid
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Literal
+from tempfile import NamedTemporaryFile
+from typing import Any, Iterator, Literal
 
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions, DocIndexService
@@ -17,7 +21,7 @@ from src.qual.metrics.crypto import decrypt_bytes, encrypt_bytes
 _RETRIEVAL_DIR = ".retrieval"
 _KEY_FILE = "retrieval_v1.key"
 _DOC_META_FILE = "doc_meta_v1.enc.json"
-_FTS_FILE = "fts_entries_v1.enc.json"
+_FTS_DB_FILE = "fts_index_v1.enc.sqlite3"
 _DOC_BLOBS = "doc_blobs"
 _FTS_SEGMENT_CHARS = 400
 _FTS_SEGMENT_OVERLAP_CHARS = 80
@@ -131,6 +135,7 @@ class RetrievalService:
         doc_hits = self._build_doc_hits(merged_hits)
         elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
         diagnostics = {
+            "retrieval_backend": "sqlite_fts",
             "strategies_used": [fts_run.strategy_id],
             "elapsed_ms_by_strategy": {fts_run.strategy_id: fts_run.elapsed_ms},
             "caches_used": {fts_run.strategy_id: fts_run.cache_used},
@@ -164,58 +169,64 @@ class RetrievalService:
         return self._docindex.fetch_excerpt(excerpt_id)
 
     def _run_fts_hits(self, query: RetrievalQuery, candidate_doc_ids: tuple[str, ...]) -> list[RetrievalHit]:
-        all_entries = self._load_fts_entries()
+        match_query, query_terms = self._build_fts_match_query(query.query_text)
+        exact_phrase = query.query_text.casefold().strip()
         scope_doc = self._doc_scope_id(query.scope)
-        candidate_doc_id_set = set(candidate_doc_ids)
-        allowed_doc_types = set(query.constraints.doc_types)
-        filtered = []
-        for entry in all_entries:
-            if scope_doc is not None and entry["doc_id"] != scope_doc:
-                continue
-            if candidate_doc_id_set and entry["doc_id"] not in candidate_doc_id_set:
-                continue
-            if allowed_doc_types and entry["doc_type"] not in allowed_doc_types:
-                continue
-            filtered.append(entry)
-        tokens = [x for x in query.query_text.lower().split() if x]
-        ranked: list[tuple[float, dict[str, object]]] = []
-        for entry in filtered:
-            score = 0.0
-            text_lower = str(entry["text_lower"])
-            matched_terms: list[str] = []
-            for token in tokens:
-                if token in text_lower:
-                    score += 1.0
-                    matched_terms.append(token)
-            if query.constraints.prefer_exact_matches and query.query_text.lower() in text_lower:
-                score += 2.0
-            if score > 0:
-                ranked.append((score, {**entry, "matched_terms": tuple(matched_terms)}))
-        ranked.sort(
-            key=lambda item: (
-                -item[0],
-                str(item[1]["doc_id"]),
-                int(item[1]["char_start"]),
-                int(item[1]["char_end"]),
-                str(item[1]["excerpt_id"]),
-            )
+        allowed_doc_types = tuple(query.constraints.doc_types)
+        select_exact_rank = "CASE WHEN instr(lower(text), ?) > 0 THEN 0 ELSE 1 END AS exact_rank" if query.constraints.prefer_exact_matches else "0 AS exact_rank"
+        where_clauses = ["fts_entries MATCH ?"]
+        params: list[object] = []
+        if query.constraints.prefer_exact_matches:
+            params.append(exact_phrase)
+        params.append(match_query)
+        if scope_doc is not None:
+            where_clauses.append("doc_id = ?")
+            params.append(scope_doc)
+        elif candidate_doc_ids:
+            placeholders = ",".join("?" for _ in candidate_doc_ids)
+            where_clauses.append(f"doc_id IN ({placeholders})")
+            params.extend(candidate_doc_ids)
+        if allowed_doc_types:
+            placeholders = ",".join("?" for _ in allowed_doc_types)
+            where_clauses.append(f"doc_type IN ({placeholders})")
+            params.extend(allowed_doc_types)
+        limit = max(25, query.constraints.max_results)
+        params.append(limit)
+        sql = (
+            f"SELECT rowid, doc_id, excerpt_id, doc_type, title_hint, char_start, char_end, text, "
+            f"bm25(fts_entries) AS fts_rank, {select_exact_rank} "
+            "FROM fts_entries "
+            f"WHERE {' AND '.join(where_clauses)} "
+            "ORDER BY exact_rank ASC, fts_rank ASC, doc_id ASC, char_start ASC, char_end ASC, excerpt_id ASC "
+            "LIMIT ?"
         )
+        rows = self._query_fts_db(sql, tuple(params))
         hits: list[RetrievalHit] = []
-        for rank, (score, entry) in enumerate(ranked[: max(25, query.constraints.max_results)], start=1):
-            doc_id = str(entry["doc_id"])
-            excerpt_text = self._read_fts_excerpt_text(entry)
+        for rank, row in enumerate(rows, start=1):
+            doc_id = str(row["doc_id"])
+            excerpt_text = str(row["text"])
+            matched_terms = self._matched_query_terms(query_terms, excerpt_text)
             hits.append(
                 RetrievalHit(
                     doc_id=doc_id,
-                    excerpt_id=str(entry["excerpt_id"]),
+                    excerpt_id=str(row["excerpt_id"]),
                     excerpt_text=excerpt_text,
-                    span={"char_range": {"start": int(entry["char_start"]), "end": int(entry["char_end"])}},
-                    title_hint=self._safe_title_hint(query, str(entry.get("title_hint") or "")),
-                    score=min(1.0, round(score / max(1.0, len(tokens)), 3)),
+                    span={"char_range": {"start": int(row["char_start"]), "end": int(row["char_end"])}},
+                    title_hint=self._safe_title_hint(query, str(row["title_hint"] or "")),
+                    score=round(1.0 / rank, 3),
                     source_strategy="fts",
-                    rationale="token_overlap",
+                    rationale="sqlite_fts_match",
                     node_path=None,
-                    provenance=self._build_fts_provenance(doc_id=doc_id, entry=entry, text=excerpt_text, rank=rank),
+                    provenance=self._build_fts_provenance(
+                        doc_id=doc_id,
+                        excerpt_id=str(row["excerpt_id"]),
+                        char_start=int(row["char_start"]),
+                        char_end=int(row["char_end"]),
+                        text=excerpt_text,
+                        matched_terms=matched_terms,
+                        rank=rank,
+                        fts_rank=float(row["fts_rank"]),
+                    ),
                 )
             )
         return hits
@@ -286,6 +297,7 @@ class RetrievalService:
                         "source_hash": str(doc_meta.get("source_hash", "")),
                         "top_excerpt_id": top_hit.excerpt_id,
                         "top_excerpt_rank": top_hit.provenance.get("rank"),
+                        "top_fts_rank": top_hit.provenance.get("fts_rank"),
                         "doc_rank": doc_rank,
                         "excerpt_count": len(doc_hit_list),
                         "source_strategy": "fts",
@@ -360,22 +372,27 @@ class RetrievalService:
         return False
 
     def _upsert_fts_entries(self, *, doc_id: str, doc_type: str, title_hint: str | None, text: str) -> None:
-        entries = [x for x in self._load_fts_entries() if x["doc_id"] != doc_id]
-        for start, end, segment in self._iter_fts_segments(text):
-            if not segment:
-                continue
-            entries.append(
-                {
-                    "doc_id": doc_id,
-                    "doc_type": doc_type,
-                    "title_hint": title_hint,
-                    "excerpt_id": self._make_fts_excerpt_id(doc_id=doc_id, char_start=start, char_end=end, text=segment),
-                    "char_start": start,
-                    "char_end": end,
-                    "text_lower": segment.lower(),
-                }
-            )
-        self._write_encrypted_json(self._root / _FTS_FILE, entries)
+        with self._connect_fts_db() as conn:
+            conn.execute("DELETE FROM fts_entries WHERE doc_id = ?", (doc_id,))
+            for start, end, segment in self._iter_fts_segments(text):
+                if not segment:
+                    continue
+                conn.execute(
+                    """
+                    INSERT INTO fts_entries(
+                      doc_id, excerpt_id, doc_type, title_hint, char_start, char_end, text
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        doc_id,
+                        self._make_fts_excerpt_id(doc_id=doc_id, char_start=start, char_end=end, text=segment),
+                        doc_type,
+                        title_hint,
+                        start,
+                        end,
+                        segment,
+                    ),
+                )
 
     def _iter_fts_segments(self, text: str) -> list[tuple[int, int, str]]:
         if not text:
@@ -424,59 +441,47 @@ class RetrievalService:
         return f"fts_{hashlib.sha256(payload.encode('utf-8')).hexdigest()[:24]}"
 
     def _find_fts_excerpt(self, excerpt_id: str) -> dict[str, object] | None:
-        for entry in self._load_fts_entries():
-            if str(entry.get("excerpt_id")) != excerpt_id:
-                continue
-            doc_id = str(entry["doc_id"])
-            char_start = int(entry["char_start"])
-            char_end = int(entry["char_end"])
-            text = self._read_fts_excerpt_text(entry)
+        row = self._fetch_fts_row(excerpt_id)
+        if row is not None:
+            text = str(row["text"])
             return {
                 "excerpt_id": excerpt_id,
                 "text": text,
-                "provenance": self._build_fts_provenance(doc_id=doc_id, entry=entry, text=text),
+                "provenance": self._build_fts_provenance(
+                    doc_id=str(row["doc_id"]),
+                    excerpt_id=excerpt_id,
+                    char_start=int(row["char_start"]),
+                    char_end=int(row["char_end"]),
+                    text=text,
+                ),
             }
         return None
-
-    def _read_fts_excerpt_text(self, entry: dict[str, object]) -> str:
-        doc_id = str(entry["doc_id"])
-        char_start = int(entry["char_start"])
-        char_end = int(entry["char_end"])
-        return self._read_doc_text(doc_id)[char_start:char_end]
 
     def _build_fts_provenance(
         self,
         *,
         doc_id: str,
-        entry: dict[str, object],
+        excerpt_id: str,
+        char_start: int,
+        char_end: int,
         text: str,
+        matched_terms: tuple[str, ...] = (),
         rank: int | None = None,
+        fts_rank: float | None = None,
     ) -> dict[str, object]:
         meta = self._load_doc_meta().get(doc_id, {})
-        matched_terms = entry.get("matched_terms", ())
-        if not isinstance(matched_terms, tuple):
-            matched_terms = tuple(str(term) for term in matched_terms if isinstance(term, str))
         return {
             "doc_id": doc_id,
             "source_hash": str(meta.get("source_hash", "")),
-            "excerpt_id": str(entry["excerpt_id"]),
-            "span": {"char_range": {"start": int(entry["char_start"]), "end": int(entry["char_end"])}},
+            "excerpt_id": excerpt_id,
+            "span": {"char_range": {"start": char_start, "end": char_end}},
             "hash": hashlib.sha256(text.encode("utf-8")).hexdigest(),
             "matched_terms": matched_terms,
             "match_count": len(matched_terms),
             "rank": rank,
+            "fts_rank": fts_rank,
             "source_strategy": "fts",
         }
-
-    def _load_fts_entries(self) -> list[dict[str, object]]:
-        payload = self._read_encrypted_json(self._root / _FTS_FILE, default=[])
-        if not isinstance(payload, list):
-            return []
-        out: list[dict[str, object]] = []
-        for raw in payload:
-            if isinstance(raw, dict):
-                out.append(raw)
-        return out
 
     def _load_doc_meta(self) -> dict[str, dict[str, object]]:
         payload = self._read_encrypted_json(self._root / _DOC_META_FILE, default={})
@@ -498,7 +503,7 @@ class RetrievalService:
         if not query.query_text.strip():
             raise ValueError("query_text is required")
         if query.scope.startswith("section:"):
-            raise ValueError("section scope is unsupported until PageIndex resolves section targets")
+            raise ValueError("section scope is unsupported until FTS fallback can resolve section targets")
         if query.scope not in {"vault"} and not any(query.scope.startswith(prefix) for prefix in ("collection:", "doc:")):
             raise ValueError("unsupported scope")
         if query.confidentiality_profile == "confidential":
@@ -536,3 +541,75 @@ class RetrievalService:
         raw = (uuid.uuid4().bytes + uuid.uuid4().bytes)[:32]
         path.write_bytes(raw)
         return raw
+
+    @contextmanager
+    def _connect_fts_db(self) -> Iterator[sqlite3.Connection]:
+        with NamedTemporaryFile(prefix="retrieval_fts_", suffix=".sqlite3", delete=False) as tmp:
+            tmp_path = Path(tmp.name)
+        try:
+            db_path = self._root / _FTS_DB_FILE
+            if db_path.exists():
+                plaintext = decrypt_bytes(db_path.read_bytes(), self._key)
+                tmp_path.write_bytes(plaintext)
+            conn = sqlite3.connect(str(tmp_path))
+            conn.row_factory = sqlite3.Row
+            try:
+                self._initialize_fts_schema(conn)
+                yield conn
+                conn.commit()
+            finally:
+                conn.close()
+            encrypted = encrypt_bytes(tmp_path.read_bytes(), self._key)
+            out_tmp = db_path.with_suffix(".tmp")
+            out_tmp.write_bytes(encrypted)
+            out_tmp.replace(db_path)
+        finally:
+            tmp_path.unlink(missing_ok=True)
+
+    def _initialize_fts_schema(self, conn: sqlite3.Connection) -> None:
+        conn.execute(
+            """
+            CREATE VIRTUAL TABLE IF NOT EXISTS fts_entries USING fts5(
+              doc_id UNINDEXED,
+              excerpt_id UNINDEXED,
+              doc_type UNINDEXED,
+              title_hint UNINDEXED,
+              char_start UNINDEXED,
+              char_end UNINDEXED,
+              text,
+              tokenize = 'unicode61'
+            )
+            """
+        )
+
+    def _query_fts_db(self, sql: str, params: tuple[object, ...]) -> list[sqlite3.Row]:
+        with self._connect_fts_db() as conn:
+            rows = conn.execute(sql, params).fetchall()
+        return rows
+
+    def _fetch_fts_row(self, excerpt_id: str) -> sqlite3.Row | None:
+        rows = self._query_fts_db(
+            "SELECT doc_id, excerpt_id, doc_type, title_hint, char_start, char_end, text FROM fts_entries "
+            "WHERE excerpt_id = ? LIMIT 1",
+            (excerpt_id,),
+        )
+        return rows[0] if rows else None
+
+    @staticmethod
+    def _build_fts_match_query(query_text: str) -> tuple[str, tuple[str, ...]]:
+        terms: list[str] = []
+        seen: set[str] = set()
+        for term in re.findall(r"\w+", query_text.casefold()):
+            if term in seen:
+                continue
+            seen.add(term)
+            terms.append(term)
+        if terms:
+            return " OR ".join(f'"{term}"' for term in terms), tuple(terms)
+        cleaned = query_text.strip().casefold().replace('"', '""')
+        return f'"{cleaned}"', ()
+
+    @staticmethod
+    def _matched_query_terms(query_terms: tuple[str, ...], text: str) -> tuple[str, ...]:
+        text_lower = text.casefold()
+        return tuple(term for term in query_terms if term in text_lower)
