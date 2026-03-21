@@ -149,6 +149,10 @@ def command_names_for_role(mvp_role: str) -> tuple[str, ...]:
     return tuple(spec.name for spec in command_specs_for_role(mvp_role))
 
 
+def command_lookup_names_for_role(mvp_role: str) -> tuple[str, ...]:
+    return _lookup_names_for_specs(command_specs_for_role(mvp_role))
+
+
 def command_mvp_roles() -> tuple[str, ...]:
     roles: list[str] = []
     seen: set[str] = set()
