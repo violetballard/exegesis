@@ -26,6 +26,7 @@
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
+  - These gate results were rerun against the implementation-retargeted packet state.
 - Reviewer fix closure:
   - `#1` retargeted the packet to the retrieval implementation commit that contains the source and test changes.
   - `#2` removed any non-owned tooling paths from the feature delta and kept the file set inside lane-owned retrieval paths.
