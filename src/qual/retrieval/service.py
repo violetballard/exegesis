@@ -131,6 +131,7 @@ class RetrievalService:
         query_fingerprint = self._query_fingerprint(query)
         fts_shortlist = self._candidate_docs_from_fts(query) if not self._is_doc_scoped(query.scope) else ()
         candidate_doc_ids = self._candidate_docs_from_scope(query.scope, fallback=fts_shortlist)
+        effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
 
         self._active_query_fingerprint = query_fingerprint
         try:
@@ -145,7 +146,7 @@ class RetrievalService:
                 "query_scope": query.scope,
                 "query_intent": query.intent,
                 "doc_scope_id": self._doc_scope_id(query.scope),
-                "candidate_doc_count": len(candidate_doc_ids),
+                "candidate_doc_count": effective_candidate_doc_count,
                 "fts_shortlist_count": len(fts_shortlist),
                 "strategies_used": [fts_run.strategy_id],
                 "elapsed_ms_by_strategy": {fts_run.strategy_id: fts_run.elapsed_ms},
@@ -189,6 +190,7 @@ class RetrievalService:
         exact_phrase = query.query_text.casefold().strip()
         scope_doc = self._doc_scope_id(query.scope)
         allowed_doc_types = tuple(query.constraints.doc_types)
+        effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
         select_exact_rank = "CASE WHEN instr(lower(text), ?) > 0 THEN 0 ELSE 1 END AS exact_rank" if query.constraints.prefer_exact_matches else "0 AS exact_rank"
         where_clauses = ["fts_entries MATCH ?"]
         params: list[object] = []
@@ -245,7 +247,7 @@ class RetrievalService:
                         query_scope=query.scope,
                         query_intent=query.intent,
                         query_fingerprint=self._active_query_fingerprint,
-                        candidate_doc_count=len(candidate_doc_ids),
+                        candidate_doc_count=effective_candidate_doc_count,
                     ),
                 )
             )
@@ -322,6 +324,7 @@ class RetrievalService:
                         "doc_id": doc_id,
                         "source_hash": str(doc_meta.get("source_hash", "")),
                         "query_fingerprint": query_fingerprint,
+                        "excerpt_ids": [hit.excerpt_id for hit in doc_hit_list if hit.excerpt_id is not None],
                         "top_excerpt_id": top_hit.excerpt_id,
                         "top_excerpt_hash": top_hit.provenance.get("hash"),
                         "top_excerpt_span": top_hit.provenance.get("span"),
@@ -382,6 +385,12 @@ class RetrievalService:
         if scope.startswith("collection:"):
             return fallback
         return fallback
+
+    @staticmethod
+    def _effective_candidate_doc_count(scope: str, candidate_doc_ids: tuple[str, ...]) -> int:
+        if scope.startswith("doc:"):
+            return 1
+        return len(candidate_doc_ids)
 
     @staticmethod
     def _is_doc_scoped(scope: str) -> bool:
