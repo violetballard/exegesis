@@ -1,39 +1,36 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Scope goal: Canonicalize recovered and persisted context-set records so load/rewrite behavior produces normalized records, deduplicated item IDs, and stable recovery output.
-- Scope completed: Implemented canonical context-set record handling in `src/qual/context/set_store.py` by tightening rewrite detection for parsed records, preserving normalized record ordering, and ensuring malformed or metadata-laden records are rewritten into the canonical on-disk form. Added focused recovery coverage for extra metadata, trimmed identifiers, and canonical rewrite behavior in `tests/unit/test_context_storage_recovery.py`.
+- Scope goal: Salvage singleton `context_sets` payloads so the store can recover a single context-set object, normalize it, and rewrite it into the canonical list-backed on-disk form.
+- Scope completed: Implemented singleton payload salvage in `src/qual/context/set_store.py` by allowing `_parse_context_sets` to accept a lone context-set object, then normalizing and rewriting it through the existing canonical record path. The recovered state still follows the same rewrite rules for malformed entries, deduplicated identifiers, and canonical record ordering.
 - Tasks completed:
-  1. Updated `ContextSetStore` rewrite detection so parsed records are compared against their canonical form before deciding whether a rewrite is needed.
-  2. Kept context-set normalization focused on record canonicalization, including trimmed IDs, deduplicated `item_ids`, and rejection of malformed entries.
-  3. Added recovery test coverage for canonical rewrite cases with extra metadata and normalized payloads.
-  4. Rewrote the handoff packet to match the actual branch head and the reviewed commit scope.
+  1. Extended `_parse_context_sets` so a dict-shaped `context_sets` payload can be recovered as a single record instead of being rejected.
+  2. Kept the canonical rewrite path intact so recovered singleton payloads are normalized and persisted in the expected list-backed form.
+  3. Rewrote the packet to match the actual reviewed commit and removed the unrelated basket/vault/test claims.
 - Files changed:
   - `src/qual/context/set_store.py`
-  - `tests/unit/test_context_storage_recovery.py`
 - Commands run with results:
-  - `git show --stat --name-only --oneline 5b33b8a30607023f8d12f76e7198d6c885da594d --` -> confirmed the reviewed commit touches `src/qual/context/set_store.py` and `tests/unit/test_context_storage_recovery.py`
-  - `git show --unified=80 5b33b8a30607023f8d12f76e7198d6c885da594d -- src/qual/context/set_store.py tests/unit/test_context_storage_recovery.py` -> confirmed the exact canonicalization and recovery-test changes
+  - `git show --stat --name-only --oneline HEAD --` -> confirmed the reviewed commit `71f831973d61d18696611e19699807457d9aca25` only changes `src/qual/context/set_store.py`
+  - `git show --unified=80 HEAD -- src/qual/context/set_store.py` -> confirmed the singleton payload salvage and canonical rewrite behavior in the actual diff
   - `make scope-check` -> passed for branch `codex/feat-context-storage`
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
-  - `./quality-test.sh` -> passed (`Ran 137 tests`, `OK`)
+  - `./quality-test.sh` -> passed (`Ran 138 tests`, `OK`)
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - Reviewer fix closure:
-  - `#1` corrected the changed-file set to the actual branch diff: `src/qual/context/set_store.py` and `tests/unit/test_context_storage_recovery.py`.
-  - `#2` rewrote the scope goal and completed-scope bullets around context-set record canonicalization instead of basket/vault persistence.
-  - `#3` aligned the task list with the actual `set_store.py` canonicalization work and the associated recovery tests.
-  - `#4` not applicable; the packet already points at the reviewed `context-storage` commit.
+  - `#1` rewrote the packet around the actual commit: singleton context-set payload salvage in `src/qual/context/set_store.py`.
+  - `#2` replaced the files-changed list with the real diff contents only.
+  - `#3` removed the basket/vault recovery claims and the test-coverage claims that did not belong to this commit.
+  - `#4` aligned the scope and completion bullets with the true roadmap and vision mapping for context-state recovery.
 - Checkpoint status:
   - plan complete
-  - first green tests: `./quality-test.sh` passed (`Ran 137 tests`, `OK`)
+  - first green tests: `./quality-test.sh` passed (`Ran 138 tests`, `OK`)
   - ready for handoff: all required local gates passed
 - Risks/blockers:
   - None.
 - Roadmap item(s) affected:
-  - `Milestone 2: Test Hardening` -> add focused unit coverage for core behaviors and persistence edge cases
-  - `Milestone 3: Product Readiness` -> tighten user-facing output contracts by keeping persisted context state canonical and reviewable
+  - `Milestone 1: Bootstrap Flow Stabilization` -> context basket and vault persistence hardening
 - Vision capability affected:
   - `1. Local-first state and identity` -> project-scoped context storage keeps safe recovery behavior and canonical persisted state
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
