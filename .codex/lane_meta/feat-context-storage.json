@@ -1,0 +1,24 @@
+{
+  "scope_goal": "Resubmit the actual context-storage recovery implementation instead of a packet-only handoff.",
+  "tasks_completed": [
+    "Restored empty-recovery handling in src/qual/context/store.py.",
+    "Restored empty-recovery handling in src/qual/context/set_store.py."
+  ],
+  "risk": "LOW",
+  "roadmap_items": [
+    "Milestone 1 - Bootstrap Flow Stabilization: context storage recovery hardening."
+  ],
+  "vision_capabilities": [
+    "Capability 1 - Local-first state and identity.",
+    "Capability 3 - Auditable generation through deterministic recovery and rewrite behavior for persisted local state."
+  ],
+  "routing_provider_impact": "None",
+  "proposed_readme_patch": "",
+  "shared_file_exception": false,
+  "reporting_artifacts": [
+    ".codex/lane_meta/feat-context-storage.json",
+    "THREAD_PACKET.md"
+  ],
+  "kickoff_budget_note": "Handoff metadata aligned to the code-bearing context-storage recovery fix in src/qual/context/store.py and src/qual/context/set_store.py.",
+  "approved_exception_note": ""
+}
