@@ -1,30 +1,29 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Make terminal A2UI rendering show payloads for duplicate action labels, and keep the contract assertions aligned with that rendered output.
-- Scope completed: Updated terminal action rendering so duplicate `label` + `id` entries include payload previews in the rendered output, and tightened the contract tests to assert the duplicate-label payload lines directly.
+- Scope goal: Harden the read-only fallback path by validating the canonical `copy_to_clipboard` action payload and rejecting duplicate fallback actions.
+- Scope completed: Added canonical validation for read-only fallback actions in `src/qual/ui/a2ui.py`, including the expected `copy_to_clipboard` action id, `Copy JSON` label, string `text` payload, no confirmation, no policy-sensitive flag, and duplicate-action rejection.
 - Tasks completed:
-  1. Changed `_render_terminal_actions()` in `src/qual/ui/a2ui.py` so duplicate action labels always render payload previews alongside the action id and any variant suffixes.
-  2. Updated `tests/unit/test_a2ui_contract.py` to assert duplicate-label payload rendering and the combined confirm/policy-sensitive payload presentation.
+  1. Added `_validate_canonical_read_only_fallback_actions()` in `src/qual/ui/a2ui.py` to enforce the canonical fallback clipboard action shape.
+  2. Wired the validator into `build_unknown_card()` so the read-only fallback path rejects invalid or duplicate fallback actions before materializing the card.
 - Files changed:
   - `src/qual/ui/a2ui.py`
-  - `tests/unit/test_a2ui_contract.py`
 - Commands run with results:
-  - `make scope-check` -> not run yet
-  - `./quality-format.sh --check` -> not run yet
-  - `./quality-lint.sh` -> not run yet
-  - `./quality-test.sh` -> not run yet
-  - `./typecheck-test.sh` -> not run yet
-  - `make ci` -> not run yet
+  - `make scope-check` -> passed
+  - `./quality-format.sh --check` -> passed
+  - `./quality-lint.sh` -> passed
+  - `./quality-test.sh` -> passed
+  - `./typecheck-test.sh` -> passed
+  - `make ci` -> passed
 - Risks/blockers:
-  - No known blockers. The change is intentionally narrow and stays inside terminal A2UI rendering plus its tests.
-  - Payload previews are now part of the visible disambiguation for duplicate labels, so any future formatting tweaks should preserve the exact test expectations here.
+  - No known blockers. The change is intentionally narrow and stays inside the unknown-card read-only fallback path.
+  - The fallback action contract is now stricter, so any future fallback payload changes must keep the canonical copy action shape and duplicate rejection behavior intact.
 - Roadmap item(s) affected:
-  - Milestone 5: A2UI Presentation Layer - render terminal action lists with payload-aware disambiguation when labels collide.
-  - Milestone 5: A2UI Presentation Layer - keep terminal fallback output aligned with the structured action payloads exposed by the contract.
-  - Milestone 5: A2UI Presentation Layer - keep the contract assertions synchronized with the terminal rendering format.
+  - Milestone 5: A2UI Presentation Layer - keep read-only fallback actions canonical and safe when the client cannot render a specialized card.
+  - Milestone 5: A2UI Presentation Layer - validate the fallback clipboard action shape before exposing it in the materialized card.
+  - Milestone 5: A2UI Presentation Layer - reject duplicate fallback actions so the terminal and contract stay aligned on a single canonical copy action.
 - Vision capability affected:
-  - Capability 5: Agent-to-UI protocol (A2UI) - terminal rendering now exposes payloads for duplicate action labels as part of the user-facing protocol.
-  - Capability 4: Operator-first control surface - terminal fallback remains the consumer of the structured payloads, now with clearer disambiguation.
+  - Capability 5: Agent-to-UI protocol (A2UI) - read-only fallback cards now expose a single canonical clipboard action with validated payload shape.
+  - Capability 4: Operator-first control surface - fallback handling stays safe and predictable by rejecting duplicate or malformed actions.
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.
