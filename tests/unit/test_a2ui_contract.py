@@ -455,13 +455,14 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         self.assertEqual([action["id"] for action in card["actions"]], ["copy_to_clipboard"])
-        self.assertEqual(card["actions"][0]["label"], "Copy")
+        self.assertEqual(card["actions"][0]["label"], "Copy JSON")
+        self.assertIn("ProposedEditCard", card["actions"][0]["payload"]["text"])
         self.assertEqual(card["type"], "GenericCard")
         self.assertEqual(card["debug"], {"fallback_kind": "generic", "source_card_type": "ProposedEditCard"})
         validate_generic_card(card)
 
         text = render_terminal_card(card)
-        self.assertIn("- Copy (copy_to_clipboard)", text)
+        self.assertIn("- Copy JSON (copy_to_clipboard)", text)
         self.assertNotIn("- Apply (apply_patch)", text)
 
     def test_unknown_card_validator_accepts_sanitized_fallback_cards(self) -> None:
@@ -515,6 +516,37 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("Fallback: unknown from FutureCard", text)
         self.assertIn("- fallback_kind: unknown", text)
 
+    def test_engine_unknown_card_uses_canonical_copy_action_when_supported(self) -> None:
+        unknown = engine_prepare_card(
+            {
+                "type": "UnknownCard",
+                "title": "Unsupported card type: FutureCard",
+                "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
+                "a2ui_version": 1,
+                "debug": {"fallback_kind": "unknown", "source_card_type": "FutureCard"},
+                "blocks": [
+                    {"type": "MarkdownBlock", "markdown": "safe"},
+                ],
+                "actions": [
+                    {"id": "copy_to_clipboard", "label": "Copy me", "payload": {"text": "unsafe"}},
+                ],
+            },
+            _capabilities(actions_supported=("copy_to_clipboard",)),
+        )
+
+        payload_text = unknown["actions"][0]["payload"]["text"]
+        self.assertEqual(
+            unknown["actions"],
+            [
+                {
+                    "id": "copy_to_clipboard",
+                    "label": "Copy JSON",
+                    "payload": {"text": payload_text},
+                }
+            ],
+        )
+        self.assertTrue(payload_text.startswith('{"a2ui_version":1,"actions":['))
+
     def test_studio_preserves_unknown_cards_and_copy_action_when_supported(self) -> None:
         unknown = studio_materialize_card(
             {
@@ -544,9 +576,11 @@ class A2UIContractTests(unittest.TestCase):
             ],
         )
         self.assertEqual(
-            unknown["actions"],
-            [{"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": "{}"}}],
+            unknown["actions"][0]["id"],
+            "copy_to_clipboard",
         )
+        self.assertEqual(unknown["actions"][0]["label"], "Copy JSON")
+        self.assertTrue(unknown["actions"][0]["payload"]["text"].startswith('{"a2ui_version":1,"actions":['))
 
     def test_unknown_card_validator_rejects_non_copy_actions(self) -> None:
         with self.assertRaises(ValueError):

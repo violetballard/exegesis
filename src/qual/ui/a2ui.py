@@ -552,12 +552,17 @@ def _filter_card_actions(card: dict[str, Any], capabilities: A2UICapabilities) -
     return out
 
 
-def _filter_read_only_fallback_actions(actions: Any, *, supported_actions: set[str]) -> list[dict[str, Any]]:
-    """Keep only safe copy actions in a fallback card."""
+def _filter_read_only_fallback_actions(
+    raw_card: dict[str, Any],
+    *,
+    supported_actions: set[str],
+    max_payload_bytes: int,
+) -> list[dict[str, Any]]:
+    """Return the canonical copy action for a read-only fallback card."""
 
     if FALLBACK_COPY_ACTION_ID not in supported_actions:
         return []
-    return _filter_supported_actions(actions, supported_actions={FALLBACK_COPY_ACTION_ID})
+    return [_build_copy_to_clipboard_action(_render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes))]
 
 
 def _build_read_only_fallback_actions(
@@ -569,10 +574,6 @@ def _build_read_only_fallback_actions(
 ) -> list[dict[str, Any]]:
     if FALLBACK_COPY_ACTION_ID not in supported_actions:
         return []
-
-    filtered_actions = _filter_supported_actions(actions, supported_actions={FALLBACK_COPY_ACTION_ID})
-    if filtered_actions:
-        return filtered_actions
 
     return [
         _build_copy_to_clipboard_action(
@@ -633,8 +634,9 @@ def _materialize_unknown_card(card: dict[str, Any], capabilities: A2UICapabiliti
     out = dict(card)
     out["blocks"] = _extract_safe_primitive_blocks(out)
     out["actions"] = _filter_read_only_fallback_actions(
-        out.get("actions"),
+        out,
         supported_actions=set(capabilities.actions_supported),
+        max_payload_bytes=capabilities.max_payload_bytes,
     )
     out["title"] = _normalize_card_text(out.get("title"), fallback="<untitled>")
     subtitle = _normalize_card_text(out.get("subtitle"))
