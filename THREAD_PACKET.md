@@ -1,12 +1,12 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Document the metadata-only handoff update in `THREAD_PACKET.md` so the review packet matches the reviewed diff.
+- Scope goal: Keep the handoff packet aligned with the metadata-only diff in `THREAD_PACKET.md` and make the review scope explicitly audit-only.
 - Scope completed: Rewrote the packet to describe packet alignment and auditability only, with no product-code, test-file, or `.codex` claims.
 - Tasks completed:
   1. Reframed the scope to describe a metadata-only handoff update.
   2. Removed unsupported references to `src/qual/ui/a2ui.py`, `tests/unit/test_a2ui_contract.py`, and `.codex/...` files.
-  3. Verified that the packet scope, file list, roadmap mapping, and vision mapping are auditable and limited to the metadata-only edit.
+  3. Verified that the changed-files list contains only `THREAD_PACKET.md` and that the roadmap and vision mappings are audit notes, not implementation claims.
 - Files changed:
   - `THREAD_PACKET.md`
 - Commands run with results:
