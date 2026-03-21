@@ -279,6 +279,21 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("Safe content", text)
         self.assertIn("- alpha", text)
         self.assertNotIn("[unsupported block: ChartBlock]", text)
+        self.assertEqual(card["debug"], {"fallback_kind": "generic", "source_card_type": "ProposedEditCard"})
+
+    def test_engine_falls_back_to_generic_for_missing_card_type(self) -> None:
+        caps = _capabilities(cards_supported=("RunLogCard",))
+        card = engine_prepare_card(
+            {
+                "type": None,
+                "title": "Patch",
+                "blocks": [],
+            },
+            caps,
+        )
+
+        self.assertEqual(card["title"], "Fallback view for <missing>")
+        self.assertEqual(card["debug"], {"fallback_kind": "generic", "source_card_type": "<missing>"})
 
     def test_engine_filters_invalid_actions_for_supported_cards(self) -> None:
         caps = _capabilities(actions_supported=("apply_patch",))
@@ -376,6 +391,13 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("Unsupported card type", card["title"])
         self.assertEqual(card["a2ui_version"], 1)
         self.assertEqual(card["actions"][0]["id"], "copy_to_clipboard")
+        self.assertEqual(card["debug"], {"fallback_kind": "unknown", "source_card_type": "QuestionsCard"})
+
+    def test_studio_renders_unknown_card_for_missing_type(self) -> None:
+        caps = _capabilities(cards_supported=("RunLogCard",))
+        card = studio_materialize_card({"type": None, "foo": "bar"}, caps)
+        self.assertEqual(card["title"], "Unsupported card type: <missing>")
+        self.assertEqual(card["debug"], {"fallback_kind": "unknown", "source_card_type": "<missing>"})
 
     def test_studio_unknown_card_omits_unavailable_clipboard_action(self) -> None:
         caps = _capabilities(actions_supported=("apply_patch",))

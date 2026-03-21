@@ -91,7 +91,7 @@ class A2UISessionStore:
 def validate_capabilities(capabilities: A2UICapabilities) -> None:
     if type(capabilities.a2ui_version) is not int or capabilities.a2ui_version != A2UI_VERSION:
         raise ValueError("Unsupported a2ui version")
-    if not capabilities.client_name.strip():
+    if not isinstance(capabilities.client_name, str) or not capabilities.client_name.strip():
         raise ValueError("client_name is required")
     if type(capabilities.max_payload_bytes) is not int or capabilities.max_payload_bytes <= 0:
         raise ValueError("max_payload_bytes must be positive")
@@ -136,7 +136,7 @@ def validate_capabilities(capabilities: A2UICapabilities) -> None:
 
 
 def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
-    card_type = str(card.get("type", "")).strip()
+    card_type = _normalize_card_type(card)
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card, strict_actions=False)
         return _materialize_versioned_card(card, capabilities)
@@ -151,6 +151,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
         "title": f"Fallback view for {card_type or 'Unknown'}",
         "subtitle": "Rendered as GenericCard because client does not support this specialized card.",
         "a2ui_version": A2UI_VERSION,
+        "debug": _build_fallback_debug(card_type, fallback_kind="generic"),
         "blocks": [
             {
                 "type": "AlertBlock",
@@ -170,7 +171,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
 
 
 def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
-    card_type = str(card.get("type", "")).strip()
+    card_type = _normalize_card_type(card)
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card, strict_actions=False)
         return _materialize_versioned_card(card, capabilities)
@@ -190,7 +191,7 @@ def build_unknown_card(
     max_payload_bytes: int | None = None,
     supported_actions: tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
-    type_name = str(raw_card.get("type", "<missing>"))
+    type_name = _normalize_card_type(raw_card)
     rendered_preview = _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes, pretty=True)
     clipboard_preview = _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes)
     blocks = _extract_safe_primitive_blocks(raw_card)
@@ -217,6 +218,7 @@ def build_unknown_card(
         "title": f"Unsupported card type: {type_name}",
         "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
         "a2ui_version": A2UI_VERSION,
+        "debug": _build_fallback_debug(type_name, fallback_kind="unknown"),
         "blocks": blocks,
         "actions": actions,
     }
@@ -481,6 +483,23 @@ def _iter_card_entries(entries: Any) -> list[Any]:
     if not isinstance(entries, list):
         return []
     return entries
+
+
+def _normalize_card_type(card: dict[str, Any]) -> str:
+    raw_type = card.get("type")
+    if raw_type is None:
+        return "<missing>"
+    if not isinstance(raw_type, str):
+        raw_type = str(raw_type)
+    card_type = raw_type.strip()
+    return card_type if card_type else "<missing>"
+
+
+def _build_fallback_debug(source_card_type: str, *, fallback_kind: str) -> dict[str, str]:
+    return {
+        "fallback_kind": fallback_kind,
+        "source_card_type": source_card_type,
+    }
 
 
 def _extract_safe_primitive_blocks(card: dict[str, Any]) -> list[dict[str, Any]]:
