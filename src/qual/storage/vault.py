@@ -64,6 +64,8 @@ class VaultService:
             self._backup_tmp_state_path(state.root_dir),
             self._corrupt_state_path(state.root_dir),
             self._corrupt_path_for(self._backup_state_path(state.root_dir)),
+            self._corrupt_path_for(self._tmp_state_path(state.root_dir)),
+            self._corrupt_path_for(self._backup_tmp_state_path(state.root_dir)),
         ):
             self._unlink_if_exists(path)
         state.is_locked = True
@@ -161,6 +163,8 @@ class VaultService:
     def _clear_quarantine_state(self, root_dir: Path) -> None:
         self._unlink_if_exists(self._corrupt_state_path(root_dir))
         self._unlink_if_exists(self._corrupt_path_for(self._backup_state_path(root_dir)))
+        self._unlink_if_exists(self._corrupt_path_for(self._tmp_state_path(root_dir)))
+        self._unlink_if_exists(self._corrupt_path_for(self._backup_tmp_state_path(root_dir)))
 
     def _clear_temporary_state(self, root_dir: Path) -> None:
         self._unlink_if_exists(self._tmp_state_path(root_dir))

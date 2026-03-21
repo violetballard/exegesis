@@ -173,6 +173,9 @@ class ContextBasketStore:
             self._backup_tmp_path(),
             self._seed_tmp_path(),
             self._corrupt_path(),
+            self._corrupt_path_for(self._tmp_path()),
+            self._corrupt_path_for(self._backup_tmp_path()),
+            self._corrupt_path_for(self._seed_tmp_path()),
         ):
             self._unlink_if_exists(path)
         self._clear_quarantine_file()
@@ -204,6 +207,9 @@ class ContextBasketStore:
         self._unlink_if_exists(self._corrupt_path())
         self._unlink_if_exists(self._corrupt_path_for(self._backup_path))
         self._unlink_if_exists(self._corrupt_path_for(self._seed_state_path()))
+        self._unlink_if_exists(self._corrupt_path_for(self._tmp_path()))
+        self._unlink_if_exists(self._corrupt_path_for(self._backup_tmp_path()))
+        self._unlink_if_exists(self._corrupt_path_for(self._seed_tmp_path()))
 
     def _clear_temporary_files(self) -> None:
         self._unlink_if_exists(self._tmp_path())

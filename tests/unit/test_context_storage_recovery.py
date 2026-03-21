@@ -306,6 +306,28 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertFalse(self.store._backup_path.with_name("context_basket.bak.corrupt.json").exists())
         self.assertFalse(self.store._seed_state_path().with_name("context_basket.seed.corrupt.json").exists())
 
+    def test_healthy_primary_load_clears_stale_temporary_corrupt_markers(self) -> None:
+        self.store.save(ContextBasket(item_ids=["first"]))
+        self.store._tmp_path().with_name("context_basket.tmp.corrupt.json").write_text(
+            "{bad",
+            encoding="utf-8",
+        )
+        self.store._backup_tmp_path().with_name("context_basket.bak.tmp.corrupt.json").write_text(
+            "{bad",
+            encoding="utf-8",
+        )
+        self.store._seed_tmp_path().with_name("context_basket.seed.tmp.corrupt.json").write_text(
+            "{bad",
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first"])
+        self.assertFalse(self.store._tmp_path().with_name("context_basket.tmp.corrupt.json").exists())
+        self.assertFalse(self.store._backup_tmp_path().with_name("context_basket.bak.tmp.corrupt.json").exists())
+        self.assertFalse(self.store._seed_tmp_path().with_name("context_basket.seed.tmp.corrupt.json").exists())
+
     def test_empty_load_clears_orphaned_quarantine_markers(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.with_suffix(".corrupt.json").write_text("{bad", encoding="utf-8")
@@ -455,6 +477,17 @@ class VaultRecoveryTests(unittest.TestCase):
         payload = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertFalse(payload.get("is_locked"))
         self.assertFalse(tmp_path.exists())
+
+    def test_healthy_primary_load_clears_stale_temporary_corrupt_markers(self) -> None:
+        state = self.svc.create_or_open(self.root, "p2-clean")
+        state.root_dir.joinpath(".vault_state.tmp.corrupt.json").write_text("{bad", encoding="utf-8")
+        state.root_dir.joinpath(".vault_state.bak.tmp.corrupt.json").write_text("{bad", encoding="utf-8")
+
+        reopened = self.svc.create_or_open(self.root, "p2-clean")
+
+        self.assertIsInstance(reopened.is_locked, bool)
+        self.assertFalse((state.root_dir / ".vault_state.tmp.corrupt.json").exists())
+        self.assertFalse((state.root_dir / ".vault_state.bak.tmp.corrupt.json").exists())
 
     def test_project_name_mismatch_forces_locked_state(self) -> None:
         state = self.svc.create_or_open(self.root, "p3")
