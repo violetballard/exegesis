@@ -60,6 +60,20 @@ class RetrievalHit:
     node_path: list[dict[str, str]] | None
     provenance: dict[str, object]
 
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "doc_id": self.doc_id,
+            "excerpt_id": self.excerpt_id,
+            "excerpt_text": self.excerpt_text,
+            "span": dict(self.span),
+            "title_hint": self.title_hint,
+            "score": self.score,
+            "source_strategy": self.source_strategy,
+            "rationale": self.rationale,
+            "node_path": [dict(node) for node in self.node_path] if self.node_path is not None else None,
+            "provenance": dict(self.provenance),
+        }
+
 
 @dataclass(frozen=True)
 class RetrievalDocHit:
@@ -72,6 +86,18 @@ class RetrievalDocHit:
     excerpt_count: int
     provenance: dict[str, object]
 
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "doc_id": self.doc_id,
+            "title_hint": self.title_hint,
+            "source_hash": self.source_hash,
+            "top_excerpt_id": self.top_excerpt_id,
+            "top_score": self.top_score,
+            "source_strategy": self.source_strategy,
+            "excerpt_count": self.excerpt_count,
+            "provenance": dict(self.provenance),
+        }
+
 
 @dataclass(frozen=True)
 class RetrievalResult:
@@ -82,6 +108,45 @@ class RetrievalResult:
     evidence: dict[str, object]
     audit_ref: str
     result_fingerprint: str
+
+    def to_downstream_payload(self) -> dict[str, object]:
+        """Return the stable retrieval contract for drafting/patching/research.
+
+        The payload keeps the canonical query, policy, doc hits, excerpt hits,
+        manifest, and evidence in one deterministic structure so downstream
+        engine flows do not have to reassemble or reinterpret retrieval state.
+        """
+
+        return {
+            "query": {
+                "query_text": self.query.query_text,
+                "scope": self.query.scope,
+                "intent": self.query.intent,
+                "constraints": {
+                    "max_results": self.query.constraints.max_results,
+                    "doc_types": list(self.query.constraints.doc_types),
+                    "date_range": list(self.query.constraints.date_range)
+                    if self.query.constraints.date_range is not None
+                    else None,
+                    "require_citations": self.query.constraints.require_citations,
+                    "section_hint": self.query.constraints.section_hint,
+                    "prefer_exact_matches": self.query.constraints.prefer_exact_matches,
+                },
+                "confidentiality_profile": self.query.confidentiality_profile,
+            },
+            "policy": {
+                "retrieval_backend": self.diagnostics["retrieval_backend"],
+                "retrieval_mode": self.diagnostics["retrieval_mode"],
+                "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
+                "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
+            },
+            "audit_ref": self.audit_ref,
+            "result_fingerprint": self.result_fingerprint,
+            "doc_hits": [doc_hit.as_dict() for doc_hit in self.doc_hits],
+            "excerpt_hits": [hit.as_dict() for hit in self.hits],
+            "retrieval_manifest": dict(self.diagnostics["retrieval_manifest"]),
+            "retrieval_evidence": dict(self.evidence),
+        }
 
 
 class RetrievalService:
