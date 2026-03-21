@@ -28,7 +28,7 @@ class VaultService:
         project_root = root_dir / safe_project_name
         project_root.mkdir(parents=True, exist_ok=True)
         (project_root / "attachments").mkdir(exist_ok=True)
-        raw_state, recovered_source, primary_missing = self._read_state(project_root)
+        raw_state, recovered_source, primary_unavailable = self._read_state(project_root)
         has_is_locked = "is_locked" in raw_state
         parsed_is_locked = self._parse_is_locked(raw_state.get("is_locked")) if has_is_locked else None
         is_locked = parsed_is_locked if parsed_is_locked is not None else False
@@ -52,7 +52,7 @@ class VaultService:
         if "recovered_from" in raw_state:
             if normalized_recovered_from is None:
                 needs_rewrite = True
-            elif primary_missing:
+            elif primary_unavailable:
                 if raw_state.get("recovered_from") != normalized_recovered_from:
                     needs_rewrite = True
             elif not needs_rewrite:
@@ -71,7 +71,7 @@ class VaultService:
             self._write_state(
                 state,
                 recovered_from=self._recovery_marker(
-                    primary_missing=primary_missing,
+                    primary_unavailable=primary_unavailable,
                     recovered_source=recovered_source,
                 )
                 or normalized_recovered_from,
@@ -142,10 +142,10 @@ class VaultService:
             payload = backup_payload
             recovered_source = "backup"
         else:
-            return {}, None, primary_missing
+            return {}, None, primary_payload is None
         if not isinstance(payload, dict):
-            return {}, None, primary_missing
-        return payload, recovered_source, primary_missing
+            return {}, None, primary_payload is None
+        return payload, recovered_source, primary_payload is None
 
     def _write_state(self, state: VaultState, recovered_from: str | None = None) -> None:
         state.root_dir.mkdir(parents=True, exist_ok=True)
@@ -348,8 +348,8 @@ class VaultService:
             return normalized
         return None
 
-    def _recovery_marker(self, *, primary_missing: bool, recovered_source: str | None) -> str | None:
-        if not primary_missing:
+    def _recovery_marker(self, *, primary_unavailable: bool, recovered_source: str | None) -> str | None:
+        if not primary_unavailable:
             return None
         return self._parse_recovered_from(recovered_source)
 

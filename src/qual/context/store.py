@@ -120,7 +120,7 @@ class ContextBasketStore:
             return ContextBasket()
 
         recovered_from = self._recovery_marker(
-            primary_missing=primary_missing,
+            primary_unavailable=primary_missing or primary_payload is None,
             recovered_source=recovered_source,
         ) or normalized_recovered_from
         if recovered_source is not None or should_rewrite:
@@ -470,8 +470,8 @@ class ContextBasketStore:
             return True
         return any(not self._normalize_item_id(item_id) for item_id in item_ids)
 
-    def _recovery_marker(self, *, primary_missing: bool, recovered_source: str | None) -> str | None:
-        if not primary_missing:
+    def _recovery_marker(self, *, primary_unavailable: bool, recovered_source: str | None) -> str | None:
+        if not primary_unavailable:
             return None
         return self._parse_recovered_from(recovered_source)
 
