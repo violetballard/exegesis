@@ -550,6 +550,8 @@ def render_terminal_card(card: dict[str, Any]) -> str:
     if rendered_actions:
         lines.append("Actions:")
         lines.extend(rendered_actions)
+    elif _is_fallback_card_debug(card.get("debug")):
+        lines.append("Actions: none available")
     return "\n".join(lines)
 
 
@@ -957,6 +959,16 @@ def _render_terminal_fallback_notice(debug: Any) -> list[str]:
     if not isinstance(source_card_type, str) or not source_card_type.strip():
         return []
     return [f"Fallback: {fallback_kind.strip()} from {source_card_type.strip()}"]
+
+
+def _is_fallback_card_debug(debug: Any) -> bool:
+    if not isinstance(debug, dict):
+        return False
+    fallback_kind = debug.get("fallback_kind")
+    source_card_type = debug.get("source_card_type")
+    return isinstance(fallback_kind, str) and fallback_kind.strip() in {"generic", "unknown"} and isinstance(
+        source_card_type, str
+    )
 
 
 def _iter_card_entries(entries: Any) -> list[Any]:

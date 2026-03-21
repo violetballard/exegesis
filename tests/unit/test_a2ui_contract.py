@@ -465,6 +465,25 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("- Copy JSON (copy_to_clipboard)", text)
         self.assertNotIn("- Apply (apply_patch)", text)
 
+    def test_engine_fallback_surfaces_missing_copy_action_availability(self) -> None:
+        caps = _capabilities(cards_supported=("RunLogCard",), actions_supported=("apply_patch",))
+        card = engine_prepare_card(
+            {
+                "type": "ProposedEditCard",
+                "title": "Patch",
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            },
+            caps,
+        )
+
+        self.assertEqual(card["actions"], [])
+
+        text = render_terminal_card(card)
+        self.assertIn("Actions: none available", text)
+        self.assertIn("Fallback: generic from ProposedEditCard", text)
+
     def test_unknown_card_validator_accepts_sanitized_fallback_cards(self) -> None:
         unknown = build_unknown_card(
             {
@@ -1323,6 +1342,21 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertIn("[UnknownCard] Fallback", text)
         self.assertIn("Fallback: unknown card", text)
+
+    def test_terminal_renderer_surfaces_missing_actions_for_unknown_fallbacks(self) -> None:
+        unknown = build_unknown_card(
+            {
+                "type": "FutureCard",
+                "title": "Future",
+            },
+            supported_actions=("apply_patch",),
+        )
+
+        text = render_terminal_card(unknown)
+
+        self.assertEqual(unknown["actions"], [])
+        self.assertIn("Actions: none available", text)
+        self.assertIn("Fallback: unknown from FutureCard", text)
 
     def test_unknown_card_copy_payload_matches_preview_budget(self) -> None:
         raw_unknown = {
