@@ -6,13 +6,13 @@
 - Tasks completed:
   1. Extended `_parse_context_sets` so a dict-shaped `context_sets` payload can be recovered as a single record instead of being rejected.
   2. Kept the canonical rewrite path intact so recovered singleton payloads are normalized and persisted in the expected list-backed form.
-  3. Rewrote the packet to match the actual reviewed commit and removed the unrelated basket/vault/test claims.
+  3. Rewrote the packet so the scope, completion notes, and metadata match the actual `src/qual/context/set_store.py` diff.
 - Files changed:
   - `src/qual/context/set_store.py`
 - Commands run with results:
-  - `git show --stat --name-only --oneline HEAD --` -> confirmed the reviewed commit `71f831973d61d18696611e19699807457d9aca25` only changes `src/qual/context/set_store.py`
-  - `git show --unified=80 HEAD -- src/qual/context/set_store.py` -> confirmed the singleton payload salvage and canonical rewrite behavior in the actual diff
-  - `make scope-check` -> passed for branch `codex/feat-context-storage`
+  - `git show --stat --name-only --oneline 71f83197` -> confirmed the reviewed commit only changes `src/qual/context/set_store.py`
+  - `git show --unified=80 71f83197 -- src/qual/context/set_store.py` -> confirmed the singleton payload salvage and canonical rewrite behavior in the actual diff
+  - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
   - `./quality-test.sh` -> passed (`Ran 138 tests`, `OK`)
@@ -22,7 +22,7 @@
   - `#1` rewrote the packet around the actual commit: singleton context-set payload salvage in `src/qual/context/set_store.py`.
   - `#2` replaced the files-changed list with the real diff contents only.
   - `#3` removed the basket/vault recovery claims and the test-coverage claims that did not belong to this commit.
-  - `#4` aligned the scope and completion bullets with the true roadmap and vision mapping for context-state recovery.
+  - `#4` aligned the scope and completion bullets with the true roadmap and vision mapping for context-set recovery.
 - Checkpoint status:
   - plan complete
   - first green tests: `./quality-test.sh` passed (`Ran 138 tests`, `OK`)
@@ -30,7 +30,7 @@
 - Risks/blockers:
   - None.
 - Roadmap item(s) affected:
-  - `Milestone 1: Bootstrap Flow Stabilization` -> context basket and vault persistence hardening
+  - `Milestone 1: Bootstrap Flow Stabilization` -> `Context basket and vault persistence hardening` (this fix narrows that work to singleton context-set payload salvage in `src/qual/context/set_store.py`)
 - Vision capability affected:
   - `1. Local-first state and identity` -> project-scoped context storage keeps safe recovery behavior and canonical persisted state
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
