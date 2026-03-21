@@ -50,4 +50,3 @@ Delivered behavior: FTS-first retrieval is active for `vault`, `collection:`, an
 - Preserve commit accuracy between the packet, lane metadata, and handoff artifacts.
 - Do not imply unrelated retrieval tooling scope or cross-lane `section:` targeting.
 - Ownership note: this handoff stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`.
-- Approved exception note: `src/qual/engine/tools/retrieval_tools.py` is a dead helper deletion with no remaining references, and the reviewed handoff surface still stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`.
