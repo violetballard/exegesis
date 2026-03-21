@@ -175,6 +175,34 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
         self.assertIsNone(payload["fingerprint"])
         self.assertEqual(payload["message"], "No diff: inputs are identical after normalization.")
 
+    def test_json_no_diff_summary_only_ignores_fingerprint_gate(self) -> None:
+        with _env(
+            **{
+                OUTPUT_FORMAT_ENV: "json",
+                SUMMARY_ONLY_ENV: "1",
+                INCLUDE_FINGERPRINT_ENV: "1",
+            }
+        ):
+            payload = json.loads(run_diff_preview(DiffPreviewInput("same\n", "same\n")))
+        self.assertEqual(payload["status"], "no_diff")
+        self.assertTrue(payload["summary_only"])
+        self.assertIsNone(payload["fingerprint"])
+        self.assertEqual(payload["diff"], "")
+
+    def test_json_no_diff_summary_only_ignores_fingerprint_flag(self) -> None:
+        with _env(
+            **{
+                OUTPUT_FORMAT_ENV: "json",
+                SUMMARY_ONLY_ENV: "1",
+                INCLUDE_FINGERPRINT_ENV: "1",
+            }
+        ):
+            payload = json.loads(run_diff_preview(DiffPreviewInput("same\n", "same\n")))
+        self.assertEqual(payload["status"], "no_diff")
+        self.assertTrue(payload["summary_only"])
+        self.assertIsNone(payload["fingerprint"])
+        self.assertEqual(payload["message"], "No diff: inputs are identical after normalization.")
+
     def test_text_fingerprint_matches_emitted_labeled_and_truncated_diff(self) -> None:
         with _env(
             **{
@@ -195,6 +223,22 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
         self.assertEqual(
             fingerprint_line,
             f"Diff fingerprint: sha256:{hashlib.sha256(diff_output.encode('utf-8')).hexdigest()}",
+        )
+
+    def test_summary_only_json_fingerprint_matches_empty_diff_payload(self) -> None:
+        with _env(
+            **{
+                OUTPUT_FORMAT_ENV: "json",
+                INCLUDE_FINGERPRINT_ENV: "1",
+                SUMMARY_ONLY_ENV: "1",
+            }
+        ):
+            payload = json.loads(run_diff_preview(DiffPreviewInput("a\n", "b\n")))
+        self.assertEqual(payload["diff"], "")
+        self.assertTrue(payload["summary_only"])
+        self.assertEqual(
+            payload["fingerprint"]["sha256"],
+            hashlib.sha256(b"").hexdigest(),
         )
 
     def test_summary_only_json_fingerprint_matches_empty_diff_payload(self) -> None:
