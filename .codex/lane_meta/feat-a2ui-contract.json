@@ -1,24 +1,24 @@
 {
-  "approved_exception_note": "Operational metadata exception for branch-local .codex files and THREAD_PACKET.md only. This lane record tracks a metadata-only handoff update that aligns the packet and lane metadata without claiming product-code changes.",
+  "approved_exception_note": "None",
   "kickoff_budget_note": "",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - keep the handoff packet aligned to the metadata-only update in the `.codex` packet files and `THREAD_PACKET.md`.",
-    "Milestone 5: A2UI Presentation Layer - keep the reviewed file list auditable against the packet diff that actually changed.",
-    "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to packet alignment, auditability, and reviewability only."
+    "Milestone 5: A2UI Presentation Layer - render terminal action lists with payload-aware disambiguation when labels collide.",
+    "Milestone 5: A2UI Presentation Layer - keep contract assertions synchronized with the terminal rendering format.",
+    "Milestone 5: A2UI Presentation Layer - keep terminal fallback output aligned with the structured action payloads exposed by the contract."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Record a metadata-only handoff update so the A2UI lane packet is auditable and matches the packet-alignment diff across the `.codex` packet files and `THREAD_PACKET.md`.",
+  "scope_goal": "Make terminal A2UI rendering show payloads for duplicate action labels and keep the contract assertions aligned with that exact output.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Rewrote the lane handoff metadata to describe a metadata-only packet alignment update in the `.codex` packet files and `THREAD_PACKET.md`.",
-    "Kept the reviewed file list limited to the packet artifacts that actually changed and removed unsupported source-code and test-code claims from the handoff.",
-    "Aligned the Milestone 5 A2UI roadmap references to packet auditability, diff alignment, and reviewability only.",
-    "Kept the lane record scoped to metadata-only packet alignment with no product-code impact."
+    "Changed the terminal action renderer so duplicate action labels always include payload previews alongside the action id and any variant suffixes.",
+    "Updated the A2UI contract tests to assert the duplicate-label payload lines and the variant-bearing payload presentation.",
+    "Rewrote the lane metadata to describe the actual code diff rather than the older metadata-only packet alignment work.",
+    "Kept the lane record scoped to terminal rendering and matching tests with no routing or provider impact."
   ],
   "vision_capabilities": [
-    "Capability 5: Agent-to-UI protocol (A2UI) - the handoff record stays aligned to the packet metadata contract and the metadata-only diff.",
-    "Capability 4: Operator-first control surface - the packet preserves the operator-facing audit trail for the metadata-only update."
+    "Capability 5: Agent-to-UI protocol (A2UI) - terminal rendering now exposes payloads for duplicate action labels as part of the user-facing protocol.",
+    "Capability 4: Operator-first control surface - terminal fallback remains the consumer of the structured payloads, now with clearer disambiguation."
   ]
 }

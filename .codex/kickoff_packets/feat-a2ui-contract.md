@@ -1,16 +1,16 @@
 # Lane Kickoff: feat-a2ui-contract
 
 - Branch: `codex/feat-a2ui-contract`
-- Lane/owned paths: `.codex/kickoff_packets/feat-a2ui-contract.md`, `.codex/lane_meta/feat-a2ui-contract.json`, `.codex/packets/lanes/feat-a2ui-contract/inbox/feature/F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md`, `THREAD_PACKET.md`
-- Scope goal: Record a metadata-only handoff update for `feat-a2ui-contract` so the lane packet stays auditable and accurately describes the packet-alignment work reflected in the `.codex` packet files and `THREAD_PACKET.md`.
-- Scope note: This is a packet-alignment change only. It does not claim any product-code, UI-behavior, or test-implementation impact.
+- Lane/owned paths: `src/qual/ui/a2ui.py`, `tests/unit/test_a2ui_contract.py`
+- Scope goal: Make terminal A2UI rendering show payloads for duplicate action labels and keep the contract assertions aligned with that exact output.
+- Scope note: This is a narrow terminal-rendering and contract-coverage update. It does not expand into fallback manifest redesign or broader UI behavior changes.
 
 ### Priority outcomes
-1. Keep the reviewed file list limited to the packet artifacts that actually changed in this metadata-only handoff.
-2. Keep the scope statement aligned with packet auditability and diff alignment only.
-3. Keep the packet language separated from unsupported product-code and test-code claims.
+1. Keep duplicate action labels payload-aware in the terminal renderer.
+2. Keep the reviewed file list limited to `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
+3. Keep the packet language aligned with the actual rendered strings and matching assertions.
 
 ### Guardrails
 - No unsupported source-code or test-code claims in this kickoff packet.
-- Keep the file list auditable against the actual `.codex` packet diff and `THREAD_PACKET.md`.
-- Favor a small, stable metadata-only handoff over feature-description drift.
+- Keep the file list auditable against the actual code diff.
+- Favor a small, stable A2UI rendering change over broader fallback or canonicalization work.
