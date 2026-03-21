@@ -13,6 +13,10 @@ class ContextBasket:
     @staticmethod
     def _normalize_item_id(item_id: object) -> str:
         if not isinstance(item_id, str):
+            if isinstance(item_id, bool):
+                return ""
+            if isinstance(item_id, (int, float)):
+                return str(item_id).strip()
             return ""
         return item_id.strip()
 

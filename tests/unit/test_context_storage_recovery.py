@@ -20,6 +20,31 @@ class ContextStoreRecoveryTests(unittest.TestCase):
     def tearDown(self) -> None:
         self._tmp.cleanup()
 
+    def test_context_basket_normalizes_numeric_item_ids(self) -> None:
+        basket = ContextBasket(item_ids=[" keep ", 7, 2.5, False, None, "7"])
+
+        self.assertEqual(basket.item_ids, ["keep", "7", "2.5"])
+
+    def test_context_basket_add_and_remove_numeric_item_ids(self) -> None:
+        basket = ContextBasket()
+
+        basket.add(7)
+        basket.add(" 7 ")
+        basket.add(2.5)
+        basket.remove(7)
+
+        self.assertEqual(basket.item_ids, ["2.5"])
+
+    def test_numeric_item_ids_survive_store_round_trip(self) -> None:
+        basket = ContextBasket(item_ids=[" keep ", 7, 2.5, False, None, "7"])
+
+        self.store.save(basket)
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["keep", "7", "2.5"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["keep", "7", "2.5"])
+
     def test_clear_removes_primary_backup_and_corrupt(self) -> None:
         self.store.save(ContextBasket(item_ids=["a"]))
         self.store.save(ContextBasket(item_ids=["b"]))  # Create backup.
