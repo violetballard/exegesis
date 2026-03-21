@@ -76,7 +76,7 @@ class A2UIContractTests(unittest.TestCase):
         manifest = describe_a2ui_contract()
 
         self.assertEqual(manifest["a2ui_version"], 1)
-        self.assertEqual(manifest["contract_version"], 1)
+        self.assertEqual(manifest["contract_version"], 2)
         self.assertEqual(manifest["contract_fingerprint"], a2ui_contract_fingerprint())
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
         self.assertEqual(
@@ -111,6 +111,18 @@ class A2UIContractTests(unittest.TestCase):
                     "version": 1,
                     "required_fields": ["type", "title"],
                     "optional_fields": ["a2ui_version", "subtitle", "blocks", "actions", "debug"],
+                    "allowed_actions": [
+                        "apply_patch",
+                        "copy_to_clipboard",
+                        "create_context_set",
+                        "export_document",
+                        "open_corpus_item",
+                        "open_section",
+                        "pin_to_context_set",
+                        "refresh_license",
+                        "reject_patch",
+                        "run_agent",
+                    ],
                     "action_policy": "client_allowlist",
                 },
                 {
@@ -118,6 +130,7 @@ class A2UIContractTests(unittest.TestCase):
                     "version": 1,
                     "required_fields": ["type", "title", "subtitle", "a2ui_version", "debug", "blocks", "actions"],
                     "optional_fields": [],
+                    "allowed_actions": ["copy_to_clipboard"],
                     "action_policy": "copy_to_clipboard_only",
                 },
             ],

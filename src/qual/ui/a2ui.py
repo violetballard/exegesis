@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Protocol
 
 A2UI_VERSION = 1
-A2UI_CONTRACT_VERSION = 1
+A2UI_CONTRACT_VERSION = 2
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
 DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES = 8_192
@@ -174,6 +174,7 @@ def _build_a2ui_schema_manifest() -> dict[str, Any]:
                 "version": A2UI_VERSION,
                 "required_fields": ["type", "title"],
                 "optional_fields": ["a2ui_version", "subtitle", "blocks", "actions", "debug"],
+                "allowed_actions": sorted(ALLOWED_ACTION_IDS),
                 "action_policy": "client_allowlist",
             },
             {
@@ -181,6 +182,7 @@ def _build_a2ui_schema_manifest() -> dict[str, Any]:
                 "version": A2UI_VERSION,
                 "required_fields": ["type", "title", "subtitle", "a2ui_version", "debug", "blocks", "actions"],
                 "optional_fields": [],
+                "allowed_actions": [FALLBACK_COPY_ACTION_ID],
                 "action_policy": "copy_to_clipboard_only",
             },
         ],
