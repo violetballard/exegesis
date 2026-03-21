@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Protocol
 
 A2UI_VERSION = 1
+A2UI_CONTRACT_VERSION = 1
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
 DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES = 8_192
@@ -125,6 +126,7 @@ def describe_a2ui_contract() -> dict[str, Any]:
 
 def _build_a2ui_contract_manifest() -> dict[str, Any]:
     return {
+        "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
         "cards": {
             "generic": GENERIC_CARD_TYPE,
@@ -344,11 +346,14 @@ def build_unknown_card(
     supported_action_set = _canonicalize_supported_actions(supported_actions)
     actions: list[dict[str, Any]] = []
     if FALLBACK_COPY_ACTION_ID in supported_action_set:
-        copy_action = {
-            "id": FALLBACK_COPY_ACTION_ID,
-            "label": "Copy JSON",
-            "payload": {"text": clipboard_preview},
-        }
+        copy_action = _normalize_action(
+            {
+                "id": FALLBACK_COPY_ACTION_ID,
+                "label": "Copy JSON",
+                "payload": {"text": clipboard_preview},
+            },
+            supported_actions={FALLBACK_COPY_ACTION_ID},
+        )
         actions.append(copy_action)
     return {
         "type": UNKNOWN_CARD_TYPE,

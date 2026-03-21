@@ -74,6 +74,7 @@ class A2UIContractTests(unittest.TestCase):
         manifest = describe_a2ui_contract()
 
         self.assertEqual(manifest["a2ui_version"], 1)
+        self.assertEqual(manifest["contract_version"], 1)
         self.assertEqual(manifest["contract_fingerprint"], a2ui_contract_fingerprint())
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
         self.assertEqual(
@@ -761,6 +762,15 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         self.assertEqual([action["id"] for action in unknown["actions"]], ["copy_to_clipboard"])
+        payload_text = unknown["actions"][0]["payload"]["text"]
+        self.assertEqual(
+            unknown["actions"][0],
+            {
+                "id": "copy_to_clipboard",
+                "label": "Copy JSON",
+                "payload": {"text": payload_text},
+            },
+        )
 
     def test_unknown_card_preserves_safe_table_rows(self) -> None:
         raw_unknown = {
