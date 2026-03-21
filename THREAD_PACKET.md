@@ -1,7 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Current branch head: `8367445cc4f1946f059c59172d37764ab6107f42` (docs-only packet resubmission commit, excluded from the reviewed feature scope)
+- Current branch head: `fe424c36305816f4820ae0959eb3d286afe41217` (docs-only packet resubmission commit, excluded from the reviewed feature scope)
 - Reviewed feature commit: `075a61ad1c92b85fb4df2fae54bbb9163f53aa12`
 - Promoted code commit range: `075a61ad1c92b85fb4df2fae54bbb9163f53aa12`
 - Scope goal: Canonicalize empty recovery state for context storage so recovery paths materialize clean canonical payloads without inventing recovery provenance.
@@ -22,9 +22,9 @@
   - `src/qual/context/set_store.py`
 
 - Commands run with results:
+  - `git show --stat --summary --oneline fe424c36305816f4820ae0959eb3d286afe41217` -> confirmed the current branch head is the docs-only packet reconciliation commit
   - `git show --stat --summary --oneline 075a61ad1c92b85fb4df2fae54bbb9163f53aa12` -> confirmed the actual reviewed feature commit changes only `src/qual/context/store.py` and `src/qual/context/set_store.py`
   - `git show --stat --summary --patch --unified=40 075a61ad1c92b85fb4df2fae54bbb9163f53aa12 -- src/qual/context/store.py src/qual/context/set_store.py` -> confirmed the commit diff matches the empty-recovery canonicalization fix
-  - `git show --stat --summary --oneline 3acc8913732224340f52fb0d45ac9a68797ad3d2` -> confirmed the branch head is a docs-only packet reconciliation commit, not the reviewed feature delta
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
