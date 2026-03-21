@@ -1,15 +1,16 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Scope goal: Describe the citation-bundle metadata self-description in `src/qual/engine/retrieval/payload.py` and its propagation through `src/qual/retrieval/service.py`.
-- Scope completed: The reviewed commit `b8a6f9c1649e76e97992687cc81d92561d1e9f18` adds self-describing citation-bundle fields in `src/qual/engine/retrieval/payload.py` and carries that richer metadata through `src/qual/retrieval/service.py`.
+- Scope goal: Tighten the handoff packet so it matches the docs-only commit `9852894832efabbafb25369d0f61a6e19989b7c1` exactly.
+- Scope completed: The reviewed commit `9852894832efabbafb25369d0f61a6e19989b7c1` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json` to correct the handoff scope.
 - Tasks completed:
-    1. Rewrote the scope goal to name the citation-bundle metadata self-description and propagation files.
-    2. Added an explicit `Scope completed` field that matches the reviewed commit and its two source files exactly.
-    3. Tightened the roadmap and vision mapping to citation-bundle metadata propagation and payload hardening only.
+    1. Rewrote the scope goal to describe the docs-only handoff scope-tightening commit.
+    2. Added an explicit `Scope completed` field that states the commit only updates handoff artifacts.
+    3. Removed all source-code retrieval file claims from the file list and aligned the packet with the reviewed commit.
 - Files changed:
-  - `src/qual/engine/retrieval/payload.py`
-  - `src/qual/retrieval/service.py`
+  - `.codex/kickoff_packets/feat-retrieval-fts.md`
+  - `.codex/lane_meta/feat-retrieval-fts.json`
+  - `THREAD_PACKET.md`
 - Commands run with results:
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -18,21 +19,22 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - Reviewer fix closure:
-  - `#1` rewrote the scope goal and tasks to describe the actual citation-bundle self-description and payload metadata propagation change.
-  - `#2` removed unrelated packet references and matched the file list to the reviewed commit exactly.
-  - `#3` added an explicit `Scope completed` field for the actual source changes.
-  - `#4` tightened roadmap and vision mapping to citation-bundle metadata propagation and payload hardening only.
+  - `#1` regenerated the packet so `Files changed` matches commit `9852894832efabbafb25369d0f61a6e19989b7c1` exactly.
+  - `#2` removed all retrieval source-code files from the packet because they are not part of the reviewed commit.
+  - `#3` rewrote the scope goal and tasks to describe the docs-only handoff scope-tightening work.
+  - `#4` added an explicit `Scope completed` field stating that the commit only updated handoff artifacts.
+  - `#5` trimmed roadmap and vision mapping so they do not imply retrieval implementation or PageIndex/embeddings changes.
 - Checkpoint status:
   - plan complete
   - first green tests: `./quality-test.sh` passed
   - ready for handoff: all required local gates passed in this cleanup pass
 - Risks/blockers:
-  - No blockers. The reviewed diff is limited to `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`.
+  - No blockers. The reviewed diff is limited to the three handoff artifacts listed above.
 - Roadmap item(s) affected:
-  - Citation-bundle metadata propagation: keep retrieval metadata explicit and stable in `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`.
-  - Payload hardening: keep the retrieval service path self-describing and downstream-consumer-safe.
+  - Handoff packet scope accuracy: keep the reviewed commit description aligned with git history.
+  - Metadata consistency: keep packet, kickoff metadata, and lane metadata in sync for reviewed commits.
 - Vision capability affected:
-  - Citation-bundle metadata propagation
-  - Payload hardening
-- Routing/provider impact note: None. No model routing or provider configuration was touched.
+  - Handoff packet scope accuracy
+  - Metadata consistency
+- Routing/provider impact note: None. No model routing, provider configuration, or retrieval behavior was touched.
 - Proposed `README.md` patch text: None.

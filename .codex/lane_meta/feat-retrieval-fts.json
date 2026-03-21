@@ -1,24 +1,23 @@
 {
   "approved_exception_note": "",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 4 completed tasks, 3 reviewed handoff files, no shared or integrator-locked edits, and required local gates rerun before handoff.",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 3 reviewed handoff files, no shared or integrator-locked edits, and required local gates rerun before handoff.",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Citation-bundle metadata propagation: keep retrieval metadata explicit and stable in `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`.",
-    "Payload hardening: keep the retrieval service path self-describing and snapshot-safe."
+    "Handoff packet scope accuracy: keep the reviewed commit description aligned with git history.",
+    "Metadata consistency: keep packet, kickoff metadata, and lane metadata in sync for reviewed commits."
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The reviewed commit `b8a6f9c1649e76e97992687cc81d92561d1e9f18` adds self-describing citation-bundle fields in `src/qual/engine/retrieval/payload.py` and carries that richer metadata through `src/qual/retrieval/service.py`.",
-  "scope_goal": "Record the citation-bundle metadata self-description in `src/qual/engine/retrieval/payload.py` and the matching propagation in `src/qual/retrieval/service.py`.",
+  "scope_completed": "The reviewed commit `9852894832efabbafb25369d0f61a6e19989b7c1` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json` to correct the handoff scope.",
+  "scope_goal": "Tighten the handoff packet so it matches the docs-only commit `9852894832efabbafb25369d0f61a6e19989b7c1` exactly.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Reconciled the packet with commit `b8a6f9c1649e76e97992687cc81d92561d1e9f18`, confirming the reviewed diff changes only `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`.",
-    "Removed unrelated retrieval claims from the metadata because they are not part of the reviewed commit.",
-    "Added an explicit `scope_completed` field and tightened the roadmap and vision mapping to citation-bundle metadata propagation and payload hardening.",
-    "Kept the `Files changed` list aligned with the reviewed commit exactly."
+    "Reconciled the packet with commit `9852894832efabbafb25369d0f61a6e19989b7c1`, confirming the reviewed diff changes only the three handoff artifacts.",
+    "Removed unrelated retrieval source-code claims from the metadata because they are not part of the reviewed commit.",
+    "Added an explicit `scope_completed` field and tightened the roadmap and vision mapping to handoff packet scope accuracy and metadata consistency."
   ],
   "vision_capabilities": [
-    "Citation-bundle metadata propagation",
-    "Payload hardening"
+    "Handoff packet scope accuracy",
+    "Metadata consistency"
   ]
 }

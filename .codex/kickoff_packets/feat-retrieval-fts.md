@@ -1,25 +1,26 @@
 # Lane Kickoff: feat-retrieval-fts
 
 - Branch: `codex/feat-retrieval-fts`
-- Lane/owned paths: `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`
-- Scope goal: Record the citation-bundle metadata self-description in `src/qual/engine/retrieval/payload.py` and the matching propagation in `src/qual/retrieval/service.py`.
-- Scope completed: The reviewed commit `b8a6f9c1649e76e97992687cc81d92561d1e9f18` adds self-describing citation-bundle fields in `src/qual/engine/retrieval/payload.py` and carries that richer metadata through `src/qual/retrieval/service.py`.
+- Lane/owned paths: `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`
+- Scope goal: Tighten the handoff packet so it matches the docs-only commit `9852894832efabbafb25369d0f61a6e19989b7c1` exactly and does not imply retrieval source-code work.
+- Scope completed: The reviewed commit `9852894832efabbafb25369d0f61a6e19989b7c1` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json` to correct the handoff scope.
 
 ### Priority outcomes
-1. State clearly that the reviewed change is citation-bundle metadata self-description plus payload propagation.
-2. Keep the scope limited to the two reviewed source files.
-3. Avoid implying ingestion, routing, PageIndex, embeddings, or broader retrieval-engine changes.
+1. State clearly that the reviewed change is docs-only handoff scope-tightening.
+2. Keep the file list limited to the three handoff artifacts touched by the commit.
+3. Avoid implying retrieval implementation, PageIndex, embeddings, or broader engine changes.
 
 ### Tasks
-1. Add self-describing citation-bundle metadata in `src/qual/engine/retrieval/payload.py`.
-2. Propagate the citation bundle through `src/qual/retrieval/service.py`.
-3. Keep the file list and metadata commit-accurate for the reviewed diff.
+1. Rewrite the packet scope to describe the docs-only commit accurately.
+2. Keep the file list aligned with the reviewed commit's three handoff artifacts.
+3. Trim roadmap and vision mapping so they do not imply retrieval implementation work.
 
 ### Files changed
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/retrieval/service.py`
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
+- `THREAD_PACKET.md`
 
 ### Guardrails
-- Keep the change limited to citation-bundle metadata propagation and payload hardening.
+- Keep the change limited to handoff packet scope-tightening and metadata consistency.
 - Preserve commit accuracy between the packet, lane metadata, and git history.
-- Do not reference unrelated retrieval MVP scope or files outside the reviewed diff.
+- Do not reference unrelated retrieval MVP scope, PageIndex, embeddings, or files outside the reviewed diff.
