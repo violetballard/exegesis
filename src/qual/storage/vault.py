@@ -31,21 +31,30 @@ class VaultService:
         has_is_locked = "is_locked" in raw_state
         parsed_is_locked = self._parse_is_locked(raw_state.get("is_locked")) if has_is_locked else None
         is_locked = parsed_is_locked if parsed_is_locked is not None else False
+        needs_rewrite = (
+            recovered_source is not None
+            or self._parse_schema_version(raw_state) != _SCHEMA_VERSION
+            or not self._is_supported_payload(raw_state)
+        )
         if not has_is_locked or self._requires_safe_lock(raw_state, safe_project_name):
             # If metadata does not match directory identity, prefer a safe default.
             is_locked = True
+            needs_rewrite = True
         state = VaultState(
             project_name=safe_project_name,
             root_dir=project_root,
             is_locked=is_locked,
         )
-        self._write_state(
-            state,
-            recovered_from=self._recovery_marker(
-                primary_missing=primary_missing,
-                recovered_source=recovered_source,
-            ),
-        )
+        if needs_rewrite:
+            self._write_state(
+                state,
+                recovered_from=self._recovery_marker(
+                    primary_missing=primary_missing,
+                    recovered_source=recovered_source,
+                ),
+            )
+        else:
+            self._write_backup(project_root)
         return state
 
     def lock(self, state: VaultState) -> None:
