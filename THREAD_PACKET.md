@@ -1,9 +1,9 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Scope goal: Tighten the handoff packet so it matches commit `025cf16bca8b3625b974de1a89f9f3d340d310c3` exactly.
+- Scope goal: Tighten the handoff packet so it matches commit `9df92deaec56128ba78436687873e835a67c08dc` exactly.
 - Reviewed commit type: Lane-metadata-only docs fix.
-- Scope completed: The reviewed commit `025cf16bca8b3625b974de1a89f9f3d340d310c3` only updated `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; this is handoff metadata work, not retrieval source-code work.
+- Scope completed: The reviewed commit `9df92deaec56128ba78436687873e835a67c08dc` only updated `.codex/lane_meta/feat-retrieval-fts.json`; this is lane metadata work, not retrieval source-code work.
 - Tasks completed:
   1. Rewrote the scope goal so it tracks the reviewed commit exactly.
   2. Added an explicit `Scope completed` field that says the commit only updated lane metadata.
@@ -18,7 +18,7 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - Reviewer fix closure:
-  - `#1` regenerated the packet so `Files changed` matches commit `025cf16bca8b3625b974de1a89f9f3d340d310c3` exactly.
+  - `#1` regenerated the packet so `Files changed` matches commit `9df92deaec56128ba78436687873e835a67c08dc` exactly.
   - `#2` removed all implementation-file references from the packet because they are not part of the reviewed commit.
   - `#3` rewrote the scope goal and tasks to describe the lane-metadata-only docs fix.
   - `#4` added an explicit `Scope completed` field stating that the commit only updated lane metadata.
