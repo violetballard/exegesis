@@ -1,12 +1,12 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Align the review packet with a metadata-only handoff update so it matches the reviewed diff and clearly states there is no product-code impact.
-- Scope completed: Rewrote the packet to describe a metadata-only handoff update, kept the changed-files list aligned to the actual diff, and tightened the scope, task summary, and roadmap/vision fields to auditability-only work.
+- Scope goal: Align the review packet with a metadata-only handoff update so the reviewed diff is described accurately and no product-code impact is implied.
+- Scope completed: Rewrote the packet to describe a metadata-only handoff update, kept the changed-files list aligned to the only changed file, and tightened the scope, task summary, and roadmap/vision fields to auditability-only work.
 - Task summary:
   1. Reframed the packet scope so it describes packet maintenance rather than product behavior changes.
-  2. Kept the changed-files list limited to the packet file that actually changed in the reviewed commit.
-  3. Updated the roadmap and vision mapping to reflect auditability-only work with no runtime impact.
+  2. Kept the changed-files list limited to `THREAD_PACKET.md`, the only file changed in the reviewed commit.
+  3. Updated the roadmap and vision mapping to reflect auditability-only work with no runtime or product-code impact.
 - Changed-files list:
   - `THREAD_PACKET.md`
 - Commands run with results:
