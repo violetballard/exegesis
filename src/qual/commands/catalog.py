@@ -117,6 +117,13 @@ _MVP_FLOW_COMMAND_NAMES: tuple[str, ...] = (
     "export-preview",
 )
 
+_DEMO_FLOW_COMMAND_NAMES: tuple[str, ...] = (
+    "bootstrap",
+    "retrieve",
+    "diff-preview",
+    "export-preview",
+)
+
 
 def command_names() -> tuple[str, ...]:
     return tuple(spec.name for spec in COMMAND_SPECS)
@@ -218,17 +225,26 @@ def command_mvp_role(name: str) -> str:
 
 
 def command_mvp_flow_specs() -> tuple[CommandSpec, ...]:
+    return _flow_specs(_MVP_FLOW_COMMAND_NAMES, flow_label="MVP flow")
+
+
+def command_demo_flow_specs() -> tuple[CommandSpec, ...]:
+    return _flow_specs(_DEMO_FLOW_COMMAND_NAMES, flow_label="demo flow")
+
+
+def _flow_specs(flow_names: tuple[str, ...], *, flow_label: str) -> tuple[CommandSpec, ...]:
     specs: list[CommandSpec] = []
-    for name in _MVP_FLOW_COMMAND_NAMES:
+    for name in flow_names:
         spec = _COMMAND_SPEC_BY_NAME.get(name)
         if spec is None:
-            raise ValueError(f"Unknown MVP flow command: {name}")
+            raise ValueError(f"Unknown {flow_label} command: {name}")
         specs.append(spec)
     return tuple(specs)
 
 
 _MVP_FLOW_SPECS: tuple[CommandSpec, ...] = command_mvp_flow_specs()
 _MVP_FLOW_COMMAND_NAME_SET: frozenset[str] = frozenset(spec.name for spec in _MVP_FLOW_SPECS)
+_DEMO_FLOW_SPECS: tuple[CommandSpec, ...] = command_demo_flow_specs()
 
 
 def command_specs_for_role(mvp_role: str) -> tuple[CommandSpec, ...]:
@@ -281,6 +297,26 @@ def command_mvp_flow_lookup_index() -> dict[str, CommandSpec]:
     return _build_command_lookup_index(_MVP_FLOW_SPECS)
 
 
+def command_demo_flow_names() -> tuple[str, ...]:
+    return tuple(spec.name for spec in _DEMO_FLOW_SPECS)
+
+
+def command_demo_flow_lookup_names() -> tuple[str, ...]:
+    return _lookup_names_for_specs(_DEMO_FLOW_SPECS)
+
+
+def command_demo_flow_entries() -> tuple[CommandCatalogEntry, ...]:
+    return _command_catalog_entries_for_specs(_DEMO_FLOW_SPECS)
+
+
+def command_demo_flow_index() -> dict[str, CommandCatalogEntry]:
+    return {entry.name: entry for entry in command_demo_flow_entries()}
+
+
+def command_demo_flow_lookup_index() -> dict[str, CommandSpec]:
+    return _build_command_lookup_index(_DEMO_FLOW_SPECS)
+
+
 def canonical_command(name: str) -> str:
     normalized = _normalize_token(name)
     if not normalized:
@@ -297,12 +333,20 @@ def _validate_command_catalog_contract() -> None:
         raise ValueError("Command catalog contains duplicate names.")
     lookup_names = command_lookup_names()
     flow_names = command_mvp_flow_names()
+    demo_flow_names = command_demo_flow_names()
     if len(flow_names) != len(set(flow_names)):
         raise ValueError("MVP flow command list contains duplicate names.")
+    if len(demo_flow_names) != len(set(demo_flow_names)):
+        raise ValueError("Demo flow command list contains duplicate names.")
     missing_flow_names = tuple(name for name in flow_names if name not in _COMMAND_SPEC_BY_NAME)
     if missing_flow_names:
         raise ValueError(
             "MVP flow command list contains unknown names: " + ", ".join(missing_flow_names)
+        )
+    missing_demo_flow_names = tuple(name for name in demo_flow_names if name not in _COMMAND_SPEC_BY_NAME)
+    if missing_demo_flow_names:
+        raise ValueError(
+            "Demo flow command list contains unknown names: " + ", ".join(missing_demo_flow_names)
         )
     if tuple(entry.name for entry in command_catalog_entries()) != spec_names:
         raise ValueError("Command catalog entries are out of sync with command definitions.")
@@ -310,6 +354,8 @@ def _validate_command_catalog_contract() -> None:
         raise ValueError("Command catalog lookup entries are out of sync with lookup definitions.")
     if tuple(entry.name for entry in command_mvp_flow_entries()) != flow_names:
         raise ValueError("MVP flow catalog entries are out of sync with flow definitions.")
+    if tuple(entry.name for entry in command_demo_flow_entries()) != demo_flow_names:
+        raise ValueError("Demo flow catalog entries are out of sync with flow definitions.")
 
 
 _validate_command_catalog_contract()
