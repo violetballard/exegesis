@@ -967,23 +967,7 @@ def _canonical_json_sort_key(value: Any) -> str:
 
 
 def _render_terminal_actions(actions: Any) -> list[str]:
-    if not isinstance(actions, list):
-        return []
-    normalized_actions: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for action in actions:
-        if not isinstance(action, dict):
-            continue
-        try:
-            normalized = _normalize_action(action, supported_actions=_ALLOWED_ACTION_SET)
-        except ValueError:
-            continue
-        action_key = _canonical_json(normalized)
-        if action_key in seen:
-            continue
-        seen.add(action_key)
-
-        normalized_actions.append(normalized)
+    normalized_actions = _canonicalize_supported_action_list(actions, supported_actions=_ALLOWED_ACTION_SET)
 
     identity_counts: dict[str, int] = {}
     for action in normalized_actions:
@@ -1251,6 +1235,31 @@ def _canonicalize_supported_actions(supported_actions: tuple[str, ...] | None) -
         if normalized_action_id in _ALLOWED_ACTION_SET:
             canonical_actions.add(normalized_action_id)
     return canonical_actions
+
+
+def _canonicalize_supported_action_list(
+    actions: Any,
+    *,
+    supported_actions: set[str],
+) -> list[dict[str, Any]]:
+    if not isinstance(actions, list):
+        return []
+
+    filtered: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for action in actions:
+        try:
+            normalized = _normalize_action(action, supported_actions=supported_actions)
+        except ValueError:
+            continue
+        action_key = _canonical_json(normalized)
+        if action_key in seen:
+            continue
+        seen.add(action_key)
+        filtered.append(normalized)
+
+    filtered.sort(key=_canonical_json)
+    return filtered
 
 
 def _validate_supported_string_sequence(values: Any, *, field_name: str) -> tuple[str, ...]:
