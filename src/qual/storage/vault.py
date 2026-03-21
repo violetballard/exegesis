@@ -382,8 +382,14 @@ class VaultService:
         return True
 
     def _backup_payload(self, payload: dict[str, object]) -> dict[str, object]:
-        backup_payload = dict(payload)
-        backup_payload.pop("recovered_from", None)
+        backup_payload: dict[str, object] = {
+            "schema_version": self._parse_schema_version(payload) or _SCHEMA_VERSION,
+            "project_name": self._parse_project_name(payload.get("project_name")) or "",
+            "is_locked": self._parse_is_locked(payload.get("is_locked")) is True,
+        }
+        normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
+        if normalized_updated_at is not None:
+            backup_payload["updated_at"] = normalized_updated_at
         return backup_payload
 
     def _is_valid_payload(self, path: Path) -> bool:
