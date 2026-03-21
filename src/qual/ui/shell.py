@@ -26,13 +26,14 @@ class ShellUI:
         )
 
     @staticmethod
-    def _format_item_id(value: str) -> str:
-        baseline = " ".join(value.split())
+    def _format_item_id(value: object) -> str:
+        if value is None:
+            return "<blank>"
+        baseline = " ".join(str(value).split())
         if not baseline:
             return "<blank>"
-        escaped = ShellUI._escape_control_chars(value)
-        normalized = " ".join(escaped.split())
-        rendered = ShellUI._truncate_for_preview(normalized, max_len=24)
+        escaped = ShellUI._escape_control_chars(baseline)
+        rendered = ShellUI._truncate_for_preview(escaped, max_len=24)
         if "," in rendered or '"' in rendered or "\\" in rendered:
             escaped = rendered.replace("\\", "\\\\").replace('"', '\\"')
             return f'"{escaped}"'
