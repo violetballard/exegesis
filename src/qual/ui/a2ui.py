@@ -170,6 +170,7 @@ def validate_capabilities(capabilities: A2UICapabilities) -> None:
 
 
 def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
+    validate_capabilities(capabilities)
     card_type = _normalize_card_type(card)
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card, strict_actions=False)
@@ -205,6 +206,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
 
 
 def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
+    validate_capabilities(capabilities)
     card_type = _normalize_card_type(card)
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card, strict_actions=False)
@@ -341,6 +343,7 @@ def execute_action_with_policy_gate(
     policy_gate: PolicyGate,
     executor: Callable[[ActionRef], Any],
 ) -> Any:
+    validate_capabilities(capabilities)
     normalized_action = normalize_action_ref(action)
     if normalized_action.id not in set(capabilities.actions_supported):
         raise ValueError("Action not supported by client")

@@ -478,6 +478,35 @@ class A2UIContractTests(unittest.TestCase):
                 caps,
             )
 
+    def test_engine_rejects_invalid_capabilities_before_materialization(self) -> None:
+        caps = A2UICapabilities(
+            a2ui_version=1,
+            client_name="Exegesis Studio",
+            cards_supported=("ProposedEditCard",),
+            primitive_blocks_supported=(
+                "MarkdownBlock",
+                "KeyValueBlock",
+                "ListBlock",
+                "TableBlock",
+                "AlertBlock",
+                "ProgressBlock",
+                "CodeBlock",
+            ),
+            actions_supported=("apply_patch", "launch_missiles"),
+            max_payload_bytes=1_000_000,
+            supports_streaming=True,
+        )
+
+        with self.assertRaises(ValueError):
+            engine_prepare_card(
+                {
+                    "type": "ProposedEditCard",
+                    "title": "Patch",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
+                },
+                caps,
+            )
+
     def test_studio_renders_unknown_card_for_unsupported_type(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
         payload = {"type": "QuestionsCard", "title": "Questions", "foo": "bar"}
@@ -554,6 +583,28 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["type"], "UnknownCard")
         self.assertEqual([action["id"] for action in card["actions"]], ["copy_to_clipboard"])
         self.assertEqual(card["actions"][0]["label"], "Copy JSON")
+
+    def test_studio_rejects_invalid_capabilities_before_materialization(self) -> None:
+        caps = A2UICapabilities(
+            a2ui_version=1,
+            client_name="Exegesis Studio",
+            cards_supported=("RunLogCard",),
+            primitive_blocks_supported=(
+                "MarkdownBlock",
+                "KeyValueBlock",
+                "ListBlock",
+                "TableBlock",
+                "AlertBlock",
+                "ProgressBlock",
+                "CodeBlock",
+            ),
+            actions_supported=("copy_to_clipboard", "launch_missiles"),
+            max_payload_bytes=1_000_000,
+            supports_streaming=True,
+        )
+
+        with self.assertRaises(ValueError):
+            studio_materialize_card({"type": "QuestionsCard", "title": "Questions"}, caps)
 
     def test_unknown_or_invalid_actions_are_filtered_client_side(self) -> None:
         caps = _capabilities(actions_supported=("apply_patch",))
@@ -725,6 +776,37 @@ class A2UIContractTests(unittest.TestCase):
             executor=lambda a: executed.append(a.id),
         )
         self.assertEqual(executed, ["export_document"])
+
+    def test_execute_action_rejects_invalid_capabilities_before_policy_gate(self) -> None:
+        caps = A2UICapabilities(
+            a2ui_version=1,
+            client_name="Exegesis Studio",
+            cards_supported=("ProposedEditCard",),
+            primitive_blocks_supported=(
+                "MarkdownBlock",
+                "KeyValueBlock",
+                "ListBlock",
+                "TableBlock",
+                "AlertBlock",
+                "ProgressBlock",
+                "CodeBlock",
+            ),
+            actions_supported=("export_document", "launch_missiles"),
+            max_payload_bytes=1_000_000,
+            supports_streaming=True,
+        )
+
+        with self.assertRaises(ValueError):
+            execute_action_with_policy_gate(
+                action=ActionRef(
+                    id="export_document",
+                    label="Export",
+                    payload={"format": "md"},
+                ),
+                capabilities=caps,
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: action.id,
+            )
 
     def test_normalize_action_ref_trims_and_preserves_optional_fields(self) -> None:
         normalized = normalize_action_ref(
