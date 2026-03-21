@@ -7,6 +7,7 @@ from pathlib import Path
 
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions
+from src.qual.docindex.service import DocIndexQueryConstraints
 from src.qual.engine.retrieval.pageindex_strategy import PageIndexStrategy
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
 
@@ -231,6 +232,26 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["provenance"]["source_strategy"], "fts")
         self.assertEqual(excerpt["provenance"]["hash"], result.hits[0].provenance["hash"])
         self.assertTrue(excerpt["text"])
+
+    def test_retrieval_service_normalizes_pageindex_excerpt_payloads(self) -> None:
+        query_result = self.service._docindex.query(
+            "doc-pdf-1",
+            self.service._read_doc_text("doc-pdf-1").encode("utf-8"),
+            "theory",
+            DocIndexQueryConstraints(max_results=1),
+            options=DocIndexBuildOptions(),
+        )
+        self.assertTrue(query_result.hits)
+        excerpt_ids = query_result.hits[0]["excerpt_ids"]
+        self.assertTrue(excerpt_ids)
+
+        excerpt = self.service.fetch_excerpt(str(excerpt_ids[0]))
+        self.assertEqual(excerpt["source_strategy"], "pageindex")
+        self.assertEqual(excerpt["doc_id"], "doc-pdf-1")
+        self.assertIn("span", excerpt)
+        self.assertIn("text_hash", excerpt)
+        self.assertEqual(excerpt["provenance"]["source_strategy"], "pageindex")
+        self.assertEqual(excerpt["provenance"]["doc_id"], "doc-pdf-1")
 
     def test_pageindex_strategy_is_deferred_for_fts_first_mvp(self) -> None:
         strategy = PageIndexStrategy(self.service._docindex, self.service._read_doc_text)

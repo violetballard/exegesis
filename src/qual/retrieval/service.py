@@ -182,16 +182,10 @@ class RetrievalService:
     def fetch_excerpt(self, excerpt_id: str) -> dict[str, object]:
         fts_excerpt = self._find_fts_excerpt(excerpt_id)
         if fts_excerpt is not None:
-            return fts_excerpt
+            return self._normalize_excerpt_payload(fts_excerpt, source_strategy="fts")
         excerpt = self._docindex.fetch_excerpt(excerpt_id)
         if isinstance(excerpt, dict):
-            provenance = excerpt.get("provenance", {})
-            if isinstance(provenance, dict):
-                return {
-                    **excerpt,
-                    "source_strategy": "pageindex",
-                    "text_hash": provenance.get("hash"),
-                }
+            return self._normalize_excerpt_payload(excerpt, source_strategy="pageindex")
         return excerpt
 
     def _run_fts_hits(self, query: RetrievalQuery, candidate_doc_ids: tuple[str, ...]) -> list[RetrievalHit]:
@@ -557,6 +551,29 @@ class RetrievalService:
         if candidate_doc_count is not None:
             provenance["candidate_doc_count"] = candidate_doc_count
         return provenance
+
+    @staticmethod
+    def _normalize_excerpt_payload(
+        excerpt: dict[str, object],
+        *,
+        source_strategy: Literal["fts", "pageindex"],
+    ) -> dict[str, object]:
+        provenance = excerpt.get("provenance", {})
+        if not isinstance(provenance, dict):
+            provenance = {}
+        normalized = dict(excerpt)
+        normalized["source_strategy"] = source_strategy
+        normalized["text_hash"] = provenance.get("hash")
+        if "doc_id" not in normalized and isinstance(provenance.get("doc_id"), str):
+            normalized["doc_id"] = provenance["doc_id"]
+        if "span" not in normalized and isinstance(provenance.get("span"), dict):
+            normalized["span"] = dict(provenance["span"])
+        if "provenance" in normalized:
+            normalized["provenance"] = {
+                **provenance,
+                "source_strategy": source_strategy,
+            }
+        return normalized
 
     @staticmethod
     def _query_fingerprint(query: RetrievalQuery) -> str:
