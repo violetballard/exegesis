@@ -87,6 +87,8 @@ class ContextBasketStore:
                 return ContextBasket()
             basket = ContextBasket(item_ids=parsed_items)
             should_rewrite = schema_version != _SCHEMA_VERSION
+            if "updated_at" not in payload:
+                should_rewrite = True
             if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
                 should_rewrite = True
             if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
@@ -380,6 +382,8 @@ class ContextBasketStore:
             return True
         parsed_items = self._parse_item_ids(payload.get("item_ids"))
         if parsed_items is None:
+            return True
+        if "updated_at" not in payload:
             return True
         if "recovered_from" in payload:
             return True
