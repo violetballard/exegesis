@@ -579,9 +579,7 @@ def render_terminal_card(card: dict[str, Any]) -> str:
     if rendered_actions:
         lines.append("Actions:")
         lines.extend(rendered_actions)
-    elif isinstance(actions, list) and (
-        _is_fallback_card_debug(card.get("debug")) or card_type == UNKNOWN_CARD_TYPE or actions == []
-    ):
+    elif isinstance(actions, list):
         lines.append("Actions: none available")
     return "\n".join(lines)
 

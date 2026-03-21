@@ -1559,6 +1559,23 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertIn("Actions: none available", text)
 
+    def test_terminal_renderer_reports_filtered_out_actions(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Fallback",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+                "actions": [
+                    {"id": "launch_missiles", "label": "Run", "payload": {"operation": "x"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1", "extra": True}},
+                ],
+            }
+        )
+
+        self.assertIn("Actions: none available", text)
+        self.assertNotIn("- Run (launch_missiles)", text)
+        self.assertNotIn("- Apply (apply_patch)", text)
+
     def test_terminal_renderer_normalizes_missing_card_metadata(self) -> None:
         text = render_terminal_card(
             {
