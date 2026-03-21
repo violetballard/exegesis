@@ -130,6 +130,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertGreaterEqual(doc_hit.excerpt_count, 1)
         self.assertEqual(doc_hit.provenance["doc_id"], doc_hit.doc_id)
         self.assertEqual(doc_hit.provenance["top_excerpt_id"], doc_hit.top_excerpt_id)
+        self.assertIn("top_excerpt_hash", doc_hit.provenance)
+        self.assertIn("top_excerpt_span", doc_hit.provenance)
+        self.assertIn("top_matched_terms", doc_hit.provenance)
+        self.assertIn("top_match_count", doc_hit.provenance)
         self.assertEqual(doc_hit.provenance["source_strategy"], "fts")
         self.assertEqual(doc_hit.provenance["retrieval_mode"], "fts_first")
         self.assertEqual(doc_hit.provenance["query_scope"], "vault")
@@ -191,7 +195,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertIsNotNone(excerpt_id)
         excerpt = self.service.fetch_excerpt(excerpt_id or "")
         self.assertEqual(excerpt["excerpt_id"], excerpt_id)
+        self.assertEqual(excerpt["doc_id"], result.hits[0].doc_id)
+        self.assertEqual(excerpt["span"], result.hits[0].span)
         self.assertEqual(excerpt["provenance"]["source_strategy"], "fts")
+        self.assertEqual(excerpt["provenance"]["hash"], result.hits[0].provenance["hash"])
         self.assertTrue(excerpt["text"])
 
     def test_pageindex_strategy_is_deferred_for_fts_first_mvp(self) -> None:

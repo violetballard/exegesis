@@ -307,6 +307,10 @@ class RetrievalService:
                         "doc_id": doc_id,
                         "source_hash": str(doc_meta.get("source_hash", "")),
                         "top_excerpt_id": top_hit.excerpt_id,
+                        "top_excerpt_hash": top_hit.provenance.get("hash"),
+                        "top_excerpt_span": top_hit.provenance.get("span"),
+                        "top_matched_terms": top_hit.provenance.get("matched_terms"),
+                        "top_match_count": top_hit.provenance.get("match_count"),
                         "top_excerpt_rank": top_hit.provenance.get("rank"),
                         "top_fts_rank": top_hit.provenance.get("fts_rank"),
                         "doc_rank": doc_rank,
@@ -460,6 +464,8 @@ class RetrievalService:
             text = str(row["text"])
             return {
                 "excerpt_id": excerpt_id,
+                "doc_id": str(row["doc_id"]),
+                "span": {"char_range": {"start": int(row["char_start"]), "end": int(row["char_end"])}},
                 "text": text,
                 "provenance": self._build_fts_provenance(
                     doc_id=str(row["doc_id"]),
