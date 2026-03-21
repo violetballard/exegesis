@@ -132,10 +132,16 @@ class RetrievalService:
 
         fts_run = self._fts.retrieve(query, candidate_doc_ids=candidate_doc_ids)
         merged_hits = self._merge_hits([fts_run], max_results=query.constraints.max_results)
-        doc_hits = self._build_doc_hits(merged_hits)
+        doc_hits = self._build_doc_hits(query, merged_hits)
         elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
         diagnostics = {
             "retrieval_backend": "sqlite_fts",
+            "retrieval_mode": "fts_first",
+            "query_scope": query.scope,
+            "query_intent": query.intent,
+            "doc_scope_id": self._doc_scope_id(query.scope),
+            "candidate_doc_count": len(candidate_doc_ids),
+            "fts_shortlist_count": len(fts_shortlist),
             "strategies_used": [fts_run.strategy_id],
             "elapsed_ms_by_strategy": {fts_run.strategy_id: fts_run.elapsed_ms},
             "caches_used": {fts_run.strategy_id: fts_run.cache_used},
@@ -148,6 +154,8 @@ class RetrievalService:
             name="retrieval_executed",
             metadata={
                 "query_hash": query_hash,
+                "retrieval_mode": diagnostics["retrieval_mode"],
+                "query_scope": query.scope,
                 "strategies_used": diagnostics["strategies_used"],
                 "elapsed_ms_by_strategy": diagnostics["elapsed_ms_by_strategy"],
                 "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
@@ -226,6 +234,9 @@ class RetrievalService:
                         matched_terms=matched_terms,
                         rank=rank,
                         fts_rank=float(row["fts_rank"]),
+                        query_scope=query.scope,
+                        query_intent=query.intent,
+                        candidate_doc_count=len(candidate_doc_ids),
                     ),
                 )
             )
@@ -268,7 +279,7 @@ class RetrievalService:
                 break
         return out
 
-    def _build_doc_hits(self, hits: list[RetrievalHit]) -> list[RetrievalDocHit]:
+    def _build_doc_hits(self, query: RetrievalQuery, hits: list[RetrievalHit]) -> list[RetrievalDocHit]:
         meta = self._load_doc_meta()
         grouped: dict[str, list[RetrievalHit]] = {}
         doc_order: list[str] = []
@@ -301,6 +312,9 @@ class RetrievalService:
                         "doc_rank": doc_rank,
                         "excerpt_count": len(doc_hit_list),
                         "source_strategy": "fts",
+                        "retrieval_mode": "fts_first",
+                        "query_scope": query.scope,
+                        "query_intent": query.intent,
                     },
                 )
             )
@@ -468,9 +482,12 @@ class RetrievalService:
         matched_terms: tuple[str, ...] = (),
         rank: int | None = None,
         fts_rank: float | None = None,
+        query_scope: str | None = None,
+        query_intent: str | None = None,
+        candidate_doc_count: int | None = None,
     ) -> dict[str, object]:
         meta = self._load_doc_meta().get(doc_id, {})
-        return {
+        provenance = {
             "doc_id": doc_id,
             "source_hash": str(meta.get("source_hash", "")),
             "excerpt_id": excerpt_id,
@@ -482,6 +499,13 @@ class RetrievalService:
             "fts_rank": fts_rank,
             "source_strategy": "fts",
         }
+        if query_scope is not None:
+            provenance["query_scope"] = query_scope
+        if query_intent is not None:
+            provenance["query_intent"] = query_intent
+        if candidate_doc_count is not None:
+            provenance["candidate_doc_count"] = candidate_doc_count
+        return provenance
 
     def _load_doc_meta(self) -> dict[str, dict[str, object]]:
         payload = self._read_encrypted_json(self._root / _DOC_META_FILE, default={})

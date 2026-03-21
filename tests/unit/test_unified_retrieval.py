@@ -7,6 +7,7 @@ from pathlib import Path
 
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions
+from src.qual.engine.retrieval.pageindex_strategy import PageIndexStrategy
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
 
 
@@ -50,8 +51,13 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(result.hits)
         self.assertTrue(result.doc_hits)
         self.assertEqual(result.diagnostics["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(result.diagnostics["retrieval_mode"], "fts_first")
         self.assertIn("fts", result.diagnostics["strategies_used"])
         self.assertEqual(result.diagnostics["strategies_used"], ["fts"])
+        self.assertEqual(result.diagnostics["query_scope"], "vault")
+        self.assertEqual(result.diagnostics["query_intent"], "lookup")
+        self.assertGreaterEqual(result.diagnostics["candidate_doc_count"], 0)
+        self.assertGreaterEqual(result.diagnostics["fts_shortlist_count"], 0)
 
     def test_fts_returns_excerpt_hits_with_deterministic_provenance(self) -> None:
         result = self.service.retrieve_auto(
@@ -75,6 +81,9 @@ class UnifiedRetrievalTests(unittest.TestCase):
             self.assertEqual(hit.provenance["source_strategy"], "fts")
             self.assertEqual(hit.provenance["rank"], index)
             self.assertIn("fts_rank", hit.provenance)
+            self.assertEqual(hit.provenance["query_scope"], "doc:doc-pdf-1")
+            self.assertEqual(hit.provenance["query_intent"], "outline_support")
+            self.assertIn("candidate_doc_count", hit.provenance)
             self.assertEqual(hit.provenance["match_count"], len(hit.provenance["matched_terms"]))
             self.assertTrue(hit.provenance["matched_terms"])
 
@@ -122,6 +131,9 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(doc_hit.provenance["doc_id"], doc_hit.doc_id)
         self.assertEqual(doc_hit.provenance["top_excerpt_id"], doc_hit.top_excerpt_id)
         self.assertEqual(doc_hit.provenance["source_strategy"], "fts")
+        self.assertEqual(doc_hit.provenance["retrieval_mode"], "fts_first")
+        self.assertEqual(doc_hit.provenance["query_scope"], "vault")
+        self.assertEqual(doc_hit.provenance["query_intent"], "compare")
         self.assertIn("top_fts_rank", doc_hit.provenance)
         self.assertEqual(result.diagnostics["doc_hits_count"], len(result.doc_hits))
         self.assertEqual(result.diagnostics["excerpt_hits_count"], len(result.hits))
@@ -181,6 +193,21 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["excerpt_id"], excerpt_id)
         self.assertEqual(excerpt["provenance"]["source_strategy"], "fts")
         self.assertTrue(excerpt["text"])
+
+    def test_pageindex_strategy_is_deferred_for_fts_first_mvp(self) -> None:
+        strategy = PageIndexStrategy(self.service._docindex, self.service._read_doc_text)
+        query = RetrievalQuery(
+            query_text="discussion theory",
+            scope="vault",
+            intent="lookup",
+            constraints=RetrievalConstraints(max_results=4),
+            confidentiality_profile="confidential",
+        )
+        self.assertFalse(strategy.supports(query))
+        run = strategy.retrieve(query, candidate_doc_ids=("doc-pdf-1",))
+        self.assertEqual(run.strategy_id, "pageindex")
+        self.assertEqual(run.hits, [])
+        self.assertEqual(run.elapsed_ms, 0)
 
     def test_retrieval_audit_uses_query_hash_not_plaintext(self) -> None:
         query_text = "highly sensitive question text"
