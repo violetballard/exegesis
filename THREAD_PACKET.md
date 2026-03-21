@@ -6,7 +6,7 @@
 - Branch head note: the current branch head is still a packet-maintenance commit only; the code delta being reissued lives in the reviewed commit above.
 
 ## Scope goal
-- Reissue the handoff against the actual `diff_preview` code delta while keeping the packet-maintenance head honest about being metadata-only.
+- Reissue the handoff against the actual `diff_preview` no-diff `summary_only` contract delta while keeping the packet-maintenance head honest about being metadata-only.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
@@ -54,13 +54,13 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` command behavior so JSON and text honor the same no-diff and fingerprint contract.
-- Milestone 2 - Test Hardening: preserve the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON no-diff summary-only behavior and related output-contract cases.
-- Milestone 3 - Product Readiness: lock the user-facing `diff_preview` structured output contract across text and JSON output.
+- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` no-diff `summary_only` behavior so JSON and text stay aligned on empty-diff responses.
+- Milestone 2 - Test Hardening: preserve the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON no-diff `summary_only` behavior and related output-contract cases.
+- Milestone 3 - Product Readiness: lock the user-facing `diff_preview` no-diff structured output contract across text and JSON output.
 
 ### Vision capability affected
-- Capability 3 - Auditable generation: the command makes no-diff JSON metadata explicit and deterministic, avoiding silent contract drift.
-- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON contract with focused regression tests.
+- Capability 3 - Auditable generation: the command makes the no-diff JSON `summary_only` state explicit and deterministic, avoiding silent contract drift.
+- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON no-diff contract with focused regression tests.
 
 ### Routing/provider impact note
 - None. This change affects local `diff_preview` output formatting plus the reviewer-required regression test; no routing/provider behavior changed.
