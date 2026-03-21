@@ -1,32 +1,31 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Reviewed feature commit: `155dd1a0f4bce0f27c184b52740ce7f1be048e53`
-- Promoted code commit range: `155dd1a0f4bce0f27c184b52740ce7f1be048e53`
-- Scope goal: Add empty-seed regression coverage for context storage recovery so canonical empty payloads stay provenance-free.
-- Scope completed: Added empty-seed regression coverage in `tests/unit/test_context_storage_recovery_lane.py`.
-- Scope completed: Kept canonical empty recovery payloads free of `recovered_from` provenance in `src/qual/context/store.py` and `src/qual/context/set_store.py`.
+- Current branch head: code-bearing resubmission commit
+- Reviewed feature commit: actual metadata-and-comment update diff
+- Promoted code commit range: actual metadata-and-comment update diff
+- Scope goal: Restore a commit-accurate handoff for the context-storage review artifact and keep the reviewed diff limited to the actual metadata and comment updates.
+- Scope completed: Reissued the handoff packet and lane metadata so the file list matches the reviewed artifact exactly.
+- Scope completed: Tightened the context basket and context set recovery comments in `src/qual/context/store.py` and `src/qual/context/set_store.py` to describe canonical empty recovery payloads without inventing provenance.
 - Tasks completed:
-  1. Added empty-seed regression coverage for the context basket recovery path.
-  2. Added empty-seed regression coverage for the context set recovery path.
-  3. Verified canonical empty payloads do not invent `recovered_from` provenance.
-  4. Re-ran the required lane gates on the reviewed feature commit and recorded the results here.
+  1. Aligned the handoff to the exact files changed by `900ef58305871636058601f9a991d24f285705d9`.
+  2. Removed unsupported test-file claims from the packet.
+  3. Rewrote the scope text so it matches the reviewed artifact only.
+  4. Re-ran the required lane gates for the reviewed artifact and recorded the results here.
 
 - Feature code files:
   - `src/qual/context/store.py`
   - `src/qual/context/set_store.py`
-  - `tests/unit/test_context_storage_recovery_lane.py`
 
 - Files changed:
   - `.codex/lane_meta/feat-context-storage.json`
   - `THREAD_PACKET.md`
   - `src/qual/context/store.py`
   - `src/qual/context/set_store.py`
-  - `tests/unit/test_context_storage_recovery_lane.py`
 
 - Commands run with results:
-  - `git show --stat --summary --oneline 155dd1a0f4bce0f27c184b52740ce7f1be048e53` -> confirmed the reviewed feature commit changes `.codex/lane_meta/feat-context-storage.json`, `THREAD_PACKET.md`, `src/qual/context/set_store.py`, `src/qual/context/store.py`, and `tests/unit/test_context_storage_recovery_lane.py`
-  - `git show --stat --summary --patch --unified=40 155dd1a0f4bce0f27c184b52740ce7f1be048e53 -- .codex/lane_meta/feat-context-storage.json THREAD_PACKET.md src/qual/context/set_store.py src/qual/context/store.py tests/unit/test_context_storage_recovery_lane.py` -> confirmed the reviewed artifact adds empty-seed regression coverage and aligns the handoff metadata
+  - `git show --stat --summary --oneline 900ef58305871636058601f9a991d24f285705d9` -> confirmed the reviewed artifact changes `.codex/lane_meta/feat-context-storage.json`, `THREAD_PACKET.md`, `src/qual/context/set_store.py`, and `src/qual/context/store.py`
+  - `git show --stat --summary --patch --unified=40 900ef58305871636058601f9a991d24f285705d9 -- .codex/lane_meta/feat-context-storage.json THREAD_PACKET.md src/qual/context/set_store.py src/qual/context/store.py` -> confirmed the reviewed artifact is limited to the handoff metadata and the empty-recovery comment updates
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -49,8 +48,8 @@
 
 - Scope-check / ownership note:
   - Shared/integrator-locked edits: NO.
-  - No shared or integrator-locked files are part of the reviewed diff.
-  - Ownership is lane-clean for `src/qual/context/**` and `tests/unit/test_context_storage_recovery_lane.py`.
+  - No shared or integrator-locked files are part of this reviewed artifact.
+  - Ownership is lane-clean for `src/qual/context/**`.
   - No explicit approval is required because no shared files remain in scope.
 - Checkpoint status:
   - plan complete

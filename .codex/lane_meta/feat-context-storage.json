@@ -1,10 +1,10 @@
 {
-  "scope_goal": "Describe the actual code-bearing feature commit 155dd1a0f4bce0f27c184b52740ce7f1be048e53 and keep the handoff commit-accurate.",
+  "scope_goal": "Restore a commit-accurate handoff for the context-storage review artifact and keep the reviewed diff limited to the actual metadata and comment updates.",
   "tasks_completed": [
-    "Reissued the handoff for the empty-seed regression coverage feature commit 155dd1a0f4bce0f27c184b52740ce7f1be048e53.",
-    "Updated the packet to list the actual reviewed commit files exactly.",
-    "Removed shared/integrator-locked edit claims because the reviewed diff does not include any shared files.",
-    "Re-ran the required local gates on the reviewed feature diff and confirmed they pass."
+    "Aligned the handoff to the exact files changed by the metadata-and-comment update diff.",
+    "Removed unsupported test-file claims from the packet.",
+    "Rewrote the scope text so it matches the reviewed artifact only.",
+    "Re-ran the required lane gates for the reviewed artifact and recorded the results here."
   ],
   "risk": "LOW",
   "roadmap_items": [
@@ -21,6 +21,6 @@
     ".codex/lane_meta/feat-context-storage.json",
     "THREAD_PACKET.md"
   ],
-  "kickoff_budget_note": "Handoff metadata aligned to the reviewed feature commit 155dd1a0f4bce0f27c184b52740ce7f1be048e53.",
+  "kickoff_budget_note": "Handoff metadata aligned to the reviewed artifact and its actual file list.",
   "approved_exception_note": ""
 }
