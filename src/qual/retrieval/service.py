@@ -28,6 +28,18 @@ _FTS_SEGMENT_OVERLAP_CHARS = 80
 _FTS_BOUNDARY_SCAN_CHARS = 40
 
 
+def _canonicalize_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
+    seen: set[str] = set()
+    normalized: list[str] = []
+    for doc_type in doc_types:
+        value = str(doc_type).strip().casefold()
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        normalized.append(value)
+    return tuple(sorted(normalized))
+
+
 @dataclass(frozen=True)
 class RetrievalConstraints:
     max_results: int = 10
@@ -36,6 +48,11 @@ class RetrievalConstraints:
     require_citations: bool = False
     section_hint: str | None = None
     prefer_exact_matches: bool = False
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "doc_types", _canonicalize_doc_types(self.doc_types))
+        if self.date_range is not None:
+            object.__setattr__(self, "date_range", tuple(str(value).strip() for value in self.date_range))
 
 
 @dataclass(frozen=True)
@@ -1191,15 +1208,7 @@ class RetrievalService:
 
     @staticmethod
     def _normalized_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
-        seen: set[str] = set()
-        normalized: list[str] = []
-        for doc_type in doc_types:
-            value = doc_type.strip().casefold()
-            if not value or value in seen:
-                continue
-            seen.add(value)
-            normalized.append(value)
-        return tuple(sorted(normalized))
+        return _canonicalize_doc_types(doc_types)
 
     @staticmethod
     def _matched_query_terms(query_terms: tuple[str, ...], text: str) -> tuple[str, ...]:
