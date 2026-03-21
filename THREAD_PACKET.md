@@ -1,14 +1,14 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Describe the reviewed change as a metadata-only handoff update in `THREAD_PACKET.md`.
-- Scope completed: Rewrote `THREAD_PACKET.md` only, so the packet now describes packet alignment and auditability only.
+- Scope goal: Describe this review response as a metadata-only handoff update in `THREAD_PACKET.md` with no code, test, or routing changes.
+- Scope completed: Rewrote `THREAD_PACKET.md` only, so the packet now documents packet alignment and auditability only.
 - Tasks completed:
   1. Reframed the scope to describe a metadata-only handoff update.
-  2. Kept the changed-files list limited to the packet file.
+  2. Kept the changed-files list limited to `THREAD_PACKET.md`.
   3. Verified that the roadmap and vision mappings describe packet alignment and auditability only.
 - Files changed:
-  - `THREAD_PACKET.md`
+  - `THREAD_PACKET.md` only
 - Commands run with results:
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
