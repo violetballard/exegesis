@@ -38,9 +38,9 @@ This commit updates only the handoff artifacts in lane-owned docs paths. The com
 5. Document the `section:` compatibility boundary as an intentional MVP limitation until fallback support is restored.
 
 ### Files changed
-- `src/qual/engine/retrieval/__init__.py`
-- `src/qual/engine/retrieval/policy.py`
-- `src/qual/retrieval/service.py`
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
+- `THREAD_PACKET.md`
 
 ### Compatibility note
 - Breaking compatibility note: `section:` scopes are intentionally rejected in the owned retrieval service until section fallback support exists. Callers that depend on section targeting must switch to `vault`, `collection:`, or `doc:` scopes for the current FTS-first MVP path.

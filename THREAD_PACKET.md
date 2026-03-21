@@ -56,11 +56,10 @@ Breaking compatibility note: `section:` scopes remain intentionally rejected in 
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
-  - `make ci` re-ran the full gate stack after the docs-only fix.
 - Reviewer fix closure:
   - `#1` re-anchored the packet to the actual reviewed commit boundaries and stated that `203906231e9c47371b6d7bc4028bc4f60e764581` is docs-only.
   - `#2` rewrote `Files changed` so it only lists the docs files changed here.
-  - `#3` added a concrete `Scope completed` section describing the docs-only handoff alignment.
+  - `#3` keeps the concrete `Scope completed` section describing the docs-only handoff alignment.
   - `#4` removed the stale cross-lane retrieval-tool claim from the handoff surface.
   - `#5` tightened the roadmap/vision mapping to describe the handoff boundary rather than feature delivery.
   - `#6` documented the `section:` compatibility boundary for the current FTS-first MVP path.
