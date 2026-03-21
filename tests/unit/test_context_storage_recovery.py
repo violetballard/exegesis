@@ -78,7 +78,7 @@ class ContextStoreRecoveryTests(unittest.TestCase):
                 {
                     "schema_version": 1,
                     "updated_at": "2026-03-20T12:00:00+00:00",
-                    "item_ids": [" keep ", 7, "", "keep", " second "],
+                    "item_ids": [" keep ", 7, {"id": "discard"}, "", "keep", " second "],
                 }
             ),
             encoding="utf-8",
@@ -90,6 +90,20 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("item_ids"), ["keep", "second"])
         self.assertEqual(payload.get("schema_version"), 1)
+
+    def test_valid_primary_wins_over_stale_tmp_payload(self) -> None:
+        self.store.save(ContextBasket(item_ids=["primary"]))
+        self.store._tmp_path().write_text(
+            json.dumps({"schema_version": 1, "item_ids": ["tmp"]}),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["primary"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["primary"])
+        self.assertFalse(self.store._tmp_path().exists())
 
     def test_legacy_list_payload_salvages_valid_entries(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
@@ -343,6 +357,38 @@ class VaultRecoveryTests(unittest.TestCase):
         payload = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("project_name"), "p2-provenance")
         self.assertNotIn("recovered_from", payload)
+
+    def test_valid_primary_wins_over_stale_tmp_payload(self) -> None:
+        state = self.svc.create_or_open(self.root, "p2-tmp")
+        state_path = state.root_dir / ".vault_state.json"
+        tmp_path = state.root_dir / ".vault_state.tmp"
+        state_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "p2-tmp",
+                    "is_locked": False,
+                }
+            ),
+            encoding="utf-8",
+        )
+        tmp_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "p2-tmp",
+                    "is_locked": True,
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p2-tmp")
+
+        self.assertFalse(reopened.is_locked)
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertFalse(payload.get("is_locked"))
+        self.assertFalse(tmp_path.exists())
 
     def test_project_name_mismatch_forces_locked_state(self) -> None:
         state = self.svc.create_or_open(self.root, "p3")

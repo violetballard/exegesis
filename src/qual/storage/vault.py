@@ -86,12 +86,14 @@ class VaultService:
 
         payload: dict[str, object] | None
         recovered_source: str | None
-        if tmp_payload is not None:
-            payload = tmp_payload
-            recovered_source = "tmp"
-        elif primary_payload is not None:
+        if primary_payload is not None:
             payload = primary_payload
             recovered_source = None
+            if tmp_payload is not None:
+                self._unlink_if_exists(self._tmp_state_path(root_dir))
+        elif tmp_payload is not None:
+            payload = tmp_payload
+            recovered_source = "tmp"
         elif backup_payload is not None:
             payload = backup_payload
             recovered_source = "backup"
