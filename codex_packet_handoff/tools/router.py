@@ -31,7 +31,7 @@ VERDICT_ONLY_RE = re.compile(
 )
 INVALID_REVIEWER_RE = re.compile(r"session not found for thread_id|thread not found", re.IGNORECASE)
 REVIEWER_QUOTA_RE = re.compile(
-    r"usage limit|try again at|rate limit|too many requests|quota",
+    r"usage limit|quota exceeded|rate limit|too many requests|try again at",
     re.IGNORECASE,
 )
 PACKET_SHA_RE = re.compile(r"__(?P<sha>[0-9a-f]{7,40})__")
