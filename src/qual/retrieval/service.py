@@ -127,8 +127,19 @@ class RetrievalService:
         job = self._docindex.build(doc_id, source.encode("utf-8"), build_opts)
         return job.status
 
-    def retrieve_auto(self, query: RetrievalQuery) -> RetrievalResult:
+    def retrieve_fts(self, query: RetrievalQuery) -> RetrievalResult:
+        """Run the deterministic SQLite FTS retrieval path.
+
+        The FTS-first MVP keeps this as the canonical retrieval entrypoint so
+        downstream engine callers can depend on a single auditable strategy.
+        """
         self._validate_query(query)
+        return self._run_fts_first_retrieval(query)
+
+    def retrieve_auto(self, query: RetrievalQuery) -> RetrievalResult:
+        return self.retrieve_fts(query)
+
+    def _run_fts_first_retrieval(self, query: RetrievalQuery) -> RetrievalResult:
         started = self._now_fn()
         query_fingerprint = self._query_fingerprint(query)
         fts_shortlist_limit = self._fts_shortlist_limit(query.constraints.max_results)
