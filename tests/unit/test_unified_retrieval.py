@@ -206,6 +206,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertIn("top_matched_terms", doc_hit.provenance)
         self.assertIn("top_match_count", doc_hit.provenance)
         self.assertEqual(doc_hit.provenance["doc_type"], "memo")
+        self.assertIn("doc_identity_fingerprint", doc_hit.provenance)
         self.assertIn("doc_fingerprint", doc_hit.provenance)
         self.assertEqual(doc_hit.provenance["source_strategy"], "fts")
         self.assertEqual(doc_hit.provenance["retrieval_mode"], "fts_first")
@@ -218,8 +219,46 @@ class UnifiedRetrievalTests(unittest.TestCase):
         manifest = result.diagnostics["retrieval_manifest"]
         self.assertEqual(manifest["doc_ids"], [item.doc_id for item in result.doc_hits])
         self.assertEqual(manifest["doc_fingerprints"], [item.provenance["doc_fingerprint"] for item in result.doc_hits])
+        self.assertEqual(
+            manifest["doc_identity_fingerprints"],
+            [item.provenance["doc_identity_fingerprint"] for item in result.doc_hits],
+        )
         self.assertEqual(manifest["top_excerpt_ids"], [item.top_excerpt_id for item in result.doc_hits])
         self.assertEqual(manifest["excerpt_ids"], [item.excerpt_id for item in result.hits if item.excerpt_id is not None])
+
+    def test_doc_identity_fingerprint_stays_stable_across_query_variants(self) -> None:
+        base = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="outline_support",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+        variant = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory unrelated_term",
+                scope="doc:doc-pdf-1",
+                intent="outline_support",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+        self.assertTrue(base.doc_hits)
+        self.assertTrue(variant.doc_hits)
+        self.assertEqual(
+            base.doc_hits[0].provenance["doc_identity_fingerprint"],
+            variant.doc_hits[0].provenance["doc_identity_fingerprint"],
+        )
+        self.assertEqual(
+            base.doc_hits[0].provenance["top_excerpt_fingerprint"],
+            variant.doc_hits[0].provenance["top_excerpt_fingerprint"],
+        )
+        self.assertNotEqual(
+            base.doc_hits[0].provenance["doc_fingerprint"],
+            variant.doc_hits[0].provenance["doc_fingerprint"],
+        )
 
     def test_doc_hits_follow_top_ranked_excerpt_order(self) -> None:
         self.service.add_or_update_document(

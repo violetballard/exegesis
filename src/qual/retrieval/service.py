@@ -348,6 +348,15 @@ class RetrievalService:
                 top_hit.provenance.get("excerpt_text_hash") or top_hit.provenance.get("hash") or ""
             )
             top_excerpt_text_length = len(top_hit.excerpt_text or "")
+            doc_identity_fingerprint = self._stable_fingerprint(
+                {
+                    "doc_id": doc_id,
+                    "source_hash": str(doc_meta.get("source_hash", "")),
+                    "doc_type": str(doc_meta.get("doc_type", "")),
+                    "top_excerpt_id": top_hit.excerpt_id,
+                    "top_excerpt_fingerprint": top_excerpt_fingerprint,
+                }
+            )
             doc_hits.append(
                 RetrievalDocHit(
                     doc_id=doc_id,
@@ -374,6 +383,7 @@ class RetrievalService:
                         "top_excerpt_rank": top_hit.provenance.get("rank"),
                         "top_fts_rank": top_hit.provenance.get("fts_rank"),
                         "doc_rank": doc_rank,
+                        "doc_identity_fingerprint": doc_identity_fingerprint,
                         "doc_fingerprint": self._stable_fingerprint(
                             {
                                 "doc_id": doc_id,
@@ -398,11 +408,15 @@ class RetrievalService:
     @staticmethod
     def _build_retrieval_manifest(doc_hits: list[RetrievalDocHit], hits: list[RetrievalHit]) -> dict[str, object]:
         doc_fingerprints = [str(doc_hit.provenance.get("doc_fingerprint", "")) for doc_hit in doc_hits]
+        doc_identity_fingerprints = [
+            str(doc_hit.provenance.get("doc_identity_fingerprint", "")) for doc_hit in doc_hits
+        ]
         top_excerpt_fingerprints = [str(doc_hit.provenance.get("top_excerpt_fingerprint", "")) for doc_hit in doc_hits]
         excerpt_fingerprints = [str(hit.provenance.get("excerpt_fingerprint", "")) for hit in hits if hit.excerpt_id is not None]
         return {
             "doc_ids": [doc_hit.doc_id for doc_hit in doc_hits],
             "doc_fingerprints": doc_fingerprints,
+            "doc_identity_fingerprints": doc_identity_fingerprints,
             "top_excerpt_ids": [doc_hit.top_excerpt_id for doc_hit in doc_hits],
             "top_excerpt_fingerprints": top_excerpt_fingerprints,
             "excerpt_ids": [hit.excerpt_id for hit in hits if hit.excerpt_id is not None],
