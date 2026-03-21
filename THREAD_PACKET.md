@@ -9,19 +9,21 @@
 - Scope completed: Hardened context basket and vault state recovery so malformed optional metadata is salvaged and normalized without discarding valid local state.
 - Tasks completed:
   1. Repointed the handoff at the actual recovery feature commit.
-  2. Replaced the stale file list with the reviewed commit's real source paths.
-  3. Removed the unsupported shared-file exception so the handoff stays within lane-owned paths.
+  2. Replaced the stale file list with the reviewed commit's real source paths and approved shared recovery test coverage.
+  3. Documented the approved shared-file exception for the recovery regression test instead of treating it as owned-path-only work.
   4. Kept the packet aligned with the actual owned-path recovery behavior.
   5. Reran scope, format, lint, unit, typecheck, and CI gates on the feature commit and confirmed they all pass.
 - Files changed:
   - `src/qual/context/set_store.py`
   - `src/qual/context/store.py`
   - `src/qual/storage/vault.py`
+  - `tests/unit/test_context_storage_recovery.py`
 - Shared/integrator-locked edits:
-  - `NO`
+  - `YES`
+  - `tests/unit/test_context_storage_recovery.py` (approved shared coverage for the vault recovery regression alongside the owned-path storage fix)
 - Commands run with results:
-  - `git show --stat --name-only --oneline 369f2d8f` -> confirmed the reviewed feature commit spans the context/storage recovery source changes
-  - `git show --unified=0 --format=medium 369f2d8f -- src/qual/context/set_store.py src/qual/context/store.py src/qual/storage/vault.py` -> confirmed the feature diff matches the owned-path recovery scope described above
+  - `git show --stat --name-only --oneline 369f2d8f` -> confirmed the reviewed feature commit spans the context/storage recovery source changes and recovery test coverage
+  - `git show --unified=0 --format=medium 369f2d8f -- src/qual/context/set_store.py src/qual/context/store.py src/qual/storage/vault.py tests/unit/test_context_storage_recovery.py` -> confirmed the feature diff matches the owned-path recovery scope plus the approved shared test file described above
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -31,7 +33,7 @@
 - Reviewer fix closure:
   - `#1` repointed the handoff at the actual feature commit instead of the docs-only packet commit.
   - `#2` made `Files changed` match the reviewed commit's real recovery source/test diff.
-  - `#3` removed the unsupported shared-file exception and kept the handoff within owned paths.
+  - `#3` recorded the approved shared recovery test file and rationale instead of collapsing the handoff to owned-path-only work.
   - `#4` kept the scope tied to `feat-context-storage` work in owned paths.
   - `#5` re-ran the required gates against the actual feature commit and recorded the passing results.
 - Checkpoint status:

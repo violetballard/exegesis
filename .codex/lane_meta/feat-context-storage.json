@@ -1,16 +1,23 @@
 {
-  "scope_goal": "Restart this lane from current main with strict owned-path-only context and vault persistence hardening; prior branch state is reference-only and must not be promoted as-is.",
-  "tasks_completed": [],
+  "scope_goal": "Harden context set and vault persistence recovery so malformed optional metadata is salvaged and rewritten without discarding valid local state, with approved shared recovery test coverage documented explicitly.",
+  "tasks_completed": [
+    "Repointed the handoff at the actual recovery feature commit.",
+    "Restored the approved shared recovery test file in the handoff metadata.",
+    "Kept the packet aligned with the owned-path storage recovery behavior.",
+    "Reran scope, format, lint, unit, typecheck, and CI gates on the feature commit and confirmed they all pass."
+  ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 1 - Bootstrap Flow Stabilization: context basket and vault persistence hardening."
+    "Milestone 1 - Bootstrap Flow Stabilization: context set and vault persistence hardening.",
+    "Milestone 2 - Test Hardening: focused recovery coverage for malformed metadata and quarantine preservation."
   ],
   "vision_capabilities": [
-    "Capability 1 - Local-first state and identity."
+    "Capability 1 - Local-first state and identity.",
+    "Capability 3 - Auditable generation through deterministic recovery and rewrite behavior for persisted local state."
   ],
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
   "shared_file_exception": true,
-  "kickoff_budget_note": "Reset-required lane after ownership and repo-hygiene drift in the stale March 5 review generation.",
+  "kickoff_budget_note": "Handoff metadata aligned to the reviewed recovery fix with approved shared test coverage.",
   "approved_exception_note": "Approved shared-file exception for tests/unit/test_context_storage_recovery.py to cover the vault recovery regression alongside the owned-path storage fix."
 }
