@@ -231,8 +231,10 @@ class ContextSetStore:
         preserve_primary_corrupt = bool(
             primary_needs_quarantine
             and primary_payload is not None
-            and recovered_source is None
-            and not self._has_context_set_records(primary_payload)
+            and (
+                recovered_source is None
+                or self._has_context_set_records(primary_payload)
+            )
         )
         if recovered_source is not None or should_rewrite:
             self.save(
