@@ -1,11 +1,11 @@
 {
-  "scope_goal": "Describe the actual feature commit and document the approved non-owned recovery test exception with scope-check policy context.",
+  "scope_goal": "Describe the actual feature commit and remove stale vault/test claims so the reviewed diff matches the branch head.",
   "tasks_completed": [
-    "Repointed the handoff packet to the actual feature commit ca626d4b61e3a6bdb163d471c515bdd144cc3283.",
-    "Documented the approved non-owned recovery test exception for tests/unit/test_context_storage_recovery.py with scope-check policy context.",
+    "Repointed the handoff packet to the actual branch-head feature commit dca868e202b0c220c36b557d7071420ca74261f9.",
+    "Removed the stale vault, test, and shared-file exception claims so the packet matches the reviewed diff.",
     "Re-ran the required local gates on the corrected branch head and confirmed they pass."
   ],
-  "risk": "MEDIUM",
+  "risk": "LOW",
   "roadmap_items": [
     "Milestone 1 - Bootstrap Flow Stabilization: context set quarantine recovery hardening.",
     "Milestone 2 - Test Hardening: focused regression coverage for malformed metadata quarantine."
@@ -16,7 +16,7 @@
   ],
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
-  "shared_file_exception": true,
-  "kickoff_budget_note": "Handoff metadata aligned to the reviewed feature commit; approved non-owned test coverage requires SCOPE_ALLOW_SHARED=1 and is recorded in commit 5b30935c.",
-  "approved_exception_note": "Ownership note: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned change is `tests/unit/test_context_storage_recovery.py`; `scripts/scope-check.sh` allows this exact file for `codex/feat-context-storage*` when `SCOPE_ALLOW_SHARED=1`, and the approved exception was recorded in `docs(context-storage): record approved test-file exception` (`5b30935c`). No shared-by-approval source files or integrator-locked files were edited."
+  "shared_file_exception": false,
+  "kickoff_budget_note": "Handoff metadata aligned to the reviewed feature commit; no shared-by-approval files are present in the reviewed diff.",
+  "approved_exception_note": "Ownership note: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The reviewed diff contains only `src/qual/context/set_store.py`, so no shared-by-approval source files, test files, or integrator-locked files were edited."
 }
