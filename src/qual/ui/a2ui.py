@@ -309,7 +309,6 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
     # Safe fallback for unsupported specialized cards.
     read_only_actions = _build_read_only_fallback_actions(
         card,
-        card.get("actions"),
         supported_actions=set(capabilities.actions_supported),
         max_payload_bytes=capabilities.max_payload_bytes,
     )
@@ -658,30 +657,24 @@ def _build_unknown_card_actions(
         canonical_supported_actions = supported_actions
     else:
         canonical_supported_actions = _canonicalize_supported_actions(supported_actions)
-    if FALLBACK_COPY_ACTION_ID not in canonical_supported_actions:
-        return []
-    return [
-        _build_copy_to_clipboard_action(
-            _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes, pretty=True),
-        )
-    ]
+    return _filter_read_only_fallback_actions(
+        raw_card,
+        supported_actions=canonical_supported_actions,
+        max_payload_bytes=max_payload_bytes,
+    )
 
 
 def _build_read_only_fallback_actions(
     raw_card: dict[str, Any],
-    actions: Any,
     *,
     supported_actions: set[str],
     max_payload_bytes: int,
 ) -> list[dict[str, Any]]:
-    if FALLBACK_COPY_ACTION_ID not in supported_actions:
-        return []
-
-    return [
-        _build_copy_to_clipboard_action(
-            _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes, pretty=True),
-        )
-    ]
+    return _filter_read_only_fallback_actions(
+        raw_card,
+        supported_actions=supported_actions,
+        max_payload_bytes=max_payload_bytes,
+    )
 
 
 def _filter_supported_actions(actions: Any, *, supported_actions: set[str]) -> list[dict[str, Any]]:

@@ -26,6 +26,17 @@ class ShellUITests(unittest.TestCase):
         self.assertIn("- context_items: 4", text)
         self.assertIn('- context_preview: <blank>, "alpha, beta", xxxxxxxxxxxxxxxxxxxxx..., +1 more item', text)
 
+    def test_render_startup_treats_mappings_as_single_malformed_items(self) -> None:
+        runtime = SimpleNamespace(
+            vault=SimpleNamespace(project_name="Demo", root_dir="/tmp/demo", is_locked=False),
+            basket=SimpleNamespace(item_ids={"first": "alpha"}),
+        )
+
+        text = ShellUI().render_startup(runtime)
+
+        self.assertIn("- context_items: 1", text)
+        self.assertIn("- context_preview: {'first': 'alpha'}", text)
+
 
 if __name__ == "__main__":
     unittest.main()

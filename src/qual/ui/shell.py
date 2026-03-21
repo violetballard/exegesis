@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 
 from src.qual.engine.service import EngineRuntime
 
@@ -33,6 +33,8 @@ class ShellUI:
         if item_ids is None:
             return []
         if isinstance(item_ids, (str, bytes)):
+            return [item_ids]
+        if isinstance(item_ids, Mapping):
             return [item_ids]
         if isinstance(item_ids, Iterable):
             return list(item_ids)
