@@ -638,13 +638,21 @@ def _render_terminal_block(block: Any) -> list[str]:
     if not block_type:
         return ["[unsupported block: missing type]"]
     if block_type == "MarkdownBlock":
-        return [str(block.get("markdown", ""))]
+        return [_render_terminal_text(block.get("markdown", ""))]
     if block_type == "AlertBlock":
-        return [f"{block.get('severity', 'info').upper()}: {block.get('message', '')}"]
+        severity_value = block.get("severity", "info")
+        if isinstance(severity_value, str):
+            severity = severity_value.strip().upper() or "INFO"
+        else:
+            severity = "INFO"
+        message = _render_terminal_text(block.get("message", ""))
+        return [f"{severity}: {message}"]
     if block_type == "CodeBlock":
-        return [str(block.get("code", ""))]
+        return [_render_terminal_text(block.get("code", ""))]
     if block_type == "ProgressBlock":
-        return [f"{block.get('title', 'progress')}: {block.get('status_text', '')}"]
+        title = _render_terminal_text(block.get("title", "progress"))
+        status_text = _render_terminal_text(block.get("status_text", ""))
+        return [f"{title}: {status_text}"]
     if block_type == "KeyValueBlock":
         items = block.get("items", [])
         if not isinstance(items, list):
@@ -677,3 +685,9 @@ def _render_terminal_block(block: Any) -> list[str]:
     if block_type == "TableBlock":
         return ["[table]"]
     return [f"[unsupported block: {block_type}]"]
+
+
+def _render_terminal_text(value: Any) -> str:
+    if value is None:
+        return ""
+    return str(value)
