@@ -1,5 +1,5 @@
 {
-  "approved_exception_note": "",
+  "approved_exception_note": "No non-retrieval tooling edits are approved for this handoff; codex_packet_handoff/tools/* and src/qual/engine/tools/* are excluded and must stay in a separate lane.",
   "handoff_alignment_commit": "203906231e9c47371b6d7bc4028bc4f60e764581",
   "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 6 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff.",
   "implementation_commit": "36893f06df85409c4595d64adb8af60455c086a6",

@@ -12,7 +12,7 @@ Document the retrieval handoff boundary while keeping the lane-owned retrieval s
 
 ## Scope completed
 
-FTS-first retrieval is active for `vault`, `collection:`, and `doc:` scopes. `src/qual/retrieval/service.py` forwards those queries to the owned retrieval engine, `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, and `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred. `section:` remains rejected until fallback support exists. This handoff stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**` only.
+FTS-first retrieval is active for `vault`, `collection:`, and `doc:` scopes. `src/qual/retrieval/service.py` forwards those queries to the owned retrieval engine, `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, and `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred. `section:` remains rejected until fallback support exists. No out-of-lane files are part of this handoff; it stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**` only.
 
 ## Files changed
 
