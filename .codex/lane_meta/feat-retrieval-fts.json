@@ -1,6 +1,7 @@
 {
   "approved_exception_note": "",
   "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, retrieval-owned code files plus handoff artifacts, no shared or integrator-locked edits, and required local gates rerun before handoff.",
+  "implementation_commit": "2c16551a6b3576eb9031d55a98525c21e04be255",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
@@ -10,7 +11,7 @@
     "Milestone 2: Test Hardening -> Add focused unit coverage for core behaviors"
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The retrieval FTS MVP work stays in retrieval-owned code paths, while the packet now lists handoff artifacts separately so the ownership boundary is explicit. `section:` queries remain rejected as a compatibility safeguard until PageIndex can resolve concrete section targets.",
+  "scope_completed": "The retrieval FTS MVP work stays in retrieval-owned code paths, with FTS as the only active runtime strategy. `pageindex` and `embeddings` remain deferred in `FTS_FIRST_POLICY.deferred_strategy_ids`, so they are not required runtime paths. The packet now lists handoff artifacts separately so the ownership boundary is explicit, and `section:` queries remain rejected as a compatibility safeguard until PageIndex can resolve concrete section targets.",
   "scope_goal": "Apply the reviewer-required packet fixes for the retrieval FTS MVP handoff by separating feature code files from handoff artifacts and documenting the `section:` compatibility boundary.",
   "shared_file_exception": false,
   "tasks_completed": [
@@ -23,5 +24,5 @@
     "3. Auditable generation",
     "4. Operator-first control surface"
   ],
-  "compatibility_note": "section scope rejection is a compatibility guard until PageIndex can resolve concrete section targets."
+  "compatibility_note": "section scope rejection is a compatibility guard until PageIndex can resolve concrete section targets; pageindex and embeddings remain deferred-only in the FTS-first policy snapshot."
 }
