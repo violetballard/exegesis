@@ -313,8 +313,13 @@ class ContextBasketStore:
         return True
 
     def _backup_payload(self, payload: dict[str, object]) -> dict[str, object]:
-        backup_payload = dict(payload)
-        backup_payload.pop("recovered_from", None)
+        backup_payload: dict[str, object] = {
+            "schema_version": self._parse_schema_version(payload) or _SCHEMA_VERSION,
+            "item_ids": self._normalize_item_ids(self._parse_item_ids(payload.get("item_ids")) or []),
+        }
+        normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
+        if normalized_updated_at is not None:
+            backup_payload["updated_at"] = normalized_updated_at
         return backup_payload
 
     def _write_seed(self, payload: dict[str, object] | list[object]) -> None:
