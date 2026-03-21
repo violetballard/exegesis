@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import re
@@ -83,13 +84,13 @@ class RetrievalHit:
             "doc_id": self.doc_id,
             "excerpt_id": self.excerpt_id,
             "excerpt_text": self.excerpt_text,
-            "span": dict(self.span),
+            "span": copy.deepcopy(self.span),
             "title_hint": self.title_hint,
             "score": self.score,
             "source_strategy": self.source_strategy,
             "rationale": self.rationale,
-            "node_path": [dict(node) for node in self.node_path] if self.node_path is not None else None,
-            "provenance": dict(self.provenance),
+            "node_path": copy.deepcopy(self.node_path),
+            "provenance": copy.deepcopy(self.provenance),
         }
         retrieval_backend = self.provenance.get("retrieval_backend")
         if isinstance(retrieval_backend, str) and retrieval_backend:
@@ -99,7 +100,7 @@ class RetrievalHit:
             payload["retrieval_mode"] = retrieval_mode
         retrieval_policy = self.provenance.get("retrieval_policy")
         if isinstance(retrieval_policy, dict):
-            payload["retrieval_policy"] = dict(retrieval_policy)
+            payload["retrieval_policy"] = copy.deepcopy(retrieval_policy)
         return payload
 
 
@@ -123,7 +124,7 @@ class RetrievalDocHit:
             "top_score": self.top_score,
             "source_strategy": self.source_strategy,
             "excerpt_count": self.excerpt_count,
-            "provenance": dict(self.provenance),
+            "provenance": copy.deepcopy(self.provenance),
         }
         retrieval_backend = self.provenance.get("retrieval_backend")
         if isinstance(retrieval_backend, str) and retrieval_backend:
@@ -133,7 +134,7 @@ class RetrievalDocHit:
             payload["retrieval_mode"] = retrieval_mode
         retrieval_policy = self.provenance.get("retrieval_policy")
         if isinstance(retrieval_policy, dict):
-            payload["retrieval_policy"] = dict(retrieval_policy)
+            payload["retrieval_policy"] = copy.deepcopy(retrieval_policy)
         return payload
 
 
