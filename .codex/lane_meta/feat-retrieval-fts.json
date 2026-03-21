@@ -18,14 +18,15 @@
     "src/qual/retrieval/service.py",
     "tests/unit/test_unified_retrieval.py"
   ],
-  "scope_completed": "This commit updates the handoff artifacts only. It records that the retrieval implementation lives in 36893f06df85409c4595d64adb8af60455c086a6, that the deferred-policy boundary lives in dc8f79e4abeb30de51854fdd84d35b97993955b8, and that 203906231e9c47371b6d7bc4028bc4f60e764581 does not add retrieval code changes. The handoff now keeps the file list restricted to the docs files actually changed here and removes the stale cross-lane retrieval-tool claim.",
+  "scope_completed": "This commit updates the handoff artifacts only. It records that the retrieval implementation lives in 36893f06df85409c4595d64adb8af60455c086a6, that the deferred-policy boundary lives in dc8f79e4abeb30de51854fdd84d35b97993955b8, and that 203906231e9c47371b6d7bc4028bc4f60e764581 does not add retrieval code changes. The handoff now keeps the file list restricted to the docs files actually changed here, removes the stale cross-lane retrieval-tool claim, and treats any PageIndex or embeddings mentions as deferred-only history instead of active retrieval paths.",
   "scope_goal": "Re-anchor the retrieval handoff packet to the earlier implementation while keeping the current commit strictly limited to docs-only handoff alignment.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Re-anchored the packet to the earlier retrieval implementation and deferred-policy cleanup commits.",
     "Marked the current commit as docs-only and removed claims that it delivered retrieval code changes.",
     "Removed the stale cross-lane retrieval-tool reference from the handoff surface.",
-    "Kept the file list restricted to the docs files actually changed in this commit."
+    "Kept the file list restricted to the docs files actually changed in this commit.",
+    "Clarified that PageIndex and embeddings references are deferred markers only."
   ],
   "vision_capabilities": [
     "2. Retrieval-first context handling",

@@ -12,13 +12,14 @@ Re-anchor the retrieval handoff packet to the earlier FTS-first implementation w
 
 ## Scope Completed
 
-This commit updates the handoff artifacts only. It states that the reviewed retrieval implementation lives in `36893f06df85409c4595d64adb8af60455c086a6`, that the deferred-policy boundary lives in `dc8f79e4abeb30de51854fdd84d35b97993955b8`, and that `203906231e9c47371b6d7bc4028bc4f60e764581` does not add retrieval code changes. The packet now keeps the file list restricted to the docs files actually changed here and removes the stale cross-lane retrieval-tool claim.
+This commit updates the handoff artifacts only. It states that the reviewed retrieval implementation lives in `36893f06df85409c4595d64adb8af60455c086a6`, that the deferred-policy boundary lives in `dc8f79e4abeb30de51854fdd84d35b97993955b8`, and that `203906231e9c47371b6d7bc4028bc4f60e764581` does not add retrieval code changes. The packet now keeps the file list restricted to the docs files actually changed here, removes the stale cross-lane retrieval-tool claim, and leaves any PageIndex or embeddings references as deferred-only history rather than active retrieval paths.
 
 ## Code-Diff Evidence
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md`: re-anchors the handoff metadata to the actual commit boundary.
 - `.codex/lane_meta/feat-retrieval-fts.json`: mirrors the same scope and file-list correction in structured form.
 - `THREAD_PACKET.md`: records the docs-only nature of this commit and the earlier implementation/cleanup commits it points to.
+- No `src/qual/engine/tools/retrieval_tools.py` entry appears because that file is outside this lane's owned paths.
 
 ### Related implementation files
 
