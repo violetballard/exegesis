@@ -794,7 +794,24 @@ def _render_terminal_block(block: Any) -> list[str]:
                     lines.append(f"- {label}")
         return lines or ["[ListBlock: empty]"]
     if block_type == "TableBlock":
-        return ["[table]"]
+        rows = block.get("rows", [])
+        if not isinstance(rows, list):
+            return ["[table: invalid rows]"]
+        lines = ["[table]"]
+        for row in rows:
+            if not isinstance(row, list):
+                continue
+            rendered_cells: list[str] = []
+            for cell in row:
+                if cell is None:
+                    rendered_cells.append("<blank>")
+                elif isinstance(cell, bool):
+                    rendered_cells.append("true" if cell else "false")
+                else:
+                    rendered_cells.append(str(cell))
+            if rendered_cells:
+                lines.append(f"- {' | '.join(rendered_cells)}")
+        return lines if len(lines) > 1 else ["[table: empty]"]
     return [f"[unsupported block: {block_type}]"]
 
 

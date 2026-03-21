@@ -628,6 +628,7 @@ class A2UIContractTests(unittest.TestCase):
         }
 
         unknown = build_unknown_card(raw_unknown)
+        unknown_text = render_terminal_card(unknown)
 
         self.assertEqual(
             unknown["blocks"][0],
@@ -640,6 +641,10 @@ class A2UIContractTests(unittest.TestCase):
                 ],
             },
         )
+        self.assertIn("[table]", unknown_text)
+        self.assertIn("- left | right", unknown_text)
+        self.assertIn("- alpha | <blank> | 2", unknown_text)
+        self.assertIn("- drop", unknown_text)
 
     def test_studio_rejects_invalid_capabilities_before_materialization(self) -> None:
         caps = A2UICapabilities(
