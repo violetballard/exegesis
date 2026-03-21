@@ -655,7 +655,7 @@ def _filter_supported_actions(actions: Any, *, supported_actions: set[str]) -> l
 
 
 def _materialize_versioned_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
-    out = dict(card)
+    out = _canonicalize_card_top_level_fields(card)
     out["blocks"] = _extract_safe_primitive_blocks(out)
     out = _filter_card_actions(out, capabilities)
     out["title"] = _normalize_card_text(out.get("title"), fallback="<untitled>")
@@ -670,7 +670,7 @@ def _materialize_versioned_card(card: dict[str, Any], capabilities: A2UICapabili
 
 def _materialize_generic_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
     validate_generic_card(card, strict_actions=False)
-    out = dict(card)
+    out = _canonicalize_card_top_level_fields(card)
     out["blocks"] = _extract_safe_primitive_blocks(out)
     out["actions"] = _filter_supported_actions(out.get("actions"), supported_actions=set(capabilities.actions_supported))
     out["title"] = _normalize_card_text(out.get("title"), fallback="<untitled>")
@@ -685,7 +685,7 @@ def _materialize_generic_card(card: dict[str, Any], capabilities: A2UICapabiliti
 
 def _materialize_unknown_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
     validate_unknown_card(card)
-    out = dict(card)
+    out = _canonicalize_card_top_level_fields(card)
     out["blocks"] = _extract_safe_primitive_blocks(out)
     out["actions"] = _build_unknown_card_actions(
         out,
@@ -824,6 +824,11 @@ def _validate_primitive_block_fields(block_type: str, block: dict[str, Any]) -> 
 
 def _canonical_json(payload: dict[str, Any]) -> str:
     return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+
+
+def _canonicalize_card_top_level_fields(card: dict[str, Any]) -> dict[str, Any]:
+    allowed_keys = ("type", "title", "subtitle", "a2ui_version", "debug", "blocks", "actions")
+    return {key: card[key] for key in allowed_keys if key in card}
 
 
 def _render_payload_preview(

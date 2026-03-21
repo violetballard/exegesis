@@ -772,6 +772,28 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["blocks"], [])
         self.assertEqual(card["actions"], [])
 
+    def test_engine_materializes_supported_cards_without_unknown_top_level_fields(self) -> None:
+        caps = _capabilities(cards_supported=("RunLogCard",), actions_supported=("apply_patch",))
+        card = engine_prepare_card(
+            {
+                "type": "RunLogCard",
+                "title": " Patch ",
+                "subtitle": "  Ready  ",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Kept"}],
+                "actions": [{"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}}],
+                "trace_id": "drop-me",
+                "debug": {"step": "canonical"},
+            },
+            caps,
+        )
+
+        self.assertNotIn("trace_id", card)
+        self.assertEqual(card["debug"], {"step": "canonical"})
+        self.assertEqual(card["title"], "Patch")
+        self.assertEqual(card["subtitle"], "Ready")
+        self.assertEqual(card["blocks"], [{"type": "MarkdownBlock", "markdown": "Kept"}])
+        self.assertEqual(card["actions"], [{"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}}])
+
     def test_engine_materializes_generic_card_with_missing_lists(self) -> None:
         caps = _capabilities(actions_supported=("copy_to_clipboard", "apply_patch"))
         card = engine_prepare_card(
@@ -785,11 +807,13 @@ class A2UIContractTests(unittest.TestCase):
                     {"id": "apply_patch", "label": "Broken", "payload": {"patch_id": "p1", "extra": True}},
                     {"id": "run_agent", "label": "Run", "payload": {"operation": "x"}},
                 ],
+                "trace_id": "drop-me",
             },
             caps,
         )
 
         self.assertEqual(card["a2ui_version"], 1)
+        self.assertNotIn("trace_id", card)
         self.assertEqual(card["title"], "Patch")
         self.assertEqual(card["subtitle"], "Ready to copy")
         self.assertEqual(card["blocks"], [])
