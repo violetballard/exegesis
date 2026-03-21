@@ -1,11 +1,11 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Scope goal: Capture the commit-accurate citation-bundle self-description and payload metadata propagation in the retrieval payload/service path.
-- Scope completed: The reviewed commit `b8a6f9c1649e76e97992687cc81d92561d1e9f18` self-describes the citation bundle in `src/qual/engine/retrieval/payload.py` and propagates the new metadata through `src/qual/retrieval/service.py`.
+- Scope goal: Describe the citation-bundle metadata self-description in `src/qual/engine/retrieval/payload.py` and its propagation through `src/qual/retrieval/service.py`.
+- Scope completed: The reviewed commit `b8a6f9c1649e76e97992687cc81d92561d1e9f18` adds self-describing citation-bundle fields in `src/qual/engine/retrieval/payload.py` and carries that richer metadata through `src/qual/retrieval/service.py`.
 - Tasks completed:
-    1. Rewrote the scope goal to describe citation-bundle self-description and payload metadata propagation in the retrieval service path.
-    2. Added an explicit `Scope completed` field that names the exact source files changed by `b8a6f9c1649e76e97992687cc81d92561d1e9f18`.
+    1. Rewrote the scope goal to name the citation-bundle metadata self-description and propagation files.
+    2. Added an explicit `Scope completed` field that matches the reviewed commit and its two source files exactly.
     3. Tightened the roadmap and vision mapping to citation-bundle metadata propagation and payload hardening only.
 - Files changed:
   - `src/qual/engine/retrieval/payload.py`
@@ -29,8 +29,8 @@
 - Risks/blockers:
   - No blockers. The reviewed diff is limited to `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`.
 - Roadmap item(s) affected:
-  - Citation-bundle metadata propagation: keep retrieval payload metadata explicit and stable in `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`.
-  - Payload hardening: keep the retrieval service path self-describing and consistent for downstream consumers.
+  - Citation-bundle metadata propagation: keep retrieval metadata explicit and stable in `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`.
+  - Payload hardening: keep the retrieval service path self-describing and downstream-consumer-safe.
 - Vision capability affected:
   - Citation-bundle metadata propagation
   - Payload hardening

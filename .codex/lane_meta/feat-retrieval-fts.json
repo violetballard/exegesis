@@ -4,18 +4,18 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Citation-bundle metadata propagation: keep the bundle self-describing in `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`.",
-    "Payload hardening: keep downstream retrieval payloads snapshot-safe and deterministic."
+    "Citation-bundle metadata propagation: keep retrieval metadata explicit and stable in `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`.",
+    "Payload hardening: keep the retrieval service path self-describing and snapshot-safe."
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The reviewed commit `b8a6f9c1649e76e97992687cc81d92561d1e9f18` changes `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py` to self-describe the citation bundle and propagate it downstream.",
-  "scope_goal": "Record the commit-accurate self-describing citation bundle metadata in the retrieval payload and service path.",
+  "scope_completed": "The reviewed commit `b8a6f9c1649e76e97992687cc81d92561d1e9f18` adds self-describing citation-bundle fields in `src/qual/engine/retrieval/payload.py` and carries that richer metadata through `src/qual/retrieval/service.py`.",
+  "scope_goal": "Record the citation-bundle metadata self-description in `src/qual/engine/retrieval/payload.py` and the matching propagation in `src/qual/retrieval/service.py`.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Reconciled the packet with commit `b8a6f9c1649e76e97992687cc81d92561d1e9f18`, confirming the reviewed diff changes only `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`.",
     "Removed unrelated retrieval claims from the metadata because they are not part of the reviewed commit.",
     "Added an explicit `scope_completed` field and tightened the roadmap and vision mapping to citation-bundle metadata propagation and payload hardening.",
-    "Added an explicit `Files changed` list to the kickoff packet so it matches the reviewed commit exactly."
+    "Kept the `Files changed` list aligned with the reviewed commit exactly."
   ],
   "vision_capabilities": [
     "Citation-bundle metadata propagation",
