@@ -1,23 +1,24 @@
 {
   "approved_exception_note": "",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 3 reviewed handoff files, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 4 completed tasks, 3 reviewed handoff files, no shared or integrator-locked edits, and required local gates rerun before handoff.",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Handoff packet accuracy: keep the packet aligned with the reviewed docs-only commit.",
-    "Lane metadata consistency: keep the `.codex` metadata synchronized with `THREAD_PACKET.md`."
+    "Stable hit-set fingerprinting: keep retrieval fingerprints deterministic in `src/qual/retrieval/service.py`.",
+    "Test hardening: preserve coverage around fingerprint stability and provenance ordering."
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The reviewed commit `7914712c2cad5082e8b2f8cdcbddb98e21865675` is docs-only handoff alignment work. It updates the kickoff packet, lane metadata, and `THREAD_PACKET.md` only.",
-  "scope_goal": "Align the kickoff packet, lane metadata, and handoff packet so they match commit `7914712c2cad5082e8b2f8cdcbddb98e21865675` exactly.",
+  "scope_completed": "The reviewed commit `ac341a8783b540b3bc7f134f2204d0ee646d0f45` changes only `src/qual/retrieval/service.py` and adds stable hit-set fingerprinting.",
+  "scope_goal": "Record the commit-accurate retrieval-service change in `src/qual/retrieval/service.py`: stable hit-set fingerprinting for retrieval results, with the handoff metadata kept aligned to that exact diff.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Reconciled the packet with commit `7914712c2cad5082e8b2f8cdcbddb98e21865675`, confirming the reviewed diff only changes handoff artifacts.",
-    "Removed unrelated retrieval source-file references from the metadata because they are not part of the reviewed commit.",
-    "Added an explicit `scope_completed` field and tightened the roadmap and vision mapping to docs-only alignment."
+    "Reconciled the packet with commit `ac341a8783b540b3bc7f134f2204d0ee646d0f45`, confirming the reviewed diff only changes `src/qual/retrieval/service.py`.",
+    "Removed unrelated multi-file retrieval claims from the metadata because they are not part of the reviewed commit.",
+    "Added an explicit `scope_completed` field and tightened the roadmap and vision mapping to fingerprint stability and test hardening.",
+    "Added an explicit `Files changed` list to the kickoff packet so it matches the reviewed commit exactly."
   ],
   "vision_capabilities": [
-    "Commit-accurate handoff records",
-    "Docs-only handoff alignment"
+    "Stable retrieval hit-set fingerprints",
+    "Deterministic retrieval provenance"
   ]
 }

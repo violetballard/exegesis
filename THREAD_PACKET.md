@@ -1,41 +1,38 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Scope goal: Align the kickoff packet, lane metadata, and handoff packet so they match commit `7914712c2cad5082e8b2f8cdcbddb98e21865675` exactly.
-- Scope completed: The reviewed commit `7914712c2cad5082e8b2f8cdcbddb98e21865675` is docs-only handoff alignment work. It updates the kickoff packet, lane metadata, and `THREAD_PACKET.md` only.
+- Scope goal: Record the commit-accurate change in `src/qual/retrieval/service.py`: stable hit-set fingerprinting for retrieval results, with the handoff metadata kept aligned to that exact diff.
+- Scope completed: The reviewed commit `ac341a8783b540b3bc7f134f2204d0ee646d0f45` changes only `src/qual/retrieval/service.py` and adds stable hit-set fingerprinting.
 - Tasks completed:
-  1. Rewrote the scope goal and task framing to describe docs-only handoff alignment.
-  2. Removed stale retrieval source-file references from the packet because they are not part of commit `7914712c2cad5082e8b2f8cdcbddb98e21865675`.
-  3. Added an explicit `Scope completed` field that states the commit only updated handoff artifacts.
+    1. Rewrote the scope goal and task framing to describe stable hit-set fingerprinting in the retrieval service.
+    2. Removed stale multi-file retrieval claims so the packet file list matches commit `ac341a8783b540b3bc7f134f2204d0ee646d0f45` exactly.
+    3. Added an explicit `Scope completed` field that states the reviewed commit only changes `src/qual/retrieval/service.py`.
 - Files changed:
-  - `.codex/kickoff_packets/feat-retrieval-fts.md`
-  - `.codex/lane_meta/feat-retrieval-fts.json`
-  - `THREAD_PACKET.md`
+  - `src/qual/retrieval/service.py`
 - Commands run with results:
-  - `make scope-check` -> passed for branch `codex/feat-retrieval-fts`
-  - `./quality-format.sh --check` -> passed
-  - `./quality-lint.sh` -> passed
-  - `./quality-test.sh` -> passed
-  - `./typecheck-test.sh` -> passed
-  - `make ci` -> passed
+  - `make scope-check` -> pending in this cleanup pass
+  - `./quality-format.sh --check` -> pending in this cleanup pass
+  - `./quality-lint.sh` -> pending in this cleanup pass
+  - `./quality-test.sh` -> pending in this cleanup pass
+  - `./typecheck-test.sh` -> pending in this cleanup pass
+  - `make ci` -> pending in this cleanup pass
 - Reviewer fix closure:
-  - `#1` reset the `Files changed` list so it matches commit `7914712c2cad5082e8b2f8cdcbddb98e21865675` exactly.
-  - `#2` removed stale retrieval source-file references from the packet because they are not part of the reviewed commit.
-  - `#3` rewrote the scope goal and tasks to describe docs-only handoff alignment.
-  - `#4` added an explicit `Scope completed` field stating that the commit only updated handoff artifacts.
-  - `#5` trimmed the roadmap and vision mapping so they describe commit-accurate handoff alignment only.
+  - `#1` rewrote the scope goal and tasks to describe stable hit-set fingerprinting in `src/qual/retrieval/service.py`.
+  - `#2` removed unrelated packet references so the claimed file list matches commit `ac341a8783b540b3bc7f134f2204d0ee646d0f45` exactly.
+  - `#3` added an explicit `Scope completed` field for the actual code change.
+  - `#4` tightened roadmap and vision mapping to fingerprint stability and test hardening only.
 - Checkpoint status:
   - plan complete
-  - first green tests: `./quality-test.sh` passed
-  - ready for handoff: all required local gates passed in this cleanup pass
+  - first green tests: pending in this cleanup pass
+  - ready for handoff: pending gate reruns in this cleanup pass
 - Risks/blockers:
-  - No shared, integrator-locked, or cross-lane source files are included in the reviewed commit.
-  - This reviewed change is limited to handoff-artifact alignment.
+  - The packet should stay aligned with the reviewed commit if the retrieval service changes again.
+  - No additional source files are part of the reviewed diff.
 - Roadmap item(s) affected:
-  - Handoff packet accuracy: keep the packet aligned with the reviewed commit.
-  - Lane metadata consistency: keep the `.codex` metadata synchronized with `THREAD_PACKET.md`.
+  - Stable hit-set fingerprinting: keep retrieval fingerprints deterministic in `src/qual/retrieval/service.py`.
+  - Test hardening: preserve coverage around fingerprint stability and provenance ordering.
 - Vision capability affected:
-  - Commit-accurate handoff records
-  - Docs-only promotion alignment
+  - Stable retrieval hit-set fingerprints
+  - Deterministic retrieval provenance
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.
