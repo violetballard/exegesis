@@ -30,6 +30,9 @@ class VaultService:
         project_root.mkdir(parents=True, exist_ok=True)
         (project_root / "attachments").mkdir(exist_ok=True)
         raw_state, recovered_source, primary_unavailable = self._read_state(project_root)
+        state_path = self._state_path(project_root)
+        if state_path.exists() and "is_locked" not in raw_state:
+            self._quarantine_invalid_state(project_root)
         has_is_locked = "is_locked" in raw_state
         parsed_is_locked = self._parse_is_locked(raw_state.get("is_locked")) if has_is_locked else None
         is_locked = parsed_is_locked if parsed_is_locked is not None else False

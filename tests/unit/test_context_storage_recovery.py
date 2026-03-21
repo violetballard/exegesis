@@ -453,6 +453,32 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(backup_payload.get("schema_version"), 1)
         self.assertNotIn("recovered_from", backup_payload)
 
+    def test_primary_missing_item_ids_quarantines_before_empty_rewrite_when_no_backup_exists(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "recovered_from": "manual",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        with patch.object(
+            ContextBasketStore,
+            "_quarantine_invalid_file",
+            wraps=self.store._quarantine_invalid_file,
+        ) as quarantine:
+            loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, [])
+        quarantine.assert_called_once()
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), [])
+        self.assertEqual(payload.get("schema_version"), 1)
+
     def test_primary_load_refreshes_malformed_backup_without_rewriting_primary(self) -> None:
         self.store.save(ContextBasket(item_ids=["first"]))
         primary_payload_before = json.loads(self.store._path.read_text(encoding="utf-8"))
@@ -959,6 +985,27 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertTrue(reopened.is_locked)
         payload = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("project_name"), "p3-missing-lock")
+        self.assertTrue(payload.get("is_locked"))
+
+    def test_missing_is_locked_metadata_quarantines_before_locked_rewrite(self) -> None:
+        state = self.svc.create_or_open(self.root, "p3-missing-lock-quarantine")
+        state_path = state.root_dir / ".vault_state.json"
+        state_path.write_text(
+            json.dumps({"schema_version": 1, "project_name": "p3-missing-lock-quarantine"}),
+            encoding="utf-8",
+        )
+
+        with patch.object(
+            VaultService,
+            "_quarantine_invalid_state",
+            wraps=self.svc._quarantine_invalid_state,
+        ) as quarantine:
+            reopened = self.svc.create_or_open(self.root, "p3-missing-lock-quarantine")
+
+        self.assertTrue(reopened.is_locked)
+        quarantine.assert_called_once()
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p3-missing-lock-quarantine")
         self.assertTrue(payload.get("is_locked"))
 
     def test_explicit_legacy_schema_version_zero_is_salvaged_and_rewritten(self) -> None:

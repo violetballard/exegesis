@@ -47,6 +47,8 @@ class ContextBasketStore:
 
         payload: dict[str, object] | list[object] | None
         recovered_source: str | None
+        if isinstance(primary_payload, dict) and "item_ids" not in primary_payload:
+            self._quarantine_invalid_file()
         if primary_missing_item_ids:
             payload, recovered_source = self._prefer_recovery_payload(
                 tmp_payload,

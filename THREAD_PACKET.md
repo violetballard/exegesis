@@ -1,24 +1,27 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Scope goal: Harden vault, excerpt, and context-set persistence for the engine-first MVP so retrieval, patching, and export flows can rely on stable local state.
-- Scope completed: Hardened `ContextBasketStore` recovery and rewrite behavior in `src/qual/context/store.py` so malformed or incomplete basket state is normalized, quarantined, or recovered deterministically.
+- Scope goal: Harden lane-owned context and vault persistence so incomplete local state is quarantined before canonical rewrite.
+- Scope completed: Hardened `ContextBasketStore` and `VaultService` recovery behavior so malformed or incomplete primary state is quarantined, then rewritten deterministically from the canonical load path.
 - Tasks completed:
-  1. Tightened recovery handling for incomplete and malformed basket payloads in the context store.
-  2. Kept persistence rewrites deterministic so the canonical basket state stays normalized after load.
-  3. Preserved recovery metadata and backup refresh behavior when the store has to repair local state.
+  1. Quarantined incomplete primary context-basket state before canonical rewrite.
+  2. Quarantined incomplete primary vault state before canonical rewrite.
+  3. Added regression coverage for both quarantine-before-rewrite recovery paths.
   4. Revalidated the lane handoff metadata so the submission stays scope-clean and ownership-accurate.
 - Files changed:
   - `src/qual/context/store.py`
+  - `src/qual/storage/vault.py`
+  - `tests/unit/test_context_storage_recovery.py`
 - Commands run with results:
-  - `make scope-check` -> passed
+  - `python -m unittest tests.unit.test_context_storage_recovery` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
+  - `make scope-check` -> passed
   - `make ci` -> passed
 - Risks/blockers:
-  - No shared, integrator-locked, or cross-lane files are included in the feature diff.
+  - No shared, integrator-locked, `.codex`, or thread files are included in the feature diff.
   - Recovery behavior still depends on local filesystem atomicity for primary/backup writes, which is expected for this lane.
 - Roadmap item(s) affected:
   - `Milestone 1: Bootstrap Flow Stabilization` -> Context basket and vault persistence hardening
