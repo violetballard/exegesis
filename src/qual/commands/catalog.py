@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
@@ -62,9 +62,23 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         description="Run terminal routing scaffolding.",
         mvp_role="a2ui-routing",
     ),
+    CommandSpec(
+        name="export-preview",
+        aliases=("export", "handoff"),
+        description="Prepare export handoff artifacts.",
+        mvp_role="export-handoff",
+    ),
 )
 _COMMAND_SPEC_BY_NAME = _build_command_spec_index(COMMAND_SPECS)
 _COMMAND_NAME_BY_ALIAS = _build_command_name_index(COMMAND_SPECS)
+
+_MVP_FLOW_ROLES: tuple[str, ...] = (
+    "project-open",
+    "retrieval-staging",
+    "patch-review",
+    "a2ui-routing",
+    "export-handoff",
+)
 
 
 def command_names() -> tuple[str, ...]:
@@ -131,6 +145,13 @@ def command_mvp_roles() -> tuple[str, ...]:
         seen.add(normalized)
         roles.append(role)
     return tuple(roles)
+
+
+def command_mvp_flow_names() -> tuple[str, ...]:
+    names: list[str] = []
+    for role in _MVP_FLOW_ROLES:
+        names.extend(command_names_for_role(role))
+    return tuple(names)
 
 
 def canonical_command(name: str) -> str:
