@@ -1,23 +1,23 @@
 {
-  "approved_exception_note": "Operational metadata exception for branch-local .codex files only. This lane record tracks commit 17477881047ed86a2baceb450c5dbff3d54b70bf as a fallback-action hardening update in src/qual/ui/a2ui.py and does not claim changes to tests/unit/test_a2ui_contract.py or any .codex files. No product-code ownership exception is requested.",
+  "approved_exception_note": "Operational metadata exception for branch-local .codex files only. This lane record tracks commit 17477881047ed86a2baceb450c5dbff3d54b70bf as a fallback allowlist preservation update in src/qual/ui/a2ui.py and does not claim changes to tests/unit/test_a2ui_contract.py or any .codex files. No product-code ownership exception is requested.",
   "kickoff_budget_note": "",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - keep the review packet aligned to commit 17477881047ed86a2baceb450c5dbff3d54b70bf as a single-file fallback hardening change.",
+    "Milestone 5: A2UI Presentation Layer - keep the review packet aligned to commit 17477881047ed86a2baceb450c5dbff3d54b70bf as a single-file fallback allowlist preservation change.",
     "Milestone 5: A2UI Presentation Layer - keep the file list and commit mapping auditable against src/qual/ui/a2ui.py.",
-    "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to fallback allowlist preservation."
+    "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to fallback allowlist preservation, not broader schema or CLI fallback work."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Record a review packet for commit 17477881047ed86a2baceb450c5dbff3d54b70bf so the A2UI lane packet is auditable and matches the single-file fallback allowlist hardening diff without claiming tests or metadata-only work.",
+  "scope_goal": "Record a review packet for commit 17477881047ed86a2baceb450c5dbff3d54b70bf so the A2UI lane packet is auditable and matches the single-file fallback allowlist preservation diff without claiming tests or metadata-only work.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Rewrote the lane handoff metadata to describe commit 17477881047ed86a2baceb450c5dbff3d54b70bf as a fallback-action hardening update in src/qual/ui/a2ui.py.",
+    "Rewrote the lane handoff metadata to describe commit 17477881047ed86a2baceb450c5dbff3d54b70bf as a fallback allowlist preservation update in src/qual/ui/a2ui.py.",
     "Kept the reviewed file list limited to src/qual/ui/a2ui.py and removed unsupported test and metadata-only claims from the handoff.",
-    "Aligned the Milestone 5 A2UI roadmap and vision references to fallback allowlist preservation."
+    "Aligned the Milestone 5 A2UI roadmap and vision references to fallback allowlist preservation rather than broader schema or CLI fallback work."
   ],
   "vision_capabilities": [
-    "Capability 5: Agent-to-UI protocol (A2UI) - the handoff record stays aligned to the fallback allowlist contract.",
+    "Capability 5: Agent-to-UI protocol (A2UI) - the handoff record stays aligned to the fallback allowlist preservation contract.",
     "Capability 4: Operator-first control surface - the packet preserves the operator-facing audit trail for the lane metadata."
   ]
 }
