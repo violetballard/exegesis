@@ -418,6 +418,41 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertNotIn("recovered_from", backup_payload)
         self.assertNotIn("extra", backup_payload)
 
+    def test_primary_missing_item_ids_recovers_from_backup_before_empty_rewrite(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "recovered_from": "manual",
+                }
+            ),
+            encoding="utf-8",
+        )
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "item_ids": [" first ", "second", "first"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first", "second"])
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("item_ids"), ["first", "second"])
+        self.assertEqual(primary_payload.get("recovered_from"), "backup")
+        self.assertEqual(primary_payload.get("schema_version"), 1)
+        self.assertEqual(backup_payload.get("item_ids"), ["first", "second"])
+        self.assertEqual(backup_payload.get("schema_version"), 1)
+        self.assertNotIn("recovered_from", backup_payload)
+
     def test_primary_load_refreshes_malformed_backup_without_rewriting_primary(self) -> None:
         self.store.save(ContextBasket(item_ids=["first"]))
         primary_payload_before = json.loads(self.store._path.read_text(encoding="utf-8"))

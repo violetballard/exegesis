@@ -43,8 +43,22 @@ class ContextBasketStore:
         backup_payload, _ = self._load_payload(self._backup_path)
         seed_tmp_payload, _ = self._load_payload(self._seed_tmp_path())
         seed_payload, _ = self._load_payload(self._seed_state_path())
+        primary_missing_item_ids = isinstance(primary_payload, dict) and "item_ids" not in primary_payload
 
-        if primary_payload is not None:
+        payload: dict[str, object] | list[object] | None
+        recovered_source: str | None
+        if primary_missing_item_ids:
+            payload, recovered_source = self._prefer_recovery_payload(
+                tmp_payload,
+                backup_tmp_payload,
+                backup_payload,
+                seed_tmp_payload,
+                seed_payload,
+            )
+            if payload is None:
+                payload = primary_payload
+                recovered_source = None
+        elif primary_payload is not None:
             payload = primary_payload
             recovered_source = None
         elif tmp_payload is not None:
@@ -117,7 +131,7 @@ class ContextBasketStore:
             return ContextBasket()
 
         recovered_from = self._recovery_marker(
-            primary_unavailable=primary_missing or primary_payload is None,
+            primary_unavailable=primary_missing or primary_payload is None or primary_missing_item_ids,
             recovered_source=recovered_source,
         ) or normalized_recovered_from
         if recovered_source is not None or should_rewrite:
@@ -486,6 +500,28 @@ class ContextBasketStore:
         if not primary_unavailable:
             return None
         return self._parse_recovered_from(recovered_source)
+
+    def _prefer_recovery_payload(
+        self,
+        tmp_payload: dict[str, object] | list[object] | None,
+        backup_tmp_payload: dict[str, object] | list[object] | None,
+        backup_payload: dict[str, object] | list[object] | None,
+        seed_tmp_payload: dict[str, object] | list[object] | None,
+        seed_payload: dict[str, object] | list[object] | None,
+    ) -> tuple[dict[str, object] | list[object] | None, str | None]:
+        for candidate, recovered_source in (
+            (tmp_payload, "tmp"),
+            (backup_tmp_payload, "backup"),
+            (backup_payload, "backup"),
+            (seed_tmp_payload, "seed"),
+            (seed_payload, "seed"),
+        ):
+            if candidate is None:
+                continue
+            if isinstance(candidate, dict) and "item_ids" not in candidate:
+                continue
+            return candidate, recovered_source
+        return None, None
 
     def _unlink_if_exists(self, path: Path) -> None:
         try:
