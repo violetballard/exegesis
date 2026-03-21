@@ -170,8 +170,14 @@ class ContextSetStore:
             return []
 
         should_rewrite = False
+        rewrite_empty_recovery = False
         normalized_recovered_from = None
         records: list[ContextSetRecord]
+        if payload is not None and not self._has_context_set_records(payload):
+            # Materialize empty canonical state when it is the only usable
+            # payload, but do not invent recovery provenance.
+            rewrite_empty_recovery = True
+            recovered_source = None
         if isinstance(payload, list):
             parsed_records = self._parse_context_sets(payload)
             if parsed_records is None:
@@ -228,6 +234,7 @@ class ContextSetStore:
             primary_unavailable=primary_missing or primary_payload is None or recovered_source is not None,
             recovered_source=recovered_source,
         ) or normalized_recovered_from
+        should_rewrite = should_rewrite or rewrite_empty_recovery
         preserve_primary_corrupt = bool(
             primary_needs_quarantine
             and primary_payload is not None
@@ -695,11 +702,15 @@ class ContextSetStore:
 
     def _is_preferred_recovery_payload(self, payload: dict[str, object] | list[object]) -> bool:
         if isinstance(payload, list):
+            if not payload:
+                return True
             parsed_records = self._parse_context_sets(payload)
             return parsed_records is not None and bool(parsed_records)
         if "context_sets" not in payload:
             return False
         raw_context_sets = payload.get("context_sets")
+        if isinstance(raw_context_sets, list) and not raw_context_sets:
+            return True
         parsed_records = self._parse_context_sets(raw_context_sets)
         return parsed_records is not None and bool(parsed_records)
 

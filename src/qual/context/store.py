@@ -95,7 +95,13 @@ class ContextBasketStore:
             return ContextBasket()
 
         should_rewrite = False
+        rewrite_empty_recovery = False
         normalized_recovered_from = None
+        if payload is not None and not self._has_recovery_payload_items(payload):
+            # Canonical empty state should still be materialized when it is the
+            # only recoverable payload, but without claiming a recovery source.
+            rewrite_empty_recovery = True
+            recovered_source = None
         if isinstance(payload, list):
             parsed_items = self._parse_item_ids(payload)
             if parsed_items is None:
@@ -159,6 +165,7 @@ class ContextBasketStore:
             ),
             recovered_source=recovered_source,
         ) or normalized_recovered_from
+        should_rewrite = should_rewrite or rewrite_empty_recovery
         preserve_primary_corrupt = bool(
             primary_needs_quarantine
             and primary_payload is not None
@@ -568,6 +575,7 @@ class ContextBasketStore:
         seed_tmp_payload: dict[str, object] | list[object] | None,
         seed_payload: dict[str, object] | list[object] | None,
     ) -> tuple[dict[str, object] | list[object] | None, str | None]:
+        fallback_candidate: tuple[dict[str, object] | list[object] | None, str | None] = (None, None)
         for candidate, recovered_source in (
             (tmp_payload, "tmp"),
             (backup_tmp_payload, "backup_tmp"),
@@ -581,7 +589,9 @@ class ContextBasketStore:
                 continue
             if self._has_recovery_payload_items(candidate):
                 return candidate, recovered_source
-        return None, None
+            if fallback_candidate == (None, None):
+                fallback_candidate = (candidate, recovered_source)
+        return fallback_candidate
 
     def _has_recovery_payload_items(self, payload: dict[str, object] | list[object]) -> bool:
         if isinstance(payload, list):
