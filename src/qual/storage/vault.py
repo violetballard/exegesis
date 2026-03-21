@@ -90,7 +90,7 @@ class VaultService:
                 or normalized_recovered_from,
             )
         else:
-            backup_written = self._write_backup(project_root)
+            backup_written = self._write_backup_payload(project_root, self._backup_payload(raw_state))
             if not backup_written:
                 self._write_seed(project_root, self._backup_payload(raw_state))
             self._clear_recovery_artifacts(project_root, preserve_seed=not backup_written)

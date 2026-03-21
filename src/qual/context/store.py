@@ -164,7 +164,7 @@ class ContextBasketStore:
                 payload if isinstance(payload, dict) else None,
             )
         ):
-            backup_written = self._write_backup()
+            backup_written = self._write_backup_payload(self._backup_payload(payload))
             self._clear_recovery_artifacts(preserve_seed=not backup_written)
             if not backup_written:
                 self._write_seed(self._backup_payload(payload))

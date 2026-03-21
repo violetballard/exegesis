@@ -507,6 +507,37 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertNotEqual(backup_payload.get("updated_at"), "not-a-timestamp")
         self.assertNotIn("recovered_from", backup_payload)
 
+    def test_primary_load_refreshes_stale_backup_without_rereading_primary(self) -> None:
+        self.store.save(ContextBasket(item_ids=["first"]))
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "recovered_from": "manual",
+                    "item_ids": ["first"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        with (
+            patch.object(ContextBasketStore, "_write_backup", wraps=self.store._write_backup) as write_backup,
+            patch.object(
+                ContextBasketStore,
+                "_write_backup_payload",
+                wraps=self.store._write_backup_payload,
+            ) as write_backup_payload,
+        ):
+            loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first"])
+        write_backup.assert_not_called()
+        self.assertEqual(write_backup_payload.call_count, 1)
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(backup_payload.get("item_ids"), ["first"])
+        self.assertNotIn("recovered_from", backup_payload)
+
     def test_primary_load_refreshes_stale_backup_updated_at_without_rewriting_primary(self) -> None:
         self.store.save(ContextBasket(item_ids=["first"]))
         primary_payload_before = json.loads(self.store._path.read_text(encoding="utf-8"))
@@ -915,6 +946,41 @@ class VaultRecoveryTests(unittest.TestCase):
         payload = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertFalse(payload.get("is_locked"))
         self.assertFalse(tmp_path.exists())
+
+    def test_healthy_primary_load_refreshes_backup_without_rereading_primary(self) -> None:
+        state = self.svc.create_or_open(self.root, "p2-backup-refresh")
+        self.svc.lock(state)
+        self.svc.unlock(state)
+        backup_path = state.root_dir / ".vault_state.bak.json"
+        backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "p2-backup-refresh",
+                    "is_locked": False,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "recovered_from": "manual",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        with (
+            patch.object(VaultService, "_write_backup", wraps=self.svc._write_backup) as write_backup,
+            patch.object(
+                VaultService,
+                "_write_backup_payload",
+                wraps=self.svc._write_backup_payload,
+            ) as write_backup_payload,
+        ):
+            reopened = self.svc.create_or_open(self.root, "p2-backup-refresh")
+
+        self.assertIsInstance(reopened.is_locked, bool)
+        write_backup.assert_not_called()
+        self.assertEqual(write_backup_payload.call_count, 1)
+        payload = json.loads(backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p2-backup-refresh")
+        self.assertNotIn("recovered_from", payload)
 
     def test_healthy_primary_load_clears_stale_temporary_corrupt_markers(self) -> None:
         state = self.svc.create_or_open(self.root, "p2-clean")
