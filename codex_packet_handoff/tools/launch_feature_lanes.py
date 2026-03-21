@@ -240,7 +240,10 @@ def _set_lane_state(
     pid: int = 0,
 ) -> None:
     with STATE_LOCK:
-        lanes_state = feature_state.setdefault("lanes", {})
+        current_state = load_json(FEATURE_STATE_FILE, {})
+        if not isinstance(current_state, dict):
+            current_state = {}
+        lanes_state = current_state.setdefault("lanes", {})
         lanes_state[lane] = {
             "status": status,
             "thread_id": thread_id,
@@ -254,7 +257,7 @@ def _set_lane_state(
             "error": error,
             "pid": pid,
         }
-        save_json(FEATURE_STATE_FILE, feature_state)
+        save_json(FEATURE_STATE_FILE, current_state)
 
 
 def _launch_one_lane(
