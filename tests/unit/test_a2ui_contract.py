@@ -470,6 +470,7 @@ class A2UIContractTests(unittest.TestCase):
 
         text = render_terminal_card(card)
         self.assertIn("Fallback: generic from ProposedEditCard", text)
+        self.assertIn("Action policy: client_allowlist", text)
         self.assertIn("Debug:", text)
         self.assertIn("- fallback_kind: generic", text)
         self.assertIn("- source_card_type: ProposedEditCard", text)
@@ -571,6 +572,7 @@ class A2UIContractTests(unittest.TestCase):
         text = render_terminal_card(unknown)
         self.assertIn("[UnknownCard] Unsupported card type: FutureCard", text)
         self.assertIn("Fallback: unknown from FutureCard", text)
+        self.assertIn("Action policy: copy_to_clipboard_only", text)
         self.assertIn("- fallback_kind: unknown", text)
 
     def test_engine_unknown_card_synthesizes_copy_action_when_supported(self) -> None:
@@ -1488,6 +1490,7 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertIn("[UnknownCard] Fallback", text)
         self.assertIn("Fallback: unknown card", text)
+        self.assertIn("Action policy: copy_to_clipboard_only", text)
 
     def test_terminal_renderer_synthesizes_canonical_fallback_subtitles(self) -> None:
         generic = render_terminal_card(

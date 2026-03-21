@@ -582,6 +582,9 @@ def render_terminal_card(card: dict[str, Any]) -> str:
         rendered_fallback = ["Fallback: unknown card"]
     if rendered_fallback:
         lines.extend(rendered_fallback)
+    rendered_policy = _render_terminal_action_policy(card_type, card.get("debug"))
+    if rendered_policy:
+        lines.extend(rendered_policy)
     rendered_debug = _render_terminal_debug(card.get("debug"))
     if rendered_debug:
         lines.append("Debug:")
@@ -1044,6 +1047,14 @@ def _render_terminal_fallback_notice(debug: Any) -> list[str]:
     if not isinstance(source_card_type, str) or not source_card_type.strip():
         return []
     return [f"Fallback: {fallback_kind.strip()} from {source_card_type.strip()}"]
+
+
+def _render_terminal_action_policy(card_type: str, debug: Any) -> list[str]:
+    if card_type == UNKNOWN_CARD_TYPE:
+        return ["Action policy: copy_to_clipboard_only"]
+    if card_type == GENERIC_CARD_TYPE and _is_fallback_card_debug(debug):
+        return ["Action policy: client_allowlist"]
+    return []
 
 
 def _is_fallback_card_debug(debug: Any) -> bool:
