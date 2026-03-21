@@ -17,6 +17,6 @@
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
   "shared_file_exception": true,
-  "kickoff_budget_note": "Handoff metadata aligned to the branch-head recovery fix.",
+  "kickoff_budget_note": "Handoff metadata aligned to the branch-head recovery fix; approved non-owned test coverage requires SCOPE_ALLOW_SHARED=1.",
   "approved_exception_note": "Ownership note: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned change is the approved recovery coverage file `tests/unit/test_context_storage_recovery.py`. No shared-by-approval source files or integrator-locked files were edited."
 }

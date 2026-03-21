@@ -17,12 +17,13 @@
   - `tests/unit/test_context_storage_recovery.py`
 - Commands run with results:
   - `git rev-parse --short HEAD` -> confirmed the branch head is `ca626d4b`
-  - `make scope-check` -> passed
+  - `make scope-check` -> failed because the approved non-owned recovery test file requires `SCOPE_ALLOW_SHARED=1`
+  - `SCOPE_ALLOW_SHARED=1 make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
-  - `make ci` -> passed
+  - `SCOPE_ALLOW_SHARED=1 make ci` -> passed
 - Reviewer fix closure:
   - `#1` rewrote the scope summary to match the actual branch-head recovery fix.
   - `#2` replaced the file list with the exact two files in the commit.
