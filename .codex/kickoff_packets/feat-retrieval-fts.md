@@ -2,18 +2,18 @@
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`
-- Scope goal: Document the docs-only handoff scope of commit `9852894832efabbafb25369d0f61a6e19989b7c1` exactly and avoid implying retrieval source-code work.
-- Scope completed: The reviewed commit `9852894832efabbafb25369d0f61a6e19989b7c1` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; it does not change retrieval implementation files.
+- Scope goal: Document the docs-only handoff scope of commit `1f33070a1c469c105758c9306b7c2ec0777f02ad` exactly and avoid implying retrieval source-code work.
+- Scope completed: The reviewed commit `1f33070a1c469c105758c9306b7c2ec0777f02ad` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; it does not change retrieval implementation files.
 
 ### Priority outcomes
 1. State clearly that the reviewed change is docs-only handoff scope-tightening.
 2. Keep the file list limited to the three handoff artifacts touched by the commit.
-3. Avoid implying retrieval implementation, PageIndex, embeddings, or broader engine changes.
+3. Avoid implying retrieval implementation or broader engine changes.
 
 ### Tasks
 1. Rewrite the packet scope to describe the docs-only commit accurately.
 2. Keep the file list aligned with the reviewed commit's three handoff artifacts.
-3. Trim roadmap and vision mapping so they do not imply retrieval implementation, PageIndex, or embeddings changes.
+3. Trim roadmap and vision mapping so they do not imply retrieval implementation or PageIndex/embeddings changes.
 
 ### Files changed
 - `.codex/kickoff_packets/feat-retrieval-fts.md`

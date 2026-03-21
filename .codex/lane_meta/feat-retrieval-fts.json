@@ -5,19 +5,19 @@
   "risk": "LOW",
   "roadmap_items": [
     "Handoff packet scope accuracy: keep the reviewed commit description aligned with git history.",
-    "Metadata consistency: keep packet, kickoff metadata, and lane metadata in sync for reviewed commits."
+    "Metadata consistency for docs-only commits: keep packet, kickoff metadata, and lane metadata in sync."
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The reviewed commit `9852894832efabbafb25369d0f61a6e19989b7c1` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; it does not change retrieval implementation files.",
-  "scope_goal": "Document the docs-only handoff scope of commit `9852894832efabbafb25369d0f61a6e19989b7c1` exactly and avoid implying retrieval source-code work.",
+  "scope_completed": "The reviewed commit `1f33070a1c469c105758c9306b7c2ec0777f02ad` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; it does not change retrieval implementation files.",
+  "scope_goal": "Document the docs-only handoff scope of commit `1f33070a1c469c105758c9306b7c2ec0777f02ad` exactly and avoid implying retrieval source-code work.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Reconciled the packet with commit `9852894832efabbafb25369d0f61a6e19989b7c1`, confirming the reviewed diff changes only the three handoff artifacts.",
+    "Reconciled the packet with commit `1f33070a1c469c105758c9306b7c2ec0777f02ad`, confirming the reviewed diff changes only the three handoff artifacts.",
     "Removed unrelated retrieval source-code claims from the metadata because they are not part of the reviewed commit.",
     "Added an explicit `scope_completed` field and tightened the packet wording to stay committed to docs-only handoff scope."
   ],
   "vision_capabilities": [
     "Handoff packet scope accuracy",
-    "Metadata consistency"
+    "Metadata consistency for docs-only commits"
   ]
 }

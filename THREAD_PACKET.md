@@ -1,8 +1,8 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Scope goal: Document the docs-only handoff scope of commit `9852894832efabbafb25369d0f61a6e19989b7c1` exactly and avoid implying retrieval source-code work.
-- Scope completed: The reviewed commit `9852894832efabbafb25369d0f61a6e19989b7c1` only updated `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; it did not change retrieval implementation files.
+- Scope goal: Document the docs-only handoff scope of commit `1f33070a1c469c105758c9306b7c2ec0777f02ad` exactly and avoid implying retrieval source-code work.
+- Scope completed: The reviewed commit `1f33070a1c469c105758c9306b7c2ec0777f02ad` only updated `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; it did not change retrieval implementation files.
 - Tasks completed:
     1. Rewrote the scope goal to describe the docs-only handoff scope-tightening commit.
     2. Added an explicit `Scope completed` field that says the commit only updated handoff artifacts.
@@ -19,7 +19,7 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - Reviewer fix closure:
-  - `#1` regenerated the packet so `Files changed` matches commit `9852894832efabbafb25369d0f61a6e19989b7c1` exactly.
+  - `#1` regenerated the packet so `Files changed` matches commit `1f33070a1c469c105758c9306b7c2ec0777f02ad` exactly.
   - `#2` removed all retrieval source-code files from the packet because they are not part of the reviewed commit.
   - `#3` rewrote the scope goal and tasks to describe the docs-only handoff scope-tightening work.
   - `#4` added an explicit `Scope completed` field stating that the commit only updated handoff artifacts.
