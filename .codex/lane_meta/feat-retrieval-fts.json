@@ -8,13 +8,13 @@
     "Metadata consistency: keep packet, kickoff metadata, and lane metadata in sync for reviewed commits."
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The reviewed commit `9852894832efabbafb25369d0f61a6e19989b7c1` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json` to correct the handoff scope.",
-  "scope_goal": "Tighten the handoff packet so it matches the docs-only commit `9852894832efabbafb25369d0f61a6e19989b7c1` exactly.",
+  "scope_completed": "The reviewed commit `9852894832efabbafb25369d0f61a6e19989b7c1` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; it does not change retrieval implementation files.",
+  "scope_goal": "Document the docs-only handoff scope of commit `9852894832efabbafb25369d0f61a6e19989b7c1` exactly and avoid implying retrieval source-code work.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Reconciled the packet with commit `9852894832efabbafb25369d0f61a6e19989b7c1`, confirming the reviewed diff changes only the three handoff artifacts.",
     "Removed unrelated retrieval source-code claims from the metadata because they are not part of the reviewed commit.",
-    "Added an explicit `scope_completed` field and tightened the roadmap and vision mapping to handoff packet scope accuracy and metadata consistency."
+    "Added an explicit `scope_completed` field and tightened the packet wording to stay committed to docs-only handoff scope."
   ],
   "vision_capabilities": [
     "Handoff packet scope accuracy",

@@ -1,12 +1,12 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Scope goal: Tighten the handoff packet so it matches the docs-only commit `9852894832efabbafb25369d0f61a6e19989b7c1` exactly.
-- Scope completed: The reviewed commit `9852894832efabbafb25369d0f61a6e19989b7c1` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json` to correct the handoff scope.
+- Scope goal: Document the docs-only handoff scope of commit `9852894832efabbafb25369d0f61a6e19989b7c1` exactly and avoid implying retrieval source-code work.
+- Scope completed: The reviewed commit `9852894832efabbafb25369d0f61a6e19989b7c1` only updated `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; it did not change retrieval implementation files.
 - Tasks completed:
     1. Rewrote the scope goal to describe the docs-only handoff scope-tightening commit.
-    2. Added an explicit `Scope completed` field that states the commit only updates handoff artifacts.
-    3. Removed all source-code retrieval file claims from the file list and aligned the packet with the reviewed commit.
+    2. Added an explicit `Scope completed` field that says the commit only updated handoff artifacts.
+    3. Kept the `Files changed` list limited to the three handoff artifacts in the reviewed commit.
 - Files changed:
   - `.codex/kickoff_packets/feat-retrieval-fts.md`
   - `.codex/lane_meta/feat-retrieval-fts.json`
