@@ -349,11 +349,46 @@ def _launch_one_lane(
     def _is_stale_thread_error(exc: Exception) -> bool:
         return STALE_THREAD_RE in str(exc).lower()
 
+    def _is_stale_thread_content(text: str) -> bool:
+        return STALE_THREAD_RE in str(text).lower()
+
     try:
         effective_cfg = dict(launch_cfg)
         if thread_id:
             try:
                 thread_id, content, action = _attempt(effective_cfg, existing_thread_id=str(thread_id))
+                if _is_stale_thread_content(content):
+                    stale_id = str(thread_id)
+                    thread_id = None
+                    _write_log(
+                        log_path,
+                        {
+                            "lane": lane,
+                            "thread_id": stale_id,
+                            "mode": effective_cfg["mode"],
+                            "profile": effective_cfg["profile_name"],
+                            "workdir": workdir,
+                            "action": "stale_thread_retry",
+                            "launched_at": _ts(),
+                            "status": "launching",
+                        },
+                        f"Managed feature resume returned stale thread content; relaunching fresh: {content}",
+                    )
+                    _set_lane_state(
+                        feature_state,
+                        lane,
+                        status="launching",
+                        mode=str(effective_cfg["mode"]),
+                        profile=str(effective_cfg["profile_name"]),
+                        workdir=workdir,
+                        prompt_path=prompt_path,
+                        log_path=log_path,
+                        thread_id="",
+                        error="",
+                        action="stale_thread_retry",
+                        pid=0,
+                    )
+                    thread_id, content, action = _attempt(effective_cfg, existing_thread_id=None)
             except Exception as exc:
                 if not _is_stale_thread_error(exc):
                     raise
@@ -390,6 +425,8 @@ def _launch_one_lane(
                 thread_id, content, action = _attempt(effective_cfg, existing_thread_id=None)
         else:
             thread_id, content, action = _attempt(effective_cfg, existing_thread_id=None)
+        if _is_stale_thread_content(content):
+            raise RuntimeError(f"stale thread content returned after launch: {content}")
         header = {
             "lane": lane,
             "thread_id": thread_id,
