@@ -24,8 +24,6 @@ Delivered behavior: `vault`, `collection:`, and `doc:` retrieval requests now ro
 
 - Shared/integrator-locked edits: `NO`
 - Non-owned source files promoted: `NO`
-- Non-retrieval tooling edits approved: `NO`
-- Out-of-lane tooling files excluded from this resubmission: `YES`
 
 ## Tasks completed
 
