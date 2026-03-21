@@ -140,12 +140,14 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
                 "type": GENERIC_CARD_TYPE,
                 "action_policy": "client_allowlist",
                 "allowed_actions": [FALLBACK_COPY_ACTION_ID],
+                "actions": _build_read_only_fallback_action_manifest(),
             },
             "unknown_card": {
                 "type": UNKNOWN_CARD_TYPE,
                 "action_policy": "copy_to_clipboard_only",
                 "allowed_actions": [FALLBACK_COPY_ACTION_ID],
                 "default_preview_bytes": DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES,
+                "actions": _build_read_only_fallback_action_manifest(),
             },
         },
         "schemas": _build_a2ui_schema_manifest(),
@@ -164,6 +166,16 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
             for action_id, schema in sorted(_ACTION_SCHEMAS.items())
         ],
     }
+
+
+def _build_read_only_fallback_action_manifest() -> list[dict[str, Any]]:
+    return [
+        {
+            "id": FALLBACK_COPY_ACTION_ID,
+            "label": "Copy JSON",
+            "payload_fields": ["text"],
+        }
+    ]
 
 
 def _build_a2ui_schema_manifest() -> dict[str, Any]:

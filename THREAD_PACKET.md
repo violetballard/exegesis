@@ -1,33 +1,34 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Record a metadata-only handoff update so the review packet, lane metadata, and thread summary stay aligned with the packet-alignment diff and remain auditable.
-- Scope completed: Rewrote the handoff packet to describe packet alignment work only. This change is metadata-only and does not claim any source-code or test-code changes.
+- Scope goal: Stabilize the A2UI contract and CLI fallback rendering so engine flows can emit structured artifacts now and future `Exegesis Console` work can consume the same payloads later.
+- Scope completed: Added explicit fallback-action manifest data to the versioned A2UI contract so the read-only `copy_to_clipboard` fallback is described deterministically for both `GenericCard` and `UnknownCard`.
 - Tasks completed:
-  1. Reframed the scope summary so it describes a metadata-only packet handoff instead of a product implementation change.
-  2. Removed stale source and test file references from the changed-files discussion so it matches the actual packet metadata diff.
-  3. Updated the roadmap and vision notes to state that this handoff has no product-code impact.
+  1. Added a shared helper in `src/qual/ui/a2ui.py` that emits the canonical read-only fallback action manifest for `copy_to_clipboard`.
+  2. Extended the A2UI contract manifest to include explicit fallback action metadata for both `GenericCard` and `UnknownCard`.
+  3. Updated the A2UI contract tests to lock the new manifest shape and verify the fallback action description stays versioned.
 - Files changed:
+  - `src/qual/ui/a2ui.py`
+  - `tests/unit/test_a2ui_contract.py`
   - `THREAD_PACKET.md`
-  - `.codex/kickoff_packets/feat-a2ui-contract.md`
-  - `.codex/lane_meta/feat-a2ui-contract.json`
-  - `.codex/packets/lanes/feat-a2ui-contract/inbox/feature/F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md`
 - Commands run with results:
-  - `make scope-check` -> passed
+  - `python -m unittest tests.unit.test_a2ui_contract` -> passed (`Ran 67 tests`, `OK`)
+  - `python -m unittest tests.unit.test_ui_shell` -> passed (`Ran 3 tests`, `OK`)
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
-  - `./quality-test.sh` -> passed (`Ran 123 tests`, `OK`)
+  - `./quality-test.sh` -> passed (`Ran 135 tests`, `OK`)
   - `./typecheck-test.sh` -> passed
+  - `make scope-check` -> passed
   - `make ci` -> passed
 - Risks/blockers:
-  - The packet is now limited to auditability and diff alignment; it should not be read as evidence of any source or test code changes.
-  - No functional code paths were changed in this metadata-only update.
+  - No known blockers. The change is intentionally narrow and stays inside the A2UI contract and its tests.
+  - CLI fallback behavior remains intact; this update only makes the read-only fallback action contract more explicit and versionable.
 - Roadmap item(s) affected:
-  - Milestone 5: A2UI Presentation Layer - keep the handoff record aligned to the metadata-only packet update.
-  - Milestone 5: A2UI Presentation Layer - keep the file list auditable against the actual `.codex` packet diff.
-  - Milestone 5: A2UI Presentation Layer - keep the wording limited to packet alignment, auditability, and reviewability only.
+  - Milestone 5: A2UI Presentation Layer - define `A2UI` output contract for agent-produced presentation artifacts.
+  - Milestone 5: A2UI Presentation Layer - add agent-side card/section/action payload generation with deterministic schemas.
+  - Milestone 5: A2UI Presentation Layer - provide CLI rendering fallback for the same structured payloads.
 - Vision capability affected:
-  - Capability 5: Agent-to-UI protocol (A2UI) - the handoff record stays aligned to the packet metadata contract and the metadata-only diff.
-  - Capability 4: Operator-first control surface - the packet preserves the operator-facing audit trail for the metadata-only update.
+  - Capability 5: Agent-to-UI protocol (A2UI) - the structured contract now exposes the canonical fallback action semantics explicitly.
+  - Capability 4: Operator-first control surface - CLI fallback remains the same consumer of the structured payloads.
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.

@@ -94,12 +94,26 @@ class A2UIContractTests(unittest.TestCase):
                     "type": "GenericCard",
                     "action_policy": "client_allowlist",
                     "allowed_actions": ["copy_to_clipboard"],
+                    "actions": [
+                        {
+                            "id": "copy_to_clipboard",
+                            "label": "Copy JSON",
+                            "payload_fields": ["text"],
+                        }
+                    ],
                 },
                 "unknown_card": {
                     "type": "UnknownCard",
                     "action_policy": "copy_to_clipboard_only",
                     "allowed_actions": ["copy_to_clipboard"],
                     "default_preview_bytes": 8192,
+                    "actions": [
+                        {
+                            "id": "copy_to_clipboard",
+                            "label": "Copy JSON",
+                            "payload_fields": ["text"],
+                        }
+                    ],
                 },
             },
         )
