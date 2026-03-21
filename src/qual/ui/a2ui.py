@@ -366,6 +366,9 @@ def render_terminal_card(card: dict[str, Any]) -> str:
     version = card.get("a2ui_version")
     if type(version) is int:
         lines.append(f"A2UI v{version}")
+    rendered_fallback = _render_terminal_fallback_notice(card.get("debug"))
+    if rendered_fallback:
+        lines.extend(rendered_fallback)
     rendered_debug = _render_terminal_debug(card.get("debug"))
     if rendered_debug:
         lines.append("Debug:")
@@ -540,6 +543,18 @@ def _render_terminal_debug(debug: Any) -> list[str]:
             continue
         lines.append(f"- {key}: {rendered_value}")
     return lines
+
+
+def _render_terminal_fallback_notice(debug: Any) -> list[str]:
+    if not isinstance(debug, dict):
+        return []
+    fallback_kind = debug.get("fallback_kind")
+    source_card_type = debug.get("source_card_type")
+    if not isinstance(fallback_kind, str) or not fallback_kind.strip():
+        return []
+    if not isinstance(source_card_type, str) or not source_card_type.strip():
+        return []
+    return [f"Fallback: {fallback_kind.strip()} from {source_card_type.strip()}"]
 
 
 def _iter_card_entries(entries: Any) -> list[Any]:
