@@ -1,23 +1,23 @@
 {
   "approved_exception_note": "",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 1 reviewed lane-metadata file, no shared or integrator-locked edits, and required local gates rerun before handoff.",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 3 reviewed handoff files, no shared or integrator-locked edits, and required local gates rerun before handoff.",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
     "Handoff packet scope accuracy: keep the reviewed commit description aligned with git history.",
-    "Lane metadata consistency: keep the reviewed packet and lane metadata focused on the single changed artifact."
+    "Docs-only metadata consistency: keep packet, kickoff metadata, and lane metadata in sync for the three handoff artifacts only."
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The reviewed commit `9df92deaec56128ba78436687873e835a67c08dc` only updates `.codex/lane_meta/feat-retrieval-fts.json`.",
-  "scope_goal": "Tighten the handoff packet so it matches commit `9df92deaec56128ba78436687873e835a67c08dc` exactly.",
+  "scope_completed": "The reviewed commit `025cf16bca8b3625b974de1a89f9f3d340d310c3` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; this is handoff metadata work, not retrieval source-code work.",
+  "scope_goal": "Tighten the handoff packet so it matches commit `025cf16bca8b3625b974de1a89f9f3d340d310c3` exactly.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Reconciled the packet with commit `9df92deaec56128ba78436687873e835a67c08dc`, confirming the reviewed diff changes only the lane metadata file.",
+    "Reconciled the packet with commit `025cf16bca8b3625b974de1a89f9f3d340d310c3`, confirming the reviewed diff changes only the three handoff artifacts.",
     "Removed implementation-file references from the metadata because they are not part of the reviewed commit.",
-    "Added an explicit `scope_completed` field and tightened the packet wording to stay committed to lane-metadata-only scope."
+    "Added an explicit `scope_completed` field and tightened the packet wording to stay committed to docs-only handoff scope."
   ],
   "vision_capabilities": [
     "Handoff packet scope accuracy",
-    "Lane metadata consistency"
+    "Docs-only metadata consistency"
   ]
 }
