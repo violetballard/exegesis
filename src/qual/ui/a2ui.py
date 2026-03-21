@@ -114,6 +114,8 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
     return {
         "type": GENERIC_CARD_TYPE,
         "title": f"Fallback view for {card_type or 'Unknown'}",
+        "subtitle": "Rendered as GenericCard because client does not support this specialized card.",
+        "a2ui_version": A2UI_VERSION,
         "blocks": [
             {
                 "type": "AlertBlock",
@@ -164,6 +166,8 @@ def build_unknown_card(
     return {
         "type": UNKNOWN_CARD_TYPE,
         "title": f"Unsupported card type: {type_name}",
+        "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
+        "a2ui_version": A2UI_VERSION,
         "blocks": blocks,
         "actions": [
             {
@@ -178,9 +182,18 @@ def build_unknown_card(
 def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
     if card.get("type") != GENERIC_CARD_TYPE:
         raise ValueError("Card type must be GenericCard")
+    version = card.get("a2ui_version")
+    if version is not None:
+        if not isinstance(version, int):
+            raise ValueError("GenericCard a2ui_version must be an int")
+        if version != A2UI_VERSION:
+            raise ValueError("Unsupported GenericCard a2ui_version")
     title = card.get("title")
     if not isinstance(title, str) or not title.strip():
         raise ValueError("GenericCard title is required")
+    subtitle = card.get("subtitle")
+    if subtitle is not None and (not isinstance(subtitle, str) or not subtitle.strip()):
+        raise ValueError("GenericCard subtitle must be a non-empty string when provided")
     blocks = card.get("blocks")
     if not isinstance(blocks, list):
         raise ValueError("GenericCard blocks must be a list")
@@ -249,6 +262,12 @@ def render_terminal_card(card: dict[str, Any]) -> str:
     title = str(card.get("title", "<untitled>"))
     card_type = str(card.get("type", "Card"))
     lines = [f"[{card_type}] {title}"]
+    subtitle = card.get("subtitle")
+    if isinstance(subtitle, str) and subtitle.strip():
+        lines.append(subtitle.strip())
+    version = card.get("a2ui_version")
+    if isinstance(version, int):
+        lines.append(f"A2UI v{version}")
     for block in card.get("blocks", []):
         lines.extend(_render_terminal_block(block))
     rendered_actions = _render_terminal_actions(card.get("actions"))
