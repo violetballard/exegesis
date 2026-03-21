@@ -1,23 +1,23 @@
 {
-  "approved_exception_note": "Operational metadata exception for branch-local .codex files only. This lane record tracks commit 17477881047ed86a2baceb450c5dbff3d54b70bf as a fallback allowlist preservation update in src/qual/ui/a2ui.py and does not claim changes to tests/unit/test_a2ui_contract.py or any .codex files. No product-code ownership exception is requested.",
+  "approved_exception_note": "Operational metadata exception for branch-local .codex files only. This lane record tracks commit 2185c77b9fb43ea77dead26017d0f8caf65127ff as an A2UI schema-manifest publication update in src/qual/ui/a2ui.py with matching assertions in tests/unit/test_a2ui_contract.py. No product-code ownership exception is requested.",
   "kickoff_budget_note": "",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - keep the review packet aligned to commit 17477881047ed86a2baceb450c5dbff3d54b70bf as a single-file fallback allowlist preservation change.",
-    "Milestone 5: A2UI Presentation Layer - keep the file list and commit mapping auditable against src/qual/ui/a2ui.py.",
-    "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to fallback allowlist preservation, not broader schema or CLI fallback work."
+    "Milestone 5: A2UI Presentation Layer - keep the review packet aligned to commit 2185c77b9fb43ea77dead26017d0f8caf65127ff as a schema-manifest publication change.",
+    "Milestone 5: A2UI Presentation Layer - keep the file list and commit mapping auditable against src/qual/ui/a2ui.py and tests/unit/test_a2ui_contract.py.",
+    "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to explicit schema metadata publication and matching contract assertions."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Record a review packet for commit 17477881047ed86a2baceb450c5dbff3d54b70bf so the A2UI lane packet is auditable and matches the single-file fallback allowlist preservation diff without claiming tests or metadata-only work.",
+  "scope_goal": "Record a review packet for commit 2185c77b9fb43ea77dead26017d0f8caf65127ff so the A2UI lane packet is auditable and matches the schema-manifest publication diff across src/qual/ui/a2ui.py and tests/unit/test_a2ui_contract.py.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Rewrote the lane handoff metadata to describe commit 17477881047ed86a2baceb450c5dbff3d54b70bf as a fallback allowlist preservation update in src/qual/ui/a2ui.py.",
-    "Kept the reviewed file list limited to src/qual/ui/a2ui.py and removed unsupported test and metadata-only claims from the handoff.",
-    "Aligned the Milestone 5 A2UI roadmap and vision references to fallback allowlist preservation rather than broader schema or CLI fallback work."
+    "Rewrote the lane handoff metadata to describe commit 2185c77b9fb43ea77dead26017d0f8caf65127ff as an A2UI schema-manifest publication update in src/qual/ui/a2ui.py.",
+    "Kept the reviewed file list limited to src/qual/ui/a2ui.py and tests/unit/test_a2ui_contract.py and removed unsupported .codex and thread-packet-only claims from the handoff.",
+    "Aligned the Milestone 5 A2UI roadmap and vision references to explicit schema metadata publication and the matching contract assertions."
   ],
   "vision_capabilities": [
-    "Capability 5: Agent-to-UI protocol (A2UI) - the handoff record stays aligned to the fallback allowlist preservation contract.",
+    "Capability 5: Agent-to-UI protocol (A2UI) - the handoff record stays aligned to the schema-manifest publication contract.",
     "Capability 4: Operator-first control surface - the packet preserves the operator-facing audit trail for the lane metadata."
   ]
 }
