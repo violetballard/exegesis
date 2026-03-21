@@ -7,6 +7,7 @@ from typing import Any, Callable, Protocol
 A2UI_VERSION = 1
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
+_RESERVED_CARD_TYPES: tuple[str, ...] = (GENERIC_CARD_TYPE, UNKNOWN_CARD_TYPE)
 
 ALLOWED_ACTION_IDS: tuple[str, ...] = (
     "apply_patch",
@@ -94,6 +95,13 @@ def validate_capabilities(capabilities: A2UICapabilities) -> None:
         raise ValueError("client_name is required")
     if capabilities.max_payload_bytes <= 0:
         raise ValueError("max_payload_bytes must be positive")
+    for card_type in capabilities.cards_supported:
+        if not isinstance(card_type, str) or not card_type.strip():
+            raise ValueError("Supported card types must be non-empty strings")
+        if card_type != card_type.strip():
+            raise ValueError(f"Supported card types must be canonical, got: {card_type!r}")
+        if card_type in _RESERVED_CARD_TYPES:
+            raise ValueError(f"Reserved card type cannot be advertised as supported: {card_type}")
     if not _PRIMITIVE_BLOCK_SET.issubset(set(capabilities.primitive_blocks_supported)):
         raise ValueError("Missing required primitive block support")
     for action_id in capabilities.actions_supported:

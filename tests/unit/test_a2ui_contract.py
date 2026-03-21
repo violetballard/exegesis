@@ -79,6 +79,36 @@ class A2UIContractTests(unittest.TestCase):
                 ),
             )
 
+    def test_session_store_rejects_reserved_card_types(self) -> None:
+        store = A2UISessionStore()
+        with self.assertRaises(ValueError):
+            store.register(
+                "sess-2b",
+                _capabilities(cards_supported=("UnknownCard",)),
+            )
+
+        with self.assertRaises(ValueError):
+            store.register(
+                "sess-2c",
+                _capabilities(cards_supported=("GenericCard",)),
+            )
+
+    def test_session_store_rejects_blank_supported_card_types(self) -> None:
+        store = A2UISessionStore()
+        with self.assertRaises(ValueError):
+            store.register(
+                "sess-2d",
+                _capabilities(cards_supported=("",)),
+            )
+
+    def test_session_store_rejects_whitespace_padded_supported_card_types(self) -> None:
+        store = A2UISessionStore()
+        with self.assertRaises(ValueError):
+            store.register(
+                "sess-2e",
+                _capabilities(cards_supported=(" RunLogCard ",)),
+            )
+
     def test_session_store_rejects_future_a2ui_version(self) -> None:
         store = A2UISessionStore()
         with self.assertRaises(ValueError):
