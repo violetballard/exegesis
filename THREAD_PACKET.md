@@ -2,39 +2,31 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Reviewed commit: `72c5f868fb0b6c44e80e26ae49d3da89d94c9487`
-- Branch head note: the current branch head is still a packet-maintenance commit only; review `72c5f868fb0b6c44e80e26ae49d3da89d94c9487` for the actual `diff_preview` code delta.
+- Reviewed commit: `a032bd49f7e5e9b56d8fa3bb02f8d4d1f6af6c7f`
+- Branch head note: verified branch head before this packet update is the actual code fix; this packet records the reviewed delta and the follow-up handoff note.
 
 ## Scope goal
-- Reissue the handoff against the actual `diff_preview` code delta while keeping the packet-maintenance head honest about being metadata-only.
+- Reissue the handoff against the actual `diff_preview` no-diff fingerprint emission fix so the packet reflects the code-changing commit instead of the earlier packet-only head.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
 
 ## Scope completed
-- Preserved the lane-owned `diff_preview` contract hardening work in `src/qual/commands/diff_preview.py`, including the JSON `no_diff` `summary_only` fix.
-- Preserved the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON `no_diff` `summary_only` contract.
-- Removed the branch-local shared-test approval from `scripts/scope-check.sh` and `THREAD_OWNERSHIP.md` so the approval now lives only in this packet.
-- Reissued the handoff packet against the actual code-changing commit so the scope summary, ownership note, roadmap mapping, changed-file list, and command outcomes match the reviewed delta instead of the packet-only head.
+- Preserved the lane-owned `diff_preview` no-diff JSON contract hardening in `src/qual/commands/diff_preview.py`, including the explicit `summary_only` state in the no-diff JSON payload.
+- Preserved the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON no-diff `summary_only` path when fingerprint output is enabled.
+- Reissued the handoff packet against the actual code-changing commit so the scope summary, roadmap mapping, changed-file list, and command outcomes match the reviewed delta instead of the earlier packet-only head.
 
 ## Kickoff budget/limits compliance
-- Stayed within the high-risk budget. The submitted branch delta contains 5 files:
-  - `THREAD_OWNERSHIP.md`
-  - `THREAD_PACKET.md`
-  - `scripts/scope-check.sh`
+- Stayed within the low-risk budget. The submitted branch delta contains 2 files:
   - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_diff_preview.py`
 
 ## Tasks completed (numbered)
-1. Preserved the lane-owned `src/qual/commands/diff_preview.py` contract hardening work so JSON `no_diff` responses now mirror the `summary_only` flag.
-2. Restored the focused regression test coverage in `tests/unit/test_diff_preview.py` for the JSON `summary_only` no-diff behavior.
-3. Removed the shared-test approval from lane policy enforcement and captured the approval as an explicit note in this packet instead.
-4. Reissued the feature handoff packet so every field matches the reviewed branch state instead of the packet-maintenance head.
+1. Kept the JSON no-diff `summary_only` payload explicit in `src/qual/commands/diff_preview.py`.
+2. Added regression coverage for JSON no-diff `summary_only` behavior when `QUAL_DIFF_INCLUDE_FINGERPRINT` is enabled.
+3. Reissued the feature handoff packet so every field matches the reviewed code delta.
 
 ## Files changed for submitted branch delta
-- `THREAD_OWNERSHIP.md`
-- `THREAD_PACKET.md`
-- `scripts/scope-check.sh`
 - `src/qual/commands/diff_preview.py`
 - `tests/unit/test_diff_preview.py`
 
@@ -54,17 +46,16 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` command behavior so JSON and text honor the same no-diff and fingerprint contract.
-- Milestone 2 - Test Hardening: preserve the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON no-diff summary-only behavior and related output-contract cases.
-- Milestone 3 - Product Readiness: lock the user-facing `diff_preview` structured output contract across text and JSON output.
+- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` no-diff JSON contract so `summary_only` stays deterministic on empty-diff responses.
+- Milestone 2 - Test Hardening: preserve the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON no-diff `summary_only` behavior under the fingerprint gate.
 
 ### Vision capability affected
-- Capability 3 - Auditable generation: the command makes no-diff JSON metadata explicit and deterministic, avoiding silent contract drift.
-- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON contract with focused regression tests.
+- Capability 3 - Auditable generation: the command keeps the no-diff JSON `summary_only` state explicit and deterministic.
+- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON no-diff contract for the focused `summary_only` path.
 
 ### Routing/provider impact note
 - None. This change affects local `diff_preview` output formatting plus the reviewer-required regression test; no routing/provider behavior changed.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `YES`
-- Shared-file exception note: the reviewed `72c5f868fb0b6c44e80e26ae49d3da89d94c9487` delta includes `THREAD_OWNERSHIP.md` and `scripts/scope-check.sh`, and the explicit approval note for those shared-policy edits is recorded in this packet rather than as a branch-local policy exception.
+- Shared/integrator-locked edits: `NO`
+- Shared-file exception note: none.
