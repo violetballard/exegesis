@@ -1,5 +1,5 @@
 {
-  "scope_goal": "Describe the actual code-bearing feature commit, make the docs-only packet reconciliation explicit, and remove stale shared-test allowance metadata from the handoff.",
+  "scope_goal": "Describe the actual code-bearing feature commit, keep the later docs-only packet reconciliation explicit, and make the handoff commit-accurate.",
   "tasks_completed": [
     "Repointed the handoff packet to the actual code-bearing feature commit 075a61ad1c92b85fb4df2fae54bbb9163f53aa12.",
     "Made the docs-only packet reconciliation commit explicit so it is not mistaken for reviewed implementation work.",
