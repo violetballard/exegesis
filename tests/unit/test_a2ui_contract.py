@@ -462,6 +462,9 @@ class A2UIContractTests(unittest.TestCase):
             [block["type"] for block in card["blocks"]],
             ["AlertBlock", "MarkdownBlock", "ListBlock", "CodeBlock"],
         )
+        self.assertTrue(card["blocks"][-1]["code"].startswith('{\n  "blocks": ['))
+        self.assertIn('\n  "title": "Patch",', card["blocks"][-1]["code"])
+        self.assertIn('\n  "type": "ProposedEditCard"', card["blocks"][-1]["code"])
 
         text = render_terminal_card(card)
         self.assertIn("Fallback: generic from ProposedEditCard", text)

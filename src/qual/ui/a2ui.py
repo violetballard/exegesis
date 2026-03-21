@@ -324,7 +324,11 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
             {
                 "type": "CodeBlock",
                 "language": "json",
-                "code": _render_payload_preview(card, max_payload_bytes=capabilities.max_payload_bytes),
+                "code": _render_payload_preview(
+                    card,
+                    max_payload_bytes=capabilities.max_payload_bytes,
+                    pretty=True,
+                ),
             },
         ],
         "actions": read_only_actions,
