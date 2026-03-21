@@ -13,7 +13,12 @@ from src.qual.engine.retrieval.policy import (
     fts_first_policy_snapshot as _fts_first_policy_snapshot,
     primary_strategy_id as _primary_strategy_id,
 )
-from src.qual.engine.retrieval.payload import build_retrieval_source_bundle_from_result
+from src.qual.engine.retrieval.payload import (
+    build_retrieval_citation_bundle_from_result,
+    build_retrieval_downstream_payload,
+    build_retrieval_downstream_payload_from_result,
+    build_retrieval_source_bundle_from_result,
+)
 
 ACTIVE_STRATEGY_IDS = _active_strategy_ids()
 DEFERRED_STRATEGY_IDS = _deferred_strategy_ids()
@@ -53,4 +58,8 @@ __all__ = [
     "active_strategy_ids",
     "deferred_strategy_ids",
     "retrieval_policy_snapshot",
+    "build_retrieval_downstream_payload",
+    "build_retrieval_downstream_payload_from_result",
+    "build_retrieval_citation_bundle_from_result",
+    "build_retrieval_source_bundle_from_result",
 ]

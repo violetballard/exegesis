@@ -15,9 +15,15 @@ from typing import Any, Iterator, Literal, cast
 
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions, DocIndexService
-from src.qual.engine.retrieval import FTS_FIRST_POLICY, FTSStrategy, primary_strategy_id, retrieval_policy_snapshot
+from src.qual.engine.retrieval import (
+    FTS_FIRST_POLICY,
+    FTSStrategy,
+    build_retrieval_downstream_payload,
+    build_retrieval_source_bundle_from_result,
+    primary_strategy_id,
+    retrieval_policy_snapshot,
+)
 from src.qual.engine.retrieval.interface import StrategyRun
-from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload, build_retrieval_source_bundle_from_result
 from src.qual.metrics.crypto import decrypt_bytes, encrypt_bytes
 
 _RETRIEVAL_DIR = ".retrieval"

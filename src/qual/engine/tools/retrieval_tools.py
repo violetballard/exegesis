@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
+from src.qual.engine.retrieval import build_retrieval_downstream_payload_from_result
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
 
 

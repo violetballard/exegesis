@@ -10,6 +10,9 @@ from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions
 from src.qual.docindex.service import DocIndexQueryConstraints
 import src.qual.engine.retrieval as engine_retrieval
+from src.qual.engine.retrieval import build_retrieval_citation_bundle_from_result as engine_build_retrieval_citation_bundle_from_result
+from src.qual.engine.retrieval import build_retrieval_downstream_payload_from_result as engine_build_retrieval_downstream_payload_from_result
+from src.qual.engine.retrieval import build_retrieval_source_bundle_from_result as engine_build_retrieval_source_bundle_from_result
 from src.qual.engine.tools.retrieval_tools import retrieve_fts as engine_retrieve_fts
 from src.qual.engine.tools.retrieval_tools import retrieve_fts_payload as engine_retrieve_fts_payload
 from src.qual.engine.retrieval.payload import build_retrieval_citation_bundle_from_result
@@ -622,6 +625,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "active_strategy_ids",
                 "deferred_strategy_ids",
                 "retrieval_policy_snapshot",
+                "build_retrieval_downstream_payload",
+                "build_retrieval_downstream_payload_from_result",
+                "build_retrieval_citation_bundle_from_result",
+                "build_retrieval_source_bundle_from_result",
             ],
         )
         self.assertTrue(hasattr(engine_retrieval, "FTSStrategy"))
@@ -631,6 +638,34 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(engine_retrieval.DEFERRED_STRATEGY_IDS, ("pageindex", "embeddings"))
         self.assertEqual(engine_retrieval.active_strategy_ids(), ("fts",))
         self.assertEqual(engine_retrieval.deferred_strategy_ids(), ("pageindex", "embeddings"))
+        self.assertTrue(hasattr(engine_retrieval, "build_retrieval_downstream_payload"))
+        self.assertTrue(hasattr(engine_retrieval, "build_retrieval_downstream_payload_from_result"))
+        self.assertTrue(hasattr(engine_retrieval, "build_retrieval_citation_bundle_from_result"))
+        self.assertTrue(hasattr(engine_retrieval, "build_retrieval_source_bundle_from_result"))
+
+    def test_engine_retrieval_package_reexports_canonical_payload_helpers(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        self.assertEqual(
+            engine_build_retrieval_downstream_payload_from_result(result),
+            build_retrieval_downstream_payload_from_result(result),
+        )
+        self.assertEqual(
+            engine_build_retrieval_citation_bundle_from_result(result),
+            build_retrieval_citation_bundle_from_result(result),
+        )
+        self.assertEqual(
+            engine_build_retrieval_source_bundle_from_result(result),
+            result.source_bundle(),
+        )
 
     def test_engine_retrieval_policy_snapshot_is_stable_and_copy_safe(self) -> None:
         first = engine_retrieval.retrieval_policy_snapshot()
