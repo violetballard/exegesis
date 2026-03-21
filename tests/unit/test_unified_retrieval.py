@@ -78,6 +78,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(first_fingerprint, first.doc_hits[0].provenance["query_fingerprint"])
         self.assertEqual(first.hits[0].provenance["excerpt_fingerprint"], second.hits[0].provenance["excerpt_fingerprint"])
         self.assertEqual(first.doc_hits[0].provenance["doc_fingerprint"], second.doc_hits[0].provenance["doc_fingerprint"])
+        self.assertEqual(first.result_fingerprint, second.result_fingerprint)
 
         variant = self.service.retrieve_auto(
             RetrievalQuery(
@@ -89,6 +90,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             )
         )
         self.assertNotEqual(first_fingerprint, variant.diagnostics["query_fingerprint"])
+        self.assertNotEqual(first.result_fingerprint, variant.result_fingerprint)
 
     def test_retrieve_auto_reports_stable_fts_shortlist_doc_ids(self) -> None:
         query = RetrievalQuery(
@@ -224,7 +226,21 @@ class UnifiedRetrievalTests(unittest.TestCase):
             [item.provenance["doc_identity_fingerprint"] for item in result.doc_hits],
         )
         self.assertEqual(manifest["top_excerpt_ids"], [item.top_excerpt_id for item in result.doc_hits])
+        self.assertEqual(
+            manifest["top_excerpt_text_hashes"],
+            [item.provenance["top_excerpt_text_hash"] for item in result.doc_hits],
+        )
         self.assertEqual(manifest["excerpt_ids"], [item.excerpt_id for item in result.hits if item.excerpt_id is not None])
+        self.assertEqual(
+            manifest["excerpt_text_hashes"],
+            [
+                item.provenance["excerpt_text_hash"]
+                for item in result.hits
+                if item.excerpt_id is not None
+            ],
+        )
+        self.assertIn("top_excerpt_text_hashes", manifest)
+        self.assertIn("excerpt_text_hashes", manifest)
 
     def test_doc_identity_fingerprint_stays_stable_across_query_variants(self) -> None:
         base = self.service.retrieve_auto(

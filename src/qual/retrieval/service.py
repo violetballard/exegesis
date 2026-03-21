@@ -412,15 +412,23 @@ class RetrievalService:
             str(doc_hit.provenance.get("doc_identity_fingerprint", "")) for doc_hit in doc_hits
         ]
         top_excerpt_fingerprints = [str(doc_hit.provenance.get("top_excerpt_fingerprint", "")) for doc_hit in doc_hits]
+        top_excerpt_text_hashes = [str(doc_hit.provenance.get("top_excerpt_text_hash", "")) for doc_hit in doc_hits]
         excerpt_fingerprints = [str(hit.provenance.get("excerpt_fingerprint", "")) for hit in hits if hit.excerpt_id is not None]
+        excerpt_text_hashes = [
+            str(hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash") or "")
+            for hit in hits
+            if hit.excerpt_id is not None
+        ]
         return {
             "doc_ids": [doc_hit.doc_id for doc_hit in doc_hits],
             "doc_fingerprints": doc_fingerprints,
             "doc_identity_fingerprints": doc_identity_fingerprints,
             "top_excerpt_ids": [doc_hit.top_excerpt_id for doc_hit in doc_hits],
             "top_excerpt_fingerprints": top_excerpt_fingerprints,
+            "top_excerpt_text_hashes": top_excerpt_text_hashes,
             "excerpt_ids": [hit.excerpt_id for hit in hits if hit.excerpt_id is not None],
             "excerpt_fingerprints": excerpt_fingerprints,
+            "excerpt_text_hashes": excerpt_text_hashes,
         }
 
     @staticmethod
@@ -434,6 +442,8 @@ class RetrievalService:
             "doc_fingerprints": retrieval_manifest.get("doc_fingerprints", []),
             "top_excerpt_fingerprints": retrieval_manifest.get("top_excerpt_fingerprints", []),
             "excerpt_fingerprints": retrieval_manifest.get("excerpt_fingerprints", []),
+            "top_excerpt_text_hashes": retrieval_manifest.get("top_excerpt_text_hashes", []),
+            "excerpt_text_hashes": retrieval_manifest.get("excerpt_text_hashes", []),
         }
         return RetrievalService._stable_fingerprint(payload)
 
