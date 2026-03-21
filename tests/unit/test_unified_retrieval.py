@@ -62,6 +62,31 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertGreaterEqual(result.diagnostics["fts_shortlist_count"], 0)
         self.assertIsInstance(result.diagnostics["fts_shortlist_doc_ids"], list)
 
+    def test_retrieve_fts_is_the_canonical_entrypoint(self) -> None:
+        query = RetrievalQuery(
+            query_text="theory implications",
+            scope="vault",
+            intent="lookup",
+            constraints=RetrievalConstraints(max_results=5),
+            confidentiality_profile="confidential",
+        )
+
+        direct = self.service.retrieve_fts(query)
+        auto = self.service.retrieve_auto(query)
+
+        direct_payload = direct.to_downstream_payload()
+        auto_payload = auto.to_downstream_payload()
+        direct_payload.pop("audit_ref")
+        auto_payload.pop("audit_ref")
+        direct_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        auto_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        direct_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        auto_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        self.assertEqual(direct_payload, auto_payload)
+        self.assertEqual(direct.result_fingerprint, auto.result_fingerprint)
+        self.assertEqual(direct.diagnostics["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(direct.diagnostics["retrieval_mode"], "fts_first")
+
     def test_retrieve_auto_emits_stable_query_fingerprint(self) -> None:
         query = RetrievalQuery(
             query_text="discussion theory",
