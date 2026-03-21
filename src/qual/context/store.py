@@ -151,6 +151,7 @@ class ContextBasketStore:
             self._corrupt_path(),
         ):
             self._unlink_if_exists(path)
+        self._clear_quarantine_file()
 
     def _quarantine_invalid_file(self) -> None:
         if not self._path.exists():

@@ -30,6 +30,22 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertFalse(self.store._backup_path.exists())
         self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
 
+    def test_clear_removes_quarantined_backup_and_seed_files(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._backup_path.with_name("context_basket.bak.corrupt.json").write_text(
+            "{bad",
+            encoding="utf-8",
+        )
+        self.store._seed_state_path().with_name("context_basket.seed.corrupt.json").write_text(
+            "{bad",
+            encoding="utf-8",
+        )
+
+        self.store.clear()
+
+        self.assertFalse(self.store._backup_path.with_name("context_basket.bak.corrupt.json").exists())
+        self.assertFalse(self.store._seed_state_path().with_name("context_basket.seed.corrupt.json").exists())
+
     def test_future_schema_primary_not_rotated_into_backup(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text(
