@@ -16,6 +16,7 @@ from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions, DocIndexService
 from src.qual.engine.retrieval import FTS_FIRST_POLICY, FTSStrategy
 from src.qual.engine.retrieval.interface import StrategyRun
+from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload
 from src.qual.metrics.crypto import decrypt_bytes, encrypt_bytes
 
 _RETRIEVAL_DIR = ".retrieval"
@@ -133,9 +134,8 @@ class RetrievalResult:
         manifest, and evidence in one deterministic structure so downstream
         engine flows do not have to reassemble or reinterpret retrieval state.
         """
-
-        return {
-            "query": {
+        return build_retrieval_downstream_payload(
+            query={
                 "query_text": self.query.query_text,
                 "scope": self.query.scope,
                 "intent": self.query.intent,
@@ -151,26 +151,20 @@ class RetrievalResult:
                 },
                 "confidentiality_profile": self.query.confidentiality_profile,
             },
-            "policy": {
+            policy={
                 "retrieval_backend": self.diagnostics["retrieval_backend"],
                 "retrieval_mode": self.diagnostics["retrieval_mode"],
                 "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
                 "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             },
-            "retrieval_policy": {
-                "retrieval_backend": self.diagnostics["retrieval_backend"],
-                "retrieval_mode": self.diagnostics["retrieval_mode"],
-                "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
-                "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
-            },
-            "audit_ref": self.audit_ref,
-            "result_fingerprint": self.result_fingerprint,
-            "doc_hits": [doc_hit.as_dict() for doc_hit in self.doc_hits],
-            "excerpt_hits": [hit.as_dict() for hit in self.hits],
-            "retrieval_diagnostics": dict(self.diagnostics),
-            "retrieval_manifest": dict(self.diagnostics["retrieval_manifest"]),
-            "retrieval_evidence": dict(self.evidence),
-        }
+            audit_ref=self.audit_ref,
+            result_fingerprint=self.result_fingerprint,
+            doc_hits=[doc_hit.as_dict() for doc_hit in self.doc_hits],
+            excerpt_hits=[hit.as_dict() for hit in self.hits],
+            retrieval_diagnostics=dict(self.diagnostics),
+            retrieval_manifest=dict(self.diagnostics["retrieval_manifest"]),
+            retrieval_evidence=dict(self.evidence),
+        )
 
 
 class RetrievalService:
