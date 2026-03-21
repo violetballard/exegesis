@@ -166,7 +166,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
                 "code": _render_payload_preview(card, max_payload_bytes=capabilities.max_payload_bytes),
             },
         ],
-        "actions": [],
+        "actions": _filter_supported_actions(card.get("actions"), supported_actions=set(capabilities.actions_supported)),
     }
 
 
@@ -203,16 +203,17 @@ def build_unknown_card(
             "collapsed": True,
         }
     )
-    actions: list[dict[str, Any]] = []
-    supported_action_set = set(supported_actions) if supported_actions is not None else None
-    if supported_action_set is None or "copy_to_clipboard" in supported_action_set:
-        actions.append(
-            {
-                "id": "copy_to_clipboard",
-                "label": "Copy JSON",
-                "payload": {"text": clipboard_preview},
-            }
-        )
+    supported_action_set = set(supported_actions) if supported_actions is not None else _ALLOWED_ACTION_SET
+    actions = _filter_supported_actions(raw_card.get("actions"), supported_actions=supported_action_set)
+    action_keys = {_canonical_json(action) for action in actions}
+    if "copy_to_clipboard" in supported_action_set:
+        copy_action = {
+            "id": "copy_to_clipboard",
+            "label": "Copy JSON",
+            "payload": {"text": clipboard_preview},
+        }
+        if _canonical_json(copy_action) not in action_keys:
+            actions.append(copy_action)
     return {
         "type": UNKNOWN_CARD_TYPE,
         "title": f"Unsupported card type: {type_name}",
@@ -337,17 +338,20 @@ def render_terminal_card(card: dict[str, Any]) -> str:
 
 
 def _filter_card_actions(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
-    actions = card.get("actions")
+    filtered = _filter_supported_actions(card.get("actions"), supported_actions=set(capabilities.actions_supported))
+    out = dict(card)
+    out["actions"] = filtered
+    return out
+
+
+def _filter_supported_actions(actions: Any, *, supported_actions: set[str]) -> list[dict[str, Any]]:
     if not isinstance(actions, list):
-        out = dict(card)
-        out["actions"] = []
-        return out
-    supported = set(capabilities.actions_supported)
+        return []
     filtered: list[dict[str, Any]] = []
     seen: set[str] = set()
     for action in actions:
         try:
-            normalized = _normalize_action(action, supported_actions=supported)
+            normalized = _normalize_action(action, supported_actions=supported_actions)
         except ValueError:
             continue
         action_key = _canonical_json(normalized)
@@ -355,9 +359,7 @@ def _filter_card_actions(card: dict[str, Any], capabilities: A2UICapabilities) -
             continue
         seen.add(action_key)
         filtered.append(normalized)
-    out = dict(card)
-    out["actions"] = filtered
-    return out
+    return filtered
 
 
 def _materialize_versioned_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
