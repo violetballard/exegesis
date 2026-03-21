@@ -185,6 +185,8 @@ class RetrievalResult:
                 "primary_excerpt_id": self.hits[0].excerpt_id if self.hits else None,
                 "primary_doc_fingerprint": self.doc_hits[0].provenance.get("doc_fingerprint") if self.doc_hits else None,
                 "primary_excerpt_fingerprint": self.hits[0].provenance.get("excerpt_fingerprint") if self.hits else None,
+                "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
+                "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
                 "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
                 "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             },
@@ -318,6 +320,8 @@ class RetrievalService:
                 "elapsed_ms_total": elapsed_ms_total,
                 "doc_hits_count": len(doc_hits),
                 "excerpt_hits_count": len(merged_hits),
+                "doc_hits_fingerprint": retrieval_manifest["doc_hits_fingerprint"],
+                "excerpt_hits_fingerprint": retrieval_manifest["excerpt_hits_fingerprint"],
                 "retrieval_manifest": retrieval_manifest,
                 "retrieval_evidence": retrieval_evidence,
                 "result_fingerprint": result_fingerprint,
@@ -341,6 +345,8 @@ class RetrievalService:
                     "fts_shortlist_doc_ids": diagnostics["fts_shortlist_doc_ids"],
                     "retrieval_manifest": retrieval_manifest,
                     "retrieval_evidence": retrieval_evidence,
+                    "doc_hits_fingerprint": retrieval_manifest["doc_hits_fingerprint"],
+                    "excerpt_hits_fingerprint": retrieval_manifest["excerpt_hits_fingerprint"],
                     "result_fingerprint": result_fingerprint,
                 },
             )
@@ -570,6 +576,36 @@ class RetrievalService:
             for hit in hits
             if hit.excerpt_id is not None
         ]
+        doc_hits_fingerprint = self._stable_fingerprint(
+            [
+                {
+                    "doc_id": doc_hit.doc_id,
+                    "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
+                    "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
+                    "doc_rank": doc_hit.provenance.get("doc_rank"),
+                    "excerpt_count": doc_hit.excerpt_count,
+                    "source_strategy": doc_hit.source_strategy,
+                    "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
+                    "top_excerpt_id": doc_hit.top_excerpt_id,
+                }
+                for doc_hit in doc_hits
+            ]
+        )
+        excerpt_hits_fingerprint = self._stable_fingerprint(
+            [
+                {
+                    "doc_id": hit.doc_id,
+                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                    "excerpt_id": hit.excerpt_id,
+                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                    "rank": hit.provenance.get("rank"),
+                    "score": hit.score,
+                    "source_strategy": hit.source_strategy,
+                }
+                for hit in hits
+                if hit.excerpt_id is not None
+            ]
+        )
         return {
             "doc_ids": [doc_hit.doc_id for doc_hit in doc_hits],
             "doc_fingerprints": doc_fingerprints,
@@ -580,6 +616,8 @@ class RetrievalService:
             "excerpt_ids": [hit.excerpt_id for hit in hits if hit.excerpt_id is not None],
             "excerpt_fingerprints": excerpt_fingerprints,
             "excerpt_text_hashes": excerpt_text_hashes,
+            "doc_hits_fingerprint": doc_hits_fingerprint,
+            "excerpt_hits_fingerprint": excerpt_hits_fingerprint,
             "retrieval_policy": self._retrieval_policy.as_snapshot(),
             "active_strategy_ids": list(self._retrieval_policy.active_strategy_ids),
             "deferred_strategy_ids": list(self._retrieval_policy.deferred_strategy_ids),
@@ -640,6 +678,8 @@ class RetrievalService:
             "retrieval_mode": self._retrieval_policy.retrieval_mode,
             "active_strategy_ids": list(self._retrieval_policy.active_strategy_ids),
             "deferred_strategy_ids": list(self._retrieval_policy.deferred_strategy_ids),
+            "doc_hits_fingerprint": retrieval_manifest.get("doc_hits_fingerprint"),
+            "excerpt_hits_fingerprint": retrieval_manifest.get("excerpt_hits_fingerprint"),
             "doc_citations": doc_citations,
             "excerpt_citations": excerpt_citations,
             "retrieval_manifest": dict(retrieval_manifest),
