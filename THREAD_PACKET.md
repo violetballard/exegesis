@@ -12,14 +12,21 @@ Document the retrieval handoff boundary while keeping the current commit strictl
 
 ## Scope Completed
 
-This commit updates the handoff artifacts only. It states that the reviewed retrieval implementation lives in `36893f06df85409c4595d64adb8af60455c086a6`, that the deferred-policy boundary lives in `dc8f79e4abeb30de51854fdd84d35b97993955b8`, and that `203906231e9c47371b6d7bc4028bc4f60e764581` does not add retrieval code changes. The packet keeps the file list restricted to the docs files actually changed here, removes the stale cross-lane retrieval-tool claim, leaves any PageIndex or embeddings references as deferred-only history rather than active retrieval paths, and narrows the roadmap/vision mapping to the docs-only handoff boundary rather than claiming feature delivery in this commit.
+This commit updates the handoff artifacts only. It states that the reviewed retrieval implementation lives in `36893f06df85409c4595d64adb8af60455c086a6`, that the deferred-policy boundary lives in `dc8f79e4abeb30de51854fdd84d35b97993955b8`, and that `203906231e9c47371b6d7bc4028bc4f60e764581` does not add retrieval code changes. The packet keeps the file list restricted to the docs files actually changed here, removes any stale cross-lane retrieval-tool claim, states the owned retrieval behavior as FTS-first for `vault`, `collection:`, and `doc:` scopes, and documents `section:` as an intentional compatibility boundary until fallback support exists. PageIndex and embeddings references remain deferred-only history, and the roadmap/vision mapping stays scoped to the docs-only handoff boundary rather than claiming feature delivery in this commit.
+
+## Compatibility Note
+
+`section:` scopes remain intentionally rejected in the owned retrieval service until section fallback support exists. Callers that depend on section targeting must switch to `vault`, `collection:`, or `doc:` scopes for the current FTS-first MVP path.
+
+## Scope-Check / Ownership Note
+
+- Shared/integrator-locked edits: `NO`
 
 ## Code-Diff Evidence
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md`: re-anchors the handoff metadata to the actual commit boundary.
 - `.codex/lane_meta/feat-retrieval-fts.json`: mirrors the same scope and file-list correction in structured form.
 - `THREAD_PACKET.md`: records the docs-only nature of this commit and the earlier implementation/cleanup commits it points to.
-- No `src/qual/engine/tools/retrieval_tools.py` entry appears because that file is outside this lane's owned paths.
 
 ### Prior commit references
 
@@ -39,6 +46,7 @@ This commit updates the handoff artifacts only. It states that the reviewed retr
   3. Removed the stale cross-lane retrieval-tool reference from the handoff surface.
   4. Kept the file list restricted to the docs files actually changed in this commit.
   5. Tightened the roadmap and vision mapping so it describes the handoff boundary rather than feature delivery.
+  6. Documented the section-scope compatibility boundary for the current FTS-first MVP path.
 - Files changed:
   - Handoff-only artifacts:
     - `.codex/kickoff_packets/feat-retrieval-fts.md`
@@ -69,6 +77,8 @@ This commit updates the handoff artifacts only. It states that the reviewed retr
 - Risks/blockers:
   - No blockers.
   - The earlier retrieval implementation remains in `36893f06df85409c4595d64adb8af60455c086a6`; this commit only documents that boundary.
+- Compatibility note:
+  - `section:` scopes are intentionally rejected in the owned retrieval service until section fallback support exists. Callers that depend on section targeting must switch to `vault`, `collection:`, or `doc:` scopes for the current FTS-first MVP path.
 - Roadmap item(s) affected:
   - Milestone 4: Retrieval Layer -> FTS-first ingestion/index path for context/vault documents
 - Vision capability affected:

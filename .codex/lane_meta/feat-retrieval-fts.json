@@ -1,7 +1,7 @@
 {
   "approved_exception_note": "",
   "handoff_alignment_commit": "203906231e9c47371b6d7bc4028bc4f60e764581",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 4 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff.",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 6 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff.",
   "implementation_commit": "36893f06df85409c4595d64adb8af60455c086a6",
   "cleanup_commit": "dc8f79e4abeb30de51854fdd84d35b97993955b8",
   "proposed_readme_patch": "",
@@ -15,7 +15,7 @@
     "src/qual/retrieval/service.py",
     "tests/unit/test_unified_retrieval.py"
   ],
-  "scope_completed": "This commit updates the handoff artifacts only. It records that the reviewed retrieval implementation lives in 36893f06df85409c4595d64adb8af60455c086a6, that the deferred-policy boundary lives in dc8f79e4abeb30de51854fdd84d35b97993955b8, and that 203906231e9c47371b6d7bc4028bc4f60e764581 does not add retrieval code changes. The handoff keeps the changed-file list restricted to the docs files actually changed here, removes the stale cross-lane retrieval-tool claim, treats any PageIndex or embeddings mentions as deferred-only history instead of active retrieval paths, and narrows the roadmap/vision mapping to the docs-only handoff boundary rather than claiming feature delivery in this commit.",
+  "scope_completed": "This commit updates the handoff artifacts only. It records that the reviewed retrieval implementation lives in 36893f06df85409c4595d64adb8af60455c086a6, that the deferred-policy boundary lives in dc8f79e4abeb30de51854fdd84d35b97993955b8, and that 203906231e9c47371b6d7bc4028bc4f60e764581 does not add retrieval code changes. The handoff keeps the changed-file list restricted to the docs files actually changed here, removes any stale cross-lane retrieval-tool claim, states the owned retrieval behavior as FTS-first for vault, collection:, and doc: scopes, and documents section: as an intentional compatibility boundary until fallback support exists. PageIndex and embeddings mentions remain deferred-only history, and the roadmap/vision mapping stays scoped to the docs-only handoff boundary rather than claiming feature delivery in this commit.",
   "scope_goal": "Document the retrieval handoff boundary while keeping the current commit strictly limited to docs-only handoff alignment.",
   "shared_file_exception": false,
   "tasks_completed": [
@@ -23,10 +23,11 @@
     "Marked the current commit as docs-only and removed claims that it delivered retrieval code changes.",
     "Removed the stale cross-lane retrieval-tool reference from the handoff surface.",
     "Kept the file list restricted to the docs files actually changed in this commit.",
-    "Tightened the roadmap and vision mapping so it describes the handoff boundary rather than feature delivery."
+    "Tightened the roadmap and vision mapping so it describes the handoff boundary rather than feature delivery.",
+    "Documented the section-scope compatibility boundary for the current FTS-first MVP path."
   ],
   "vision_capabilities": [
     "2. Retrieval-first context handling"
   ],
-  "compatibility_note": ""
+  "compatibility_note": "section: scopes are intentionally rejected in the owned retrieval service until section fallback support exists. Callers that depend on section targeting must switch to vault, collection:, or doc: scopes for the current FTS-first MVP path."
 }
