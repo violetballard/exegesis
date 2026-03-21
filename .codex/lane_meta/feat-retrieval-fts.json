@@ -4,8 +4,7 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 4: Retrieval Layer -> Retrieval orchestration data needed before drafting/diff generation",
-    "Milestone 4: Retrieval Layer -> Source-attribution model for retrieved chunks"
+    "Milestone 4: Retrieval Layer -> Retrieval orchestration data needed before drafting/diff generation"
   ],
   "routing_provider_impact": "None",
   "scope_goal": "Canonicalize FTS excerpt payloads in the retrieval service so retrieval-backed fetches return stable FTS-shaped payloads.",
@@ -13,10 +12,10 @@
   "tasks_completed": [
     "Canonicalized retrieval-service excerpt payloads in `src/qual/retrieval/service.py` so FTS-backed fetches return normalized dictionaries.",
     "Verified the reviewed commit scope is limited to the single source file changed in `3884e2aab86962a6aeb62a35f169282869d16ae5`.",
-    "Regenerated the handoff packet and lane metadata so they describe the promoted source change accurately."
+    "Regenerated the kickoff packet, handoff packet, and lane metadata so they describe the promoted source change accurately."
   ],
   "vision_capabilities": [
-    "3. Auditable generation",
-    "4. Operator-first control surface"
+    "2. Retrieval-first context handling",
+    "3. Auditable generation"
   ]
 }

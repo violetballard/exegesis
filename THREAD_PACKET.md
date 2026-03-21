@@ -16,11 +16,10 @@
 - Commands run with results:
   - Final re-review validation rerun on `2026-03-20` in this lane worktree against reviewer-required fixes `#1-#4`
   - `git show --stat --name-only --format=fuller 3884e2aab86962a6aeb62a35f169282869d16ae5` -> confirmed the reviewed commit only changes `src/qual/retrieval/service.py`
-  - `python -m unittest tests.unit.test_unified_retrieval` -> passed (`Ran 8 tests`, `OK`)
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
-  - `./quality-test.sh` -> passed (`Ran 75 tests`, `OK`)
+  - `./quality-test.sh` -> passed (`Ran 78 tests`, `OK`)
   - `./typecheck-test.sh` -> passed (`python3 -m compileall -q src`, exit `0`)
   - `make ci` -> passed (includes scope-check, format, lint, typecheck, smoke, and unit test gates)
 - Reviewer fix closure:
@@ -30,7 +29,7 @@
   - `#4` separated promoted source changes from handoff and kickoff artifacts so the packet is commit-accurate.
 - Checkpoint status:
   - plan complete
-  - first green tests: `python -m unittest tests.unit.test_unified_retrieval` passed (`Ran 8 tests`, `OK`)
+  - first green tests: `./quality-test.sh` passed (`Ran 78 tests`, `OK`)
   - ready for handoff: all required local gates passed on `2026-03-20`
 - Risks/blockers:
   - No shared, integrator-locked, or cross-lane source files are included in the reviewed commit.
