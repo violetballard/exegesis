@@ -140,8 +140,7 @@ class ContextBasketStore:
             if isinstance(payload, dict):
                 backup_written = self._write_backup_payload(self._backup_payload(payload))
             else:
-                self._write_backup()
-                backup_written = True
+                backup_written = self._write_backup()
             self._clear_quarantine_file()
             self._clear_temporary_files()
             if backup_written:
@@ -172,7 +171,7 @@ class ContextBasketStore:
         normalized_recovered_from = self._parse_recovered_from(recovered_from)
         if normalized_recovered_from is not None:
             payload["recovered_from"] = normalized_recovered_from
-        self._write_backup()
+        backup_written = self._write_backup()
         tmp = self._tmp_path()
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
         try:
@@ -186,11 +185,11 @@ class ContextBasketStore:
                 # Seed keeps the latest canonical basket recoverable if backup
                 # rotation cannot be completed after the primary rewrite.
                 self._write_seed(self._backup_payload(payload))
-        elif not self._backup_path.exists():
+        elif not backup_written or not self._backup_path.exists():
             self._write_seed(self._backup_payload(payload))
         self._clear_quarantine_file()
         self._clear_temporary_files()
-        if self._backup_path.exists() and (not refresh_backup or backup_written):
+        if self._backup_path.exists() and backup_written:
             self._unlink_if_exists(self._seed_state_path())
 
     def clear(self) -> None:
@@ -293,15 +292,15 @@ class ContextBasketStore:
             return None, path.suffix == ".tmp"
         return payload, False
 
-    def _write_backup(self) -> None:
+    def _write_backup(self) -> bool:
         if not self._path.exists():
-            return
+            return False
         if not self._is_valid_payload(self._path):
-            return
+            return False
         payload = json.loads(self._path.read_text(encoding="utf-8"))
         if not isinstance(payload, dict):
-            return
-        self._write_backup_payload(payload)
+            return False
+        return self._write_backup_payload(payload)
 
     def _write_backup_payload(self, payload: dict[str, object]) -> bool:
         tmp = self._backup_path.with_suffix(".tmp")

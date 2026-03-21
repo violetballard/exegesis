@@ -442,6 +442,28 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("item_ids"), ["first"])
         self.assertNotIn("recovered_from", payload)
 
+    def test_save_preserves_seed_when_backup_refresh_fails_before_primary_rewrite(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "item_ids": ["stale"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        with patch.object(ContextBasketStore, "_write_backup", return_value=False):
+            self.store.save(ContextBasket(item_ids=["current"]))
+
+        self.assertTrue(self.store._seed_state_path().exists())
+        seed_payload = json.loads(self.store._seed_state_path().read_text(encoding="utf-8"))
+        self.assertEqual(seed_payload.get("schema_version"), 1)
+        self.assertEqual(seed_payload.get("item_ids"), ["current"])
+        self.assertNotIn("recovered_from", seed_payload)
+
     def test_refresh_backup_failure_seed_fallback_omits_recovered_from(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._backup_path.write_text(
