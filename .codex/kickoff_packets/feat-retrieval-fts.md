@@ -1,25 +1,35 @@
 # Lane Kickoff: feat-retrieval-fts
 
 - Branch: `codex/feat-retrieval-fts`
-- Lane/owned paths: `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`
-- Scope goal: Tighten the handoff packet so it tracks commit `9339a5d3160ac1caca4a7ab32cac1881b6b894b1` exactly.
-- Reviewed commit type: Docs-only handoff metadata alignment.
-- Scope completed: The reviewed commit `9339a5d3160ac1caca4a7ab32cac1881b6b894b1` only updates `THREAD_PACKET.md`; this is handoff metadata work, not retrieval source-code work.
+- Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
+- Scope goal: Apply the reviewer-required packet fixes for the retrieval FTS MVP handoff by separating feature code files from handoff artifacts and documenting the `section:` compatibility boundary.
+- Reviewed commit type: Retrieval FTS handoff alignment.
+- Scope completed: The retrieval FTS MVP work stays in retrieval-owned code paths, while the packet now lists handoff artifacts separately so the ownership boundary is explicit. `section:` queries remain rejected as a compatibility safeguard until PageIndex can resolve concrete section targets.
 
 ### Priority outcomes
-1. State clearly that the reviewed change is docs-only handoff metadata alignment.
-2. Keep the file list limited to the single handoff artifact touched by the commit.
-3. Avoid implying retrieval implementation or broader engine changes.
+1. State clearly that the packet separates feature code files from handoff artifacts.
+2. Keep the compatibility note for `section:` rejection explicit so the retrieval contract is not overstated.
+3. Avoid implying `section:` resolution exists before PageIndex can support concrete section targets.
 
 ### Tasks
-1. Rewrite the packet scope to describe the docs-only metadata-alignment commit accurately.
-2. Keep the file list aligned with the reviewed commit's single handoff artifact.
-3. Trim roadmap and vision mapping so they stay focused on handoff metadata accuracy only.
+1. Rewrite the packet scope to distinguish retrieval feature code files from handoff artifacts.
+2. Keep the file list aligned with the retrieval MVP handoff while preserving the boundary between code and packet metadata.
+3. Add a compatibility note so the packet does not imply broader retrieval-contract changes than the roadmap authorizes.
 
 ### Files changed
-- `THREAD_PACKET.md`
+- Feature code files:
+  - `src/qual/retrieval/__init__.py`
+  - `src/qual/retrieval/service.py`
+  - `tests/unit/test_unified_retrieval.py`
+- Handoff artifacts:
+  - `.codex/kickoff_packets/feat-retrieval-fts.md`
+  - `.codex/lane_meta/feat-retrieval-fts.json`
+  - `THREAD_PACKET.md`
+
+### Compatibility note
+- `section:` queries are intentionally rejected for now; callers should use excerpt or document scopes until PageIndex can resolve concrete section targets.
 
 ### Guardrails
-- Keep the change limited to handoff packet scope-tightening and metadata consistency.
-- Preserve commit accuracy between the packet, lane metadata, and git history.
-- Do not reference unrelated retrieval implementation scope or files outside the reviewed diff.
+- Keep the change limited to the retrieval MVP handoff boundary and packet metadata consistency.
+- Preserve commit accuracy between the packet, lane metadata, and handoff artifacts.
+- Do not imply unrelated retrieval implementation scope or resolved `section:` targeting.
