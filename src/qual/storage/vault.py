@@ -180,38 +180,25 @@ class VaultService:
             self._clear_quarantine_state(root_dir)
             self._clear_temporary_state(root_dir)
             self._clear_seed_state(root_dir)
-        elif primary_needs_recovery:
-            self._quarantine_invalid_state(root_dir)
+        else:
+            if primary_needs_recovery:
+                self._quarantine_invalid_state(root_dir)
             payload, recovered_source = self._prefer_recovery_payload(
-                tmp_payload,
                 backup_tmp_payload,
                 backup_payload,
                 seed_tmp_payload,
                 seed_payload,
+                tmp_payload,
                 expected_project_name,
             )
             if payload is None:
-                payload = primary_payload
-                recovered_source = None
-        elif tmp_payload is not None:
-            payload = tmp_payload
-            recovered_source = "tmp"
-        elif backup_tmp_payload is not None:
-            payload = backup_tmp_payload
-            recovered_source = "backup_tmp"
-        elif backup_payload is not None:
-            payload = backup_payload
-            recovered_source = "backup"
-        elif seed_tmp_payload is not None:
-            payload = seed_tmp_payload
-            recovered_source = "seed_tmp"
-        elif seed_payload is not None:
-            payload = seed_payload
-            recovered_source = "seed"
-        else:
-            self._clear_quarantine_state(root_dir)
-            self._clear_temporary_state(root_dir)
-            return {}, None, primary_payload is None
+                if primary_needs_recovery:
+                    payload = primary_payload
+                    recovered_source = None
+                else:
+                    self._clear_quarantine_state(root_dir)
+                    self._clear_temporary_state(root_dir)
+                    return {}, None, primary_payload is None
         if not isinstance(payload, dict):
             return {}, None, primary_payload is None
         primary_unavailable = primary_payload is None
@@ -443,19 +430,19 @@ class VaultService:
 
     def _prefer_recovery_payload(
         self,
-        tmp_payload: dict[str, object] | None,
         backup_tmp_payload: dict[str, object] | None,
         backup_payload: dict[str, object] | None,
         seed_tmp_payload: dict[str, object] | None,
         seed_payload: dict[str, object] | None,
+        tmp_payload: dict[str, object] | None,
         expected_project_name: str,
     ) -> tuple[dict[str, object] | None, str | None]:
         for candidate, recovered_source in (
-            (tmp_payload, "tmp"),
             (backup_tmp_payload, "backup_tmp"),
             (backup_payload, "backup"),
             (seed_tmp_payload, "seed_tmp"),
             (seed_payload, "seed"),
+            (tmp_payload, "tmp"),
         ):
             if candidate is None:
                 continue
