@@ -16,6 +16,7 @@ Use these branch lanes to avoid duplicate work and merge conflicts.
     - `src/qual/storage/**`
   - Shared by approval only:
     - `src/qual/config.py`
+    - `tests/unit/test_context_storage_recovery.py`
 
 - `codex/feat-ux-flow*`
   - Owned paths:

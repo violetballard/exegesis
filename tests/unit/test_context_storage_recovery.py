@@ -1365,6 +1365,34 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("recovered_from"), "backup")
         self.assertFalse(tmp_path.exists())
 
+    def test_corrupt_tmp_does_not_override_valid_backup_recovery(self) -> None:
+        state = self.svc.create_or_open(self.root, "p2-corrupt-tmp")
+        state_path = state.root_dir / ".vault_state.json"
+        backup_path = state.root_dir / ".vault_state.bak.json"
+        tmp_path = state.root_dir / ".vault_state.tmp"
+
+        backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "p2-corrupt-tmp",
+                    "is_locked": False,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                }
+            ),
+            encoding="utf-8",
+        )
+        tmp_path.write_text("{bad", encoding="utf-8")
+        state_path.unlink()
+
+        reopened = self.svc.create_or_open(self.root, "p2-corrupt-tmp")
+
+        self.assertFalse(reopened.is_locked)
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p2-corrupt-tmp")
+        self.assertEqual(payload.get("recovered_from"), "backup")
+        self.assertFalse(tmp_path.exists())
+
     def test_healthy_primary_load_clears_stale_temporary_corrupt_markers(self) -> None:
         state = self.svc.create_or_open(self.root, "p2-clean")
         state.root_dir.joinpath(".vault_state.tmp.corrupt.json").write_text("{bad", encoding="utf-8")

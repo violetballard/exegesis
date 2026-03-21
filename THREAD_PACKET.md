@@ -20,6 +20,7 @@
   - `src/qual/context/set_store.py`
 - Approved shared test file:
   - `tests/unit/test_context_storage_recovery.py`
+  - Shared-edit approval note: this lane treats the recovery regression test file as an explicit shared exception for the context-storage recovery hardening work, and it was validated with `SCOPE_ALLOW_SHARED=1 make scope-check`.
 - Reporting artifacts, not feature diff:
   - `.codex/lane_meta/feat-context-storage.json`
   - `THREAD_PACKET.md`
@@ -54,6 +55,7 @@
   - None.
 - Scope-check / ownership note:
   - Approved shared edit(s): `tests/unit/test_context_storage_recovery.py` via `SCOPE_ALLOW_SHARED=1 make scope-check`
+  - Ownership map reference: `THREAD_OWNERSHIP.md` lists `tests/unit/test_context_storage_recovery.py` under `codex/feat-context-storage*` as shared by approval only
   - Lane-owned runtime edits: `src/qual/context/**` and `src/qual/storage/**` only
   - No integrator-locked edits
   - Reporting artifacts only: `.codex/lane_meta/feat-context-storage.json` and `THREAD_PACKET.md`

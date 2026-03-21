@@ -438,10 +438,10 @@ class VaultService:
         expected_project_name: str,
     ) -> tuple[dict[str, object] | None, str | None]:
         for candidate, recovered_source in (
-            (backup_tmp_payload, "backup_tmp"),
             (backup_payload, "backup"),
-            (seed_tmp_payload, "seed_tmp"),
             (seed_payload, "seed"),
+            (backup_tmp_payload, "backup_tmp"),
+            (seed_tmp_payload, "seed_tmp"),
             (tmp_payload, "tmp"),
         ):
             if candidate is None:
