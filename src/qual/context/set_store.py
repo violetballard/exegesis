@@ -161,7 +161,9 @@ class ContextSetStore:
                 self._discard_payload_source(recovered_source)
                 return []
             records = self._normalize_records(parsed_records)
-            should_rewrite = self._records_need_rewrite(payload, parsed_records) or records != parsed_records
+            # Promote legacy list payloads into the canonical dict format even
+            # when their record contents are already normalized.
+            should_rewrite = True
         elif isinstance(payload, dict):
             schema_version = self._parse_schema_version(payload)
             if "context_sets" not in payload:
