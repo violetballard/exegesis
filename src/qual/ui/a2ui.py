@@ -411,8 +411,13 @@ def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) 
     if strict_actions:
         if not isinstance(actions, list):
             raise ValueError("GenericCard actions must be a list")
+        seen_actions: set[str] = set()
         for action in actions:
             validate_action_ref(action)
+            action_key = _canonical_json(action)
+            if action_key in seen_actions:
+                raise ValueError("GenericCard actions must not contain duplicates")
+            seen_actions.add(action_key)
 
 
 def _validate_fallback_card(
@@ -442,11 +447,16 @@ def _validate_fallback_card(
     actions = card.get("actions")
     if not isinstance(actions, list):
         raise ValueError("Fallback card actions must be a list")
+    seen_actions: set[str] = set()
     for action in actions:
         validate_action_ref(action)
         action_id = action.get("id") if isinstance(action, dict) else None
         if action_id != FALLBACK_COPY_ACTION_ID:
             raise ValueError("Fallback card actions must be copy_to_clipboard only")
+        action_key = _canonical_json(action)
+        if action_key in seen_actions:
+            raise ValueError("Fallback card actions must not contain duplicates")
+        seen_actions.add(action_key)
     debug = card.get("debug")
     if not isinstance(debug, dict):
         raise ValueError("Fallback card debug is required")

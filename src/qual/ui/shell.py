@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
+
 from src.qual.engine.service import EngineRuntime
 
 
@@ -7,11 +9,12 @@ class ShellUI:
     """Minimal CLI shell used to verify bootstrap wiring."""
 
     def render_startup(self, runtime: EngineRuntime) -> str:
-        if runtime.basket.item_ids:
-            preview_items = [self._format_item_id(value) for value in runtime.basket.item_ids[:3]]
+        item_ids = self._snapshot_item_ids(runtime.basket.item_ids)
+        if item_ids:
+            preview_items = [self._format_item_id(value) for value in item_ids[:3]]
             preview = ", ".join(preview_items)
-            if len(runtime.basket.item_ids) > 3:
-                remaining = len(runtime.basket.item_ids) - 3
+            if len(item_ids) > 3:
+                remaining = len(item_ids) - 3
                 label = "item" if remaining == 1 else "items"
                 preview = f"{preview}, +{remaining} more {label}"
         else:
@@ -21,9 +24,19 @@ class ShellUI:
             f"- project: {runtime.vault.project_name}\n"
             f"- vault: {runtime.vault.root_dir}\n"
             f"- locked: {runtime.vault.is_locked}\n"
-            f"- context_items: {len(runtime.basket.item_ids)}\n"
+            f"- context_items: {len(item_ids)}\n"
             f"- context_preview: {preview}"
         )
+
+    @staticmethod
+    def _snapshot_item_ids(item_ids: object) -> list[object]:
+        if item_ids is None:
+            return []
+        if isinstance(item_ids, (str, bytes)):
+            return [item_ids]
+        if isinstance(item_ids, Iterable):
+            return list(item_ids)
+        return [item_ids]
 
     @staticmethod
     def _format_item_id(value: object) -> str:
