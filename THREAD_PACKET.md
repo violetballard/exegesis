@@ -2,64 +2,64 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Reviewed commit: `ddc5f043d2925a8791f72aabad9cb6b6a6135997`
-- Branch head note: the reviewed commit is a metadata-only packet alignment update.
+- Reviewed commit: `4fe5bfad2b1fccdc5650d85494602987c4020b52`
+- Branch head note: the reviewed commit normalizes unknown canonical command names in the command catalog.
 
 ## Scope goal
-- Document the actual reviewed delta accurately: commit `ddc5f043d2925a8791f72aabad9cb6b6a6135997` updates `THREAD_PACKET.md` only so the handoff metadata matches the branch state.
+- Document the actual reviewed delta accurately: commit `4fe5bfad2b1fccdc5650d85494602987c4020b52` changes `canonical_command()` so unknown canonical inputs normalize to the stripped normalized token instead of echoing the raw input back.
 
 ## Lane/owned paths
-- `THREAD_PACKET.md`
+- `src/qual/commands/catalog.py`
 
 ## Scope completed
-- Updated `THREAD_PACKET.md` so the packet matches the actual reviewed commit and no longer describes command-layer code changes.
-- Kept the change limited to handoff metadata alignment.
-- This commit does not touch `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `tests/unit/test_command_catalog.py`, or `tests/unit/test_diff_preview.py`.
+- Updated `canonical_command()` in `src/qual/commands/catalog.py` so unknown canonical names now return the normalized token when no catalog spec matches.
+- Kept the change limited to command-layer canonicalization behavior in `src/qual/commands/catalog.py`.
+- The reviewed commit stays within lane-owned `src/qual/commands/**` and does not touch shared/integrator-locked files.
 
 ## Kickoff budget/limits compliance
-- Treated this as a metadata-only packet correction thread within lane-owned paths.
-- The reviewed commit delta contains one file: `THREAD_PACKET.md`.
+- Treated this as a small command-layer hardening thread within lane-owned paths.
+- The reviewed commit delta contains one file: `src/qual/commands/catalog.py`.
 
 ## Tasks completed (numbered)
-1. Confirmed the reviewed delta is the metadata-only update in `THREAD_PACKET.md`.
-2. Rewrote the packet so scope, completion notes, and file list match the actual branch state.
-3. Removed all claims that command implementation or test files changed in this commit.
-4. Marked roadmap and vision impact as none because this commit only aligns handoff metadata.
-5. Prepared the packet for re-review on the actual `ddc5f...` branch head.
+1. Updated `canonical_command()` in `src/qual/commands/catalog.py` so unknown canonical names return the normalized token instead of the raw stripped input.
+2. Kept the reviewed change limited to command-layer catalog normalization in `src/qual/commands/catalog.py`.
+3. Mapped the change to `ROADMAP.md` Milestone 1 command-layer hardening and the `PRODUCT_VISION.md` operator-first control surface.
+4. Confirmed the reviewed commit does not touch shared/integrator-locked files.
+5. Ran the required local gates against the final branch state.
 
 ## Files changed for reviewed commit
-- `THREAD_PACKET.md`
+- `src/qual/commands/catalog.py`
 
 ## Commands run and outcomes
-- Validation date: `2026-03-20`
-- `make scope-check`: not run yet
-- `./quality-format.sh --check`: not run yet
-- `./quality-lint.sh`: not run yet
-- `./quality-test.sh`: not run yet
-- `./typecheck-test.sh`: not run yet
-- `make ci`: not run yet
+- Validation date: `2026-03-21`
+- `make scope-check`: PASS
+- `./quality-format.sh --check`: PASS
+- `./quality-lint.sh`: PASS
+- `./quality-test.sh`: PASS
+- `./typecheck-test.sh`: PASS
+- `make ci`: PASS
 
 ## Risks / blockers
 - Risk: `LOW`
 - Blockers: none
-- Note: this change only aligns handoff metadata; it does not alter routing/provider behavior, command contract payloads, or command execution behavior.
+- Note: this change only adjusts unknown-name canonicalization; it does not alter routing/provider behavior or command contract payloads.
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- None. This is a packet-only alignment change and does not affect a product roadmap item.
+- Milestone 1: Bootstrap Flow Stabilization. The change sits in the command-layer hardening portion of the milestone.
 
 ### Vision capability affected
-- None. This is a metadata-only update.
+- Operator-first control surface. The canonicalization change improves CLI-side command handling and operator-facing command resolution.
 
 ### Routing/provider impact note
-- None. This change only affects the handoff packet, not provider routing or model configuration.
+- None. This change only affects command catalog discovery and lookup, not provider routing or model configuration.
 
 ### Command behavior note
-- No command behavior changes. The packet now accurately describes a metadata-only commit.
+- This affects CLI command normalization only. It does not change command contract behavior, diff-preview output, or command execution semantics.
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `NO`
-- Shared-file exception note: none. This submission only updates the handoff packet to match the reviewed metadata-only commit.
+- Shared-file exception note: none. The reviewed commit stays in lane-owned command code only.
 
 ## Review note
-- If the intent is to review the earlier command-layer work, point review at commit `4fe5bfad2b1fccdc5650d85494602987c4020b52` instead of this packet-only commit.
+- If the intent is to review diff-preview work, point review at the correct commit instead of this catalog-normalization commit.
