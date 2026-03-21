@@ -1228,7 +1228,25 @@ class A2UIContractTests(unittest.TestCase):
             }
         )
 
-        self.assertEqual(text.count("- Export (export_document)"), 1)
+        self.assertEqual(text.count("- Export (export_document; payload:"), 2)
+        self.assertIn('- Export (export_document; payload: {"format":"md"})', text)
+        self.assertIn('- Export (export_document; payload: {"format":"txt"})', text)
+
+    def test_terminal_renderer_shows_payloads_for_duplicate_action_labels(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+                "actions": [
+                    {"id": "export_document", "label": "Export", "payload": {"format": "md"}},
+                    {"id": "export_document", "label": "Export", "payload": {"format": "txt"}},
+                ],
+            }
+        )
+
+        self.assertIn('- Export (export_document; payload: {"format":"md"})', text)
+        self.assertIn('- Export (export_document; payload: {"format":"txt"})', text)
 
     def test_terminal_renderer_surfaces_action_variants(self) -> None:
         text = render_terminal_card(
@@ -1253,8 +1271,8 @@ class A2UIContractTests(unittest.TestCase):
             }
         )
 
-        self.assertIn("- Export (export_document; confirm: Approve)", text)
-        self.assertIn("- Export (export_document; policy-sensitive; payload:", text)
+        self.assertIn('- Export (export_document; confirm: Approve; payload: {"format":"md"})', text)
+        self.assertIn('- Export (export_document; policy-sensitive; payload: {"format":"txt"})', text)
 
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []

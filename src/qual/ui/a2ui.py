@@ -944,18 +944,16 @@ def _render_terminal_actions(actions: Any) -> list[str]:
         identity_counts[identity_key] = identity_counts.get(identity_key, 0) + 1
 
     lines: list[str] = []
-    rendered_identity: set[str] = set()
     for action in normalized_actions:
         label = action["label"]
         action_id = action["id"]
         identity_key = _canonical_json({"id": action_id, "label": label})
-        if identity_counts.get(identity_key, 0) > 1 and identity_key in rendered_identity:
+        if identity_counts.get(identity_key, 0) > 1:
             payload_preview = _render_payload_preview(action["payload"], max_payload_bytes=96)
             lines.append(
                 f"- {label} ({action_id}{_render_action_variant_suffix(action)}; payload: {payload_preview})"
             )
             continue
-        rendered_identity.add(identity_key)
         lines.append(f"- {label} ({action_id}{_render_action_variant_suffix(action)})")
     return lines
 
