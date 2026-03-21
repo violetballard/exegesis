@@ -365,8 +365,12 @@ class ContextSetStore:
     def _discard_payload_source(self, recovered_source: str | None) -> None:
         if recovered_source == "tmp":
             self._unlink_if_exists(self._tmp_path())
+        elif recovered_source == "backup_tmp":
+            self._unlink_if_exists(self._backup_tmp_path())
         elif recovered_source == "backup":
             self._unlink_if_exists(self._backup_path)
+        elif recovered_source == "seed_tmp":
+            self._unlink_if_exists(self._seed_tmp_path())
         elif recovered_source == "seed":
             self._unlink_if_exists(self._seed_state_path())
         else:
