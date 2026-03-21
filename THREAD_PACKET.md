@@ -18,8 +18,9 @@
 - Added regression coverage in `tests/unit/test_diff_preview.py` for the no-diff summary-only and fingerprint gating behavior.
 
 ## Kickoff budget/limits compliance
-- Stayed within the low-risk budget. The reviewed branch delta matches `git show --stat` for `a032bd4936d775be2e31941c3b982b520cbe7323`: `2 files changed, 15 insertions(+), 1 deletion(-)`.
+- Stayed within the low-risk budget. The reviewed branch delta remains confined to the lane-owned `diff_preview` command path plus focused regression coverage.
 - Submitted files:
+  - `THREAD_PACKET.md`
   - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_diff_preview.py`
 
@@ -29,6 +30,7 @@
 3. Reissued the feature handoff packet so every field matches the reviewed code delta.
 
 ## Files changed for reviewed branch delta
+- `THREAD_PACKET.md`
 - `src/qual/commands/diff_preview.py`
 - `tests/unit/test_diff_preview.py`
 
