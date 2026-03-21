@@ -541,6 +541,24 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertFalse(self.store._backup_path.with_name("context_basket.bak.corrupt.json").exists())
         self.assertFalse(self.store._seed_state_path().with_name("context_basket.seed.corrupt.json").exists())
 
+    def test_healthy_primary_load_clears_stale_seed_file(self) -> None:
+        self.store.save(ContextBasket(item_ids=["first"]))
+        self.store._seed_state_path().write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "item_ids": ["stale"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first"])
+        self.assertFalse(self.store._seed_state_path().exists())
+
     def test_healthy_primary_load_clears_stale_temporary_corrupt_markers(self) -> None:
         self.store.save(ContextBasket(item_ids=["first"]))
         self.store._tmp_path().with_name("context_basket.tmp.corrupt.json").write_text(

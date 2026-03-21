@@ -142,16 +142,11 @@ class ContextBasketStore:
                 backup_written = self._write_backup_payload(self._backup_payload(payload))
             else:
                 backup_written = self._write_backup()
-            self._clear_quarantine_file()
-            self._clear_temporary_files()
-            if backup_written:
-                self._unlink_if_exists(self._seed_state_path())
-            else:
+            self._clear_recovery_artifacts(preserve_seed=not backup_written)
+            if not backup_written:
                 self._write_seed(self._backup_payload(payload) if isinstance(payload, dict) else payload)
         else:
-            self._clear_quarantine_file()
-            self._clear_temporary_files()
-            self._unlink_if_exists(self._seed_state_path())
+            self._clear_recovery_artifacts()
         return basket
 
 
@@ -188,10 +183,7 @@ class ContextBasketStore:
                 self._write_seed(self._backup_payload(payload))
         elif not backup_written or not self._backup_path.exists():
             self._write_seed(self._backup_payload(payload))
-        self._clear_quarantine_file()
-        self._clear_temporary_files()
-        if self._backup_path.exists() and backup_written:
-            self._unlink_if_exists(self._seed_state_path())
+        self._clear_recovery_artifacts(preserve_seed=not (self._backup_path.exists() and backup_written))
 
     def clear(self) -> None:
         for path in (
@@ -245,6 +237,12 @@ class ContextBasketStore:
         self._unlink_if_exists(self._tmp_path())
         self._unlink_if_exists(self._backup_tmp_path())
         self._unlink_if_exists(self._seed_tmp_path())
+
+    def _clear_recovery_artifacts(self, preserve_seed: bool = False) -> None:
+        self._clear_quarantine_file()
+        self._clear_temporary_files()
+        if not preserve_seed:
+            self._unlink_if_exists(self._seed_state_path())
 
     def _corrupt_path_for(self, path: Path) -> Path:
         if path.name.endswith(".tmp"):
