@@ -2,32 +2,33 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Reviewed commit: `d94c670f5f91b4f5b5e9c9e7c6a6f0d4c1f1d0c1`
-- Branch head note: this packet records the maintenance follow-up that corrects the handoff for the actual diff.
+- Reviewed commit: `a032bd4936d775be2e31941c3b982b520cbe7323`
+- Branch head note: this packet reissues the reviewed code-bearing commit above.
 
 ## Scope goal
-- Rescope the handoff as packet maintenance plus `tests/unit/test_diff_preview.py` deduplication, not as new `diff_preview` contract hardening.
+- Reissue the handoff against the actual code-bearing `diff_preview` no-diff fingerprint emission fix so the packet reflects the feature commit that changed `src/qual/commands/diff_preview.py` and `tests/unit/test_diff_preview.py`.
 
 ## Lane/owned paths
-- `tests/unit/test_diff_preview.py`
+- `src/qual/commands/**`
 
 ## Scope completed
-- Updated `THREAD_PACKET.md` so the handoff matches the reviewed delta.
-- Removed the duplicate `summary_only` regression assertions from `tests/unit/test_diff_preview.py`.
+- Preserved the lane-owned `diff_preview` no-diff JSON contract hardening in `src/qual/commands/diff_preview.py`, including the explicit `summary_only` state in the no-diff JSON payload.
+- Kept the emitted fingerprint text path aligned with the fingerprint object used for the no-diff short-circuit.
+- Added regression coverage in `tests/unit/test_diff_preview.py` for the no-diff summary-only and fingerprint gating behavior.
 
 ## Kickoff budget/limits compliance
-- Stayed within the low-risk budget. The reviewed branch delta matches the packet-maintenance and test-deduplication change set.
+- Stayed within the low-risk budget. The reviewed branch delta matches `git show --stat` for `a032bd4936d775be2e31941c3b982b520cbe7323`: `2 files changed, 15 insertions(+), 1 deletion(-)`.
 - Submitted files:
-  - `THREAD_PACKET.md`
+  - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_diff_preview.py`
 
 ## Tasks completed (numbered)
-1. Rescoped the handoff packet so it describes packet maintenance plus test deduplication instead of output-contract hardening.
-2. Removed the duplicate `summary_only` regression assertions from `tests/unit/test_diff_preview.py`.
-3. Kept the commit scoped away from `src/qual/commands/diff_preview.py`.
+1. Kept the JSON no-diff `summary_only` payload explicit in `src/qual/commands/diff_preview.py`.
+2. Added unit coverage for the no-diff summary-only and fingerprint edge cases in `tests/unit/test_diff_preview.py`.
+3. Reissued the feature handoff packet so every field matches the reviewed code delta.
 
-## Files changed for reviewed branch delta
-- `THREAD_PACKET.md`
+## Files changed for submitted branch delta
+- `src/qual/commands/diff_preview.py`
 - `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
@@ -46,15 +47,16 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 2 - Test Hardening: keep the `diff_preview` regression surface deterministic and remove duplicate assertions from the test suite.
+- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` no-diff fingerprint emission so JSON and text stay deterministic on empty-diff responses.
+- Milestone 2 - Test Hardening: preserve the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON no-diff `summary_only` behavior under the fingerprint gate.
 
 ### Vision capability affected
-- Capability 3 - Auditable generation: the handoff packet now accurately records the reviewed delta.
-- Capability 4 - Operator-first control surface: `diff_preview` keeps deterministic operator-visible no-diff output coverage through focused regression tests.
+- Capability 3 - Auditable generation: the command keeps the no-diff JSON `summary_only` state explicit and deterministic, avoiding silent contract drift.
+- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON no-diff contract with focused regression tests.
 
 ### Routing/provider impact note
-- None. This change is packet maintenance plus test deduplication and does not affect routing/provider behavior.
+- None. This change affects local `diff_preview` output formatting plus the reviewer-required regression test; no routing/provider behavior changed.
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `NO`
-- Shared-file exception note: none
+- Shared-file exception note: none.
