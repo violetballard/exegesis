@@ -278,6 +278,12 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
         return _materialize_versioned_card(card, capabilities)
 
     # Safe fallback for unsupported specialized cards.
+    read_only_actions = _build_read_only_fallback_actions(
+        card,
+        card.get("actions"),
+        supported_actions=set(capabilities.actions_supported),
+        max_payload_bytes=capabilities.max_payload_bytes,
+    )
     fallback_card = {
         "type": GENERIC_CARD_TYPE,
         "title": f"Fallback view for {card_type or 'Unknown'}",
@@ -298,10 +304,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
                 "code": _render_payload_preview(card, max_payload_bytes=capabilities.max_payload_bytes),
             },
         ],
-        "actions": _filter_read_only_fallback_actions(
-            card.get("actions"),
-            supported_actions=set(capabilities.actions_supported),
-        ),
+        "actions": read_only_actions,
     }
     _validate_fallback_card(
         fallback_card,
@@ -365,15 +368,7 @@ def build_unknown_card(
     supported_action_set = _canonicalize_supported_actions(supported_actions)
     actions: list[dict[str, Any]] = []
     if FALLBACK_COPY_ACTION_ID in supported_action_set:
-        copy_action = _normalize_action(
-            {
-                "id": FALLBACK_COPY_ACTION_ID,
-                "label": "Copy JSON",
-                "payload": {"text": clipboard_preview},
-            },
-            supported_actions={FALLBACK_COPY_ACTION_ID},
-        )
-        actions.append(copy_action)
+        actions.append(_build_copy_to_clipboard_action(clipboard_preview))
     card = {
         "type": UNKNOWN_CARD_TYPE,
         "title": f"Unsupported card type: {type_name}",
@@ -563,6 +558,27 @@ def _filter_read_only_fallback_actions(actions: Any, *, supported_actions: set[s
     if FALLBACK_COPY_ACTION_ID not in supported_actions:
         return []
     return _filter_supported_actions(actions, supported_actions={FALLBACK_COPY_ACTION_ID})
+
+
+def _build_read_only_fallback_actions(
+    raw_card: dict[str, Any],
+    actions: Any,
+    *,
+    supported_actions: set[str],
+    max_payload_bytes: int,
+) -> list[dict[str, Any]]:
+    if FALLBACK_COPY_ACTION_ID not in supported_actions:
+        return []
+
+    filtered_actions = _filter_supported_actions(actions, supported_actions={FALLBACK_COPY_ACTION_ID})
+    if filtered_actions:
+        return filtered_actions
+
+    return [
+        _build_copy_to_clipboard_action(
+            _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes),
+        )
+    ]
 
 
 def _filter_supported_actions(actions: Any, *, supported_actions: set[str]) -> list[dict[str, Any]]:
@@ -781,6 +797,17 @@ def _render_payload_preview(
 
     prefix = rendered.encode("utf-8")[: budget - suffix_bytes].decode("utf-8", errors="ignore")
     return f"{prefix}{suffix}"
+
+
+def _build_copy_to_clipboard_action(text: str) -> dict[str, Any]:
+    return _normalize_action(
+        {
+            "id": FALLBACK_COPY_ACTION_ID,
+            "label": "Copy JSON",
+            "payload": {"text": text},
+        },
+        supported_actions={FALLBACK_COPY_ACTION_ID},
+    )
 
 
 def _sanitize_json_preview_value(value: Any, *, _seen_ids: set[int] | None = None) -> Any:
