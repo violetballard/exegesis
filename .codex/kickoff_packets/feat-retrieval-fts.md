@@ -9,7 +9,7 @@
 
 ## Scope completed
 
-Delivered behavior: `vault`, `collection:`, and `doc:` retrieval requests now route through `src/qual/retrieval/service.py` into the owned retrieval engine. `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred, and `section:` remains rejected until fallback support exists. This completed scope stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**` only, with an approved tooling exception for the packet-generation files.
+Delivered behavior: `vault`, `collection:`, and `doc:` retrieval requests now route through `src/qual/retrieval/service.py` into the owned retrieval engine. `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred, and `section:` remains rejected until fallback support exists. This completed scope stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**` only.
 
 ### Prior commit references (reference only)
 - `src/qual/engine/retrieval/__init__.py`
@@ -52,7 +52,5 @@ Delivered behavior: `vault`, `collection:`, and `doc:` retrieval requests now ro
 - Ownership note: this handoff stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`.
 
 ### Scope-check / ownership note
-- Non-retrieval tooling edits approved: `YES`
-
-### Approved exception note
-- `codex_packet_handoff/tools/planner.py`, `codex_packet_handoff/tools/emit_feature_packet.py`, and `src/qual/engine/tools/retrieval_tools.py` are explicitly approved exception files for this retrieval handoff.
+- No non-retrieval tooling edits are approved for this handoff.
+- No out-of-lane tooling files are included in this resubmission.
