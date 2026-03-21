@@ -164,6 +164,13 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["a2ui_version"], 1)
         self.assertEqual(card["actions"][0]["id"], "copy_to_clipboard")
 
+    def test_studio_unknown_card_omits_unavailable_clipboard_action(self) -> None:
+        caps = _capabilities(actions_supported=("apply_patch",))
+        payload = {"type": "QuestionsCard", "title": "Questions", "foo": "bar"}
+        card = studio_materialize_card(payload, caps)
+        self.assertEqual(card["type"], "UnknownCard")
+        self.assertEqual(card["actions"], [])
+
     def test_unknown_or_invalid_actions_are_filtered_client_side(self) -> None:
         caps = _capabilities(actions_supported=("apply_patch",))
         card = {

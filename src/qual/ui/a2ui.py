@@ -142,13 +142,18 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
     if card_type in set(capabilities.cards_supported):
         _validate_card_version(card)
         return _materialize_versioned_card(card, capabilities)
-    return build_unknown_card(card, max_payload_bytes=capabilities.max_payload_bytes)
+    return build_unknown_card(
+        card,
+        max_payload_bytes=capabilities.max_payload_bytes,
+        supported_actions=capabilities.actions_supported,
+    )
 
 
 def build_unknown_card(
     raw_card: dict[str, Any],
     *,
     max_payload_bytes: int | None = None,
+    supported_actions: tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
     type_name = str(raw_card.get("type", "<missing>"))
     nested_blocks = raw_card.get("blocks")
@@ -165,19 +170,23 @@ def build_unknown_card(
             "collapsed": True,
         }
     )
+    actions: list[dict[str, Any]] = []
+    supported_action_set = set(supported_actions) if supported_actions is not None else None
+    if supported_action_set is None or "copy_to_clipboard" in supported_action_set:
+        actions.append(
+            {
+                "id": "copy_to_clipboard",
+                "label": "Copy JSON",
+                "payload": {"text": _render_payload_preview(raw_card, max_payload_bytes=None)},
+            }
+        )
     return {
         "type": UNKNOWN_CARD_TYPE,
         "title": f"Unsupported card type: {type_name}",
         "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
         "a2ui_version": A2UI_VERSION,
         "blocks": blocks,
-        "actions": [
-            {
-                "id": "copy_to_clipboard",
-                "label": "Copy JSON",
-                "payload": {"text": _render_payload_preview(raw_card, max_payload_bytes=None)},
-            }
-        ],
+        "actions": actions,
     }
 
 
