@@ -1,0 +1,24 @@
+{
+  "scope_goal": "Reissue a commit-accurate handoff for the code-bearing context-storage recovery change.",
+  "tasks_completed": [
+    "Restored empty-recovery handling in src/qual/context/store.py and src/qual/context/set_store.py.",
+    "Reissued the handoff packet so the branch metadata matches reviewed commit 49857599eafa868c2b358bf2007d1d5160aedfda exactly."
+  ],
+  "risk": "LOW",
+  "roadmap_items": [
+    "Milestone 1 - Bootstrap Flow Stabilization: context storage recovery hardening."
+  ],
+  "vision_capabilities": [
+    "Capability 1 - Local-first state and identity.",
+    "Capability 3 - Auditable generation through deterministic recovery and rewrite behavior for persisted local state."
+  ],
+  "routing_provider_impact": "None",
+  "proposed_readme_patch": "",
+  "shared_file_exception": false,
+  "reporting_artifacts": [
+    ".codex/lane_meta/feat-context-storage.json",
+    "THREAD_PACKET.md"
+  ],
+  "kickoff_budget_note": "Handoff metadata aligned to the reviewed artifact 49857599eafa868c2b358bf2007d1d5160aedfda and its exact file list.",
+  "approved_exception_note": ""
+}
