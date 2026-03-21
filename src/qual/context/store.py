@@ -15,6 +15,7 @@ class ContextBasketStore:
     def __init__(self, root_dir: Path) -> None:
         self._path = root_dir / "context_basket.json"
         self._backup_path = root_dir / "context_basket.bak.json"
+        self._seed_path = root_dir / "context_basket.seed.json"
 
     def _corrupt_path(self) -> Path:
         return self._path.with_suffix(".corrupt.json")
@@ -22,12 +23,16 @@ class ContextBasketStore:
     def _tmp_path(self) -> Path:
         return self._path.with_suffix(".tmp")
 
+    def _seed_state_path(self) -> Path:
+        return self._seed_path
+
     def load(self) -> ContextBasket:
         primary_missing = not self._path.exists()
         backup_missing = not self._backup_path.exists()
         primary_payload = self._load_payload(self._path)
         tmp_payload = self._load_payload(self._tmp_path())
         backup_payload = self._load_payload(self._backup_path)
+        seed_payload = self._load_payload(self._seed_state_path())
 
         if primary_payload is not None:
             payload = primary_payload
@@ -40,6 +45,9 @@ class ContextBasketStore:
         elif backup_payload is not None:
             payload = backup_payload
             recovered_source = "backup"
+        elif seed_payload is not None:
+            payload = seed_payload
+            recovered_source = "seed"
         else:
             return ContextBasket()
 
@@ -85,17 +93,18 @@ class ContextBasketStore:
         if recovered_source is not None or should_rewrite:
             # Keep the backup aligned with the latest canonical basket whenever we
             # rewrite state during load, not only when we recover from tmp/backup.
-            refresh_backup = recovered_source is not None or should_rewrite
             self.save(
                 basket,
                 recovered_from=recovered_from,
-                refresh_backup=refresh_backup,
+                refresh_backup=True,
             )
         elif backup_payload is None or backup_missing or self._backup_needs_refresh(backup_payload, basket):
             self._write_backup()
             self._clear_quarantine_file()
+            self._unlink_if_exists(self._seed_state_path())
         else:
             self._clear_quarantine_file()
+            self._unlink_if_exists(self._seed_state_path())
         return basket
 
     def save(
@@ -120,12 +129,17 @@ class ContextBasketStore:
         tmp.replace(self._path)
         if refresh_backup:
             self._write_backup()
+        elif not self._backup_path.exists():
+            self._write_seed(payload)
         self._clear_quarantine_file()
+        if self._backup_path.exists():
+            self._unlink_if_exists(self._seed_state_path())
 
     def clear(self) -> None:
         for path in (
             self._path,
             self._backup_path,
+            self._seed_state_path(),
             self._tmp_path(),
             self._corrupt_path(),
         ):
@@ -141,6 +155,11 @@ class ContextBasketStore:
             return
         self._quarantine_path(self._backup_path)
 
+    def _quarantine_invalid_seed(self) -> None:
+        if not self._seed_state_path().exists():
+            return
+        self._quarantine_path(self._seed_state_path())
+
     def _quarantine_path(self, path: Path) -> None:
         corrupt = self._corrupt_path_for(path)
         self._unlink_if_exists(corrupt)
@@ -152,6 +171,7 @@ class ContextBasketStore:
     def _clear_quarantine_file(self) -> None:
         self._unlink_if_exists(self._corrupt_path())
         self._unlink_if_exists(self._corrupt_path_for(self._backup_path))
+        self._unlink_if_exists(self._corrupt_path_for(self._seed_state_path()))
 
     def _corrupt_path_for(self, path: Path) -> Path:
         if path.name.endswith(".tmp"):
@@ -165,6 +185,8 @@ class ContextBasketStore:
             self._unlink_if_exists(self._tmp_path())
         elif recovered_source == "backup":
             self._unlink_if_exists(self._backup_path)
+        elif recovered_source == "seed":
+            self._unlink_if_exists(self._seed_state_path())
         else:
             self._quarantine_invalid_file()
 
@@ -180,6 +202,8 @@ class ContextBasketStore:
                 self._unlink_if_exists(path)
             elif path == self._backup_path:
                 self._quarantine_invalid_backup()
+            elif path == self._seed_state_path():
+                self._quarantine_invalid_seed()
             return None
         if not self._is_loadable_payload(payload):
             if path == self._path:
@@ -188,6 +212,8 @@ class ContextBasketStore:
                 self._unlink_if_exists(path)
             elif path == self._backup_path:
                 self._quarantine_invalid_backup()
+            elif path == self._seed_state_path():
+                self._quarantine_invalid_seed()
             return None
         return payload
 
@@ -200,6 +226,15 @@ class ContextBasketStore:
         try:
             tmp.write_bytes(self._path.read_bytes())
             tmp.replace(self._backup_path)
+        except OSError:
+            self._unlink_if_exists(tmp)
+
+    def _write_seed(self, payload: dict[str, object] | list[object]) -> None:
+        seed = self._seed_state_path()
+        tmp = seed.with_suffix(".tmp")
+        try:
+            tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+            tmp.replace(seed)
         except OSError:
             self._unlink_if_exists(tmp)
 
@@ -270,7 +305,7 @@ class ContextBasketStore:
         if not isinstance(value, str):
             return None
         normalized = value.strip().lower()
-        if normalized in {"tmp", "backup"}:
+        if normalized in {"tmp", "backup", "seed"}:
             return normalized
         return None
 
