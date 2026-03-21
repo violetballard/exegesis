@@ -51,13 +51,13 @@ class ContextBasketStore:
             recovered_source = "tmp"
         elif backup_tmp_payload is not None:
             payload = backup_tmp_payload
-            recovered_source = "tmp"
+            recovered_source = "backup"
         elif backup_payload is not None:
             payload = backup_payload
             recovered_source = "backup"
         elif seed_tmp_payload is not None:
             payload = seed_tmp_payload
-            recovered_source = "tmp"
+            recovered_source = "seed"
         elif seed_payload is not None:
             payload = seed_payload
             recovered_source = "seed"
