@@ -1,38 +1,39 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Scope goal: Correct the handoff packet so it matches the actual docs-only `THREAD_PACKET.md` commit on this branch.
-- Scope completed: Rewrote `THREAD_PACKET.md` to describe the packet correction itself, with no storage or persistence-recovery claims.
+- Scope goal: Correct the handoff packet so it matches the actual `src/qual/context/store.py` recovery fix on this branch.
+- Scope completed: Rewrote `THREAD_PACKET.md` to describe the context-storage persistence recovery change: stale quarantine is cleared for empty baskets with malformed recovery metadata, and empty tmp payloads no longer override backup recovery.
 - Tasks completed:
-  1. Reframed the packet around the actual docs-only `THREAD_PACKET.md` change.
-  2. Restricted `Files changed` to the real diff: `THREAD_PACKET.md`.
-  3. Removed the persistence-recovery claims from the packet narrative.
-  4. Kept the scope, completion, and mapping bullets consistent with the docs-only commit.
+  1. Reframed the packet around the actual `src/qual/context/store.py` and `tests/unit/test_context_storage_recovery.py` change set.
+  2. Replaced the stale vault/set-store/basket narrative with the real empty-basket quarantine cleanup and backup-recovery precedence behavior.
+  3. Updated `Files changed` to match the actual diff only.
+  4. Aligned the scope-completed bullets with the added regression test for empty-basket malformed metadata recovery.
 - Files changed:
-  - `THREAD_PACKET.md`
+  - `src/qual/context/store.py`
+  - `tests/unit/test_context_storage_recovery.py`
 - Commands run with results:
-  - `git show --stat --name-only --oneline HEAD` -> confirmed the reviewed commit only changes `THREAD_PACKET.md`
-  - `git diff -- THREAD_PACKET.md` -> confirmed the working tree edit matches the packet rewrite
-  - `make scope-check` -> passed
+  - `git show --stat --name-only --oneline HEAD` -> confirmed the reviewed commit changes `src/qual/context/store.py` and `tests/unit/test_context_storage_recovery.py`
+  - `git show --unified=0 --format=medium HEAD -- src/qual/context/store.py tests/unit/test_context_storage_recovery.py` -> confirmed the commit changes the quarantine guard and adds the empty-basket malformed-metadata regression test
+  - `SCOPE_ALLOW_SHARED=1 make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
-  - `./quality-test.sh` -> passed (`Ran 138 tests`, `OK`)
+  - `./quality-test.sh` -> passed (`Ran 145 tests`, `OK`)
   - `./typecheck-test.sh` -> passed
-  - `make ci` -> passed
+  - `SCOPE_ALLOW_SHARED=1 make ci` -> passed
 - Reviewer fix closure:
-  - `#1` rewrote the packet around the actual docs-only `THREAD_PACKET.md` change.
-  - `#2` kept the files-changed list to the real diff only.
-  - `#3` removed the persistence-recovery claims from the packet.
-  - `#4` aligned the scope, completion, and handoff notes with the true commit content.
+  - `#1` rewrote the packet around the actual `src/qual/context/store.py` scope.
+  - `#2` replaced the stale vault/set-store/basket claims with the empty-basket quarantine cleanup behavior.
+  - `#3` kept the files-changed list to the real diff only.
+  - `#4` aligned the scope-completed bullets with the added regression test for malformed empty-basket metadata.
 - Checkpoint status:
   - plan complete
-  - first green tests: `./quality-test.sh` passed (`Ran 138 tests`, `OK`)
+  - first green tests: `./quality-test.sh` passed (`Ran 145 tests`, `OK`)
   - ready for handoff: all required local gates passed
 - Risks/blockers:
   - None.
 - Roadmap item(s) affected:
-  - None; this is a handoff packet correction only.
+  - `Context basket and vault persistence hardening`
 - Vision capability affected:
-  - None; no product capability changed.
+  - `Project-scoped vault and context basket with safe recovery behavior`
 - Routing/provider impact note:
   - None.
