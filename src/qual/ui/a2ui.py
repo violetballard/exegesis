@@ -560,6 +560,7 @@ def _render_terminal_actions(actions: Any) -> list[str]:
     if not isinstance(actions, list):
         return []
     lines: list[str] = []
+    seen: set[str] = set()
     for action in actions:
         if not isinstance(action, dict):
             continue
@@ -567,6 +568,15 @@ def _render_terminal_actions(actions: Any) -> list[str]:
             validate_action_ref(action)
         except ValueError:
             continue
+        action_key = _canonical_json(
+            {
+                "id": str(action["id"]).strip(),
+                "label": str(action["label"]).strip(),
+            }
+        )
+        if action_key in seen:
+            continue
+        seen.add(action_key)
         label = str(action["label"]).strip()
         action_id = str(action["id"]).strip()
         lines.append(f"- {label} ({action_id})")

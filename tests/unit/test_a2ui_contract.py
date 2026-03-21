@@ -880,6 +880,22 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("- Export (export_document)", text)
         self.assertEqual(text.count("- Export (export_document)"), 1)
 
+    def test_terminal_renderer_deduplicates_visible_action_affordances(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+                "actions": [
+                    {"id": "export_document", "label": "Export", "payload": {"format": "md"}},
+                    {"id": "export_document", "label": "Export", "payload": {"format": "md"}},
+                    {"id": "export_document", "label": "Export", "payload": {"format": "txt"}},
+                ],
+            }
+        )
+
+        self.assertEqual(text.count("- Export (export_document)"), 1)
+
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []
         action = ActionRef(
