@@ -12,7 +12,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from codex_mcp_client import ApprovalPolicy, CodexMcpClient
+try:
+    from codex_mcp_client import ApprovalPolicy, CodexMcpClient
+except ImportError:  # pragma: no cover - test/import fallback for package execution
+    from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
 
 PACKETS_ROOT = Path(".codex/packets/lanes")
 ROUTER_ROOT = Path(".codex/packet_router")
@@ -32,6 +35,10 @@ VERDICT_ONLY_RE = re.compile(
 INVALID_REVIEWER_RE = re.compile(r"session not found for thread_id|thread not found", re.IGNORECASE)
 REVIEWER_QUOTA_RE = re.compile(
     r"usage limit|quota exceeded|rate limit|too many requests|try again at",
+    re.IGNORECASE,
+)
+RETRY_LIMIT_WRAPPER_RE = re.compile(
+    r"exceeded retry limit|retry limit reached",
     re.IGNORECASE,
 )
 PACKET_SHA_RE = re.compile(r"__(?P<sha>[0-9a-f]{7,40})__")
@@ -279,6 +286,8 @@ def _apply_quota_text_safeguard(
     default_seconds: Optional[float] = None,
 ) -> Dict[str, Any]:
     if not text or not REVIEWER_QUOTA_RE.search(text):
+        return state
+    if RETRY_LIMIT_WRAPPER_RE.search(text):
         return state
     retry_at = _quota_retry_epoch(cfg, text, default_seconds=default_seconds)
     return _switch_to_local_fallback(cfg, state, reason, retry_at)
@@ -1075,7 +1084,7 @@ def process_reviewer_backlog(
                 text = latest_log.read_text(errors="ignore")
             except Exception:
                 text = ""
-            if text and FIXER_QUOTA_RE.search(text):
+            if text and FIXER_QUOTA_RE.search(text) and not RETRY_LIMIT_WRAPPER_RE.search(text):
                 retry_at = _quota_retry_epoch(
                     cfg,
                     text,
