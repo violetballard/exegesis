@@ -1603,6 +1603,20 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertIn("Actions: none available", text)
 
+    def test_terminal_renderer_reports_malformed_actions_container(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Fallback",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+                "actions": {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+            }
+        )
+
+        self.assertIn("Actions: none available", text)
+        self.assertIn("Actions filtered out by allowlist or validation", text)
+        self.assertNotIn("- Apply (apply_patch)", text)
+
     def test_terminal_renderer_reports_filtered_out_actions(self) -> None:
         text = render_terminal_card(
             {
