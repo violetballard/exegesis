@@ -79,6 +79,30 @@ class A2UIContractTests(unittest.TestCase):
                 ),
             )
 
+    def test_session_store_rejects_future_a2ui_version(self) -> None:
+        store = A2UISessionStore()
+        with self.assertRaises(ValueError):
+            store.register(
+                "sess-3",
+                A2UICapabilities(
+                    a2ui_version=2,
+                    client_name="Exegesis Studio",
+                    cards_supported=("RunLogCard",),
+                    primitive_blocks_supported=(
+                        "MarkdownBlock",
+                        "KeyValueBlock",
+                        "ListBlock",
+                        "TableBlock",
+                        "AlertBlock",
+                        "ProgressBlock",
+                        "CodeBlock",
+                    ),
+                    actions_supported=("apply_patch",),
+                    max_payload_bytes=1_000_000,
+                    supports_streaming=True,
+                ),
+            )
+
     def test_engine_falls_back_to_generic_for_unsupported_specialized_card(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
         payload = {"type": "ProposedEditCard", "title": "Patch"}

@@ -88,7 +88,7 @@ class A2UISessionStore:
 
 
 def validate_capabilities(capabilities: A2UICapabilities) -> None:
-    if capabilities.a2ui_version < 1:
+    if capabilities.a2ui_version != A2UI_VERSION:
         raise ValueError("Unsupported a2ui version")
     if not capabilities.client_name.strip():
         raise ValueError("client_name is required")
