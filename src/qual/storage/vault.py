@@ -52,7 +52,11 @@ class VaultService:
         if "recovered_from" in raw_state:
             if normalized_recovered_from is None:
                 needs_rewrite = True
-            elif raw_state.get("recovered_from") != normalized_recovered_from:
+            elif primary_missing:
+                if raw_state.get("recovered_from") != normalized_recovered_from:
+                    needs_rewrite = True
+            elif not needs_rewrite:
+                normalized_recovered_from = None
                 needs_rewrite = True
         if not has_is_locked or self._requires_safe_lock(raw_state, safe_project_name):
             # If metadata does not match directory identity, prefer a safe default.

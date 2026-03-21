@@ -109,7 +109,11 @@ class ContextBasketStore:
                 normalized_recovered_from = self._parse_recovered_from(payload.get("recovered_from"))
                 if normalized_recovered_from is None:
                     should_rewrite = True
-                elif payload.get("recovered_from") != normalized_recovered_from:
+                elif primary_missing:
+                    if payload.get("recovered_from") != normalized_recovered_from:
+                        should_rewrite = True
+                elif not should_rewrite:
+                    normalized_recovered_from = None
                     should_rewrite = True
         else:
             self._discard_payload_source(recovered_source)
