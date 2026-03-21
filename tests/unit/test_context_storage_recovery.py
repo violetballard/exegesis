@@ -1092,6 +1092,48 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["backup"])
 
+    def test_primary_missing_context_sets_recovers_from_backup_before_empty_rewrite(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "recovered_from": "manual",
+                }
+            ),
+            encoding="utf-8",
+        )
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "context_sets": [
+                        {
+                            "context_set_id": "set-1",
+                            "name": "Evidence",
+                            "item_ids": ["first", "second"],
+                            "created_at": "2026-03-20T11:00:00+00:00",
+                            "updated_at": "2026-03-20T12:00:00+00:00",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, "set-1")
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("context_sets")[0]["item_ids"], ["first", "second"])
+        self.assertEqual(primary_payload.get("recovered_from"), "backup")
+        self.assertEqual(backup_payload.get("context_sets")[0]["item_ids"], ["first", "second"])
+        self.assertNotIn("recovered_from", backup_payload)
+
 
 class VaultRecoveryTests(unittest.TestCase):
     def setUp(self) -> None:

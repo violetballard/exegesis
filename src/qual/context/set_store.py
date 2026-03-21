@@ -208,7 +208,7 @@ class ContextSetStore:
             return []
 
         recovered_from = self._recovery_marker(
-            primary_unavailable=primary_missing or primary_payload is None,
+            primary_unavailable=primary_missing or primary_payload is None or recovered_source is not None,
             recovered_source=recovered_source,
         ) or normalized_recovered_from
         if recovered_source is not None or should_rewrite:
