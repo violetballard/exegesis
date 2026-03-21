@@ -103,7 +103,7 @@ def read_lane_meta(lane: str) -> Json:
 
 def validate_meta(meta: Json) -> List[str]:
     missing=[]
-    for k in ("tasks_completed","risk","roadmap_items","vision_capabilities","routing_provider_impact"):
+    for k in ("tasks_completed","risk","roadmap_items","vision_capabilities","routing_provider_impact","scope_completed"):
         if k not in meta: missing.append(k); continue
         v=meta[k]
         if isinstance(v,list) and len(v)==0: missing.append(k)
