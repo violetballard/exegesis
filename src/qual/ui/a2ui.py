@@ -13,6 +13,7 @@ DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES = 8_192
 FALLBACK_COPY_ACTION_ID = "copy_to_clipboard"
 GENERIC_FALLBACK_SUBTITLE = "Rendered as GenericCard because client does not support this specialized card."
 UNKNOWN_FALLBACK_SUBTITLE = "Read-only fallback view with safe primitive blocks and raw JSON preview."
+GENERIC_FALLBACK_TITLE_PREFIX = "Fallback view for "
 _RESERVED_CARD_TYPES: tuple[str, ...] = (GENERIC_CARD_TYPE, UNKNOWN_CARD_TYPE)
 _SPECIALIZED_CARD_TYPES: tuple[str, ...] = (
     "ProposedEditCard",
@@ -566,23 +567,32 @@ def execute_action_with_policy_gate(
 def render_terminal_card(card: dict[str, Any]) -> str:
     title = _normalize_card_title(card)
     card_type = _normalize_card_type(card)
+    generic_fallback_source = _infer_generic_fallback_source(title)
     lines = [f"[{card_type}] {title}"]
     subtitle = card.get("subtitle")
     if card_type == UNKNOWN_CARD_TYPE:
         lines.append(UNKNOWN_FALLBACK_SUBTITLE)
-    elif card_type == GENERIC_CARD_TYPE and _is_fallback_card_debug(card.get("debug")):
+    elif card_type == GENERIC_CARD_TYPE and (
+        _is_fallback_card_debug(card.get("debug")) or generic_fallback_source is not None
+    ):
         lines.append(GENERIC_FALLBACK_SUBTITLE)
     elif isinstance(subtitle, str) and subtitle.strip():
         lines.append(subtitle.strip())
     version = card.get("a2ui_version")
     if type(version) is int:
         lines.append(f"A2UI v{version}")
-    rendered_fallback = _render_terminal_fallback_notice(card.get("debug"))
-    if not rendered_fallback and card_type == UNKNOWN_CARD_TYPE:
-        rendered_fallback = ["Fallback: unknown card"]
+    rendered_fallback = _render_terminal_fallback_notice(
+        card_type,
+        title,
+        debug=card.get("debug"),
+    )
     if rendered_fallback:
         lines.extend(rendered_fallback)
-    rendered_policy = _render_terminal_action_policy(card_type, card.get("debug"))
+    rendered_policy = _render_terminal_action_policy(
+        card_type,
+        title,
+        debug=card.get("debug"),
+    )
     if rendered_policy:
         lines.extend(rendered_policy)
     rendered_debug = _render_terminal_debug(card.get("debug"))
@@ -1038,8 +1048,15 @@ def _render_terminal_debug(debug: Any) -> list[str]:
     return lines
 
 
-def _render_terminal_fallback_notice(debug: Any) -> list[str]:
+def _render_terminal_fallback_notice(card_type: str, title: str, *, debug: Any) -> list[str]:
     if not isinstance(debug, dict):
+        if card_type == UNKNOWN_CARD_TYPE:
+            return ["Fallback: unknown card"]
+        if card_type == GENERIC_CARD_TYPE:
+            source_card_type = _infer_generic_fallback_source(title)
+            if source_card_type is not None:
+                return [f"Fallback: generic from {source_card_type}"]
+            return ["Fallback: generic card"]
         return []
     fallback_kind = debug.get("fallback_kind")
     source_card_type = debug.get("source_card_type")
@@ -1050,10 +1067,12 @@ def _render_terminal_fallback_notice(debug: Any) -> list[str]:
     return [f"Fallback: {fallback_kind.strip()} from {source_card_type.strip()}"]
 
 
-def _render_terminal_action_policy(card_type: str, debug: Any) -> list[str]:
+def _render_terminal_action_policy(card_type: str, title: str, debug: Any) -> list[str]:
     if card_type == UNKNOWN_CARD_TYPE:
         return ["Action policy: copy_to_clipboard_only"]
-    if card_type == GENERIC_CARD_TYPE and _is_fallback_card_debug(debug):
+    if card_type == GENERIC_CARD_TYPE and (
+        _is_fallback_card_debug(debug) or _infer_generic_fallback_source(title) is not None
+    ):
         return ["Action policy: client_allowlist"]
     return []
 
@@ -1066,6 +1085,13 @@ def _is_fallback_card_debug(debug: Any) -> bool:
     return isinstance(fallback_kind, str) and fallback_kind.strip() in {"generic", "unknown"} and isinstance(
         source_card_type, str
     )
+
+
+def _infer_generic_fallback_source(title: str) -> str | None:
+    if not title.startswith(GENERIC_FALLBACK_TITLE_PREFIX):
+        return None
+    source_card_type = title[len(GENERIC_FALLBACK_TITLE_PREFIX) :].strip()
+    return source_card_type or None
 
 
 def _iter_card_entries(entries: Any) -> list[Any]:
