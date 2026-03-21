@@ -1,11 +1,15 @@
 """Command handlers for scaffold CLI."""
 
 from src.qual.commands.catalog import (
+    CommandCatalogEntry,
     CommandSpec,
     canonical_command,
+    command_catalog_entries,
+    command_catalog_entries_for_role,
     command_aliases,
     command_lookup_names,
     command_mvp_flow_names,
+    command_mvp_flow_entries,
     command_mvp_flow_lookup_names,
     command_mvp_flow_specs,
     command_mvp_role,
@@ -19,11 +23,15 @@ from src.qual.commands.catalog import (
 )
 
 __all__ = [
+    "CommandCatalogEntry",
     "CommandSpec",
     "canonical_command",
+    "command_catalog_entries",
+    "command_catalog_entries_for_role",
     "command_aliases",
     "command_lookup_names",
     "command_mvp_flow_names",
+    "command_mvp_flow_entries",
     "command_mvp_flow_lookup_names",
     "command_mvp_flow_specs",
     "command_mvp_role",

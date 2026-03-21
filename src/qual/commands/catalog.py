@@ -12,6 +12,16 @@ class CommandSpec:
     mvp_role: str = ""
 
 
+@dataclass(frozen=True)
+class CommandCatalogEntry:
+    name: str
+    aliases: tuple[str, ...]
+    description: str
+    mvp_role: str
+    lookup_names: tuple[str, ...]
+    in_mvp_flow: bool = False
+
+
 def _normalize_token(value: str) -> str:
     # Collapse common shell separators so aliases stay stable across caller styles.
     return re.sub(r"[-_\s]+", "-", value.strip().casefold())
@@ -87,6 +97,33 @@ def command_names() -> tuple[str, ...]:
 
 def command_specs() -> tuple[CommandSpec, ...]:
     return COMMAND_SPECS
+
+
+def _build_command_catalog_entry(spec: CommandSpec, *, in_mvp_flow: bool) -> CommandCatalogEntry:
+    return CommandCatalogEntry(
+        name=spec.name,
+        aliases=spec.aliases,
+        description=spec.description,
+        mvp_role=spec.mvp_role,
+        lookup_names=_lookup_names_for_specs((spec,)),
+        in_mvp_flow=in_mvp_flow,
+    )
+
+
+def command_catalog_entries() -> tuple[CommandCatalogEntry, ...]:
+    flow_names = set(command_mvp_flow_names())
+    return tuple(
+        _build_command_catalog_entry(spec, in_mvp_flow=spec.name in flow_names)
+        for spec in COMMAND_SPECS
+    )
+
+
+def command_catalog_entries_for_role(mvp_role: str) -> tuple[CommandCatalogEntry, ...]:
+    flow_names = set(command_mvp_flow_names())
+    return tuple(
+        _build_command_catalog_entry(spec, in_mvp_flow=spec.name in flow_names)
+        for spec in command_specs_for_role(mvp_role)
+    )
 
 
 def _lookup_names_for_specs(specs: tuple[CommandSpec, ...]) -> tuple[str, ...]:
@@ -174,6 +211,14 @@ def command_mvp_flow_names() -> tuple[str, ...]:
 
 def command_mvp_flow_lookup_names() -> tuple[str, ...]:
     return _lookup_names_for_specs(_MVP_FLOW_SPECS)
+
+
+def command_mvp_flow_entries() -> tuple[CommandCatalogEntry, ...]:
+    flow_names = set(command_mvp_flow_names())
+    return tuple(
+        _build_command_catalog_entry(spec, in_mvp_flow=spec.name in flow_names)
+        for spec in _MVP_FLOW_SPECS
+    )
 
 
 def canonical_command(name: str) -> str:
