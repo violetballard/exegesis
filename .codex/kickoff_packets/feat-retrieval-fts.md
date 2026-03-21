@@ -9,7 +9,7 @@
 
 ## Scope completed
 
-Delivered behavior: FTS-first retrieval is active for `vault`, `collection:`, and `doc:` scopes. `src/qual/retrieval/service.py` forwards those queries to the owned retrieval engine, `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, and `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred. `section:` remains rejected until fallback support exists. The handoff files are limited to `src/qual/retrieval/**` and `src/qual/engine/retrieval/**` only; no tooling or cross-lane files are included.
+Delivered behavior: FTS-first retrieval is active for `vault`, `collection:`, and `doc:` scopes. `src/qual/retrieval/service.py` forwards those queries to the owned retrieval engine, `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, and `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred. `section:` remains rejected until fallback support exists. The handoff is limited to `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`.
 
 ### Prior commit references (reference only)
 - `src/qual/engine/retrieval/__init__.py`
