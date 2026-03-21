@@ -173,7 +173,7 @@ class ContextSetStore:
         rewrite_empty_recovery = False
         normalized_recovered_from = None
         records: list[ContextSetRecord]
-        if self._is_empty_recovery_payload(payload):
+        if payload is not None and not self._has_context_set_records(payload):
             # Materialize empty canonical state when it is the only usable
             # payload, but do not invent recovery provenance.
             rewrite_empty_recovery = True
@@ -720,9 +720,6 @@ class ContextSetStore:
         if "context_sets" not in payload:
             return False
         return bool(self._parse_context_sets(payload.get("context_sets")))
-
-    def _is_empty_recovery_payload(self, payload: dict[str, object] | list[object] | None) -> bool:
-        return payload is not None and not self._has_context_set_records(payload)
 
     def _primary_context_sets_need_recovery(self, payload: dict[str, object] | list[object] | None) -> bool:
         if isinstance(payload, dict):
