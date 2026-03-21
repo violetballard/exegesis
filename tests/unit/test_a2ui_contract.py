@@ -430,6 +430,12 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["title"], "Unsupported card type: <missing>")
         self.assertEqual(card["debug"], {"fallback_kind": "unknown", "source_card_type": "<missing>"})
 
+    def test_studio_renders_unknown_card_for_non_string_type(self) -> None:
+        caps = _capabilities(cards_supported=("RunLogCard",))
+        card = studio_materialize_card({"type": 123, "title": "Questions", "foo": "bar"}, caps)
+        self.assertEqual(card["title"], "Unsupported card type: <missing>")
+        self.assertEqual(card["debug"], {"fallback_kind": "unknown", "source_card_type": "<missing>"})
+
     def test_unknown_card_sanitizes_safe_primitive_blocks(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
         payload = {
@@ -784,6 +790,20 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertIn("[GenericCard] Fallback", text)
         self.assertNotIn("Actions:", text)
+
+    def test_terminal_renderer_normalizes_missing_card_metadata(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": 123,
+                "title": None,
+                "blocks": [],
+                "actions": [],
+            }
+        )
+
+        self.assertIn("[<missing>] <untitled>", text)
+        self.assertNotIn("[123]", text)
+        self.assertNotIn("None", text)
 
     def test_terminal_renderer_ignores_bool_a2ui_version(self) -> None:
         text = render_terminal_card(

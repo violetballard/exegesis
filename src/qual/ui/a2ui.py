@@ -315,8 +315,8 @@ def execute_action_with_policy_gate(
 
 
 def render_terminal_card(card: dict[str, Any]) -> str:
-    title = str(card.get("title", "<untitled>"))
-    card_type = str(card.get("type", "Card"))
+    title = _normalize_card_title(card)
+    card_type = _normalize_card_type(card)
     lines = [f"[{card_type}] {title}"]
     subtitle = card.get("subtitle")
     if isinstance(subtitle, str) and subtitle.strip():
@@ -509,12 +509,18 @@ def _iter_card_entries(entries: Any) -> list[Any]:
 
 def _normalize_card_type(card: dict[str, Any]) -> str:
     raw_type = card.get("type")
-    if raw_type is None:
-        return "<missing>"
     if not isinstance(raw_type, str):
-        raw_type = str(raw_type)
+        return "<missing>"
     card_type = raw_type.strip()
     return card_type if card_type else "<missing>"
+
+
+def _normalize_card_title(card: dict[str, Any]) -> str:
+    raw_title = card.get("title")
+    if not isinstance(raw_title, str):
+        return "<untitled>"
+    title = raw_title.strip()
+    return title if title else "<untitled>"
 
 
 def _build_fallback_debug(source_card_type: str, *, fallback_kind: str) -> dict[str, str]:
