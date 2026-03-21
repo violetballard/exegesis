@@ -374,9 +374,7 @@ def build_unknown_card(
     supported_actions: tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
     type_name = _normalize_card_type(raw_card)
-    effective_max_payload_bytes = (
-        DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES if max_payload_bytes is None else max_payload_bytes
-    )
+    effective_max_payload_bytes = _normalize_preview_budget(max_payload_bytes)
     rendered_preview = _render_payload_preview(
         raw_card,
         max_payload_bytes=effective_max_payload_bytes,
@@ -1096,6 +1094,14 @@ def _build_fallback_debug(source_card_type: str, *, fallback_kind: str) -> dict[
         "fallback_kind": fallback_kind,
         "source_card_type": source_card_type,
     }
+
+
+def _normalize_preview_budget(max_payload_bytes: int | None) -> int:
+    if max_payload_bytes is None:
+        return DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES
+    if type(max_payload_bytes) is not int:
+        raise ValueError("max_payload_bytes must be an int or None")
+    return max_payload_bytes
 
 
 def _build_fallback_title(expected_type: str, *, source_card_type: str) -> str:
