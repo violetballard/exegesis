@@ -276,6 +276,9 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual([block["type"] for block in card["blocks"]], ["AlertBlock", "MarkdownBlock", "ListBlock", "CodeBlock"])
 
         text = render_terminal_card(card)
+        self.assertIn("Debug:", text)
+        self.assertIn("- fallback_kind: generic", text)
+        self.assertIn("- source_card_type: ProposedEditCard", text)
         self.assertIn("Safe content", text)
         self.assertIn("- alpha", text)
         self.assertNotIn("[unsupported block: ChartBlock]", text)
@@ -727,6 +730,9 @@ class A2UIContractTests(unittest.TestCase):
         self.assertLessEqual(len(unknown["actions"][0]["payload"]["text"].encode("utf-8")), 80)
         unknown_text = render_terminal_card(unknown)
         self.assertIn("[UnknownCard] Unsupported card type: FutureCard", unknown_text)
+        self.assertIn("Debug:", unknown_text)
+        self.assertIn("- fallback_kind: unknown", unknown_text)
+        self.assertIn("- source_card_type: FutureCard", unknown_text)
         self.assertIn("- Copy JSON (copy_to_clipboard)", unknown_text)
 
     def test_unknown_card_copy_payload_matches_preview_budget(self) -> None:

@@ -323,6 +323,10 @@ def render_terminal_card(card: dict[str, Any]) -> str:
     version = card.get("a2ui_version")
     if type(version) is int:
         lines.append(f"A2UI v{version}")
+    rendered_debug = _render_terminal_debug(card.get("debug"))
+    if rendered_debug:
+        lines.append("Debug:")
+        lines.extend(rendered_debug)
     for block in _iter_card_entries(card.get("blocks")):
         lines.extend(_render_terminal_block(block))
     rendered_actions = _render_terminal_actions(card.get("actions"))
@@ -476,6 +480,22 @@ def _render_terminal_actions(actions: Any) -> list[str]:
         label = str(action["label"]).strip()
         action_id = str(action["id"]).strip()
         lines.append(f"- {label} ({action_id})")
+    return lines
+
+
+def _render_terminal_debug(debug: Any) -> list[str]:
+    if not isinstance(debug, dict):
+        return []
+    lines: list[str] = []
+    for key in sorted(debug):
+        value = debug[key]
+        if isinstance(value, bool):
+            rendered_value = "true" if value else "false"
+        elif isinstance(value, (str, int)):
+            rendered_value = str(value)
+        else:
+            continue
+        lines.append(f"- {key}: {rendered_value}")
     return lines
 
 
