@@ -2,7 +2,7 @@
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`
-- Scope goal: Align the kickoff packet, lane metadata, and handoff packet with the reviewed docs-only commit so the lane record matches the actual diff.
+- Scope goal: Canonicalize FTS excerpt payloads in `src/qual/retrieval/service.py` so retrieval-backed fetches return stable payloads for downstream consumers.
 
 ### Priority outcomes
 1. Remove stale retrieval-implementation claims from the handoff artifacts.
