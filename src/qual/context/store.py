@@ -24,6 +24,7 @@ class ContextBasketStore:
 
     def load(self) -> ContextBasket:
         primary_missing = not self._path.exists()
+        backup_missing = not self._backup_path.exists()
         primary_payload = self._load_payload(self._path)
         tmp_payload = self._load_payload(self._tmp_path())
         backup_payload = self._load_payload(self._backup_path)
@@ -82,7 +83,7 @@ class ContextBasketStore:
                     recovered_from=recovered_from,
                     refresh_backup=refresh_backup,
                 )
-            elif self._backup_needs_refresh(backup_payload, basket):
+            elif backup_payload is None or backup_missing or self._backup_needs_refresh(backup_payload, basket):
                 self._write_backup()
                 self._clear_quarantine_file()
             else:
@@ -126,15 +127,31 @@ class ContextBasketStore:
     def _quarantine_invalid_file(self) -> None:
         if not self._path.exists():
             return
-        corrupt = self._corrupt_path()
+        self._quarantine_path(self._path)
+
+    def _quarantine_invalid_backup(self) -> None:
+        if not self._backup_path.exists():
+            return
+        self._quarantine_path(self._backup_path)
+
+    def _quarantine_path(self, path: Path) -> None:
+        corrupt = self._corrupt_path_for(path)
         self._unlink_if_exists(corrupt)
         try:
-            self._path.replace(corrupt)
+            path.replace(corrupt)
         except OSError:
             return
 
     def _clear_quarantine_file(self) -> None:
         self._unlink_if_exists(self._corrupt_path())
+        self._unlink_if_exists(self._corrupt_path_for(self._backup_path))
+
+    def _corrupt_path_for(self, path: Path) -> Path:
+        if path.name.endswith(".tmp"):
+            return path.with_name(f"{path.name}.corrupt.json")
+        if path.name.endswith(".json"):
+            return path.with_name(path.name[:-5] + ".corrupt.json")
+        return path.with_name(f"{path.name}.corrupt")
 
     def _discard_payload_source(self, recovered_source: str | None) -> None:
         if recovered_source == "tmp":
@@ -155,7 +172,7 @@ class ContextBasketStore:
             elif path == self._tmp_path():
                 self._unlink_if_exists(path)
             elif path == self._backup_path:
-                self._unlink_if_exists(path)
+                self._quarantine_invalid_backup()
             return None
         if not self._is_loadable_payload(payload):
             if path == self._path:
@@ -163,7 +180,7 @@ class ContextBasketStore:
             elif path == self._tmp_path():
                 self._unlink_if_exists(path)
             elif path == self._backup_path:
-                self._unlink_if_exists(path)
+                self._quarantine_invalid_backup()
             return None
         return payload
 

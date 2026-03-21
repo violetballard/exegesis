@@ -125,15 +125,32 @@ class VaultService:
         state_path = self._state_path(root_dir)
         if not state_path.exists():
             return
-        corrupt = self._corrupt_state_path(root_dir)
+        self._quarantine_path(state_path)
+
+    def _quarantine_invalid_backup(self, root_dir: Path) -> None:
+        backup_path = self._backup_state_path(root_dir)
+        if not backup_path.exists():
+            return
+        self._quarantine_path(backup_path)
+
+    def _quarantine_path(self, path: Path) -> None:
+        corrupt = self._corrupt_path_for(path)
         self._unlink_if_exists(corrupt)
         try:
-            state_path.replace(corrupt)
+            path.replace(corrupt)
         except OSError:
             return
 
     def _clear_quarantine_state(self, root_dir: Path) -> None:
         self._unlink_if_exists(self._corrupt_state_path(root_dir))
+        self._unlink_if_exists(self._corrupt_path_for(self._backup_state_path(root_dir)))
+
+    def _corrupt_path_for(self, path: Path) -> Path:
+        if path.name.endswith(".tmp"):
+            return path.with_name(f"{path.name}.corrupt.json")
+        if path.name.endswith(".json"):
+            return path.with_name(path.name[:-5] + ".corrupt.json")
+        return path.with_name(f"{path.name}.corrupt")
 
     def _load_payload(self, path: Path) -> dict[str, object] | None:
         if not path.exists():
@@ -146,7 +163,7 @@ class VaultService:
             elif path == self._tmp_state_path(path.parent):
                 self._unlink_if_exists(path)
             elif path == self._backup_state_path(path.parent):
-                self._unlink_if_exists(path)
+                self._quarantine_invalid_backup(path.parent)
             return None
         if not self._is_loadable_payload(payload):
             if path.name == _STATE_FILE:
@@ -154,7 +171,7 @@ class VaultService:
             elif path == self._tmp_state_path(path.parent):
                 self._unlink_if_exists(path)
             elif path == self._backup_state_path(path.parent):
-                self._unlink_if_exists(path)
+                self._quarantine_invalid_backup(path.parent)
             return None
         return payload
 
