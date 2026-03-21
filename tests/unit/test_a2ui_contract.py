@@ -367,6 +367,26 @@ class A2UIContractTests(unittest.TestCase):
         filtered = studio_materialize_card(card, caps)
         self.assertEqual(filtered["actions"], [])
 
+    def test_action_top_level_schema_rejects_extra_fields(self) -> None:
+        caps = _capabilities(actions_supported=("apply_patch",))
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
+            "actions": [
+                {
+                    "id": "apply_patch",
+                    "label": "Apply",
+                    "payload": {"patch_id": "p1"},
+                    "icon": "sparkle",
+                }
+            ],
+        }
+
+        filtered = studio_materialize_card(card, caps)
+
+        self.assertEqual(filtered["actions"], [])
+
     def test_filtered_actions_preserve_distinct_policy_and_confirm_variants(self) -> None:
         caps = _capabilities(actions_supported=("apply_patch",))
         card = {
@@ -414,6 +434,27 @@ class A2UIContractTests(unittest.TestCase):
                 },
             ],
         )
+
+    def test_terminal_renderer_skips_actions_with_extra_top_level_fields(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+                "actions": [
+                    {"id": "export_document", "label": "Export", "payload": {"format": "md"}},
+                    {
+                        "id": "export_document",
+                        "label": "Export",
+                        "payload": {"format": "md"},
+                        "icon": "sparkle",
+                    },
+                ],
+            }
+        )
+
+        self.assertIn("- Export (export_document)", text)
+        self.assertEqual(text.count("- Export (export_document)"), 1)
 
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []

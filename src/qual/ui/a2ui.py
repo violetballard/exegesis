@@ -364,6 +364,10 @@ def _materialize_versioned_card(card: dict[str, Any], capabilities: A2UICapabili
 def _normalize_action(action: Any, *, supported_actions: set[str]) -> dict[str, Any]:
     if not isinstance(action, dict):
         raise ValueError("ActionRef must be an object")
+    extra_keys = set(action) - {"id", "label", "payload", "confirm", "policy_sensitive"}
+    if extra_keys:
+        extras = ", ".join(sorted(extra_keys))
+        raise ValueError(f"Unexpected action field(s): {extras}")
     action_id = str(action.get("id", "")).strip()
     if action_id not in supported_actions:
         raise ValueError(f"Unsupported action id: {action_id}")
