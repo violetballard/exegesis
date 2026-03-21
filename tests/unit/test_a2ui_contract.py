@@ -650,6 +650,21 @@ class A2UIContractTests(unittest.TestCase):
                 }
             )
 
+    def test_unknown_card_validator_rejects_extra_fields(self) -> None:
+        with self.assertRaises(ValueError):
+            validate_unknown_card(
+                {
+                    "type": "UnknownCard",
+                    "title": "Unsupported card type: FutureCard",
+                    "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
+                    "a2ui_version": 1,
+                    "debug": {"fallback_kind": "unknown", "source_card_type": "FutureCard"},
+                    "blocks": [],
+                    "actions": [],
+                    "trace_id": "abc123",
+                }
+            )
+
     def test_engine_fallback_sanitizes_safe_primitive_blocks(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
         card = engine_prepare_card(

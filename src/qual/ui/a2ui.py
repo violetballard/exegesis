@@ -426,6 +426,10 @@ def _validate_fallback_card(
     expected_type: str,
     expected_fallback_kind: str,
 ) -> None:
+    extra_keys = set(card) - {"type", "title", "subtitle", "a2ui_version", "debug", "blocks", "actions"}
+    if extra_keys:
+        extras = ", ".join(sorted(extra_keys))
+        raise ValueError(f"Fallback card contains unexpected field(s): {extras}")
     if card.get("type") != expected_type:
         raise ValueError(f"Fallback card type must be {expected_type}")
     version = card.get("a2ui_version")
