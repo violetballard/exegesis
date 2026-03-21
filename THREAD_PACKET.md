@@ -2,21 +2,17 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Reviewed implementation commit: `2c16551a6b3576eb9031d55a98525c21e04be255`
-- Scope goal: Apply the reviewer-required packet fixes for the retrieval FTS MVP handoff by separating feature code files from handoff artifacts and documenting the `section:` compatibility boundary.
-- Scope completed: The retrieval FTS MVP work stays in retrieval-owned code paths, with FTS as the only active runtime strategy. `src/qual/engine/retrieval/pageindex_strategy.py` and `src/qual/engine/retrieval/embeddings_strategy.py` are not present in this worktree, so this cleanup does not change them; `pageindex` and `embeddings` remain deferred in `FTS_FIRST_POLICY.deferred_strategy_ids`, so they are not required runtime paths. The packet now lists handoff artifacts separately so the ownership boundary is explicit, and `section:` queries remain rejected as a compatibility safeguard until PageIndex can resolve concrete section targets.
+- Reviewed cleanup commit: `300bd4c7053b5fd221d6c87a1be98bf5b5f9bc74`
+- Scope goal: Apply the reviewer-required packet fixes for the retrieval FTS handoff metadata by clearly labeling the docs-only cleanup commit and keeping the reviewed file list aligned with the cleanup diff.
+- Scope completed: This handoff cleanup only updates packet metadata. It does not change retrieval runtime behavior, and it does not add or modify `src/qual/engine/retrieval/pageindex_strategy.py` or `src/qual/engine/retrieval/embeddings_strategy.py`; `pageindex` and `embeddings` remain deferred in `FTS_FIRST_POLICY.deferred_strategy_ids`, so they are not required runtime paths. The packet now separates the feature implementation history from the docs-only cleanup and keeps the `section:` compatibility note explicit.
 - Tasks completed:
-  1. Split `Files changed` into feature code files and handoff artifacts so the ownership boundary is explicit.
-  2. Added an explicit compatibility note for the `section:` rejection behavior so the packet does not imply a broader retrieval-contract change.
-  3. Kept the lane metadata aligned with the packet wording and the retrieval MVP scope.
+  1. Labeled the reviewed commit as docs-only cleanup instead of implying a retrieval code change.
+  2. Replaced the feature-code file list with the actual handoff artifact diff so the reviewed files match the commit.
+  3. Added a standalone scope-completed summary that separates the retrieval implementation history from the metadata cleanup.
 - Files changed:
-  - Feature code files:
-    - `src/qual/retrieval/__init__.py`
-    - `src/qual/retrieval/service.py`
-    - `tests/unit/test_unified_retrieval.py`
-  - Handoff artifacts:
-    - `.codex/kickoff_packets/feat-retrieval-fts.md`
-    - `.codex/lane_meta/feat-retrieval-fts.json`
-    - `THREAD_PACKET.md`
+  - `.codex/kickoff_packets/feat-retrieval-fts.md`
+  - `.codex/lane_meta/feat-retrieval-fts.json`
+  - `THREAD_PACKET.md`
 - Commands run with results:
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -25,14 +21,15 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - Reviewer fix closure:
-  - `#1` separated the feature code files from the handoff artifacts instead of describing the whole change set as if it lived only in retrieval-owned paths.
-  - `#2` added a compatibility note for `section:` rejection so the packet stays aligned with the current retrieval contract.
+  - `#1` labeled the reviewed commit as metadata-only cleanup and kept the packet pointed at the real retrieval implementation history.
+  - `#2` added a standalone scope-completed summary so the handoff includes the required outcome field.
+  - `#3` removed the false feature-code file claims so the file list matches the docs-only diff.
 - Checkpoint status:
   - plan complete
   - first green tests: `./quality-test.sh` passed
   - ready for handoff: all required local gates passed in this cleanup pass
 - Risks/blockers:
-  - No blockers. The packet wording is now explicit about the ownership boundary and the `section:` fallback behavior.
+  - No blockers. The packet wording is now explicit about the docs-only cleanup boundary and the `section:` fallback behavior.
 - Compatibility note:
   - `section:` queries remain rejected until PageIndex can resolve concrete section targets.
   - `src/qual/engine/retrieval/pageindex_strategy.py` and `src/qual/engine/retrieval/embeddings_strategy.py` are not present in this worktree, so no cleanup changes were made there.

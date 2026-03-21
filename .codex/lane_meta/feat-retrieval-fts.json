@@ -1,6 +1,6 @@
 {
   "approved_exception_note": "",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, retrieval-owned code files plus handoff artifacts, no shared or integrator-locked edits, and required local gates rerun before handoff.",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, handoff-artifact-only cleanup, no shared or integrator-locked edits, and required local gates rerun before handoff.",
   "implementation_commit": "2c16551a6b3576eb9031d55a98525c21e04be255",
   "proposed_readme_patch": "",
   "risk": "LOW",
@@ -11,13 +11,13 @@
     "Milestone 2: Test Hardening -> Add focused unit coverage for core behaviors"
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The retrieval FTS MVP work stays in retrieval-owned code paths, with FTS as the only active runtime strategy. `src/qual/engine/retrieval/pageindex_strategy.py` and `src/qual/engine/retrieval/embeddings_strategy.py` are not present in this worktree, so this cleanup does not change them; `pageindex` and `embeddings` remain deferred in `FTS_FIRST_POLICY.deferred_strategy_ids`, so they are not required runtime paths. The packet now lists handoff artifacts separately so the ownership boundary is explicit, and `section:` queries remain rejected as a compatibility safeguard until PageIndex can resolve concrete section targets.",
-  "scope_goal": "Apply the reviewer-required packet fixes for the retrieval FTS MVP handoff by separating feature code files from handoff artifacts and documenting the `section:` compatibility boundary.",
+  "scope_completed": "This cleanup only updates packet metadata. It does not change retrieval runtime behavior, and it does not add or modify `src/qual/engine/retrieval/pageindex_strategy.py` or `src/qual/engine/retrieval/embeddings_strategy.py`; `pageindex` and `embeddings` remain deferred in `FTS_FIRST_POLICY.deferred_strategy_ids`, so they are not required runtime paths. The packet now separates the implementation history from the docs-only cleanup and keeps the `section:` compatibility note explicit.",
+  "scope_goal": "Apply the reviewer-required packet fixes for the retrieval FTS handoff metadata by clearly labeling the docs-only cleanup commit and keeping the reviewed file list aligned with the cleanup diff.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Split the packet's file listing into feature code files and handoff artifacts so the ownership boundary is explicit.",
-    "Added an explicit compatibility note for `section:` rejection so the packet does not imply a broader retrieval-contract change.",
-    "Kept the lane metadata aligned with the packet wording and the retrieval MVP scope."
+    "Labeled the reviewed commit as docs-only cleanup instead of implying a retrieval code change.",
+    "Replaced the feature-code file list with the actual handoff artifact diff so the reviewed files match the commit.",
+    "Added a standalone scope-completed summary that separates the retrieval implementation history from the metadata cleanup."
   ],
   "vision_capabilities": [
     "2. Retrieval-first context handling",
