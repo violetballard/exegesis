@@ -411,8 +411,8 @@ def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) 
     if not isinstance(title, str) or not title.strip():
         raise ValueError("GenericCard title is required")
     subtitle = card.get("subtitle")
-    if subtitle is not None and (not isinstance(subtitle, str) or not subtitle.strip()):
-        raise ValueError("GenericCard subtitle must be a non-empty string when provided")
+    if subtitle is not None and not isinstance(subtitle, str):
+        raise ValueError("GenericCard subtitle must be a string when provided")
     blocks = card.get("blocks")
     if strict_actions:
         if not isinstance(blocks, list):

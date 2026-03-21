@@ -822,6 +822,17 @@ class A2UIContractTests(unittest.TestCase):
             [{"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "hello"}}],
         )
 
+    def test_generic_card_validator_allows_blank_subtitle(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "subtitle": "   ",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Kept"}],
+            "actions": [],
+        }
+
+        validate_generic_card(card)
+
     def test_engine_materializes_supported_card_with_sanitized_blocks(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",), actions_supported=("apply_patch",))
         card = engine_prepare_card(
