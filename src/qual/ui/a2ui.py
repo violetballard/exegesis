@@ -359,7 +359,6 @@ def build_unknown_card(
         max_payload_bytes=effective_max_payload_bytes,
         pretty=True,
     )
-    clipboard_preview = _render_payload_preview(raw_card, max_payload_bytes=effective_max_payload_bytes)
     blocks = _extract_safe_primitive_blocks(raw_card)
     blocks.append(
         {
@@ -369,10 +368,11 @@ def build_unknown_card(
             "collapsed": True,
         }
     )
-    supported_action_set = _canonicalize_supported_actions(supported_actions)
-    actions: list[dict[str, Any]] = []
-    if FALLBACK_COPY_ACTION_ID in supported_action_set:
-        actions.append(_build_copy_to_clipboard_action(clipboard_preview))
+    actions = _build_unknown_card_actions(
+        raw_card,
+        supported_actions=supported_actions,
+        max_payload_bytes=effective_max_payload_bytes,
+    )
     card = {
         "type": UNKNOWN_CARD_TYPE,
         "title": _build_fallback_title(UNKNOWN_CARD_TYPE, source_card_type=type_name),
@@ -587,6 +587,21 @@ def _filter_read_only_fallback_actions(
     return [_build_copy_to_clipboard_action(_render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes))]
 
 
+def _build_unknown_card_actions(
+    raw_card: dict[str, Any],
+    *,
+    supported_actions: tuple[str, ...] | set[str] | None,
+    max_payload_bytes: int,
+) -> list[dict[str, Any]]:
+    if isinstance(supported_actions, set):
+        canonical_supported_actions = supported_actions
+    else:
+        canonical_supported_actions = _canonicalize_supported_actions(supported_actions)
+    if FALLBACK_COPY_ACTION_ID not in canonical_supported_actions:
+        return []
+    return [_build_copy_to_clipboard_action(_render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes))]
+
+
 def _build_read_only_fallback_actions(
     raw_card: dict[str, Any],
     actions: Any,
@@ -655,7 +670,7 @@ def _materialize_unknown_card(card: dict[str, Any], capabilities: A2UICapabiliti
     validate_unknown_card(card)
     out = dict(card)
     out["blocks"] = _extract_safe_primitive_blocks(out)
-    out["actions"] = _filter_read_only_fallback_actions(
+    out["actions"] = _build_unknown_card_actions(
         out,
         supported_actions=set(capabilities.actions_supported),
         max_payload_bytes=capabilities.max_payload_bytes,

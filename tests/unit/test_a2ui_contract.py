@@ -548,6 +548,26 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("Fallback: unknown from FutureCard", text)
         self.assertIn("- fallback_kind: unknown", text)
 
+    def test_engine_unknown_card_synthesizes_copy_action_when_supported(self) -> None:
+        unknown = engine_prepare_card(
+            {
+                "type": "UnknownCard",
+                "title": "Unsupported card type: FutureCard",
+                "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
+                "a2ui_version": 1,
+                "debug": {"fallback_kind": "unknown", "source_card_type": "FutureCard"},
+                "blocks": [
+                    {"type": "MarkdownBlock", "markdown": "safe"},
+                ],
+                "actions": [],
+            },
+            _capabilities(actions_supported=("copy_to_clipboard",)),
+        )
+
+        self.assertEqual([action["id"] for action in unknown["actions"]], ["copy_to_clipboard"])
+        self.assertEqual(unknown["actions"][0]["label"], "Copy JSON")
+        self.assertTrue(unknown["actions"][0]["payload"]["text"].startswith('{"a2ui_version":1,"actions":['))
+
     def test_engine_unknown_card_uses_canonical_copy_action_when_supported(self) -> None:
         unknown = engine_prepare_card(
             {
@@ -856,6 +876,26 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["a2ui_version"], 1)
         self.assertEqual(card["actions"][0]["id"], "copy_to_clipboard")
         self.assertEqual(card["debug"], {"fallback_kind": "unknown", "source_card_type": "QuestionsCard"})
+
+    def test_studio_unknown_card_synthesizes_copy_action_when_supported(self) -> None:
+        caps = _capabilities(actions_supported=("copy_to_clipboard",))
+        card = studio_materialize_card(
+            {
+                "type": "UnknownCard",
+                "title": "Unsupported card type: FutureCard",
+                "subtitle": "Read-only fallback view with safe primitive blocks and raw JSON preview.",
+                "a2ui_version": 1,
+                "debug": {"fallback_kind": "unknown", "source_card_type": "FutureCard"},
+                "blocks": [
+                    {"type": "MarkdownBlock", "markdown": "safe"},
+                ],
+                "actions": [],
+            },
+            caps,
+        )
+
+        self.assertEqual([action["id"] for action in card["actions"]], ["copy_to_clipboard"])
+        self.assertEqual(card["actions"][0]["label"], "Copy JSON")
 
     def test_studio_renders_unknown_card_for_missing_type(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
