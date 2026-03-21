@@ -31,12 +31,12 @@
 
 ## Commands run and outcomes
 - Validation date: `2026-03-21`
-- `make scope-check`: not yet run
-- `./quality-format.sh --check`: not yet run
-- `./quality-lint.sh`: not yet run
-- `./quality-test.sh`: not yet run
-- `./typecheck-test.sh`: not yet run
-- `make ci`: not yet run
+- `make scope-check`: PASS
+- `./quality-format.sh --check`: PASS
+- `./quality-lint.sh`: PASS
+- `./quality-test.sh`: PASS
+- `./typecheck-test.sh`: PASS
+- `make ci`: PASS
 
 ## Risks / blockers
 - Risk: `LOW`
@@ -47,6 +47,7 @@
 ### Roadmap item(s) affected
 - Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` no-diff JSON contract so `summary_only` stays deterministic on empty-diff responses.
 - Milestone 2 - Test Hardening: not touched by this follow-up commit.
+- Milestone 3 - Product Readiness: keep the user-facing `diff_preview` structured output contract stable for no-diff responses.
 
 ### Vision capability affected
 - Capability 3 - Auditable generation: the command keeps the no-diff JSON `summary_only` state explicit and deterministic.
