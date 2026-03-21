@@ -264,6 +264,9 @@ class RetrievalService:
                     combined.append(hit)
                     continue
                 if isinstance(hit, dict):
+                    source_strategy = str(hit.get("source_strategy", "fts"))
+                    if source_strategy != "fts":
+                        raise ValueError(f"unsupported retrieval strategy: {source_strategy}")
                     combined.append(
                         RetrievalHit(
                             doc_id=str(hit["doc_id"]),
@@ -272,7 +275,7 @@ class RetrievalService:
                             span=dict(hit.get("span", {})),
                             title_hint=hit.get("title_hint"),
                             score=float(hit.get("score", 0.0)),
-                            source_strategy=hit.get("source_strategy", "fts"),  # type: ignore[arg-type]
+                            source_strategy="fts",
                             rationale=hit.get("rationale"),
                             node_path=hit.get("node_path"),
                             provenance=dict(hit.get("provenance", {})),
@@ -492,23 +495,26 @@ class RetrievalService:
             text = str(row["text"])
             text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
             doc_id = str(row["doc_id"])
-            return {
-                "excerpt_id": excerpt_id,
-                "doc_id": doc_id,
-                "doc_type": str(row["doc_type"]),
-                "source_hash": str(self._load_doc_meta().get(doc_id, {}).get("source_hash", "")),
-                "source_strategy": "fts",
-                "span": {"char_range": {"start": int(row["char_start"]), "end": int(row["char_end"])}},
-                "text": text,
-                "text_hash": text_hash,
-                "provenance": self._build_fts_provenance(
-                    doc_id=doc_id,
-                    excerpt_id=excerpt_id,
-                    char_start=int(row["char_start"]),
-                    char_end=int(row["char_end"]),
-                    text=text,
-                ),
-            }
+            return self._normalize_excerpt_payload(
+                {
+                    "excerpt_id": excerpt_id,
+                    "doc_id": doc_id,
+                    "doc_type": str(row["doc_type"]),
+                    "source_hash": str(self._load_doc_meta().get(doc_id, {}).get("source_hash", "")),
+                    "source_strategy": "fts",
+                    "span": {"char_range": {"start": int(row["char_start"]), "end": int(row["char_end"])}},
+                    "text": text,
+                    "text_hash": text_hash,
+                    "provenance": self._build_fts_provenance(
+                        doc_id=doc_id,
+                        excerpt_id=excerpt_id,
+                        char_start=int(row["char_start"]),
+                        char_end=int(row["char_end"]),
+                        text=text,
+                    ),
+                },
+                source_strategy="fts",
+            )
         return None
 
     def _build_fts_provenance(
@@ -541,6 +547,8 @@ class RetrievalService:
             "rank": rank,
             "fts_rank": fts_rank,
             "source_strategy": "fts",
+            "retrieval_backend": "sqlite_fts",
+            "retrieval_mode": "fts_first",
         }
         if query_scope is not None:
             provenance["query_scope"] = query_scope
@@ -563,17 +571,43 @@ class RetrievalService:
             provenance = {}
         normalized = dict(excerpt)
         normalized["source_strategy"] = source_strategy
-        normalized["text_hash"] = provenance.get("hash")
+        normalized["text_hash"] = provenance.get("hash") or provenance.get("excerpt_text_hash") or normalized.get("text_hash")
         if "doc_id" not in normalized and isinstance(provenance.get("doc_id"), str):
             normalized["doc_id"] = provenance["doc_id"]
-        if "span" not in normalized and isinstance(provenance.get("span"), dict):
-            normalized["span"] = dict(provenance["span"])
+        canonical_span = RetrievalService._canonicalize_span(normalized.get("span"))
+        if canonical_span is None and isinstance(normalized.get("span"), dict):
+            canonical_span = dict(normalized["span"])
+        if canonical_span is None and isinstance(provenance.get("span"), dict):
+            canonical_span = RetrievalService._canonicalize_span(provenance["span"])
+            if canonical_span is None:
+                canonical_span = dict(provenance["span"])
+        if canonical_span is not None:
+            normalized["span"] = canonical_span
         if "provenance" in normalized:
-            normalized["provenance"] = {
+            normalized_provenance = {
                 **provenance,
                 "source_strategy": source_strategy,
             }
+            if canonical_span is not None:
+                normalized_provenance["span"] = canonical_span
+            normalized["provenance"] = normalized_provenance
         return normalized
+
+    @staticmethod
+    def _canonicalize_span(span: object) -> dict[str, object] | None:
+        if not isinstance(span, dict):
+            return None
+        char_range = span.get("char_range")
+        if not isinstance(char_range, dict):
+            return None
+        if "start" not in char_range or "end" not in char_range:
+            return None
+        return {
+            "char_range": {
+                "start": int(char_range["start"]),
+                "end": int(char_range["end"]),
+            }
+        }
 
     @staticmethod
     def _query_fingerprint(query: RetrievalQuery) -> str:
