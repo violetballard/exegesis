@@ -60,6 +60,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(result.diagnostics["query_intent"], "lookup")
         self.assertGreaterEqual(result.diagnostics["candidate_doc_count"], 0)
         self.assertGreaterEqual(result.diagnostics["fts_shortlist_count"], 0)
+        self.assertIsInstance(result.diagnostics["fts_shortlist_doc_ids"], list)
 
     def test_retrieve_auto_emits_stable_query_fingerprint(self) -> None:
         query = RetrievalQuery(
@@ -88,6 +89,19 @@ class UnifiedRetrievalTests(unittest.TestCase):
             )
         )
         self.assertNotEqual(first_fingerprint, variant.diagnostics["query_fingerprint"])
+
+    def test_retrieve_auto_reports_stable_fts_shortlist_doc_ids(self) -> None:
+        query = RetrievalQuery(
+            query_text="theory implications",
+            scope="vault",
+            intent="lookup",
+            constraints=RetrievalConstraints(max_results=5),
+            confidentiality_profile="confidential",
+        )
+        first = self.service.retrieve_auto(query)
+        second = self.service.retrieve_auto(query)
+        self.assertEqual(first.diagnostics["fts_shortlist_doc_ids"], second.diagnostics["fts_shortlist_doc_ids"])
+        self.assertIn("doc-pdf-1", first.diagnostics["fts_shortlist_doc_ids"])
 
     def test_fts_returns_excerpt_hits_with_deterministic_provenance(self) -> None:
         result = self.service.retrieve_auto(

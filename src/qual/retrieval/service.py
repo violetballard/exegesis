@@ -130,12 +130,11 @@ class RetrievalService:
         started = self._now_fn()
         query_fingerprint = self._query_fingerprint(query)
         fts_shortlist_limit = self._fts_shortlist_limit(query.constraints.max_results)
-        fts_shortlist = self._candidate_docs_from_fts(query, limit=fts_shortlist_limit) if not self._is_doc_scoped(query.scope) else ()
-        candidate_doc_ids = self._candidate_docs_from_scope(query.scope, fallback=fts_shortlist)
-        effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
-
         self._active_query_fingerprint = query_fingerprint
         try:
+            fts_shortlist = self._candidate_docs_from_fts(query, limit=fts_shortlist_limit) if not self._is_doc_scoped(query.scope) else ()
+            candidate_doc_ids = self._candidate_docs_from_scope(query.scope, fallback=fts_shortlist)
+            effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
             fts_run = self._fts.retrieve(query, candidate_doc_ids=candidate_doc_ids)
             merged_hits = self._merge_hits([fts_run], max_results=query.constraints.max_results)
             doc_hits = self._build_doc_hits(query, merged_hits, query_fingerprint=query_fingerprint)
@@ -151,6 +150,7 @@ class RetrievalService:
                 "fts_shortlist_limit": fts_shortlist_limit,
                 "candidate_doc_count": effective_candidate_doc_count,
                 "fts_shortlist_count": len(fts_shortlist),
+                "fts_shortlist_doc_ids": list(fts_shortlist),
                 "strategies_used": [fts_run.strategy_id],
                 "elapsed_ms_by_strategy": {fts_run.strategy_id: fts_run.elapsed_ms},
                 "caches_used": {fts_run.strategy_id: fts_run.cache_used},
@@ -171,6 +171,7 @@ class RetrievalService:
                     "elapsed_ms_by_strategy": diagnostics["elapsed_ms_by_strategy"],
                     "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
                     "hits_count": len(merged_hits),
+                    "fts_shortlist_doc_ids": diagnostics["fts_shortlist_doc_ids"],
                     "retrieval_manifest": retrieval_manifest,
                 },
             )
