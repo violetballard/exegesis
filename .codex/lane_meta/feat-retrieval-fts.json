@@ -18,7 +18,7 @@
     "src/qual/retrieval/service.py",
     "tests/unit/test_unified_retrieval.py"
   ],
-  "scope_completed": "This cleanup only updates handoff metadata. The packet now labels the reviewed commit as docs-only cleanup, keeps the reviewed FTS implementation files in a separate reference set, and keeps the `section:` compatibility note explicit without merging it into the cleanup diff.",
+  "scope_completed": "The retrieval FTS implementation now returns deterministic excerpt IDs, serves retrieval-backed fetch_excerpt() output, preserves doc_hits relevance order for document ranking, and has focused unit coverage for provenance and service behavior. This cleanup only updates handoff metadata so the handoff points at that implementation cleanly, and it keeps PageIndex/embeddings deferred rather than required MVP paths.",
   "scope_goal": "Apply the reviewer-required packet fixes for the retrieval FTS handoff metadata by clearly labeling the docs-only cleanup commit while naming the reviewed FTS implementation files separately.",
   "shared_file_exception": false,
   "tasks_completed": [
@@ -31,5 +31,5 @@
     "3. Auditable generation",
     "4. Operator-first control surface"
   ],
-  "compatibility_note": "Temporary compatibility guard: section queries are rejected in the reviewed retrieval implementation until PageIndex can resolve concrete section targets."
+  "compatibility_note": "Temporary compatibility guard: section queries are rejected in the reviewed retrieval implementation until PageIndex can resolve concrete section targets; PageIndex and embeddings remain deferred and are not required paths for the current FTS-first MVP."
 }

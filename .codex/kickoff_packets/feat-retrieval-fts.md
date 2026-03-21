@@ -6,7 +6,7 @@
 - Reviewed cleanup commit: `300bd4c7053b5fd221d6c87a1be98bf5b5f9bc74`
 - Related implementation commit: `2c16551a6b3576eb9031d55a98525c21e04be255`
 - Reviewed commit type: Metadata-only cleanup of retrieval handoff packet.
-- Scope completed: This cleanup only updates packet metadata. The packet now labels the reviewed commit as docs-only cleanup, keeps the `section:` compatibility note explicit, and aligns the file list with the actual changed files.
+- Scope completed: The retrieval FTS implementation now returns deterministic excerpt IDs, serves retrieval-backed `fetch_excerpt()` output, preserves `doc_hits` relevance order for document ranking, and has focused unit coverage for provenance and service behavior. This cleanup only updates packet metadata so the handoff points at that implementation cleanly, and it keeps PageIndex/embeddings deferred rather than required MVP paths.
 
 ### Related implementation files
 - `src/qual/engine/retrieval/__init__.py`
@@ -30,7 +30,7 @@
 - `THREAD_PACKET.md`
 
 ### Compatibility note
-- Temporary compatibility guard: `section:` queries are rejected in the reviewed retrieval implementation because PageIndex cannot resolve concrete section targets yet.
+- Temporary compatibility guard: `section:` queries are rejected in the reviewed retrieval implementation because PageIndex cannot resolve concrete section targets yet; PageIndex and embeddings remain deferred and are not required paths for the current FTS-first MVP.
 
 ### Guardrails
 - Keep the change limited to the handoff metadata boundary and commit-label consistency.
