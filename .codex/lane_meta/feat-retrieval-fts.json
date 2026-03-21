@@ -4,21 +4,21 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "FTS provenance stability: keep retrieval provenance handling explicit and stable in `src/qual/retrieval/service.py`.",
-    "FTS-first policy plumbing: keep `primary_strategy_id` exposure narrow and consistent in retrieval exports."
+    "Citation-bundle metadata propagation: keep the bundle self-describing in `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`.",
+    "Payload hardening: keep downstream retrieval payloads snapshot-safe and deterministic."
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The reviewed commit `5588e19ac01c380b6369781afe145f4f3850a5ba` changes `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/policy.py`, and `src/qual/retrieval/service.py` to harden FTS provenance and expose the primary retrieval strategy.",
-  "scope_goal": "Record the commit-accurate FTS provenance hardening and `primary_strategy_id` plumbing in retrieval policy and service.",
+  "scope_completed": "The reviewed commit `b8a6f9c1649e76e97992687cc81d92561d1e9f18` changes `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py` to self-describe the citation bundle and propagate it downstream.",
+  "scope_goal": "Record the commit-accurate self-describing citation bundle metadata in the retrieval payload and service path.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Reconciled the packet with commit `5588e19ac01c380b6369781afe145f4f3850a5ba`, confirming the reviewed diff changes only `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/policy.py`, and `src/qual/retrieval/service.py`.",
+    "Reconciled the packet with commit `b8a6f9c1649e76e97992687cc81d92561d1e9f18`, confirming the reviewed diff changes only `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`.",
     "Removed unrelated retrieval claims from the metadata because they are not part of the reviewed commit.",
-    "Added an explicit `scope_completed` field and tightened the roadmap and vision mapping to FTS provenance stability and FTS-first policy plumbing.",
+    "Added an explicit `scope_completed` field and tightened the roadmap and vision mapping to citation-bundle metadata propagation and payload hardening.",
     "Added an explicit `Files changed` list to the kickoff packet so it matches the reviewed commit exactly."
   ],
   "vision_capabilities": [
-    "FTS provenance stability",
-    "FTS-first policy plumbing"
+    "Citation-bundle metadata propagation",
+    "Payload hardening"
   ]
 }
