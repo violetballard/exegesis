@@ -1,23 +1,23 @@
 {
-  "approved_exception_note": "Operational metadata exception for branch-local .codex files only. This lane record tracks commit 81b447ec13e01872335a85bb009b2f024621559e as a packet-alignment update and does not claim changes to src/qual/ui/a2ui.py or tests/unit/test_a2ui_contract.py. No product-code ownership exception is requested.",
+  "approved_exception_note": "Operational metadata exception for branch-local .codex files only. This lane record tracks commit 507a673e39f364fcc4d97aeab33f09a281d66e4d as a packet-alignment update and does not claim changes to src/qual/ui/a2ui.py or tests/unit/test_a2ui_contract.py. No product-code ownership exception is requested.",
   "kickoff_budget_note": "",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - keep the review packet aligned to commit 81b447ec13e01872335a85bb009b2f024621559e and the two-file A2UI contract hardening diff.",
-    "Milestone 5: A2UI Presentation Layer - keep the file list and commit mapping auditable against src/qual/ui/a2ui.py and tests/unit/test_a2ui_contract.py.",
-    "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to capability allowlist hardening, duplicate detection, and canonicalization."
+    "Milestone 5: A2UI Presentation Layer - keep the review packet aligned to commit 507a673e39f364fcc4d97aeab33f09a281d66e4d as a metadata-only handoff.",
+    "Milestone 5: A2UI Presentation Layer - keep the file list and commit mapping auditable against the three .codex files changed in the packet-alignment commit.",
+    "Milestone 5: A2UI Presentation Layer - keep the handoff language limited to packet alignment, carrier metadata, and lane metadata."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Record a metadata-only handoff for commit 81b447ec13e01872335a85bb009b2f024621559e so the A2UI lane packet is auditable and matches the capability allowlist hardening, duplicate detection, and canonicalization diff without claiming packet-carrier files as product-code changes.",
+  "scope_goal": "Record a metadata-only handoff for commit 507a673e39f364fcc4d97aeab33f09a281d66e4d so the A2UI lane packet is auditable and matches the packet-alignment diff without claiming product-code changes.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Rewrote the lane handoff metadata to describe commit 81b447ec13e01872335a85bb009b2f024621559e as an A2UI contract hardening update.",
-    "Kept the reviewed file list limited to the actual product-code diff files and separated packet-carrier metadata from reviewed source/test changes.",
-    "Aligned the Milestone 5 A2UI roadmap and vision references to capability allowlist validation, duplicate rejection, and canonicalization."
+    "Rewrote the lane handoff metadata to describe commit 507a673e39f364fcc4d97aeab33f09a281d66e4d as a metadata-only packet-alignment update.",
+    "Kept the reviewed file list limited to the actual .codex files changed in the commit and removed product-code claims from the handoff.",
+    "Aligned the Milestone 5 A2UI roadmap and vision references to packet alignment, carrier metadata, and lane metadata."
   ],
   "vision_capabilities": [
-    "Capability 5: Agent-to-UI protocol (A2UI) - the handoff record stays aligned to the capability allowlist hardening contract.",
-    "Capability 4: Operator-first control surface - the packet preserves the operator-facing audit trail for the A2UI validation rules."
+    "Capability 5: Agent-to-UI protocol (A2UI) - the handoff record stays aligned to the packet-alignment contract.",
+    "Capability 4: Operator-first control surface - the packet preserves the operator-facing audit trail for the lane metadata."
   ]
 }

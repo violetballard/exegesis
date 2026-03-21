@@ -1,15 +1,15 @@
 # Lane Kickoff: feat-a2ui-contract
 
 - Branch: `codex/feat-a2ui-contract`
-- Lane/owned paths: `src/qual/ui/**`
-- Scope goal: Harden the `Milestone 5: A2UI Presentation Layer` contract in `src/qual/ui/a2ui.py` by enforcing canonical, duplicate-free capability allowlists for cards and actions, plus duplicate detection and canonicalization checks at the handshake boundary.
+- Lane/owned paths: `.codex/**`
+- Scope goal: Record a metadata-only review-packet alignment for `feat-a2ui-contract` so the lane handoff is auditable and accurately describes the packet, carrier, and lane metadata without claiming product-code changes.
 
 ### Priority outcomes
-1. Keep card and action allowlists canonical and duplicate-free at the handshake boundary.
-2. Keep capability validation aligned with duplicate detection and canonicalization in `src/qual/ui/a2ui.py`.
-3. Keep contract tests aligned with the validation rules in `src/qual/ui/a2ui.py`.
+1. Keep the reviewed file list limited to the `.codex/**` files changed in the packet-alignment commit.
+2. Keep the scope statement aligned with a metadata-only handoff.
+3. Keep the packet language separated from any product-code implementation claims.
 
 ### Guardrails
-- No dedicated web client work.
-- Keep renderer logic separate from engine decisions.
-- Favor a small, stable contract over broad UI ambition.
+- No product-code claims in this kickoff packet.
+- Keep the file list auditable against the actual commit diff.
+- Favor a small, stable metadata handoff over feature-description drift.
