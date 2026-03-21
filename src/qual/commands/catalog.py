@@ -72,12 +72,12 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
 _COMMAND_SPEC_BY_NAME = _build_command_spec_index(COMMAND_SPECS)
 _COMMAND_NAME_BY_ALIAS = _build_command_name_index(COMMAND_SPECS)
 
-_MVP_FLOW_ROLES: tuple[str, ...] = (
-    "project-open",
-    "retrieval-staging",
-    "patch-review",
-    "a2ui-routing",
-    "export-handoff",
+_MVP_FLOW_COMMAND_NAMES: tuple[str, ...] = (
+    "bootstrap",
+    "context-basket",
+    "diff-preview",
+    "terminal",
+    "export-preview",
 )
 
 
@@ -121,6 +121,19 @@ def command_mvp_role(name: str) -> str:
     return spec.mvp_role
 
 
+def command_mvp_flow_specs() -> tuple[CommandSpec, ...]:
+    specs: list[CommandSpec] = []
+    for name in _MVP_FLOW_COMMAND_NAMES:
+        spec = _COMMAND_SPEC_BY_NAME.get(name)
+        if spec is None:
+            raise ValueError(f"Unknown MVP flow command: {name}")
+        specs.append(spec)
+    return tuple(specs)
+
+
+_MVP_FLOW_SPECS: tuple[CommandSpec, ...] = command_mvp_flow_specs()
+
+
 def command_specs_for_role(mvp_role: str) -> tuple[CommandSpec, ...]:
     normalized_role = mvp_role.strip().casefold()
     if not normalized_role:
@@ -148,10 +161,7 @@ def command_mvp_roles() -> tuple[str, ...]:
 
 
 def command_mvp_flow_names() -> tuple[str, ...]:
-    names: list[str] = []
-    for role in _MVP_FLOW_ROLES:
-        names.extend(command_names_for_role(role))
-    return tuple(names)
+    return tuple(spec.name for spec in _MVP_FLOW_SPECS)
 
 
 def canonical_command(name: str) -> str:
