@@ -1,9 +1,10 @@
 {
-  "scope_goal": "Describe the actual code-bearing feature range and make the docs-only alignment commit explicit so the reviewed diff stays verifiable.",
+  "scope_goal": "Describe the actual code-bearing feature range, make the docs-only alignment commit explicit, and record the approved shared-test allowance so the reviewed diff stays verifiable.",
   "tasks_completed": [
     "Repointed the handoff packet to the actual code-bearing feature range ca626d4b61e3a6bdb163d471c515bdd144cc3283..dca868e202b0c220c36b557d7071420ca74261f9.",
     "Made the docs-only alignment commit explicit so it is not mistaken for reviewed implementation work.",
-    "Re-ran the required local gates on the branch head and confirmed they pass."
+    "Re-ran the required local gates on the branch head and confirmed they pass.",
+    "Recorded the approved shared recovery test allowance via SCOPE_ALLOW_SHARED=1 make scope-check."
   ],
   "risk": "LOW",
   "roadmap_items": [
@@ -16,7 +17,7 @@
   ],
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
-  "shared_file_exception": false,
-  "kickoff_budget_note": "Handoff metadata aligned to the reviewed feature range; the later docs-only alignment commit is excluded from the promoted code range.",
-  "approved_exception_note": "Ownership note: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The reviewed diff contains only `src/qual/context/set_store.py` and `tests/unit/test_context_storage_recovery.py`, so no shared-by-approval source files or integrator-locked files were edited."
+  "shared_file_exception": true,
+  "kickoff_budget_note": "Handoff metadata aligned to the reviewed feature range; the later docs-only alignment commit is excluded from the promoted code range, and the approved shared recovery test is documented explicitly.",
+  "approved_exception_note": "Ownership note: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The reviewed diff contains only `src/qual/context/set_store.py` and the approved shared recovery test `tests/unit/test_context_storage_recovery.py`, and the shared allowance was verified with `SCOPE_ALLOW_SHARED=1 make scope-check`, so no integrator-locked files were edited."
 }
