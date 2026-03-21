@@ -12,7 +12,12 @@ Deliver the canonical FTS-first retrieval surface for the MVP and keep the hando
 
 ## Scope completed
 
-The delivered retrieval path is FTS-first for `vault`, `collection:`, and `doc:` scopes. `src/qual/retrieval/service.py` routes those queries through the engine-owned FTS path, `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, and `src/qual/engine/retrieval/policy.py` keeps `fts` as the only active strategy while leaving `pageindex` and `embeddings` deferred. `section:` remains intentionally rejected until fallback support exists.
+Delivered behavior:
+- `vault`, `collection:`, and `doc:` queries resolve through the engine-owned FTS path.
+- `src/qual/retrieval/service.py` forwards those queries to the owned retrieval engine.
+- `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface.
+- `src/qual/engine/retrieval/policy.py` keeps `fts` active and leaves `pageindex` and `embeddings` deferred.
+- `section:` remains rejected until fallback support exists.
 
 ## Files changed
 

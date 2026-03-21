@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json, os, subprocess
+from fnmatch import fnmatch
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -127,12 +128,23 @@ def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
     out = git(f"diff --name-only {base_ref}...HEAD", cwd=cwd)
     return [ln.strip() for ln in out.splitlines() if ln.strip()]
 
+def select_packet_files(lane: str, meta: Json, diff_files: List[str]) -> List[str]:
+    related = [str(f).strip() for f in (meta.get("related_implementation_files") or []) if str(f).strip()]
+    if related:
+        return related
+
+    patterns = LANE_OWNED_PATHS.get(lane, [])
+    if not patterns:
+        return diff_files
+    return [f for f in diff_files if any(fnmatch(f, pattern) for pattern in patterns)]
+
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
     lines=[]
     lines += ["# Feature → Review Packet",""]
     lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
+    lines += ["## Scope completed", f"- {str(meta.get('scope_completed','')).strip() or '(missing)'}", ""]
     lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
     if str(meta.get("kickoff_budget_note","")).strip():
         lines += ["## Kickoff budget/limits compliance", f"- {meta['kickoff_budget_note'].strip()}", ""]
@@ -230,6 +242,7 @@ def main()->None:
         except Exception as e:
             print(f"[planner] {lane}: diff failed vs {base_ref}: {e}")
             continue
+        files = select_packet_files(lane, meta, files)
         env=os.environ.copy()
         if bool(meta.get("shared_file_exception")):
             env["SCOPE_ALLOW_SHARED"]="1"
