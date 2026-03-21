@@ -321,6 +321,29 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("item_ids"), ["first"])
         self.assertNotIn("recovered_from", payload)
 
+    def test_refresh_backup_failure_seed_fallback_omits_recovered_from(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "item_ids": ["first"],
+                }
+            ),
+            encoding="utf-8",
+        )
+        self.store._path.unlink(missing_ok=True)
+
+        with patch.object(ContextBasketStore, "_write_backup_payload", return_value=False):
+            loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first"])
+        payload = json.loads(self.store._seed_state_path().read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("schema_version"), 1)
+        self.assertEqual(payload.get("item_ids"), ["first"])
+        self.assertNotIn("recovered_from", payload)
+
     def test_healthy_primary_load_clears_stale_corrupt_marker(self) -> None:
         self.store.save(ContextBasket(item_ids=["first"]))
         self.store._path.with_suffix(".corrupt.json").write_text("{bad", encoding="utf-8")

@@ -160,9 +160,9 @@ class ContextBasketStore:
             if not backup_written:
                 # Seed keeps the latest canonical basket recoverable if backup
                 # rotation cannot be completed after the primary rewrite.
-                self._write_seed(payload)
+                self._write_seed(self._backup_payload(payload))
         elif not self._backup_path.exists():
-            self._write_seed(payload)
+            self._write_seed(self._backup_payload(payload))
         self._clear_quarantine_file()
         self._clear_temporary_files()
         if self._backup_path.exists() and (not refresh_backup or backup_written):
