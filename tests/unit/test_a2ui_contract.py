@@ -281,6 +281,34 @@ class A2UIContractTests(unittest.TestCase):
         self.assertNotIn("[unsupported block: ChartBlock]", text)
         self.assertEqual(card["debug"], {"fallback_kind": "generic", "source_card_type": "ProposedEditCard"})
 
+    def test_engine_fallback_sanitizes_safe_primitive_blocks(self) -> None:
+        caps = _capabilities(cards_supported=("RunLogCard",))
+        card = engine_prepare_card(
+            {
+                "type": "ProposedEditCard",
+                "title": "Patch",
+                "blocks": [
+                    {"type": "MarkdownBlock", "markdown": "Kept"},
+                    {"type": "MarkdownBlock", "markdown": 123},
+                    {"type": "KeyValueBlock", "items": [{"key": "Owner", "value": "alice"}, {"key": " ", "value": "ignored"}]},
+                    {"type": "ListBlock", "items": ["first", "", {"label": "second"}, {"label": " "} ]},
+                    {"type": "ProgressBlock", "title": "Sync", "status_text": "Working"},
+                    {"type": "TableBlock", "rows": [[1, 2, 3]]},
+                ],
+            },
+            caps,
+        )
+
+        self.assertEqual(
+            [block["type"] for block in card["blocks"]],
+            ["AlertBlock", "MarkdownBlock", "KeyValueBlock", "ListBlock", "ProgressBlock", "TableBlock", "CodeBlock"],
+        )
+        self.assertEqual(card["blocks"][1], {"type": "MarkdownBlock", "markdown": "Kept"})
+        self.assertEqual(card["blocks"][2], {"type": "KeyValueBlock", "items": [{"key": "Owner", "value": "alice"}]})
+        self.assertEqual(card["blocks"][3], {"type": "ListBlock", "items": ["first", {"label": "second"}]})
+        self.assertEqual(card["blocks"][4], {"type": "ProgressBlock", "title": "Sync", "status_text": "Working"})
+        self.assertEqual(card["blocks"][5], {"type": "TableBlock"})
+
     def test_engine_falls_back_to_generic_for_missing_card_type(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
         card = engine_prepare_card(
@@ -398,6 +426,36 @@ class A2UIContractTests(unittest.TestCase):
         card = studio_materialize_card({"type": None, "foo": "bar"}, caps)
         self.assertEqual(card["title"], "Unsupported card type: <missing>")
         self.assertEqual(card["debug"], {"fallback_kind": "unknown", "source_card_type": "<missing>"})
+
+    def test_unknown_card_sanitizes_safe_primitive_blocks(self) -> None:
+        caps = _capabilities(cards_supported=("RunLogCard",))
+        payload = {
+            "type": "QuestionsCard",
+            "title": "Questions",
+            "blocks": [
+                {"type": "MarkdownBlock", "markdown": "Recovered"},
+                {"type": "MarkdownBlock", "markdown": 123},
+                {"type": "ListBlock", "items": ["first", "", {"label": "second"}, {"label": " "} ]},
+                {"type": "KeyValueBlock", "items": [{"key": "Owner", "value": "alice"}, {"key": "Bad", "value": {"nested": "drop"}}]},
+                {"type": "ProgressBlock", "title": "Sync", "status_text": "Working"},
+                {"type": "TableBlock", "rows": [[1, 2, 3]]},
+            ],
+            "foo": "bar",
+        }
+
+        card = studio_materialize_card(payload, caps)
+
+        self.assertEqual(
+            [block["type"] for block in card["blocks"]],
+            ["MarkdownBlock", "ListBlock", "KeyValueBlock", "ProgressBlock", "TableBlock", "CodeBlock"],
+        )
+        self.assertEqual(card["blocks"][0], {"type": "MarkdownBlock", "markdown": "Recovered"})
+        self.assertEqual(card["blocks"][1], {"type": "ListBlock", "items": ["first", {"label": "second"}]})
+        self.assertEqual(card["blocks"][2], {"type": "KeyValueBlock", "items": [{"key": "Owner", "value": "alice"}]})
+        self.assertEqual(card["blocks"][3], {"type": "ProgressBlock", "title": "Sync", "status_text": "Working"})
+        self.assertEqual(card["blocks"][4], {"type": "TableBlock"})
+        self.assertEqual(card["blocks"][5]["type"], "CodeBlock")
+        self.assertEqual(card["actions"][0]["id"], "copy_to_clipboard")
 
     def test_studio_unknown_card_omits_unavailable_clipboard_action(self) -> None:
         caps = _capabilities(actions_supported=("apply_patch",))

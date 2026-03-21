@@ -509,9 +509,106 @@ def _extract_safe_primitive_blocks(card: dict[str, Any]) -> list[dict[str, Any]]
 
     safe_blocks: list[dict[str, Any]] = []
     for block in nested_blocks:
-        if isinstance(block, dict) and str(block.get("type", "")) in _PRIMITIVE_BLOCK_SET:
-            safe_blocks.append(block)
+        sanitized_block = _sanitize_safe_primitive_block(block)
+        if sanitized_block is not None:
+            safe_blocks.append(sanitized_block)
     return safe_blocks
+
+
+def _sanitize_safe_primitive_block(block: Any) -> dict[str, Any] | None:
+    if not isinstance(block, dict):
+        return None
+    block_type = str(block.get("type", "")).strip()
+    if block_type not in _PRIMITIVE_BLOCK_SET:
+        return None
+    if block_type == "MarkdownBlock":
+        markdown = block.get("markdown")
+        if not isinstance(markdown, str):
+            return None
+        return {"type": block_type, "markdown": markdown}
+    if block_type == "AlertBlock":
+        message = block.get("message")
+        if not isinstance(message, str):
+            return None
+        sanitized: dict[str, Any] = {
+            "type": block_type,
+            "severity": str(block.get("severity", "info")).strip() or "info",
+            "message": message,
+        }
+        title = block.get("title")
+        if title is not None:
+            if not isinstance(title, str):
+                return None
+            sanitized["title"] = title
+        return sanitized
+    if block_type == "CodeBlock":
+        code = block.get("code")
+        if not isinstance(code, str):
+            return None
+        sanitized = {"type": block_type, "code": code}
+        language = block.get("language")
+        if language is not None:
+            if not isinstance(language, str):
+                return None
+            sanitized["language"] = language
+        collapsed = block.get("collapsed")
+        if collapsed is not None:
+            if not isinstance(collapsed, bool):
+                return None
+            sanitized["collapsed"] = collapsed
+        return sanitized
+    if block_type == "ProgressBlock":
+        status_text = block.get("status_text")
+        if not isinstance(status_text, str):
+            return None
+        sanitized = {
+            "type": block_type,
+            "status_text": status_text,
+        }
+        title = block.get("title")
+        if title is not None:
+            if not isinstance(title, str):
+                return None
+            sanitized["title"] = title
+        return sanitized
+    if block_type == "KeyValueBlock":
+        items = block.get("items")
+        if not isinstance(items, list):
+            return None
+        sanitized_items: list[dict[str, Any]] = []
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            key = item.get("key")
+            if not isinstance(key, str) or not key.strip():
+                continue
+            value = item.get("value")
+            if isinstance(value, (dict, list)):
+                continue
+            sanitized_items.append({"key": key.strip(), "value": value})
+        if not sanitized_items:
+            return None
+        return {"type": block_type, "items": sanitized_items}
+    if block_type == "ListBlock":
+        items = block.get("items")
+        if not isinstance(items, list):
+            return None
+        sanitized_items: list[Any] = []
+        for item in items:
+            if isinstance(item, str):
+                rendered_item = item.strip()
+                if rendered_item:
+                    sanitized_items.append(rendered_item)
+            elif isinstance(item, dict):
+                label = item.get("label")
+                if isinstance(label, str) and label.strip():
+                    sanitized_items.append({"label": label.strip()})
+        if not sanitized_items:
+            return None
+        return {"type": block_type, "items": sanitized_items}
+    if block_type == "TableBlock":
+        return {"type": block_type}
+    return None
 
 
 def _render_terminal_block(block: Any) -> list[str]:
