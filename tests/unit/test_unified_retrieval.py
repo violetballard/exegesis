@@ -11,6 +11,7 @@ from src.qual.docindex.service import DocIndexBuildOptions
 from src.qual.docindex.service import DocIndexQueryConstraints
 import src.qual.engine.retrieval as engine_retrieval
 from src.qual.engine.retrieval import build_retrieval_citation_bundle_from_result as engine_build_retrieval_citation_bundle_from_result
+from src.qual.engine.retrieval import build_retrieval_context_bundle_from_result as engine_build_retrieval_context_bundle_from_result
 from src.qual.engine.retrieval import build_retrieval_downstream_payload_from_result as engine_build_retrieval_downstream_payload_from_result
 from src.qual.engine.retrieval import build_retrieval_source_bundle_from_result as engine_build_retrieval_source_bundle_from_result
 from src.qual.engine.tools.retrieval_tools import retrieve_fts as engine_retrieve_fts
@@ -652,6 +653,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "build_retrieval_downstream_payload",
                 "build_retrieval_downstream_payload_from_result",
                 "build_retrieval_citation_bundle_from_result",
+                "build_retrieval_context_bundle_from_result",
                 "build_retrieval_source_bundle_from_result",
             ],
         )
@@ -665,6 +667,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_downstream_payload"))
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_downstream_payload_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_citation_bundle_from_result"))
+        self.assertTrue(hasattr(engine_retrieval, "build_retrieval_context_bundle_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_source_bundle_from_result"))
 
     def test_engine_retrieval_package_reexports_canonical_payload_helpers(self) -> None:
@@ -687,9 +690,32 @@ class UnifiedRetrievalTests(unittest.TestCase):
             build_retrieval_citation_bundle_from_result(result),
         )
         self.assertEqual(
+            engine_build_retrieval_context_bundle_from_result(result),
+            result.retrieval_context_bundle(),
+        )
+        self.assertEqual(
             engine_build_retrieval_source_bundle_from_result(result),
             result.source_bundle(),
         )
+
+    def test_retrieval_context_bundle_helper_packages_payload_and_bundles(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        bundle = engine_build_retrieval_context_bundle_from_result(result)
+        self.assertEqual(bundle["retrieval_downstream_payload"], result.to_downstream_payload())
+        self.assertEqual(bundle["retrieval_citation_bundle"], result.citation_bundle())
+        self.assertEqual(bundle["retrieval_source_bundle"], result.source_bundle())
+        bundle["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
+        refreshed = engine_build_retrieval_context_bundle_from_result(result)
+        self.assertNotIn("mutated-doc-id", refreshed["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"])
 
     def test_engine_retrieval_policy_snapshot_is_stable_and_copy_safe(self) -> None:
         first = engine_retrieval.retrieval_policy_snapshot()

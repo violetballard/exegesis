@@ -364,6 +364,15 @@ class RetrievalResult:
 
         return self._retrieval_source_bundle_snapshot()
 
+    def retrieval_context_bundle(self) -> dict[str, object]:
+        """Return the canonical retrieval context for drafting, patching, and research flows."""
+
+        return {
+            "retrieval_downstream_payload": copy.deepcopy(self.to_downstream_payload()),
+            "retrieval_citation_bundle": copy.deepcopy(self.citation_bundle()),
+            "retrieval_source_bundle": copy.deepcopy(self.source_bundle()),
+        }
+
     def _query_snapshot(self) -> dict[str, object]:
         return {
             "query_text": self.query.query_text,

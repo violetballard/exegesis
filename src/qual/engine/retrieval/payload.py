@@ -20,6 +20,11 @@ class RetrievalSourceBundleSource(Protocol):
         """Return the deterministic doc and excerpt snapshot consumed by engine flows."""
 
 
+class RetrievalContextBundleSource(Protocol):
+    def retrieval_context_bundle(self) -> dict[str, object]:
+        """Return the deterministic retrieval context consumed by engine flows."""
+
+
 @dataclass(frozen=True)
 class RetrievalDownstreamPayload:
     """Deterministic downstream retrieval contract for engine consumers."""
@@ -204,4 +209,25 @@ def build_retrieval_source_bundle_from_result(
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
+    }
+
+
+def build_retrieval_context_bundle_from_result(
+    result: (
+        RetrievalDownstreamPayloadSource
+        | RetrievalCitationBundleSource
+        | RetrievalSourceBundleSource
+        | RetrievalContextBundleSource
+    ),
+) -> dict[str, object]:
+    """Return the deterministic retrieval context bundle for downstream engine flows."""
+
+    context_source = getattr(result, "retrieval_context_bundle", None)
+    if callable(context_source):
+        return copy.deepcopy(context_source())
+    payload = build_retrieval_downstream_payload_from_result(result)
+    return {
+        "retrieval_downstream_payload": payload,
+        "retrieval_citation_bundle": build_retrieval_citation_bundle_from_result(result),
+        "retrieval_source_bundle": build_retrieval_source_bundle_from_result(result),
     }
