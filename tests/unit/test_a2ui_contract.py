@@ -587,6 +587,51 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("- contract_version: 2", text)
         self.assertIn("- fallback_kind: unknown", text)
 
+    def test_engine_canonicalizes_malformed_unknown_card_input(self) -> None:
+        unknown = engine_prepare_card(
+            {
+                "type": " UnknownCard ",
+                "title": "  should not leak  ",
+                "subtitle": "  raw subtitle should not leak  ",
+                "a2ui_version": 1,
+                "debug": {
+                    "contract_version": 2,
+                    "fallback_kind": " unknown ",
+                    "source_card_type": " FutureCard ",
+                    "unexpected": "ignored",
+                },
+                "blocks": [
+                    {"type": "MarkdownBlock", "markdown": "safe"},
+                    {"type": "ChartBlock", "series": [1, 2, 3]},
+                ],
+                "actions": [
+                    {"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": "{}"}},
+                ],
+                "trace_id": "abc123",
+            },
+            _capabilities(actions_supported=("copy_to_clipboard",)),
+        )
+
+        self.assertEqual(unknown["type"], "UnknownCard")
+        self.assertEqual(unknown["title"], "Unsupported card type: FutureCard")
+        self.assertEqual(unknown["subtitle"], UNKNOWN_FALLBACK_SUBTITLE)
+        self.assertEqual(
+            unknown["debug"],
+            {"contract_version": 2, "fallback_kind": "unknown", "source_card_type": "FutureCard"},
+        )
+        self.assertEqual(unknown["blocks"], [{"type": "MarkdownBlock", "markdown": "safe"}])
+        self.assertEqual(
+            unknown["actions"],
+            [
+                {
+                    "id": "copy_to_clipboard",
+                    "label": "Copy JSON",
+                    "payload": {"text": unknown["actions"][0]["payload"]["text"]},
+                }
+            ],
+        )
+        self.assertNotIn("should not leak", render_terminal_card(unknown))
+
     def test_engine_unknown_card_synthesizes_copy_action_when_supported(self) -> None:
         unknown = engine_prepare_card(
             {

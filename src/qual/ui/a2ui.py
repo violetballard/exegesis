@@ -748,21 +748,21 @@ def _materialize_generic_card(card: dict[str, Any], capabilities: A2UICapabiliti
 
 
 def _materialize_unknown_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
-    out = _canonicalize_card_top_level_fields(card)
-    out["blocks"] = _extract_safe_primitive_blocks(out)
-    out["actions"] = _build_unknown_card_actions(
-        out,
-        supported_actions=set(capabilities.actions_supported),
-        max_payload_bytes=capabilities.max_payload_bytes,
-    )
-    out["title"] = _normalize_card_text(out.get("title"), fallback="<untitled>")
-    subtitle = _normalize_card_text(out.get("subtitle"))
-    if subtitle is None:
-        out.pop("subtitle", None)
-    else:
-        out["subtitle"] = subtitle
-    out["a2ui_version"] = A2UI_VERSION
-    return out
+    safe_card = _canonicalize_card_top_level_fields(card)
+    source_card_type = _extract_unknown_card_source_type(safe_card)
+    return {
+        "type": UNKNOWN_CARD_TYPE,
+        "title": _build_fallback_title(UNKNOWN_CARD_TYPE, source_card_type=source_card_type),
+        "subtitle": UNKNOWN_FALLBACK_SUBTITLE,
+        "a2ui_version": A2UI_VERSION,
+        "debug": _build_fallback_debug(source_card_type, fallback_kind="unknown"),
+        "blocks": _extract_safe_primitive_blocks(safe_card),
+        "actions": _build_unknown_card_actions(
+            safe_card,
+            supported_actions=set(capabilities.actions_supported),
+            max_payload_bytes=capabilities.max_payload_bytes,
+        ),
+    }
 
 
 def _normalize_action(action: Any, *, supported_actions: set[str]) -> dict[str, Any]:
@@ -1129,6 +1129,18 @@ def _build_fallback_debug(source_card_type: str, *, fallback_kind: str) -> dict[
         "fallback_kind": fallback_kind,
         "source_card_type": source_card_type,
     }
+
+
+def _extract_unknown_card_source_type(card: dict[str, Any]) -> str:
+    debug = card.get("debug")
+    if isinstance(debug, dict):
+        source_card_type = debug.get("source_card_type")
+        if isinstance(source_card_type, str):
+            normalized_source_card_type = source_card_type.strip()
+            if normalized_source_card_type:
+                return normalized_source_card_type
+    normalized_type = _normalize_card_type(card)
+    return normalized_type if normalized_type != "<missing>" else UNKNOWN_CARD_TYPE
 
 
 def _normalize_preview_budget(max_payload_bytes: int | None) -> int:
