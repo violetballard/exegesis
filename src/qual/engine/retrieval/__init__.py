@@ -59,6 +59,7 @@ __all__ = [
     "active_strategy_ids",
     "deferred_strategy_ids",
     "retrieval_policy_snapshot",
+    "primary_strategy_id",
     "build_retrieval_downstream_payload",
     "build_retrieval_downstream_payload_from_result",
     "build_retrieval_citation_bundle_from_result",

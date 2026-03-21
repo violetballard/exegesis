@@ -650,6 +650,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "active_strategy_ids",
                 "deferred_strategy_ids",
                 "retrieval_policy_snapshot",
+                "primary_strategy_id",
                 "build_retrieval_downstream_payload",
                 "build_retrieval_downstream_payload_from_result",
                 "build_retrieval_citation_bundle_from_result",
@@ -664,6 +665,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(engine_retrieval.DEFERRED_STRATEGY_IDS, ("pageindex", "embeddings"))
         self.assertEqual(engine_retrieval.active_strategy_ids(), ("fts",))
         self.assertEqual(engine_retrieval.deferred_strategy_ids(), ("pageindex", "embeddings"))
+        self.assertEqual(engine_retrieval.primary_strategy_id(), "fts")
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_downstream_payload"))
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_downstream_payload_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_citation_bundle_from_result"))
@@ -790,6 +792,30 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(direct_payload["retrieval_summary"]["doc_ids"], [item.doc_id for item in direct.doc_hits])
         self.assertEqual(direct_payload["retrieval_summary"]["excerpt_ids"], [item.excerpt_id for item in direct.hits if item.excerpt_id is not None])
+
+    def test_retrieve_auto_payload_matches_canonical_fts_payload(self) -> None:
+        query = RetrievalQuery(
+            query_text="memo comparison",
+            scope="vault",
+            intent="compare",
+            constraints=RetrievalConstraints(max_results=4, doc_types=("memo",)),
+            confidentiality_profile="confidential",
+        )
+
+        fts_payload = self.service.retrieve_fts_payload(query)
+        auto_payload = self.service.retrieve_auto_payload(query)
+
+        fts_payload = json.loads(json.dumps(fts_payload))
+        auto_payload = json.loads(json.dumps(auto_payload))
+        fts_payload.pop("audit_ref", None)
+        auto_payload.pop("audit_ref", None)
+        fts_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        auto_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        fts_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        auto_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        self.assertEqual(fts_payload, auto_payload)
+        self.assertEqual(auto_payload["retrieval_summary"]["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(auto_payload["retrieval_summary"]["retrieval_mode"], "fts_first")
 
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(

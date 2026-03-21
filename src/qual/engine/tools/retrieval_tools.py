@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from src.qual.engine.retrieval import build_retrieval_downstream_payload_from_result
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
 
 
@@ -67,15 +66,14 @@ def retrieve_fts_payload(
 ) -> dict[str, object]:
     """Return the canonical downstream payload for FTS-first retrieval."""
 
-    result = retrieve_fts(
-        service,
+    query = _build_retrieval_query(
         query_text=query_text,
         scope=scope,
         intent=intent,
         constraints=constraints,
         confidentiality_profile=confidentiality_profile,
     )
-    return build_retrieval_downstream_payload_from_result(result)
+    return service.retrieve_fts_payload(query)
 
 
 def retrieve_auto(
@@ -87,14 +85,14 @@ def retrieve_auto(
     constraints: dict[str, object] | None = None,
     confidentiality_profile: str = "confidential",
 ):
-    return retrieve_fts(
-        service,
+    query = _build_retrieval_query(
         query_text=query_text,
         scope=scope,
         intent=intent,
         constraints=constraints,
         confidentiality_profile=confidentiality_profile,
     )
+    return service.retrieve_auto(query)
 
 
 def retrieve_auto_payload(
@@ -112,12 +110,11 @@ def retrieve_auto_payload(
     should use this helper instead of reassembling the result object by hand.
     """
 
-    result = retrieve_fts(
-        service,
+    query = _build_retrieval_query(
         query_text=query_text,
         scope=scope,
         intent=intent,
         constraints=constraints,
         confidentiality_profile=confidentiality_profile,
     )
-    return build_retrieval_downstream_payload_from_result(result)
+    return service.retrieve_auto_payload(query)

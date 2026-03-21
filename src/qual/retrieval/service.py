@@ -579,6 +579,11 @@ class RetrievalService:
     def retrieve_auto(self, query: RetrievalQuery) -> RetrievalResult:
         return self.retrieve_fts(query)
 
+    def retrieve_auto_payload(self, query: RetrievalQuery) -> dict[str, object]:
+        """Return the canonical downstream payload for the FTS-first auto path."""
+
+        return self.retrieve_auto(query).as_downstream_payload()
+
     def _run_fts_first_retrieval(self, query: RetrievalQuery) -> RetrievalResult:
         started = self._now_fn()
         query_fingerprint = self._query_fingerprint(query)
