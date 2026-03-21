@@ -183,7 +183,16 @@ class RetrievalService:
         fts_excerpt = self._find_fts_excerpt(excerpt_id)
         if fts_excerpt is not None:
             return fts_excerpt
-        return self._docindex.fetch_excerpt(excerpt_id)
+        excerpt = self._docindex.fetch_excerpt(excerpt_id)
+        if isinstance(excerpt, dict):
+            provenance = excerpt.get("provenance", {})
+            if isinstance(provenance, dict):
+                return {
+                    **excerpt,
+                    "source_strategy": "pageindex",
+                    "text_hash": provenance.get("hash"),
+                }
+        return excerpt
 
     def _run_fts_hits(self, query: RetrievalQuery, candidate_doc_ids: tuple[str, ...]) -> list[RetrievalHit]:
         match_query, query_terms = self._build_fts_match_query(query.query_text)
@@ -487,13 +496,19 @@ class RetrievalService:
         row = self._fetch_fts_row(excerpt_id)
         if row is not None:
             text = str(row["text"])
+            text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
+            doc_id = str(row["doc_id"])
             return {
                 "excerpt_id": excerpt_id,
-                "doc_id": str(row["doc_id"]),
+                "doc_id": doc_id,
+                "doc_type": str(row["doc_type"]),
+                "source_hash": str(self._load_doc_meta().get(doc_id, {}).get("source_hash", "")),
+                "source_strategy": "fts",
                 "span": {"char_range": {"start": int(row["char_start"]), "end": int(row["char_end"])}},
                 "text": text,
+                "text_hash": text_hash,
                 "provenance": self._build_fts_provenance(
-                    doc_id=str(row["doc_id"]),
+                    doc_id=doc_id,
                     excerpt_id=excerpt_id,
                     char_start=int(row["char_start"]),
                     char_end=int(row["char_end"]),
@@ -519,12 +534,14 @@ class RetrievalService:
         candidate_doc_count: int | None = None,
     ) -> dict[str, object]:
         meta = self._load_doc_meta().get(doc_id, {})
+        text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
         provenance = {
             "doc_id": doc_id,
             "source_hash": str(meta.get("source_hash", "")),
             "excerpt_id": excerpt_id,
             "span": {"char_range": {"start": char_start, "end": char_end}},
-            "hash": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+            "hash": text_hash,
+            "excerpt_text_hash": text_hash,
             "matched_terms": matched_terms,
             "match_count": len(matched_terms),
             "rank": rank,
