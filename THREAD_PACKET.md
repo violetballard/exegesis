@@ -1,9 +1,9 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Scope goal: Tighten the handoff packet so it matches commit `690fd3334040228a9d10487cd72cdf5bf97f7497` exactly.
+- Scope goal: Tighten the handoff packet so it matches commit `9339a5d3160ac1caca4a7ab32cac1881b6b894b1` exactly.
 - Reviewed commit type: Docs-only handoff metadata alignment.
-- Scope completed: The reviewed commit `690fd3334040228a9d10487cd72cdf5bf97f7497` only updated `THREAD_PACKET.md`; this is handoff metadata work, not retrieval source-code work.
+- Scope completed: The reviewed commit `9339a5d3160ac1caca4a7ab32cac1881b6b894b1` only updated `THREAD_PACKET.md`; this is handoff metadata work, not retrieval source-code work.
 - Tasks completed:
     1. Rewrote the scope goal so it tracks the reviewed commit exactly.
     2. Added an explicit `Scope completed` field that says the commit only updated the packet itself.
@@ -18,7 +18,7 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - Reviewer fix closure:
-  - `#1` regenerated the packet so `Files changed` matches commit `690fd3334040228a9d10487cd72cdf5bf97f7497` exactly.
+  - `#1` regenerated the packet so `Files changed` matches commit `9339a5d3160ac1caca4a7ab32cac1881b6b894b1` exactly.
   - `#2` removed all implementation-file references from the packet because they are not part of the reviewed commit.
   - `#3` rewrote the scope goal and tasks to describe the docs-only packet-alignment work.
   - `#4` added an explicit `Scope completed` field stating that the commit only updated the packet itself.
