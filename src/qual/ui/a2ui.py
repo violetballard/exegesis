@@ -559,10 +559,12 @@ def execute_action_with_policy_gate(
 
 
 def render_terminal_card(card: dict[str, Any]) -> str:
-    title = _normalize_card_title(card)
+    raw_title = _normalize_card_title(card)
+    title = _render_terminal_inline_text(raw_title)
     card_type = _normalize_card_type(card)
-    generic_fallback_source = _infer_generic_fallback_source(title)
-    lines = [f"[{card_type}] {title}"]
+    rendered_card_type = _render_terminal_inline_text(card_type)
+    generic_fallback_source = _infer_generic_fallback_source(raw_title)
+    lines = [f"[{rendered_card_type}] {title}"]
     subtitle = card.get("subtitle")
     if card_type == UNKNOWN_CARD_TYPE:
         lines.append(UNKNOWN_FALLBACK_SUBTITLE)
@@ -571,7 +573,7 @@ def render_terminal_card(card: dict[str, Any]) -> str:
     ):
         lines.append(GENERIC_FALLBACK_SUBTITLE)
     elif isinstance(subtitle, str) and subtitle.strip():
-        lines.append(subtitle.strip())
+        lines.append(_render_terminal_inline_text(subtitle.strip()))
     version = card.get("a2ui_version")
     if type(version) is int:
         lines.append(f"A2UI v{version}")
@@ -1000,13 +1002,18 @@ def _render_terminal_actions(actions: Any, *, supported_actions: set[str]) -> li
 
     identity_counts: dict[str, int] = {}
     for action in normalized_actions:
-        identity_key = _canonical_json({"id": action["id"], "label": action["label"]})
+        identity_key = _canonical_json(
+            {
+                "id": _render_terminal_inline_text(action["id"]),
+                "label": _render_terminal_inline_text(action["label"]),
+            }
+        )
         identity_counts[identity_key] = identity_counts.get(identity_key, 0) + 1
 
     lines: list[str] = []
     for action in normalized_actions:
-        label = action["label"]
-        action_id = action["id"]
+        label = _render_terminal_inline_text(action["label"])
+        action_id = _render_terminal_inline_text(action["id"])
         identity_key = _canonical_json({"id": action_id, "label": label})
         if identity_counts.get(identity_key, 0) > 1:
             payload_preview = _render_payload_preview(action["payload"], max_payload_bytes=96)
@@ -1024,7 +1031,7 @@ def _render_action_variant_suffix(action: dict[str, Any]) -> str:
     if isinstance(confirm, dict):
         confirm_title = confirm.get("title")
         if isinstance(confirm_title, str) and confirm_title.strip():
-            suffix_parts.append(f"confirm: {confirm_title.strip()}")
+            suffix_parts.append(f"confirm: {_render_terminal_inline_text(confirm_title.strip())}")
         else:
             suffix_parts.append("confirm")
     if action.get("policy_sensitive") is True:
@@ -1043,7 +1050,7 @@ def _render_terminal_debug(debug: Any) -> list[str]:
         if isinstance(value, bool):
             rendered_value = "true" if value else "false"
         elif isinstance(value, (str, int)):
-            rendered_value = str(value)
+            rendered_value = _render_terminal_inline_text(value)
         else:
             continue
         lines.append(f"- {key}: {rendered_value}")
@@ -1057,7 +1064,7 @@ def _render_terminal_fallback_notice(card_type: str, title: str, *, debug: Any) 
         if card_type == GENERIC_CARD_TYPE:
             source_card_type = _infer_generic_fallback_source(title)
             if source_card_type is not None:
-                return [f"Fallback: generic from {source_card_type}"]
+                return [f"Fallback: generic from {_render_terminal_inline_text(source_card_type)}"]
             return ["Fallback: generic card"]
         return []
     fallback_kind = debug.get("fallback_kind")
@@ -1066,7 +1073,9 @@ def _render_terminal_fallback_notice(card_type: str, title: str, *, debug: Any) 
         return []
     if not isinstance(source_card_type, str) or not source_card_type.strip():
         return []
-    return [f"Fallback: {fallback_kind.strip()} from {source_card_type.strip()}"]
+    return [
+        f"Fallback: {_render_terminal_inline_text(fallback_kind.strip())} from {_render_terminal_inline_text(source_card_type.strip())}"
+    ]
 
 
 def _render_terminal_action_policy(card_type: str, title: str, debug: Any) -> list[str]:
@@ -1358,16 +1367,16 @@ def _render_terminal_block(block: Any) -> list[str]:
     if block_type == "AlertBlock":
         severity_value = block.get("severity", "info")
         if isinstance(severity_value, str):
-            severity = severity_value.strip().upper() or "INFO"
+            severity = _render_terminal_inline_text(severity_value.strip()).upper() or "INFO"
         else:
             severity = "INFO"
-        message = _render_terminal_text(block.get("message", ""))
+        message = _render_terminal_inline_text(block.get("message", ""))
         return [f"{severity}: {message}"]
     if block_type == "CodeBlock":
         return [_render_terminal_text(block.get("code", ""))]
     if block_type == "ProgressBlock":
-        title = _render_terminal_text(block.get("title", "progress"))
-        status_text = _render_terminal_text(block.get("status_text", ""))
+        title = _render_terminal_inline_text(block.get("title", "progress"))
+        status_text = _render_terminal_inline_text(block.get("status_text", ""))
         return [f"{title}: {status_text}"]
     if block_type == "KeyValueBlock":
         items = block.get("items", [])
@@ -1377,10 +1386,10 @@ def _render_terminal_block(block: Any) -> list[str]:
         for item in items:
             if not isinstance(item, dict):
                 continue
-            key = str(item.get("key", "")).strip()
+            key = _render_terminal_inline_text(item.get("key", ""))
             if not key:
                 continue
-            value = str(item.get("value", "")).strip() or "<blank>"
+            value = _render_terminal_inline_text(item.get("value", "")) or "<blank>"
             lines.append(f"- {key}: {value}")
         return lines or ["[KeyValueBlock: empty]"]
     if block_type == "ListBlock":
@@ -1390,11 +1399,11 @@ def _render_terminal_block(block: Any) -> list[str]:
         lines: list[str] = []
         for item in items:
             if isinstance(item, str):
-                rendered_item = item.strip()
+                rendered_item = _render_terminal_inline_text(item)
                 if rendered_item:
                     lines.append(f"- {rendered_item}")
             elif isinstance(item, dict):
-                label = str(item.get("label", "")).strip()
+                label = _render_terminal_inline_text(item.get("label", ""))
                 if label:
                     lines.append(f"- {label}")
         return lines or ["[ListBlock: empty]"]
@@ -1413,14 +1422,34 @@ def _render_terminal_block(block: Any) -> list[str]:
                 elif isinstance(cell, bool):
                     rendered_cells.append("true" if cell else "false")
                 else:
-                    rendered_cells.append(str(cell))
+                    rendered_cells.append(_render_terminal_inline_text(cell))
             if rendered_cells:
                 lines.append(f"- {' | '.join(rendered_cells)}")
         return lines if len(lines) > 1 else ["[table: empty]"]
-    return [f"[unsupported block: {block_type}]"]
+    return [f"[unsupported block: {_render_terminal_inline_text(block_type)}]"]
 
 
 def _render_terminal_text(value: Any) -> str:
     if value is None:
         return ""
-    return str(value)
+    return _escape_terminal_text(str(value))
+
+
+def _render_terminal_inline_text(value: Any) -> str:
+    rendered = _render_terminal_text(value)
+    if not rendered:
+        return ""
+    return " ".join(rendered.replace("\n", " ").split())
+
+
+def _escape_terminal_text(value: str) -> str:
+    parts: list[str] = []
+    for char in value:
+        code = ord(char)
+        if char == "\n":
+            parts.append(char)
+        elif code < 32 or code == 127:
+            parts.append(f"\\x{code:02x}")
+        else:
+            parts.append(char)
+    return "".join(parts)
