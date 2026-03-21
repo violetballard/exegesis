@@ -36,15 +36,15 @@ def _build_command_spec_index(specs: tuple[CommandSpec, ...]) -> dict[str, Comma
     return index
 
 
-def _build_command_name_index(specs: tuple[CommandSpec, ...]) -> dict[str, str]:
-    index: dict[str, str] = {}
+def _build_command_lookup_index(specs: tuple[CommandSpec, ...]) -> dict[str, CommandSpec]:
+    index: dict[str, CommandSpec] = {}
     for spec in specs:
         for alias in (spec.name, *spec.aliases):
             normalized = _normalize_token(alias)
             existing = index.get(normalized)
-            if existing is not None and existing != spec.name:
-                raise ValueError(f"Duplicate command alias: {alias}")
-            index[normalized] = spec.name
+            if existing is not None and existing.name != spec.name:
+                raise ValueError(f"Duplicate command lookup alias: {alias}")
+            index[normalized] = spec
     return index
 
 
@@ -86,7 +86,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     ),
 )
 _COMMAND_SPEC_BY_NAME = _build_command_spec_index(COMMAND_SPECS)
-_COMMAND_NAME_BY_ALIAS = _build_command_name_index(COMMAND_SPECS)
+_COMMAND_LOOKUP_BY_ALIAS = _build_command_lookup_index(COMMAND_SPECS)
 
 _MVP_FLOW_COMMAND_NAMES: tuple[str, ...] = (
     "bootstrap",
@@ -118,11 +118,7 @@ def _build_command_catalog_entry(spec: CommandSpec, *, in_mvp_flow: bool) -> Com
 
 
 def command_catalog_entries() -> tuple[CommandCatalogEntry, ...]:
-    flow_names = set(command_mvp_flow_names())
-    return tuple(
-        _build_command_catalog_entry(spec, in_mvp_flow=spec.name in flow_names)
-        for spec in COMMAND_SPECS
-    )
+    return _command_catalog_entries_for_specs(COMMAND_SPECS)
 
 
 def command_catalog_index() -> dict[str, CommandCatalogEntry]:
@@ -130,11 +126,7 @@ def command_catalog_index() -> dict[str, CommandCatalogEntry]:
 
 
 def command_catalog_entries_for_role(mvp_role: str) -> tuple[CommandCatalogEntry, ...]:
-    flow_names = set(command_mvp_flow_names())
-    return tuple(
-        _build_command_catalog_entry(spec, in_mvp_flow=spec.name in flow_names)
-        for spec in command_specs_for_role(mvp_role)
-    )
+    return _command_catalog_entries_for_specs(command_specs_for_role(mvp_role))
 
 
 def command_catalog_entry(name: str) -> CommandCatalogEntry | None:
@@ -142,6 +134,14 @@ def command_catalog_entry(name: str) -> CommandCatalogEntry | None:
     if spec is None:
         return None
     return _build_command_catalog_entry(spec, in_mvp_flow=spec.name in _MVP_FLOW_COMMAND_NAME_SET)
+
+
+def _command_catalog_entries_for_specs(specs: tuple[CommandSpec, ...]) -> tuple[CommandCatalogEntry, ...]:
+    flow_names = _MVP_FLOW_COMMAND_NAME_SET
+    return tuple(
+        _build_command_catalog_entry(spec, in_mvp_flow=spec.name in flow_names)
+        for spec in specs
+    )
 
 
 def _lookup_names_for_specs(specs: tuple[CommandSpec, ...]) -> tuple[str, ...]:
@@ -161,9 +161,15 @@ def command_lookup_names() -> tuple[str, ...]:
     return _lookup_names_for_specs(COMMAND_SPECS)
 
 
+def command_lookup_index() -> dict[str, CommandSpec]:
+    return dict(_COMMAND_LOOKUP_BY_ALIAS)
+
+
 def command_spec(name: str) -> CommandSpec | None:
-    canonical = canonical_command(name)
-    return _COMMAND_SPEC_BY_NAME.get(canonical)
+    normalized = _normalize_token(name)
+    if not normalized:
+        return None
+    return _COMMAND_LOOKUP_BY_ALIAS.get(normalized)
 
 
 def command_aliases(name: str) -> tuple[str, ...]:
@@ -233,11 +239,7 @@ def command_mvp_flow_lookup_names() -> tuple[str, ...]:
 
 
 def command_mvp_flow_entries() -> tuple[CommandCatalogEntry, ...]:
-    flow_names = set(command_mvp_flow_names())
-    return tuple(
-        _build_command_catalog_entry(spec, in_mvp_flow=spec.name in flow_names)
-        for spec in _MVP_FLOW_SPECS
-    )
+    return _command_catalog_entries_for_specs(_MVP_FLOW_SPECS)
 
 
 def command_mvp_flow_index() -> dict[str, CommandCatalogEntry]:
@@ -248,4 +250,28 @@ def canonical_command(name: str) -> str:
     normalized = _normalize_token(name)
     if not normalized:
         return name.strip()
-    return _COMMAND_NAME_BY_ALIAS.get(normalized, name.strip())
+    spec = _COMMAND_LOOKUP_BY_ALIAS.get(normalized)
+    if spec is None:
+        return name.strip()
+    return spec.name
+
+
+def _validate_command_catalog_contract() -> None:
+    spec_names = command_names()
+    if len(spec_names) != len(set(spec_names)):
+        raise ValueError("Command catalog contains duplicate names.")
+    flow_names = command_mvp_flow_names()
+    if len(flow_names) != len(set(flow_names)):
+        raise ValueError("MVP flow command list contains duplicate names.")
+    missing_flow_names = tuple(name for name in flow_names if name not in _COMMAND_SPEC_BY_NAME)
+    if missing_flow_names:
+        raise ValueError(
+            "MVP flow command list contains unknown names: " + ", ".join(missing_flow_names)
+        )
+    if tuple(entry.name for entry in command_catalog_entries()) != spec_names:
+        raise ValueError("Command catalog entries are out of sync with command definitions.")
+    if tuple(entry.name for entry in command_mvp_flow_entries()) != flow_names:
+        raise ValueError("MVP flow catalog entries are out of sync with flow definitions.")
+
+
+_validate_command_catalog_contract()
