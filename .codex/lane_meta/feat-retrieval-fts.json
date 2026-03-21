@@ -8,8 +8,8 @@
     "Metadata consistency for docs-only commits: keep packet, kickoff metadata, and lane metadata in sync."
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The reviewed commit `3f40de6888902f10aff343a81f76befd0552bfce` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; it does not change retrieval implementation files.",
-  "scope_goal": "Tighten the handoff packet so it matches commit `3f40de6888902f10aff343a81f76befd0552bfce` exactly and does not imply retrieval source-code work.",
+  "scope_completed": "The reviewed commit `3f40de6888902f10aff343a81f76befd0552bfce` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`.",
+  "scope_goal": "Tighten the handoff packet so it matches commit `3f40de6888902f10aff343a81f76befd0552bfce` exactly.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Reconciled the packet with commit `3f40de6888902f10aff343a81f76befd0552bfce`, confirming the reviewed diff changes only the three handoff artifacts.",
