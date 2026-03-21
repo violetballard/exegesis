@@ -8,11 +8,11 @@
 
 ## Scope Goal
 
-Re-anchor the retrieval handoff packet to the earlier FTS-first implementation while keeping the current commit strictly limited to docs-only handoff alignment.
+Document the retrieval handoff boundary while keeping the current commit strictly limited to docs-only handoff alignment.
 
 ## Scope Completed
 
-This commit updates the handoff artifacts only. It states that the reviewed retrieval implementation lives in `36893f06df85409c4595d64adb8af60455c086a6`, that the deferred-policy boundary lives in `dc8f79e4abeb30de51854fdd84d35b97993955b8`, and that `203906231e9c47371b6d7bc4028bc4f60e764581` does not add retrieval code changes. The packet now keeps the file list restricted to the docs files actually changed here, removes the stale cross-lane retrieval-tool claim, and leaves any PageIndex or embeddings references as deferred-only history rather than active retrieval paths.
+This commit updates the handoff artifacts only. It states that the reviewed retrieval implementation lives in `36893f06df85409c4595d64adb8af60455c086a6`, that the deferred-policy boundary lives in `dc8f79e4abeb30de51854fdd84d35b97993955b8`, and that `203906231e9c47371b6d7bc4028bc4f60e764581` does not add retrieval code changes. The packet keeps the file list restricted to the docs files actually changed here, removes the stale cross-lane retrieval-tool claim, leaves any PageIndex or embeddings references as deferred-only history rather than active retrieval paths, and narrows the roadmap/vision mapping to the docs-only handoff boundary rather than claiming feature delivery in this commit.
 
 ## Code-Diff Evidence
 
@@ -21,7 +21,7 @@ This commit updates the handoff artifacts only. It states that the reviewed retr
 - `THREAD_PACKET.md`: records the docs-only nature of this commit and the earlier implementation/cleanup commits it points to.
 - No `src/qual/engine/tools/retrieval_tools.py` entry appears because that file is outside this lane's owned paths.
 
-### Related implementation files
+### Prior commit references
 
 - Reviewed code files:
   - `src/qual/engine/retrieval/__init__.py`
@@ -38,6 +38,7 @@ This commit updates the handoff artifacts only. It states that the reviewed retr
   2. Marked the current commit as docs-only and removed claims that it delivered retrieval code changes.
   3. Removed the stale cross-lane retrieval-tool reference from the handoff surface.
   4. Kept the file list restricted to the docs files actually changed in this commit.
+  5. Tightened the roadmap and vision mapping so it describes the handoff boundary rather than feature delivery.
 - Files changed:
   - Handoff-only artifacts:
     - `.codex/kickoff_packets/feat-retrieval-fts.md`
@@ -60,6 +61,7 @@ This commit updates the handoff artifacts only. It states that the reviewed retr
   - `#2` rewrote `Files changed` so it only lists the docs files changed here.
   - `#3` added a concrete `Scope completed` paragraph describing the docs-only handoff alignment.
   - `#4` removed the stale cross-lane retrieval-tool claim from the handoff surface.
+  - `#5` tightened the roadmap/vision mapping to describe the handoff boundary rather than feature delivery.
 - Checkpoint status:
   - plan complete
   - first green tests: `./quality-test.sh` passed
@@ -69,12 +71,7 @@ This commit updates the handoff artifacts only. It states that the reviewed retr
   - The earlier retrieval implementation remains in `36893f06df85409c4595d64adb8af60455c086a6`; this commit only documents that boundary.
 - Roadmap item(s) affected:
   - Milestone 4: Retrieval Layer -> FTS-first ingestion/index path for context/vault documents
-  - Milestone 4: Retrieval Layer -> Retrieval orchestration data needed before drafting/diff generation
-  - Milestone 4: Retrieval Layer -> Source-attribution model for retrieved chunks
-  - Milestone 2: Test Hardening -> Add focused unit coverage for core behaviors
 - Vision capability affected:
   - 2. Retrieval-first context handling
-  - 3. Auditable generation
-  - 4. Operator-first control surface
 - Routing/provider impact note: None.
 - Proposed `README.md` patch text: None.

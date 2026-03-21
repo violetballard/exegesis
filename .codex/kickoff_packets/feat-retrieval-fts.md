@@ -6,9 +6,9 @@
 - Deferred-policy cleanup commit: `dc8f79e4abeb30de51854fdd84d35b97993955b8`
 - Handoff alignment commit: `203906231e9c47371b6d7bc4028bc4f60e764581`
 - Reviewed commit type: Docs-only handoff alignment; no retrieval code changes in this commit.
-- Scope completed: This commit updates the handoff artifacts only. It records that the retrieval implementation lives in `36893f06df85409c4595d64adb8af60455c086a6`, that the deferred-policy boundary lives in `dc8f79e4abeb30de51854fdd84d35b97993955b8`, and that `203906231e9c47371b6d7bc4028bc4f60e764581` does not add retrieval code changes. The packet now keeps the file list restricted to the docs files actually changed here, removes the stale cross-lane retrieval-tool claim, and treats any PageIndex or embeddings mentions as deferred-only history instead of active retrieval paths.
+- Scope completed: This commit updates the handoff artifacts only. It records that the reviewed retrieval implementation lives in `36893f06df85409c4595d64adb8af60455c086a6`, that the deferred-policy boundary lives in `dc8f79e4abeb30de51854fdd84d35b97993955b8`, and that `203906231e9c47371b6d7bc4028bc4f60e764581` does not add retrieval code changes. The packet keeps the file list restricted to the docs files actually changed here, removes the stale cross-lane retrieval-tool claim, treats any PageIndex or embeddings mentions as deferred-only history instead of active retrieval paths, and narrows the roadmap/vision mapping to the docs-only handoff boundary rather than claiming feature delivery in this commit.
 
-### Related implementation files (reference only)
+### Prior commit references (reference only)
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
@@ -21,12 +21,14 @@
 - `.codex/lane_meta/feat-retrieval-fts.json`: mirrors the same scope and file-list correction in structured form.
 - `THREAD_PACKET.md`: records the docs-only nature of this commit and the earlier implementation/cleanup commits it points to.
 - `src/qual/engine/tools/retrieval_tools.py` is intentionally absent because it is outside the lane-owned paths.
+- Roadmap/vision mapping: documents the Milestone 4 retrieval boundary that this handoff references, without asserting new retrieval behavior in this commit.
 
 ### Priority outcomes
 1. State clearly that `203906231e9c47371b6d7bc4028bc4f60e764581` is a docs-only cleanup commit.
 2. Keep the file list aligned with the reviewed docs-only diff and separate earlier implementation files from the handoff artifacts.
 3. Do not imply unrelated retrieval tooling scope or cross-lane `src/qual/engine/tools/retrieval_tools.py` work.
 4. Treat PageIndex and embeddings mentions as deferred markers only, not active MVP paths.
+5. Make the roadmap and vision fields read as handoff-boundary documentation, not feature delivery.
 
 ### Tasks
 1. Re-anchor the packet to the actual commit under review and state that it is docs-only.
