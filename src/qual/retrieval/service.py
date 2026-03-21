@@ -95,6 +95,12 @@ class RetrievalHit:
             "node_path": copy.deepcopy(self.node_path),
             "provenance": copy.deepcopy(self.provenance),
         }
+        source_hash = self.provenance.get("source_hash")
+        if isinstance(source_hash, str) and source_hash:
+            payload["source_hash"] = source_hash
+        doc_type = self.provenance.get("doc_type")
+        if isinstance(doc_type, str) and doc_type:
+            payload["doc_type"] = doc_type
         doc_fingerprint = self.provenance.get("doc_fingerprint")
         if isinstance(doc_fingerprint, str) and doc_fingerprint:
             payload["doc_fingerprint"] = doc_fingerprint
@@ -150,6 +156,9 @@ class RetrievalDocHit:
             "excerpt_count": self.excerpt_count,
             "provenance": copy.deepcopy(self.provenance),
         }
+        doc_type = self.provenance.get("doc_type")
+        if isinstance(doc_type, str) and doc_type:
+            payload["doc_type"] = doc_type
         doc_fingerprint = self.provenance.get("doc_fingerprint")
         if isinstance(doc_fingerprint, str) and doc_fingerprint:
             payload["doc_fingerprint"] = doc_fingerprint
@@ -1164,6 +1173,7 @@ class RetrievalService:
         provenance = {
             "doc_id": doc_id,
             "source_hash": str(meta.get("source_hash", "")),
+            "doc_type": str(meta.get("doc_type", "")),
             "excerpt_id": excerpt_id,
             "span": {"char_range": {"start": char_start, "end": char_end}},
             "hash": text_hash,
