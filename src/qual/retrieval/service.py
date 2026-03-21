@@ -42,6 +42,14 @@ def _canonicalize_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(sorted(normalized))
 
 
+def _optional_text(value: object) -> str | None:
+    if isinstance(value, str):
+        text = value.strip()
+        if text:
+            return text
+    return None
+
+
 @dataclass(frozen=True)
 class RetrievalConstraints:
     max_results: int = 10
@@ -217,13 +225,21 @@ class RetrievalResult:
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
         }
-        doc_fingerprints = [doc_hit.provenance.get("doc_fingerprint") for doc_hit in self.doc_hits]
-        doc_identity_fingerprints = [doc_hit.provenance.get("doc_identity_fingerprint") for doc_hit in self.doc_hits]
-        top_excerpt_fingerprints = [doc_hit.provenance.get("top_excerpt_fingerprint") for doc_hit in self.doc_hits]
-        top_excerpt_text_hashes = [doc_hit.provenance.get("top_excerpt_text_hash") for doc_hit in self.doc_hits]
-        excerpt_fingerprints = [hit.provenance.get("excerpt_fingerprint") for hit in self.hits if hit.excerpt_id is not None]
+        doc_fingerprints = [_optional_text(doc_hit.provenance.get("doc_fingerprint")) for doc_hit in self.doc_hits]
+        doc_identity_fingerprints = [
+            _optional_text(doc_hit.provenance.get("doc_identity_fingerprint")) for doc_hit in self.doc_hits
+        ]
+        top_excerpt_fingerprints = [
+            _optional_text(doc_hit.provenance.get("top_excerpt_fingerprint")) for doc_hit in self.doc_hits
+        ]
+        top_excerpt_text_hashes = [
+            _optional_text(doc_hit.provenance.get("top_excerpt_text_hash")) for doc_hit in self.doc_hits
+        ]
+        excerpt_fingerprints = [
+            _optional_text(hit.provenance.get("excerpt_fingerprint")) for hit in self.hits if hit.excerpt_id is not None
+        ]
         excerpt_text_hashes = [
-            hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash")
+            _optional_text(hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"))
             for hit in self.hits
             if hit.excerpt_id is not None
         ]
@@ -746,15 +762,21 @@ class RetrievalService:
         *,
         retrieval_policy: dict[str, object],
     ) -> dict[str, object]:
-        doc_fingerprints = [str(doc_hit.provenance.get("doc_fingerprint", "")) for doc_hit in doc_hits]
+        doc_fingerprints = [_optional_text(doc_hit.provenance.get("doc_fingerprint")) for doc_hit in doc_hits]
         doc_identity_fingerprints = [
-            str(doc_hit.provenance.get("doc_identity_fingerprint", "")) for doc_hit in doc_hits
+            _optional_text(doc_hit.provenance.get("doc_identity_fingerprint")) for doc_hit in doc_hits
         ]
-        top_excerpt_fingerprints = [str(doc_hit.provenance.get("top_excerpt_fingerprint", "")) for doc_hit in doc_hits]
-        top_excerpt_text_hashes = [str(doc_hit.provenance.get("top_excerpt_text_hash", "")) for doc_hit in doc_hits]
-        excerpt_fingerprints = [str(hit.provenance.get("excerpt_fingerprint", "")) for hit in hits if hit.excerpt_id is not None]
+        top_excerpt_fingerprints = [
+            _optional_text(doc_hit.provenance.get("top_excerpt_fingerprint")) for doc_hit in doc_hits
+        ]
+        top_excerpt_text_hashes = [
+            _optional_text(doc_hit.provenance.get("top_excerpt_text_hash")) for doc_hit in doc_hits
+        ]
+        excerpt_fingerprints = [
+            _optional_text(hit.provenance.get("excerpt_fingerprint")) for hit in hits if hit.excerpt_id is not None
+        ]
         excerpt_text_hashes = [
-            str(hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash") or "")
+            _optional_text(hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"))
             for hit in hits
             if hit.excerpt_id is not None
         ]
