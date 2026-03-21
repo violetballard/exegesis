@@ -12,12 +12,18 @@
     "Milestone 2: Test Hardening -> Add focused unit coverage for core behaviors"
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "This cleanup only updates handoff metadata. The packet now labels the reviewed commit as docs-only cleanup, keeps the `section:` compatibility note explicit, and aligns the file list with the actual changed files.",
-  "scope_goal": "Apply the reviewer-required packet fixes for the retrieval FTS handoff metadata by clearly labeling the docs-only cleanup commit and keeping the reviewed file list aligned with the cleanup diff.",
+  "reviewed_implementation_files": [
+    "src/qual/engine/retrieval/__init__.py",
+    "src/qual/engine/retrieval/payload.py",
+    "src/qual/retrieval/service.py",
+    "tests/unit/test_unified_retrieval.py"
+  ],
+  "scope_completed": "This cleanup only updates handoff metadata. The packet now labels the reviewed commit as docs-only cleanup, keeps the reviewed FTS implementation files in a separate reference set, and keeps the `section:` compatibility note explicit without merging it into the cleanup diff.",
+  "scope_goal": "Apply the reviewer-required packet fixes for the retrieval FTS handoff metadata by clearly labeling the docs-only cleanup commit while naming the reviewed FTS implementation files separately.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Labeled the reviewed commit as docs-only cleanup instead of implying a retrieval code change.",
-    "Replaced the feature-code file list with the actual handoff artifact diff so the reviewed files match the commit.",
+    "Added a separate reviewed-implementation file set so the feature files remain visible without being folded into the cleanup diff.",
     "Added a standalone scope-completed summary that separates the retrieval implementation history from the metadata cleanup."
   ],
   "vision_capabilities": [
@@ -25,5 +31,5 @@
     "3. Auditable generation",
     "4. Operator-first control surface"
   ],
-  "compatibility_note": "Temporary compatibility guard: section queries are rejected until PageIndex can resolve concrete section targets."
+  "compatibility_note": "Temporary compatibility guard: section queries are rejected in the reviewed retrieval implementation until PageIndex can resolve concrete section targets."
 }

@@ -3,11 +3,16 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Reviewed cleanup commit: `300bd4c7053b5fd221d6c87a1be98bf5b5f9bc74`
 - Related implementation commit: `2c16551a6b3576eb9031d55a98525c21e04be255`
-- Scope goal: Apply the reviewer-required packet fixes for the retrieval FTS handoff metadata by clearly labeling the docs-only cleanup commit and keeping the reviewed file list aligned with the cleanup diff.
-- Scope completed: This handoff cleanup only updates packet metadata. The packet now labels the reviewed commit as docs-only cleanup, keeps the `section:` compatibility note explicit, and aligns the file list with the actual changed files.
+- Scope goal: Apply the reviewer-required packet fixes for the retrieval FTS handoff metadata by clearly labeling the docs-only cleanup commit while naming the reviewed FTS implementation files separately.
+- Scope completed: This handoff cleanup only updates packet metadata. The packet now labels the reviewed commit as docs-only cleanup, keeps the reviewed FTS implementation files in a separate reference set, and keeps the `section:` compatibility note explicit without folding it into the cleanup diff.
+- Reviewed implementation files:
+  - `src/qual/engine/retrieval/__init__.py`
+  - `src/qual/engine/retrieval/payload.py`
+  - `src/qual/retrieval/service.py`
+  - `tests/unit/test_unified_retrieval.py`
 - Tasks completed:
   1. Labeled the reviewed commit as docs-only cleanup instead of implying a retrieval code change.
-  2. Replaced the feature-code file list with the actual handoff artifact diff so the reviewed files match the commit.
+  2. Added a separate reviewed-implementation file set so the feature files remain visible without being folded into the cleanup diff.
   3. Added a standalone scope-completed summary that separates the retrieval implementation history from the metadata cleanup.
 - Files changed:
   - `.codex/kickoff_packets/feat-retrieval-fts.md`
@@ -31,7 +36,7 @@
 - Risks/blockers:
   - No blockers. The packet wording is now explicit about the docs-only cleanup boundary and the `section:` fallback behavior.
 - Compatibility note:
-  - Temporary compatibility guard: `section:` queries are rejected until PageIndex can resolve concrete section targets.
+  - Temporary compatibility guard: `section:` queries are rejected in the reviewed retrieval implementation until PageIndex can resolve concrete section targets.
 - Roadmap item(s) affected:
   - None; this commit only updates handoff metadata.
 - Vision capability affected:
