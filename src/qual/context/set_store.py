@@ -125,6 +125,14 @@ class ContextSetStore:
         self._quarantine_missing_context_sets_payload(self._seed_state_path(), seed_payload)
 
         primary_needs_quarantine = self._primary_context_sets_need_recovery(primary_payload)
+        if (
+            not primary_needs_quarantine
+            and isinstance(primary_payload, dict)
+            and "context_sets" in primary_payload
+            and not self._has_context_set_records(primary_payload)
+            and not self._is_supported_payload(primary_payload)
+        ):
+            primary_needs_quarantine = True
         if primary_needs_quarantine:
             self._quarantine_invalid_file()
 

@@ -1183,6 +1183,31 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         self.assertTrue(self.store._path.with_suffix(".corrupt.json").exists())
         self.assertNotIn("context_sets", quarantined_payload)
 
+    def test_empty_context_sets_with_invalid_metadata_preserves_audit_quarantine(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "not-a-timestamp",
+                    "recovered_from": "manual",
+                    "context_sets": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded, [])
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(self.store._path.with_suffix(".corrupt.json").read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("context_sets"), [])
+        self.assertEqual(primary_payload.get("schema_version"), 1)
+        self.assertTrue(self.store._path.with_suffix(".corrupt.json").exists())
+        self.assertEqual(quarantined_payload.get("context_sets"), [])
+        self.assertEqual(quarantined_payload.get("updated_at"), "not-a-timestamp")
+
 
 class VaultRecoveryTests(unittest.TestCase):
     def setUp(self) -> None:
