@@ -6,7 +6,7 @@
 - Branch head note: the current `HEAD` is the packet-maintenance follow-up; this packet reissues the reviewed code-bearing commit above.
 
 ## Scope goal
-- Reissue the handoff against the actual `diff_preview` no-diff fingerprint emission fix so the packet reflects the feature commit that changed `src/qual/commands/diff_preview.py` and `tests/unit/test_diff_preview.py`.
+- Reissue the handoff against the actual code-bearing `diff_preview` no-diff fingerprint emission fix so the packet reflects the feature commit that changed `src/qual/commands/diff_preview.py` and `tests/unit/test_diff_preview.py`.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
