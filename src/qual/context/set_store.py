@@ -487,11 +487,11 @@ class ContextSetStore:
         if not isinstance(raw, dict):
             return None
         record = ContextSetRecord(
-            context_set_id=str(raw.get("context_set_id", "")),
-            name=str(raw.get("name", "")),
+            context_set_id=ContextSetRecord._normalize_identifier(raw.get("context_set_id")),
+            name=ContextSetRecord._normalize_name(raw.get("name")),
             item_ids=list(raw.get("item_ids", [])) if isinstance(raw.get("item_ids", []), list) else [],
-            created_at=str(raw.get("created_at", "")),
-            updated_at=str(raw.get("updated_at", "")),
+            created_at=ContextSetRecord._normalize_timestamp(raw.get("created_at")),
+            updated_at=ContextSetRecord._normalize_timestamp(raw.get("updated_at")),
         )
         record.normalize()
         if not record.context_set_id or not record.name:
