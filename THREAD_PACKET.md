@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-context-storage`
 - Reviewed commit: `369f2d8f84afbb9805b3219abe8e7ed62d4662c2`
-- Scope goal: Harden context set and vault persistence recovery so malformed recovery payloads are preserved, quarantined, and rewritten without discarding valid local state, and cover that recovery contract with focused tests.
+- Scope goal: Harden context basket, context set, and vault persistence recovery so malformed recovery payloads are preserved, quarantined, and rewritten without discarding valid local state, and cover that recovery contract with focused tests.
 - Scope completed: Updated context basket recovery to preserve audit quarantines when malformed recovery payloads are rewritten.
 - Scope completed: Updated context set recovery to preserve audit quarantines when malformed recovery payloads are rewritten.
 - Scope completed: Updated vault state recovery to preserve valid lock and project state when recovery metadata is malformed, then rewrite normalized persisted state.

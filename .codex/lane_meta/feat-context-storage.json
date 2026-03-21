@@ -1,5 +1,5 @@
 {
-  "scope_goal": "Harden context set and vault persistence recovery so malformed optional metadata is salvaged and rewritten without discarding valid local state, with approved shared recovery test coverage documented explicitly.",
+  "scope_goal": "Harden context basket, context set, and vault persistence recovery so malformed optional metadata is salvaged and rewritten without discarding valid local state, with approved shared recovery test coverage documented explicitly.",
   "tasks_completed": [
     "Repointed the handoff at the actual recovery feature commit.",
     "Restored the approved shared recovery test file in the handoff metadata.",
