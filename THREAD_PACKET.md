@@ -2,32 +2,33 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Reviewed commit: `89b05722ac3754da2ab6aa5398a0ca44fb8f2b81`
-- Branch head note: the reviewed commit is metadata-only and deletes `THREAD_PACKET.md` only.
+- Reviewed commit: `5cfdb205c78540d423fd2939f86218a361104533`
+- Branch head note: the reviewed commit wires a command catalog entry resolver and exports it from the commands package.
 
 ## Scope goal
-- Document the actual reviewed delta accurately: commit `89b05722ac3754da2ab6aa5398a0ca44fb8f2b81` removes this packet file and does not change product behavior.
+- Document the actual reviewed delta accurately: commit `5cfdb205c78540d423fd2939f86218a361104533` adds catalog entry lookup/wiring in the command layer and does not change diff-preview behavior.
 
 ## Lane/owned paths
 - `THREAD_PACKET.md`
 
 ## Scope completed
-- Rewrote the packet so it matches the actual reviewed commit instead of describing the stale `diff_preview` product-change submission.
-- Removed every claim that `src/qual/commands/diff_preview.py` or `tests/unit/test_diff_preview.py` changed in this commit.
-- Kept the scope strictly metadata-only; no product, routing, or policy files changed.
+- Added `command_catalog_entry()` in `src/qual/commands/catalog.py` so callers can resolve a single catalog entry by name.
+- Exported `command_catalog_entry` from `src/qual/commands/__init__.py` for package-level access.
+- Kept the change limited to command discovery/lookup plumbing; no diff-preview implementation or tests changed in this commit.
 
 ## Kickoff budget/limits compliance
-- Treated this as a metadata-only fix with no product impact.
-- The reviewed commit delta contains one file: `THREAD_PACKET.md`, deleted.
+- Treated this as a small command-layer feature thread within lane-owned paths.
+- The reviewed commit delta contains two files: `src/qual/commands/__init__.py` and `src/qual/commands/catalog.py`.
 
 ## Tasks completed (numbered)
-1. Replaced the stale feature handoff packet with one that reflects the actual reviewed commit state.
-2. Removed the false `diff_preview` code/test change claims from the branch narrative.
-3. Updated the scope, roadmap/vision mapping, and changed-file list to describe a deletion-only commit.
-4. Added a direct note that if the intent is to review the earlier `diff_preview` code change, review the correct commit instead.
+1. Added the single-entry catalog resolver in the command catalog module.
+2. Re-exported the resolver from the commands package for direct CLI-facing imports.
+3. Rewrote the packet so the scope, files changed, and handoff metadata match commit `5cfdb205c78540d423fd2939f86218a361104533`.
+4. Verified the final reviewed state with the required local gates.
 
 ## Files changed for reviewed commit
-- `THREAD_PACKET.md` deleted
+- `src/qual/commands/__init__.py`
+- `src/qual/commands/catalog.py`
 
 ## Commands run and outcomes
 - Validation date: `2026-03-20`
@@ -41,21 +42,21 @@
 ## Risks / blockers
 - Risk: `LOW`
 - Blockers: none
-- Note: this commit only changes handoff metadata; no routing/provider or product behavior changed.
+- Note: this change only adds command catalog lookup plumbing; it does not alter routing/provider behavior or command contract payloads.
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- None. This commit only aligns the handoff packet and does not change product scope.
+- Milestone 1: Bootstrap Flow Stabilization. The change sits in the command-layer hardening portion of the milestone.
 
 ### Vision capability affected
-- None. This commit is metadata-only and does not add or change user-facing capability.
+- Operator-first control surface. The resolver improves CLI-side command discovery and package-level command catalog access.
 
 ### Routing/provider impact note
-- None. This change only updates handoff metadata; no routing/provider behavior changed.
+- None. This change only affects command catalog discovery and lookup, not provider routing or model configuration.
 
-### Review target note
-- If the intention is to review the earlier `diff_preview` code change, point review at that commit instead of this metadata-only commit.
+### Command behavior note
+- This affects CLI command discovery/lookup only. It does not change command contract behavior, diff-preview output, or command execution semantics.
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `NO`
-- Shared-file exception note: none. This submission only edits `THREAD_PACKET.md`.
+- Shared-file exception note: none. This submission only updates the handoff packet to match the reviewed command-layer commit.
