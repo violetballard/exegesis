@@ -246,8 +246,9 @@ class VaultService:
     def _write_backup_payload(self, root_dir: Path, payload: dict[str, object]) -> None:
         backup_path = self._backup_state_path(root_dir)
         tmp = backup_path.with_suffix(".tmp")
+        canonical_payload = self._backup_payload(payload)
         try:
-            tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+            tmp.write_text(json.dumps(canonical_payload, indent=2, sort_keys=True), encoding="utf-8")
             tmp.replace(backup_path)
         except OSError:
             self._unlink_if_exists(tmp)
