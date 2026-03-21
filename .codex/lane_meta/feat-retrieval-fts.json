@@ -11,7 +11,7 @@
     "Milestone 2: Test Hardening -> Add focused unit coverage for core behaviors"
   ],
   "routing_provider_impact": "None",
-  "scope_completed": "The retrieval FTS MVP work stays in retrieval-owned code paths, with FTS as the only active runtime strategy. `pageindex` and `embeddings` remain deferred in `FTS_FIRST_POLICY.deferred_strategy_ids`, so they are not required runtime paths. The packet now lists handoff artifacts separately so the ownership boundary is explicit, and `section:` queries remain rejected as a compatibility safeguard until PageIndex can resolve concrete section targets.",
+  "scope_completed": "The retrieval FTS MVP work stays in retrieval-owned code paths, with FTS as the only active runtime strategy. `src/qual/engine/retrieval/pageindex_strategy.py` and `src/qual/engine/retrieval/embeddings_strategy.py` are not present in this worktree, so this cleanup does not change them; `pageindex` and `embeddings` remain deferred in `FTS_FIRST_POLICY.deferred_strategy_ids`, so they are not required runtime paths. The packet now lists handoff artifacts separately so the ownership boundary is explicit, and `section:` queries remain rejected as a compatibility safeguard until PageIndex can resolve concrete section targets.",
   "scope_goal": "Apply the reviewer-required packet fixes for the retrieval FTS MVP handoff by separating feature code files from handoff artifacts and documenting the `section:` compatibility boundary.",
   "shared_file_exception": false,
   "tasks_completed": [
@@ -24,5 +24,5 @@
     "3. Auditable generation",
     "4. Operator-first control surface"
   ],
-  "compatibility_note": "section scope rejection is a compatibility guard until PageIndex can resolve concrete section targets; pageindex and embeddings remain deferred-only in the FTS-first policy snapshot."
+  "compatibility_note": "section scope rejection is a compatibility guard until PageIndex can resolve concrete section targets; src/qual/engine/retrieval/pageindex_strategy.py and src/qual/engine/retrieval/embeddings_strategy.py are not present in this worktree, so no cleanup changes were made there; pageindex and embeddings remain deferred-only in the FTS-first policy snapshot."
 }
