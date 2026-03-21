@@ -61,6 +61,7 @@ class VaultService:
             self._state_path(state.root_dir),
             self._backup_state_path(state.root_dir),
             self._tmp_state_path(state.root_dir),
+            self._backup_tmp_state_path(state.root_dir),
             self._corrupt_state_path(state.root_dir),
         ):
             self._unlink_if_exists(path)
@@ -75,6 +76,9 @@ class VaultService:
     def _tmp_state_path(self, root_dir: Path) -> Path:
         return self._state_path(root_dir).with_suffix(".tmp")
 
+    def _backup_tmp_state_path(self, root_dir: Path) -> Path:
+        return self._backup_state_path(root_dir).with_suffix(".tmp")
+
     def _corrupt_state_path(self, root_dir: Path) -> Path:
         return self._state_path(root_dir).with_suffix(".corrupt.json")
 
@@ -83,6 +87,7 @@ class VaultService:
         primary_missing = not state_path.exists()
         primary_payload = self._load_payload(state_path)
         tmp_payload = self._load_payload(self._tmp_state_path(root_dir))
+        backup_tmp_payload = self._load_payload(self._backup_tmp_state_path(root_dir))
         backup_payload = self._load_payload(self._backup_state_path(root_dir))
 
         payload: dict[str, object] | None
@@ -90,10 +95,12 @@ class VaultService:
         if primary_payload is not None:
             payload = primary_payload
             recovered_source = None
-            if tmp_payload is not None:
-                self._unlink_if_exists(self._tmp_state_path(root_dir))
+            self._clear_temporary_state(root_dir)
         elif tmp_payload is not None:
             payload = tmp_payload
+            recovered_source = "tmp"
+        elif backup_tmp_payload is not None:
+            payload = backup_tmp_payload
             recovered_source = "tmp"
         elif backup_payload is not None:
             payload = backup_payload
@@ -127,6 +134,7 @@ class VaultService:
             raise
         self._write_backup_payload(state.root_dir, self._backup_payload(payload))
         self._clear_quarantine_state(state.root_dir)
+        self._clear_temporary_state(state.root_dir)
 
     def _quarantine_invalid_state(self, root_dir: Path) -> None:
         state_path = self._state_path(root_dir)
@@ -152,6 +160,10 @@ class VaultService:
         self._unlink_if_exists(self._corrupt_state_path(root_dir))
         self._unlink_if_exists(self._corrupt_path_for(self._backup_state_path(root_dir)))
 
+    def _clear_temporary_state(self, root_dir: Path) -> None:
+        self._unlink_if_exists(self._tmp_state_path(root_dir))
+        self._unlink_if_exists(self._backup_tmp_state_path(root_dir))
+
     def _corrupt_path_for(self, path: Path) -> Path:
         if path.name.endswith(".tmp"):
             return path.with_name(f"{path.name}.corrupt.json")
@@ -167,7 +179,7 @@ class VaultService:
         except (json.JSONDecodeError, OSError):
             if path.name == _STATE_FILE:
                 self._quarantine_invalid_state(path.parent)
-            elif path == self._tmp_state_path(path.parent):
+            elif path.suffix == ".tmp":
                 self._unlink_if_exists(path)
             elif path == self._backup_state_path(path.parent):
                 self._quarantine_invalid_backup(path.parent)
@@ -175,7 +187,7 @@ class VaultService:
         if not self._is_loadable_payload(payload):
             if path.name == _STATE_FILE:
                 self._quarantine_invalid_state(path.parent)
-            elif path == self._tmp_state_path(path.parent):
+            elif path.suffix == ".tmp":
                 self._unlink_if_exists(path)
             elif path == self._backup_state_path(path.parent):
                 self._quarantine_invalid_backup(path.parent)
