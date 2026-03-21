@@ -11,18 +11,18 @@
   ],
   "routing_provider_impact": "None",
   "related_implementation_files": [
-    "src/qual/engine/retrieval/__init__.py",
-    "src/qual/retrieval/service.py"
+    ".codex/kickoff_packets/feat-retrieval-fts.md",
+    ".codex/lane_meta/feat-retrieval-fts.json",
+    "THREAD_PACKET.md"
   ],
-  "scope_completed": "This commit updates only the handoff artifacts in lane-owned docs paths. It records that the reviewed retrieval implementation lives in 36893f06df85409c4595d64adb8af60455c086a6, that the deferred-policy boundary lives in dc8f79e4abeb30de51854fdd84d35b97993955b8, and that 203906231e9c47371b6d7bc4028bc4f60e764581 does not add retrieval code changes. The actual diff is limited to .codex/kickoff_packets/feat-retrieval-fts.md, .codex/lane_meta/feat-retrieval-fts.json, and THREAD_PACKET.md; src/qual/engine/tools/retrieval_tools.py is not part of this handoff and no non-owned source files are promoted or approved. The handoff keeps the changed-file list restricted to those docs files, states the owned retrieval behavior as FTS-first for vault, collection:, and doc: scopes, and documents section: as a compatibility break in the current MVP until fallback support exists. PageIndex and embeddings mentions remain deferred-only history, and the roadmap/vision mapping stays scoped to the docs-only handoff boundary rather than claiming feature delivery in this commit.",
+  "scope_completed": "This commit updates only the handoff artifacts in lane-owned docs paths. It records that the reviewed retrieval implementation lives in 36893f06df85409c4595d64adb8af60455c086a6, that the deferred-policy boundary lives in dc8f79e4abeb30de51854fdd84d35b97993955b8, and that 203906231e9c47371b6d7bc4028bc4f60e764581 does not add retrieval code changes. The actual diff is limited to .codex/kickoff_packets/feat-retrieval-fts.md, .codex/lane_meta/feat-retrieval-fts.json, and THREAD_PACKET.md. The handoff keeps the changed-file list restricted to those docs files, states the owned retrieval behavior as FTS-first for vault, collection:, and doc: scopes, and documents section: as a compatibility break in the current MVP until fallback support exists. PageIndex and embeddings mentions remain deferred-only history, and the roadmap/vision mapping stays scoped to the docs-only handoff boundary rather than claiming feature delivery in this commit.",
   "scope_goal": "Document the retrieval handoff boundary while keeping the current commit strictly limited to docs-only handoff alignment.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Re-anchored the packet to the docs-only handoff alignment commit.",
-    "Marked the current commit as docs-only and removed claims that it delivered retrieval code changes.",
-    "Removed the stale cross-lane retrieval-tool reference from the handoff surface.",
-    "Kept the file list restricted to the docs files actually changed in this commit.",
-    "Tightened the roadmap and vision mapping so it describes the handoff boundary rather than feature delivery.",
+    "Re-anchored the packet to the actual commit under review and stated that it is docs-only.",
+    "Rewrote the file list so it only includes the docs files changed in this commit.",
+    "Added a concrete Scope completed statement for the docs-only handoff alignment.",
+    "Preserved the roadmap and vision mapping for the earlier retrieval implementation without claiming it landed in this commit.",
     "Documented the section-scope compatibility boundary for the current FTS-first MVP path."
   ],
   "vision_capabilities": [
