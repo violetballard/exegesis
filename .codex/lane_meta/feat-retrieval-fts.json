@@ -1,16 +1,21 @@
 {
   "approved_exception_note": "",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 3 promoted metadata files, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 2 promoted metadata files, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
   "proposed_readme_patch": "",
   "risk": "LOW",
-  "roadmap_items": [],
+  "roadmap_items": [
+    "Milestone 4: Retrieval Layer -> Retrieval orchestration in engine before drafting/diff generation"
+  ],
   "routing_provider_impact": "None",
-  "scope_goal": "Align the kickoff packet, lane metadata, and handoff packet with the reviewed docs-only commit so the lane record matches the actual diff.",
+  "scope_goal": "Regenerate the feat-retrieval-fts handoff so the reviewed commit `44116a6740ae818eccaf88fa988239fd6c34f18a` is represented accurately.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Regenerated the kickoff packet so it describes the reviewed commit as docs-only handoff alignment.",
-    "Regenerated the lane metadata so its scope, budget note, roadmap, and task list match the actual diff.",
-    "Regenerated the handoff packet so it lists the exact changed files and does not imply unreviewed retrieval source changes."
+    "Reconciled the packet with commit `44116a6740ae818eccaf88fa988239fd6c34f18a`, which only changes `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`.",
+    "Removed `src/qual/engine/retrieval/pageindex_strategy.py` and every source-change claim from the handoff because the reviewed diff is packet-only.",
+    "Added an explicit `Scope completed` field and kept roadmap/vision mapping limited to the active FTS-first retrieval lane."
   ],
-  "vision_capabilities": []
+  "vision_capabilities": [
+    "2. Retrieval-first context handling",
+    "3. Auditable generation"
+  ]
 }
