@@ -28,8 +28,13 @@ def _normalize_token(value: str) -> str:
 
 
 def _validate_command_spec(spec: CommandSpec) -> None:
-    if not spec.name.strip():
+    normalized_name = _normalize_token(spec.name)
+    if not normalized_name:
         raise ValueError("Command name cannot be blank.")
+    if normalized_name != spec.name:
+        raise ValueError(f"Command name must be normalized: {spec.name}")
+    if not spec.description.strip():
+        raise ValueError(f"Command description cannot be blank: {spec.name}")
 
     seen_aliases: set[str] = set()
     for alias in spec.aliases:
