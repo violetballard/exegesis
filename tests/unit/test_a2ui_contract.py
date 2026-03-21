@@ -209,6 +209,22 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(generic["a2ui_version"], 1)
         self.assertEqual(generic["actions"], [{"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p2"}}])
 
+    def test_engine_materializes_supported_cards_with_canonical_lists(self) -> None:
+        caps = _capabilities(cards_supported=("RunLogCard",), actions_supported=("apply_patch",))
+        card = engine_prepare_card(
+            {
+                "type": "RunLogCard",
+                "title": "Run Log",
+                "blocks": None,
+                "actions": None,
+            },
+            caps,
+        )
+
+        self.assertEqual(card["a2ui_version"], 1)
+        self.assertEqual(card["blocks"], [])
+        self.assertEqual(card["actions"], [])
+
     def test_engine_rejects_version_mismatched_supported_cards(self) -> None:
         caps = _capabilities(cards_supported=("ProposedEditCard",))
         with self.assertRaises(ValueError):

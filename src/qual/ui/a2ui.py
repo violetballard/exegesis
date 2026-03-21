@@ -319,7 +319,9 @@ def render_terminal_card(card: dict[str, Any]) -> str:
 def _filter_card_actions(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
     actions = card.get("actions")
     if not isinstance(actions, list):
-        return card
+        out = dict(card)
+        out["actions"] = []
+        return out
     supported = set(capabilities.actions_supported)
     filtered: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -339,7 +341,10 @@ def _filter_card_actions(card: dict[str, Any], capabilities: A2UICapabilities) -
 
 
 def _materialize_versioned_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
-    out = _filter_card_actions(card, capabilities)
+    out = dict(card)
+    if not isinstance(out.get("blocks"), list):
+        out["blocks"] = []
+    out = _filter_card_actions(out, capabilities)
     out["a2ui_version"] = A2UI_VERSION
     return out
 
