@@ -11,11 +11,12 @@ Expose the canonical auto retrieval payload inside retrieval-owned paths while p
 
 ## Scope Completed
 
-The reviewed implementation routes `retrieve_auto()` through the retrieval service's canonical FTS-first payload path, exposes `retrieve_auto_payload()` for downstream consumers, re-exports `primary_strategy_id` from the engine retrieval package, and adds focused unit coverage for payload parity and package-export behavior. PageIndex and embeddings remain deferred and are not required MVP paths.
+The reviewed implementation routes `retrieve_auto()` through the retrieval service's canonical FTS-first payload path, exposes `retrieve_auto_payload()` for downstream consumers, re-exports `primary_strategy_id` from the engine retrieval package, and adds focused unit coverage for payload parity and package-export behavior. PageIndex and embeddings remain deferred and are not required MVP paths; they appear only as deferred strategy identifiers in `src/qual/engine/retrieval/policy.py`, not as active strategy implementations.
 
 ## Code-Diff Evidence
 
 - `src/qual/engine/retrieval/__init__.py`: re-exports the retrieval package entrypoints used by downstream engine consumers.
+- `src/qual/engine/retrieval/policy.py`: records the FTS-first policy snapshot and the deferred strategy identifiers used in downstream payloads.
 - `src/qual/engine/tools/retrieval_tools.py`: routes auto retrieval through the canonical retrieval-service payload path.
 - `src/qual/retrieval/service.py`: provides the FTS-first payload implementation and deterministic downstream payload shaping.
 - `tests/unit/test_unified_retrieval.py`: covers payload parity, export behavior, and downstream-facing retrieval results.
@@ -25,6 +26,7 @@ The reviewed implementation routes `retrieve_auto()` through the retrieval servi
 
 - Reviewed code files:
   - `src/qual/engine/retrieval/__init__.py`
+  - `src/qual/engine/retrieval/policy.py`
   - `src/qual/engine/tools/retrieval_tools.py`
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`
@@ -38,9 +40,11 @@ The reviewed implementation routes `retrieve_auto()` through the retrieval servi
   3. Added focused unit coverage for canonical payload parity and package-export behavior.
   4. Rewrote the handoff packet metadata so the reviewed code files and handoff-only artifacts are separated explicitly.
   5. Added an explicit cleanup-commit pointer so the docs-only follow-up is not confused with the reviewed implementation commit.
+  6. Added an in-code policy note that keeps the deferred PageIndex and embeddings boundary explicit.
 - Files changed:
   - Reviewed implementation code:
     - `src/qual/engine/retrieval/__init__.py`
+    - `src/qual/engine/retrieval/policy.py`
     - `src/qual/engine/tools/retrieval_tools.py`
     - `src/qual/retrieval/service.py`
     - `tests/unit/test_unified_retrieval.py`
@@ -70,6 +74,7 @@ The reviewed implementation routes `retrieve_auto()` through the retrieval servi
   - ready for handoff: all required local gates passed
 - Risks/blockers:
   - No blockers. The packet wording is now explicit about the retrieval implementation boundary and the reviewed patch surface.
+  - No PageIndex or embeddings implementation files were changed in the reviewed surface; their names remain deferred policy identifiers only.
 - Roadmap item(s) affected:
   - Milestone 4: Retrieval Layer -> FTS-first ingestion/index path for context/vault documents
   - Milestone 4: Retrieval Layer -> Retrieval orchestration data needed before drafting/diff generation

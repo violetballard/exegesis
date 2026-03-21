@@ -46,5 +46,7 @@ FTS_FIRST_POLICY = RetrievalPolicy(
     retrieval_backend="sqlite_fts",
     retrieval_mode="fts_first",
     active_strategy_ids=("fts",),
+    # PageIndex and embeddings remain deferred identifiers for the MVP.
+    # They are not active strategy implementations in this lane.
     deferred_strategy_ids=("pageindex", "embeddings"),
 )

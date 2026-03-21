@@ -5,16 +5,18 @@
 - Reviewed implementation commit: `36893f06df85409c4595d64adb8af60455c086a6`
 - Cleanup / handoff alignment commit: `453e8664dadcee989a2579a97179e87db04b1607`
 - Reviewed commit type: Canonical auto payload plumbing for the FTS-first MVP.
-- Scope completed: The reviewed implementation routes `retrieve_auto()` through the retrieval service's canonical FTS-first payload path, exposes `retrieve_auto_payload()` for downstream consumers, re-exports `primary_strategy_id` from the engine retrieval package, and adds focused unit coverage for payload parity and package-export behavior. PageIndex and embeddings remain deferred and are not required MVP paths.
+- Scope completed: The reviewed implementation routes `retrieve_auto()` through the retrieval service's canonical FTS-first payload path, exposes `retrieve_auto_payload()` for downstream consumers, re-exports `primary_strategy_id` from the engine retrieval package, and adds focused unit coverage for payload parity and package-export behavior. PageIndex and embeddings remain deferred and are not required MVP paths; they appear only as deferred strategy identifiers in `src/qual/engine/retrieval/policy.py`, not as active strategy implementations.
 
 ### Related implementation files (reference only)
 - `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/policy.py`
 - `src/qual/engine/tools/retrieval_tools.py`
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
 ### Code-diff evidence
 - `src/qual/engine/retrieval/__init__.py`: re-exports retrieval package entrypoints used by downstream engine consumers.
+- `src/qual/engine/retrieval/policy.py`: records the FTS-first policy snapshot and the deferred strategy identifiers used in downstream payloads.
 - `src/qual/engine/tools/retrieval_tools.py`: routes auto retrieval through the canonical retrieval-service payload path.
 - `src/qual/retrieval/service.py`: provides the FTS-first payload implementation and deterministic downstream payload shaping.
 - `tests/unit/test_unified_retrieval.py`: covers payload parity, export behavior, and downstream-facing retrieval results.
@@ -35,6 +37,7 @@
 ### Files changed
 - Reviewed implementation code:
   - `src/qual/engine/retrieval/__init__.py`
+  - `src/qual/engine/retrieval/policy.py`
   - `src/qual/engine/tools/retrieval_tools.py`
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`

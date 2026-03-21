@@ -14,11 +14,12 @@
   "routing_provider_impact": "None",
   "related_implementation_files": [
     "src/qual/engine/retrieval/__init__.py",
+    "src/qual/engine/retrieval/policy.py",
     "src/qual/engine/tools/retrieval_tools.py",
     "src/qual/retrieval/service.py",
     "tests/unit/test_unified_retrieval.py"
   ],
-  "scope_completed": "The reviewed implementation routes retrieve_auto() through the retrieval service's canonical FTS-first payload path, exposes retrieve_auto_payload() for downstream consumers, re-exports primary_strategy_id from the engine retrieval package, and adds focused unit coverage for payload parity and package-export behavior. PageIndex and embeddings remain deferred and are not required MVP paths.",
+  "scope_completed": "The reviewed implementation routes retrieve_auto() through the retrieval service's canonical FTS-first payload path, exposes retrieve_auto_payload() for downstream consumers, re-exports primary_strategy_id from the engine retrieval package, and adds focused unit coverage for payload parity and package-export behavior. PageIndex and embeddings remain deferred and are not required MVP paths; they appear only as deferred strategy identifiers in src/qual/engine/retrieval/policy.py, not as active strategy implementations.",
   "scope_goal": "Expose the canonical auto retrieval payload inside retrieval-owned paths while preserving the FTS-first MVP contract for downstream engine generation flows.",
   "shared_file_exception": false,
   "tasks_completed": [
@@ -26,7 +27,8 @@
     "Exposed retrieve_auto_payload() and primary_strategy_id() through the engine retrieval surface.",
     "Added focused unit coverage for canonical payload parity and package-export behavior.",
     "Rewrote the handoff metadata so the reviewed code files and handoff-only artifacts are separated explicitly.",
-    "Added an explicit cleanup-commit pointer so the docs-only follow-up is not confused with the reviewed implementation commit."
+    "Added an explicit cleanup-commit pointer so the docs-only follow-up is not confused with the reviewed implementation commit.",
+    "Added an in-code policy note that keeps the deferred PageIndex and embeddings boundary explicit."
   ],
   "vision_capabilities": [
     "2. Retrieval-first context handling",
