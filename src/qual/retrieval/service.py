@@ -135,6 +135,16 @@ class RetrievalResult:
         engine flows do not have to reassemble or reinterpret retrieval state.
         """
         retrieval_policy = dict(self.diagnostics["retrieval_policy"])
+        doc_fingerprints = [doc_hit.provenance.get("doc_fingerprint") for doc_hit in self.doc_hits]
+        doc_identity_fingerprints = [doc_hit.provenance.get("doc_identity_fingerprint") for doc_hit in self.doc_hits]
+        top_excerpt_fingerprints = [doc_hit.provenance.get("top_excerpt_fingerprint") for doc_hit in self.doc_hits]
+        top_excerpt_text_hashes = [doc_hit.provenance.get("top_excerpt_text_hash") for doc_hit in self.doc_hits]
+        excerpt_fingerprints = [hit.provenance.get("excerpt_fingerprint") for hit in self.hits if hit.excerpt_id is not None]
+        excerpt_text_hashes = [
+            hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash")
+            for hit in self.hits
+            if hit.excerpt_id is not None
+        ]
         return build_retrieval_downstream_payload(
             query={
                 "query_text": self.query.query_text,
@@ -164,7 +174,13 @@ class RetrievalResult:
                 "doc_count": len(self.doc_hits),
                 "excerpt_count": len(self.hits),
                 "doc_ids": [doc_hit.doc_id for doc_hit in self.doc_hits],
+                "doc_fingerprints": doc_fingerprints,
+                "doc_identity_fingerprints": doc_identity_fingerprints,
                 "excerpt_ids": [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None],
+                "excerpt_fingerprints": excerpt_fingerprints,
+                "excerpt_text_hashes": excerpt_text_hashes,
+                "top_excerpt_fingerprints": top_excerpt_fingerprints,
+                "top_excerpt_text_hashes": top_excerpt_text_hashes,
                 "primary_doc_id": self.doc_hits[0].doc_id if self.doc_hits else None,
                 "primary_excerpt_id": self.hits[0].excerpt_id if self.hits else None,
                 "primary_doc_fingerprint": self.doc_hits[0].provenance.get("doc_fingerprint") if self.doc_hits else None,
