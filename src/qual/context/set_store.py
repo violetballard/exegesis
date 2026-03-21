@@ -695,15 +695,11 @@ class ContextSetStore:
 
     def _is_preferred_recovery_payload(self, payload: dict[str, object] | list[object]) -> bool:
         if isinstance(payload, list):
-            if not payload:
-                return True
             parsed_records = self._parse_context_sets(payload)
             return parsed_records is not None and bool(parsed_records)
         if "context_sets" not in payload:
             return False
         raw_context_sets = payload.get("context_sets")
-        if isinstance(raw_context_sets, list) and not raw_context_sets:
-            return True
         parsed_records = self._parse_context_sets(raw_context_sets)
         return parsed_records is not None and bool(parsed_records)
 

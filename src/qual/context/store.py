@@ -568,7 +568,6 @@ class ContextBasketStore:
         seed_tmp_payload: dict[str, object] | list[object] | None,
         seed_payload: dict[str, object] | list[object] | None,
     ) -> tuple[dict[str, object] | list[object] | None, str | None]:
-        fallback_candidate: tuple[dict[str, object] | list[object] | None, str | None] = (None, None)
         for candidate, recovered_source in (
             (tmp_payload, "tmp"),
             (backup_tmp_payload, "backup_tmp"),
@@ -582,9 +581,7 @@ class ContextBasketStore:
                 continue
             if self._has_recovery_payload_items(candidate):
                 return candidate, recovered_source
-            if fallback_candidate == (None, None):
-                fallback_candidate = (candidate, recovered_source)
-        return fallback_candidate
+        return None, None
 
     def _has_recovery_payload_items(self, payload: dict[str, object] | list[object]) -> bool:
         if isinstance(payload, list):
