@@ -191,12 +191,14 @@ def build_unknown_card(
     supported_actions: tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
     type_name = str(raw_card.get("type", "<missing>"))
+    rendered_preview = _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes, pretty=True)
+    clipboard_preview = _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes)
     blocks = _extract_safe_primitive_blocks(raw_card)
     blocks.append(
         {
             "type": "CodeBlock",
             "language": "json",
-            "code": _render_payload_preview(raw_card, max_payload_bytes=max_payload_bytes, pretty=True),
+            "code": rendered_preview,
             "collapsed": True,
         }
     )
@@ -207,7 +209,7 @@ def build_unknown_card(
             {
                 "id": "copy_to_clipboard",
                 "label": "Copy JSON",
-                "payload": {"text": _render_payload_preview(raw_card, max_payload_bytes=None)},
+                "payload": {"text": clipboard_preview},
             }
         )
     return {

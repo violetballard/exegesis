@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import unittest
 from dataclasses import dataclass
 
@@ -644,13 +643,25 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("Recovered", render_terminal_card(unknown))
         self.assertTrue(unknown["blocks"][1]["code"].startswith("{"))
         self.assertIn("[truncated to 80 bytes]", unknown["blocks"][1]["code"])
-        self.assertEqual(
-            unknown["actions"][0]["payload"]["text"],
-            json.dumps(raw_unknown, sort_keys=True, separators=(",", ":"), ensure_ascii=True),
-        )
+        self.assertIn("[truncated to 80 bytes]", unknown["actions"][0]["payload"]["text"])
+        self.assertLessEqual(len(unknown["actions"][0]["payload"]["text"].encode("utf-8")), 80)
         unknown_text = render_terminal_card(unknown)
         self.assertIn("[UnknownCard] Unsupported card type: FutureCard", unknown_text)
         self.assertIn("- Copy JSON (copy_to_clipboard)", unknown_text)
+
+    def test_unknown_card_copy_payload_matches_preview_budget(self) -> None:
+        raw_unknown = {
+            "type": "FutureCard",
+            "title": "Future",
+            "payload": {"body": "x" * 200},
+        }
+
+        unknown = build_unknown_card(raw_unknown, max_payload_bytes=48)
+
+        self.assertIn("[truncated to 48 bytes]", unknown["blocks"][-1]["code"])
+        self.assertIn("[truncated to 48 bytes]", unknown["actions"][0]["payload"]["text"])
+        self.assertLessEqual(len(unknown["blocks"][-1]["code"].encode("utf-8")), 48)
+        self.assertLessEqual(len(unknown["actions"][0]["payload"]["text"].encode("utf-8")), 48)
 
     def test_terminal_fallback_renders_unsupported_or_malformed_blocks(self) -> None:
         card = {
