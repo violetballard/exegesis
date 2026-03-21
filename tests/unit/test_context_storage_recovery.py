@@ -645,6 +645,32 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("recovered_from"), "backup")
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
 
+    def test_seed_with_invalid_metadata_is_salvaged_and_rewritten(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._seed_state_path().write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "not-a-timestamp",
+                    "recovered_from": "manual",
+                    "item_ids": [" keep ", None, "second"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["keep", "second"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["keep", "second"])
+        self.assertEqual(payload.get("recovered_from"), "seed")
+        self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
+        self.assertEqual(backup_payload.get("item_ids"), ["keep", "second"])
+        self.assertNotIn("recovered_from", backup_payload)
+        self.assertFalse(self.store._seed_state_path().exists())
+
     def test_missing_primary_recovery_resyncs_backup_to_canonical_state(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._backup_path.write_text(
@@ -995,6 +1021,40 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertFalse(payload.get("is_locked"))
         self.assertEqual(payload.get("recovered_from"), "backup")
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
+
+    def test_seed_with_invalid_metadata_is_salvaged_and_rewritten(self) -> None:
+        state_root = self.root / "p7-seed"
+        state_root.mkdir(parents=True, exist_ok=True)
+        state_root.joinpath(".vault_state.seed.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": " p7-seed ",
+                    "is_locked": "false",
+                    "updated_at": "not-a-timestamp",
+                    "recovered_from": "manual",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p7-seed")
+
+        self.assertFalse(reopened.is_locked)
+        state_path = state_root / ".vault_state.json"
+        backup_path = state_root / ".vault_state.bak.json"
+        seed_path = state_root / ".vault_state.seed.json"
+        self.assertFalse((state_root / ".vault_state.corrupt.json").exists())
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p7-seed")
+        self.assertFalse(payload.get("is_locked"))
+        self.assertEqual(payload.get("recovered_from"), "seed")
+        self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
+        self.assertEqual(backup_payload.get("project_name"), "p7-seed")
+        self.assertFalse(backup_payload.get("is_locked"))
+        self.assertNotIn("recovered_from", backup_payload)
+        self.assertFalse(seed_path.exists())
 
     def test_backup_write_failure_preserves_seed_fallback(self) -> None:
         with patch.object(VaultService, "_write_backup_payload", return_value=False):
