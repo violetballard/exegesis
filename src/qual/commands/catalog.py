@@ -125,6 +125,10 @@ def command_catalog_entries() -> tuple[CommandCatalogEntry, ...]:
     )
 
 
+def command_catalog_index() -> dict[str, CommandCatalogEntry]:
+    return {entry.name: entry for entry in command_catalog_entries()}
+
+
 def command_catalog_entries_for_role(mvp_role: str) -> tuple[CommandCatalogEntry, ...]:
     flow_names = set(command_mvp_flow_names())
     return tuple(
@@ -234,6 +238,10 @@ def command_mvp_flow_entries() -> tuple[CommandCatalogEntry, ...]:
         _build_command_catalog_entry(spec, in_mvp_flow=spec.name in flow_names)
         for spec in _MVP_FLOW_SPECS
     )
+
+
+def command_mvp_flow_index() -> dict[str, CommandCatalogEntry]:
+    return {entry.name: entry for entry in command_mvp_flow_entries()}
 
 
 def canonical_command(name: str) -> str:
