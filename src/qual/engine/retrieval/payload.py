@@ -18,12 +18,14 @@ class RetrievalDownstreamPayload:
     retrieval_diagnostics: dict[str, object]
     retrieval_manifest: dict[str, object]
     retrieval_evidence: dict[str, object]
+    retrieval_provenance: dict[str, object]
 
     def as_dict(self) -> dict[str, object]:
         policy = copy.deepcopy(self.policy)
         diagnostics = copy.deepcopy(self.retrieval_diagnostics)
         manifest = copy.deepcopy(self.retrieval_manifest)
         evidence = copy.deepcopy(self.retrieval_evidence)
+        provenance = copy.deepcopy(self.retrieval_provenance)
         summary = copy.deepcopy(self.retrieval_summary)
         return {
             "query": copy.deepcopy(self.query),
@@ -37,6 +39,7 @@ class RetrievalDownstreamPayload:
             "retrieval_diagnostics": diagnostics,
             "retrieval_manifest": manifest,
             "retrieval_evidence": evidence,
+            "retrieval_provenance": provenance,
         }
 
 
@@ -52,6 +55,7 @@ def build_retrieval_downstream_payload(
     retrieval_diagnostics: dict[str, object],
     retrieval_manifest: dict[str, object],
     retrieval_evidence: dict[str, object],
+    retrieval_provenance: dict[str, object],
 ) -> dict[str, object]:
     return RetrievalDownstreamPayload(
         query=query,
@@ -64,4 +68,5 @@ def build_retrieval_downstream_payload(
         retrieval_diagnostics=retrieval_diagnostics,
         retrieval_manifest=retrieval_manifest,
         retrieval_evidence=retrieval_evidence,
+        retrieval_provenance=retrieval_provenance,
     ).as_dict()

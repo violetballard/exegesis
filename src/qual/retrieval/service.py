@@ -145,6 +145,39 @@ class RetrievalResult:
             for hit in self.hits
             if hit.excerpt_id is not None
         ]
+        retrieval_provenance = {
+            "query_fingerprint": self.diagnostics["query_fingerprint"],
+            "result_fingerprint": self.result_fingerprint,
+            "retrieval_backend": self.diagnostics["retrieval_backend"],
+            "retrieval_mode": self.diagnostics["retrieval_mode"],
+            "retrieval_policy": retrieval_policy,
+            "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
+            "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
+            "doc_citations": [
+                {
+                    "doc_id": doc_hit.doc_id,
+                    "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
+                    "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
+                    "doc_rank": doc_hit.provenance.get("doc_rank"),
+                    "top_excerpt_id": doc_hit.top_excerpt_id,
+                    "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
+                    "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
+                }
+                for doc_hit in self.doc_hits
+            ],
+            "excerpt_citations": [
+                {
+                    "doc_id": hit.doc_id,
+                    "excerpt_id": hit.excerpt_id,
+                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                    "rank": hit.provenance.get("rank"),
+                    "span": hit.provenance.get("span"),
+                }
+                for hit in self.hits
+                if hit.excerpt_id is not None
+            ],
+        }
         return build_retrieval_downstream_payload(
             query={
                 "query_text": self.query.query_text,
@@ -195,6 +228,7 @@ class RetrievalResult:
             retrieval_diagnostics=dict(self.diagnostics),
             retrieval_manifest=dict(self.diagnostics["retrieval_manifest"]),
             retrieval_evidence=dict(self.evidence),
+            retrieval_provenance=retrieval_provenance,
         )
 
 
