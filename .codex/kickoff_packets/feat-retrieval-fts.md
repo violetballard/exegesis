@@ -2,8 +2,9 @@
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`
-- Scope goal: Tighten the handoff packet so it tracks commit `1f33070a1c469c105758c9306b7c2ec0777f02ad` exactly and does not imply retrieval source-code work.
-- Scope completed: The reviewed commit `1f33070a1c469c105758c9306b7c2ec0777f02ad` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; it does not change retrieval implementation files.
+- Scope goal: Tighten the handoff packet so it tracks commit `3f40de6888902f10aff343a81f76befd0552bfce` exactly and does not imply retrieval source-code work.
+- Reviewed commit type: Docs-only handoff metadata tightening.
+- Scope completed: The reviewed commit `3f40de6888902f10aff343a81f76befd0552bfce` only updates `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`; it does not change retrieval implementation files.
 
 ### Priority outcomes
 1. State clearly that the reviewed change is docs-only handoff metadata tightening.
