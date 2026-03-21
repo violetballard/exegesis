@@ -508,6 +508,24 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["type"], "UnknownCard")
         self.assertEqual(card["actions"], [])
 
+    def test_studio_unknown_card_strips_raw_actions_and_keeps_clipboard_only(self) -> None:
+        caps = _capabilities(actions_supported=("copy_to_clipboard", "apply_patch"))
+        payload = {
+            "type": "QuestionsCard",
+            "title": "Questions",
+            "actions": [
+                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "unsafe"}},
+            ],
+            "foo": "bar",
+        }
+
+        card = studio_materialize_card(payload, caps)
+
+        self.assertEqual(card["type"], "UnknownCard")
+        self.assertEqual([action["id"] for action in card["actions"]], ["copy_to_clipboard"])
+        self.assertEqual(card["actions"][0]["label"], "Copy JSON")
+
     def test_unknown_or_invalid_actions_are_filtered_client_side(self) -> None:
         caps = _capabilities(actions_supported=("apply_patch",))
         card = {

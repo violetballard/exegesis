@@ -245,16 +245,14 @@ def build_unknown_card(
         }
     )
     supported_action_set = set(supported_actions) if supported_actions is not None else _ALLOWED_ACTION_SET
-    actions = _filter_supported_actions(raw_card.get("actions"), supported_actions=supported_action_set)
-    action_keys = {_canonical_json(action) for action in actions}
+    actions: list[dict[str, Any]] = []
     if "copy_to_clipboard" in supported_action_set:
         copy_action = {
             "id": "copy_to_clipboard",
             "label": "Copy JSON",
             "payload": {"text": clipboard_preview},
         }
-        if _canonical_json(copy_action) not in action_keys:
-            actions.append(copy_action)
+        actions.append(copy_action)
     return {
         "type": UNKNOWN_CARD_TYPE,
         "title": f"Unsupported card type: {type_name}",
