@@ -311,6 +311,10 @@ def command_demo_flow_names() -> tuple[str, ...]:
     return tuple(spec.name for spec in _DEMO_FLOW_SPECS)
 
 
+def command_demo_flow_spec_names() -> tuple[str, ...]:
+    return tuple(spec.name for spec in command_demo_flow_specs())
+
+
 def command_demo_flow_lookup_names() -> tuple[str, ...]:
     return _lookup_names_for_specs(_DEMO_FLOW_SPECS)
 
@@ -386,6 +390,8 @@ def _validate_command_catalog_contract() -> None:
         raise ValueError("MVP flow catalog entries are out of sync with flow definitions.")
     if tuple(entry.name for entry in command_demo_flow_entries()) != demo_flow_names:
         raise ValueError("Demo flow catalog entries are out of sync with flow definitions.")
+    if command_demo_flow_spec_names() != demo_flow_names:
+        raise ValueError("Demo flow spec names are out of sync with flow definitions.")
 
 
 _validate_command_catalog_contract()
