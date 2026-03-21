@@ -32,11 +32,28 @@ class VaultService:
         has_is_locked = "is_locked" in raw_state
         parsed_is_locked = self._parse_is_locked(raw_state.get("is_locked")) if has_is_locked else None
         is_locked = parsed_is_locked if parsed_is_locked is not None else False
+        normalized_project_name = self._parse_project_name(raw_state.get("project_name")) if "project_name" in raw_state else None
+        normalized_recovered_from = self._parse_recovered_from(raw_state.get("recovered_from")) if "recovered_from" in raw_state else None
+        normalized_updated_at = self._parse_updated_at(raw_state.get("updated_at")) if "updated_at" in raw_state else None
         needs_rewrite = (
             recovered_source is not None
             or self._parse_schema_version(raw_state) != _SCHEMA_VERSION
             or not self._is_supported_payload(raw_state)
         )
+        if has_is_locked and parsed_is_locked is not None and not isinstance(raw_state.get("is_locked"), bool):
+            needs_rewrite = True
+        if normalized_project_name is not None and raw_state.get("project_name") != normalized_project_name:
+            needs_rewrite = True
+        if "updated_at" in raw_state:
+            if normalized_updated_at is None:
+                needs_rewrite = True
+            elif raw_state.get("updated_at") != normalized_updated_at:
+                needs_rewrite = True
+        if "recovered_from" in raw_state:
+            if normalized_recovered_from is None:
+                needs_rewrite = True
+            elif raw_state.get("recovered_from") != normalized_recovered_from:
+                needs_rewrite = True
         if not has_is_locked or self._requires_safe_lock(raw_state, safe_project_name):
             # If metadata does not match directory identity, prefer a safe default.
             is_locked = True
@@ -52,7 +69,8 @@ class VaultService:
                 recovered_from=self._recovery_marker(
                     primary_missing=primary_missing,
                     recovered_source=recovered_source,
-                ),
+                )
+                or normalized_recovered_from,
             )
         else:
             self._write_backup(project_root)

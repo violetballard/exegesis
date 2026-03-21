@@ -206,6 +206,29 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertNotIn("recovered_from", payload)
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
 
+    def test_valid_metadata_is_canonicalized_when_rewritten(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": " 2026-03-20T12:00:00+00:00 ",
+                    "recovered_from": " BACKUP ",
+                    "item_ids": ["first", "second"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first", "second"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["first", "second"])
+        self.assertEqual(payload.get("recovered_from"), "backup")
+        self.assertEqual(payload.get("updated_at"), payload.get("updated_at").strip())
+        self.assertNotEqual(payload.get("updated_at"), " 2026-03-20T12:00:00+00:00 ")
+
     def test_invalid_updated_at_only_is_salvaged_and_rewritten(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text(
@@ -686,6 +709,32 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertFalse(payload.get("is_locked"))
         self.assertNotIn("recovered_from", payload)
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
+
+    def test_valid_metadata_is_canonicalized_when_rewritten(self) -> None:
+        state = self.svc.create_or_open(self.root, "p4-canonical")
+        state_path = state.root_dir / ".vault_state.json"
+        state_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": " p4-canonical ",
+                    "is_locked": "false",
+                    "updated_at": " 2026-03-20T12:00:00+00:00 ",
+                    "recovered_from": " BACKUP ",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p4-canonical")
+
+        self.assertFalse(reopened.is_locked)
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p4-canonical")
+        self.assertIs(payload.get("is_locked"), False)
+        self.assertEqual(payload.get("recovered_from"), "backup")
+        self.assertEqual(payload.get("updated_at"), payload.get("updated_at").strip())
+        self.assertNotEqual(payload.get("updated_at"), " 2026-03-20T12:00:00+00:00 ")
 
     def test_invalid_updated_at_only_is_salvaged_and_rewritten(self) -> None:
         state = self.svc.create_or_open(self.root, "p5")

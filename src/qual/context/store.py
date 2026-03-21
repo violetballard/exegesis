@@ -69,6 +69,7 @@ class ContextBasketStore:
             return ContextBasket()
 
         should_rewrite = False
+        normalized_recovered_from = None
         if isinstance(payload, list):
             parsed_items = self._parse_item_ids(payload)
             if parsed_items is None:
@@ -98,10 +99,18 @@ class ContextBasketStore:
                 should_rewrite = True
             if "updated_at" not in payload:
                 should_rewrite = True
-            if "recovered_from" in payload and self._parse_recovered_from(payload.get("recovered_from")) is None:
-                should_rewrite = True
-            if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
-                should_rewrite = True
+            if "updated_at" in payload:
+                normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
+                if normalized_updated_at is None:
+                    should_rewrite = True
+                elif payload.get("updated_at") != normalized_updated_at:
+                    should_rewrite = True
+            if "recovered_from" in payload:
+                normalized_recovered_from = self._parse_recovered_from(payload.get("recovered_from"))
+                if normalized_recovered_from is None:
+                    should_rewrite = True
+                elif payload.get("recovered_from") != normalized_recovered_from:
+                    should_rewrite = True
         else:
             self._discard_payload_source(recovered_source)
             return ContextBasket()
@@ -109,7 +118,7 @@ class ContextBasketStore:
         recovered_from = self._recovery_marker(
             primary_missing=primary_missing,
             recovered_source=recovered_source,
-        )
+        ) or normalized_recovered_from
         if recovered_source is not None or should_rewrite:
             # Keep the backup aligned with the latest canonical basket whenever we
             # rewrite state during load, not only when we recover from tmp/backup.
