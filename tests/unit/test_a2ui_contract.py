@@ -83,6 +83,18 @@ class A2UIContractTests(unittest.TestCase):
             },
         )
         self.assertEqual(
+            manifest["primitive_blocks"],
+            [
+                {"type": "MarkdownBlock", "fields": ["markdown"]},
+                {"type": "KeyValueBlock", "fields": ["items"]},
+                {"type": "ListBlock", "fields": ["items"]},
+                {"type": "TableBlock", "fields": ["rows"]},
+                {"type": "AlertBlock", "fields": ["severity", "title", "message"]},
+                {"type": "ProgressBlock", "fields": ["status_text", "title"]},
+                {"type": "CodeBlock", "fields": ["code", "language", "collapsed"]},
+            ],
+        )
+        self.assertEqual(
             [entry["id"] for entry in manifest["actions"]],
             [
                 "apply_patch",
@@ -906,6 +918,19 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("- fallback_kind: unknown", unknown_text)
         self.assertIn("- source_card_type: FutureCard", unknown_text)
         self.assertIn("- Copy JSON (copy_to_clipboard)", unknown_text)
+
+    def test_terminal_renderer_marks_unknown_cards_without_debug(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "UnknownCard",
+                "title": "Fallback",
+                "blocks": [],
+                "actions": [],
+            }
+        )
+
+        self.assertIn("[UnknownCard] Fallback", text)
+        self.assertIn("Fallback: unknown card", text)
 
     def test_unknown_card_copy_payload_matches_preview_budget(self) -> None:
         raw_unknown = {

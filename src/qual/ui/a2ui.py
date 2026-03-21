@@ -37,6 +37,16 @@ REQUIRED_PRIMITIVE_BLOCKS: tuple[str, ...] = (
 _PRIMITIVE_BLOCK_SET = set(REQUIRED_PRIMITIVE_BLOCKS)
 _ALLOWED_ACTION_SET = set(ALLOWED_ACTION_IDS)
 
+_PRIMITIVE_BLOCK_SCHEMAS: dict[str, tuple[str, ...]] = {
+    "MarkdownBlock": ("markdown",),
+    "KeyValueBlock": ("items",),
+    "ListBlock": ("items",),
+    "TableBlock": ("rows",),
+    "AlertBlock": ("severity", "title", "message"),
+    "ProgressBlock": ("status_text", "title"),
+    "CodeBlock": ("code", "language", "collapsed"),
+}
+
 _ACTION_SCHEMAS: dict[str, dict[str, type]] = {
     "apply_patch": {"patch_id": str},
     "reject_patch": {"patch_id": str},
@@ -104,7 +114,13 @@ def describe_a2ui_contract() -> dict[str, Any]:
             "unknown": UNKNOWN_CARD_TYPE,
             "reserved": list(_RESERVED_CARD_TYPES),
         },
-        "primitive_blocks": list(REQUIRED_PRIMITIVE_BLOCKS),
+        "primitive_blocks": [
+            {
+                "type": block_type,
+                "fields": list(_PRIMITIVE_BLOCK_SCHEMAS[block_type]),
+            }
+            for block_type in REQUIRED_PRIMITIVE_BLOCKS
+        ],
         "actions": [
             {
                 "id": action_id,
@@ -367,6 +383,8 @@ def render_terminal_card(card: dict[str, Any]) -> str:
     if type(version) is int:
         lines.append(f"A2UI v{version}")
     rendered_fallback = _render_terminal_fallback_notice(card.get("debug"))
+    if not rendered_fallback and card_type == UNKNOWN_CARD_TYPE:
+        rendered_fallback = ["Fallback: unknown card"]
     if rendered_fallback:
         lines.extend(rendered_fallback)
     rendered_debug = _render_terminal_debug(card.get("debug"))
