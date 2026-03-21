@@ -139,7 +139,7 @@ class ContextStoreRecoveryTests(unittest.TestCase):
             ["first"],
         )
 
-    def test_corrupt_primary_recovery_from_backup_omits_recovered_from_marker(self) -> None:
+    def test_corrupt_primary_recovery_from_backup_records_recovery_source(self) -> None:
         self.store.save(ContextBasket(item_ids=["first"]))
         self.store.save(ContextBasket(item_ids=["second"]))  # Creates backup with "first".
         self.store._path.write_text("{bad", encoding="utf-8")
@@ -149,7 +149,7 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(loaded.item_ids, ["first"])
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("item_ids"), ["first"])
-        self.assertNotIn("recovered_from", payload)
+        self.assertEqual(payload.get("recovered_from"), "backup")
 
     def test_mixed_scalar_and_non_scalar_item_ids_are_salvaged_and_rewritten(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
@@ -642,6 +642,7 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
         self.assertEqual(primary_payload.get("item_ids"), ["first", "second"])
+        self.assertEqual(primary_payload.get("recovered_from"), "backup")
         self.assertEqual(backup_payload.get("item_ids"), ["first", "second"])
         self.assertNotEqual(backup_payload.get("updated_at"), "not-a-timestamp")
         self.assertEqual(backup_payload.get("schema_version"), 1)
@@ -685,7 +686,7 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertIsInstance(reopened.is_locked, bool)
         self.assertTrue((state.root_dir / ".vault_state.json").exists())
 
-    def test_corrupt_primary_recovery_from_backup_omits_recovered_from_marker(self) -> None:
+    def test_corrupt_primary_recovery_from_backup_records_recovery_source(self) -> None:
         state = self.svc.create_or_open(self.root, "p2-provenance")
         self.svc.lock(state)
         self.svc.unlock(state)  # Backup now exists.
@@ -697,7 +698,7 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertIsInstance(reopened.is_locked, bool)
         payload = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("project_name"), "p2-provenance")
-        self.assertNotIn("recovered_from", payload)
+        self.assertEqual(payload.get("recovered_from"), "backup")
 
     def test_valid_primary_wins_over_stale_tmp_payload(self) -> None:
         state = self.svc.create_or_open(self.root, "p2-tmp")
@@ -926,7 +927,7 @@ class VaultRecoveryTests(unittest.TestCase):
         payload = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("project_name"), "p7")
         self.assertFalse(payload.get("is_locked"))
-        self.assertNotIn("recovered_from", payload)
+        self.assertEqual(payload.get("recovered_from"), "backup")
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
 
     def test_backup_with_invalid_metadata_is_salvaged_and_rewritten_after_primary_missing(self) -> None:
