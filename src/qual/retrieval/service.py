@@ -129,7 +129,8 @@ class RetrievalService:
         self._validate_query(query)
         started = self._now_fn()
         query_fingerprint = self._query_fingerprint(query)
-        fts_shortlist = self._candidate_docs_from_fts(query) if not self._is_doc_scoped(query.scope) else ()
+        fts_shortlist_limit = self._fts_shortlist_limit(query.constraints.max_results)
+        fts_shortlist = self._candidate_docs_from_fts(query, limit=fts_shortlist_limit) if not self._is_doc_scoped(query.scope) else ()
         candidate_doc_ids = self._candidate_docs_from_scope(query.scope, fallback=fts_shortlist)
         effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
 
@@ -146,6 +147,7 @@ class RetrievalService:
                 "query_scope": query.scope,
                 "query_intent": query.intent,
                 "doc_scope_id": self._doc_scope_id(query.scope),
+                "fts_shortlist_limit": fts_shortlist_limit,
                 "candidate_doc_count": effective_candidate_doc_count,
                 "fts_shortlist_count": len(fts_shortlist),
                 "strategies_used": [fts_run.strategy_id],
@@ -369,13 +371,13 @@ class RetrievalService:
             )
         return doc_hits
 
-    def _candidate_docs_from_fts(self, query: RetrievalQuery) -> tuple[str, ...]:
+    def _candidate_docs_from_fts(self, query: RetrievalQuery, *, limit: int) -> tuple[str, ...]:
         run = self._fts.retrieve(
             RetrievalQuery(
                 query_text=query.query_text,
                 scope=query.scope,
                 intent=query.intent,
-                constraints=RetrievalConstraints(max_results=25, doc_types=query.constraints.doc_types),
+                constraints=RetrievalConstraints(max_results=limit, doc_types=query.constraints.doc_types),
                 confidentiality_profile=query.confidentiality_profile,
             ),
             candidate_doc_ids=(),
@@ -387,9 +389,13 @@ class RetrievalService:
                 continue
             seen.add(hit.doc_id)
             doc_ids.append(hit.doc_id)
-            if len(doc_ids) >= 25:
+            if len(doc_ids) >= limit:
                 break
         return tuple(doc_ids)
+
+    @staticmethod
+    def _fts_shortlist_limit(max_results: int) -> int:
+        return max(25, max_results)
 
     @staticmethod
     def _hit_sort_key(hit: RetrievalHit) -> tuple[float, str, str, int, int, str]:
