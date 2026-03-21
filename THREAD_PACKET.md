@@ -10,6 +10,7 @@
 - Scope completed: Kept the later docs-only alignment commit out of the promoted code range so the packet does not claim non-code changes as implementation work.
 - Scope completed: Re-stated ownership so the promoted diff contains the code file `src/qual/context/set_store.py` plus the approved shared recovery test `tests/unit/test_context_storage_recovery.py`.
 - Scope completed: Recorded the approved shared recovery test allowance via `SCOPE_ALLOW_SHARED=1 make scope-check` so the shared test file is explicitly documented in the handoff.
+- Scope completed: Made the reviewed diff shape match the shared-allowance evidence so there is no source-file ambiguity on re-review.
 - Tasks completed:
   1. Anchored the handoff packet to the actual code-bearing feature range `ca626d4b61e3a6bdb163d471c515bdd144cc3283..dca868e202b0c220c36b557d7071420ca74261f9`.
   2. Made the docs-only alignment commit explicit so it is not mistaken for reviewed implementation work.

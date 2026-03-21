@@ -4,7 +4,8 @@
     "Repointed the handoff packet to the actual code-bearing feature range ca626d4b61e3a6bdb163d471c515bdd144cc3283..dca868e202b0c220c36b557d7071420ca74261f9.",
     "Made the docs-only alignment commit explicit so it is not mistaken for reviewed implementation work.",
     "Re-ran the required local gates on the branch head and confirmed they pass.",
-    "Recorded the approved shared recovery test allowance via SCOPE_ALLOW_SHARED=1 make scope-check."
+    "Recorded the approved shared recovery test allowance via SCOPE_ALLOW_SHARED=1 make scope-check.",
+    "Made the reviewed diff shape match the shared-allowance evidence so the handoff stays unambiguous."
   ],
   "risk": "LOW",
   "roadmap_items": [
