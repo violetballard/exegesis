@@ -278,6 +278,32 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertNotEqual(backup_payload.get("updated_at"), "not-a-timestamp")
         self.assertNotIn("recovered_from", backup_payload)
 
+    def test_primary_load_refreshes_duplicate_backup_item_ids_without_rewriting_primary(self) -> None:
+        self.store.save(ContextBasket(item_ids=["first"]))
+        primary_payload_before = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "item_ids": ["first", " first ", "first"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first"])
+        primary_payload_after = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload_after.get("updated_at"), primary_payload_before.get("updated_at"))
+        self.assertEqual(primary_payload_after.get("item_ids"), ["first"])
+        self.assertEqual(backup_payload.get("item_ids"), ["first"])
+        self.assertEqual(backup_payload.get("schema_version"), 1)
+        self.assertEqual(backup_payload.get("updated_at"), primary_payload_after.get("updated_at"))
+        self.assertNotIn("recovered_from", backup_payload)
+
     def test_healthy_primary_load_clears_stale_corrupt_marker(self) -> None:
         self.store.save(ContextBasket(item_ids=["first"]))
         self.store._path.with_suffix(".corrupt.json").write_text("{bad", encoding="utf-8")
