@@ -143,6 +143,10 @@ class ContextSetStore:
                 seed_tmp_payload,
                 seed_payload,
             )
+            if payload is None:
+                self._clear_quarantine_file()
+                self._clear_temporary_files()
+                return []
         else:
             self._clear_quarantine_file()
             self._clear_temporary_files()
@@ -626,6 +630,7 @@ class ContextSetStore:
         seed_tmp_payload: dict[str, object] | list[object] | None,
         seed_payload: dict[str, object] | list[object] | None,
     ) -> tuple[dict[str, object] | list[object] | None, str | None]:
+        fallback_candidate: tuple[dict[str, object] | list[object] | None, str | None] = (None, None)
         for candidate, recovered_source in (
             (tmp_payload, "tmp"),
             (backup_tmp_payload, "backup_tmp"),
@@ -637,8 +642,11 @@ class ContextSetStore:
                 continue
             if not self._is_preferred_recovery_payload(candidate):
                 continue
-            return candidate, recovered_source
-        return None, None
+            if self._has_context_set_records(candidate):
+                return candidate, recovered_source
+            if fallback_candidate == (None, None):
+                fallback_candidate = (candidate, recovered_source)
+        return fallback_candidate
 
     def _is_preferred_recovery_payload(self, payload: dict[str, object] | list[object]) -> bool:
         if isinstance(payload, list):
@@ -653,6 +661,13 @@ class ContextSetStore:
             return True
         parsed_records = self._parse_context_sets(raw_context_sets)
         return parsed_records is not None and bool(parsed_records)
+
+    def _has_context_set_records(self, payload: dict[str, object] | list[object]) -> bool:
+        if isinstance(payload, list):
+            return bool(self._parse_context_sets(payload))
+        if "context_sets" not in payload:
+            return False
+        return bool(self._parse_context_sets(payload.get("context_sets")))
 
     def _primary_context_sets_need_recovery(self, payload: dict[str, object] | list[object] | None) -> bool:
         if isinstance(payload, dict):

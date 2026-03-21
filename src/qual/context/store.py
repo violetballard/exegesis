@@ -68,21 +68,18 @@ class ContextBasketStore:
         elif primary_payload is not None:
             payload = primary_payload
             recovered_source = None
-        elif tmp_payload is not None:
-            payload = tmp_payload
-            recovered_source = "tmp"
-        elif backup_tmp_payload is not None:
-            payload = backup_tmp_payload
-            recovered_source = "backup"
-        elif backup_payload is not None:
-            payload = backup_payload
-            recovered_source = "backup"
-        elif seed_tmp_payload is not None:
-            payload = seed_tmp_payload
-            recovered_source = "seed"
-        elif seed_payload is not None:
-            payload = seed_payload
-            recovered_source = "seed"
+        elif primary_payload is None:
+            payload, recovered_source = self._prefer_recovery_payload(
+                tmp_payload,
+                backup_tmp_payload,
+                backup_payload,
+                seed_tmp_payload,
+                seed_payload,
+            )
+            if payload is None:
+                self._clear_quarantine_file()
+                self._clear_temporary_files()
+                return ContextBasket()
         else:
             self._clear_quarantine_file()
             self._clear_temporary_files()
@@ -542,6 +539,7 @@ class ContextBasketStore:
         seed_tmp_payload: dict[str, object] | list[object] | None,
         seed_payload: dict[str, object] | list[object] | None,
     ) -> tuple[dict[str, object] | list[object] | None, str | None]:
+        fallback_candidate: tuple[dict[str, object] | list[object] | None, str | None] = (None, None)
         for candidate, recovered_source in (
             (tmp_payload, "tmp"),
             (backup_tmp_payload, "backup_tmp"),
@@ -553,8 +551,17 @@ class ContextBasketStore:
                 continue
             if isinstance(candidate, dict) and "item_ids" not in candidate:
                 continue
-            return candidate, recovered_source
-        return None, None
+            if self._has_recovery_payload_items(candidate):
+                return candidate, recovered_source
+            if fallback_candidate == (None, None):
+                fallback_candidate = (candidate, recovered_source)
+        return fallback_candidate
+
+    def _has_recovery_payload_items(self, payload: dict[str, object] | list[object]) -> bool:
+        if isinstance(payload, list):
+            return bool(self._parse_item_ids(payload))
+        item_ids = self._parse_item_ids(payload.get("item_ids")) if "item_ids" in payload else None
+        return bool(item_ids)
 
     def _primary_item_ids_need_recovery(self, payload: dict[str, object] | list[object] | None) -> bool:
         if isinstance(payload, dict):

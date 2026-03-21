@@ -223,6 +223,26 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("item_ids"), ["primary"])
         self.assertFalse(self.store._tmp_path().exists())
 
+    def test_empty_tmp_payload_does_not_override_backup_recovery(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._tmp_path().write_text("[]", encoding="utf-8")
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "item_ids": ["backup"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["backup"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["backup"])
+
     def test_legacy_list_payload_salvages_valid_entries(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text(
@@ -1041,6 +1061,36 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
         self.assertEqual(len(backup_payload.get("context_sets", [])), 1)
         self.assertEqual(backup_payload.get("context_sets")[0]["item_ids"], ["first"])
+
+    def test_empty_tmp_payload_does_not_override_backup_recovery(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._tmp_path().write_text("[]", encoding="utf-8")
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "context_sets": [
+                        {
+                            "context_set_id": "set-1",
+                            "name": "Evidence",
+                            "item_ids": ["backup"],
+                            "created_at": "2026-03-20T11:00:00+00:00",
+                            "updated_at": "2026-03-20T12:00:00+00:00",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, "set-1")
+        self.assertEqual(loaded[0].item_ids, ["backup"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["backup"])
 
 
 class VaultRecoveryTests(unittest.TestCase):
