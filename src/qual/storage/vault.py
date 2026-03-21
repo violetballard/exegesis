@@ -31,12 +31,18 @@ class VaultService:
         (project_root / "attachments").mkdir(exist_ok=True)
         raw_state, recovered_source, primary_unavailable = self._read_state(project_root)
         state_path = self._state_path(project_root)
-        if state_path.exists() and "is_locked" not in raw_state:
+        raw_project_name = raw_state.get("project_name") if "project_name" in raw_state else None
+        normalized_project_name = (
+            self._parse_project_name(raw_project_name) if raw_project_name is not None else None
+        )
+        if state_path.exists() and (
+            "is_locked" not in raw_state
+            or (raw_project_name is not None and normalized_project_name is None)
+        ):
             self._quarantine_invalid_state(project_root)
         has_is_locked = "is_locked" in raw_state
         parsed_is_locked = self._parse_is_locked(raw_state.get("is_locked")) if has_is_locked else None
         is_locked = parsed_is_locked if parsed_is_locked is not None else False
-        normalized_project_name = self._parse_project_name(raw_state.get("project_name")) if "project_name" in raw_state else None
         normalized_recovered_from = self._parse_recovered_from(raw_state.get("recovered_from")) if "recovered_from" in raw_state else None
         normalized_updated_at = self._parse_updated_at(raw_state.get("updated_at")) if "updated_at" in raw_state else None
         needs_rewrite = (

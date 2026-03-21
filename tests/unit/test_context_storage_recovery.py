@@ -964,9 +964,15 @@ class VaultRecoveryTests(unittest.TestCase):
             encoding="utf-8",
         )
 
-        reopened = self.svc.create_or_open(self.root, "p3-invalid")
+        with patch.object(
+            VaultService,
+            "_quarantine_invalid_state",
+            wraps=self.svc._quarantine_invalid_state,
+        ) as quarantine:
+            reopened = self.svc.create_or_open(self.root, "p3-invalid")
 
         self.assertTrue(reopened.is_locked)
+        quarantine.assert_called_once()
         self.assertFalse((state.root_dir / ".vault_state.corrupt.json").exists())
         payload = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("project_name"), "p3-invalid")
