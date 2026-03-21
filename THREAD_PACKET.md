@@ -3,21 +3,16 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Feature implementation commit: `36893f06df85409c4595d64adb8af60455c086a6`
 - Deferred-policy cleanup commit: `dc8f79e4abeb30de51854fdd84d35b97993955b8`
-- Current handoff alignment commit: `203906231e9c47371b6d7bc4028bc4f60e764581`
-- Reviewed commit type: Retrieval feature implementation with deferred-policy cleanup.
+- Current handoff alignment commit: `f137c7c818f4da705a9f98bdf2b03e991924e636`
+- Reviewed commit type: Docs-only handoff alignment; no retrieval code changes in this commit.
 
 ## Scope Goal
 
-Deliver the canonical FTS-first retrieval surface for the MVP and keep the handoff aligned to the owned retrieval source paths.
+Document the retrieval handoff boundary while keeping the current commit strictly limited to docs-only handoff alignment.
 
 ## Scope completed
 
-Delivered behavior:
-- `vault`, `collection:`, and `doc:` queries resolve through the engine-owned FTS path.
-- `src/qual/retrieval/service.py` forwards those queries to the owned retrieval engine.
-- `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface.
-- `src/qual/engine/retrieval/policy.py` keeps `fts` active and leaves `pageindex` and `embeddings` deferred.
-- `section:` remains rejected until fallback support exists.
+Delivered behavior: FTS-first retrieval is active for `vault`, `collection:`, and `doc:` scopes. `src/qual/retrieval/service.py` forwards those queries to the owned retrieval engine, `src/qual/retrieval/__init__.py` exposes the retrieval helper wrappers for the owned retrieval package, and `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred. `section:` remains rejected until fallback support exists.
 
 ## Files changed
 

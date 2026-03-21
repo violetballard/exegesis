@@ -10,6 +10,9 @@ TEMPLATE = """# Feature → Review Packet
 - Commit: {sha}
 - Lane: {lane}
 
+## Scope completed
+- (fill)
+
 ## Tasks completed
 1. (fill)
 
