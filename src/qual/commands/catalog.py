@@ -195,8 +195,16 @@ def _lookup_names_for_specs(specs: tuple[CommandSpec, ...]) -> tuple[str, ...]:
     return tuple(names)
 
 
+def _lookup_surface_for_specs(specs: tuple[CommandSpec, ...]) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return tuple((spec.name, _lookup_names_for_specs((spec,))) for spec in specs)
+
+
 def command_lookup_names() -> tuple[str, ...]:
     return _lookup_names_for_specs(COMMAND_SPECS)
+
+
+def command_lookup_surface() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return _lookup_surface_for_specs(COMMAND_SPECS)
 
 
 def command_lookup_index() -> dict[str, CommandSpec]:
@@ -305,6 +313,10 @@ def command_demo_flow_lookup_names() -> tuple[str, ...]:
     return _lookup_names_for_specs(_DEMO_FLOW_SPECS)
 
 
+def command_demo_flow_lookup_surface() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return _lookup_surface_for_specs(_DEMO_FLOW_SPECS)
+
+
 def command_demo_flow_entries() -> tuple[CommandCatalogEntry, ...]:
     return _command_catalog_entries_for_specs(_DEMO_FLOW_SPECS)
 
@@ -315,6 +327,10 @@ def command_demo_flow_index() -> dict[str, CommandCatalogEntry]:
 
 def command_demo_flow_lookup_index() -> dict[str, CommandSpec]:
     return _build_command_lookup_index(_DEMO_FLOW_SPECS)
+
+
+def command_mvp_flow_lookup_surface() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return _lookup_surface_for_specs(_MVP_FLOW_SPECS)
 
 
 def canonical_command(name: str) -> str:
@@ -331,6 +347,18 @@ def _validate_command_catalog_contract() -> None:
     spec_names = command_names()
     if len(spec_names) != len(set(spec_names)):
         raise ValueError("Command catalog contains duplicate names.")
+    if command_lookup_surface() != tuple(
+        (entry.name, entry.lookup_names) for entry in command_catalog_entries()
+    ):
+        raise ValueError("Command lookup surface is out of sync with command definitions.")
+    if command_mvp_flow_lookup_surface() != tuple(
+        (entry.name, entry.lookup_names) for entry in command_mvp_flow_entries()
+    ):
+        raise ValueError("MVP flow lookup surface is out of sync with flow definitions.")
+    if command_demo_flow_lookup_surface() != tuple(
+        (entry.name, entry.lookup_names) for entry in command_demo_flow_entries()
+    ):
+        raise ValueError("Demo flow lookup surface is out of sync with flow definitions.")
     lookup_names = command_lookup_names()
     flow_names = command_mvp_flow_names()
     demo_flow_names = command_demo_flow_names()
