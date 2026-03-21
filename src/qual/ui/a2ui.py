@@ -581,6 +581,8 @@ def render_terminal_card(card: dict[str, Any]) -> str:
         lines.extend(rendered_actions)
     elif isinstance(actions, list):
         lines.append("Actions: none available")
+        if actions:
+            lines.append("Actions filtered out by allowlist or validation")
     return "\n".join(lines)
 
 

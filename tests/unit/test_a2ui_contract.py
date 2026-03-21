@@ -1597,6 +1597,7 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         self.assertIn("Actions: none available", text)
+        self.assertIn("Actions filtered out by allowlist or validation", text)
         self.assertNotIn("- Run (launch_missiles)", text)
         self.assertNotIn("- Apply (apply_patch)", text)
 
