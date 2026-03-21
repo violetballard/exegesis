@@ -319,6 +319,10 @@ class RetrievalService:
             top_hit = doc_hit_list[0]
             doc_rank = len(doc_hits) + 1
             top_excerpt_fingerprint = str(top_hit.provenance.get("excerpt_fingerprint", ""))
+            top_excerpt_text_hash = str(
+                top_hit.provenance.get("excerpt_text_hash") or top_hit.provenance.get("hash") or ""
+            )
+            top_excerpt_text_length = len(top_hit.excerpt_text or "")
             doc_hits.append(
                 RetrievalDocHit(
                     doc_id=doc_id,
@@ -336,6 +340,8 @@ class RetrievalService:
                         "excerpt_ids": [hit.excerpt_id for hit in doc_hit_list if hit.excerpt_id is not None],
                         "top_excerpt_id": top_hit.excerpt_id,
                         "top_excerpt_hash": top_hit.provenance.get("hash"),
+                        "top_excerpt_text_hash": top_excerpt_text_hash,
+                        "top_excerpt_text_length": top_excerpt_text_length,
                         "top_excerpt_fingerprint": top_excerpt_fingerprint,
                         "top_excerpt_span": top_hit.provenance.get("span"),
                         "top_matched_terms": top_hit.provenance.get("matched_terms"),
@@ -556,6 +562,7 @@ class RetrievalService:
             "span": {"char_range": {"start": char_start, "end": char_end}},
             "hash": text_hash,
             "excerpt_text_hash": text_hash,
+            "excerpt_text_length": len(text),
             "matched_terms": list(matched_terms),
             "match_count": len(matched_terms),
             "rank": rank,
