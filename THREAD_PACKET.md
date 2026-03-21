@@ -3,30 +3,31 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Reviewed commit: `a032bd4936d775be2e31941c3b982b520cbe7323`
-- Branch head note: this packet is attached to the code-bearing follow-up commit and keeps the handoff note aligned with the branch delta.
+- Branch head note: the current `HEAD` is the packet-maintenance follow-up; this packet reissues the reviewed code-bearing commit above.
 
 ## Scope goal
-- Reissue the handoff against the actual `diff_preview` JSON no-diff `summary_only` fix so the packet reflects the code-changing commit instead of the earlier packet-only head.
+- Reissue the handoff against the actual `diff_preview` no-diff fingerprint emission fix so the packet reflects the feature commit that changed `src/qual/commands/diff_preview.py` and `tests/unit/test_diff_preview.py`.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
 
 ## Scope completed
-- Kept the reviewed `src/qual/commands/diff_preview.py` change narrow: JSON no-diff `summary_only` stays explicit in the no-diff payload.
-- Kept the focused `tests/unit/test_diff_preview.py` regression for the JSON no-diff `summary_only` contract.
-- Reissued the handoff packet so the scope summary, roadmap mapping, changed-file list, and command outcomes match the reviewed delta instead of the earlier packet-only head.
+- Preserved the lane-owned `diff_preview` no-diff JSON contract hardening in `src/qual/commands/diff_preview.py`, including the explicit `summary_only` state in the no-diff JSON payload.
+- Kept the emitted fingerprint text path aligned with the fingerprint object used for the no-diff short-circuit.
+- Added regression coverage in `tests/unit/test_diff_preview.py` for the no-diff summary-only and fingerprint gating behavior.
 
 ## Kickoff budget/limits compliance
-- Stayed within the low-risk budget. The reviewed branch delta contains 2 files:
+- Stayed within the low-risk budget. The reviewed branch delta matches `git show --stat` for `a032bd4936d775be2e31941c3b982b520cbe7323`: `2 files changed, 15 insertions(+), 1 deletion(-)`.
+- Submitted files:
   - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_diff_preview.py`
 
 ## Tasks completed (numbered)
 1. Kept the JSON no-diff `summary_only` payload explicit in `src/qual/commands/diff_preview.py`.
-2. Preserved focused regression coverage for the JSON no-diff `summary_only` case.
+2. Added unit coverage for the no-diff summary-only and fingerprint edge cases in `tests/unit/test_diff_preview.py`.
 3. Reissued the feature handoff packet so every field matches the reviewed code delta.
 
-## Files changed for submitted branch delta
+## Files changed for reviewed branch delta
 - `src/qual/commands/diff_preview.py`
 - `tests/unit/test_diff_preview.py`
 
@@ -46,15 +47,15 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` no-diff JSON contract so `summary_only` stays deterministic on empty-diff responses.
-- Milestone 2 - Test Hardening: preserve the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON no-diff `summary_only` behavior.
+- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` no-diff fingerprint emission so JSON and text stay deterministic on empty-diff responses.
+- Milestone 2 - Test Hardening: preserve the focused regression coverage in `tests/unit/test_diff_preview.py` for the JSON no-diff `summary_only` behavior under the fingerprint gate.
 
 ### Vision capability affected
-- Capability 3 - Auditable generation: the command keeps the no-diff JSON `summary_only` state explicit and deterministic.
-- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable no-diff output contract with focused regression coverage.
+- Capability 3 - Auditable generation: the command keeps the no-diff JSON `summary_only` state explicit and deterministic, avoiding silent contract drift.
+- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first and JSON no-diff contract with focused regression tests.
 
 ### Routing/provider impact note
-- None. This change affects local `diff_preview` output formatting and unit coverage; no routing/provider behavior changed.
+- None. This change affects local `diff_preview` output formatting plus the reviewer-required regression test; no routing/provider behavior changed.
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `NO`
