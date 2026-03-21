@@ -89,10 +89,10 @@ def command_specs() -> tuple[CommandSpec, ...]:
     return COMMAND_SPECS
 
 
-def command_lookup_names() -> tuple[str, ...]:
+def _lookup_names_for_specs(specs: tuple[CommandSpec, ...]) -> tuple[str, ...]:
     names: list[str] = []
     seen: set[str] = set()
-    for spec in COMMAND_SPECS:
+    for spec in specs:
         for alias in (spec.name, *spec.aliases):
             normalized = _normalize_token(alias)
             if normalized in seen:
@@ -100,6 +100,10 @@ def command_lookup_names() -> tuple[str, ...]:
             seen.add(normalized)
             names.append(normalized)
     return tuple(names)
+
+
+def command_lookup_names() -> tuple[str, ...]:
+    return _lookup_names_for_specs(COMMAND_SPECS)
 
 
 def command_spec(name: str) -> CommandSpec | None:
@@ -162,6 +166,10 @@ def command_mvp_roles() -> tuple[str, ...]:
 
 def command_mvp_flow_names() -> tuple[str, ...]:
     return tuple(spec.name for spec in _MVP_FLOW_SPECS)
+
+
+def command_mvp_flow_lookup_names() -> tuple[str, ...]:
+    return _lookup_names_for_specs(_MVP_FLOW_SPECS)
 
 
 def canonical_command(name: str) -> str:
