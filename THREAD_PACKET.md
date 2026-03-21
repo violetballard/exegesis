@@ -1,31 +1,31 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Current branch head: `ea2495bd5bcd1723d096c9eeca47641b0b8c83d6` (docs-only packet reconciliation commit, excluded from the reviewed feature scope)
 - Reviewed feature commit: `075a61ad1c92b85fb4df2fae54bbb9163f53aa12`
-- Promoted code commit range: `075a61ad1c92b85fb4df2fae54bbb9163f53aa12`
-- Scope goal: Canonicalize empty recovery state for context storage so recovery paths materialize clean canonical payloads without inventing recovery provenance.
+- Promoted code commit range: `075a61ad1c92b85fb4df2fae54bbb9163f53aa12` through the current branch tip
+- Scope goal: Canonicalize empty recovery state for context storage and keep the resubmission commit code-bearing with regression coverage.
 - Scope completed: Canonicalized empty recovery state in `src/qual/context/store.py` and `src/qual/context/set_store.py`.
-- Scope completed: The reviewed diff is limited to the two lane-owned context storage files in the actual feature commit.
-- Scope completed: Kept the docs-only packet correction commit out of the promoted code range so the handoff stays commit-accurate.
+- Scope completed: Added empty-seed regression coverage in `tests/unit/test_context_storage_recovery_lane.py`.
+- Scope completed: Empty recoverable payloads now rewrite to canonical state without inventing `recovered_from` provenance.
 - Tasks completed:
   1. Canonicalized empty recovery state in the context basket and context set stores.
-  2. Kept the packet commit-accurate by naming the real branch head while preserving the reviewed code commit.
+  2. Added regression coverage for empty seed recovery in the lane test suite.
   3. Prevented empty recoverable payloads from inventing `recovered_from` provenance.
-  4. Re-ran the required lane gates on the reviewed feature commit and recorded the results here.
+  4. Re-ran the required lane gates on the resubmission commit and recorded the results here.
 
 - Feature code files:
   - `src/qual/context/store.py`
   - `src/qual/context/set_store.py`
+  - `tests/unit/test_context_storage_recovery_lane.py`
 
 - Files changed:
   - `src/qual/context/store.py`
   - `src/qual/context/set_store.py`
+  - `tests/unit/test_context_storage_recovery_lane.py`
 
 - Commands run with results:
-  - `git show --stat --summary --oneline ea2495bd5bcd1723d096c9eeca47641b0b8c83d6` -> confirmed the current branch head is the docs-only packet reconciliation commit
-  - `git show --stat --summary --oneline 075a61ad1c92b85fb4df2fae54bbb9163f53aa12` -> confirmed the actual reviewed feature commit changes only `src/qual/context/store.py` and `src/qual/context/set_store.py`
-  - `git show --stat --summary --patch --unified=40 075a61ad1c92b85fb4df2fae54bbb9163f53aa12 -- src/qual/context/store.py src/qual/context/set_store.py` -> confirmed the commit diff matches the empty-recovery canonicalization fix
+  - `git show --stat --summary --oneline 075a61ad1c92b85fb4df2fae54bbb9163f53aa12` -> confirmed the baseline feature commit changes `src/qual/context/store.py` and `src/qual/context/set_store.py`
+  - `git show --stat --summary --patch --unified=40 075a61ad1c92b85fb4df2fae54bbb9163f53aa12 -- src/qual/context/store.py src/qual/context/set_store.py` -> confirmed the baseline feature diff matches the empty-recovery canonicalization fix
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -48,7 +48,7 @@
 
 - Scope-check / ownership note:
   - Shared/integrator-locked edits: NO.
-  - No shared or integrator-locked files are part of the actual reviewed commit.
+  - No shared or integrator-locked files are part of this resubmission commit.
   - Ownership is lane-clean for `src/qual/context/**` and `src/qual/storage/**`.
   - No explicit approval is required because no shared files remain in scope.
 - Checkpoint status:

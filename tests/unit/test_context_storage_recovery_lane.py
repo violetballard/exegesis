@@ -40,6 +40,17 @@ class ContextBasketRecoveryLaneTests(unittest.TestCase):
         self.assertNotIn("recovered_from", primary_payload)
         self.assertTrue(self.store._path.with_suffix(".corrupt.json").exists())
 
+    def test_empty_seed_payload_is_canonicalized_without_recovery_source(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._seed_path.write_text("[]", encoding="utf-8")
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, [])
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("item_ids"), [])
+        self.assertNotIn("recovered_from", primary_payload)
+
 
 class ContextSetRecoveryLaneTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -80,3 +91,23 @@ class ContextSetRecoveryLaneTests(unittest.TestCase):
         self.assertEqual(primary_payload.get("context_sets"), [])
         self.assertNotIn("recovered_from", primary_payload)
         self.assertTrue(self.store._path.with_suffix(".corrupt.json").exists())
+
+    def test_empty_seed_payload_is_canonicalized_without_recovery_source(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._seed_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "context_sets": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded, [])
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("context_sets"), [])
+        self.assertNotIn("recovered_from", primary_payload)
