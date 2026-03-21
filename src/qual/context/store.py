@@ -70,10 +70,19 @@ class ContextBasketStore:
             recovered_source=recovered_source,
         )
         if recovered_source is not None or should_rewrite:
-            self.save(basket, recovered_from=recovered_from)
+            self.save(
+                basket,
+                recovered_from=recovered_from,
+                refresh_backup=recovered_source is not None,
+            )
         return basket
 
-    def save(self, basket: ContextBasket, recovered_from: str | None = None) -> None:
+    def save(
+        self,
+        basket: ContextBasket,
+        recovered_from: str | None = None,
+        refresh_backup: bool = False,
+    ) -> None:
         basket.normalize()
         self._path.parent.mkdir(parents=True, exist_ok=True)
         payload = {
@@ -88,6 +97,8 @@ class ContextBasketStore:
         tmp = self._tmp_path()
         tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
         tmp.replace(self._path)
+        if refresh_backup:
+            self._write_backup()
         self._clear_quarantine_file()
 
     def clear(self) -> None:

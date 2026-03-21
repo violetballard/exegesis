@@ -230,6 +230,30 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("recovered_from"), "backup")
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
 
+    def test_missing_primary_recovery_resyncs_backup_to_canonical_state(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "not-a-timestamp",
+                    "recovered_from": "manual",
+                    "item_ids": ["first", "second"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first", "second"])
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("item_ids"), ["first", "second"])
+        self.assertEqual(backup_payload.get("item_ids"), ["first", "second"])
+        self.assertNotEqual(backup_payload.get("updated_at"), "not-a-timestamp")
+        self.assertEqual(backup_payload.get("schema_version"), 1)
+
 
 class VaultRecoveryTests(unittest.TestCase):
     def setUp(self) -> None:
