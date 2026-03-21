@@ -131,8 +131,8 @@ class A2UIContractTests(unittest.TestCase):
                 {
                     "type": "GenericCard",
                     "version": 1,
-                    "required_fields": ["type", "title"],
-                    "optional_fields": ["a2ui_version", "subtitle", "blocks", "actions", "debug"],
+                    "required_fields": ["type", "title", "a2ui_version", "blocks", "actions"],
+                    "optional_fields": ["subtitle", "debug"],
                     "allowed_actions": [
                         "apply_patch",
                         "copy_to_clipboard",

@@ -192,8 +192,8 @@ def _build_a2ui_schema_manifest() -> dict[str, Any]:
             {
                 "type": GENERIC_CARD_TYPE,
                 "version": A2UI_VERSION,
-                "required_fields": ["type", "title"],
-                "optional_fields": ["a2ui_version", "subtitle", "blocks", "actions", "debug"],
+                "required_fields": ["type", "title", "a2ui_version", "blocks", "actions"],
+                "optional_fields": ["subtitle", "debug"],
                 "allowed_actions": sorted(ALLOWED_ACTION_IDS),
                 "action_policy": "client_allowlist",
             },
