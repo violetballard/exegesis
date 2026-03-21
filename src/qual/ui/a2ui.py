@@ -207,8 +207,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
     validate_capabilities(capabilities)
     card_type = _normalize_card_type(card)
     if card_type == GENERIC_CARD_TYPE:
-        validate_generic_card(card, strict_actions=False)
-        return _materialize_versioned_card(card, capabilities)
+        return _materialize_generic_card(card, capabilities)
 
     if card_type in set(capabilities.cards_supported):
         _validate_card_version(card)
@@ -243,8 +242,7 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
     validate_capabilities(capabilities)
     card_type = _normalize_card_type(card)
     if card_type == GENERIC_CARD_TYPE:
-        validate_generic_card(card, strict_actions=False)
-        return _materialize_versioned_card(card, capabilities)
+        return _materialize_generic_card(card, capabilities)
     if card_type in set(capabilities.cards_supported):
         _validate_card_version(card)
         return _materialize_versioned_card(card, capabilities)
@@ -316,14 +314,15 @@ def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) 
     if subtitle is not None and (not isinstance(subtitle, str) or not subtitle.strip()):
         raise ValueError("GenericCard subtitle must be a non-empty string when provided")
     blocks = card.get("blocks")
-    if not isinstance(blocks, list):
-        raise ValueError("GenericCard blocks must be a list")
-    for block in blocks:
-        validate_primitive_block(block)
-    actions = card.get("actions", [])
-    if not isinstance(actions, list):
-        raise ValueError("GenericCard actions must be a list")
     if strict_actions:
+        if not isinstance(blocks, list):
+            raise ValueError("GenericCard blocks must be a list")
+        for block in blocks:
+            validate_primitive_block(block)
+    actions = card.get("actions", [])
+    if strict_actions:
+        if not isinstance(actions, list):
+            raise ValueError("GenericCard actions must be a list")
         for action in actions:
             validate_action_ref(action)
 
@@ -447,6 +446,15 @@ def _materialize_versioned_card(card: dict[str, Any], capabilities: A2UICapabili
     out = dict(card)
     out["blocks"] = _extract_safe_primitive_blocks(out)
     out = _filter_card_actions(out, capabilities)
+    out["a2ui_version"] = A2UI_VERSION
+    return out
+
+
+def _materialize_generic_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
+    validate_generic_card(card, strict_actions=False)
+    out = dict(card)
+    out["blocks"] = _extract_safe_primitive_blocks(out)
+    out["actions"] = _filter_supported_actions(out.get("actions"), supported_actions=set(capabilities.actions_supported))
     out["a2ui_version"] = A2UI_VERSION
     return out
 
