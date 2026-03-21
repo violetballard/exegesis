@@ -63,6 +63,7 @@ class VaultService:
             self._tmp_state_path(state.root_dir),
             self._backup_tmp_state_path(state.root_dir),
             self._corrupt_state_path(state.root_dir),
+            self._corrupt_path_for(self._backup_state_path(state.root_dir)),
         ):
             self._unlink_if_exists(path)
         state.is_locked = True

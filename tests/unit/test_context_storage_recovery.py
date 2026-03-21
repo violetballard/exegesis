@@ -367,6 +367,7 @@ class VaultRecoveryTests(unittest.TestCase):
         self.svc.unlock(state)
         self.svc.lock(state)  # Generates backup.
         (state.root_dir / ".vault_state.corrupt.json").write_text("{}", encoding="utf-8")
+        (state.root_dir / ".vault_state.bak.corrupt.json").write_text("{}", encoding="utf-8")
 
         self.svc.clear_state(state)
 
@@ -374,6 +375,7 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertFalse((state.root_dir / ".vault_state.json").exists())
         self.assertFalse((state.root_dir / ".vault_state.bak.json").exists())
         self.assertFalse((state.root_dir / ".vault_state.corrupt.json").exists())
+        self.assertFalse((state.root_dir / ".vault_state.bak.corrupt.json").exists())
 
     def test_corrupt_primary_quarantines_and_recovers_from_backup(self) -> None:
         state = self.svc.create_or_open(self.root, "p2")
