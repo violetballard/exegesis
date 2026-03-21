@@ -3,19 +3,14 @@
   "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 3 completed tasks, 2 promoted metadata files, no shared or integrator-locked edits, and all required local gates rerun on 2026-03-20 before handoff.",
   "proposed_readme_patch": "",
   "risk": "LOW",
-  "roadmap_items": [
-    "Milestone 4: Retrieval Layer -> Retrieval orchestration in engine before drafting/diff generation"
-  ],
+  "roadmap_items": [],
   "routing_provider_impact": "None",
-  "scope_goal": "Regenerate the feat-retrieval-fts handoff so the reviewed commit `44116a6740ae818eccaf88fa988239fd6c34f18a` is represented accurately.",
+  "scope_goal": "Align the handoff packet and lane metadata with the reviewed docs-only commit so the lane record matches the actual diff.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Reconciled the packet with commit `44116a6740ae818eccaf88fa988239fd6c34f18a`, which only changes `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`.",
     "Removed `src/qual/engine/retrieval/pageindex_strategy.py` and every source-change claim from the handoff because the reviewed diff is packet-only.",
-    "Added an explicit `Scope completed` field and kept roadmap/vision mapping limited to the active FTS-first retrieval lane."
+    "Added an explicit `Scope completed` field and cleared roadmap and vision items that implied retrieval implementation work."
   ],
-  "vision_capabilities": [
-    "2. Retrieval-first context handling",
-    "3. Auditable generation"
-  ]
+  "vision_capabilities": []
 }

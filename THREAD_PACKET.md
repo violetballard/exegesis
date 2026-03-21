@@ -1,12 +1,12 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Scope goal: Regenerate the feat-retrieval-fts handoff so the reviewed commit `44116a6740ae818eccaf88fa988239fd6c34f18a` is represented accurately.
-- Scope completed: Delivered a packet-only follow-up commit that updates `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`, removing stale source-file and PageIndex references so the handoff matches the reviewed diff exactly.
+- Scope goal: Align the handoff packet and lane metadata with the reviewed docs-only commit so the lane record matches the actual diff.
+- Scope completed: The reviewed commit `44116a6740ae818eccaf88fa988239fd6c34f18a` is docs-only and updates `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`; it did not change retrieval source code.
 - Tasks completed:
   1. Reconciled the packet with commit `44116a6740ae818eccaf88fa988239fd6c34f18a`, which only changes `.codex/lane_meta/feat-retrieval-fts.json` and `THREAD_PACKET.md`.
   2. Removed `src/qual/engine/retrieval/pageindex_strategy.py` and every source-change claim from the handoff because the reviewed diff is packet-only.
-  3. Added an explicit `Scope completed` field and kept roadmap/vision mapping limited to the active FTS-first retrieval lane.
+  3. Added an explicit `Scope completed` field and cleared roadmap and vision items that implied retrieval implementation work.
 - Files changed:
   - `.codex/lane_meta/feat-retrieval-fts.json`
   - `THREAD_PACKET.md`
@@ -26,7 +26,7 @@
   - `#1` regenerated `Files changed` to match the reviewed commit exactly.
   - `#2` removed `src/qual/engine/retrieval/pageindex_strategy.py` and every source-change claim from the handoff because the reviewed diff is packet-only.
   - `#3` rewrote the scope to describe the actual reviewed change instead of source implementation work.
-  - `#4` added an explicit `Scope completed` field and kept roadmap/vision mapping limited to the active FTS-first retrieval lane.
+  - `#4` added an explicit `Scope completed` field and cleared roadmap/vision items that implied retrieval implementation work.
 - Checkpoint status:
   - plan complete
   - first green tests: `./quality-test.sh` passed (`Ran 78 tests`, `OK`)
@@ -35,9 +35,8 @@
   - No shared, integrator-locked, or cross-lane source files are included in the reviewed commit.
   - The handoff now describes the packet-only fix commit; broader retrieval MVP behavior remains in the lane's source work and is not implied by this review.
 - Roadmap item(s) affected:
-  - `Milestone 4: Retrieval Layer` -> Retrieval orchestration in engine before drafting/diff generation
+  - None.
 - Vision capability affected:
-  - `2. Retrieval-first context handling`
-  - `3. Auditable generation`
+  - None.
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.
