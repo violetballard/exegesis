@@ -119,8 +119,6 @@ def _normalize_profile(raw: Dict[str, Any], *, fallback_cmd: str = "codex", fall
     else:
         model = str(fallback_model or "")
     model_args = [str(x) for x in list(raw.get("model_args") or [])]
-    if "--oss" in cmd_args and model == fallback_model:
-        model = ""
     return LaunchProfile(codex_cmd=cmd, codex_args=cmd_args, model=model, model_args=model_args)
 
 
@@ -703,12 +701,22 @@ def fixer_prompt(lane: str, branch: str, reviewer_packet: str, workdir: Optional
         f"{reviewer_packet}\n"
     )
 
-def run_fixer(client: CodexMcpClient, cfg: RouterConfig, state: dict, lane: str, reviewer_packet: str, repo_cwd: str) -> dict:
+def run_fixer(
+    client: CodexMcpClient,
+    cfg: RouterConfig,
+    state: dict,
+    lane: str,
+    reviewer_packet: str,
+    repo_cwd: str,
+    *,
+    local_mode: Optional[bool] = None,
+) -> dict:
     lane_cfg = cfg.lanes.get(lane, {}) or {}
     branch = str(lane_cfg.get("branch") or f"codex/{lane}")
     wt = _find_worktree_for_branch(repo_cwd, branch)
     _sync_lane_runbook_files(repo_cwd, wt)
-    if _runtime_mode(cfg, state) != "local_fallback" and not cfg.prefer_cli_fixer:
+    runtime_local = _runtime_mode(cfg, state) == "local_fallback" if local_mode is None else bool(local_mode)
+    if not runtime_local and not cfg.prefer_cli_fixer:
         fixer_map = state.get("fixer_thread_ids") or {}
         tid = fixer_map.get(lane)
         try:
@@ -733,8 +741,7 @@ def run_fixer(client: CodexMcpClient, cfg: RouterConfig, state: dict, lane: str,
             pass
 
     # Fallback: detached CLI fixer so router ticks don't deadlock on MCP stalls.
-    local_mode = _runtime_mode(cfg, state) == "local_fallback"
-    prof = _profile_for_role(cfg, "fixer", local=local_mode)
+    prof = _profile_for_role(cfg, "fixer", local=runtime_local)
     logs = ROUTER_ROOT / "logs"
     logs.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -843,11 +850,13 @@ def _ensure_lane_reviewer_thread(
     repo_cwd: str,
     lane: str,
     reviewer_thread_ids: Dict[str, str],
+    *,
+    local: bool,
 ) -> str:
     tid = reviewer_thread_ids.get(lane)
     if tid:
         return tid
-    reviewer_profile = _profile_for_role(cfg, "reviewer", local=False)
+    reviewer_profile = _profile_for_role(cfg, "reviewer", local=local)
     tid, _ = reviewer_client.codex(
         prompt=f"Ready as reviewer for lane {lane}; I won't modify files.",
         cwd=repo_cwd,
@@ -867,11 +876,19 @@ def ensure_all_reviewer_threads(
     state: Dict[str, Any],
     reviewer_thread_ids: Dict[str, str],
 ) -> Dict[str, str]:
-    if _runtime_mode(cfg, state) == "local_fallback":
+    local_mode = _runtime_mode(cfg, state) == "local_fallback"
+    if local_mode:
         return reviewer_thread_ids
     for lane in cfg.lanes.keys():
         try:
-            _ensure_lane_reviewer_thread(reviewer_client, cfg, repo_cwd, lane, reviewer_thread_ids)
+            _ensure_lane_reviewer_thread(
+                reviewer_client,
+                cfg,
+                repo_cwd,
+                lane,
+                reviewer_thread_ids,
+                local=local_mode,
+            )
         except Exception as exc:
             print(f"[router] reviewer bootstrap skipped for {lane}: {exc}")
     return reviewer_thread_ids
@@ -942,7 +959,7 @@ def process_once(
             if _invalid_reviewer_output(reviewer_text):
                 # Recover from dead/invalid reviewer thread and retry once.
                 try:
-                    reviewer_profile = _profile_for_role(cfg, "reviewer", local=False)
+                    reviewer_profile = _profile_for_role(cfg, "reviewer", local=runtime_local)
                     reviewer_tid, _ = reviewer_client.codex(
                         prompt=f"Ready as reviewer for lane {lane}; I won't modify files.",
                         cwd=repo_cwd,
@@ -1030,7 +1047,15 @@ def process_once(
 
             # Inline fixer can be expensive; disabled by default for automation ticks.
             if verdict != "APPROVED" and cfg.inline_fixer:
-                state = run_fixer(reviewer_client, cfg, state, lane, reviewer_text, repo_cwd)
+                state = run_fixer(
+                    reviewer_client,
+                    cfg,
+                    state,
+                    lane,
+                    reviewer_text,
+                    repo_cwd,
+                    local_mode=runtime_local,
+                )
     state["reviewer_quota_retry_ts"] = reviewer_quota_retry_ts
     state["reviewer_quota_global_retry_ts"] = global_quota_retry_ts
     return processed, state, reviewer_thread_ids, integrator_tid
@@ -1052,6 +1077,7 @@ def process_reviewer_backlog(
     cursor = state.get("reviewer_fixer_cursor") or {}
     retry_ts = state.get("reviewer_fixer_retry_ts") or {}
     quota_retry_ts = state.get("fixer_quota_retry_ts") or {}
+    local_mode = _runtime_mode(cfg, state) == "local_fallback"
     kicked = 0
     for lane in cfg.lanes.keys():
         lane_dir = ensure_lane_dirs(lane)
@@ -1108,7 +1134,15 @@ def process_reviewer_backlog(
                 continue
         state = _maybe_restore_cloud(cfg, state, repo_cwd)
         reviewer_packet = _materialize_reviewer_packet(lane_dir, newest_note)
-        state = run_fixer(reviewer_client, cfg, state, lane, reviewer_packet, repo_cwd)
+        state = run_fixer(
+            reviewer_client,
+            cfg,
+            state,
+            lane,
+            reviewer_packet,
+            repo_cwd,
+            local_mode=local_mode,
+        )
         cursor[lane] = newest_note.name
         retry_ts[lane] = now
         kicked += 1
@@ -1175,9 +1209,10 @@ def main() -> None:
     cfg = load_cfg()
     state = load_json(STATE_FILE, {})
     repo_cwd = str(Path.cwd())
+    local_mode = _runtime_mode(cfg, state) == "local_fallback"
 
-    reviewer_client = _build_mcp_client(_profile_for_role(cfg, "reviewer", local=False), ApprovalPolicy(True, True))
-    integrator_client = _build_mcp_client(_profile_for_role(cfg, "integrator", local=False), ApprovalPolicy(True, True))
+    reviewer_client = _build_mcp_client(_profile_for_role(cfg, "reviewer", local=local_mode), ApprovalPolicy(True, True))
+    integrator_client = _build_mcp_client(_profile_for_role(cfg, "integrator", local=local_mode), ApprovalPolicy(True, True))
     state = _maybe_restore_cloud(cfg, state, repo_cwd)
 
     reviewer_thread_ids = state.get("reviewer_thread_ids") or {}

@@ -68,8 +68,6 @@ def _normalize_profile(raw: Dict[str, object], fallback_cmd: str, fallback_model
         model = str(raw.get("model") or "")
     else:
         model = fallback_model
-    if "--oss" in [str(x) for x in cmd_args] and model == fallback_model:
-        model = ""
     return {
         "cmd": str(raw.get("codex_cmd") or fallback_cmd or "codex"),
         "cmd_args": [str(x) for x in cmd_args],
