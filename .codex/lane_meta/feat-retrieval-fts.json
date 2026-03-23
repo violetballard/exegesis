@@ -1,10 +1,13 @@
 {
   "approved_exception_note": "No non-retrieval tooling edits are approved for this handoff; split tooling work into a separate lane.",
   "handoff_alignment_commit": "34dfec2f59175850da3d33e8e50b3641f1256b49",
-  "reviewed_commit": "36893f06df85409c4595d64adb8af60455c086a6",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 6 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff. The metadata-only follow-up commit is not the feature payload; feature delivery remains in the implementation commits.",
-  "implementation_commit": "36893f06df85409c4595d64adb8af60455c086a6",
-  "cleanup_commit": "dc8f79e4abeb30de51854fdd84d35b97993955b8",
+  "reviewed_commits": [
+    "36893f06df85409c4595d64adb8af60455c086a6",
+    "dc8f79e4abeb30de51854fdd84d35b97993955b8",
+    "f0047257cf71b750a576de84c272c0f8c5875148"
+  ],
+  "metadata_only_followup_commit": "34dfec2f59175850da3d33e8e50b3641f1256b49",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 6 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff. The reviewed implementation commit set is explicit, and the metadata-only follow-up commit is not the feature payload.",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
@@ -16,16 +19,14 @@
     "src/qual/retrieval/service.py",
     "src/qual/engine/retrieval/policy.py"
   ],
-  "scope_completed": "Delivered behavior: vault, collection:, and doc: retrieval requests now route through src/qual/retrieval/service.py into the owned retrieval engine. src/qual/engine/retrieval/__init__.py exposes the canonical retrieval surface, src/qual/engine/retrieval/policy.py keeps fts active while leaving pageindex and embeddings deferred, and section: remains rejected until fallback support exists. This completed scope stays within src/qual/retrieval/** and src/qual/engine/retrieval/** only, with no codex_packet_handoff/tools/* or src/qual/engine/tools/* edits included in this handoff. PageIndex and embeddings are deferred markers only, not required retrieval paths for the FTS-first MVP.",
-  "scope_goal": "Document the retrieval handoff boundary while keeping the lane-owned retrieval scope constrained to FTS-first MVP behavior and excluding out-of-lane tooling edits.",
+  "scope_completed": "The handoff now names the reviewed implementation commit set separately from the metadata-only follow-up commit, so the audit trail no longer implies that the follow-up commit is feature payload. The correction stays within the handoff artifacts only.",
+  "scope_goal": "Document the retrieval handoff boundary while keeping the lane-owned retrieval scope constrained to the reviewed implementation commit set and excluding out-of-lane tooling edits.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Re-anchored the packet to the retrieval feature commit and kept the lane-owned file list narrow.",
-    "Kept the handoff surface within the lane-owned retrieval paths only.",
-    "Added a concrete Scope completed statement for the delivered FTS-first behavior and kept the handoff retrieval-only.",
-    "Kept the changed-file list constrained to src/qual/retrieval/** and src/qual/engine/retrieval/**.",
-    "Preserved the roadmap and vision mapping while keeping PageIndex and embeddings deferred.",
-    "Documented the section-scope compatibility boundary for the current FTS-first MVP path."
+    "Added an explicit reviewed commit-set field so the implementation bundle is auditable.",
+    "Separated the metadata-only follow-up commit from the feature payload.",
+    "Kept the reviewed implementation files listed separately for traceability.",
+    "Kept the handoff correction within the lane-owned retrieval documentation artifacts."
   ],
   "vision_capabilities": [
     "2. Retrieval-first context handling"

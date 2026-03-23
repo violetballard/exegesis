@@ -2,46 +2,41 @@
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
-- Reviewed feature commit: `36893f06df85409c4595d64adb8af60455c086a6`
-- Deferred-policy cleanup commit: `dc8f79e4abeb30de51854fdd84d35b97993955b8`
-- Handoff alignment commit: `f0047257cf71b750a576de84c272c0f8c5875148`
-- Metadata-only follow-up commit: `34dfec2f59175850da3d33e8e50b3641f1256b49`
-- Reviewed commit type: Feature implementation chain; `34dfec2f59175850da3d33e8e50b3641f1256b49` is metadata-only and not the feature payload.
+- Reviewed commit(s):
+  - `36893f06df85409c4595d64adb8af60455c086a6`
+  - `dc8f79e4abeb30de51854fdd84d35b97993955b8`
+  - `f0047257cf71b750a576de84c272c0f8c5875148`
+- Metadata-only follow-up commit:
+  - `34dfec2f59175850da3d33e8e50b3641f1256b49`
 
 ## Scope completed
 
-Delivered behavior: `vault`, `collection:`, and `doc:` retrieval requests now route through `src/qual/retrieval/service.py` into the owned retrieval engine. `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred, and `section:` remains rejected until fallback support exists. This completed scope stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**` only and excludes out-of-lane tooling edits. `PageIndex` and embeddings are deferred only; they are not required retrieval paths for the FTS-first MVP.
+The packet now records the reviewed implementation commit set separately from the metadata-only follow-up commit, so the audit trail does not imply the follow-up commit is the feature payload.
 
-### Prior commit references (reference only)
+### Reviewed implementation files (reference only)
 - `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/policy.py`
 - `src/qual/retrieval/service.py`
 
-### Cleanup boundary note
-- `src/qual/engine/retrieval/policy.py`
-
-### Code-diff evidence
-- `src/qual/engine/retrieval/__init__.py`: exposes the canonical FTS-first retrieval surface.
-- `src/qual/retrieval/service.py`: routes retrieval queries through the FTS-first engine path.
-- `src/qual/engine/retrieval/policy.py`: defines the active FTS strategy and deferred strategies.
-- Roadmap/vision mapping: documents the Milestone 4 retrieval boundary while keeping `PageIndex` and embeddings out of the required MVP path.
+### Handoff correction note
+- The current correction stays within the handoff artifacts only.
 
 ### Priority outcomes
-1. Keep the handoff tied to the lane-owned retrieval paths only.
-2. Keep the reviewed file list constrained to the lane-owned retrieval paths.
-3. Treat `PageIndex` and embeddings mentions as deferred markers only, not active MVP paths.
-4. Make the roadmap and vision fields read as delivered retrieval behavior, not a provider or routing change.
+1. Keep the reviewed commit set explicit and auditable.
+2. Keep the metadata-only follow-up commit separate from the feature payload.
+3. Keep the handoff correction limited to the handoff artifacts.
+4. Keep the reviewed implementation files listed separately for traceability.
 
 ### Tasks
-1. Re-anchor the packet to the retrieval feature commit and keep the lane-owned file list narrow.
-2. Keep the handoff surface within the lane-owned retrieval paths only.
-3. Add a concrete scope-completed summary that explains the delivered FTS-first behavior.
-4. Preserve the roadmap and vision mapping while keeping `PageIndex` and embeddings deferred.
-5. Document the `section:` compatibility boundary as an intentional MVP limitation until fallback support is restored.
+1. Add an explicit reviewed commit-set field to the handoff packet.
+2. Separate the metadata-only follow-up commit from the reviewed implementation bundle.
+3. Rewrite the scope text so the handoff artifact is auditable without inferring context.
+4. Keep the reviewed implementation files listed separately for traceability.
 
 ### Files changed
-- `src/qual/engine/retrieval/__init__.py`
-- `src/qual/retrieval/service.py`
-- `src/qual/engine/retrieval/policy.py`
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
+- `THREAD_PACKET.md`
 
 ### Compatibility note
 - Breaking compatibility note: `section:` scopes are intentionally rejected in the owned retrieval service until section fallback support exists. Callers that depend on section targeting must switch to `vault`, `collection:`, or `doc:` scopes for the current FTS-first MVP path.
