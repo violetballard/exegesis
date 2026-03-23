@@ -41,12 +41,12 @@
 
 ## Commands run and outcomes
 - Validation date: `2026-03-23`
-- `make scope-check`: pending rerun after scope cleanup
-- `./quality-format.sh --check`: pending rerun after scope cleanup
-- `./quality-lint.sh`: pending rerun after scope cleanup
-- `./quality-test.sh`: pending rerun after scope cleanup
-- `./typecheck-test.sh`: pending rerun after scope cleanup
-- `make ci`: pending rerun after scope cleanup
+- `./quality-format.sh --check`: PASS
+- `./quality-lint.sh`: PASS
+- `./quality-test.sh`: PASS
+- `./typecheck-test.sh`: PASS
+- `make scope-check`: pending rerun on packet-only head
+- `make ci`: pending rerun on packet-only head
 
 ## Risks / blockers
 - Risk: `LOW`
