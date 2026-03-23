@@ -4,6 +4,7 @@
 - Branch: `codex/feat-commands`
 - Reviewed branch tip: current `codex/feat-commands` head
 - Branch head note: this packet is regenerated from the actual `main...codex/feat-commands` diff for the submitted branch tip.
+- Commit alignment note: the current head commit is a packet refresh; the feature-bearing `diff_preview` code and test changes are already present in earlier commits on this branch and are included in the reviewed branch delta below.
 
 ## Scope goal
 - Harden the `diff_preview` command contract so labeled, header-suppressed, truncated, summary-only, and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.
@@ -14,7 +15,7 @@
 ## Scope completed
 - Corrected `diff_preview` fingerprint semantics so SHA-256 is derived from the exact emitted diff payload after label application, header suppression, truncation, and summary-only handling.
 - Added focused command-contract tests for JSON output, no-diff JSON shape, custom labels, and fingerprint correctness.
-- Kept the submitted branch limited to the lane-owned command surface plus focused regression coverage in `tests/unit/test_diff_preview.py`.
+- Kept the reviewed branch limited to the lane-owned command surface plus focused regression coverage in `tests/unit/test_diff_preview.py`.
 
 ## Kickoff budget/limits compliance
 - Stayed within the default lane budget. The reviewed branch delta is 6 files changed and remains within the lane size limits.
@@ -30,7 +31,7 @@
 1. Corrected `diff_preview` fingerprinting to hash the emitted payload after labels, header suppression, truncation, and summary-only handling.
 2. Added focused unit coverage for JSON command output, no-diff JSON shape, labeled diff output, and fingerprint correctness across emitted contract paths.
 3. Regenerated the feature handoff packet so the file list, scope note, and roadmap/vision mapping match the final branch diff.
-4. Removed the false shared-file exception so the ownership note matches `THREAD_OWNERSHIP.md`.
+4. Added an explicit head-commit alignment note so the packet does not misrepresent the metadata-only tip commit as the feature-bearing change.
 
 ## Files changed for reviewed branch delta
 - `src/qual/commands/__init__.py`
