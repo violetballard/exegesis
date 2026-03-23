@@ -94,6 +94,27 @@ def lane_has_reviewer_notes(lane: str) -> bool:
     base = PACKETS_ROOT / lane
     return any((base/"inbox/reviewer").glob("*.md"))
 
+
+def archive_lane_reviewer_notes(lane: str) -> int:
+    base = PACKETS_ROOT / lane
+    notes = sorted((base / "inbox/reviewer").glob("*.md"), key=lambda p: p.stat().st_mtime)
+    if not notes:
+        return 0
+    archive_dir = base / "archive" / "stale"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    moved = 0
+    for note in notes:
+        dst = archive_dir / note.name
+        try:
+            note.rename(dst)
+        except Exception:
+            if not note.exists():
+                continue
+            dst.write_text(note.read_text())
+            note.unlink()
+        moved += 1
+    return moved
+
 def read_lane_meta(lane: str) -> Json:
     p = Path(".codex/lane_meta")/f"{lane}.json"
     if not p.exists():
@@ -134,6 +155,9 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
     lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
+    scope_completed = meta.get("scope_completed")
+    if isinstance(scope_completed, list) and scope_completed:
+        lines += ["## Scope completed"] + [f"- {str(item).strip()}" for item in scope_completed if str(item).strip()] + [""]
     if str(meta.get("kickoff_budget_note","")).strip():
         lines += ["## Kickoff budget/limits compliance", f"- {meta['kickoff_budget_note'].strip()}", ""]
     if str(meta.get("approved_exception_note","")).strip():
@@ -258,6 +282,10 @@ def main()->None:
             if not ok:
                 continue
         ts=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        if fast_reemit:
+            moved = archive_lane_reviewer_notes(lane)
+            if moved:
+                print(f"[planner] {lane}: archived {moved} stale reviewer note(s) on re-emit")
         fn=f"F__{branch.replace('/','-')}__{sha}__{ts}.md"
         outp=PACKETS_ROOT/lane/"inbox/feature"/fn
         outp.write_text(build_packet(lane,branch,sha,meta,files,results))

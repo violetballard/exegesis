@@ -23,10 +23,12 @@ REPO_ROOT = TOOLS_DIR.parent.parent
 PLANNER_PATH = REPO_ROOT / "codex_packet_handoff/tools/planner.py"
 ROUTER_PATH = REPO_ROOT / "codex_packet_handoff/tools/router.py"
 INIT_META_PATH = REPO_ROOT / "codex_packet_handoff/tools/init_lane_meta.py"
+LAUNCH_FEATURE_LANES_PATH = REPO_ROOT / "codex_packet_handoff/tools/launch_feature_lanes.py"
 
 PLANNER_CMD = [sys.executable, str(PLANNER_PATH)]
 ROUTER_CMD = [sys.executable, str(ROUTER_PATH)]
 INIT_META_CMD = [sys.executable, str(INIT_META_PATH)]
+LAUNCH_FEATURE_LANES_CMD = [sys.executable, str(LAUNCH_FEATURE_LANES_PATH)]
 
 EMITTED_RE = re.compile(r"\[planner\] emitted (?P<path>\S+)")
 ROUTER_RE = re.compile(
@@ -488,6 +490,47 @@ def _lane_digest(lane: str) -> Dict[str, object]:
     }
 
 
+def _lane_queue_empty(lane: str) -> bool:
+    d = _lane_digest(lane)
+    return (
+        int(d.get("pending_feature", 0)) == 0
+        and int(d.get("reviewer_notes", 0)) == 0
+        and int(d.get("approved", 0)) == 0
+    )
+
+
+def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
+    lane_refill = state_doc.setdefault("lane_refill", {})
+    if not isinstance(lane_refill, dict):
+        lane_refill = {}
+        state_doc["lane_refill"] = lane_refill
+
+    to_launch: List[str] = []
+    for lane in _enabled_lanes():
+        queue_empty = _lane_queue_empty(lane)
+        lane_state = lane_refill.get(lane)
+        if not isinstance(lane_state, dict):
+            lane_state = {}
+        was_empty = bool(lane_state.get("queue_empty", False))
+        if queue_empty and not was_empty:
+            to_launch.append(lane)
+        lane_state["queue_empty"] = queue_empty
+        lane_state["last_seen_at"] = utc_now()
+        lane_refill[lane] = lane_state
+
+    if not to_launch:
+        return []
+
+    rc, out = run_cmd(LAUNCH_FEATURE_LANES_CMD + ["--lanes", *to_launch])
+    if rc != 0:
+        print(f"[coordinator] feature lane launch failed for {to_launch}: rc={rc}")
+        if out:
+            print(out, end="" if out.endswith("\n") else "\n")
+        return []
+    print(f"[coordinator] launched free lanes: {', '.join(to_launch)}")
+    return to_launch
+
+
 def _has_lane_backlog() -> bool:
     """Return True when any lane has packets waiting for reviewer/fixer/integrator."""
     for lane in _enabled_lanes():
@@ -523,6 +566,7 @@ def _compute_snapshot(branch_map: Dict[str, str]) -> str:
 def _run_cycle(
     args: argparse.Namespace,
     direct_ctx: Optional[DirectRouterCtx],
+    coordinator_state: Dict[str, object],
 ) -> Dict[str, object]:
     cycle_event: Dict[str, object] = {"started_at": utc_now()}
 
@@ -553,7 +597,18 @@ def _run_cycle(
         "integrated": router_stats["integrated"],
     }
 
-    cycle_event["activity"] = bool(emissions or router_stats["processed"] or router_stats["kicked"] or router_stats["integrated"])
+    launched_lanes = _launch_free_lanes(coordinator_state)
+    cycle_event["launcher"] = {
+        "launched": launched_lanes,
+    }
+
+    cycle_event["activity"] = bool(
+        emissions
+        or router_stats["processed"]
+        or router_stats["kicked"]
+        or router_stats["integrated"]
+        or launched_lanes
+    )
     cycle_event["ended_at"] = utc_now()
     return cycle_event
 
@@ -605,6 +660,7 @@ def main() -> int:
         router_processed_total = 0
         fixer_kicked_total = 0
         integrator_processed_total = 0
+        launched_lanes_total: List[str] = []
         cycle_events: List[Dict[str, object]] = []
 
         run_start = time.time()
@@ -623,7 +679,8 @@ def main() -> int:
 
             if should_run:
                 print(f"=== EVENT CYCLE {cycles + 1} START {utc_now()} ===")
-                event = _run_cycle(args, direct_ctx)
+                coord_state = load_json(STATE_FILE, {})
+                event = _run_cycle(args, direct_ctx, coord_state)
                 cycles += 1
                 cycle_events.append(event)
                 prev_snapshot = _compute_snapshot(branch_map)
@@ -645,6 +702,9 @@ def main() -> int:
                 router_processed_total += int(r.get("processed", 0))
                 fixer_kicked_total += int(r.get("kicked", 0))
                 integrator_processed_total += int(r.get("integrated", 0))
+                for lane in (event.get("launcher", {}) or {}).get("launched", []):
+                    if isinstance(lane, str):
+                        launched_lanes_total.append(lane)
 
                 if bool(event.get("activity")):
                     idle_start = time.time()
@@ -684,22 +744,24 @@ def main() -> int:
             "router_processed_total": router_processed_total,
             "fixer_kicked_total": fixer_kicked_total,
             "integrator_processed_total": integrator_processed_total,
+            "lanes_relaunched": launched_lanes_total,
             "planner_emitted": [{"lane": lane, "file": fn} for lane, fn in emitted_all],
             "cycle_events": cycle_events,
             "cycles": cycles,
             "wall_seconds": wall,
         }
         save_json(run_file, run_doc)
-        save_json(
-            STATE_FILE,
+        final_state = load_json(STATE_FILE, {})
+        final_state.update(
             {
                 "last_run_id": run_id,
                 "last_status": status,
                 "last_run_file": str(run_file),
                 "last_updated_at": utc_now(),
                 "last_mode": mode_label,
-            },
+            }
         )
+        save_json(STATE_FILE, final_state)
 
         print("=== COORDINATOR SUMMARY ===")
         print(f"[summary] mode: {mode_label}")
@@ -712,6 +774,10 @@ def main() -> int:
         print(f"[summary] router processed total packets: {router_processed_total}")
         print(f"[summary] fixer kicked total tasks: {fixer_kicked_total}")
         print(f"[summary] integrator processed total approvals: {integrator_processed_total}")
+        if launched_lanes_total:
+            print(f"[summary] lanes relaunched: {', '.join(launched_lanes_total)}")
+        else:
+            print("[summary] lanes relaunched: none")
         if not emitted_all and router_processed_total == 0 and fixer_kicked_total == 0 and integrator_processed_total == 0:
             print("[summary] no activity this run")
         print(f"[summary] planner errors: {planner_errors}")
