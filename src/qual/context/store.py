@@ -74,6 +74,17 @@ class ContextBasketStore:
             if payload is None:
                 payload = primary_payload
                 recovered_source = None
+        elif isinstance(primary_payload, list):
+            payload, recovered_source = self._prefer_recovery_payload(
+                tmp_payload,
+                backup_tmp_payload,
+                backup_payload,
+                seed_tmp_payload,
+                seed_payload,
+            )
+            if payload is None:
+                payload = primary_payload
+                recovered_source = None
         elif primary_payload is not None:
             payload = primary_payload
             recovered_source = None
@@ -613,10 +624,7 @@ class ContextBasketStore:
                 return True
             return not parsed_item_ids and self._has_dropped_item_ids(raw_item_ids)
         if isinstance(payload, list):
-            parsed_item_ids = self._parse_item_ids(payload)
-            if parsed_item_ids is None:
-                return True
-            return not parsed_item_ids and self._has_dropped_item_ids(payload)
+            return True
         return False
 
     def _unlink_if_exists(self, path: Path) -> None:

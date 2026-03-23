@@ -149,6 +149,17 @@ class ContextSetStore:
             if payload is None:
                 payload = primary_payload
                 recovered_source = None
+        elif isinstance(primary_payload, list):
+            payload, recovered_source = self._prefer_recovery_payload(
+                tmp_payload,
+                backup_tmp_payload,
+                backup_payload,
+                seed_tmp_payload,
+                seed_payload,
+            )
+            if payload is None:
+                payload = primary_payload
+                recovered_source = None
         elif primary_payload is not None:
             payload = primary_payload
             recovered_source = None
@@ -735,10 +746,7 @@ class ContextSetStore:
                 return True
             return self._records_need_rewrite(raw_context_sets, parsed_records)
         if isinstance(payload, list):
-            parsed_records = self._parse_context_sets(payload)
-            if parsed_records is None:
-                return True
-            return self._records_need_rewrite(payload, parsed_records)
+            return True
         return False
 
     def _recovery_marker(self, *, primary_unavailable: bool, recovered_source: str | None) -> str | None:
