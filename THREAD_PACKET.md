@@ -30,7 +30,7 @@
 - `src/qual/commands/diff_preview.py`
 
 ## Commands run and outcomes
-- Validation date: `2026-03-21`
+- Validation date: `2026-03-22`
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
