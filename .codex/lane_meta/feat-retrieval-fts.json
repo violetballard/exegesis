@@ -1,7 +1,7 @@
 {
   "approved_exception_note": "No non-retrieval tooling edits are approved for this handoff; split tooling work into a separate lane.",
-  "handoff_alignment_commit": "2d391f91364b4ca6b3ba8c3a047d200e100898e3",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 6 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff.",
+  "handoff_alignment_commit": "f0047257cf71b750a576de84c272c0f8c5875148",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 6 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff. The alignment commit is handoff metadata only; feature delivery remains in the implementation commits.",
   "implementation_commit": "36893f06df85409c4595d64adb8af60455c086a6",
   "cleanup_commit": "dc8f79e4abeb30de51854fdd84d35b97993955b8",
   "proposed_readme_patch": "",

@@ -4,8 +4,8 @@
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Feature implementation commit: `36893f06df85409c4595d64adb8af60455c086a6`
 - Deferred-policy cleanup commit: `dc8f79e4abeb30de51854fdd84d35b97993955b8`
-- Handoff alignment commit: `2d391f91364b4ca6b3ba8c3a047d200e100898e3`
-- Reviewed commit type: Retrieval feature implementation with deferred-policy cleanup.
+- Handoff alignment commit: `f0047257cf71b750a576de84c272c0f8c5875148`
+- Reviewed commit type: Handoff metadata only; feature delivery remains in the implementation commits above.
 
 ## Scope completed
 
