@@ -1,8 +1,8 @@
 {
-  "scope_goal": "Reissue a commit-accurate handoff for the actual context-storage recovery change.",
+  "scope_goal": "Reissue a commit-accurate handoff for the reviewed context-set timestamp backfill change.",
   "tasks_completed": [
-    "Restored the empty-recovery helper behavior in src/qual/context/store.py and src/qual/context/set_store.py.",
-    "Reissued the handoff packet so the branch metadata matches reviewed commit 11b0b73761e6d1043b9e8acbca2718a463f3df6f exactly."
+    "Added timestamp backfill in src/qual/context/set_store.py during recovery and save.",
+    "Reissued the handoff packet so the branch metadata matches reviewed commit 2a7a53140c26aa0493b2f19422acf1d4134afe31 exactly."
   ],
   "risk": "LOW",
   "roadmap_items": [
@@ -19,6 +19,6 @@
     ".codex/lane_meta/feat-context-storage.json",
     "THREAD_PACKET.md"
   ],
-  "kickoff_budget_note": "Handoff metadata aligned to the reviewed artifact 11b0b73761e6d1043b9e8acbca2718a463f3df6f and its exact file list.",
+  "kickoff_budget_note": "Handoff metadata aligned to the reviewed artifact 2a7a53140c26aa0493b2f19422acf1d4134afe31 and its exact file list.",
   "approved_exception_note": ""
 }

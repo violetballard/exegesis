@@ -1,31 +1,28 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Current branch head: `a6ba95556ce729b825e2ed800f5b35cbd6eb6a1f fix(context-storage): refresh lane metadata`
-- Reviewed feature commit: `11b0b73761e6d1043b9e8acbca2718a463f3df6f fix(context-storage): restore empty recovery helper`
-- Promoted code commit range: `11b0b73761e6d1043b9e8acbca2718a463f3df6f`
-- Scope goal: Reissue a commit-accurate handoff for the reviewed context-storage recovery change.
-- Scope completed: Restored the empty-recovery helper behavior in `src/qual/context/store.py` and `src/qual/context/set_store.py`.
-- Scope completed: Kept canonical empty recovery payloads free of synthetic `recovered_from` provenance.
+- Current branch head: `2a7a53140c26aa0493b2f19422acf1d4134afe31 fix(context-storage): backfill missing context set timestamps`
+- Reviewed feature commit: `2a7a53140c26aa0493b2f19422acf1d4134afe31 fix(context-storage): backfill missing context set timestamps`
+- Promoted code commit range: `2a7a53140c26aa0493b2f19422acf1d4134afe31`
+- Scope goal: Reissue a commit-accurate handoff for the reviewed context-storage timestamp backfill change.
+- Scope completed: Backfilled missing context set timestamps in `src/qual/context/set_store.py` so recovered context-set payloads with missing timestamps are normalized and rewritten.
 - Tasks completed:
-  1. Restored empty-recovery handling in `src/qual/context/store.py` and `src/qual/context/set_store.py`.
+  1. Added timestamp backfill in `src/qual/context/set_store.py` during recovery and save.
   2. Reissued the packet so the handoff matches the reviewed commit exactly.
 
 - Feature code files:
-  - `src/qual/context/store.py`
   - `src/qual/context/set_store.py`
 
 - Files changed:
-  - `src/qual/context/store.py`
   - `src/qual/context/set_store.py`
 
 - Commands run with results:
-  - `git show --stat --name-only --oneline 11b0b73761e6d1043b9e8acbca2718a463f3df6f` -> confirmed the reviewed artifact changes only `src/qual/context/store.py` and `src/qual/context/set_store.py`
+  - `git show --stat --name-only --oneline 2a7a53140c26aa0493b2f19422acf1d4134afe31` -> confirmed the reviewed artifact changes only `src/qual/context/set_store.py`
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
-  - `./quality-test.sh` -> passed (`Ran 151 tests`, `OK`)
-  - `./typecheck-test.sh` -> passed (`python3 -m compileall -q src`, exit `0`)
+  - `./quality-test.sh` -> passed
+  - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 
 - Roadmap item(s) affected:
@@ -43,7 +40,6 @@
 
 - Scope-check / ownership note:
   - Shared/integrator-locked edits: NO.
-  - No shared or integrator-locked files are part of the reviewed diff.
   - Ownership is lane-clean for `src/qual/context/**` and `src/qual/storage/**`.
   - No explicit approval is required because no shared files are part of the reviewed commit.
 
