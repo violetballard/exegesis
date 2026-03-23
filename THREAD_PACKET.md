@@ -1,7 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Current branch head: `2bcbde3f4cd2f26026c5561a754ed102e5a0ae58 docs(context-storage): restore commit-accurate handoff`
+- Current branch head: `ee45f9c431135993b19a8366f379ea224d452c97 docs(context-storage): correct commit-accurate handoff`
 - Reviewed feature commit: `11b0b73761e6d1043b9e8acbca2718a463f3df6f`
 - Promoted code commit range: `11b0b73761e6d1043b9e8acbca2718a463f3df6f`
 - Scope goal: Reissue a commit-accurate handoff for the actual context-storage recovery change.
@@ -9,7 +9,7 @@
 - Scope completed: Kept canonical empty recovery payloads free of synthetic `recovered_from` provenance.
 - Tasks completed:
   1. Restored empty-recovery handling in `src/qual/context/store.py` and `src/qual/context/set_store.py`.
-  2. Reissued the packet so the handoff matches the code-bearing commit exactly.
+  2. Reissued the packet so the handoff matches the code-bearing commit exactly on top of the latest docs reissue.
 
 - Feature code files:
   - `src/qual/context/store.py`
