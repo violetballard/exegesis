@@ -2,7 +2,7 @@
   "scope_goal": "Reissue a commit-accurate handoff for the reviewed context-set timestamp backfill change.",
   "tasks_completed": [
     "Added timestamp backfill in src/qual/context/set_store.py during recovery and save.",
-    "Reissued the handoff packet so the branch metadata matches reviewed commit 2a7a53140c26aa0493b2f19422acf1d4134afe31 exactly."
+    "Reissued the handoff packet so the branch metadata matches reviewed commit 2a7a53140c26aa0493b2f19422acf1d4134afe31 and the current packet refresh commit 2fc6a8eac5fbc310ffdacf83c18796f8eaf6dd31."
   ],
   "risk": "LOW",
   "roadmap_items": [
@@ -19,6 +19,6 @@
     ".codex/lane_meta/feat-context-storage.json",
     "THREAD_PACKET.md"
   ],
-  "kickoff_budget_note": "Handoff metadata aligned to the reviewed artifact 2a7a53140c26aa0493b2f19422acf1d4134afe31 and its exact file list.",
+  "kickoff_budget_note": "Handoff metadata aligned to the reviewed artifact 2a7a53140c26aa0493b2f19422acf1d4134afe31, the current packet refresh commit 2fc6a8eac5fbc310ffdacf83c18796f8eaf6dd31, and the exact lane-owned file list.",
   "approved_exception_note": ""
 }

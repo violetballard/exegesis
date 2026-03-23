@@ -1,11 +1,12 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Current branch head: `2a7a53140c26aa0493b2f19422acf1d4134afe31 fix(context-storage): backfill missing context set timestamps`
+- Current branch head: `2fc6a8eac5fbc310ffdacf83c18796f8eaf6dd31 docs(context-storage): refresh scope-correct handoff packet`
 - Reviewed feature commit: `2a7a53140c26aa0493b2f19422acf1d4134afe31 fix(context-storage): backfill missing context set timestamps`
 - Promoted code commit range: `2a7a53140c26aa0493b2f19422acf1d4134afe31`
 - Scope goal: Reissue a commit-accurate handoff for the reviewed context-storage timestamp backfill change.
 - Scope completed: Backfilled missing context set timestamps in `src/qual/context/set_store.py` so recovered context-set payloads with missing timestamps are normalized and rewritten.
+  - No non-owned docs/tooling/process files are part of this handoff.
 - Tasks completed:
   1. Added timestamp backfill in `src/qual/context/set_store.py` during recovery and save.
   2. Reissued the packet so the handoff matches the reviewed commit exactly.
