@@ -1455,6 +1455,36 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("project_name"), "p3-invalid")
         self.assertTrue(payload.get("is_locked"))
 
+    def test_backup_with_invalid_project_name_metadata_is_salvaged_and_rewritten(self) -> None:
+        state = self.svc.create_or_open(self.root, "p3-backup-project")
+        state_path = state.root_dir / ".vault_state.json"
+        backup_path = state.root_dir / ".vault_state.bak.json"
+        state_path.write_text("{bad", encoding="utf-8")
+        backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "../bad",
+                    "is_locked": False,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "recovered_from": "manual",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p3-backup-project")
+
+        self.assertTrue(reopened.is_locked)
+        self.assertFalse((state.root_dir / ".vault_state.corrupt.json").exists())
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p3-backup-project")
+        self.assertTrue(payload.get("is_locked"))
+        self.assertEqual(backup_payload.get("project_name"), "p3-backup-project")
+        self.assertTrue(backup_payload.get("is_locked"))
+        self.assertNotIn("recovered_from", backup_payload)
+
     def test_missing_is_locked_metadata_forces_locked_state_and_rewrites(self) -> None:
         state = self.svc.create_or_open(self.root, "p3-missing-lock")
         state_path = state.root_dir / ".vault_state.json"
