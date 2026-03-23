@@ -183,6 +183,7 @@ class ContextSetStore:
         should_rewrite = False
         rewrite_empty_recovery = False
         normalized_recovered_from = None
+        rewrite_timestamp = datetime.now(UTC).isoformat()
         records: list[ContextSetRecord]
         if self._is_empty_recovery_payload(payload):
             # Materialize empty canonical state when it is the only usable
@@ -218,6 +219,9 @@ class ContextSetStore:
                         or self._records_need_rewrite(raw_context_sets, parsed_records)
                         or records != parsed_records
                     )
+            if records and self._records_need_timestamp_backfill(records):
+                records = self._backfill_record_timestamps(records, rewrite_timestamp)
+                should_rewrite = True
             if self._has_unknown_fields(payload):
                 should_rewrite = True
             if "updated_at" not in payload:
@@ -261,6 +265,7 @@ class ContextSetStore:
                 recovered_from=recovered_from,
                 refresh_backup=True,
                 preserve_primary_corrupt=preserve_primary_corrupt,
+                updated_at=rewrite_timestamp,
             )
         elif primary_payload is not None and (
             backup_payload is None
@@ -294,12 +299,14 @@ class ContextSetStore:
         recovered_from: str | None = None,
         refresh_backup: bool = False,
         preserve_primary_corrupt: bool = False,
+        updated_at: str | None = None,
     ) -> None:
         normalized_records = self._normalize_records(records)
         self._path.parent.mkdir(parents=True, exist_ok=True)
+        canonical_updated_at = self._parse_updated_at(updated_at) or datetime.now(UTC).isoformat()
         payload = {
             "schema_version": _SCHEMA_VERSION,
-            "updated_at": datetime.now(UTC).isoformat(),
+            "updated_at": canonical_updated_at,
             "context_sets": [asdict(record) for record in normalized_records],
         }
         normalized_recovered_from = self._parse_recovered_from(recovered_from)
@@ -591,6 +598,27 @@ class ContextSetStore:
             normalized.append(record)
             seen.add(record.context_set_id)
         return normalized
+
+    def _records_need_timestamp_backfill(self, records: list[ContextSetRecord]) -> bool:
+        return any(not record.created_at or not record.updated_at for record in records)
+
+    def _backfill_record_timestamps(
+        self,
+        records: list[ContextSetRecord],
+        fallback_timestamp: str,
+    ) -> list[ContextSetRecord]:
+        backfilled: list[ContextSetRecord] = []
+        for raw in records:
+            record = ContextSetRecord(
+                context_set_id=raw.context_set_id,
+                name=raw.name,
+                item_ids=list(raw.item_ids),
+                created_at=raw.created_at or fallback_timestamp,
+                updated_at=raw.updated_at or fallback_timestamp,
+            )
+            record.normalize()
+            backfilled.append(record)
+        return backfilled
 
     def _records_need_rewrite(self, raw_records: object, parsed_records: list[ContextSetRecord]) -> bool:
         if not isinstance(raw_records, list):
