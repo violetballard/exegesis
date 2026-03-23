@@ -45,8 +45,8 @@
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
-- `make scope-check`: pending rerun on packet-only head
-- `make ci`: pending rerun on packet-only head
+- `make scope-check`: PASS
+- `make ci`: PASS
 
 ## Risks / blockers
 - Risk: `LOW`
