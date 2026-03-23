@@ -72,25 +72,19 @@ Preferred setup uses named launcher profiles:
   - `fixer_cloud` / `fixer_local`
 
 Recommended local fallback:
-- prefer explicit LM Studio args via `fallback_codex_args`, for example `["--oss", "--local-provider", "lmstudio"]` plus `fallback_model="gpt-oss-120b"`
+- prefer a local CLI profile via `fallback_codex_args`, for example `["-p", "gpt-oss-120b-lms"]`
 - this is the most reliable option when your machine already has a working local provider profile in `~/.codex/config.toml`
 - if you prefer `--oss`, leave `fallback_model` empty unless you know your CLI/provider expects a specific local model id
 
-Cloud-first launch note:
-- set `disable_local_fallback_on_cloud_timeout=true` when you want feature lanes to stay in cloud mode instead of auto-dropping to local fallback after startup timeouts
-- raise `feature_launch_timeout_seconds` when managed cloud lane startup is slower than the default
-
 Recommended role split:
 - `orchestrator`: smaller local profile for supervision
-- `worker_cloud`: cloud coding/review/fixer model
-- `integrator_cloud`: cloud integration model
+- `worker_cloud`: cloud coding/review/integration model
 - `worker_local`: larger local coding/review/integration model for quota windows
 
 Current project config uses:
-- `profiles.orchestrator` -> `codex --oss --local-provider lmstudio -m gpt-oss-20b`
-- `profiles.worker_cloud` -> `codex exec -m gpt-5.4-mini`
-- `profiles.integrator_cloud` -> `codex exec -m gpt-5.4`
-- `profiles.worker_local` -> `codex --oss --local-provider lmstudio -m gpt-oss-120b`
+- `profiles.orchestrator` -> `codex -p gpt-oss-20b-lms`
+- `profiles.worker_cloud` -> `codex exec -m gpt-5.4`
+- `profiles.worker_local` -> `codex -p gpt-oss-120b-lms`
 
 Note:
 - the coordinator itself is deterministic Python, not an LLM thread
@@ -109,7 +103,7 @@ Useful commands:
 ## CLI Runbook
 
 Launch your operator session from Codex CLI on the local orchestrator profile:
-- `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+- `codex -p gpt-oss-20b-lms -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
 
 ### Normal Day
 
@@ -122,9 +116,7 @@ Use this when cloud quota is available and you want workers to use cloud by defa
 
 Behavior:
 - your interactive Codex CLI stays on local `gpt-oss-20b`
-- cloud worker launches use `gpt-5.4-mini`
-- integrator cloud launches use `gpt-5.4`
-- reviewer/router throughput is capped by `max_packets_per_run`; current default is `5` so the active reviewer width matches the five enabled core lanes without loosening integrator policy
+- cloud worker launches use `gpt-5.4`
 - if quota text or rate-limit text appears, router flips to `local_fallback`
 
 ### Quota Exhausted

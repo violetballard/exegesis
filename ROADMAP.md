@@ -58,7 +58,7 @@ Scope:
 - Define and lock encryption-at-rest default behavior and key lifecycle policy
 - Define role-based auto-routing contract and power-user override policy
 - Define localhost-only gating for OpenAI-compatible override endpoints
-- Add provider-compatibility probe contract for local and hosted runtimes (`exegesis doctor`)
+- Add provider-compatibility probe contract for OpenAI-compatible runtimes (`exegesis doctor`)
 - Lock shared Engine/Studio config schema (`exegesis.yml`) and precedence rules
 
 Exit criteria:
@@ -68,7 +68,6 @@ Exit criteria:
 - Encryption-by-default is enforced for persistent local state
 - Override behavior is deterministic, localhost-gated, and auditable
 - Provider capability detection and fallback behavior are explicit, testable, and operator-visible
-- Hosted provider support includes OpenAI, Anthropic, and Mistral from the beginning
 - Config source-of-truth and override precedence are explicit and testable
 
 ## Milestone 4: Retrieval Layer (Planned)

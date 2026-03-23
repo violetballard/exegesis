@@ -17,7 +17,6 @@ This file defines hard boundaries to keep the codebase understandable and refact
   - Owns orchestration of user flows and app state transitions.
   - Owns config resolution/validation/apply logic exposed to UI/CLI.
   - Owns provider capability probing and fallback decisions from probe outputs.
-  - Owns hosted provider registration and secret resolution for OpenAI, Anthropic, and Mistral.
   - Calls service interfaces in lower layers.
   - Must not implement crypto or raw database logic.
 
@@ -63,8 +62,6 @@ Disallowed examples:
   - storage: vault/context store entrypoints only
   - commands: public command runner only
 - Model/provider routing must be centralized in engine policy modules, not scattered across commands/UI.
-- Hosted providers must be first-class config entries rather than ad-hoc endpoint strings.
-- Hosted provider secrets must resolve through env or OS keychain references; raw inline API keys are optional escape hatches, not the primary path.
 - Provider capability probes must run through one engine probe service and persist auditable capability reports.
 - Retrieval is FTS-first for the current MVP. PageIndex/embeddings are deferred until after the May 4 demo push.
 - Role overrides (if enabled) must flow through a single validated endpoint profile resolver.

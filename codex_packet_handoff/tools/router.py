@@ -12,10 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-try:
-    from codex_mcp_client import ApprovalPolicy, CodexMcpClient
-except ImportError:  # pragma: no cover - test/import fallback for package execution
-    from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
+from codex_mcp_client import ApprovalPolicy, CodexMcpClient
 
 PACKETS_ROOT = Path(".codex/packets/lanes")
 ROUTER_ROOT = Path(".codex/packet_router")
@@ -24,21 +21,13 @@ CONFIG_FILE = ROUTER_ROOT / "config.json"
 CURSOR_FILE = ROUTER_ROOT / "cursor.json"
 LEASE_FILE = ROUTER_ROOT / "lease.json"
 
-VERDICT_INLINE_RE = re.compile(
-    r"^\s*(?:\*\*)?(?:\d+\.\s*)?(?:\*\*)?Verdict(?:\*\*)?:?\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?\s*$",
-    re.IGNORECASE,
-)
-VERDICT_ONLY_RE = re.compile(
-    r"^\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?\s*$",
+VERDICT_RE = re.compile(
+    r"(?:\*\*Verdict\*\*|Verdict:)\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?",
     re.IGNORECASE,
 )
 INVALID_REVIEWER_RE = re.compile(r"session not found for thread_id|thread not found", re.IGNORECASE)
 REVIEWER_QUOTA_RE = re.compile(
-    r"usage limit|quota exceeded|rate limit|too many requests|try again at",
-    re.IGNORECASE,
-)
-RETRY_LIMIT_WRAPPER_RE = re.compile(
-    r"exceeded retry limit|retry limit reached",
+    r"usage limit|try again at|rate limit|too many requests|quota",
     re.IGNORECASE,
 )
 PACKET_SHA_RE = re.compile(r"__(?P<sha>[0-9a-f]{7,40})__")
@@ -287,51 +276,15 @@ def _apply_quota_text_safeguard(
 ) -> Dict[str, Any]:
     if not text or not REVIEWER_QUOTA_RE.search(text):
         return state
-    if RETRY_LIMIT_WRAPPER_RE.search(text):
-        return state
     retry_at = _quota_retry_epoch(cfg, text, default_seconds=default_seconds)
     return _switch_to_local_fallback(cfg, state, reason, retry_at)
 
 def parse_verdict(text: str) -> str:
-    lines = (text or "").splitlines()
-    for idx, raw in enumerate(lines):
-        line = raw.strip()
-        if not line:
-            continue
-        m = VERDICT_INLINE_RE.match(line)
-        if m:
-            v = m.group(1).upper().replace(" ", "_")
-            return "APPROVED" if v == "APPROVED" else "CHANGES_REQUESTED"
-        if "verdict" in line.lower():
-            for nxt in lines[idx + 1 : idx + 4]:
-                nxt_line = nxt.strip()
-                if not nxt_line:
-                    continue
-                m2 = VERDICT_ONLY_RE.match(nxt_line)
-                if m2:
-                    v = m2.group(1).upper().replace(" ", "_")
-                    return "APPROVED" if v == "APPROVED" else "CHANGES_REQUESTED"
-                break
-    return "CHANGES_REQUESTED"
-
-
-def clear_stale_integrator_handoffs(lane_dir: Path, packet_name: str) -> int:
-    outbox = lane_dir / "outbox" / "integrator"
-    if not outbox.exists():
-        return 0
-    pattern = packet_name.replace("F__", "R__APPROVED__")
-    moved = 0
-    stale_dir = lane_dir / "archive" / "stale"
-    stale_dir.mkdir(parents=True, exist_ok=True)
-    for path in outbox.glob(pattern):
-        target = stale_dir / path.name
-        counter = 1
-        while target.exists():
-            target = stale_dir / f"{path.stem}__stale{counter}{path.suffix}"
-            counter += 1
-        path.rename(target)
-        moved += 1
-    return moved
+    m = VERDICT_RE.search(text or "")
+    if not m:
+        return "CHANGES_REQUESTED"
+    v = m.group(1).upper().replace(" ", "_")
+    return "APPROVED" if v == "APPROVED" else "CHANGES_REQUESTED"
 
 
 def _invalid_reviewer_output(text: str) -> bool:
@@ -1020,7 +973,6 @@ def process_once(
                 outp = lane_dir/"inbox/reviewer"/pkt_path.name.replace("F__","R__CHANGES__")
                 # Keep a single active reviewer note per lane; archive any older notes.
                 archive_reviewer_notes(lane_dir)
-                clear_stale_integrator_handoffs(lane_dir, pkt_path.name)
                 write_text(outp, reviewer_text)
 
             cursor[lane] = pkt_path.name
@@ -1084,7 +1036,7 @@ def process_reviewer_backlog(
                 text = latest_log.read_text(errors="ignore")
             except Exception:
                 text = ""
-            if text and FIXER_QUOTA_RE.search(text) and not RETRY_LIMIT_WRAPPER_RE.search(text):
+            if text and FIXER_QUOTA_RE.search(text):
                 retry_at = _quota_retry_epoch(
                     cfg,
                     text,

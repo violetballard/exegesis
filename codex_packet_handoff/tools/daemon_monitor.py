@@ -969,7 +969,7 @@ def main() -> None:
             if stale_idle
             else _detailed_conversation_summary(logp)
         )
-        if feature_state["state"] in {"live", "recent_empty", "recent_log", "managed_thread", "launching", "error", "direct_exec_running"}:
+        if c["pending"] == 0 and c["review"] == 0 and c["approved"] == 0 and feature_state["state"] in {"live", "recent_empty", "recent_log", "managed_thread", "launching", "error", "direct_exec_running"}:
             detail = {
                 "phase": "feature lane execution",
                 "progress": feature_state["summary"],
@@ -993,11 +993,11 @@ def main() -> None:
         if logp is not None:
             age_s = int(max(0, time.time() - logp.stat().st_mtime))
             stale_idle = counts["pending"] == 0 and counts["review"] == 0 and counts["approved"] == 0 and age_s >= STALE_LOG_SECONDS
-        if feature_state["state"] in {"live", "recent_empty", "recent_log", "managed_thread", "launching", "error", "direct_exec_running"}:
+        if counts["pending"] == 0 and counts["review"] == 0 and counts["approved"] == 0 and feature_state["state"] in {"live", "recent_empty", "recent_log", "managed_thread", "launching", "error", "direct_exec_running"}:
             convo = feature_state["summary"]
             detail = {
                 "objective": "produce the next lane commit and handoff packet",
-                "packet": "feature packet present" if counts["pending"] > 0 else "-",
+                "packet": "-",
                 "phase": "feature lane execution",
                 "progress": feature_state["summary"],
                 "recent": [feature_state["log"]] if feature_state["log"] else [],

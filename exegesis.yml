@@ -1,105 +1,65 @@
+# exegesis.yml — Shared config schema (Engine + Studio)
+# Engine users:
+#   - set `active_profile` to one of the profiles below
+#   - point `runtime.base_url` to LM Studio (recommended) or other OpenAI-compatible local runtime
+# Studio users:
+#   - Studio may set/override runtime endpoint and ignore active_profile in favor of its own packs
+#   - Studio power users can still edit this for overrides (at their own risk)
+
 version: 1
-
-# Engine-first shared config for the current MVP.
-# Current product focus:
-# - Engine core
-# - FTS retrieval
-# - A2UI output contracts
-# - future Exegesis Console client
-
-active_profile: engine-128
+active_profile: engine-128   # choose one: engine-32|48|64|96|128|192|256|512
 
 profile:
-  mode: confidential   # confidential | online
-  require_localhost_llm_when_confidential: true
-  forbid_network_tools_when_confidential: true
+  mode: confidential            # confidential | standard (standard later)
+  require_localhost_llm: true   # engine must enforce in confidential mode
+  forbid_network_tools: true    # blocks any tool that requires network in confidential
 
-providers:
-  local_openai:
-    type: openai_compat
-    base_url: "http://127.0.0.1:1234/v1"
-    api_key: ""
-    api_key_env: ""
-    keychain_service: ""
-    require_localhost: true
-    require_auth: false
-    timeouts: { connect_seconds: 3, request_seconds: 120 }
-    streaming: { preferred: true, required: false }
+runtime:
+  provider: openai_compat
+  base_url: "http://127.0.0.1:1234/v1"   # LM Studio default varies; set to your local endpoint
+  api_key: ""                            # LM Studio often doesn't require; keep empty OK
+  require_auth: false                    # set true if your runtime uses a token
+  bind_host_required: "127.0.0.1"        # engine enforcement when confidential
+  timeouts:
+    connect_seconds: 3
+    request_seconds: 120
+  streaming:
+    preferred: true
+    required: false
 
-  openai_cloud:
-    type: openai_compat
-    base_url: "https://api.openai.com/v1"
-    api_key: ""
-    api_key_env: "OPENAI_API_KEY"
-    keychain_service: "exegesis/openai"
-    require_localhost: false
-    require_auth: true
-    timeouts: { connect_seconds: 5, request_seconds: 180 }
-    streaming: { preferred: true, required: false }
-
-  anthropic:
-    type: anthropic
-    base_url: "https://api.anthropic.com"
-    api_key: ""
-    api_key_env: "ANTHROPIC_API_KEY"
-    keychain_service: "exegesis/anthropic"
-    require_auth: true
-    timeouts: { connect_seconds: 5, request_seconds: 180 }
-    streaming: { preferred: true, required: false }
-
-  mistral:
-    type: mistral
-    base_url: "https://api.mistral.ai/v1"
-    api_key: ""
-    api_key_env: "MISTRAL_API_KEY"
-    keychain_service: "exegesis/mistral"
-    require_auth: true
-    timeouts: { connect_seconds: 5, request_seconds: 180 }
-    streaming: { preferred: true, required: false }
-
-policy:
-  project_mode_provider_allowlist:
-    confidential: [local_openai]
-    online: [local_openai, openai_cloud, anthropic, mistral]
-  cloud_send_policy_default: context_sets_only
-  require_per_run_full_doc_flag: true
+capability_gates:
+  # Engine should probe runtime and disable features if unsupported.
+  require_runtime_image_input_for_vision: true
+  require_model_vision_capability_for_vision: true
   tool_calling:
-    strict_json_only: true
-    schema_validation: true
-    retry_on_invalid: 1
-    max_tool_calls_per_turn: 3
-    text_fallback:
-      enabled: true
-      format: json_only
-      strip_think_tags: true
-
-limits:
-  max_input_tokens: 20000
-  max_output_tokens:
-    terminal: 800
-    planner: 800
-    editor: 1200
-    bulk_best: 4000
-  concurrency:
-    max_inflight_requests: 2
+    prefer_native: true
+    allow_text_fallback: true
 
 models:
+  # Catalog: define once. Profiles select which IDs to use and override settings.
+  # `id` values should match what your runtime exposes in /v1/models (LM Studio model IDs).
   mistral-small:
     capabilities: { text: true, vision: false, tools: false }
     defaults:
       weight_quant: Q8_0
       context_max: 32768
       kv_cache: { k: f16, v: q8_0 }
-      sampling: { temperature: 0.3, top_p: 0.9, top_k: 40 }
+      sampling:
+        temperature: 0.3
+        top_p: 0.9
+        top_k: 40
       max_output_tokens: 1200
 
   magistral-small:
-    capabilities: { text: true, vision: false, tools: true }
+    capabilities: { text: true, vision: false, tools: true }   # set vision true only for a vision build
     defaults:
       weight_quant: Q8_0
       context_max: 32768
       kv_cache: { k: f16, v: q8_0 }
-      sampling: { temperature: 0.25, top_p: 0.9, top_k: 40 }
+      sampling:
+        temperature: 0.25
+        top_p: 0.9
+        top_k: 40
       max_output_tokens: 800
 
   qwen3-next-instruct:
@@ -108,7 +68,10 @@ models:
       weight_quant: Q4_K_M
       context_max: 16384
       kv_cache: { k: f16, v: q8_0 }
-      sampling: { temperature: 0.25, top_p: 0.85, top_k: 40 }
+      sampling:
+        temperature: 0.25
+        top_p: 0.85
+        top_k: 40
       max_output_tokens: 800
 
   gpt-oss-120b:
@@ -117,36 +80,53 @@ models:
       weight_quant: Q5_K_M
       context_max: 16384
       kv_cache: { k: f16, v: q8_0 }
-      sampling: { temperature: 0.35, top_p: 0.9, top_k: 40 }
+      sampling:
+        temperature: 0.35
+        top_p: 0.9
+        top_k: 40
       max_output_tokens: 4000
 
-  gpt-5.4:
-    capabilities: { text: true, vision: false, tools: true }
-    defaults:
-      context_max: 128000
-      max_output_tokens: 1200
-
-  claude-sonnet:
-    capabilities: { text: true, vision: false, tools: true }
-    defaults:
-      context_max: 200000
-      max_output_tokens: 1200
-
-  mistral-medium:
-    capabilities: { text: true, vision: false, tools: true }
-    defaults:
-      context_max: 128000
-      max_output_tokens: 1200
-
 roles:
-  editor:        { provider: local_openai, model: mistral-small }
-  voice_pass:    { provider: local_openai, model: mistral-small }
-  terminal_chat: { provider: local_openai, model: magistral-small }
-  planner_default: { provider: local_openai, model: magistral-small }
-  planner_deep:  { provider: local_openai, model: qwen3-next-instruct }
-  bulk_fast:     { provider: local_openai, model: magistral-small }
-  bulk_best:     { provider: local_openai, model: gpt-oss-120b }
-  vision:        { provider: local_openai, model: magistral-small }
+  # Role wiring is profile-driven. These are defaults if a profile doesn't override.
+  editor: mistral-small
+  voice_pass: mistral-small
+
+  terminal_chat: magistral-small
+  planner_default: magistral-small
+  planner_deep: qwen3-next-instruct
+
+  bulk_fast: magistral-small
+  bulk_best: gpt-oss-120b
+
+  vision: magistral-small   # power users can set another vision model ID later
+
+policy:
+  # Enforced by engine regardless of client surface.
+  tool_calling:
+    strict_json_only: true
+    schema_validation: true
+    retry_on_invalid: 1
+    max_tool_calls_per_turn: 3
+    # If runtime has no native tool calling, engine uses text fallback protocol:
+    text_fallback:
+      enabled: true
+      format: json_only               # engine expects JSON tool calls only, no prose
+      strip_think_tags: true          # safe for models that emit <think> blocks
+  confidentiality:
+    forbid_non_local_llm_when_confidential: true
+    forbid_network_tools_when_confidential: true
+    forbid_remote_ocr_when_confidential: true
+
+limits:
+  # Global hard caps; profiles can override per-role if needed.
+  max_input_tokens: 20000
+  max_output_tokens:
+    terminal: 800
+    planner: 800
+    editor: 1200
+    bulk_best: 4000
+  concurrency:
+    max_inflight_requests: 2
 
 routing:
   terminal_escalation:
@@ -157,15 +137,68 @@ routing:
       input_tokens_ge: 600
       constraints_count_ge: 6
       section_types: [discussion, conclusion]
+
   bulk_best_routing:
     enabled: true
     always_best_sections: [discussion, conclusion]
     word_count_threshold_general: 1500
     word_count_threshold_methods_findings: 2500
 
+modes:
+  # These describe how to use non-resident roles (swap-in/on-demand/resident).
+  # Engine profile decides which are active.
+  hidden_planner:
+    enabled: true
+    role: planner_deep
+    max_ctx: 16384
+
+  drafting_mode:
+    enabled: true
+    role: bulk_best
+    max_ctx: 16384
+    always_run_editor_pass_after: true
+
+  on_demand:
+    enabled: true
+    roles: [planner_deep, bulk_best]
+    unload_idle_seconds:
+      planner_deep: 600
+      bulk_best: 900
+
+kv_cache:
+  # Default KV cache types (profiles override V on 512)
+  defaults: { k: f16, v: q8_0 }
+  per_model: {}   # power users can override per model id
+
+context_max:
+  # Default max context at model load time (profiles override)
+  mistral-small: 32768
+  magistral-small: 32768
+  qwen3-next-instruct: 16384
+  gpt-oss-120b: 16384
+
+pageindex:
+  enabled: true
+  agent_role: terminal_chat              # Magistral is the PageIndex brain
+  vision:
+    enabled: true
+    role: vision                         # just another role
+    require_runtime_image_input: true
+    require_model_vision_capability: true
+    scanned_pdf:
+      min_text_chars_threshold: 2000
+      enable_vision_read_pages: true
+      max_pages_per_call: 3
+  build:
+    max_depth: 6
+    include_node_summaries: true
+  query:
+    max_results_per_doc: 3
+
 retrieval:
+  # Unified retrieval pipeline; embeddings later.
   fts: true
-  pageindex: false
+  pageindex: true
   embeddings: false
   shortlist_docs: 25
   final_max_hits: 10
@@ -175,82 +208,167 @@ export:
   default_template: default
   require_export_confirmation: true
 
+# -------------------------
+# PROFILES (engine users)
+# -------------------------
 profiles:
+
   engine-32:
-    description: "32GB minimum. Small-model local only. Stable."
-    roles_disable: [planner_deep, bulk_best]
-    context_max: { mistral-small: 8192, magistral-small: 8192 }
-    model_overrides:
-      mistral-small:   { weight_quant: Q5_K_M, context_max: 8192 }
-      magistral-small: { weight_quant: Q5_K_M, context_max: 8192 }
+    description: "32GB minimum. Swap-first. No Qwen, no GPT. Stable."
+    roles:
+      planner_deep: null
+      bulk_best: null
+    kv_cache:
+      defaults: { k: f16, v: q8_0 }
+    context_max:
+      mistral-small: 8192
+      magistral-small: 8192
+    models:
+      mistral-small:
+        weight_quant: Q5_K_M
+      magistral-small:
+        weight_quant: Q5_K_M
+    modes:
+      hidden_planner: { enabled: false }
+      drafting_mode: { enabled: false }
+      on_demand: { enabled: false }
 
   engine-48:
-    description: "48GB. Two small local models."
-    roles_disable: [planner_deep, bulk_best]
-    context_max: { mistral-small: 16384, magistral-small: 16384 }
-    model_overrides:
-      mistral-small:   { weight_quant: Q6_K, context_max: 16384 }
-      magistral-small: { weight_quant: Q6_K, context_max: 16384 }
+    description: "48GB. Two-model experience. No Qwen, no GPT."
+    roles:
+      planner_deep: null
+      bulk_best: null
+    kv_cache:
+      defaults: { k: f16, v: q8_0 }
+    context_max:
+      mistral-small: 16384
+      magistral-small: 16384
+    models:
+      mistral-small: { weight_quant: Q6_K }
+      magistral-small: { weight_quant: Q6_K }
+    modes:
+      hidden_planner: { enabled: false }
+      drafting_mode: { enabled: false }
+      on_demand: { enabled: false }
 
   engine-64:
-    description: "64GB. Stable local small-model runtime."
-    roles_disable: [planner_deep, bulk_best]
-    context_max: { mistral-small: 16384, magistral-small: 16384 }
-    model_overrides:
-      mistral-small:   { weight_quant: Q8_0, context_max: 16384 }
-      magistral-small: { weight_quant: Q8_0, context_max: 16384 }
+    description: "64GB. Stable resident feel for small models. No Qwen, no GPT."
+    roles:
+      planner_deep: null
+      bulk_best: null
+    kv_cache:
+      defaults: { k: f16, v: q8_0 }
+    context_max:
+      mistral-small: 16384
+      magistral-small: 16384
+    models:
+      mistral-small: { weight_quant: Q8_0 }
+      magistral-small: { weight_quant: Q8_0 }
+    modes:
+      hidden_planner: { enabled: false }
+      drafting_mode: { enabled: false }
+      on_demand: { enabled: false }
 
   engine-96:
-    description: "96GB. More context headroom for local small models."
-    roles_disable: [planner_deep, bulk_best]
-    context_max: { mistral-small: 24576, magistral-small: 24576 }
-    model_overrides:
-      mistral-small:   { weight_quant: Q8_0, context_max: 24576 }
-      magistral-small: { weight_quant: Q8_0, context_max: 24576 }
+    description: "96GB. No GPT cutoff. Larger context for small models."
+    roles:
+      planner_deep: null
+      bulk_best: null
+    kv_cache:
+      defaults: { k: f16, v: q8_0 }
+    context_max:
+      mistral-small: 24576
+      magistral-small: 24576
+    models:
+      mistral-small: { weight_quant: Q8_0 }
+      magistral-small: { weight_quant: Q8_0 }
+    modes:
+      hidden_planner: { enabled: false }
+      drafting_mode: { enabled: false }
+      on_demand: { enabled: false }
 
   engine-128:
-    description: "128GB. Enables deeper local planner and bulk-best roles."
+    description: "128GB. Swap-in deep planner (Qwen) and bulk best (GPT)."
+    kv_cache:
+      defaults: { k: f16, v: q8_0 }
     context_max:
       mistral-small: 32768
       magistral-small: 32768
       qwen3-next-instruct: 16384
       gpt-oss-120b: 16384
-    model_overrides:
-      qwen3-next-instruct: { weight_quant: Q4_K_M, context_max: 16384 }
-      gpt-oss-120b:        { weight_quant: Q4_K_M, context_max: 16384 }
+    models:
+      mistral-small: { weight_quant: Q8_0 }
+      magistral-small: { weight_quant: Q8_0 }
+      qwen3-next-instruct: { weight_quant: Q4_K_M }
+      gpt-oss-120b: { weight_quant: Q4_K_M }
+    modes:
+      hidden_planner: { enabled: true, max_ctx: 16384 }
+      drafting_mode: { enabled: true, max_ctx: 16384 }
+      on_demand: { enabled: false }
 
   engine-192:
-    description: "192GB. More small-model headroom and stable deep planner."
+    description: "192GB. Swap-in Qwen/GPT; more headroom for small models."
+    kv_cache:
+      defaults: { k: f16, v: q8_0 }
     context_max:
       mistral-small: 40960
       magistral-small: 40960
       qwen3-next-instruct: 16384
       gpt-oss-120b: 16384
-    model_overrides:
-      qwen3-next-instruct: { weight_quant: Q4_K_M, context_max: 16384 }
-      gpt-oss-120b:        { weight_quant: Q4_K_M, context_max: 16384 }
+    models:
+      mistral-small: { weight_quant: Q8_0 }
+      magistral-small: { weight_quant: Q8_0 }
+      qwen3-next-instruct: { weight_quant: Q4_K_M }
+      gpt-oss-120b: { weight_quant: Q4_K_M }
+    modes:
+      hidden_planner: { enabled: true, max_ctx: 16384 }
+      drafting_mode: { enabled: true, max_ctx: 16384 }
+      on_demand: { enabled: false }
 
   engine-256:
-    description: "256GB. On-demand large local roles."
+    description: "256GB. On-demand Qwen and GPT without forced eviction; unload on idle."
+    kv_cache:
+      defaults: { k: f16, v: q8_0 }
     context_max:
       mistral-small: 49152
       magistral-small: 49152
       qwen3-next-instruct: 32768
       gpt-oss-120b: 32768
-    model_overrides:
-      qwen3-next-instruct: { weight_quant: Q4_K_M, context_max: 32768 }
-      gpt-oss-120b:        { weight_quant: Q5_K_M, context_max: 32768 }
+    models:
+      mistral-small: { weight_quant: Q8_0 }
+      magistral-small: { weight_quant: Q8_0 }
+      qwen3-next-instruct: { weight_quant: Q4_K_M }
+      gpt-oss-120b: { weight_quant: Q5_K_M }
+    modes:
+      hidden_planner: { enabled: false }
+      drafting_mode: { enabled: false }
+      on_demand:
+        enabled: true
+        unload_idle_seconds: { planner_deep: 600, bulk_best: 900 }
 
   engine-512:
-    description: "512GB. Max local context and higher-fidelity KV."
-    kv_cache_defaults: { k: f16, v: f16 }
+    description: "512GB. Resident everything possible; max accuracy KV V=f16."
+    kv_cache:
+      defaults: { k: f16, v: f16 }
     context_max:
       mistral-small: 65536
       magistral-small: 65536
       qwen3-next-instruct: 49152
       gpt-oss-120b: 49152
-    model_overrides:
-      mistral-small:        { weight_quant: Q8_0, context_max: 65536, kv_cache: { k: f16, v: f16 } }
-      magistral-small:      { weight_quant: Q8_0, context_max: 65536, kv_cache: { k: f16, v: f16 } }
-      qwen3-next-instruct:  { weight_quant: Q5_K_M, context_max: 49152, kv_cache: { k: f16, v: f16 } }
-      gpt-oss-120b:         { weight_quant: Q5_K_M, context_max: 49152, kv_cache: { k: f16, v: f16 } }
+    models:
+      mistral-small:
+        weight_quant: Q8_0
+        kv_cache: { k: f16, v: f16 }
+      magistral-small:
+        weight_quant: Q8_0
+        kv_cache: { k: f16, v: f16 }
+      qwen3-next-instruct:
+        weight_quant: Q5_K_M
+        kv_cache: { k: f16, v: f16 }
+      gpt-oss-120b:
+        weight_quant: Q5_K_M
+        kv_cache: { k: f16, v: f16 }
+    modes:
+      hidden_planner: { enabled: false }
+      drafting_mode: { enabled: false }
+      on_demand: { enabled: false }

@@ -1,32 +1,24 @@
 {
   "model": "gpt-5.1-codex",
   "codex_cmd": "codex",
-  "fallback_model": "gpt-oss-120b",
+  "fallback_model": "",
   "fallback_codex_cmd": "codex",
   "fallback_codex_args": [
-    "--oss",
-    "--local-provider",
-    "lmstudio"
+    "-p",
+    "gpt-oss-120b-lms"
   ],
   "fallback_model_args": [],
   "profiles": {
     "orchestrator": {
       "codex_cmd": "codex",
       "codex_args": [
-        "--oss",
-        "--local-provider",
-        "lmstudio"
+        "-p",
+        "gpt-oss-20b-lms"
       ],
-      "model": "gpt-oss-20b",
+      "model": "",
       "model_args": []
     },
     "worker_cloud": {
-      "codex_cmd": "codex",
-      "codex_args": [],
-      "model": "gpt-5.4-mini",
-      "model_args": []
-    },
-    "integrator_cloud": {
       "codex_cmd": "codex",
       "codex_args": [],
       "model": "gpt-5.4",
@@ -35,11 +27,10 @@
     "worker_local": {
       "codex_cmd": "codex",
       "codex_args": [
-        "--oss",
-        "--local-provider",
-        "lmstudio"
+        "-p",
+        "gpt-oss-120b-lms"
       ],
-      "model": "gpt-oss-120b",
+      "model": "",
       "model_args": []
     }
   },
@@ -50,7 +41,7 @@
     "feature_local": "worker_local",
     "reviewer_cloud": "worker_cloud",
     "reviewer_local": "worker_local",
-    "integrator_cloud": "integrator_cloud",
+    "integrator_cloud": "worker_cloud",
     "integrator_local": "worker_local",
     "fixer_cloud": "worker_cloud",
     "fixer_local": "worker_local"
@@ -58,20 +49,18 @@
   "runtime_mode_default": "cloud_primary",
   "auto_switch_to_local_on_quota": true,
   "auto_probe_cloud_recovery": true,
-  "disable_local_fallback_on_cloud_timeout": true,
   "cloud_probe_cooldown_seconds": 1800,
   "cloud_probe_timeout_seconds": 30,
-  "feature_launch_timeout_seconds": 300,
   "use_cli_reviewer_fallback": true,
   "use_cli_integrator_fallback": true,
   "idle_seconds": 1.2,
   "reviewer_timeout": 180,
   "integrator_timeout": 900,
-  "max_packets_per_run": 5,
+  "max_packets_per_run": 1,
   "inline_fixer": true,
   "kick_fixers_on_reviewer_backlog": true,
   "fixer_kick_timeout_seconds": 8,
-  "reviewer_fixer_retry_cooldown_seconds": 120,
+  "reviewer_fixer_retry_cooldown_seconds": 900,
   "lanes": {
     "feat-context-storage": {
       "branch": "codex/feat-context-storage",

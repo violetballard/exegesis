@@ -53,12 +53,10 @@ This is not only a chat interface. It is an agent runtime + workflow system.
 
 7. Power-user provider control (gated)
 - Advanced users may bind role-specific models through OpenAI-compatible local endpoints.
-- Hosted providers must include OpenAI, Anthropic, and Mistral as first-class options from the start.
 - Endpoint policy is localhost-only in confidential mode to avoid accidental remote provider drift.
 - Overrides must preserve routing invariants and audit provenance.
 - Advanced config editing should remain in engine/operator tooling, not Studio model-pickers.
 - Provider compatibility probing (`exegesis doctor`) is required so fallback modes are explicit to operators.
-- Hosted provider secrets should be referenced through environment variables or keychain-backed service names, not committed raw credentials.
 
 ## Current Capability Alignments
 
