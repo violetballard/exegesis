@@ -4,12 +4,12 @@
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Feature implementation commit: `36893f06df85409c4595d64adb8af60455c086a6`
 - Deferred-policy cleanup commit: `dc8f79e4abeb30de51854fdd84d35b97993955b8`
-- Handoff alignment commit: `203906231e9c47371b6d7bc4028bc4f60e764581`
+- Handoff alignment commit: `2d391f91364b4ca6b3ba8c3a047d200e100898e3`
 - Reviewed commit type: Retrieval feature implementation with deferred-policy cleanup.
 
 ## Scope completed
 
-Delivered behavior: `vault`, `collection:`, and `doc:` retrieval requests now route through `src/qual/retrieval/service.py` into the owned retrieval engine. `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred, and `section:` remains rejected until fallback support exists. This completed scope stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**` only.
+Delivered behavior: `vault`, `collection:`, and `doc:` retrieval requests now route through `src/qual/retrieval/service.py` into the owned retrieval engine. `src/qual/engine/retrieval/__init__.py` exposes the canonical retrieval surface, `src/qual/engine/retrieval/policy.py` keeps `fts` active while leaving `pageindex` and `embeddings` deferred, and `section:` remains rejected until fallback support exists. This completed scope stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**` only and excludes out-of-lane tooling edits.
 
 ### Prior commit references (reference only)
 - `src/qual/engine/retrieval/__init__.py`

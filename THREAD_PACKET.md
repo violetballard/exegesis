@@ -3,12 +3,12 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Feature implementation commit: `36893f06df85409c4595d64adb8af60455c086a6`
 - Deferred-policy cleanup commit: `dc8f79e4abeb30de51854fdd84d35b97993955b8`
-- Current handoff alignment commit: `203906231e9c47371b6d7bc4028bc4f60e764581`
+- Current handoff alignment commit: `2d391f91364b4ca6b3ba8c3a047d200e100898e3`
 - Reviewed commit type: Retrieval feature implementation with deferred-policy cleanup.
 
 ## Scope Goal
 
-Document the retrieval handoff boundary while keeping the lane-owned retrieval scope constrained to FTS-first MVP behavior.
+Document the retrieval handoff boundary while keeping the lane-owned retrieval scope constrained to FTS-first MVP behavior and excluding out-of-lane tooling edits.
 
 ## Scope completed
 
