@@ -9,7 +9,6 @@ Use these branch lanes to avoid duplicate work and merge conflicts.
     - `src/qual/commands/**`
   - Shared by approval only:
     - `src/qual/cli.py`
-    - `tests/unit/test_diff_preview.py` (reviewer-required shared regression coverage for the expanded `diff_preview` contract)
 
 - `codex/feat-context-storage*`
   - Owned paths:
