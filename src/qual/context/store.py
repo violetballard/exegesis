@@ -69,29 +69,49 @@ class ContextBasketStore:
         if primary_needs_quarantine:
             self._quarantine_invalid_file()
         if primary_missing_item_ids or primary_item_ids_need_recovery:
-            payload, recovered_source = self._prefer_recovery_payload(
-                tmp_payload,
-                backup_tmp_payload,
-                backup_payload,
-                seed_tmp_payload,
-                seed_payload,
-            )
-            if payload is None or (
-                isinstance(primary_payload, list) and not self._has_recovery_payload_items(payload)
-            ):
-                payload = primary_payload
-                recovered_source = None
+            if isinstance(primary_payload, list):
+                primary_items = self._parse_item_ids(primary_payload)
+                if primary_items:
+                    payload = primary_payload
+                    recovered_source = None
+                else:
+                    payload, recovered_source = self._prefer_recovery_payload(
+                        tmp_payload,
+                        backup_tmp_payload,
+                        backup_payload,
+                        seed_tmp_payload,
+                        seed_payload,
+                    )
+                    if payload is None or not self._has_recovery_payload_items(payload):
+                        payload = primary_payload
+                        recovered_source = None
+            else:
+                payload, recovered_source = self._prefer_recovery_payload(
+                    tmp_payload,
+                    backup_tmp_payload,
+                    backup_payload,
+                    seed_tmp_payload,
+                    seed_payload,
+                )
+                if payload is None:
+                    payload = primary_payload
+                    recovered_source = None
         elif isinstance(primary_payload, list):
-            payload, recovered_source = self._prefer_recovery_payload(
-                tmp_payload,
-                backup_tmp_payload,
-                backup_payload,
-                seed_tmp_payload,
-                seed_payload,
-            )
-            if payload is None or not self._has_recovery_payload_items(payload):
+            primary_items = self._parse_item_ids(primary_payload)
+            if primary_items:
                 payload = primary_payload
                 recovered_source = None
+            else:
+                payload, recovered_source = self._prefer_recovery_payload(
+                    tmp_payload,
+                    backup_tmp_payload,
+                    backup_payload,
+                    seed_tmp_payload,
+                    seed_payload,
+                )
+                if payload is None or not self._has_recovery_payload_items(payload):
+                    payload = primary_payload
+                    recovered_source = None
         elif primary_payload is not None:
             payload = primary_payload
             recovered_source = None

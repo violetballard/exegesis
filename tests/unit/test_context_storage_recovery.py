@@ -168,6 +168,29 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("item_ids"), ["second"])
         self.assertEqual(payload.get("recovered_from"), "backup")
 
+    def test_legacy_list_primary_prefers_its_own_items_over_stale_backup(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(json.dumps(["primary", "primary"]), encoding="utf-8")
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "item_ids": ["backup"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["primary"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["primary"])
+        self.assertNotIn("recovered_from", payload)
+        self.assertEqual(backup_payload.get("item_ids"), ["primary"])
+
     def test_mixed_scalar_and_non_scalar_item_ids_are_salvaged_and_rewritten(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text(
@@ -1293,6 +1316,54 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["first", "second"])
+
+    def test_legacy_list_primary_prefers_its_own_records_over_stale_backup(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                [
+                    {
+                        "context_set_id": " set-primary ",
+                        "name": " Primary Evidence ",
+                        "item_ids": [" primary ", "primary"],
+                        "created_at": "2026-03-20T11:00:00+00:00",
+                        "updated_at": "2026-03-20T12:00:00+00:00",
+                    }
+                ]
+            ),
+            encoding="utf-8",
+        )
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "context_sets": [
+                        {
+                            "context_set_id": "set-backup",
+                            "name": "Backup Evidence",
+                            "item_ids": ["backup"],
+                            "created_at": "2026-03-20T11:30:00+00:00",
+                            "updated_at": "2026-03-20T12:00:00+00:00",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, "set-primary")
+        self.assertEqual(loaded[0].name, "Primary Evidence")
+        self.assertEqual(loaded[0].item_ids, ["primary"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("context_sets")[0]["context_set_id"], "set-primary")
+        self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["primary"])
+        self.assertEqual(backup_payload.get("context_sets")[0]["context_set_id"], "set-primary")
+        self.assertEqual(backup_payload.get("context_sets")[0]["item_ids"], ["primary"])
 
     def test_legacy_list_payload_with_only_invalid_entries_is_preserved_for_audit(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)

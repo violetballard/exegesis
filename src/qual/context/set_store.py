@@ -163,29 +163,49 @@ class ContextSetStore:
         payload: dict[str, object] | list[object] | None
         recovered_source: str | None
         if primary_needs_quarantine:
-            payload, recovered_source = self._prefer_recovery_payload(
-                tmp_payload,
-                backup_tmp_payload,
-                backup_payload,
-                seed_tmp_payload,
-                seed_payload,
-            )
-            if payload is None or (
-                isinstance(primary_payload, list) and not self._has_context_set_records(payload)
-            ):
-                payload = primary_payload
-                recovered_source = None
+            if isinstance(primary_payload, list):
+                primary_records = self._parse_context_sets(primary_payload)
+                if primary_records:
+                    payload = primary_payload
+                    recovered_source = None
+                else:
+                    payload, recovered_source = self._prefer_recovery_payload(
+                        tmp_payload,
+                        backup_tmp_payload,
+                        backup_payload,
+                        seed_tmp_payload,
+                        seed_payload,
+                    )
+                    if payload is None or not self._has_context_set_records(payload):
+                        payload = primary_payload
+                        recovered_source = None
+            else:
+                payload, recovered_source = self._prefer_recovery_payload(
+                    tmp_payload,
+                    backup_tmp_payload,
+                    backup_payload,
+                    seed_tmp_payload,
+                    seed_payload,
+                )
+                if payload is None:
+                    payload = primary_payload
+                    recovered_source = None
         elif isinstance(primary_payload, list):
-            payload, recovered_source = self._prefer_recovery_payload(
-                tmp_payload,
-                backup_tmp_payload,
-                backup_payload,
-                seed_tmp_payload,
-                seed_payload,
-            )
-            if payload is None or not self._has_context_set_records(payload):
+            primary_records = self._parse_context_sets(primary_payload)
+            if primary_records:
                 payload = primary_payload
                 recovered_source = None
+            else:
+                payload, recovered_source = self._prefer_recovery_payload(
+                    tmp_payload,
+                    backup_tmp_payload,
+                    backup_payload,
+                    seed_tmp_payload,
+                    seed_payload,
+                )
+                if payload is None or not self._has_context_set_records(payload):
+                    payload = primary_payload
+                    recovered_source = None
         elif primary_payload is not None:
             payload = primary_payload
             recovered_source = None
