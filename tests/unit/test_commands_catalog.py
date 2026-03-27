@@ -53,13 +53,28 @@ class CommandCatalogTests(unittest.TestCase):
     def test_command_manifest_entries_expose_canonical_lookup_tokens(self) -> None:
         manifest = command_manifest()
         self.assertEqual(
-            tuple((entry.name, command_lookup_tokens(entry.name)) for entry in manifest),
+            tuple((entry.name, entry.lookup_tokens) for entry in manifest),
             (
                 ("bootstrap", ("bootstrap", "open", "project-open", "project")),
                 ("diff-preview", ("diff-preview", "diff", "diff_preview")),
                 ("context-basket", ("context-basket", "context", "basket")),
                 ("terminal", ("terminal",)),
             ),
+        )
+        self.assertEqual(
+            tuple(command_lookup_tokens(entry.name) for entry in manifest),
+            tuple(entry.lookup_tokens for entry in manifest),
+        )
+
+    def test_command_manifest_order_matches_mvp_flow(self) -> None:
+        manifest = command_manifest()
+        self.assertEqual(
+            tuple(entry.flow_step for entry in manifest),
+            ("project-open", "patch-review", "retrieval", "export-handoff"),
+        )
+        self.assertEqual(
+            tuple(entry.name for entry in manifest),
+            ("bootstrap", "diff-preview", "context-basket", "terminal"),
         )
 
 

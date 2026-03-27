@@ -18,6 +18,7 @@ class CommandManifestEntry:
     aliases: tuple[str, ...]
     description: str
     flow_step: str
+    lookup_tokens: tuple[str, ...]
 
 
 def _normalize_token(value: str) -> str:
@@ -75,6 +76,7 @@ def command_manifest() -> tuple[CommandManifestEntry, ...]:
             aliases=spec.aliases,
             description=spec.description,
             flow_step=spec.flow_step,
+            lookup_tokens=(spec.name, *spec.aliases),
         )
         for spec in COMMAND_SPECS
     )
