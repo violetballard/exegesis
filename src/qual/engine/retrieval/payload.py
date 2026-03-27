@@ -154,8 +154,69 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
 
     provenance = payload.get("retrieval_provenance")
     if isinstance(provenance, dict):
-        return copy.deepcopy(provenance)
-    return {}
+        normalized = copy.deepcopy(provenance)
+    else:
+        normalized = {}
+    summary = payload.get("retrieval_summary", {})
+    diagnostics = payload.get("retrieval_diagnostics", {})
+    if not isinstance(summary, dict):
+        summary = {}
+    if not isinstance(diagnostics, dict):
+        diagnostics = {}
+    if "query_fingerprint" not in normalized:
+        normalized["query_fingerprint"] = summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))
+    if "query_scope" not in normalized:
+        normalized["query_scope"] = summary.get("query_scope", diagnostics.get("query_scope"))
+    if "query_intent" not in normalized:
+        normalized["query_intent"] = summary.get("query_intent", diagnostics.get("query_intent"))
+    if "query_date_range" not in normalized:
+        normalized["query_date_range"] = summary.get("query_date_range", diagnostics.get("date_range"))
+    if "result_fingerprint" not in normalized:
+        normalized["result_fingerprint"] = summary.get("result_fingerprint", diagnostics.get("result_fingerprint"))
+    if "retrieval_backend" not in normalized:
+        normalized["retrieval_backend"] = summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))
+    if "retrieval_mode" not in normalized:
+        normalized["retrieval_mode"] = summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))
+    if "retrieval_policy" not in normalized:
+        normalized["retrieval_policy"] = copy.deepcopy(
+            summary.get("retrieval_policy", diagnostics.get("retrieval_policy", {}))
+        )
+    if "active_strategy_ids" not in normalized:
+        normalized["active_strategy_ids"] = list(
+            summary.get("active_strategy_ids", diagnostics.get("active_strategy_ids", []))
+        )
+    if "deferred_strategy_ids" not in normalized:
+        normalized["deferred_strategy_ids"] = list(
+            summary.get("deferred_strategy_ids", diagnostics.get("deferred_strategy_ids", []))
+        )
+    if "candidate_doc_count" not in normalized:
+        normalized["candidate_doc_count"] = diagnostics.get("candidate_doc_count")
+    if "fts_shortlist_doc_ids" not in normalized:
+        normalized["fts_shortlist_doc_ids"] = copy.deepcopy(diagnostics.get("fts_shortlist_doc_ids", []))
+    if "doc_hits_fingerprint" not in normalized:
+        normalized["doc_hits_fingerprint"] = summary.get(
+            "doc_hits_fingerprint",
+            diagnostics.get("doc_hits_fingerprint"),
+        )
+    if "excerpt_hits_fingerprint" not in normalized:
+        normalized["excerpt_hits_fingerprint"] = summary.get(
+            "excerpt_hits_fingerprint",
+            diagnostics.get("excerpt_hits_fingerprint"),
+        )
+    if "citation_status" not in normalized:
+        normalized["citation_status"] = copy.deepcopy(summary.get("citation_status", {}))
+    if "doc_count" not in normalized:
+        normalized["doc_count"] = summary.get("doc_count")
+    if "excerpt_count" not in normalized:
+        normalized["excerpt_count"] = summary.get("excerpt_count")
+    citation_bundle = payload.get("retrieval_citation_bundle", {})
+    if not isinstance(citation_bundle, dict):
+        citation_bundle = {}
+    if "doc_citations" not in normalized:
+        normalized["doc_citations"] = copy.deepcopy(citation_bundle.get("doc_citations", []))
+    if "excerpt_citations" not in normalized:
+        normalized["excerpt_citations"] = copy.deepcopy(citation_bundle.get("excerpt_citations", []))
+    return normalized
 
 
 @dataclass(frozen=True)

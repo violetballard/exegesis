@@ -548,6 +548,11 @@ class RetrievalResult:
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
+            "query_date_range": (
+                list(self.query.constraints.date_range)
+                if self.query.constraints.date_range is not None
+                else None
+            ),
             "result_fingerprint": self.result_fingerprint,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
@@ -556,6 +561,8 @@ class RetrievalResult:
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
+            "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
+            "fts_shortlist_doc_ids": list(self.diagnostics.get("fts_shortlist_doc_ids", [])),
             "citation_status": citation_status,
             "doc_count": citation_bundle["doc_count"],
             "excerpt_count": citation_bundle["excerpt_count"],
