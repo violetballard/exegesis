@@ -5,6 +5,8 @@ import unittest
 from src.qual.commands import (
     canonical_command,
     command_aliases,
+    command_lookup_tokens,
+    command_manifest,
     command_names,
     command_spec,
     command_specs,
@@ -44,7 +46,21 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertIsNotNone(spec)
         self.assertEqual(spec.name, "bootstrap")
         self.assertEqual(command_aliases("project-open"), ("open", "project-open", "project"))
+        self.assertEqual(command_lookup_tokens("project-open"), ("bootstrap", "open", "project-open", "project"))
         self.assertEqual(command_aliases("missing"), ())
+        self.assertEqual(command_lookup_tokens("missing"), ())
+
+    def test_command_manifest_entries_expose_canonical_lookup_tokens(self) -> None:
+        manifest = command_manifest()
+        self.assertEqual(
+            tuple((entry.name, command_lookup_tokens(entry.name)) for entry in manifest),
+            (
+                ("bootstrap", ("bootstrap", "open", "project-open", "project")),
+                ("diff-preview", ("diff-preview", "diff", "diff_preview")),
+                ("context-basket", ("context-basket", "context", "basket")),
+                ("terminal", ("terminal",)),
+            ),
+        )
 
 
 if __name__ == "__main__":

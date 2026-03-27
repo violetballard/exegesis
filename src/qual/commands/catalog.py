@@ -72,6 +72,13 @@ def command_tokens() -> tuple[str, ...]:
     return tuple(alias for spec in COMMAND_SPECS for alias in (spec.name, *spec.aliases))
 
 
+def command_lookup_tokens(name: str) -> tuple[str, ...]:
+    spec = command_spec(name)
+    if spec is None:
+        return ()
+    return (spec.name, *spec.aliases)
+
+
 def command_spec(name: str) -> CommandSpec | None:
     normalized = _normalize_token(name)
     if not normalized:
