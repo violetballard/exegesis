@@ -145,6 +145,10 @@ class ContextSetStore:
         self._quarantine_missing_context_sets_payload(self._seed_state_path(), seed_payload)
 
         primary_needs_quarantine = self._primary_context_sets_need_recovery(primary_payload)
+        if not primary_needs_quarantine and isinstance(primary_payload, dict) and self._has_unknown_fields(
+            primary_payload
+        ):
+            primary_needs_quarantine = True
         if (
             not primary_needs_quarantine
             and isinstance(primary_payload, dict)

@@ -57,7 +57,11 @@ class ContextBasketStore:
         primary_item_ids_need_recovery = self._primary_item_ids_need_recovery(primary_payload)
         primary_needs_quarantine = primary_item_ids_need_recovery or (
             isinstance(primary_payload, dict)
-            and (primary_missing_item_ids or not self._is_supported_payload(primary_payload))
+            and (
+                primary_missing_item_ids
+                or self._has_unknown_fields(primary_payload)
+                or not self._is_supported_payload(primary_payload)
+            )
         )
 
         payload: dict[str, object] | list[object] | None
@@ -186,8 +190,8 @@ class ContextBasketStore:
             primary_needs_quarantine
             and primary_payload is not None
             and recovered_source is None
-            and primary_item_ids_need_recovery
             and isinstance(primary_payload, dict)
+            and (primary_item_ids_need_recovery or self._has_unknown_fields(primary_payload))
         )
         if recovered_source is not None or should_rewrite:
             # Keep the backup aligned with the latest canonical basket whenever we
