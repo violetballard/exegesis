@@ -230,6 +230,24 @@ def command_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tupl
     return tuple(index)
 
 
+def command_flow_lookup_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, str], ...]:
+    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    manifest = command_flow_manifest(specs, ordered_flow_steps)
+    seen_tokens: set[str] = set()
+    index: list[tuple[str, str]] = []
+    for entry in manifest:
+        for token in entry.lookup_tokens:
+            normalized_token = _normalize_token(token)
+            if normalized_token in seen_tokens:
+                continue
+            seen_tokens.add(normalized_token)
+            index.append((normalized_token, entry.name))
+    return tuple(index)
+
+
 def command_flow_steps(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
     return tuple(spec.flow_step for spec in specs)
 
@@ -272,16 +290,7 @@ def command_mvp_flow_lookup_table(
 
 
 def command_mvp_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[tuple[str, str], ...]:
-    seen_tokens: set[str] = set()
-    index: list[tuple[str, str]] = []
-    for entry in command_mvp_flow_catalog(specs):
-        for token in entry.lookup_tokens:
-            normalized_token = _normalize_token(token)
-            if normalized_token in seen_tokens:
-                continue
-            seen_tokens.add(normalized_token)
-            index.append((normalized_token, entry.name))
-    return tuple(index)
+    return command_flow_lookup_index(specs, command_mvp_flow_steps())
 
 
 def command_mvp_flow_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
@@ -296,7 +305,7 @@ def command_surface_contract(
         flow_steps=command_mvp_flow_steps(),
         names=tuple(entry.name for entry in flow),
         lookup_table=tuple((entry.flow_step, entry.name) for entry in flow),
-        lookup_index=command_mvp_lookup_index(specs),
+        lookup_index=command_flow_lookup_index(specs, command_mvp_flow_steps()),
         lookup_tokens=tuple(entry.lookup_tokens for entry in flow),
     )
 

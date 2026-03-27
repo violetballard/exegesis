@@ -7,8 +7,10 @@ from src.qual.commands import (
     canonical_command,
     command_aliases,
     command_flow_manifest,
+    command_flow_lookup_index,
     command_flow_steps,
     command_flow_sequence,
+    command_lookup_index,
     command_lookup_table,
     command_lookup_tokens,
     command_manifest,
@@ -91,6 +93,13 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             sequence.lookup_tokens,
             tuple(entry.lookup_tokens for entry in command_manifest()),
+        )
+
+    def test_command_flow_lookup_index_reuses_the_manifest_contract(self) -> None:
+        self.assertEqual(command_flow_lookup_index(), command_lookup_index())
+        self.assertEqual(
+            command_flow_lookup_index(flow_steps=command_mvp_flow_steps()),
+            command_mvp_lookup_index(),
         )
 
     def test_command_mvp_flow_catalog_exposes_the_demo_sequence(self) -> None:
