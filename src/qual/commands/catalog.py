@@ -137,6 +137,7 @@ def command_flow_manifest(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[CommandManifestEntry, ...]:
+    validate_command_catalog(specs)
     ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
     _validate_flow_steps(ordered_flow_steps)
     manifest_by_flow_step = {entry.flow_step: entry for entry in command_manifest(specs)}
@@ -155,6 +156,7 @@ def command_specs(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[Comma
 
 
 def command_manifest(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[CommandManifestEntry, ...]:
+    validate_command_catalog(specs)
     return tuple(
         CommandManifestEntry(
             name=spec.name,
