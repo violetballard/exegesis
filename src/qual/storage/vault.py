@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import UTC, datetime
 from dataclasses import dataclass
 from pathlib import Path
@@ -504,7 +505,7 @@ class VaultService:
     def _parse_recovered_from(self, value: object) -> str | None:
         if not isinstance(value, str):
             return None
-        normalized = value.strip().lower()
+        normalized = re.sub(r"[-\s]+", "_", value.strip().lower())
         if normalized in {"tmp", "backup", "seed"}:
             return normalized
         if normalized == "backup_tmp":
