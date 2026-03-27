@@ -125,17 +125,37 @@ def _build_retrieval_doc_bundle_from_payload(payload: dict[str, object]) -> dict
     doc_bundle = payload.get("retrieval_doc_bundle")
     if isinstance(doc_bundle, dict):
         return copy.deepcopy(doc_bundle)
+    provenance = payload.get("retrieval_provenance", {})
+    summary = payload.get("retrieval_summary", {})
+    diagnostics = payload.get("retrieval_diagnostics", {})
+    if not isinstance(provenance, dict):
+        provenance = {}
+    if not isinstance(summary, dict):
+        summary = {}
+    if not isinstance(diagnostics, dict):
+        diagnostics = {}
     doc_hits = copy.deepcopy(payload.get("doc_hits", []))
-    retrieval_provenance = payload.get("retrieval_provenance", {})
+    retrieval_provenance = provenance
     doc_citations: list[dict[str, object]] = []
     if isinstance(retrieval_provenance, dict):
         doc_citations = copy.deepcopy(retrieval_provenance.get("doc_citations", []))
     return {
         "result_fingerprint": payload.get("result_fingerprint"),
         "query_fingerprint": payload.get("query_fingerprint"),
-        "retrieval_backend": payload.get("retrieval_backend"),
-        "retrieval_mode": payload.get("retrieval_mode"),
-        "retrieval_policy": copy.deepcopy(payload.get("retrieval_policy", payload.get("policy", {}))),
+        "query_scope": provenance.get("query_scope", summary.get("query_scope", diagnostics.get("query_scope"))),
+        "query_intent": provenance.get("query_intent", summary.get("query_intent", diagnostics.get("query_intent"))),
+        "query_date_range": copy.deepcopy(
+            provenance.get("query_date_range", summary.get("query_date_range", diagnostics.get("date_range")))
+        ),
+        "retrieval_backend": payload.get("retrieval_backend", summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))),
+        "retrieval_mode": payload.get("retrieval_mode", summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))),
+        "retrieval_policy": copy.deepcopy(payload.get("retrieval_policy", payload.get("policy", summary.get("retrieval_policy", diagnostics.get("retrieval_policy", {}))))),
+        "active_strategy_ids": list(
+            provenance.get("active_strategy_ids", summary.get("active_strategy_ids", diagnostics.get("active_strategy_ids", [])))
+        ),
+        "deferred_strategy_ids": list(
+            provenance.get("deferred_strategy_ids", summary.get("deferred_strategy_ids", diagnostics.get("deferred_strategy_ids", [])))
+        ),
         "citation_status": copy.deepcopy(payload.get("citation_status", {})),
         "doc_count": len(doc_hits),
         "doc_hits": doc_hits,
@@ -152,17 +172,37 @@ def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> 
     excerpt_bundle = payload.get("retrieval_excerpt_bundle")
     if isinstance(excerpt_bundle, dict):
         return copy.deepcopy(excerpt_bundle)
+    provenance = payload.get("retrieval_provenance", {})
+    summary = payload.get("retrieval_summary", {})
+    diagnostics = payload.get("retrieval_diagnostics", {})
+    if not isinstance(provenance, dict):
+        provenance = {}
+    if not isinstance(summary, dict):
+        summary = {}
+    if not isinstance(diagnostics, dict):
+        diagnostics = {}
     excerpt_hits = copy.deepcopy(payload.get("excerpt_hits", []))
-    retrieval_provenance = payload.get("retrieval_provenance", {})
+    retrieval_provenance = provenance
     excerpt_citations: list[dict[str, object]] = []
     if isinstance(retrieval_provenance, dict):
         excerpt_citations = copy.deepcopy(retrieval_provenance.get("excerpt_citations", []))
     return {
         "result_fingerprint": payload.get("result_fingerprint"),
         "query_fingerprint": payload.get("query_fingerprint"),
-        "retrieval_backend": payload.get("retrieval_backend"),
-        "retrieval_mode": payload.get("retrieval_mode"),
-        "retrieval_policy": copy.deepcopy(payload.get("retrieval_policy", payload.get("policy", {}))),
+        "query_scope": provenance.get("query_scope", summary.get("query_scope", diagnostics.get("query_scope"))),
+        "query_intent": provenance.get("query_intent", summary.get("query_intent", diagnostics.get("query_intent"))),
+        "query_date_range": copy.deepcopy(
+            provenance.get("query_date_range", summary.get("query_date_range", diagnostics.get("date_range")))
+        ),
+        "retrieval_backend": payload.get("retrieval_backend", summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))),
+        "retrieval_mode": payload.get("retrieval_mode", summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))),
+        "retrieval_policy": copy.deepcopy(payload.get("retrieval_policy", payload.get("policy", summary.get("retrieval_policy", diagnostics.get("retrieval_policy", {}))))),
+        "active_strategy_ids": list(
+            provenance.get("active_strategy_ids", summary.get("active_strategy_ids", diagnostics.get("active_strategy_ids", [])))
+        ),
+        "deferred_strategy_ids": list(
+            provenance.get("deferred_strategy_ids", summary.get("deferred_strategy_ids", diagnostics.get("deferred_strategy_ids", [])))
+        ),
         "citation_status": copy.deepcopy(payload.get("citation_status", {})),
         "doc_count": len(copy.deepcopy(payload.get("doc_hits", []))),
         "excerpt_count": len(excerpt_hits),

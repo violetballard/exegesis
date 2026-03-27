@@ -616,10 +616,47 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(helper, result.retrieval_doc_bundle())
         self.assertEqual(auto_helper, result.retrieval_doc_bundle())
         self.assertEqual(engine_build_retrieval_doc_bundle_from_result(result), result.retrieval_doc_bundle())
+        self.assertEqual(direct["query_scope"], "vault")
+        self.assertEqual(direct["query_intent"], "compare")
+        self.assertIsNone(direct["query_date_range"])
+        self.assertEqual(direct["active_strategy_ids"], ["fts"])
+        self.assertEqual(direct["deferred_strategy_ids"], ["pageindex", "embeddings"])
         self.assertEqual(direct["doc_hits"], [item.as_dict() for item in result.doc_hits])
         self.assertEqual(direct["doc_citations"], result.retrieval_doc_bundle()["doc_citations"])
         direct["doc_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
         self.assertNotEqual(self.service.retrieve_fts_doc_bundle(query)["doc_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
+
+    def test_retrieve_auto_excerpt_bundle_surfaces_query_context(self) -> None:
+        query = RetrievalQuery(
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints=RetrievalConstraints(max_results=4),
+            confidentiality_profile="confidential",
+        )
+
+        result = self.service.retrieve_auto(query)
+        direct = self.service.retrieve_auto_excerpt_bundle(query)
+        helper = engine_retrieval.retrieve_auto_excerpt_bundle(
+            self.service,
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints={"max_results": 4},
+            confidentiality_profile="confidential",
+        )
+
+        self.assertEqual(direct, result.retrieval_excerpt_bundle())
+        self.assertEqual(helper, result.retrieval_excerpt_bundle())
+        self.assertEqual(direct["query_scope"], "vault")
+        self.assertEqual(direct["query_intent"], "compare")
+        self.assertIsNone(direct["query_date_range"])
+        self.assertEqual(direct["active_strategy_ids"], ["fts"])
+        self.assertEqual(direct["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(direct["excerpt_hits"], [item.as_dict() for item in result.hits])
+        self.assertEqual(direct["excerpt_citations"], result.retrieval_excerpt_bundle()["excerpt_citations"])
+        direct["excerpt_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
+        self.assertNotEqual(self.service.retrieve_auto_excerpt_bundle(query)["excerpt_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
 
     def test_doc_identity_fingerprint_stays_stable_across_query_variants(self) -> None:
         long_doc_text = (

@@ -377,9 +377,18 @@ class RetrievalResult:
         return {
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
+            "query_scope": self.query.scope,
+            "query_intent": self.query.intent,
+            "query_date_range": (
+                list(self.query.constraints.date_range)
+                if self.query.constraints.date_range is not None
+                else None
+            ),
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
             "retrieval_policy": copy.deepcopy(self.diagnostics["retrieval_policy"]),
+            "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
+            "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             "citation_status": self._citation_status_snapshot(),
             "doc_count": len(self.doc_hits),
             "doc_hits": [doc_hit.as_dict() for doc_hit in self.doc_hits],
@@ -401,9 +410,18 @@ class RetrievalResult:
         return {
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
+            "query_scope": self.query.scope,
+            "query_intent": self.query.intent,
+            "query_date_range": (
+                list(self.query.constraints.date_range)
+                if self.query.constraints.date_range is not None
+                else None
+            ),
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
             "retrieval_policy": copy.deepcopy(self.diagnostics["retrieval_policy"]),
+            "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
+            "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             "citation_status": self._citation_status_snapshot(),
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
