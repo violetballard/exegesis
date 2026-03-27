@@ -39,6 +39,17 @@ def _lookup_tokens(spec: CommandSpec) -> tuple[str, ...]:
     return (spec.name, *spec.aliases)
 
 
+def _validate_flow_steps(flow_steps: tuple[str, ...]) -> None:
+    seen_flow_steps: set[str] = set()
+    for flow_step in flow_steps:
+        normalized_flow_step = _normalize_token(flow_step)
+        if not normalized_flow_step:
+            raise ValueError("Command flow steps must not be empty")
+        if normalized_flow_step in seen_flow_steps:
+            raise ValueError(f"Duplicate command flow step order: {flow_step}")
+        seen_flow_steps.add(normalized_flow_step)
+
+
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         name="bootstrap",
@@ -127,6 +138,7 @@ def command_flow_manifest(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[CommandManifestEntry, ...]:
     ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    _validate_flow_steps(ordered_flow_steps)
     manifest_by_flow_step = {entry.flow_step: entry for entry in command_manifest(specs)}
     missing_steps = tuple(flow_step for flow_step in ordered_flow_steps if flow_step not in manifest_by_flow_step)
     if missing_steps:

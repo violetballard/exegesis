@@ -6,6 +6,7 @@ from src.qual.commands import (
     CommandSpec,
     canonical_command,
     command_aliases,
+    command_flow_manifest,
     command_lookup_tokens,
     command_manifest,
     command_mvp_flow,
@@ -139,6 +140,14 @@ class CommandCatalogTests(unittest.TestCase):
                     CommandSpec(name="terminal", flow_step="export-handoff"),
                 )
             )
+
+    def test_command_flow_manifest_rejects_duplicate_requested_flow_steps(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Duplicate command flow step order"):
+            command_flow_manifest(flow_steps=("project-open", "project-open"))
+
+    def test_command_flow_manifest_rejects_empty_requested_flow_steps(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Command flow steps must not be empty"):
+            command_flow_manifest(flow_steps=("project-open", " ", "export-handoff"))
 
     def test_validate_command_catalog_rejects_ambiguous_definitions(self) -> None:
         with self.assertRaisesRegex(ValueError, "Duplicate command name"):
