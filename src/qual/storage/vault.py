@@ -216,6 +216,12 @@ class VaultService:
             primary_unavailable = True
         preserve_backup_corrupt = backup_present and backup_payload is None
         preserve_seed_corrupt = seed_present and seed_payload is None
+        if recovered_source == "backup" and backup_payload is not None and not self._is_supported_payload(backup_payload):
+            self._quarantine_invalid_backup(root_dir)
+            preserve_backup_corrupt = True
+        if recovered_source == "seed" and seed_payload is not None and not self._is_supported_payload(seed_payload):
+            self._quarantine_invalid_seed(root_dir)
+            preserve_seed_corrupt = True
         return payload, recovered_source, primary_unavailable, preserve_backup_corrupt, preserve_seed_corrupt
 
     def _write_state(

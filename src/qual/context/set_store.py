@@ -315,6 +315,12 @@ class ContextSetStore:
             # Keep the original malformed legacy list available for audit when
             # it cannot contribute any recoverable context set records.
             preserve_primary_corrupt = True
+        if recovered_source == "backup" and backup_payload is not None and not self._is_supported_payload(backup_payload):
+            self._quarantine_invalid_backup()
+            preserve_backup_corrupt = True
+        if recovered_source == "seed" and seed_payload is not None and not self._is_supported_payload(seed_payload):
+            self._quarantine_invalid_seed()
+            preserve_seed_corrupt = True
         if recovered_source is not None or should_rewrite:
             self.save(
                 records,
