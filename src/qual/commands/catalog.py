@@ -42,14 +42,20 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         name="context-basket",
         aliases=("context", "basket"),
-        description="Manage context basket items.",
+        description="Manage retrieval context basket items.",
         flow_step="retrieval",
     ),
     CommandSpec(
         name="terminal",
-        description="Run terminal routing scaffolding.",
+        description="Run terminal export handoff routing.",
         flow_step="export-handoff",
     ),
+)
+MVP_COMMAND_FLOW_STEPS: tuple[str, ...] = (
+    "project-open",
+    "retrieval",
+    "patch-review",
+    "export-handoff",
 )
 _COMMAND_SPEC_BY_ALIAS: dict[str, CommandSpec] = {}
 for spec in COMMAND_SPECS:
@@ -84,6 +90,16 @@ def command_manifest() -> tuple[CommandManifestEntry, ...]:
 
 def command_flow_steps() -> tuple[str, ...]:
     return tuple(spec.flow_step for spec in COMMAND_SPECS)
+
+
+def command_mvp_flow() -> tuple[CommandManifestEntry, ...]:
+    manifest = command_manifest()
+    return tuple(
+        entry
+        for flow_step in MVP_COMMAND_FLOW_STEPS
+        for entry in manifest
+        if entry.flow_step == flow_step
+    )
 
 
 def command_tokens() -> tuple[str, ...]:
