@@ -665,6 +665,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "build_retrieval_context_bundle_from_result",
                 "build_retrieval_provenance_from_result",
                 "build_retrieval_source_bundle_from_result",
+                "retrieve_fts_context_bundle",
+                "retrieve_fts_payload",
+                "retrieve_auto_context_bundle",
+                "retrieve_auto_payload",
             ],
         )
         self.assertTrue(hasattr(engine_retrieval, "FTSStrategy"))
@@ -680,6 +684,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_citation_bundle_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_context_bundle_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_source_bundle_from_result"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_context_bundle"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_payload"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_context_bundle"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_payload"))
 
     def test_engine_retrieval_package_reexports_canonical_payload_helpers(self) -> None:
         result = self.service.retrieve_auto(
@@ -716,6 +724,64 @@ class UnifiedRetrievalTests(unittest.TestCase):
             engine_build_retrieval_source_bundle_from_result(result),
             result.source_bundle(),
         )
+        fts_context_bundle = engine_retrieval.retrieve_fts_context_bundle(
+            self.service,
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints={"max_results": 4, "doc_types": ["memo"]},
+            confidentiality_profile="confidential",
+        )
+        fts_payload = engine_retrieval.retrieve_fts_payload(
+            self.service,
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints={"max_results": 4, "doc_types": ["memo"]},
+            confidentiality_profile="confidential",
+        )
+        auto_context_bundle = engine_retrieval.retrieve_auto_context_bundle(
+            self.service,
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints={"max_results": 4, "doc_types": ["memo"]},
+            confidentiality_profile="confidential",
+        )
+        auto_payload = engine_retrieval.retrieve_auto_payload(
+            self.service,
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints={"max_results": 4, "doc_types": ["memo"]},
+            confidentiality_profile="confidential",
+        )
+
+        def _normalize_payload(payload: dict[str, object]) -> dict[str, object]:
+            normalized = json.loads(json.dumps(payload))
+            normalized.pop("audit_ref", None)
+            diagnostics = normalized.get("retrieval_diagnostics")
+            if isinstance(diagnostics, dict):
+                diagnostics.pop("elapsed_ms_total", None)
+                diagnostics.pop("elapsed_ms_by_strategy", None)
+            return normalized
+
+        def _normalize_context_bundle(bundle: dict[str, object]) -> dict[str, object]:
+            normalized = json.loads(json.dumps(bundle))
+            normalized.pop("audit_ref", None)
+            downstream_payload = normalized.get("retrieval_downstream_payload")
+            if isinstance(downstream_payload, dict):
+                downstream_payload.pop("audit_ref", None)
+                diagnostics = downstream_payload.get("retrieval_diagnostics")
+                if isinstance(diagnostics, dict):
+                    diagnostics.pop("elapsed_ms_total", None)
+                    diagnostics.pop("elapsed_ms_by_strategy", None)
+            return normalized
+
+        self.assertEqual(_normalize_context_bundle(fts_context_bundle), _normalize_context_bundle(auto_context_bundle))
+        self.assertEqual(_normalize_payload(fts_payload), _normalize_payload(auto_payload))
+        self.assertEqual(_normalize_payload(fts_context_bundle["retrieval_downstream_payload"]), _normalize_payload(fts_payload))
+        self.assertEqual(_normalize_payload(auto_context_bundle["retrieval_downstream_payload"]), _normalize_payload(auto_payload))
 
     def test_retrieval_context_bundle_helper_packages_payload_and_bundles(self) -> None:
         result = self.service.retrieve_auto(
