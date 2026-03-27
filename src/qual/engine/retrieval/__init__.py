@@ -50,6 +50,18 @@ def primary_strategy_id() -> str:
     return _primary_strategy_id()
 
 
+def retrieve_fts_context_bundle(*args, **kwargs):
+    from src.qual.retrieval import retrieve_fts_context_bundle as _retrieve_fts_context_bundle
+
+    return _retrieve_fts_context_bundle(*args, **kwargs)
+
+
+def retrieve_auto_context_bundle(*args, **kwargs):
+    from src.qual.retrieval import retrieve_auto_context_bundle as _retrieve_auto_context_bundle
+
+    return _retrieve_auto_context_bundle(*args, **kwargs)
+
+
 __all__ = [
     "StrategyRun",
     "RetrievalStrategy",

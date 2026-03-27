@@ -83,6 +83,27 @@ def retrieve_fts_payload(
     return service.retrieve_fts_payload(query)
 
 
+def retrieve_fts_context_bundle(
+    service: RetrievalService,
+    *,
+    query_text: str,
+    scope: str,
+    intent: str,
+    constraints: dict[str, object] | None = None,
+    confidentiality_profile: str = "confidential",
+) -> dict[str, object]:
+    """Return the canonical retrieval context bundle for a single FTS retrieval."""
+
+    query = _build_retrieval_query(
+        query_text=query_text,
+        scope=scope,
+        intent=intent,
+        constraints=constraints,
+        confidentiality_profile=confidentiality_profile,
+    )
+    return service.retrieve_fts_context_bundle(query)
+
+
 def retrieve_auto(
     service: RetrievalService,
     *,
@@ -100,6 +121,27 @@ def retrieve_auto(
         confidentiality_profile=confidentiality_profile,
     )
     return service.retrieve_auto(query)
+
+
+def retrieve_auto_context_bundle(
+    service: RetrievalService,
+    *,
+    query_text: str,
+    scope: str,
+    intent: str,
+    constraints: dict[str, object] | None = None,
+    confidentiality_profile: str = "confidential",
+) -> dict[str, object]:
+    """Return the canonical retrieval context bundle for the FTS-first auto path."""
+
+    query = _build_retrieval_query(
+        query_text=query_text,
+        scope=scope,
+        intent=intent,
+        constraints=constraints,
+        confidentiality_profile=confidentiality_profile,
+    )
+    return service.retrieve_auto_context_bundle(query)
 
 
 def retrieve_auto_payload(
@@ -135,6 +177,8 @@ __all__ = [
     "RetrievalResult",
     "retrieve_fts",
     "retrieve_fts_payload",
+    "retrieve_fts_context_bundle",
     "retrieve_auto",
+    "retrieve_auto_context_bundle",
     "retrieve_auto_payload",
 ]

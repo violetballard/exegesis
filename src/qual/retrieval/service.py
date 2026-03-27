@@ -613,6 +613,11 @@ class RetrievalService:
 
         return self.retrieve_fts(query).as_downstream_payload()
 
+    def retrieve_fts_context_bundle(self, query: RetrievalQuery) -> dict[str, object]:
+        """Return the canonical retrieval context bundle for a single FTS retrieval."""
+
+        return self.retrieve_fts(query).retrieval_context_bundle()
+
     def retrieve_auto(self, query: RetrievalQuery) -> RetrievalResult:
         return self.retrieve_fts(query)
 
@@ -620,6 +625,11 @@ class RetrievalService:
         """Return the canonical downstream payload for the FTS-first auto path."""
 
         return self.retrieve_auto(query).as_downstream_payload()
+
+    def retrieve_auto_context_bundle(self, query: RetrievalQuery) -> dict[str, object]:
+        """Return the canonical retrieval context bundle for the FTS-first auto path."""
+
+        return self.retrieve_auto(query).retrieval_context_bundle()
 
     def _run_fts_first_retrieval(self, query: RetrievalQuery) -> RetrievalResult:
         started = self._now_fn()
