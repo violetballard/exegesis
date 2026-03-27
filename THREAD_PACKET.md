@@ -2,62 +2,59 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Reviewed branch tip: current `codex/feat-commands` head
-- Branch head note: this packet is regenerated from the actual `main...codex/feat-commands` diff for the submitted branch tip.
+- Commit: `932f2320`
 
 ## Scope goal
-- Harden the `diff_preview` command contract so labeled, header-suppressed, truncated, summary-only, and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.
+- Tighten the command surface for the engine-first MVP so flow-step labels resolve to the current command specs without changing the existing manifest shape.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
 
 ## Scope completed
-- Corrected `diff_preview` fingerprint semantics so SHA-256 is derived from the exact emitted diff payload after label application, header suppression, truncation, and summary-only handling.
-- Added focused command-contract tests for JSON output, no-diff JSON shape, custom labels, and fingerprint correctness.
-- Kept the reviewed branch limited to the lane-owned `diff_preview` command surface plus focused regression coverage in `tests/unit/test_diff_preview.py`.
+- Added internal flow-step fallback lookup so `command_spec()` and `canonical_command()` accept the MVP flow vocabulary for `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+- Kept the published command manifest and surface contract stable for existing consumers.
+- Stayed inside the lane-owned command package for the code change.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget. The reviewed branch delta is 3 files changed and remains within the lane size limits.
-- Submitted files:
-  - `src/qual/commands/diff_preview.py`
-  - `tests/unit/test_diff_preview.py`
-  - `THREAD_PACKET.md`
+- Stayed within the default lane budget. The branch delta for this turn is 1 code file plus this handoff packet update.
 
 ## Tasks completed (numbered)
-1. Corrected `diff_preview` fingerprinting to hash the emitted payload after labels, header suppression, truncation, and summary-only handling.
-2. Added focused unit coverage for JSON command output, no-diff JSON shape, labeled diff output, and fingerprint correctness across emitted contract paths.
-3. Regenerated the feature handoff packet so the file list, scope note, and roadmap/vision mapping match the final branch diff.
+1. Added flow-step fallback lookup to the command catalog.
+2. Verified the command catalog unit tests and repo quality gates.
+3. Regenerated the handoff packet with the current branch tip and blocker note.
 
-## Files changed for reviewed branch delta
-- `src/qual/commands/diff_preview.py`
-- `tests/unit/test_diff_preview.py`
+## Files changed for this turn
+- `src/qual/commands/catalog.py`
 - `THREAD_PACKET.md`
 
 ## Commands run and outcomes
-- Validation date: `2026-03-22`
+- `python -m unittest tests.unit.test_commands_catalog`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
-- `make scope-check`: PASS
-- `make ci`: PASS
+- `make ci`: FAIL
+- `SCOPE_ALLOW_SHARED=1 make ci`: PASS
 
 ## Risks / blockers
 - Risk: `LOW`
-- Blockers: none
-- Note: no routing/provider behavior changed.
+- Blocker: default `make ci` fails scope-check because the current `codex/feat-commands` branch history still includes pre-existing disallowed changes in `tests/unit/test_commands_catalog.py`.
+- Note: no new shared/integrator-locked edits were introduced in this turn.
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1 - Bootstrap Flow Stabilization: harden the `diff_preview` command surface so CLI responses stay deterministic and verifiable.
-- Milestone 2 - Test Hardening: add focused contract coverage for JSON output, no-diff JSON shape, custom labels, and fingerprint correctness.
+- Milestone 1 - Bootstrap Flow Stabilization: command-surface hardening for the CLI-first MVP flow.
+- Milestone 5 - A2UI Presentation Layer: supports the CLI-driven bootstrap/retrieval/patch-review/export handoff path.
 
 ### Vision capability affected
-- Capability 3 - Auditable generation: the emitted SHA-256 fingerprint verifies the exact diff payload returned by the command.
-- Capability 4 - Operator-first control surface: `diff_preview` keeps a stable CLI-first surface with a concrete JSON contract that matches the submitted behavior.
+- Capability 4 - Operator-first control surface: the CLI command surface now resolves the flow-step vocabulary used by the MVP demo flow.
+- Capability 5 - Agent-to-UI protocol (`A2UI`): the command surface stays aligned with the CLI-first path that will consume structured A2UI outputs.
 
 ### Routing/provider impact note
-- None. This change affects local command metadata and `diff_preview` output formatting only; no routing/provider behavior changed.
+- None. This change only affects local command lookup behavior in `src/qual/commands/**`.
+
+### Proposed README patch text
+- None.
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `NO`
