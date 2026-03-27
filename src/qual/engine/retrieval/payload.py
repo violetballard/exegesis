@@ -30,6 +30,134 @@ class RetrievalContextBundleSource(Protocol):
         """Return the deterministic retrieval context consumed by engine flows."""
 
 
+def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
+    """Return the deterministic citation bundle from a downstream payload snapshot."""
+
+    citation_bundle = payload.get("retrieval_citation_bundle")
+    if isinstance(citation_bundle, dict):
+        return copy.deepcopy(citation_bundle)
+
+    provenance = payload.get("retrieval_provenance", {})
+    summary = payload.get("retrieval_summary", {})
+    diagnostics = payload.get("retrieval_diagnostics", {})
+    if not isinstance(provenance, dict):
+        provenance = {}
+    if not isinstance(summary, dict):
+        summary = {}
+    if not isinstance(diagnostics, dict):
+        diagnostics = {}
+    active_strategy_ids = provenance.get(
+        "active_strategy_ids",
+        summary.get("active_strategy_ids", diagnostics.get("active_strategy_ids", [])),
+    )
+    deferred_strategy_ids = provenance.get(
+        "deferred_strategy_ids",
+        summary.get("deferred_strategy_ids", diagnostics.get("deferred_strategy_ids", [])),
+    )
+    return {
+        "query_fingerprint": provenance.get("query_fingerprint", summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))),
+        "result_fingerprint": provenance.get("result_fingerprint", summary.get("result_fingerprint", diagnostics.get("result_fingerprint"))),
+        "retrieval_backend": provenance.get("retrieval_backend", summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))),
+        "retrieval_mode": provenance.get("retrieval_mode", summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))),
+        "retrieval_policy": copy.deepcopy(
+            provenance.get(
+                "retrieval_policy",
+                summary.get("retrieval_policy", diagnostics.get("retrieval_policy", {})),
+            )
+        ),
+        "active_strategy_ids": list(active_strategy_ids) if isinstance(active_strategy_ids, (list, tuple)) else [],
+        "deferred_strategy_ids": list(deferred_strategy_ids) if isinstance(deferred_strategy_ids, (list, tuple)) else [],
+        "citation_status": copy.deepcopy(summary.get("citation_status", provenance.get("citation_status", {}))),
+        "doc_count": provenance.get("doc_count", summary.get("doc_count")),
+        "excerpt_count": provenance.get("excerpt_count", summary.get("excerpt_count")),
+        "doc_hits_fingerprint": provenance.get(
+            "doc_hits_fingerprint", summary.get("doc_hits_fingerprint", diagnostics.get("doc_hits_fingerprint"))
+        ),
+        "excerpt_hits_fingerprint": provenance.get(
+            "excerpt_hits_fingerprint",
+            summary.get("excerpt_hits_fingerprint", diagnostics.get("excerpt_hits_fingerprint")),
+        ),
+        "doc_citations": copy.deepcopy(provenance.get("doc_citations", [])),
+        "excerpt_citations": copy.deepcopy(provenance.get("excerpt_citations", [])),
+    }
+
+
+def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
+    """Return the deterministic retrieval source bundle from a downstream payload snapshot."""
+
+    source_bundle = payload.get("retrieval_source_bundle")
+    if isinstance(source_bundle, dict):
+        return copy.deepcopy(source_bundle)
+    return {
+        "result_fingerprint": payload.get("result_fingerprint"),
+        "query_fingerprint": payload.get("query_fingerprint"),
+        "query": copy.deepcopy(payload.get("query", {})),
+        "policy": copy.deepcopy(payload.get("policy", payload.get("retrieval_policy", {}))),
+        "retrieval_backend": payload.get("retrieval_backend"),
+        "retrieval_mode": payload.get("retrieval_mode"),
+        "citation_status": copy.deepcopy(payload.get("citation_status", {})),
+        "retrieval_citation_bundle": copy.deepcopy(payload.get("retrieval_citation_bundle", {})),
+        "retrieval_summary": copy.deepcopy(payload.get("retrieval_summary", {})),
+        "doc_hits": copy.deepcopy(payload.get("doc_hits", [])),
+        "excerpt_hits": copy.deepcopy(payload.get("excerpt_hits", [])),
+        "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
+        "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
+        "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
+    }
+
+
+def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
+    """Return the deterministic excerpt-focused bundle from a downstream payload snapshot."""
+
+    excerpt_bundle = payload.get("retrieval_excerpt_bundle")
+    if isinstance(excerpt_bundle, dict):
+        return copy.deepcopy(excerpt_bundle)
+    excerpt_hits = copy.deepcopy(payload.get("excerpt_hits", []))
+    retrieval_provenance = payload.get("retrieval_provenance", {})
+    excerpt_citations: list[dict[str, object]] = []
+    if isinstance(retrieval_provenance, dict):
+        excerpt_citations = copy.deepcopy(retrieval_provenance.get("excerpt_citations", []))
+    return {
+        "result_fingerprint": payload.get("result_fingerprint"),
+        "query_fingerprint": payload.get("query_fingerprint"),
+        "retrieval_backend": payload.get("retrieval_backend"),
+        "retrieval_mode": payload.get("retrieval_mode"),
+        "retrieval_policy": copy.deepcopy(payload.get("retrieval_policy", payload.get("policy", {}))),
+        "citation_status": copy.deepcopy(payload.get("citation_status", {})),
+        "doc_count": len(copy.deepcopy(payload.get("doc_hits", []))),
+        "excerpt_count": len(excerpt_hits),
+        "excerpt_hits": excerpt_hits,
+        "excerpt_citations": excerpt_citations,
+        "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
+        "retrieval_provenance": copy.deepcopy(retrieval_provenance),
+        "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
+    }
+
+
+def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
+    """Return the deterministic retrieval context bundle from a downstream payload snapshot."""
+
+    return {
+        "audit_ref": payload.get("audit_ref"),
+        "result_fingerprint": payload.get("result_fingerprint"),
+        "retrieval_downstream_payload": copy.deepcopy(payload),
+        "retrieval_citation_bundle": _build_retrieval_citation_bundle_from_payload(payload),
+        "retrieval_excerpt_bundle": _build_retrieval_excerpt_bundle_from_payload(payload),
+        "retrieval_provenance": _build_retrieval_provenance_from_payload(payload),
+        "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
+        "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
+    }
+
+
+def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict[str, object]:
+    """Return the deterministic retrieval provenance snapshot from a downstream payload snapshot."""
+
+    provenance = payload.get("retrieval_provenance")
+    if isinstance(provenance, dict):
+        return copy.deepcopy(provenance)
+    return {}
+
+
 @dataclass(frozen=True)
 class RetrievalDownstreamPayload:
     """Deterministic downstream retrieval contract for engine consumers."""
@@ -86,10 +214,7 @@ def build_retrieval_provenance_from_result(
     """Return the deterministic retrieval provenance snapshot for a result."""
 
     payload = build_retrieval_downstream_payload_from_result(result)
-    provenance = payload.get("retrieval_provenance")
-    if isinstance(provenance, dict):
-        return copy.deepcopy(provenance)
-    return {}
+    return _build_retrieval_provenance_from_payload(payload)
 
 
 def build_retrieval_downstream_payload(
@@ -157,49 +282,7 @@ def build_retrieval_citation_bundle_from_result(
     if callable(bundle_source):
         return copy.deepcopy(bundle_source())
     payload = build_retrieval_downstream_payload_from_result(result)
-    provenance = payload.get("retrieval_provenance", {})
-    summary = payload.get("retrieval_summary", {})
-    diagnostics = payload.get("retrieval_diagnostics", {})
-    if not isinstance(provenance, dict):
-        provenance = {}
-    if not isinstance(summary, dict):
-        summary = {}
-    if not isinstance(diagnostics, dict):
-        diagnostics = {}
-    active_strategy_ids = provenance.get(
-        "active_strategy_ids",
-        summary.get("active_strategy_ids", diagnostics.get("active_strategy_ids", [])),
-    )
-    deferred_strategy_ids = provenance.get(
-        "deferred_strategy_ids",
-        summary.get("deferred_strategy_ids", diagnostics.get("deferred_strategy_ids", [])),
-    )
-    return {
-        "query_fingerprint": provenance.get("query_fingerprint", summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))),
-        "result_fingerprint": provenance.get("result_fingerprint", summary.get("result_fingerprint", diagnostics.get("result_fingerprint"))),
-        "retrieval_backend": provenance.get("retrieval_backend", summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))),
-        "retrieval_mode": provenance.get("retrieval_mode", summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))),
-        "retrieval_policy": copy.deepcopy(
-            provenance.get(
-                "retrieval_policy",
-                summary.get("retrieval_policy", diagnostics.get("retrieval_policy", {})),
-            )
-        ),
-        "active_strategy_ids": list(active_strategy_ids) if isinstance(active_strategy_ids, (list, tuple)) else [],
-        "deferred_strategy_ids": list(deferred_strategy_ids) if isinstance(deferred_strategy_ids, (list, tuple)) else [],
-        "citation_status": copy.deepcopy(summary.get("citation_status", provenance.get("citation_status", {}))),
-        "doc_count": provenance.get("doc_count", summary.get("doc_count")),
-        "excerpt_count": provenance.get("excerpt_count", summary.get("excerpt_count")),
-        "doc_hits_fingerprint": provenance.get(
-            "doc_hits_fingerprint", summary.get("doc_hits_fingerprint", diagnostics.get("doc_hits_fingerprint"))
-        ),
-        "excerpt_hits_fingerprint": provenance.get(
-            "excerpt_hits_fingerprint",
-            summary.get("excerpt_hits_fingerprint", diagnostics.get("excerpt_hits_fingerprint")),
-        ),
-        "doc_citations": copy.deepcopy(provenance.get("doc_citations", [])),
-        "excerpt_citations": copy.deepcopy(provenance.get("excerpt_citations", [])),
-    }
+    return _build_retrieval_citation_bundle_from_payload(payload)
 
 
 def build_retrieval_source_bundle_from_result(
@@ -210,25 +293,7 @@ def build_retrieval_source_bundle_from_result(
     if callable(bundle_source):
         return copy.deepcopy(bundle_source())
     payload = build_retrieval_downstream_payload_from_result(result)
-    source_bundle = payload.get("retrieval_source_bundle")
-    if isinstance(source_bundle, dict):
-        return copy.deepcopy(source_bundle)
-    return {
-        "result_fingerprint": payload.get("result_fingerprint"),
-        "query_fingerprint": payload.get("query_fingerprint"),
-        "query": copy.deepcopy(payload.get("query", {})),
-        "policy": copy.deepcopy(payload.get("policy", payload.get("retrieval_policy", {}))),
-        "retrieval_backend": payload.get("retrieval_backend"),
-        "retrieval_mode": payload.get("retrieval_mode"),
-        "citation_status": copy.deepcopy(payload.get("citation_status", {})),
-        "retrieval_citation_bundle": copy.deepcopy(payload.get("retrieval_citation_bundle", {})),
-        "retrieval_summary": copy.deepcopy(payload.get("retrieval_summary", {})),
-        "doc_hits": copy.deepcopy(payload.get("doc_hits", [])),
-        "excerpt_hits": copy.deepcopy(payload.get("excerpt_hits", [])),
-        "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
-        "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
-        "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
-    }
+    return _build_retrieval_source_bundle_from_payload(payload)
 
 
 def build_retrieval_excerpt_bundle_from_result(
@@ -240,26 +305,7 @@ def build_retrieval_excerpt_bundle_from_result(
     if callable(bundle_source):
         return copy.deepcopy(bundle_source())
     payload = build_retrieval_downstream_payload_from_result(result)
-    excerpt_hits = copy.deepcopy(payload.get("excerpt_hits", []))
-    excerpt_citations: list[dict[str, object]] = []
-    retrieval_provenance = payload.get("retrieval_provenance", {})
-    if isinstance(retrieval_provenance, dict):
-        excerpt_citations = copy.deepcopy(retrieval_provenance.get("excerpt_citations", []))
-    return {
-        "result_fingerprint": payload.get("result_fingerprint"),
-        "query_fingerprint": payload.get("query_fingerprint"),
-        "retrieval_backend": payload.get("retrieval_backend"),
-        "retrieval_mode": payload.get("retrieval_mode"),
-        "retrieval_policy": copy.deepcopy(payload.get("retrieval_policy", payload.get("policy", {}))),
-        "citation_status": copy.deepcopy(payload.get("citation_status", {})),
-        "doc_count": len(copy.deepcopy(payload.get("doc_hits", []))),
-        "excerpt_count": len(excerpt_hits),
-        "excerpt_hits": excerpt_hits,
-        "excerpt_citations": excerpt_citations,
-        "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
-        "retrieval_provenance": copy.deepcopy(retrieval_provenance),
-        "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
-    }
+    return _build_retrieval_excerpt_bundle_from_payload(payload)
 
 
 def build_retrieval_context_bundle_from_result(
@@ -276,15 +322,4 @@ def build_retrieval_context_bundle_from_result(
     if callable(context_source):
         return copy.deepcopy(context_source())
     payload = build_retrieval_downstream_payload_from_result(result)
-    excerpt_source = getattr(result, "retrieval_excerpt_bundle", None)
-    if callable(excerpt_source):
-        excerpt_bundle = copy.deepcopy(excerpt_source())
-    else:
-        excerpt_bundle = build_retrieval_excerpt_bundle_from_result(result)
-    return {
-        "retrieval_downstream_payload": payload,
-        "retrieval_citation_bundle": build_retrieval_citation_bundle_from_result(result),
-        "retrieval_excerpt_bundle": excerpt_bundle,
-        "retrieval_provenance": build_retrieval_provenance_from_result(result),
-        "retrieval_source_bundle": build_retrieval_source_bundle_from_result(result),
-    }
+    return _build_retrieval_context_bundle_from_payload(payload)

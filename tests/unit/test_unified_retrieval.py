@@ -942,6 +942,40 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "mutated-doc-id",
         )
 
+    def test_retrieval_context_bundle_helper_reads_generic_sources_once(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _CountingDictOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+                self.as_dict_calls = 0
+
+            def as_dict(self) -> dict[str, object]:
+                self.as_dict_calls += 1
+                return self._payload
+
+        source = _CountingDictOnlySource(result.as_dict())
+        bundle = engine_build_retrieval_context_bundle_from_result(source)
+
+        self.assertEqual(source.as_dict_calls, 1)
+        self.assertEqual(bundle["audit_ref"], result.audit_ref)
+        self.assertEqual(bundle["retrieval_downstream_payload"]["result_fingerprint"], result.result_fingerprint)
+        bundle["retrieval_excerpt_bundle"]["excerpt_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
+        refreshed = engine_build_retrieval_context_bundle_from_result(source)
+        self.assertEqual(source.as_dict_calls, 2)
+        self.assertNotEqual(
+            refreshed["retrieval_excerpt_bundle"]["excerpt_hits"][0]["provenance"]["doc_id"],
+            "mutated-doc-id",
+        )
+
     def test_engine_retrieval_policy_snapshot_is_stable_and_copy_safe(self) -> None:
         first = engine_retrieval.retrieval_policy_snapshot()
         second = engine_retrieval.retrieval_policy_snapshot()
