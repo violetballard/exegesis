@@ -291,6 +291,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(doc_hit_payload["top_excerpt_fingerprint"], doc_hit.provenance["top_excerpt_fingerprint"])
         self.assertEqual(doc_hit_payload["top_excerpt_text_hash"], doc_hit.provenance["top_excerpt_text_hash"])
         self.assertEqual(doc_hit_payload["top_excerpt_rank"], doc_hit.provenance["top_excerpt_rank"])
+        self.assertEqual(doc_hit_payload["source_hash"], doc_hit.source_hash)
         self.assertEqual(result.diagnostics["doc_hits_count"], len(result.doc_hits))
         self.assertEqual(result.diagnostics["excerpt_hits_count"], len(result.hits))
         manifest = result.diagnostics["retrieval_manifest"]
@@ -364,6 +365,15 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_evidence"]["citation_status"], payload["retrieval_summary"]["citation_status"])
         self.assertEqual(payload["retrieval_evidence"]["doc_count"], len(result.doc_hits))
         self.assertEqual(payload["retrieval_evidence"]["excerpt_count"], len(result.hits))
+        self.assertEqual(payload["retrieval_citation_bundle"]["doc_citations"][0]["source_hash"], result.doc_hits[0].source_hash)
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["excerpt_citations"][0]["source_hash"],
+            result.hits[0].provenance["source_hash"],
+        )
+        self.assertEqual(
+            payload["retrieval_evidence"]["excerpt_citations"][0]["source_hash"],
+            result.hits[0].provenance["source_hash"],
+        )
         self.assertEqual(payload["retrieval_citation_bundle"], result.citation_bundle())
         self.assertEqual(
             payload["retrieval_citation_bundle"]["doc_citations"],
@@ -1049,6 +1059,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             [
                 {
                     "doc_id": item["doc_id"],
+                    "source_hash": item["source_hash"],
                     "doc_fingerprint": item["provenance"]["doc_fingerprint"],
                     "doc_identity_fingerprint": item["provenance"]["doc_identity_fingerprint"],
                     "doc_rank": item["provenance"]["doc_rank"],
@@ -1066,6 +1077,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "doc_id": item["doc_id"],
                     "excerpt_id": item["excerpt_id"],
                     "doc_type": item["provenance"]["doc_type"],
+                    "source_hash": item["source_hash"],
                     "excerpt_fingerprint": item["provenance"]["excerpt_fingerprint"],
                     "excerpt_text_hash": item["provenance"]["excerpt_text_hash"],
                     "rank": item["provenance"]["rank"],

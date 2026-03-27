@@ -345,6 +345,7 @@ class RetrievalResult:
             "doc_citations": [
                 {
                     "doc_id": doc_hit.doc_id,
+                    "source_hash": doc_hit.source_hash,
                     "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
                     "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
                     "doc_rank": doc_hit.provenance.get("doc_rank"),
@@ -359,6 +360,7 @@ class RetrievalResult:
                     "doc_id": hit.doc_id,
                     "excerpt_id": hit.excerpt_id,
                     "doc_type": hit.provenance.get("doc_type"),
+                    "source_hash": hit.provenance.get("source_hash"),
                     "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
                     "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                     "match_count": hit.provenance.get("match_count"),
@@ -1083,6 +1085,7 @@ class RetrievalService:
                     "doc_id": hit.doc_id,
                     "excerpt_id": hit.excerpt_id,
                     "doc_type": hit.provenance.get("doc_type"),
+                    "source_hash": hit.provenance.get("source_hash"),
                     "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
                     "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                     "span": hit.provenance.get("span"),
