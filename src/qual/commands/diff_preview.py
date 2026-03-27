@@ -29,6 +29,7 @@ OUTPUT_FORMAT_ENV = "QUAL_DIFF_OUTPUT_FORMAT"
 INCLUDE_FINGERPRINT_ENV = "QUAL_DIFF_INCLUDE_FINGERPRINT"
 MAX_FILE_LABEL_CHARS = 120
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
+COMMAND_NAME = "diff-preview"
 
 
 @dataclass(frozen=True)
@@ -200,6 +201,7 @@ def _diff_fingerprint(diff: str) -> dict[str, object]:
 
 def _no_diff_payload(message: str, *, summary_only: bool) -> dict[str, object]:
     return {
+        "command": COMMAND_NAME,
         "diff": "",
         "fingerprint": None,
         "message": message,
@@ -262,6 +264,7 @@ def _text_or_json_result(
     if _resolve_output_format() == "json":
         return _json_result(
             {
+                "command": COMMAND_NAME,
                 "diff": _emitted_diff_payload(output=output, summary_only=summary_only),
                 "fingerprint": emitted_fingerprint,
                 "labels": {

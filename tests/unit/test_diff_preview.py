@@ -100,6 +100,7 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
             }
         ):
             payload = json.loads(run_diff_preview(DiffPreviewInput("a\nold\n", "a\nnew\n")))
+        self.assertEqual(payload["command"], "diff-preview")
         self.assertIsNone(payload["fingerprint"])
         self.assertEqual(payload["status"], "ok")
         self.assertEqual(payload["summary"]["text"], "Diff summary: +1 -1 (hunks: 1)")
@@ -130,6 +131,7 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
         self.assertEqual(
             payload,
             {
+                "command": "diff-preview",
                 "diff": "",
                 "fingerprint": None,
                 "message": "No diff: inputs are identical after normalization.",
@@ -144,6 +146,7 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
         with _env(**{OUTPUT_FORMAT_ENV: "json", SUMMARY_ONLY_ENV: "1"}):
             payload = json.loads(run_diff_preview(DiffPreviewInput("same\n", "same\n")))
         self.assertEqual(payload["status"], "no_diff")
+        self.assertEqual(payload["command"], "diff-preview")
         self.assertTrue(payload["summary_only"])
         self.assertEqual(payload["diff"], "")
 
