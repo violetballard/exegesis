@@ -433,6 +433,13 @@ class RetrievalResult:
                 if hit.excerpt_id is not None
             ],
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
+            "retrieval_provenance": copy.deepcopy(
+                self._retrieval_provenance_snapshot(
+                    citation_bundle=self.citation_bundle(),
+                    citation_status=self._citation_status_snapshot(),
+                    retrieval_policy=self._retrieval_policy_snapshot(),
+                )
+            ),
             "retrieval_evidence": copy.deepcopy(self.evidence),
         }
 

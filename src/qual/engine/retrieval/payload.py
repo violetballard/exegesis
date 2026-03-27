@@ -257,6 +257,7 @@ def build_retrieval_excerpt_bundle_from_result(
         "excerpt_hits": excerpt_hits,
         "excerpt_citations": excerpt_citations,
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
+        "retrieval_provenance": copy.deepcopy(retrieval_provenance),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
     }
 
