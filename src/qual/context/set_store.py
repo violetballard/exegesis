@@ -165,7 +165,9 @@ class ContextSetStore:
                 seed_tmp_payload,
                 seed_payload,
             )
-            if payload is None:
+            if payload is None or (
+                isinstance(primary_payload, list) and not self._has_context_set_records(payload)
+            ):
                 payload = primary_payload
                 recovered_source = None
         elif isinstance(primary_payload, list):
@@ -176,7 +178,7 @@ class ContextSetStore:
                 seed_tmp_payload,
                 seed_payload,
             )
-            if payload is None:
+            if payload is None or not self._has_context_set_records(payload):
                 payload = primary_payload
                 recovered_source = None
         elif primary_payload is not None:
