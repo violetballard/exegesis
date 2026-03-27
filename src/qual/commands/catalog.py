@@ -42,6 +42,7 @@ class CommandFlowSequence:
 class CommandSurfaceContract:
     flow_steps: tuple[str, ...]
     names: tuple[str, ...]
+    manifest: tuple[CommandManifestEntry, ...]
     lookup_table: tuple[tuple[str, str], ...]
     lookup_index: tuple[tuple[str, str], ...]
     lookup_tokens: tuple[tuple[str, ...], ...]
@@ -304,9 +305,11 @@ def command_surface_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandSurfaceContract:
     flow = command_mvp_flow(specs)
+    manifest = command_manifest(specs)
     return CommandSurfaceContract(
         flow_steps=command_mvp_flow_steps(),
         names=tuple(entry.name for entry in flow),
+        manifest=manifest,
         lookup_table=tuple((entry.flow_step, entry.name) for entry in flow),
         lookup_index=command_flow_lookup_index(specs, command_mvp_flow_steps()),
         lookup_tokens=tuple(entry.lookup_tokens for entry in flow),
