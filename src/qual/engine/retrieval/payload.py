@@ -20,6 +20,11 @@ class RetrievalSourceBundleSource(Protocol):
         """Return the deterministic doc and excerpt snapshot consumed by engine flows."""
 
 
+class RetrievalExcerptBundleSource(Protocol):
+    def retrieval_excerpt_bundle(self) -> dict[str, object]:
+        """Return the deterministic excerpt-focused snapshot consumed by engine flows."""
+
+
 class RetrievalContextBundleSource(Protocol):
     def retrieval_context_bundle(self) -> dict[str, object]:
         """Return the deterministic retrieval context consumed by engine flows."""
@@ -223,6 +228,36 @@ def build_retrieval_source_bundle_from_result(
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
+    }
+
+
+def build_retrieval_excerpt_bundle_from_result(
+    result: RetrievalDownstreamPayloadSource | RetrievalExcerptBundleSource,
+) -> dict[str, object]:
+    """Return the deterministic excerpt-focused snapshot for downstream engine flows."""
+
+    bundle_source = getattr(result, "retrieval_excerpt_bundle", None)
+    if callable(bundle_source):
+        return copy.deepcopy(bundle_source())
+    payload = build_retrieval_downstream_payload_from_result(result)
+    excerpt_hits = copy.deepcopy(payload.get("excerpt_hits", []))
+    excerpt_citations: list[dict[str, object]] = []
+    retrieval_provenance = payload.get("retrieval_provenance", {})
+    if isinstance(retrieval_provenance, dict):
+        excerpt_citations = copy.deepcopy(retrieval_provenance.get("excerpt_citations", []))
+    return {
+        "result_fingerprint": payload.get("result_fingerprint"),
+        "query_fingerprint": payload.get("query_fingerprint"),
+        "retrieval_backend": payload.get("retrieval_backend"),
+        "retrieval_mode": payload.get("retrieval_mode"),
+        "retrieval_policy": copy.deepcopy(payload.get("retrieval_policy", payload.get("policy", {}))),
+        "citation_status": copy.deepcopy(payload.get("citation_status", {})),
+        "doc_count": len(copy.deepcopy(payload.get("doc_hits", []))),
+        "excerpt_count": len(excerpt_hits),
+        "excerpt_hits": excerpt_hits,
+        "excerpt_citations": excerpt_citations,
+        "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
+        "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
     }
 
 

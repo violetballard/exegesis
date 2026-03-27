@@ -110,6 +110,27 @@ def retrieve_fts_source_bundle(
     return service.retrieve_fts_source_bundle(query)
 
 
+def retrieve_fts_excerpt_bundle(
+    service: RetrievalService,
+    *,
+    query_text: str,
+    scope: str,
+    intent: str,
+    constraints: dict[str, object] | None = None,
+    confidentiality_profile: str = "confidential",
+) -> dict[str, object]:
+    """Return the canonical excerpt-focused bundle for a single FTS retrieval."""
+
+    query = _build_retrieval_query(
+        query_text=query_text,
+        scope=scope,
+        intent=intent,
+        constraints=constraints,
+        confidentiality_profile=confidentiality_profile,
+    )
+    return service.retrieve_fts_excerpt_bundle(query)
+
+
 def retrieve_auto(
     service: RetrievalService,
     *,
@@ -171,6 +192,27 @@ def retrieve_auto_source_bundle(
     return service.retrieve_auto_source_bundle(query)
 
 
+def retrieve_auto_excerpt_bundle(
+    service: RetrievalService,
+    *,
+    query_text: str,
+    scope: str,
+    intent: str,
+    constraints: dict[str, object] | None = None,
+    confidentiality_profile: str = "confidential",
+) -> dict[str, object]:
+    """Return the canonical excerpt-focused bundle for the FTS-first auto path."""
+
+    query = _build_retrieval_query(
+        query_text=query_text,
+        scope=scope,
+        intent=intent,
+        constraints=constraints,
+        confidentiality_profile=confidentiality_profile,
+    )
+    return service.retrieve_auto_excerpt_bundle(query)
+
+
 def retrieve_auto_payload(
     service: RetrievalService,
     *,
@@ -206,8 +248,10 @@ __all__ = [
     "retrieve_fts_payload",
     "retrieve_fts_context_bundle",
     "retrieve_fts_source_bundle",
+    "retrieve_fts_excerpt_bundle",
     "retrieve_auto",
     "retrieve_auto_context_bundle",
     "retrieve_auto_source_bundle",
+    "retrieve_auto_excerpt_bundle",
     "retrieve_auto_payload",
 ]
