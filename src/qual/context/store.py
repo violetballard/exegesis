@@ -671,11 +671,11 @@ class ContextBasketStore:
     ) -> tuple[dict[str, object] | list[object] | None, str | None]:
         fallback_candidate: tuple[dict[str, object] | list[object] | None, str | None] = (None, None)
         for candidate, recovered_source in (
-            (tmp_payload, "tmp"),
             (backup_tmp_payload, "backup_tmp"),
             (backup_payload, "backup"),
             (seed_tmp_payload, "seed_tmp"),
             (seed_payload, "seed"),
+            (tmp_payload, "tmp"),
         ):
             if candidate is None:
                 continue
