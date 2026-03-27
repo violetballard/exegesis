@@ -127,6 +127,24 @@ class CommandCatalogTests(unittest.TestCase):
                 )
             )
 
+    def test_command_lookup_table_deduplicates_normalized_lookup_tokens(self) -> None:
+        self.assertEqual(command_lookup_table(), command_lookup_index())
+        self.assertEqual(
+            command_lookup_table(),
+            (
+                ("bootstrap", "bootstrap"),
+                ("open", "bootstrap"),
+                ("project-open", "bootstrap"),
+                ("project", "bootstrap"),
+                ("diff-preview", "diff-preview"),
+                ("diff", "diff-preview"),
+                ("context-basket", "context-basket"),
+                ("context", "context-basket"),
+                ("basket", "context-basket"),
+                ("terminal", "terminal"),
+            ),
+        )
+
     def test_command_flow_sequence_bundles_the_catalog_smoke_contract(self) -> None:
         sequence = command_flow_sequence()
         self.assertEqual(sequence.flow_steps, command_flow_steps())
