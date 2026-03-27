@@ -35,11 +35,14 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         description="Run terminal routing scaffolding.",
     ),
 )
-_COMMAND_NAME_BY_ALIAS = {
-    _normalize_token(alias): spec.name
-    for spec in COMMAND_SPECS
-    for alias in (spec.name, *spec.aliases)
-}
+_COMMAND_SPEC_BY_ALIAS: dict[str, CommandSpec] = {}
+for spec in COMMAND_SPECS:
+    for alias in (spec.name, *spec.aliases):
+        normalized = _normalize_token(alias)
+        existing = _COMMAND_SPEC_BY_ALIAS.get(normalized)
+        if existing is not None and existing.name != spec.name:
+            raise ValueError(f"Duplicate command lookup alias: {alias}")
+        _COMMAND_SPEC_BY_ALIAS[normalized] = spec
 
 
 def command_names() -> tuple[str, ...]:
@@ -50,8 +53,25 @@ def command_specs() -> tuple[CommandSpec, ...]:
     return COMMAND_SPECS
 
 
+def command_spec(name: str) -> CommandSpec | None:
+    normalized = _normalize_token(name)
+    if not normalized:
+        return None
+    return _COMMAND_SPEC_BY_ALIAS.get(normalized)
+
+
+def command_aliases(name: str) -> tuple[str, ...]:
+    spec = command_spec(name)
+    if spec is None:
+        return ()
+    return spec.aliases
+
+
 def canonical_command(name: str) -> str:
     normalized = _normalize_token(name)
     if not normalized:
         return name.strip()
-    return _COMMAND_NAME_BY_ALIAS.get(normalized, name.strip())
+    spec = command_spec(normalized)
+    if spec is None:
+        return normalized
+    return spec.name
