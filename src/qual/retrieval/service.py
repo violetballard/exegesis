@@ -152,12 +152,21 @@ class RetrievalHit:
         query_intent = self.provenance.get("query_intent")
         if isinstance(query_intent, str) and query_intent:
             payload["query_intent"] = query_intent
+        query_date_range = self.provenance.get("query_date_range")
+        if isinstance(query_date_range, list):
+            payload["query_date_range"] = copy.deepcopy(query_date_range)
         source_hash = self.provenance.get("source_hash")
         if isinstance(source_hash, str) and source_hash:
             payload["source_hash"] = source_hash
         doc_type = self.provenance.get("doc_type")
         if isinstance(doc_type, str) and doc_type:
             payload["doc_type"] = doc_type
+        candidate_doc_count = self.provenance.get("candidate_doc_count")
+        if isinstance(candidate_doc_count, int):
+            payload["candidate_doc_count"] = candidate_doc_count
+        fts_shortlist_doc_ids = self.provenance.get("fts_shortlist_doc_ids")
+        if isinstance(fts_shortlist_doc_ids, list):
+            payload["fts_shortlist_doc_ids"] = copy.deepcopy(fts_shortlist_doc_ids)
         retrieval_backend = self.provenance.get("retrieval_backend")
         if isinstance(retrieval_backend, str) and retrieval_backend:
             payload["retrieval_backend"] = retrieval_backend
@@ -228,6 +237,15 @@ class RetrievalDocHit:
         query_intent = self.provenance.get("query_intent")
         if isinstance(query_intent, str) and query_intent:
             payload["query_intent"] = query_intent
+        query_date_range = self.provenance.get("query_date_range")
+        if isinstance(query_date_range, list):
+            payload["query_date_range"] = copy.deepcopy(query_date_range)
+        candidate_doc_count = self.provenance.get("candidate_doc_count")
+        if isinstance(candidate_doc_count, int):
+            payload["candidate_doc_count"] = candidate_doc_count
+        fts_shortlist_doc_ids = self.provenance.get("fts_shortlist_doc_ids")
+        if isinstance(fts_shortlist_doc_ids, list):
+            payload["fts_shortlist_doc_ids"] = copy.deepcopy(fts_shortlist_doc_ids)
         retrieval_backend = self.provenance.get("retrieval_backend")
         if isinstance(retrieval_backend, str) and retrieval_backend:
             payload["retrieval_backend"] = retrieval_backend
@@ -807,6 +825,8 @@ class RetrievalService:
             merged_hits,
             query_fingerprint=query_fingerprint,
             retrieval_policy=retrieval_policy,
+            candidate_doc_count=effective_candidate_doc_count,
+            fts_shortlist_doc_ids=fts_shortlist,
         )
         citation_status = {
             "required": query.constraints.require_citations,
@@ -1027,6 +1047,8 @@ class RetrievalService:
         *,
         query_fingerprint: str | None,
         retrieval_policy: dict[str, object],
+        candidate_doc_count: int | None = None,
+        fts_shortlist_doc_ids: tuple[str, ...] = (),
     ) -> list[RetrievalDocHit]:
         meta = self._load_doc_meta()
         grouped: dict[str, list[RetrievalHit]] = {}
@@ -1103,6 +1125,8 @@ class RetrievalService:
                         "query_scope": query.scope,
                         "query_intent": query.intent,
                         "query_date_range": list(query.constraints.date_range) if query.constraints.date_range is not None else None,
+                        "candidate_doc_count": candidate_doc_count,
+                        "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
                     },
                 )
             )
