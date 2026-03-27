@@ -84,6 +84,7 @@ class RetrievalConstraints:
             if len(normalized) != 2 or any(not value for value in normalized):
                 raise ValueError("date_range must contain exactly two non-empty values")
             object.__setattr__(self, "date_range", normalized)
+        object.__setattr__(self, "section_hint", _optional_text(self.section_hint))
 
 
 @dataclass(frozen=True)
