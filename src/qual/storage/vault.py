@@ -30,7 +30,10 @@ class VaultService:
         project_root = root_dir / safe_project_name
         project_root.mkdir(parents=True, exist_ok=True)
         (project_root / "attachments").mkdir(exist_ok=True)
-        raw_state, recovered_source, primary_unavailable = self._read_state(project_root, safe_project_name)
+        raw_state, recovered_source, primary_unavailable, preserve_backup_corrupt, preserve_seed_corrupt = self._read_state(
+            project_root,
+            safe_project_name,
+        )
         state_path = self._state_path(project_root)
         raw_project_name = raw_state.get("project_name") if "project_name" in raw_state else None
         normalized_project_name = (
@@ -91,12 +94,19 @@ class VaultService:
                     recovered_source=recovered_source,
                 ),
                 preserve_primary_corrupt=preserve_primary_corrupt,
+                preserve_backup_corrupt=preserve_backup_corrupt,
+                preserve_seed_corrupt=preserve_seed_corrupt,
             )
         else:
             backup_written = self._write_backup_payload(project_root, self._backup_payload(raw_state))
             if not backup_written:
                 self._write_seed(project_root, self._backup_payload(raw_state))
-            self._clear_recovery_artifacts(project_root, preserve_seed=not backup_written)
+            self._clear_recovery_artifacts(
+                project_root,
+                preserve_seed=not backup_written,
+                preserve_backup_corrupt=preserve_backup_corrupt,
+                preserve_seed_corrupt=preserve_seed_corrupt,
+            )
         return state
 
     def lock(self, state: VaultState) -> None:
@@ -150,9 +160,11 @@ class VaultService:
         self,
         root_dir: Path,
         expected_project_name: str,
-    ) -> tuple[dict[str, object], str | None, bool]:
+    ) -> tuple[dict[str, object], str | None, bool, bool, bool]:
         state_path = self._state_path(root_dir)
         primary_missing = not state_path.exists()
+        backup_present = self._backup_state_path(root_dir).exists()
+        seed_present = self._seed_state_path(root_dir).exists()
         primary_payload = self._load_payload(state_path)
         tmp_payload = self._load_payload(self._tmp_state_path(root_dir))
         backup_tmp_payload = self._load_payload(self._backup_tmp_state_path(root_dir))
@@ -169,7 +181,13 @@ class VaultService:
         if primary_payload is not None and not primary_needs_recovery:
             payload = primary_payload
             recovered_source = None
-            self._clear_quarantine_state(root_dir)
+            preserve_backup_corrupt = backup_present and backup_payload is None
+            preserve_seed_corrupt = seed_present and seed_payload is None
+            self._clear_quarantine_state(
+                root_dir,
+                preserve_backup_corrupt=preserve_backup_corrupt,
+                preserve_seed_corrupt=preserve_seed_corrupt,
+            )
             self._clear_temporary_state(root_dir)
             self._clear_seed_state(root_dir)
         else:
@@ -190,19 +208,23 @@ class VaultService:
                 else:
                     self._clear_quarantine_state(root_dir)
                     self._clear_temporary_state(root_dir)
-                    return {}, None, primary_payload is None
+                    return {}, None, primary_payload is None, False, False
         if not isinstance(payload, dict):
-            return {}, None, primary_payload is None
+            return {}, None, primary_payload is None, False, False
         primary_unavailable = primary_payload is None
         if primary_needs_recovery and recovered_source is not None:
             primary_unavailable = True
-        return payload, recovered_source, primary_unavailable
+        preserve_backup_corrupt = backup_present and backup_payload is None
+        preserve_seed_corrupt = seed_present and seed_payload is None
+        return payload, recovered_source, primary_unavailable, preserve_backup_corrupt, preserve_seed_corrupt
 
     def _write_state(
         self,
         state: VaultState,
         recovered_from: str | None = None,
         preserve_primary_corrupt: bool = False,
+        preserve_backup_corrupt: bool = False,
+        preserve_seed_corrupt: bool = False,
     ) -> None:
         state.root_dir.mkdir(parents=True, exist_ok=True)
         payload = {
@@ -231,6 +253,8 @@ class VaultService:
             state.root_dir,
             preserve_seed=not backup_written,
             preserve_primary_corrupt=preserve_primary_corrupt,
+            preserve_backup_corrupt=preserve_backup_corrupt,
+            preserve_seed_corrupt=preserve_seed_corrupt,
         )
 
     def _quarantine_invalid_state(self, root_dir: Path) -> None:
@@ -263,11 +287,15 @@ class VaultService:
         self,
         root_dir: Path,
         preserve_primary_corrupt: bool = False,
+        preserve_backup_corrupt: bool = False,
+        preserve_seed_corrupt: bool = False,
     ) -> None:
         if not preserve_primary_corrupt:
             self._unlink_if_exists(self._corrupt_state_path(root_dir))
-        self._unlink_if_exists(self._corrupt_path_for(self._backup_state_path(root_dir)))
-        self._unlink_if_exists(self._corrupt_path_for(self._seed_state_path(root_dir)))
+        if not preserve_backup_corrupt:
+            self._unlink_if_exists(self._corrupt_path_for(self._backup_state_path(root_dir)))
+        if not preserve_seed_corrupt:
+            self._unlink_if_exists(self._corrupt_path_for(self._seed_state_path(root_dir)))
         self._unlink_if_exists(self._corrupt_path_for(self._tmp_state_path(root_dir)))
         self._unlink_if_exists(self._corrupt_path_for(self._backup_tmp_state_path(root_dir)))
         self._unlink_if_exists(self._corrupt_path_for(self._seed_tmp_state_path(root_dir)))
@@ -286,8 +314,15 @@ class VaultService:
         *,
         preserve_seed: bool = False,
         preserve_primary_corrupt: bool = False,
+        preserve_backup_corrupt: bool = False,
+        preserve_seed_corrupt: bool = False,
     ) -> None:
-        self._clear_quarantine_state(root_dir, preserve_primary_corrupt=preserve_primary_corrupt)
+        self._clear_quarantine_state(
+            root_dir,
+            preserve_primary_corrupt=preserve_primary_corrupt,
+            preserve_backup_corrupt=preserve_backup_corrupt,
+            preserve_seed_corrupt=preserve_seed_corrupt,
+        )
         self._clear_temporary_state(root_dir)
         if not preserve_seed:
             self._clear_seed_state(root_dir)

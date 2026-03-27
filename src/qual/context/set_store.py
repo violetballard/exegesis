@@ -143,6 +143,8 @@ class ContextSetStore:
         self._quarantine_missing_context_sets_payload(self._backup_path, backup_payload)
         self._quarantine_missing_context_sets_payload(self._seed_tmp_path(), seed_tmp_payload)
         self._quarantine_missing_context_sets_payload(self._seed_state_path(), seed_payload)
+        preserve_backup_corrupt = self._quarantine_unrecoverable_list_payload(self._backup_path, backup_payload)
+        preserve_seed_corrupt = self._quarantine_unrecoverable_list_payload(self._seed_state_path(), seed_payload)
 
         primary_needs_quarantine = self._primary_context_sets_need_recovery(primary_payload)
         if not primary_needs_quarantine and isinstance(primary_payload, dict) and self._has_unknown_fields(
@@ -303,6 +305,8 @@ class ContextSetStore:
                 recovered_from=recovered_from,
                 refresh_backup=True,
                 preserve_primary_corrupt=preserve_primary_corrupt,
+                preserve_backup_corrupt=preserve_backup_corrupt,
+                preserve_seed_corrupt=preserve_seed_corrupt,
                 updated_at=rewrite_timestamp,
             )
         elif primary_payload is not None and (
@@ -313,7 +317,11 @@ class ContextSetStore:
             backup_written = self._write_backup_payload(
                 self._backup_payload_from_records(records, payload if isinstance(payload, dict) else {})
             )
-            self._clear_recovery_artifacts(preserve_seed=not backup_written)
+            self._clear_recovery_artifacts(
+                preserve_seed=not backup_written,
+                preserve_backup_corrupt=preserve_backup_corrupt,
+                preserve_seed_corrupt=preserve_seed_corrupt,
+            )
             if not backup_written:
                 self._write_seed(self._backup_payload_from_records(records, payload if isinstance(payload, dict) else {}))
         elif backup_payload is None or backup_missing or self._backup_needs_refresh(
@@ -326,13 +334,20 @@ class ContextSetStore:
                 backup_written = self._write_backup_payload(self._backup_payload_from_records(records, payload))
             else:
                 backup_written = self._write_backup()
-            self._clear_recovery_artifacts(preserve_seed=not backup_written)
+            self._clear_recovery_artifacts(
+                preserve_seed=not backup_written,
+                preserve_backup_corrupt=preserve_backup_corrupt,
+                preserve_seed_corrupt=preserve_seed_corrupt,
+            )
             if not backup_written:
                 self._write_seed(
                     self._backup_payload_from_records(records, payload) if isinstance(payload, dict) else payload
                 )
         else:
-            self._clear_recovery_artifacts()
+            self._clear_recovery_artifacts(
+                preserve_backup_corrupt=preserve_backup_corrupt,
+                preserve_seed_corrupt=preserve_seed_corrupt,
+            )
         return records
 
     def save(
@@ -341,6 +356,8 @@ class ContextSetStore:
         recovered_from: str | None = None,
         refresh_backup: bool = False,
         preserve_primary_corrupt: bool = False,
+        preserve_backup_corrupt: bool = False,
+        preserve_seed_corrupt: bool = False,
         updated_at: str | None = None,
     ) -> None:
         normalized_records = self._normalize_records(records)
@@ -375,6 +392,8 @@ class ContextSetStore:
         self._clear_recovery_artifacts(
             preserve_seed=not backup_written,
             preserve_primary_corrupt=preserve_primary_corrupt,
+            preserve_backup_corrupt=preserve_backup_corrupt,
+            preserve_seed_corrupt=preserve_seed_corrupt,
         )
 
     def create_context_set(self, name: str, item_ids: list[object] | None = None) -> ContextSetRecord:
@@ -444,11 +463,15 @@ class ContextSetStore:
         self,
         preserve_temporary: bool = False,
         preserve_primary_corrupt: bool = False,
+        preserve_backup_corrupt: bool = False,
+        preserve_seed_corrupt: bool = False,
     ) -> None:
         if not preserve_primary_corrupt:
             self._unlink_if_exists(self._corrupt_path())
-        self._unlink_if_exists(self._corrupt_path_for(self._backup_path))
-        self._unlink_if_exists(self._corrupt_path_for(self._seed_state_path()))
+        if not preserve_backup_corrupt:
+            self._unlink_if_exists(self._corrupt_path_for(self._backup_path))
+        if not preserve_seed_corrupt:
+            self._unlink_if_exists(self._corrupt_path_for(self._seed_state_path()))
         if not preserve_temporary:
             self._unlink_if_exists(self._corrupt_path_for(self._tmp_path()))
             self._unlink_if_exists(self._corrupt_path_for(self._backup_tmp_path()))
@@ -463,8 +486,14 @@ class ContextSetStore:
         self,
         preserve_seed: bool = False,
         preserve_primary_corrupt: bool = False,
+        preserve_backup_corrupt: bool = False,
+        preserve_seed_corrupt: bool = False,
     ) -> None:
-        self._clear_quarantine_file(preserve_primary_corrupt=preserve_primary_corrupt)
+        self._clear_quarantine_file(
+            preserve_primary_corrupt=preserve_primary_corrupt,
+            preserve_backup_corrupt=preserve_backup_corrupt,
+            preserve_seed_corrupt=preserve_seed_corrupt,
+        )
         self._clear_temporary_files()
         if not preserve_seed:
             self._unlink_if_exists(self._seed_state_path())
@@ -796,6 +825,16 @@ class ContextSetStore:
         if "context_sets" not in payload:
             return False
         return bool(self._parse_context_sets(payload.get("context_sets")))
+
+    def _quarantine_unrecoverable_list_payload(self, path: Path, payload: object) -> bool:
+        if path not in {self._backup_path, self._seed_state_path()}:
+            return False
+        if not isinstance(payload, list):
+            return False
+        if self._has_context_set_records(payload):
+            return False
+        self._quarantine_path(path)
+        return True
 
     def _is_empty_recovery_payload(self, payload: dict[str, object] | list[object] | None) -> bool:
         return payload is not None and not self._has_context_set_records(payload)

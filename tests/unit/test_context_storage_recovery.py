@@ -538,6 +538,26 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertNotIn("recovered_from", payload)
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
 
+    def test_backup_legacy_list_with_only_invalid_entries_is_preserved_for_audit(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store.save(ContextBasket(item_ids=["primary"]))
+        corrupt_path = self.store._backup_path.with_suffix(".corrupt.json")
+        self.store._backup_path.write_text(
+            json.dumps([None, "", {"bad": "value"}]),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["primary"])
+        self.assertTrue(corrupt_path.exists())
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(corrupt_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["primary"])
+        self.assertEqual(backup_payload.get("item_ids"), ["primary"])
+        self.assertEqual(quarantined_payload, [None, "", {"bad": "value"}])
+
     def test_backup_with_malformed_optional_metadata_is_rewritten_canonically(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text("{bad", encoding="utf-8")
@@ -966,6 +986,29 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("item_ids"), ["first", "second"])
         self.assertEqual(payload.get("recovered_from"), "backup")
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
+
+    def test_backup_legacy_list_with_only_invalid_entries_is_preserved_for_audit(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store.save(ContextBasket(item_ids=["primary"]))
+        corrupt_path = self.store._backup_path.with_suffix(".corrupt.json")
+        self.store._backup_path.write_text(
+            json.dumps([None, "", {"context_set_id": "", "name": "drop me"}]),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["primary"])
+        self.assertTrue(corrupt_path.exists())
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(corrupt_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["primary"])
+        self.assertEqual(backup_payload.get("item_ids"), ["primary"])
+        self.assertEqual(
+            quarantined_payload,
+            [None, "", {"context_set_id": "", "name": "drop me"}],
+        )
 
     def test_seed_with_invalid_metadata_is_salvaged_and_rewritten(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
@@ -2144,6 +2187,27 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertFalse(payload.get("is_locked"))
         self.assertEqual(payload.get("recovered_from"), "backup")
         self.assertNotEqual(payload.get("updated_at"), "not-a-timestamp")
+
+    def test_backup_legacy_list_with_only_invalid_entries_is_preserved_for_audit(self) -> None:
+        state = self.svc.create_or_open(self.root, "p7-backup-audit")
+        state_path = state.root_dir / ".vault_state.json"
+        backup_path = state.root_dir / ".vault_state.bak.json"
+        corrupt_path = backup_path.with_suffix(".corrupt.json")
+        backup_path.write_text(
+            json.dumps([None, "", {"bad": "value"}]),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p7-backup-audit")
+
+        self.assertEqual(reopened.is_locked, state.is_locked)
+        self.assertTrue(corrupt_path.exists())
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(backup_path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(corrupt_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p7-backup-audit")
+        self.assertEqual(backup_payload.get("project_name"), "p7-backup-audit")
+        self.assertEqual(quarantined_payload, [None, "", {"bad": "value"}])
 
     def test_backup_with_malformed_optional_metadata_is_rewritten_canonically(self) -> None:
         state = self.svc.create_or_open(self.root, "p7-metadata")

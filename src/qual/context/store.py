@@ -53,6 +53,8 @@ class ContextBasketStore:
         self._quarantine_missing_item_ids_payload(self._backup_path, backup_payload)
         self._quarantine_missing_item_ids_payload(self._seed_tmp_path(), seed_tmp_payload)
         self._quarantine_missing_item_ids_payload(self._seed_state_path(), seed_payload)
+        preserve_backup_corrupt = self._quarantine_unrecoverable_list_payload(self._backup_path, backup_payload)
+        preserve_seed_corrupt = self._quarantine_unrecoverable_list_payload(self._seed_state_path(), seed_payload)
         primary_missing_item_ids = isinstance(primary_payload, dict) and "item_ids" not in primary_payload
         primary_item_ids_need_recovery = self._primary_item_ids_need_recovery(primary_payload)
         primary_needs_quarantine = primary_item_ids_need_recovery or (
@@ -215,6 +217,8 @@ class ContextBasketStore:
                 recovered_from=recovered_from,
                 refresh_backup=True,
                 preserve_primary_corrupt=preserve_primary_corrupt,
+                preserve_backup_corrupt=preserve_backup_corrupt,
+                preserve_seed_corrupt=preserve_seed_corrupt,
             )
         elif primary_payload is not None and (
             backup_payload is None
@@ -226,7 +230,11 @@ class ContextBasketStore:
             )
         ):
             backup_written = self._write_backup_payload(self._backup_payload(payload))
-            self._clear_recovery_artifacts(preserve_seed=not backup_written)
+            self._clear_recovery_artifacts(
+                preserve_seed=not backup_written,
+                preserve_backup_corrupt=preserve_backup_corrupt,
+                preserve_seed_corrupt=preserve_seed_corrupt,
+            )
             if not backup_written:
                 self._write_seed(self._backup_payload(payload))
         elif backup_payload is None or backup_missing or self._backup_needs_refresh(
@@ -239,11 +247,18 @@ class ContextBasketStore:
                 backup_written = self._write_backup_payload(self._backup_payload(payload))
             else:
                 backup_written = self._write_backup()
-            self._clear_recovery_artifacts(preserve_seed=not backup_written)
+            self._clear_recovery_artifacts(
+                preserve_seed=not backup_written,
+                preserve_backup_corrupt=preserve_backup_corrupt,
+                preserve_seed_corrupt=preserve_seed_corrupt,
+            )
             if not backup_written:
                 self._write_seed(self._backup_payload(payload) if isinstance(payload, dict) else payload)
         else:
-            self._clear_recovery_artifacts()
+            self._clear_recovery_artifacts(
+                preserve_backup_corrupt=preserve_backup_corrupt,
+                preserve_seed_corrupt=preserve_seed_corrupt,
+            )
         return basket
 
 
@@ -253,6 +268,8 @@ class ContextBasketStore:
         recovered_from: str | None = None,
         refresh_backup: bool = False,
         preserve_primary_corrupt: bool = False,
+        preserve_backup_corrupt: bool = False,
+        preserve_seed_corrupt: bool = False,
     ) -> None:
         basket.normalize()
         self._path.parent.mkdir(parents=True, exist_ok=True)
@@ -287,6 +304,8 @@ class ContextBasketStore:
         self._clear_recovery_artifacts(
             preserve_seed=not backup_written,
             preserve_primary_corrupt=preserve_primary_corrupt,
+            preserve_backup_corrupt=preserve_backup_corrupt,
+            preserve_seed_corrupt=preserve_seed_corrupt,
         )
 
     def clear(self) -> None:
@@ -332,11 +351,15 @@ class ContextBasketStore:
         self,
         preserve_temporary: bool = False,
         preserve_primary_corrupt: bool = False,
+        preserve_backup_corrupt: bool = False,
+        preserve_seed_corrupt: bool = False,
     ) -> None:
         if not preserve_primary_corrupt:
             self._unlink_if_exists(self._corrupt_path())
-        self._unlink_if_exists(self._corrupt_path_for(self._backup_path))
-        self._unlink_if_exists(self._corrupt_path_for(self._seed_state_path()))
+        if not preserve_backup_corrupt:
+            self._unlink_if_exists(self._corrupt_path_for(self._backup_path))
+        if not preserve_seed_corrupt:
+            self._unlink_if_exists(self._corrupt_path_for(self._seed_state_path()))
         if not preserve_temporary:
             self._unlink_if_exists(self._corrupt_path_for(self._tmp_path()))
             self._unlink_if_exists(self._corrupt_path_for(self._backup_tmp_path()))
@@ -351,8 +374,14 @@ class ContextBasketStore:
         self,
         preserve_seed: bool = False,
         preserve_primary_corrupt: bool = False,
+        preserve_backup_corrupt: bool = False,
+        preserve_seed_corrupt: bool = False,
     ) -> None:
-        self._clear_quarantine_file(preserve_primary_corrupt=preserve_primary_corrupt)
+        self._clear_quarantine_file(
+            preserve_primary_corrupt=preserve_primary_corrupt,
+            preserve_backup_corrupt=preserve_backup_corrupt,
+            preserve_seed_corrupt=preserve_seed_corrupt,
+        )
         self._clear_temporary_files()
         if not preserve_seed:
             self._unlink_if_exists(self._seed_state_path())
@@ -599,6 +628,16 @@ class ContextBasketStore:
         if not isinstance(item_ids, list):
             return True
         return any(not self._normalize_item_id(item_id) for item_id in item_ids)
+
+    def _quarantine_unrecoverable_list_payload(self, path: Path, payload: object) -> bool:
+        if path not in {self._backup_path, self._seed_state_path()}:
+            return False
+        if not isinstance(payload, list):
+            return False
+        if self._has_recovery_payload_items(payload):
+            return False
+        self._quarantine_path(path)
+        return True
 
     def _recovery_marker(self, *, primary_unavailable: bool, recovered_source: str | None) -> str | None:
         if not primary_unavailable:
