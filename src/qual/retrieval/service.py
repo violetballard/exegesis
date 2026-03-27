@@ -349,13 +349,30 @@ class RetrievalResult:
         )
 
     def citation_bundle(self) -> dict[str, object]:
-        """Return deterministic doc and excerpt citations for downstream flows."""
+        """Return deterministic doc/excerpt citations and query context for downstream flows."""
         active_strategy_ids = list(self.diagnostics["active_strategy_ids"])
         deferred_strategy_ids = list(self.diagnostics["deferred_strategy_ids"])
         citation_status = self._citation_status_snapshot()
+        query_date_range = (
+            list(self.query.constraints.date_range)
+            if self.query.constraints.date_range is not None
+            else None
+        )
+        fts_shortlist_doc_ids = self.diagnostics.get("fts_shortlist_doc_ids", [])
+        if isinstance(fts_shortlist_doc_ids, list):
+            fts_shortlist_doc_ids = copy.deepcopy(fts_shortlist_doc_ids)
+        elif isinstance(fts_shortlist_doc_ids, tuple):
+            fts_shortlist_doc_ids = list(fts_shortlist_doc_ids)
+        else:
+            fts_shortlist_doc_ids = []
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "result_fingerprint": self.result_fingerprint,
+            "query_scope": self.query.scope,
+            "query_intent": self.query.intent,
+            "query_date_range": query_date_range,
+            "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
+            "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
             "retrieval_policy": copy.deepcopy(self.diagnostics["retrieval_policy"]),

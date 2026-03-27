@@ -42,6 +42,13 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
     if isinstance(citation_bundle, dict):
         return copy.deepcopy(citation_bundle)
 
+    query = payload.get("query", {})
+    if not isinstance(query, dict):
+        query = {}
+    query_constraints = query.get("constraints", {})
+    if not isinstance(query_constraints, dict):
+        query_constraints = {}
+
     provenance = payload.get("retrieval_provenance", {})
     summary = payload.get("retrieval_summary", {})
     diagnostics = payload.get("retrieval_diagnostics", {})
@@ -59,11 +66,60 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
         "deferred_strategy_ids",
         summary.get("deferred_strategy_ids", diagnostics.get("deferred_strategy_ids", [])),
     )
+    query_scope = query.get(
+        "scope",
+        provenance.get("query_scope", summary.get("query_scope", diagnostics.get("query_scope"))),
+    )
+    query_intent = query.get(
+        "intent",
+        provenance.get("query_intent", summary.get("query_intent", diagnostics.get("query_intent"))),
+    )
+    query_date_range = query_constraints.get(
+        "date_range",
+        provenance.get("query_date_range", summary.get("query_date_range", diagnostics.get("date_range"))),
+    )
+    if isinstance(query_date_range, tuple):
+        query_date_range = list(query_date_range)
+    elif isinstance(query_date_range, list):
+        query_date_range = copy.deepcopy(query_date_range)
+    else:
+        query_date_range = None
+    candidate_doc_count = provenance.get(
+        "candidate_doc_count",
+        summary.get("candidate_doc_count", diagnostics.get("candidate_doc_count")),
+    )
+    fts_shortlist_doc_ids = provenance.get(
+        "fts_shortlist_doc_ids",
+        summary.get("fts_shortlist_doc_ids", diagnostics.get("fts_shortlist_doc_ids", [])),
+    )
+    if isinstance(fts_shortlist_doc_ids, list):
+        fts_shortlist_doc_ids = copy.deepcopy(fts_shortlist_doc_ids)
+    elif isinstance(fts_shortlist_doc_ids, tuple):
+        fts_shortlist_doc_ids = list(fts_shortlist_doc_ids)
+    else:
+        fts_shortlist_doc_ids = []
     return {
-        "query_fingerprint": provenance.get("query_fingerprint", summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))),
-        "result_fingerprint": provenance.get("result_fingerprint", summary.get("result_fingerprint", diagnostics.get("result_fingerprint"))),
-        "retrieval_backend": provenance.get("retrieval_backend", summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))),
-        "retrieval_mode": provenance.get("retrieval_mode", summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))),
+        "query_fingerprint": provenance.get(
+            "query_fingerprint",
+            summary.get("query_fingerprint", diagnostics.get("query_fingerprint")),
+        ),
+        "result_fingerprint": provenance.get(
+            "result_fingerprint",
+            summary.get("result_fingerprint", diagnostics.get("result_fingerprint")),
+        ),
+        "query_scope": query_scope,
+        "query_intent": query_intent,
+        "query_date_range": query_date_range,
+        "candidate_doc_count": candidate_doc_count,
+        "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
+        "retrieval_backend": provenance.get(
+            "retrieval_backend",
+            summary.get("retrieval_backend", diagnostics.get("retrieval_backend")),
+        ),
+        "retrieval_mode": provenance.get(
+            "retrieval_mode",
+            summary.get("retrieval_mode", diagnostics.get("retrieval_mode")),
+        ),
         "retrieval_policy": copy.deepcopy(
             provenance.get(
                 "retrieval_policy",
