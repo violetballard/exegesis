@@ -10,6 +10,8 @@ from src.qual.commands import (
     command_manifest,
     command_mvp_flow,
     command_mvp_flow_names,
+    command_mvp_flow_catalog,
+    command_mvp_flow_lookup_table,
     command_mvp_flow_steps,
     command_names,
     command_spec,
@@ -71,6 +73,38 @@ class CommandCatalogTests(unittest.TestCase):
             tuple(entry.lookup_tokens for entry in manifest),
         )
 
+    def test_command_mvp_flow_catalog_exposes_the_demo_sequence(self) -> None:
+        flow = command_mvp_flow_catalog()
+        self.assertEqual(
+            tuple((entry.flow_step, entry.name) for entry in flow),
+            (
+                ("project-open", "bootstrap"),
+                ("retrieval", "context-basket"),
+                ("patch-review", "diff-preview"),
+                ("export-handoff", "terminal"),
+            ),
+        )
+        self.assertEqual(
+            tuple(entry.lookup_tokens for entry in flow),
+            (
+                ("bootstrap", "open", "project-open", "project"),
+                ("context-basket", "context", "basket"),
+                ("diff-preview", "diff", "diff_preview"),
+                ("terminal",),
+            ),
+        )
+
+    def test_command_mvp_flow_lookup_table_is_ordered_for_smoke_checks(self) -> None:
+        self.assertEqual(
+            command_mvp_flow_lookup_table(),
+            (
+                ("project-open", "bootstrap"),
+                ("retrieval", "context-basket"),
+                ("patch-review", "diff-preview"),
+                ("export-handoff", "terminal"),
+            ),
+        )
+
     def test_command_manifest_order_matches_mvp_flow(self) -> None:
         manifest = command_manifest()
         self.assertEqual(
@@ -95,6 +129,16 @@ class CommandCatalogTests(unittest.TestCase):
             tuple(entry.name for entry in command_mvp_flow()),
             command_mvp_flow_names(),
         )
+
+    def test_mvp_flow_catalog_rejects_missing_flow_steps(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Missing command flow steps"):
+            command_mvp_flow_catalog(
+                (
+                    CommandSpec(name="bootstrap", flow_step="project-open"),
+                    CommandSpec(name="diff-preview", flow_step="patch-review"),
+                    CommandSpec(name="terminal", flow_step="export-handoff"),
+                )
+            )
 
     def test_validate_command_catalog_rejects_ambiguous_definitions(self) -> None:
         with self.assertRaisesRegex(ValueError, "Duplicate command name"):

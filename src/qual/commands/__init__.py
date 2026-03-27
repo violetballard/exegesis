@@ -2,6 +2,7 @@
 
 from src.qual.commands.catalog import (
     CommandSpec,
+    CommandFlowEntry,
     CommandManifestEntry,
     canonical_command,
     command_aliases,
@@ -11,6 +12,8 @@ from src.qual.commands.catalog import (
     command_manifest,
     command_mvp_flow,
     command_mvp_flow_names,
+    command_mvp_flow_catalog,
+    command_mvp_flow_lookup_table,
     command_mvp_flow_steps,
     command_names,
     command_spec,
@@ -21,6 +24,7 @@ from src.qual.commands.catalog import (
 
 __all__ = [
     "CommandSpec",
+    "CommandFlowEntry",
     "CommandManifestEntry",
     "canonical_command",
     "command_aliases",
@@ -30,6 +34,8 @@ __all__ = [
     "command_manifest",
     "command_mvp_flow",
     "command_mvp_flow_names",
+    "command_mvp_flow_catalog",
+    "command_mvp_flow_lookup_table",
     "command_mvp_flow_steps",
     "command_names",
     "command_spec",

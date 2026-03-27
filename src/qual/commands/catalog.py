@@ -21,6 +21,15 @@ class CommandManifestEntry:
     lookup_tokens: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class CommandFlowEntry:
+    flow_step: str
+    name: str
+    aliases: tuple[str, ...]
+    description: str
+    lookup_tokens: tuple[str, ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -113,15 +122,15 @@ def _build_command_spec_by_alias(specs: tuple[CommandSpec, ...]) -> dict[str, Co
 _COMMAND_SPEC_BY_ALIAS = _build_command_spec_by_alias(COMMAND_SPECS)
 
 
-def command_names() -> tuple[str, ...]:
-    return tuple(spec.name for spec in COMMAND_SPECS)
+def command_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
+    return tuple(spec.name for spec in specs)
 
 
-def command_specs() -> tuple[CommandSpec, ...]:
-    return COMMAND_SPECS
+def command_specs(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[CommandSpec, ...]:
+    return specs
 
 
-def command_manifest() -> tuple[CommandManifestEntry, ...]:
+def command_manifest(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[CommandManifestEntry, ...]:
     return tuple(
         CommandManifestEntry(
             name=spec.name,
@@ -130,30 +139,45 @@ def command_manifest() -> tuple[CommandManifestEntry, ...]:
             flow_step=spec.flow_step,
             lookup_tokens=_lookup_tokens(spec),
         )
-        for spec in COMMAND_SPECS
+        for spec in specs
     )
 
 
-def command_lookup_table() -> tuple[tuple[str, str], ...]:
+def command_lookup_table(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[tuple[str, str], ...]:
     return tuple(
         (_normalize_token(alias), spec.name)
-        for spec in COMMAND_SPECS
+        for spec in specs
         for alias in _lookup_tokens(spec)
     )
 
 
-def command_flow_steps() -> tuple[str, ...]:
-    return tuple(spec.flow_step for spec in COMMAND_SPECS)
+def command_flow_steps(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
+    return tuple(spec.flow_step for spec in specs)
 
 
-def command_mvp_flow() -> tuple[CommandManifestEntry, ...]:
-    manifest_by_flow_step = {
-        entry.flow_step: entry
-        for entry in command_manifest()
-    }
-    missing_steps = tuple(
-        flow_step for flow_step in command_mvp_flow_steps() if flow_step not in manifest_by_flow_step
+def command_mvp_flow_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandFlowEntry, ...]:
+    manifest_by_flow_step = {entry.flow_step: entry for entry in command_manifest(specs)}
+    missing_steps = tuple(flow_step for flow_step in command_mvp_flow_steps() if flow_step not in manifest_by_flow_step)
+    if missing_steps:
+        raise ValueError(f"Missing command flow steps: {', '.join(missing_steps)}")
+    return tuple(
+        CommandFlowEntry(
+            flow_step=flow_step,
+            name=entry.name,
+            aliases=entry.aliases,
+            description=entry.description,
+            lookup_tokens=entry.lookup_tokens,
+        )
+        for flow_step in command_mvp_flow_steps()
+        for entry in (manifest_by_flow_step[flow_step],)
     )
+
+
+def command_mvp_flow(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[CommandManifestEntry, ...]:
+    manifest_by_flow_step = {entry.flow_step: entry for entry in command_manifest(specs)}
+    missing_steps = tuple(flow_step for flow_step in command_mvp_flow_steps() if flow_step not in manifest_by_flow_step)
     if missing_steps:
         raise ValueError(f"Missing command flow steps: {', '.join(missing_steps)}")
     return tuple(manifest_by_flow_step[flow_step] for flow_step in command_mvp_flow_steps())
@@ -163,12 +187,18 @@ def command_mvp_flow_steps() -> tuple[str, ...]:
     return MVP_COMMAND_FLOW_STEPS
 
 
-def command_mvp_flow_names() -> tuple[str, ...]:
-    return tuple(entry.name for entry in command_mvp_flow())
+def command_mvp_flow_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return tuple((entry.flow_step, entry.name) for entry in command_mvp_flow_catalog(specs))
 
 
-def command_tokens() -> tuple[str, ...]:
-    return tuple(alias for spec in COMMAND_SPECS for alias in _lookup_tokens(spec))
+def command_mvp_flow_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
+    return tuple(entry.name for entry in command_mvp_flow(specs))
+
+
+def command_tokens(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
+    return tuple(alias for spec in specs for alias in _lookup_tokens(spec))
 
 
 def command_lookup_tokens(name: str) -> tuple[str, ...]:
