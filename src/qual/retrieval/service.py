@@ -346,39 +346,8 @@ class RetrievalResult:
             "excerpt_count": len(self.hits),
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
-            "doc_citations": [
-                {
-                    "doc_id": doc_hit.doc_id,
-                    "source_hash": doc_hit.source_hash,
-                    "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
-                    "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
-                    "doc_rank": doc_hit.provenance.get("doc_rank"),
-                    "top_excerpt_id": doc_hit.top_excerpt_id,
-                    "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
-                    "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
-                }
-                for doc_hit in self.doc_hits
-            ],
-            "excerpt_citations": [
-                {
-                    "doc_id": hit.doc_id,
-                    "excerpt_id": hit.excerpt_id,
-                    "doc_type": hit.provenance.get("doc_type"),
-                    "source_hash": hit.provenance.get("source_hash"),
-                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
-                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
-                    "match_count": hit.provenance.get("match_count"),
-                    "matched_terms": hit.provenance.get("matched_terms"),
-                    "fts_rank": hit.provenance.get("fts_rank"),
-                    "rank": hit.provenance.get("rank"),
-                    "span": hit.provenance.get("span"),
-                    "source_strategy": hit.provenance.get("source_strategy"),
-                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
-                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
-                }
-                for hit in self.hits
-                if hit.excerpt_id is not None
-            ],
+            "doc_citations": self._doc_citation_snapshots(),
+            "excerpt_citations": self._excerpt_citation_snapshots(),
         }
 
     def as_downstream_payload(self) -> dict[str, object]:
@@ -405,19 +374,6 @@ class RetrievalResult:
     def retrieval_doc_bundle(self) -> dict[str, object]:
         """Return the deterministic doc-focused snapshot for downstream engine flows."""
 
-        doc_citations = [
-            {
-                "doc_id": doc_hit.doc_id,
-                "source_hash": doc_hit.source_hash,
-                "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
-                "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
-                "doc_rank": doc_hit.provenance.get("doc_rank"),
-                "top_excerpt_id": doc_hit.top_excerpt_id,
-                "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
-                "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
-            }
-            for doc_hit in self.doc_hits
-        ]
         return {
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
@@ -427,7 +383,7 @@ class RetrievalResult:
             "citation_status": self._citation_status_snapshot(),
             "doc_count": len(self.doc_hits),
             "doc_hits": [doc_hit.as_dict() for doc_hit in self.doc_hits],
-            "doc_citations": doc_citations,
+            "doc_citations": self._doc_citation_snapshots(),
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_provenance": copy.deepcopy(
                 self._retrieval_provenance_snapshot(
@@ -452,26 +408,7 @@ class RetrievalResult:
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
             "excerpt_hits": [hit.as_dict() for hit in self.hits],
-            "excerpt_citations": [
-                {
-                    "doc_id": hit.doc_id,
-                    "excerpt_id": hit.excerpt_id,
-                    "doc_type": hit.provenance.get("doc_type"),
-                    "source_hash": hit.provenance.get("source_hash"),
-                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
-                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
-                    "match_count": hit.provenance.get("match_count"),
-                    "matched_terms": hit.provenance.get("matched_terms"),
-                    "fts_rank": hit.provenance.get("fts_rank"),
-                    "rank": hit.provenance.get("rank"),
-                    "span": hit.provenance.get("span"),
-                    "source_strategy": hit.provenance.get("source_strategy"),
-                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
-                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
-                }
-                for hit in self.hits
-                if hit.excerpt_id is not None
-            ],
+            "excerpt_citations": self._excerpt_citation_snapshots(),
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_provenance": copy.deepcopy(
                 self._retrieval_provenance_snapshot(
@@ -525,6 +462,43 @@ class RetrievalResult:
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
         }
+
+    def _doc_citation_snapshots(self) -> list[dict[str, object]]:
+        return [
+            {
+                "doc_id": doc_hit.doc_id,
+                "source_hash": doc_hit.source_hash,
+                "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
+                "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
+                "doc_rank": doc_hit.provenance.get("doc_rank"),
+                "top_excerpt_id": doc_hit.top_excerpt_id,
+                "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
+                "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
+            }
+            for doc_hit in self.doc_hits
+        ]
+
+    def _excerpt_citation_snapshots(self) -> list[dict[str, object]]:
+        return [
+            {
+                "doc_id": hit.doc_id,
+                "excerpt_id": hit.excerpt_id,
+                "doc_type": hit.provenance.get("doc_type"),
+                "source_hash": hit.provenance.get("source_hash"),
+                "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                "match_count": hit.provenance.get("match_count"),
+                "matched_terms": hit.provenance.get("matched_terms"),
+                "fts_rank": hit.provenance.get("fts_rank"),
+                "rank": hit.provenance.get("rank"),
+                "span": hit.provenance.get("span"),
+                "source_strategy": hit.provenance.get("source_strategy"),
+                "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                "retrieval_mode": hit.provenance.get("retrieval_mode"),
+            }
+            for hit in self.hits
+            if hit.excerpt_id is not None
+        ]
 
     def _retrieval_summary_snapshot(
         self,
