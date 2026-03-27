@@ -668,7 +668,7 @@ class ContextBasketStore:
                 continue
             if self._has_recovery_payload_items(candidate):
                 return candidate, recovered_source
-            if fallback_candidate == (None, None):
+            if self._has_explicit_empty_recovery_payload(candidate) and fallback_candidate == (None, None):
                 fallback_candidate = (candidate, recovered_source)
         return fallback_candidate
 
