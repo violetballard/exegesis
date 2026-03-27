@@ -291,6 +291,7 @@ class RetrievalResult:
         retrieval_policy = self._retrieval_policy_snapshot()
         citation_bundle = self.citation_bundle()
         retrieval_doc_bundle = self.retrieval_doc_bundle()
+        retrieval_excerpt_bundle = self.retrieval_excerpt_bundle()
         citation_status = dict(citation_bundle["citation_status"])
         retrieval_summary = self._retrieval_summary_snapshot(
             retrieval_policy=retrieval_policy,
@@ -318,6 +319,7 @@ class RetrievalResult:
             citation_status=citation_status,
             retrieval_citation_bundle=citation_bundle,
             retrieval_doc_bundle=retrieval_doc_bundle,
+            retrieval_excerpt_bundle=retrieval_excerpt_bundle,
             retrieval_summary=retrieval_summary,
             doc_hits=[doc_hit.as_dict() for doc_hit in self.doc_hits],
             excerpt_hits=[hit.as_dict() for hit in self.hits],
