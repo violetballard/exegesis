@@ -1435,6 +1435,37 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["first", "second"])
 
+    def test_legacy_list_payload_missing_timestamps_is_backfilled_and_rewritten(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                [
+                    {
+                        "context_set_id": " set-1 ",
+                        "name": " Evidence ",
+                        "item_ids": [" first ", "second"],
+                    }
+                ]
+            ),
+            encoding="utf-8",
+        )
+        fixed_now = datetime(2026, 3, 20, 12, 0, 0, tzinfo=UTC)
+
+        with patch(
+            "src.qual.context.set_store.datetime",
+            new=SimpleNamespace(now=lambda tz=None: fixed_now, fromisoformat=datetime.fromisoformat),
+        ):
+            loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, "set-1")
+        self.assertEqual(loaded[0].name, "Evidence")
+        self.assertEqual(loaded[0].created_at, fixed_now.isoformat())
+        self.assertEqual(loaded[0].updated_at, fixed_now.isoformat())
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("context_sets")[0]["created_at"], fixed_now.isoformat())
+        self.assertEqual(payload.get("context_sets")[0]["updated_at"], fixed_now.isoformat())
+
     def test_legacy_list_payload_with_dropped_records_preserves_audit_quarantine(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text(

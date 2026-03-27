@@ -266,6 +266,9 @@ class ContextSetStore:
                 self._discard_payload_source(recovered_source)
                 return []
             records = self._normalize_records(parsed_records)
+            if records and self._records_need_timestamp_backfill(records):
+                records = self._backfill_record_timestamps(records, rewrite_timestamp)
+                should_rewrite = True
             # Promote legacy list payloads into the canonical dict format even
             # when their record contents are already normalized.
             should_rewrite = True
