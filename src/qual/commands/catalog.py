@@ -122,6 +122,18 @@ def _build_command_spec_by_alias(specs: tuple[CommandSpec, ...]) -> dict[str, Co
 _COMMAND_SPEC_BY_ALIAS = _build_command_spec_by_alias(COMMAND_SPECS)
 
 
+def command_flow_manifest(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandManifestEntry, ...]:
+    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    manifest_by_flow_step = {entry.flow_step: entry for entry in command_manifest(specs)}
+    missing_steps = tuple(flow_step for flow_step in ordered_flow_steps if flow_step not in manifest_by_flow_step)
+    if missing_steps:
+        raise ValueError(f"Missing command flow steps: {', '.join(missing_steps)}")
+    return tuple(manifest_by_flow_step[flow_step] for flow_step in ordered_flow_steps)
+
+
 def command_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
     return tuple(spec.name for spec in specs)
 
@@ -158,10 +170,7 @@ def command_flow_steps(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[
 def command_mvp_flow_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandFlowEntry, ...]:
-    manifest_by_flow_step = {entry.flow_step: entry for entry in command_manifest(specs)}
-    missing_steps = tuple(flow_step for flow_step in command_mvp_flow_steps() if flow_step not in manifest_by_flow_step)
-    if missing_steps:
-        raise ValueError(f"Missing command flow steps: {', '.join(missing_steps)}")
+    manifest_by_flow_step = {entry.flow_step: entry for entry in command_flow_manifest(specs, command_mvp_flow_steps())}
     return tuple(
         CommandFlowEntry(
             flow_step=flow_step,
@@ -176,11 +185,7 @@ def command_mvp_flow_catalog(
 
 
 def command_mvp_flow(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[CommandManifestEntry, ...]:
-    manifest_by_flow_step = {entry.flow_step: entry for entry in command_manifest(specs)}
-    missing_steps = tuple(flow_step for flow_step in command_mvp_flow_steps() if flow_step not in manifest_by_flow_step)
-    if missing_steps:
-        raise ValueError(f"Missing command flow steps: {', '.join(missing_steps)}")
-    return tuple(manifest_by_flow_step[flow_step] for flow_step in command_mvp_flow_steps())
+    return command_flow_manifest(specs, command_mvp_flow_steps())
 
 
 def command_mvp_flow_steps() -> tuple[str, ...]:
