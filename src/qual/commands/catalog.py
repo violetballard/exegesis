@@ -199,6 +199,19 @@ def command_lookup_table(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tupl
     )
 
 
+def command_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[tuple[str, str], ...]:
+    seen_tokens: set[str] = set()
+    index: list[tuple[str, str]] = []
+    for spec in specs:
+        for alias in _lookup_tokens(spec):
+            normalized_alias = _normalize_token(alias)
+            if normalized_alias in seen_tokens:
+                continue
+            seen_tokens.add(normalized_alias)
+            index.append((normalized_alias, spec.name))
+    return tuple(index)
+
+
 def command_flow_steps(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
     return tuple(spec.flow_step for spec in specs)
 
@@ -238,6 +251,19 @@ def command_mvp_flow_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
     return tuple((entry.flow_step, entry.name) for entry in command_mvp_flow_catalog(specs))
+
+
+def command_mvp_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[tuple[str, str], ...]:
+    seen_tokens: set[str] = set()
+    index: list[tuple[str, str]] = []
+    for entry in command_mvp_flow_catalog(specs):
+        for token in entry.lookup_tokens:
+            normalized_token = _normalize_token(token)
+            if normalized_token in seen_tokens:
+                continue
+            seen_tokens.add(normalized_token)
+            index.append((normalized_token, entry.name))
+    return tuple(index)
 
 
 def command_mvp_flow_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
