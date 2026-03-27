@@ -665,6 +665,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "build_retrieval_context_bundle_from_result",
                 "build_retrieval_provenance_from_result",
                 "build_retrieval_source_bundle_from_result",
+                "retrieve_fts",
                 "retrieve_fts_context_bundle",
                 "retrieve_fts_payload",
                 "retrieve_auto_context_bundle",
@@ -684,6 +685,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_citation_bundle_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_context_bundle_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_source_bundle_from_result"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_fts"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_context_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_payload"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_context_bundle"))
@@ -878,6 +880,41 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(direct_payload["retrieval_summary"]["doc_ids"], [item.doc_id for item in direct.doc_hits])
         self.assertEqual(direct_payload["retrieval_summary"]["excerpt_ids"], [item.excerpt_id for item in direct.hits if item.excerpt_id is not None])
+
+    def test_engine_retrieval_package_exposes_explicit_fts_entrypoint(self) -> None:
+        payload = {
+            "max_results": 5,
+            "doc_types": ["memo"],
+            "prefer_exact_matches": True,
+        }
+        direct = engine_retrieval.retrieve_fts(
+            self.service,
+            query_text="memo comparison",
+            scope="vault",
+            intent="compare",
+            constraints=payload,
+            confidentiality_profile="confidential",
+        )
+        expected = engine_retrieve_fts(
+            self.service,
+            query_text="memo comparison",
+            scope="vault",
+            intent="compare",
+            constraints=payload,
+            confidentiality_profile="confidential",
+        )
+
+        direct_payload = direct.to_downstream_payload()
+        expected_payload = expected.to_downstream_payload()
+        direct_payload.pop("audit_ref")
+        expected_payload.pop("audit_ref")
+        direct_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        expected_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        direct_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        expected_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        self.assertEqual(direct_payload, expected_payload)
+        self.assertEqual(direct.diagnostics["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(direct.diagnostics["retrieval_mode"], "fts_first")
 
     def test_retrieve_auto_payload_matches_canonical_fts_payload(self) -> None:
         query = RetrievalQuery(
