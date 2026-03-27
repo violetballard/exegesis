@@ -5,12 +5,12 @@ import json
 
 LANES = [
     'feat-context-storage',
-    'feat-ux-flow',
     'feat-commands',
     'feat-retrieval-fts',
     'feat-a2ui-contract',
     'feat-engine-runs',
-    'feat-console',
+    'feat-console-shell',
+    'feat-console-workflow',
 ]
 
 def ensure_dirs():
@@ -28,18 +28,19 @@ def write_example_config():
     lanes_cfg = {}
     for lane in LANES:
         lanes_cfg[lane] = {"branch": f"codex/{lane}", "enabled": True}
-    lanes_cfg["feat-console"]["enabled"] = False
+    lanes_cfg["feat-console-shell"]["enabled"] = False
+    lanes_cfg["feat-console-workflow"]["enabled"] = False
     example = {
         "model": "gpt-5.1-codex",
         "codex_cmd": "codex",
-        "fallback_model": "gpt-oss-120b",
+        "fallback_model": "",
         "fallback_codex_cmd": "codex",
-        "fallback_codex_args": ["--oss", "--local-provider", "lmstudio"],
+        "fallback_codex_args": ["-c", "model_provider=lms"],
         "fallback_model_args": [],
         "profiles": {
             "orchestrator": {
                 "codex_cmd": "codex",
-                "codex_args": ["--oss", "--local-provider", "lmstudio"],
+                "codex_args": ["-c", "model_provider=lms"],
                 "model": "gpt-oss-20b",
                 "model_args": [],
             },
@@ -51,7 +52,7 @@ def write_example_config():
             },
             "worker_local": {
                 "codex_cmd": "codex",
-                "codex_args": ["--oss", "--local-provider", "lmstudio"],
+                "codex_args": ["-c", "model_provider=lms"],
                 "model": "gpt-oss-120b",
                 "model_args": [],
             },

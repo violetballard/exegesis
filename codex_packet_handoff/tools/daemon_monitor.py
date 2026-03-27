@@ -26,11 +26,11 @@ STALE_LOG_SECONDS = 1800
 DEFAULT_LANES = [
     "feat-commands",
     "feat-context-storage",
-    "feat-ux-flow",
     "feat-retrieval-fts",
     "feat-a2ui-contract",
     "feat-engine-runs",
-    "feat-console",
+    "feat-console-shell",
+    "feat-console-workflow",
 ]
 VERDICT_RE = re.compile(
     r"(?:\*\*Verdict\*\*|Verdict:)\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?",

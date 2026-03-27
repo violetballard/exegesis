@@ -4,18 +4,16 @@
   "fallback_model": "gpt-oss-120b",
   "fallback_codex_cmd": "codex",
   "fallback_codex_args": [
-    "--oss",
-    "--local-provider",
-    "lmstudio"
+    "-c",
+    "model_provider=lms"
   ],
   "fallback_model_args": [],
   "profiles": {
     "orchestrator": {
       "codex_cmd": "codex",
       "codex_args": [
-        "--oss",
-        "--local-provider",
-        "lmstudio"
+        "-c",
+        "model_provider=lms"
       ],
       "model": "gpt-oss-20b",
       "model_args": []
@@ -35,9 +33,8 @@
     "worker_local": {
       "codex_cmd": "codex",
       "codex_args": [
-        "--oss",
-        "--local-provider",
-        "lmstudio"
+        "-c",
+        "model_provider=lms"
       ],
       "model": "gpt-oss-120b",
       "model_args": []
@@ -77,10 +74,6 @@
       "branch": "codex/feat-context-storage",
       "enabled": true
     },
-    "feat-ux-flow": {
-      "branch": "codex/feat-ux-flow",
-      "enabled": false
-    },
     "feat-commands": {
       "branch": "codex/feat-commands",
       "enabled": true
@@ -97,8 +90,12 @@
       "branch": "codex/feat-engine-runs",
       "enabled": true
     },
-    "feat-console": {
-      "branch": "codex/feat-console",
+    "feat-console-shell": {
+      "branch": "codex/feat-console-shell",
+      "enabled": false
+    },
+    "feat-console-workflow": {
+      "branch": "codex/feat-console-workflow",
       "enabled": false
     }
   },

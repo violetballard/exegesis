@@ -48,12 +48,12 @@ ROUTER_CONFIG_FILE = REPO_ROOT / ".codex/packet_router/config.json"
 ROUTER_EXAMPLE_FILE = REPO_ROOT / ".codex/packet_router/example.json"
 DEFAULT_LANES = [
     "feat-context-storage",
-    "feat-ux-flow",
     "feat-commands",
     "feat-retrieval-fts",
     "feat-a2ui-contract",
     "feat-engine-runs",
-    "feat-console",
+    "feat-console-shell",
+    "feat-console-workflow",
 ]
 
 
@@ -355,12 +355,13 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
     cfg = router_mod.load_cfg()
     state = router_mod.load_json(router_mod.STATE_FILE, {})
     repo_cwd = str(REPO_ROOT)
+    local_mode = router_mod._runtime_mode(cfg, state) == "local_fallback"
     reviewer_client = router_mod._build_mcp_client(
-        router_mod._profile_for_role(cfg, "reviewer", local=False),
+        router_mod._profile_for_role(cfg, "reviewer", local=local_mode),
         router_mod.ApprovalPolicy(True, True),
     )
     integrator_client = router_mod._build_mcp_client(
-        router_mod._profile_for_role(cfg, "integrator", local=False),
+        router_mod._profile_for_role(cfg, "integrator", local=local_mode),
         router_mod.ApprovalPolicy(True, True),
     )
 
@@ -371,16 +372,6 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
         reviewer_client, cfg, repo_cwd, state, reviewer_thread_ids
     )
     integrator_tid = state.get("integrator_thread_id")
-    if not integrator_tid and router_mod._runtime_mode(cfg, state) != "local_fallback":
-        integrator_profile = router_mod._profile_for_role(cfg, "integrator", local=False)
-        integrator_tid, _ = integrator_client.codex(
-            prompt="Ready as integrator.",
-            cwd=repo_cwd,
-            sandbox="workspace-write",
-            approval_policy="never",
-            model=integrator_profile.model,
-            timeout=cfg.integrator_timeout,
-        )
 
     state["reviewer_thread_ids"] = reviewer_thread_ids
     if reviewer_thread_ids:

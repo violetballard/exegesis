@@ -5,12 +5,12 @@ from pathlib import Path
 
 LANES = [
     'feat-context-storage',
-    'feat-ux-flow',
     'feat-commands',
     'feat-retrieval-fts',
     'feat-a2ui-contract',
     'feat-engine-runs',
-    'feat-console',
+    'feat-console-shell',
+    'feat-console-workflow',
 ]
 TEMPLATE = {
   "scope_goal": "",

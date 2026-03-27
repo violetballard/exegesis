@@ -21,12 +21,46 @@ REQUIRED_GATES_DEFAULT = [
 
 LANE_OWNED_PATHS = {
     "feat-commands": ["src/qual/commands/**"],
-    "feat-context-storage": ["src/qual/context/**", "src/qual/storage/**"],
-    "feat-ux-flow": ["src/qual/ui/**", "src/qual/drafting/**", "src/qual/engine/**"],
-    "feat-retrieval-fts": ["src/qual/retrieval/**", "src/qual/engine/retrieval/**"],
-    "feat-a2ui-contract": ["src/qual/ui/**"],
-    "feat-engine-runs": ["src/qual/engine/**"],
-    "feat-console": ["src/qual/console/**"],
+    "feat-context-storage": [
+        "src/qual/context/**",
+        "src/qual/storage/**",
+        "engine/src/exegesis_engine/state/**",
+        "engine/src/exegesis_engine/storage/**",
+    ],
+    "feat-retrieval-fts": [
+        "src/qual/retrieval/**",
+        "src/qual/engine/retrieval/**",
+        "engine/src/exegesis_engine/retrieval/**",
+    ],
+    "feat-a2ui-contract": [
+        "src/qual/ui/a2ui.py",
+        "shared/src/exegesis_shared/contracts/**",
+        "shared/src/exegesis_shared/models/**",
+        "shared/src/exegesis_shared/types/**",
+    ],
+    "feat-engine-runs": [
+        "src/qual/engine/**",
+        "src/qual/drafting/**",
+        "engine/src/exegesis_engine/api/**",
+        "engine/src/exegesis_engine/workflow/**",
+        "engine/src/exegesis_engine/patches/**",
+        "engine/src/exegesis_engine/audit/**",
+        "engine/src/exegesis_engine/services/**",
+    ],
+    "feat-console-shell": [
+        "client-textual/src/exegesis_textual/app/**",
+        "client-textual/src/exegesis_textual/layout/**",
+        "client-textual/src/exegesis_textual/panes/**",
+        "client-textual/src/exegesis_textual/commands/**",
+        "client-textual/src/exegesis_textual/shortcuts/**",
+        "client-textual/src/exegesis_textual/inspectors/**",
+        "client-textual/src/exegesis_textual/theme/**",
+    ],
+    "feat-console-workflow": [
+        "client-textual/src/exegesis_textual/workflow/**",
+        "client-textual/src/exegesis_textual/cards/**",
+        "client-textual/src/exegesis_textual/events/**",
+    ],
 }
 
 Json = Dict[str, Any]

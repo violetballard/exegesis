@@ -22,14 +22,20 @@ FEATURE_STATE_FILE = FEATURE_ROOT / "state.json"
 DEFAULT_LANES = [
     "feat-commands",
     "feat-context-storage",
-    "feat-ux-flow",
     "feat-retrieval-fts",
     "feat-a2ui-contract",
     "feat-engine-runs",
-    "feat-console",
+    "feat-console-shell",
+    "feat-console-workflow",
 ]
 STATE_LOCK = threading.Lock()
 STALE_THREAD_RE = "session not found for thread_id"
+BAD_LOCAL_MCP_CONTENT_RE = (
+    "not supported when using codex with a chatgpt account",
+    "invalid_request_error",
+    "missing_required_parameter",
+    "text.format",
+)
 
 
 def load_json(path: Path, default: Any) -> Any:
@@ -205,9 +211,10 @@ def _write_log(log_path: Path, header: Dict[str, Any], content: str) -> None:
 
 
 def _spawn_direct_exec(profile_cfg: Dict[str, object], *, workdir: str, prompt: str, log_path: Path) -> int:
-    cmd: List[str] = [str(profile_cfg["cmd"]), *[str(x) for x in list(profile_cfg["cmd_args"])], "exec"]
+    cmd_args = [str(x) for x in list(profile_cfg["cmd_args"])]
+    cmd: List[str] = [str(profile_cfg["cmd"]), *cmd_args, "exec"]
     model = str(profile_cfg.get("model") or "")
-    if model:
+    if model and "-m" not in cmd_args and "--model" not in cmd_args:
         cmd.extend(["-m", model])
     cmd.extend([str(x) for x in list(profile_cfg.get("model_args") or [])])
     cmd.extend(["-s", "workspace-write", prompt])
@@ -220,6 +227,11 @@ def _spawn_direct_exec(profile_cfg: Dict[str, object], *, workdir: str, prompt: 
             text=True,
         )
     return proc.pid
+
+
+def _is_bad_local_mcp_content(text: str) -> bool:
+    lower = str(text or "").lower()
+    return any(marker in lower for marker in BAD_LOCAL_MCP_CONTENT_RE)
 
 
 def _set_lane_state(
@@ -297,6 +309,11 @@ def _launch_one_lane(
             )
             lane_state = feature_state.get("lanes", {}).get(lane, {})
     thread_id = None if args.restart_existing else lane_state.get("thread_id")
+    # Local fallback has no durable managed threads to resume from LM Studio.
+    # If we carry over a stale cloud-era thread id here, the launcher will spin
+    # on a dead session instead of starting fresh local work.
+    if str(launch_cfg["mode"]) == "local_fallback":
+        thread_id = None
     initial_action = "resume" if thread_id else "launch"
     _set_lane_state(
         feature_state,
@@ -354,11 +371,54 @@ def _launch_one_lane(
         return STALE_THREAD_RE in str(text).lower()
 
     try:
+        if str(launch_cfg["mode"]) == "local_fallback":
+            direct_profile = dict(launch_cfg.get("local_profile") or launch_cfg)
+            direct_profile["mode"] = "local_fallback"
+            direct_profile["profile_name"] = str(launch_cfg.get("local_profile_name") or launch_cfg["profile_name"])
+            pid = _spawn_direct_exec(direct_profile, workdir=workdir, prompt=prompt, log_path=log_path)
+            _set_lane_state(
+                feature_state,
+                lane,
+                status="direct_exec_running",
+                mode=str(direct_profile["mode"]),
+                profile=str(direct_profile["profile_name"]),
+                workdir=workdir,
+                prompt_path=prompt_path,
+                log_path=log_path,
+                thread_id="",
+                error="",
+                action="direct_exec_local_fallback",
+                pid=pid,
+            )
+            _write_log(
+                log_path,
+                {
+                    "lane": lane,
+                    "thread_id": "",
+                    "mode": direct_profile["mode"],
+                    "profile": direct_profile["profile_name"],
+                    "workdir": workdir,
+                    "action": "direct_exec_local_fallback",
+                    "launched_at": _ts(),
+                    "status": "direct_exec_running",
+                    "pid": pid,
+                },
+                "Local fallback launched as direct exec.",
+            )
+            return {
+                "lane": lane,
+                "status": "direct_exec_running",
+                "mode": direct_profile["mode"],
+                "profile": direct_profile["profile_name"],
+                "workdir": workdir,
+                "pid": pid,
+                "log": str(log_path),
+            }
         effective_cfg = dict(launch_cfg)
         if thread_id:
             try:
                 thread_id, content, action = _attempt(effective_cfg, existing_thread_id=str(thread_id))
-                if _is_stale_thread_content(content):
+                if _is_stale_thread_content(content) or _is_bad_local_mcp_content(content):
                     stale_id = str(thread_id)
                     thread_id = None
                     _write_log(
@@ -426,7 +486,7 @@ def _launch_one_lane(
                 thread_id, content, action = _attempt(effective_cfg, existing_thread_id=None)
         else:
             thread_id, content, action = _attempt(effective_cfg, existing_thread_id=None)
-        if _is_stale_thread_content(content):
+        if _is_stale_thread_content(content) or _is_bad_local_mcp_content(content):
             raise RuntimeError(f"stale thread content returned after launch: {content}")
         header = {
             "lane": lane,

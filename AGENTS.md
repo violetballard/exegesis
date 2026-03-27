@@ -192,4 +192,4 @@ Current MVP work should target:
 - FTS-first retrieval
 - A2UI contracts with CLI fallback
 
-Do not start `feat-console` until it is explicitly enabled.
+Do not start `feat-console-shell` or `feat-console-workflow` until they are explicitly enabled.

@@ -1,166 +1,108 @@
-# Roadmap
+# Exegesis MVP Roadmap
 
-This file is the canonical in-repo milestone tracker.
-See `PRODUCT_VISION.md` for non-negotiable end-goal alignment.
+This file is the canonical milestone tracker for the staged Exegesis MVP migration.
 
-## Milestone 0: Foundation (Complete)
+Detailed milestone breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/milestones.md`.
+Detailed lane/task mapping lives in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/TASKS.md`.
 
-Status: complete
+## Product target
 
-Scope:
-- Quality baseline scripts (`format`, `lint`, `test`, `typecheck`)
-- CI workflow and `make ci` entrypoint
-- Ownership and integration runbooks
+The Textual writing client is the MVP product target.
 
-Exit criteria:
-- Local gates pass reliably
-- CI path is stable
-- Lane ownership rules are enforced
+Current engine work is the enabling path for that client, not a separate product roadmap.
+The CLI remains first-class while Textual stays scaffolded and disabled.
 
-## Milestone 1: Bootstrap Flow Stabilization (In Progress)
-
-Status: in progress
-
-Scope:
-- Command and diff-preview behavior hardening
-- Context basket and vault persistence hardening
-- UX flow readability and startup context preview polish
-- Integrator promotion from approved feature lanes
-
-Exit criteria:
-- Approved feature-lane deltas merged through integrator
-- `make ci` green on integrator and main for final combined state
-- Manual CLI smoke flow remains stable
-
-## Milestone 2: Test Hardening (In Progress)
-
-Status: in progress
-
-Scope:
-- Add focused unit coverage for core behaviors
-- Keep command-level probes for integration confidence
-
-Completed so far:
-- Added unit-test harness and initial focused tests for diff preview and storage recovery
-
-Remaining:
-- Add missing targeted cases identified during reviews (parser edges, persistence edge cases)
-
-## Milestone 3: Product Readiness (Planned)
+## Milestone 1: Standing shell
 
 Status: planned
 
 Scope:
-- Define and lock user-facing output contracts
-- Expand end-to-end verification scenarios
-- Prepare release notes and operator runbook for first publish
-- Define generation provenance contract (retrieval evidence attached to outputs)
-- Define and lock encryption-at-rest default behavior and key lifecycle policy
-- Define role-based auto-routing contract and power-user override policy
-- Define localhost-only gating for OpenAI-compatible override endpoints
-- Add provider-compatibility probe contract for local and hosted runtimes (`exegesis doctor`)
-- Lock shared Engine/Studio config schema (`exegesis.yml`) and precedence rules
+- define the 5-pane Textual shell
+- lock focus model and keyboard shortcuts
+- define shortcut bar and command palette scaffold
+- keep UI lanes disabled until the engine contract is ready
 
 Exit criteria:
-- Contract changes documented and intentional
-- Reproducible release candidate checklist
-- Main branch in publishable state
-- Encryption-by-default is enforced for persistent local state
-- Override behavior is deterministic, localhost-gated, and auditable
-- Provider capability detection and fallback behavior are explicit, testable, and operator-visible
-- Hosted provider support includes OpenAI, Anthropic, and Mistral from the beginning
-- Config source-of-truth and override precedence are explicit and testable
+- shell boundaries are documented and scaffolded
+- pane ownership is clear
+- UI lanes remain disabled until explicitly activated
 
-## Milestone 4: Retrieval Layer (Planned)
+## Milestone 2: Core pane interactions
 
 Status: planned
 
 Scope:
-- FTS-first ingestion/index path for context/vault documents
-- Retrieval orchestration in engine before drafting/diff generation
-- Source-attribution model for retrieved chunks
-- Defer PageIndex/embeddings until after the demo push
+- define project/document/workflow/basket/inspector interactions
+- define the selection model and inspector-follow-selection rule
+- define command palette coverage for the MVP loop
 
 Exit criteria:
-- Agent uses retrieved chunks by default for generation flows
-- Retrieval paths are auditable and deterministic
-- RAG behavior is documented as part of output contracts
+- pane interaction contract is documented
+- engine contract exposes the state/actions those panes will need
 
-## Milestone 5: A2UI Presentation Layer (In Progress)
+## Milestone 3: Real workflow loop
 
-Status: in_progress
+Status: in progress
 
 Scope:
-- Define `A2UI` output contract for agent-produced presentation artifacts
-- Add agent-side card/section/action payload generation with deterministic schemas
-- Provide CLI rendering fallback for the same structured payloads
-- Keep the surface client-agnostic so `Exegesis Console` can consume it next
-- Add capabilities handshake and composable `GenericCard` primitives with safe unknown-card fallback
-- Enforce typed/allowlisted actions with engine-authoritative `PolicyGate`
-- Defer dedicated web-console work
+- expose canonical engine state models
+- keep retrieval/search FTS-first and structured
+- expose plan/draft/revise/apply-reject through the canonical app service
+- preserve CLI compatibility while the package/layout migration lands
+- move A2UI contracts into `shared` while keeping renderers outside `shared`
+
+Lane mapping:
+- `feat-retrieval-fts`: retrieval/search
+- `feat-engine-runs`: plan/draft/revise/apply-reject workflow actions
+- `feat-context-storage`: persistent basket/document/session state
+- `feat-a2ui-contract`: shared card/action contracts and selection models
+- `feat-commands`: CLI compatibility and migration-safe entrypoints
 
 Exit criteria:
-- A2UI schema/versioning is documented and stable
-- Core workflows can emit A2UI payloads and CLI fallback views
-- Output contracts are test-covered and backward-compatible by policy
-- CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate
-- A2UI output is stable enough for the first `Exegesis Console` build
+- engine can persist project/document/basket/session state
+- retrieval returns structured results suitable for basket promotion
+- plan/draft/revise/apply-reject flows operate through the canonical app service
+- CLI can still execute the MVP loop while Textual remains disabled
 
-## MVP Focus Through 2026-05-04
+## Milestone 4: Dogfooding readiness
 
-Current active implementation emphasis:
+Status: planned
+
+Scope:
+- finish persistence and audit hooks needed for real writing sessions
+- keep command palette/useful workflow actions mapped in the engine contract now
+- reserve UI polish and keyboard-first validation for the disabled Textual lanes later
+
+Exit criteria:
+- engine state survives repeated sessions
+- workflow artifacts are stable enough to support real writing use
+- the future client surface is unblocked by engine contract gaps
+
+## Milestone 5: YC demo readiness
+
+Status: planned
+
+Scope:
+- create one reproducible demo flow for retrieve -> basket -> plan -> revise -> apply
+- keep this as cross-lane/integrator work rather than a dedicated feature lane
+
+Exit criteria:
+- one clean 60-180 second demo path exists
+- the app reads as a writing environment rather than a terminal trick
+
+## Active now
 - `feat-commands`
 - `feat-context-storage`
 - `feat-retrieval-fts`
 - `feat-a2ui-contract`
 - `feat-engine-runs`
 
-Defined but not active:
-- `feat-console`
+## Defined but disabled
+- `feat-console-shell`
+- `feat-console-workflow`
 
-Deferred/paused for the current MVP push:
-- `feat-console`
+## Retired planning targets
 - `feat-ux-flow`
+- `feat-console`
 
-## Milestone 6: Studio Readiness Handoff (Planned)
-
-Status: planned
-
-Scope:
-- Freeze Engine contracts required by UI clients
-- Define Engine-to-Studio boundary and repo split handoff package
-- Prepare integration docs for separate `Exegesis Studio` project bootstrapping
-- Add final-document preview/export contract (`export.preview`/`export.final`) with encrypted preview artifacts and TTL cleanup
-- Keep `Exegesis Console` thin and engine-driven while preserving A2UI parity for Studio handoff
-
-Exit criteria:
-- Engine contracts are ready for external client consumption
-- Explicit handoff bundle exists for Studio implementation startup
-- Repository split plan is approved and documented
-
-## Milestone 7: Qualitative Coding Support (Planned)
-
-Status: planned
-
-Dependency:
-- Starts after base writing engine milestones are stable (Milestones 1 through 4 complete enough for production use).
-
-Scope:
-- Add codebook management primitives (codes, definitions, versioned edits)
-- Add coding operations over source excerpts and retrieved chunks
-- Add agreement/coverage metrics and audit trails for coding actions
-- Expose coding artifacts in both CLI and A2UI payloads
-
-Exit criteria:
-- Users can apply, revise, and review qualitative codes in normal workflows
-- Coding operations are auditable and retrieval-aware
-- Coding outputs are consumable by future `Exegesis Studio` clients
-
-## Sprint Cadence
-
-Current sprint model:
-- Short parallel feature lanes with strict ownership
-- Review-first promotion into integrator
-- Integrator finalizes into main after full gates
-
-If this cadence changes, update this section and `INTEGRATION.md` together.
+These legacy lanes are superseded by the staged engine/client/shared split and should not be restarted.
