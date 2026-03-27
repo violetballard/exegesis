@@ -213,6 +213,7 @@ class ContextSetStore:
             # set.
             rewrite_empty_recovery = True
             recovered_source = None
+            normalized_recovered_from = None
         if isinstance(payload, list):
             parsed_records = self._parse_context_sets(payload)
             if parsed_records is None:

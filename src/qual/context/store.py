@@ -117,6 +117,7 @@ class ContextBasketStore:
             # from the recovery artifact set.
             rewrite_empty_recovery = True
             recovered_source = None
+            normalized_recovered_from = None
         if isinstance(payload, list):
             parsed_items = self._parse_item_ids(payload)
             if parsed_items is None:

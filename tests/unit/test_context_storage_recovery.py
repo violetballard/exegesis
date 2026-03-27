@@ -426,6 +426,30 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("item_ids"), [])
         self.assertNotIn("recovered_from", payload)
 
+    def test_empty_recovery_payload_does_not_claim_recovery_provenance(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "recovered_from": "manual",
+                    "item_ids": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, [])
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("item_ids"), [])
+        self.assertNotIn("recovered_from", primary_payload)
+        self.assertEqual(backup_payload.get("item_ids"), [])
+        self.assertNotIn("recovered_from", backup_payload)
+
     def test_backup_with_invalid_metadata_is_salvaged_and_promoted(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text("{bad", encoding="utf-8")
@@ -1363,6 +1387,30 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         self.assertTrue(self.store._path.with_suffix(".corrupt.json").exists())
         self.assertEqual(quarantined_payload.get("context_sets"), [])
         self.assertEqual(quarantined_payload.get("updated_at"), "not-a-timestamp")
+
+    def test_empty_recovery_payload_does_not_claim_recovery_provenance(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "recovered_from": "manual",
+                    "context_sets": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded, [])
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("context_sets"), [])
+        self.assertNotIn("recovered_from", primary_payload)
+        self.assertEqual(backup_payload.get("context_sets"), [])
+        self.assertNotIn("recovered_from", backup_payload)
 
 
 class VaultRecoveryTests(unittest.TestCase):
