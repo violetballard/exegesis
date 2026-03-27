@@ -30,6 +30,14 @@ class CommandFlowEntry:
     lookup_tokens: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class CommandFlowSequence:
+    flow_steps: tuple[str, ...]
+    names: tuple[str, ...]
+    lookup_table: tuple[tuple[str, str], ...]
+    lookup_tokens: tuple[tuple[str, ...], ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -147,6 +155,20 @@ def command_flow_manifest(
     return tuple(manifest_by_flow_step[flow_step] for flow_step in ordered_flow_steps)
 
 
+def command_flow_sequence(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> CommandFlowSequence:
+    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    manifest = command_flow_manifest(specs, ordered_flow_steps)
+    return CommandFlowSequence(
+        flow_steps=ordered_flow_steps,
+        names=tuple(entry.name for entry in manifest),
+        lookup_table=tuple((entry.flow_step, entry.name) for entry in manifest),
+        lookup_tokens=tuple(entry.lookup_tokens for entry in manifest),
+    )
+
+
 def command_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
     return tuple(spec.name for spec in specs)
 
@@ -196,6 +218,12 @@ def command_mvp_flow_catalog(
         for flow_step in command_mvp_flow_steps()
         for entry in (manifest_by_flow_step[flow_step],)
     )
+
+
+def command_mvp_flow_sequence(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandFlowSequence:
+    return command_flow_sequence(specs, command_mvp_flow_steps())
 
 
 def command_mvp_flow(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[CommandManifestEntry, ...]:

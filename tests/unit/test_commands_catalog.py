@@ -7,12 +7,16 @@ from src.qual.commands import (
     canonical_command,
     command_aliases,
     command_flow_manifest,
+    command_flow_steps,
+    command_flow_sequence,
+    command_lookup_table,
     command_lookup_tokens,
     command_manifest,
     command_mvp_flow,
     command_mvp_flow_names,
     command_mvp_flow_catalog,
     command_mvp_flow_lookup_table,
+    command_mvp_flow_sequence,
     command_mvp_flow_steps,
     command_names,
     command_spec,
@@ -74,6 +78,19 @@ class CommandCatalogTests(unittest.TestCase):
             tuple(entry.lookup_tokens for entry in manifest),
         )
 
+    def test_command_flow_sequence_bundles_the_catalog_smoke_contract(self) -> None:
+        sequence = command_flow_sequence()
+        self.assertEqual(sequence.flow_steps, command_flow_steps())
+        self.assertEqual(sequence.names, command_names())
+        self.assertEqual(
+            sequence.lookup_table,
+            tuple((entry.flow_step, entry.name) for entry in command_flow_manifest()),
+        )
+        self.assertEqual(
+            sequence.lookup_tokens,
+            tuple(entry.lookup_tokens for entry in command_manifest()),
+        )
+
     def test_command_mvp_flow_catalog_exposes_the_demo_sequence(self) -> None:
         flow = command_mvp_flow_catalog()
         self.assertEqual(
@@ -104,6 +121,16 @@ class CommandCatalogTests(unittest.TestCase):
                 ("patch-review", "diff-preview"),
                 ("export-handoff", "terminal"),
             ),
+        )
+
+    def test_command_mvp_flow_sequence_bundles_the_demo_smoke_contract(self) -> None:
+        sequence = command_mvp_flow_sequence()
+        self.assertEqual(sequence.flow_steps, command_mvp_flow_steps())
+        self.assertEqual(sequence.names, command_mvp_flow_names())
+        self.assertEqual(sequence.lookup_table, command_mvp_flow_lookup_table())
+        self.assertEqual(
+            sequence.lookup_tokens,
+            tuple(entry.lookup_tokens for entry in command_mvp_flow()),
         )
 
     def test_command_manifest_order_matches_mvp_flow(self) -> None:
