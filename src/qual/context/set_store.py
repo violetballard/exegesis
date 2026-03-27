@@ -190,16 +190,24 @@ class ContextSetStore:
                         payload = primary_payload
                         recovered_source = None
             else:
-                payload, recovered_source = self._prefer_recovery_payload(
-                    tmp_payload,
-                    backup_tmp_payload,
-                    backup_payload,
-                    seed_tmp_payload,
-                    seed_payload,
-                )
-                if payload is None:
+                raw_context_sets = primary_payload.get("context_sets")
+                parsed_records = self._parse_context_sets(raw_context_sets)
+                has_explicit_empty_context_sets = isinstance(raw_context_sets, list) and not raw_context_sets
+                has_salvageable_context_sets = parsed_records is not None and bool(parsed_records)
+                if has_explicit_empty_context_sets or has_salvageable_context_sets:
                     payload = primary_payload
                     recovered_source = None
+                else:
+                    payload, recovered_source = self._prefer_recovery_payload(
+                        tmp_payload,
+                        backup_tmp_payload,
+                        backup_payload,
+                        seed_tmp_payload,
+                        seed_payload,
+                    )
+                    if payload is None:
+                        payload = primary_payload
+                        recovered_source = None
         elif isinstance(primary_payload, list):
             primary_records = self._parse_context_sets(primary_payload)
             if primary_records:
