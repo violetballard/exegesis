@@ -76,6 +76,15 @@ class ContextSetRecord:
             seen.add(item_id)
         return out
 
+    @classmethod
+    def _parse_item_ids(cls, item_ids: object) -> list[str]:
+        if isinstance(item_ids, list):
+            return cls._normalize_item_ids(item_ids)
+        normalized = cls._normalize_item_id(item_ids)
+        if normalized:
+            return [normalized]
+        return []
+
     @staticmethod
     def _normalize_timestamp(value: object) -> str:
         if not isinstance(value, str):
@@ -576,7 +585,7 @@ class ContextSetStore:
         record = ContextSetRecord(
             context_set_id=ContextSetRecord._normalize_identifier(raw.get("context_set_id")),
             name=ContextSetRecord._normalize_name(raw.get("name")),
-            item_ids=list(raw.get("item_ids", [])) if isinstance(raw.get("item_ids", []), list) else [],
+            item_ids=ContextSetRecord._parse_item_ids(raw.get("item_ids", [])),
             created_at=ContextSetRecord._normalize_timestamp(raw.get("created_at")),
             updated_at=ContextSetRecord._normalize_timestamp(raw.get("updated_at")),
         )

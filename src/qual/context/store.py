@@ -140,7 +140,7 @@ class ContextBasketStore:
                     or schema_version != _SCHEMA_VERSION
                     or normalized_items != parsed_items
                 )
-                if isinstance(raw_item_ids, list) and parsed_items != raw_item_ids:
+                if not isinstance(raw_item_ids, list) or parsed_items != raw_item_ids:
                     should_rewrite = True
                 if self._has_dropped_item_ids(raw_item_ids):
                     should_rewrite = True
@@ -457,15 +457,20 @@ class ContextBasketStore:
         return True
 
     def _parse_item_ids(self, value: object) -> list[str] | None:
-        if not isinstance(value, list):
-            return None
-        parsed: list[str] = []
-        for raw in value:
-            normalized = self._normalize_item_id(raw)
-            if not normalized:
-                continue
-            parsed.append(normalized)
-        return parsed
+        if isinstance(value, list):
+            parsed: list[str] = []
+            for raw in value:
+                normalized = self._normalize_item_id(raw)
+                if not normalized:
+                    continue
+                parsed.append(normalized)
+            return parsed
+        normalized = self._normalize_item_id(value)
+        if normalized:
+            return [normalized]
+        if isinstance(value, str):
+            return []
+        return None
 
     def _normalize_item_id(self, item_id: object) -> str:
         if isinstance(item_id, str):
@@ -531,10 +536,12 @@ class ContextBasketStore:
         if "item_ids" not in payload:
             return True
         raw_item_ids = payload.get("item_ids")
+        if not isinstance(raw_item_ids, list):
+            return True
         parsed_items = self._parse_item_ids(raw_item_ids)
         if parsed_items is None:
             return True
-        if isinstance(raw_item_ids, list) and parsed_items != raw_item_ids:
+        if parsed_items != raw_item_ids:
             return True
         if parsed_items != self._normalize_item_ids(parsed_items):
             return True
