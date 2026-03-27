@@ -1360,6 +1360,39 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["first", "second"])
 
+    def test_legacy_list_payload_with_dropped_records_preserves_audit_quarantine(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                [
+                    {
+                        "context_set_id": " set-1 ",
+                        "name": " Evidence ",
+                        "item_ids": [" first ", None, "second", "first"],
+                        "created_at": "2026-03-20T11:00:00+00:00",
+                        "updated_at": "2026-03-20T12:00:00+00:00",
+                    },
+                    {
+                        "context_set_id": "",
+                        "name": "drop me",
+                    },
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, "set-1")
+        self.assertEqual(loaded[0].item_ids, ["first", "second"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(self.store._path.with_suffix(".corrupt.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["first", "second"])
+        self.assertTrue(self.store._path.with_suffix(".corrupt.json").exists())
+        self.assertEqual(len(quarantined_payload), 2)
+        self.assertEqual(quarantined_payload[1]["name"], "drop me")
+
     def test_legacy_list_primary_prefers_its_own_records_over_stale_backup(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text(

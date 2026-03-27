@@ -151,6 +151,8 @@ class ContextSetStore:
             primary_payload
         ):
             primary_needs_quarantine = True
+        if isinstance(primary_payload, list) and self._legacy_list_payload_has_dropped_records(primary_payload):
+            primary_needs_quarantine = True
         if (
             not primary_needs_quarantine
             and isinstance(primary_payload, dict)
@@ -295,7 +297,10 @@ class ContextSetStore:
             and primary_payload is not None
             and isinstance(primary_payload, dict)
         )
-        if isinstance(primary_payload, list) and primary_payload and not self._has_context_set_records(primary_payload):
+        if isinstance(primary_payload, list) and (
+            not self._has_context_set_records(primary_payload)
+            or self._legacy_list_payload_has_dropped_records(primary_payload)
+        ):
             # Keep the original malformed legacy list available for audit when
             # it cannot contribute any recoverable context set records.
             preserve_primary_corrupt = True
@@ -825,6 +830,14 @@ class ContextSetStore:
         if "context_sets" not in payload:
             return False
         return bool(self._parse_context_sets(payload.get("context_sets")))
+
+    def _legacy_list_payload_has_dropped_records(self, payload: object) -> bool:
+        if not isinstance(payload, list):
+            return False
+        parsed_records = self._parse_context_sets(payload)
+        if parsed_records is None:
+            return False
+        return len(parsed_records) < len(payload)
 
     def _quarantine_unrecoverable_list_payload(self, path: Path, payload: object) -> bool:
         if path not in {self._backup_path, self._seed_state_path()}:
