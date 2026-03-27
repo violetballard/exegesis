@@ -292,10 +292,21 @@ class ContextSetStore:
             recovered_source=recovered_source,
         )
         should_rewrite = should_rewrite or rewrite_empty_recovery
+        recovered_persisted_missing_context_sets = (
+            isinstance(payload, dict)
+            and "context_sets" not in payload
+            and recovered_source in {"backup", "seed"}
+        )
         preserve_primary_corrupt = bool(
             primary_needs_quarantine
             and primary_payload is not None
             and isinstance(primary_payload, dict)
+        )
+        preserve_backup_corrupt = bool(
+            preserve_backup_corrupt or (recovered_source == "backup" and recovered_persisted_missing_context_sets)
+        )
+        preserve_seed_corrupt = bool(
+            preserve_seed_corrupt or (recovered_source == "seed" and recovered_persisted_missing_context_sets)
         )
         if isinstance(primary_payload, list) and (
             not self._has_context_set_records(primary_payload)
@@ -820,6 +831,13 @@ class ContextSetStore:
                 continue
             if self._has_context_set_records(candidate):
                 return candidate, recovered_source
+            if (
+                fallback_candidate == (None, None)
+                and recovered_source in {"backup", "seed"}
+                and isinstance(candidate, dict)
+                and "context_sets" not in candidate
+            ):
+                fallback_candidate = (candidate, recovered_source)
             if self._has_explicit_empty_recovery_payload(candidate) and fallback_candidate == (None, None):
                 fallback_candidate = (candidate, recovered_source)
         return fallback_candidate

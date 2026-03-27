@@ -198,6 +198,11 @@ class ContextBasketStore:
             recovered_source=recovered_source,
         )
         should_rewrite = should_rewrite or rewrite_empty_recovery
+        recovered_persisted_missing_item_ids = (
+            isinstance(payload, dict)
+            and "item_ids" not in payload
+            and recovered_source in {"backup", "seed"}
+        )
         preserve_primary_corrupt = bool(
             primary_needs_quarantine
             and primary_payload is not None
@@ -205,6 +210,8 @@ class ContextBasketStore:
             and isinstance(primary_payload, dict)
             and (primary_item_ids_need_recovery or self._has_unknown_fields(primary_payload))
         )
+        preserve_backup_corrupt = bool(preserve_backup_corrupt or (recovered_source == "backup" and recovered_persisted_missing_item_ids))
+        preserve_seed_corrupt = bool(preserve_seed_corrupt or (recovered_source == "seed" and recovered_persisted_missing_item_ids))
         if isinstance(primary_payload, list) and primary_payload and not self._has_recovery_payload_items(primary_payload):
             # Keep the original malformed legacy list available for audit when
             # it cannot contribute any recoverable item ids.
@@ -668,6 +675,13 @@ class ContextBasketStore:
                 continue
             if self._has_recovery_payload_items(candidate):
                 return candidate, recovered_source
+            if (
+                fallback_candidate == (None, None)
+                and recovered_source in {"backup", "seed"}
+                and isinstance(candidate, dict)
+                and "item_ids" not in candidate
+            ):
+                fallback_candidate = (candidate, recovered_source)
             if self._has_explicit_empty_recovery_payload(candidate) and fallback_candidate == (None, None):
                 fallback_candidate = (candidate, recovered_source)
         return fallback_candidate
