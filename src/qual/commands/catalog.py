@@ -9,6 +9,7 @@ class CommandSpec:
     name: str
     aliases: tuple[str, ...] = ()
     description: str = ""
+    flow_step: str = "general"
 
 
 @dataclass(frozen=True)
@@ -16,10 +17,12 @@ class CommandManifestEntry:
     name: str
     aliases: tuple[str, ...]
     description: str
+    flow_step: str
 
 
 def _normalize_token(value: str) -> str:
-    return re.sub(r"[-_\s]+", "-", value.strip().casefold())
+    normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
+    return normalized.strip("-")
 
 
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
@@ -27,20 +30,24 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         name="bootstrap",
         aliases=("open", "project-open", "project"),
         description="Run the project bootstrap flow.",
+        flow_step="project-open",
     ),
     CommandSpec(
         name="diff-preview",
         aliases=("diff", "diff_preview"),
         description="Preview unified diff output.",
+        flow_step="patch-review",
     ),
     CommandSpec(
         name="context-basket",
         aliases=("context", "basket"),
         description="Manage context basket items.",
+        flow_step="retrieval",
     ),
     CommandSpec(
         name="terminal",
         description="Run terminal routing scaffolding.",
+        flow_step="export-handoff",
     ),
 )
 _COMMAND_SPEC_BY_ALIAS: dict[str, CommandSpec] = {}
@@ -63,9 +70,18 @@ def command_specs() -> tuple[CommandSpec, ...]:
 
 def command_manifest() -> tuple[CommandManifestEntry, ...]:
     return tuple(
-        CommandManifestEntry(name=spec.name, aliases=spec.aliases, description=spec.description)
+        CommandManifestEntry(
+            name=spec.name,
+            aliases=spec.aliases,
+            description=spec.description,
+            flow_step=spec.flow_step,
+        )
         for spec in COMMAND_SPECS
     )
+
+
+def command_flow_steps() -> tuple[str, ...]:
+    return tuple(spec.flow_step for spec in COMMAND_SPECS)
 
 
 def command_tokens() -> tuple[str, ...]:
