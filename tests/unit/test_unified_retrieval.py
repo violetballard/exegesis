@@ -1036,6 +1036,24 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(auto_payload["retrieval_summary"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(auto_payload["retrieval_summary"]["retrieval_mode"], "fts_first")
 
+    def test_retrieval_provenance_surfaces_query_context(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        provenance = result.to_downstream_payload()["retrieval_provenance"]
+        self.assertEqual(provenance["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(provenance["query_scope"], "vault")
+        self.assertEqual(provenance["query_intent"], "compare")
+        self.assertEqual(provenance["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(provenance["retrieval_mode"], "fts_first")
+
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(
             self.service,

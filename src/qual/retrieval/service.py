@@ -499,6 +499,8 @@ class RetrievalResult:
     ) -> dict[str, object]:
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
+            "query_scope": self.query.scope,
+            "query_intent": self.query.intent,
             "result_fingerprint": self.result_fingerprint,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
