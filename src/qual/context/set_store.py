@@ -98,7 +98,7 @@ class ContextSetRecord:
         except ValueError:
             return ""
         if parsed.tzinfo is None or parsed.utcoffset() is None:
-            return ""
+            parsed = parsed.replace(tzinfo=UTC)
         return parsed.astimezone(UTC).isoformat()
 
 
@@ -722,7 +722,7 @@ class ContextSetStore:
         except ValueError:
             return None
         if parsed.tzinfo is None or parsed.utcoffset() is None:
-            return None
+            parsed = parsed.replace(tzinfo=UTC)
         return parsed.astimezone(UTC).isoformat()
 
     def _backup_needs_refresh(
