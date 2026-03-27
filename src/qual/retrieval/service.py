@@ -534,9 +534,10 @@ class RetrievalResult:
             )
         )
         return {
+            "result_fingerprint": self.result_fingerprint,
+            "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query": query_snapshot,
             "policy": copy.deepcopy(retrieval_policy_snapshot),
-            "result_fingerprint": self.result_fingerprint,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
             "citation_status": copy.deepcopy(citation_status_snapshot),

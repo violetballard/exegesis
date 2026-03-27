@@ -209,6 +209,8 @@ def build_retrieval_source_bundle_from_result(
     if isinstance(source_bundle, dict):
         return copy.deepcopy(source_bundle)
     return {
+        "result_fingerprint": payload.get("result_fingerprint"),
+        "query_fingerprint": payload.get("query_fingerprint"),
         "query": copy.deepcopy(payload.get("query", {})),
         "policy": copy.deepcopy(payload.get("policy", payload.get("retrieval_policy", {}))),
         "retrieval_backend": payload.get("retrieval_backend"),

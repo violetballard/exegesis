@@ -468,7 +468,13 @@ class UnifiedRetrievalTests(unittest.TestCase):
             def source_bundle(self) -> dict[str, object]:
                 return self._payload
 
-        bundle = engine_build_retrieval_source_bundle_from_result(_SourceBundleOnlySource(result.source_bundle()))
+        source_bundle = result.source_bundle()
+        self.assertEqual(source_bundle["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(source_bundle["query_fingerprint"], result.diagnostics["query_fingerprint"])
+
+        bundle = engine_build_retrieval_source_bundle_from_result(_SourceBundleOnlySource(source_bundle))
+        self.assertEqual(bundle["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(bundle["query_fingerprint"], result.diagnostics["query_fingerprint"])
         self.assertEqual(bundle["retrieval_summary"]["doc_ids"], [item.doc_id for item in result.doc_hits])
         bundle["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
         refreshed = engine_build_retrieval_source_bundle_from_result(_SourceBundleOnlySource(result.source_bundle()))
