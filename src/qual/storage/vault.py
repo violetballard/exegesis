@@ -171,6 +171,18 @@ class VaultService:
         backup_payload = self._load_payload(self._backup_state_path(root_dir))
         seed_tmp_payload = self._load_payload(self._seed_tmp_state_path(root_dir))
         seed_payload = self._load_payload(self._seed_state_path(root_dir))
+        preserve_backup_corrupt = self._quarantine_missing_required_metadata(
+            self._backup_state_path(root_dir),
+            backup_payload,
+        )
+        preserve_seed_corrupt = self._quarantine_missing_required_metadata(
+            self._seed_state_path(root_dir),
+            seed_payload,
+        )
+        if preserve_backup_corrupt:
+            backup_payload = None
+        if preserve_seed_corrupt:
+            seed_payload = None
 
         payload: dict[str, object] | None
         recovered_source: str | None
@@ -206,11 +218,21 @@ class VaultService:
                     payload = primary_payload
                     recovered_source = None
                 else:
-                    self._clear_quarantine_state(root_dir)
+                    self._clear_quarantine_state(
+                        root_dir,
+                        preserve_backup_corrupt=preserve_backup_corrupt,
+                        preserve_seed_corrupt=preserve_seed_corrupt,
+                    )
                     self._clear_temporary_state(root_dir)
-                    return {}, None, primary_payload is None, False, False
+                    return (
+                        {},
+                        None,
+                        primary_payload is None,
+                        preserve_backup_corrupt,
+                        preserve_seed_corrupt,
+                    )
         if not isinstance(payload, dict):
-            return {}, None, primary_payload is None, False, False
+            return {}, None, primary_payload is None, preserve_backup_corrupt, preserve_seed_corrupt
         primary_unavailable = primary_payload is None
         if primary_needs_recovery and recovered_source is not None:
             primary_unavailable = True
@@ -280,6 +302,20 @@ class VaultService:
         if not seed_path.exists():
             return
         self._quarantine_path(seed_path)
+
+    def _quarantine_missing_required_metadata(self, path: Path, payload: object) -> bool:
+        if not isinstance(payload, dict):
+            return False
+        if "project_name" not in payload or "is_locked" not in payload:
+            self._quarantine_path(path)
+            return True
+        if self._parse_project_name(payload.get("project_name")) is None:
+            self._quarantine_path(path)
+            return True
+        if self._parse_is_locked(payload.get("is_locked")) is None:
+            self._quarantine_path(path)
+            return True
+        return False
 
     def _quarantine_path(self, path: Path) -> None:
         corrupt = self._corrupt_path_for(path)

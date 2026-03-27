@@ -2051,6 +2051,72 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertFalse(payload.get("is_locked"))
         self.assertEqual(payload.get("recovered_from"), "backup")
 
+    def test_missing_required_metadata_backup_is_quarantined_and_rewritten_safely(self) -> None:
+        state = self.svc.create_or_open(self.root, "p3-backup-missing")
+        state_path = state.root_dir / ".vault_state.json"
+        backup_path = state.root_dir / ".vault_state.bak.json"
+        backup_corrupt_path = backup_path.with_suffix(".corrupt.json")
+        state_path.unlink()
+        backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "is_locked": False,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p3-backup-missing")
+
+        self.assertTrue(reopened.is_locked)
+        self.assertTrue(backup_corrupt_path.exists())
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(backup_path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(backup_corrupt_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p3-backup-missing")
+        self.assertTrue(payload.get("is_locked"))
+        self.assertNotIn("recovered_from", payload)
+        self.assertEqual(backup_payload.get("project_name"), "p3-backup-missing")
+        self.assertTrue(backup_payload.get("is_locked"))
+        self.assertEqual(quarantined_payload.get("is_locked"), False)
+        self.assertNotIn("project_name", quarantined_payload)
+
+    def test_missing_required_metadata_seed_is_quarantined_and_rewritten_safely(self) -> None:
+        with patch.object(VaultService, "_write_backup_payload", return_value=False):
+            state = self.svc.create_or_open(self.root, "p3-seed-missing")
+        state_path = state.root_dir / ".vault_state.json"
+        seed_path = state.root_dir / ".vault_state.seed.json"
+        seed_corrupt_path = seed_path.with_suffix(".corrupt.json")
+        state_path.unlink()
+        seed_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "is_locked": False,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p3-seed-missing")
+
+        self.assertTrue(reopened.is_locked)
+        self.assertFalse(seed_path.exists())
+        self.assertTrue(seed_corrupt_path.exists())
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        backup_payload = json.loads((state.root_dir / ".vault_state.bak.json").read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(seed_corrupt_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p3-seed-missing")
+        self.assertTrue(payload.get("is_locked"))
+        self.assertNotIn("recovered_from", payload)
+        self.assertEqual(backup_payload.get("project_name"), "p3-seed-missing")
+        self.assertTrue(backup_payload.get("is_locked"))
+        self.assertEqual(quarantined_payload.get("is_locked"), False)
+        self.assertNotIn("project_name", quarantined_payload)
+
     def test_explicit_legacy_schema_version_zero_is_salvaged_and_rewritten(self) -> None:
         state = self.svc.create_or_open(self.root, "p3-legacy")
         state_path = state.root_dir / ".vault_state.json"
