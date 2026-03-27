@@ -27,16 +27,26 @@ class ContextSetRecord:
         self.updated_at = self._normalize_timestamp(self.updated_at)
 
     @staticmethod
-    def _normalize_identifier(value: object) -> str:
-        if not isinstance(value, str):
+    def _normalize_text_scalar(value: object) -> str:
+        if isinstance(value, str):
+            return value.strip()
+        if isinstance(value, bool):
             return ""
-        return value.strip()
+        if isinstance(value, int):
+            return str(value).strip()
+        if isinstance(value, float):
+            if not math.isfinite(value):
+                return ""
+            return str(value).strip()
+        return ""
+
+    @classmethod
+    def _normalize_identifier(cls, value: object) -> str:
+        return cls._normalize_text_scalar(value)
 
     @staticmethod
     def _normalize_name(value: object) -> str:
-        if not isinstance(value, str):
-            return ""
-        return value.strip()
+        return ContextSetRecord._normalize_text_scalar(value)
 
     @staticmethod
     def _normalize_item_id(value: object) -> str:

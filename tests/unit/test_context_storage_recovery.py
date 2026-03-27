@@ -1029,6 +1029,38 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["keep", "7"])
         self.assertEqual(payload.get("context_sets")[0]["name"], "Evidence")
 
+    def test_scalar_context_set_metadata_is_salvaged_and_rewritten(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "context_sets": [
+                        {
+                            "context_set_id": 123,
+                            "name": 456,
+                            "item_ids": [1, " keep ", False, 1.5],
+                            "created_at": "2026-03-20T11:00:00+00:00",
+                            "updated_at": "2026-03-20T12:00:00+00:00",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, "123")
+        self.assertEqual(loaded[0].name, "456")
+        self.assertEqual(loaded[0].item_ids, ["1", "keep", "1.5"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("context_sets")[0]["context_set_id"], "123")
+        self.assertEqual(payload.get("context_sets")[0]["name"], "456")
+        self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["1", "keep", "1.5"])
+
     def test_context_set_entries_with_extra_metadata_are_rewritten_canonically(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text(
