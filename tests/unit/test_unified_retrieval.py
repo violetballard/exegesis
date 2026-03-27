@@ -13,9 +13,11 @@ import src.qual.engine.retrieval as engine_retrieval
 from src.qual.engine.retrieval import build_retrieval_citation_bundle_from_result as engine_build_retrieval_citation_bundle_from_result
 from src.qual.engine.retrieval import build_retrieval_context_bundle_from_result as engine_build_retrieval_context_bundle_from_result
 from src.qual.engine.retrieval import build_retrieval_downstream_payload_from_result as engine_build_retrieval_downstream_payload_from_result
+from src.qual.engine.retrieval import build_retrieval_provenance_from_result as engine_build_retrieval_provenance_from_result
 from src.qual.engine.retrieval import build_retrieval_source_bundle_from_result as engine_build_retrieval_source_bundle_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_citation_bundle_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
+from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_result
 from src.qual.retrieval import retrieve_auto as engine_retrieve_auto
 from src.qual.retrieval import retrieve_auto_payload as engine_retrieve_auto_payload
 from src.qual.retrieval import retrieve_fts as engine_retrieve_fts
@@ -655,6 +657,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "build_retrieval_downstream_payload_from_result",
                 "build_retrieval_citation_bundle_from_result",
                 "build_retrieval_context_bundle_from_result",
+                "build_retrieval_provenance_from_result",
                 "build_retrieval_source_bundle_from_result",
             ],
         )
@@ -692,8 +695,16 @@ class UnifiedRetrievalTests(unittest.TestCase):
             build_retrieval_citation_bundle_from_result(result),
         )
         self.assertEqual(
+            engine_build_retrieval_provenance_from_result(result),
+            build_retrieval_provenance_from_result(result),
+        )
+        self.assertEqual(
             engine_build_retrieval_context_bundle_from_result(result),
             result.retrieval_context_bundle(),
+        )
+        self.assertEqual(
+            engine_build_retrieval_provenance_from_result(result),
+            result.to_downstream_payload()["retrieval_provenance"],
         )
         self.assertEqual(
             engine_build_retrieval_source_bundle_from_result(result),
@@ -716,6 +727,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(bundle["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(bundle["retrieval_downstream_payload"], result.to_downstream_payload())
         self.assertEqual(bundle["retrieval_citation_bundle"], result.citation_bundle())
+        self.assertEqual(bundle["retrieval_provenance"], result.to_downstream_payload()["retrieval_provenance"])
         self.assertEqual(bundle["retrieval_source_bundle"], result.source_bundle())
         bundle["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
         refreshed = engine_build_retrieval_context_bundle_from_result(result)

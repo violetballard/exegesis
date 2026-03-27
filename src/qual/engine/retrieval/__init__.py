@@ -18,6 +18,7 @@ from src.qual.engine.retrieval.payload import (
     build_retrieval_context_bundle_from_result,
     build_retrieval_downstream_payload,
     build_retrieval_downstream_payload_from_result,
+    build_retrieval_provenance_from_result,
     build_retrieval_source_bundle_from_result,
 )
 
@@ -64,5 +65,6 @@ __all__ = [
     "build_retrieval_downstream_payload_from_result",
     "build_retrieval_citation_bundle_from_result",
     "build_retrieval_context_bundle_from_result",
+    "build_retrieval_provenance_from_result",
     "build_retrieval_source_bundle_from_result",
 ]

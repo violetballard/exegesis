@@ -75,6 +75,18 @@ class RetrievalDownstreamPayload:
         }
 
 
+def build_retrieval_provenance_from_result(
+    result: RetrievalDownstreamPayloadSource,
+) -> dict[str, object]:
+    """Return the deterministic retrieval provenance snapshot for a result."""
+
+    payload = build_retrieval_downstream_payload_from_result(result)
+    provenance = payload.get("retrieval_provenance")
+    if isinstance(provenance, dict):
+        return copy.deepcopy(provenance)
+    return {}
+
+
 def build_retrieval_downstream_payload(
     *,
     query: dict[str, object],
@@ -229,5 +241,6 @@ def build_retrieval_context_bundle_from_result(
     return {
         "retrieval_downstream_payload": payload,
         "retrieval_citation_bundle": build_retrieval_citation_bundle_from_result(result),
+        "retrieval_provenance": build_retrieval_provenance_from_result(result),
         "retrieval_source_bundle": build_retrieval_source_bundle_from_result(result),
     }
