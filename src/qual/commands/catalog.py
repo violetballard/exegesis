@@ -189,6 +189,26 @@ def command_flow_sequence(
     )
 
 
+def command_flow_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandFlowEntry, ...]:
+    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    manifest = command_flow_manifest(specs, ordered_flow_steps)
+    manifest_by_flow_step = {entry.flow_step: entry for entry in manifest}
+    return tuple(
+        CommandFlowEntry(
+            flow_step=flow_step,
+            name=entry.name,
+            aliases=entry.aliases,
+            description=entry.description,
+            lookup_tokens=entry.lookup_tokens,
+        )
+        for flow_step in ordered_flow_steps
+        for entry in (manifest_by_flow_step[flow_step],)
+    )
+
+
 def command_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
     return tuple(spec.name for spec in specs)
 
@@ -259,18 +279,7 @@ def command_flow_steps(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[
 def command_mvp_flow_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandFlowEntry, ...]:
-    manifest_by_flow_step = {entry.flow_step: entry for entry in command_flow_manifest(specs, command_mvp_flow_steps())}
-    return tuple(
-        CommandFlowEntry(
-            flow_step=flow_step,
-            name=entry.name,
-            aliases=entry.aliases,
-            description=entry.description,
-            lookup_tokens=entry.lookup_tokens,
-        )
-        for flow_step in command_mvp_flow_steps()
-        for entry in (manifest_by_flow_step[flow_step],)
-        )
+    return command_flow_catalog(specs, command_mvp_flow_steps())
 
 
 def command_mvp_flow_manifest(
@@ -310,16 +319,23 @@ def command_mvp_flow_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tu
 def command_surface_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandSurfaceContract:
-    flow = command_mvp_flow(specs)
-    manifest = command_mvp_flow_manifest(specs)
+    return command_flow_contract(specs, command_mvp_flow_steps())
+
+
+def command_flow_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> CommandSurfaceContract:
+    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    manifest = command_flow_manifest(specs, ordered_flow_steps)
     return CommandSurfaceContract(
-        flow_steps=command_mvp_flow_steps(),
-        names=tuple(entry.name for entry in flow),
+        flow_steps=ordered_flow_steps,
+        names=tuple(entry.name for entry in manifest),
         manifest=manifest,
-        lookup_table=tuple((entry.flow_step, entry.name) for entry in flow),
-        lookup_index=command_flow_lookup_index(specs, command_mvp_flow_steps()),
-        lookup_tokens=tuple(entry.lookup_tokens for entry in flow),
-        flow_catalog=command_mvp_flow_catalog(specs),
+        lookup_table=tuple((entry.flow_step, entry.name) for entry in manifest),
+        lookup_index=command_flow_lookup_index(specs, ordered_flow_steps),
+        lookup_tokens=tuple(entry.lookup_tokens for entry in manifest),
+        flow_catalog=command_flow_catalog(specs, ordered_flow_steps),
     )
 
 
