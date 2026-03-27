@@ -208,7 +208,6 @@ class ContextSetStore:
 
         should_rewrite = False
         rewrite_empty_recovery = False
-        normalized_recovered_from = None
         rewrite_timestamp = datetime.now(UTC).isoformat()
         records: list[ContextSetRecord]
         if self._is_empty_recovery_payload(payload):
@@ -217,7 +216,6 @@ class ContextSetStore:
             # set.
             rewrite_empty_recovery = True
             recovered_source = None
-            normalized_recovered_from = None
         if isinstance(payload, list):
             parsed_records = self._parse_context_sets(payload)
             if parsed_records is None:
@@ -260,15 +258,7 @@ class ContextSetStore:
                 elif payload.get("updated_at") != normalized_updated_at:
                     should_rewrite = True
             if "recovered_from" in payload:
-                normalized_recovered_from = self._parse_recovered_from(payload.get("recovered_from"))
-                if normalized_recovered_from is None:
-                    should_rewrite = True
-                elif primary_missing:
-                    if payload.get("recovered_from") != normalized_recovered_from:
-                        should_rewrite = True
-                else:
-                    normalized_recovered_from = None
-                    should_rewrite = True
+                should_rewrite = True
         else:
             self._discard_payload_source(recovered_source)
             return []
@@ -276,7 +266,7 @@ class ContextSetStore:
         recovered_from = self._recovery_marker(
             primary_unavailable=primary_missing or primary_payload is None or recovered_source is not None,
             recovered_source=recovered_source,
-        ) or normalized_recovered_from
+        )
         should_rewrite = should_rewrite or rewrite_empty_recovery
         preserve_primary_corrupt = bool(
             primary_needs_quarantine

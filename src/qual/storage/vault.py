@@ -46,7 +46,6 @@ class VaultService:
         has_is_locked = "is_locked" in raw_state
         parsed_is_locked = self._parse_is_locked(raw_state.get("is_locked")) if has_is_locked else None
         is_locked = parsed_is_locked if parsed_is_locked is not None else False
-        normalized_recovered_from = self._parse_recovered_from(raw_state.get("recovered_from")) if "recovered_from" in raw_state else None
         normalized_updated_at = self._parse_updated_at(raw_state.get("updated_at")) if "updated_at" in raw_state else None
         needs_rewrite = (
             recovered_source is not None
@@ -66,14 +65,7 @@ class VaultService:
             elif raw_state.get("updated_at") != normalized_updated_at:
                 needs_rewrite = True
         if "recovered_from" in raw_state:
-            if normalized_recovered_from is None:
-                needs_rewrite = True
-            elif primary_unavailable or not has_is_locked:
-                if raw_state.get("recovered_from") != normalized_recovered_from:
-                    needs_rewrite = True
-            else:
-                normalized_recovered_from = None
-                needs_rewrite = True
+            needs_rewrite = True
         if "updated_at" not in raw_state:
             needs_rewrite = True
         if not has_is_locked or self._requires_safe_lock(raw_state, safe_project_name):
@@ -97,8 +89,7 @@ class VaultService:
                 recovered_from=self._recovery_marker(
                     primary_unavailable=primary_unavailable,
                     recovered_source=recovered_source,
-                )
-                or normalized_recovered_from,
+                ),
                 preserve_primary_corrupt=preserve_primary_corrupt,
             )
         else:

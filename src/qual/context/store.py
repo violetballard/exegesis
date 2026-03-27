@@ -114,14 +114,12 @@ class ContextBasketStore:
 
         should_rewrite = False
         rewrite_empty_recovery = False
-        normalized_recovered_from = None
         if self._is_empty_recovery_payload(payload):
             # Canonical empty state should still be materialized when it is the
             # only recoverable payload, but without claiming a recovery source
             # from the recovery artifact set.
             rewrite_empty_recovery = True
             recovered_source = None
-            normalized_recovered_from = None
         if isinstance(payload, list):
             parsed_items = self._parse_item_ids(payload)
             if parsed_items is None:
@@ -163,15 +161,7 @@ class ContextBasketStore:
                 elif payload.get("updated_at") != normalized_updated_at:
                     should_rewrite = True
             if "recovered_from" in payload:
-                normalized_recovered_from = self._parse_recovered_from(payload.get("recovered_from"))
-                if normalized_recovered_from is None:
-                    should_rewrite = True
-                elif primary_missing or primary_missing_item_ids:
-                    if payload.get("recovered_from") != normalized_recovered_from:
-                        should_rewrite = True
-                else:
-                    normalized_recovered_from = None
-                    should_rewrite = True
+                should_rewrite = True
         else:
             self._discard_payload_source(recovered_source)
             return ContextBasket()
@@ -184,7 +174,7 @@ class ContextBasketStore:
                 or primary_item_ids_need_recovery
             ),
             recovered_source=recovered_source,
-        ) or normalized_recovered_from
+        )
         should_rewrite = should_rewrite or rewrite_empty_recovery
         preserve_primary_corrupt = bool(
             primary_needs_quarantine
