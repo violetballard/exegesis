@@ -276,9 +276,15 @@ def build_retrieval_context_bundle_from_result(
     if callable(context_source):
         return copy.deepcopy(context_source())
     payload = build_retrieval_downstream_payload_from_result(result)
+    excerpt_source = getattr(result, "retrieval_excerpt_bundle", None)
+    if callable(excerpt_source):
+        excerpt_bundle = copy.deepcopy(excerpt_source())
+    else:
+        excerpt_bundle = build_retrieval_excerpt_bundle_from_result(result)
     return {
         "retrieval_downstream_payload": payload,
         "retrieval_citation_bundle": build_retrieval_citation_bundle_from_result(result),
+        "retrieval_excerpt_bundle": excerpt_bundle,
         "retrieval_provenance": build_retrieval_provenance_from_result(result),
         "retrieval_source_bundle": build_retrieval_source_bundle_from_result(result),
     }

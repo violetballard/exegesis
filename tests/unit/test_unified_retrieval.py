@@ -754,15 +754,18 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "build_retrieval_downstream_payload",
                 "build_retrieval_downstream_payload_from_result",
                 "build_retrieval_citation_bundle_from_result",
+                "build_retrieval_excerpt_bundle_from_result",
                 "build_retrieval_context_bundle_from_result",
                 "build_retrieval_provenance_from_result",
                 "build_retrieval_source_bundle_from_result",
                 "retrieve_fts",
                 "retrieve_fts_context_bundle",
                 "retrieve_fts_source_bundle",
+                "retrieve_fts_excerpt_bundle",
                 "retrieve_fts_payload",
                 "retrieve_auto_context_bundle",
                 "retrieve_auto_source_bundle",
+                "retrieve_auto_excerpt_bundle",
                 "retrieve_auto_payload",
             ],
         )
@@ -777,14 +780,17 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_downstream_payload"))
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_downstream_payload_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_citation_bundle_from_result"))
+        self.assertTrue(hasattr(engine_retrieval, "build_retrieval_excerpt_bundle_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_context_bundle_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_source_bundle_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_context_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_source_bundle"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_excerpt_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_payload"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_context_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_source_bundle"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_excerpt_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_payload"))
 
     def test_engine_retrieval_package_reexports_canonical_payload_helpers(self) -> None:
@@ -923,11 +929,18 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(bundle["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(bundle["retrieval_downstream_payload"], result.to_downstream_payload())
         self.assertEqual(bundle["retrieval_citation_bundle"], result.citation_bundle())
+        self.assertEqual(bundle["retrieval_excerpt_bundle"], result.retrieval_excerpt_bundle())
         self.assertEqual(bundle["retrieval_provenance"], result.to_downstream_payload()["retrieval_provenance"])
         self.assertEqual(bundle["retrieval_source_bundle"], result.source_bundle())
         bundle["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
         refreshed = engine_build_retrieval_context_bundle_from_result(result)
         self.assertNotIn("mutated-doc-id", refreshed["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"])
+        bundle["retrieval_excerpt_bundle"]["excerpt_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
+        refreshed = engine_build_retrieval_context_bundle_from_result(result)
+        self.assertNotEqual(
+            refreshed["retrieval_excerpt_bundle"]["excerpt_hits"][0]["provenance"]["doc_id"],
+            "mutated-doc-id",
+        )
 
     def test_engine_retrieval_policy_snapshot_is_stable_and_copy_safe(self) -> None:
         first = engine_retrieval.retrieval_policy_snapshot()
