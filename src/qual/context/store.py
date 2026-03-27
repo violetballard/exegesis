@@ -228,6 +228,20 @@ class ContextBasketStore:
             # Keep the original malformed legacy list available for audit when
             # it cannot contribute any recoverable item ids.
             preserve_primary_corrupt = True
+        if (
+            recovered_source == "backup"
+            and isinstance(backup_payload, list)
+            and self._legacy_list_payload_has_dropped_item_ids(backup_payload)
+        ):
+            self._quarantine_invalid_backup()
+            preserve_backup_corrupt = True
+        if (
+            recovered_source == "seed"
+            and isinstance(seed_payload, list)
+            and self._legacy_list_payload_has_dropped_item_ids(seed_payload)
+        ):
+            self._quarantine_invalid_seed()
+            preserve_seed_corrupt = True
         if recovered_source == "backup" and backup_payload is not None and not self._is_supported_payload(backup_payload):
             self._quarantine_invalid_backup()
             preserve_backup_corrupt = True
@@ -653,6 +667,14 @@ class ContextBasketStore:
         if not isinstance(item_ids, list):
             return True
         return any(not self._normalize_item_id(item_id) for item_id in item_ids)
+
+    def _legacy_list_payload_has_dropped_item_ids(self, payload: object) -> bool:
+        if not isinstance(payload, list):
+            return False
+        parsed_item_ids = self._parse_item_ids(payload)
+        if parsed_item_ids is None:
+            return False
+        return len(parsed_item_ids) < len(payload)
 
     def _quarantine_unrecoverable_list_payload(self, path: Path, payload: object) -> bool:
         if path not in {self._backup_path, self._seed_state_path()}:
