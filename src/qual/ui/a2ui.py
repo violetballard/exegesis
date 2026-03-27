@@ -189,6 +189,15 @@ def _build_read_only_fallback_action_manifest() -> list[dict[str, Any]]:
     ]
 
 
+def _build_read_only_json_preview_block(payload: dict[str, Any], *, max_payload_bytes: int) -> dict[str, Any]:
+    return {
+        "type": "CodeBlock",
+        "language": "json",
+        "code": _render_payload_preview(payload, max_payload_bytes=max_payload_bytes, pretty=True),
+        "collapsed": True,
+    }
+
+
 def _build_a2ui_schema_manifest() -> dict[str, Any]:
     return {
         "cards": [
@@ -326,15 +335,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
                 "message": "Rendered as GenericCard because client does not support this specialized card.",
             },
             *_extract_safe_primitive_blocks(card, allow_code_block=False),
-            {
-                "type": "CodeBlock",
-                "language": "json",
-                "code": _render_payload_preview(
-                    card,
-                    max_payload_bytes=capabilities.max_payload_bytes,
-                    pretty=True,
-                ),
-            },
+            _build_read_only_json_preview_block(card, max_payload_bytes=capabilities.max_payload_bytes),
         ],
         "actions": read_only_actions,
     }
@@ -380,20 +381,8 @@ def build_unknown_card(
 ) -> dict[str, Any]:
     type_name = _normalize_card_type(raw_card)
     effective_max_payload_bytes = _normalize_preview_budget(max_payload_bytes)
-    rendered_preview = _render_payload_preview(
-        raw_card,
-        max_payload_bytes=effective_max_payload_bytes,
-        pretty=True,
-    )
     blocks = _extract_safe_primitive_blocks(raw_card, allow_code_block=False)
-    blocks.append(
-        {
-            "type": "CodeBlock",
-            "language": "json",
-            "code": rendered_preview,
-            "collapsed": True,
-        }
-    )
+    blocks.append(_build_read_only_json_preview_block(raw_card, max_payload_bytes=effective_max_payload_bytes))
     actions = _build_unknown_card_actions(
         raw_card,
         supported_actions=supported_actions,
@@ -1063,27 +1052,39 @@ def _render_terminal_debug(debug: Any) -> list[str]:
 
 
 def _render_terminal_fallback_notice(card_type: str, title: str, *, debug: Any) -> list[str]:
+    fallback_debug = _extract_terminal_fallback_debug(debug)
+    if fallback_debug is not None:
+        fallback_kind, source_card_type = fallback_debug
+        return [
+            f"Fallback: {_render_terminal_inline_text(fallback_kind)} from {_render_terminal_inline_text(source_card_type)}"
+        ]
+    if card_type == UNKNOWN_CARD_TYPE:
+        source_card_type = _infer_unknown_fallback_source(title)
+        if source_card_type is not None:
+            return [f"Fallback: unknown from {_render_terminal_inline_text(source_card_type)}"]
+        return ["Fallback: unknown card"]
+    if card_type == GENERIC_CARD_TYPE:
+        source_card_type = _infer_generic_fallback_source(title)
+        if source_card_type is not None:
+            return [f"Fallback: generic from {_render_terminal_inline_text(source_card_type)}"]
+        return ["Fallback: generic card"]
+    return []
+
+
+def _extract_terminal_fallback_debug(debug: Any) -> tuple[str, str] | None:
     if not isinstance(debug, dict):
-        if card_type == UNKNOWN_CARD_TYPE:
-            source_card_type = _infer_unknown_fallback_source(title)
-            if source_card_type is not None:
-                return [f"Fallback: unknown from {_render_terminal_inline_text(source_card_type)}"]
-            return ["Fallback: unknown card"]
-        if card_type == GENERIC_CARD_TYPE:
-            source_card_type = _infer_generic_fallback_source(title)
-            if source_card_type is not None:
-                return [f"Fallback: generic from {_render_terminal_inline_text(source_card_type)}"]
-            return ["Fallback: generic card"]
-        return []
+        return None
     fallback_kind = debug.get("fallback_kind")
     source_card_type = debug.get("source_card_type")
-    if not isinstance(fallback_kind, str) or not fallback_kind.strip():
-        return []
-    if not isinstance(source_card_type, str) or not source_card_type.strip():
-        return []
-    return [
-        f"Fallback: {_render_terminal_inline_text(fallback_kind.strip())} from {_render_terminal_inline_text(source_card_type.strip())}"
-    ]
+    if not isinstance(fallback_kind, str) or not isinstance(source_card_type, str):
+        return None
+    normalized_fallback_kind = fallback_kind.strip()
+    normalized_source_card_type = source_card_type.strip()
+    if normalized_fallback_kind not in {"generic", "unknown"}:
+        return None
+    if not normalized_source_card_type:
+        return None
+    return normalized_fallback_kind, normalized_source_card_type
 
 
 def _render_terminal_action_policy(card_type: str, title: str, debug: Any) -> list[str]:
