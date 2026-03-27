@@ -211,6 +211,7 @@ def command_manifest(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[Co
 
 
 def command_lookup_table(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[tuple[str, str], ...]:
+    validate_command_catalog(specs)
     return tuple(
         (_normalize_token(alias), spec.name)
         for spec in specs
@@ -219,6 +220,7 @@ def command_lookup_table(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tupl
 
 
 def command_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[tuple[str, str], ...]:
+    validate_command_catalog(specs)
     seen_tokens: set[str] = set()
     index: list[tuple[str, str]] = []
     for spec in specs:
@@ -313,6 +315,7 @@ def command_surface_contract(
 
 
 def command_tokens(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
+    validate_command_catalog(specs)
     return tuple(alias for spec in specs for alias in _lookup_tokens(spec))
 
 

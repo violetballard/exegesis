@@ -25,6 +25,7 @@ from src.qual.commands import (
     command_names,
     command_spec,
     command_specs,
+    command_tokens,
     validate_command_catalog,
 )
 
@@ -81,6 +82,49 @@ class CommandCatalogTests(unittest.TestCase):
             tuple(command_lookup_tokens(entry.name) for entry in manifest),
             tuple(entry.lookup_tokens for entry in manifest),
         )
+
+    def test_command_tokens_flatten_the_catalog_in_order(self) -> None:
+        self.assertEqual(
+            command_tokens(),
+            (
+                "bootstrap",
+                "open",
+                "project-open",
+                "project",
+                "diff-preview",
+                "diff",
+                "diff_preview",
+                "context-basket",
+                "context",
+                "basket",
+                "terminal",
+            ),
+        )
+
+    def test_command_lookup_projections_reject_ambiguous_catalog_definitions(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Duplicate command name"):
+            command_lookup_table(
+                (
+                    CommandSpec(name="bootstrap", flow_step="project-open"),
+                    CommandSpec(name="bootstrap", flow_step="retrieval"),
+                )
+            )
+
+        with self.assertRaisesRegex(ValueError, "Duplicate command flow step"):
+            command_lookup_index(
+                (
+                    CommandSpec(name="bootstrap", flow_step="project-open"),
+                    CommandSpec(name="context-basket", flow_step="project-open"),
+                )
+            )
+
+        with self.assertRaisesRegex(ValueError, "Duplicate command lookup alias"):
+            command_tokens(
+                (
+                    CommandSpec(name="bootstrap", aliases=("open",), flow_step="project-open"),
+                    CommandSpec(name="diff-preview", aliases=("open",), flow_step="patch-review"),
+                )
+            )
 
     def test_command_flow_sequence_bundles_the_catalog_smoke_contract(self) -> None:
         sequence = command_flow_sequence()
