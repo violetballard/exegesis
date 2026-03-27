@@ -395,6 +395,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_evidence"]["doc_count"], len(result.doc_hits))
         self.assertEqual(payload["retrieval_evidence"]["excerpt_count"], len(result.hits))
         self.assertEqual(payload["retrieval_citation_bundle"]["doc_citations"][0]["source_hash"], result.doc_hits[0].source_hash)
+        self.assertEqual(payload["retrieval_doc_bundle"], result.retrieval_doc_bundle())
         self.assertEqual(
             payload["retrieval_citation_bundle"]["excerpt_citations"][0]["source_hash"],
             result.hits[0].provenance["source_hash"],
@@ -972,12 +973,16 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(bundle["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(bundle["retrieval_downstream_payload"], result.to_downstream_payload())
         self.assertEqual(bundle["retrieval_citation_bundle"], result.citation_bundle())
+        self.assertEqual(bundle["retrieval_doc_bundle"], result.retrieval_doc_bundle())
         self.assertEqual(bundle["retrieval_excerpt_bundle"], result.retrieval_excerpt_bundle())
         self.assertEqual(bundle["retrieval_provenance"], result.to_downstream_payload()["retrieval_provenance"])
         self.assertEqual(bundle["retrieval_source_bundle"], result.source_bundle())
         bundle["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
         refreshed = engine_build_retrieval_context_bundle_from_result(result)
         self.assertNotIn("mutated-doc-id", refreshed["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"])
+        bundle["retrieval_doc_bundle"]["doc_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
+        refreshed = engine_build_retrieval_context_bundle_from_result(result)
+        self.assertNotEqual(refreshed["retrieval_doc_bundle"]["doc_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
         bundle["retrieval_excerpt_bundle"]["excerpt_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
         refreshed = engine_build_retrieval_context_bundle_from_result(result)
         self.assertNotEqual(

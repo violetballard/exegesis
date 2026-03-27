@@ -174,6 +174,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "result_fingerprint": payload.get("result_fingerprint"),
         "retrieval_downstream_payload": copy.deepcopy(payload),
         "retrieval_citation_bundle": _build_retrieval_citation_bundle_from_payload(payload),
+        "retrieval_doc_bundle": _build_retrieval_doc_bundle_from_payload(payload),
         "retrieval_excerpt_bundle": _build_retrieval_excerpt_bundle_from_payload(payload),
         "retrieval_provenance": _build_retrieval_provenance_from_payload(payload),
         "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
@@ -263,6 +264,7 @@ class RetrievalDownstreamPayload:
     retrieval_mode: str
     citation_status: dict[str, object]
     retrieval_citation_bundle: dict[str, object]
+    retrieval_doc_bundle: dict[str, object]
     retrieval_summary: dict[str, object]
     doc_hits: list[dict[str, object]]
     excerpt_hits: list[dict[str, object]]
@@ -290,6 +292,7 @@ class RetrievalDownstreamPayload:
             "retrieval_mode": self.retrieval_mode,
             "citation_status": copy.deepcopy(self.citation_status),
             "retrieval_citation_bundle": copy.deepcopy(self.retrieval_citation_bundle),
+            "retrieval_doc_bundle": copy.deepcopy(self.retrieval_doc_bundle),
             "retrieval_summary": summary,
             "doc_hits": [copy.deepcopy(doc_hit) for doc_hit in self.doc_hits],
             "excerpt_hits": [copy.deepcopy(hit) for hit in self.excerpt_hits],
@@ -320,6 +323,7 @@ def build_retrieval_downstream_payload(
     retrieval_mode: str,
     citation_status: dict[str, object],
     retrieval_citation_bundle: dict[str, object],
+    retrieval_doc_bundle: dict[str, object],
     retrieval_summary: dict[str, object],
     doc_hits: list[dict[str, object]],
     excerpt_hits: list[dict[str, object]],
@@ -338,6 +342,7 @@ def build_retrieval_downstream_payload(
         retrieval_mode=retrieval_mode,
         citation_status=citation_status,
         retrieval_citation_bundle=retrieval_citation_bundle,
+        retrieval_doc_bundle=retrieval_doc_bundle,
         retrieval_summary=retrieval_summary,
         doc_hits=doc_hits,
         excerpt_hits=excerpt_hits,

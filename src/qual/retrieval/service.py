@@ -290,6 +290,7 @@ class RetrievalResult:
         query = self._query_snapshot()
         retrieval_policy = self._retrieval_policy_snapshot()
         citation_bundle = self.citation_bundle()
+        retrieval_doc_bundle = self.retrieval_doc_bundle()
         citation_status = dict(citation_bundle["citation_status"])
         retrieval_summary = self._retrieval_summary_snapshot(
             retrieval_policy=retrieval_policy,
@@ -316,6 +317,7 @@ class RetrievalResult:
             retrieval_mode=self.diagnostics["retrieval_mode"],
             citation_status=citation_status,
             retrieval_citation_bundle=citation_bundle,
+            retrieval_doc_bundle=retrieval_doc_bundle,
             retrieval_summary=retrieval_summary,
             doc_hits=[doc_hit.as_dict() for doc_hit in self.doc_hits],
             excerpt_hits=[hit.as_dict() for hit in self.hits],
@@ -489,6 +491,7 @@ class RetrievalResult:
             "result_fingerprint": self.result_fingerprint,
             "retrieval_downstream_payload": copy.deepcopy(self.to_downstream_payload()),
             "retrieval_citation_bundle": copy.deepcopy(self.citation_bundle()),
+            "retrieval_doc_bundle": copy.deepcopy(self.retrieval_doc_bundle()),
             "retrieval_excerpt_bundle": copy.deepcopy(build_retrieval_excerpt_bundle_from_result(self)),
             "retrieval_provenance": copy.deepcopy(build_retrieval_provenance_from_result(self)),
             "retrieval_source_bundle": copy.deepcopy(self.source_bundle()),
