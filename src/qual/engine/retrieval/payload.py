@@ -93,6 +93,12 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
     source_bundle = payload.get("retrieval_source_bundle")
     if isinstance(source_bundle, dict):
         return copy.deepcopy(source_bundle)
+    retrieval_doc_bundle = payload.get("retrieval_doc_bundle")
+    if not isinstance(retrieval_doc_bundle, dict):
+        retrieval_doc_bundle = _build_retrieval_doc_bundle_from_payload(payload)
+    retrieval_excerpt_bundle = payload.get("retrieval_excerpt_bundle")
+    if not isinstance(retrieval_excerpt_bundle, dict):
+        retrieval_excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
     return {
         "result_fingerprint": payload.get("result_fingerprint"),
         "query_fingerprint": payload.get("query_fingerprint"),
@@ -103,6 +109,8 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "citation_status": copy.deepcopy(payload.get("citation_status", {})),
         "retrieval_citation_bundle": copy.deepcopy(payload.get("retrieval_citation_bundle", {})),
         "retrieval_summary": copy.deepcopy(payload.get("retrieval_summary", {})),
+        "retrieval_doc_bundle": copy.deepcopy(retrieval_doc_bundle),
+        "retrieval_excerpt_bundle": copy.deepcopy(retrieval_excerpt_bundle),
         "doc_hits": copy.deepcopy(payload.get("doc_hits", [])),
         "excerpt_hits": copy.deepcopy(payload.get("excerpt_hits", [])),
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),

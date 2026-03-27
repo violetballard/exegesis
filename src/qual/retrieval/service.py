@@ -615,6 +615,8 @@ class RetrievalResult:
             "citation_status": copy.deepcopy(citation_status_snapshot),
             "retrieval_citation_bundle": copy.deepcopy(citation_bundle_snapshot),
             "retrieval_summary": retrieval_summary_snapshot,
+            "retrieval_doc_bundle": copy.deepcopy(self.retrieval_doc_bundle()),
+            "retrieval_excerpt_bundle": copy.deepcopy(build_retrieval_excerpt_bundle_from_result(self)),
             "doc_hits": [doc_hit.as_dict() for doc_hit in self.doc_hits],
             "excerpt_hits": [hit.as_dict() for hit in self.hits],
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),

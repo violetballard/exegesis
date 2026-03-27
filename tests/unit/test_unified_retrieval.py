@@ -513,10 +513,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         source_bundle = result.source_bundle()
         self.assertEqual(source_bundle["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(source_bundle["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(source_bundle["retrieval_doc_bundle"], result.retrieval_doc_bundle())
+        self.assertEqual(source_bundle["retrieval_excerpt_bundle"], result.retrieval_excerpt_bundle())
 
         bundle = engine_build_retrieval_source_bundle_from_result(_SourceBundleOnlySource(source_bundle))
         self.assertEqual(bundle["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(bundle["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(bundle["retrieval_doc_bundle"], result.retrieval_doc_bundle())
+        self.assertEqual(bundle["retrieval_excerpt_bundle"], result.retrieval_excerpt_bundle())
         self.assertEqual(bundle["retrieval_summary"]["doc_ids"], [item.doc_id for item in result.doc_hits])
         bundle["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
         refreshed = engine_build_retrieval_source_bundle_from_result(_SourceBundleOnlySource(result.source_bundle()))
@@ -544,6 +548,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         self.assertEqual(direct, result.source_bundle())
         self.assertEqual(helper, result.source_bundle())
+        self.assertEqual(direct["retrieval_doc_bundle"], result.retrieval_doc_bundle())
+        self.assertEqual(direct["retrieval_excerpt_bundle"], result.retrieval_excerpt_bundle())
         self.assertEqual(direct["retrieval_summary"]["doc_ids"], [item.doc_id for item in result.doc_hits])
         self.assertEqual(direct["retrieval_summary"]["excerpt_ids"], [item.excerpt_id for item in result.hits if item.excerpt_id is not None])
         direct["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
@@ -571,6 +577,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         self.assertEqual(direct, result.source_bundle())
         self.assertEqual(helper, result.source_bundle())
+        self.assertEqual(direct["retrieval_doc_bundle"], result.retrieval_doc_bundle())
+        self.assertEqual(direct["retrieval_excerpt_bundle"], result.retrieval_excerpt_bundle())
         self.assertEqual(direct["retrieval_summary"]["doc_ids"], [item.doc_id for item in result.doc_hits])
         self.assertEqual(direct["retrieval_summary"]["excerpt_ids"], [item.excerpt_id for item in result.hits if item.excerpt_id is not None])
         direct["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
