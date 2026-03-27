@@ -20,8 +20,10 @@ from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload
 from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_result
 from src.qual.retrieval import retrieve_auto as engine_retrieve_auto
 from src.qual.retrieval import retrieve_auto_payload as engine_retrieve_auto_payload
+from src.qual.retrieval import retrieve_auto_source_bundle as engine_retrieve_auto_source_bundle
 from src.qual.retrieval import retrieve_fts as engine_retrieve_fts
 from src.qual.retrieval import retrieve_fts_payload as engine_retrieve_fts_payload
+from src.qual.retrieval import retrieve_fts_source_bundle as engine_retrieve_fts_source_bundle
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
 
 
@@ -480,6 +482,60 @@ class UnifiedRetrievalTests(unittest.TestCase):
         refreshed = engine_build_retrieval_source_bundle_from_result(_SourceBundleOnlySource(result.source_bundle()))
         self.assertNotIn("mutated-doc-id", refreshed["retrieval_summary"]["doc_ids"])
 
+    def test_retrieve_auto_source_bundle_matches_result_snapshot(self) -> None:
+        query = RetrievalQuery(
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints=RetrievalConstraints(max_results=4),
+            confidentiality_profile="confidential",
+        )
+
+        result = self.service.retrieve_auto(query)
+        direct = self.service.retrieve_auto_source_bundle(query)
+        helper = engine_retrieve_auto_source_bundle(
+            self.service,
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints={"max_results": 4},
+            confidentiality_profile="confidential",
+        )
+
+        self.assertEqual(direct, result.source_bundle())
+        self.assertEqual(helper, result.source_bundle())
+        self.assertEqual(direct["retrieval_summary"]["doc_ids"], [item.doc_id for item in result.doc_hits])
+        self.assertEqual(direct["retrieval_summary"]["excerpt_ids"], [item.excerpt_id for item in result.hits if item.excerpt_id is not None])
+        direct["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
+        self.assertNotIn("mutated-doc-id", self.service.retrieve_auto_source_bundle(query)["retrieval_summary"]["doc_ids"])
+
+    def test_retrieve_fts_source_bundle_matches_result_snapshot(self) -> None:
+        query = RetrievalQuery(
+            query_text="theory implications",
+            scope="doc:doc-pdf-1",
+            intent="lookup",
+            constraints=RetrievalConstraints(max_results=4),
+            confidentiality_profile="confidential",
+        )
+
+        result = self.service.retrieve_fts(query)
+        direct = self.service.retrieve_fts_source_bundle(query)
+        helper = engine_retrieve_fts_source_bundle(
+            self.service,
+            query_text="theory implications",
+            scope="doc:doc-pdf-1",
+            intent="lookup",
+            constraints={"max_results": 4},
+            confidentiality_profile="confidential",
+        )
+
+        self.assertEqual(direct, result.source_bundle())
+        self.assertEqual(helper, result.source_bundle())
+        self.assertEqual(direct["retrieval_summary"]["doc_ids"], [item.doc_id for item in result.doc_hits])
+        self.assertEqual(direct["retrieval_summary"]["excerpt_ids"], [item.excerpt_id for item in result.hits if item.excerpt_id is not None])
+        direct["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
+        self.assertNotIn("mutated-doc-id", self.service.retrieve_fts_source_bundle(query)["retrieval_summary"]["doc_ids"])
+
     def test_doc_identity_fingerprint_stays_stable_across_query_variants(self) -> None:
         long_doc_text = (
             "alpha marker opens the first retrieval window. "
@@ -667,8 +723,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "build_retrieval_source_bundle_from_result",
                 "retrieve_fts",
                 "retrieve_fts_context_bundle",
+                "retrieve_fts_source_bundle",
                 "retrieve_fts_payload",
                 "retrieve_auto_context_bundle",
+                "retrieve_auto_source_bundle",
                 "retrieve_auto_payload",
             ],
         )
@@ -687,8 +745,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_source_bundle_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_context_bundle"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_source_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_payload"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_context_bundle"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_source_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_payload"))
 
     def test_engine_retrieval_package_reexports_canonical_payload_helpers(self) -> None:
@@ -734,6 +794,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
             constraints={"max_results": 4, "doc_types": ["memo"]},
             confidentiality_profile="confidential",
         )
+        fts_source_bundle = engine_retrieval.retrieve_fts_source_bundle(
+            self.service,
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints={"max_results": 4, "doc_types": ["memo"]},
+            confidentiality_profile="confidential",
+        )
         fts_payload = engine_retrieval.retrieve_fts_payload(
             self.service,
             query_text="memo coding comparison",
@@ -743,6 +811,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
             confidentiality_profile="confidential",
         )
         auto_context_bundle = engine_retrieval.retrieve_auto_context_bundle(
+            self.service,
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints={"max_results": 4, "doc_types": ["memo"]},
+            confidentiality_profile="confidential",
+        )
+        auto_source_bundle = engine_retrieval.retrieve_auto_source_bundle(
             self.service,
             query_text="memo coding comparison",
             scope="vault",
@@ -781,6 +857,16 @@ class UnifiedRetrievalTests(unittest.TestCase):
             return normalized
 
         self.assertEqual(_normalize_context_bundle(fts_context_bundle), _normalize_context_bundle(auto_context_bundle))
+        self.assertEqual(fts_source_bundle, auto_source_bundle)
+        self.assertEqual(fts_source_bundle, self.service.retrieve_fts_source_bundle(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4, doc_types=("memo",)),
+                confidentiality_profile="confidential",
+            )
+        ))
         self.assertEqual(_normalize_payload(fts_payload), _normalize_payload(auto_payload))
         self.assertEqual(_normalize_payload(fts_context_bundle["retrieval_downstream_payload"]), _normalize_payload(fts_payload))
         self.assertEqual(_normalize_payload(auto_context_bundle["retrieval_downstream_payload"]), _normalize_payload(auto_payload))

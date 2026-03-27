@@ -56,6 +56,12 @@ def retrieve_fts_context_bundle(*args, **kwargs):
     return _retrieve_fts_context_bundle(*args, **kwargs)
 
 
+def retrieve_fts_source_bundle(*args, **kwargs):
+    from src.qual.retrieval import retrieve_fts_source_bundle as _retrieve_fts_source_bundle
+
+    return _retrieve_fts_source_bundle(*args, **kwargs)
+
+
 def retrieve_fts_payload(*args, **kwargs):
     from src.qual.retrieval import retrieve_fts_payload as _retrieve_fts_payload
 
@@ -72,6 +78,12 @@ def retrieve_auto_context_bundle(*args, **kwargs):
     from src.qual.retrieval import retrieve_auto_context_bundle as _retrieve_auto_context_bundle
 
     return _retrieve_auto_context_bundle(*args, **kwargs)
+
+
+def retrieve_auto_source_bundle(*args, **kwargs):
+    from src.qual.retrieval import retrieve_auto_source_bundle as _retrieve_auto_source_bundle
+
+    return _retrieve_auto_source_bundle(*args, **kwargs)
 
 
 def retrieve_auto_payload(*args, **kwargs):
@@ -99,7 +111,9 @@ __all__ = [
     "build_retrieval_source_bundle_from_result",
     "retrieve_fts",
     "retrieve_fts_context_bundle",
+    "retrieve_fts_source_bundle",
     "retrieve_fts_payload",
     "retrieve_auto_context_bundle",
+    "retrieve_auto_source_bundle",
     "retrieve_auto_payload",
 ]
