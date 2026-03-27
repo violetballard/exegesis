@@ -11,6 +11,13 @@ class CommandSpec:
     description: str = ""
 
 
+@dataclass(frozen=True)
+class CommandManifestEntry:
+    name: str
+    aliases: tuple[str, ...]
+    description: str
+
+
 def _normalize_token(value: str) -> str:
     return re.sub(r"[-_\s]+", "-", value.strip().casefold())
 
@@ -52,6 +59,17 @@ def command_names() -> tuple[str, ...]:
 
 def command_specs() -> tuple[CommandSpec, ...]:
     return COMMAND_SPECS
+
+
+def command_manifest() -> tuple[CommandManifestEntry, ...]:
+    return tuple(
+        CommandManifestEntry(name=spec.name, aliases=spec.aliases, description=spec.description)
+        for spec in COMMAND_SPECS
+    )
+
+
+def command_tokens() -> tuple[str, ...]:
+    return tuple(alias for spec in COMMAND_SPECS for alias in (spec.name, *spec.aliases))
 
 
 def command_spec(name: str) -> CommandSpec | None:
