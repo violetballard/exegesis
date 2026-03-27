@@ -279,6 +279,23 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("schema_version"), 1)
         self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
 
+    def test_legacy_list_payload_with_only_invalid_entries_is_preserved_for_audit(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps([None, "", {"bad": "value"}]),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, [])
+        self.assertTrue(self.store._path.with_suffix(".corrupt.json").exists())
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(self.store._path.with_suffix(".corrupt.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), [])
+        self.assertEqual(payload.get("schema_version"), 1)
+        self.assertEqual(quarantined_payload, [None, "", {"bad": "value"}])
+
     def test_explicit_legacy_schema_version_zero_is_salvaged_and_rewritten(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text(
@@ -1276,6 +1293,23 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["first", "second"])
+
+    def test_legacy_list_payload_with_only_invalid_entries_is_preserved_for_audit(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps([None, "", {"context_set_id": "", "name": "drop me"}]),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded, [])
+        self.assertTrue(self.store._path.with_suffix(".corrupt.json").exists())
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(self.store._path.with_suffix(".corrupt.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("context_sets"), [])
+        self.assertEqual(payload.get("schema_version"), 1)
+        self.assertEqual(quarantined_payload, [None, "", {"context_set_id": "", "name": "drop me"}])
 
     def test_primary_missing_context_sets_recovers_from_backup_before_empty_rewrite(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)

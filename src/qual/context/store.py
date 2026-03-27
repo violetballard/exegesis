@@ -183,6 +183,10 @@ class ContextBasketStore:
             and isinstance(primary_payload, dict)
             and (primary_item_ids_need_recovery or self._has_unknown_fields(primary_payload))
         )
+        if isinstance(primary_payload, list) and primary_payload and not self._has_recovery_payload_items(primary_payload):
+            # Keep the original malformed legacy list available for audit when
+            # it cannot contribute any recoverable item ids.
+            preserve_primary_corrupt = True
         if recovered_source is not None or should_rewrite:
             # Keep the backup aligned with the latest canonical basket whenever we
             # rewrite state during load, not only when we recover from tmp/backup.

@@ -273,6 +273,10 @@ class ContextSetStore:
             and primary_payload is not None
             and isinstance(primary_payload, dict)
         )
+        if isinstance(primary_payload, list) and primary_payload and not self._has_context_set_records(primary_payload):
+            # Keep the original malformed legacy list available for audit when
+            # it cannot contribute any recoverable context set records.
+            preserve_primary_corrupt = True
         if recovered_source is not None or should_rewrite:
             self.save(
                 records,
