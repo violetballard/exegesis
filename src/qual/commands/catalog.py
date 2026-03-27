@@ -147,7 +147,16 @@ def _build_command_spec_by_alias(specs: tuple[CommandSpec, ...]) -> dict[str, Co
     return index
 
 
+def _build_command_spec_by_flow_step(specs: tuple[CommandSpec, ...]) -> dict[str, CommandSpec]:
+    validate_command_catalog(specs)
+    index: dict[str, CommandSpec] = {}
+    for spec in specs:
+        index[_normalize_token(spec.flow_step)] = spec
+    return index
+
+
 _COMMAND_SPEC_BY_ALIAS = _build_command_spec_by_alias(COMMAND_SPECS)
+_COMMAND_SPEC_BY_FLOW_STEP = _build_command_spec_by_flow_step(COMMAND_SPECS)
 
 
 def command_flow_manifest(
@@ -307,7 +316,7 @@ def command_spec(name: str) -> CommandSpec | None:
     normalized = _normalize_token(name)
     if not normalized:
         return None
-    return _COMMAND_SPEC_BY_ALIAS.get(normalized)
+    return _COMMAND_SPEC_BY_ALIAS.get(normalized) or _COMMAND_SPEC_BY_FLOW_STEP.get(normalized)
 
 
 def command_aliases(name: str) -> tuple[str, ...]:
