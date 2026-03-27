@@ -373,6 +373,12 @@ class ContextSetStore:
             or backup_missing
             or self._backup_needs_refresh(backup_payload, records, payload if isinstance(payload, dict) else None)
         ):
+            if self._backup_needs_audit_quarantine(backup_payload):
+                self._quarantine_invalid_backup()
+                preserve_backup_corrupt = True
+            if self._backup_needs_audit_quarantine(seed_payload):
+                self._quarantine_invalid_seed()
+                preserve_seed_corrupt = True
             backup_written = self._write_backup_payload(
                 self._backup_payload_from_records(records, payload if isinstance(payload, dict) else {})
             )
@@ -850,6 +856,15 @@ class ContextSetStore:
             if primary_updated_at is not None and normalized_updated_at != primary_updated_at:
                 return True
         return False
+
+    def _backup_needs_audit_quarantine(self, payload: dict[str, object] | list[object] | None) -> bool:
+        if payload is None:
+            return False
+        if isinstance(payload, list):
+            return self._legacy_list_payload_has_dropped_records(payload)
+        if "context_sets" not in payload:
+            return True
+        return not self._is_supported_payload(payload)
 
     def _has_unknown_fields(self, payload: dict[str, object]) -> bool:
         return any(key not in _CANONICAL_DICT_KEYS for key in payload)
