@@ -277,6 +277,7 @@ class ContextSetStore:
                 recovered_source is None
                 or self._has_context_set_records(primary_payload)
             )
+            and isinstance(primary_payload, dict)
         )
         if recovered_source is not None or should_rewrite:
             self.save(

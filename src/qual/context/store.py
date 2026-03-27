@@ -183,6 +183,7 @@ class ContextBasketStore:
             and primary_payload is not None
             and recovered_source is None
             and primary_item_ids_need_recovery
+            and isinstance(primary_payload, dict)
         )
         if recovered_source is not None or should_rewrite:
             # Keep the backup aligned with the latest canonical basket whenever we

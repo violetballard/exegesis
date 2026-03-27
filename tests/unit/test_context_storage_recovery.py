@@ -277,6 +277,7 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("item_ids"), ["first", "second"])
         self.assertEqual(payload.get("schema_version"), 1)
+        self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
 
     def test_explicit_legacy_schema_version_zero_is_salvaged_and_rewritten(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
@@ -1200,6 +1201,33 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(primary_payload.get("recovered_from"), "backup")
         self.assertEqual(primary_payload.get("context_sets")[0]["item_ids"], ["backup"])
+
+    def test_legacy_list_payload_salvages_valid_entries_without_leaving_quarantine(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                [
+                    {
+                        "context_set_id": " set-1 ",
+                        "name": " Evidence ",
+                        "item_ids": [" first ", None, "second", "first"],
+                        "created_at": "2026-03-20T11:00:00+00:00",
+                        "updated_at": "2026-03-20T12:00:00+00:00",
+                    }
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, "set-1")
+        self.assertEqual(loaded[0].name, "Evidence")
+        self.assertEqual(loaded[0].item_ids, ["first", "second"])
+        self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["first", "second"])
 
     def test_primary_missing_context_sets_recovers_from_backup_before_empty_rewrite(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
