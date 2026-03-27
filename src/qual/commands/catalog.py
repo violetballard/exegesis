@@ -57,14 +57,56 @@ MVP_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "patch-review",
     "export-handoff",
 )
-_COMMAND_SPEC_BY_ALIAS: dict[str, CommandSpec] = {}
-for spec in COMMAND_SPECS:
-    for alias in (spec.name, *spec.aliases):
-        normalized = _normalize_token(alias)
-        existing = _COMMAND_SPEC_BY_ALIAS.get(normalized)
-        if existing is not None and existing.name != spec.name:
-            raise ValueError(f"Duplicate command lookup alias: {alias}")
-        _COMMAND_SPEC_BY_ALIAS[normalized] = spec
+
+
+def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> None:
+    seen_names: set[str] = set()
+    seen_flow_steps: set[str] = set()
+    seen_aliases: dict[str, str] = {}
+    for spec in specs:
+        normalized_name = _normalize_token(spec.name)
+        if not normalized_name:
+            raise ValueError("Command names must not be empty")
+        if normalized_name in seen_names:
+            raise ValueError(f"Duplicate command name: {spec.name}")
+        seen_names.add(normalized_name)
+
+        normalized_flow_step = _normalize_token(spec.flow_step)
+        if not normalized_flow_step:
+            raise ValueError(f"Command {spec.name} must define a flow step")
+        if normalized_flow_step in seen_flow_steps:
+            raise ValueError(f"Duplicate command flow step: {spec.flow_step}")
+        seen_flow_steps.add(normalized_flow_step)
+
+        seen_local_aliases: set[str] = set()
+        for alias in spec.aliases:
+            normalized_alias = alias.strip().casefold()
+            if not normalized_alias:
+                raise ValueError(f"Command {spec.name} has an empty lookup alias")
+            if normalized_alias in seen_local_aliases:
+                raise ValueError(f"Duplicate command lookup alias: {alias}")
+            seen_local_aliases.add(normalized_alias)
+
+        for alias in (spec.name, *spec.aliases):
+            normalized_alias = _normalize_token(alias)
+            if not normalized_alias:
+                raise ValueError(f"Command {spec.name} has an empty lookup alias")
+            existing_name = seen_aliases.get(normalized_alias)
+            if existing_name is not None and existing_name != spec.name:
+                raise ValueError(f"Duplicate command lookup alias: {alias}")
+            seen_aliases[normalized_alias] = spec.name
+
+
+def _build_command_spec_by_alias(specs: tuple[CommandSpec, ...]) -> dict[str, CommandSpec]:
+    validate_command_catalog(specs)
+    index: dict[str, CommandSpec] = {}
+    for spec in specs:
+        for alias in (spec.name, *spec.aliases):
+            index[_normalize_token(alias)] = spec
+    return index
+
+
+_COMMAND_SPEC_BY_ALIAS = _build_command_spec_by_alias(COMMAND_SPECS)
 
 
 def command_names() -> tuple[str, ...]:
@@ -93,13 +135,24 @@ def command_flow_steps() -> tuple[str, ...]:
 
 
 def command_mvp_flow() -> tuple[CommandManifestEntry, ...]:
-    manifest = command_manifest()
-    return tuple(
-        entry
-        for flow_step in MVP_COMMAND_FLOW_STEPS
-        for entry in manifest
-        if entry.flow_step == flow_step
+    manifest_by_flow_step = {
+        entry.flow_step: entry
+        for entry in command_manifest()
+    }
+    missing_steps = tuple(
+        flow_step for flow_step in command_mvp_flow_steps() if flow_step not in manifest_by_flow_step
     )
+    if missing_steps:
+        raise ValueError(f"Missing command flow steps: {', '.join(missing_steps)}")
+    return tuple(manifest_by_flow_step[flow_step] for flow_step in command_mvp_flow_steps())
+
+
+def command_mvp_flow_steps() -> tuple[str, ...]:
+    return MVP_COMMAND_FLOW_STEPS
+
+
+def command_mvp_flow_names() -> tuple[str, ...]:
+    return tuple(entry.name for entry in command_mvp_flow())
 
 
 def command_tokens() -> tuple[str, ...]:

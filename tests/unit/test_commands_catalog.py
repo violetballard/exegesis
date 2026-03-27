@@ -3,13 +3,18 @@ from __future__ import annotations
 import unittest
 
 from src.qual.commands import (
+    CommandSpec,
     canonical_command,
     command_aliases,
     command_lookup_tokens,
     command_manifest,
+    command_mvp_flow,
+    command_mvp_flow_names,
+    command_mvp_flow_steps,
     command_names,
     command_spec,
     command_specs,
+    validate_command_catalog,
 )
 
 
@@ -76,6 +81,45 @@ class CommandCatalogTests(unittest.TestCase):
             tuple(entry.name for entry in manifest),
             ("bootstrap", "diff-preview", "context-basket", "terminal"),
         )
+
+    def test_mvp_flow_helpers_expose_the_expected_sequence(self) -> None:
+        self.assertEqual(
+            command_mvp_flow_steps(),
+            ("project-open", "retrieval", "patch-review", "export-handoff"),
+        )
+        self.assertEqual(
+            command_mvp_flow_names(),
+            ("bootstrap", "context-basket", "diff-preview", "terminal"),
+        )
+        self.assertEqual(
+            tuple(entry.name for entry in command_mvp_flow()),
+            command_mvp_flow_names(),
+        )
+
+    def test_validate_command_catalog_rejects_ambiguous_definitions(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Duplicate command name"):
+            validate_command_catalog(
+                (
+                    CommandSpec(name="bootstrap", flow_step="project-open"),
+                    CommandSpec(name="bootstrap", flow_step="retrieval"),
+                )
+            )
+
+        with self.assertRaisesRegex(ValueError, "Duplicate command flow step"):
+            validate_command_catalog(
+                (
+                    CommandSpec(name="bootstrap", flow_step="project-open"),
+                    CommandSpec(name="context-basket", flow_step="project-open"),
+                )
+            )
+
+        with self.assertRaisesRegex(ValueError, "Duplicate command lookup alias"):
+            validate_command_catalog(
+                (
+                    CommandSpec(name="bootstrap", aliases=("open",), flow_step="project-open"),
+                    CommandSpec(name="diff-preview", aliases=("open",), flow_step="patch-review"),
+                )
+            )
 
 
 if __name__ == "__main__":
