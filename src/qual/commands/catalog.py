@@ -26,6 +26,10 @@ def _normalize_token(value: str) -> str:
     return normalized.strip("-")
 
 
+def _lookup_tokens(spec: CommandSpec) -> tuple[str, ...]:
+    return (spec.name, *spec.aliases)
+
+
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         name="bootstrap",
@@ -80,14 +84,14 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
 
         seen_local_aliases: set[str] = set()
         for alias in spec.aliases:
-            normalized_alias = alias.strip().casefold()
+            normalized_alias = _normalize_token(alias)
             if not normalized_alias:
                 raise ValueError(f"Command {spec.name} has an empty lookup alias")
             if normalized_alias in seen_local_aliases:
                 raise ValueError(f"Duplicate command lookup alias: {alias}")
             seen_local_aliases.add(normalized_alias)
 
-        for alias in (spec.name, *spec.aliases):
+        for alias in _lookup_tokens(spec):
             normalized_alias = _normalize_token(alias)
             if not normalized_alias:
                 raise ValueError(f"Command {spec.name} has an empty lookup alias")
@@ -101,7 +105,7 @@ def _build_command_spec_by_alias(specs: tuple[CommandSpec, ...]) -> dict[str, Co
     validate_command_catalog(specs)
     index: dict[str, CommandSpec] = {}
     for spec in specs:
-        for alias in (spec.name, *spec.aliases):
+        for alias in _lookup_tokens(spec):
             index[_normalize_token(alias)] = spec
     return index
 
@@ -124,9 +128,17 @@ def command_manifest() -> tuple[CommandManifestEntry, ...]:
             aliases=spec.aliases,
             description=spec.description,
             flow_step=spec.flow_step,
-            lookup_tokens=(spec.name, *spec.aliases),
+            lookup_tokens=_lookup_tokens(spec),
         )
         for spec in COMMAND_SPECS
+    )
+
+
+def command_lookup_table() -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (_normalize_token(alias), spec.name)
+        for spec in COMMAND_SPECS
+        for alias in _lookup_tokens(spec)
     )
 
 
@@ -156,7 +168,7 @@ def command_mvp_flow_names() -> tuple[str, ...]:
 
 
 def command_tokens() -> tuple[str, ...]:
-    return tuple(alias for spec in COMMAND_SPECS for alias in (spec.name, *spec.aliases))
+    return tuple(alias for spec in COMMAND_SPECS for alias in _lookup_tokens(spec))
 
 
 def command_lookup_tokens(name: str) -> tuple[str, ...]:
