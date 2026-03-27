@@ -125,9 +125,11 @@ class ContextSetStore:
     def _seed_state_path(self) -> Path:
         return self._seed_path
 
-    def _quarantine_missing_context_sets_payload(self, path: Path, payload: object) -> None:
+    def _quarantine_missing_context_sets_payload(self, path: Path, payload: object) -> bool:
         if isinstance(payload, dict) and "context_sets" not in payload:
             self._quarantine_path(path)
+            return True
+        return False
 
     def load(self) -> list[ContextSetRecord]:
         primary_missing = not self._path.exists()
@@ -140,11 +142,15 @@ class ContextSetStore:
         seed_payload, _ = self._load_payload(self._seed_state_path())
         self._quarantine_missing_context_sets_payload(self._tmp_path(), tmp_payload)
         self._quarantine_missing_context_sets_payload(self._backup_tmp_path(), backup_tmp_payload)
-        self._quarantine_missing_context_sets_payload(self._backup_path, backup_payload)
+        preserve_backup_corrupt = self._quarantine_missing_context_sets_payload(self._backup_path, backup_payload)
         self._quarantine_missing_context_sets_payload(self._seed_tmp_path(), seed_tmp_payload)
-        self._quarantine_missing_context_sets_payload(self._seed_state_path(), seed_payload)
-        preserve_backup_corrupt = self._quarantine_unrecoverable_list_payload(self._backup_path, backup_payload)
-        preserve_seed_corrupt = self._quarantine_unrecoverable_list_payload(self._seed_state_path(), seed_payload)
+        preserve_seed_corrupt = self._quarantine_missing_context_sets_payload(self._seed_state_path(), seed_payload)
+        preserve_backup_corrupt = (
+            self._quarantine_unrecoverable_list_payload(self._backup_path, backup_payload) or preserve_backup_corrupt
+        )
+        preserve_seed_corrupt = (
+            self._quarantine_unrecoverable_list_payload(self._seed_state_path(), seed_payload) or preserve_seed_corrupt
+        )
 
         primary_needs_quarantine = self._primary_context_sets_need_recovery(primary_payload)
         if not primary_needs_quarantine and isinstance(primary_payload, dict) and self._has_unknown_fields(
@@ -222,11 +228,17 @@ class ContextSetStore:
                 seed_payload,
             )
             if payload is None:
-                self._clear_quarantine_file()
+                self._clear_quarantine_file(
+                    preserve_backup_corrupt=preserve_backup_corrupt,
+                    preserve_seed_corrupt=preserve_seed_corrupt,
+                )
                 self._clear_temporary_files()
                 return []
         else:
-            self._clear_quarantine_file()
+            self._clear_quarantine_file(
+                preserve_backup_corrupt=preserve_backup_corrupt,
+                preserve_seed_corrupt=preserve_seed_corrupt,
+            )
             self._clear_temporary_files()
             return []
 

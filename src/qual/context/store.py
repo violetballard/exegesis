@@ -35,9 +35,11 @@ class ContextBasketStore:
     def _seed_state_path(self) -> Path:
         return self._seed_path
 
-    def _quarantine_missing_item_ids_payload(self, path: Path, payload: object) -> None:
+    def _quarantine_missing_item_ids_payload(self, path: Path, payload: object) -> bool:
         if isinstance(payload, dict) and "item_ids" not in payload:
             self._quarantine_path(path)
+            return True
+        return False
 
     def load(self) -> ContextBasket:
         primary_missing = not self._path.exists()
@@ -50,11 +52,15 @@ class ContextBasketStore:
         seed_payload, _ = self._load_payload(self._seed_state_path())
         self._quarantine_missing_item_ids_payload(self._tmp_path(), tmp_payload)
         self._quarantine_missing_item_ids_payload(self._backup_tmp_path(), backup_tmp_payload)
-        self._quarantine_missing_item_ids_payload(self._backup_path, backup_payload)
+        preserve_backup_corrupt = self._quarantine_missing_item_ids_payload(self._backup_path, backup_payload)
         self._quarantine_missing_item_ids_payload(self._seed_tmp_path(), seed_tmp_payload)
-        self._quarantine_missing_item_ids_payload(self._seed_state_path(), seed_payload)
-        preserve_backup_corrupt = self._quarantine_unrecoverable_list_payload(self._backup_path, backup_payload)
-        preserve_seed_corrupt = self._quarantine_unrecoverable_list_payload(self._seed_state_path(), seed_payload)
+        preserve_seed_corrupt = self._quarantine_missing_item_ids_payload(self._seed_state_path(), seed_payload)
+        preserve_backup_corrupt = (
+            self._quarantine_unrecoverable_list_payload(self._backup_path, backup_payload) or preserve_backup_corrupt
+        )
+        preserve_seed_corrupt = (
+            self._quarantine_unrecoverable_list_payload(self._seed_state_path(), seed_payload) or preserve_seed_corrupt
+        )
         primary_missing_item_ids = isinstance(primary_payload, dict) and "item_ids" not in primary_payload
         primary_item_ids_need_recovery = self._primary_item_ids_need_recovery(primary_payload)
         primary_needs_quarantine = primary_item_ids_need_recovery or (
@@ -126,11 +132,17 @@ class ContextBasketStore:
                 seed_payload,
             )
             if payload is None:
-                self._clear_quarantine_file()
+                self._clear_quarantine_file(
+                    preserve_backup_corrupt=preserve_backup_corrupt,
+                    preserve_seed_corrupt=preserve_seed_corrupt,
+                )
                 self._clear_temporary_files()
                 return ContextBasket()
         else:
-            self._clear_quarantine_file()
+            self._clear_quarantine_file(
+                preserve_backup_corrupt=preserve_backup_corrupt,
+                preserve_seed_corrupt=preserve_seed_corrupt,
+            )
             self._clear_temporary_files()
             return ContextBasket()
 
