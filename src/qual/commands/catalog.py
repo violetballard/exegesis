@@ -38,6 +38,15 @@ class CommandFlowSequence:
     lookup_tokens: tuple[tuple[str, ...], ...]
 
 
+@dataclass(frozen=True)
+class CommandSurfaceContract:
+    flow_steps: tuple[str, ...]
+    names: tuple[str, ...]
+    lookup_table: tuple[tuple[str, str], ...]
+    lookup_index: tuple[tuple[str, str], ...]
+    lookup_tokens: tuple[tuple[str, ...], ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -268,6 +277,19 @@ def command_mvp_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
 
 def command_mvp_flow_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
     return tuple(entry.name for entry in command_mvp_flow(specs))
+
+
+def command_surface_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandSurfaceContract:
+    flow = command_mvp_flow(specs)
+    return CommandSurfaceContract(
+        flow_steps=command_mvp_flow_steps(),
+        names=tuple(entry.name for entry in flow),
+        lookup_table=tuple((entry.flow_step, entry.name) for entry in flow),
+        lookup_index=command_mvp_lookup_index(specs),
+        lookup_tokens=tuple(entry.lookup_tokens for entry in flow),
+    )
 
 
 def command_tokens(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:

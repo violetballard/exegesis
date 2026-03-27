@@ -18,6 +18,8 @@ from src.qual.commands import (
     command_mvp_flow_lookup_table,
     command_mvp_flow_sequence,
     command_mvp_flow_steps,
+    command_mvp_lookup_index,
+    command_surface_contract,
     command_names,
     command_spec,
     command_specs,
@@ -130,6 +132,32 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(sequence.lookup_table, command_mvp_flow_lookup_table())
         self.assertEqual(
             sequence.lookup_tokens,
+            tuple(entry.lookup_tokens for entry in command_mvp_flow()),
+        )
+
+    def test_command_surface_contract_bundles_the_mvp_smoke_surface(self) -> None:
+        contract = command_surface_contract()
+        self.assertEqual(contract.flow_steps, command_mvp_flow_steps())
+        self.assertEqual(contract.names, command_mvp_flow_names())
+        self.assertEqual(contract.lookup_table, command_mvp_flow_lookup_table())
+        self.assertEqual(
+            contract.lookup_index,
+            (
+                ("bootstrap", "bootstrap"),
+                ("open", "bootstrap"),
+                ("project-open", "bootstrap"),
+                ("project", "bootstrap"),
+                ("context-basket", "context-basket"),
+                ("context", "context-basket"),
+                ("basket", "context-basket"),
+                ("diff-preview", "diff-preview"),
+                ("diff", "diff-preview"),
+                ("terminal", "terminal"),
+            ),
+        )
+        self.assertEqual(contract.lookup_index, command_mvp_lookup_index())
+        self.assertEqual(
+            contract.lookup_tokens,
             tuple(entry.lookup_tokens for entry in command_mvp_flow()),
         )
 
