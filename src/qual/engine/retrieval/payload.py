@@ -20,6 +20,11 @@ class RetrievalSourceBundleSource(Protocol):
         """Return the deterministic doc and excerpt snapshot consumed by engine flows."""
 
 
+class RetrievalDocBundleSource(Protocol):
+    def retrieval_doc_bundle(self) -> dict[str, object]:
+        """Return the deterministic doc-focused snapshot consumed by engine flows."""
+
+
 class RetrievalExcerptBundleSource(Protocol):
     def retrieval_excerpt_bundle(self) -> dict[str, object]:
         """Return the deterministic excerpt-focused snapshot consumed by engine flows."""
@@ -103,6 +108,33 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
+    }
+
+
+def _build_retrieval_doc_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
+    """Return the deterministic doc-focused bundle from a downstream payload snapshot."""
+
+    doc_bundle = payload.get("retrieval_doc_bundle")
+    if isinstance(doc_bundle, dict):
+        return copy.deepcopy(doc_bundle)
+    doc_hits = copy.deepcopy(payload.get("doc_hits", []))
+    retrieval_provenance = payload.get("retrieval_provenance", {})
+    doc_citations: list[dict[str, object]] = []
+    if isinstance(retrieval_provenance, dict):
+        doc_citations = copy.deepcopy(retrieval_provenance.get("doc_citations", []))
+    return {
+        "result_fingerprint": payload.get("result_fingerprint"),
+        "query_fingerprint": payload.get("query_fingerprint"),
+        "retrieval_backend": payload.get("retrieval_backend"),
+        "retrieval_mode": payload.get("retrieval_mode"),
+        "retrieval_policy": copy.deepcopy(payload.get("retrieval_policy", payload.get("policy", {}))),
+        "citation_status": copy.deepcopy(payload.get("citation_status", {})),
+        "doc_count": len(doc_hits),
+        "doc_hits": doc_hits,
+        "doc_citations": doc_citations,
+        "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
+        "retrieval_provenance": copy.deepcopy(retrieval_provenance),
+        "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
     }
 
 
@@ -355,6 +387,18 @@ def build_retrieval_source_bundle_from_result(
         return copy.deepcopy(bundle_source())
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_source_bundle_from_payload(payload)
+
+
+def build_retrieval_doc_bundle_from_result(
+    result: RetrievalDownstreamPayloadSource | RetrievalDocBundleSource,
+) -> dict[str, object]:
+    """Return the deterministic doc-focused bundle for downstream engine flows."""
+
+    bundle_source = getattr(result, "retrieval_doc_bundle", None)
+    if callable(bundle_source):
+        return copy.deepcopy(bundle_source())
+    payload = build_retrieval_downstream_payload_from_result(result)
+    return _build_retrieval_doc_bundle_from_payload(payload)
 
 
 def build_retrieval_excerpt_bundle_from_result(

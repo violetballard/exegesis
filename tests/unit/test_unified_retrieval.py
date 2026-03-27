@@ -11,6 +11,7 @@ from src.qual.docindex.service import DocIndexBuildOptions
 from src.qual.docindex.service import DocIndexQueryConstraints
 import src.qual.engine.retrieval as engine_retrieval
 from src.qual.engine.retrieval import build_retrieval_citation_bundle_from_result as engine_build_retrieval_citation_bundle_from_result
+from src.qual.engine.retrieval import build_retrieval_doc_bundle_from_result as engine_build_retrieval_doc_bundle_from_result
 from src.qual.engine.retrieval import build_retrieval_context_bundle_from_result as engine_build_retrieval_context_bundle_from_result
 from src.qual.engine.retrieval import build_retrieval_downstream_payload_from_result as engine_build_retrieval_downstream_payload_from_result
 from src.qual.engine.retrieval import build_retrieval_provenance_from_result as engine_build_retrieval_provenance_from_result
@@ -19,9 +20,11 @@ from src.qual.engine.retrieval.payload import build_retrieval_citation_bundle_fr
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_result
 from src.qual.retrieval import retrieve_auto as engine_retrieve_auto
+from src.qual.retrieval import retrieve_auto_doc_bundle as engine_retrieve_auto_doc_bundle
 from src.qual.retrieval import retrieve_auto_payload as engine_retrieve_auto_payload
 from src.qual.retrieval import retrieve_auto_source_bundle as engine_retrieve_auto_source_bundle
 from src.qual.retrieval import retrieve_fts as engine_retrieve_fts
+from src.qual.retrieval import retrieve_fts_doc_bundle as engine_retrieve_fts_doc_bundle
 from src.qual.retrieval import retrieve_fts_payload as engine_retrieve_fts_payload
 from src.qual.retrieval import retrieve_fts_source_bundle as engine_retrieve_fts_source_bundle
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
@@ -572,6 +575,43 @@ class UnifiedRetrievalTests(unittest.TestCase):
         direct["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
         self.assertNotIn("mutated-doc-id", self.service.retrieve_fts_source_bundle(query)["retrieval_summary"]["doc_ids"])
 
+    def test_retrieve_fts_doc_bundle_matches_result_snapshot(self) -> None:
+        query = RetrievalQuery(
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints=RetrievalConstraints(max_results=4),
+            confidentiality_profile="confidential",
+        )
+
+        result = self.service.retrieve_fts(query)
+        direct = self.service.retrieve_fts_doc_bundle(query)
+        helper = engine_retrieve_fts_doc_bundle(
+            self.service,
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints={"max_results": 4},
+            confidentiality_profile="confidential",
+        )
+        auto_helper = engine_retrieve_auto_doc_bundle(
+            self.service,
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints={"max_results": 4},
+            confidentiality_profile="confidential",
+        )
+
+        self.assertEqual(direct, result.retrieval_doc_bundle())
+        self.assertEqual(helper, result.retrieval_doc_bundle())
+        self.assertEqual(auto_helper, result.retrieval_doc_bundle())
+        self.assertEqual(engine_build_retrieval_doc_bundle_from_result(result), result.retrieval_doc_bundle())
+        self.assertEqual(direct["doc_hits"], [item.as_dict() for item in result.doc_hits])
+        self.assertEqual(direct["doc_citations"], result.retrieval_doc_bundle()["doc_citations"])
+        direct["doc_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
+        self.assertNotEqual(self.service.retrieve_fts_doc_bundle(query)["doc_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
+
     def test_doc_identity_fingerprint_stays_stable_across_query_variants(self) -> None:
         long_doc_text = (
             "alpha marker opens the first retrieval window. "
@@ -754,6 +794,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "build_retrieval_downstream_payload",
                 "build_retrieval_downstream_payload_from_result",
                 "build_retrieval_citation_bundle_from_result",
+                "build_retrieval_doc_bundle_from_result",
                 "build_retrieval_excerpt_bundle_from_result",
                 "build_retrieval_context_bundle_from_result",
                 "build_retrieval_provenance_from_result",
@@ -761,10 +802,12 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "retrieve_fts",
                 "retrieve_fts_context_bundle",
                 "retrieve_fts_source_bundle",
+                "retrieve_fts_doc_bundle",
                 "retrieve_fts_excerpt_bundle",
                 "retrieve_fts_payload",
                 "retrieve_auto_context_bundle",
                 "retrieve_auto_source_bundle",
+                "retrieve_auto_doc_bundle",
                 "retrieve_auto_excerpt_bundle",
                 "retrieve_auto_payload",
             ],

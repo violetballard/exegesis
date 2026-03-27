@@ -400,6 +400,43 @@ class RetrievalResult:
 
         return self._retrieval_source_bundle_snapshot()
 
+    def retrieval_doc_bundle(self) -> dict[str, object]:
+        """Return the deterministic doc-focused snapshot for downstream engine flows."""
+
+        doc_citations = [
+            {
+                "doc_id": doc_hit.doc_id,
+                "source_hash": doc_hit.source_hash,
+                "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
+                "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
+                "doc_rank": doc_hit.provenance.get("doc_rank"),
+                "top_excerpt_id": doc_hit.top_excerpt_id,
+                "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
+                "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
+            }
+            for doc_hit in self.doc_hits
+        ]
+        return {
+            "result_fingerprint": self.result_fingerprint,
+            "query_fingerprint": self.diagnostics["query_fingerprint"],
+            "retrieval_backend": self.diagnostics["retrieval_backend"],
+            "retrieval_mode": self.diagnostics["retrieval_mode"],
+            "retrieval_policy": copy.deepcopy(self.diagnostics["retrieval_policy"]),
+            "citation_status": self._citation_status_snapshot(),
+            "doc_count": len(self.doc_hits),
+            "doc_hits": [doc_hit.as_dict() for doc_hit in self.doc_hits],
+            "doc_citations": doc_citations,
+            "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
+            "retrieval_provenance": copy.deepcopy(
+                self._retrieval_provenance_snapshot(
+                    citation_bundle=self.citation_bundle(),
+                    citation_status=self._citation_status_snapshot(),
+                    retrieval_policy=self._retrieval_policy_snapshot(),
+                )
+            ),
+            "retrieval_evidence": copy.deepcopy(self.evidence),
+        }
+
     def retrieval_excerpt_bundle(self) -> dict[str, object]:
         """Return the deterministic excerpt-focused snapshot for downstream engine flows."""
 
@@ -682,6 +719,11 @@ class RetrievalService:
 
         return self.retrieve_fts(query).source_bundle()
 
+    def retrieve_fts_doc_bundle(self, query: RetrievalQuery) -> dict[str, object]:
+        """Return the canonical doc-focused bundle for a single FTS retrieval."""
+
+        return self.retrieve_fts(query).retrieval_doc_bundle()
+
     def retrieve_fts_excerpt_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical excerpt-focused bundle for a single FTS retrieval."""
 
@@ -704,6 +746,11 @@ class RetrievalService:
         """Return the canonical retrieval source bundle for the FTS-first auto path."""
 
         return self.retrieve_auto(query).source_bundle()
+
+    def retrieve_auto_doc_bundle(self, query: RetrievalQuery) -> dict[str, object]:
+        """Return the canonical doc-focused bundle for the FTS-first auto path."""
+
+        return self.retrieve_auto(query).retrieval_doc_bundle()
 
     def retrieve_auto_excerpt_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical excerpt-focused bundle for the FTS-first auto path."""
