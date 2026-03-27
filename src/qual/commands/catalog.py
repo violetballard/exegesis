@@ -69,6 +69,10 @@ def _validate_flow_steps(flow_steps: tuple[str, ...]) -> None:
         seen_flow_steps.add(normalized_flow_step)
 
 
+def _normalize_flow_steps(flow_steps: tuple[str, ...]) -> tuple[str, ...]:
+    return tuple(_normalize_token(flow_step) for flow_step in flow_steps)
+
+
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         name="bootstrap",
@@ -167,12 +171,13 @@ def command_flow_manifest(
 ) -> tuple[CommandManifestEntry, ...]:
     validate_command_catalog(specs)
     ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    normalized_flow_steps = _normalize_flow_steps(ordered_flow_steps)
     _validate_flow_steps(ordered_flow_steps)
-    manifest_by_flow_step = {entry.flow_step: entry for entry in command_manifest(specs)}
-    missing_steps = tuple(flow_step for flow_step in ordered_flow_steps if flow_step not in manifest_by_flow_step)
+    manifest_by_flow_step = {_normalize_token(entry.flow_step): entry for entry in command_manifest(specs)}
+    missing_steps = tuple(flow_step for flow_step in normalized_flow_steps if flow_step not in manifest_by_flow_step)
     if missing_steps:
         raise ValueError(f"Missing command flow steps: {', '.join(missing_steps)}")
-    return tuple(manifest_by_flow_step[flow_step] for flow_step in ordered_flow_steps)
+    return tuple(manifest_by_flow_step[flow_step] for flow_step in normalized_flow_steps)
 
 
 def command_flow_sequence(
@@ -180,9 +185,10 @@ def command_flow_sequence(
     flow_steps: tuple[str, ...] | None = None,
 ) -> CommandFlowSequence:
     ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    normalized_flow_steps = _normalize_flow_steps(ordered_flow_steps)
     manifest = command_flow_manifest(specs, ordered_flow_steps)
     return CommandFlowSequence(
-        flow_steps=ordered_flow_steps,
+        flow_steps=normalized_flow_steps,
         names=tuple(entry.name for entry in manifest),
         lookup_table=tuple((entry.flow_step, entry.name) for entry in manifest),
         lookup_tokens=tuple(entry.lookup_tokens for entry in manifest),
@@ -194,8 +200,9 @@ def command_flow_catalog(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[CommandFlowEntry, ...]:
     ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    normalized_flow_steps = _normalize_flow_steps(ordered_flow_steps)
     manifest = command_flow_manifest(specs, ordered_flow_steps)
-    manifest_by_flow_step = {entry.flow_step: entry for entry in manifest}
+    manifest_by_flow_step = {_normalize_token(entry.flow_step): entry for entry in manifest}
     return tuple(
         CommandFlowEntry(
             flow_step=flow_step,
@@ -204,7 +211,7 @@ def command_flow_catalog(
             description=entry.description,
             lookup_tokens=entry.lookup_tokens,
         )
-        for flow_step in ordered_flow_steps
+        for flow_step in normalized_flow_steps
         for entry in (manifest_by_flow_step[flow_step],)
     )
 
@@ -232,17 +239,7 @@ def command_manifest(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[Co
 
 
 def command_lookup_table(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[tuple[str, str], ...]:
-    validate_command_catalog(specs)
-    seen_tokens: set[str] = set()
-    index: list[tuple[str, str]] = []
-    for spec in specs:
-        for alias in _lookup_tokens(spec):
-            normalized_alias = _normalize_token(alias)
-            if normalized_alias in seen_tokens:
-                continue
-            seen_tokens.add(normalized_alias)
-            index.append((normalized_alias, spec.name))
-    return tuple(index)
+    return command_lookup_index(specs)
 
 
 def command_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[tuple[str, str], ...]:
