@@ -734,6 +734,14 @@ class RetrievalService:
 
         return self.retrieve_auto(query).retrieval_excerpt_bundle()
 
+    def fetch_fts_excerpt(self, excerpt_id: str) -> dict[str, object]:
+        """Return an excerpt payload using the canonical FTS-only lookup path."""
+
+        fts_excerpt = self._find_fts_excerpt(excerpt_id)
+        if fts_excerpt is None:
+            raise KeyError(f"unknown excerpt_id: {excerpt_id}")
+        return self._normalize_excerpt_payload(fts_excerpt, source_strategy="fts")
+
     def _run_fts_first_retrieval(self, query: RetrievalQuery) -> RetrievalResult:
         started = self._now_fn()
         query_fingerprint = self._query_fingerprint(query)
@@ -859,9 +867,12 @@ class RetrievalService:
         )
 
     def fetch_excerpt(self, excerpt_id: str) -> dict[str, object]:
-        fts_excerpt = self._find_fts_excerpt(excerpt_id)
-        if fts_excerpt is not None:
-            return self._normalize_excerpt_payload(fts_excerpt, source_strategy="fts")
+        """Return an excerpt payload, preferring FTS and falling back to PageIndex for compatibility."""
+
+        try:
+            return self.fetch_fts_excerpt(excerpt_id)
+        except KeyError:
+            pass
         excerpt = self._docindex.fetch_excerpt(excerpt_id)
         if isinstance(excerpt, dict):
             return self._normalize_excerpt_payload(excerpt, source_strategy="pageindex")
