@@ -112,6 +112,28 @@ def retrieve_fts_context_bundle(
     )
 
 
+def retrieve_fts_citation_bundle(
+    service: RetrievalService,
+    *,
+    query_text: str,
+    scope: str,
+    intent: str,
+    constraints: dict[str, object] | None = None,
+    confidentiality_profile: str = "confidential",
+) -> dict[str, object]:
+    """Return the canonical citation/provenance bundle for a single FTS retrieval."""
+
+    return _call_fts_retrieval(
+        service,
+        query_text=query_text,
+        scope=scope,
+        intent=intent,
+        constraints=constraints,
+        confidentiality_profile=confidentiality_profile,
+        method_name="retrieve_fts_citation_bundle",
+    )
+
+
 def retrieve_fts_source_bundle(
     service: RetrievalService,
     *,
@@ -204,7 +226,7 @@ def retrieve_auto(
         intent=intent,
         constraints=constraints,
         confidentiality_profile=confidentiality_profile,
-        method_name="retrieve_fts",
+        method_name="retrieve_auto",
     )
 
 
@@ -226,7 +248,29 @@ def retrieve_auto_context_bundle(
         intent=intent,
         constraints=constraints,
         confidentiality_profile=confidentiality_profile,
-        method_name="retrieve_fts_context_bundle",
+        method_name="retrieve_auto_context_bundle",
+    )
+
+
+def retrieve_auto_citation_bundle(
+    service: RetrievalService,
+    *,
+    query_text: str,
+    scope: str,
+    intent: str,
+    constraints: dict[str, object] | None = None,
+    confidentiality_profile: str = "confidential",
+) -> dict[str, object]:
+    """Return the canonical citation/provenance bundle for the FTS-first auto path."""
+
+    return _call_fts_retrieval(
+        service,
+        query_text=query_text,
+        scope=scope,
+        intent=intent,
+        constraints=constraints,
+        confidentiality_profile=confidentiality_profile,
+        method_name="retrieve_auto_citation_bundle",
     )
 
 
@@ -248,7 +292,7 @@ def retrieve_auto_source_bundle(
         intent=intent,
         constraints=constraints,
         confidentiality_profile=confidentiality_profile,
-        method_name="retrieve_fts_source_bundle",
+        method_name="retrieve_auto_source_bundle",
     )
 
 
@@ -270,7 +314,7 @@ def retrieve_auto_doc_bundle(
         intent=intent,
         constraints=constraints,
         confidentiality_profile=confidentiality_profile,
-        method_name="retrieve_fts_doc_bundle",
+        method_name="retrieve_auto_doc_bundle",
     )
 
 
@@ -292,7 +336,7 @@ def retrieve_auto_excerpt_bundle(
         intent=intent,
         constraints=constraints,
         confidentiality_profile=confidentiality_profile,
-        method_name="retrieve_fts_excerpt_bundle",
+        method_name="retrieve_auto_excerpt_bundle",
     )
 
 
@@ -318,7 +362,7 @@ def retrieve_auto_payload(
         intent=intent,
         constraints=constraints,
         confidentiality_profile=confidentiality_profile,
-        method_name="retrieve_fts_payload",
+        method_name="retrieve_auto_payload",
     )
 
 __all__ = [

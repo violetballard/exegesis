@@ -99,6 +99,12 @@ def retrieve_fts_context_bundle(*args, **kwargs):
     return _retrieve_fts_context_bundle(*args, **kwargs)
 
 
+def retrieve_fts_citation_bundle(*args, **kwargs):
+    from src.qual.retrieval import retrieve_fts_citation_bundle as _retrieve_fts_citation_bundle
+
+    return _retrieve_fts_citation_bundle(*args, **kwargs)
+
+
 def retrieve_fts_source_bundle(*args, **kwargs):
     from src.qual.retrieval import retrieve_fts_source_bundle as _retrieve_fts_source_bundle
 
@@ -145,6 +151,12 @@ def retrieve_auto_context_bundle(*args, **kwargs):
     from src.qual.retrieval import retrieve_auto_context_bundle as _retrieve_auto_context_bundle
 
     return _retrieve_auto_context_bundle(*args, **kwargs)
+
+
+def retrieve_auto_citation_bundle(*args, **kwargs):
+    from src.qual.retrieval import retrieve_auto_citation_bundle as _retrieve_auto_citation_bundle
+
+    return _retrieve_auto_citation_bundle(*args, **kwargs)
 
 
 def retrieve_auto_source_bundle(*args, **kwargs):
