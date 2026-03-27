@@ -292,10 +292,12 @@ class ContextSetStore:
             or backup_missing
             or self._backup_needs_refresh(backup_payload, records, payload if isinstance(payload, dict) else None)
         ):
-            backup_written = self._write_backup_payload(self._backup_payload(payload))
+            backup_written = self._write_backup_payload(
+                self._backup_payload_from_records(records, payload if isinstance(payload, dict) else {})
+            )
             self._clear_recovery_artifacts(preserve_seed=not backup_written)
             if not backup_written:
-                self._write_seed(self._backup_payload(payload))
+                self._write_seed(self._backup_payload_from_records(records, payload if isinstance(payload, dict) else {}))
         elif backup_payload is None or backup_missing or self._backup_needs_refresh(
             backup_payload,
             records,
@@ -303,12 +305,14 @@ class ContextSetStore:
         ):
             backup_written = False
             if isinstance(payload, dict):
-                backup_written = self._write_backup_payload(self._backup_payload(payload))
+                backup_written = self._write_backup_payload(self._backup_payload_from_records(records, payload))
             else:
                 backup_written = self._write_backup()
             self._clear_recovery_artifacts(preserve_seed=not backup_written)
             if not backup_written:
-                self._write_seed(self._backup_payload(payload) if isinstance(payload, dict) else payload)
+                self._write_seed(
+                    self._backup_payload_from_records(records, payload) if isinstance(payload, dict) else payload
+                )
         else:
             self._clear_recovery_artifacts()
         return records
@@ -526,9 +530,19 @@ class ContextSetStore:
             self._unlink_if_exists(tmp)
 
     def _backup_payload(self, payload: dict[str, object]) -> dict[str, object]:
+        return self._backup_payload_from_records(
+            self._normalize_records(self._parse_context_sets(payload.get("context_sets")) or []),
+            payload,
+        )
+
+    def _backup_payload_from_records(
+        self,
+        records: list[ContextSetRecord],
+        payload: dict[str, object],
+    ) -> dict[str, object]:
         backup_payload: dict[str, object] = {
             "schema_version": self._parse_schema_version(payload) or _SCHEMA_VERSION,
-            "context_sets": self._normalize_context_sets(self._parse_context_sets(payload.get("context_sets")) or []),
+            "context_sets": self._normalize_context_sets(records),
         }
         normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
         if normalized_updated_at is not None:
