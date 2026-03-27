@@ -34,6 +34,8 @@ _DOC_BLOBS = "doc_blobs"
 _FTS_SEGMENT_CHARS = 400
 _FTS_SEGMENT_OVERLAP_CHARS = 80
 _FTS_BOUNDARY_SCAN_CHARS = 40
+_SUPPORTED_RETRIEVAL_INTENTS = {"lookup", "compare", "summarize", "quote_find", "outline_support"}
+_SUPPORTED_CONFIDENTIALITY_PROFILES = {"confidential", "standard"}
 
 
 def _canonicalize_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
@@ -56,6 +58,13 @@ def _optional_text(value: object) -> str | None:
     return None
 
 
+def _normalize_supported_value(value: object, *, field_name: str, allowed: set[str]) -> str:
+    normalized = str(value).strip()
+    if normalized not in allowed:
+        raise ValueError(f"unsupported {field_name}: {normalized}")
+    return normalized
+
+
 @dataclass(frozen=True)
 class RetrievalConstraints:
     max_results: int = 10
@@ -66,6 +75,8 @@ class RetrievalConstraints:
     prefer_exact_matches: bool = False
 
     def __post_init__(self) -> None:
+        if self.max_results < 1:
+            raise ValueError("max_results must be greater than zero")
         object.__setattr__(self, "doc_types", _canonicalize_doc_types(self.doc_types))
         if self.date_range is not None:
             normalized = tuple(str(value).strip() for value in self.date_range)
@@ -81,6 +92,26 @@ class RetrievalQuery:
     intent: Literal["lookup", "compare", "summarize", "quote_find", "outline_support"]
     constraints: RetrievalConstraints = field(default_factory=RetrievalConstraints)
     confidentiality_profile: Literal["confidential", "standard"] = "confidential"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "intent",
+            _normalize_supported_value(
+                self.intent,
+                field_name="intent",
+                allowed=_SUPPORTED_RETRIEVAL_INTENTS,
+            ),
+        )
+        object.__setattr__(
+            self,
+            "confidentiality_profile",
+            _normalize_supported_value(
+                self.confidentiality_profile,
+                field_name="confidentiality_profile",
+                allowed=_SUPPORTED_CONFIDENTIALITY_PROFILES,
+            ),
+        )
 
 
 @dataclass(frozen=True)
@@ -1581,10 +1612,16 @@ class RetrievalService:
             raise ValueError("query_text is required")
         if not self._query_terms(query.query_text):
             raise ValueError("query_text must contain at least one searchable term")
+        if query.constraints.max_results < 1:
+            raise ValueError("max_results must be greater than zero")
         if query.scope.startswith("section:"):
             raise ValueError("section scope is unsupported until FTS fallback can resolve section targets")
         if query.scope not in {"vault"} and not any(query.scope.startswith(prefix) for prefix in ("collection:", "doc:")):
             raise ValueError("unsupported scope")
+        if query.intent not in _SUPPORTED_RETRIEVAL_INTENTS:
+            raise ValueError(f"unsupported intent: {query.intent}")
+        if query.confidentiality_profile not in _SUPPORTED_CONFIDENTIALITY_PROFILES:
+            raise ValueError(f"unsupported confidentiality_profile: {query.confidentiality_profile}")
         if query.confidentiality_profile == "confidential":
             # No network strategies are enabled in this retrieval implementation.
             pass
