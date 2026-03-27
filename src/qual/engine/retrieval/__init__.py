@@ -122,6 +122,12 @@ def retrieve_fts(*args, **kwargs):
     return _retrieve_fts(*args, **kwargs)
 
 
+def retrieve_auto(*args, **kwargs):
+    from src.qual.retrieval import retrieve_auto as _retrieve_auto
+
+    return _retrieve_auto(*args, **kwargs)
+
+
 def retrieve_auto_context_bundle(*args, **kwargs):
     from src.qual.retrieval import retrieve_auto_context_bundle as _retrieve_auto_context_bundle
 
