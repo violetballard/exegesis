@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 
@@ -11,7 +12,7 @@ class CommandSpec:
 
 
 def _normalize_token(value: str) -> str:
-    return value.strip().casefold().replace("_", "-")
+    return re.sub(r"[-_\s]+", "-", value.strip().casefold())
 
 
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
