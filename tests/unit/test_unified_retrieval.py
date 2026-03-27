@@ -712,6 +712,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
 
         bundle = engine_build_retrieval_context_bundle_from_result(result)
+        self.assertEqual(bundle["audit_ref"], result.audit_ref)
+        self.assertEqual(bundle["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(bundle["retrieval_downstream_payload"], result.to_downstream_payload())
         self.assertEqual(bundle["retrieval_citation_bundle"], result.citation_bundle())
         self.assertEqual(bundle["retrieval_source_bundle"], result.source_bundle())

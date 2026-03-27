@@ -368,9 +368,12 @@ class RetrievalResult:
         """Return the canonical retrieval context for drafting, patching, and research flows."""
 
         return {
+            "audit_ref": self.audit_ref,
+            "result_fingerprint": self.result_fingerprint,
             "retrieval_downstream_payload": copy.deepcopy(self.to_downstream_payload()),
             "retrieval_citation_bundle": copy.deepcopy(self.citation_bundle()),
             "retrieval_source_bundle": copy.deepcopy(self.source_bundle()),
+            "retrieval_evidence": copy.deepcopy(self.evidence),
         }
 
     def _query_snapshot(self) -> dict[str, object]:
@@ -500,6 +503,7 @@ class RetrievalResult:
         return {
             "query": query_snapshot,
             "policy": copy.deepcopy(retrieval_policy_snapshot),
+            "result_fingerprint": self.result_fingerprint,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
             "citation_status": copy.deepcopy(citation_status_snapshot),
