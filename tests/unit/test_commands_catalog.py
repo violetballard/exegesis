@@ -17,6 +17,7 @@ from src.qual.commands import (
     command_mvp_flow,
     command_mvp_flow_names,
     command_mvp_flow_catalog,
+    command_mvp_flow_manifest,
     command_mvp_flow_lookup_table,
     command_mvp_flow_sequence,
     command_mvp_flow_steps,
@@ -192,6 +193,7 @@ class CommandCatalogTests(unittest.TestCase):
         contract = command_surface_contract()
         self.assertEqual(contract.flow_steps, command_mvp_flow_steps())
         self.assertEqual(contract.names, command_mvp_flow_names())
+        self.assertEqual(contract.manifest, command_mvp_flow_manifest())
         self.assertEqual(contract.lookup_table, command_mvp_flow_lookup_table())
         self.assertEqual(
             contract.lookup_index,
@@ -214,7 +216,7 @@ class CommandCatalogTests(unittest.TestCase):
             tuple(entry.lookup_tokens for entry in command_mvp_flow()),
         )
 
-    def test_command_manifest_order_matches_mvp_flow(self) -> None:
+    def test_command_manifest_keeps_catalog_order(self) -> None:
         manifest = command_manifest()
         self.assertEqual(
             tuple(entry.flow_step for entry in manifest),
@@ -223,6 +225,17 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             tuple(entry.name for entry in manifest),
             ("bootstrap", "diff-preview", "context-basket", "terminal"),
+        )
+
+    def test_command_mvp_flow_manifest_matches_the_demo_sequence(self) -> None:
+        manifest = command_mvp_flow_manifest()
+        self.assertEqual(
+            tuple(entry.flow_step for entry in manifest),
+            ("project-open", "retrieval", "patch-review", "export-handoff"),
+        )
+        self.assertEqual(
+            tuple(entry.name for entry in manifest),
+            ("bootstrap", "context-basket", "diff-preview", "terminal"),
         )
 
     def test_mvp_flow_helpers_expose_the_expected_sequence(self) -> None:

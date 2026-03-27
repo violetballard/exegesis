@@ -270,7 +270,13 @@ def command_mvp_flow_catalog(
         )
         for flow_step in command_mvp_flow_steps()
         for entry in (manifest_by_flow_step[flow_step],)
-    )
+        )
+
+
+def command_mvp_flow_manifest(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandManifestEntry, ...]:
+    return command_flow_manifest(specs, command_mvp_flow_steps())
 
 
 def command_mvp_flow_sequence(
@@ -305,7 +311,7 @@ def command_surface_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandSurfaceContract:
     flow = command_mvp_flow(specs)
-    manifest = command_manifest(specs)
+    manifest = command_mvp_flow_manifest(specs)
     return CommandSurfaceContract(
         flow_steps=command_mvp_flow_steps(),
         names=tuple(entry.name for entry in flow),
