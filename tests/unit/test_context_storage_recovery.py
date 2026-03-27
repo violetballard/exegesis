@@ -1266,11 +1266,55 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(loaded[0].context_set_id, "set-1")
         primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(self.store._path.with_suffix(".corrupt.json").read_text(encoding="utf-8"))
         self.assertEqual(primary_payload.get("context_sets")[0]["item_ids"], ["first", "second"])
         self.assertEqual(primary_payload.get("recovered_from"), "backup")
         self.assertEqual(backup_payload.get("context_sets")[0]["item_ids"], ["first", "second"])
         self.assertNotIn("recovered_from", backup_payload)
-        self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
+        self.assertTrue(self.store._path.with_suffix(".corrupt.json").exists())
+        self.assertNotIn("context_sets", quarantined_payload)
+
+    def test_primary_missing_context_sets_preserves_audit_quarantine_after_backup_recovery(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "recovered_from": "manual",
+                }
+            ),
+            encoding="utf-8",
+        )
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "context_sets": [
+                        {
+                            "context_set_id": "set-1",
+                            "name": "Evidence",
+                            "item_ids": ["first", "second"],
+                            "created_at": "2026-03-20T11:00:00+00:00",
+                            "updated_at": "2026-03-20T12:00:00+00:00",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, "set-1")
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(self.store._path.with_suffix(".corrupt.json").read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("context_sets")[0]["item_ids"], ["first", "second"])
+        self.assertEqual(primary_payload.get("recovered_from"), "backup")
+        self.assertTrue(self.store._path.with_suffix(".corrupt.json").exists())
+        self.assertNotIn("context_sets", quarantined_payload)
 
     def test_primary_missing_context_sets_preserves_audit_quarantine(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
