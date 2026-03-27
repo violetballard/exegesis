@@ -321,10 +321,16 @@ def command_mvp_flow_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tu
     return tuple(entry.name for entry in command_mvp_flow(specs))
 
 
-def command_surface_contract(
+def command_mvp_flow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandSurfaceContract:
     return command_flow_contract(specs, command_mvp_flow_steps())
+
+
+def command_surface_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandSurfaceContract:
+    return command_mvp_flow_contract(specs)
 
 
 def command_flow_contract(
