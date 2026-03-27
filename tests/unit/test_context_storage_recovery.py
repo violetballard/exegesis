@@ -655,6 +655,40 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         quarantined_payload = json.loads(self.store._path.with_suffix(".corrupt.json").read_text(encoding="utf-8"))
         self.assertNotIn("item_ids", quarantined_payload)
 
+    def test_backup_missing_item_ids_does_not_claim_recovery_provenance(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "recovered_from": "manual",
+                }
+            ),
+            encoding="utf-8",
+        )
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "recovered_from": "manual",
+                    "extra": "ignored",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, [])
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("item_ids"), [])
+        self.assertNotIn("recovered_from", primary_payload)
+        self.assertEqual(backup_payload.get("item_ids"), [])
+        self.assertNotIn("recovered_from", backup_payload)
+
     def test_primary_load_refreshes_malformed_backup_without_rewriting_primary(self) -> None:
         self.store.save(ContextBasket(item_ids=["first"]))
         primary_payload_before = json.loads(self.store._path.read_text(encoding="utf-8"))
@@ -1567,6 +1601,40 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(primary_payload.get("schema_version"), 1)
         self.assertTrue(self.store._path.with_suffix(".corrupt.json").exists())
         self.assertNotIn("context_sets", quarantined_payload)
+
+    def test_backup_missing_context_sets_does_not_claim_recovery_provenance(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "recovered_from": "manual",
+                }
+            ),
+            encoding="utf-8",
+        )
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "recovered_from": "manual",
+                    "extra": "ignored",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded, [])
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("context_sets"), [])
+        self.assertNotIn("recovered_from", primary_payload)
+        self.assertEqual(backup_payload.get("context_sets"), [])
+        self.assertNotIn("recovered_from", backup_payload)
 
     def test_empty_context_sets_with_invalid_metadata_preserves_audit_quarantine(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)

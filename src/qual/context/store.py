@@ -681,13 +681,9 @@ class ContextBasketStore:
                 continue
             if self._has_recovery_payload_items(candidate):
                 return candidate, recovered_source
-            if (
-                fallback_candidate == (None, None)
-                and recovered_source in {"backup", "seed"}
-                and isinstance(candidate, dict)
-                and "item_ids" not in candidate
-            ):
-                fallback_candidate = (candidate, recovered_source)
+            # Only explicit empty payloads should serve as a fallback recovery
+            # source. Dicts missing the core item_ids key are malformed, not
+            # recoverable state.
             if self._has_explicit_empty_recovery_payload(candidate) and fallback_candidate == (None, None):
                 fallback_candidate = (candidate, recovered_source)
         return fallback_candidate
