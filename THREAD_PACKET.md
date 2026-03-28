@@ -3,16 +3,16 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit:
-  - `8852290adbbe735ced45c28b8ee43398d1af9b5c`
+  - `418d81f01f81712258b05bdd2f35965ace228bde`
 
 ## Scope goal
-- Restore the feat-commands handoff packet so the reviewed docs-only commit is truthful and reviewable.
+- Restore the feat-commands handoff packet so the current docs-only branch tip is truthful and reviewable.
 
 ## Lane/owned paths
 - `n/a` for this docs-only packet restore
 
 ## Scope completed
-- Regenerated the handoff packet and lane metadata from the actual reviewed docs-only commit so review maps to the submitted commit state.
+- Regenerated the handoff packet and lane metadata from the actual current docs-only branch tip so review maps to the submitted commit state.
 - Narrowed the handoff fields to the two packet artifacts changed in this revision.
 - Removed the stale shared-test approval note because this submission does not change shared tests or command code.
 - Confirmed this turn does not edit `tests/unit/test_commands_catalog.py` or `tests/unit/test_diff_preview.py`, so no shared-file approval is required for the submitted revision.
@@ -22,7 +22,7 @@
 - The change stays centered on truthful handoff metadata for the feat-commands lane.
 
 ## Tasks completed (numbered)
-1. Regenerated the feat-commands handoff packet so it reflects the actual reviewed docs-only commit.
+1. Regenerated the feat-commands handoff packet so it reflects the actual current docs-only branch tip.
 2. Narrowed the file list and scope summary to the two handoff artifacts changed in this revision.
 3. Removed the stale shared-file exception language because no shared tests or command code were modified in this submission.
 4. Realigned the roadmap and vision mapping to the packet-only docs correction instead of the earlier command-contract scope.

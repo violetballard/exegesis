@@ -1,7 +1,7 @@
 {
-  "scope_goal": "Restore the feat-commands handoff packet so the reviewed docs-only commit is truthful and reviewable.",
+  "scope_goal": "Restore the feat-commands handoff packet so the current docs-only branch tip is truthful and reviewable.",
   "tasks_completed": [
-    "Regenerated the feat-commands handoff packet so it reflects the actual reviewed docs-only commit.",
+    "Regenerated the feat-commands handoff packet so it reflects the actual current docs-only branch tip.",
     "Narrowed the file list and scope summary to the two handoff artifacts changed in this revision.",
     "Removed the stale shared-file exception language because no shared tests or command code were modified in this submission.",
     "Realigned the roadmap and vision mapping to the packet-only docs correction instead of the earlier command-contract scope."
@@ -18,7 +18,7 @@
   "shared_file_exception": false,
   "kickoff_budget_note": "Stayed within the default lane budget. The branch delta is 2 files changed and remains within the lane size limits.",
   "approved_exception_note": "",
-  "review_commit": "8852290adbbe735ced45c28b8ee43398d1af9b5c",
+  "review_commit": "418d81f01f81712258b05bdd2f35965ace228bde",
   "files_changed": [
     {
       "path": ".codex/lane_meta/feat-commands.json",
