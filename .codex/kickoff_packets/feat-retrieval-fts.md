@@ -2,14 +2,14 @@
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
-- Handoff type: packet correction only; this commit updates handoff metadata, not retrieval code.
+- Handoff type: retrieval feature handoff for the FTS-first retrieval lane.
 - Reviewed commit(s):
   - `70af1c68bfb22d39bb2cd2341f94167ad97b42f7`
   - `b906bc9917cb0a87a031a8f80851e17328697eb5`
 
 ## Scope completed
 
-The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and this resubmission stays limited to the retrieval-owned feature surface.
+The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface.
 
 ### Roadmap / vision mapping
 - ROADMAP.md: Milestone 4: Retrieval Layer (Planned)
@@ -18,16 +18,12 @@ The lane canonicalized the FTS-first retrieval MVP so generation flows receive d
 
 ### Implementation surface validated by the lane
 - `src/qual/engine/retrieval/__init__.py`
-- `src/qual/engine/retrieval/embeddings_strategy.py`
 - `src/qual/engine/retrieval/fts_strategy.py`
-- `src/qual/engine/retrieval/pageindex_strategy.py`
+- `src/qual/engine/retrieval/interface.py`
 - `src/qual/engine/retrieval/payload.py`
 - `src/qual/engine/retrieval/policy.py`
 - `src/qual/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
-
-### Handoff correction note
-- This packet correction only updates handoff metadata; the retrieval implementation is in the earlier lane commits listed above.
 
 ### Priority outcomes
 1. Keep retrieval FTS-first for the MVP.
@@ -42,9 +38,13 @@ The lane canonicalized the FTS-first retrieval MVP so generation flows receive d
 4. Exposed the canonical retrieval entrypoints through the engine/package facades so the FTS-first path remains the stable default.
 
 ### Files changed
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
-- `THREAD_PACKET.md`
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/interface.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/engine/retrieval/policy.py`
+- `src/qual/retrieval/__init__.py`
+- `src/qual/retrieval/service.py`
 
 ### Compatibility note
 - PageIndex and embeddings remain fallback-only plumbing behind the FTS-first policy for this MVP; they are not required retrieval paths.
@@ -56,4 +56,4 @@ The lane canonicalized the FTS-first retrieval MVP so generation flows receive d
 - Ownership note: this handoff stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`.
 
 ### Scope-check / ownership note
-- No non-retrieval edits are approved for this handoff.
+- Shared/integrator-locked edits: `NO`

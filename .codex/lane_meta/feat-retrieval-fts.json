@@ -1,5 +1,5 @@
 {
-  "approved_exception_note": "No non-retrieval tooling edits are approved for this handoff; packet-planner/tooling work should stay in a separate packet.",
+  "approved_exception_note": "No shared/integrator-locked edits are approved for this handoff.",
   "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 4 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff.",
   "proposed_readme_patch": "",
   "risk": "LOW",
@@ -9,9 +9,8 @@
   "routing_provider_impact": "None",
   "related_implementation_files": [
     "src/qual/engine/retrieval/__init__.py",
-    "src/qual/engine/retrieval/embeddings_strategy.py",
     "src/qual/engine/retrieval/fts_strategy.py",
-    "src/qual/engine/retrieval/pageindex_strategy.py",
+    "src/qual/engine/retrieval/interface.py",
     "src/qual/engine/retrieval/payload.py",
     "src/qual/engine/retrieval/policy.py",
     "src/qual/retrieval/__init__.py",

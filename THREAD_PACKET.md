@@ -4,17 +4,21 @@
 - Reviewed commit(s):
   - `70af1c68bfb22d39bb2cd2341f94167ad97b42f7`
   - `b906bc9917cb0a87a031a8f80851e17328697eb5`
-- Handoff type: packet correction only; this commit updates handoff metadata, not retrieval code.
+- Handoff type: retrieval feature handoff; this packet records the lane-owned implementation scope and required gate results.
 
 ## Scope completed
 
-The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and this packet correction stays limited to metadata for the retrieval-owned feature surface.
+The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface.
 
 ## Files changed
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
-- `THREAD_PACKET.md`
+- `src/qual/retrieval/__init__.py`
+- `src/qual/retrieval/service.py`
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/interface.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/engine/retrieval/policy.py`
 
 ## Tasks completed
 
@@ -53,6 +57,10 @@ The lane canonicalized the FTS-first retrieval MVP so generation flows receive d
 ## Compatibility note
 
 - PageIndex and embeddings remain fallback-only plumbing behind the FTS-first policy for this MVP; they are not required retrieval paths.
+
+## Handoff correction note
+
+- This packet correction aligns the metadata with the retrieval implementation and removes the packet/tooling scope contradiction from the reviewed handoff.
 
 ## Scope-check / ownership note
 
