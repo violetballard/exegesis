@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit:
-  - `5f77f5632053b549bbb8463128345930c6d91103`
+  - `661e880a7d6dd945f0f3e8d20f9fe1e0f0c1f2ef`
 
 ## Scope goal
 - Restore the feat-commands handoff packet so the current docs-only branch tip is truthful and reviewable.
@@ -12,7 +12,7 @@
 - `n/a` for this docs-only packet restore
 
 ## Scope completed
-- Regenerated the handoff packet and lane metadata from the actual current docs-only branch tip `5f77f5632053b549bbb8463128345930c6d91103` so review maps to the submitted commit state.
+- Regenerated the handoff packet and lane metadata from the actual current docs-only branch tip `661e880a7d6dd945f0f3e8d20f9fe1e0f0c1f2ef` so review maps to the submitted commit state.
 - Narrowed the handoff fields to the two packet artifacts changed in this revision.
 - Removed the stale shared-test approval note because this submission does not change shared tests or command code.
 - Confirmed this turn does not edit `tests/unit/test_commands_catalog.py` or `tests/unit/test_diff_preview.py`, so no shared-file approval is required for the submitted revision.
