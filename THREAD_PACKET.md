@@ -3,12 +3,15 @@
 - Branch name: `codex/feat-context-storage`
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514`
-- Handoff commit:
-  - `ee2dd30ae4c3118ffe1f2129f5f3f14316868a00`
+
+## Metadata-only follow-up
+
+- `ee2dd30ae4c3118ffe1f2129f5f3f14316868a00`
+- `076a40ae6d6c4d51e4fb24be6f8a28d73a9d50ef`
 
 ## Scope completed
 
-The lane preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The only non-owned file in the final handoff is the lane-approved regression test `tests/unit/test_context_storage_recovery.py`, and no `scripts/scope-check.sh` edit is part of the final handoff.
+The feature commit preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The later handoff commits in this branch are metadata-only and do not expand scope. The only non-owned file in the final handoff is the lane-approved regression test `tests/unit/test_context_storage_recovery.py`, and no `scripts/scope-check.sh` edit is part of the final handoff.
 
 ## Files changed
 
@@ -42,8 +45,8 @@ The lane preserved `recovered_from` cleanup timestamps across basket, context-se
 
 ## Roadmap item(s) affected
 
-- Milestone 1: Bootstrap Flow Stabilization
-- Context basket and vault persistence hardening
+- MVP Focus Through 2026-05-04: feat-context-storage
+- Persistent basket/document/session state and vault hardening
 
 ## Vision capability affected
 
