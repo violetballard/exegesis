@@ -8,7 +8,7 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 1: Bootstrap Flow Stabilization (In Progress) - Context basket and vault persistence hardening."
+    "Milestone 3: Real workflow loop - persistent basket, document, and session state hardening."
   ],
   "vision_capabilities": [
     "Capability 1: Local-first state and identity - project-scoped vault and context basket with safe recovery behavior."
