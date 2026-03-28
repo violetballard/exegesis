@@ -1,10 +1,10 @@
 {
-  "scope_goal": "Restore the feat-commands handoff packet so the submitted docs-only revision is truthful and reviewable.",
+  "scope_goal": "Restore the feat-commands handoff packet so the docs-only branch tip is truthful and reviewable.",
   "tasks_completed": [
-    "Restored the handoff packet and lane metadata so the submitted branch state matches the actual docs-only commit.",
-    "Narrowed the handoff fields to the two files changed in this revision.",
-    "Removed the stale shared-test approval note because this submission does not change shared tests.",
-    "Realigned the roadmap and vision mapping to the remaining product-readiness fit for the packet-only update."
+    "Regenerated the handoff packet and lane metadata from the actual docs-only branch tip so review maps to the submitted commit state.",
+    "Narrowed the handoff fields to the two packet artifacts changed in this revision.",
+    "Removed the stale shared-test approval note because this submission does not change shared tests or command code.",
+    "Realigned the roadmap and vision mapping to the packet-only docs correction instead of the earlier command-contract scope."
   ],
   "risk": "LOW",
   "roadmap_items": [
