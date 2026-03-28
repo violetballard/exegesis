@@ -15,12 +15,13 @@ Coordination artifacts under `.codex/` are excluded from this retrieval handoff 
 
 ## Files changed in the reviewed implementation commits
 
-These entries match the reviewed commits' `git show --stat` output and exclude packet-only cleanup commits.
+These entries capture the retrieval code-bearing paths from the reviewed commits.
 
 - `src/qual/engine/retrieval/payload.py`
 - `tests/unit/test_unified_retrieval.py`
 - `src/qual/retrieval/service.py`
-- `THREAD_PACKET.md`
+
+c4944661a0a682821c486810918c2c1fabac1a41 also touched `THREAD_PACKET.md`, but that packet-only edit is excluded from the feature approval scope and belongs with packet/planning review, not retrieval behavior review.
 
 The handoff does not include `.codex/` packet or lane-metadata artifacts.
 
