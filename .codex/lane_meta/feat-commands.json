@@ -3,7 +3,7 @@
   "tasks_completed": [
     "Replaced the stale feature-scope summary with a truthful docs-only branch description.",
     "Removed stale shared-test approval language from the handoff packet so the docs-only review does not imply shared-file edits.",
-    "Regenerated the kickoff packet, handoff packet, and lane metadata so the review evidence matches the current branch head."
+    "Regenerated the handoff packet and lane metadata so the review evidence matches the current branch head."
   ],
   "risk": "LOW",
   "roadmap_items": [
@@ -16,14 +16,10 @@
   "routing_provider_impact": "None. This change only affects local handoff metadata; no routing/provider files change.",
   "proposed_readme_patch": "",
   "shared_file_exception": false,
-  "kickoff_budget_note": "Stayed within the default lane budget. The reviewed commit changes 3 metadata files and no lane-owned code files.",
+  "kickoff_budget_note": "Stayed within the default lane budget. The reviewed commit changes 2 metadata files and no lane-owned code files.",
   "approved_exception_note": "",
-  "review_commit": "515702bccbea7173d15565fad732522c718d4ff8",
+  "review_commit": "795c64d8c5aa40861695a65efc22a5519fbdee69",
   "files_changed": [
-    {
-      "path": ".codex/kickoff_packets/feat-commands.md",
-      "kind": "meta"
-    },
     {
       "path": ".codex/lane_meta/feat-commands.json",
       "kind": "meta"

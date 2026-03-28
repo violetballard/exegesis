@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit:
-  - `515702bccbea7173d15565fad732522c718d4ff8`
+  - `795c64d8c5aa40861695a65efc22a5519fbdee69`
 
 ## Scope goal
 - Refresh feat-commands handoff metadata so the review packet tracks the current branch head and stays truthful about the docs-only metadata refresh delta.
@@ -14,10 +14,10 @@
 ## Scope completed
 - Replaced the stale feature-scope summary with a truthful docs-only branch description.
 - Removed stale shared-test approval language from the handoff packet so the docs-only review does not imply shared-file edits.
-- Regenerated the kickoff packet, handoff packet, and lane metadata so the review evidence matches the current branch head.
+- Regenerated the handoff packet and lane metadata so the review evidence matches the current branch head.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget. The reviewed commit changes 3 metadata files and no lane-owned code files.
+- Stayed within the default lane budget. The reviewed commit changes 2 metadata files and no lane-owned code files.
 - The change stays centered on keeping the command-lane record truthful for the next implementation pass.
 
 ## Approved exception note
@@ -26,10 +26,9 @@
 ## Tasks completed (numbered)
 1. Replaced the stale feature-scope summary with a truthful docs-only branch description.
 2. Removed stale shared-test approval language from the handoff packet so the docs-only review does not imply shared-file edits.
-3. Regenerated the kickoff packet, handoff packet, and lane metadata so the review evidence matches the current branch head.
+3. Regenerated the handoff packet and lane metadata so the review evidence matches the current branch head.
 
 ## Files changed
-- `.codex/kickoff_packets/feat-commands.md`
 - `.codex/lane_meta/feat-commands.json`
 - `THREAD_PACKET.md`
 
