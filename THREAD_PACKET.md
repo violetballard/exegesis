@@ -2,28 +2,25 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Reviewed commit(s):
-  - `70af1c68bfb22d39bb2cd2341f94167ad97b42f7`
-  - `b906bc9917cb0a87a031a8f80851e17328697eb5`
-  - `addc72aead4d458748f06497865deef9ab54db26`
-  - `a7b2bba6a338d823519701cc38a30d10f819aa7b`
   - `c4944661a0a682821c486810918c2c1fabac1a41`
+  - `c92025af6e11c396f84356967cea704cadb20f5b`
 
 ## Scope completed
 
-This handoff covers the reviewed source-bundle context regression work: source-bundle snapshots can rehydrate canonical retrieval context deterministically, excerpt payloads and provenance stay stable and auditable, and PageIndex plus embeddings remain deferred as fallback-only plumbing. This maps to `ROADMAP.md` (Milestone 4: Retrieval Layer), and the handoff stays limited to the retrieval-owned feature surface.
+This handoff covers the FTS-first retrieval MVP work: source-bundle snapshots rehydrate canonical retrieval context deterministically, excerpt payloads and provenance stay stable and auditable, and excerpt lookups now record deterministic audit context. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface.
 
 ## Files changed
 
-- `src/qual/retrieval/service.py`
 - `src/qual/engine/retrieval/payload.py`
 - `tests/unit/test_unified_retrieval.py`
+- `src/qual/retrieval/service.py`
 
 ## Tasks completed
 
-1. Added the excerpt lookup audit trail and deterministic rehydration path in the retrieval service.
-2. Canonicalized excerpt provenance so downstream payloads carry stable hashes and fingerprints.
-3. Accepted source-bundle context fallbacks in the engine payload helpers without widening the retrieval policy.
-4. Added a regression test that exercises the source-bundle-only context reconstruction path and verifies snapshot safety.
+1. Accepted source-bundle context fallbacks in the engine payload helpers and verified snapshot safety in regression tests.
+2. Added the excerpt lookup audit trail in the retrieval service.
+3. Threaded `lookup_entrypoint` through the two public FTS excerpt entrypoints so the audit trail can distinguish them.
+4. Recorded `lookup_resolution` in the excerpt audit trail so direct FTS hits and fallback resolution remain distinguishable.
 
 ## Commands run and outcomes
 
@@ -41,7 +38,7 @@ This handoff covers the reviewed source-bundle context regression work: source-b
 
 ## Roadmap item(s) affected
 
-- `ROADMAP.md`: Milestone 4: Retrieval Layer
+- `ROADMAP.md`: MVP Focus Through 2026-05-04 -> `feat-retrieval-fts`
 
 ## Vision capability affected
 
