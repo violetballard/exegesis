@@ -5,7 +5,7 @@
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514`
 - Final head SHA:
-  - `ddcd6eeadb4c99c402491524d1ec98ca7fd7bd29`
+  - `2d2ead69b1ac0997963ac4842fe13654388c0482`
 
 ## Scope goal
 - Preserve recovered_from cleanup timestamps in context basket/set/vault persistence so canonical cleanup rewrites keep the existing `updated_at` while stripping recovery provenance.
@@ -30,7 +30,7 @@
 3. Added cleanup timestamp reuse to `VaultService` recovery so canonical cleanup rewrites keep the existing `updated_at` instead of minting a fresh timestamp.
 4. Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
 5. Reissued the handoff packet, lane metadata, and routed packet copy together under the approved handoff-artifact exception so the reviewed file list stays synchronized without `scripts/scope-check.sh`.
-6. Updated the final head bookkeeping to the current branch tip (`ddcd6eeadb4c99c402491524d1ec98ca7fd7bd29`).
+6. Updated the final head bookkeeping to the current branch tip (`2d2ead69b1ac0997963ac4842fe13654388c0482`).
 
 ## Files changed
 - `src/qual/context/set_store.py`

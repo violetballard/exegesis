@@ -4,7 +4,7 @@
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514`
 - Final head SHA:
-  - `ddcd6eeadb4c99c402491524d1ec98ca7fd7bd29`
+  - `2d2ead69b1ac0997963ac4842fe13654388c0482`
 
 ## Scope completed
 
@@ -27,7 +27,7 @@ The fix stayed within the owned context/storage paths: `src/qual/context/**` and
 3. Reused the existing cleanup timestamp in `VaultService` recovery so canonical cleanup rewrites keep the prior `updated_at` value.
 4. Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
 5. Reissued the handoff packet, lane metadata, and routed packet copy together under the approved handoff-artifact exception so the reviewed file list stays synchronized without `scripts/scope-check.sh`.
-6. Updated the final head bookkeeping to the current branch tip (`ddcd6eeadb4c99c402491524d1ec98ca7fd7bd29`).
+6. Updated the final head bookkeeping to the current branch tip (`2d2ead69b1ac0997963ac4842fe13654388c0482`).
 
 ## Commands run and outcomes
 
