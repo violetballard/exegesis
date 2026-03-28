@@ -6,6 +6,7 @@
 - Handoff scope: metadata-only resubmission on the current branch tip so the roadmap and vision mapping are explicit and reviewer-auditable.
 - Reviewer mapping: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 - Reviewer fix status: required fix `#1` is satisfied on this branch tip because the exact roadmap milestone/scope bullets and product-vision capability are cited directly in the reviewer-facing packets.
+- Canon note: the labels above are taken from the current `ROADMAP.md` and `PRODUCT_VISION.md` in this worktree, so the handoff uses the branch's authoritative plan wording rather than older example labels from the review thread.
 
 ## Plan Alignment
 
@@ -14,6 +15,7 @@
 - Roadmap scope bullets: `Add agent-side card/section/action payload generation with deterministic schemas` and `Provide CLI rendering fallback for the same structured payloads`
 - Roadmap exit criterion: `A2UI schema/versioning is documented and stable`
 - Audit mapping: the deterministic action-ordering fix stabilizes materialized A2UI action payloads for CLI fallback rendering, which is the concrete Milestone 5 scope-bullet and Capability 5 linkage this lane completes.
+- Source-of-truth note: reviewer examples were illustrative; the authoritative mapping for this branch tip is the Milestone 5 / Capability 5 pair quoted above from the checked-in plan docs.
 - This lane only clarifies the handoff mapping for the A2UI ordering fix; it does not expand scope beyond CLI fallback determinism and the matching contract assertions.
 - Tasks completed:
   1. Updated the A2UI materialization path in `src/qual/ui/a2ui.py` to sort filtered actions by canonical JSON before terminal rendering.
