@@ -23,6 +23,12 @@
   2. Added contract coverage in `tests/unit/test_a2ui_contract.py` for the canonical ordering behavior.
   3. Cleaned up the feature packet and thread packet so the required roadmap and product-vision mappings are explicit and auditable.
 
+## Reviewer Required Fix Coverage
+
+1. Required fix `#1`: explicitly name the specific `ROADMAP.md` milestone/task and `PRODUCT_VISION.md` capability for the deterministic action-ordering change.
+   Coverage: the `Plan Alignment` section above cites `ROADMAP.md` Milestone 5 scope bullets `Add agent-side card/section/action payload generation with deterministic schemas` and `Provide CLI rendering fallback for the same structured payloads`, plus `PRODUCT_VISION.md` Capability 5 `Agent-to-UI protocol (`A2UI`)`.
+   Audit result: the reviewer can verify plan alignment directly from this packet without relying on older example labels or inference.
+
 ## Required Handoff Fields
 
 - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress)
