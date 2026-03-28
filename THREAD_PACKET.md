@@ -26,6 +26,7 @@ The lane preserved `recovered_from` cleanup timestamps across basket, context-se
 ## Commands run and outcomes
 
 - `make scope-check`: PASS
+  - The approved shared test `tests/unit/test_context_storage_recovery.py` is whitelisted by the lane policy, so no `SCOPE_ALLOW_SHARED=1` override was needed.
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
