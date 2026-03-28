@@ -4,7 +4,7 @@
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514`
 - Final head SHA:
-  - `0ea41598c7283ac12a69fec8be64aecc593ccf2e`
+  - `e19eb22b1f67afa99c75f8ab43c11b526c922f28`
 
 ## Metadata-only follow-up
 
@@ -12,10 +12,12 @@
 - `076a40ae6d6c4d51e4fb24be6f8a28d73a9d50ef`
 - `5cf30e759ed161dcf100b7c7c2b05bf44a3dacbf`
 - `0ea41598c7283ac12a69fec8be64aecc593ccf2e`
+- `d96998ed5d6a519da3139014dd404893fb9e3c58`
+- `e19eb22b1f67afa99c75f8ab43c11b526c922f28`
 
 ## Scope completed
 
-The feature commit preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The later handoff commits in this branch are metadata-only and do not expand scope. The only non-owned file in the final handoff is the lane-approved regression test `tests/unit/test_context_storage_recovery.py`, and no `scripts/scope-check.sh` edit is part of the final handoff.
+The feature commit preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The later handoff commits only reconcile packet metadata and branch-head bookkeeping; they do not expand the owned storage scope. The final handoff still includes the lane-approved regression test `tests/unit/test_context_storage_recovery.py`, and no `scripts/scope-check.sh` edit is part of the final handoff.
 
 ## Files changed
 
@@ -50,7 +52,7 @@ The feature commit preserved `recovered_from` cleanup timestamps across basket, 
 
 ## Roadmap item(s) affected
 
-- Milestone 1: Bootstrap Flow Stabilization - Context basket and vault persistence hardening.
+- Milestone 1: Bootstrap Flow Stabilization (In Progress) - Context basket and vault persistence hardening.
 
 ## Vision capability affected
 

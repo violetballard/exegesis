@@ -1,6 +1,6 @@
 {
   "feature_commit": "47cda4df831ac41867a8792f40d720e0cb109514",
-  "handoff_commit": "0ea41598c7283ac12a69fec8be64aecc593ccf2e",
+  "handoff_commit": "e19eb22b1f67afa99c75f8ab43c11b526c922f28",
   "scope_goal": "Preserve recovered_from cleanup timestamps in context basket/set and vault recovery so canonical cleanup rewrites keep the existing updated_at while removing recovery provenance.",
   "scope_completed": [
     "Preserved existing updated_at during canonical cleanup rewrites in context basket, context set, and vault recovery while stripping recovered_from provenance.",
@@ -16,7 +16,7 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 1: Bootstrap Flow Stabilization - Context basket and vault persistence hardening."
+    "Milestone 1: Bootstrap Flow Stabilization (In Progress) - Context basket and vault persistence hardening."
   ],
   "vision_capabilities": [
     "Capability 1 - Local-first state and identity."

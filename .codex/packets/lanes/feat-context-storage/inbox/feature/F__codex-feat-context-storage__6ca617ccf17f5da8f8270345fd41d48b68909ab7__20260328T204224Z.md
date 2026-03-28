@@ -3,7 +3,7 @@
 - Lane: `feat-context-storage`
 - Branch: `codex/feat-context-storage`
 - Commit: `47cda4df831ac41867a8792f40d720e0cb109514`
-- Final head SHA: `0ea41598c7283ac12a69fec8be64aecc593ccf2e`
+- Final head SHA: `e19eb22b1f67afa99c75f8ab43c11b526c922f28`
 
 ## Scope goal
 - Preserve recovered_from cleanup timestamps in context basket/set/vault persistence so canonical cleanup rewrites keep the existing `updated_at` while stripping recovery provenance.
@@ -49,7 +49,7 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1: Bootstrap Flow Stabilization - Context basket and vault persistence hardening.
+- Milestone 1: Bootstrap Flow Stabilization (In Progress) - Context basket and vault persistence hardening.
 
 ### Vision capability affected
 - Capability 1 - Local-first state and identity.
