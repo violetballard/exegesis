@@ -4,18 +4,21 @@
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514`
 - Final head SHA:
-  - `f36909cca41b0717ef1b2eb0591254703c389d03`
+  - `ddcd6eeadb4c99c402491524d1ec98ca7fd7bd29`
 
 ## Scope completed
 
-The fix stayed within the owned context/storage paths: `src/qual/context/**` and `src/qual/storage/**` were updated so recovery cleanup keeps the existing `updated_at` while stripping `recovered_from` provenance. The handoff packet and lane metadata were reissued to remove the stray `scripts/scope-check.sh` reference from the reviewed file list, leaving only the approved shared test exception in `tests/unit/test_context_storage_recovery.py`. No `engine/src/exegesis_engine/state/**` or `engine/src/exegesis_engine/storage/**` changes were needed for this recovery pass.
+The fix stayed within the owned context/storage paths: `src/qual/context/**` and `src/qual/storage/**` were updated so recovery cleanup keeps the existing `updated_at` while stripping `recovered_from` provenance. The handoff packet, lane metadata, and routed packet copy were reissued together under the approved handoff-artifact exception so the reviewed file list stays synchronized without reintroducing `scripts/scope-check.sh`. No `engine/src/exegesis_engine/state/**` or `engine/src/exegesis_engine/storage/**` changes were needed for this recovery pass.
 
 ## Files changed
 
 - `src/qual/context/set_store.py`
 - `src/qual/context/store.py`
 - `src/qual/storage/vault.py`
-- `tests/unit/test_context_storage_recovery.py`
+- `tests/unit/test_context_storage_recovery.py` (approved lane regression-test exception)
+- `THREAD_PACKET.md` (approved handoff-artifact exception; synchronized with lane metadata and routed packet copy)
+- `.codex/lane_meta/feat-context-storage.json` (approved handoff-artifact exception; synchronized with `THREAD_PACKET.md` and routed packet copy)
+- `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__6ca617ccf17f5da8f8270345fd41d48b68909ab7__20260328T204224Z.md` (approved handoff-artifact exception; synchronized with `THREAD_PACKET.md` and lane metadata)
 
 ## Tasks completed
 
@@ -23,8 +26,8 @@ The fix stayed within the owned context/storage paths: `src/qual/context/**` and
 2. Reused the existing cleanup timestamp in `ContextSetStore` recovery so canonical cleanup rewrites keep the prior `updated_at` value.
 3. Reused the existing cleanup timestamp in `VaultService` recovery so canonical cleanup rewrites keep the prior `updated_at` value.
 4. Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
-5. Reissued the handoff packet, lane metadata, and routed packet copy so the reviewed file list no longer includes `scripts/scope-check.sh` and stays synchronized under the approved handoff-artifact exception.
-6. Updated the final head bookkeeping to the current branch tip.
+5. Reissued the handoff packet, lane metadata, and routed packet copy together under the approved handoff-artifact exception so the reviewed file list stays synchronized without `scripts/scope-check.sh`.
+6. Updated the final head bookkeeping to the current branch tip (`ddcd6eeadb4c99c402491524d1ec98ca7fd7bd29`).
 
 ## Commands run and outcomes
 

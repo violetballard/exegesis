@@ -1,10 +1,10 @@
 {
   "feature_commit": "47cda4df831ac41867a8792f40d720e0cb109514",
-  "handoff_commit": "f36909cca41b0717ef1b2eb0591254703c389d03",
+  "handoff_commit": "ddcd6eeadb4c99c402491524d1ec98ca7fd7bd29",
   "scope_goal": "Preserve recovered_from cleanup timestamps in context basket/set and vault recovery so canonical cleanup rewrites keep the existing updated_at while removing recovery provenance.",
   "scope_completed": [
     "The fix stayed within the owned context/storage paths: src/qual/context/** and src/qual/storage/** were updated so recovery cleanup keeps the existing updated_at while stripping recovered_from provenance.",
-    "The handoff packet and lane metadata were reissued to remove the stray scripts/scope-check.sh reference from the reviewed file list, leaving only the approved shared test exception in tests/unit/test_context_storage_recovery.py.",
+    "The handoff packet, lane metadata, and routed packet copy were reissued together under the approved handoff-artifact exception so the reviewed file list stays synchronized without reintroducing scripts/scope-check.sh.",
     "No engine/src/exegesis_engine/state/** or engine/src/exegesis_engine/storage/** changes were needed for this recovery pass."
   ],
   "tasks_completed": [
@@ -12,8 +12,8 @@
     "Added cleanup timestamp reuse to ContextSetStore recovery so canonical cleanup rewrites keep the existing updated_at instead of minting a fresh timestamp.",
     "Added cleanup timestamp reuse to VaultService recovery so canonical cleanup rewrites keep the existing updated_at instead of minting a fresh timestamp.",
     "Added regression coverage for preserved updated_at behavior in basket, context set, and vault recovery paths.",
-    "Reissued the handoff packet, lane metadata, and routed packet copy so the reviewed file list no longer includes scripts/scope-check.sh and stays synchronized under the approved handoff-artifact exception.",
-    "Updated the final head bookkeeping to point at the current branch tip."
+    "Reissued the handoff packet, lane metadata, and routed packet copy together under the approved handoff-artifact exception so the reviewed file list stays synchronized without scripts/scope-check.sh.",
+    "Updated the final head bookkeeping to point at the current branch tip (ddcd6eeadb4c99c402491524d1ec98ca7fd7bd29)."
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
