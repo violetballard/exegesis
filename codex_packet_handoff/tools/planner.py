@@ -153,10 +153,9 @@ def apply_meta_defaults(meta: Json, missing: List[str]) -> Json:
     out = dict(meta or {})
     if "tasks_completed" in missing:
         out["tasks_completed"] = ["(auto) reviewer handback update; see lane commits for concrete changes"]
-    if "roadmap_items" in missing:
-        out["roadmap_items"] = ["(auto) roadmap mapping pending reviewer/integrator confirmation"]
-    if "vision_capabilities" in missing:
-        out["vision_capabilities"] = ["(auto) capability mapping pending reviewer/integrator confirmation"]
+    # Leave roadmap/vision handoff fields empty when they are missing rather
+    # than inventing placeholder mappings. Those fields are review-facing and
+    # must be supplied explicitly by the lane metadata.
     if "risk" in missing:
         out["risk"] = "MEDIUM"
     if "routing_provider_impact" in missing:
@@ -264,7 +263,7 @@ def main()->None:
         meta=read_lane_meta(lane)
         miss=validate_meta(meta)
         if miss:
-            print(f"[planner] {lane}: lane_meta missing: {miss} (using auto defaults)")
+            print(f"[planner] {lane}: lane_meta missing: {miss} (using non-placeholder defaults)")
             meta = apply_meta_defaults(meta, miss)
         try:
             files=compute_changed_files(active_repo, base_ref)
