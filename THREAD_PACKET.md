@@ -6,9 +6,11 @@
 
 ## Scope completed
 
-This handoff covers the retrieval lane only. The reviewed implementation delta is the FTS-first retrieval MVP in `47b3977d271e3f7faacb6ba3082ab94a2d327fcb`, which adds deterministic excerpt payload rehydration, source-bundle context regression coverage, excerpt lookup audit context in the retrieval service, and canonical query constructor export through both retrieval facades. PageIndex and embeddings remain deferred as fallback-only plumbing. The work aligns to `Milestone 3: Real workflow loop` in `ROADMAP.md` and `Retrieval-first context handling` in `PRODUCT_VISION.md`.
+This handoff covers the retrieval lane only. The reviewed implementation delta is the FTS-first retrieval MVP in `47b3977d271e3f7faacb6ba3082ab94a2d327fcb`, which adds deterministic excerpt payload rehydration, source-bundle context regression coverage, excerpt lookup audit context in the retrieval service, and canonical query constructor export through both retrieval facades. PageIndex and embeddings remain deferred as fallback-only plumbing. The reviewed file list below is commit-accurate and excludes packet/tooling metadata edits from the feature delta. The work aligns to `Milestone 3: Real workflow loop` in `ROADMAP.md` and `Retrieval-first context handling` in `PRODUCT_VISION.md`.
 
 ## Files changed
+
+These are the reviewed code files only.
 
 - `src/qual/engine/retrieval/payload.py`
 - `src/qual/engine/retrieval/__init__.py`
