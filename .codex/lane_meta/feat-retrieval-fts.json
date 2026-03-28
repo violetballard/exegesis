@@ -2,6 +2,7 @@
   "approved_exception_note": "",
   "kickoff_budget_note": "",
   "proposed_readme_patch": "",
+  "final_head_sha": "9adbaff1",
   "risk": "LOW",
   "packet_type": "metadata-only",
   "reviewed_commits": [
@@ -14,7 +15,7 @@
   ],
   "routing_provider_impact": "None",
   "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3 and PRODUCT_VISION.md capability 2.",
-  "scope_completed": "Reviewed code commits c92025af6e11c396f84356967cea704cadb20f5b, c4944661a0a682821c486810918c2c1fabac1a41, and 47b3977d271e3f7faacb6ba3082ab94a2d327fcb add excerpt lookup audit context, deterministic excerpt payload rehydration, source-bundle context regression coverage, and canonical query constructor export through both retrieval facades; the packet-only clarification commit f63b329de6041ba5dd3ab6d908e30e6b1b587b30 is excluded.",
+  "scope_completed": "Reviewed code commits c92025af6e11c396f84356967cea704cadb20f5b, c4944661a0a682821c486810918c2c1fabac1a41, and 47b3977d271e3f7faacb6ba3082ab94a2d327fcb add excerpt lookup audit context, deterministic excerpt payload rehydration, source-bundle context regression coverage, and canonical query constructor export through both retrieval facades; later lane-handoff commits are packet or metadata maintenance only and are excluded.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Added the excerpt lookup audit trail and deterministic rehydration path in the retrieval service.",

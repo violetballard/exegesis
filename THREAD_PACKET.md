@@ -1,6 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
+- Final HEAD SHA: `9adbaff1`
 - Reviewed code commit(s):
   - `c92025af6e11c396f84356967cea704cadb20f5b`
   - `c4944661a0a682821c486810918c2c1fabac1a41`
@@ -12,9 +13,9 @@ Keep the FTS-first retrieval lane scoped to deterministic excerpt and provenance
 
 ## Scope completed
 
-This handoff covers the retrieval lane only. The reviewed implementation delta spans `c92025af6e11c396f84356967cea704cadb20f5b`, `c4944661a0a682821c486810918c2c1fabac1a41`, and `47b3977d271e3f7faacb6ba3082ab94a2d327fcb`, which together add excerpt lookup audit context, deterministic excerpt payload rehydration, source-bundle context regression coverage, and canonical query constructor export through both retrieval facades. The packet-only clarification commit `f63b329de6041ba5dd3ab6d908e30e6b1b587b30` is excluded from the reviewed code delta. PageIndex and embeddings remain deferred as fallback-only plumbing. The work aligns to `Milestone 3: Real workflow loop` in `ROADMAP.md` and `Retrieval-first context handling` in `PRODUCT_VISION.md`.
+This handoff covers the retrieval lane only. The reviewed implementation delta spans `c92025af6e11c396f84356967cea704cadb20f5b`, `c4944661a0a682821c486810918c2c1fabac1a41`, and `47b3977d271e3f7faacb6ba3082ab94a2d327fcb`, which together add excerpt lookup audit context, deterministic excerpt payload rehydration, source-bundle context regression coverage, and canonical query constructor export through both retrieval facades. Later lane-handoff commits are packet or metadata maintenance only and are excluded from the reviewed code delta. PageIndex and embeddings remain deferred as fallback-only plumbing. The work aligns to `Milestone 3: Real workflow loop` in `ROADMAP.md` and `Retrieval-first context handling` in `PRODUCT_VISION.md`.
 
-Reviewed code mapping:
+Implementation file mapping:
 
 - `c92025af6e11c396f84356967cea704cadb20f5b` -> `src/qual/retrieval/service.py`
 - `c4944661a0a682821c486810918c2c1fabac1a41` -> `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`
@@ -24,7 +25,7 @@ Reviewed code mapping:
 
 ## Files changed
 
-These are the reviewed retrieval code files only.
+These are the reviewed retrieval code files only, deduplicated across the three reviewed implementation commits.
 
 - `src/qual/engine/retrieval/payload.py`
 - `src/qual/engine/retrieval/__init__.py`
