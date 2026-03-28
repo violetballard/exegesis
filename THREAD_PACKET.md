@@ -5,6 +5,7 @@
 - Runtime change commit: `b929fe6c7a1159c7882acedd247aca31a93cd123`
 - Handoff scope: metadata-only resubmission on the current branch tip so the roadmap and vision mapping are explicit and reviewer-auditable.
 - Reviewer mapping: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
+- Reviewer fix status: required fix `#1` is satisfied on this branch tip because the exact roadmap milestone/scope bullets and product-vision capability are cited directly in the reviewer-facing packets.
 
 ## Plan Alignment
 
