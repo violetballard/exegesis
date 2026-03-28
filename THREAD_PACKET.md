@@ -7,7 +7,7 @@
 
 ## Scope completed
 
-This handoff covers the FTS-first retrieval MVP work: source-bundle snapshots rehydrate canonical retrieval context deterministically, excerpt payloads and provenance stay stable and auditable, and excerpt lookups now record deterministic audit context. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface.
+This handoff covers the reviewed FTS-first retrieval MVP commits: `c4944661a0a682821c486810918c2c1fabac1a41` added the source-bundle context regression and payload fallback acceptance, and `c92025af6e11c396f84356967cea704cadb20f5b` added deterministic excerpt lookup audit context in the retrieval service. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface.
 
 ## Files changed
 
@@ -38,7 +38,7 @@ This handoff covers the FTS-first retrieval MVP work: source-bundle snapshots re
 
 ## Roadmap item(s) affected
 
-- `ROADMAP.md`: MVP Focus Through 2026-05-04 -> `feat-retrieval-fts`
+- `ROADMAP.md`: `Milestone 4: Retrieval Layer (Planned)`
 
 ## Vision capability affected
 
