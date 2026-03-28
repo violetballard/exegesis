@@ -28,3 +28,12 @@
 - This directly satisfies the reviewer-required fix to name the specific roadmap item and vision capability in the handoff packet.
 - The matching feature packet lives at `.codex/packets/lanes/feat-a2ui-contract/inbox/feature/F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md`.
 - This is the final handoff packet for the reviewer-required mapping fix and does not introduce any new scope.
+
+## Commands Run And Outcomes
+
+- `make scope-check`: PASS
+- `./quality-format.sh --check`: PASS
+- `./quality-lint.sh`: PASS
+- `./quality-test.sh`: PASS
+- `./typecheck-test.sh`: PASS
+- `make ci`: PASS
