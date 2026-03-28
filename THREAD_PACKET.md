@@ -42,7 +42,7 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3: Real workflow loop - persistent basket, document, and session state hardening.
+- Milestone 1: Bootstrap Flow Stabilization - context basket and vault persistence hardening.
 
 ### Vision capability affected
 - Capability 1: Local-first state and identity - project-scoped vault and context basket with safe recovery behavior.
