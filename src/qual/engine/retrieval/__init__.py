@@ -217,6 +217,7 @@ __all__ = [
     "retrieve_fts_excerpt",
     "retrieve_fts_payload",
     "retrieve_auto_context_bundle",
+    "retrieve_auto_citation_bundle",
     "retrieve_auto_source_bundle",
     "retrieve_auto_doc_bundle",
     "retrieve_auto_excerpt_bundle",

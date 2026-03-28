@@ -22,6 +22,7 @@ from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_re
 from src.qual.engine.retrieval.payload import _build_retrieval_source_bundle_from_payload
 import src.qual.retrieval as package_retrieval
 from src.qual.retrieval import retrieve_auto as engine_retrieve_auto
+from src.qual.retrieval import retrieve_auto_citation_bundle as engine_retrieve_auto_citation_bundle
 from src.qual.retrieval import retrieve_auto_doc_bundle as engine_retrieve_auto_doc_bundle
 from src.qual.retrieval import retrieve_auto_payload as engine_retrieve_auto_payload
 from src.qual.retrieval import retrieve_auto_source_bundle as engine_retrieve_auto_source_bundle
@@ -955,6 +956,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "retrieve_fts_excerpt",
                 "retrieve_fts_payload",
                 "retrieve_auto_context_bundle",
+                "retrieve_auto_citation_bundle",
                 "retrieve_auto_source_bundle",
                 "retrieve_auto_doc_bundle",
                 "retrieve_auto_excerpt_bundle",
@@ -979,6 +981,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_source_bundle_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_context_bundle"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_citation_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_source_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_excerpt_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_excerpt"))
@@ -987,6 +990,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_source_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_excerpt_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_payload"))
+        self.assertTrue(hasattr(package_retrieval, "retrieve_auto_citation_bundle"))
 
     def test_retrieval_query_constructor_is_shared_by_both_facades(self) -> None:
         constraints = {
@@ -1203,6 +1207,42 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(source.as_dict_calls, 2)
         self.assertNotEqual(
             refreshed["retrieval_excerpt_bundle"]["excerpt_hits"][0]["provenance"]["doc_id"],
+            "mutated-doc-id",
+        )
+
+    def test_retrieve_auto_citation_bundle_matches_result_snapshot(self) -> None:
+        query = RetrievalQuery(
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints=RetrievalConstraints(max_results=4),
+            confidentiality_profile="confidential",
+        )
+
+        result = self.service.retrieve_auto(query)
+        direct = self.service.retrieve_auto_citation_bundle(query)
+        helper = engine_retrieve_auto_citation_bundle(
+            self.service,
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints={"max_results": 4},
+            confidentiality_profile="confidential",
+        )
+
+        self.assertEqual(direct, result.citation_bundle())
+        self.assertEqual(helper, result.citation_bundle())
+        self.assertEqual(direct["query_scope"], "vault")
+        self.assertEqual(direct["query_intent"], "compare")
+        self.assertEqual(direct["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(direct["retrieval_mode"], "fts_first")
+        self.assertEqual(direct["active_strategy_ids"], ["fts"])
+        self.assertEqual(direct["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(direct["doc_citations"], result.citation_bundle()["doc_citations"])
+        self.assertEqual(direct["excerpt_citations"], result.citation_bundle()["excerpt_citations"])
+        direct["doc_citations"][0]["doc_id"] = "mutated-doc-id"
+        self.assertNotEqual(
+            self.service.retrieve_auto_citation_bundle(query)["doc_citations"][0]["doc_id"],
             "mutated-doc-id",
         )
 
