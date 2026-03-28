@@ -42,6 +42,7 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
+- Milestone 3: Product Readiness - local-first state and identity safe recovery behavior for persisted local state.
 - Milestone 1: Bootstrap Flow Stabilization - context basket and vault persistence hardening.
 
 ### Vision capability affected

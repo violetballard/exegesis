@@ -8,6 +8,7 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
+    "Milestone 3: Product Readiness - local-first state and identity safe recovery behavior for persisted local state.",
     "Milestone 1: Bootstrap Flow Stabilization - context basket and vault persistence hardening."
   ],
   "vision_capabilities": [
