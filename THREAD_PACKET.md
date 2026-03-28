@@ -10,7 +10,7 @@
 
 ## Scope completed
 
-The lane tightened the FTS-first retrieval MVP so source-bundle snapshots can rehydrate the canonical retrieval context deterministically, while excerpt payloads and provenance remain stable and auditable. PageIndex and embeddings stay deferred as fallback-only plumbing, and this handoff remains limited to the retrieval-owned feature surface through the current HEAD commit.
+The lane tightened the FTS-first retrieval MVP so source-bundle snapshots can rehydrate the canonical retrieval context deterministically, while excerpt payloads and provenance remain stable and auditable. This maps to `docs/TASKS.md` (`feat-retrieval-fts`) and `ROADMAP.md` (Milestone 3: Real workflow loop), and PageIndex plus embeddings stay deferred as fallback-only plumbing. The handoff remains limited to the retrieval-owned feature surface through the current HEAD commit.
 
 ## Files changed
 
@@ -41,7 +41,8 @@ The lane tightened the FTS-first retrieval MVP so source-bundle snapshots can re
 
 ## Roadmap item(s) affected
 
-- ROADMAP.md: MVP Focus Through 2026-05-04 -> `feat-retrieval-fts`
+- `docs/TASKS.md`: `feat-retrieval-fts` -> keep the FTS-first retrieval path authoritative; expose retrieval through the canonical engine contract; keep structured results suitable for workflow cards and basket promotion
+- `ROADMAP.md`: Milestone 3: Real workflow loop
 
 ## Vision capability affected
 
