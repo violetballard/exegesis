@@ -6,14 +6,14 @@
   - `515702bccbea7173d15565fad732522c718d4ff8`
 
 ## Scope goal
-- Refresh feat-commands handoff metadata so the review packet tracks the current branch head and stays truthful about the docs-only delta.
+- Refresh feat-commands handoff metadata so the review packet tracks the current branch head and stays truthful about the docs-only metadata refresh delta.
 
 ## Lane/owned paths
-- `src/qual/commands/**`
+- No lane-owned code paths changed; this commit only updates metadata files.
 
 ## Scope completed
 - Replaced the stale feature-scope summary with a truthful docs-only branch description.
-- Removed the shared-test approval references from the handoff packet because the reviewed commit does not change those files.
+- Removed stale shared-test approval language from the handoff packet so the docs-only review does not imply shared-file edits.
 - Regenerated the kickoff packet, handoff packet, and lane metadata so the review evidence matches the current branch head.
 
 ## Kickoff budget/limits compliance
@@ -25,7 +25,7 @@
 
 ## Tasks completed (numbered)
 1. Replaced the stale feature-scope summary with a truthful docs-only branch description.
-2. Removed the shared-test approval references from the handoff packet because the reviewed commit does not change those files.
+2. Removed stale shared-test approval language from the handoff packet so the docs-only review does not imply shared-file edits.
 3. Regenerated the kickoff packet, handoff packet, and lane metadata so the review evidence matches the current branch head.
 
 ## Files changed
@@ -47,11 +47,11 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3: feat-commands - CLI compatibility and migration-safe entrypoints.
+- Milestone 1: Bootstrap Flow Stabilization - Command and diff-preview behavior hardening.
 
 ### Vision capability affected
-- 3. Auditable generation - the handoff packet now reflects the exact submitted commit and file set.
-- 4. Operator-first control surface - the CLI lane record stays deterministic and ready for the next implementation pass.
+- 3. Auditable generation - Draft/diff outputs are traceable to retrieved sources and support repeatable analysis.
+- 4. Operator-first control surface - CLI remains a first-class surface for development and reliability.
 
 ### Routing/provider impact note
 - None. This change only affects local handoff metadata; no routing/provider files change.
