@@ -9,11 +9,11 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 3: Real workflow loop",
-    "feat-context-storage lane entry"
+    "Milestone 1: Bootstrap Flow Stabilization",
+    "Context basket and vault persistence hardening"
   ],
   "vision_capabilities": [
-    "Auditable state and workflow"
+    "Local-first state and identity"
   ],
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",

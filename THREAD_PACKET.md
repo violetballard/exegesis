@@ -3,17 +3,17 @@
 - Branch name: `codex/feat-context-storage`
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514` (implementation: runtime storage/context hardening)
-  - `93992fd2a76b9568a001b776901dc66cbbe004f2` (handoff: owned-path file clarification)
-  - `7ec8f52c789e693d43e9344df4438b7eb37f216b` (handoff: roadmap-aligned metadata)
+- Handoff-alignment commit(s):
+  - `4e0bba6210fd7d547d11e3ced5ad0c9ec056aab1` (packet/metadata alignment only)
 
 ## Scope goal
 - Harden context basket/set and vault recovery so malformed or incomplete local state is quarantined or canonicalized safely without promoting stale auxiliary state.
 
 ## Scope completed
-- Preserved `recovered_from` cleanup timestamps while quarantining malformed context basket and context-set payloads so project-scoped local state remains normalized, auditable, and aligned with the local-first state and identity contract.
+- Preserved `recovered_from` cleanup timestamps while quarantining malformed context basket and context-set payloads so project-scoped local state remains normalized and auditable.
 - Hardened vault recovery so malformed or incomplete persisted state is recovered or rewritten safely while preserving the safe lock default and local-first storage behavior.
-- Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-test exception for the vault recovery regression.
-- Reissued the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list stay aligned with the actual runtime fix commits.
+- Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-test exception.
+- Reissued the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list stay aligned with the implementation commit.
 
 ## Owned-path files changed
 - `src/qual/context/set_store.py`
@@ -48,11 +48,11 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3: Real workflow loop
-- `feat-context-storage` lane entry
+- Milestone 1: Bootstrap Flow Stabilization
+- Context basket and vault persistence hardening
 
 ### Vision capability affected
-- Auditable state and workflow
+- Local-first state and identity
 
 ### Routing/provider impact note
 - None
@@ -61,4 +61,4 @@
 - Shared/integrator-locked edits: `NO` - only the approved shared-test exception at `tests/unit/test_context_storage_recovery.py` was changed; no integrator-locked files changed in the feature implementation.
 - Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, and it is covered by the explicit shared-test exception.
 - Approval basis: `scripts/scope-check.sh` explicitly allows `tests/unit/test_context_storage_recovery.py` for `codex/feat-context-storage*` when `SCOPE_ALLOW_SHARED=1` is set.
-- Branch-head bookkeeping note: `7ec8f52c789e693d43e9344df4438b7eb37f216b` records lane metadata only; it does not change the owned runtime scope.
+- Branch-head bookkeeping note: `4e0bba6210fd7d547d11e3ced5ad0c9ec056aab1` records packet/metadata alignment only; it does not change the owned runtime scope.
