@@ -1,7 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet update commit: `245acbacf4c1f59497ddedf285985c746c1cd098` `handoff refresh`
+- Packet update commit: `893a6264d66dceb184f422debdd4e3b5af0e6c6d` `handoff resubmission`
 - Reviewed commit(s):
   - `c4944661a0a682821c486810918c2c1fabac1a41`
   - `c92025af6e11c396f84356967cea704cadb20f5b`
