@@ -1,23 +1,24 @@
 {
-  "scope_goal": "Harden diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.",
+  "scope_goal": "Harden command catalog lookup helpers and diff_preview output contracts so CLI-first operator flows stay deterministic, verifiable, and ready for JSON/text contract use.",
   "tasks_completed": [
+    "Added spec-aware command catalog helpers and exports so command metadata resolves deterministically for canonical lookup, alias lookup, and token lookup.",
     "Hardened diff_preview fingerprint semantics so the reported digest matches the emitted artifact after labels, suppression, truncation, and summary-only handling.",
-    "Added focused unit coverage for diff-preview JSON/text output contracts, including the no-diff JSON shape, custom labels, and fingerprint correctness paths.",
-    "Re-aligned the handoff packet with the actual code-bearing diff_preview commits."
+    "Added focused unit coverage for command-catalog projections and diff-preview JSON/text output contracts, including the no-diff JSON shape, custom labels, and fingerprint correctness paths.",
+    "Re-aligned the handoff packet and lane metadata with the actual branch delta."
   ],
   "risk": "LOW",
   "roadmap_items": [
     "Milestone 1 - Bootstrap Flow Stabilization: keep the command surface deterministic for CLI-first operator flows.",
-    "Milestone 2 - Test Hardening: add focused contract coverage for diff-preview output and fingerprint handling.",
+    "Milestone 2 - Test Hardening: add focused contract coverage for command lookup helpers, flow sequencing, diff-preview output, and fingerprint handling.",
     "Milestone 3 - Product Readiness: lock the emitted diff fingerprint semantics to the exact user-visible artifact."
   ],
   "vision_capabilities": [
     "Capability 3 - Auditable generation: the emitted SHA-256 fingerprint now verifies the exact diff payload returned by diff_preview.",
-    "Capability 4 - Operator-first control surface: diff_preview now exposes a stable CLI-first surface with a deterministic JSON/text contract."
+    "Capability 4 - Operator-first control surface: command lookup helpers and diff_preview now expose stable CLI-first surfaces with deterministic JSON/text contracts."
   ],
   "routing_provider_impact": "None. This change only affects local diff-preview output formatting, verification metadata, and focused command-contract test coverage; no routing/provider files change.",
   "proposed_readme_patch": "",
   "shared_file_exception": true,
   "kickoff_budget_note": "Owned-path command work plus focused diff_preview test coverage; within default 8-task, 12-file, and 500-net-LOC limits.",
-  "approved_exception_note": "Approved shared-file exception for tests/unit/test_diff_preview.py to add focused contract coverage required by review. No policy or integrator-locked files are edited in the submitted branch."
+  "approved_exception_note": "Approved shared-file exceptions for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to add focused contract coverage required by review. No policy or integrator-locked files are edited in the submitted branch."
 }
