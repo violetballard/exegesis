@@ -579,6 +579,34 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(backup_payload.get("item_ids"), ["keep", "second"])
         self.assertEqual(quarantined_payload, [" keep ", None, "second", "keep"])
 
+    def test_backup_dict_with_dropped_item_ids_is_preserved_for_audit(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text("{bad", encoding="utf-8")
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "item_ids": [" first ", None, "second", "first"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first", "second"])
+        corrupt_path = self.store._backup_path.with_suffix(".corrupt.json")
+        self.assertTrue(corrupt_path.exists())
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(corrupt_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("item_ids"), ["first", "second"])
+        self.assertEqual(primary_payload.get("recovered_from"), "backup")
+        self.assertEqual(backup_payload.get("item_ids"), ["first", "second"])
+        self.assertEqual(backup_payload.get("schema_version"), 1)
+        self.assertEqual(quarantined_payload.get("item_ids"), [" first ", None, "second", "first"])
+
     def test_backup_with_malformed_optional_metadata_is_rewritten_canonically(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text("{bad", encoding="utf-8")
@@ -1535,6 +1563,45 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(len(quarantined_payload), 2)
         self.assertEqual(quarantined_payload[1]["name"], "drop me")
 
+    def test_backup_dict_with_dropped_records_is_preserved_for_audit(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text("{bad", encoding="utf-8")
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "context_sets": [
+                        {
+                            "context_set_id": "set-backup",
+                            "name": "Backup Evidence",
+                            "item_ids": [" first ", None, "second", "first"],
+                            "created_at": "2026-03-20T11:00:00+00:00",
+                            "updated_at": "2026-03-20T12:00:00+00:00",
+                        },
+                        {"context_set_id": "", "name": "drop me"},
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, "set-backup")
+        corrupt_path = self.store._backup_path.with_suffix(".corrupt.json")
+        self.assertTrue(corrupt_path.exists())
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(corrupt_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("context_sets")[0]["context_set_id"], "set-backup")
+        self.assertEqual(primary_payload.get("recovered_from"), "backup")
+        self.assertEqual(backup_payload.get("context_sets")[0]["context_set_id"], "set-backup")
+        self.assertEqual(backup_payload.get("context_sets")[0]["item_ids"], ["first", "second"])
+        self.assertEqual(len(quarantined_payload.get("context_sets", [])), 2)
+        self.assertEqual(quarantined_payload.get("context_sets", [])[1]["name"], "drop me")
+
     def test_legacy_list_primary_prefers_its_own_records_over_stale_backup(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text(
@@ -1936,6 +2003,59 @@ class VaultRecoveryTests(unittest.TestCase):
         payload = json.loads(backup_path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("project_name"), "p2-backup-refresh")
         self.assertNotIn("recovered_from", payload)
+
+    def test_healthy_primary_load_preserves_audit_quarantine_for_malformed_backup(self) -> None:
+        state = self.svc.create_or_open(self.root, "p2-backup-audit")
+        backup_path = state.root_dir / ".vault_state.bak.json"
+        corrupt_path = backup_path.with_suffix(".corrupt.json")
+        backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "p2-backup-audit",
+                    "is_locked": False,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "extra": "ignored",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p2-backup-audit")
+
+        self.assertIsInstance(reopened.is_locked, bool)
+        self.assertTrue(corrupt_path.exists())
+        payload = json.loads(backup_path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(corrupt_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p2-backup-audit")
+        self.assertTrue(payload.get("is_locked"))
+        self.assertNotIn("extra", payload)
+        self.assertEqual(quarantined_payload.get("extra"), "ignored")
+
+    def test_healthy_primary_load_preserves_audit_quarantine_for_malformed_seed(self) -> None:
+        state = self.svc.create_or_open(self.root, "p2-seed-audit")
+        seed_path = state.root_dir / ".vault_state.seed.json"
+        corrupt_path = seed_path.with_suffix(".corrupt.json")
+        seed_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "p2-seed-audit",
+                    "is_locked": False,
+                    "updated_at": "2026-03-20T12:00:00+00:00",
+                    "extra": "ignored",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p2-seed-audit")
+
+        self.assertIsInstance(reopened.is_locked, bool)
+        self.assertFalse(seed_path.exists())
+        self.assertTrue(corrupt_path.exists())
+        payload = json.loads(corrupt_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("extra"), "ignored")
 
     def test_missing_primary_prefers_backup_over_stale_tmp_payload(self) -> None:
         state = self.svc.create_or_open(self.root, "p2-backup-wins")

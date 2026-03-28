@@ -34,6 +34,8 @@ class VaultService:
             project_root,
             safe_project_name,
         )
+        backup_payload = self._load_payload(self._backup_state_path(project_root))
+        seed_payload = self._load_payload(self._seed_state_path(project_root))
         state_path = self._state_path(project_root)
         raw_project_name = raw_state.get("project_name") if "project_name" in raw_state else None
         normalized_project_name = (
@@ -195,6 +197,14 @@ class VaultService:
             recovered_source = None
             preserve_backup_corrupt = backup_present and backup_payload is None
             preserve_seed_corrupt = seed_present and seed_payload is None
+            if backup_payload is not None and not self._is_supported_payload(backup_payload):
+                # Keep stale auxiliary state auditable before canonical rewrite.
+                self._quarantine_invalid_backup(root_dir)
+                preserve_backup_corrupt = True
+            if seed_payload is not None and not self._is_supported_payload(seed_payload):
+                # Keep stale auxiliary state auditable before canonical rewrite.
+                self._quarantine_invalid_seed(root_dir)
+                preserve_seed_corrupt = True
             self._clear_quarantine_state(
                 root_dir,
                 preserve_backup_corrupt=preserve_backup_corrupt,
@@ -236,8 +246,8 @@ class VaultService:
         primary_unavailable = primary_payload is None
         if primary_needs_recovery and recovered_source is not None:
             primary_unavailable = True
-        preserve_backup_corrupt = backup_present and backup_payload is None
-        preserve_seed_corrupt = seed_present and seed_payload is None
+        preserve_backup_corrupt = preserve_backup_corrupt or (backup_present and backup_payload is None)
+        preserve_seed_corrupt = preserve_seed_corrupt or (seed_present and seed_payload is None)
         if recovered_source == "backup" and backup_payload is not None and not self._is_supported_payload(backup_payload):
             self._quarantine_invalid_backup(root_dir)
             preserve_backup_corrupt = True

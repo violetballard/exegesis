@@ -148,12 +148,17 @@ class ContextBasketStore:
 
         should_rewrite = False
         rewrite_empty_recovery = False
-        if self._is_empty_recovery_payload(payload) and self._has_explicit_empty_recovery_payload(payload):
+        explicit_empty_recovery = self._is_empty_recovery_payload(payload) and self._has_explicit_empty_recovery_payload(
+            payload
+        )
+        if explicit_empty_recovery:
             # Canonical empty state should still be materialized when it is the
-            # only recoverable payload, but without claiming a recovery source
-            # from the recovery artifact set.
+            # only recoverable payload. If we are repairing an existing
+            # primary, keep the recovery source so the canonical rewrite can
+            # retain audit provenance and preserve the quarantined primary.
             rewrite_empty_recovery = True
-            recovered_source = None
+            if primary_payload is None:
+                recovered_source = None
         if isinstance(payload, list):
             parsed_items = self._parse_item_ids(payload)
             if parsed_items is None:
@@ -218,9 +223,14 @@ class ContextBasketStore:
         preserve_primary_corrupt = bool(
             primary_needs_quarantine
             and primary_payload is not None
-            and recovered_source is None
-            and isinstance(primary_payload, dict)
-            and (primary_item_ids_need_recovery or self._has_unknown_fields(primary_payload))
+            and (
+                (
+                    recovered_source is None
+                    and isinstance(primary_payload, dict)
+                    and (primary_item_ids_need_recovery or self._has_unknown_fields(primary_payload))
+                )
+                or (explicit_empty_recovery and recovered_source is not None and isinstance(primary_payload, dict))
+            )
         )
         preserve_backup_corrupt = bool(preserve_backup_corrupt or (recovered_source == "backup" and recovered_persisted_missing_item_ids))
         preserve_seed_corrupt = bool(preserve_seed_corrupt or (recovered_source == "seed" and recovered_persisted_missing_item_ids))
@@ -242,10 +252,12 @@ class ContextBasketStore:
         ):
             self._quarantine_invalid_seed()
             preserve_seed_corrupt = True
-        if recovered_source == "backup" and backup_payload is not None and not self._is_supported_payload(backup_payload):
+        if recovered_source == "backup" and backup_payload is not None and self._backup_needs_audit_quarantine(
+            backup_payload
+        ):
             self._quarantine_invalid_backup()
             preserve_backup_corrupt = True
-        if recovered_source == "seed" and seed_payload is not None and not self._is_supported_payload(seed_payload):
+        if recovered_source == "seed" and seed_payload is not None and self._backup_needs_audit_quarantine(seed_payload):
             self._quarantine_invalid_seed()
             preserve_seed_corrupt = True
         if recovered_source is not None or should_rewrite:
@@ -669,6 +681,9 @@ class ContextBasketStore:
         if isinstance(payload, list):
             return self._legacy_list_payload_has_dropped_item_ids(payload)
         if "item_ids" not in payload:
+            return True
+        raw_item_ids = payload.get("item_ids")
+        if isinstance(raw_item_ids, list) and self._legacy_list_payload_has_dropped_item_ids(raw_item_ids):
             return True
         return not self._is_supported_payload(payload)
 
