@@ -19,8 +19,8 @@
 - Regenerated the handoff packet and lane metadata so the review evidence matches the actual submitted scope.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget. The branch delta changes 1 policy file, centered on the approved shared-test allowance for the `feat-commands` lane.
-- The change stays centered on the scope gate needed to verify the reviewed regression.
+- Stayed within the default lane budget. The branch delta changes 5 files, centered on the scope-check policy allowance and the approved shared diff-preview regression for the `feat-commands` lane.
+- The change stays centered on the scope gate needed to verify the reviewed regression and keep the handoff metadata truthful.
 
 ## Approved exception note
 - Approved shared-file exception for `tests/unit/test_diff_preview.py`; matching scope-check policy allowance restored in `scripts/scope-check.sh`.
@@ -34,6 +34,7 @@
 - `.codex/lane_meta/feat-commands.json`
 - `THREAD_PACKET.md`
 - `scripts/scope-check.sh`
+- `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
 - `make scope-check`: PASS

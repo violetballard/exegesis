@@ -15,7 +15,7 @@
   "routing_provider_impact": "None. This change only affects local scope-check policy for the approved shared test; no routing/provider files change.",
   "proposed_readme_patch": "",
   "shared_file_exception": true,
-  "kickoff_budget_note": "Stayed within the default lane budget. The branch delta changes 1 policy file, centered on the approved shared-test allowance for the feat-commands lane.",
+  "kickoff_budget_note": "Stayed within the default lane budget. The branch delta changes 5 files, centered on the scope-check policy allowance and the approved shared diff-preview regression for the feat-commands lane.",
   "approved_exception_note": "Approved shared-file exception for tests/unit/test_diff_preview.py; matching scope-check policy allowance restored in scripts/scope-check.sh.",
   "files_changed": [
     { "path": ".codex/kickoff_packets/feat-commands.md", "kind": "meta" },
