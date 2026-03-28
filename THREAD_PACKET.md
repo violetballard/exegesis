@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `15d958da22e8e78ab1d84b55a6748ab4627138b3`
+- Commit: `e53af6696629a9cccda27ac1b344825bae8dc858`
 
 ## Scope goal
 - Harden the command surface for the CLI-first operator flow so command lookup helpers, diff-preview output, and emitted fingerprints stay deterministic and verifiable.
