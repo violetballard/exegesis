@@ -4,9 +4,9 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - canonicalize materialized A2UI action order so CLI fallback rendering stays deterministic.",
-    "Milestone 5: A2UI Presentation Layer - keep contract assertions synchronized with the canonical action ordering behavior.",
-    "Milestone 5: A2UI Presentation Layer - preserve stable fallback rendering for the same structured payloads."
+    "Milestone 5: A2UI Presentation Layer - define the A2UI output contract for agent-produced presentation artifacts.",
+    "Milestone 5: A2UI Presentation Layer - provide CLI rendering fallback for the same structured payloads.",
+    "Milestone 5: A2UI Presentation Layer - keep schema/versioning documented and stable."
   ],
   "routing_provider_impact": "None",
   "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, and keep the contract assertions aligned with that ordering.",
@@ -14,11 +14,10 @@
   "tasks_completed": [
     "Updated the A2UI materialization path in src/qual/ui/a2ui.py to sort filtered actions by canonical JSON before rendering.",
     "Added contract coverage in tests/unit/test_a2ui_contract.py to verify the canonical ordering behavior for materialized action payloads.",
-    "Rewrote the lane metadata to match the actual canonical-ordering change and its matching assertions.",
+    "Rewrote the lane metadata and packet artifacts to make the roadmap and vision mapping explicit.",
     "Kept the lane record scoped to one source file plus matching tests with no routing or provider impact."
   ],
   "vision_capabilities": [
-    "Capability 5: Agent-to-UI protocol (A2UI) - agent emits structured presentation artifacts that remain consumable by CLI first, then Exegesis Console, then future Studio UI.",
-    "Capability 4: Operator-first control surface - CLI remains a first-class surface for deterministic fallback rendering."
+    "Capability 5: Agent-to-UI protocol (A2UI) - Agent emits structured presentation artifacts that must be consumable by CLI first, then Exegesis Console, then future Studio UI."
   ]
 }
