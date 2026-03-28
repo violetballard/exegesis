@@ -2,6 +2,7 @@
 
 - Branch name: `codex/feat-a2ui-contract`
 - Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`. This handoff maps directly to `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress), specifically `Add agent-side card/section/action payload generation with deterministic schemas` and `A2UI schema/versioning is documented and stable`, plus `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`), which requires CLI-first rendering of the same structured artifacts.
+- Reviewer-required handoff mapping: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) are both explicit below so the fix can be audited without inference.
 
 ## Plan Alignment
 
