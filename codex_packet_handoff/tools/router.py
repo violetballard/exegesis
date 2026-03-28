@@ -949,7 +949,14 @@ def process_once(
                 )
             else:
                 try:
-                    reviewer_tid = _ensure_lane_reviewer_thread(reviewer_client, cfg, repo_cwd, lane, reviewer_thread_ids)
+                    reviewer_tid = _ensure_lane_reviewer_thread(
+                        reviewer_client,
+                        cfg,
+                        repo_cwd,
+                        lane,
+                        reviewer_thread_ids,
+                        local=runtime_local,
+                    )
                     reviewer_tid, reviewer_text = reviewer_client.codex_reply(
                         reviewer_tid, reviewer_prompt(pkt), timeout=cfg.reviewer_timeout
                     )
@@ -1232,11 +1239,11 @@ def main() -> None:
     cfg = load_cfg()
     state = load_json(STATE_FILE, {})
     repo_cwd = str(Path.cwd())
+    state = _maybe_restore_cloud(cfg, state, repo_cwd)
     local_mode = _runtime_mode(cfg, state) == "local_fallback"
 
     reviewer_client = _build_mcp_client(_profile_for_role(cfg, "reviewer", local=local_mode), ApprovalPolicy(True, True))
     integrator_client = _build_mcp_client(_profile_for_role(cfg, "integrator", local=local_mode), ApprovalPolicy(True, True))
-    state = _maybe_restore_cloud(cfg, state, repo_cwd)
 
     reviewer_thread_ids = state.get("reviewer_thread_ids") or {}
     if not isinstance(reviewer_thread_ids, dict):

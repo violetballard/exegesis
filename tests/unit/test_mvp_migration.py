@@ -4,9 +4,11 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from types import SimpleNamespace
 from pathlib import Path
+from unittest.mock import patch
 
 from exegesis_engine.api.app_service import ExegesisAppService
 from exegesis_engine.api.bootstrap import build_runtime as canonical_build_runtime
@@ -20,7 +22,7 @@ from exegesis_engine.metrics import MetricsExporter as CanonicalMetricsExporter
 from exegesis_engine.retrieval.search_service import RetrievalService as CanonicalRetrievalService
 from exegesis_engine.storage import VaultService as CanonicalVaultService
 from exegesis_shared.contracts.cards import A2UICapabilities as CanonicalA2UICapabilities
-from codex_packet_handoff.tools.agents_coordinator import _should_run_cycle
+from codex_packet_handoff.tools.agents_coordinator import DirectRouterCtx, _should_run_cycle
 from src.qual.audit import AuditLog as CompatAuditLog
 from src.qual.config import AppConfig as CompatAppConfig
 from src.qual.app import run_bootstrap as compat_run_bootstrap
@@ -230,6 +232,233 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         self.assertEqual(state["integrator_thread_id"], "thread-123")
         self.assertTrue(any(call[0] == "codex" for call in calls))
         self.assertTrue(any(call[0] == "save_json" for call in calls))
+
+    def test_init_direct_router_ctx_restores_cloud_before_building_clients(self) -> None:
+        from codex_packet_handoff.tools.agents_coordinator import _init_direct_router_ctx
+
+        calls: list[tuple[str, object, object]] = []
+
+        def fake_profile_for_role(cfg: object, role: str, *, local: bool = False) -> SimpleNamespace:
+            calls.append(("profile", role, local))
+            return SimpleNamespace(model=f"{role}-{'local' if local else 'cloud'}")
+
+        def fake_build_mcp_client(profile: SimpleNamespace, _approval: object) -> object:
+            calls.append(("client", profile.model, None))
+            return SimpleNamespace(close=lambda: None)
+
+        fake_router = SimpleNamespace(
+            STATE_FILE=Path("/tmp/router-state.json"),
+            ApprovalPolicy=lambda *args: SimpleNamespace(args=args),
+            load_cfg=lambda: SimpleNamespace(lanes={"feat-commands": {}}),
+            load_json=lambda _path, _default: {"runtime_mode": "local_fallback", "integrator_thread_id": "thread-cloud"},
+            save_json=lambda _path, _data: None,
+            ensure_lane_dirs=lambda _lane: None,
+            _maybe_restore_cloud=lambda _cfg, state, _cwd: {**state, "runtime_mode": "cloud_primary"},
+            _runtime_mode=lambda _cfg, state: str(state.get("runtime_mode", "cloud_primary")),
+            _profile_for_role=fake_profile_for_role,
+            _build_mcp_client=fake_build_mcp_client,
+        )
+
+        with patch("codex_packet_handoff.tools.agents_coordinator._load_tool_module", return_value=fake_router):
+            ctx = _init_direct_router_ctx()
+
+        self.assertFalse(ctx.local_mode)
+        self.assertIn(("profile", "reviewer", False), calls)
+        self.assertIn(("profile", "integrator", False), calls)
+        self.assertNotIn(("profile", "reviewer", True), calls)
+        self.assertNotIn(("profile", "integrator", True), calls)
+
+    def test_run_router_direct_once_rebuilds_clients_after_mode_restore(self) -> None:
+        from codex_packet_handoff.tools.agents_coordinator import _run_router_direct_once
+
+        close_calls: list[str] = []
+        build_calls: list[str] = []
+
+        class FakeClient:
+            def __init__(self, name: str) -> None:
+                self.name = name
+
+            def close(self) -> None:
+                close_calls.append(self.name)
+
+        def fake_profile_for_role(cfg: object, role: str, *, local: bool = False) -> SimpleNamespace:
+            suffix = "local" if local else "cloud"
+            return SimpleNamespace(model=f"{role}-{suffix}")
+
+        def fake_build_mcp_client(profile: SimpleNamespace, _approval: object) -> FakeClient:
+            build_calls.append(profile.model)
+            return FakeClient(profile.model)
+
+        fake_router = SimpleNamespace(
+            STATE_FILE=Path("/tmp/router-state.json"),
+            ApprovalPolicy=lambda *args: SimpleNamespace(args=args),
+            _maybe_restore_cloud=lambda _cfg, state, _cwd: {**state, "runtime_mode": "cloud_primary"},
+            _runtime_mode=lambda _cfg, state: str(state.get("runtime_mode", "cloud_primary")),
+            _profile_for_role=fake_profile_for_role,
+            _build_mcp_client=fake_build_mcp_client,
+            save_json=lambda _path, _data: None,
+            process_once=lambda reviewer_client, integrator_client, _cfg, state, _cwd, reviewer_thread_ids, integrator_tid: (0, state, reviewer_thread_ids, integrator_tid),
+            process_reviewer_backlog=lambda reviewer_client, _cfg, state, _cwd: (0, state),
+            process_integrator_backlog=lambda integrator_client, _cfg, state, _cwd, integrator_tid: (0, state, integrator_tid),
+        )
+
+        ctx = DirectRouterCtx(
+            router_mod=fake_router,
+            cfg=SimpleNamespace(),
+            state={"runtime_mode": "local_fallback", "integrator_thread_id": "thread-cloud"},
+            repo_cwd="/repo",
+            reviewer_client=FakeClient("reviewer-local"),
+            integrator_client=FakeClient("integrator-local"),
+            reviewer_thread_ids={},
+            integrator_tid="thread-cloud",
+            local_mode=True,
+        )
+
+        rc, out = _run_router_direct_once(ctx)
+
+        self.assertEqual(rc, 0, out)
+        self.assertFalse(ctx.local_mode)
+        self.assertEqual(sorted(close_calls), ["integrator-local", "reviewer-local"])
+        self.assertIn("reviewer-cloud", build_calls)
+        self.assertIn("integrator-cloud", build_calls)
+
+    def test_launch_free_lanes_relaunches_idle_lane_without_active_feature_session(self) -> None:
+        from codex_packet_handoff.tools.agents_coordinator import _launch_free_lanes
+
+        commands: list[list[str]] = []
+
+        def fake_run_cmd(cmd: list[str]) -> tuple[int, str]:
+            commands.append(cmd)
+            return 0, ""
+
+        state_doc = {"lane_refill": {"feat-commands": {"queue_empty": True}}}
+        with (
+            patch("codex_packet_handoff.tools.agents_coordinator._enabled_lanes", return_value=["feat-commands"]),
+            patch("codex_packet_handoff.tools.agents_coordinator._lane_queue_empty", return_value=True),
+            patch("codex_packet_handoff.tools.agents_coordinator._lane_has_active_feature_session", return_value=False),
+            patch("codex_packet_handoff.tools.agents_coordinator.run_cmd", side_effect=fake_run_cmd),
+        ):
+            launched = _launch_free_lanes(state_doc)
+
+        self.assertEqual(launched, ["feat-commands"])
+        self.assertEqual(commands[0][-2:], ["--lanes", "feat-commands"])
+
+    def test_launch_free_lanes_skips_idle_lane_with_active_feature_session(self) -> None:
+        from codex_packet_handoff.tools.agents_coordinator import _launch_free_lanes
+
+        state_doc = {"lane_refill": {"feat-commands": {"queue_empty": True}}}
+        with (
+            patch("codex_packet_handoff.tools.agents_coordinator._enabled_lanes", return_value=["feat-commands"]),
+            patch("codex_packet_handoff.tools.agents_coordinator._lane_queue_empty", return_value=True),
+            patch("codex_packet_handoff.tools.agents_coordinator._lane_has_active_feature_session", return_value=True),
+            patch("codex_packet_handoff.tools.agents_coordinator.run_cmd") as run_cmd,
+        ):
+            launched = _launch_free_lanes(state_doc)
+
+        self.assertEqual(launched, [])
+        run_cmd.assert_not_called()
+
+    def test_launch_free_lanes_throttles_repeat_relaunch_attempts(self) -> None:
+        from codex_packet_handoff.tools.agents_coordinator import _launch_free_lanes
+
+        state_doc = {
+            "lane_refill": {
+                "feat-commands": {
+                    "queue_empty": True,
+                    "last_launch_attempt_ts": time.time(),
+                }
+            }
+        }
+        with (
+            patch("codex_packet_handoff.tools.agents_coordinator._enabled_lanes", return_value=["feat-commands"]),
+            patch("codex_packet_handoff.tools.agents_coordinator._lane_queue_empty", return_value=True),
+            patch("codex_packet_handoff.tools.agents_coordinator._lane_has_active_feature_session", return_value=False),
+            patch("codex_packet_handoff.tools.agents_coordinator.run_cmd") as run_cmd,
+        ):
+            launched = _launch_free_lanes(state_doc)
+
+        self.assertEqual(launched, [])
+        run_cmd.assert_not_called()
+
+    def test_lane_has_active_feature_session_handles_direct_exec_pid_state(self) -> None:
+        from codex_packet_handoff.tools.agents_coordinator import _lane_has_active_feature_session
+
+        self.assertFalse(
+            _lane_has_active_feature_session(
+                "feat-commands",
+                feature_threads={
+                    "feat-commands": {
+                        "status": "direct_exec_running",
+                        "pid": 0,
+                    }
+                },
+            )
+        )
+
+
+class StatusStateTests(unittest.TestCase):
+    def test_queue_empty_but_active_feature_session_is_not_reported_idle(self) -> None:
+        from codex_packet_handoff.tools.status import _derive_lane_state
+
+        state, note = _derive_lane_state([], [], [], "abc123", "abc123", feature_active=True)
+        self.assertEqual(state, "feature_in_progress")
+        self.assertIn("actively working", note)
+
+
+class RouterReviewerBootstrapTests(unittest.TestCase):
+    def test_process_once_passes_local_flag_when_bootstrapping_reviewer_thread(self) -> None:
+        from codex_packet_handoff.tools import router
+
+        with tempfile.TemporaryDirectory() as tmp:
+            lane_dir = Path(tmp)
+            pkt = lane_dir / "inbox" / "feature" / "F__codex-feat-commands__abc1234__20260328T000000Z.md"
+            pkt.parent.mkdir(parents=True, exist_ok=True)
+            pkt.write_text("Feature packet body\n", encoding="utf-8")
+
+            cfg = SimpleNamespace(
+                lanes={"feat-commands": {}},
+                max_packets_per_run=1,
+                auto_switch_to_local_on_quota=True,
+                reviewer_timeout=30,
+                integrator_timeout=30,
+                inline_fixer=False,
+            )
+
+            calls: list[bool] = []
+
+            class FakeReviewerClient:
+                def codex_reply(self, tid: str, prompt: str, timeout: float) -> tuple[str, str]:
+                    return tid, "Verdict: `CHANGES_REQUESTED`\n\nPlease revise.\n"
+
+            with (
+                patch.object(router, "ensure_lane_dirs", return_value=lane_dir),
+                patch.object(router, "list_new", return_value=[pkt]),
+                patch.object(router, "load_json", return_value={}),
+                patch.object(router, "save_json"),
+                patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
+                patch.object(router, "_runtime_mode", return_value="cloud_primary"),
+                patch.object(router, "_apply_quota_text_safeguard", side_effect=lambda cfg, state, text, reason: state),
+                patch.object(router, "archive_reviewer_notes"),
+                patch.object(router, "clear_stale_integrator_handoffs", return_value=0),
+                patch.object(router, "archive"),
+                patch.object(
+                    router,
+                    "_ensure_lane_reviewer_thread",
+                    side_effect=lambda reviewer_client, cfg, repo_cwd, lane, reviewer_thread_ids, *, local: calls.append(local) or "reviewer-thread",
+                ),
+            ):
+                processed, _state, _reviewer_threads, _integrator_tid = router.process_once(
+                    FakeReviewerClient(),
+                    SimpleNamespace(),
+                    cfg,
+                    {},
+                    "/repo",
+                    {},
+                    "",
+                )
+
+        self.assertEqual(processed, 1)
+        self.assertEqual(calls, [False])
 
 
 if __name__ == "__main__":

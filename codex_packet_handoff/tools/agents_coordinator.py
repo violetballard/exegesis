@@ -51,6 +51,9 @@ STATE_FILE = COORD_ROOT / "state.json"
 LEASE_FILE = COORD_ROOT / "lease.json"
 ROUTER_CONFIG_FILE = REPO_ROOT / ".codex/packet_router/config.json"
 ROUTER_EXAMPLE_FILE = REPO_ROOT / ".codex/packet_router/example.json"
+FEATURE_RUNNER_ROOT = REPO_ROOT / ".codex/feature_runner"
+FEATURE_RUNNER_STATE_FILE = FEATURE_RUNNER_ROOT / "state.json"
+FEATURE_RELAUNCH_COOLDOWN_SECONDS = 60
 DEFAULT_LANES = [
     "feat-context-storage",
     "feat-commands",
@@ -72,6 +75,7 @@ class DirectRouterCtx:
     integrator_client: object
     reviewer_thread_ids: Dict[str, str]
     integrator_tid: str
+    local_mode: bool
 
 
 def _bootstrap_direct_integrator_thread(
@@ -99,6 +103,19 @@ def _bootstrap_direct_integrator_thread(
     state["integrator_thread_id"] = integrator_tid
     router_mod.save_json(router_mod.STATE_FILE, state)
     return integrator_tid
+
+
+def _build_direct_router_clients(router_mod: object, cfg: object, state: Dict) -> Tuple[bool, object, object]:
+    local_mode = router_mod._runtime_mode(cfg, state) == "local_fallback"
+    reviewer_client = router_mod._build_mcp_client(
+        router_mod._profile_for_role(cfg, "reviewer", local=local_mode),
+        router_mod.ApprovalPolicy(True, True),
+    )
+    integrator_client = router_mod._build_mcp_client(
+        router_mod._profile_for_role(cfg, "integrator", local=local_mode),
+        router_mod.ApprovalPolicy(True, True),
+    )
+    return local_mode, reviewer_client, integrator_client
 
 
 def utc_now() -> str:
@@ -136,6 +153,16 @@ def load_json(path: Path, default: Dict) -> Dict:
 def save_json(path: Path, data: Dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2, sort_keys=True))
+
+
+def _pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
 
 
 def _all_configured_lanes() -> List[str]:
@@ -387,15 +414,8 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
     cfg = router_mod.load_cfg()
     state = router_mod.load_json(router_mod.STATE_FILE, {})
     repo_cwd = str(REPO_ROOT)
-    local_mode = router_mod._runtime_mode(cfg, state) == "local_fallback"
-    reviewer_client = router_mod._build_mcp_client(
-        router_mod._profile_for_role(cfg, "reviewer", local=local_mode),
-        router_mod.ApprovalPolicy(True, True),
-    )
-    integrator_client = router_mod._build_mcp_client(
-        router_mod._profile_for_role(cfg, "integrator", local=local_mode),
-        router_mod.ApprovalPolicy(True, True),
-    )
+    state = router_mod._maybe_restore_cloud(cfg, state, repo_cwd)
+    local_mode, reviewer_client, integrator_client = _build_direct_router_clients(router_mod, cfg, state)
 
     reviewer_thread_ids = state.get("reviewer_thread_ids") or {}
     if not isinstance(reviewer_thread_ids, dict):
@@ -430,11 +450,43 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
         integrator_client=integrator_client,
         reviewer_thread_ids=reviewer_thread_ids,
         integrator_tid=integrator_tid,
+        local_mode=local_mode,
+    )
+
+
+def _refresh_direct_router_clients(ctx: DirectRouterCtx) -> None:
+    ctx.state = ctx.router_mod._maybe_restore_cloud(ctx.cfg, ctx.state, ctx.repo_cwd)
+    desired_local_mode = ctx.router_mod._runtime_mode(ctx.cfg, ctx.state) == "local_fallback"
+    if desired_local_mode == ctx.local_mode:
+        return
+
+    seen: set[int] = set()
+    for client in (ctx.reviewer_client, ctx.integrator_client):
+        ident = id(client)
+        if ident in seen:
+            continue
+        seen.add(ident)
+        with contextlib.suppress(Exception):
+            client.close()
+
+    ctx.local_mode, ctx.reviewer_client, ctx.integrator_client = _build_direct_router_clients(
+        ctx.router_mod,
+        ctx.cfg,
+        ctx.state,
+    )
+    ctx.integrator_tid = _bootstrap_direct_integrator_thread(
+        ctx.router_mod,
+        ctx.cfg,
+        ctx.repo_cwd,
+        ctx.state,
+        ctx.integrator_client,
+        ctx.integrator_tid,
     )
 
 
 def _run_router_direct_once(ctx: DirectRouterCtx) -> Tuple[int, str]:
     try:
+        _refresh_direct_router_clients(ctx)
         n, ctx.state, ctx.reviewer_thread_ids, ctx.integrator_tid = ctx.router_mod.process_once(
             ctx.reviewer_client,
             ctx.integrator_client,
@@ -527,22 +579,55 @@ def _lane_queue_empty(lane: str) -> bool:
     )
 
 
+def _feature_thread_state() -> Dict[str, Dict[str, object]]:
+    state = load_json(FEATURE_RUNNER_STATE_FILE, {})
+    lanes = state.get("lanes") if isinstance(state, dict) else {}
+    return lanes if isinstance(lanes, dict) else {}
+
+
+def _lane_has_active_feature_session(
+    lane: str,
+    *,
+    feature_threads: Optional[Dict[str, Dict[str, object]]] = None,
+) -> bool:
+    if feature_threads is None:
+        feature_threads = _feature_thread_state()
+    lane_state = feature_threads.get(lane) if isinstance(feature_threads, dict) else None
+    if isinstance(lane_state, dict):
+        status = str(lane_state.get("status") or "")
+        if status in {"managed_thread", "launching"}:
+            return True
+        if status == "direct_exec_running":
+            return _pid_alive(int(lane_state.get("pid") or 0))
+    return False
+
+
 def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
     lane_refill = state_doc.setdefault("lane_refill", {})
     if not isinstance(lane_refill, dict):
         lane_refill = {}
         state_doc["lane_refill"] = lane_refill
 
+    feature_threads = _feature_thread_state()
+    now = time.time()
     to_launch: List[str] = []
     for lane in _enabled_lanes():
         queue_empty = _lane_queue_empty(lane)
+        feature_active = _lane_has_active_feature_session(lane, feature_threads=feature_threads)
         lane_state = lane_refill.get(lane)
         if not isinstance(lane_state, dict):
             lane_state = {}
-        was_empty = bool(lane_state.get("queue_empty", False))
-        if queue_empty and not was_empty:
+        last_launch_attempt_ts = float(lane_state.get("last_launch_attempt_ts", 0) or 0)
+        if (
+            queue_empty
+            and not feature_active
+            and (now - last_launch_attempt_ts) >= FEATURE_RELAUNCH_COOLDOWN_SECONDS
+        ):
             to_launch.append(lane)
+            lane_state["last_launch_attempt_ts"] = now
+            lane_state["last_launch_reason"] = "queue_empty_without_active_feature_session"
         lane_state["queue_empty"] = queue_empty
+        lane_state["feature_active"] = feature_active
         lane_state["last_seen_at"] = utc_now()
         lane_refill[lane] = lane_state
 
