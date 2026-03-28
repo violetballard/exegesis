@@ -1,6 +1,6 @@
 {
   "approved_exception_note": "",
-  "kickoff_budget_note": "",
+  "kickoff_budget_note": "This thread finished within the low-risk 8-task cap; no sprint-mode 10-task allowance or high-risk 4-task budget was used.",
   "proposed_readme_patch": "",
   "final_head_sha": "9adbaff1",
   "risk": "LOW",
