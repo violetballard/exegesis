@@ -3,10 +3,19 @@
   "kickoff_budget_note": "",
   "proposed_readme_patch": "",
   "risk": "LOW",
-  "roadmap_items": [],
+  "roadmap_items": [
+    "Milestone 4: Retrieval Layer (Planned)"
+  ],
   "routing_provider_impact": "None",
   "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows.",
   "shared_file_exception": false,
-  "tasks_completed": [],
-  "vision_capabilities": []
+  "tasks_completed": [
+    "Added the excerpt lookup audit trail and deterministic rehydration path in the retrieval service.",
+    "Canonicalized excerpt provenance so downstream payloads carry stable hashes and fingerprints.",
+    "Kept retrieval FTS-first and left PageIndex/embeddings as fallback-only plumbing."
+  ],
+  "vision_capabilities": [
+    2,
+    3
+  ]
 }

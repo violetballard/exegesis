@@ -2,7 +2,8 @@
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
-- Scope goal: Build the FTS-first retrieval MVP with deterministic excerpt/provenance output that can feed drafting, patching, and research runs for the May 4 demo.
+- Handoff type: retrieval feature handoff for the FTS-first retrieval lane.
+- Scope goal: Keep the FTS-first retrieval lane scoped to deterministic excerpt/provenance output and the reviewed retrieval-owned files only.
 
 ### Priority outcomes
 1. Make SQLite FTS the primary retrieval path.
@@ -13,3 +14,4 @@
 - Keep retrieval deterministic and auditable.
 - Avoid speculative future retrieval abstractions that do not help the MVP.
 - Any engine integration should stay narrowly scoped to retrieval orchestration.
+- Do not include packet/tooling artifacts unless they are part of the reviewed diff for this lane.
