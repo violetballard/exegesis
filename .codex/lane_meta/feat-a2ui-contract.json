@@ -4,10 +4,10 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer (In Progress) - define the A2UI output contract for agent-produced presentation artifacts, add deterministic schemas, provide CLI rendering fallback for the same structured payloads, and keep the surface client-agnostic."
+    "Milestone 5: A2UI Presentation Layer (In Progress), specifically the A2UI action-order canonicalization task - define the A2UI output contract for agent-produced presentation artifacts, add deterministic schemas, provide CLI rendering fallback for the same structured payloads, and keep the surface client-agnostic."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, and keep the handoff aligned with ROADMAP.md Milestone 5: A2UI Presentation Layer and PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI).",
+  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, and keep the handoff aligned with ROADMAP.md Milestone 5: A2UI Presentation Layer and PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI), specifically the action-order canonicalization task and CLI fallback contract.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Updated the A2UI materialization path in src/qual/ui/a2ui.py to sort filtered actions by canonical JSON before rendering.",
@@ -16,6 +16,6 @@
     "Kept the lane record scoped to one source file plus matching tests with no routing or provider impact."
   ],
   "vision_capabilities": [
-    "Capability 5: Agent-to-UI protocol (A2UI) - agent emits structured presentation artifacts (cards, sections, actions, metadata) that remain consumable by CLI first, then Exegesis Console, then future Studio UI."
+    "Capability 5: Agent-to-UI protocol (A2UI), specifically the CLI fallback contract - agent emits structured presentation artifacts (cards, sections, actions, metadata) that remain consumable by CLI first, then Exegesis Console, then future Studio UI."
   ]
 }
