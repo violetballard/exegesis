@@ -58,6 +58,7 @@ class PacketPlannerTests(unittest.TestCase):
         self.assertIn(VISION_MAPPING, packet)
         self.assertIn("Provide CLI rendering fallback for the same structured payloads", packet)
         self.assertIn("text fallback of the same underlying artifacts", packet)
+        self.assertNotIn("including the CLI fallback rendering path used by this fix", packet)
         self.assertNotIn("pending reviewer/integrator confirmation", packet)
 
     def test_build_packet_uses_saved_handoff_mappings_when_meta_lists_are_empty(self) -> None:
@@ -83,6 +84,7 @@ class PacketPlannerTests(unittest.TestCase):
 
         self.assertIn(ROADMAP_MAPPING, packet)
         self.assertIn(VISION_MAPPING, packet)
+        self.assertNotIn("including the CLI fallback rendering path used by this fix", packet)
         self.assertNotIn("pending reviewer/integrator confirmation", packet)
 
     def test_apply_meta_defaults_does_not_invent_handoff_placeholders(self) -> None:
