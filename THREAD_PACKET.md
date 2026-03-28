@@ -37,6 +37,7 @@
 - The change is intentionally narrow and limited to A2UI action materialization plus its contract assertions.
 - CLI fallback rendering remains preserved.
 - No routing, provider, or shared/integrator-locked files were changed by this fix.
+- Reviewer-response note: this metadata-only follow-up pins the required audit mapping directly to `ROADMAP.md` Milestone 5 scope bullets `Add agent-side card/section/action payload generation with deterministic schemas` and `Provide CLI rendering fallback for the same structured payloads`, plus `PRODUCT_VISION.md` Capability 5 `Agent-to-UI protocol (A2UI)`.
 - Reviewer-required plan alignment fields are explicit above and auditable without inference: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 - This thread packet mirrors the reviewer-facing feature packet so the resubmission is explicit in both places.
 - The matching feature packet lives at `.codex/packets/lanes/feat-a2ui-contract/inbox/feature/F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md`.
