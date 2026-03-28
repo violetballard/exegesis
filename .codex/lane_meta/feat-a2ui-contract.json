@@ -13,7 +13,7 @@
   },
   "risk": "LOW",
   "routing_provider_impact": "None",
-  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, with matching assertions in tests/unit/test_a2ui_contract.py, mapping to ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> Add agent-side card/section/action payload generation with deterministic schemas and PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI).",
+  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, with matching assertions in tests/unit/test_a2ui_contract.py. This lane maps to ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> Add agent-side card/section/action payload generation with deterministic schemas and PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI).",
   "shared_file_exception": false,
   "tasks_completed": [
     "Updated the A2UI materialization path in src/qual/ui/a2ui.py to sort filtered actions by canonical JSON before terminal rendering.",
