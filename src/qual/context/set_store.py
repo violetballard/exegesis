@@ -802,7 +802,8 @@ class ContextSetStore:
 
     def _normalize_records(self, records: list[ContextSetRecord]) -> list[ContextSetRecord]:
         normalized: list[ContextSetRecord] = []
-        seen: set[str] = set()
+        seen_ids: set[str] = set()
+        seen_names: set[str] = set()
         for raw in records:
             record = ContextSetRecord(
                 context_set_id=raw.context_set_id,
@@ -812,10 +813,16 @@ class ContextSetStore:
                 updated_at=raw.updated_at,
             )
             record.normalize()
-            if not record.context_set_id or not record.name or record.context_set_id in seen:
+            if (
+                not record.context_set_id
+                or not record.name
+                or record.context_set_id in seen_ids
+                or record.name in seen_names
+            ):
                 continue
             normalized.append(record)
-            seen.add(record.context_set_id)
+            seen_ids.add(record.context_set_id)
+            seen_names.add(record.name)
         return normalized
 
     def _records_need_timestamp_backfill(self, records: list[ContextSetRecord]) -> bool:
