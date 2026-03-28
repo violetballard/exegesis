@@ -338,22 +338,22 @@ class ContextSetStore:
         )
         if isinstance(primary_payload, list) and (
             not self._has_context_set_records(primary_payload)
-            or self._legacy_list_payload_has_dropped_records(primary_payload)
+            or self._list_payload_needs_audit_quarantine(primary_payload)
         ):
             # Keep the original malformed legacy list available for audit when
-            # it cannot contribute any recoverable context set records.
+            # it cannot contribute cleanly recoverable context set records.
             preserve_primary_corrupt = True
         if (
             recovered_source == "backup"
             and isinstance(backup_payload, list)
-            and self._legacy_list_payload_has_dropped_records(backup_payload)
+            and self._list_payload_needs_audit_quarantine(backup_payload)
         ):
             self._quarantine_invalid_backup()
             preserve_backup_corrupt = True
         if (
             recovered_source == "seed"
             and isinstance(seed_payload, list)
-            and self._legacy_list_payload_has_dropped_records(seed_payload)
+            and self._list_payload_needs_audit_quarantine(seed_payload)
         ):
             self._quarantine_invalid_seed()
             preserve_seed_corrupt = True
@@ -934,11 +934,11 @@ class ContextSetStore:
         if payload is None:
             return False
         if isinstance(payload, list):
-            return self._legacy_list_payload_has_dropped_records(payload)
+            return self._list_payload_needs_audit_quarantine(payload)
         if "context_sets" not in payload:
             return True
         raw_context_sets = payload.get("context_sets")
-        if isinstance(raw_context_sets, list) and self._legacy_list_payload_has_dropped_records(raw_context_sets):
+        if isinstance(raw_context_sets, list) and self._list_payload_needs_audit_quarantine(raw_context_sets):
             return True
         return not self._is_supported_payload(payload)
 
@@ -1027,6 +1027,16 @@ class ContextSetStore:
         if parsed_records is None:
             return False
         return len(parsed_records) < len(payload)
+
+    def _list_payload_needs_audit_quarantine(self, payload: object) -> bool:
+        if not isinstance(payload, list):
+            return False
+        parsed_records = self._parse_context_sets(payload)
+        if parsed_records is None:
+            return False
+        if len(parsed_records) < len(payload):
+            return True
+        return len(self._normalize_records(parsed_records)) < len(parsed_records)
 
     def _quarantine_unrecoverable_list_payload(self, path: Path, payload: object) -> bool:
         if path not in {self._backup_path, self._seed_state_path()}:
