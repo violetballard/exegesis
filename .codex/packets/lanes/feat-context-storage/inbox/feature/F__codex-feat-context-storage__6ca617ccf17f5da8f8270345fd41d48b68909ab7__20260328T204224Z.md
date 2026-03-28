@@ -5,7 +5,7 @@
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514`
 - Final head SHA:
-  - `7f5b4ea2e931cffee0695a545db6c4f5417a430f`
+  - `a8a78910aea31f8997565d263f35066cb10f4968`
 
 ## Scope goal
 - Preserve recovered_from cleanup timestamps in context basket/set/vault persistence so canonical cleanup rewrites keep the existing `updated_at` while stripping recovery provenance.
@@ -38,6 +38,9 @@
 - `src/qual/context/store.py`
 - `src/qual/storage/vault.py`
 - `tests/unit/test_context_storage_recovery.py` (approved lane regression-test exception)
+
+## Handoff artifacts updated under approval
+
 - `THREAD_PACKET.md` (approved handoff-artifact exception; synchronized with lane metadata and routed packet copy)
 - `.codex/lane_meta/feat-context-storage.json` (approved handoff-artifact exception; synchronized with `THREAD_PACKET.md` and routed packet copy)
 - `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__6ca617ccf17f5da8f8270345fd41d48b68909ab7__20260328T204224Z.md` (approved handoff-artifact exception; synchronized with `THREAD_PACKET.md` and lane metadata)

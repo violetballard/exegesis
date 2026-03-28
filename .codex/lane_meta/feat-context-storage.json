@@ -14,7 +14,7 @@
     "Added cleanup timestamp reuse to VaultService recovery so canonical cleanup rewrites keep the existing updated_at instead of minting a fresh timestamp.",
     "Added regression coverage for preserved updated_at behavior in basket, context set, and vault recovery paths.",
     "Reissued the handoff packet, lane metadata, and routed packet copy together under the approved handoff-artifact exception so the reviewed file list stays synchronized.",
-    "Updated the final head bookkeeping to point at the current branch tip (4eea5c4ba491e39da372b18a2191d5ee0ba14eb1)."
+    "Updated the final head bookkeeping to point at the current branch tip (a8a78910aea31f8997565d263f35066cb10f4968)."
   ],
   "risk": "MEDIUM",
   "roadmap_items": [

@@ -4,7 +4,7 @@
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514`
 - Final head SHA:
-  - `4eea5c4ba491e39da372b18a2191d5ee0ba14eb1`
+  - `a8a78910aea31f8997565d263f35066cb10f4968`
 
 ## Scope completed
 
@@ -18,6 +18,12 @@ The fix stayed within the owned context/storage paths: `src/qual/context/**` and
 - `src/qual/storage/vault.py`
 - `tests/unit/test_context_storage_recovery.py` (approved lane regression-test exception)
 
+## Handoff artifacts updated under approval
+
+- `THREAD_PACKET.md` (approved handoff-artifact exception; synchronized with lane metadata and routed packet copy)
+- `.codex/lane_meta/feat-context-storage.json` (approved handoff-artifact exception; synchronized with `THREAD_PACKET.md` and routed packet copy)
+- `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__6ca617ccf17f5da8f8270345fd41d48b68909ab7__20260328T204224Z.md` (approved handoff-artifact exception; synchronized with `THREAD_PACKET.md` and lane metadata)
+
 ## Tasks completed
 
 1. Reused the existing cleanup timestamp in `ContextBasketStore` recovery so canonical cleanup rewrites keep the prior `updated_at` value.
@@ -25,7 +31,7 @@ The fix stayed within the owned context/storage paths: `src/qual/context/**` and
 3. Reused the existing cleanup timestamp in `VaultService` recovery so canonical cleanup rewrites keep the prior `updated_at` value.
 4. Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
 5. Reissued the handoff packet, lane metadata, and routed packet copy together under the approved handoff-artifact exception so the reviewed file list stays synchronized.
-6. Updated the final head bookkeeping to the current branch tip (`7f5b4ea2e931cffee0695a545db6c4f5417a430f`).
+6. Updated the final head bookkeeping to the current branch tip (`a8a78910aea31f8997565d263f35066cb10f4968`).
 
 ## Commands run and outcomes
 
