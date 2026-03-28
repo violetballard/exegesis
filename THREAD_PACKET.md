@@ -5,6 +5,7 @@
   - `47cda4df831ac41867a8792f40d720e0cb109514` (implementation: runtime storage/context hardening)
 - Handoff-alignment commit(s):
   - `89a2faa20441a66bfeb1f305b615cb0f1a81bef9` (packet/metadata alignment only; no runtime scope)
+  - `3bcca74f91465bab35a4f35d20c7fbf5cd10c5e8` (handoff metadata alignment follow-up; no runtime scope)
 
 ## Scope goal
 - Harden engine persistence/state recovery for context basket/set and vault so malformed or incomplete local state is quarantined or canonicalized safely without promoting stale auxiliary state.
@@ -14,7 +15,7 @@
 - Hardened vault recovery so malformed or incomplete persisted state is recovered or rewritten safely while preserving the safe lock default and local-first storage behavior.
 - Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-test exception.
 - Kept the reviewed implementation within owned runtime paths plus the approved shared-test exception, with no shared/integrator-locked runtime edits.
-- Reissued the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list stay aligned with implementation commit `47cda4df831ac41867a8792f40d720e0cb109514` and alignment commit `89a2faa20441a66bfeb1f305b615cb0f1a81bef9`, while keeping docs-only alignment work separate from runtime changes.
+- Reissued the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list stay aligned with implementation commit `47cda4df831ac41867a8792f40d720e0cb109514` and the current docs-only alignment commit `3bcca74f91465bab35a4f35d20c7fbf5cd10c5e8`, while keeping docs-only alignment work separate from runtime changes.
 
 ## Owned-path files changed
 - `src/qual/context/set_store.py`
@@ -54,6 +55,7 @@
 
 ### Vision capability affected
 - Local-first state and identity
+- Auditable generation
 
 ### Routing/provider impact note
 - None
@@ -62,5 +64,5 @@
 - Shared/integrator-locked edits: `NO` in the reviewed implementation diff; the only non-owned file changed for the feature work is the approved shared-test exception at `tests/unit/test_context_storage_recovery.py`.
 - Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, and it is covered by the explicit shared-test exception.
 - Approval basis: `scripts/scope-check.sh` explicitly allows `tests/unit/test_context_storage_recovery.py` for `codex/feat-context-storage*` when `SCOPE_ALLOW_SHARED=1` is set.
-- Branch-head bookkeeping note: `89a2faa20441a66bfeb1f305b615cb0f1a81bef9` records packet/metadata alignment only; it does not change the owned runtime scope.
+- Branch-head bookkeeping note: `3bcca74f91465bab35a4f35d20c7fbf5cd10c5e8` records packet/metadata alignment only; it does not change the owned runtime scope.
 - Explicit handoff-alignment approval: `.codex/lane_meta/feat-context-storage.json` and `THREAD_PACKET.md` are intentionally included as docs-only alignment files and are separate from the reviewed runtime diff.
