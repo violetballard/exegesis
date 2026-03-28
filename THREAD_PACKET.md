@@ -8,7 +8,7 @@
 
 ## Scope completed
 
-This handoff covers the retrieval implementation only. The reviewed delta is the FTS-first retrieval MVP in `c4944661a0a682821c486810918c2c1fabac1a41` and `c92025af6e11c396f84356967cea704cadb20f5b`, which adds deterministic excerpt payload rehydration, source-bundle context regression coverage, and excerpt lookup audit context in the retrieval service. This packet is a resubmission against the actual code-bearing commits, not the packet-only clarification commit. PageIndex and embeddings remain deferred as fallback-only plumbing, and the work aligns to `Milestone 4: Retrieval Layer` in `ROADMAP.md`.
+This handoff covers the retrieval implementation only. The reviewed delta is the FTS-first retrieval MVP in `c4944661a0a682821c486810918c2c1fabac1a41` and `c92025af6e11c396f84356967cea704cadb20f5b`, which adds deterministic excerpt payload rehydration, source-bundle context regression coverage, and excerpt lookup audit context in the retrieval service. This packet is a resubmission against the actual code-bearing commits, not the packet-only clarification commit, and the reviewed code delta is confined to the three retrieval paths listed below. PageIndex and embeddings remain deferred as fallback-only plumbing, and the work aligns to `Milestone 4: Retrieval Layer` in `ROADMAP.md`.
 
 ## Files changed
 
