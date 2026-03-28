@@ -11,9 +11,9 @@
 - Preserve recovered_from cleanup timestamps in context basket/set/vault persistence so canonical cleanup rewrites keep the existing `updated_at` while stripping recovery provenance.
 
 ## Scope completed
-- Preserved existing `updated_at` during canonical cleanup rewrites in `ContextBasketStore`, `ContextSetStore`, and `VaultService` while stripping `recovered_from` provenance.
-- Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
-- Updated the handoff packet, lane metadata, and routed packet copy together so the review artifacts stay synchronized with explicit approval for the non-owned handoff files.
+- The fix stayed within the owned context/storage paths: `src/qual/context/**` and `src/qual/storage/**` were updated so recovery cleanup keeps the existing `updated_at` while stripping `recovered_from` provenance.
+- The handoff packet and lane metadata were reissued to remove the stray `scripts/scope-check.sh` reference from the reviewed file list, leaving only the approved shared test exception in `tests/unit/test_context_storage_recovery.py`.
+- No `engine/src/exegesis_engine/state/**` or `engine/src/exegesis_engine/storage/**` changes were needed for this recovery pass.
 
 ## Lane/owned paths
 - `src/qual/context/**`
@@ -29,7 +29,7 @@
 2. Added cleanup timestamp reuse to `ContextSetStore` recovery so canonical cleanup rewrites keep the existing `updated_at` instead of minting a fresh timestamp.
 3. Added cleanup timestamp reuse to `VaultService` recovery so canonical cleanup rewrites keep the existing `updated_at` instead of minting a fresh timestamp.
 4. Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
-5. Rewrote the handoff packet to keep the reviewed file list self-contained and limited to owned paths plus the approved test exception.
+5. Reissued the handoff packet, lane metadata, and routed packet copy so the reviewed file list no longer includes `scripts/scope-check.sh` and stays synchronized under the approved handoff-artifact exception.
 6. Updated the final head bookkeeping to point at the current branch tip.
 
 ## Files changed
@@ -52,10 +52,10 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3 - Real workflow loop.
+- Milestone 1 - Bootstrap Flow Stabilization: context basket and vault persistence hardening.
 
 ### Vision capability affected
-- Auditable state and workflow.
+- Capability 1 - Local-first state and identity.
 
 ### Routing/provider impact note
 - None

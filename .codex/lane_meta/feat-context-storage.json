@@ -3,24 +3,24 @@
   "handoff_commit": "f36909cca41b0717ef1b2eb0591254703c389d03",
   "scope_goal": "Preserve recovered_from cleanup timestamps in context basket/set and vault recovery so canonical cleanup rewrites keep the existing updated_at while removing recovery provenance.",
   "scope_completed": [
-    "Preserved existing updated_at during canonical cleanup rewrites in context basket, context set, and vault recovery while stripping recovered_from provenance.",
-    "Added regression coverage for preserved updated_at behavior in basket, context set, and vault recovery paths.",
-    "Updated the handoff packet, lane metadata, and routed packet copy together so the review artifacts stay synchronized with explicit approval for the non-owned handoff files."
+    "The fix stayed within the owned context/storage paths: src/qual/context/** and src/qual/storage/** were updated so recovery cleanup keeps the existing updated_at while stripping recovered_from provenance.",
+    "The handoff packet and lane metadata were reissued to remove the stray scripts/scope-check.sh reference from the reviewed file list, leaving only the approved shared test exception in tests/unit/test_context_storage_recovery.py.",
+    "No engine/src/exegesis_engine/state/** or engine/src/exegesis_engine/storage/** changes were needed for this recovery pass."
   ],
   "tasks_completed": [
     "Added cleanup timestamp reuse to ContextBasketStore recovery so canonical cleanup rewrites keep the existing updated_at instead of minting a fresh timestamp.",
     "Added cleanup timestamp reuse to ContextSetStore recovery so canonical cleanup rewrites keep the existing updated_at instead of minting a fresh timestamp.",
     "Added cleanup timestamp reuse to VaultService recovery so canonical cleanup rewrites keep the existing updated_at instead of minting a fresh timestamp.",
     "Added regression coverage for preserved updated_at behavior in basket, context set, and vault recovery paths.",
-    "Rewrote the handoff packet to keep the reviewed file list self-contained and limited to owned paths plus the approved test exception.",
+    "Reissued the handoff packet, lane metadata, and routed packet copy so the reviewed file list no longer includes scripts/scope-check.sh and stays synchronized under the approved handoff-artifact exception.",
     "Updated the final head bookkeeping to point at the current branch tip."
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 3 - Real workflow loop."
+    "Milestone 1 - Bootstrap Flow Stabilization: context basket and vault persistence hardening."
   ],
   "vision_capabilities": [
-    "Auditable state and workflow."
+    "Capability 1 - Local-first state and identity."
   ],
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",

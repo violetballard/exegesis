@@ -8,7 +8,7 @@
 
 ## Scope completed
 
-The feature commit preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The handoff packet, lane metadata, and routed packet copy were updated together so the review artifacts stay synchronized with explicit approval for the non-owned handoff files.
+The fix stayed within the owned context/storage paths: `src/qual/context/**` and `src/qual/storage/**` were updated so recovery cleanup keeps the existing `updated_at` while stripping `recovered_from` provenance. The handoff packet and lane metadata were reissued to remove the stray `scripts/scope-check.sh` reference from the reviewed file list, leaving only the approved shared test exception in `tests/unit/test_context_storage_recovery.py`. No `engine/src/exegesis_engine/state/**` or `engine/src/exegesis_engine/storage/**` changes were needed for this recovery pass.
 
 ## Files changed
 
@@ -23,7 +23,7 @@ The feature commit preserved `recovered_from` cleanup timestamps across basket, 
 2. Reused the existing cleanup timestamp in `ContextSetStore` recovery so canonical cleanup rewrites keep the prior `updated_at` value.
 3. Reused the existing cleanup timestamp in `VaultService` recovery so canonical cleanup rewrites keep the prior `updated_at` value.
 4. Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
-5. Reissued the handoff packet so the reviewed file list is limited to owned paths plus the approved test exception.
+5. Reissued the handoff packet, lane metadata, and routed packet copy so the reviewed file list no longer includes `scripts/scope-check.sh` and stays synchronized under the approved handoff-artifact exception.
 6. Updated the final head bookkeeping to the current branch tip.
 
 ## Commands run and outcomes
@@ -42,11 +42,11 @@ The feature commit preserved `recovered_from` cleanup timestamps across basket, 
 
 ## Roadmap item(s) affected
 
-- Milestone 3 - Real workflow loop.
+- Milestone 1 - Bootstrap Flow Stabilization: context basket and vault persistence hardening.
 
 ## Vision capability affected
 
-- Auditable state and workflow.
+- Capability 1 - Local-first state and identity.
 
 ## Routing/provider impact note
 
