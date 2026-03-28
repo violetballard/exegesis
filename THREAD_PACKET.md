@@ -9,6 +9,7 @@
   - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> agent emits structured presentation artifacts that are consumable by CLI first, then `Exegesis Console`, then future Studio UI
 - Audit anchor: this fix is intentionally narrow and is the concrete reviewer-required mapping for the deterministic action-ordering change.
 - Plan alignment: this lane maps only to `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`); no other roadmap milestones or vision capabilities are implicated.
+- Reviewer-required fields are now explicit in this packet, so the handoff no longer depends on inference.
 - Roadmap detail: preserve deterministic agent-side card/section/action payload generation while keeping the `A2UI` output contract stable and client-agnostic.
 - Vision detail: structured presentation artifacts remain CLI-first and consumable by `Exegesis Console` with the same underlying artifacts.
 - Reviewer-required fix satisfied: the roadmap and vision mappings are now explicit in this packet, so the handoff no longer relies on inference.
