@@ -7,8 +7,8 @@
 
 ## Plan Alignment
 
-- Roadmap item: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress)
-- Vision capability: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`)
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress)
+- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`)
 - This lane only clarifies the handoff mapping for the A2UI ordering fix; it does not expand scope beyond CLI fallback determinism and the matching contract assertions.
 - Tasks completed:
   1. Updated the A2UI materialization path in `src/qual/ui/a2ui.py` to sort filtered actions by canonical JSON before terminal rendering.
