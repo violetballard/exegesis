@@ -4,12 +4,13 @@
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514` (runtime storage/context hardening)
   - `86722b5f04a8439281168e5050ce3bea11a1667f` (metadata-only handoff alignment; not feature implementation)
+  - `93992fd2a76b9568a001b776901dc66cbbe004f2` (owned-path handoff file clarification)
 
 ## Scope goal
 - Harden context basket/set and vault recovery so malformed or incomplete local state is quarantined or canonicalized safely without promoting stale auxiliary state.
 
 ## Scope completed
-- Quarantined malformed context basket and context-set payloads during recovery so rewritten state stays normalized and auditable.
+- Preserved `recovered_from` cleanup timestamps while quarantining malformed context basket and context-set payloads so rewritten state stays normalized and auditable.
 - Hardened vault recovery so malformed or incomplete persisted state is recovered or rewritten safely while preserving the safe lock default.
 - Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-file exception for the vault recovery regression.
 
@@ -22,8 +23,8 @@
 - `tests/unit/test_context_storage_recovery.py`
 
 ## Tasks completed
-1. Tightened `ContextBasketStore` recovery so malformed basket payloads are quarantined and canonical rewrites remain auditable.
-2. Tightened `ContextSetStore` recovery so malformed context-set payloads are quarantined and canonical rewrites remain auditable.
+1. Tightened `ContextBasketStore` recovery so malformed basket payloads are quarantined while `recovered_from` cleanup timestamps are preserved and canonical rewrites remain auditable.
+2. Tightened `ContextSetStore` recovery so malformed context-set payloads are quarantined while `recovered_from` cleanup timestamps are preserved and canonical rewrites remain auditable.
 3. Tightened `VaultService` recovery so malformed vault state is recovered or rewritten safely while preserving the safe lock default.
 4. Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-file exception.
 
@@ -41,7 +42,7 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1: Bootstrap Flow Stabilization - context basket and vault persistence hardening.
+- Milestone 1: Bootstrap Flow Stabilization (In Progress) - Context basket and vault persistence hardening.
 
 ### Vision capability affected
 - Capability 1: Local-first state and identity - project-scoped vault and context basket with safe recovery behavior.
