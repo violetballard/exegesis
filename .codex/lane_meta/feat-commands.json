@@ -1,33 +1,60 @@
 {
-  "scope_goal": "Restore the feat-commands handoff packet so the current docs-only branch tip is truthful and reviewable.",
+  "scope_goal": "Harden the feat-commands command surface so command lookup, diff-preview text/JSON output, labels, summaries, and fingerprints stay deterministic and test-covered.",
   "tasks_completed": [
-    "Regenerated the feat-commands handoff packet so it reflects the actual current docs-only branch tip.",
-    "Narrowed the file list and scope summary to the two handoff artifacts changed in this revision.",
-    "Removed the stale shared-file exception language because no shared tests or command code were modified in this submission.",
-    "Realigned the handoff metadata to the packet-only docs correction and current review target."
+    "Added spec-aware command lookup helpers and catalog projections for the feat-commands surface.",
+    "Hardened diff-preview output contracts for text and JSON responses, including labels, summaries, truncation, and fingerprints.",
+    "Added focused unit coverage for command catalog behavior and diff-preview contract paths.",
+    "Regenerated the handoff metadata so the packet matches the reviewed command-lane delta."
   ],
   "risk": "LOW",
   "roadmap_items": [
-    "None. This submission only corrects handoff metadata for the docs-only branch tip."
+    "Milestone 1: Bootstrap Flow Stabilization - command and diff-preview behavior hardening.",
+    "Milestone 2: Test Hardening - add focused unit coverage for core behaviors."
   ],
   "vision_capabilities": [
-    "None. No product capability changes are introduced by this submission."
+    "3. Auditable generation - diff-preview fingerprints verify the emitted command artifact deterministically.",
+    "4. Operator-first control surface - CLI-facing command contracts stay structured, deterministic, and fallback-friendly."
   ],
-  "routing_provider_impact": "None. This change only affects handoff metadata; no routing/provider files change.",
+  "routing_provider_impact": "None. This change only affects local command contracts and focused test coverage; no routing/provider files change.",
   "proposed_readme_patch": "",
-  "shared_file_exception": false,
-  "kickoff_budget_note": "Stayed within the default lane budget. The branch delta is 2 files changed and remains within the lane size limits.",
-  "approved_exception_note": "",
-  "review_commit": "661e880a8945797c48f319993bbdcd156bdbf402",
+  "shared_file_exception": true,
+  "kickoff_budget_note": "Stayed within the default lane budget. The branch delta is 6 files changed in lane-owned paths plus approved shared tests and remains within the lane size limits.",
+  "approved_exception_note": "Approved shared-file exception for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to add focused contract coverage required by review.",
+  "review_commit": "476d68b9420d61ec9b5e5ab440d40e92c0a64676",
   "files_changed": [
     {
-      "path": ".codex/lane_meta/feat-commands.json",
-      "kind": "handoff_artifact"
+      "path": "src/qual/commands/__init__.py",
+      "kind": "owned"
     },
     {
-      "path": "THREAD_PACKET.md",
-      "kind": "handoff_artifact"
+      "path": "src/qual/commands/canonical.py",
+      "kind": "owned"
+    },
+    {
+      "path": "src/qual/commands/catalog.py",
+      "kind": "owned"
+    },
+    {
+      "path": "src/qual/commands/diff_preview.py",
+      "kind": "owned"
+    },
+    {
+      "path": "tests/unit/test_commands_catalog.py",
+      "kind": "shared_approved"
+    },
+    {
+      "path": "tests/unit/test_diff_preview.py",
+      "kind": "shared_approved"
     }
   ],
-  "shared_file_exceptions": []
+  "shared_file_exceptions": [
+    {
+      "path": "tests/unit/test_commands_catalog.py",
+      "reason": "reviewer-required shared regression coverage for command-catalog contract hardening"
+    },
+    {
+      "path": "tests/unit/test_diff_preview.py",
+      "reason": "reviewer-required shared regression coverage for diff-preview contract hardening"
+    }
+  ]
 }

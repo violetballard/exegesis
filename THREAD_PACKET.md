@@ -3,33 +3,37 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit:
-  - `661e880a8945797c48f319993bbdcd156bdbf402`
+  - `476d68b9420d61ec9b5e5ab440d40e92c0a64676`
 
 ## Scope goal
-- Restore the feat-commands handoff packet so the current docs-only branch tip is truthful and reviewable.
+- Harden the feat-commands command surface so command lookup, diff-preview text/JSON output, labels, summaries, and fingerprints stay deterministic and test-covered.
 
 ## Lane/owned paths
-- `n/a` for this docs-only packet restore
+- `src/qual/commands/**`
 
 ## Scope completed
-- Regenerated the handoff packet and lane metadata from the actual current docs-only branch tip `661e880a7d6dd945f0f3e8d20f9fe1e0f0c1f2ef` so review maps to the submitted commit state.
-- Narrowed the handoff fields to the two packet artifacts changed in this revision.
-- Removed the stale shared-test approval note because this submission does not change shared tests or command code.
-- Confirmed this turn does not edit `tests/unit/test_commands_catalog.py` or `tests/unit/test_diff_preview.py`, so no shared-file approval is required for the submitted revision.
+- Added spec-aware command lookup helpers and catalog projections for the `feat-commands` surface.
+- Hardened diff-preview output contracts for text and JSON responses, including labels, summaries, truncation, and fingerprints.
+- Added focused unit coverage for command catalog behavior and diff-preview contract paths.
+- Regenerated the handoff packet metadata so the reviewed branch delta, ownership note, and gate evidence stay consistent.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget. The branch delta is 2 files changed and remains within the lane size limits.
-- The change stays centered on truthful handoff metadata for the feat-commands lane.
+- Stayed within the default lane budget. The branch delta is 6 files changed in lane-owned paths plus approved shared tests and remains within the lane size limits.
+- The change stays centered on the command surface contracts for the `feat-commands` lane.
 
 ## Tasks completed (numbered)
-1. Regenerated the feat-commands handoff packet so it reflects the actual current docs-only branch tip.
-2. Narrowed the file list and scope summary to the two handoff artifacts changed in this revision.
-3. Removed the stale shared-file exception language because no shared tests or command code were modified in this submission.
-4. Updated the handoff metadata to truthfully describe the docs-only packet correction and its current review target.
+1. Added spec-aware command lookup helpers and catalog projections for the `feat-commands` surface.
+2. Hardened diff-preview text and JSON contracts, including labels, summary-only handling, truncation, and fingerprint emission.
+3. Added focused unit coverage for command catalog behavior and diff-preview contract paths.
+4. Regenerated the handoff metadata so the packet matches the reviewed command-lane delta.
 
 ## Files changed
-- `.codex/lane_meta/feat-commands.json`
-- `THREAD_PACKET.md`
+- `src/qual/commands/__init__.py`
+- `src/qual/commands/canonical.py`
+- `src/qual/commands/catalog.py`
+- `src/qual/commands/diff_preview.py`
+- `tests/unit/test_commands_catalog.py`
+- `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
@@ -45,16 +49,19 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- None. This submission only corrects handoff metadata for the docs-only branch tip.
+- Milestone 1: Bootstrap Flow Stabilization - command and diff-preview behavior hardening.
+- Milestone 2: Test Hardening - add focused unit coverage for core behaviors.
 
 ### Vision capability affected
-- None. No product capability changes are introduced by this submission.
+- 3. Auditable generation - diff-preview fingerprints verify the emitted command artifact deterministically.
+- 4. Operator-first control surface - CLI-facing command contracts stay structured, deterministic, and fallback-friendly.
 
 ### Routing/provider impact note
-- None. This change only affects handoff metadata; no routing/provider files change.
+- None. This change only affects local command contracts and focused test coverage; no routing/provider files change.
 
 ### Proposed README patch text
 - None.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO`
+- Shared/integrator-locked edits: `YES`
+- Shared-file exception note: `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` are reviewer-required shared regression coverage for the expanded `diff_preview` and command-catalog contracts.
