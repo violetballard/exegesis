@@ -20,3 +20,4 @@
 - CLI fallback rendering remains preserved.
 - No routing, provider, or shared/integrator-locked files were changed by this fix.
 - Reviewer-required plan alignment fields are explicit above and auditable without inference: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
+- This packet now satisfies the reviewer-required handoff mapping fix by naming the roadmap item and product capability directly.
