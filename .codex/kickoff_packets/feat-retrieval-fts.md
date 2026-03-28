@@ -5,16 +5,17 @@
 - Reviewed commit(s):
   - `70af1c68bfb22d39bb2cd2341f94167ad97b42f7`
   - `b906bc9917cb0a87a031a8f80851e17328697eb5`
+  - `addc72aead4d458748f06497865deef9ab54db26`
 
 ## Scope completed
 
-The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and this handoff is limited to the retrieval-owned feature surface rather than packet-planner/tooling edits.
+The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and this handoff is limited to the retrieval-owned feature surface.
 
 ### Roadmap / vision mapping
-- ROADMAP.md: Milestone 4: Retrieval Layer (Planned)
+- ROADMAP.md: Milestone 3: Real workflow loop
 - docs/TASKS.md: feat-retrieval-fts -> keep the FTS-first retrieval path authoritative; expose retrieval through the canonical engine contract; keep structured results suitable for deterministic retrieval-backed generation
 - PRODUCT_VISION.md: 2. Retrieval-first context handling
-- PRODUCT_VISION.md: 3. Auditable generation
+- PRODUCT_VISION.md: 6. Auditable state and workflow
 
 ### Reviewed implementation files
 - `src/qual/engine/retrieval/__init__.py`
