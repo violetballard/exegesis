@@ -1,7 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Final HEAD SHA: `7dbd062c7b98e28963a87ea00d8fd7906b752094`
+- Final HEAD SHA: `d7fd5d200358287fa42a18d39e2b277463b9b69f`
 - Reviewed implementation commit(s):
   - `175ebc8a7484db1edaede05ac2f98d7715b4eb66`
   - `c92025af6e11c396f84356967cea704cadb20f5b`
