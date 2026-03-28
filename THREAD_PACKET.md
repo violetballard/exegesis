@@ -3,31 +3,12 @@
 - Branch name: `codex/feat-context-storage`
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514`
-  - `ee2dd30ae4c3118ffe1f2129f5f3f14316868a00`
-  - `076a40ae6d6c4d51e4fb24be6f8a28d73a9d50ef`
-  - `5cf30e759ed161dcf100b7c7c2b05bf44a3dacbf`
-  - `0ea41598c7283ac12a69fec8be64aecc593ccf2e`
-  - `011589aa6ef6c89fa18f6f46f1a4b5ec8ad7f4a1`
-  - `d96998ed5d6a519da3139014dd404893fb9e3c58`
-  - `e19eb22b1f67afa99c75f8ab43c11b526c922f28`
-  - `40f71e1a25b86811534172b541f933f83289ad42`
 - Final head SHA:
-  - `40f71e1a25b86811534172b541f933f83289ad42`
-
-## Metadata-only follow-up
-
-- `ee2dd30ae4c3118ffe1f2129f5f3f14316868a00`
-- `076a40ae6d6c4d51e4fb24be6f8a28d73a9d50ef`
-- `5cf30e759ed161dcf100b7c7c2b05bf44a3dacbf`
-- `0ea41598c7283ac12a69fec8be64aecc593ccf2e`
-- `011589aa6ef6c89fa18f6f46f1a4b5ec8ad7f4a1`
-- `d96998ed5d6a519da3139014dd404893fb9e3c58`
-- `e19eb22b1f67afa99c75f8ab43c11b526c922f28`
-- `40f71e1a25b86811534172b541f933f83289ad42`
+  - `abe81b7450c34f59ce703f307f8daa14a1fc21e9`
 
 ## Scope completed
 
-The feature commit preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The follow-up handoff commits keep the lane aligned to Milestone 3, preserve the approved regression-test exception, and reconcile the packet metadata and branch-head bookkeeping without widening scope.
+The feature commit preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The handoff packet now stays self-contained and limits the reviewed file list to owned runtime paths plus the approved regression-test exception.
 
 ## Files changed
 
@@ -35,9 +16,6 @@ The feature commit preserved `recovered_from` cleanup timestamps across basket, 
 - `src/qual/context/store.py`
 - `src/qual/storage/vault.py`
 - `tests/unit/test_context_storage_recovery.py`
-- `.codex/lane_meta/feat-context-storage.json`
-- `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__6ca617ccf17f5da8f8270345fd41d48b68909ab7__20260328T204224Z.md`
-- `THREAD_PACKET.md`
 
 ## Tasks completed
 
@@ -45,8 +23,8 @@ The feature commit preserved `recovered_from` cleanup timestamps across basket, 
 2. Reused the existing cleanup timestamp in `ContextSetStore` recovery so canonical cleanup rewrites keep the prior `updated_at` value.
 3. Reused the existing cleanup timestamp in `VaultService` recovery so canonical cleanup rewrites keep the prior `updated_at` value.
 4. Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
-5. Reconciled the handoff packet and lane metadata so the recorded roadmap mapping, scope completed notes, and commit lineage match the actual patch set.
-6. Preserved the approved regression-test exception for `tests/unit/test_context_storage_recovery.py` without claiming any shared or integrator-locked edits.
+5. Reissued the handoff packet so the reviewed file list is limited to owned paths plus the approved test exception.
+6. Updated the final head bookkeeping to the current branch tip.
 
 ## Commands run and outcomes
 

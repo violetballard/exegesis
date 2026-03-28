@@ -1,19 +1,19 @@
 {
   "feature_commit": "47cda4df831ac41867a8792f40d720e0cb109514",
-  "handoff_commit": "23d902bd10515ff3d575b2f62f1b5a633cb86c5e",
+  "handoff_commit": "abe81b7450c34f59ce703f307f8daa14a1fc21e9",
   "scope_goal": "Preserve recovered_from cleanup timestamps in context basket/set and vault recovery so canonical cleanup rewrites keep the existing updated_at while removing recovery provenance.",
   "scope_completed": [
     "Preserved existing updated_at during canonical cleanup rewrites in context basket, context set, and vault recovery while stripping recovered_from provenance.",
     "Added regression coverage for preserved updated_at behavior in basket, context set, and vault recovery paths.",
-    "Reconciled the handoff metadata so the final packet matches Milestone 3, the approved regression-test exception, and the actual commit lineage on the branch."
+    "Tightened the handoff packet so the reviewed file list stays limited to owned paths plus the approved regression-test exception."
   ],
   "tasks_completed": [
     "Added cleanup timestamp reuse to ContextBasketStore recovery so canonical cleanup rewrites keep the existing updated_at instead of minting a fresh timestamp.",
     "Added cleanup timestamp reuse to ContextSetStore recovery so canonical cleanup rewrites keep the existing updated_at instead of minting a fresh timestamp.",
     "Added cleanup timestamp reuse to VaultService recovery so canonical cleanup rewrites keep the existing updated_at instead of minting a fresh timestamp.",
     "Added regression coverage for preserved updated_at behavior in basket, context set, and vault recovery paths.",
-    "Re-ran the required format, lint, test, typecheck, and CI gates on the committed branch head and confirmed they pass.",
-    "Reconciled the packet metadata to keep the approved shared test exception, lane-owned scope, and auditable task list explicit."
+    "Rewrote the handoff packet to keep the reviewed file list self-contained and limited to owned paths plus the approved test exception.",
+    "Updated the final head bookkeeping to point at the current branch tip."
   ],
   "risk": "MEDIUM",
   "roadmap_items": [

@@ -2,8 +2,10 @@
 
 - Lane: `feat-context-storage`
 - Branch: `codex/feat-context-storage`
-- Commit: `47cda4df831ac41867a8792f40d720e0cb109514`
-- Final head SHA: `23d902bd10515ff3d575b2f62f1b5a633cb86c5e`
+- Reviewed commit(s):
+  - `47cda4df831ac41867a8792f40d720e0cb109514`
+- Final head SHA:
+  - `abe81b7450c34f59ce703f307f8daa14a1fc21e9`
 
 ## Scope goal
 - Preserve recovered_from cleanup timestamps in context basket/set/vault persistence so canonical cleanup rewrites keep the existing `updated_at` while stripping recovery provenance.
@@ -11,7 +13,7 @@
 ## Scope completed
 - Preserved existing `updated_at` during canonical cleanup rewrites in `ContextBasketStore`, `ContextSetStore`, and `VaultService` while stripping `recovered_from` provenance.
 - Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
-- Reconciled the handoff metadata so the final packet matches Milestone 3, the approved regression-test exception, and the actual commit lineage on the branch.
+- Reissued the handoff packet so the reviewed file list stays limited to owned runtime paths plus the approved regression-test exception.
 
 ## Lane/owned paths
 - `src/qual/context/**`
@@ -27,17 +29,14 @@
 2. Added cleanup timestamp reuse to `ContextSetStore` recovery so canonical cleanup rewrites keep the existing `updated_at` instead of minting a fresh timestamp.
 3. Added cleanup timestamp reuse to `VaultService` recovery so canonical cleanup rewrites keep the existing `updated_at` instead of minting a fresh timestamp.
 4. Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
-5. Re-ran the required format, lint, test, typecheck, and CI gates on the committed branch head and confirmed they pass.
-6. Reconciled the packet metadata to keep the approved shared test exception, lane-owned scope, and auditable task list explicit.
+5. Rewrote the handoff packet to keep the reviewed file list self-contained and limited to owned paths plus the approved test exception.
+6. Updated the final head bookkeeping to point at the current branch tip.
 
 ## Files changed
 - `src/qual/context/set_store.py`
 - `src/qual/context/store.py`
 - `src/qual/storage/vault.py`
 - `tests/unit/test_context_storage_recovery.py`
-- `.codex/lane_meta/feat-context-storage.json`
-- `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__6ca617ccf17f5da8f8270345fd41d48b68909ab7__20260328T204224Z.md`
-- `THREAD_PACKET.md`
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
