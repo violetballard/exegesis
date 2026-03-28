@@ -243,6 +243,7 @@ class ContextBasketStore:
             recovered_source=recovered_source,
         )
         should_rewrite = should_rewrite or rewrite_empty_recovery
+        cleanup_timestamp = self._recovery_marker_cleanup_timestamp(payload, basket)
         recovered_persisted_missing_item_ids = (
             isinstance(payload, dict)
             and "item_ids" not in payload
@@ -308,6 +309,7 @@ class ContextBasketStore:
                 basket,
                 recovered_from=recovered_from,
                 refresh_backup=True,
+                updated_at=cleanup_timestamp,
                 preserve_primary_corrupt=preserve_primary_corrupt,
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
@@ -365,6 +367,7 @@ class ContextBasketStore:
         basket: ContextBasket,
         recovered_from: str | None = None,
         refresh_backup: bool = False,
+        updated_at: str | None = None,
         preserve_primary_corrupt: bool = False,
         preserve_backup_corrupt: bool = False,
         preserve_seed_corrupt: bool = False,
@@ -374,11 +377,47 @@ class ContextBasketStore:
         normalized_recovered_from = self._parse_recovered_from(recovered_from)
         current_payload, _ = self._load_payload(self._path)
         current_backup_payload, _ = self._load_payload(self._backup_path)
+        cleanup_timestamp = self._recovery_marker_cleanup_timestamp(current_payload, basket)
+        if (
+            normalized_recovered_from is None
+            and cleanup_timestamp is not None
+            and not preserve_primary_corrupt
+            and not preserve_backup_corrupt
+            and not preserve_seed_corrupt
+        ):
+            payload = {
+                "schema_version": _SCHEMA_VERSION,
+                "updated_at": cleanup_timestamp,
+                "item_ids": list(basket.item_ids),
+            }
+            tmp = self._tmp_path()
+            tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+            try:
+                tmp.replace(self._path)
+            except OSError:
+                self._unlink_if_exists(tmp)
+                raise
+            backup_payload = self._backup_payload(payload)
+            backup_written = (
+                refresh_backup
+                or current_backup_payload is None
+                or self._backup_needs_refresh(current_backup_payload, basket, payload)
+            )
+            if backup_written:
+                backup_written = self._write_backup_payload(backup_payload)
+            if not backup_written:
+                # Seed keeps the latest canonical basket recoverable if backup
+                # rotation cannot be completed after the recovery marker is
+                # stripped from an otherwise canonical payload.
+                self._write_seed(backup_payload)
+            self._clear_recovery_artifacts(preserve_seed=not backup_written)
+            return
         if (
             normalized_recovered_from is None
             and not preserve_primary_corrupt
             and not preserve_backup_corrupt
             and not preserve_seed_corrupt
+            and (updated_at is None or self._payload_updated_at(current_payload) == updated_at)
             and self._is_canonical_primary_payload(current_payload, basket)
         ):
             # A canonical primary should not churn updated_at just to resync the
@@ -400,7 +439,7 @@ class ContextBasketStore:
             return
         payload = {
             "schema_version": _SCHEMA_VERSION,
-            "updated_at": datetime.now(UTC).isoformat(),
+            "updated_at": updated_at or datetime.now(UTC).isoformat(),
             "item_ids": list(basket.item_ids),
         }
         if normalized_recovered_from is not None:
@@ -654,6 +693,37 @@ class ContextBasketStore:
         if raw_item_ids != parsed_item_ids:
             return False
         return parsed_item_ids == basket.item_ids
+
+    def _payload_updated_at(self, payload: object) -> str | None:
+        if not isinstance(payload, dict):
+            return None
+        return self._parse_updated_at(payload.get("updated_at"))
+
+    def _recovery_marker_cleanup_timestamp(self, payload: object, basket: ContextBasket) -> str | None:
+        if not isinstance(payload, dict):
+            return None
+        if "recovered_from" not in payload:
+            return None
+        if self._parse_schema_version(payload) != _SCHEMA_VERSION:
+            return None
+        if self._has_unknown_fields(payload):
+            return None
+        if "updated_at" not in payload:
+            return None
+        normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
+        if normalized_updated_at is None or payload.get("updated_at") != normalized_updated_at:
+            return None
+        raw_item_ids = payload.get("item_ids")
+        if not isinstance(raw_item_ids, list):
+            return None
+        parsed_item_ids = self._parse_item_ids(raw_item_ids)
+        if parsed_item_ids is None:
+            return None
+        if raw_item_ids != parsed_item_ids:
+            return None
+        if parsed_item_ids != basket.item_ids:
+            return None
+        return normalized_updated_at
 
     def _parse_item_ids(self, value: object) -> list[str] | None:
         if isinstance(value, list):

@@ -384,6 +384,9 @@ class ContextSetStore:
             self._discard_payload_source(recovered_source)
             return []
 
+        cleanup_timestamp = self._recovery_marker_cleanup_timestamp(payload, records)
+        if cleanup_timestamp is not None:
+            rewrite_timestamp = cleanup_timestamp
         recovered_from = self._recovery_marker(
             primary_unavailable=primary_missing or primary_payload is None or recovered_source is not None,
             recovered_source=recovered_source,
@@ -512,6 +515,41 @@ class ContextSetStore:
         normalized_recovered_from = self._parse_recovered_from(recovered_from)
         current_payload, _ = self._load_payload(self._path)
         current_backup_payload, _ = self._load_payload(self._backup_path)
+        cleanup_timestamp = self._recovery_marker_cleanup_timestamp(current_payload, normalized_records)
+        if (
+            normalized_recovered_from is None
+            and cleanup_timestamp is not None
+            and not preserve_primary_corrupt
+            and not preserve_backup_corrupt
+            and not preserve_seed_corrupt
+        ):
+            payload = {
+                "schema_version": _SCHEMA_VERSION,
+                "updated_at": cleanup_timestamp,
+                "context_sets": [asdict(record) for record in normalized_records],
+            }
+            tmp = self._tmp_path()
+            tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+            try:
+                tmp.replace(self._path)
+            except OSError:
+                self._unlink_if_exists(tmp)
+                raise
+            backup_payload = self._backup_payload(payload)
+            backup_written = (
+                refresh_backup
+                or current_backup_payload is None
+                or self._backup_needs_refresh(current_backup_payload, normalized_records, payload)
+            )
+            if backup_written:
+                backup_written = self._write_backup_payload(backup_payload)
+            if not backup_written:
+                # Seed keeps the latest canonical context set recoverable if
+                # backup rotation cannot be completed after the recovery
+                # marker is removed from an otherwise canonical payload.
+                self._write_seed(backup_payload)
+            self._clear_recovery_artifacts(preserve_seed=not backup_written)
+            return
         if (
             normalized_recovered_from is None
             and not preserve_primary_corrupt
@@ -831,6 +869,34 @@ class ContextSetStore:
         if self._records_need_rewrite(raw_context_sets, parsed_records):
             return False
         return parsed_records == records
+
+    def _recovery_marker_cleanup_timestamp(
+        self,
+        payload: object,
+        records: list[ContextSetRecord],
+    ) -> str | None:
+        if not isinstance(payload, dict):
+            return None
+        if "recovered_from" not in payload:
+            return None
+        if self._parse_schema_version(payload) != _SCHEMA_VERSION:
+            return None
+        if self._has_unknown_fields(payload):
+            return None
+        if "updated_at" not in payload:
+            return None
+        normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
+        if normalized_updated_at is None or payload.get("updated_at") != normalized_updated_at:
+            return None
+        raw_context_sets = payload.get("context_sets")
+        parsed_records = self._parse_context_sets(raw_context_sets)
+        if parsed_records is None:
+            return None
+        if self._records_need_rewrite(raw_context_sets, parsed_records):
+            return None
+        if self._normalize_records(parsed_records) != records:
+            return None
+        return normalized_updated_at
 
     def _payload_updated_at(self, payload: object) -> str | None:
         if not isinstance(payload, dict):

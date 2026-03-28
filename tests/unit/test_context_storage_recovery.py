@@ -403,6 +403,31 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("updated_at"), payload.get("updated_at").strip())
         self.assertNotEqual(payload.get("updated_at"), " 2026-03-20T12:00:00+00:00 ")
 
+    def test_recovered_from_only_cleanup_preserves_existing_updated_at(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        original_updated_at = "2026-03-20T12:00:00+00:00"
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": original_updated_at,
+                    "recovered_from": "manual",
+                    "item_ids": ["first", "second"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first", "second"])
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("item_ids"), ["first", "second"])
+        self.assertNotIn("recovered_from", payload)
+        self.assertEqual(payload.get("updated_at"), original_updated_at)
+        self.assertEqual(backup_payload.get("updated_at"), original_updated_at)
+
     def test_invalid_updated_at_only_is_salvaged_and_rewritten(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.write_text(
@@ -2033,6 +2058,38 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(second_payload.get("updated_at"), first_updated_at)
         self.assertFalse(self.store._seed_state_path().with_name("context_sets.seed.corrupt.json").exists())
 
+    def test_recovered_from_only_cleanup_preserves_existing_updated_at(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        original_updated_at = "2026-03-20T12:00:00+00:00"
+        self.store._path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": original_updated_at,
+                    "recovered_from": "manual",
+                    "context_sets": [
+                        {
+                            "context_set_id": "set-1",
+                            "name": "Evidence",
+                            "item_ids": ["first"],
+                            "created_at": "2026-03-20T11:00:00+00:00",
+                            "updated_at": original_updated_at,
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("updated_at"), original_updated_at)
+        self.assertNotIn("recovered_from", payload)
+        self.assertEqual(backup_payload.get("updated_at"), original_updated_at)
+
 
 class VaultRecoveryTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -2650,6 +2707,35 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertEqual(payload.get("project_name"), "p6")
         self.assertFalse(payload.get("is_locked"))
         self.assertNotIn("recovered_from", payload)
+
+    def test_recovered_from_only_cleanup_preserves_existing_updated_at(self) -> None:
+        state = self.svc.create_or_open(self.root, "p6-cleanup")
+        state_path = state.root_dir / ".vault_state.json"
+        backup_path = state.root_dir / ".vault_state.bak.json"
+        original_updated_at = "2026-03-20T12:00:00+00:00"
+        state_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "project_name": "p6-cleanup",
+                    "is_locked": False,
+                    "updated_at": original_updated_at,
+                    "recovered_from": "manual",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        reopened = self.svc.create_or_open(self.root, "p6-cleanup")
+
+        self.assertFalse(reopened.is_locked)
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(backup_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload.get("project_name"), "p6-cleanup")
+        self.assertFalse(payload.get("is_locked"))
+        self.assertNotIn("recovered_from", payload)
+        self.assertEqual(payload.get("updated_at"), original_updated_at)
+        self.assertEqual(backup_payload.get("updated_at"), original_updated_at)
 
     def test_backup_with_invalid_metadata_is_salvaged_and_promoted(self) -> None:
         state = self.svc.create_or_open(self.root, "p7")
