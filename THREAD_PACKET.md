@@ -2,8 +2,8 @@
 
 - Branch name: `codex/feat-a2ui-contract`
 - Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`. This maps directly to `ROADMAP.md` Milestone 5: A2UI Presentation Layer and `PRODUCT_VISION.md` Capability 5, Agent-to-UI protocol (`A2UI`).
-- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress), specifically the scope bullets to define the `A2UI` output contract for agent-produced presentation artifacts, add deterministic schemas, provide CLI rendering fallback for the same structured payloads, and keep the surface client-agnostic.
-- Vision capability affected: `PRODUCT_VISION.md` Capability 5, Agent-to-UI protocol (`A2UI`), specifically the capability that agent-emitted structured presentation artifacts (cards, sections, actions, metadata) must remain consumable by CLI first, then `Exegesis Console`, then future Studio UI; deterministic action ordering keeps the CLI fallback stable.
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer -> A2UI action-order canonicalization task.
+- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 - Reviewer-required fix satisfied: the roadmap and vision mappings are now explicit in this packet, so the handoff no longer relies on inference.
 - No other roadmap milestones or product-vision capabilities are implicated by this fix.
 - These are the reviewer-required plan-alignment mappings for this lane; they replace the prior placeholder form and should remain auditable in the handoff.
@@ -26,7 +26,7 @@
   - No known blockers. The change is constrained to A2UI action materialization and its contract assertions.
   - The only functional risk is accidental over-sorting of materialized actions; the added test coverage guards against unstable ordering.
 - Required handoff fields:
-  - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress), specifically the scope bullets to define the `A2UI` output contract for agent-produced presentation artifacts, add deterministic schemas, provide CLI rendering fallback for the same structured payloads, and keep the surface client-agnostic.
-  - Vision capability affected: `PRODUCT_VISION.md` Capability 5, Agent-to-UI protocol (`A2UI`), specifically the capability that agent-emitted structured presentation artifacts (cards, sections, actions, metadata) must remain consumable by CLI first, then `Exegesis Console`, then future Studio UI.
+  - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer -> A2UI action-order canonicalization task.
+  - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.
