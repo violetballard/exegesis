@@ -39,16 +39,16 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3 - Real workflow loop: persistent basket/document/session state.
+- Milestone 1: Bootstrap Flow Stabilization - context basket and vault persistence hardening.
 
 ### Vision capability affected
-- Capability 6 - Auditable state and workflow: persistent project/document/basket/session state with safe recovery and traceable rewrites.
+- Capability 1: Local-first state and identity - project-scoped vault and context basket with safe recovery behavior.
 
 ### Routing/provider impact note
 - None
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `YES` - approved shared-test exception only, limited to `tests/unit/test_context_storage_recovery.py`; no integrator-locked files changed.
+- Shared/integrator-locked edits: `YES` - approved shared-test exception only, limited to `tests/unit/test_context_storage_recovery.py`; no integrator-locked files changed in the feature implementation.
 - Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, and it is covered by the explicit shared-test exception.
 - Approval basis: `scripts/scope-check.sh` explicitly allows `tests/unit/test_context_storage_recovery.py` for `codex/feat-context-storage*` when `SCOPE_ALLOW_SHARED=1` is set.
 - Branch-head bookkeeping note: `86722b5f04a8439281168e5050ce3bea11a1667f` records lane metadata only; it does not change the owned runtime scope.
