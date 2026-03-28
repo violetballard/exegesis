@@ -55,8 +55,8 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- MVP Focus Through 2026-05-04: `feat-commands` active implementation emphasis.
-- Milestone 3: Product Readiness (Planned) - Define and lock user-facing output contracts.
+- Milestone 1: Bootstrap Flow Stabilization (In Progress) - Command and diff-preview behavior hardening; exit criteria depend on approved feature-lane deltas merging through integrator, `make ci` staying green on integrator and main for the final combined state, and the manual CLI smoke flow remaining stable.
+- Milestone 2: Test Hardening (In Progress) - Focused unit coverage for core behaviors; exit criteria depend on targeted review cases landing and command-level probes staying available for integration confidence.
 
 ### Vision capability affected
 - 3. Auditable generation - diff-preview fingerprints verify the emitted diff artifact deterministically.
