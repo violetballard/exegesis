@@ -729,6 +729,8 @@ class ContextBasketStore:
             return False
         if isinstance(payload, list):
             return self._legacy_list_payload_has_dropped_item_ids(payload)
+        if "updated_at" not in payload:
+            return True
         if "item_ids" not in payload:
             return True
         raw_item_ids = payload.get("item_ids")

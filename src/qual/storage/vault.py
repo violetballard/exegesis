@@ -201,11 +201,11 @@ class VaultService:
             recovered_source = None
             preserve_backup_corrupt = backup_present and backup_payload is None
             preserve_seed_corrupt = seed_present and seed_payload is None
-            if backup_payload is not None and not self._is_supported_payload(backup_payload):
+            if self._needs_audit_quarantine(backup_payload):
                 # Keep stale auxiliary state auditable before canonical rewrite.
                 self._quarantine_invalid_backup(root_dir)
                 preserve_backup_corrupt = True
-            if seed_payload is not None and not self._is_supported_payload(seed_payload):
+            if self._needs_audit_quarantine(seed_payload):
                 # Keep stale auxiliary state auditable before canonical rewrite.
                 self._quarantine_invalid_seed(root_dir)
                 preserve_seed_corrupt = True
@@ -252,10 +252,10 @@ class VaultService:
             primary_unavailable = True
         preserve_backup_corrupt = preserve_backup_corrupt or (backup_present and backup_payload is None)
         preserve_seed_corrupt = preserve_seed_corrupt or (seed_present and seed_payload is None)
-        if recovered_source == "backup" and backup_payload is not None and not self._is_supported_payload(backup_payload):
+        if recovered_source == "backup" and self._needs_audit_quarantine(backup_payload):
             self._quarantine_invalid_backup(root_dir)
             preserve_backup_corrupt = True
-        if recovered_source == "seed" and seed_payload is not None and not self._is_supported_payload(seed_payload):
+        if recovered_source == "seed" and self._needs_audit_quarantine(seed_payload):
             self._quarantine_invalid_seed(root_dir)
             preserve_seed_corrupt = True
         return payload, recovered_source, primary_unavailable, preserve_backup_corrupt, preserve_seed_corrupt
@@ -494,6 +494,15 @@ class VaultService:
         if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
             return False
         return True
+
+    def _needs_audit_quarantine(self, payload: object) -> bool:
+        if payload is None:
+            return False
+        if not isinstance(payload, dict):
+            return False
+        if "updated_at" not in payload:
+            return True
+        return not self._is_supported_payload(payload)
 
     def _primary_state_needs_recovery(self, payload: dict[str, object], expected_project_name: str) -> bool:
         if "project_name" not in payload or "is_locked" not in payload:

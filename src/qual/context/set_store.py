@@ -963,6 +963,8 @@ class ContextSetStore:
             return False
         if isinstance(payload, list):
             return self._list_payload_needs_audit_quarantine(payload)
+        if "updated_at" not in payload:
+            return True
         if "context_sets" not in payload:
             return True
         raw_context_sets = payload.get("context_sets")
