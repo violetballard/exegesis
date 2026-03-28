@@ -6,7 +6,7 @@
 
 ## Scope completed
 
-The lane preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The shared regression test file was kept in scope under the existing lane-approved exception, and no `scripts/scope-check.sh` edit is part of the final handoff.
+The lane preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The only non-owned file in the final handoff is the lane-approved shared regression test `tests/unit/test_context_storage_recovery.py`, and no `scripts/scope-check.sh` edit is part of the final handoff.
 
 ## Files changed
 
@@ -56,5 +56,5 @@ The lane preserved `recovered_from` cleanup timestamps across basket, context-se
 
 ## Scope-check / ownership note
 
-- Shared/integrator-locked edits: `YES`
-- Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The non-owned edit is `tests/unit/test_context_storage_recovery.py`, covered by the lane-approved shared-test exception referenced above. No integrator-locked files were edited.
+- Shared/integrator-locked edits: only the approved shared test exception
+- Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, covered by the lane-approved shared-test exception referenced above. No integrator-locked files were edited.
