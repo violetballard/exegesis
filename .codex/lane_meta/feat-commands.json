@@ -1,32 +1,25 @@
 {
-  "scope_goal": "Harden command catalog and diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.",
+  "scope_goal": "Restore the feat-commands handoff packet so the docs-only branch tip is truthful and reviewable.",
   "tasks_completed": [
-    "Restored the feature packet to the command-contract scope instead of the stale docs-only handoff correction.",
-    "Reconfirmed the diff_preview fingerprint and label contract details that the branch now guarantees.",
-    "Kept the shared command-contract test coverage explicitly approved for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py.",
-    "Regenerated the handoff inventory so the packet matches the branch delta actually being submitted."
+    "Regenerated the feat-commands handoff packet so it reflects the actual docs-only commit on HEAD.",
+    "Narrowed the file list and scope summary to the two handoff artifacts changed in this revision.",
+    "Removed the stale shared-file exception language because no shared tests or command code were modified in this submission.",
+    "Realigned the roadmap and vision mapping to the packet-only docs correction instead of the earlier command-contract scope."
   ],
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 1 - Bootstrap Flow Stabilization: keep command-surface projections deterministic and make diff_preview fingerprints derive from the emitted payload.",
-    "Milestone 2 - Test Hardening: add focused command-contract coverage for JSON, no-diff, custom-label, and fingerprint paths.",
     "Milestone 3 - Product Readiness: lock CLI-first command output contracts for operator use."
   ],
   "vision_capabilities": [
-    "Capability 3 - Auditable generation: the emitted SHA-256 fingerprint verifies the exact diff payload returned by the command.",
     "Capability 4 - Operator-first control surface: the command lane keeps a stable CLI-first surface with deterministic JSON and text output."
   ],
-  "routing_provider_impact": "None. This change only affects local command output formatting, verification metadata, and focused contract coverage; no policy or routing files change.",
+  "routing_provider_impact": "None. This change only affects handoff metadata; no routing/provider files change.",
   "proposed_readme_patch": "",
-  "shared_file_exception": true,
-  "kickoff_budget_note": "Stayed within the default lane budget. The branch delta is 9 files changed and remains within the lane size limits.",
-  "approved_exception_note": "Approved shared-file exception for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to add focused contract coverage required by review.",
-  "review_commit": "8852290adbbe735ced45c28b8ee43398d1af9b5c",
+  "shared_file_exception": false,
+  "kickoff_budget_note": "Stayed within the default lane budget. The branch delta is 2 files changed and remains within the lane size limits.",
+  "approved_exception_note": "",
+  "review_commit": "9eca3a5383701cfa0f32a570097a149f3519e290",
   "files_changed": [
-    {
-      "path": ".codex/kickoff_packets/feat-commands.md",
-      "kind": "handoff_artifact"
-    },
     {
       "path": ".codex/lane_meta/feat-commands.json",
       "kind": "handoff_artifact"
@@ -34,34 +27,7 @@
     {
       "path": "THREAD_PACKET.md",
       "kind": "handoff_artifact"
-    },
-    {
-      "path": "src/qual/commands/__init__.py",
-      "kind": "code"
-    },
-    {
-      "path": "src/qual/commands/canonical.py",
-      "kind": "code"
-    },
-    {
-      "path": "src/qual/commands/catalog.py",
-      "kind": "code"
-    },
-    {
-      "path": "src/qual/commands/diff_preview.py",
-      "kind": "code"
-    },
-    {
-      "path": "tests/unit/test_commands_catalog.py",
-      "kind": "test"
-    },
-    {
-      "path": "tests/unit/test_diff_preview.py",
-      "kind": "test"
     }
   ],
-  "shared_file_exceptions": [
-    "tests/unit/test_commands_catalog.py",
-    "tests/unit/test_diff_preview.py"
-  ]
+  "shared_file_exceptions": []
 }

@@ -3,40 +3,33 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit:
-  - `8852290adbbe735ced45c28b8ee43398d1af9b5c`
+  - `9eca3a5383701cfa0f32a570097a149f3519e290`
 
 ## Scope goal
-- Harden command catalog and diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.
+- Restore the feat-commands handoff packet so the docs-only branch tip is truthful and reviewable.
 
 ## Lane/owned paths
-- `src/qual/commands/**`
+- `n/a` for this docs-only packet restore
 
 ## Scope completed
-- Corrected diff_preview fingerprint semantics so SHA-256 is derived from the exact emitted diff payload after label application, header suppression, truncation, and summary-only handling.
-- Added focused command-contract tests for JSON output, no-diff JSON shape, custom labels, and fingerprint correctness.
-- Kept the lane limited to `src/qual/commands/**` plus the approved shared command-contract tests.
-- Regenerated the feature handoff packet from the real `main...HEAD` branch delta so the review packet matches the submitted branch state.
+- Regenerated the handoff packet and lane metadata from the actual docs-only branch tip so review maps to the submitted commit state.
+- Narrowed the handoff fields to the two packet artifacts changed in this revision.
+- Removed the stale shared-test approval note because this submission does not change shared tests or command code.
+- Confirmed this turn does not edit `tests/unit/test_commands_catalog.py` or `tests/unit/test_diff_preview.py`, so no shared-file approval is required for the submitted revision.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget. The branch delta is 9 files changed and remains within the lane size limits.
-- The change stays centered on the command-contract lane and its approved shared regression coverage.
+- Stayed within the default lane budget. The branch delta is 2 files changed and remains within the lane size limits.
+- The change stays centered on truthful handoff metadata for the feat-commands lane.
 
 ## Tasks completed (numbered)
-1. Restored the feature packet to the command-contract scope instead of the stale docs-only handoff correction.
-2. Reconfirmed the diff_preview fingerprint and label contract details that the branch now guarantees.
-3. Kept the shared command-contract test coverage explicitly approved for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
-4. Regenerated the handoff inventory so the packet matches the branch delta actually being submitted.
+1. Regenerated the feat-commands handoff packet so it reflects the actual docs-only commit on `HEAD`.
+2. Narrowed the file list and scope summary to the two handoff artifacts changed in this revision.
+3. Removed the stale shared-file exception language because no shared tests or command code were modified in this submission.
+4. Realigned the roadmap and vision mapping to the packet-only docs correction instead of the earlier command-contract scope.
 
 ## Files changed
-- `.codex/kickoff_packets/feat-commands.md`
 - `.codex/lane_meta/feat-commands.json`
 - `THREAD_PACKET.md`
-- `src/qual/commands/__init__.py`
-- `src/qual/commands/canonical.py`
-- `src/qual/commands/catalog.py`
-- `src/qual/commands/diff_preview.py`
-- `tests/unit/test_commands_catalog.py`
-- `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
@@ -52,20 +45,16 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1 - Bootstrap Flow Stabilization: keep command-surface projections deterministic and make diff_preview fingerprints derive from the emitted payload.
-- Milestone 2 - Test Hardening: add focused command-contract coverage for JSON, no-diff, custom-label, and fingerprint paths.
 - Milestone 3 - Product Readiness: lock CLI-first command output contracts for operator use.
 
 ### Vision capability affected
-- Capability 3 - Auditable generation: the emitted SHA-256 fingerprint verifies the exact diff payload returned by the command.
 - Capability 4 - Operator-first control surface: the command lane keeps a stable CLI-first surface with deterministic JSON and text output.
 
 ### Routing/provider impact note
-- None. This change only affects local command output formatting, verification metadata, and focused contract coverage; no policy or routing files change.
+- None. This change only affects handoff metadata; no routing/provider files change.
 
 ### Proposed README patch text
 - None.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `YES`
-- Approved shared-file exception for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
+- Shared/integrator-locked edits: `NO`
