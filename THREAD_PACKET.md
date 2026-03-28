@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit:
-  - `0c35c8c26b29fbe65e3ed37dd54fecf1acde49be`
+  - `944ead212a7c8a12e8bd81918fd2bcfcc7e590b7`
 
 ## Scope goal
 - Realign feat-commands handoff metadata so the review packet matches the actual branch head and does not claim code changes that are not present in the submitted commit.

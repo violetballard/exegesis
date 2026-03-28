@@ -18,7 +18,7 @@
   "shared_file_exception": false,
   "kickoff_budget_note": "Stayed within the default lane budget. The submitted commit changes 3 handoff metadata files and no lane-owned code files.",
   "approved_exception_note": "",
-  "review_commit": "0c35c8c26b29fbe65e3ed37dd54fecf1acde49be",
+  "review_commit": "944ead212a7c8a12e8bd81918fd2bcfcc7e590b7",
   "files_changed": [
     {
       "path": ".codex/kickoff_packets/feat-commands.md",
