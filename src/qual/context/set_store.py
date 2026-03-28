@@ -468,6 +468,22 @@ class ContextSetStore:
             preserve_seed_corrupt=preserve_seed_corrupt,
         )
 
+    def clear(self) -> None:
+        for path in (
+            self._path,
+            self._backup_path,
+            self._seed_state_path(),
+            self._tmp_path(),
+            self._backup_tmp_path(),
+            self._seed_tmp_path(),
+            self._corrupt_path(),
+            self._corrupt_path_for(self._tmp_path()),
+            self._corrupt_path_for(self._backup_tmp_path()),
+            self._corrupt_path_for(self._seed_tmp_path()),
+        ):
+            self._unlink_if_exists(path)
+        self._clear_quarantine_file()
+
     def create_context_set(self, name: str, item_ids: list[object] | None = None) -> ContextSetRecord:
         records = self.load()
         now = datetime.now(UTC).isoformat()

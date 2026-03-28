@@ -1204,6 +1204,45 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(json.loads(self.store._path.read_text(encoding="utf-8")), primary_before)
         self.assertEqual(json.loads(self.store._backup_path.read_text(encoding="utf-8")), backup_before)
 
+    def test_clear_removes_primary_backup_and_corrupt(self) -> None:
+        self.store.create_context_set("Evidence", ["first"])
+        self.store.create_context_set("Secondary", ["second"])  # Creates backup.
+        self.store._path.with_suffix(".corrupt.json").write_text("{bad", encoding="utf-8")
+
+        self.store.clear()
+
+        self.assertFalse(self.store._path.exists())
+        self.assertFalse(self.store._backup_path.exists())
+        self.assertFalse(self.store._path.with_suffix(".corrupt.json").exists())
+
+    def test_clear_removes_quarantined_backup_and_seed_files(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._backup_path.with_name("context_sets.bak.corrupt.json").write_text(
+            "{bad",
+            encoding="utf-8",
+        )
+        self.store._seed_state_path().with_name("context_sets.seed.corrupt.json").write_text(
+            "{bad",
+            encoding="utf-8",
+        )
+
+        self.store.clear()
+
+        self.assertFalse(self.store._backup_path.with_name("context_sets.bak.corrupt.json").exists())
+        self.assertFalse(self.store._seed_state_path().with_name("context_sets.seed.corrupt.json").exists())
+
+    def test_clear_removes_temporary_primary_backup_and_seed_files(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._tmp_path().write_text("{\"schema_version\": 1}", encoding="utf-8")
+        self.store._backup_tmp_path().write_text("{\"schema_version\": 1}", encoding="utf-8")
+        self.store._seed_tmp_path().write_text("{\"schema_version\": 1}", encoding="utf-8")
+
+        self.store.clear()
+
+        self.assertFalse(self.store._tmp_path().exists())
+        self.assertFalse(self.store._backup_tmp_path().exists())
+        self.assertFalse(self.store._seed_tmp_path().exists())
+
     def test_corrupt_primary_recovers_from_backup_and_records_recovery_source(self) -> None:
         self.store._path.write_text("{bad", encoding="utf-8")
         self.store._backup_path.write_text(
