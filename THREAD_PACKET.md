@@ -8,7 +8,7 @@
 
 ## Scope completed
 
-The feature commit preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The handoff packet now stays self-contained and limits the reviewed file list to owned runtime paths plus the approved regression-test exception.
+The feature commit preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The handoff packet, lane metadata, and routed packet copy were updated together so the review artifacts stay synchronized with explicit approval for the non-owned handoff files.
 
 ## Files changed
 
@@ -54,9 +54,9 @@ The feature commit preserved `recovered_from` cleanup timestamps across basket, 
 
 ## Approved exception note
 
-- Approved lane regression-test exception for `tests/unit/test_context_storage_recovery.py`; provenance documented in `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__7b756291349fb12b27d07cf355a9b1b863759aa2__20260328T173918Z.md`.
+- Approved shared/integrator-locked file exception for `THREAD_PACKET.md`, `.codex/lane_meta/feat-context-storage.json`, and `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__6ca617ccf17f5da8f8270345fd41d48b68909ab7__20260328T204224Z.md`; these handoff artifacts must be updated together so the packet and lane bookkeeping match. Approved lane regression-test exception for `tests/unit/test_context_storage_recovery.py`; provenance documented in `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__7b756291349fb12b27d07cf355a9b1b863759aa2__20260328T173918Z.md`.
 
 ## Scope-check / ownership note
 
-- Shared/integrator-locked edits: `NO`
-- Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, covered by the lane-approved regression-test exception referenced above. No integrator-locked files were edited.
+- Shared/integrator-locked edits: `YES`
+- Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The non-owned handoff artifacts listed above are updated only to record the review handoff and lane bookkeeping, and `tests/unit/test_context_storage_recovery.py` is covered by the lane-approved regression-test exception referenced above.
