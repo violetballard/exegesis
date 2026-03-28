@@ -4,7 +4,7 @@
 - Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`.
 - Runtime change commit: `b929fe6c7a1159c7882acedd247aca31a93cd123`
 - Handoff scope: metadata-only resubmission on the current branch tip so the roadmap and vision mapping are explicit and reviewer-auditable, including the saved planner handoff state used for future packet emissions.
-- Reviewer mapping: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
+- Reviewer mapping: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`), including the exact requirement that CLI remains able to render a text fallback of the same underlying artifacts.
 - Reviewer fix status: required fix `#1` is satisfied on this branch tip because the exact roadmap milestone/scope bullets and product-vision capability are cited directly in the reviewer-facing packets.
 - Canon note: the labels above are taken from the current `ROADMAP.md` and `PRODUCT_VISION.md` in this worktree, so the handoff uses the branch's authoritative plan wording rather than older example labels from the review thread.
 - Missing handoff fields after reviewer fix `#1`: none; both required plan-alignment fields are populated below for direct audit.
@@ -15,7 +15,7 @@
 - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`)
 - Roadmap scope bullets: `Add agent-side card/section/action payload generation with deterministic schemas` and `Provide CLI rendering fallback for the same structured payloads`
 - Roadmap exit criterion: `A2UI schema/versioning is documented and stable`
-- Audit mapping: the deterministic action-ordering fix stabilizes materialized A2UI action payloads for CLI fallback rendering, which is the concrete Milestone 5 scope-bullet and Capability 5 linkage this lane completes.
+- Audit mapping: the deterministic action-ordering fix stabilizes materialized A2UI action payloads for CLI fallback rendering, which is the concrete Milestone 5 scope-bullet and the Capability 5 requirement that CLI remains able to render a text fallback of the same underlying artifacts.
 - Source-of-truth note: reviewer examples were illustrative; the authoritative mapping for this branch tip is the Milestone 5 / Capability 5 pair quoted above from the checked-in plan docs.
 - This lane only clarifies the handoff mapping for the A2UI ordering fix; it does not expand scope beyond CLI fallback determinism and the matching contract assertions.
 - Tasks completed:
@@ -38,8 +38,9 @@
   - This fix is the deterministic action-ordering step that keeps the CLI fallback rendering of the same A2UI payloads stable.
 - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`)
   - Agent emits structured presentation artifacts that are consumable by CLI first, then `Exegesis Console`, then future Studio UI.
-  - This fix supports that capability by making the materialized action payload deterministic for the CLI fallback path over the same artifacts.
-- Audit mapping: the same ordering fix is the explicit bridge between the Milestone 5 deterministic-schema plus CLI-fallback scope bullets and the Capability 5 CLI-first A2UI requirement.
+  - CLI remains able to render a text fallback of the same underlying artifacts.
+  - This fix supports that capability by making the materialized action payload deterministic for that CLI text fallback path over the same artifacts.
+- Audit mapping: the same ordering fix is the explicit bridge between the Milestone 5 deterministic-schema plus CLI-fallback scope bullets and the Capability 5 requirement that the CLI text fallback render the same underlying A2UI artifacts.
 - The roadmap and vision mapping are explicit enough for reviewer audit without relying on inference.
 - No other roadmap milestones or product-vision capabilities are implicated by this fix.
 - Routing/provider impact note: None.

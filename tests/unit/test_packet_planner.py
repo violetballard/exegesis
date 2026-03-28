@@ -26,8 +26,9 @@ ROADMAP_MAPPING = (
 VISION_MAPPING = (
     "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> agent emits "
     "structured presentation artifacts that are consumable by CLI first, then "
-    "Exegesis Console, then future Studio UI, including the CLI fallback rendering "
-    "path used by this fix"
+    "Exegesis Console, then future Studio UI, and CLI remains able to render a "
+    "text fallback of the same underlying artifacts; deterministic action ordering "
+    "keeps that CLI text fallback stable"
 )
 
 
@@ -56,6 +57,7 @@ class PacketPlannerTests(unittest.TestCase):
         self.assertIn(ROADMAP_MAPPING, packet)
         self.assertIn(VISION_MAPPING, packet)
         self.assertIn("Provide CLI rendering fallback for the same structured payloads", packet)
+        self.assertIn("text fallback of the same underlying artifacts", packet)
         self.assertNotIn("pending reviewer/integrator confirmation", packet)
 
     def test_build_packet_uses_saved_handoff_mappings_when_meta_lists_are_empty(self) -> None:
