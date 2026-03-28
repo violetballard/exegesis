@@ -1,6 +1,9 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
+- Reviewed commit(s):
+  - `47cda4df831ac41867a8792f40d720e0cb109514` (runtime storage/context hardening)
+  - `86722b5f04a8439281168e5050ce3bea11a1667f` (metadata-only handoff alignment; not feature implementation)
 
 ## Scope goal
 - Harden context basket/set and vault recovery so malformed or incomplete local state is quarantined or canonicalized safely without promoting stale auxiliary state.
@@ -48,3 +51,4 @@
 - Shared/integrator-locked edits: `YES` - approved shared-test exception only, limited to `tests/unit/test_context_storage_recovery.py`; no integrator-locked files changed.
 - Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, and it is covered by the explicit shared-test exception.
 - Approval basis: `scripts/scope-check.sh` explicitly allows `tests/unit/test_context_storage_recovery.py` for `codex/feat-context-storage*` when `SCOPE_ALLOW_SHARED=1` is set.
+- Branch-head bookkeeping note: `86722b5f04a8439281168e5050ce3bea11a1667f` records lane metadata only; it does not change the owned runtime scope.
