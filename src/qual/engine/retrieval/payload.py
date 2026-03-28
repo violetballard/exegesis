@@ -193,6 +193,9 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
     query_constraints = query.get("constraints", {})
     if not isinstance(query_constraints, dict):
         query_constraints = {}
+    citation_bundle = payload.get("retrieval_citation_bundle", {})
+    if not isinstance(citation_bundle, dict):
+        citation_bundle = _build_retrieval_citation_bundle_from_payload(payload)
     query_date_range = query_constraints.get(
         "date_range",
         provenance.get("query_date_range", summary.get("query_date_range", diagnostics.get("date_range"))),
@@ -228,6 +231,7 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
             provenance.get("deferred_strategy_ids", summary.get("deferred_strategy_ids", diagnostics.get("deferred_strategy_ids", [])))
         ),
         "citation_status": copy.deepcopy(payload.get("citation_status", summary.get("citation_status", provenance.get("citation_status", {})))),
+        "retrieval_citation_bundle": copy.deepcopy(citation_bundle),
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_provenance": copy.deepcopy(provenance),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),

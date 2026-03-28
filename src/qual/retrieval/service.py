@@ -603,10 +603,11 @@ class RetrievalResult:
             if self.query.constraints.date_range is not None
             else None
         )
-        citation_status = self._citation_status_snapshot()
+        citation_bundle = self.citation_bundle()
+        citation_status = dict(citation_bundle["citation_status"])
         retrieval_policy = self._retrieval_policy_snapshot()
         retrieval_provenance = self._retrieval_provenance_snapshot(
-            citation_bundle=self.citation_bundle(),
+            citation_bundle=citation_bundle,
             citation_status=citation_status,
             retrieval_policy=retrieval_policy,
         )
@@ -622,6 +623,9 @@ class RetrievalResult:
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             "citation_status": citation_status,
+            # Keep the citation bundle inline so doc/excerpt snapshots remain
+            # self-contained for downstream drafting and patching flows.
+            "retrieval_citation_bundle": copy.deepcopy(citation_bundle),
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_provenance": copy.deepcopy(retrieval_provenance),
             "retrieval_evidence": copy.deepcopy(self.evidence),
