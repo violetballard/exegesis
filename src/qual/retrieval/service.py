@@ -411,68 +411,24 @@ class RetrievalResult:
     def retrieval_doc_bundle(self) -> dict[str, object]:
         """Return the deterministic doc-focused snapshot for downstream engine flows."""
 
+        bundle_context = self._retrieval_bundle_context_snapshot()
         return {
-            "result_fingerprint": self.result_fingerprint,
-            "query_fingerprint": self.diagnostics["query_fingerprint"],
-            "query_scope": self.query.scope,
-            "query_intent": self.query.intent,
-            "query_date_range": (
-                list(self.query.constraints.date_range)
-                if self.query.constraints.date_range is not None
-                else None
-            ),
-            "retrieval_backend": self.diagnostics["retrieval_backend"],
-            "retrieval_mode": self.diagnostics["retrieval_mode"],
-            "retrieval_policy": copy.deepcopy(self.diagnostics["retrieval_policy"]),
-            "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
-            "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
-            "citation_status": self._citation_status_snapshot(),
+            **bundle_context,
             "doc_count": len(self.doc_hits),
             "doc_hits": [doc_hit.as_dict() for doc_hit in self.doc_hits],
             "doc_citations": self._doc_citation_snapshots(),
-            "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
-            "retrieval_provenance": copy.deepcopy(
-                self._retrieval_provenance_snapshot(
-                    citation_bundle=self.citation_bundle(),
-                    citation_status=self._citation_status_snapshot(),
-                    retrieval_policy=self._retrieval_policy_snapshot(),
-                )
-            ),
-            "retrieval_evidence": copy.deepcopy(self.evidence),
         }
 
     def retrieval_excerpt_bundle(self) -> dict[str, object]:
         """Return the deterministic excerpt-focused snapshot for downstream engine flows."""
 
+        bundle_context = self._retrieval_bundle_context_snapshot()
         return {
-            "result_fingerprint": self.result_fingerprint,
-            "query_fingerprint": self.diagnostics["query_fingerprint"],
-            "query_scope": self.query.scope,
-            "query_intent": self.query.intent,
-            "query_date_range": (
-                list(self.query.constraints.date_range)
-                if self.query.constraints.date_range is not None
-                else None
-            ),
-            "retrieval_backend": self.diagnostics["retrieval_backend"],
-            "retrieval_mode": self.diagnostics["retrieval_mode"],
-            "retrieval_policy": copy.deepcopy(self.diagnostics["retrieval_policy"]),
-            "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
-            "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
-            "citation_status": self._citation_status_snapshot(),
+            **bundle_context,
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
             "excerpt_hits": [hit.as_dict() for hit in self.hits],
             "excerpt_citations": self._excerpt_citation_snapshots(),
-            "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
-            "retrieval_provenance": copy.deepcopy(
-                self._retrieval_provenance_snapshot(
-                    citation_bundle=self.citation_bundle(),
-                    citation_status=self._citation_status_snapshot(),
-                    retrieval_policy=self._retrieval_policy_snapshot(),
-                )
-            ),
-            "retrieval_evidence": copy.deepcopy(self.evidence),
         }
 
     def retrieval_context_bundle(self) -> dict[str, object]:
@@ -637,6 +593,38 @@ class RetrievalResult:
             "excerpt_count": citation_bundle["excerpt_count"],
             "doc_citations": citation_bundle["doc_citations"],
             "excerpt_citations": citation_bundle["excerpt_citations"],
+        }
+
+    def _retrieval_bundle_context_snapshot(self) -> dict[str, object]:
+        """Return the shared retrieval snapshot fields used by doc and excerpt bundles."""
+
+        query_date_range = (
+            list(self.query.constraints.date_range)
+            if self.query.constraints.date_range is not None
+            else None
+        )
+        citation_status = self._citation_status_snapshot()
+        retrieval_policy = self._retrieval_policy_snapshot()
+        retrieval_provenance = self._retrieval_provenance_snapshot(
+            citation_bundle=self.citation_bundle(),
+            citation_status=citation_status,
+            retrieval_policy=retrieval_policy,
+        )
+        return {
+            "result_fingerprint": self.result_fingerprint,
+            "query_fingerprint": self.diagnostics["query_fingerprint"],
+            "query_scope": self.query.scope,
+            "query_intent": self.query.intent,
+            "query_date_range": query_date_range,
+            "retrieval_backend": self.diagnostics["retrieval_backend"],
+            "retrieval_mode": self.diagnostics["retrieval_mode"],
+            "retrieval_policy": copy.deepcopy(retrieval_policy),
+            "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
+            "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
+            "citation_status": citation_status,
+            "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
+            "retrieval_provenance": copy.deepcopy(retrieval_provenance),
+            "retrieval_evidence": copy.deepcopy(self.evidence),
         }
 
     def _retrieval_source_bundle_snapshot(
