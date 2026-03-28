@@ -469,6 +469,7 @@ class ContextSetStore:
         )
 
     def create_context_set(self, name: str, item_ids: list[object] | None = None) -> ContextSetRecord:
+        records = self.load()
         now = datetime.now(UTC).isoformat()
         record = ContextSetRecord(
             context_set_id=str(uuid.uuid4()),
@@ -480,7 +481,9 @@ class ContextSetStore:
         record.normalize()
         if not record.name:
             raise ValueError("name is required")
-        self.save([*self.load(), record])
+        if any(existing.name == record.name for existing in records):
+            raise ValueError(f"context set name already exists: {record.name}")
+        self.save([*records, record])
         return record
 
     def pin_item(self, context_set_id: str, item_id: object) -> ContextSetRecord:
@@ -501,10 +504,6 @@ class ContextSetStore:
                 records[idx] = record
                 self.save(records)
                 return record
-            record.updated_at = datetime.now(UTC).isoformat()
-            record.normalize()
-            records[idx] = record
-            self.save(records)
             return record
         raise KeyError(f"unknown context_set_id: {context_set_id}")
 
