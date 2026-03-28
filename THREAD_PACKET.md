@@ -13,6 +13,7 @@
 - Preserved `recovered_from` cleanup timestamps while quarantining malformed context basket and context-set payloads so project-scoped local state remains normalized and auditable.
 - Hardened vault recovery so malformed or incomplete persisted state is recovered or rewritten safely while preserving the safe lock default and local-first storage behavior.
 - Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-test exception.
+- Kept the reviewed implementation within owned runtime paths plus the approved shared-test exception, with no shared/integrator-locked runtime edits.
 - Reissued the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list stay aligned with implementation commit `47cda4df831ac41867a8792f40d720e0cb109514` and alignment commit `4797e4ccc92d0a39d101af74d6ea8ee18766ac9e`, while keeping docs-only alignment work separate from runtime changes.
 
 ## Owned-path files changed

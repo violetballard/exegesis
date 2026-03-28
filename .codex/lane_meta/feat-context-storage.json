@@ -5,7 +5,7 @@
     "Hardened ContextSetStore recovery so malformed context-set payloads are quarantined, recovered_from cleanup timestamps are preserved, and rewritten state stays auditable.",
     "Hardened VaultService recovery so malformed vault state is recovered or rewritten safely while preserving the safe lock default.",
     "Kept regression coverage in tests/unit/test_context_storage_recovery.py under the approved shared-test exception.",
-    "Refreshed the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list point at implementation commit 47cda4df831ac41867a8792f40d720e0cb109514 and alignment commit 4797e4ccc92d0a39d101af74d6ea8ee18766ac9e."
+    "Refreshed the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list point at implementation commit 47cda4df831ac41867a8792f40d720e0cb109514 and alignment commit 4797e4ccc92d0a39d101af74d6ea8ee18766ac9e, while keeping runtime edits in owned paths."
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
