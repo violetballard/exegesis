@@ -11,6 +11,7 @@
 
 ### Guardrails
 - Stay in lane-owned command paths unless shared-file approval is explicit.
+- Approved shared-file exceptions for this lane are limited to `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
 - Keep test coverage limited to the approved command-contract surfaces.
 - Keep work aligned to the current MVP: engine, FTS retrieval, A2UI, patch/export flow.
 - Do not introduce new web-facing surfaces.

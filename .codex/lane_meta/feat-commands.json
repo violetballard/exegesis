@@ -4,7 +4,7 @@
     "Added spec-aware command catalog helpers and exports so command metadata resolves deterministically for canonical lookup, alias lookup, and token lookup.",
     "Hardened diff_preview fingerprint semantics so the reported digest matches the emitted artifact after labels, suppression, truncation, and summary-only handling.",
     "Added focused unit coverage for command-catalog projections and diff-preview JSON/text output contracts, including the no-diff JSON shape, custom labels, and fingerprint correctness paths.",
-    "Re-aligned the handoff packet and lane metadata with the current branch tip and the actual branch delta."
+    "Re-aligned the handoff packet and lane metadata with the exact branch delta, including explicit approval notes for both shared review tests."
   ],
   "risk": "LOW",
   "roadmap_items": [
@@ -20,6 +20,54 @@
   "proposed_readme_patch": "",
   "shared_file_exception": true,
   "kickoff_budget_note": "Owned-path command work plus focused diff_preview test coverage; within default 8-task, 12-file, and 500-net-LOC limits.",
-  "review_commit": "e53af6696629a9cccda27ac1b344825bae8dc858, 0df5b4a7, 1ba5ff27, a032bd49, b284202f",
-  "approved_exception_note": "Approved shared-file exceptions for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to add focused contract coverage required by review. No policy or integrator-locked files are edited in the submitted branch."
+  "review_commit": "37518edc",
+  "files_changed": [
+    {
+      "path": ".codex/kickoff_packets/feat-commands.md",
+      "kind": "handoff_artifact"
+    },
+    {
+      "path": ".codex/lane_meta/feat-commands.json",
+      "kind": "handoff_artifact"
+    },
+    {
+      "path": "THREAD_PACKET.md",
+      "kind": "handoff_artifact"
+    },
+    {
+      "path": "src/qual/commands/__init__.py",
+      "kind": "lane_owned_code"
+    },
+    {
+      "path": "src/qual/commands/canonical.py",
+      "kind": "lane_owned_code"
+    },
+    {
+      "path": "src/qual/commands/catalog.py",
+      "kind": "lane_owned_code"
+    },
+    {
+      "path": "src/qual/commands/diff_preview.py",
+      "kind": "lane_owned_code"
+    },
+    {
+      "path": "tests/unit/test_commands_catalog.py",
+      "kind": "shared_test"
+    },
+    {
+      "path": "tests/unit/test_diff_preview.py",
+      "kind": "shared_test"
+    }
+  ],
+  "shared_file_exceptions": [
+    {
+      "path": "tests/unit/test_commands_catalog.py",
+      "approved_for": "focused command-catalog contract coverage"
+    },
+    {
+      "path": "tests/unit/test_diff_preview.py",
+      "approved_for": "focused diff_preview JSON/text and fingerprint coverage"
+    }
+  ],
+  "approved_exception_note": "Approved shared-file exceptions for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py, each listed separately above. No policy or integrator-locked files are edited in the submitted branch."
 }
