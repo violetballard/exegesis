@@ -767,7 +767,10 @@ class ContextBasketStore:
         if "item_ids" not in payload:
             return False
         raw_item_ids = payload.get("item_ids")
-        return isinstance(raw_item_ids, list) and not self._parse_item_ids(raw_item_ids)
+        # Only a truly empty list counts as an explicit empty recovery source.
+        # Lists that only become empty after dropping malformed entries stay
+        # quarantined instead of being promoted as recoverable state.
+        return isinstance(raw_item_ids, list) and not raw_item_ids
 
     def _primary_item_ids_need_recovery(self, payload: dict[str, object] | list[object] | None) -> bool:
         if isinstance(payload, dict):

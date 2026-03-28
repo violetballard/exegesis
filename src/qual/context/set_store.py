@@ -940,7 +940,10 @@ class ContextSetStore:
         if "context_sets" not in payload:
             return False
         raw_context_sets = payload.get("context_sets")
-        return isinstance(raw_context_sets, list) and not self._parse_context_sets(raw_context_sets)
+        # Only a truly empty list counts as recoverable empty state. Lists
+        # that only normalize to empty after dropping malformed records remain
+        # quarantined instead of being treated as intentional recovery data.
+        return isinstance(raw_context_sets, list) and not raw_context_sets
 
     def _primary_context_sets_need_recovery(self, payload: dict[str, object] | list[object] | None) -> bool:
         if isinstance(payload, dict):
