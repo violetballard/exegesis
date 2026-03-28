@@ -3,6 +3,11 @@
   "kickoff_budget_note": "",
   "proposed_readme_patch": "",
   "risk": "LOW",
+  "packet_type": "metadata-only",
+  "reviewed_commits": [
+    "c4944661a0a682821c486810918c2c1fabac1a41",
+    "c92025af6e11c396f84356967cea704cadb20f5b"
+  ],
   "roadmap_items": [
     "ROADMAP.md: Milestone 3: Real workflow loop",
     "docs/TASKS.md: feat-retrieval-fts"
