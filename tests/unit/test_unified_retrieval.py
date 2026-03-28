@@ -1023,6 +1023,39 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(engine_query.constraints.section_hint, "discussion")
         self.assertEqual(engine_query.confidentiality_profile, "standard")
 
+    def test_retrieval_query_constructor_accepts_constraints_dataclass(self) -> None:
+        constraints = RetrievalConstraints(
+            max_results=7,
+            doc_types=("Memo", "pdf", "memo"),
+            date_range=("2026-01-01", "2026-01-31"),
+            require_citations=True,
+            section_hint="  discussion  ",
+            prefer_exact_matches=True,
+        )
+
+        engine_query = engine_retrieval.build_retrieval_query(
+            query_text="memo comparison",
+            scope="vault",
+            intent="compare",
+            constraints=constraints,
+            confidentiality_profile="standard",
+        )
+        package_query = package_retrieval.build_retrieval_query(
+            query_text="memo comparison",
+            scope="vault",
+            intent="compare",
+            constraints=constraints,
+            confidentiality_profile="standard",
+        )
+
+        self.assertEqual(engine_query, package_query)
+        self.assertEqual(engine_query.constraints.doc_types, ("memo", "pdf"))
+        self.assertEqual(engine_query.constraints.date_range, ("2026-01-01", "2026-01-31"))
+        self.assertEqual(engine_query.constraints.section_hint, "discussion")
+        self.assertEqual(engine_query.constraints.require_citations, True)
+        self.assertEqual(engine_query.constraints.prefer_exact_matches, True)
+        self.assertEqual(engine_query.confidentiality_profile, "standard")
+
     def test_engine_retrieval_package_reexports_canonical_payload_helpers(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

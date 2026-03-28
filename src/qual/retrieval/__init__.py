@@ -16,7 +16,7 @@ def _build_retrieval_query(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: dict[str, object] | RetrievalConstraints | None = None,
     confidentiality_profile: str = "confidential",
 ) -> RetrievalQuery:
     return engine_build_retrieval_query(
@@ -33,7 +33,7 @@ def build_retrieval_query(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: dict[str, object] | RetrievalConstraints | None = None,
     confidentiality_profile: str = "confidential",
 ) -> RetrievalQuery:
     """Return the canonical retrieval query used by both facades."""

@@ -4,6 +4,8 @@ The retrieval lane keeps this package as the narrow public surface for the
 engine's retrieval orchestration code.
 """
 
+from collections.abc import Mapping
+
 from src.qual.engine.retrieval.fts_strategy import FTSStrategy
 from src.qual.engine.retrieval.interface import RetrievalStrategy, StrategyRun
 from src.qual.engine.retrieval.policy import (
@@ -29,7 +31,7 @@ def build_retrieval_query(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: object | None = None,
     confidentiality_profile: str = "confidential",
 ) -> RetrievalQuery:
     """Return the canonical FTS-first retrieval query object.
@@ -41,7 +43,22 @@ def build_retrieval_query(
 
     from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery
 
-    payload = constraints if constraints is not None else {}
+    if constraints is None:
+        payload: dict[str, object] = {}
+    elif isinstance(constraints, RetrievalConstraints):
+        payload = {
+            "max_results": constraints.max_results,
+            "doc_types": constraints.doc_types,
+            "date_range": constraints.date_range,
+            "require_citations": constraints.require_citations,
+            "section_hint": constraints.section_hint,
+            "prefer_exact_matches": constraints.prefer_exact_matches,
+        }
+    elif isinstance(constraints, Mapping):
+        payload = dict(constraints)
+    else:
+        raise TypeError("constraints must be a mapping or RetrievalConstraints")
+
     doc_types = payload.get("doc_types", ())
     if isinstance(doc_types, str):
         doc_types = (doc_types,)
