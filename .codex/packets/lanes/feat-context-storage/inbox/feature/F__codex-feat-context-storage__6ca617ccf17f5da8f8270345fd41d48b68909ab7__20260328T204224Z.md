@@ -8,9 +8,7 @@
 - Preserve recovered_from cleanup timestamps in context basket/set/vault persistence so canonical cleanup rewrites keep the existing `updated_at` while stripping recovery provenance.
 
 ## Scope completed
-- Preserved existing `updated_at` during canonical cleanup rewrites in `ContextBasketStore` while stripping `recovered_from` provenance.
-- Preserved existing `updated_at` during canonical cleanup rewrites in `ContextSetStore` while stripping `recovered_from` provenance.
-- Preserved existing `updated_at` during canonical cleanup rewrites in `VaultService` while stripping `recovered_from` provenance.
+- Preserved existing `updated_at` during canonical cleanup rewrites in `ContextBasketStore`, `ContextSetStore`, and `VaultService` while stripping `recovered_from` provenance.
 - Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
 
 ## Lane/owned paths
@@ -49,17 +47,17 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3: Real workflow loop: persistent basket/document/session state.
+- Milestone 1: Bootstrap Flow Stabilization - context basket and vault persistence hardening.
 
 ### Vision capability affected
-- Capability 6 - Auditable state and workflow: persistent project/document/basket/session state with safe recovery and traceable rewrites.
+- Capability 1 - Local-first state and identity.
 
 ### Routing/provider impact note
 - None
 
 ## Approved exception note
-- Approved shared test-file exception for `tests/unit/test_context_storage_recovery.py`; provenance documented in `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__7b756291349fb12b27d07cf355a9b1b863759aa2__20260328T173918Z.md`.
+- Approved lane regression-test exception for `tests/unit/test_context_storage_recovery.py`; provenance documented in `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__7b756291349fb12b27d07cf355a9b1b863759aa2__20260328T173918Z.md`.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `YES`
-- Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The non-owned edit is `tests/unit/test_context_storage_recovery.py`, covered by the lane-approved shared-test exception referenced above. No integrator-locked files were edited.
+- Shared/integrator-locked edits: `NO`
+- Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, covered by the lane-approved regression-test exception referenced above. No integrator-locked files were edited.

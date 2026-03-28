@@ -6,7 +6,7 @@
 
 ## Scope completed
 
-The lane preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The only non-owned file in the final handoff is the lane-approved shared regression test `tests/unit/test_context_storage_recovery.py`, and no `scripts/scope-check.sh` edit is part of the final handoff.
+The lane preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The only non-owned file in the final handoff is the lane-approved regression test `tests/unit/test_context_storage_recovery.py`, and no `scripts/scope-check.sh` edit is part of the final handoff.
 
 ## Files changed
 
@@ -53,9 +53,9 @@ The lane preserved `recovered_from` cleanup timestamps across basket, context-se
 
 ## Approved exception note
 
-- Approved shared test-file exception for `tests/unit/test_context_storage_recovery.py`; provenance documented in `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__7b756291349fb12b27d07cf355a9b1b863759aa2__20260328T173918Z.md`.
+- Approved lane regression-test exception for `tests/unit/test_context_storage_recovery.py`; provenance documented in `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__7b756291349fb12b27d07cf355a9b1b863759aa2__20260328T173918Z.md`.
 
 ## Scope-check / ownership note
 
-- Shared/integrator-locked edits: only the approved shared test exception
-- Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, covered by the lane-approved shared-test exception referenced above. No integrator-locked files were edited.
+- Shared/integrator-locked edits: none
+- Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, covered by the lane-approved regression-test exception referenced above. No integrator-locked files were edited.
