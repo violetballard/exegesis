@@ -47,6 +47,7 @@ class CommandSurfaceContract:
     lookup_index: tuple[tuple[str, str], ...]
     lookup_tokens: tuple[tuple[str, ...], ...]
     flow_catalog: tuple[CommandFlowEntry, ...]
+    lookup_surface: tuple[tuple[str, str], ...] = ()
 
 
 def _normalize_token(value: str) -> str:
@@ -391,6 +392,7 @@ def command_flow_contract(
         lookup_index=command_flow_lookup_index(specs, ordered_flow_steps),
         lookup_tokens=sequence.lookup_tokens,
         flow_catalog=command_flow_catalog(specs, ordered_flow_steps),
+        lookup_surface=command_flow_lookup_surface(specs, ordered_flow_steps),
     )
 
 

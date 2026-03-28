@@ -8,6 +8,7 @@ from src.qual.commands import (
     command_aliases,
     command_flow_manifest,
     command_flow_lookup_index,
+    command_flow_lookup_surface,
     command_flow_lookup_table,
     command_flow_steps,
     command_flow_sequence,
@@ -19,6 +20,7 @@ from src.qual.commands import (
     command_mvp_flow_names,
     command_mvp_flow_catalog,
     command_mvp_flow_manifest,
+    command_mvp_flow_lookup_surface,
     command_mvp_flow_lookup_table,
     command_mvp_flow_sequence,
     command_mvp_flow_steps,
@@ -184,6 +186,30 @@ class CommandCatalogTests(unittest.TestCase):
             command_mvp_lookup_index(),
         )
 
+    def test_command_flow_lookup_surface_includes_flow_steps_for_smoke_checks(self) -> None:
+        self.assertEqual(
+            command_flow_lookup_surface(flow_steps=command_mvp_flow_steps()),
+            command_mvp_flow_lookup_surface(),
+        )
+        self.assertEqual(
+            command_mvp_flow_lookup_surface(),
+            (
+                ("bootstrap", "bootstrap"),
+                ("open", "bootstrap"),
+                ("project-open", "bootstrap"),
+                ("project", "bootstrap"),
+                ("context-basket", "context-basket"),
+                ("context", "context-basket"),
+                ("basket", "context-basket"),
+                ("retrieval", "context-basket"),
+                ("diff-preview", "diff-preview"),
+                ("diff", "diff-preview"),
+                ("patch-review", "diff-preview"),
+                ("terminal", "terminal"),
+                ("export-handoff", "terminal"),
+            ),
+        )
+
     def test_command_mvp_flow_catalog_exposes_the_demo_sequence(self) -> None:
         flow = command_mvp_flow_catalog()
         self.assertEqual(
@@ -248,6 +274,7 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
         self.assertEqual(contract.lookup_index, command_mvp_lookup_index())
+        self.assertEqual(contract.lookup_surface, command_mvp_flow_lookup_surface())
         self.assertEqual(
             contract.lookup_tokens,
             tuple(entry.lookup_tokens for entry in command_mvp_flow()),
