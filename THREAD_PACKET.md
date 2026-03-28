@@ -13,10 +13,12 @@
 - Hardened vault recovery so malformed or incomplete persisted state is recovered or rewritten safely while preserving the safe lock default.
 - Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-file exception for the vault recovery regression.
 
-## Files changed
+## Owned-path files changed
 - `src/qual/context/set_store.py`
 - `src/qual/context/store.py`
 - `src/qual/storage/vault.py`
+
+## Approved exception files changed
 - `tests/unit/test_context_storage_recovery.py`
 
 ## Tasks completed
