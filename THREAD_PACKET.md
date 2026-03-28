@@ -7,9 +7,9 @@
 
 ## Scope completed
 
-This handoff is metadata only. It summarizes the reviewed FTS-first retrieval MVP commits, which are the code-bearing diff for this handoff: `c4944661a0a682821c486810918c2c1fabac1a41` added the source-bundle context regression and payload fallback acceptance, and `c92025af6e11c396f84356967cea704cadb20f5b` added deterministic excerpt lookup audit context in the retrieval service. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface aligned to Milestone 3 in `ROADMAP.md` and capability 2 in `PRODUCT_VISION.md`.
+This handoff summarizes the reviewed FTS-first retrieval MVP code commits. `c4944661a0a682821c486810918c2c1fabac1a41` added the source-bundle context regression and payload fallback acceptance, and `c92025af6e11c396f84356967cea704cadb20f5b` added deterministic excerpt lookup audit context in the retrieval service. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface aligned to Milestone 3 in `ROADMAP.md` and capability 2 in `PRODUCT_VISION.md`.
 
-Packet-only cleanup commits on this branch are not part of the feature delta and are intentionally excluded from the scope summary below.
+Packet/tooling cleanup on this branch is intentionally excluded from the retrieval feature scope and should be reviewed separately if it needs approval.
 
 Coordination artifacts under `.codex/` are excluded from this retrieval handoff and belong to lane planning or packet generation, not the retrieval feature scope.
 
@@ -20,8 +20,6 @@ These entries capture the retrieval code-bearing paths from the reviewed commits
 - `src/qual/engine/retrieval/payload.py`
 - `tests/unit/test_unified_retrieval.py`
 - `src/qual/retrieval/service.py`
-
-c4944661a0a682821c486810918c2c1fabac1a41 also touched `THREAD_PACKET.md`, but that packet-only edit is excluded from the feature approval scope and belongs with packet/planning review, not retrieval behavior review.
 
 The handoff does not include `.codex/` packet or lane-metadata artifacts.
 
