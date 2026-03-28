@@ -11,6 +11,7 @@
 - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`)
 - Roadmap task: `Add agent-side card/section/action payload generation with deterministic schemas`
 - Roadmap exit criterion: `A2UI schema/versioning is documented and stable`
+- Audit mapping: the deterministic action-ordering fix stabilizes materialized A2UI action payloads for CLI fallback rendering, which is the concrete Milestone 5 task/capability linkage this lane completes.
 - This lane only clarifies the handoff mapping for the A2UI ordering fix; it does not expand scope beyond CLI fallback determinism and the matching contract assertions.
 - Tasks completed:
   1. Updated the A2UI materialization path in `src/qual/ui/a2ui.py` to sort filtered actions by canonical JSON before terminal rendering.
@@ -26,6 +27,7 @@
 - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`)
   - Agent emits structured presentation artifacts that are consumable by CLI first, then `Exegesis Console`, then future Studio UI.
   - This fix supports that capability by making the materialized action payload deterministic for the CLI fallback path.
+- Audit mapping: the same ordering fix is the explicit bridge between the Milestone 5 deterministic-schema task and the Capability 5 CLI-first A2UI requirement.
 - The roadmap and vision mapping are explicit enough for reviewer audit without relying on inference.
 - No other roadmap milestones or product-vision capabilities are implicated by this fix.
 - Routing/provider impact note: None.
