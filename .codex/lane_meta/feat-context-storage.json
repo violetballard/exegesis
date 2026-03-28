@@ -19,5 +19,5 @@
   "proposed_readme_patch": "",
   "shared_file_exception": true,
   "kickoff_budget_note": "Reset-required lane after ownership and repo-hygiene drift in the stale March 5 review generation.",
-  "approved_exception_note": "Approved shared-file exception for tests/unit/test_context_storage_recovery.py only; it corresponds to implementation diff 47cda4df831ac41867a8792f40d720e0cb109514 and no other non-owned files are part of the reviewed implementation diff."
+  "approved_exception_note": "Approved shared-file exception for tests/unit/test_context_storage_recovery.py only; it corresponds to implementation diff 47cda4df831ac41867a8792f40d720e0cb109514, while docs-only alignment commits stay separate from the reviewed runtime diff."
 }

@@ -4,7 +4,7 @@
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514` (implementation: runtime storage/context hardening)
 - Handoff-alignment commit(s):
-  - `4e0bba6210fd7d547d11e3ced5ad0c9ec056aab1` (packet/metadata alignment only)
+  - `docs(context-storage): clarify reviewed implementation scope` (packet/metadata alignment only; no runtime scope)
 
 ## Scope goal
 - Harden context basket/set and vault recovery so malformed or incomplete local state is quarantined or canonicalized safely without promoting stale auxiliary state.
@@ -13,7 +13,7 @@
 - Preserved `recovered_from` cleanup timestamps while quarantining malformed context basket and context-set payloads so project-scoped local state remains normalized and auditable.
 - Hardened vault recovery so malformed or incomplete persisted state is recovered or rewritten safely while preserving the safe lock default and local-first storage behavior.
 - Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-test exception.
-- Reissued the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list stay aligned with the implementation commit.
+- Reissued the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list stay aligned with the implementation commit, while keeping docs-only alignment work separate from runtime changes.
 
 ## Owned-path files changed
 - `src/qual/context/set_store.py`
