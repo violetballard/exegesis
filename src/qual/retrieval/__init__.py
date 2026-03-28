@@ -200,14 +200,24 @@ def retrieve_fts_excerpt_bundle(
     )
 
 
-def fetch_fts_excerpt(
+def retrieve_fts_excerpt(
     service: RetrievalService,
     *,
     excerpt_id: str,
 ) -> dict[str, object]:
     """Return an excerpt payload using the canonical FTS-only lookup path."""
 
-    return service.fetch_fts_excerpt(excerpt_id)
+    return service.retrieve_fts_excerpt(excerpt_id)
+
+
+def fetch_fts_excerpt(
+    service: RetrievalService,
+    *,
+    excerpt_id: str,
+) -> dict[str, object]:
+    """Backward-compatible alias for the canonical FTS-only excerpt lookup path."""
+
+    return retrieve_fts_excerpt(service, excerpt_id=excerpt_id)
 
 
 def retrieve_auto(
@@ -378,6 +388,7 @@ __all__ = [
     "retrieve_fts_source_bundle",
     "retrieve_fts_doc_bundle",
     "retrieve_fts_excerpt_bundle",
+    "retrieve_fts_excerpt",
     "fetch_fts_excerpt",
     "retrieve_auto",
     "retrieve_auto_context_bundle",

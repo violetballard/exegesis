@@ -123,6 +123,12 @@ def retrieve_fts_excerpt_bundle(*args, **kwargs):
     return _retrieve_fts_excerpt_bundle(*args, **kwargs)
 
 
+def retrieve_fts_excerpt(*args, **kwargs):
+    from src.qual.retrieval import retrieve_fts_excerpt as _retrieve_fts_excerpt
+
+    return _retrieve_fts_excerpt(*args, **kwargs)
+
+
 def fetch_fts_excerpt(*args, **kwargs):
     from src.qual.retrieval import fetch_fts_excerpt as _fetch_fts_excerpt
 
@@ -207,6 +213,7 @@ __all__ = [
     "retrieve_fts_source_bundle",
     "retrieve_fts_doc_bundle",
     "retrieve_fts_excerpt_bundle",
+    "retrieve_fts_excerpt",
     "retrieve_fts_payload",
     "retrieve_auto_context_bundle",
     "retrieve_auto_source_bundle",

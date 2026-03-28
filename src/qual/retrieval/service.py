@@ -161,6 +161,9 @@ class RetrievalHit:
         doc_type = self.provenance.get("doc_type")
         if isinstance(doc_type, str) and doc_type:
             payload["doc_type"] = doc_type
+        doc_identity_fingerprint = self.provenance.get("doc_identity_fingerprint")
+        if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
+            payload["doc_identity_fingerprint"] = doc_identity_fingerprint
         candidate_doc_count = self.provenance.get("candidate_doc_count")
         if isinstance(candidate_doc_count, int):
             payload["candidate_doc_count"] = candidate_doc_count
@@ -790,6 +793,11 @@ class RetrievalService:
         return self.retrieve_auto(query).retrieval_excerpt_bundle()
 
     def fetch_fts_excerpt(self, excerpt_id: str) -> dict[str, object]:
+        """Backward-compatible alias for the canonical FTS-only excerpt lookup path."""
+
+        return self.retrieve_fts_excerpt(excerpt_id)
+
+    def retrieve_fts_excerpt(self, excerpt_id: str) -> dict[str, object]:
         """Return an excerpt payload using the canonical FTS-only lookup path."""
 
         fts_excerpt = self._find_fts_excerpt(excerpt_id)
@@ -927,7 +935,7 @@ class RetrievalService:
         """Return an excerpt payload, preferring FTS and falling back to PageIndex for compatibility."""
 
         try:
-            return self.fetch_fts_excerpt(excerpt_id)
+            return self.retrieve_fts_excerpt(excerpt_id)
         except KeyError:
             pass
         excerpt = self._docindex.fetch_excerpt(excerpt_id)
@@ -1069,18 +1077,17 @@ class RetrievalService:
             doc_hit_list = grouped[doc_id]
             top_hit = doc_hit_list[0]
             doc_rank = len(doc_hits) + 1
+            doc_type = str(doc_meta.get("doc_type", ""))
             top_excerpt_fingerprint = str(top_hit.provenance.get("excerpt_fingerprint", ""))
             top_excerpt_text_hash = str(
                 top_hit.provenance.get("excerpt_text_hash") or top_hit.provenance.get("hash") or ""
             )
             top_excerpt_text_length = len(top_hit.excerpt_text or "")
             source_hash = self._doc_source_hash(doc_id, doc_meta=doc_meta)
-            doc_identity_fingerprint = self._stable_fingerprint(
-                {
-                    "doc_id": doc_id,
-                    "source_hash": source_hash,
-                    "doc_type": str(doc_meta.get("doc_type", "")),
-                }
+            doc_identity_fingerprint = self._build_doc_identity_fingerprint(
+                doc_id=doc_id,
+                source_hash=source_hash,
+                doc_type=doc_type,
             )
             doc_hits.append(
                 RetrievalDocHit(
@@ -1094,7 +1101,7 @@ class RetrievalService:
                     provenance={
                         "doc_id": doc_id,
                         "source_hash": source_hash,
-                        "doc_type": str(doc_meta.get("doc_type", "")),
+                        "doc_type": doc_type,
                         "query_fingerprint": query_fingerprint,
                         "excerpt_ids": [hit.excerpt_id for hit in doc_hit_list if hit.excerpt_id is not None],
                         "top_excerpt_id": top_hit.excerpt_id,
@@ -1118,7 +1125,7 @@ class RetrievalService:
                             {
                                 "doc_id": doc_id,
                                 "source_hash": source_hash,
-                                "doc_type": str(doc_meta.get("doc_type", "")),
+                                "doc_type": doc_type,
                                 "top_excerpt_id": top_hit.excerpt_id,
                                 "top_excerpt_fingerprint": top_excerpt_fingerprint,
                                 "query_fingerprint": query_fingerprint,
@@ -1589,10 +1596,16 @@ class RetrievalService:
         meta = self._load_doc_meta().get(doc_id, {})
         text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
         source_hash = self._doc_source_hash(doc_id, doc_meta=meta)
+        doc_type = str(meta.get("doc_type", ""))
+        doc_identity_fingerprint = self._build_doc_identity_fingerprint(
+            doc_id=doc_id,
+            source_hash=source_hash,
+            doc_type=doc_type,
+        )
         provenance = {
             "doc_id": doc_id,
             "source_hash": source_hash,
-            "doc_type": str(meta.get("doc_type", "")),
+            "doc_type": doc_type,
             "excerpt_id": excerpt_id,
             "span": {"char_range": {"start": char_start, "end": char_end}},
             "hash": text_hash,
@@ -1606,6 +1619,7 @@ class RetrievalService:
             "retrieval_backend": self._retrieval_policy.retrieval_backend,
             "retrieval_mode": self._retrieval_policy.retrieval_mode,
             "retrieval_policy": self._retrieval_policy.as_snapshot(),
+            "doc_identity_fingerprint": doc_identity_fingerprint,
         }
         if query_scope is not None:
             provenance["query_scope"] = query_scope
@@ -1645,12 +1659,64 @@ class RetrievalService:
             if isinstance(text_value, str) and text_value:
                 text_hash = hashlib.sha256(text_value.encode("utf-8")).hexdigest()
         normalized["text_hash"] = text_hash
-        if "doc_id" not in normalized and isinstance(provenance.get("doc_id"), str):
-            normalized["doc_id"] = provenance["doc_id"]
-        if "source_hash" not in normalized and isinstance(provenance.get("source_hash"), str):
-            normalized["source_hash"] = provenance["source_hash"]
-        if "doc_type" not in normalized and isinstance(provenance.get("doc_type"), str):
-            normalized["doc_type"] = provenance["doc_type"]
+        doc_id_value = normalized.get("doc_id")
+        if (not isinstance(doc_id_value, str) or not doc_id_value) and isinstance(provenance.get("doc_id"), str):
+            doc_id_value = str(provenance["doc_id"])
+            normalized["doc_id"] = doc_id_value
+        elif isinstance(doc_id_value, str) and doc_id_value:
+            doc_id_value = str(doc_id_value)
+        else:
+            doc_id_value = None
+
+        doc_meta = self._load_doc_meta().get(doc_id_value, {}) if doc_id_value is not None else {}
+
+        source_hash = normalized.get("source_hash")
+        if not isinstance(source_hash, str) or not source_hash:
+            provenance_source_hash = provenance.get("source_hash")
+            if isinstance(provenance_source_hash, str) and provenance_source_hash:
+                source_hash = provenance_source_hash
+            elif doc_id_value is not None:
+                source_hash = self._doc_source_hash(doc_id_value, doc_meta=doc_meta)
+        if isinstance(source_hash, str) and source_hash:
+            normalized["source_hash"] = source_hash
+        else:
+            source_hash = None
+
+        doc_type = normalized.get("doc_type")
+        if not isinstance(doc_type, str) or not doc_type:
+            provenance_doc_type = provenance.get("doc_type")
+            if isinstance(provenance_doc_type, str) and provenance_doc_type:
+                doc_type = provenance_doc_type
+            else:
+                meta_doc_type = doc_meta.get("doc_type")
+                if isinstance(meta_doc_type, str) and meta_doc_type:
+                    doc_type = meta_doc_type
+        if isinstance(doc_type, str) and doc_type:
+            normalized["doc_type"] = doc_type
+        else:
+            doc_type = None
+
+        doc_identity_fingerprint = normalized.get("doc_identity_fingerprint")
+        if not isinstance(doc_identity_fingerprint, str) or not doc_identity_fingerprint:
+            provenance_doc_identity_fingerprint = provenance.get("doc_identity_fingerprint")
+            if isinstance(provenance_doc_identity_fingerprint, str) and provenance_doc_identity_fingerprint:
+                doc_identity_fingerprint = provenance_doc_identity_fingerprint
+        if (
+            (not isinstance(doc_identity_fingerprint, str) or not doc_identity_fingerprint)
+            and doc_id_value is not None
+            and isinstance(source_hash, str)
+            and source_hash
+            and isinstance(doc_type, str)
+            and doc_type
+        ):
+            doc_identity_fingerprint = self._build_doc_identity_fingerprint(
+                doc_id=doc_id_value,
+                source_hash=source_hash,
+                doc_type=doc_type,
+            )
+        if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
+            normalized["doc_identity_fingerprint"] = doc_identity_fingerprint
+
         canonical_span = RetrievalService._canonicalize_span(normalized.get("span"))
         if canonical_span is None and isinstance(normalized.get("span"), dict):
             canonical_span = dict(normalized["span"])
@@ -1706,16 +1772,39 @@ class RetrievalService:
                 **provenance,
                 "source_strategy": source_strategy,
             }
+            if doc_id_value is not None:
+                normalized_provenance["doc_id"] = doc_id_value
+            if isinstance(source_hash, str) and source_hash:
+                normalized_provenance["source_hash"] = source_hash
+            if isinstance(doc_type, str) and doc_type:
+                normalized_provenance["doc_type"] = doc_type
             if canonical_span is not None:
                 normalized_provenance["span"] = canonical_span
             normalized_provenance["text_hash"] = text_hash
             normalized_provenance["excerpt_fingerprint"] = excerpt_fingerprint
+            if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
+                normalized_provenance["doc_identity_fingerprint"] = doc_identity_fingerprint
             if isinstance(retrieval_backend, str) and retrieval_backend:
                 normalized_provenance["retrieval_backend"] = retrieval_backend
             if isinstance(retrieval_mode, str) and retrieval_mode:
                 normalized_provenance["retrieval_mode"] = retrieval_mode
             normalized["provenance"] = normalized_provenance
         return normalized
+
+    @staticmethod
+    def _build_doc_identity_fingerprint(
+        *,
+        doc_id: str,
+        source_hash: str,
+        doc_type: str,
+    ) -> str:
+        return RetrievalService._stable_fingerprint(
+            {
+                "doc_id": doc_id,
+                "source_hash": source_hash,
+                "doc_type": doc_type,
+            }
+        )
 
     @staticmethod
     def _canonicalize_span(span: object) -> dict[str, object] | None:
