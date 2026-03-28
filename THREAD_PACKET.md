@@ -3,21 +3,21 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit:
-  - `944ead212a7c8a12e8bd81918fd2bcfcc7e590b7`
+  - `87bafb0566515958d61701fbb1bbea14f77cae55`
 
 ## Scope goal
-- Realign feat-commands handoff metadata so the review packet matches the actual branch head and does not claim code changes that are not present in the submitted commit.
+- Refresh feat-commands handoff metadata so the review packet tracks the current branch head and stays truthful about the docs-only delta.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
 
 ## Scope completed
 - Replaced the stale feature-scope summary with a truthful docs-only branch description.
-- Removed the shared-test approval references from the handoff packet because the submitted commit does not change those files.
-- Regenerated the handoff packet and lane metadata so the review evidence matches the actual branch head.
+- Removed the shared-test approval references from the handoff packet because the reviewed commit does not change those files.
+- Regenerated the handoff packet and lane metadata so the review evidence matches the current branch head.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget. The submitted commit changes 3 handoff metadata files and no lane-owned code files.
+- Stayed within the default lane budget. The reviewed commit changes 2 handoff metadata files and no lane-owned code files.
 - The change stays centered on keeping the command-lane record truthful for the next implementation pass.
 
 ## Approved exception note
@@ -25,11 +25,10 @@
 
 ## Tasks completed (numbered)
 1. Replaced the stale feature-scope summary with a truthful docs-only branch description.
-2. Removed the shared-test approval references from the handoff packet because the submitted commit does not change those files.
-3. Regenerated the handoff packet and lane metadata so the review evidence matches the actual branch head.
+2. Removed the shared-test approval references from the handoff packet because the reviewed commit does not change those files.
+3. Regenerated the handoff packet and lane metadata so the review evidence matches the current branch head.
 
 ## Files changed
-- `.codex/kickoff_packets/feat-commands.md`
 - `.codex/lane_meta/feat-commands.json`
 - `THREAD_PACKET.md`
 
