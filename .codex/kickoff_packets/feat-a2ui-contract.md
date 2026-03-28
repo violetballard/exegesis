@@ -9,6 +9,7 @@
 - No other roadmap milestones are implicated by this fix.
 - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) - the agent emits structured presentation artifacts (cards, sections, actions, metadata) that remain consumable by CLI first, then `Exegesis Console`, then future Studio UI; deterministic action ordering keeps the CLI fallback stable.
 - No other product-vision capabilities are implicated by this fix.
+- These are the reviewer-required plan-alignment mappings for this lane; they replace the prior placeholder form and should remain auditable in the handoff.
 
 ### Priority outcomes
 1. Keep A2UI action ordering canonical in the source path and preserve deterministic CLI fallback rendering.
