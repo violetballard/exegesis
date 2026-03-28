@@ -217,7 +217,7 @@ def fetch_fts_excerpt(
 ) -> dict[str, object]:
     """Backward-compatible alias for the canonical FTS-only excerpt lookup path."""
 
-    return retrieve_fts_excerpt(service, excerpt_id=excerpt_id)
+    return service.fetch_fts_excerpt(excerpt_id)
 
 
 def retrieve_auto(

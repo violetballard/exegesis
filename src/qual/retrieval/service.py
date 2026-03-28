@@ -792,11 +792,14 @@ class RetrievalService:
     def fetch_fts_excerpt(self, excerpt_id: str) -> dict[str, object]:
         """Backward-compatible alias for the canonical FTS-only excerpt lookup path."""
 
-        return self.retrieve_fts_excerpt(excerpt_id)
+        return self._lookup_fts_excerpt(excerpt_id)
 
     def retrieve_fts_excerpt(self, excerpt_id: str) -> dict[str, object]:
         """Return an excerpt payload using the canonical FTS-only lookup path."""
 
+        return self._lookup_fts_excerpt(excerpt_id)
+
+    def _lookup_fts_excerpt(self, excerpt_id: str) -> dict[str, object]:
         fts_excerpt = self._find_fts_excerpt(excerpt_id)
         if fts_excerpt is None:
             raise KeyError(f"unknown excerpt_id: {excerpt_id}")
