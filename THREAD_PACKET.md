@@ -7,11 +7,10 @@
   - `addc72aead4d458748f06497865deef9ab54db26`
   - `a7b2bba6a338d823519701cc38a30d10f819aa7b`
   - `c4944661a0a682821c486810918c2c1fabac1a41`
-  - `827d1d25d4a707f2efa678a83c7de087ebd5fc0c`
 
 ## Scope completed
 
-This handoff covers the source-bundle context regression at the current HEAD: source-bundle snapshots can rehydrate canonical retrieval context deterministically, excerpt payloads and provenance stay stable and auditable, and PageIndex plus embeddings remain deferred as fallback-only plumbing. This maps to `docs/TASKS.md` (`feat-retrieval-fts`) and `ROADMAP.md` (Milestone 3: Real workflow loop), and the handoff stays limited to the retrieval-owned feature surface.
+This handoff covers the reviewed source-bundle context regression work: source-bundle snapshots can rehydrate canonical retrieval context deterministically, excerpt payloads and provenance stay stable and auditable, and PageIndex plus embeddings remain deferred as fallback-only plumbing. This maps to `ROADMAP.md` (Milestone 4: Retrieval Layer), and the handoff stays limited to the retrieval-owned feature surface.
 
 ## Files changed
 
@@ -42,8 +41,7 @@ This handoff covers the source-bundle context regression at the current HEAD: so
 
 ## Roadmap item(s) affected
 
-- `docs/TASKS.md`: `feat-retrieval-fts` -> keep the FTS-first retrieval path authoritative; expose retrieval through the canonical engine contract; keep structured results suitable for workflow cards and basket promotion
-- `ROADMAP.md`: Milestone 3: Real workflow loop
+- `ROADMAP.md`: Milestone 4: Retrieval Layer
 
 ## Vision capability affected
 
