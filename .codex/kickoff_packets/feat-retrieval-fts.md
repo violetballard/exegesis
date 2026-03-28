@@ -14,4 +14,3 @@
 - Keep retrieval deterministic and auditable.
 - Avoid speculative future retrieval abstractions that do not help the MVP.
 - Any engine integration should stay narrowly scoped to retrieval orchestration.
-- Do not include packet/tooling artifacts unless they are part of the reviewed diff for this lane.

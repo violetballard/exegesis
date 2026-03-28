@@ -15,7 +15,7 @@
     "Kept retrieval FTS-first and left PageIndex/embeddings as fallback-only plumbing."
   ],
   "vision_capabilities": [
-    2,
-    3
+    "2. Retrieval-first context handling",
+    "3. Auditable generation"
   ]
 }
