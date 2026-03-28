@@ -6,10 +6,11 @@
   - `b906bc9917cb0a87a031a8f80851e17328697eb5`
   - `addc72aead4d458748f06497865deef9ab54db26`
   - `a7b2bba6a338d823519701cc38a30d10f819aa7b`
+  - `c4944661a0a682821c486810918c2c1fabac1a41`
 
 ## Scope completed
 
-The lane tightened the FTS-first retrieval MVP so source-bundle snapshots can rehydrate the canonical retrieval context deterministically, while excerpt payloads and provenance remain stable and auditable. PageIndex and embeddings stay deferred as fallback-only plumbing, and this handoff remains limited to the retrieval-owned feature surface.
+The lane tightened the FTS-first retrieval MVP so source-bundle snapshots can rehydrate the canonical retrieval context deterministically, while excerpt payloads and provenance remain stable and auditable. PageIndex and embeddings stay deferred as fallback-only plumbing, and this handoff remains limited to the retrieval-owned feature surface through the current HEAD commit.
 
 ## Files changed
 
