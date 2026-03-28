@@ -18,7 +18,7 @@
   "shared_file_exception": true,
   "kickoff_budget_note": "Stayed within the default lane budget. The branch delta changes 9 files, including lane-owned command code plus two approved shared tests.",
   "approved_exception_note": "Approved shared-file exceptions for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to cover deterministic command catalog and diff preview contract behavior.",
-  "review_commit": "16b2a61cc637a9a14ce4b20e0f41b85339405d02",
+  "review_commit": "9b9e0a73c51ef0dc7e904f552674e32e9749d5de",
   "files_changed": [
     {
       "path": ".codex/kickoff_packets/feat-commands.md",

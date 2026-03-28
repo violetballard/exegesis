@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit:
-  - `16b2a61cc637a9a14ce4b20e0f41b85339405d02`
+  - `9b9e0a73c51ef0dc7e904f552674e32e9749d5de`
 
 ## Scope goal
 - Refresh feat-commands handoff metadata so the review packet tracks the real code-bearing branch delta and stays truthful about the lane-owned command contract changes.
