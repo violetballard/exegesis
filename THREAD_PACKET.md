@@ -8,23 +8,13 @@
 
 ## Scope completed
 
-This handoff covers the retrieval lane only. The reviewed implementation delta is the FTS-first retrieval MVP in `c4944661a0a682821c486810918c2c1fabac1a41` and `c92025af6e11c396f84356967cea704cadb20f5b`, which adds deterministic excerpt payload rehydration, source-bundle context regression coverage, and excerpt lookup audit context in the retrieval service. PageIndex and embeddings remain deferred as fallback-only plumbing, and the packet-only resubmission commit is excluded from the reviewed implementation set. The work aligns to `Milestone 3: Real workflow loop` in `ROADMAP.md` and `Retrieval-first context handling` in `PRODUCT_VISION.md`.
+This handoff covers the retrieval lane only. The reviewed implementation delta is the FTS-first retrieval MVP in `c4944661a0a682821c486810918c2c1fabac1a41` and `c92025af6e11c396f84356967cea704cadb20f5b`, which adds deterministic excerpt payload rehydration, source-bundle context regression coverage, and excerpt lookup audit context in the retrieval service. PageIndex and embeddings remain deferred as fallback-only plumbing. The work aligns to `Milestone 3: Real workflow loop` in `ROADMAP.md` and `Retrieval-first context handling` in `PRODUCT_VISION.md`.
 
 ## Files changed
 
 - `src/qual/engine/retrieval/payload.py`
 - `tests/unit/test_unified_retrieval.py`
 - `src/qual/retrieval/service.py`
-
-## Packet/tooling artifacts excluded from review scope
-
-The following paths were updated only in the packet/tooling layer and are excluded from the reviewed implementation file set:
-
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
-- `THREAD_PACKET.md`
-
-These paths are documented here for handoff traceability only and are not part of the code review target.
 
 ## Tasks completed
 
