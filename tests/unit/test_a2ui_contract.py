@@ -107,6 +107,7 @@ class A2UIContractTests(unittest.TestCase):
             "actions": [
                 {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p2"}},
                 {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "payload"}},
+                {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "payload"}},
                 {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
             ],
         }

@@ -157,6 +157,7 @@ def validate_primitive_block(block: Any) -> None:
 def _studio_filter_actions(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
     filtered = dict(card)
     actions = []
+    seen_actions: set[str] = set()
     for action in card.get("actions", []):
         try:
             validate_action_ref(action)
@@ -164,6 +165,10 @@ def _studio_filter_actions(card: dict[str, Any], capabilities: A2UICapabilities)
             continue
         if action.get("id") not in set(capabilities.actions_supported):
             continue
+        action_key = json.dumps(action, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+        if action_key in seen_actions:
+            continue
+        seen_actions.add(action_key)
         actions.append(action)
     filtered["actions"] = sorted(
         actions,
