@@ -17,3 +17,4 @@
 - No unsupported source-code or test-code claims in this kickoff packet.
 - Keep the file list auditable against the actual code diff.
 - Favor a small, stable A2UI metadata-versioning change over broader fallback or canonicalization work.
+- Required-review mapping is explicit: this lane satisfies `ROADMAP.md` Milestone 5: A2UI Presentation Layer and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).

@@ -24,5 +24,7 @@
   - `ROADMAP.md` Milestone 5: A2UI Presentation Layer - define the `A2UI` output contract for agent-produced presentation artifacts and provide CLI rendering fallback for the same structured payloads.
 - Vision capability affected:
   - `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) - structured presentation artifacts remain consumable by CLI first, then `Exegesis Console`, then future Studio UI; deterministic action ordering keeps the CLI fallback stable.
+- Required-fix closure:
+  - The handoff now names the exact roadmap milestone and product capability requested by review, so the A2UI ordering fix can be audited against plan and vision without inference.
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.
