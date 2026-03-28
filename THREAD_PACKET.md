@@ -14,7 +14,15 @@ Keep the FTS-first retrieval lane scoped to deterministic excerpt and provenance
 
 ## Scope completed
 
-This handoff covers the retrieval lane only. The reviewed implementation delta spans `175ebc8a7484db1edaede05ac2f98d7715b4eb66`, `c92025af6e11c396f84356967cea704cadb20f5b`, `c4944661a0a682821c486810918c2c1fabac1a41`, and `47b3977d271e3f7faacb6ba3082ab94a2d327fcb`, which together add excerpt lookup audit context, deterministic excerpt payload rehydration, source-bundle context regression coverage, canonical query constructor export through both retrieval facades, and citation-bundle export through the same retrieval entrypoints. Commit `8de722f25d0ef3fd30b7b60646f683ab824c2057` only syncs handoff metadata. The canonical retrieval package remains the source of truth; the engine-side retrieval facades expose those stable entrypoints without reintroducing PageIndex or embeddings as required paths. PageIndex and embeddings remain deferred as fallback-only plumbing. The work aligns to `Milestone 3: Real workflow loop` in `ROADMAP.md` and `Retrieval-first context handling` in `PRODUCT_VISION.md`.
+This handoff covers the retrieval lane only.
+
+- Added excerpt lookup audit context and deterministic excerpt payload rehydration in the retrieval service.
+- Added source-bundle context regression coverage and canonical query export through the engine and package retrieval facades.
+- Added citation-bundle export through the same retrieval entrypoints.
+- Kept the canonical retrieval package as the source of truth while exposing stable engine-side facades.
+- Kept PageIndex and embeddings deferred as fallback-only plumbing rather than required paths.
+- Kept the work aligned to `Milestone 3: Real workflow loop` in `ROADMAP.md` and `Retrieval-first context handling` in `PRODUCT_VISION.md`.
+- Excluded packet-planner/tooling artifacts from this handoff; those belong in a separate review packet.
 
 Implementation file mapping:
 
