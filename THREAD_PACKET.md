@@ -8,7 +8,7 @@
   - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> define `A2UI` output contract for agent-produced presentation artifacts, add deterministic agent-side card/section/action payload generation, and provide CLI rendering fallback for the same structured payloads
   - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> agent emits structured presentation artifacts that are consumable by CLI first, then `Exegesis Console`, then future Studio UI
 - Audit anchor: this fix is intentionally narrow and is the concrete reviewer-required mapping for the deterministic action-ordering change.
-- Plan alignment: this lane maps to `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`), with no other roadmap milestones or vision capabilities implicated.
+- Plan alignment: this lane maps to `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`), with no other roadmap milestones or vision capabilities implicated; the required handoff fields below repeat those exact anchors so the re-review can audit them without inference.
 - Roadmap detail: preserve deterministic agent-side card/section/action payload generation while keeping the `A2UI` output contract stable and client-agnostic.
 - Vision detail: structured presentation artifacts remain CLI-first and consumable by `Exegesis Console` with the same underlying artifacts.
 - Reviewer-required fix satisfied: the roadmap and vision mappings are now explicit in this packet, so the handoff no longer relies on inference.
@@ -21,7 +21,7 @@
 - Task summary:
   1. Updated the A2UI materialization path in `src/qual/ui/a2ui.py` to sort filtered actions by canonical JSON before terminal rendering.
   2. Added contract coverage in `tests/unit/test_a2ui_contract.py` to assert the canonical ordering behavior for the materialized payloads.
-  3. Rewrote the handoff packet to match the actual diff and removed unrelated packet-maintenance, routing, and UI-shell references.
+  3. Rewrote the handoff packet to match the actual diff, removed unrelated packet-maintenance, routing, and UI-shell references, and made the required roadmap/vision anchors explicit for re-review.
 - Changed-files list:
   - `src/qual/ui/a2ui.py`
   - `tests/unit/test_a2ui_contract.py`
