@@ -3,24 +3,30 @@
   "kickoff_budget_note": "",
   "missing_handoff_fields": [],
   "roadmap_items": [
-    "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullets Add agent-side card/section/action payload generation with deterministic schemas and Provide CLI rendering fallback for the same structured payloads, with exit criterion A2UI schema/versioning is documented and stable; deterministic action ordering is the concrete A2UI payload-stability step completed by this lane"
+    "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullets Add agent-side card/section/action payload generation with deterministic schemas and Provide CLI rendering fallback for the same structured payloads, with exit criterion A2UI schema/versioning is documented and stable; deterministic action ordering is the concrete A2UI payload-stability step completed by this lane",
+    "ROADMAP.md `MVP Focus Through 2026-05-04` lists `feat-a2ui-contract` as a current active implementation emphasis under this milestone."
   ],
-  "reviewer_fix_status": "Required fix #1 resolved: ROADMAP.md Milestone 5 and PRODUCT_VISION.md Capability 5 are explicitly named in the reviewer-facing handoff artifacts for this branch tip.",
+  "reviewer_fix_status": "Required fix #1 resolved: ROADMAP.md Milestone 5, the `MVP Focus Through 2026-05-04` task anchor, and PRODUCT_VISION.md Capability 5 are explicitly named in the reviewer-facing handoff artifacts for this branch tip.",
   "vision_capabilities": [
     "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> agent emits structured presentation artifacts that are consumable by CLI first, then Exegesis Console, then future Studio UI, and CLI remains able to render a text fallback of the same underlying artifacts; deterministic action ordering keeps that CLI text fallback stable"
   ],
   "required_handoff_fields": {
-    "roadmap_item": "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullets Add agent-side card/section/action payload generation with deterministic schemas and Provide CLI rendering fallback for the same structured payloads, with exit criterion A2UI schema/versioning is documented and stable; deterministic action ordering is the concrete A2UI payload-stability step completed by this lane",
-    "vision_capability": "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> agent emits structured presentation artifacts that are consumable by CLI first, then Exegesis Console, then future Studio UI, and CLI remains able to render a text fallback of the same underlying artifacts; deterministic action ordering keeps that CLI text fallback stable"
+    "roadmap_items": [
+      "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullets Add agent-side card/section/action payload generation with deterministic schemas and Provide CLI rendering fallback for the same structured payloads, with exit criterion A2UI schema/versioning is documented and stable; deterministic action ordering is the concrete A2UI payload-stability step completed by this lane",
+      "ROADMAP.md `MVP Focus Through 2026-05-04` lists `feat-a2ui-contract` as a current active implementation emphasis under this milestone."
+    ],
+    "vision_capabilities": [
+      "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> agent emits structured presentation artifacts that are consumable by CLI first, then Exegesis Console, then future Studio UI, and CLI remains able to render a text fallback of the same underlying artifacts; deterministic action ordering keeps that CLI text fallback stable"
+    ]
   },
   "risk": "LOW",
   "routing_provider_impact": "None",
-  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, with matching assertions in tests/unit/test_a2ui_contract.py. This lane maps to ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> Add agent-side card/section/action payload generation with deterministic schemas plus Provide CLI rendering fallback for the same structured payloads, and PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI).",
+  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, with matching assertions in tests/unit/test_a2ui_contract.py. This lane maps to ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> Add agent-side card/section/action payload generation with deterministic schemas plus Provide CLI rendering fallback for the same structured payloads, the `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`, and PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI).",
   "shared_file_exception": false,
   "tasks_completed": [
     "Updated the A2UI materialization path in src/qual/ui/a2ui.py to sort filtered actions by canonical JSON before terminal rendering.",
     "Added contract coverage in tests/unit/test_a2ui_contract.py for the canonical ordering behavior.",
-    "Updated the lane handoff artifacts so the required roadmap and product-vision mappings are explicit and auditable.",
+    "Updated the lane handoff artifacts so the required roadmap, task-anchor, and product-vision mappings are explicit and auditable.",
     "Hardened the packet planner so missing roadmap/vision handoff fields are not backfilled with placeholder text."
   ]
 }

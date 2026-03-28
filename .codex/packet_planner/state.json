@@ -5,7 +5,8 @@
       "last_emitted_packet": "F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md",
       "last_handoff_fields": {
         "roadmap_items": [
-          "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullets Add agent-side card/section/action payload generation with deterministic schemas and Provide CLI rendering fallback for the same structured payloads, with exit criterion A2UI schema/versioning is documented and stable; deterministic action ordering is the concrete A2UI payload-stability step completed by this lane"
+          "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullets Add agent-side card/section/action payload generation with deterministic schemas and Provide CLI rendering fallback for the same structured payloads, with exit criterion A2UI schema/versioning is documented and stable; deterministic action ordering is the concrete A2UI payload-stability step completed by this lane",
+          "ROADMAP.md `MVP Focus Through 2026-05-04` lists `feat-a2ui-contract` as a current active implementation emphasis under this milestone."
         ],
         "vision_capabilities": [
           "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> agent emits structured presentation artifacts that are consumable by CLI first, then Exegesis Console, then future Studio UI, and CLI remains able to render a text fallback of the same underlying artifacts; deterministic action ordering keeps that CLI text fallback stable"

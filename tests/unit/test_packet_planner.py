@@ -23,6 +23,10 @@ ROADMAP_MAPPING = (
     "and Provide CLI rendering fallback for the same structured payloads, with exit "
     "criterion A2UI schema/versioning is documented and stable"
 )
+ROADMAP_TASK_ANCHOR = (
+    "ROADMAP.md `MVP Focus Through 2026-05-04` lists `feat-a2ui-contract` as a "
+    "current active implementation emphasis under this milestone."
+)
 VISION_MAPPING = (
     "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> agent emits "
     "structured presentation artifacts that are consumable by CLI first, then "
@@ -43,8 +47,8 @@ class PacketPlannerTests(unittest.TestCase):
                 "roadmap_items": [],
                 "vision_capabilities": [],
                 "required_handoff_fields": {
-                    "roadmap_item": ROADMAP_MAPPING,
-                    "vision_capability": VISION_MAPPING,
+                    "roadmap_items": [ROADMAP_MAPPING, ROADMAP_TASK_ANCHOR],
+                    "vision_capabilities": [VISION_MAPPING],
                 },
                 "tasks_completed": ["Updated packet handoff fields."],
                 "risk": "LOW",
@@ -55,6 +59,7 @@ class PacketPlannerTests(unittest.TestCase):
         )
 
         self.assertIn(ROADMAP_MAPPING, packet)
+        self.assertIn(ROADMAP_TASK_ANCHOR, packet)
         self.assertIn(VISION_MAPPING, packet)
         self.assertIn("Provide CLI rendering fallback for the same structured payloads", packet)
         self.assertIn("text fallback of the same underlying artifacts", packet)
@@ -71,7 +76,7 @@ class PacketPlannerTests(unittest.TestCase):
                 "roadmap_items": [],
                 "vision_capabilities": [],
                 "last_handoff_fields": {
-                    "roadmap_items": [ROADMAP_MAPPING],
+                    "roadmap_items": [ROADMAP_MAPPING, ROADMAP_TASK_ANCHOR],
                     "vision_capabilities": [VISION_MAPPING],
                 },
                 "tasks_completed": ["Synced saved packet handoff fields."],
@@ -83,6 +88,7 @@ class PacketPlannerTests(unittest.TestCase):
         )
 
         self.assertIn(ROADMAP_MAPPING, packet)
+        self.assertIn(ROADMAP_TASK_ANCHOR, packet)
         self.assertIn(VISION_MAPPING, packet)
         self.assertNotIn("including the CLI fallback rendering path used by this fix", packet)
         self.assertNotIn("pending reviewer/integrator confirmation", packet)
