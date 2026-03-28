@@ -21,7 +21,7 @@
   - No known blockers. The change is constrained to A2UI action materialization and its contract assertions.
   - The only functional risk is accidental over-sorting of materialized actions; the added test coverage guards against unstable ordering.
 - Roadmap/vision mapping:
-  - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer - Define `A2UI` output contract for agent-produced presentation artifacts; provide CLI rendering fallback for the same structured payloads; keep schema/versioning documented and stable.
-  - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) - Agent emits structured presentation artifacts (cards, sections, actions, metadata) that must be consumable by CLI first, then `Exegesis Console`, then future Studio UI.
+  - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer - canonicalize the A2UI materialization path so agent-produced presentation artifacts render through the CLI fallback in a deterministic order.
+  - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) - structured presentation artifacts (cards, sections, actions, metadata) remain consumable by CLI first, then `Exegesis Console`, then future Studio UI.
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.

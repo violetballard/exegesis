@@ -4,8 +4,7 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - define the A2UI output contract for agent-produced presentation artifacts.",
-    "Milestone 5: A2UI Presentation Layer - provide CLI rendering fallback for the same structured payloads.",
+    "Milestone 5: A2UI Presentation Layer - canonicalize the A2UI materialization path so agent-produced presentation artifacts render through the CLI fallback in a deterministic order.",
     "Milestone 5: A2UI Presentation Layer - keep schema/versioning documented and stable."
   ],
   "routing_provider_impact": "None",
@@ -18,6 +17,6 @@
     "Kept the lane record scoped to one source file plus matching tests with no routing or provider impact."
   ],
   "vision_capabilities": [
-    "Capability 5: Agent-to-UI protocol (A2UI) - Agent emits structured presentation artifacts that must be consumable by CLI first, then Exegesis Console, then future Studio UI."
+    "Capability 5: Agent-to-UI protocol (A2UI) - structured presentation artifacts remain consumable by CLI first, then Exegesis Console, then future Studio UI."
   ]
 }
