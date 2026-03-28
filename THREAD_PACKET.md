@@ -4,11 +4,11 @@
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514`
 - Final head SHA:
-  - `7f5b4ea2e931cffee0695a545db6c4f5417a430f`
+  - `4eea5c4ba491e39da372b18a2191d5ee0ba14eb1`
 
 ## Scope completed
 
-The fix stayed within the owned context/storage paths: `src/qual/context/**` and `src/qual/storage/**` were updated so recovery cleanup keeps the existing `updated_at` while stripping `recovered_from` provenance. The handoff packet, lane metadata, and routed packet copy were reissued together under the approved handoff-artifact exception so the reviewed file list stays synchronized. No `engine/src/exegesis_engine/state/**` or `engine/src/exegesis_engine/storage/**` changes were needed for this recovery pass.
+The fix stayed within the owned context/storage paths: `src/qual/context/**` and `src/qual/storage/**` were updated so recovery cleanup keeps the existing `updated_at` while stripping `recovered_from` provenance. The handoff packet, lane metadata, and routed packet copy were refreshed separately under the approved handoff-artifact exception and are not counted in the feature file list. No `engine/src/exegesis_engine/state/**` or `engine/src/exegesis_engine/storage/**` changes were needed for this recovery pass.
 `scripts/scope-check.sh` is not part of this branch diff, so there is no shared-file exception to carry for that path.
 
 ## Files changed
@@ -17,9 +17,6 @@ The fix stayed within the owned context/storage paths: `src/qual/context/**` and
 - `src/qual/context/store.py`
 - `src/qual/storage/vault.py`
 - `tests/unit/test_context_storage_recovery.py` (approved lane regression-test exception)
-- `THREAD_PACKET.md` (approved handoff-artifact exception; synchronized with lane metadata and routed packet copy)
-- `.codex/lane_meta/feat-context-storage.json` (approved handoff-artifact exception; synchronized with `THREAD_PACKET.md` and routed packet copy)
-- `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__6ca617ccf17f5da8f8270345fd41d48b68909ab7__20260328T204224Z.md` (approved handoff-artifact exception; synchronized with `THREAD_PACKET.md` and lane metadata)
 
 ## Tasks completed
 
@@ -58,7 +55,7 @@ The fix stayed within the owned context/storage paths: `src/qual/context/**` and
 
 ## Approved exception note
 
-- Approved shared/integrator-locked file exception for `THREAD_PACKET.md`, `.codex/lane_meta/feat-context-storage.json`, and `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__6ca617ccf17f5da8f8270345fd41d48b68909ab7__20260328T204224Z.md`; these handoff artifacts must be updated together so the packet and lane bookkeeping match. `scripts/scope-check.sh` is not modified in this branch. Approved lane regression-test exception for `tests/unit/test_context_storage_recovery.py`; provenance documented in `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__7b756291349fb12b27d07cf355a9b1b863759aa2__20260328T173918Z.md`.
+- Approved shared/integrator-locked file exception for `THREAD_PACKET.md`, `.codex/lane_meta/feat-context-storage.json`, and `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__6ca617ccf17f5da8f8270345fd41d48b68909ab7__20260328T204224Z.md`; these handoff artifacts were refreshed separately so the packet and lane bookkeeping match, but they are not counted in the feature file list. `scripts/scope-check.sh` is not modified in this branch. Approved lane regression-test exception for `tests/unit/test_context_storage_recovery.py`; provenance documented in `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__7b756291349fb12b27d07cf355a9b1b863759aa2__20260328T173918Z.md`.
 
 ## Scope-check / ownership note
 
