@@ -13,7 +13,7 @@
     "docs/TASKS.md: feat-retrieval-fts"
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows.",
+  "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3 and PRODUCT_VISION.md capability 2.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Added the excerpt lookup audit trail and deterministic rehydration path in the retrieval service.",
