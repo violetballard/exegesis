@@ -45,10 +45,10 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3 - Product Readiness: lock CLI-first command output contracts for operator use.
+- None. This submission only corrects handoff metadata for the docs-only branch tip.
 
 ### Vision capability affected
-- Capability 4 - Operator-first control surface: the command lane keeps a stable CLI-first surface with deterministic JSON and text output.
+- None. No product capability changes are introduced by this submission.
 
 ### Routing/provider impact note
 - None. This change only affects handoff metadata; no routing/provider files change.
