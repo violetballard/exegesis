@@ -20,7 +20,7 @@
   "shared_file_exception": true,
   "kickoff_budget_note": "Stayed within the default lane budget. The branch delta is 9 files changed and remains within the lane size limits.",
   "approved_exception_note": "Approved shared-file exception for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to cover the command contract surface alongside the owned-path command and diff_preview changes.",
-  "review_commit": "e9d91fc059132dc49db559f1afb06187a994165a",
+  "review_commit": "5a3b5d6f807340d79f9241bb33c4fcdeb7b35104",
   "files_changed": [
     {
       "path": ".codex/kickoff_packets/feat-commands.md",

@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit:
-  - `e9d91fc059132dc49db559f1afb06187a994165a`
+  - `5a3b5d6f807340d79f9241bb33c4fcdeb7b35104`
 
 ## Scope goal
 - Harden command catalog and diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.
