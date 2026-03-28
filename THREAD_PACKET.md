@@ -1,34 +1,37 @@
-## Thread Handoff Packet
+# Feature -> Review Packet
 
-- Branch name: `codex/feat-retrieval-fts`
-- Reviewed commit(s):
-  - `70af1c68bfb22d39bb2cd2341f94167ad97b42f7`
-  - `b906bc9917cb0a87a031a8f80851e17328697eb5`
-- Handoff type: retrieval feature handoff; this packet records the lane-owned implementation scope and required gate results.
+- Lane: `feat-commands`
+- Branch: `codex/feat-commands`
+- Commit: `06193483fdf6cb12e5d9b6d3aa49e25cacd9fc66`
+
+## Scope goal
+- Harden the command surface for the engine-first MVP so flow-aware lookup indexes and smoke-contract coverage stay deterministic for the CLI-first operator flow.
+
+## Lane/owned paths
+- `src/qual/commands/**`
+
+## Approved exception note
+- Approved shared-file exception for `tests/unit/test_commands_catalog.py` to add focused command-contract coverage required by review.
 
 ## Scope completed
+- Added flow-aware MVP lookup helpers and exports so `command_mvp_flow_lookup_index()` and related command-surface helpers resolve the demo flow without changing the manifest contract.
+- Kept the command smoke surface deterministic and covered the flow-aware lookup/surface paths with focused unit tests in `tests/unit/test_commands_catalog.py`.
+- Regenerated the handoff packet so the submitted branch state reflects the actual command-surface delta and the approved shared-test exception.
 
-The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface. Packet/planner tooling artifacts are excluded from the feature file list.
+## Kickoff budget/limits compliance
+- Stayed within the default lane budget. The branch delta is 3 files changed and remains within the lane size limits.
 
-## Files changed
+## Tasks completed (numbered)
+1. Added flow-aware MVP lookup index helpers and exported them through the command package surface.
+2. Kept the command smoke contract deterministic and covered the MVP lookup/surface paths with focused unit tests.
+3. Re-scoped the handoff packet to the actual `feat-commands` branch delta and corrected the shared-file approval note for `tests/unit/test_commands_catalog.py`.
 
-- `src/qual/retrieval/__init__.py`
-- `src/qual/retrieval/service.py`
-- `src/qual/engine/retrieval/__init__.py`
-- `src/qual/engine/retrieval/interface.py`
-- `src/qual/engine/retrieval/fts_strategy.py`
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/engine/retrieval/policy.py`
-
-## Tasks completed
-
-1. Canonicalized FTS excerpt lookup so excerpt rehydration returns deterministic payloads and records an audit trail.
-2. Normalized retrieval provenance and downstream payload builders so excerpt, source, citation, doc, and context bundles share stable hashes and fingerprints.
-3. Locked the retrieval policy to FTS-first and kept PageIndex/embeddings deferred as fallback-only plumbing.
-4. Exposed the canonical retrieval entrypoints through the engine/package facades so the FTS-first path remains the stable default.
+## Files changed for this turn
+- `src/qual/commands/catalog.py`
+- `src/qual/commands/__init__.py`
+- `tests/unit/test_commands_catalog.py`
 
 ## Commands run and outcomes
-
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
@@ -37,32 +40,24 @@ The lane canonicalized the FTS-first retrieval MVP so generation flows receive d
 - `make ci`: PASS
 
 ## Risks / blockers
-
 - Risk: `LOW`
-- Blockers: none
+- Blocker: none
 
-## Roadmap item(s) affected
+## Required handoff fields
+### Roadmap item(s) affected
+- Milestone 1 - Bootstrap Flow Stabilization: command and CLI smoke-flow hardening for the operator surface.
+- Milestone 2 - Test Hardening: focused contract coverage for the flow-aware command lookup helpers and surface contract.
+- Milestone 5 - A2UI Presentation Layer: keep the CLI fallback surface aligned with the MVP flow used by the same engine/A2UI contracts.
 
-- ROADMAP.md: Milestone 4: Retrieval Layer (Planned)
+### Vision capability affected
+- Capability 4 - Operator-first control surface.
+- Capability 5 - Agent-to-UI protocol (`A2UI`).
 
-## Vision capability affected
+### Routing/provider impact note
+- None. This change only affects local command lookup behavior and command-surface contract coverage; no routing/provider files change.
 
-- PRODUCT_VISION.md: 2. Retrieval-first context handling
-- PRODUCT_VISION.md: 6. Auditable state and workflow
-
-## Routing/provider impact note
-
-- None
-
-## Compatibility note
-
-- PageIndex and embeddings remain fallback-only plumbing behind the FTS-first policy for this MVP; they are not required retrieval paths.
-
-## Handoff correction note
-
-- This packet correction aligns the metadata with the retrieval implementation and removes the packet/tooling scope contradiction from the reviewed handoff.
+### Proposed README patch text
+- None.
 
 ## Scope-check / ownership note
-
-- Shared/integrator-locked edits: `NO`
-- Feature handoff scope is lane-contained; packet/planner tooling artifacts are not part of the feature file list.
+- Shared/integrator-locked edits: `YES` (approved exception for `tests/unit/test_commands_catalog.py`)

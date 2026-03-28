@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json, os, subprocess
-from fnmatch import fnmatch
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -103,7 +102,7 @@ def read_lane_meta(lane: str) -> Json:
 
 def validate_meta(meta: Json) -> List[str]:
     missing=[]
-    for k in ("tasks_completed","risk","roadmap_items","vision_capabilities","routing_provider_impact","scope_completed"):
+    for k in ("tasks_completed","risk","roadmap_items","vision_capabilities","routing_provider_impact"):
         if k not in meta: missing.append(k); continue
         v=meta[k]
         if isinstance(v,list) and len(v)==0: missing.append(k)
@@ -114,8 +113,6 @@ def apply_meta_defaults(meta: Json, missing: List[str]) -> Json:
     out = dict(meta or {})
     if "tasks_completed" in missing:
         out["tasks_completed"] = ["(auto) reviewer handback update; see lane commits for concrete changes"]
-    if "scope_completed" in missing:
-        out["scope_completed"] = "(auto) scope completed pending reviewer/integrator confirmation"
     if "roadmap_items" in missing:
         out["roadmap_items"] = ["(auto) roadmap mapping pending reviewer/integrator confirmation"]
     if "vision_capabilities" in missing:
@@ -129,23 +126,6 @@ def apply_meta_defaults(meta: Json, missing: List[str]) -> Json:
 def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
     out = git(f"diff --name-only {base_ref}...HEAD", cwd=cwd)
     return [ln.strip() for ln in out.splitlines() if ln.strip()]
-
-def select_packet_files(lane: str, meta: Json, diff_files: List[str]) -> List[str]:
-    related = [str(f).strip() for f in (meta.get("related_implementation_files") or []) if str(f).strip()]
-    patterns = LANE_OWNED_PATHS.get(lane, [])
-    def _is_owned(path: str) -> bool:
-        return bool(patterns) and any(fnmatch(path, pattern) for pattern in patterns)
-
-    owned_related = [f for f in related if _is_owned(f)]
-    if owned_related:
-        return owned_related
-
-    if related and not patterns:
-        return related
-
-    if not patterns:
-        return diff_files
-    return [f for f in diff_files if _is_owned(f)]
 
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
