@@ -20,7 +20,7 @@
   "proposed_readme_patch": "",
   "shared_file_exception": true,
   "kickoff_budget_note": "Owned-path command work plus focused diff_preview test coverage; within default 8-task, 12-file, and 500-net-LOC limits.",
-  "review_commit": "37518edc, ed3d3fd1",
+  "review_commit": "e53af6696629a9cccda27ac1b344825bae8dc858, 0df5b4a7, 1ba5ff27, a032bd49, b284202f",
   "files_changed": [
     {
       "path": ".codex/kickoff_packets/feat-commands.md",
@@ -36,10 +36,6 @@
     },
     {
       "path": "src/qual/commands/__init__.py",
-      "kind": "lane_owned_code"
-    },
-    {
-      "path": "src/qual/commands/canonical.py",
       "kind": "lane_owned_code"
     },
     {

@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit(s): `37518edc, ed3d3fd1`
+- Commit(s): `e53af6696629a9cccda27ac1b344825bae8dc858, 0df5b4a7, 1ba5ff27, a032bd49, b284202f`
 
 ## Scope goal
 - Harden `diff_preview` and command catalog output contracts so CLI-first operator flows stay deterministic, verifiable, and ready for JSON/text contract use.
@@ -24,7 +24,7 @@
 
 ## Kickoff budget/limits compliance
 - Stayed within the default lane budget.
-- The branch delta is 9 files changed: 4 lane-owned code files, 2 approved shared tests, and 3 regenerated handoff artifacts.
+- The branch delta is 8 files changed: 3 lane-owned code files, 2 approved shared tests, and 3 regenerated handoff artifacts.
 - The change remains within the lane size limits.
 
 ## Tasks completed (numbered)
@@ -40,7 +40,6 @@
   - `THREAD_PACKET.md`
 - Lane-owned code delta:
   - `src/qual/commands/__init__.py`
-  - `src/qual/commands/canonical.py`
   - `src/qual/commands/catalog.py`
   - `src/qual/commands/diff_preview.py`
 - Approved shared tests:
