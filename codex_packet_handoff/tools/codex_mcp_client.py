@@ -197,11 +197,11 @@ class CodexMcpClient:
         req_id = msg.get("id")
         params = msg.get("params", {}) or {}
 
-        decision = "deny"
+        decision = "denied"
         if method == "execCommandApproval":
-            decision = "allow" if self._approval.approve_exec(str(params.get("command", ""))) else "deny"
+            decision = "approved" if self._approval.approve_exec(str(params.get("command", ""))) else "denied"
         elif method == "applyPatchApproval":
-            decision = "allow" if self._approval.approve_patch() else "deny"
+            decision = "approved" if self._approval.approve_patch() else "denied"
 
         self._send({"jsonrpc": "2.0", "id": req_id, "result": {"decision": decision}})
 

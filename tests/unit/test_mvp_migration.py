@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from types import SimpleNamespace
 from pathlib import Path
 
 from exegesis_engine.api.app_service import ExegesisAppService
@@ -189,6 +190,46 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         self.assertTrue(_should_run_cycle(args, "snapshot-a", "snapshot-a", 0, False))
         self.assertTrue(_should_run_cycle(args, "snapshot-a", "snapshot-a", 4, True))
         self.assertFalse(_should_run_cycle(args, "snapshot-a", "snapshot-a", 4, False))
+
+    def test_direct_router_bootstraps_integrator_thread_in_cloud_mode(self) -> None:
+        from codex_packet_handoff.tools.agents_coordinator import _bootstrap_direct_integrator_thread
+
+        calls: list[tuple[str, object]] = []
+
+        class FakeRouterMod:
+            STATE_FILE = Path("/tmp/router-state.json")
+
+            @staticmethod
+            def _runtime_mode(cfg: object, state: dict) -> str:
+                return "cloud_primary"
+
+            @staticmethod
+            def _profile_for_role(cfg: object, role: str, *, local: bool = False) -> SimpleNamespace:
+                return SimpleNamespace(model="gpt-5.1-codex")
+
+            @staticmethod
+            def save_json(path: Path, data: dict) -> None:
+                calls.append(("save_json", data.copy()))
+
+        class FakeIntegratorClient:
+            def codex(self, **kwargs: object) -> tuple[str, str]:
+                calls.append(("codex", kwargs))
+                return "thread-123", "ready"
+
+        state: dict = {}
+        tid = _bootstrap_direct_integrator_thread(
+            FakeRouterMod,
+            object(),
+            "/repo",
+            state,
+            FakeIntegratorClient(),
+            "",
+        )
+
+        self.assertEqual(tid, "thread-123")
+        self.assertEqual(state["integrator_thread_id"], "thread-123")
+        self.assertTrue(any(call[0] == "codex" for call in calls))
+        self.assertTrue(any(call[0] == "save_json" for call in calls))
 
 
 if __name__ == "__main__":

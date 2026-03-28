@@ -74,6 +74,33 @@ class DirectRouterCtx:
     integrator_tid: str
 
 
+def _bootstrap_direct_integrator_thread(
+    router_mod: object,
+    cfg: object,
+    repo_cwd: str,
+    state: Dict,
+    integrator_client: object,
+    integrator_tid: str,
+) -> str:
+    if integrator_tid:
+        return integrator_tid
+    if router_mod._runtime_mode(cfg, state) == "local_fallback":
+        return integrator_tid
+    integrator_profile = router_mod._profile_for_role(cfg, "integrator", local=False)
+    timeout = float(getattr(cfg, "integrator_timeout", 600.0))
+    integrator_tid, _ = integrator_client.codex(
+        prompt="Ready as integrator.",
+        cwd=repo_cwd,
+        sandbox="workspace-write",
+        approval_policy="on-request",
+        model=integrator_profile.model,
+        timeout=timeout,
+    )
+    state["integrator_thread_id"] = integrator_tid
+    router_mod.save_json(router_mod.STATE_FILE, state)
+    return integrator_tid
+
+
 def utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -373,10 +400,15 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
     reviewer_thread_ids = state.get("reviewer_thread_ids") or {}
     if not isinstance(reviewer_thread_ids, dict):
         reviewer_thread_ids = {}
-    reviewer_thread_ids = router_mod.ensure_all_reviewer_threads(
-        reviewer_client, cfg, repo_cwd, state, reviewer_thread_ids
-    )
     integrator_tid = state.get("integrator_thread_id")
+    integrator_tid = _bootstrap_direct_integrator_thread(
+        router_mod,
+        cfg,
+        repo_cwd,
+        state,
+        integrator_client,
+        integrator_tid,
+    )
 
     state["reviewer_thread_ids"] = reviewer_thread_ids
     if reviewer_thread_ids:

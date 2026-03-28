@@ -565,10 +565,17 @@ def _run_cli_codex(
     return p.returncode, p.stdout or ""
 
 
-def _run_cli_reviewer(cfg: RouterConfig, repo_cwd: str, pkt: str, reason: str) -> Optional[str]:
+def _run_cli_reviewer(
+    cfg: RouterConfig,
+    repo_cwd: str,
+    pkt: str,
+    reason: str,
+    *,
+    local: Optional[bool] = None,
+) -> Optional[str]:
     if not cfg.use_cli_reviewer_fallback:
         return None
-    prof = _profile_for_role(cfg, "reviewer", local=True)
+    prof = _profile_for_role(cfg, "reviewer", local=local)
     try:
         rc, out = _run_cli_codex(
             prof.codex_cmd,
@@ -590,10 +597,16 @@ def _run_cli_reviewer(cfg: RouterConfig, repo_cwd: str, pkt: str, reason: str) -
     return text
 
 
-def _run_cli_integrator(cfg: RouterConfig, repo_cwd: str, approved: str) -> Optional[str]:
+def _run_cli_integrator(
+    cfg: RouterConfig,
+    repo_cwd: str,
+    approved: str,
+    *,
+    local: Optional[bool] = None,
+) -> Optional[str]:
     if not cfg.use_cli_integrator_fallback:
         return None
-    prof = _profile_for_role(cfg, "integrator", local=True)
+    prof = _profile_for_role(cfg, "integrator", local=local)
     try:
         rc, out = _run_cli_codex(
             prof.codex_cmd,
@@ -1002,22 +1015,29 @@ def process_once(
                 archive_reviewer_notes(lane_dir)
                 write_text(lane_dir/"outbox/integrator"/pkt_path.name.replace("F__","R__APPROVED__"), reviewer_text)
                 integ = ""
-                if _runtime_mode(cfg, state) != "local_fallback":
+                runtime_local = _runtime_mode(cfg, state) == "local_fallback"
+                if not runtime_local and integrator_tid:
                     try:
                         integrator_tid, integ = integrator_client.codex_reply(
                             integrator_tid, integrator_prompt(reviewer_text), timeout=cfg.integrator_timeout
                         )
                     except Exception as exc:
-                        if cfg.auto_switch_to_local_on_quota:
+                        if cfg.auto_switch_to_local_on_quota and REVIEWER_QUOTA_RE.search(str(exc)):
                             state = _switch_to_local_fallback(cfg, state, f"integrator call failed/timed out: {exc}")
-                        integ = _run_cli_integrator(cfg, repo_cwd, reviewer_text) or ""
+                            runtime_local = True
+                        integ = _run_cli_integrator(cfg, repo_cwd, reviewer_text, local=runtime_local) or ""
                         if not integ:
                             write_text(
                                 lane_dir / "archive" / f"INTEGRATOR__ERROR__{pkt_path.name}",
                                 f"Integrator call failed/timed out: {exc}",
                             )
                 else:
-                    integ = _run_cli_integrator(cfg, repo_cwd, reviewer_text)
+                    integ = _run_cli_integrator(
+                        cfg,
+                        repo_cwd,
+                        reviewer_text,
+                        local=runtime_local,
+                    )
                 state = _apply_quota_text_safeguard(
                     cfg,
                     state,
@@ -1178,17 +1198,20 @@ def process_integrator_backlog(
             archive(pkt, lane_dir)
             processed += 1
             continue
-        if _runtime_mode(cfg, state) == "local_fallback":
-            integ = _run_cli_integrator(cfg, repo_cwd, approved_text)
+        runtime_local = _runtime_mode(cfg, state) == "local_fallback"
+        if runtime_local or not integrator_tid:
+            integ = _run_cli_integrator(cfg, repo_cwd, approved_text, local=runtime_local)
         else:
             try:
                 integrator_tid, integ = integrator_client.codex_reply(
                     integrator_tid, integrator_prompt(approved_text), timeout=cfg.integrator_timeout
                 )
             except Exception as exc:
-                if cfg.auto_switch_to_local_on_quota:
+                runtime_local = _runtime_mode(cfg, state) == "local_fallback"
+                if cfg.auto_switch_to_local_on_quota and REVIEWER_QUOTA_RE.search(str(exc)):
                     state = _switch_to_local_fallback(cfg, state, f"integrator backlog call failed/timed out: {exc}")
-                integ = _run_cli_integrator(cfg, repo_cwd, approved_text)
+                    runtime_local = True
+                integ = _run_cli_integrator(cfg, repo_cwd, approved_text, local=runtime_local)
         state = _apply_quota_text_safeguard(
             cfg,
             state,
