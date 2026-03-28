@@ -20,5 +20,6 @@
   "proposed_readme_patch": "",
   "shared_file_exception": true,
   "kickoff_budget_note": "Owned-path command work plus focused diff_preview test coverage; within default 8-task, 12-file, and 500-net-LOC limits.",
+  "review_commit": "2a89474277028aa439bd48714e3c29725fc92f27",
   "approved_exception_note": "Approved shared-file exceptions for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to add focused contract coverage required by review. No policy or integrator-locked files are edited in the submitted branch."
 }

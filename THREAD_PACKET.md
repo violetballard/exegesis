@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit(s): `HEAD`
+- Commit(s): `2a89474277028aa439bd48714e3c29725fc92f27`
 
 ## Scope goal
 - Harden command catalog lookup helpers and `diff_preview` output contracts so CLI-first operator flows stay deterministic, verifiable, and ready for JSON/text contract use.
