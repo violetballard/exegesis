@@ -7,7 +7,7 @@
 
 ## Scope completed
 
-The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance. PageIndex and embeddings remain deferred as fallback-only plumbing, and this handoff stays limited to the retrieval-owned feature surface. Packet-planner/tooling edits are intentionally excluded from this packet and belong in a separate handoff if they need review.
+The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling. PageIndex and embeddings remain deferred as fallback-only plumbing, and this handoff stays limited to the retrieval-owned feature surface. Packet-planner/tooling edits are intentionally excluded from this packet and belong in a separate handoff if they need review.
 
 ## Files changed
 
@@ -43,7 +43,8 @@ The lane canonicalized the FTS-first retrieval MVP so generation flows receive d
 
 ## Roadmap item(s) affected
 
-- Milestone 3: Product Readiness -> Define generation provenance contract (retrieval evidence attached to outputs)
+- Milestone 3: Product Readiness -> Define generation provenance contract (retrieval evidence attached to outputs) for `feat-retrieval-fts`
+- MVP Focus Through 2026-05-04 -> `feat-retrieval-fts`
 
 ## Vision capability affected
 

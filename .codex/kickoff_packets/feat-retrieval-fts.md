@@ -10,6 +10,11 @@
 
 The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance. PageIndex and embeddings remain deferred as fallback-only plumbing, and this handoff is limited to the retrieval-owned feature surface rather than packet-planner/tooling edits.
 
+### Roadmap / vision mapping
+- ROADMAP.md: Milestone 3: Product Readiness -> Define generation provenance contract (retrieval evidence attached to outputs) for `feat-retrieval-fts`
+- ROADMAP.md: MVP Focus Through 2026-05-04 -> `feat-retrieval-fts`
+- PRODUCT_VISION.md: 2. Retrieval-first context handling
+
 ### Reviewed implementation files
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/embeddings_strategy.py`
