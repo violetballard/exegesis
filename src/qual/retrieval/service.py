@@ -61,7 +61,7 @@ def _optional_text(value: object) -> str | None:
 
 
 def _normalize_supported_value(value: object, *, field_name: str, allowed: set[str]) -> str:
-    normalized = str(value).strip()
+    normalized = str(value).strip().casefold()
     if normalized not in allowed:
         raise ValueError(f"unsupported {field_name}: {normalized}")
     return normalized
