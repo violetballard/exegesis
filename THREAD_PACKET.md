@@ -17,6 +17,7 @@
 - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`)
   - Agent emits structured presentation artifacts that are consumable by CLI first, then `Exegesis Console`, then future Studio UI.
   - This fix supports that capability by making the materialized action payload deterministic for the CLI fallback path.
+- This packet is the reviewer-facing proof that the handoff mapping fix is explicit and auditable without changing runtime behavior.
 - Routing/provider impact note: None.
 
 ## Handoff Notes
@@ -25,9 +26,11 @@
 - CLI fallback rendering remains preserved.
 - No routing, provider, or shared/integrator-locked files were changed by this fix.
 - Reviewer-required plan alignment fields are explicit above and auditable without inference: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
+- This thread packet now mirrors the reviewer-required mapping in the feature packet itself, so the handoff is explicit in both places.
 - This directly satisfies the reviewer-required fix to name the specific roadmap item and vision capability in the handoff packet.
 - The matching feature packet lives at `.codex/packets/lanes/feat-a2ui-contract/inbox/feature/F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md`.
 - This is the final handoff packet for the reviewer-required mapping fix and does not introduce any new scope.
+- This closes the reviewer-required mapping fix without changing the scope of the A2UI ordering change.
 
 ## Commands Run And Outcomes
 
