@@ -49,7 +49,7 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- MVP Focus Through 2026-05-04: feat-context-storage - persistent basket/document/session state and vault hardening.
+- Milestone 1: Bootstrap Flow Stabilization - Context basket and vault persistence hardening.
 
 ### Vision capability affected
 - Capability 1 - Local-first state and identity.

@@ -50,12 +50,11 @@ The feature commit preserved `recovered_from` cleanup timestamps across basket, 
 
 ## Roadmap item(s) affected
 
-- MVP Focus Through 2026-05-04: feat-context-storage
-- Persistent basket/document/session state and vault hardening
+- Milestone 1: Bootstrap Flow Stabilization - Context basket and vault persistence hardening.
 
 ## Vision capability affected
 
-- Capability 1 - Local-first state and identity
+- Capability 1 - Local-first state and identity.
 
 ## Routing/provider impact note
 
