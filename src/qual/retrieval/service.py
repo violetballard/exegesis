@@ -1325,17 +1325,9 @@ class RetrievalService:
         date_range: tuple[str, str] | None = None,
         scan_limit: int | None = None,
     ) -> tuple[str, ...]:
+        shortlist_query = self._build_fts_shortlist_query(query, max_results=limit)
         if date_range is None:
-            run = self._fts.retrieve(
-                RetrievalQuery(
-                    query_text=query.query_text,
-                    scope=query.scope,
-                    intent=query.intent,
-                    constraints=RetrievalConstraints(max_results=limit, doc_types=query.constraints.doc_types),
-                    confidentiality_profile=query.confidentiality_profile,
-                ),
-                candidate_doc_ids=(),
-            )
+            run = self._fts.retrieve(shortlist_query, candidate_doc_ids=())
             doc_ids: list[str] = []
             seen = set()
             for hit in run.hits:
@@ -1353,13 +1345,7 @@ class RetrievalService:
         batch_limit = max(25, min(limit, effective_scan_limit))
         while True:
             run = self._fts.retrieve(
-                RetrievalQuery(
-                    query_text=query.query_text,
-                    scope=query.scope,
-                    intent=query.intent,
-                    constraints=RetrievalConstraints(max_results=batch_limit, doc_types=query.constraints.doc_types),
-                    confidentiality_profile=query.confidentiality_profile,
-                ),
+                self._build_fts_shortlist_query(query, max_results=batch_limit),
                 candidate_doc_ids=(),
             )
             for hit in run.hits:
@@ -1378,6 +1364,29 @@ class RetrievalService:
                 break
             batch_limit = next_batch_limit
         return tuple(doc_ids)
+
+    @staticmethod
+    def _build_fts_shortlist_query(query: RetrievalQuery, *, max_results: int) -> RetrievalQuery:
+        """Preserve search-shaping constraints when deriving the shortlist query.
+
+        The shortlist should stay aligned with the caller's intent so exact-match
+        preferences and other query-shaping flags can influence the candidate
+        document set before the final FTS retrieval pass.
+        """
+
+        return RetrievalQuery(
+            query_text=query.query_text,
+            scope=query.scope,
+            intent=query.intent,
+            constraints=RetrievalConstraints(
+                max_results=max_results,
+                doc_types=query.constraints.doc_types,
+                require_citations=query.constraints.require_citations,
+                section_hint=query.constraints.section_hint,
+                prefer_exact_matches=query.constraints.prefer_exact_matches,
+            ),
+            confidentiality_profile=query.confidentiality_profile,
+        )
 
     @staticmethod
     def _fts_shortlist_limit(max_results: int) -> int:
