@@ -2,11 +2,11 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: Restore the `feat-commands` scope policy so the approved shared `tests/unit/test_diff_preview.py` regression is allowed through the gate.
+- Scope goal: Keep the `feat-commands` branch delta and handoff metadata aligned with the command-catalog and diff-preview contract work already present on the branch.
 
 ### Priority outcomes
-1. Keep the scope-check policy aligned with the approved shared regression.
-2. Keep the handoff metadata truthful about the actual submitted scope.
+1. Keep the handoff metadata truthful about the actual submitted branch delta.
+2. Keep the shared-test and scope-check approvals explicit.
 3. Keep the lane from widening beyond the approved `feat-commands` surface.
 
 ### Guardrails
