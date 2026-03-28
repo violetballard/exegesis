@@ -24,7 +24,9 @@
   - `ROADMAP.md` Milestone 5: A2UI Presentation Layer - define `A2UI` output contract for agent-produced presentation artifacts, including deterministic action ordering for CLI fallback rendering.
   - `ROADMAP.md` Milestone 5: A2UI Presentation Layer - add agent-side card/section/action payload generation with deterministic schemas.
   - `ROADMAP.md` Milestone 5: A2UI Presentation Layer - provide CLI rendering fallback for the same structured payloads.
+  - No other roadmap milestones are implicated by this fix.
 - Vision capability affected:
   - `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) - agent emits structured presentation artifacts (cards, sections, actions, metadata) that remain consumable by CLI first, then `Exegesis Console`, then future Studio UI; deterministic action ordering keeps that CLI fallback stable.
+  - No other product-vision capabilities are implicated by this fix.
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.
