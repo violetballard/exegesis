@@ -1,13 +1,13 @@
 {
-  "scope_goal": "Keep the feat-commands handoff metadata synchronized with the actual branch head and avoid claiming code changes that are not present in the docs-only maintenance delta.",
+  "scope_goal": "Keep the feat-commands handoff metadata synchronized with the current branch head and avoid claiming code changes that are not present in the docs-only maintenance delta.",
   "tasks_completed": [
     "Replaced the stale feature-scope summary with a truthful docs-only branch description.",
     "Removed the shared-test approval references from the handoff packet because the reviewed commit does not change those files.",
-    "Regenerated the handoff packet and lane metadata so the review evidence matches the current branch head."
+    "Regenerated the kickoff packet, handoff packet, and lane metadata so the review evidence matches the current branch head."
   ],
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 1: Bootstrap Flow Stabilization - keep the command-lane handoff metadata synchronized with the actual branch head so feature reviews stay deterministic and reviewable."
+    "Milestone 3: feat-commands - CLI compatibility and migration-safe entrypoints."
   ],
   "vision_capabilities": [
     "3. Auditable generation - the handoff packet now reflects the exact submitted commit and file set.",
@@ -16,10 +16,14 @@
   "routing_provider_impact": "None. This change only affects local handoff metadata; no routing/provider files change.",
   "proposed_readme_patch": "",
   "shared_file_exception": false,
-  "kickoff_budget_note": "Stayed within the default lane budget. The reviewed commit changes 2 handoff metadata files and no lane-owned code files.",
+  "kickoff_budget_note": "Stayed within the default lane budget. The reviewed commit changes 3 metadata files and no lane-owned code files.",
   "approved_exception_note": "",
-  "review_commit": "87bafb0566515958d61701fbb1bbea14f77cae55",
+  "review_commit": "515702bccbea7173d15565fad732522c718d4ff8",
   "files_changed": [
+    {
+      "path": ".codex/kickoff_packets/feat-commands.md",
+      "kind": "meta"
+    },
     {
       "path": ".codex/lane_meta/feat-commands.json",
       "kind": "meta"

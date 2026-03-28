@@ -2,10 +2,10 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: Keep the feat-commands handoff metadata synchronized with the actual branch head and avoid claiming code changes that are not present in the docs-only maintenance delta.
+- Scope goal: Keep the feat-commands handoff metadata synchronized with the current branch head and packet set while avoiding claims about code changes that are not present in the docs-only maintenance delta.
 
 ### Priority outcomes
-1. Keep the command-lane record synchronized with the current branch head.
+1. Keep the command-lane record synchronized with the current branch head and packet set.
 2. Remove stale shared-test approval references from the handoff packet.
 3. Preserve a truthful lane record for the next implementation pass.
 
