@@ -10,8 +10,8 @@
 - Harden context basket/set and vault recovery so malformed or incomplete local state is quarantined or canonicalized safely without promoting stale auxiliary state.
 
 ## Scope completed
-- Preserved `recovered_from` cleanup timestamps while quarantining malformed context basket and context-set payloads so rewritten state stays normalized and auditable.
-- Hardened vault recovery so malformed or incomplete persisted state is recovered or rewritten safely while preserving the safe lock default.
+- Preserved `recovered_from` cleanup timestamps while quarantining malformed context basket and context-set payloads so the project-scoped local state stays normalized, auditable, and safe to rewrite.
+- Hardened vault recovery so malformed or incomplete persisted state is recovered or rewritten safely while preserving the safe lock default and local-first storage behavior.
 - Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-file exception for the vault recovery regression.
 
 ## Owned-path files changed
@@ -42,7 +42,7 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3: Product Readiness - local-first state and identity.
+- Milestone 1: Bootstrap Flow Stabilization - context basket and vault persistence hardening.
 
 ### Vision capability affected
 - Capability 1: Local-first state and identity - project-scoped vault and context basket with safe recovery behavior.
