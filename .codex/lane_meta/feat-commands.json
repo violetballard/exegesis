@@ -1,6 +1,6 @@
 {
   "approved_exception_note": "Approved shared-file exception for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to add focused contract coverage required by review.",
-  "kickoff_budget_note": "Stayed within the default lane budget; the branch delta is 8 files changed and remains within the lane size limits.",
+  "kickoff_budget_note": "Stayed within the default lane budget; the branch delta is 9 files changed and remains within the lane size limits.",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
@@ -21,7 +21,7 @@
     "Capability 3 - Auditable generation: the emitted SHA-256 fingerprint verifies the exact diff payload returned by the command, including label application and truncation behavior.",
     "Capability 4 - Operator-first control surface: diff_preview keeps a stable CLI-first surface while exposing a concrete JSON contract that matches the submitted behavior change and is covered by focused tests."
   ],
-  "review_commit": "c33ec8c28867fdd5e042c2a992dd251b94cd2a38",
+  "review_commit": "e33f24557df83a870fca6d6144cd9a69e5bd0958",
   "files_changed": [
     {
       "path": ".codex/kickoff_packets/feat-commands.md",

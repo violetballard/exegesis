@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit(s): `c33ec8c28867fdd5e042c2a992dd251b94cd2a38`
+- Commit(s): `e33f24557df83a870fca6d6144cd9a69e5bd0958`
 
 ## Scope goal
 - Harden command catalog and diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.
@@ -42,12 +42,12 @@
 - `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
-- `make scope-check`: not yet run
-- `./quality-format.sh --check`: not yet run
-- `./quality-lint.sh`: not yet run
-- `./quality-test.sh`: not yet run
-- `./typecheck-test.sh`: not yet run
-- `make ci`: not yet run
+- `make scope-check`: PASS
+- `./quality-format.sh --check`: PASS
+- `./quality-lint.sh`: PASS
+- `./quality-test.sh`: PASS
+- `./typecheck-test.sh`: PASS
+- `make ci`: PASS
 
 ## Risks / blockers
 - Risk: `LOW`
