@@ -1,18 +1,18 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet update commit: `893a6264d66dceb184f422debdd4e3b5af0e6c6d` `handoff resubmission` (packet-only)
 - Reviewed code commit(s):
-  - `c4944661a0a682821c486810918c2c1fabac1a41`
-  - `c92025af6e11c396f84356967cea704cadb20f5b`
+  - `47b3977d271e3f7faacb6ba3082ab94a2d327fcb`
 
 ## Scope completed
 
-This handoff covers the retrieval lane only. The reviewed implementation delta is the FTS-first retrieval MVP in `c4944661a0a682821c486810918c2c1fabac1a41` and `c92025af6e11c396f84356967cea704cadb20f5b`, which adds deterministic excerpt payload rehydration, source-bundle context regression coverage, and excerpt lookup audit context in the retrieval service. PageIndex and embeddings remain deferred as fallback-only plumbing. The work aligns to `Milestone 3: Real workflow loop` in `ROADMAP.md` and `Retrieval-first context handling` in `PRODUCT_VISION.md`.
+This handoff covers the retrieval lane only. The reviewed implementation delta is the FTS-first retrieval MVP in `47b3977d271e3f7faacb6ba3082ab94a2d327fcb`, which adds deterministic excerpt payload rehydration, source-bundle context regression coverage, excerpt lookup audit context in the retrieval service, and canonical query constructor export through both retrieval facades. PageIndex and embeddings remain deferred as fallback-only plumbing. The work aligns to `Milestone 3: Real workflow loop` in `ROADMAP.md` and `Retrieval-first context handling` in `PRODUCT_VISION.md`.
 
 ## Files changed
 
 - `src/qual/engine/retrieval/payload.py`
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/retrieval/__init__.py`
 - `tests/unit/test_unified_retrieval.py`
 - `src/qual/retrieval/service.py`
 
@@ -20,8 +20,8 @@ This handoff covers the retrieval lane only. The reviewed implementation delta i
 
 1. Accepted source-bundle context fallbacks in the engine payload helpers and verified snapshot safety in regression tests.
 2. Added the excerpt lookup audit trail in the retrieval service.
-3. Threaded `lookup_entrypoint` through the two public FTS excerpt entrypoints so the audit trail can distinguish them.
-4. Recorded `lookup_resolution` in the excerpt audit trail so direct FTS hits and fallback resolution remain distinguishable.
+3. Exported the canonical retrieval query constructor through both the engine and package facades.
+4. Added regression coverage for source bundle fallback, canonical query sharing, and package re-exports.
 
 ## Commands run with results
 
