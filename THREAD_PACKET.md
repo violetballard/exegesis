@@ -8,11 +8,11 @@
 
 ## Scope completed
 
-This handoff is for retrieval behavior only. The current commit updates `THREAD_PACKET.md` as metadata only so packet cleanup stays separate from the reviewed feature delta. The reviewed implementation delta is the FTS-first retrieval MVP code in `c4944661a0a682821c486810918c2c1fabac1a41` and `c92025af6e11c396f84356967cea704cadb20f5b`, which added the source-bundle context regression, payload fallback acceptance, and deterministic excerpt lookup audit context in the retrieval service. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface aligned to Milestone 3 in `ROADMAP.md` and capability 2 in `PRODUCT_VISION.md`.
+This handoff covers the retrieval implementation only. The reviewed delta is the FTS-first retrieval MVP in `c4944661a0a682821c486810918c2c1fabac1a41` and `c92025af6e11c396f84356967cea704cadb20f5b`, which adds deterministic excerpt payload rehydration, source-bundle context regression coverage, and excerpt lookup audit context in the retrieval service. PageIndex and embeddings remain deferred as fallback-only plumbing.
 
-## Files changed in the reviewed implementation commits
+## Files changed
 
-These entries capture only the retrieval code-bearing paths from the reviewed commits. They exclude packet/tooling artifacts such as `THREAD_PACKET.md` and `.codex/*`.
+These are the code-bearing paths from the reviewed implementation commits. Packet/tooling artifacts such as `THREAD_PACKET.md` and `.codex/*` are excluded from the reviewed file set.
 
 - `src/qual/engine/retrieval/payload.py`
 - `tests/unit/test_unified_retrieval.py`
@@ -27,7 +27,7 @@ The packet-only commit does not change the reviewed implementation file list abo
 3. Threaded `lookup_entrypoint` through the two public FTS excerpt entrypoints so the audit trail can distinguish them.
 4. Recorded `lookup_resolution` in the excerpt audit trail so direct FTS hits and fallback resolution remain distinguishable.
 
-## Commands run and outcomes
+## Commands run with results
 
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
@@ -36,7 +36,7 @@ The packet-only commit does not change the reviewed implementation file list abo
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 
-## Risks / blockers
+## Risks/blockers
 
 - Risk: `LOW`
 - Blockers: none
