@@ -428,6 +428,12 @@ def command_demo_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) ->
     return command_flow_lookup_index(specs, command_demo_flow_steps())
 
 
+def command_demo_flow_lookup_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_flow_lookup_surface(specs, command_demo_flow_steps())
+
+
 def command_demo_flow_lookup_surface(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
@@ -458,6 +464,12 @@ def command_mvp_flow_lookup_surface(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_flow_lookup_surface(specs)
+
+
+def command_mvp_flow_lookup_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_flow_lookup_index(specs)
 
 
 def command_tokens(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
