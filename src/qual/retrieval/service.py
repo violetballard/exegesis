@@ -825,6 +825,7 @@ class RetrievalService:
                 "source_strategy": excerpt.get("source_strategy"),
                 "retrieval_backend": excerpt.get("retrieval_backend"),
                 "retrieval_mode": excerpt.get("retrieval_mode"),
+                "retrieval_policy": copy.deepcopy(self._retrieval_policy.as_snapshot()),
                 "source_hash": excerpt.get("source_hash"),
                 "text_hash": excerpt.get("text_hash"),
                 "excerpt_fingerprint": excerpt.get("excerpt_fingerprint"),
@@ -1756,33 +1757,12 @@ class RetrievalService:
                 canonical_span = dict(provenance["span"])
         if canonical_span is not None:
             normalized["span"] = canonical_span
-        retrieval_backend = normalized.get("retrieval_backend")
-        if not isinstance(retrieval_backend, str) or not retrieval_backend:
-            provenance_backend = provenance.get("retrieval_backend")
-            if isinstance(provenance_backend, str) and provenance_backend:
-                retrieval_backend = provenance_backend
-            else:
-                retrieval_backend = self._retrieval_policy.retrieval_backend
-        if isinstance(retrieval_backend, str) and retrieval_backend:
-            normalized["retrieval_backend"] = retrieval_backend
-        retrieval_mode = normalized.get("retrieval_mode")
-        if not isinstance(retrieval_mode, str) or not retrieval_mode:
-            provenance_mode = provenance.get("retrieval_mode")
-            if isinstance(provenance_mode, str) and provenance_mode:
-                retrieval_mode = provenance_mode
-            else:
-                retrieval_mode = self._retrieval_policy.retrieval_mode
-        if isinstance(retrieval_mode, str) and retrieval_mode:
-            normalized["retrieval_mode"] = retrieval_mode
-        retrieval_policy = normalized.get("retrieval_policy")
-        if not isinstance(retrieval_policy, dict):
-            provenance_policy = provenance.get("retrieval_policy")
-            if isinstance(provenance_policy, dict):
-                retrieval_policy = provenance_policy
-            else:
-                retrieval_policy = self._retrieval_policy.as_snapshot()
-        if isinstance(retrieval_policy, dict):
-            normalized["retrieval_policy"] = dict(retrieval_policy)
+        retrieval_policy = self._retrieval_policy.as_snapshot()
+        retrieval_backend = cast(str, retrieval_policy["retrieval_backend"])
+        retrieval_mode = cast(str, retrieval_policy["retrieval_mode"])
+        normalized["retrieval_backend"] = retrieval_backend
+        normalized["retrieval_mode"] = retrieval_mode
+        normalized["retrieval_policy"] = copy.deepcopy(retrieval_policy)
         excerpt_fingerprint = normalized.get("excerpt_fingerprint")
         if not isinstance(excerpt_fingerprint, str) or not excerpt_fingerprint:
             provenance_excerpt_fingerprint = provenance.get("excerpt_fingerprint")
@@ -1811,13 +1791,15 @@ class RetrievalService:
             if canonical_span is not None:
                 normalized_provenance["span"] = canonical_span
             normalized_provenance["text_hash"] = text_hash
+            if isinstance(text_hash, str) and text_hash:
+                normalized_provenance["hash"] = text_hash
+                normalized_provenance["excerpt_text_hash"] = text_hash
             normalized_provenance["excerpt_fingerprint"] = excerpt_fingerprint
             if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
                 normalized_provenance["doc_identity_fingerprint"] = doc_identity_fingerprint
-            if isinstance(retrieval_backend, str) and retrieval_backend:
-                normalized_provenance["retrieval_backend"] = retrieval_backend
-            if isinstance(retrieval_mode, str) and retrieval_mode:
-                normalized_provenance["retrieval_mode"] = retrieval_mode
+            normalized_provenance["retrieval_backend"] = retrieval_backend
+            normalized_provenance["retrieval_mode"] = retrieval_mode
+            normalized_provenance["retrieval_policy"] = copy.deepcopy(retrieval_policy)
             normalized_provenance["retrieval_source_strategy"] = source_strategy
             normalized["provenance"] = normalized_provenance
         return normalized
