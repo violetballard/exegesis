@@ -3,7 +3,7 @@
 - Lane: `feat-context-storage`
 - Branch: `codex/feat-context-storage`
 - Commit: `47cda4df831ac41867a8792f40d720e0cb109514`
-- Final head SHA: `40f71e1a25b86811534172b541f933f83289ad42`
+- Final head SHA: `23d902bd10515ff3d575b2f62f1b5a633cb86c5e`
 
 ## Scope goal
 - Preserve recovered_from cleanup timestamps in context basket/set/vault persistence so canonical cleanup rewrites keep the existing `updated_at` while stripping recovery provenance.
