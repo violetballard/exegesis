@@ -1,6 +1,6 @@
 {
   "feature_commit": "47cda4df831ac41867a8792f40d720e0cb109514",
-  "handoff_commit": "ee2dd30ae4c3118ffe1f2129f5f3f14316868a00",
+  "handoff_commit": "5cf30e759ed161dcf100b7c7c2b05bf44a3dacbf",
   "scope_goal": "Preserve recovered_from cleanup timestamps in context basket/set and vault recovery so canonical cleanup rewrites keep the existing updated_at while removing recovery provenance.",
   "scope_completed": [
     "Preserved existing updated_at during canonical cleanup rewrites in context basket, context set, and vault recovery while stripping recovered_from provenance.",
