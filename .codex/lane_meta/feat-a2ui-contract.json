@@ -7,7 +7,7 @@
     "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> deterministic materialized action ordering, stable A2UI schemas, and CLI rendering fallback for agent-produced presentation artifacts"
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, and keep the handoff aligned with the required handoff fields for ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) and PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI), specifically CLI-first rendering of structured artifacts.",
+  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, and keep the handoff aligned with ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) and PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI), specifically deterministic materialized action ordering, stable A2UI schemas, and CLI-first rendering of structured artifacts with Exegesis Console reuse.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Updated the A2UI materialization path in src/qual/ui/a2ui.py to sort filtered actions by canonical JSON before rendering.",
@@ -16,6 +16,6 @@
     "Kept the lane record scoped to one source file plus matching tests with no routing or provider impact."
   ],
   "vision_capabilities": [
-    "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> agent emits structured presentation artifacts that render in CLI first and remain reusable by Exegesis Console and future Studio UI"
+    "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> CLI-first rendering of structured presentation artifacts with Exegesis Console reuse"
   ]
 }
