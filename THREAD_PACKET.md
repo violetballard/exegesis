@@ -2,9 +2,9 @@
 
 - Branch name: `codex/feat-context-storage`
 - Reviewed commit(s):
-  - `47cda4df831ac41867a8792f40d720e0cb109514` (runtime storage/context hardening)
-  - `93992fd2a76b9568a001b776901dc66cbbe004f2` (owned-path handoff file clarification)
-  - `7ec8f52c789e693d43e9344df4438b7eb37f216b` (roadmap-aligned handoff metadata)
+  - `47cda4df831ac41867a8792f40d720e0cb109514` (implementation: runtime storage/context hardening)
+  - `93992fd2a76b9568a001b776901dc66cbbe004f2` (handoff: owned-path file clarification)
+  - `7ec8f52c789e693d43e9344df4438b7eb37f216b` (handoff: roadmap-aligned metadata)
 
 ## Scope goal
 - Harden context basket/set and vault recovery so malformed or incomplete local state is quarantined or canonicalized safely without promoting stale auxiliary state.
@@ -42,8 +42,7 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3: Product Readiness - local-first state and identity safe recovery behavior for persisted local state.
-- Milestone 1: Bootstrap Flow Stabilization - context basket and vault persistence hardening.
+- Milestone 3: Product Readiness - local-first state and identity.
 
 ### Vision capability affected
 - Capability 1: Local-first state and identity - project-scoped vault and context basket with safe recovery behavior.
