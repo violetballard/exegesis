@@ -102,6 +102,24 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
 
+    def test_command_names_reject_ambiguous_custom_catalogs(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Duplicate command name"):
+            command_names(
+                (
+                    CommandSpec(name="bootstrap", flow_step="project-open"),
+                    CommandSpec(name="bootstrap", flow_step="retrieval"),
+                )
+            )
+
+    def test_command_flow_steps_reject_ambiguous_custom_catalogs(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Duplicate command flow step"):
+            command_flow_steps(
+                (
+                    CommandSpec(name="bootstrap", flow_step="project-open"),
+                    CommandSpec(name="context-basket", flow_step="project-open"),
+                )
+            )
+
     def test_command_lookup_projections_reject_ambiguous_catalog_definitions(self) -> None:
         with self.assertRaisesRegex(ValueError, "Duplicate command name"):
             command_lookup_table(

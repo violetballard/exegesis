@@ -234,6 +234,7 @@ def command_flow_lookup_table(
 
 
 def command_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
+    validate_command_catalog(specs)
     return tuple(spec.name for spec in specs)
 
 
@@ -292,6 +293,7 @@ def command_flow_lookup_index(
 
 
 def command_flow_steps(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
+    validate_command_catalog(specs)
     return tuple(spec.flow_step for spec in specs)
 
 
