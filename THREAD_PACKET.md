@@ -13,6 +13,7 @@
 - Preserved `recovered_from` cleanup timestamps while quarantining malformed context basket and context-set payloads so project-scoped local state remains normalized, auditable, and aligned with the local-first state and identity contract.
 - Hardened vault recovery so malformed or incomplete persisted state is recovered or rewritten safely while preserving the safe lock default and local-first storage behavior.
 - Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-test exception for the vault recovery regression.
+- Reissued the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list stay aligned with the actual runtime fix commits.
 
 ## Owned-path files changed
 - `src/qual/context/set_store.py`
@@ -22,11 +23,16 @@
 ## Approved exception files changed
 - `tests/unit/test_context_storage_recovery.py` (approved shared-test exception; `SCOPE_ALLOW_SHARED=1` is required by `scripts/scope-check.sh`)
 
+## Handoff-alignment files changed
+- `.codex/lane_meta/feat-context-storage.json`
+- `THREAD_PACKET.md`
+
 ## Tasks completed
 1. Tightened `ContextBasketStore` recovery so malformed basket payloads are quarantined while `recovered_from` cleanup timestamps are preserved and canonical rewrites remain auditable.
 2. Tightened `ContextSetStore` recovery so malformed context-set payloads are quarantined while `recovered_from` cleanup timestamps are preserved and canonical rewrites remain auditable.
 3. Tightened `VaultService` recovery so malformed vault state is recovered or rewritten safely while preserving the safe lock default.
 4. Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-file exception.
+5. Refreshed the handoff packet and lane metadata so the branch summary, roadmap mapping, and files changed list match the reviewed commit history.
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
