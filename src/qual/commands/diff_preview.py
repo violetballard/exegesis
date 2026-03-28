@@ -406,7 +406,9 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
     if len(diff) > max_chars:
         output = _truncate_diff(diff, max_chars)
         truncated = True
-    fingerprint = _diff_fingerprint(_emitted_diff_payload(output=output, summary_only=summary_only))
+    emitted_diff = _emitted_diff_payload(output=output, summary_only=summary_only)
+    # Hash the exact payload we expose after summary-only collapsing.
+    fingerprint = _diff_fingerprint(emitted_diff)
 
     return _text_or_json_result(
         summary_source=summary_source,
