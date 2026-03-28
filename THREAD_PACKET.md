@@ -7,7 +7,7 @@
 
 ## Scope completed
 
-The lane hardened context basket, context-set, and vault persistence so malformed or incomplete local state is quarantined or canonicalized safely, valid recovery paths are preserved, and recovery rewrites stay auditable. The branch head also includes a metadata-only follow-up commit that records the completed lane tasks. The only non-owned runtime edit in the lane is the approved regression coverage file `tests/unit/test_context_storage_recovery.py`.
+The lane hardened context basket, context-set, and vault persistence so malformed or incomplete local state is quarantined or canonicalized safely, valid recovery paths are preserved, and recovery rewrites stay auditable. The branch head also includes a metadata-only follow-up commit that records the completed lane tasks. The only non-owned edit in the lane is the approved regression coverage file `tests/unit/test_context_storage_recovery.py`.
 
 ## Files changed
 
@@ -39,11 +39,11 @@ The lane hardened context basket, context-set, and vault persistence so malforme
 
 ## Roadmap item(s) affected
 
-- Milestone 2 - Test Hardening: context storage recovery and persistence hardening.
+- Milestone 3 - Real workflow loop: persistent basket/document/session state.
 
 ## Vision capability affected
 
-- Capability 1 - Local-first state and identity: project-scoped vault and context basket with safe recovery behavior, plus encrypted-by-default persisted local state and context artifacts.
+- Capability 6 - Auditable state and workflow: hardening persistent state and recovery behavior for the project-scoped vault, context basket, and context-set stores.
 
 ## Routing/provider impact note
 
@@ -54,4 +54,4 @@ The lane hardened context basket, context-set, and vault persistence so malforme
 - Shared/integrator-locked edits: approved shared-test exception only; no integrator-locked files changed.
 - Approval basis: `scripts/scope-check.sh` explicitly allows `tests/unit/test_context_storage_recovery.py` for `codex/feat-context-storage*` when `SCOPE_ALLOW_SHARED=1` is set.
 - Branch-head bookkeeping note: `19c2dd26d9f6b9d8fb7b4d7d3d6d2fa6d98f2f0e` records lane metadata only; it does not change the owned runtime scope.
-- Ownership detail: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`.
+- Ownership detail: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, and it is covered by the explicit shared-test exception.

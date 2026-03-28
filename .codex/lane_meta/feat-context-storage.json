@@ -8,10 +8,10 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 1 - Bootstrap Flow Stabilization: context basket and vault persistence hardening."
+    "Milestone 3 - Real workflow loop: persistent basket/document/session state."
   ],
   "vision_capabilities": [
-    "Capability 1 - Local-first state and identity."
+    "Capability 6 - Auditable state and workflow."
   ],
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
