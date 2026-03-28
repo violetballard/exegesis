@@ -1,7 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`. This maps directly to `ROADMAP.md` Milestone 5: A2UI Presentation Layer and `PRODUCT_VISION.md` Capability 5, Agent-to-UI protocol (`A2UI`).
+- Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`. This work maps to `ROADMAP.md` Milestone 5: A2UI Presentation Layer -> A2UI action-order canonicalization task and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer -> A2UI action-order canonicalization task.
 - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 - Reviewer-required fix satisfied: the roadmap and vision mappings are now explicit in this packet, so the handoff no longer relies on inference.
