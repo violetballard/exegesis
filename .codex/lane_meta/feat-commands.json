@@ -1,25 +1,23 @@
 {
-  "scope_goal": "Harden the command surface for the CLI-first operator flow so command lookup helpers, diff-preview output, and emitted fingerprints stay deterministic and verifiable.",
+  "scope_goal": "Harden diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.",
   "tasks_completed": [
-    "Added spec-aware command catalog helpers and canonical lookup surfaces so command metadata resolves deterministically.",
     "Hardened diff_preview fingerprint semantics so the reported digest matches the emitted artifact after labels, suppression, truncation, and summary-only handling.",
-    "Added focused unit coverage for command-catalog projections and diff-preview JSON/text output contracts, including the approved shared test files.",
-    "Re-aligned the handoff packet with the actual feat-commands branch delta."
+    "Added focused unit coverage for diff-preview JSON/text output contracts, including the no-diff JSON shape, custom labels, and fingerprint correctness paths.",
+    "Re-aligned the handoff packet with the actual code-bearing diff_preview commits."
   ],
   "risk": "LOW",
   "roadmap_items": [
     "Milestone 1 - Bootstrap Flow Stabilization: keep the command surface deterministic for CLI-first operator flows.",
-    "Milestone 2 - Test Hardening: add focused contract coverage for command lookup helpers, flow sequencing, diff-preview output, and fingerprint handling.",
-    "Milestone 5 - A2UI Presentation Layer: preserve the CLI fallback surface that feeds the same engine/A2UI command contracts."
+    "Milestone 2 - Test Hardening: add focused contract coverage for diff-preview output and fingerprint handling.",
+    "Milestone 3 - Product Readiness: lock the emitted diff fingerprint semantics to the exact user-visible artifact."
   ],
   "vision_capabilities": [
     "Capability 3 - Auditable generation: the emitted SHA-256 fingerprint now verifies the exact diff payload returned by diff_preview.",
-    "Capability 4 - Operator-first control surface: command lookup helpers now resolve canonical command metadata deterministically for the CLI surface.",
-    "Capability 5 - Agent-to-UI protocol (`A2UI`): the command contract remains stable for downstream structured UI routing."
+    "Capability 4 - Operator-first control surface: diff_preview now exposes a stable CLI-first surface with a deterministic JSON/text contract."
   ],
-  "routing_provider_impact": "None. This change only affects local command lookup behavior, diff-preview output formatting, and command-surface contract coverage; no routing/provider files change.",
+  "routing_provider_impact": "None. This change only affects local diff-preview output formatting, verification metadata, and focused command-contract test coverage; no routing/provider files change.",
   "proposed_readme_patch": "",
-  "shared_file_exception": true,
-  "kickoff_budget_note": "Owned-path command work plus approved shared test coverage in `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`; within default 8-task, 12-file, and 500-net-LOC limits.",
-  "approved_exception_note": "Approved shared-file exceptions for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` to add focused contract coverage required by review."
+  "shared_file_exception": false,
+  "kickoff_budget_note": "Owned-path command work plus focused diff_preview test coverage; within default 8-task, 12-file, and 500-net-LOC limits.",
+  "approved_exception_note": ""
 }
