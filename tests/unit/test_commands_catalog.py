@@ -8,6 +8,7 @@ from src.qual.commands import (
     command_aliases,
     command_flow_manifest,
     command_flow_lookup_index,
+    command_flow_lookup_table,
     command_flow_steps,
     command_flow_sequence,
     command_lookup_index,
@@ -305,6 +306,36 @@ class CommandCatalogTests(unittest.TestCase):
     def test_command_flow_manifest_rejects_empty_requested_flow_steps(self) -> None:
         with self.assertRaisesRegex(ValueError, "Command flow steps must not be empty"):
             command_flow_manifest(flow_steps=("project-open", " ", "export-handoff"))
+
+    def test_command_flow_projections_normalize_custom_flow_steps(self) -> None:
+        specs = (
+            CommandSpec(name="bootstrap", flow_step=" Project Open "),
+            CommandSpec(name="context-basket", flow_step="Retrieval"),
+            CommandSpec(name="diff-preview", flow_step="Patch Review"),
+            CommandSpec(name="terminal", flow_step="Export Handoff"),
+        )
+
+        self.assertEqual(
+            command_flow_steps(specs),
+            ("project-open", "retrieval", "patch-review", "export-handoff"),
+        )
+        self.assertEqual(
+            tuple(entry.flow_step for entry in command_flow_manifest(specs)),
+            ("project-open", "retrieval", "patch-review", "export-handoff"),
+        )
+        self.assertEqual(
+            command_flow_lookup_table(specs),
+            (
+                ("project-open", "bootstrap"),
+                ("retrieval", "context-basket"),
+                ("patch-review", "diff-preview"),
+                ("export-handoff", "terminal"),
+            ),
+        )
+        self.assertEqual(
+            tuple(entry.flow_step for entry in command_mvp_flow_catalog(specs)),
+            ("project-open", "retrieval", "patch-review", "export-handoff"),
+        )
 
     def test_validate_command_catalog_rejects_ambiguous_definitions(self) -> None:
         with self.assertRaisesRegex(ValueError, "Duplicate command name"):

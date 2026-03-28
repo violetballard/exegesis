@@ -185,7 +185,17 @@ def command_flow_manifest(
     missing_steps = tuple(flow_step for flow_step in normalized_flow_steps if flow_step not in manifest_by_flow_step)
     if missing_steps:
         raise ValueError(f"Missing command flow steps: {', '.join(missing_steps)}")
-    return tuple(manifest_by_flow_step[flow_step] for flow_step in normalized_flow_steps)
+    return tuple(
+        CommandManifestEntry(
+            name=entry.name,
+            aliases=entry.aliases,
+            description=entry.description,
+            flow_step=flow_step,
+            lookup_tokens=entry.lookup_tokens,
+        )
+        for flow_step in normalized_flow_steps
+        for entry in (manifest_by_flow_step[flow_step],)
+    )
 
 
 def command_flow_sequence(
@@ -249,7 +259,7 @@ def command_manifest(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[Co
             name=spec.name,
             aliases=spec.aliases,
             description=spec.description,
-            flow_step=spec.flow_step,
+            flow_step=_normalize_token(spec.flow_step),
             lookup_tokens=_lookup_tokens(spec),
         )
         for spec in specs
@@ -294,7 +304,7 @@ def command_flow_lookup_index(
 
 def command_flow_steps(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
     validate_command_catalog(specs)
-    return tuple(spec.flow_step for spec in specs)
+    return tuple(_normalize_token(spec.flow_step) for spec in specs)
 
 
 def command_mvp_flow_catalog(
