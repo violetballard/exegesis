@@ -9,6 +9,8 @@
 
 This handoff covers only the reviewed FTS-first retrieval MVP commits: `c4944661a0a682821c486810918c2c1fabac1a41` added the source-bundle context regression and payload fallback acceptance, and `c92025af6e11c396f84356967cea704cadb20f5b` added deterministic excerpt lookup audit context in the retrieval service. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface.
 
+Packet-only cleanup commits on this branch are not part of the feature delta and are intentionally excluded from the scope summary below.
+
 Coordination artifacts under `.codex/` are excluded from this retrieval handoff and belong to lane planning or packet generation, not the retrieval feature scope.
 
 ## Files changed
@@ -42,7 +44,7 @@ The handoff does not include `.codex/` packet or lane-metadata artifacts.
 
 ## Roadmap item(s) affected
 
-- `ROADMAP.md`: `Milestone 4: Retrieval Layer (Planned)`
+- `ROADMAP.md`: `feat-retrieval-fts` under `MVP Focus Through 2026-05-04`
 
 ## Vision capability affected
 
