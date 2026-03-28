@@ -435,12 +435,34 @@ class ContextSetStore:
         normalized_records = self._normalize_records(records)
         self._path.parent.mkdir(parents=True, exist_ok=True)
         canonical_updated_at = self._parse_updated_at(updated_at) or datetime.now(UTC).isoformat()
+        normalized_recovered_from = self._parse_recovered_from(recovered_from)
+        current_payload, _ = self._load_payload(self._path)
+        current_backup_payload, _ = self._load_payload(self._backup_path)
+        if (
+            normalized_recovered_from is None
+            and not preserve_primary_corrupt
+            and not preserve_backup_corrupt
+            and not preserve_seed_corrupt
+            and (updated_at is None or self._payload_updated_at(current_payload) == canonical_updated_at)
+            and self._is_canonical_primary_payload(current_payload, normalized_records)
+        ):
+            backup_payload = self._backup_payload(current_payload)
+            backup_written = (
+                refresh_backup
+                or current_backup_payload is None
+                or self._backup_needs_refresh(current_backup_payload, normalized_records, current_payload)
+            )
+            if backup_written:
+                backup_written = self._write_backup_payload(backup_payload)
+            if not backup_written:
+                self._write_seed(backup_payload)
+            self._clear_recovery_artifacts(preserve_seed=not backup_written)
+            return
         payload = {
             "schema_version": _SCHEMA_VERSION,
             "updated_at": canonical_updated_at,
             "context_sets": [asdict(record) for record in normalized_records],
         }
-        normalized_recovered_from = self._parse_recovered_from(recovered_from)
         if normalized_recovered_from is not None:
             payload["recovered_from"] = normalized_recovered_from
         tmp = self._tmp_path()
@@ -451,7 +473,6 @@ class ContextSetStore:
             self._unlink_if_exists(tmp)
             raise
         backup_payload = self._backup_payload(payload)
-        current_backup_payload, _ = self._load_payload(self._backup_path)
         backup_written = (
             refresh_backup
             or current_backup_payload is None
@@ -711,6 +732,33 @@ class ContextSetStore:
         if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
             return False
         return True
+
+    def _is_canonical_primary_payload(self, payload: object, records: list[ContextSetRecord]) -> bool:
+        if not isinstance(payload, dict):
+            return False
+        if self._parse_schema_version(payload) != _SCHEMA_VERSION:
+            return False
+        if self._has_unknown_fields(payload):
+            return False
+        if "recovered_from" in payload:
+            return False
+        if "updated_at" not in payload:
+            return False
+        normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
+        if normalized_updated_at is None or payload.get("updated_at") != normalized_updated_at:
+            return False
+        raw_context_sets = payload.get("context_sets")
+        parsed_records = self._parse_context_sets(raw_context_sets)
+        if parsed_records is None:
+            return False
+        if self._records_need_rewrite(raw_context_sets, parsed_records):
+            return False
+        return parsed_records == records
+
+    def _payload_updated_at(self, payload: object) -> str | None:
+        if not isinstance(payload, dict):
+            return None
+        return self._parse_updated_at(payload.get("updated_at"))
 
     def _parse_context_sets(self, value: object) -> list[ContextSetRecord] | None:
         records: list[ContextSetRecord] = []

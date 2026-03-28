@@ -112,10 +112,14 @@ class VaultService:
         return state
 
     def lock(self, state: VaultState) -> None:
+        if state.is_locked:
+            return
         state.is_locked = True
         self._write_state(state)
 
     def unlock(self, state: VaultState) -> None:
+        if not state.is_locked:
+            return
         state.is_locked = False
         self._write_state(state)
 
