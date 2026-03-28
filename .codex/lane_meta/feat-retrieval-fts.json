@@ -4,8 +4,7 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 3: Real workflow loop",
-    "docs/TASKS.md: feat-retrieval-fts -> keep the FTS-first retrieval path authoritative; expose retrieval through the canonical engine contract; keep structured results suitable for deterministic retrieval-backed generation"
+    "Milestone 4: Retrieval Layer (Planned)"
   ],
   "routing_provider_impact": "None",
   "related_implementation_files": [

@@ -4,22 +4,17 @@
 - Reviewed commit(s):
   - `70af1c68bfb22d39bb2cd2341f94167ad97b42f7`
   - `b906bc9917cb0a87a031a8f80851e17328697eb5`
-  - `addc72aead4d458748f06497865deef9ab54db26`
+- Handoff type: packet correction only; this commit updates handoff metadata, not retrieval code.
 
 ## Scope completed
 
-The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and this handoff stays limited to the retrieval-owned feature surface.
+The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and this resubmission stays limited to the retrieval-owned feature surface.
 
 ## Files changed
 
-- `src/qual/engine/retrieval/__init__.py`
-- `src/qual/engine/retrieval/embeddings_strategy.py`
-- `src/qual/engine/retrieval/fts_strategy.py`
-- `src/qual/engine/retrieval/pageindex_strategy.py`
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/engine/retrieval/policy.py`
-- `src/qual/retrieval/__init__.py`
-- `src/qual/retrieval/service.py`
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
+- `THREAD_PACKET.md`
 
 ## Tasks completed
 
@@ -44,8 +39,7 @@ The lane canonicalized the FTS-first retrieval MVP so generation flows receive d
 
 ## Roadmap item(s) affected
 
-- ROADMAP.md: Milestone 3: Real workflow loop
-- docs/TASKS.md: feat-retrieval-fts -> keep the FTS-first retrieval path authoritative; expose retrieval through the canonical engine contract; keep structured results suitable for deterministic retrieval-backed generation
+- ROADMAP.md: Milestone 4: Retrieval Layer (Planned)
 
 ## Vision capability affected
 
