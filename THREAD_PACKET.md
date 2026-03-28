@@ -7,6 +7,7 @@
 - Reviewer mapping: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 - Reviewer fix status: required fix `#1` is satisfied on this branch tip because the exact roadmap milestone/scope bullets and product-vision capability are cited directly in the reviewer-facing packets.
 - Canon note: the labels above are taken from the current `ROADMAP.md` and `PRODUCT_VISION.md` in this worktree, so the handoff uses the branch's authoritative plan wording rather than older example labels from the review thread.
+- Missing handoff fields after reviewer fix `#1`: none; both required plan-alignment fields are populated below for direct audit.
 
 ## Plan Alignment
 
