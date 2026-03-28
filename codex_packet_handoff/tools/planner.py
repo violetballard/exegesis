@@ -1,15 +1,23 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import json, os, subprocess
+import json, os, shlex, subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
 PACKETS_ROOT = Path(".codex/packets/lanes")
 PLANNER_ROOT = Path(".codex/packet_planner")
 STATE_FILE = PLANNER_ROOT / "state.json"
 CONFIG_FILE = Path(".codex/packet_router/config.json")
+SCOPE_CHECK_SCRIPT = REPO_ROOT / "scripts/scope-check.sh"
+FORMAT_CHECK_SCRIPT = REPO_ROOT / "quality-format.sh"
+LINT_CHECK_SCRIPT = REPO_ROOT / "quality-lint.sh"
+TEST_CHECK_SCRIPT = REPO_ROOT / "quality-test.sh"
+TYPECHECK_SCRIPT = REPO_ROOT / "typecheck-test.sh"
+SETUP_SCRIPT = REPO_ROOT / "scripts/setup.sh"
+BUILD_SCRIPT = REPO_ROOT / "scripts/build.sh"
 
 REQUIRED_GATES_DEFAULT = [
     "./quality-format.sh --check",
@@ -182,6 +190,60 @@ def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
     out = git(f"diff --name-only {base_ref}...HEAD", cwd=cwd)
     return [ln.strip() for ln in out.splitlines() if ln.strip()]
 
+
+def run_scope_check(cwd: str, env: Optional[Dict[str, str]] = None) -> Tuple[int, str]:
+    # Run the daemon checkout's scope policy against the lane worktree so
+    # policy updates apply immediately without waiting for every lane branch
+    # to merge the latest `scripts/scope-check.sh`.
+    return run_repo_gate(str(SCOPE_CHECK_SCRIPT), cwd, env=env, timeout=900)
+
+
+def run_repo_gate(
+    script_path: str,
+    target_cwd: str,
+    *,
+    args: Optional[List[str]] = None,
+    env: Optional[Dict[str, str]] = None,
+    timeout: int = 3600,
+) -> Tuple[int, str]:
+    run_env = dict(env or os.environ.copy())
+    run_env["QUAL_ROOT_DIR"] = target_cwd
+    argv = [shlex.quote(script_path), *(shlex.quote(arg) for arg in (args or []))]
+    cmd = "bash " + " ".join(argv)
+    return run(cmd, cwd=str(REPO_ROOT), env=run_env, timeout=timeout)
+
+
+def run_required_gate(cmd: str, cwd: str, env: Optional[Dict[str, str]] = None) -> Tuple[int, str]:
+    if cmd == "./quality-format.sh --check":
+        return run_repo_gate(str(FORMAT_CHECK_SCRIPT), cwd, args=["--check"], env=env)
+    if cmd == "./quality-lint.sh":
+        return run_repo_gate(str(LINT_CHECK_SCRIPT), cwd, env=env)
+    if cmd == "./quality-test.sh":
+        return run_repo_gate(str(TEST_CHECK_SCRIPT), cwd, env=env)
+    if cmd == "./typecheck-test.sh":
+        return run_repo_gate(str(TYPECHECK_SCRIPT), cwd, env=env)
+    if cmd == "make ci":
+        steps = [
+            ("setup", str(SETUP_SCRIPT), []),
+            ("scope-check", str(SCOPE_CHECK_SCRIPT), []),
+            ("format-check", str(FORMAT_CHECK_SCRIPT), ["--check"]),
+            ("lint", str(LINT_CHECK_SCRIPT), []),
+            ("build", str(BUILD_SCRIPT), []),
+            ("typecheck", str(TYPECHECK_SCRIPT), []),
+            ("test", str(TEST_CHECK_SCRIPT), []),
+        ]
+        chunks: List[str] = []
+        for label, script_path, gate_args in steps:
+            rc, out = run_repo_gate(script_path, cwd, args=gate_args, env=env)
+            if out:
+                chunks.append(out.rstrip())
+            if rc != 0:
+                if chunks:
+                    return rc, "\n".join(chunks) + f"\n[planner] make ci failed at step: {label}"
+                return rc, f"[planner] make ci failed at step: {label}"
+        return 0, "\n".join(chunks)
+    return run(cmd, cwd=cwd, env=env, timeout=3600)
+
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
     lines=[]
@@ -300,14 +362,14 @@ def main()->None:
                 print(f"[planner] {lane}: fast re-emit has no prior gate results; rerunning local gates")
                 fast_reemit = False
         if not fast_reemit:
-            scope_rc,scope_out=run("make scope-check", cwd=active_repo, env=env, timeout=900)
+            scope_rc,scope_out=run_scope_check(active_repo, env=env)
             if scope_rc!=0:
                 print(f"[planner] {lane}: scope-check FAIL:\n{scope_out}")
                 continue
             results=[("make scope-check",0)]
             ok=True
             for cmd in gates:
-                rc,out=run(cmd, cwd=active_repo, env=env, timeout=3600)
+                rc,out=run_required_gate(cmd, active_repo, env=env)
                 results.append((cmd,rc))
                 if rc!=0:
                     ok=False

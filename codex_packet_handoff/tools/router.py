@@ -596,7 +596,7 @@ def _run_cli_reviewer(
     if rc != 0:
         return None
     text = (out or "").strip()
-    if not text or _invalid_reviewer_output(text) or _is_reviewer_quota_output(text):
+    if not text:
         return None
     return text
 
@@ -960,22 +960,10 @@ def process_once(
                     local=runtime_local,
                 ) or ""
                 if not reviewer_text:
-                    retry_until = time.time() + 900
-                    reviewer_quota_retry_ts[lane] = retry_until
-                    global_quota_retry_ts = max(global_quota_retry_ts, retry_until)
-                    if cfg.auto_switch_to_local_on_quota:
-                        state = _switch_to_local_fallback(
-                            cfg,
-                            state,
-                            "reviewer direct exec failed/timed out",
-                            retry_until,
-                        )
-                    reviewer_text = _run_cli_reviewer(
-                        cfg,
-                        repo_cwd,
+                    reviewer_text = _offline_reviewer_fallback(
                         pkt,
                         "reviewer direct exec failed/timed out",
-                    ) or _offline_reviewer_fallback(pkt, "reviewer direct exec failed/timed out")
+                    )
             else:
                 try:
                     reviewer_tid = _ensure_lane_reviewer_thread(

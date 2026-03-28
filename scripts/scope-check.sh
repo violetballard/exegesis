@@ -59,6 +59,11 @@ shared_file_allowed() {
 is_approved_shared_test() {
   local f="$1"
   case "$branch" in
+    codex/feat-commands*)
+      case "$f" in
+        tests/unit/test_commands_catalog.py|tests/unit/test_diff_preview.py) return 0 ;;
+      esac
+      ;;
     codex/feat-context-storage*)
       case "$f" in
         tests/unit/test_context_storage_recovery.py) return 0 ;;

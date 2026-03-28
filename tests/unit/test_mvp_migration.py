@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -171,6 +172,68 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         )
         self.assertEqual(proc.returncode, 0, proc.stdout)
         self.assertIn("scope-check: passed", proc.stdout)
+
+    def test_scope_check_allows_approved_shared_commands_tests(self) -> None:
+        subprocess.run(["git", "checkout", "-qb", "codex/feat-commands"], cwd=self.root, check=True)
+        path = self.root / "tests" / "unit" / "test_commands_catalog.py"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("commands catalog tests\n", encoding="utf-8")
+        subprocess.run(["git", "add", "tests/unit/test_commands_catalog.py"], cwd=self.root, check=True)
+        subprocess.run(["git", "commit", "-qm", "update shared commands test"], cwd=self.root, check=True)
+
+        proc = subprocess.run(
+            ["bash", "scripts/scope-check.sh"],
+            cwd=self.root,
+            env={**os.environ, "SCOPE_ALLOW_SHARED": "1"},
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(proc.returncode, 0, proc.stdout)
+        self.assertIn("scope-check: passed", proc.stdout)
+
+    def test_planner_runs_repo_scope_check_script_against_lane_worktree(self) -> None:
+        from codex_packet_handoff.tools import planner as planner_mod
+
+        with patch.object(planner_mod, "run", return_value=(0, "scope-check: passed")) as run_mock:
+            rc, out = planner_mod.run_scope_check("/tmp/lane-worktree", env={"SCOPE_ALLOW_SHARED": "1"})
+
+        self.assertEqual((rc, out), (0, "scope-check: passed"))
+        run_mock.assert_called_once()
+        self.assertIn(str(REPO_ROOT / "scripts" / "scope-check.sh"), run_mock.call_args.args[0])
+        self.assertEqual(run_mock.call_args.kwargs["cwd"], str(REPO_ROOT))
+        self.assertEqual(
+            run_mock.call_args.kwargs["env"],
+            {"SCOPE_ALLOW_SHARED": "1", "QUAL_ROOT_DIR": "/tmp/lane-worktree"},
+        )
+        self.assertEqual(run_mock.call_args.kwargs["timeout"], 900)
+
+    def test_planner_runs_repo_managed_ci_steps_against_lane_worktree(self) -> None:
+        from codex_packet_handoff.tools import planner as planner_mod
+
+        calls: list[tuple[str, str, dict[str, str], int]] = []
+
+        def fake_run(cmd: str, cwd: str, env: dict[str, str], timeout: int) -> tuple[int, str]:
+            calls.append((cmd, cwd, env, timeout))
+            return 0, f"ok:{cmd}"
+
+        with patch.object(planner_mod, "run", side_effect=fake_run):
+            rc, out = planner_mod.run_required_gate("make ci", "/tmp/lane-worktree", env={"SCOPE_ALLOW_SHARED": "1"})
+
+        self.assertEqual(rc, 0)
+        self.assertIn("ok:bash", out)
+        self.assertEqual(len(calls), 7)
+        self.assertEqual({call[1] for call in calls}, {str(REPO_ROOT)})
+        self.assertTrue(all(call[2]["QUAL_ROOT_DIR"] == "/tmp/lane-worktree" for call in calls))
+        self.assertTrue(any("scripts/setup.sh" in call[0] for call in calls))
+        self.assertTrue(any("scripts/scope-check.sh" in call[0] for call in calls))
+        self.assertTrue(any("quality-format.sh" in call[0] for call in calls))
+        self.assertTrue(any("quality-lint.sh" in call[0] for call in calls))
+        self.assertTrue(any("scripts/build.sh" in call[0] for call in calls))
+        self.assertTrue(any("typecheck-test.sh" in call[0] for call in calls))
+        self.assertTrue(any("quality-test.sh" in call[0] for call in calls))
 
     def test_scope_check_blocks_engine_work_on_console_shell_lane(self) -> None:
         proc = self._commit_on_branch(
@@ -488,6 +551,62 @@ class RouterReviewerBootstrapTests(unittest.TestCase):
 
         self.assertEqual(processed, 1)
         ensure_thread.assert_not_called()
+
+    def test_process_once_cli_reviewer_timeout_does_not_flip_to_local_fallback(self) -> None:
+        from codex_packet_handoff.tools import router
+
+        with tempfile.TemporaryDirectory() as tmp:
+            lane_dir = Path(tmp)
+            pkt = lane_dir / "inbox" / "feature" / "F__codex-feat-commands__abc1234__20260328T000000Z.md"
+            pkt.parent.mkdir(parents=True, exist_ok=True)
+            pkt.write_text("Feature packet body\n", encoding="utf-8")
+
+            cfg = SimpleNamespace(
+                lanes={"feat-commands": {}},
+                max_packets_per_run=1,
+                auto_switch_to_local_on_quota=True,
+                reviewer_timeout=30,
+                integrator_timeout=30,
+                inline_fixer=False,
+                prefer_cli_reviewer=True,
+                prefer_cli_integrator=True,
+            )
+            state = {"runtime_mode": "cloud_primary"}
+
+            with (
+                patch.object(router, "ensure_lane_dirs", return_value=lane_dir),
+                patch.object(router, "list_new", return_value=[pkt]),
+                patch.object(router, "load_json", return_value={}),
+                patch.object(router, "save_json"),
+                patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
+                patch.object(router, "_runtime_mode", return_value="cloud_primary"),
+                patch.object(router, "_apply_quota_text_safeguard", side_effect=lambda cfg, state, text, reason: state),
+                patch.object(router, "archive_reviewer_notes"),
+                patch.object(router, "clear_stale_integrator_handoffs", return_value=0),
+                patch.object(router, "archive"),
+                patch.object(router, "_ensure_lane_reviewer_thread") as ensure_thread,
+                patch.object(router, "_switch_to_local_fallback") as switch_to_local_fallback,
+                patch.object(router, "_run_cli_reviewer", return_value=None),
+                patch.object(
+                    router,
+                    "_offline_reviewer_fallback",
+                    return_value="Verdict: `CHANGES_REQUESTED`\n\nRecovery review.\n",
+                ),
+            ):
+                processed, new_state, _reviewer_threads, _integrator_tid = router.process_once(
+                    SimpleNamespace(),
+                    SimpleNamespace(),
+                    cfg,
+                    state,
+                    "/repo",
+                    {},
+                    "",
+                )
+
+        self.assertEqual(processed, 1)
+        self.assertEqual(new_state["runtime_mode"], "cloud_primary")
+        ensure_thread.assert_not_called()
+        switch_to_local_fallback.assert_not_called()
 
     def test_process_once_passes_local_flag_when_bootstrapping_reviewer_thread(self) -> None:
         from codex_packet_handoff.tools import router

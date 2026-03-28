@@ -15,9 +15,17 @@ COORD_DIR = Path(".codex/packet_coordinator")
 PID_FILE = COORD_DIR / "daemon.pid"
 LOG_FILE = COORD_DIR / "daemon.log"
 LEASE_FILE = COORD_DIR / "lease.json"
+FEATURE_RUNNER_STATE_FILE = Path(".codex/feature_runner/state.json")
 CMD = [sys.executable, "codex_packet_handoff/tools/agents_coordinator.py", "--daemon"]
 PROC_MATCH = "codex_packet_handoff/tools/agents_coordinator.py --daemon"
 LEASE_FRESH_SECONDS = 3600
+AUTOMATION_MARKERS = (
+    "You are the REVIEWER.",
+    "You are the FEATURE FIXER",
+    "Ready as integrator.",
+    "You are the INTEGRATOR",
+    "codex mcp-server",
+)
 
 
 def _ensure_dirs() -> None:
@@ -90,6 +98,63 @@ def _find_matching_pids() -> list[int]:
         if PROC_MATCH not in cmd:
             continue
         if "pgrep" in cmd or "daemon_ctl.py" in cmd:
+            continue
+        out.append(pid)
+    return out
+
+
+def _load_json(path: Path) -> dict:
+    try:
+        import json
+
+        data = json.loads(path.read_text() or "{}")
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _feature_runner_pids() -> list[int]:
+    state = _load_json(FEATURE_RUNNER_STATE_FILE)
+    lanes = state.get("lanes") if isinstance(state, dict) else {}
+    if not isinstance(lanes, dict):
+        return []
+    pids: list[int] = []
+    for lane_state in lanes.values():
+        if not isinstance(lane_state, dict):
+            continue
+        pid = int(lane_state.get("pid", 0) or 0)
+        if pid > 0:
+            pids.append(pid)
+    return pids
+
+
+def _find_automation_worker_pids() -> list[int]:
+    try:
+        p = subprocess.run(
+            ["ps", "-axo", "pid=,command="],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except Exception:
+        return []
+    if p.returncode != 0:
+        return []
+    out: list[int] = []
+    for ln in (p.stdout or "").splitlines():
+        row = ln.strip()
+        if not row:
+            continue
+        parts = row.split(None, 1)
+        if len(parts) != 2 or not parts[0].isdigit():
+            continue
+        pid = int(parts[0])
+        cmd = parts[1]
+        if pid == os.getpid():
+            continue
+        if "codex exec" not in cmd and "codex mcp-server" not in cmd:
+            continue
+        if not any(marker in cmd for marker in AUTOMATION_MARKERS):
             continue
         out.append(pid)
     return out
@@ -178,7 +243,10 @@ def _stop() -> int:
     pid = _read_pid() or lease_pid
     stopped_any = False
     if pid and _pid_alive(pid):
-        os.kill(pid, signal.SIGTERM)
+        try:
+            os.killpg(os.getpgid(pid), signal.SIGTERM)
+        except OSError:
+            os.kill(pid, signal.SIGTERM)
         stopped_any = True
         deadline = time.time() + 5
         while time.time() < deadline:
@@ -186,12 +254,38 @@ def _stop() -> int:
                 break
             time.sleep(0.2)
         if _pid_alive(pid):
-            os.kill(pid, signal.SIGKILL)
+            try:
+                os.killpg(os.getpgid(pid), signal.SIGKILL)
+            except OSError:
+                os.kill(pid, signal.SIGKILL)
 
     # Ensure no stray matching daemons remain.
     for mpid in _find_matching_pids():
         try:
             os.kill(mpid, signal.SIGTERM)
+            stopped_any = True
+        except OSError:
+            pass
+
+    for worker_pid in sorted(set(_feature_runner_pids() + _find_automation_worker_pids())):
+        if not _pid_alive(worker_pid):
+            continue
+        try:
+            os.kill(worker_pid, signal.SIGTERM)
+            stopped_any = True
+        except OSError:
+            continue
+    deadline = time.time() + 5
+    while time.time() < deadline:
+        still_alive = [wpid for wpid in sorted(set(_feature_runner_pids() + _find_automation_worker_pids())) if _pid_alive(wpid)]
+        if not still_alive:
+            break
+        time.sleep(0.2)
+    for worker_pid in sorted(set(_feature_runner_pids() + _find_automation_worker_pids())):
+        if not _pid_alive(worker_pid):
+            continue
+        try:
+            os.kill(worker_pid, signal.SIGKILL)
             stopped_any = True
         except OSError:
             pass

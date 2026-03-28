@@ -13,6 +13,8 @@ Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-
     - `src/main.py`
     - `src/qual/cli.py`
     - `src/qual/app.py`
+    - `tests/unit/test_commands_catalog.py`
+    - `tests/unit/test_diff_preview.py`
 
 - `codex/feat-context-storage*`
   - Owned paths:
