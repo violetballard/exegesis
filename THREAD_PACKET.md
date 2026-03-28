@@ -39,11 +39,11 @@ This handoff is context basket and vault persistence hardening within the lane-o
 
 ## Roadmap item(s) affected
 
-- MVP Focus Through 2026-05-04: `feat-context-storage`
+- Milestone 3 - Product Readiness: define and lock persistent-state safety behavior for context basket and vault recovery.
 
 ## Vision capability affected
 
-- 1. Local-first state and identity
+- 6. Expansion lanes
 
 ## Routing/provider impact note
 

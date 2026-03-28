@@ -8,10 +8,10 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "MVP Focus Through 2026-05-04: feat-context-storage"
+    "Milestone 3 - Product Readiness: define and lock persistent-state safety behavior for context basket and vault recovery."
   ],
   "vision_capabilities": [
-    "1. Local-first state and identity"
+    "6. Expansion lanes"
   ],
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
