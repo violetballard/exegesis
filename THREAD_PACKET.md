@@ -2,11 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit(s):
-  - `6f9eaecd05a7ba4f32ea1d06c1884c8080a4d9ff`
-  - `3b4de0153788cfe2f35a761759d052dc2789fdf2`
-  - `4f1c25fa61974359518ca05eb5c9bb3ddb927427`
-  - `3378e905fab4653d38070b8e272ce4e4c6d22908`
+- Commit(s): `HEAD`
 
 ## Scope goal
 - Harden command catalog lookup helpers and `diff_preview` output contracts so CLI-first operator flows stay deterministic, verifiable, and ready for JSON/text contract use.
@@ -23,7 +19,7 @@
 - Added spec-aware command catalog helpers and exports so command metadata resolves deterministically for canonical lookup, alias lookup, and token lookup.
 - Hardened `diff_preview` output contracts so the SHA-256 fingerprint is derived from the exact emitted diff payload after label application, header suppression, truncation, and summary-only handling.
 - Added focused unit coverage for command-catalog projections and diff-preview JSON/text output contracts, including the no-diff JSON shape, custom labels, and fingerprint correctness paths.
-- Regenerated the handoff packet so review points at the actual code-bearing branch delta instead of the packet-only follow-ups.
+- Regenerated the handoff packet so review points at the current branch tip and the actual code-bearing branch delta instead of stale packet-only follow-ups.
 
 ## Kickoff budget/limits compliance
 - Stayed within the default lane budget. The branch delta is 9 files changed and remains within the lane size limits.

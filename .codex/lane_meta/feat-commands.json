@@ -4,7 +4,7 @@
     "Added spec-aware command catalog helpers and exports so command metadata resolves deterministically for canonical lookup, alias lookup, and token lookup.",
     "Hardened diff_preview fingerprint semantics so the reported digest matches the emitted artifact after labels, suppression, truncation, and summary-only handling.",
     "Added focused unit coverage for command-catalog projections and diff-preview JSON/text output contracts, including the no-diff JSON shape, custom labels, and fingerprint correctness paths.",
-    "Re-aligned the handoff packet and lane metadata with the actual branch delta and the current branch-tip alignment commit."
+    "Re-aligned the handoff packet and lane metadata with the current branch tip and the actual branch delta."
   ],
   "risk": "LOW",
   "roadmap_items": [
