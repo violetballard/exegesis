@@ -1,6 +1,6 @@
 {
   "scope_goal": "Tighten the feat-commands handoff so the submitted scope is limited to src/qual/commands/** plus the explicitly approved shared tests.",
-  "review_commit": "d5c6fc70674068b3bde2bc7616984c6e54faeee6",
+  "review_commit": "5a0ba4e038ac187b524d6553cd336d76a4d50fee",
   "tasks_completed": [
     "Added the command catalog surface and supporting lookup helpers under src/qual/commands/**.",
     "Hardened diff-preview output contracts so the fingerprint covers the exact emitted payload.",

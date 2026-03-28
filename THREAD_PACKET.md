@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `d5c6fc70674068b3bde2bc7616984c6e54faeee6`
+- Commit: `5a0ba4e038ac187b524d6553cd336d76a4d50fee`
 
 ## Scope goal
 - Tighten the `feat-commands` handoff so the submitted scope is limited to `src/qual/commands/**` plus the explicitly approved shared tests.
