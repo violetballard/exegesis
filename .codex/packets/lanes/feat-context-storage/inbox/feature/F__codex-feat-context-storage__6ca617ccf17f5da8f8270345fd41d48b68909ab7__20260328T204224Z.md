@@ -53,10 +53,10 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3: Real workflow loop - persistent basket/document/session state plus vault hardening.
+- Milestone 3 - Real workflow loop.
 
 ### Vision capability affected
-- Capability 1 - Local-first state and identity.
+- Auditable state and workflow.
 
 ### Routing/provider impact note
 - None

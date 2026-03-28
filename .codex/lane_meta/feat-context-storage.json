@@ -17,10 +17,10 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 3: Real workflow loop - persistent basket/document/session state plus vault hardening."
+    "Milestone 3 - Real workflow loop."
   ],
   "vision_capabilities": [
-    "Capability 1 - Local-first state and identity."
+    "Auditable state and workflow."
   ],
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
