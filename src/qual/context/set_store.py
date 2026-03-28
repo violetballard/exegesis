@@ -276,6 +276,7 @@ class ContextSetStore:
         explicit_empty_recovery = self._is_empty_recovery_payload(payload) and self._has_explicit_empty_recovery_payload(
             payload
         )
+        audit_recovered_source = recovered_source
         rewrite_timestamp = datetime.now(UTC).isoformat()
         records: list[ContextSetRecord]
         if explicit_empty_recovery:
@@ -365,25 +366,25 @@ class ContextSetStore:
             # it cannot contribute cleanly recoverable context set records.
             preserve_primary_corrupt = True
         if (
-            recovered_source == "backup"
+            audit_recovered_source == "backup"
             and isinstance(backup_payload, list)
             and self._list_payload_needs_audit_quarantine(backup_payload)
         ):
             self._quarantine_invalid_backup()
             preserve_backup_corrupt = True
         if (
-            recovered_source == "seed"
+            audit_recovered_source == "seed"
             and isinstance(seed_payload, list)
             and self._list_payload_needs_audit_quarantine(seed_payload)
         ):
             self._quarantine_invalid_seed()
             preserve_seed_corrupt = True
-        if recovered_source == "backup" and backup_payload is not None and self._backup_needs_audit_quarantine(
+        if audit_recovered_source == "backup" and backup_payload is not None and self._backup_needs_audit_quarantine(
             backup_payload
         ):
             self._quarantine_invalid_backup()
             preserve_backup_corrupt = True
-        if recovered_source == "seed" and seed_payload is not None and self._backup_needs_audit_quarantine(seed_payload):
+        if audit_recovered_source == "seed" and seed_payload is not None and self._backup_needs_audit_quarantine(seed_payload):
             self._quarantine_invalid_seed()
             preserve_seed_corrupt = True
         if recovered_source is not None or should_rewrite:

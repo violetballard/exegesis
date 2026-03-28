@@ -151,6 +151,7 @@ class ContextBasketStore:
         explicit_empty_recovery = self._is_empty_recovery_payload(payload) and self._has_explicit_empty_recovery_payload(
             payload
         )
+        audit_recovered_source = recovered_source
         if explicit_empty_recovery:
             # Canonical empty state should still be materialized when it is the
             # only recoverable payload. If we are repairing an existing
@@ -239,25 +240,25 @@ class ContextBasketStore:
             # it cannot contribute any recoverable item ids.
             preserve_primary_corrupt = True
         if (
-            recovered_source == "backup"
+            audit_recovered_source == "backup"
             and isinstance(backup_payload, list)
             and self._legacy_list_payload_has_dropped_item_ids(backup_payload)
         ):
             self._quarantine_invalid_backup()
             preserve_backup_corrupt = True
         if (
-            recovered_source == "seed"
+            audit_recovered_source == "seed"
             and isinstance(seed_payload, list)
             and self._legacy_list_payload_has_dropped_item_ids(seed_payload)
         ):
             self._quarantine_invalid_seed()
             preserve_seed_corrupt = True
-        if recovered_source == "backup" and backup_payload is not None and self._backup_needs_audit_quarantine(
+        if audit_recovered_source == "backup" and backup_payload is not None and self._backup_needs_audit_quarantine(
             backup_payload
         ):
             self._quarantine_invalid_backup()
             preserve_backup_corrupt = True
-        if recovered_source == "seed" and seed_payload is not None and self._backup_needs_audit_quarantine(seed_payload):
+        if audit_recovered_source == "seed" and seed_payload is not None and self._backup_needs_audit_quarantine(seed_payload):
             self._quarantine_invalid_seed()
             preserve_seed_corrupt = True
         if recovered_source is not None or should_rewrite:
