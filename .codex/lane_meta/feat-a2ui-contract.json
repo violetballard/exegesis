@@ -2,18 +2,18 @@
   "approved_exception_note": "None",
   "kickoff_budget_note": "",
   "roadmap_items": [
-    "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullet Add agent-side card/section/action payload generation with deterministic schemas and exit criterion A2UI schema/versioning is documented and stable; deterministic action ordering is the concrete A2UI payload-stability step completed by this lane"
+    "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullets Add agent-side card/section/action payload generation with deterministic schemas and Provide CLI rendering fallback for the same structured payloads, with exit criterion A2UI schema/versioning is documented and stable; deterministic action ordering is the concrete A2UI payload-stability step completed by this lane"
   ],
   "vision_capabilities": [
     "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> agent emits structured presentation artifacts that are consumable by CLI first, then Exegesis Console, then future Studio UI, including the CLI fallback rendering path used by this fix; deterministic action ordering keeps that CLI fallback stable"
   ],
   "required_handoff_fields": {
-    "roadmap_item": "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullet Add agent-side card/section/action payload generation with deterministic schemas and exit criterion A2UI schema/versioning is documented and stable; deterministic action ordering is the concrete A2UI payload-stability step completed by this lane",
+    "roadmap_item": "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullets Add agent-side card/section/action payload generation with deterministic schemas and Provide CLI rendering fallback for the same structured payloads, with exit criterion A2UI schema/versioning is documented and stable; deterministic action ordering is the concrete A2UI payload-stability step completed by this lane",
     "vision_capability": "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> agent emits structured presentation artifacts that are consumable by CLI first, then Exegesis Console, then future Studio UI, including the CLI fallback rendering path used by this fix; deterministic action ordering keeps that CLI fallback stable"
   },
   "risk": "LOW",
   "routing_provider_impact": "None",
-  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, with matching assertions in tests/unit/test_a2ui_contract.py. This lane maps to ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> Add agent-side card/section/action payload generation with deterministic schemas and PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI).",
+  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, with matching assertions in tests/unit/test_a2ui_contract.py. This lane maps to ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> Add agent-side card/section/action payload generation with deterministic schemas plus Provide CLI rendering fallback for the same structured payloads, and PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI).",
   "shared_file_exception": false,
   "tasks_completed": [
     "Updated the A2UI materialization path in src/qual/ui/a2ui.py to sort filtered actions by canonical JSON before terminal rendering.",
