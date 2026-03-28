@@ -328,12 +328,38 @@ class ContextBasketStore:
     ) -> None:
         basket.normalize()
         self._path.parent.mkdir(parents=True, exist_ok=True)
+        normalized_recovered_from = self._parse_recovered_from(recovered_from)
+        current_payload, _ = self._load_payload(self._path)
+        current_backup_payload, _ = self._load_payload(self._backup_path)
+        if (
+            normalized_recovered_from is None
+            and not preserve_primary_corrupt
+            and not preserve_backup_corrupt
+            and not preserve_seed_corrupt
+            and self._is_canonical_primary_payload(current_payload, basket)
+        ):
+            # A canonical primary should not churn updated_at just to resync the
+            # backup or seed recovery path.
+            backup_payload = self._backup_payload(current_payload)
+            backup_written = (
+                refresh_backup
+                or current_backup_payload is None
+                or self._backup_needs_refresh(current_backup_payload, basket, current_payload)
+            )
+            if backup_written:
+                backup_written = self._write_backup_payload(backup_payload)
+            if not backup_written:
+                # Seed keeps the latest canonical basket recoverable if backup
+                # rotation cannot be completed after confirming the primary is
+                # already canonical.
+                self._write_seed(backup_payload)
+            self._clear_recovery_artifacts(preserve_seed=not backup_written)
+            return
         payload = {
             "schema_version": _SCHEMA_VERSION,
             "updated_at": datetime.now(UTC).isoformat(),
             "item_ids": list(basket.item_ids),
         }
-        normalized_recovered_from = self._parse_recovered_from(recovered_from)
         if normalized_recovered_from is not None:
             payload["recovered_from"] = normalized_recovered_from
         tmp = self._tmp_path()
@@ -344,7 +370,6 @@ class ContextBasketStore:
             self._unlink_if_exists(tmp)
             raise
         backup_payload = self._backup_payload(payload)
-        current_backup_payload, _ = self._load_payload(self._backup_path)
         backup_written = (
             refresh_backup
             or current_backup_payload is None
@@ -562,6 +587,30 @@ class ContextBasketStore:
         if "updated_at" in payload and self._parse_updated_at(payload.get("updated_at")) is None:
             return False
         return True
+
+    def _is_canonical_primary_payload(self, payload: object, basket: ContextBasket) -> bool:
+        if not isinstance(payload, dict):
+            return False
+        if self._parse_schema_version(payload) != _SCHEMA_VERSION:
+            return False
+        if self._has_unknown_fields(payload):
+            return False
+        if "recovered_from" in payload:
+            return False
+        if "updated_at" not in payload:
+            return False
+        normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
+        if normalized_updated_at is None or payload.get("updated_at") != normalized_updated_at:
+            return False
+        raw_item_ids = payload.get("item_ids")
+        if not isinstance(raw_item_ids, list):
+            return False
+        parsed_item_ids = self._parse_item_ids(raw_item_ids)
+        if parsed_item_ids is None:
+            return False
+        if raw_item_ids != parsed_item_ids:
+            return False
+        return parsed_item_ids == basket.item_ids
 
     def _parse_item_ids(self, value: object) -> list[str] | None:
         if isinstance(value, list):

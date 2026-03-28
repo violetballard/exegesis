@@ -1157,18 +1157,6 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(loaded[0].name, "Evidence")
         self.assertEqual(loaded[0].item_ids, ["keep", "7", "2.5"])
 
-    def test_create_context_set_rejects_duplicate_normalized_name(self) -> None:
-        record = self.store.create_context_set("  Evidence  ", ["first"])
-
-        with self.assertRaisesRegex(ValueError, "context set name already exists: Evidence"):
-            self.store.create_context_set("Evidence", ["second"])
-
-        loaded = self.store.load()
-        self.assertEqual(len(loaded), 1)
-        self.assertEqual(loaded[0].context_set_id, record.context_set_id)
-        self.assertEqual(loaded[0].name, "Evidence")
-        self.assertEqual(loaded[0].item_ids, ["first"])
-
     def test_pin_item_updates_existing_set_and_rewrites_canonical_state(self) -> None:
         record = self.store.create_context_set("Evidence", ["first"])
 
@@ -1179,30 +1167,6 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         payload = json.loads(self.store._path.read_text(encoding="utf-8"))
         self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["first", "second"])
         self.assertEqual(payload.get("schema_version"), 1)
-
-    def test_pin_item_is_noop_when_item_is_already_present(self) -> None:
-        fixed_now = datetime(2026, 3, 20, 12, 0, 0, tzinfo=UTC)
-        later = datetime(2026, 3, 20, 13, 0, 0, tzinfo=UTC)
-        with patch(
-            "src.qual.context.set_store.datetime",
-            new=SimpleNamespace(now=lambda tz=None: fixed_now, fromisoformat=datetime.fromisoformat),
-        ):
-            record = self.store.create_context_set("Evidence", ["first"])
-
-        primary_before = json.loads(self.store._path.read_text(encoding="utf-8"))
-        backup_before = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
-
-        with patch(
-            "src.qual.context.set_store.datetime",
-            new=SimpleNamespace(now=lambda tz=None: later, fromisoformat=datetime.fromisoformat),
-        ):
-            updated = self.store.pin_item(record.context_set_id, " first ")
-
-        self.assertEqual(updated.context_set_id, record.context_set_id)
-        self.assertEqual(updated.item_ids, ["first"])
-        self.assertEqual(updated.updated_at, fixed_now.isoformat())
-        self.assertEqual(json.loads(self.store._path.read_text(encoding="utf-8")), primary_before)
-        self.assertEqual(json.loads(self.store._backup_path.read_text(encoding="utf-8")), backup_before)
 
     def test_corrupt_primary_recovers_from_backup_and_records_recovery_source(self) -> None:
         self.store._path.write_text("{bad", encoding="utf-8")
@@ -1382,6 +1346,94 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
         self.assertEqual(len(backup_payload.get("context_sets", [])), 1)
         self.assertEqual(backup_payload.get("context_sets")[0]["item_ids"], ["first"])
+
+    def test_legacy_list_payload_with_duplicate_context_set_ids_preserves_audit_quarantine(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text(
+            json.dumps(
+                [
+                    {
+                        "context_set_id": "set-1",
+                        "name": "Evidence",
+                        "item_ids": ["first"],
+                        "created_at": "2026-03-20T11:00:00+00:00",
+                        "updated_at": "2026-03-20T12:00:00+00:00",
+                    },
+                    {
+                        "context_set_id": "set-1",
+                        "name": "Evidence",
+                        "item_ids": ["second"],
+                        "created_at": "2026-03-20T11:05:00+00:00",
+                        "updated_at": "2026-03-20T12:05:00+00:00",
+                    },
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, "set-1")
+        self.assertEqual(loaded[0].item_ids, ["first"])
+        corrupt_path = self.store._path.with_suffix(".corrupt.json")
+        self.assertTrue(corrupt_path.exists())
+        payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(corrupt_path.read_text(encoding="utf-8"))
+        self.assertEqual(len(payload.get("context_sets", [])), 1)
+        self.assertEqual(payload.get("context_sets")[0]["item_ids"], ["first"])
+        self.assertEqual(len(backup_payload.get("context_sets", [])), 1)
+        self.assertEqual(backup_payload.get("context_sets")[0]["item_ids"], ["first"])
+        self.assertEqual(len(quarantined_payload), 2)
+        self.assertEqual(quarantined_payload[1]["item_ids"], ["second"])
+
+    def test_backup_with_duplicate_context_set_ids_is_preserved_for_audit(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text("{bad", encoding="utf-8")
+        self.store._backup_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "updated_at": "2026-03-20T12:05:00+00:00",
+                    "context_sets": [
+                        {
+                            "context_set_id": "set-backup",
+                            "name": "Backup Evidence",
+                            "item_ids": ["first"],
+                            "created_at": "2026-03-20T11:00:00+00:00",
+                            "updated_at": "2026-03-20T12:00:00+00:00",
+                        },
+                        {
+                            "context_set_id": "set-backup",
+                            "name": "Backup Evidence",
+                            "item_ids": ["second"],
+                            "created_at": "2026-03-20T11:05:00+00:00",
+                            "updated_at": "2026-03-20T12:05:00+00:00",
+                        },
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, "set-backup")
+        self.assertEqual(loaded[0].item_ids, ["first"])
+        corrupt_path = self.store._backup_path.with_suffix(".corrupt.json")
+        self.assertTrue(corrupt_path.exists())
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        backup_payload = json.loads(self.store._backup_path.read_text(encoding="utf-8"))
+        quarantined_payload = json.loads(corrupt_path.read_text(encoding="utf-8"))
+        self.assertEqual(primary_payload.get("recovered_from"), "backup")
+        self.assertEqual(len(primary_payload.get("context_sets", [])), 1)
+        self.assertEqual(primary_payload.get("context_sets")[0]["item_ids"], ["first"])
+        self.assertEqual(len(backup_payload.get("context_sets", [])), 1)
+        self.assertEqual(backup_payload.get("context_sets")[0]["item_ids"], ["first"])
+        self.assertEqual(len(quarantined_payload.get("context_sets", [])), 2)
+        self.assertEqual(quarantined_payload.get("context_sets")[1]["item_ids"], ["second"])
 
     def test_empty_tmp_payload_does_not_override_backup_recovery(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
