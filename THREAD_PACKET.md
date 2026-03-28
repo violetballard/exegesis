@@ -4,6 +4,7 @@
 - Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`. This maps to `ROADMAP.md` Milestone 5: A2UI Presentation Layer and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress), specifically the A2UI action-order canonicalization task - define the `A2UI` output contract for agent-produced presentation artifacts, add deterministic schemas, provide CLI rendering fallback for the same structured payloads, and keep the surface client-agnostic.
 - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`), specifically the CLI fallback contract - agent emits structured presentation artifacts (cards, sections, actions, metadata) that remain consumable by CLI first, then `Exegesis Console`, then future Studio UI; deterministic action ordering keeps the CLI fallback stable.
+- Reviewer-required fix satisfied: the roadmap and vision mappings are now explicit in this packet, so the handoff no longer relies on inference.
 - These are the reviewer-required plan-alignment mappings for this lane; they replace the prior placeholder form and should remain auditable in the handoff.
 - Scope completed: Updated the A2UI materialization path to sort filtered actions by canonical JSON before rendering, with contract tests covering the deterministic ordering behavior.
 - Task summary:
