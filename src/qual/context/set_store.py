@@ -24,8 +24,12 @@ class ContextSetRecord:
         self.context_set_id = self._normalize_identifier(self.context_set_id)
         self.name = self._normalize_name(self.name)
         self.item_ids = self._normalize_item_ids(self.item_ids)
-        self.created_at = self._normalize_timestamp(self.created_at)
-        self.updated_at = self._normalize_timestamp(self.updated_at)
+        normalized_created_at = self._normalize_timestamp(self.created_at)
+        normalized_updated_at = self._normalize_timestamp(self.updated_at)
+        self.created_at, self.updated_at = self._normalize_record_timestamps(
+            normalized_created_at,
+            normalized_updated_at,
+        )
 
     @staticmethod
     def _normalize_text_scalar(value: object) -> str:
@@ -100,6 +104,23 @@ class ContextSetRecord:
         if parsed.tzinfo is None or parsed.utcoffset() is None:
             parsed = parsed.replace(tzinfo=UTC)
         return parsed.astimezone(UTC).isoformat()
+
+    @staticmethod
+    def _normalize_record_timestamps(created_at: str, updated_at: str) -> tuple[str, str]:
+        if created_at and not updated_at:
+            return created_at, created_at
+        if updated_at and not created_at:
+            return updated_at, updated_at
+        if not created_at or not updated_at:
+            return created_at, updated_at
+        try:
+            created_at_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            updated_at_dt = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
+        except ValueError:
+            return created_at, updated_at
+        if updated_at_dt < created_at_dt:
+            return created_at, created_at
+        return created_at, updated_at
 
 
 class ContextSetStore:
@@ -953,24 +974,23 @@ class ContextSetStore:
         return any(key not in _CANONICAL_DICT_KEYS for key in payload)
 
     def _recovery_payload_updated_at(self, payload: dict[str, object] | list[object]) -> str | None:
+        timestamps: list[str] = []
         if isinstance(payload, dict):
             normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
             if normalized_updated_at is not None:
-                return normalized_updated_at
+                timestamps.append(normalized_updated_at)
             raw_context_sets = payload.get("context_sets") if "context_sets" in payload else None
         else:
             raw_context_sets = payload
-        if raw_context_sets is None:
-            return None
-        records = self._parse_context_sets(raw_context_sets)
-        if not records:
-            return None
-        timestamps = [
-            timestamp
-            for record in records
-            for timestamp in (record.updated_at, record.created_at)
-            if timestamp
-        ]
+        if raw_context_sets is not None:
+            records = self._parse_context_sets(raw_context_sets)
+            if records:
+                timestamps.extend(
+                    timestamp
+                    for record in records
+                    for timestamp in (record.updated_at, record.created_at)
+                    if timestamp
+                )
         if not timestamps:
             return None
         return max(timestamps)
