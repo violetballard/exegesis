@@ -3,46 +3,35 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit:
-  - `d98765fa30bef7a27126e812d08351c76a07685c`
+  - `0c35c8c26b29fbe65e3ed37dd54fecf1acde49be`
 
 ## Scope goal
-- Harden command catalog and diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.
+- Realign feat-commands handoff metadata so the review packet matches the actual branch head and does not claim code changes that are not present in the submitted commit.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
-- Shared by approval only:
-  - `tests/unit/test_commands_catalog.py`
-  - `tests/unit/test_diff_preview.py`
 
 ## Scope completed
-- Added command-catalog projections and canonical lookup helpers for the `feat-commands` surface.
-- Hardened `diff_preview` output contracts for text and JSON responses, including labels, summaries, truncation, and fingerprints.
-- Added focused unit coverage for command catalog behavior and diff-preview contract paths.
-- Regenerated the handoff packet and lane metadata so the review metadata matches the actual branch delta and approved shared test coverage.
+- Replaced the stale feature-scope summary with a truthful docs-only branch description.
+- Removed the shared-test approval references from the handoff packet because the submitted commit does not change those files.
+- Regenerated the handoff packet and lane metadata so the review evidence matches the actual branch head.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget. The branch delta is 9 files changed overall: 4 lane-owned code files, 2 approved shared tests, and 3 handoff metadata files.
-- The change stays centered on the command surface contracts for the `feat-commands` lane.
+- Stayed within the default lane budget. The submitted commit changes 3 handoff metadata files and no lane-owned code files.
+- The change stays centered on keeping the command-lane record truthful for the next implementation pass.
 
 ## Approved exception note
-- Approved by integrator for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` to add focused contract coverage required by review.
+- None. This commit does not edit shared or integrator-locked files.
 
 ## Tasks completed (numbered)
-1. Added command-catalog projections and canonical lookup helpers for the `feat-commands` surface.
-2. Hardened `diff_preview` output contracts for text and JSON responses, including labels, summaries, truncation, and fingerprints.
-3. Added focused unit coverage for command catalog behavior and diff-preview contract paths.
-4. Regenerated the handoff packet and lane metadata so the review evidence matches the actual branch delta and approved shared test coverage.
+1. Replaced the stale feature-scope summary with a truthful docs-only branch description.
+2. Removed the shared-test approval references from the handoff packet because the submitted commit does not change those files.
+3. Regenerated the handoff packet and lane metadata so the review evidence matches the actual branch head.
 
 ## Files changed
 - `.codex/kickoff_packets/feat-commands.md`
 - `.codex/lane_meta/feat-commands.json`
 - `THREAD_PACKET.md`
-- `src/qual/commands/__init__.py`
-- `src/qual/commands/canonical.py`
-- `src/qual/commands/catalog.py`
-- `src/qual/commands/diff_preview.py`
-- `tests/unit/test_commands_catalog.py`
-- `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
@@ -58,18 +47,17 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1: Bootstrap Flow Stabilization - Command and diff-preview behavior hardening; exit criteria: approved feature-lane deltas merged through integrator, `make ci` green on integrator and main for the final combined state, and the manual CLI smoke flow remaining stable.
-- Milestone 2: Test Hardening - Focused unit coverage for core behaviors; exit criteria: targeted review cases landing and command-level probes staying available for integration confidence.
+- Milestone 1: Bootstrap Flow Stabilization - keep the command-lane handoff metadata synchronized with the actual branch head so feature reviews stay deterministic and reviewable.
 
 ### Vision capability affected
-- 3. Auditable generation - diff-preview fingerprints verify the emitted diff artifact deterministically.
-- 4. Operator-first control surface - CLI-facing command contracts stay structured, deterministic, and fallback-friendly.
+- 3. Auditable generation - the handoff packet now reflects the exact submitted commit and file set.
+- 4. Operator-first control surface - the CLI lane record stays deterministic and ready for the next implementation pass.
 
 ### Routing/provider impact note
-- None. This change only affects local command contracts and focused test coverage; no routing/provider files change.
+- None. This change only affects local handoff metadata; no routing/provider files change.
 
 ### Proposed README patch text
 - None.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `YES`
+- Shared/integrator-locked edits: `NO`

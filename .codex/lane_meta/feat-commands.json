@@ -1,26 +1,24 @@
 {
-  "scope_goal": "Harden command catalog and diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.",
+  "scope_goal": "Realign the feat-commands handoff metadata so the submitted packet matches the actual branch head and does not claim code changes that are not present in the final commit.",
   "tasks_completed": [
-    "Added command-catalog projections and canonical lookup helpers for the feat-commands surface.",
-    "Hardened diff-preview output contracts for text and JSON responses, including labels, summaries, truncation, and fingerprints.",
-    "Added focused unit coverage for command catalog behavior and diff-preview contract paths.",
-    "Regenerated the handoff packet and lane metadata so the review evidence matches the actual branch delta and approved shared test coverage."
+    "Replaced the stale feature-scope summary with a truthful docs-only branch description.",
+    "Removed the shared-test approval references from the handoff packet because the submitted commit does not change those files.",
+    "Regenerated the handoff packet and lane metadata so the review evidence matches the actual branch head."
   ],
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 1: Bootstrap Flow Stabilization - Command and diff-preview behavior hardening; exit criteria: approved feature-lane deltas merged through integrator, `make ci` green on integrator and main for the final combined state, and the manual CLI smoke flow remaining stable.",
-    "Milestone 2: Test Hardening - Focused unit coverage for core behaviors; exit criteria: targeted review cases landing and command-level probes staying available for integration confidence."
+    "Milestone 1: Bootstrap Flow Stabilization - keep the command-lane handoff metadata synchronized with the actual branch head so feature reviews stay deterministic and reviewable."
   ],
   "vision_capabilities": [
-    "3. Auditable generation - diff-preview fingerprints verify the emitted command artifact deterministically.",
-    "4. Operator-first control surface - CLI-facing command contracts stay structured, deterministic, and fallback-friendly."
+    "3. Auditable generation - the handoff packet now reflects the exact submitted commit and file set.",
+    "4. Operator-first control surface - the CLI lane record stays deterministic and ready for the next implementation pass."
   ],
-  "routing_provider_impact": "None. This change only affects local command contracts and focused test coverage; no routing/provider files change.",
+  "routing_provider_impact": "None. This change only affects local handoff metadata; no routing/provider files change.",
   "proposed_readme_patch": "",
-  "shared_file_exception": true,
-  "kickoff_budget_note": "Stayed within the default lane budget. The branch delta is 9 files changed overall: 4 lane-owned code files, 2 approved shared tests, and 3 handoff metadata files.",
-  "approved_exception_note": "Approved by integrator for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to add focused contract coverage required by review.",
-  "review_commit": "d98765fa30bef7a27126e812d08351c76a07685c",
+  "shared_file_exception": false,
+  "kickoff_budget_note": "Stayed within the default lane budget. The submitted commit changes 3 handoff metadata files and no lane-owned code files.",
+  "approved_exception_note": "",
+  "review_commit": "0c35c8c26b29fbe65e3ed37dd54fecf1acde49be",
   "files_changed": [
     {
       "path": ".codex/kickoff_packets/feat-commands.md",
@@ -33,40 +31,7 @@
     {
       "path": "THREAD_PACKET.md",
       "kind": "meta"
-    },
-    {
-      "path": "src/qual/commands/__init__.py",
-      "kind": "owned"
-    },
-    {
-      "path": "src/qual/commands/canonical.py",
-      "kind": "owned"
-    },
-    {
-      "path": "src/qual/commands/catalog.py",
-      "kind": "owned"
-    },
-    {
-      "path": "src/qual/commands/diff_preview.py",
-      "kind": "owned"
-    },
-    {
-      "path": "tests/unit/test_commands_catalog.py",
-      "kind": "shared_approved"
-    },
-    {
-      "path": "tests/unit/test_diff_preview.py",
-      "kind": "shared_approved"
     }
   ],
-  "shared_file_exceptions": [
-    {
-      "path": "tests/unit/test_commands_catalog.py",
-      "reason": "reviewer-required shared regression coverage for command-catalog contract hardening"
-    },
-    {
-      "path": "tests/unit/test_diff_preview.py",
-      "reason": "reviewer-required shared regression coverage for diff-preview contract hardening"
-    }
-  ]
+  "shared_file_exceptions": []
 }
