@@ -1354,7 +1354,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(len(filtered["actions"]), 1)
         self.assertEqual(filtered["actions"][0]["id"], "apply_patch")
 
-    def test_filtered_actions_preserve_input_order(self) -> None:
+    def test_filtered_actions_are_canonicalized_by_identity(self) -> None:
         caps = _capabilities(actions_supported=("reject_patch", "copy_to_clipboard", "apply_patch"))
         card = {
             "type": "GenericCard",
@@ -1372,7 +1372,7 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(
             [action["id"] for action in filtered["actions"]],
-            ["reject_patch", "copy_to_clipboard", "apply_patch"],
+            ["apply_patch", "copy_to_clipboard", "reject_patch"],
         )
 
     def test_action_payload_schema_rejects_extra_fields(self) -> None:

@@ -688,7 +688,9 @@ def _filter_supported_actions(actions: Any, *, supported_actions: set[str]) -> l
             continue
         seen.add(action_key)
         filtered.append(normalized)
-    return filtered
+    # Keep the materialized payload deterministic even when the model emits
+    # supported actions in a different order.
+    return sorted(filtered, key=_canonical_json)
 
 
 def _validate_canonical_read_only_fallback_actions(actions: list[Any]) -> None:
