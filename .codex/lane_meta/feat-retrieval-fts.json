@@ -5,8 +5,9 @@
   "risk": "LOW",
   "packet_type": "metadata-only",
   "reviewed_commits": [
+    "c92025af6e11c396f84356967cea704cadb20f5b",
     "c4944661a0a682821c486810918c2c1fabac1a41",
-    "c92025af6e11c396f84356967cea704cadb20f5b"
+    "47b3977d271e3f7faacb6ba3082ab94a2d327fcb"
   ],
   "roadmap_items": [
     "ROADMAP.md: Milestone 3: Real workflow loop",
@@ -18,7 +19,8 @@
   "tasks_completed": [
     "Added the excerpt lookup audit trail and deterministic rehydration path in the retrieval service.",
     "Canonicalized excerpt provenance so downstream payloads carry stable hashes and fingerprints.",
-    "Kept retrieval FTS-first and left PageIndex/embeddings as fallback-only plumbing."
+    "Kept retrieval FTS-first and left PageIndex/embeddings as fallback-only plumbing.",
+    "Exported the canonical retrieval query constructor through both retrieval facades and kept the auto path on the FTS-first implementation."
   ],
   "vision_capabilities": [
     "2. Retrieval-first context handling",
