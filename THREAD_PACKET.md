@@ -6,7 +6,7 @@
 
 ## Scope completed
 
-The lane preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The shared regression test file was kept in scope under the existing lane-approved exception.
+The lane preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The shared regression test file was kept in scope under the existing lane-approved exception, and no `scripts/scope-check.sh` edit is part of the final handoff.
 
 ## Files changed
 
