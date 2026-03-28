@@ -48,11 +48,11 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1: Bootstrap Flow Stabilization (In Progress)
-- Context basket and vault persistence hardening
+- Milestone 3: Real workflow loop
+- `feat-context-storage` lane entry
 
 ### Vision capability affected
-- Capability 1: Local-first state and identity
+- Auditable state and workflow
 
 ### Routing/provider impact note
 - None
