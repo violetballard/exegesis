@@ -25,6 +25,7 @@ from src.qual.retrieval import retrieve_auto_payload as engine_retrieve_auto_pay
 from src.qual.retrieval import retrieve_auto_source_bundle as engine_retrieve_auto_source_bundle
 from src.qual.retrieval import retrieve_fts as engine_retrieve_fts
 from src.qual.retrieval import retrieve_fts_doc_bundle as engine_retrieve_fts_doc_bundle
+from src.qual.retrieval import retrieve_fts_excerpt as engine_retrieve_fts_excerpt
 from src.qual.retrieval import retrieve_fts_payload as engine_retrieve_fts_payload
 from src.qual.retrieval import retrieve_fts_source_bundle as engine_retrieve_fts_source_bundle
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
@@ -779,6 +780,47 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
         self.assertTrue(excerpt["text"])
 
+    def test_retrieve_fts_excerpt_returns_canonical_fts_payload(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+
+        canonical = self.service.retrieve_fts_excerpt(excerpt_id or "")
+        alias = self.service.fetch_fts_excerpt(excerpt_id or "")
+        helper = engine_retrieval.retrieve_fts_excerpt(
+            self.service,
+            excerpt_id=excerpt_id or "",
+        )
+        package_helper = engine_retrieve_fts_excerpt(
+            self.service,
+            excerpt_id=excerpt_id or "",
+        )
+
+        self.assertEqual(canonical, alias)
+        self.assertEqual(helper, canonical)
+        self.assertEqual(package_helper, canonical)
+        self.assertEqual(canonical["source_strategy"], "fts")
+        self.assertEqual(canonical["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(canonical["retrieval_mode"], "fts_first")
+        self.assertEqual(canonical["retrieval_policy"]["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(canonical["retrieval_policy"]["retrieval_mode"], "fts_first")
+        self.assertEqual(canonical["provenance"]["source_strategy"], "fts")
+        self.assertEqual(canonical["provenance"]["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(canonical["provenance"]["retrieval_mode"], "fts_first")
+        self.assertEqual(canonical["provenance"]["doc_id"], result.hits[0].doc_id)
+        self.assertEqual(canonical["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
+        self.assertEqual(canonical["provenance"]["hash"], result.hits[0].provenance["hash"])
+        self.assertEqual(canonical["text_hash"], result.hits[0].provenance["excerpt_text_hash"])
+
     def test_retrieval_hits_surface_top_level_retrieval_context(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
@@ -850,6 +892,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "retrieve_fts_source_bundle",
                 "retrieve_fts_doc_bundle",
                 "retrieve_fts_excerpt_bundle",
+                "retrieve_fts_excerpt",
                 "retrieve_fts_payload",
                 "retrieve_auto_context_bundle",
                 "retrieve_auto_source_bundle",
@@ -876,6 +919,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_context_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_source_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_excerpt_bundle"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_excerpt"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_payload"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_context_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_source_bundle"))

@@ -3,43 +3,50 @@
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Reviewed commit(s):
-  - `36893f06df85409c4595d64adb8af60455c086a6`
-  - `dc8f79e4abeb30de51854fdd84d35b97993955b8`
-  - `f0047257cf71b750a576de84c272c0f8c5875148`
-- Metadata-only follow-up commit:
-  - `34dfec2f59175850da3d33e8e50b3641f1256b49`
+  - `70af1c68bfb22d39bb2cd2341f94167ad97b42f7`
+  - `b906bc9917cb0a87a031a8f80851e17328697eb5`
 
 ## Scope completed
 
-The packet now records the reviewed implementation commit set separately from the metadata-only follow-up commit, so the audit trail does not imply the follow-up commit is the feature payload.
+The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance. PageIndex and embeddings remain deferred as fallback-only plumbing, and this handoff is limited to the retrieval-owned feature surface rather than packet-planner/tooling edits.
 
-### Reviewed implementation files (reference only)
+### Reviewed implementation files
 - `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/embeddings_strategy.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/pageindex_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
 - `src/qual/engine/retrieval/policy.py`
+- `src/qual/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
 
 ### Handoff correction note
-- The current correction stays within the handoff artifacts only.
+- This packet covers the retrieval-owned feature surface only. Packet-planner/tooling edits and any other out-of-lane verification files are split out rather than bundled here.
 
 ### Priority outcomes
-1. Keep the reviewed commit set explicit and auditable.
-2. Keep the metadata-only follow-up commit separate from the feature payload.
-3. Keep the handoff correction limited to the handoff artifacts.
-4. Keep the reviewed implementation files listed separately for traceability.
+1. Keep retrieval FTS-first for the MVP.
+2. Canonicalize excerpt lookup and provenance payloads for deterministic generation outputs.
+3. Keep PageIndex and embeddings deferred as fallback-only plumbing.
+4. Keep the handoff scoped to lane-owned retrieval files.
 
 ### Tasks
-1. Add an explicit reviewed commit-set field to the handoff packet.
-2. Separate the metadata-only follow-up commit from the reviewed implementation bundle.
-3. Rewrite the scope text so the handoff artifact is auditable without inferring context.
-4. Keep the reviewed implementation files listed separately for traceability.
+1. Canonicalized FTS excerpt lookup so excerpt rehydration returns deterministic payloads and records an audit trail.
+2. Normalized retrieval provenance and downstream payload builders so excerpt, source, citation, doc, and context bundles share stable hashes and fingerprints.
+3. Locked the retrieval policy to FTS-first and kept PageIndex/embeddings deferred as fallback-only plumbing.
+4. Regenerated the handoff metadata so the packet lists only the retrieval-owned feature surface.
 
 ### Files changed
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
-- `THREAD_PACKET.md`
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/embeddings_strategy.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/pageindex_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/engine/retrieval/policy.py`
+- `src/qual/retrieval/__init__.py`
+- `src/qual/retrieval/service.py`
 
 ### Compatibility note
-- Breaking compatibility note: `section:` scopes are intentionally rejected in the owned retrieval service until section fallback support exists. Callers that depend on section targeting must switch to `vault`, `collection:`, or `doc:` scopes for the current FTS-first MVP path.
+- PageIndex and embeddings remain fallback-only plumbing behind the FTS-first policy for this MVP; they are not required retrieval paths.
 
 ### Guardrails
 - Keep the handoff tied to the retrieval implementation and its lane-owned file set.

@@ -7,29 +7,34 @@
     "f0047257cf71b750a576de84c272c0f8c5875148"
   ],
   "metadata_only_followup_commit": "34dfec2f59175850da3d33e8e50b3641f1256b49",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 6 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff. The reviewed implementation commit set is explicit, and the metadata-only follow-up commit is not the feature payload.",
+  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 6 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff. The reviewed implementation commit set is explicit, the metadata-only follow-up commit is not the feature payload, and the regression test is part of the correction bundle.",
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
+    "Milestone 3: Product Readiness -> generation provenance contract (retrieval evidence attached to outputs)",
     "Milestone 4: Retrieval Layer -> FTS-first ingestion/index path for context/vault documents"
   ],
   "routing_provider_impact": "None",
   "related_implementation_files": [
     "src/qual/engine/retrieval/__init__.py",
     "src/qual/retrieval/service.py",
-    "src/qual/engine/retrieval/policy.py"
+    "src/qual/engine/retrieval/policy.py",
+    "tests/unit/test_unified_retrieval.py"
   ],
-  "scope_completed": "The handoff now names the reviewed implementation commit set separately from the metadata-only follow-up commit, so the audit trail no longer implies that the follow-up commit is feature payload. The correction stays within the handoff artifacts only.",
+  "scope_completed": "The handoff now names the reviewed implementation commit set separately from the metadata-only follow-up commit, so the audit trail no longer implies that the follow-up commit is feature payload. PageIndex and embeddings are explicitly deferred fallback-only plumbing, so the FTS-first MVP remains the only required retrieval path. The correction also adds regression coverage for the canonical FTS excerpt lookup entrypoints.",
   "scope_goal": "Document the retrieval handoff boundary while keeping the lane-owned retrieval scope constrained to the reviewed implementation commit set and excluding out-of-lane tooling edits.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Added an explicit reviewed commit-set field so the implementation bundle is auditable.",
     "Separated the metadata-only follow-up commit from the feature payload.",
     "Kept the reviewed implementation files listed separately for traceability.",
-    "Kept the handoff correction within the lane-owned retrieval documentation artifacts."
+    "Kept the handoff correction within the lane-owned retrieval documentation artifacts.",
+    "Documented PageIndex and embeddings as deferred fallback-only plumbing so the FTS-first MVP remains the only required retrieval path.",
+    "Added regression coverage for the canonical FTS excerpt lookup entrypoints and their public aliases."
   ],
   "vision_capabilities": [
-    "2. Retrieval-first context handling"
+    "2. Retrieval-first context handling",
+    "3. Auditable generation"
   ],
-  "compatibility_note": "Breaking compatibility note: section: scopes are intentionally rejected in the owned retrieval service until section fallback support exists. Callers that depend on section targeting must switch to vault, collection:, or doc: scopes for the current FTS-first MVP path."
+  "compatibility_note": "Breaking compatibility note: section: scopes are intentionally rejected in the owned retrieval service until section fallback support exists. PageIndex and embeddings remain deferred fallback-only plumbing for later retrieval expansion and are not required paths in the current FTS-first MVP; callers that depend on section targeting must switch to vault, collection:, or doc: scopes."
 }
