@@ -3,12 +3,15 @@
 - Branch name: `codex/feat-context-storage`
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514`
+- Final head SHA:
+  - `011589aaccd44e2dd310f196e47fe54508267fcb`
 
 ## Metadata-only follow-up
 
 - `ee2dd30ae4c3118ffe1f2129f5f3f14316868a00`
 - `076a40ae6d6c4d51e4fb24be6f8a28d73a9d50ef`
 - `5cf30e759ed161dcf100b7c7c2b05bf44a3dacbf`
+- `011589aaccd44e2dd310f196e47fe54508267fcb`
 
 ## Scope completed
 
