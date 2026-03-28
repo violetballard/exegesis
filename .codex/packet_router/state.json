@@ -1,14 +1,34 @@
 {
-  "cloud_retry_at": 1773814001.373374,
-  "fixer_fallback_jobs": {},
+  "cloud_retry_at": 0,
+  "fixer_fallback_jobs": {
+    "feat-a2ui-contract": {
+      "log": ".codex/packet_router/logs/fixer__feat-a2ui-contract__20260328T093318Z.log",
+      "ts": "20260328T093318Z"
+    },
+    "feat-engine-runs": {
+      "log": ".codex/packet_router/logs/fixer__feat-engine-runs__20260328T093318Z.log",
+      "ts": "20260328T093318Z"
+    }
+  },
   "fixer_quota_retry_ts": {},
   "fixer_thread_ids": {},
-  "last_mode_switch_at": 1773812201.3733802,
-  "reviewer_fixer_cursor": {},
-  "reviewer_fixer_retry_ts": {},
-  "reviewer_quota_global_retry_ts": 0,
-  "reviewer_quota_retry_ts": {},
+  "integrator_thread_id": "019d33ae-c391-7a83-ad47-0feb27df1bc1",
+  "last_mode_switch_at": 1774690398.24288,
+  "last_quota_reason": "cloud probe succeeded",
+  "reviewer_fixer_cursor": {
+    "feat-a2ui-contract": "R__CHANGES__codex-feat-a2ui-contract__b929fe6c7a1159c7882acedd247aca31a93cd123__20260328T091502Z.md",
+    "feat-engine-runs": "R__CHANGES__codex-feat-engine-runs__d59e853efa72e14488e62d9487010ba61e335a55__20260328T091506Z.md"
+  },
+  "reviewer_fixer_retry_ts": {
+    "feat-a2ui-contract": 1774690396.232571,
+    "feat-engine-runs": 1774690398.266171
+  },
+  "reviewer_quota_global_retry_ts": 1774690206.1410098,
+  "reviewer_quota_retry_ts": {
+    "feat-context-storage": 1774690206.1410098
+  },
+  "reviewer_thread_id": null,
   "reviewer_thread_ids": {},
   "reviewer_thread_missing_lanes": [],
-  "runtime_mode": "local_fallback"
+  "runtime_mode": "cloud_primary"
 }
