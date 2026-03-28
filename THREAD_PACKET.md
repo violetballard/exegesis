@@ -8,7 +8,7 @@
 
 ## Scope completed
 
-The fix stayed within the owned context/storage paths: `src/qual/context/**` and `src/qual/storage/**` were updated so recovery cleanup keeps the existing `updated_at` while stripping `recovered_from` provenance. The handoff packet, lane metadata, and routed packet copy were reissued together under the approved handoff-artifact exception so the reviewed file list stays synchronized without reintroducing `scripts/scope-check.sh`. No `engine/src/exegesis_engine/state/**` or `engine/src/exegesis_engine/storage/**` changes were needed for this recovery pass.
+The fix stayed within the owned context/storage paths: `src/qual/context/**` and `src/qual/storage/**` were updated so recovery cleanup keeps the existing `updated_at` while stripping `recovered_from` provenance. The handoff packet, lane metadata, and routed packet copy were reissued together under the approved handoff-artifact exception so the reviewed file list stays synchronized. No `engine/src/exegesis_engine/state/**` or `engine/src/exegesis_engine/storage/**` changes were needed for this recovery pass.
 
 ## Files changed
 
@@ -26,7 +26,7 @@ The fix stayed within the owned context/storage paths: `src/qual/context/**` and
 2. Reused the existing cleanup timestamp in `ContextSetStore` recovery so canonical cleanup rewrites keep the prior `updated_at` value.
 3. Reused the existing cleanup timestamp in `VaultService` recovery so canonical cleanup rewrites keep the prior `updated_at` value.
 4. Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
-5. Reissued the handoff packet, lane metadata, and routed packet copy together under the approved handoff-artifact exception so the reviewed file list stays synchronized without `scripts/scope-check.sh`.
+5. Reissued the handoff packet, lane metadata, and routed packet copy together under the approved handoff-artifact exception so the reviewed file list stays synchronized.
 6. Updated the final head bookkeeping to the current branch tip (`7f5b4ea2e931cffee0695a545db6c4f5417a430f`).
 
 ## Commands run and outcomes
