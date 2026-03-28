@@ -11,8 +11,8 @@
 
 ## Plan Alignment
 
-- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress)
-- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`)
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) (see `ROADMAP.md` lines 88-106)
+- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) (see `PRODUCT_VISION.md` lines 44-47)
 - Roadmap scope bullets: `Add agent-side card/section/action payload generation with deterministic schemas` and `Provide CLI rendering fallback for the same structured payloads`
 - Roadmap exit criterion: `A2UI schema/versioning is documented and stable`
 - Roadmap task anchor: `ROADMAP.md` `MVP Focus Through 2026-05-04` lists `feat-a2ui-contract` as a current active implementation emphasis under this milestone.
