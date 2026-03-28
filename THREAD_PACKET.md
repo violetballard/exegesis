@@ -7,7 +7,7 @@
 
 ## Scope completed
 
-The lane hardened context basket, context-set, and vault persistence so malformed or incomplete local state is quarantined or canonicalized safely, valid recovery paths are preserved, and recovery rewrites stay auditable. The branch head also includes a metadata-only follow-up commit that records the completed lane tasks; the only non-owned runtime edit in the lane is the approved regression coverage file `tests/unit/test_context_storage_recovery.py`.
+The lane hardened context basket, context-set, and vault persistence so malformed or incomplete local state is quarantined or canonicalized safely, valid recovery paths are preserved, and recovery rewrites stay auditable. The branch head also includes a metadata-only follow-up commit that records the completed lane tasks. The only non-owned runtime edit in the lane is the approved regression coverage file `tests/unit/test_context_storage_recovery.py`.
 
 ## Files changed
 
@@ -39,11 +39,11 @@ The lane hardened context basket, context-set, and vault persistence so malforme
 
 ## Roadmap item(s) affected
 
-- Milestone 1 - Bootstrap Flow Stabilization: context basket and vault persistence hardening.
+- Milestone 2 - Test Hardening: context storage recovery and persistence hardening.
 
 ## Vision capability affected
 
-- Capability 1 - Local-first state and identity.
+- Capability 1 - Local-first state and identity: project-scoped vault and context basket with safe recovery behavior, plus encrypted-by-default persisted local state and context artifacts.
 
 ## Routing/provider impact note
 
