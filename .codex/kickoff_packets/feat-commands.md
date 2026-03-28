@@ -2,11 +2,11 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: Tighten the command surface for the engine-first MVP so spec-aware lookup helpers and the CLI-first operator flow stay deterministic.
+- Scope goal: Tighten the command surface for the CLI-first operator flow so command lookup helpers, diff-preview output, and emitted fingerprints stay deterministic and verifiable.
 
 ### Priority outcomes
 1. Keep command contracts deterministic and easy to smoke-test.
-2. Prefer thin command entrypoints over embedded business logic.
+2. Make diff-preview fingerprints verify the exact emitted payload.
 3. Preserve compatibility with future `Exegesis Console` consumption through engine/A2UI contracts.
 
 ### Guardrails
