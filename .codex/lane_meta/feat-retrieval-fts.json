@@ -4,8 +4,8 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 3: Product Readiness -> Define generation provenance contract (retrieval evidence attached to outputs) for `feat-retrieval-fts`",
-    "MVP Focus Through 2026-05-04 -> `feat-retrieval-fts`"
+    "Milestone 3: Real workflow loop",
+    "docs/TASKS.md: feat-retrieval-fts -> keep the FTS-first retrieval path authoritative; expose retrieval through the canonical engine contract; keep structured results suitable for workflow cards and basket promotion"
   ],
   "routing_provider_impact": "None",
   "related_implementation_files": [
@@ -18,7 +18,7 @@
     "src/qual/retrieval/__init__.py",
     "src/qual/retrieval/service.py"
   ],
-  "scope_completed": "The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface.",
+  "scope_completed": "The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface.",
   "scope_goal": "Canonicalize the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, with PageIndex and embeddings deferred as fallback-only plumbing.",
   "shared_file_exception": false,
   "tasks_completed": [
@@ -29,7 +29,7 @@
   ],
   "vision_capabilities": [
     "2. Retrieval-first context handling",
-    "3. Auditable generation"
+    "6. Auditable state and workflow"
   ],
   "compatibility_note": "PageIndex and embeddings remain fallback-only plumbing behind the FTS-first policy for this MVP; they are not required retrieval paths."
 }

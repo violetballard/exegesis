@@ -43,13 +43,13 @@ The lane canonicalized the FTS-first retrieval MVP so generation flows receive d
 
 ## Roadmap item(s) affected
 
-- Milestone 3: Product Readiness -> Define generation provenance contract (retrieval evidence attached to outputs) for `feat-retrieval-fts`
-- MVP Focus Through 2026-05-04 -> `feat-retrieval-fts`
+- Milestone 3: Real workflow loop
+- docs/TASKS.md: feat-retrieval-fts -> keep the FTS-first retrieval path authoritative; expose retrieval through the canonical engine contract; keep structured results suitable for workflow cards and basket promotion
 
 ## Vision capability affected
 
 - 2. Retrieval-first context handling
-- 3. Auditable generation
+- 6. Auditable state and workflow
 
 ## Routing/provider impact note
 
