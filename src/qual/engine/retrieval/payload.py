@@ -175,6 +175,37 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
     }
 
 
+def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, object]) -> dict[str, object]:
+    """Return the deterministic retrieval context bundle from a source-bundle snapshot."""
+
+    source_bundle = copy.deepcopy(source_bundle)
+    if not isinstance(source_bundle, dict):
+        source_bundle = {}
+    retrieval_citation_bundle = source_bundle.get("retrieval_citation_bundle", {})
+    if not isinstance(retrieval_citation_bundle, dict):
+        retrieval_citation_bundle = _build_retrieval_citation_bundle_from_payload(source_bundle)
+    retrieval_doc_bundle = source_bundle.get("retrieval_doc_bundle", {})
+    if not isinstance(retrieval_doc_bundle, dict):
+        retrieval_doc_bundle = _build_retrieval_doc_bundle_from_payload(source_bundle)
+    retrieval_excerpt_bundle = source_bundle.get("retrieval_excerpt_bundle", {})
+    if not isinstance(retrieval_excerpt_bundle, dict):
+        retrieval_excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(source_bundle)
+    retrieval_provenance = source_bundle.get("retrieval_provenance", {})
+    if not isinstance(retrieval_provenance, dict):
+        retrieval_provenance = _build_retrieval_provenance_from_payload(source_bundle)
+    return {
+        "audit_ref": source_bundle.get("audit_ref"),
+        "result_fingerprint": source_bundle.get("result_fingerprint"),
+        "retrieval_downstream_payload": copy.deepcopy(source_bundle),
+        "retrieval_citation_bundle": copy.deepcopy(retrieval_citation_bundle),
+        "retrieval_doc_bundle": copy.deepcopy(retrieval_doc_bundle),
+        "retrieval_excerpt_bundle": copy.deepcopy(retrieval_excerpt_bundle),
+        "retrieval_provenance": copy.deepcopy(retrieval_provenance),
+        "retrieval_source_bundle": copy.deepcopy(source_bundle),
+        "retrieval_evidence": copy.deepcopy(source_bundle.get("retrieval_evidence", {})),
+    }
+
+
 def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> dict[str, object]:
     """Return the shared retrieval snapshot fields from a downstream payload snapshot."""
 
@@ -548,5 +579,8 @@ def build_retrieval_context_bundle_from_result(
     context_source = getattr(result, "retrieval_context_bundle", None)
     if callable(context_source):
         return copy.deepcopy(context_source())
+    source_bundle_source = getattr(result, "source_bundle", None)
+    if callable(source_bundle_source):
+        return _build_retrieval_context_bundle_from_source_bundle(copy.deepcopy(source_bundle_source()))
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_context_bundle_from_payload(payload)
