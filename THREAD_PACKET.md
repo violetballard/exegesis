@@ -3,34 +3,44 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit:
-  - `795c64d8c5aa40861695a65efc22a5519fbdee69`
+  - `395462833cd0f28474509e63f92fa85fa7d3b015`
 
 ## Scope goal
-- Refresh feat-commands handoff metadata so the review packet tracks the current branch head and stays truthful about the docs-only metadata refresh delta.
+- Refresh feat-commands handoff metadata so the review packet tracks the real code-bearing branch delta and stays truthful about the lane-owned command contract changes.
 
 ## Lane/owned paths
-- No lane-owned code paths changed; this commit only updates metadata files.
+- `src/qual/commands/**`
+- Approved shared tests:
+  - `tests/unit/test_commands_catalog.py`
+  - `tests/unit/test_diff_preview.py`
 
 ## Scope completed
-- Replaced the stale feature-scope summary with a truthful docs-only branch description.
-- Removed stale shared-test approval language from the handoff packet so the docs-only review does not imply shared-file edits.
-- Regenerated the handoff packet and lane metadata so the review evidence matches the current branch head.
+- Reframed the handoff packet around the actual command-lane implementation delta instead of a docs-only maintenance claim.
+- Added the approved shared-file exceptions needed for the command catalog and diff preview test coverage.
+- Regenerated the handoff packet and lane metadata so the review evidence matches the branch delta now on the lane.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget. The reviewed commit changes 2 metadata files and no lane-owned code files.
-- The change stays centered on keeping the command-lane record truthful for the next implementation pass.
+- Stayed within the default lane budget. The branch delta changes 9 files, including lane-owned command code and two approved shared tests.
+- The change stays centered on keeping the command-lane record truthful for the current implementation pass.
 
 ## Approved exception note
-- None. This commit does not edit shared or integrator-locked files.
+- Approved shared-file exceptions for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
 
 ## Tasks completed (numbered)
-1. Replaced the stale feature-scope summary with a truthful docs-only branch description.
-2. Removed stale shared-test approval language from the handoff packet so the docs-only review does not imply shared-file edits.
-3. Regenerated the handoff packet and lane metadata so the review evidence matches the current branch head.
+1. Reframed the handoff packet around the actual command-lane implementation delta instead of a docs-only maintenance claim.
+2. Added explicit shared-file approvals for the command catalog and diff preview regression coverage.
+3. Regenerated the handoff packet and lane metadata so the review evidence matches the actual branch delta.
 
 ## Files changed
+- `.codex/kickoff_packets/feat-commands.md`
 - `.codex/lane_meta/feat-commands.json`
 - `THREAD_PACKET.md`
+- `src/qual/commands/__init__.py`
+- `src/qual/commands/canonical.py`
+- `src/qual/commands/catalog.py`
+- `src/qual/commands/diff_preview.py`
+- `tests/unit/test_commands_catalog.py`
+- `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
@@ -46,7 +56,7 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- feat-commands: CLI compatibility and migration-safe entrypoints.
+- Milestone 2 - Core pane interactions: define command palette coverage for the MVP loop.
 
 ### Vision capability affected
 - 3. Auditable generation - Draft/diff outputs are traceable to retrieved sources and support repeatable analysis.
@@ -59,4 +69,4 @@
 - None.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO`
+- Shared/integrator-locked edits: `YES`

@@ -1,13 +1,13 @@
 {
-  "scope_goal": "Keep the feat-commands handoff metadata synchronized with the current branch head and avoid implying code changes that are not present in the docs-only metadata refresh delta.",
+  "scope_goal": "Keep the feat-commands handoff metadata synchronized with the code-bearing branch delta that hardens command lookup, exports, and diff_preview output contracts.",
   "tasks_completed": [
-    "Replaced the stale feature-scope summary with a truthful docs-only branch description.",
-    "Removed stale shared-test approval language from the handoff packet so the docs-only review does not imply shared-file edits.",
-    "Regenerated the handoff packet and lane metadata so the review evidence matches the current branch head."
+    "Reframed the handoff packet around the real command-lane implementation delta instead of a docs-only maintenance claim.",
+    "Recorded the approved shared-test exceptions for the command catalog and diff preview coverage files.",
+    "Regenerated the handoff packet and lane metadata so the review evidence matches the branch delta now on the lane."
   ],
   "risk": "LOW",
   "roadmap_items": [
-    "feat-commands: CLI compatibility and migration-safe entrypoints."
+    "Milestone 2 - Core pane interactions: define command palette coverage for the MVP loop."
   ],
   "vision_capabilities": [
     "3. Auditable generation - Draft/diff outputs are traceable to retrieved sources and support repeatable analysis.",
@@ -15,11 +15,15 @@
   ],
   "routing_provider_impact": "None. This change only affects local handoff metadata; no routing/provider files change.",
   "proposed_readme_patch": "",
-  "shared_file_exception": false,
-  "kickoff_budget_note": "Stayed within the default lane budget. The reviewed commit changes 2 metadata files and no lane-owned code files.",
-  "approved_exception_note": "",
-  "review_commit": "795c64d8c5aa40861695a65efc22a5519fbdee69",
+  "shared_file_exception": true,
+  "kickoff_budget_note": "Stayed within the default lane budget. The branch delta changes 9 files, including lane-owned command code plus two approved shared tests.",
+  "approved_exception_note": "Approved shared-file exceptions for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to cover deterministic command catalog and diff preview contract behavior.",
+  "review_commit": "395462833cd0f28474509e63f92fa85fa7d3b015",
   "files_changed": [
+    {
+      "path": ".codex/kickoff_packets/feat-commands.md",
+      "kind": "meta"
+    },
     {
       "path": ".codex/lane_meta/feat-commands.json",
       "kind": "meta"
@@ -27,7 +31,34 @@
     {
       "path": "THREAD_PACKET.md",
       "kind": "meta"
+    },
+    {
+      "path": "src/qual/commands/__init__.py",
+      "kind": "code"
+    },
+    {
+      "path": "src/qual/commands/canonical.py",
+      "kind": "code"
+    },
+    {
+      "path": "src/qual/commands/catalog.py",
+      "kind": "code"
+    },
+    {
+      "path": "src/qual/commands/diff_preview.py",
+      "kind": "code"
+    },
+    {
+      "path": "tests/unit/test_commands_catalog.py",
+      "kind": "test"
+    },
+    {
+      "path": "tests/unit/test_diff_preview.py",
+      "kind": "test"
     }
   ],
-  "shared_file_exceptions": []
+  "shared_file_exceptions": [
+    "tests/unit/test_commands_catalog.py",
+    "tests/unit/test_diff_preview.py"
+  ]
 }
