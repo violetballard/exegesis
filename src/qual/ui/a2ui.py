@@ -588,7 +588,10 @@ def render_terminal_card(card: dict[str, Any]) -> str:
     )
     if rendered_policy:
         lines.extend(rendered_policy)
-    rendered_debug = _render_terminal_debug(card.get("debug"))
+    debug = card.get("debug")
+    rendered_debug = _render_terminal_fallback_debug(card_type, title, debug)
+    if not rendered_debug:
+        rendered_debug = _render_terminal_debug(debug)
     if rendered_debug:
         lines.append("Debug:")
         lines.extend(rendered_debug)
@@ -1048,6 +1051,32 @@ def _render_terminal_debug(debug: Any) -> list[str]:
         else:
             continue
         lines.append(f"- {key}: {rendered_value}")
+    return lines
+
+
+def _render_terminal_fallback_debug(card_type: str, title: str, debug: Any) -> list[str]:
+    fallback_debug = _extract_terminal_fallback_debug(debug)
+    if fallback_debug is None:
+        if card_type == UNKNOWN_CARD_TYPE:
+            source_card_type = _infer_unknown_fallback_source(title)
+            fallback_kind = "unknown"
+        elif card_type == GENERIC_CARD_TYPE:
+            source_card_type = _infer_generic_fallback_source(title)
+            fallback_kind = "generic"
+        else:
+            return []
+        if source_card_type is None:
+            return []
+    else:
+        fallback_kind, source_card_type = fallback_debug
+
+    lines: list[str] = []
+    if isinstance(debug, dict):
+        contract_version = debug.get("contract_version")
+        if type(contract_version) is int:
+            lines.append(f"- contract_version: {contract_version}")
+    lines.append(f"- fallback_kind: {_render_terminal_inline_text(fallback_kind)}")
+    lines.append(f"- source_card_type: {_render_terminal_inline_text(source_card_type)}")
     return lines
 
 

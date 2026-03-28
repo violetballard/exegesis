@@ -1752,6 +1752,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("[UnknownCard] Fallback", text)
         self.assertIn("Fallback: unknown card", text)
         self.assertIn("Action policy: copy_to_clipboard_only", text)
+        self.assertNotIn("Debug:", text)
 
     def test_terminal_renderer_infers_unknown_fallback_without_debug(self) -> None:
         text = render_terminal_card(
@@ -1766,6 +1767,9 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("[UnknownCard] Unsupported card type: FutureCard", text)
         self.assertIn("Fallback: unknown from FutureCard", text)
         self.assertIn("Action policy: copy_to_clipboard_only", text)
+        self.assertIn("Debug:", text)
+        self.assertIn("- fallback_kind: unknown", text)
+        self.assertIn("- source_card_type: FutureCard", text)
 
     def test_terminal_renderer_infers_generic_fallback_without_debug(self) -> None:
         text = render_terminal_card(
@@ -1782,6 +1786,9 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn(GENERIC_FALLBACK_SUBTITLE, text)
         self.assertIn("Fallback: generic from FutureCard", text)
         self.assertIn("Action policy: client_allowlist", text)
+        self.assertIn("Debug:", text)
+        self.assertIn("- fallback_kind: generic", text)
+        self.assertIn("- source_card_type: FutureCard", text)
         self.assertNotIn("raw subtitle should not leak", text)
 
     def test_terminal_renderer_synthesizes_canonical_fallback_subtitles(self) -> None:
