@@ -10,9 +10,9 @@
 - Harden context basket/set and vault recovery so malformed or incomplete local state is quarantined or canonicalized safely without promoting stale auxiliary state.
 
 ## Scope completed
-- Preserved `recovered_from` cleanup timestamps while quarantining malformed context basket and context-set payloads so the project-scoped local state stays normalized, auditable, and safe to rewrite.
+- Preserved `recovered_from` cleanup timestamps while quarantining malformed context basket and context-set payloads so project-scoped local state remains normalized, auditable, and aligned with the local-first state and identity contract.
 - Hardened vault recovery so malformed or incomplete persisted state is recovered or rewritten safely while preserving the safe lock default and local-first storage behavior.
-- Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-file exception for the vault recovery regression.
+- Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-test exception for the vault recovery regression.
 
 ## Owned-path files changed
 - `src/qual/context/set_store.py`
@@ -20,7 +20,7 @@
 - `src/qual/storage/vault.py`
 
 ## Approved exception files changed
-- `tests/unit/test_context_storage_recovery.py`
+- `tests/unit/test_context_storage_recovery.py` (approved shared-test exception; `SCOPE_ALLOW_SHARED=1` is required by `scripts/scope-check.sh`)
 
 ## Tasks completed
 1. Tightened `ContextBasketStore` recovery so malformed basket payloads are quarantined while `recovered_from` cleanup timestamps are preserved and canonical rewrites remain auditable.
@@ -42,10 +42,10 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1: Bootstrap Flow Stabilization - context basket and vault persistence hardening.
+- Milestone 1: Bootstrap Flow Stabilization
 
 ### Vision capability affected
-- Capability 1: Local-first state and identity - project-scoped vault and context basket with safe recovery behavior.
+- Capability 1: Local-first state and identity
 
 ### Routing/provider impact note
 - None

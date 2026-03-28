@@ -8,10 +8,10 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 1: Bootstrap Flow Stabilization - context basket and vault persistence hardening."
+    "Milestone 1: Bootstrap Flow Stabilization"
   ],
   "vision_capabilities": [
-    "Capability 1: Local-first state and identity - project-scoped vault and context basket with safe recovery behavior."
+    "Capability 1: Local-first state and identity"
   ],
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
