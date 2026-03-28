@@ -807,7 +807,30 @@ class RetrievalService:
         fts_excerpt = self._find_fts_excerpt(excerpt_id)
         if fts_excerpt is None:
             raise KeyError(f"unknown excerpt_id: {excerpt_id}")
+        self._record_excerpt_lookup_audit(fts_excerpt)
         return self._normalize_excerpt_payload(fts_excerpt, source_strategy="fts")
+
+    def _record_excerpt_lookup_audit(self, excerpt: dict[str, object]) -> None:
+        """Record a compact audit trail for deterministic excerpt lookups."""
+
+        span = excerpt.get("span")
+        if not isinstance(span, dict):
+            span = None
+        self._audit.record(
+            name="excerpt_lookup_completed",
+            metadata={
+                "excerpt_id": excerpt.get("excerpt_id"),
+                "doc_id": excerpt.get("doc_id"),
+                "doc_type": excerpt.get("doc_type"),
+                "source_strategy": excerpt.get("source_strategy"),
+                "retrieval_backend": excerpt.get("retrieval_backend"),
+                "retrieval_mode": excerpt.get("retrieval_mode"),
+                "source_hash": excerpt.get("source_hash"),
+                "text_hash": excerpt.get("text_hash"),
+                "excerpt_fingerprint": excerpt.get("excerpt_fingerprint"),
+                "span": copy.deepcopy(span),
+            },
+        )
 
     def _run_fts_first_retrieval(self, query: RetrievalQuery) -> RetrievalResult:
         started = self._now_fn()
@@ -944,7 +967,9 @@ class RetrievalService:
             pass
         excerpt = self._docindex.fetch_excerpt(excerpt_id)
         if isinstance(excerpt, dict):
-            return self._normalize_excerpt_payload(excerpt, source_strategy="pageindex")
+            normalized = self._normalize_excerpt_payload(excerpt, source_strategy="pageindex")
+            self._record_excerpt_lookup_audit(normalized)
+            return normalized
         return excerpt
 
     def _run_fts_hits(self, query: RetrievalQuery, candidate_doc_ids: tuple[str, ...]) -> list[RetrievalHit]:
