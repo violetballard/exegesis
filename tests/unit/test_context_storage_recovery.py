@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import json
 import tempfile
+import time
 import unittest
 from datetime import UTC, datetime
 from pathlib import Path
@@ -513,6 +514,27 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertNotIn("recovered_from", primary_payload)
         self.assertEqual(backup_payload.get("item_ids"), [])
         self.assertNotIn("recovered_from", backup_payload)
+
+    def test_empty_legacy_seed_payload_is_promoted_without_stale_quarantine(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text("1", encoding="utf-8")
+        self.store._seed_state_path().write_text("[]", encoding="utf-8")
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, [])
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        first_updated_at = primary_payload.get("updated_at")
+        self.assertEqual(primary_payload.get("item_ids"), [])
+        self.assertFalse(self.store._seed_state_path().with_name("context_basket.seed.corrupt.json").exists())
+
+        time.sleep(0.01)
+        loaded_again = self.store.load()
+
+        self.assertEqual(loaded_again.item_ids, [])
+        second_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(second_payload.get("updated_at"), first_updated_at)
+        self.assertFalse(self.store._seed_state_path().with_name("context_basket.seed.corrupt.json").exists())
 
     def test_backup_with_invalid_metadata_is_salvaged_and_promoted(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
@@ -1904,6 +1926,27 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         self.assertNotIn("recovered_from", primary_payload)
         self.assertEqual(backup_payload.get("context_sets"), [])
         self.assertNotIn("recovered_from", backup_payload)
+
+    def test_empty_legacy_seed_payload_is_promoted_without_rewrite_churn(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.store._path.write_text("1", encoding="utf-8")
+        self.store._seed_state_path().write_text("[]", encoding="utf-8")
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded, [])
+        primary_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        first_updated_at = primary_payload.get("updated_at")
+        self.assertEqual(primary_payload.get("context_sets"), [])
+        self.assertFalse(self.store._seed_state_path().with_name("context_sets.seed.corrupt.json").exists())
+
+        time.sleep(0.01)
+        loaded_again = self.store.load()
+
+        self.assertEqual(loaded_again, [])
+        second_payload = json.loads(self.store._path.read_text(encoding="utf-8"))
+        self.assertEqual(second_payload.get("updated_at"), first_updated_at)
+        self.assertFalse(self.store._seed_state_path().with_name("context_sets.seed.corrupt.json").exists())
 
 
 class VaultRecoveryTests(unittest.TestCase):

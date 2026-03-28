@@ -154,7 +154,7 @@ class ContextBasketStore:
             # only recoverable payload. If we are repairing an existing
             # primary, keep the recovery source so the canonical rewrite can
             # retain audit provenance and preserve the quarantined primary.
-            rewrite_empty_recovery = True
+            rewrite_empty_recovery = recovered_source is not None or primary_payload is None
             if primary_payload is None:
                 recovered_source = None
         if isinstance(payload, list):
@@ -757,6 +757,10 @@ class ContextBasketStore:
         if path not in {self._backup_path, self._seed_state_path()}:
             return False
         if not isinstance(payload, list):
+            return False
+        if not payload:
+            # An explicit empty legacy list is a recoverable empty basket, not
+            # malformed state that should leave a stale quarantine trail.
             return False
         if self._has_recovery_payload_items(payload):
             return False

@@ -262,7 +262,7 @@ class ContextSetStore:
             # payload. If we are repairing an existing primary, keep the source
             # so the canonical rewrite can record where the empty state came
             # from and preserve the quarantine trail.
-            rewrite_empty_recovery = True
+            rewrite_empty_recovery = recovered_source is not None or primary_payload is None
             if primary_payload is None:
                 recovered_source = None
         if isinstance(payload, list):
@@ -1042,6 +1042,10 @@ class ContextSetStore:
         if path not in {self._backup_path, self._seed_state_path()}:
             return False
         if not isinstance(payload, list):
+            return False
+        if not payload:
+            # An explicit empty legacy list is a recoverable empty context-set
+            # store, not malformed state that should survive as quarantine.
             return False
         if self._has_context_set_records(payload):
             return False
