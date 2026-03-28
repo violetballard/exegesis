@@ -2,12 +2,12 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: Keep the feat-commands handoff metadata synchronized with the code-bearing branch delta that hardens command lookup, exports, and diff_preview output contracts for CLI-first operator use.
+- Scope goal: Harden `diff_preview` output contracts so the emitted diff payload, summary-only mode, and SHA-256 fingerprint stay deterministic and verifiable for CLI-first operator use.
 
 ### Priority outcomes
-1. Keep command contracts deterministic and smoke-testable.
-2. Keep the diff_preview fingerprint tied to the exact emitted payload.
-3. Keep the handoff metadata truthful about the real branch delta and approved shared tests.
+1. Keep the emitted diff payload and reported fingerprint derived from the same exact text.
+2. Keep summary-only mode verifiable in both text and JSON output shapes.
+3. Keep the handoff metadata truthful about the actual code/test delta and approved shared test coverage.
 
 ### Guardrails
 - Stay in lane-owned command paths except for explicitly approved shared tests.

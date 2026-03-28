@@ -1,64 +1,31 @@
 {
-  "scope_goal": "Keep the feat-commands handoff metadata synchronized with the code-bearing branch delta that hardens command lookup, exports, and diff_preview output contracts.",
+  "scope_goal": "Harden diff_preview output contracts so the emitted diff payload, summary-only mode, and SHA-256 fingerprint stay deterministic and verifiable for CLI-first operator use.",
   "tasks_completed": [
-    "Reframed the handoff packet around the real command-lane implementation delta instead of a docs-only maintenance claim.",
-    "Recorded the approved shared-test exceptions for the command catalog and diff preview coverage files.",
-    "Regenerated the handoff packet and lane metadata so the review evidence matches the branch delta now on the lane."
+    "Made the emitted diff string a first-class value in diff_preview so the JSON payload and fingerprint are derived from the same emitted text.",
+    "Added a regression that covers text summary-only fingerprinting against the empty emitted diff payload.",
+    "Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta."
   ],
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 2 - Core pane interactions: define command palette coverage for the MVP loop."
+    "Milestone 3 - Product readiness: lock the emitted diff fingerprint to the exact user-visible artifact so downstream CLI and automation consumers can verify what the command returned."
   ],
   "vision_capabilities": [
-    "3. Auditable generation - Draft/diff outputs are traceable to retrieved sources and support repeatable analysis.",
-    "4. Operator-first control surface - CLI remains a first-class surface for development and reliability."
+    "3. Auditable generation - The emitted SHA-256 now verifies the exact diff payload returned by the command, including summary-only behavior.",
+    "4. Operator-first control surface - CLI remains a first-class surface while exposing a stable command contract and a verifiable JSON shape."
   ],
-  "routing_provider_impact": "None. This change only affects local handoff metadata; no routing/provider files change.",
+  "routing_provider_impact": "None. This change only affects local diff-preview formatting, fingerprinting, and focused regression coverage; no routing/provider files change.",
   "proposed_readme_patch": "",
   "shared_file_exception": true,
-  "kickoff_budget_note": "Stayed within the default lane budget. The branch delta changes 9 files, including lane-owned command code plus two approved shared tests.",
-  "approved_exception_note": "Approved shared-file exceptions for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to cover deterministic command catalog and diff preview contract behavior.",
-  "review_commit": "9b9e0a73c51ef0dc7e904f552674e32e9749d5de",
+  "kickoff_budget_note": "Stayed within the default lane budget. The branch delta changes 5 files, centered on the lane-owned diff_preview command and one approved shared test.",
+  "approved_exception_note": "Approved shared-file exception for tests/unit/test_diff_preview.py to cover deterministic diff_preview contract behavior.",
   "files_changed": [
-    {
-      "path": ".codex/kickoff_packets/feat-commands.md",
-      "kind": "meta"
-    },
-    {
-      "path": ".codex/lane_meta/feat-commands.json",
-      "kind": "meta"
-    },
-    {
-      "path": "THREAD_PACKET.md",
-      "kind": "meta"
-    },
-    {
-      "path": "src/qual/commands/__init__.py",
-      "kind": "code"
-    },
-    {
-      "path": "src/qual/commands/canonical.py",
-      "kind": "code"
-    },
-    {
-      "path": "src/qual/commands/catalog.py",
-      "kind": "code"
-    },
-    {
-      "path": "src/qual/commands/diff_preview.py",
-      "kind": "code"
-    },
-    {
-      "path": "tests/unit/test_commands_catalog.py",
-      "kind": "test"
-    },
-    {
-      "path": "tests/unit/test_diff_preview.py",
-      "kind": "test"
-    }
+    { "path": ".codex/kickoff_packets/feat-commands.md", "kind": "meta" },
+    { "path": ".codex/lane_meta/feat-commands.json", "kind": "meta" },
+    { "path": "THREAD_PACKET.md", "kind": "meta" },
+    { "path": "src/qual/commands/diff_preview.py", "kind": "code" },
+    { "path": "tests/unit/test_diff_preview.py", "kind": "test" }
   ],
   "shared_file_exceptions": [
-    "tests/unit/test_commands_catalog.py",
     "tests/unit/test_diff_preview.py"
   ]
 }

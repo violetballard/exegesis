@@ -233,7 +233,7 @@ def _emitted_fingerprint_payload(fingerprint: dict[str, object]) -> dict[str, ob
 def _text_or_json_result(
     *,
     summary_source: str,
-    output: str,
+    emitted_diff: str,
     max_chars: int,
     suppress_file_headers: bool,
     ignore_trailing_whitespace: bool,
@@ -265,7 +265,7 @@ def _text_or_json_result(
         return _json_result(
             {
                 "command": COMMAND_NAME,
-                "diff": _emitted_diff_payload(output=output, summary_only=summary_only),
+                "diff": emitted_diff,
                 "fingerprint": emitted_fingerprint,
                 "labels": {
                     "applied": labels_applied,
@@ -300,13 +300,13 @@ def _text_or_json_result(
             return f"{banner}{summary}\n{fingerprint_line}"
         return f"{banner}{summary}"
     if include_summary:
-        result = f"{banner}{output}\n\n{summary}"
+        result = f"{banner}{emitted_diff}\n\n{summary}"
         if fingerprint_line:
             return f"{result}\n{fingerprint_line}"
         return result
     if fingerprint_line:
-        return f"{banner}{output}\n\n{fingerprint_line}"
-    return f"{banner}{output}"
+        return f"{banner}{emitted_diff}\n\n{fingerprint_line}"
+    return f"{banner}{emitted_diff}"
 
 
 def _options_banner(*, ignore_trailing_whitespace: bool, suppress_file_headers: bool, max_chars: int) -> str:
@@ -412,7 +412,7 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
 
     return _text_or_json_result(
         summary_source=summary_source,
-        output=output,
+        emitted_diff=emitted_diff,
         max_chars=max_chars,
         suppress_file_headers=suppress_file_headers,
         ignore_trailing_whitespace=ignore_trailing_whitespace,

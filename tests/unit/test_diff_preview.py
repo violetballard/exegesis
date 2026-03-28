@@ -216,6 +216,19 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
             f"Diff fingerprint: sha256:{hashlib.sha256(diff_output.encode('utf-8')).hexdigest()}",
         )
 
+    def test_text_summary_only_fingerprint_matches_empty_emitted_diff(self) -> None:
+        with _env(
+            **{
+                INCLUDE_FINGERPRINT_ENV: "1",
+                SUMMARY_ONLY_ENV: "1",
+            }
+        ):
+            output = run_diff_preview(DiffPreviewInput("a\n", "b\n"))
+        self.assertTrue(output.startswith("Diff summary: +"))
+        self.assertTrue(
+            output.endswith(f"Diff fingerprint: sha256:{hashlib.sha256(b'').hexdigest()}")
+        )
+
     def test_summary_only_json_fingerprint_matches_empty_diff_payload(self) -> None:
         with _env(
             **{
