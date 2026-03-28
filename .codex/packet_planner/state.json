@@ -5,7 +5,7 @@
       "last_emitted_packet": "F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md",
       "last_handoff_fields": {
         "roadmap_items": [
-          "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullet Add agent-side card/section/action payload generation with deterministic schemas and exit criteria A2UI schema/versioning is documented and stable; this deterministic action-ordering fix is the concrete implementation of that item"
+          "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullet Add agent-side card/section/action payload generation with deterministic schemas and exit criterion A2UI schema/versioning is documented and stable; this deterministic action-ordering fix is the concrete implementation of that item"
         ],
         "vision_capabilities": [
           "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> agent emits structured presentation artifacts that are consumable by CLI first, then Exegesis Console, then future Studio UI, including the CLI fallback rendering path used by this fix"

@@ -6,7 +6,7 @@
 
 ## Plan Alignment
 
-- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> task `Add agent-side card/section/action payload generation with deterministic schemas` and exit criterion `A2UI schema/versioning is documented and stable`.
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullet `Add agent-side card/section/action payload generation with deterministic schemas` and exit criterion `A2UI schema/versioning is documented and stable`.
 - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> agent emits structured presentation artifacts that are consumable by CLI first, then `Exegesis Console`, then future Studio UI, including the CLI fallback rendering path used by this fix.
 
 ## Handoff Requirements
