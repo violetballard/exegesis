@@ -1653,6 +1653,7 @@ class RetrievalService:
             provenance = {}
         normalized = dict(excerpt)
         normalized["source_strategy"] = source_strategy
+        normalized["retrieval_source_strategy"] = source_strategy
         text_hash = provenance.get("hash") or provenance.get("excerpt_text_hash") or normalized.get("text_hash")
         if not isinstance(text_hash, str) or not text_hash:
             text_value = normalized.get("text")
@@ -1788,6 +1789,7 @@ class RetrievalService:
                 normalized_provenance["retrieval_backend"] = retrieval_backend
             if isinstance(retrieval_mode, str) and retrieval_mode:
                 normalized_provenance["retrieval_mode"] = retrieval_mode
+            normalized_provenance["retrieval_source_strategy"] = source_strategy
             normalized["provenance"] = normalized_provenance
         return normalized
 
