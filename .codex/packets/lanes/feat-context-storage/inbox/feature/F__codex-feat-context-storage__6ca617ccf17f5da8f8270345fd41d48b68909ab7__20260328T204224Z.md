@@ -2,14 +2,16 @@
 
 - Lane: `feat-context-storage`
 - Branch: `codex/feat-context-storage`
-- Commit: `6ca617ccf17f5da8f8270345fd41d48b68909ab7`
+- Commit: `47cda4df831ac41867a8792f40d720e0cb109514`
 
 ## Scope goal
-- Harden explicit empty recovery provenance in context basket/set persistence so canonical empty rewrites do not claim `recovered_from` provenance.
+- Preserve recovered_from cleanup timestamps in context basket/set/vault persistence so canonical cleanup rewrites keep the existing `updated_at` while stripping recovery provenance.
 
 ## Scope completed
-- Removed `recovered_from` provenance from canonical empty basket recovery when the only usable recovery result is an explicit empty payload.
-- Removed `recovered_from` provenance from canonical empty context-set recovery when the only usable recovery result is an explicit empty payload.
+- Preserved existing `updated_at` during canonical cleanup rewrites in `ContextBasketStore` while stripping `recovered_from` provenance.
+- Preserved existing `updated_at` during canonical cleanup rewrites in `ContextSetStore` while stripping `recovered_from` provenance.
+- Preserved existing `updated_at` during canonical cleanup rewrites in `VaultService` while stripping `recovered_from` provenance.
+- Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
 
 ## Lane/owned paths
 - `src/qual/context/**`
@@ -21,13 +23,17 @@
 - Reset-required lane after ownership and repo-hygiene drift in the stale March 5 review generation.
 
 ## Tasks completed (numbered)
-1. Updated `ContextBasketStore` recovery so explicit empty canonical rewrites no longer claim recovery provenance.
-2. Updated `ContextSetStore` recovery so explicit empty canonical rewrites no longer claim recovery provenance.
-3. Re-ran the required format, lint, test, typecheck, and CI gates on the reviewed branch head and confirmed they pass.
+1. Added cleanup timestamp reuse to `ContextBasketStore` recovery so canonical cleanup rewrites keep the existing `updated_at` instead of minting a fresh timestamp.
+2. Added cleanup timestamp reuse to `ContextSetStore` recovery so canonical cleanup rewrites keep the existing `updated_at` instead of minting a fresh timestamp.
+3. Added cleanup timestamp reuse to `VaultService` recovery so canonical cleanup rewrites keep the existing `updated_at` instead of minting a fresh timestamp.
+4. Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
+5. Re-ran the required format, lint, test, typecheck, and CI gates on the committed branch head and confirmed they pass.
 
 ## Files changed
 - `src/qual/context/set_store.py`
 - `src/qual/context/store.py`
+- `src/qual/storage/vault.py`
+- `tests/unit/test_context_storage_recovery.py`
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
@@ -43,7 +49,7 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3 - Real workflow loop: persistent basket/document/session state.
+- Milestone 3: Real workflow loop: persistent basket/document/session state.
 
 ### Vision capability affected
 - Capability 6 - Auditable state and workflow: persistent project/document/basket/session state with safe recovery and traceable rewrites.
@@ -51,6 +57,9 @@
 ### Routing/provider impact note
 - None
 
+## Approved exception note
+- Approved shared test-file exception for `tests/unit/test_context_storage_recovery.py`; provenance documented in `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__7b756291349fb12b27d07cf355a9b1b863759aa2__20260328T173918Z.md`.
+
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO`
-- Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. No shared-by-approval source files or integrator-locked files were edited.
+- Shared/integrator-locked edits: `YES`
+- Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The non-owned edit is `tests/unit/test_context_storage_recovery.py`, covered by the lane-approved shared-test exception referenced above. No integrator-locked files were edited.
