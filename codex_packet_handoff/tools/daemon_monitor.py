@@ -7,6 +7,7 @@ import os
 import re
 import subprocess
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -309,6 +310,29 @@ def _runtime_state() -> Dict[str, Any]:
         "retry_at": retry_at,
         "retry_in": retry_in,
         "reason": str((state or {}).get("last_quota_reason") or "-"),
+    }
+
+
+def _coordinator_state() -> Dict[str, Any]:
+    state = _load_json(COORD_STATE, {})
+    last_cycle_at = str(state.get("last_cycle_at") or "-")
+    live_cycle_count = state.get("live_cycle_count", 0)
+    last_cycle_activity = bool(state.get("last_cycle_activity", False))
+    daemon_mode = bool(state.get("daemon_mode", False))
+    last_cycle_age_s = "-"
+    if last_cycle_at != "-":
+        try:
+            parsed = datetime.strptime(last_cycle_at, "%Y-%m-%dT%H:%M:%SZ")
+            parsed = parsed.replace(tzinfo=timezone.utc)
+            last_cycle_age_s = str(int(max(0, time.time() - parsed.timestamp())))
+        except Exception:
+            last_cycle_age_s = "-"
+    return {
+        "daemon_mode": daemon_mode,
+        "last_cycle_at": last_cycle_at,
+        "last_cycle_age_s": last_cycle_age_s,
+        "last_cycle_activity": last_cycle_activity,
+        "live_cycle_count": live_cycle_count,
     }
 
 
@@ -818,6 +842,7 @@ def main() -> None:
 
     run = _latest_run() or {}
     runtime = _runtime_state()
+    coord_state = _coordinator_state()
     print("LAST RUN")
     print(f"status={run.get('status', '-')}")
     print(f"mode={run.get('mode', '-')}")
@@ -826,6 +851,14 @@ def main() -> None:
     print(f"router_errors={run.get('router_errors', '-')}")
     print(f"router_processed_total={run.get('router_processed_total', '-')}")
     print(f"fixer_kicked_total={run.get('fixer_kicked_total', '-')}")
+    print()
+
+    print("COORDINATOR HEARTBEAT")
+    print(f"daemon_mode={coord_state['daemon_mode']}")
+    print(f"live_cycle_count={coord_state['live_cycle_count']}")
+    print(f"last_cycle_at={coord_state['last_cycle_at']}")
+    print(f"last_cycle_age_seconds={coord_state['last_cycle_age_s']}")
+    print(f"last_cycle_activity={coord_state['last_cycle_activity']}")
     print()
 
     router_state = _load_json(ROUTER_STATE, {})

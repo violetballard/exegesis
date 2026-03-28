@@ -18,6 +18,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(line_buffering=True, write_through=True)
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(line_buffering=True, write_through=True)
+
 TOOLS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TOOLS_DIR.parent.parent
 PLANNER_PATH = REPO_ROOT / "codex_packet_handoff/tools/planner.py"
@@ -664,6 +669,13 @@ def main() -> int:
         run_start = time.time()
         mode_label = f"event_driven_{args.execution_mode}"
         print(f"[coordinator] mode={mode_label}")
+
+        coord_state = load_json(STATE_FILE, {})
+        coord_state["daemon_mode"] = args.daemon
+        coord_state["last_cycle_at"] = utc_now()
+        coord_state["last_cycle_activity"] = False
+        coord_state["live_cycle_count"] = 0
+        save_json(STATE_FILE, coord_state)
 
         prev_snapshot = ""
         idle_start = time.time()

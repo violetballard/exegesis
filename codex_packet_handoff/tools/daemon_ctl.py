@@ -157,12 +157,15 @@ def _start() -> int:
     # If daemon is truly live, _is_running() above already returned True.
 
     with LOG_FILE.open("a") as lf:
+        env = os.environ.copy()
+        env["PYTHONUNBUFFERED"] = "1"
         proc = subprocess.Popen(
             CMD,
             stdout=lf,
             stderr=subprocess.STDOUT,
             start_new_session=True,
             cwd=str(Path.cwd()),
+            env=env,
         )
     PID_FILE.write_text(str(proc.pid))
     print(f"started pid={proc.pid}")
