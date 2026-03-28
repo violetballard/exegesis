@@ -5,7 +5,9 @@ import unittest
 from src.qual.commands import (
     CommandSpec,
     canonical_command,
+    canonical_command_for,
     command_aliases,
+    command_aliases_for,
     command_flow_manifest,
     command_flow_lookup_index,
     command_flow_lookup_surface,
@@ -15,6 +17,7 @@ from src.qual.commands import (
     command_lookup_index,
     command_lookup_table,
     command_lookup_tokens,
+    command_lookup_tokens_for,
     command_manifest,
     command_mvp_flow,
     command_mvp_flow_names,
@@ -28,6 +31,7 @@ from src.qual.commands import (
     command_surface_contract,
     command_names,
     command_spec,
+    command_spec_for,
     command_specs,
     command_tokens,
     validate_command_catalog,
@@ -70,6 +74,17 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_lookup_tokens("project-open"), ("bootstrap", "open", "project-open", "project"))
         self.assertEqual(command_aliases("missing"), ())
         self.assertEqual(command_lookup_tokens("missing"), ())
+
+    def test_command_lookup_helpers_support_custom_catalogs(self) -> None:
+        specs = (
+            CommandSpec(name="bootstrap", aliases=("open",), flow_step="project-open"),
+            CommandSpec(name="review", aliases=("patch",), flow_step="patch-review"),
+        )
+
+        self.assertEqual(command_spec_for(specs, "project-open").name, "bootstrap")
+        self.assertEqual(command_aliases_for(specs, "patch-review"), ("patch",))
+        self.assertEqual(command_lookup_tokens_for(specs, "patch-review"), ("review", "patch"))
+        self.assertEqual(canonical_command_for(specs, " PATCH REVIEW "), "review")
 
     def test_command_manifest_entries_expose_canonical_lookup_tokens(self) -> None:
         manifest = command_manifest()

@@ -154,6 +154,45 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
             seen_lookup_tokens[normalized_alias] = spec.name
 
 
+def _command_spec_for(specs: tuple[CommandSpec, ...], name: str) -> CommandSpec | None:
+    normalized = _normalize_token(name)
+    if not normalized:
+        return None
+    if specs is COMMAND_SPECS:
+        return _COMMAND_SPEC_BY_ALIAS.get(normalized) or _COMMAND_SPEC_BY_FLOW_STEP.get(normalized)
+    alias_index = _build_command_spec_by_alias(specs)
+    return alias_index.get(normalized) or _build_command_spec_by_flow_step(specs).get(normalized)
+
+
+def command_spec_for(specs: tuple[CommandSpec, ...], name: str) -> CommandSpec | None:
+    validate_command_catalog(specs)
+    return _command_spec_for(specs, name)
+
+
+def command_aliases_for(specs: tuple[CommandSpec, ...], name: str) -> tuple[str, ...]:
+    spec = command_spec_for(specs, name)
+    if spec is None:
+        return ()
+    return spec.aliases
+
+
+def command_lookup_tokens_for(specs: tuple[CommandSpec, ...], name: str) -> tuple[str, ...]:
+    spec = command_spec_for(specs, name)
+    if spec is None:
+        return ()
+    return (spec.name, *spec.aliases)
+
+
+def canonical_command_for(specs: tuple[CommandSpec, ...], name: str) -> str:
+    normalized = _normalize_token(name)
+    if not normalized:
+        return name.strip()
+    spec = command_spec_for(specs, normalized)
+    if spec is None:
+        return normalized
+    return spec.name
+
+
 def _build_command_spec_by_alias(specs: tuple[CommandSpec, ...]) -> dict[str, CommandSpec]:
     validate_command_catalog(specs)
     index: dict[str, CommandSpec] = {}
@@ -506,31 +545,16 @@ def command_tokens(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str,
 
 
 def command_lookup_tokens(name: str) -> tuple[str, ...]:
-    spec = command_spec(name)
-    if spec is None:
-        return ()
-    return (spec.name, *spec.aliases)
+    return command_lookup_tokens_for(COMMAND_SPECS, name)
 
 
 def command_spec(name: str) -> CommandSpec | None:
-    normalized = _normalize_token(name)
-    if not normalized:
-        return None
-    return _COMMAND_SPEC_BY_ALIAS.get(normalized) or _COMMAND_SPEC_BY_FLOW_STEP.get(normalized)
+    return command_spec_for(COMMAND_SPECS, name)
 
 
 def command_aliases(name: str) -> tuple[str, ...]:
-    spec = command_spec(name)
-    if spec is None:
-        return ()
-    return spec.aliases
+    return command_aliases_for(COMMAND_SPECS, name)
 
 
 def canonical_command(name: str) -> str:
-    normalized = _normalize_token(name)
-    if not normalized:
-        return name.strip()
-    spec = command_spec(normalized)
-    if spec is None:
-        return normalized
-    return spec.name
+    return canonical_command_for(COMMAND_SPECS, name)
