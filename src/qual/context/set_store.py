@@ -878,6 +878,33 @@ class ContextSetStore:
     def _has_unknown_fields(self, payload: dict[str, object]) -> bool:
         return any(key not in _CANONICAL_DICT_KEYS for key in payload)
 
+    def _recovery_payload_updated_at(self, payload: dict[str, object] | list[object]) -> str | None:
+        if isinstance(payload, dict):
+            normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
+            if normalized_updated_at is not None:
+                return normalized_updated_at
+            raw_context_sets = payload.get("context_sets") if "context_sets" in payload else None
+        else:
+            raw_context_sets = payload
+        if raw_context_sets is None:
+            return None
+        records = self._parse_context_sets(raw_context_sets)
+        if not records:
+            return None
+        timestamps = [
+            timestamp
+            for record in records
+            for timestamp in (record.updated_at, record.created_at)
+            if timestamp
+        ]
+        if not timestamps:
+            return None
+        return max(timestamps)
+
+    def _recovery_candidate_key(self, payload: dict[str, object] | list[object], position: int) -> tuple[bool, str, int]:
+        updated_at = self._recovery_payload_updated_at(payload)
+        return updated_at is not None, updated_at or "", -position
+
     def _prefer_recovery_payload(
         self,
         tmp_payload: dict[str, object] | list[object] | None,
@@ -886,23 +913,37 @@ class ContextSetStore:
         seed_tmp_payload: dict[str, object] | list[object] | None,
         seed_payload: dict[str, object] | list[object] | None,
     ) -> tuple[dict[str, object] | list[object] | None, str | None]:
+        best_candidate: tuple[dict[str, object] | list[object] | None, str | None] = (None, None)
+        best_candidate_key: tuple[bool, str, int] | None = None
         fallback_candidate: tuple[dict[str, object] | list[object] | None, str | None] = (None, None)
-        for candidate, recovered_source in (
-            (backup_tmp_payload, "backup_tmp"),
-            (backup_payload, "backup"),
-            (seed_tmp_payload, "seed_tmp"),
-            (seed_payload, "seed"),
-            (tmp_payload, "tmp"),
+        fallback_candidate_key: tuple[bool, str, int] | None = None
+        for position, (candidate, recovered_source) in enumerate(
+            (
+                (backup_tmp_payload, "backup_tmp"),
+                (backup_payload, "backup"),
+                (seed_tmp_payload, "seed_tmp"),
+                (seed_payload, "seed"),
+                (tmp_payload, "tmp"),
+            )
         ):
             if candidate is None:
                 continue
             if self._has_context_set_records(candidate):
-                return candidate, recovered_source
+                candidate_key = self._recovery_candidate_key(candidate, position)
+                if best_candidate_key is None or candidate_key > best_candidate_key:
+                    best_candidate = (candidate, recovered_source)
+                    best_candidate_key = candidate_key
+                continue
             # Only explicit empty payloads should serve as a fallback recovery
             # source. Dicts missing the core context_sets key are malformed, not
             # recoverable state.
-            if self._has_explicit_empty_recovery_payload(candidate) and fallback_candidate == (None, None):
-                fallback_candidate = (candidate, recovered_source)
+            if self._has_explicit_empty_recovery_payload(candidate):
+                candidate_key = self._recovery_candidate_key(candidate, position)
+                if fallback_candidate_key is None or candidate_key > fallback_candidate_key:
+                    fallback_candidate = (candidate, recovered_source)
+                    fallback_candidate_key = candidate_key
+        if best_candidate != (None, None):
+            return best_candidate
         return fallback_candidate
 
     def _has_context_set_records(self, payload: dict[str, object] | list[object]) -> bool:

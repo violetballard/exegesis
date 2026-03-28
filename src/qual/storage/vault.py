@@ -505,6 +505,13 @@ class VaultService:
             return False
         return self._parse_is_locked(payload.get("is_locked")) is not None
 
+    def _recovery_payload_updated_at(self, payload: dict[str, object]) -> str | None:
+        return self._parse_updated_at(payload.get("updated_at"))
+
+    def _recovery_candidate_key(self, payload: dict[str, object], position: int) -> tuple[bool, str, int]:
+        updated_at = self._recovery_payload_updated_at(payload)
+        return updated_at is not None, updated_at or "", -position
+
     def _prefer_recovery_payload(
         self,
         backup_tmp_payload: dict[str, object] | None,
@@ -514,19 +521,26 @@ class VaultService:
         tmp_payload: dict[str, object] | None,
         expected_project_name: str,
     ) -> tuple[dict[str, object] | None, str | None]:
-        for candidate, recovered_source in (
-            (backup_payload, "backup"),
-            (seed_payload, "seed"),
-            (backup_tmp_payload, "backup_tmp"),
-            (seed_tmp_payload, "seed_tmp"),
-            (tmp_payload, "tmp"),
+        best_candidate: tuple[dict[str, object] | None, str | None] = (None, None)
+        best_candidate_key: tuple[bool, str, int] | None = None
+        for position, (candidate, recovered_source) in enumerate(
+            (
+                (backup_payload, "backup"),
+                (seed_payload, "seed"),
+                (backup_tmp_payload, "backup_tmp"),
+                (seed_tmp_payload, "seed_tmp"),
+                (tmp_payload, "tmp"),
+            )
         ):
             if candidate is None:
                 continue
             if not self._is_recoverable_state(candidate, expected_project_name):
                 continue
-            return candidate, recovered_source
-        return None, None
+            candidate_key = self._recovery_candidate_key(candidate, position)
+            if best_candidate_key is None or candidate_key > best_candidate_key:
+                best_candidate = (candidate, recovered_source)
+                best_candidate_key = candidate_key
+        return best_candidate
 
     def _unlink_if_exists(self, path: Path) -> None:
         try:
