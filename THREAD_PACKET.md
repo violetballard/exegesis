@@ -12,7 +12,10 @@
 
 ## Lane/owned paths
 - `src/qual/commands/**`
+
+## Approved shared-file exception
 - `tests/unit/test_diff_preview.py`
+- Approved for focused contract coverage needed to verify `diff_preview` JSON/text behavior and fingerprint semantics.
 
 ## Scope completed
 - Hardened `diff_preview` output contracts so the SHA-256 fingerprint is derived from the exact emitted diff payload after label application, header suppression, truncation, and summary-only handling.
@@ -62,4 +65,4 @@
 - None.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO`
+- Shared/integrator-locked edits: `YES` for the approved `tests/unit/test_diff_preview.py` exception only; no policy or integrator-locked files were edited.

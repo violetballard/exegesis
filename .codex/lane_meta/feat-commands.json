@@ -17,7 +17,7 @@
   ],
   "routing_provider_impact": "None. This change only affects local diff-preview output formatting, verification metadata, and focused command-contract test coverage; no routing/provider files change.",
   "proposed_readme_patch": "",
-  "shared_file_exception": false,
+  "shared_file_exception": true,
   "kickoff_budget_note": "Owned-path command work plus focused diff_preview test coverage; within default 8-task, 12-file, and 500-net-LOC limits.",
-  "approved_exception_note": ""
+  "approved_exception_note": "Approved shared-file exception for tests/unit/test_diff_preview.py to add focused contract coverage required by review. No policy or integrator-locked files are edited in the submitted branch."
 }
