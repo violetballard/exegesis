@@ -181,11 +181,10 @@ class ContextBasketStore:
         audit_recovered_source = recovered_source
         if explicit_empty_recovery:
             # Canonical empty state should still be materialized when it is the
-            # only recoverable payload. If we are repairing an existing
-            # primary, keep the recovery source so the canonical rewrite can
-            # retain audit provenance and preserve the quarantined primary.
+            # only recoverable payload, but explicit empty recovery should not
+            # claim provenance on the rewritten payload.
             rewrite_empty_recovery = recovered_source is not None or primary_payload is None
-            if primary_payload is None:
+            if recovered_source is not None:
                 recovered_source = None
         if isinstance(payload, list):
             parsed_items = self._parse_item_ids(payload)

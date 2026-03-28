@@ -329,11 +329,10 @@ class ContextSetStore:
         records: list[ContextSetRecord]
         if explicit_empty_recovery:
             # Materialize empty canonical state when it is the only usable
-            # payload. If we are repairing an existing primary, keep the source
-            # so the canonical rewrite can record where the empty state came
-            # from and preserve the quarantine trail.
+            # payload, but explicit empty recovery should not claim provenance
+            # on the rewritten payload.
             rewrite_empty_recovery = recovered_source is not None or primary_payload is None
-            if primary_payload is None:
+            if recovered_source is not None:
                 recovered_source = None
         if isinstance(payload, list):
             parsed_records = self._parse_context_sets(payload)
