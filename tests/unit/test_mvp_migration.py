@@ -6,6 +6,7 @@ import sys
 import tempfile
 import time
 import unittest
+import argparse
 from types import SimpleNamespace
 from pathlib import Path
 from unittest.mock import patch
@@ -233,6 +234,41 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         self.assertTrue(any(call[0] == "codex" for call in calls))
         self.assertTrue(any(call[0] == "save_json" for call in calls))
 
+    def test_direct_router_skips_integrator_thread_bootstrap_when_cli_integrator_preferred(self) -> None:
+        from codex_packet_handoff.tools.agents_coordinator import _bootstrap_direct_integrator_thread
+
+        class FakeRouterMod:
+            STATE_FILE = Path("/tmp/router-state.json")
+
+            @staticmethod
+            def _runtime_mode(cfg: object, state: dict) -> str:
+                return "cloud_primary"
+
+            @staticmethod
+            def _profile_for_role(cfg: object, role: str, *, local: bool = False) -> SimpleNamespace:
+                return SimpleNamespace(model="gpt-5.1-codex")
+
+            @staticmethod
+            def save_json(path: Path, data: dict) -> None:
+                raise AssertionError("save_json should not be called when CLI integrator is preferred")
+
+        class FakeIntegratorClient:
+            def codex(self, **kwargs: object) -> tuple[str, str]:
+                raise AssertionError("codex should not be called when CLI integrator is preferred")
+
+        state: dict = {}
+        tid = _bootstrap_direct_integrator_thread(
+            FakeRouterMod,
+            SimpleNamespace(prefer_cli_integrator=True, integrator_timeout=30),
+            "/repo",
+            state,
+            FakeIntegratorClient(),
+            "",
+        )
+
+        self.assertEqual(tid, "")
+        self.assertEqual(state, {})
+
     def test_init_direct_router_ctx_restores_cloud_before_building_clients(self) -> None:
         from codex_packet_handoff.tools.agents_coordinator import _init_direct_router_ctx
 
@@ -406,6 +442,53 @@ class StatusStateTests(unittest.TestCase):
 
 
 class RouterReviewerBootstrapTests(unittest.TestCase):
+    def test_process_once_prefers_cli_reviewer_in_cloud_mode(self) -> None:
+        from codex_packet_handoff.tools import router
+
+        with tempfile.TemporaryDirectory() as tmp:
+            lane_dir = Path(tmp)
+            pkt = lane_dir / "inbox" / "feature" / "F__codex-feat-commands__abc1234__20260328T000000Z.md"
+            pkt.parent.mkdir(parents=True, exist_ok=True)
+            pkt.write_text("Feature packet body\n", encoding="utf-8")
+
+            cfg = SimpleNamespace(
+                lanes={"feat-commands": {}},
+                max_packets_per_run=1,
+                auto_switch_to_local_on_quota=True,
+                reviewer_timeout=30,
+                integrator_timeout=30,
+                inline_fixer=False,
+                prefer_cli_reviewer=True,
+                prefer_cli_integrator=True,
+            )
+
+            with (
+                patch.object(router, "ensure_lane_dirs", return_value=lane_dir),
+                patch.object(router, "list_new", return_value=[pkt]),
+                patch.object(router, "load_json", return_value={}),
+                patch.object(router, "save_json"),
+                patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
+                patch.object(router, "_runtime_mode", return_value="cloud_primary"),
+                patch.object(router, "_apply_quota_text_safeguard", side_effect=lambda cfg, state, text, reason: state),
+                patch.object(router, "archive_reviewer_notes"),
+                patch.object(router, "clear_stale_integrator_handoffs", return_value=0),
+                patch.object(router, "archive"),
+                patch.object(router, "_ensure_lane_reviewer_thread") as ensure_thread,
+                patch.object(router, "_run_cli_reviewer", return_value="Verdict: `CHANGES_REQUESTED`\n\nPlease revise.\n"),
+            ):
+                processed, _state, _reviewer_threads, _integrator_tid = router.process_once(
+                    SimpleNamespace(),
+                    SimpleNamespace(),
+                    cfg,
+                    {},
+                    "/repo",
+                    {},
+                    "",
+                )
+
+        self.assertEqual(processed, 1)
+        ensure_thread.assert_not_called()
+
     def test_process_once_passes_local_flag_when_bootstrapping_reviewer_thread(self) -> None:
         from codex_packet_handoff.tools import router
 
@@ -422,6 +505,8 @@ class RouterReviewerBootstrapTests(unittest.TestCase):
                 reviewer_timeout=30,
                 integrator_timeout=30,
                 inline_fixer=False,
+                prefer_cli_reviewer=False,
+                prefer_cli_integrator=True,
             )
 
             calls: list[bool] = []
@@ -459,6 +544,81 @@ class RouterReviewerBootstrapTests(unittest.TestCase):
 
         self.assertEqual(processed, 1)
         self.assertEqual(calls, [False])
+
+
+class CloudDirectExecLaunchTests(unittest.TestCase):
+    def test_runtime_launch_config_prefers_cloud_direct_exec_by_default(self) -> None:
+        from codex_packet_handoff.tools.launch_feature_lanes import runtime_launch_config
+
+        cfg = {
+            "runtime_mode_default": "cloud_primary",
+            "role_profiles": {},
+            "profiles": {},
+            "prefer_direct_exec_feature_cloud": True,
+            "codex_cmd": "codex",
+            "model": "gpt-5.4-mini",
+            "fallback_codex_cmd": "codex",
+            "fallback_codex_args": ["-p", "gpt-oss-120b-lms"],
+            "fallback_model": "",
+        }
+        state = {"runtime_mode": "cloud_primary"}
+
+        with (
+            patch("codex_packet_handoff.tools.launch_feature_lanes.load_json", side_effect=[cfg, state]),
+        ):
+            launch_cfg = runtime_launch_config()
+
+        self.assertTrue(launch_cfg["prefer_direct_exec_cloud"])
+
+    def test_launch_one_lane_uses_cloud_direct_exec_by_default(self) -> None:
+        from codex_packet_handoff.tools.launch_feature_lanes import _launch_one_lane
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            prompts_dir = tmp_path / "prompts"
+            logs_dir = tmp_path / "logs"
+            prompts_dir.mkdir()
+            logs_dir.mkdir()
+            workdir = str(tmp_path / "worktree")
+            Path(workdir).mkdir()
+            feature_state = {"lanes": {}}
+            launch_cfg = {
+                "mode": "cloud_primary",
+                "profile_name": "worker_cloud",
+                "cmd": "codex",
+                "cmd_args": [],
+                "model": "gpt-5.4-mini",
+                "model_args": [],
+                "prefer_direct_exec_cloud": True,
+                "launch_timeout_seconds": 300,
+                "disable_local_fallback_on_cloud_timeout": True,
+                "local_profile_name": "worker_local",
+                "local_profile": {
+                    "cmd": "codex",
+                    "cmd_args": ["-p", "gpt-oss-120b-lms"],
+                    "model": "",
+                    "model_args": [],
+                },
+            }
+            args = argparse.Namespace(restart_existing=False, dry_run=False)
+
+            with (
+                patch("codex_packet_handoff.tools.launch_feature_lanes.build_prompt", return_value="prompt"),
+                patch("codex_packet_handoff.tools.launch_feature_lanes._spawn_direct_exec", return_value=4242),
+            ):
+                result = _launch_one_lane(
+                    "feat-commands",
+                    args=args,
+                    launch_cfg=launch_cfg,
+                    worktrees={"refs/heads/codex/feat-commands": workdir},
+                    prompts_dir=prompts_dir,
+                    logs_dir=logs_dir,
+                    feature_state=feature_state,
+                )
+
+        self.assertEqual(result["status"], "direct_exec_running")
+        self.assertEqual(result["mode"], "cloud_primary")
+        self.assertEqual(result["pid"], 4242)
 
 
 if __name__ == "__main__":

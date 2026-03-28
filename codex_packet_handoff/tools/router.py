@@ -70,6 +70,8 @@ class RouterConfig:
     reviewer_fixer_retry_cooldown_seconds: float
     fixer_quota_retry_cooldown_seconds: float
     prefer_cli_fixer: bool
+    prefer_cli_reviewer: bool
+    prefer_cli_integrator: bool
     use_cli_reviewer_fallback: bool
     use_cli_integrator_fallback: bool
     profiles: Dict[str, "LaunchProfile"]
@@ -213,6 +215,8 @@ def load_cfg() -> RouterConfig:
         reviewer_fixer_retry_cooldown_seconds=float(cfg.get("reviewer_fixer_retry_cooldown_seconds", 900)),
         fixer_quota_retry_cooldown_seconds=float(cfg.get("fixer_quota_retry_cooldown_seconds", 3600)),
         prefer_cli_fixer=bool(cfg.get("prefer_cli_fixer", True)),
+        prefer_cli_reviewer=bool(cfg.get("prefer_cli_reviewer", True)),
+        prefer_cli_integrator=bool(cfg.get("prefer_cli_integrator", True)),
         use_cli_reviewer_fallback=bool(cfg.get("use_cli_reviewer_fallback", True)),
         use_cli_integrator_fallback=bool(cfg.get("use_cli_integrator_fallback", True)),
         profiles=profiles,
@@ -890,7 +894,7 @@ def ensure_all_reviewer_threads(
     reviewer_thread_ids: Dict[str, str],
 ) -> Dict[str, str]:
     local_mode = _runtime_mode(cfg, state) == "local_fallback"
-    if local_mode:
+    if local_mode or cfg.prefer_cli_reviewer:
         return reviewer_thread_ids
     for lane in cfg.lanes.keys():
         try:
@@ -947,6 +951,31 @@ def process_once(
                 ) or _offline_reviewer_fallback(
                     pkt, reason
                 )
+            elif cfg.prefer_cli_reviewer:
+                reviewer_text = _run_cli_reviewer(
+                    cfg,
+                    repo_cwd,
+                    pkt,
+                    "cloud direct exec reviewer",
+                    local=runtime_local,
+                ) or ""
+                if not reviewer_text:
+                    retry_until = time.time() + 900
+                    reviewer_quota_retry_ts[lane] = retry_until
+                    global_quota_retry_ts = max(global_quota_retry_ts, retry_until)
+                    if cfg.auto_switch_to_local_on_quota:
+                        state = _switch_to_local_fallback(
+                            cfg,
+                            state,
+                            "reviewer direct exec failed/timed out",
+                            retry_until,
+                        )
+                    reviewer_text = _run_cli_reviewer(
+                        cfg,
+                        repo_cwd,
+                        pkt,
+                        "reviewer direct exec failed/timed out",
+                    ) or _offline_reviewer_fallback(pkt, "reviewer direct exec failed/timed out")
             else:
                 try:
                     reviewer_tid = _ensure_lane_reviewer_thread(
@@ -978,30 +1007,39 @@ def process_once(
             )
             if _invalid_reviewer_output(reviewer_text):
                 # Recover from dead/invalid reviewer thread and retry once.
-                try:
-                    reviewer_profile = _profile_for_role(cfg, "reviewer", local=runtime_local)
-                    reviewer_tid, _ = reviewer_client.codex(
-                        prompt=f"Ready as reviewer for lane {lane}; I won't modify files.",
-                        cwd=repo_cwd,
-                        sandbox="read-only",
-                        approval_policy="on-request",
-                        model=reviewer_profile.model,
-                        timeout=cfg.reviewer_timeout,
-                    )
-                    reviewer_thread_ids[lane] = reviewer_tid
-                    reviewer_tid, reviewer_text = reviewer_client.codex_reply(
-                        reviewer_tid, reviewer_prompt(pkt), timeout=cfg.reviewer_timeout
-                    )
-                    reviewer_thread_ids[lane] = reviewer_tid
-                except Exception as exc:
-                    retry_until = time.time() + 900
-                    reviewer_quota_retry_ts[lane] = retry_until
-                    global_quota_retry_ts = max(global_quota_retry_ts, retry_until)
-                    if cfg.auto_switch_to_local_on_quota:
-                        state = _switch_to_local_fallback(cfg, state, f"reviewer retry failed/timed out: {exc}", retry_until)
+                if cfg.prefer_cli_reviewer:
                     reviewer_text = _run_cli_reviewer(
-                        cfg, repo_cwd, pkt, f"reviewer retry failed/timed out: {exc}"
-                    ) or _offline_reviewer_fallback(pkt, f"reviewer retry failed/timed out: {exc}")
+                        cfg,
+                        repo_cwd,
+                        pkt,
+                        "reviewer output invalid/unavailable",
+                        local=runtime_local,
+                    ) or _offline_reviewer_fallback(pkt, "reviewer output invalid/unavailable")
+                else:
+                    try:
+                        reviewer_profile = _profile_for_role(cfg, "reviewer", local=runtime_local)
+                        reviewer_tid, _ = reviewer_client.codex(
+                            prompt=f"Ready as reviewer for lane {lane}; I won't modify files.",
+                            cwd=repo_cwd,
+                            sandbox="read-only",
+                            approval_policy="on-request",
+                            model=reviewer_profile.model,
+                            timeout=cfg.reviewer_timeout,
+                        )
+                        reviewer_thread_ids[lane] = reviewer_tid
+                        reviewer_tid, reviewer_text = reviewer_client.codex_reply(
+                            reviewer_tid, reviewer_prompt(pkt), timeout=cfg.reviewer_timeout
+                        )
+                        reviewer_thread_ids[lane] = reviewer_tid
+                    except Exception as exc:
+                        retry_until = time.time() + 900
+                        reviewer_quota_retry_ts[lane] = retry_until
+                        global_quota_retry_ts = max(global_quota_retry_ts, retry_until)
+                        if cfg.auto_switch_to_local_on_quota:
+                            state = _switch_to_local_fallback(cfg, state, f"reviewer retry failed/timed out: {exc}", retry_until)
+                        reviewer_text = _run_cli_reviewer(
+                            cfg, repo_cwd, pkt, f"reviewer retry failed/timed out: {exc}"
+                        ) or _offline_reviewer_fallback(pkt, f"reviewer retry failed/timed out: {exc}")
                 if _invalid_reviewer_output(reviewer_text):
                     reviewer_text = _run_cli_reviewer(
                         cfg, repo_cwd, pkt, "reviewer output invalid/unavailable"
@@ -1023,7 +1061,7 @@ def process_once(
                 write_text(lane_dir/"outbox/integrator"/pkt_path.name.replace("F__","R__APPROVED__"), reviewer_text)
                 integ = ""
                 runtime_local = _runtime_mode(cfg, state) == "local_fallback"
-                if not runtime_local and integrator_tid:
+                if not runtime_local and not cfg.prefer_cli_integrator and integrator_tid:
                     try:
                         integrator_tid, integ = integrator_client.codex_reply(
                             integrator_tid, integrator_prompt(reviewer_text), timeout=cfg.integrator_timeout
@@ -1206,7 +1244,7 @@ def process_integrator_backlog(
             processed += 1
             continue
         runtime_local = _runtime_mode(cfg, state) == "local_fallback"
-        if runtime_local or not integrator_tid:
+        if runtime_local or cfg.prefer_cli_integrator or not integrator_tid:
             integ = _run_cli_integrator(cfg, repo_cwd, approved_text, local=runtime_local)
         else:
             try:
@@ -1251,7 +1289,11 @@ def main() -> None:
     reviewer_thread_ids = ensure_all_reviewer_threads(reviewer_client, cfg, repo_cwd, state, reviewer_thread_ids)
     integrator_tid = state.get("integrator_thread_id")
 
-    if not integrator_tid and _runtime_mode(cfg, state) != "local_fallback":
+    if (
+        not integrator_tid
+        and _runtime_mode(cfg, state) != "local_fallback"
+        and not cfg.prefer_cli_integrator
+    ):
         integrator_profile = _profile_for_role(cfg, "integrator", local=False)
         integrator_tid, _ = integrator_client.codex(
             prompt="Ready as integrator.",

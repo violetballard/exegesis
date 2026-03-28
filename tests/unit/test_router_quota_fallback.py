@@ -28,6 +28,8 @@ def _router_cfg() -> RouterConfig:
         reviewer_fixer_retry_cooldown_seconds=120,
         fixer_quota_retry_cooldown_seconds=3600,
         prefer_cli_fixer=True,
+        prefer_cli_reviewer=True,
+        prefer_cli_integrator=True,
         use_cli_reviewer_fallback=True,
         use_cli_integrator_fallback=True,
         profiles={},

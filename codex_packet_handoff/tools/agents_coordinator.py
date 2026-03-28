@@ -90,6 +90,8 @@ def _bootstrap_direct_integrator_thread(
         return integrator_tid
     if router_mod._runtime_mode(cfg, state) == "local_fallback":
         return integrator_tid
+    if bool(getattr(cfg, "prefer_cli_integrator", False)):
+        return integrator_tid
     integrator_profile = router_mod._profile_for_role(cfg, "integrator", local=False)
     timeout = float(getattr(cfg, "integrator_timeout", 600.0))
     integrator_tid, _ = integrator_client.codex(

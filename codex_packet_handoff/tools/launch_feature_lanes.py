@@ -11,7 +11,10 @@ from pathlib import Path
 from typing import Any, Dict, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from codex_mcp_client import ApprovalPolicy, CodexMcpClient
+try:
+    from codex_mcp_client import ApprovalPolicy, CodexMcpClient
+except ImportError:  # pragma: no cover - test/import fallback for package execution
+    from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_FILE = REPO_ROOT / ".codex/packet_router/config.json"
@@ -161,6 +164,7 @@ def runtime_launch_config() -> Dict[str, object]:
         "profile_name": profile_name,
         "launch_timeout_seconds": float(cfg.get("feature_launch_timeout_seconds", 120)),
         "disable_local_fallback_on_cloud_timeout": bool(cfg.get("disable_local_fallback_on_cloud_timeout", False)),
+        "prefer_direct_exec_cloud": bool(cfg.get("prefer_direct_exec_feature_cloud", True)),
         "local_profile_name": local_profile_name,
         "local_profile": local_prof,
         **prof,
@@ -416,6 +420,46 @@ def _launch_one_lane(
         return STALE_THREAD_RE in str(text).lower()
 
     try:
+        if str(launch_cfg["mode"]) == "cloud_primary" and bool(launch_cfg.get("prefer_direct_exec_cloud")):
+            pid = _spawn_direct_exec(launch_cfg, workdir=workdir, prompt=prompt, log_path=log_path)
+            _set_lane_state(
+                feature_state,
+                lane,
+                status="direct_exec_running",
+                mode=str(launch_cfg["mode"]),
+                profile=str(launch_cfg["profile_name"]),
+                workdir=workdir,
+                prompt_path=prompt_path,
+                log_path=log_path,
+                thread_id="",
+                error="",
+                action="direct_exec_cloud_default",
+                pid=pid,
+            )
+            _write_log(
+                log_path,
+                {
+                    "lane": lane,
+                    "thread_id": "",
+                    "mode": launch_cfg["mode"],
+                    "profile": launch_cfg["profile_name"],
+                    "workdir": workdir,
+                    "action": "direct_exec_cloud_default",
+                    "launched_at": _ts(),
+                    "status": "direct_exec_running",
+                    "pid": pid,
+                },
+                "Cloud feature lane launched as direct exec.",
+            )
+            return {
+                "lane": lane,
+                "status": "direct_exec_running",
+                "mode": launch_cfg["mode"],
+                "profile": launch_cfg["profile_name"],
+                "workdir": workdir,
+                "pid": pid,
+                "log": str(log_path),
+            }
         if str(launch_cfg["mode"]) == "local_fallback":
             direct_profile = dict(launch_cfg.get("local_profile") or launch_cfg)
             direct_profile["mode"] = "local_fallback"
