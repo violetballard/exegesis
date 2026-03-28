@@ -3,6 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit(s):
+  - `6f9eaecd05a7ba4f32ea1d06c1884c8080a4d9ff`
   - `3b4de0153788cfe2f35a761759d052dc2789fdf2`
   - `4f1c25fa61974359518ca05eb5c9bb3ddb927427`
   - `3378e905fab4653d38070b8e272ce4e4c6d22908`
@@ -34,15 +35,17 @@
 4. Regenerated the handoff packet and lane metadata so the feature review points at the actual branch delta and approved shared-file coverage.
 
 ## Files changed for this turn
-- `.codex/kickoff_packets/feat-commands.md`
-- `.codex/lane_meta/feat-commands.json`
-- `THREAD_PACKET.md`
-- `src/qual/commands/__init__.py`
-- `src/qual/commands/canonical.py`
-- `src/qual/commands/catalog.py`
-- `src/qual/commands/diff_preview.py`
-- `tests/unit/test_commands_catalog.py`
-- `tests/unit/test_diff_preview.py`
+- Handoff artifacts regenerated in this thread:
+  - `.codex/kickoff_packets/feat-commands.md`
+  - `.codex/lane_meta/feat-commands.json`
+  - `THREAD_PACKET.md`
+- Reviewed code delta:
+  - `src/qual/commands/__init__.py`
+  - `src/qual/commands/canonical.py`
+  - `src/qual/commands/catalog.py`
+  - `src/qual/commands/diff_preview.py`
+  - `tests/unit/test_commands_catalog.py`
+  - `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
