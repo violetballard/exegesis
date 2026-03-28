@@ -2,8 +2,8 @@
 
 - Branch name: `codex/feat-a2ui-contract`
 - Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`.
-- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> define `A2UI` output contract for agent-produced presentation artifacts, add deterministic schemas, provide CLI rendering fallback for the same structured payloads, keep the surface client-agnostic, and preserve deterministic materialized action ordering.
-- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> agent emits structured presentation artifacts (cards, sections, actions, metadata) that render in CLI first and remain consumable by `Exegesis Console`.
+- Roadmap item(s) affected (from `ROADMAP.md`): Milestone 5: A2UI Presentation Layer (In Progress) -> define `A2UI` output contract for agent-produced presentation artifacts, add deterministic schemas, provide CLI rendering fallback for the same structured payloads, keep the surface client-agnostic, and preserve deterministic materialized action ordering.
+- Vision capability affected (from `PRODUCT_VISION.md`): Capability 5: Agent-to-UI protocol (`A2UI`) -> agent emits structured presentation artifacts (cards, sections, actions, metadata) that render in CLI first and remain consumable by `Exegesis Console`.
 - Audit anchor: this fix is intentionally narrow and is the concrete reviewer-required mapping for the deterministic action-ordering change.
 - Roadmap detail: define `A2UI` output contract for agent-produced presentation artifacts, add deterministic schemas, provide CLI rendering fallback for the same structured payloads, keep the surface client-agnostic, and preserve deterministic materialized action ordering.
 - Vision detail: the agent emits structured presentation artifacts (cards, sections, actions, metadata) that can be rendered in CLI first and then consumed by `Exegesis Console`.
