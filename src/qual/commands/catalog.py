@@ -284,22 +284,40 @@ def command_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tupl
     return tuple(index)
 
 
-def command_flow_lookup_index(
-    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
-    flow_steps: tuple[str, ...] | None = None,
+def _command_flow_lookup_index(
+    specs: tuple[CommandSpec, ...],
+    flow_steps: tuple[str, ...],
+    *,
+    include_flow_step: bool,
 ) -> tuple[tuple[str, str], ...]:
-    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
-    manifest = command_flow_manifest(specs, ordered_flow_steps)
+    manifest = command_flow_manifest(specs, flow_steps)
     seen_tokens: set[str] = set()
     index: list[tuple[str, str]] = []
     for entry in manifest:
-        for token in entry.lookup_tokens:
+        tokens = (*entry.lookup_tokens, entry.flow_step) if include_flow_step else entry.lookup_tokens
+        for token in tokens:
             normalized_token = _normalize_token(token)
             if normalized_token in seen_tokens:
                 continue
             seen_tokens.add(normalized_token)
             index.append((normalized_token, entry.name))
     return tuple(index)
+
+
+def command_flow_lookup_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, str], ...]:
+    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    return _command_flow_lookup_index(specs, ordered_flow_steps, include_flow_step=False)
+
+
+def command_flow_lookup_surface(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, str], ...]:
+    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    return _command_flow_lookup_index(specs, ordered_flow_steps, include_flow_step=True)
 
 
 def command_flow_steps(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
@@ -408,6 +426,12 @@ def command_demo_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) ->
     return command_flow_lookup_index(specs, command_demo_flow_steps())
 
 
+def command_demo_flow_lookup_surface(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_flow_lookup_surface(specs, command_demo_flow_steps())
+
+
 def command_demo_flow_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
     return tuple(entry.name for entry in command_demo_flow_manifest(specs))
 
@@ -426,6 +450,12 @@ def command_demo_surface_contract(
 
 def command_demo_flow(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[CommandManifestEntry, ...]:
     return command_demo_flow_manifest(specs)
+
+
+def command_mvp_flow_lookup_surface(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_flow_lookup_surface(specs)
 
 
 def command_tokens(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
