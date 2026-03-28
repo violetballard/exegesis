@@ -4,15 +4,15 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> define A2UI output contract for agent-produced presentation artifacts, add deterministic schemas, provide CLI rendering fallback for the same structured payloads, and keep the surface client-agnostic"
+    "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> define A2UI output contract for agent-produced presentation artifacts, add deterministic schemas, provide CLI rendering fallback for the same structured payloads, keep the surface client-agnostic, and preserve deterministic materialized action ordering"
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, and keep the handoff aligned with ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) and PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI).",
+  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, and keep the handoff aligned with ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress), specifically the stable A2UI output contract and CLI fallback rendering work, and PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI), specifically CLI-first rendering of structured artifacts.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Updated the A2UI materialization path in src/qual/ui/a2ui.py to sort filtered actions by canonical JSON before rendering.",
     "Added contract coverage in tests/unit/test_a2ui_contract.py to verify the canonical ordering behavior for materialized action payloads.",
-    "Rewrote the lane metadata and packet artifacts to make the roadmap and vision mapping explicit in the required handoff fields.",
+    "Rewrote the lane metadata and packet artifacts to make the Milestone 5 / Capability 5 mapping explicit in the required handoff fields.",
     "Kept the lane record scoped to one source file plus matching tests with no routing or provider impact."
   ],
   "vision_capabilities": [
