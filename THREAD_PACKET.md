@@ -49,10 +49,10 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3 - Real workflow loop
+- MVP Focus Through 2026-05-04: `feat-context-storage`
 
 ### Vision capability affected
-- Capability 6 - Auditable state and workflow
+- Capability 1 - Local-first state and identity
 
 ### Routing/provider impact note
 - None

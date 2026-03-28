@@ -9,10 +9,10 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 3 - Real workflow loop"
+    "MVP Focus Through 2026-05-04: feat-context-storage"
   ],
   "vision_capabilities": [
-    "Capability 6 - Auditable state and workflow"
+    "Capability 1 - Local-first state and identity"
   ],
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
