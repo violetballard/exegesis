@@ -1,22 +1,114 @@
+from __future__ import annotations
+
 import json
 import math
 import re
+import uuid
+from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
-from src.qual.context.basket import ContextBasket
-
 _SCHEMA_VERSION = 1
-_CANONICAL_DICT_KEYS = {"schema_version", "updated_at", "item_ids", "recovered_from"}
+_CANONICAL_DICT_KEYS = {"schema_version", "updated_at", "context_sets", "recovered_from"}
 
 
-class ContextBasketStore:
-    """Persist context basket state for scaffold CLI workflows."""
+@dataclass
+class ContextSetRecord:
+    context_set_id: str
+    name: str
+    item_ids: list[str] = field(default_factory=list)
+    created_at: str = ""
+    updated_at: str = ""
+
+    def normalize(self) -> None:
+        self.context_set_id = self._normalize_identifier(self.context_set_id)
+        self.name = self._normalize_name(self.name)
+        self.item_ids = self._normalize_item_ids(self.item_ids)
+        self.created_at = self._normalize_timestamp(self.created_at)
+        self.updated_at = self._normalize_timestamp(self.updated_at)
+
+    @staticmethod
+    def _normalize_text_scalar(value: object) -> str:
+        if isinstance(value, str):
+            return value.strip()
+        if isinstance(value, bool):
+            return ""
+        if isinstance(value, int):
+            return str(value).strip()
+        if isinstance(value, float):
+            if not math.isfinite(value):
+                return ""
+            return str(value).strip()
+        return ""
+
+    @classmethod
+    def _normalize_identifier(cls, value: object) -> str:
+        return cls._normalize_text_scalar(value)
+
+    @staticmethod
+    def _normalize_name(value: object) -> str:
+        return ContextSetRecord._normalize_text_scalar(value)
+
+    @staticmethod
+    def _normalize_item_id(value: object) -> str:
+        if isinstance(value, str):
+            return value.strip()
+        if isinstance(value, bool):
+            return ""
+        if isinstance(value, int):
+            return str(value).strip()
+        if isinstance(value, float):
+            if not math.isfinite(value):
+                return ""
+            return str(value).strip()
+        return ""
+
+    @classmethod
+    def _normalize_item_ids(cls, item_ids: object) -> list[str]:
+        if not isinstance(item_ids, list):
+            return []
+        out: list[str] = []
+        seen: set[str] = set()
+        for raw in item_ids:
+            item_id = cls._normalize_item_id(raw)
+            if not item_id or item_id in seen:
+                continue
+            out.append(item_id)
+            seen.add(item_id)
+        return out
+
+    @classmethod
+    def _parse_item_ids(cls, item_ids: object) -> list[str]:
+        if isinstance(item_ids, list):
+            return cls._normalize_item_ids(item_ids)
+        normalized = cls._normalize_item_id(item_ids)
+        if normalized:
+            return [normalized]
+        return []
+
+    @staticmethod
+    def _normalize_timestamp(value: object) -> str:
+        if not isinstance(value, str):
+            return ""
+        candidate = value.strip()
+        if not candidate:
+            return ""
+        try:
+            parsed = datetime.fromisoformat(candidate.replace("Z", "+00:00"))
+        except ValueError:
+            return ""
+        if parsed.tzinfo is None or parsed.utcoffset() is None:
+            parsed = parsed.replace(tzinfo=UTC)
+        return parsed.astimezone(UTC).isoformat()
+
+
+class ContextSetStore:
+    """Persist named context sets for excerpt selection and attachment workflows."""
 
     def __init__(self, root_dir: Path) -> None:
-        self._path = root_dir / "context_basket.json"
-        self._backup_path = root_dir / "context_basket.bak.json"
-        self._seed_path = root_dir / "context_basket.seed.json"
+        self._path = root_dir / "context_sets.json"
+        self._backup_path = root_dir / "context_sets.bak.json"
+        self._seed_path = root_dir / "context_sets.seed.json"
 
     def _corrupt_path(self) -> Path:
         return self._path.with_suffix(".corrupt.json")
@@ -33,13 +125,13 @@ class ContextBasketStore:
     def _seed_state_path(self) -> Path:
         return self._seed_path
 
-    def _quarantine_missing_item_ids_payload(self, path: Path, payload: object) -> bool:
-        if isinstance(payload, dict) and "item_ids" not in payload:
+    def _quarantine_missing_context_sets_payload(self, path: Path, payload: object) -> bool:
+        if isinstance(payload, dict) and "context_sets" not in payload:
             self._quarantine_path(path)
             return True
         return False
 
-    def load(self) -> ContextBasket:
+    def load(self) -> list[ContextSetRecord]:
         primary_missing = not self._path.exists()
         backup_missing = not self._backup_path.exists()
         primary_payload, _ = self._load_payload(self._path)
@@ -48,36 +140,42 @@ class ContextBasketStore:
         backup_payload, _ = self._load_payload(self._backup_path)
         seed_tmp_payload, _ = self._load_payload(self._seed_tmp_path())
         seed_payload, _ = self._load_payload(self._seed_state_path())
-        self._quarantine_missing_item_ids_payload(self._tmp_path(), tmp_payload)
-        self._quarantine_missing_item_ids_payload(self._backup_tmp_path(), backup_tmp_payload)
-        preserve_backup_corrupt = self._quarantine_missing_item_ids_payload(self._backup_path, backup_payload)
-        self._quarantine_missing_item_ids_payload(self._seed_tmp_path(), seed_tmp_payload)
-        preserve_seed_corrupt = self._quarantine_missing_item_ids_payload(self._seed_state_path(), seed_payload)
+        self._quarantine_missing_context_sets_payload(self._tmp_path(), tmp_payload)
+        self._quarantine_missing_context_sets_payload(self._backup_tmp_path(), backup_tmp_payload)
+        preserve_backup_corrupt = self._quarantine_missing_context_sets_payload(self._backup_path, backup_payload)
+        self._quarantine_missing_context_sets_payload(self._seed_tmp_path(), seed_tmp_payload)
+        preserve_seed_corrupt = self._quarantine_missing_context_sets_payload(self._seed_state_path(), seed_payload)
         preserve_backup_corrupt = (
             self._quarantine_unrecoverable_list_payload(self._backup_path, backup_payload) or preserve_backup_corrupt
         )
         preserve_seed_corrupt = (
             self._quarantine_unrecoverable_list_payload(self._seed_state_path(), seed_payload) or preserve_seed_corrupt
         )
-        primary_missing_item_ids = isinstance(primary_payload, dict) and "item_ids" not in primary_payload
-        primary_item_ids_need_recovery = self._primary_item_ids_need_recovery(primary_payload)
-        primary_needs_quarantine = primary_item_ids_need_recovery or (
-            isinstance(primary_payload, dict)
-            and (
-                primary_missing_item_ids
-                or self._has_unknown_fields(primary_payload)
-                or not self._is_supported_payload(primary_payload)
-            )
-        )
+
+        primary_needs_quarantine = self._primary_context_sets_need_recovery(primary_payload)
+        if not primary_needs_quarantine and isinstance(primary_payload, dict) and self._has_unknown_fields(
+            primary_payload
+        ):
+            primary_needs_quarantine = True
+        if isinstance(primary_payload, list) and self._legacy_list_payload_has_dropped_records(primary_payload):
+            primary_needs_quarantine = True
+        if (
+            not primary_needs_quarantine
+            and isinstance(primary_payload, dict)
+            and "context_sets" in primary_payload
+            and not self._has_context_set_records(primary_payload)
+            and not self._is_supported_payload(primary_payload)
+        ):
+            primary_needs_quarantine = True
+        if primary_needs_quarantine:
+            self._quarantine_invalid_file()
 
         payload: dict[str, object] | list[object] | None
         recovered_source: str | None
         if primary_needs_quarantine:
-            self._quarantine_invalid_file()
-        if primary_missing_item_ids or primary_item_ids_need_recovery:
             if isinstance(primary_payload, list):
-                primary_items = self._parse_item_ids(primary_payload)
-                if primary_items:
+                primary_records = self._parse_context_sets(primary_payload)
+                if primary_records:
                     payload = primary_payload
                     recovered_source = None
                 else:
@@ -88,23 +186,31 @@ class ContextBasketStore:
                         seed_tmp_payload,
                         seed_payload,
                     )
-                    if payload is None or not self._has_recovery_payload_items(payload):
+                    if payload is None or not self._has_context_set_records(payload):
                         payload = primary_payload
                         recovered_source = None
             else:
-                payload, recovered_source = self._prefer_recovery_payload(
-                    tmp_payload,
-                    backup_tmp_payload,
-                    backup_payload,
-                    seed_tmp_payload,
-                    seed_payload,
-                )
-                if payload is None:
+                raw_context_sets = primary_payload.get("context_sets")
+                parsed_records = self._parse_context_sets(raw_context_sets)
+                has_explicit_empty_context_sets = isinstance(raw_context_sets, list) and not raw_context_sets
+                has_salvageable_context_sets = parsed_records is not None and bool(parsed_records)
+                if has_explicit_empty_context_sets or has_salvageable_context_sets:
                     payload = primary_payload
                     recovered_source = None
+                else:
+                    payload, recovered_source = self._prefer_recovery_payload(
+                        tmp_payload,
+                        backup_tmp_payload,
+                        backup_payload,
+                        seed_tmp_payload,
+                        seed_payload,
+                    )
+                    if payload is None:
+                        payload = primary_payload
+                        recovered_source = None
         elif isinstance(primary_payload, list):
-            primary_items = self._parse_item_ids(primary_payload)
-            if primary_items:
+            primary_records = self._parse_context_sets(primary_payload)
+            if primary_records:
                 payload = primary_payload
                 recovered_source = None
             else:
@@ -115,7 +221,7 @@ class ContextBasketStore:
                     seed_tmp_payload,
                     seed_payload,
                 )
-                if payload is None or not self._has_recovery_payload_items(payload):
+                if payload is None or not self._has_context_set_records(payload):
                     payload = primary_payload
                     recovered_source = None
         elif primary_payload is not None:
@@ -135,58 +241,64 @@ class ContextBasketStore:
                     preserve_seed_corrupt=preserve_seed_corrupt,
                 )
                 self._clear_temporary_files()
-                return ContextBasket()
+                return []
         else:
             self._clear_quarantine_file(
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
             )
             self._clear_temporary_files()
-            return ContextBasket()
+            return []
 
         should_rewrite = False
         rewrite_empty_recovery = False
         explicit_empty_recovery = self._is_empty_recovery_payload(payload) and self._has_explicit_empty_recovery_payload(
             payload
         )
+        rewrite_timestamp = datetime.now(UTC).isoformat()
+        records: list[ContextSetRecord]
         if explicit_empty_recovery:
-            # Canonical empty state should still be materialized when it is the
-            # only recoverable payload. If we are repairing an existing
-            # primary, keep the recovery source so the canonical rewrite can
-            # retain audit provenance and preserve the quarantined primary.
+            # Materialize empty canonical state when it is the only usable
+            # payload. If we are repairing an existing primary, keep the source
+            # so the canonical rewrite can record where the empty state came
+            # from and preserve the quarantine trail.
             rewrite_empty_recovery = True
             if primary_payload is None:
                 recovered_source = None
         if isinstance(payload, list):
-            parsed_items = self._parse_item_ids(payload)
-            if parsed_items is None:
+            parsed_records = self._parse_context_sets(payload)
+            if parsed_records is None:
                 self._discard_payload_source(recovered_source)
-                return ContextBasket()
-            basket = ContextBasket(item_ids=parsed_items)
+                return []
+            records = self._normalize_records(parsed_records)
+            if records and self._records_need_timestamp_backfill(records):
+                records = self._backfill_record_timestamps(records, rewrite_timestamp)
+                should_rewrite = True
+            # Promote legacy list payloads into the canonical dict format even
+            # when their record contents are already normalized.
             should_rewrite = True
         elif isinstance(payload, dict):
             schema_version = self._parse_schema_version(payload)
-            if "item_ids" not in payload:
-                basket = ContextBasket()
+            if "context_sets" not in payload:
+                records = []
                 should_rewrite = True
             else:
-                raw_item_ids = payload.get("item_ids")
-                parsed_items = self._parse_item_ids(raw_item_ids)
-                if parsed_items is None:
-                    basket = ContextBasket()
-                    parsed_items = []
+                raw_context_sets = payload.get("context_sets")
+                parsed_records = self._parse_context_sets(raw_context_sets)
+                if parsed_records is None:
+                    records = []
                     should_rewrite = True
-                normalized_items = self._normalize_item_ids(parsed_items)
-                basket = ContextBasket(item_ids=normalized_items)
-                should_rewrite = (
-                    should_rewrite
-                    or schema_version != _SCHEMA_VERSION
-                    or normalized_items != parsed_items
-                )
-                if not isinstance(raw_item_ids, list) or parsed_items != raw_item_ids:
-                    should_rewrite = True
-                if self._has_dropped_item_ids(raw_item_ids):
-                    should_rewrite = True
+                else:
+                    records = self._normalize_records(parsed_records)
+                    should_rewrite = (
+                        should_rewrite
+                        or schema_version != _SCHEMA_VERSION
+                        or self._records_need_rewrite(raw_context_sets, parsed_records)
+                        or records != parsed_records
+                    )
+            if records and self._records_need_timestamp_backfill(records):
+                records = self._backfill_record_timestamps(records, rewrite_timestamp)
+                should_rewrite = True
             if self._has_unknown_fields(payload):
                 should_rewrite = True
             if "updated_at" not in payload:
@@ -201,52 +313,47 @@ class ContextBasketStore:
                 should_rewrite = True
         else:
             self._discard_payload_source(recovered_source)
-            return ContextBasket()
+            return []
 
         recovered_from = self._recovery_marker(
-            primary_unavailable=(
-                primary_missing
-                or primary_payload is None
-                or primary_missing_item_ids
-                or primary_item_ids_need_recovery
-            ),
+            primary_unavailable=primary_missing or primary_payload is None or recovered_source is not None,
             recovered_source=recovered_source,
         )
         should_rewrite = should_rewrite or rewrite_empty_recovery
-        recovered_persisted_missing_item_ids = (
+        recovered_persisted_missing_context_sets = (
             isinstance(payload, dict)
-            and "item_ids" not in payload
+            and "context_sets" not in payload
             and recovered_source in {"backup", "seed"}
         )
         preserve_primary_corrupt = bool(
             primary_needs_quarantine
             and primary_payload is not None
-            and (
-                (
-                    recovered_source is None
-                    and isinstance(primary_payload, dict)
-                    and (primary_item_ids_need_recovery or self._has_unknown_fields(primary_payload))
-                )
-                or (explicit_empty_recovery and recovered_source is not None and isinstance(primary_payload, dict))
-            )
+            and isinstance(primary_payload, dict)
         )
-        preserve_backup_corrupt = bool(preserve_backup_corrupt or (recovered_source == "backup" and recovered_persisted_missing_item_ids))
-        preserve_seed_corrupt = bool(preserve_seed_corrupt or (recovered_source == "seed" and recovered_persisted_missing_item_ids))
-        if isinstance(primary_payload, list) and primary_payload and not self._has_recovery_payload_items(primary_payload):
+        preserve_backup_corrupt = bool(
+            preserve_backup_corrupt or (recovered_source == "backup" and recovered_persisted_missing_context_sets)
+        )
+        preserve_seed_corrupt = bool(
+            preserve_seed_corrupt or (recovered_source == "seed" and recovered_persisted_missing_context_sets)
+        )
+        if isinstance(primary_payload, list) and (
+            not self._has_context_set_records(primary_payload)
+            or self._legacy_list_payload_has_dropped_records(primary_payload)
+        ):
             # Keep the original malformed legacy list available for audit when
-            # it cannot contribute any recoverable item ids.
+            # it cannot contribute any recoverable context set records.
             preserve_primary_corrupt = True
         if (
             recovered_source == "backup"
             and isinstance(backup_payload, list)
-            and self._legacy_list_payload_has_dropped_item_ids(backup_payload)
+            and self._legacy_list_payload_has_dropped_records(backup_payload)
         ):
             self._quarantine_invalid_backup()
             preserve_backup_corrupt = True
         if (
             recovered_source == "seed"
             and isinstance(seed_payload, list)
-            and self._legacy_list_payload_has_dropped_item_ids(seed_payload)
+            and self._legacy_list_payload_has_dropped_records(seed_payload)
         ):
             self._quarantine_invalid_seed()
             preserve_seed_corrupt = True
@@ -259,24 +366,19 @@ class ContextBasketStore:
             self._quarantine_invalid_seed()
             preserve_seed_corrupt = True
         if recovered_source is not None or should_rewrite:
-            # Keep the backup aligned with the latest canonical basket whenever we
-            # rewrite state during load, not only when we recover from tmp/backup.
             self.save(
-                basket,
+                records,
                 recovered_from=recovered_from,
                 refresh_backup=True,
                 preserve_primary_corrupt=preserve_primary_corrupt,
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
+                updated_at=rewrite_timestamp,
             )
         elif primary_payload is not None and (
             backup_payload is None
             or backup_missing
-            or self._backup_needs_refresh(
-                backup_payload,
-                basket,
-                payload if isinstance(payload, dict) else None,
-            )
+            or self._backup_needs_refresh(backup_payload, records, payload if isinstance(payload, dict) else None)
         ):
             if self._backup_needs_audit_quarantine(backup_payload):
                 self._quarantine_invalid_backup()
@@ -284,22 +386,24 @@ class ContextBasketStore:
             if self._backup_needs_audit_quarantine(seed_payload):
                 self._quarantine_invalid_seed()
                 preserve_seed_corrupt = True
-            backup_written = self._write_backup_payload(self._backup_payload(payload))
+            backup_written = self._write_backup_payload(
+                self._backup_payload_from_records(records, payload if isinstance(payload, dict) else {})
+            )
             self._clear_recovery_artifacts(
                 preserve_seed=not backup_written,
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
             )
             if not backup_written:
-                self._write_seed(self._backup_payload(payload))
+                self._write_seed(self._backup_payload_from_records(records, payload if isinstance(payload, dict) else {}))
         elif backup_payload is None or backup_missing or self._backup_needs_refresh(
             backup_payload,
-            basket,
+            records,
             payload if isinstance(payload, dict) else None,
         ):
             backup_written = False
             if isinstance(payload, dict):
-                backup_written = self._write_backup_payload(self._backup_payload(payload))
+                backup_written = self._write_backup_payload(self._backup_payload_from_records(records, payload))
             else:
                 backup_written = self._write_backup()
             self._clear_recovery_artifacts(
@@ -308,30 +412,33 @@ class ContextBasketStore:
                 preserve_seed_corrupt=preserve_seed_corrupt,
             )
             if not backup_written:
-                self._write_seed(self._backup_payload(payload) if isinstance(payload, dict) else payload)
+                self._write_seed(
+                    self._backup_payload_from_records(records, payload) if isinstance(payload, dict) else payload
+                )
         else:
             self._clear_recovery_artifacts(
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
             )
-        return basket
-
+        return records
 
     def save(
         self,
-        basket: ContextBasket,
+        records: list[ContextSetRecord],
         recovered_from: str | None = None,
         refresh_backup: bool = False,
         preserve_primary_corrupt: bool = False,
         preserve_backup_corrupt: bool = False,
         preserve_seed_corrupt: bool = False,
+        updated_at: str | None = None,
     ) -> None:
-        basket.normalize()
+        normalized_records = self._normalize_records(records)
         self._path.parent.mkdir(parents=True, exist_ok=True)
+        canonical_updated_at = self._parse_updated_at(updated_at) or datetime.now(UTC).isoformat()
         payload = {
             "schema_version": _SCHEMA_VERSION,
-            "updated_at": datetime.now(UTC).isoformat(),
-            "item_ids": list(basket.item_ids),
+            "updated_at": canonical_updated_at,
+            "context_sets": [asdict(record) for record in normalized_records],
         }
         normalized_recovered_from = self._parse_recovered_from(recovered_from)
         if normalized_recovered_from is not None:
@@ -348,13 +455,11 @@ class ContextBasketStore:
         backup_written = (
             refresh_backup
             or current_backup_payload is None
-            or self._backup_needs_refresh(current_backup_payload, basket, payload)
+            or self._backup_needs_refresh(current_backup_payload, normalized_records, payload)
         )
         if backup_written:
             backup_written = self._write_backup_payload(backup_payload)
         if not backup_written:
-            # Seed keeps the latest canonical basket recoverable if backup
-            # rotation cannot be completed after the primary rewrite.
             self._write_seed(backup_payload)
         self._clear_recovery_artifacts(
             preserve_seed=not backup_written,
@@ -363,21 +468,45 @@ class ContextBasketStore:
             preserve_seed_corrupt=preserve_seed_corrupt,
         )
 
-    def clear(self) -> None:
-        for path in (
-            self._path,
-            self._backup_path,
-            self._seed_state_path(),
-            self._tmp_path(),
-            self._backup_tmp_path(),
-            self._seed_tmp_path(),
-            self._corrupt_path(),
-            self._corrupt_path_for(self._tmp_path()),
-            self._corrupt_path_for(self._backup_tmp_path()),
-            self._corrupt_path_for(self._seed_tmp_path()),
-        ):
-            self._unlink_if_exists(path)
-        self._clear_quarantine_file()
+    def create_context_set(self, name: str, item_ids: list[object] | None = None) -> ContextSetRecord:
+        now = datetime.now(UTC).isoformat()
+        record = ContextSetRecord(
+            context_set_id=str(uuid.uuid4()),
+            name=name,
+            item_ids=ContextSetRecord._normalize_item_ids(item_ids or []),
+            created_at=now,
+            updated_at=now,
+        )
+        record.normalize()
+        if not record.name:
+            raise ValueError("name is required")
+        self.save([*self.load(), record])
+        return record
+
+    def pin_item(self, context_set_id: str, item_id: object) -> ContextSetRecord:
+        records = self.load()
+        normalized_id = ContextSetRecord._normalize_identifier(context_set_id)
+        normalized_item_id = ContextSetRecord._normalize_item_id(item_id)
+        if not normalized_id:
+            raise ValueError("context_set_id is required")
+        if not normalized_item_id:
+            raise ValueError("item_id is required")
+        for idx, record in enumerate(records):
+            if record.context_set_id != normalized_id:
+                continue
+            if normalized_item_id not in record.item_ids:
+                record.item_ids.append(normalized_item_id)
+                record.updated_at = datetime.now(UTC).isoformat()
+                record.normalize()
+                records[idx] = record
+                self.save(records)
+                return record
+            record.updated_at = datetime.now(UTC).isoformat()
+            record.normalize()
+            records[idx] = record
+            self.save(records)
+            return record
+        raise KeyError(f"unknown context_set_id: {context_set_id}")
 
     def _quarantine_invalid_file(self) -> None:
         if not self._path.exists():
@@ -462,10 +591,7 @@ class ContextBasketStore:
         else:
             self._quarantine_invalid_file()
 
-    def _load_payload(
-        self,
-        path: Path,
-    ) -> tuple[dict[str, object] | list[object] | None, bool]:
+    def _load_payload(self, path: Path) -> tuple[dict[str, object] | list[object] | None, bool]:
         if not path.exists():
             return None, False
         try:
@@ -513,16 +639,6 @@ class ContextBasketStore:
             return False
         return True
 
-    def _backup_payload(self, payload: dict[str, object]) -> dict[str, object]:
-        backup_payload: dict[str, object] = {
-            "schema_version": self._parse_schema_version(payload) or _SCHEMA_VERSION,
-            "item_ids": self._normalize_item_ids(self._parse_item_ids(payload.get("item_ids")) or []),
-        }
-        normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
-        if normalized_updated_at is not None:
-            backup_payload["updated_at"] = normalized_updated_at
-        return backup_payload
-
     def _write_seed(self, payload: dict[str, object] | list[object]) -> None:
         seed = self._seed_state_path()
         tmp = seed.with_suffix(".tmp")
@@ -532,6 +648,26 @@ class ContextBasketStore:
         except OSError:
             self._unlink_if_exists(tmp)
 
+    def _backup_payload(self, payload: dict[str, object]) -> dict[str, object]:
+        return self._backup_payload_from_records(
+            self._normalize_records(self._parse_context_sets(payload.get("context_sets")) or []),
+            payload,
+        )
+
+    def _backup_payload_from_records(
+        self,
+        records: list[ContextSetRecord],
+        payload: dict[str, object],
+    ) -> dict[str, object]:
+        backup_payload: dict[str, object] = {
+            "schema_version": self._parse_schema_version(payload) or _SCHEMA_VERSION,
+            "context_sets": self._normalize_context_sets(records),
+        }
+        normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
+        if normalized_updated_at is not None:
+            backup_payload["updated_at"] = normalized_updated_at
+        return backup_payload
+
     def _is_valid_payload(self, path: Path) -> bool:
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
@@ -540,17 +676,15 @@ class ContextBasketStore:
         return self._is_supported_payload(payload)
 
     def _is_loadable_payload(self, payload: object) -> bool:
-        # Optional metadata can be malformed without invalidating the recoverable basket.
         if isinstance(payload, list):
-            return self._parse_item_ids(payload) is not None
+            return self._parse_context_sets(payload) is not None
         if not isinstance(payload, dict):
             return False
-        if "item_ids" in payload and self._parse_item_ids(payload.get("item_ids")) is None:
+        if "context_sets" in payload and self._parse_context_sets(payload.get("context_sets")) is None:
             return False
         return True
 
     def _is_supported_payload(self, payload: object) -> bool:
-        # Backup rotation stays strict so we do not preserve malformed metadata as canonical.
         if not self._is_loadable_payload(payload):
             return False
         if not isinstance(payload, dict):
@@ -563,34 +697,98 @@ class ContextBasketStore:
             return False
         return True
 
-    def _parse_item_ids(self, value: object) -> list[str] | None:
+    def _parse_context_sets(self, value: object) -> list[ContextSetRecord] | None:
+        records: list[ContextSetRecord] = []
+        raw_values: list[object]
         if isinstance(value, list):
-            parsed: list[str] = []
-            for raw in value:
-                normalized = self._normalize_item_id(raw)
-                if not normalized:
-                    continue
-                parsed.append(normalized)
-            return parsed
-        normalized = self._normalize_item_id(value)
-        if normalized:
-            return [normalized]
-        if isinstance(value, str):
-            return []
-        return None
+            raw_values = value
+        elif isinstance(value, dict):
+            raw_values = [value]
+        else:
+            return None
+        for raw in raw_values:
+            record = self._parse_record(raw)
+            if record is None:
+                continue
+            records.append(record)
+        return records
 
-    def _normalize_item_id(self, item_id: object) -> str:
-        if isinstance(item_id, str):
-            return item_id.strip()
-        if isinstance(item_id, bool):
-            return ""
-        if isinstance(item_id, int):
-            return str(item_id).strip()
-        if isinstance(item_id, float):
-            if not math.isfinite(item_id):
-                return ""
-            return str(item_id).strip()
-        return ""
+    def _parse_record(self, raw: object) -> ContextSetRecord | None:
+        if not isinstance(raw, dict):
+            return None
+        record = ContextSetRecord(
+            context_set_id=ContextSetRecord._normalize_identifier(raw.get("context_set_id")),
+            name=ContextSetRecord._normalize_name(raw.get("name")),
+            item_ids=ContextSetRecord._parse_item_ids(raw.get("item_ids", [])),
+            created_at=ContextSetRecord._normalize_timestamp(raw.get("created_at")),
+            updated_at=ContextSetRecord._normalize_timestamp(raw.get("updated_at")),
+        )
+        record.normalize()
+        if not record.context_set_id or not record.name:
+            return None
+        return record
+
+    def _normalize_context_sets(self, records: list[ContextSetRecord]) -> list[dict[str, object]]:
+        normalized: list[dict[str, object]] = []
+        for record in self._normalize_records(records):
+            normalized.append(asdict(record))
+        return normalized
+
+    def _normalize_records(self, records: list[ContextSetRecord]) -> list[ContextSetRecord]:
+        normalized: list[ContextSetRecord] = []
+        seen: set[str] = set()
+        for raw in records:
+            record = ContextSetRecord(
+                context_set_id=raw.context_set_id,
+                name=raw.name,
+                item_ids=list(raw.item_ids),
+                created_at=raw.created_at,
+                updated_at=raw.updated_at,
+            )
+            record.normalize()
+            if not record.context_set_id or not record.name or record.context_set_id in seen:
+                continue
+            normalized.append(record)
+            seen.add(record.context_set_id)
+        return normalized
+
+    def _records_need_timestamp_backfill(self, records: list[ContextSetRecord]) -> bool:
+        return any(not record.created_at or not record.updated_at for record in records)
+
+    def _backfill_record_timestamps(
+        self,
+        records: list[ContextSetRecord],
+        fallback_timestamp: str,
+    ) -> list[ContextSetRecord]:
+        backfilled: list[ContextSetRecord] = []
+        for raw in records:
+            record = ContextSetRecord(
+                context_set_id=raw.context_set_id,
+                name=raw.name,
+                item_ids=list(raw.item_ids),
+                created_at=raw.created_at or fallback_timestamp,
+                updated_at=raw.updated_at or fallback_timestamp,
+            )
+            record.normalize()
+            backfilled.append(record)
+        return backfilled
+
+    def _records_need_rewrite(self, raw_records: object, parsed_records: list[ContextSetRecord]) -> bool:
+        if not isinstance(raw_records, list):
+            return True
+        if len(parsed_records) != len(raw_records):
+            return True
+        for raw_record, parsed_record in zip(raw_records, parsed_records):
+            if self._record_needs_rewrite(raw_record, parsed_record):
+                return True
+        if self._normalize_records(parsed_records) != parsed_records:
+            return True
+        return False
+
+    def _record_needs_rewrite(self, raw_record: object, parsed_record: ContextSetRecord) -> bool:
+        if not isinstance(raw_record, dict):
+            return True
+        return raw_record != asdict(parsed_record)
 
     def _parse_schema_version(self, payload: dict[str, object]) -> int | None:
         if "schema_version" not in payload:
@@ -631,7 +829,7 @@ class ContextBasketStore:
     def _backup_needs_refresh(
         self,
         payload: dict[str, object] | list[object] | None,
-        basket: ContextBasket,
+        records: list[ContextSetRecord],
         primary_payload: dict[str, object] | None = None,
     ) -> bool:
         if payload is None:
@@ -640,27 +838,20 @@ class ContextBasketStore:
             return True
         if self._parse_schema_version(payload) != _SCHEMA_VERSION:
             return True
-        if "item_ids" not in payload:
+        if "context_sets" not in payload:
             return True
-        raw_item_ids = payload.get("item_ids")
-        if not isinstance(raw_item_ids, list):
+        parsed_records = self._parse_context_sets(payload.get("context_sets"))
+        if parsed_records is None:
             return True
-        parsed_items = self._parse_item_ids(raw_item_ids)
-        if parsed_items is None:
+        if self._records_need_rewrite(payload.get("context_sets"), parsed_records):
             return True
-        if parsed_items != raw_item_ids:
-            return True
-        if parsed_items != self._normalize_item_ids(parsed_items):
-            return True
-        if self._has_dropped_item_ids(raw_item_ids):
+        if self._normalize_records(parsed_records) != self._normalize_records(records):
             return True
         if self._has_unknown_fields(payload):
             return True
         if "updated_at" not in payload:
             return True
         if "recovered_from" in payload:
-            return True
-        if self._normalize_item_ids(parsed_items) != basket.item_ids:
             return True
         normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
         if normalized_updated_at is None:
@@ -677,51 +868,16 @@ class ContextBasketStore:
         if payload is None:
             return False
         if isinstance(payload, list):
-            return self._legacy_list_payload_has_dropped_item_ids(payload)
-        if "item_ids" not in payload:
+            return self._legacy_list_payload_has_dropped_records(payload)
+        if "context_sets" not in payload:
             return True
-        raw_item_ids = payload.get("item_ids")
-        if isinstance(raw_item_ids, list) and self._legacy_list_payload_has_dropped_item_ids(raw_item_ids):
+        raw_context_sets = payload.get("context_sets")
+        if isinstance(raw_context_sets, list) and self._legacy_list_payload_has_dropped_records(raw_context_sets):
             return True
         return not self._is_supported_payload(payload)
 
-    def _normalize_item_ids(self, item_ids: list[str]) -> list[str]:
-        return ContextBasket(item_ids=list(item_ids)).item_ids
-
     def _has_unknown_fields(self, payload: dict[str, object]) -> bool:
         return any(key not in _CANONICAL_DICT_KEYS for key in payload)
-
-    def _has_dropped_item_ids(self, item_ids: object) -> bool:
-        if not isinstance(item_ids, list):
-            return True
-        return any(not self._normalize_item_id(item_id) for item_id in item_ids)
-
-    def _legacy_list_payload_has_dropped_item_ids(self, payload: object) -> bool:
-        if not isinstance(payload, list):
-            return False
-        parsed_item_ids = self._parse_item_ids(payload)
-        if parsed_item_ids is None:
-            return False
-        return len(parsed_item_ids) < len(payload)
-
-    def _quarantine_unrecoverable_list_payload(self, path: Path, payload: object) -> bool:
-        if path not in {self._backup_path, self._seed_state_path()}:
-            return False
-        if not isinstance(payload, list):
-            return False
-        if self._has_recovery_payload_items(payload):
-            return False
-        self._quarantine_path(path)
-        return True
-
-    def _recovery_marker(self, *, primary_unavailable: bool, recovered_source: str | None) -> str | None:
-        if not primary_unavailable:
-            return None
-        if recovered_source == "backup_tmp":
-            return "backup"
-        if recovered_source == "seed_tmp":
-            return "seed"
-        return self._parse_recovered_from(recovered_source)
 
     def _prefer_recovery_payload(
         self,
@@ -741,47 +897,75 @@ class ContextBasketStore:
         ):
             if candidate is None:
                 continue
-            if self._has_recovery_payload_items(candidate):
+            if self._has_context_set_records(candidate):
                 return candidate, recovered_source
             # Only explicit empty payloads should serve as a fallback recovery
-            # source. Dicts missing the core item_ids key are malformed, not
+            # source. Dicts missing the core context_sets key are malformed, not
             # recoverable state.
             if self._has_explicit_empty_recovery_payload(candidate) and fallback_candidate == (None, None):
                 fallback_candidate = (candidate, recovered_source)
         return fallback_candidate
 
-    def _has_recovery_payload_items(self, payload: dict[str, object] | list[object]) -> bool:
+    def _has_context_set_records(self, payload: dict[str, object] | list[object]) -> bool:
         if isinstance(payload, list):
-            return bool(self._parse_item_ids(payload))
-        item_ids = self._parse_item_ids(payload.get("item_ids")) if "item_ids" in payload else None
-        return bool(item_ids)
+            return bool(self._parse_context_sets(payload))
+        if "context_sets" not in payload:
+            return False
+        return bool(self._parse_context_sets(payload.get("context_sets")))
+
+    def _legacy_list_payload_has_dropped_records(self, payload: object) -> bool:
+        if not isinstance(payload, list):
+            return False
+        parsed_records = self._parse_context_sets(payload)
+        if parsed_records is None:
+            return False
+        return len(parsed_records) < len(payload)
+
+    def _quarantine_unrecoverable_list_payload(self, path: Path, payload: object) -> bool:
+        if path not in {self._backup_path, self._seed_state_path()}:
+            return False
+        if not isinstance(payload, list):
+            return False
+        if self._has_context_set_records(payload):
+            return False
+        self._quarantine_path(path)
+        return True
 
     def _is_empty_recovery_payload(self, payload: dict[str, object] | list[object] | None) -> bool:
-        return payload is not None and not self._has_recovery_payload_items(payload)
+        return payload is not None and not self._has_context_set_records(payload)
 
     def _has_explicit_empty_recovery_payload(self, payload: dict[str, object] | list[object]) -> bool:
         if isinstance(payload, list):
             return not payload
-        if "item_ids" not in payload:
+        if "context_sets" not in payload:
             return False
-        raw_item_ids = payload.get("item_ids")
-        # Only a truly empty list counts as an explicit empty recovery source.
-        # Lists that only become empty after dropping malformed entries stay
-        # quarantined instead of being promoted as recoverable state.
-        return isinstance(raw_item_ids, list) and not raw_item_ids
+        raw_context_sets = payload.get("context_sets")
+        # Only a truly empty list counts as recoverable empty state. Lists
+        # that only normalize to empty after dropping malformed records remain
+        # quarantined instead of being treated as intentional recovery data.
+        return isinstance(raw_context_sets, list) and not raw_context_sets
 
-    def _primary_item_ids_need_recovery(self, payload: dict[str, object] | list[object] | None) -> bool:
+    def _primary_context_sets_need_recovery(self, payload: dict[str, object] | list[object] | None) -> bool:
         if isinstance(payload, dict):
-            if "item_ids" not in payload:
+            if "context_sets" not in payload:
                 return True
-            raw_item_ids = payload.get("item_ids")
-            parsed_item_ids = self._parse_item_ids(raw_item_ids)
-            if parsed_item_ids is None:
+            raw_context_sets = payload.get("context_sets")
+            parsed_records = self._parse_context_sets(raw_context_sets)
+            if parsed_records is None:
                 return True
-            return not parsed_item_ids and self._has_dropped_item_ids(raw_item_ids)
+            return self._records_need_rewrite(raw_context_sets, parsed_records)
         if isinstance(payload, list):
             return True
         return False
+
+    def _recovery_marker(self, *, primary_unavailable: bool, recovered_source: str | None) -> str | None:
+        if not primary_unavailable:
+            return None
+        if recovered_source == "backup_tmp":
+            return "backup"
+        if recovered_source == "seed_tmp":
+            return "seed"
+        return self._parse_recovered_from(recovered_source)
 
     def _unlink_if_exists(self, path: Path) -> None:
         try:
