@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit:
-  - `99c48e58433606d2d026631134c69fc7c0238933`
+  - `e8ca2e4374aa995f178a71e821bc15073ee4140b`
 
 ## Scope goal
 - Restore the feat-commands handoff packet so the current docs-only branch tip is truthful and reviewable.
