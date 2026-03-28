@@ -22,7 +22,6 @@
   - The only functional risk is accidental over-sorting of materialized actions; the added test coverage guards against unstable ordering.
 - Roadmap item(s) affected:
   - `ROADMAP.md` Milestone 5: A2UI Presentation Layer - define `A2UI` output contract for agent-produced presentation artifacts, including deterministic action ordering for CLI fallback rendering.
-  - `ROADMAP.md` Milestone 5: A2UI Presentation Layer - add agent-side card/section/action payload generation with deterministic schemas.
   - `ROADMAP.md` Milestone 5: A2UI Presentation Layer - provide CLI rendering fallback for the same structured payloads.
   - No other roadmap milestones are implicated by this fix.
 - Vision capability affected:
