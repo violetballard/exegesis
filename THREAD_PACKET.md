@@ -2,10 +2,13 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `5a0ba4e038ac187b524d6553cd336d76a4d50fee`
+- Reviewed commit(s):
+  - `e78f6b247c3c70590ef32cca0d8902ddcf2e32a9`
+  - `e53af6696629a9cccda27ac1b344825bae8dc858`
+  - `3dfd014632493cdd66b363c637846596d490e7af`
 
 ## Scope goal
-- Tighten the `feat-commands` handoff so the submitted scope is limited to `src/qual/commands/**` plus the explicitly approved shared tests.
+- Harden the command catalog and diff-preview contracts so lookup helpers, labeled/text output, JSON responses, and emitted fingerprints stay deterministic and verifiable for CLI-first operator use.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
@@ -14,23 +17,23 @@
   - `tests/unit/test_diff_preview.py`
 
 ## Scope completed
-- Added the command catalog surface and diff-preview contract helpers under `src/qual/commands/**`.
-- Hardened diff-preview output contracts so the emitted SHA-256 matches the exact payload users receive.
+- Restored the command catalog surface under `src/qual/commands/**` and added spec-aware lookup helpers.
+- Hardened diff-preview output contracts so the emitted SHA-256 is derived from the exact payload users receive after labels, suppression, truncation, and summary-only handling.
 - Added focused coverage for the command catalog and diff-preview contracts.
-- Regenerated the handoff packet and lane metadata so the review evidence only names the owned command paths plus the approved shared tests.
+- Regenerated the handoff packet and lane metadata so the review evidence now matches the actual code/test delta and excludes the out-of-lane scope-check script edit.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget. The submitted scope is 6 files total: 4 command files and 2 shared tests.
-- The change stays centered on the command-catalog and diff-preview contract work already present on the branch and keeps the review packet truthful.
+- Stayed within the default lane budget. The reviewed implementation spans 6 lane-owned or approved test files.
+- The handoff stays centered on the command-catalog and diff-preview contract work already present on the branch and keeps the review packet truthful.
 
 ## Approved exception note
 - Approved shared-file exception for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
 
 ## Tasks completed (numbered)
-1. Added the command catalog surface and supporting lookup helpers under `src/qual/commands/**`.
-2. Hardened diff-preview output contracts so the fingerprint covers the exact emitted payload.
+1. Restored the command catalog surface and added spec-aware lookup helpers under `src/qual/commands/**`.
+2. Hardened diff-preview output contracts so the fingerprint covers the exact emitted payload after labels, header suppression, truncation, and summary-only handling.
 3. Added focused coverage for the command catalog and diff-preview contract paths.
-4. Regenerated the handoff packet and lane metadata so the review evidence matches the owned command scope and approved shared tests.
+4. Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta and excludes the out-of-lane scope-check script edit.
 
 ## Files changed
 - `src/qual/commands/__init__.py`

@@ -1,11 +1,16 @@
 {
-  "scope_goal": "Tighten the feat-commands handoff so the submitted scope is limited to src/qual/commands/** plus the explicitly approved shared tests.",
-  "review_commit": "5a0ba4e038ac187b524d6553cd336d76a4d50fee",
+  "scope_goal": "Harden the command catalog and diff-preview contracts so lookup helpers, labeled/text output, JSON responses, and emitted fingerprints stay deterministic and verifiable for CLI-first operator use.",
+  "review_commit": "3dfd014632493cdd66b363c637846596d490e7af",
+  "review_commits": [
+    "e78f6b247c3c70590ef32cca0d8902ddcf2e32a9",
+    "e53af6696629a9cccda27ac1b344825bae8dc858",
+    "3dfd014632493cdd66b363c637846596d490e7af"
+  ],
   "tasks_completed": [
-    "Added the command catalog surface and supporting lookup helpers under src/qual/commands/**.",
-    "Hardened diff-preview output contracts so the fingerprint covers the exact emitted payload.",
+    "Restored the command catalog surface and added spec-aware lookup helpers under src/qual/commands/**.",
+    "Hardened diff-preview output contracts so the fingerprint covers the exact emitted payload after labels, header suppression, truncation, and summary-only handling.",
     "Added focused coverage for the command catalog and diff-preview contract paths.",
-    "Regenerated the handoff packet and lane metadata so the review evidence matches the owned command scope and approved shared tests."
+    "Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta and excludes the out-of-lane scope-check script edit."
   ],
   "risk": "LOW",
   "roadmap_items": [
@@ -18,7 +23,7 @@
   "routing_provider_impact": "None. This change only affects local packet metadata and command-contract test coverage; no routing/provider files change.",
   "proposed_readme_patch": "",
   "shared_file_exception": true,
-  "kickoff_budget_note": "Stayed within the default lane budget. The submitted scope is 6 files total: 4 command files and 2 shared tests.",
+  "kickoff_budget_note": "Stayed within the default lane budget. The reviewed implementation spans 6 lane-owned or approved test files.",
   "approved_exception_note": "Approved shared-file exception for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py.",
   "files_changed": [
     { "path": "src/qual/commands/__init__.py", "kind": "code" },
