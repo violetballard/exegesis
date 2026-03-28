@@ -14,6 +14,10 @@
 - The handoff is intentionally explicit about `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress), specifically its deterministic schema/payload-generation scope bullet, and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 - Canonical plan alignment: this lane maps only to `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress), specifically the deterministic schema/payload-generation scope bullet, and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 
+### Required handoff fields
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullet `Add agent-side card/section/action payload generation with deterministic schemas` and exit criteria `A2UI schema/versioning is documented and stable`; this deterministic action-ordering fix is the concrete implementation of that item.
+- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> agent emits structured presentation artifacts that are consumable by CLI first, then `Exegesis Console`, then future Studio UI, including the CLI fallback rendering path used by this fix.
+
 ### Priority outcomes
 1. Keep A2UI action ordering canonical in the source path and preserve deterministic CLI fallback rendering.
 2. Keep the reviewed file list limited to `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
