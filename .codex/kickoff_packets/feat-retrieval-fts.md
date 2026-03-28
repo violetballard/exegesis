@@ -33,7 +33,7 @@ The lane canonicalized the FTS-first retrieval MVP so generation flows receive d
 1. Canonicalized FTS excerpt lookup so excerpt rehydration returns deterministic payloads and records an audit trail.
 2. Normalized retrieval provenance and downstream payload builders so excerpt, source, citation, doc, and context bundles share stable hashes and fingerprints.
 3. Locked the retrieval policy to FTS-first and kept PageIndex/embeddings deferred as fallback-only plumbing.
-4. Regenerated the handoff metadata so the packet lists only the retrieval-owned feature surface.
+4. Exposed the canonical retrieval entrypoints through the engine/package facades so the FTS-first path remains the stable default.
 
 ### Files changed
 - `src/qual/engine/retrieval/__init__.py`

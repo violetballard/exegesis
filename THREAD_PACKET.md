@@ -2,71 +2,48 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Reviewed commit(s):
-  - `36893f06df85409c4595d64adb8af60455c086a6`
-  - `dc8f79e4abeb30de51854fdd84d35b97993955b8`
-  - `f0047257cf71b750a576de84c272c0f8c5875148`
-- Deferred-policy cleanup commit: `dc8f79e4abeb30de51854fdd84d35b97993955b8`
-- Metadata-only follow-up commit:
-  - `34dfec2f59175850da3d33e8e50b3641f1256b49`
-
-## Scope Goal
-
-Document the retrieval handoff boundary while keeping the lane-owned retrieval scope constrained to the reviewed implementation commit set and excluding out-of-lane tooling edits.
+  - `70af1c68bfb22d39bb2cd2341f94167ad97b42f7`
+  - `b906bc9917cb0a87a031a8f80851e17328697eb5`
 
 ## Scope completed
 
-The packet now names the reviewed implementation commit set separately from the metadata-only follow-up commit, so the handoff audit trail no longer implies that `34dfec2f59175850da3d33e8e50b3641f1256b49` is feature payload. PageIndex and embeddings are explicitly deferred fallback-only plumbing, so the FTS-first MVP remains the only required retrieval path. The correction also adds regression coverage for the canonical FTS excerpt lookup entrypoints. The correction itself stays within the handoff artifacts only.
+The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance. PageIndex and embeddings remain deferred as fallback-only plumbing, and this handoff stays limited to the retrieval-owned feature surface. Packet-planner/tooling edits are intentionally excluded from this packet and belong in a separate handoff if they need review.
 
 ## Files changed
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
-- `THREAD_PACKET.md`
-- `tests/unit/test_unified_retrieval.py`
-
-## Reviewed implementation files
-
 - `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/embeddings_strategy.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/pageindex_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
 - `src/qual/engine/retrieval/policy.py`
+- `src/qual/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
-
-## Scope-Check / Ownership Note
-
-- Shared/integrator-locked edits: `NO`
-- Non-owned source files promoted: `NO`
-- No out-of-lane tooling files are included in this correction commit.
 
 ## Tasks completed
 
-1. Added an explicit reviewed commit-set field so the implementation bundle is auditable.
-2. Separated the metadata-only follow-up commit from the feature payload.
-3. Rewrote `Files changed` so it matches the correction commit's handoff artifacts.
-4. Kept the reviewed implementation files listed separately for traceability.
-5. Documented PageIndex and embeddings as deferred fallback-only plumbing so the FTS-first MVP remains the only required retrieval path.
-6. Added regression coverage for the canonical FTS excerpt lookup entrypoints and their public aliases.
+1. Canonicalized FTS excerpt lookup so excerpt rehydration returns deterministic payloads and records an audit trail.
+2. Normalized retrieval provenance and downstream payload builders so excerpt, source, citation, doc, and context bundles share stable hashes and fingerprints.
+3. Locked the retrieval policy to FTS-first and kept PageIndex/embeddings deferred as fallback-only plumbing.
+4. Exposed the canonical retrieval entrypoints through the engine/package facades so the FTS-first path remains the stable default.
 
-## Commands run with results
+## Commands run and outcomes
 
-- `make scope-check` -> passed
-- `./quality-format.sh --check` -> passed
-- `./quality-lint.sh` -> passed
-- `./quality-test.sh` -> passed
-- `./typecheck-test.sh` -> passed
-- `make ci` -> passed
+- `make scope-check`: PASS
+- `./quality-format.sh --check`: PASS
+- `./quality-lint.sh`: PASS
+- `./quality-test.sh`: PASS
+- `./typecheck-test.sh`: PASS
+- `make ci`: PASS
 
-## Risks/blockers
+## Risks / blockers
 
-- No blockers.
-- The earlier retrieval implementation remains in `36893f06df85409c4595d64adb8af60455c086a6` and the metadata-only follow-up remains separate.
-
-## Compatibility note
-
-`section:` scopes are intentionally rejected in the owned retrieval service until section fallback support exists. PageIndex and embeddings remain deferred fallback-only plumbing for later retrieval expansion and are not required paths in the current FTS-first MVP; callers that depend on section targeting must switch to `vault`, `collection:`, or `doc:` scopes.
+- Risk: `LOW`
+- Blockers: none
 
 ## Roadmap item(s) affected
 
-- Milestone 3: Product Readiness -> generation provenance contract (retrieval evidence attached to outputs)
-- Milestone 4: Retrieval Layer -> FTS-first ingestion/index path for context/vault documents
+- Milestone 3: Product Readiness -> Define generation provenance contract (retrieval evidence attached to outputs)
 
 ## Vision capability affected
 
@@ -75,8 +52,12 @@ The packet now names the reviewed implementation commit set separately from the 
 
 ## Routing/provider impact note
 
-None.
+- None
 
-## Proposed `README.md` patch text
+## Compatibility note
 
-None.
+- PageIndex and embeddings remain fallback-only plumbing behind the FTS-first policy for this MVP; they are not required retrieval paths.
+
+## Scope-check / ownership note
+
+- Shared/integrator-locked edits: `NO`
