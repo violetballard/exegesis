@@ -2,12 +2,12 @@
 
 - Branch: `codex/feat-a2ui-contract`
 - Lane/owned paths: `src/qual/ui/a2ui.py`, `tests/unit/test_a2ui_contract.py`
-- Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`. This maps directly to `ROADMAP.md` Milestone 5: A2UI Presentation Layer, specifically the `A2UI` output-contract and CLI-fallback stabilization work, and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
+- Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`. This lane maps only to `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 - Scope note: This is a narrow A2UI ordering and contract-coverage update. It does not expand into fallback manifest redesign or broader UI behavior changes.
-- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer -> define `A2UI` output contract for agent-produced presentation artifacts; add deterministic schemas; provide CLI rendering fallback for the same structured payloads; keep the surface client-agnostic.
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> define `A2UI` output contract for agent-produced presentation artifacts; add deterministic schemas; provide CLI rendering fallback for the same structured payloads; keep the surface client-agnostic.
 - Roadmap exit criteria affected: A2UI schema/versioning is documented and stable; core workflows can emit A2UI payloads and CLI fallback views; output contracts are test-covered and backward-compatible by policy.
 - No other roadmap milestones are implicated by this fix.
-- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> agent emits structured presentation artifacts (cards, sections, actions, metadata) that can be rendered in CLI first.
+- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> the agent emits structured presentation artifacts (cards, sections, actions, metadata) that can be rendered in CLI first.
 - No other product-vision capabilities are implicated by this fix.
 - These are the reviewer-required plan-alignment mappings for this lane; they replace the prior placeholder form and should remain auditable in the handoff.
 
