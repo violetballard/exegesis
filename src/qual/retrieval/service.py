@@ -796,21 +796,31 @@ class RetrievalService:
     def fetch_fts_excerpt(self, excerpt_id: str) -> dict[str, object]:
         """Backward-compatible alias for the canonical FTS-only excerpt lookup path."""
 
-        return self._lookup_fts_excerpt(excerpt_id)
+        return self._lookup_fts_excerpt(excerpt_id, lookup_entrypoint="fetch_fts_excerpt")
 
     def retrieve_fts_excerpt(self, excerpt_id: str) -> dict[str, object]:
         """Return an excerpt payload using the canonical FTS-only lookup path."""
 
-        return self._lookup_fts_excerpt(excerpt_id)
+        return self._lookup_fts_excerpt(excerpt_id, lookup_entrypoint="retrieve_fts_excerpt")
 
-    def _lookup_fts_excerpt(self, excerpt_id: str) -> dict[str, object]:
+    def _lookup_fts_excerpt(self, excerpt_id: str, *, lookup_entrypoint: str) -> dict[str, object]:
         fts_excerpt = self._find_fts_excerpt(excerpt_id)
         if fts_excerpt is None:
             raise KeyError(f"unknown excerpt_id: {excerpt_id}")
-        self._record_excerpt_lookup_audit(fts_excerpt)
+        self._record_excerpt_lookup_audit(
+            fts_excerpt,
+            lookup_entrypoint=lookup_entrypoint,
+            lookup_resolution="fts",
+        )
         return self._normalize_excerpt_payload(fts_excerpt, source_strategy="fts")
 
-    def _record_excerpt_lookup_audit(self, excerpt: dict[str, object]) -> None:
+    def _record_excerpt_lookup_audit(
+        self,
+        excerpt: dict[str, object],
+        *,
+        lookup_entrypoint: str,
+        lookup_resolution: str,
+    ) -> None:
         """Record a compact audit trail for deterministic excerpt lookups."""
 
         span = excerpt.get("span")
@@ -823,6 +833,8 @@ class RetrievalService:
                 "doc_id": excerpt.get("doc_id"),
                 "doc_type": excerpt.get("doc_type"),
                 "source_strategy": excerpt.get("source_strategy"),
+                "lookup_entrypoint": lookup_entrypoint,
+                "lookup_resolution": lookup_resolution,
                 "retrieval_backend": excerpt.get("retrieval_backend"),
                 "retrieval_mode": excerpt.get("retrieval_mode"),
                 "retrieval_policy": copy.deepcopy(self._retrieval_policy.as_snapshot()),
@@ -963,13 +975,17 @@ class RetrievalService:
         """Return an excerpt payload, preferring FTS and falling back to PageIndex for compatibility."""
 
         try:
-            return self.retrieve_fts_excerpt(excerpt_id)
+            return self._lookup_fts_excerpt(excerpt_id, lookup_entrypoint="fetch_excerpt")
         except KeyError:
             pass
         excerpt = self._docindex.fetch_excerpt(excerpt_id)
         if isinstance(excerpt, dict):
             normalized = self._normalize_excerpt_payload(excerpt, source_strategy="pageindex")
-            self._record_excerpt_lookup_audit(normalized)
+            self._record_excerpt_lookup_audit(
+                normalized,
+                lookup_entrypoint="fetch_excerpt",
+                lookup_resolution="pageindex_fallback",
+            )
             return normalized
         return excerpt
 
