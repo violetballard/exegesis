@@ -39,12 +39,12 @@ The lane preserved `recovered_from` cleanup timestamps across basket, context-se
 
 ## Roadmap item(s) affected
 
-- Milestone 3: Real workflow loop
-- `feat-context-storage`: persistent basket/document/session state
+- Milestone 1: Bootstrap Flow Stabilization
+- Context basket and vault persistence hardening
 
 ## Vision capability affected
 
-- Capability 6 - Auditable state and workflow
+- Capability 1 - Local-first state and identity
 
 ## Routing/provider impact note
 
