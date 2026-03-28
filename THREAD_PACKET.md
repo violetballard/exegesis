@@ -5,16 +5,16 @@
 - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> define `A2UI` output contract for agent-produced presentation artifacts, add agent-side card/section/action payload generation with deterministic schemas, and provide CLI rendering fallback for the same structured payloads.
 - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> agent emits structured presentation artifacts (cards, sections, actions, metadata) that must be consumable by CLI first, then `Exegesis Console`, then future Studio UI.
 - Required handoff fields:
-  - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> `A2UI` output contract, deterministic schemas, and CLI rendering fallback for agent-produced presentation artifacts
-  - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> structured presentation artifacts consumable by CLI first and `Exegesis Console` next
+  - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> deterministic materialized action ordering, stable `A2UI` schemas, and CLI rendering fallback for agent-produced presentation artifacts
+  - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> CLI-first rendering of structured presentation artifacts with `Exegesis Console` reuse
 - Audit anchor: this fix is intentionally narrow and is the concrete reviewer-required mapping for the deterministic action-ordering change.
 - Plan alignment: this lane maps to `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`), with no other roadmap milestones or vision capabilities implicated.
 - Roadmap detail: preserve deterministic materialized action ordering while keeping the `A2UI` output contract stable and client-agnostic.
 - Vision detail: structured presentation artifacts remain CLI-first and consumable by `Exegesis Console` with stable action ordering.
 - Reviewer-required fix satisfied: the roadmap and vision mappings are now explicit in this packet, so the handoff no longer relies on inference.
 - Required handoff fields, stated explicitly for re-review:
-  - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> `A2UI` output contract, deterministic schemas, and CLI rendering fallback for agent-produced presentation artifacts.
-  - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> structured presentation artifacts consumable by CLI first and `Exegesis Console` next.
+  - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> deterministic materialized action ordering, stable `A2UI` schemas, and CLI rendering fallback for agent-produced presentation artifacts.
+  - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> CLI-first rendering of structured presentation artifacts with `Exegesis Console` reuse.
 - No other roadmap milestones or product-vision capabilities are implicated by this fix.
 - These are the reviewer-required plan-alignment mappings for this lane; they replace the prior placeholder form and should remain auditable in the handoff.
 - Scope completed: Updated the A2UI materialization path to sort filtered actions by canonical JSON before rendering, with contract tests covering the deterministic ordering behavior.
