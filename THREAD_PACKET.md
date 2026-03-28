@@ -44,7 +44,8 @@ The handoff does not include `.codex/` packet or lane-metadata artifacts.
 
 ## Roadmap item(s) affected
 
-- `ROADMAP.md`: `feat-retrieval-fts` under `MVP Focus Through 2026-05-04`
+- `ROADMAP.md`: `Milestone 4: Retrieval Layer (Planned)`
+- `THREAD_OWNERSHIP.md`: `codex/feat-retrieval-fts*`
 
 ## Vision capability affected
 

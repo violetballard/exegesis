@@ -4,7 +4,7 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "ROADMAP.md: feat-retrieval-fts under MVP Focus Through 2026-05-04"
+    "ROADMAP.md: Milestone 4: Retrieval Layer (Planned)"
   ],
   "routing_provider_impact": "None",
   "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows.",
