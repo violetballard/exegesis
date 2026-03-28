@@ -2,11 +2,11 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: Keep the `feat-commands` branch delta and handoff metadata aligned with the command-catalog and diff-preview contract work already present on the branch.
+- Scope goal: Keep the `feat-commands` handoff aligned with the command-catalog and diff-preview contract work already present on the branch, plus the two explicitly approved shared tests.
 
 ### Priority outcomes
-1. Keep the handoff metadata truthful about the actual submitted branch delta.
-2. Keep the shared-test and scope-check approvals explicit.
+1. Keep the handoff metadata truthful about the owned command paths and approved shared tests.
+2. Keep the shared-test approvals explicit.
 3. Keep the lane from widening beyond the approved `feat-commands` surface.
 
 ### Guardrails
