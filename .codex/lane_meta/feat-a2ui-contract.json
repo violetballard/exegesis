@@ -4,7 +4,7 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> deterministic materialized action ordering in the A2UI CLI fallback contract"
+    "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> deterministic agent-side card/section/action payload generation, stable schemas, and CLI fallback rendering for the same structured payloads"
   ],
   "routing_provider_impact": "None",
   "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, and keep the handoff aligned with the required handoff fields for ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) and PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI), specifically CLI-first rendering of structured artifacts.",
@@ -16,6 +16,6 @@
     "Kept the lane record scoped to one source file plus matching tests with no routing or provider impact."
   ],
   "vision_capabilities": [
-    "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> CLI-first rendering of structured presentation artifacts with stable actions, cards, sections, and metadata"
+    "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> agent emits structured presentation artifacts that render in CLI first and remain consumable by Exegesis Console"
   ]
 }

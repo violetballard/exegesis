@@ -2,16 +2,16 @@
 
 - Branch name: `codex/feat-a2ui-contract`
 - Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`.
-- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> deterministic materialized action ordering in the `A2UI` CLI fallback contract.
-- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> CLI-first rendering of structured presentation artifacts with stable actions, cards, sections, and metadata.
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> add deterministic agent-side card/section/action payload generation, stable schemas, and CLI fallback rendering for the same structured payloads.
+- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> agent emits structured presentation artifacts that render in CLI first and remain consumable by `Exegesis Console`.
 - Audit anchor: this fix is intentionally narrow and is the concrete reviewer-required mapping for the deterministic action-ordering change.
 - Plan alignment: this lane maps to `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`), with no other roadmap milestones or vision capabilities implicated.
 - Roadmap detail: preserve deterministic materialized action ordering while keeping the `A2UI` output contract stable and client-agnostic.
 - Vision detail: structured presentation artifacts remain CLI-first and consumable by `Exegesis Console` with stable action ordering.
 - Reviewer-required fix satisfied: the roadmap and vision mappings are now explicit in this packet, so the handoff no longer relies on inference.
 - Required handoff fields, stated explicitly for re-review:
-  - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress).
-  - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
+  - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> deterministic agent-side card/section/action payload generation and CLI fallback rendering.
+  - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> CLI-first structured presentation artifacts for `Exegesis Console` compatibility.
 - No other roadmap milestones or product-vision capabilities are implicated by this fix.
 - These are the reviewer-required plan-alignment mappings for this lane; they replace the prior placeholder form and should remain auditable in the handoff.
 - Scope completed: Updated the A2UI materialization path to sort filtered actions by canonical JSON before rendering, with contract tests covering the deterministic ordering behavior.
@@ -33,8 +33,8 @@
   - No known blockers. The change is constrained to A2UI action materialization and its contract assertions.
   - The only functional risk is accidental over-sorting of materialized actions; the added test coverage guards against unstable ordering.
 - Required handoff fields:
-  - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> deterministic materialized action ordering in the `A2UI` contract and CLI fallback rendering.
-  - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> CLI-first structured presentation artifacts with stable actions, cards, sections, and metadata.
+  - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> deterministic agent-side card/section/action payload generation and CLI fallback rendering.
+  - Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> structured presentation artifacts rendered in CLI first and reused by `Exegesis Console`.
   - Canonical plan alignment: this lane maps only to Milestone 5 and Capability 5; no other roadmap milestones or product-vision capabilities are implicated.
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Proposed `README.md` patch text: None.
