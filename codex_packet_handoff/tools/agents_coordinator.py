@@ -148,11 +148,11 @@ def release_lease() -> None:
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(
         description=(
-            "Event-driven multi-agent coordinator for planner/reviewer/fixer/integrator handoff. "
-            "No tick scheduler; reacts to lane and state changes."
+            "Multi-agent coordinator for planner/reviewer/fixer/integrator handoff. "
+            "Daemon mode keeps cycling; once mode drains until idle."
         )
     )
-    ap.add_argument("--daemon", action="store_true", help="Run continuously and react to events")
+    ap.add_argument("--daemon", action="store_true", help="Run continuously and keep cycling while alive")
     ap.add_argument("--once", action="store_true", help="Run event-driven drain cycle once and exit")
     ap.add_argument("--poll-seconds", type=float, default=2.0, help="Polling interval for event detection (default: 2s)")
     ap.add_argument(
@@ -535,6 +535,13 @@ def _has_lane_backlog() -> bool:
     return False
 
 
+def _should_run_cycle(args: argparse.Namespace, snapshot: str, prev_snapshot: str, cycles: int, backlog_active: bool) -> bool:
+    """Daemon mode keeps the loop alive even when there is no queue delta."""
+    if args.daemon:
+        return True
+    return (snapshot != prev_snapshot) or (cycles == 0) or backlog_active
+
+
 def _compute_snapshot(branch_map: Dict[str, str]) -> str:
     planner_state = load_json(REPO_ROOT / ".codex/packet_planner/state.json", {})
     router_state = load_json(REPO_ROOT / ".codex/packet_router/state.json", {})
@@ -666,7 +673,7 @@ def main() -> int:
             touch_lease()
             snapshot = _compute_snapshot(branch_map)
             backlog_active = _has_lane_backlog()
-            should_run = (snapshot != prev_snapshot) or (cycles == 0) or backlog_active
+            should_run = _should_run_cycle(args, snapshot, prev_snapshot, cycles, backlog_active)
 
             if should_run:
                 print(f"=== EVENT CYCLE {cycles + 1} START {utc_now()} ===")
@@ -697,8 +704,14 @@ def main() -> int:
                     if isinstance(lane, str):
                         launched_lanes_total.append(lane)
 
-                if bool(event.get("activity")):
+                if bool(event.get("activity")) or args.daemon:
                     idle_start = time.time()
+
+                coord_state["daemon_mode"] = args.daemon
+                coord_state["last_cycle_at"] = event.get("ended_at", utc_now())
+                coord_state["last_cycle_activity"] = bool(event.get("activity"))
+                coord_state["live_cycle_count"] = cycles
+                save_json(STATE_FILE, coord_state)
 
                 print(f"=== EVENT CYCLE {cycles} END ===")
             else:

@@ -19,6 +19,7 @@ from exegesis_engine.metrics import MetricsExporter as CanonicalMetricsExporter
 from exegesis_engine.retrieval.search_service import RetrievalService as CanonicalRetrievalService
 from exegesis_engine.storage import VaultService as CanonicalVaultService
 from exegesis_shared.contracts.cards import A2UICapabilities as CanonicalA2UICapabilities
+from codex_packet_handoff.tools.agents_coordinator import _should_run_cycle
 from src.qual.audit import AuditLog as CompatAuditLog
 from src.qual.config import AppConfig as CompatAppConfig
 from src.qual.app import run_bootstrap as compat_run_bootstrap
@@ -175,6 +176,19 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         )
         self.assertNotEqual(proc.returncode, 0)
         self.assertIn("engine/src/exegesis_engine/workflow/revise_service.py", proc.stdout)
+
+
+class CoordinatorDaemonBehaviorTests(unittest.TestCase):
+    def test_daemon_mode_keeps_running_even_without_queue_changes(self) -> None:
+        args = type("Args", (), {"daemon": True})()
+        self.assertTrue(_should_run_cycle(args, "snapshot-a", "snapshot-a", 12, False))
+
+    def test_once_mode_still_uses_snapshot_and_backlog_signals(self) -> None:
+        args = type("Args", (), {"daemon": False})()
+        self.assertTrue(_should_run_cycle(args, "snapshot-b", "snapshot-a", 4, False))
+        self.assertTrue(_should_run_cycle(args, "snapshot-a", "snapshot-a", 0, False))
+        self.assertTrue(_should_run_cycle(args, "snapshot-a", "snapshot-a", 4, True))
+        self.assertFalse(_should_run_cycle(args, "snapshot-a", "snapshot-a", 4, False))
 
 
 if __name__ == "__main__":

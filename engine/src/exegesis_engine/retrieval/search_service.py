@@ -12,6 +12,7 @@ from exegesis_engine.audit.event_log import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions, DocIndexService
 from src.qual.engine.retrieval.fts_strategy import FTSStrategy
 from src.qual.engine.retrieval.interface import StrategyRun
+from src.qual.engine.retrieval.pageindex_strategy import PageIndexStrategy
 from exegesis_engine.metrics.crypto import decrypt_bytes, encrypt_bytes
 
 _RETRIEVAL_DIR = ".retrieval"
@@ -88,6 +89,7 @@ class RetrievalService:
         self._key = self._load_or_create_key()
         self._docindex = DocIndexService(vault_root, audit_log=audit_log, now_fn=self._now_fn)
         self._fts = FTSStrategy(self._run_fts_hits, now_fn=self._now_fn)
+        self._pageindex = PageIndexStrategy(self._docindex, self._read_doc_text, now_fn=self._now_fn)
 
     def add_or_update_document(
         self,
@@ -127,14 +129,22 @@ class RetrievalService:
         fts_shortlist = self._candidate_docs_from_fts(query) if not self._is_doc_scoped(query.scope) else ()
         candidate_doc_ids = self._candidate_docs_from_scope(query.scope, fallback=fts_shortlist)
 
+        runs: list[StrategyRun] = []
         fts_run = self._fts.retrieve(query, candidate_doc_ids=candidate_doc_ids)
-        merged_hits = self._merge_hits([fts_run], max_results=query.constraints.max_results)
+        runs.append(fts_run)
+
+        if self._should_try_pageindex(query):
+            pageindex_run = self._pageindex.retrieve(query, candidate_doc_ids=candidate_doc_ids)
+            if pageindex_run.hits:
+                runs.append(pageindex_run)
+
+        merged_hits = self._merge_hits(runs, max_results=query.constraints.max_results)
         doc_hits = self._build_doc_hits(merged_hits)
         elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
         diagnostics = {
-            "strategies_used": [fts_run.strategy_id],
-            "elapsed_ms_by_strategy": {fts_run.strategy_id: fts_run.elapsed_ms},
-            "caches_used": {fts_run.strategy_id: fts_run.cache_used},
+            "strategies_used": [run.strategy_id for run in runs],
+            "elapsed_ms_by_strategy": {run.strategy_id: run.elapsed_ms for run in runs},
+            "caches_used": {run.strategy_id: run.cache_used for run in runs},
             "elapsed_ms_total": elapsed_ms_total,
             "doc_hits_count": len(doc_hits),
             "excerpt_hits_count": len(merged_hits),
@@ -337,6 +347,13 @@ class RetrievalService:
         if scope.startswith("collection:"):
             return fallback
         return fallback
+
+    def _should_try_pageindex(self, query: RetrievalQuery) -> bool:
+        if query.scope.startswith("doc:"):
+            return True
+        if query.intent == "outline_support":
+            return True
+        return bool(query.constraints.section_hint)
 
     @staticmethod
     def _is_doc_scoped(scope: str) -> bool:
