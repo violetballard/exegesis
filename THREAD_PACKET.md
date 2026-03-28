@@ -21,6 +21,7 @@
   - This fix supports that capability by making the materialized action payload deterministic for the CLI fallback path.
 - The roadmap and vision mapping are explicit enough for reviewer audit without relying on inference.
 - Required handoff fields are explicit here: Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress); Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
+- No other roadmap milestones or product-vision capabilities are implicated by this fix.
 - This packet is the reviewer-facing proof that the handoff mapping fix is explicit and auditable without changing runtime behavior.
 - Routing/provider impact note: None.
 
