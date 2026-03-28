@@ -9,7 +9,7 @@
 
 ## Scope completed
 
-The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface.
+The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface. Packet/planner tooling artifacts are excluded from the feature file list.
 
 ### Roadmap / vision mapping
 - ROADMAP.md: Milestone 4: Retrieval Layer (Planned)
@@ -53,6 +53,7 @@ The lane canonicalized the FTS-first retrieval MVP so generation flows receive d
 - Keep the handoff tied to the retrieval implementation and its lane-owned file set.
 - Preserve commit accuracy between the packet, lane metadata, and handoff artifacts.
 - Do not imply cross-lane `section:` targeting.
+- Exclude packet/planner tooling artifacts from the feature file list; only lane-owned retrieval implementation files belong in the handoff scope.
 - Ownership note: this handoff stays within `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`.
 
 ### Scope-check / ownership note

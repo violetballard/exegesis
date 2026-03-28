@@ -8,7 +8,7 @@
 
 ## Scope completed
 
-The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface.
+The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface. Packet/planner tooling artifacts are excluded from the feature file list.
 
 ## Files changed
 
@@ -65,3 +65,4 @@ The lane canonicalized the FTS-first retrieval MVP so generation flows receive d
 ## Scope-check / ownership note
 
 - Shared/integrator-locked edits: `NO`
+- Feature handoff scope is lane-contained; packet/planner tooling artifacts are not part of the feature file list.

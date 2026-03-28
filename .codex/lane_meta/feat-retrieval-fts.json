@@ -16,7 +16,7 @@
     "src/qual/retrieval/__init__.py",
     "src/qual/retrieval/service.py"
   ],
-  "scope_completed": "The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface.",
+  "scope_completed": "The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface. Packet/planner tooling artifacts are excluded from the feature file list.",
   "scope_goal": "Canonicalize the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, with PageIndex and embeddings deferred as fallback-only plumbing.",
   "shared_file_exception": false,
   "tasks_completed": [
