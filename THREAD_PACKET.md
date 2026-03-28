@@ -1,14 +1,14 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet update commit: `5d7af2b697f9777f7fd0b182d5c26acd6fc88e3f` `metadata-only`
+- Packet update commit: `245acbacf4c1f59497ddedf285985c746c1cd098` `handoff refresh`
 - Reviewed commit(s):
   - `c4944661a0a682821c486810918c2c1fabac1a41`
   - `c92025af6e11c396f84356967cea704cadb20f5b`
 
 ## Scope completed
 
-This handoff covers the retrieval implementation only. The reviewed delta is the FTS-first retrieval MVP in `c4944661a0a682821c486810918c2c1fabac1a41` and `c92025af6e11c396f84356967cea704cadb20f5b`, which adds deterministic excerpt payload rehydration, source-bundle context regression coverage, and excerpt lookup audit context in the retrieval service. PageIndex and embeddings remain deferred as fallback-only plumbing, and the work aligns to `Milestone 4: Retrieval Layer` in `ROADMAP.md`.
+This handoff covers the retrieval implementation only. The reviewed delta is the FTS-first retrieval MVP in `c4944661a0a682821c486810918c2c1fabac1a41` and `c92025af6e11c396f84356967cea704cadb20f5b`, which adds deterministic excerpt payload rehydration, source-bundle context regression coverage, and excerpt lookup audit context in the retrieval service. This packet is a resubmission against the actual code-bearing commits, not the packet-only clarification commit. PageIndex and embeddings remain deferred as fallback-only plumbing, and the work aligns to `Milestone 4: Retrieval Layer` in `ROADMAP.md`.
 
 ## Files changed
 
