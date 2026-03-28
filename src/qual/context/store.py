@@ -121,8 +121,27 @@ class ContextBasketStore:
                     payload = primary_payload
                     recovered_source = None
         elif primary_payload is not None:
-            payload = primary_payload
-            recovered_source = None
+            if (
+                isinstance(primary_payload, dict)
+                and self._has_explicit_empty_recovery_payload(primary_payload)
+                and primary_needs_quarantine
+            ):
+                recovery_payload, recovery_source = self._prefer_recovery_payload(
+                    tmp_payload,
+                    backup_tmp_payload,
+                    backup_payload,
+                    seed_tmp_payload,
+                    seed_payload,
+                )
+                if recovery_payload is not None and self._has_recovery_payload_items(recovery_payload):
+                    payload = recovery_payload
+                    recovered_source = recovery_source
+                else:
+                    payload = primary_payload
+                    recovered_source = None
+            else:
+                payload = primary_payload
+                recovered_source = None
         elif primary_payload is None:
             payload, recovered_source = self._prefer_recovery_payload(
                 tmp_payload,
@@ -212,6 +231,7 @@ class ContextBasketStore:
                 or primary_payload is None
                 or primary_missing_item_ids
                 or primary_item_ids_need_recovery
+                or recovered_source is not None
             ),
             recovered_source=recovered_source,
         )
@@ -229,6 +249,12 @@ class ContextBasketStore:
                     recovered_source is None
                     and isinstance(primary_payload, dict)
                     and (primary_item_ids_need_recovery or self._has_unknown_fields(primary_payload))
+                )
+                or (
+                    isinstance(primary_payload, dict)
+                    and recovered_source is not None
+                    and self._has_explicit_empty_recovery_payload(primary_payload)
+                    and self._has_recovery_payload_items(payload)
                 )
                 or (explicit_empty_recovery and recovered_source is not None and isinstance(primary_payload, dict))
             )

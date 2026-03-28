@@ -215,7 +215,21 @@ class ContextSetStore:
                 parsed_records = self._parse_context_sets(raw_context_sets)
                 has_explicit_empty_context_sets = isinstance(raw_context_sets, list) and not raw_context_sets
                 has_salvageable_context_sets = parsed_records is not None and bool(parsed_records)
-                if has_explicit_empty_context_sets or has_salvageable_context_sets:
+                if has_explicit_empty_context_sets:
+                    recovery_payload, recovery_source = self._prefer_recovery_payload(
+                        tmp_payload,
+                        backup_tmp_payload,
+                        backup_payload,
+                        seed_tmp_payload,
+                        seed_payload,
+                    )
+                    if recovery_payload is not None and self._has_context_set_records(recovery_payload):
+                        payload = recovery_payload
+                        recovered_source = recovery_source
+                    else:
+                        payload = primary_payload
+                        recovered_source = None
+                elif has_salvageable_context_sets:
                     payload = primary_payload
                     recovered_source = None
                 else:
@@ -246,8 +260,27 @@ class ContextSetStore:
                     payload = primary_payload
                     recovered_source = None
         elif primary_payload is not None:
-            payload = primary_payload
-            recovered_source = None
+            if (
+                isinstance(primary_payload, dict)
+                and self._has_explicit_empty_recovery_payload(primary_payload)
+                and primary_needs_quarantine
+            ):
+                recovery_payload, recovery_source = self._prefer_recovery_payload(
+                    tmp_payload,
+                    backup_tmp_payload,
+                    backup_payload,
+                    seed_tmp_payload,
+                    seed_payload,
+                )
+                if recovery_payload is not None and self._has_context_set_records(recovery_payload):
+                    payload = recovery_payload
+                    recovered_source = recovery_source
+                else:
+                    payload = primary_payload
+                    recovered_source = None
+            else:
+                payload = primary_payload
+                recovered_source = None
         elif primary_payload is None:
             payload, recovered_source = self._prefer_recovery_payload(
                 tmp_payload,
