@@ -8,7 +8,7 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 1: Bootstrap Flow Stabilization"
+    "MVP Focus Through 2026-05-04: feat-context-storage"
   ],
   "vision_capabilities": [
     "1. Local-first state and identity"
