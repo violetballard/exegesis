@@ -8,7 +8,7 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 1: Bootstrap Flow Stabilization"
+    "Milestone 1: Bootstrap Flow Stabilization (In Progress) - Context basket and vault persistence hardening"
   ],
   "vision_capabilities": [
     "Capability 1: Local-first state and identity"

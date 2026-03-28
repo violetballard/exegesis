@@ -42,7 +42,8 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1: Bootstrap Flow Stabilization
+- Milestone 1: Bootstrap Flow Stabilization (In Progress)
+- Context basket and vault persistence hardening
 
 ### Vision capability affected
 - Capability 1: Local-first state and identity
