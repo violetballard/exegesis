@@ -44,12 +44,12 @@ class ContextBasketStore:
     def load(self) -> ContextBasket:
         primary_missing = not self._path.exists()
         backup_missing = not self._backup_path.exists()
-        primary_payload, _ = self._load_payload(self._path)
+        primary_payload, primary_quarantined = self._load_payload(self._path)
         tmp_payload, _ = self._load_payload(self._tmp_path())
         backup_tmp_payload, _ = self._load_payload(self._backup_tmp_path())
-        backup_payload, _ = self._load_payload(self._backup_path)
+        backup_payload, backup_quarantined = self._load_payload(self._backup_path)
         seed_tmp_payload, _ = self._load_payload(self._seed_tmp_path())
-        seed_payload, _ = self._load_payload(self._seed_state_path())
+        seed_payload, seed_quarantined = self._load_payload(self._seed_state_path())
         self._quarantine_missing_item_ids_payload(self._tmp_path(), tmp_payload)
         self._quarantine_missing_item_ids_payload(self._backup_tmp_path(), backup_tmp_payload)
         preserve_backup_corrupt = self._quarantine_missing_item_ids_payload(self._backup_path, backup_payload)
@@ -74,6 +74,7 @@ class ContextBasketStore:
 
         payload: dict[str, object] | list[object] | None
         recovered_source: str | None
+        materialized_empty_state = False
         if primary_needs_quarantine:
             self._quarantine_invalid_file()
         if primary_missing_item_ids or primary_item_ids_need_recovery:
@@ -151,12 +152,19 @@ class ContextBasketStore:
                 seed_payload,
             )
             if payload is None:
-                self._clear_quarantine_file(
-                    preserve_backup_corrupt=preserve_backup_corrupt,
-                    preserve_seed_corrupt=preserve_seed_corrupt,
-                )
-                self._clear_temporary_files()
-                return ContextBasket()
+                if primary_quarantined or backup_quarantined or seed_quarantined:
+                    # Keep a canonical empty basket on disk when quarantine
+                    # found only malformed state and nothing recoverable.
+                    payload = []
+                    recovered_source = None
+                    materialized_empty_state = True
+                else:
+                    self._clear_quarantine_file(
+                        preserve_backup_corrupt=preserve_backup_corrupt,
+                        preserve_seed_corrupt=preserve_seed_corrupt,
+                    )
+                    self._clear_temporary_files()
+                    return ContextBasket()
         else:
             self._clear_quarantine_file(
                 preserve_backup_corrupt=preserve_backup_corrupt,
@@ -259,8 +267,15 @@ class ContextBasketStore:
                 or (explicit_empty_recovery and recovered_source is not None and isinstance(primary_payload, dict))
             )
         )
-        preserve_backup_corrupt = bool(preserve_backup_corrupt or (recovered_source == "backup" and recovered_persisted_missing_item_ids))
-        preserve_seed_corrupt = bool(preserve_seed_corrupt or (recovered_source == "seed" and recovered_persisted_missing_item_ids))
+        preserve_primary_corrupt = preserve_primary_corrupt or (materialized_empty_state and primary_quarantined)
+        preserve_backup_corrupt = bool(
+            preserve_backup_corrupt
+            or backup_quarantined
+            or (recovered_source == "backup" and recovered_persisted_missing_item_ids)
+        )
+        preserve_seed_corrupt = bool(
+            preserve_seed_corrupt or seed_quarantined or (recovered_source == "seed" and recovered_persisted_missing_item_ids)
+        )
         if isinstance(primary_payload, list) and primary_payload and not self._has_recovery_payload_items(primary_payload):
             # Keep the original malformed legacy list available for audit when
             # it cannot contribute any recoverable item ids.
@@ -533,7 +548,7 @@ class ContextBasketStore:
                 self._quarantine_invalid_backup()
             elif path == self._seed_state_path():
                 self._quarantine_invalid_seed()
-            return None, path.suffix == ".tmp"
+            return None, True
         if not self._is_loadable_payload(payload):
             if path == self._path:
                 self._quarantine_invalid_file()
@@ -543,7 +558,7 @@ class ContextBasketStore:
                 self._quarantine_invalid_backup()
             elif path == self._seed_state_path():
                 self._quarantine_invalid_seed()
-            return None, path.suffix == ".tmp"
+            return None, True
         return payload, False
 
     def _write_backup(self) -> bool:

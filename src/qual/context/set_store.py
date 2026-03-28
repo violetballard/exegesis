@@ -155,12 +155,12 @@ class ContextSetStore:
     def load(self) -> list[ContextSetRecord]:
         primary_missing = not self._path.exists()
         backup_missing = not self._backup_path.exists()
-        primary_payload, _ = self._load_payload(self._path)
+        primary_payload, primary_quarantined = self._load_payload(self._path)
         tmp_payload, _ = self._load_payload(self._tmp_path())
         backup_tmp_payload, _ = self._load_payload(self._backup_tmp_path())
-        backup_payload, _ = self._load_payload(self._backup_path)
+        backup_payload, backup_quarantined = self._load_payload(self._backup_path)
         seed_tmp_payload, _ = self._load_payload(self._seed_tmp_path())
-        seed_payload, _ = self._load_payload(self._seed_state_path())
+        seed_payload, seed_quarantined = self._load_payload(self._seed_state_path())
         self._quarantine_missing_context_sets_payload(self._tmp_path(), tmp_payload)
         self._quarantine_missing_context_sets_payload(self._backup_tmp_path(), backup_tmp_payload)
         preserve_backup_corrupt = self._quarantine_missing_context_sets_payload(self._backup_path, backup_payload)
@@ -193,6 +193,7 @@ class ContextSetStore:
 
         payload: dict[str, object] | list[object] | None
         recovered_source: str | None
+        materialized_empty_state = False
         if primary_needs_quarantine:
             if isinstance(primary_payload, list):
                 primary_records = self._parse_context_sets(primary_payload)
@@ -241,8 +242,15 @@ class ContextSetStore:
                         seed_payload,
                     )
                     if payload is None:
-                        payload = primary_payload
-                        recovered_source = None
+                        if primary_quarantined or backup_quarantined or seed_quarantined:
+                            # Keep a canonical empty context-set file on disk
+                            # when quarantine found only malformed state.
+                            payload = []
+                            recovered_source = None
+                            materialized_empty_state = True
+                        else:
+                            payload = primary_payload
+                            recovered_source = None
         elif isinstance(primary_payload, list):
             primary_records = self._parse_context_sets(primary_payload)
             if primary_records:
@@ -290,12 +298,19 @@ class ContextSetStore:
                 seed_payload,
             )
             if payload is None:
-                self._clear_quarantine_file(
-                    preserve_backup_corrupt=preserve_backup_corrupt,
-                    preserve_seed_corrupt=preserve_seed_corrupt,
-                )
-                self._clear_temporary_files()
-                return []
+                if primary_quarantined or backup_quarantined or seed_quarantined:
+                    # Keep a canonical empty context-set file on disk when
+                    # quarantine found only malformed state.
+                    payload = []
+                    recovered_source = None
+                    materialized_empty_state = True
+                else:
+                    self._clear_quarantine_file(
+                        preserve_backup_corrupt=preserve_backup_corrupt,
+                        preserve_seed_corrupt=preserve_seed_corrupt,
+                    )
+                    self._clear_temporary_files()
+                    return []
         else:
             self._clear_quarantine_file(
                 preserve_backup_corrupt=preserve_backup_corrupt,
@@ -385,11 +400,16 @@ class ContextSetStore:
             and primary_payload is not None
             and isinstance(primary_payload, dict)
         )
+        preserve_primary_corrupt = preserve_primary_corrupt or (materialized_empty_state and primary_quarantined)
         preserve_backup_corrupt = bool(
-            preserve_backup_corrupt or (recovered_source == "backup" and recovered_persisted_missing_context_sets)
+            preserve_backup_corrupt
+            or backup_quarantined
+            or (recovered_source == "backup" and recovered_persisted_missing_context_sets)
         )
         preserve_seed_corrupt = bool(
-            preserve_seed_corrupt or (recovered_source == "seed" and recovered_persisted_missing_context_sets)
+            preserve_seed_corrupt
+            or seed_quarantined
+            or (recovered_source == "seed" and recovered_persisted_missing_context_sets)
         )
         if isinstance(primary_payload, list) and (
             not self._has_context_set_records(primary_payload)
@@ -699,7 +719,7 @@ class ContextSetStore:
                 self._quarantine_invalid_backup()
             elif path == self._seed_state_path():
                 self._quarantine_invalid_seed()
-            return None, path.suffix == ".tmp"
+            return None, True
         if not self._is_loadable_payload(payload):
             if path == self._path:
                 self._quarantine_invalid_file()
@@ -709,7 +729,7 @@ class ContextSetStore:
                 self._quarantine_invalid_backup()
             elif path == self._seed_state_path():
                 self._quarantine_invalid_seed()
-            return None, path.suffix == ".tmp"
+            return None, True
         return payload, False
 
     def _write_backup(self) -> bool:
