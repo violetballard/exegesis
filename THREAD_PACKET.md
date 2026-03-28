@@ -58,7 +58,7 @@
 - None
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO` - only the approved shared-test exception at `tests/unit/test_context_storage_recovery.py` was changed; no integrator-locked files changed in the feature implementation.
+- Shared/integrator-locked edits: `NO` in the reviewed implementation diff; the only non-owned file changed for the feature work is the approved shared-test exception at `tests/unit/test_context_storage_recovery.py`.
 - Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, and it is covered by the explicit shared-test exception.
 - Approval basis: `scripts/scope-check.sh` explicitly allows `tests/unit/test_context_storage_recovery.py` for `codex/feat-context-storage*` when `SCOPE_ALLOW_SHARED=1` is set.
 - Branch-head bookkeeping note: `4e0bba6210fd7d547d11e3ced5ad0c9ec056aab1` records packet/metadata alignment only; it does not change the owned runtime scope.
