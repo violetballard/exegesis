@@ -7,7 +7,7 @@
 
 ## Scope completed
 
-This handoff documents only the reviewed FTS-first retrieval MVP commits: `c4944661a0a682821c486810918c2c1fabac1a41` added the source-bundle context regression and payload fallback acceptance, and `c92025af6e11c396f84356967cea704cadb20f5b` added deterministic excerpt lookup audit context in the retrieval service. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface. This packet file is handoff metadata only; it does not itself implement retrieval behavior.
+This handoff documents only the reviewed FTS-first retrieval MVP commits: `c4944661a0a682821c486810918c2c1fabac1a41` added the source-bundle context regression and payload fallback acceptance, and `c92025af6e11c396f84356967cea704cadb20f5b` added deterministic excerpt lookup audit context in the retrieval service. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface aligned to the active Milestone 3 workflow loop. This packet file is handoff metadata only; it does not itself implement retrieval behavior.
 
 Packet-only cleanup commits on this branch are not part of the feature delta and are intentionally excluded from the scope summary below.
 
@@ -45,13 +45,14 @@ The handoff does not include `.codex/` packet or lane-metadata artifacts.
 
 ## Roadmap item(s) affected
 
-- `ROADMAP.md`: `Milestone 4: Retrieval Layer (Planned)`
+- `ROADMAP.md`: `Milestone 3: Real workflow loop`
+- `docs/TASKS.md`: `feat-retrieval-fts`
 - `THREAD_OWNERSHIP.md`: `codex/feat-retrieval-fts*`
 
 ## Vision capability affected
 
 - 2. Retrieval-first context handling
-- 3. Auditable generation
+- 6. Auditable state and workflow
 
 ## Routing/provider impact note
 

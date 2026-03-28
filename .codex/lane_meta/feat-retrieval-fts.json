@@ -4,7 +4,8 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "ROADMAP.md: Milestone 4: Retrieval Layer (Planned)"
+    "ROADMAP.md: Milestone 3: Real workflow loop",
+    "docs/TASKS.md: feat-retrieval-fts"
   ],
   "routing_provider_impact": "None",
   "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows.",
@@ -16,6 +17,6 @@
   ],
   "vision_capabilities": [
     "2. Retrieval-first context handling",
-    "3. Auditable generation"
+    "6. Auditable state and workflow"
   ]
 }
