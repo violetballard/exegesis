@@ -9,7 +9,7 @@
     "Milestone 5: A2UI Presentation Layer - keep schema/versioning documented and stable."
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, and keep the contract assertions aligned with that ordering.",
+  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, and keep the contract assertions aligned with ROADMAP.md Milestone 5: A2UI Presentation Layer - provide CLI rendering fallback for the same structured payloads and PRODUCT_VISION.md Capability 5 (A2UI).",
   "shared_file_exception": false,
   "tasks_completed": [
     "Updated the A2UI materialization path in src/qual/ui/a2ui.py to sort filtered actions by canonical JSON before rendering.",
