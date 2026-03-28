@@ -683,7 +683,7 @@ class RetrievalService:
         self._now_fn = now_fn or (lambda: datetime.now(UTC))
         self._key = self._load_or_create_key()
         self._docindex = DocIndexService(vault_root, audit_log=audit_log, now_fn=self._now_fn)
-        self._fts = FTSStrategy(self._run_fts_hits, now_fn=self._now_fn)
+        self._fts = FTSStrategy(self._run_fts_hits)
         self._retrieval_policy = FTS_FIRST_POLICY
 
     def add_or_update_document(
