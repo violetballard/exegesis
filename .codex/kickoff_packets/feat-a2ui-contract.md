@@ -3,6 +3,16 @@
 - Branch: `codex/feat-a2ui-contract`
 - Lane/owned paths: `src/qual/ui/a2ui.py`, `tests/unit/test_a2ui_contract.py`
 - Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`. This lane maps to `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress), specifically `Add agent-side card/section/action payload generation with deterministic schemas` and `A2UI schema/versioning is documented and stable`, and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`), specifically CLI-first rendering of structured artifacts with `Exegesis Console` reuse.
+
+## Plan Alignment
+
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress)
+  - Scope bullet: `Add agent-side card/section/action payload generation with deterministic schemas`
+  - Exit criterion: `A2UI schema/versioning is documented and stable`
+- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`)
+  - Agent emits structured presentation artifacts that are consumable by CLI first, then `Exegesis Console`, then future Studio UI.
+  - CLI fallback rendering uses the same structured artifacts.
+
 - Audit anchor: this fix is intentionally narrow and is the concrete reviewer-required mapping for the deterministic action-ordering change.
 - Scope note: This is a narrow A2UI ordering and contract-coverage update. It does not expand into fallback manifest redesign or broader UI behavior changes.
 - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress)
