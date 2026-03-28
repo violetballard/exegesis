@@ -147,6 +147,8 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
     """Return the deterministic retrieval source bundle from a downstream payload snapshot."""
 
     source_bundle = payload.get("retrieval_source_bundle")
+    if not isinstance(source_bundle, dict):
+        source_bundle = payload.get("source_bundle")
     if isinstance(source_bundle, dict):
         return copy.deepcopy(source_bundle)
     retrieval_doc_bundle = payload.get("retrieval_doc_bundle")

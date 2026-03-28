@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.qual.engine.retrieval import build_retrieval_query
+from src.qual.engine.retrieval import build_retrieval_query as engine_build_retrieval_query
 from src.qual.retrieval.service import (
     RetrievalConstraints,
     RetrievalDocHit,
@@ -19,7 +19,26 @@ def _build_retrieval_query(
     constraints: dict[str, object] | None = None,
     confidentiality_profile: str = "confidential",
 ) -> RetrievalQuery:
-    return build_retrieval_query(
+    return engine_build_retrieval_query(
+        query_text=query_text,
+        scope=scope,
+        intent=intent,
+        constraints=constraints,
+        confidentiality_profile=confidentiality_profile,
+    )
+
+
+def build_retrieval_query(
+    *,
+    query_text: str,
+    scope: str,
+    intent: str,
+    constraints: dict[str, object] | None = None,
+    confidentiality_profile: str = "confidential",
+) -> RetrievalQuery:
+    """Return the canonical retrieval query used by both facades."""
+
+    return engine_build_retrieval_query(
         query_text=query_text,
         scope=scope,
         intent=intent,
@@ -382,6 +401,7 @@ __all__ = [
     "RetrievalDocHit",
     "RetrievalHit",
     "RetrievalResult",
+    "build_retrieval_query",
     "retrieve_fts",
     "retrieve_fts_payload",
     "retrieve_fts_context_bundle",

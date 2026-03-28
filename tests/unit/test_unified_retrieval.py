@@ -19,6 +19,8 @@ from src.qual.engine.retrieval import build_retrieval_source_bundle_from_result 
 from src.qual.engine.retrieval.payload import build_retrieval_citation_bundle_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_result
+from src.qual.engine.retrieval.payload import _build_retrieval_source_bundle_from_payload
+import src.qual.retrieval as package_retrieval
 from src.qual.retrieval import retrieve_auto as engine_retrieve_auto
 from src.qual.retrieval import retrieve_auto_doc_bundle as engine_retrieve_auto_doc_bundle
 from src.qual.retrieval import retrieve_auto_payload as engine_retrieve_auto_payload
@@ -527,6 +529,27 @@ class UnifiedRetrievalTests(unittest.TestCase):
         refreshed = engine_build_retrieval_source_bundle_from_result(_SourceBundleOnlySource(result.source_bundle()))
         self.assertNotIn("mutated-doc-id", refreshed["retrieval_summary"]["doc_ids"])
 
+    def test_retrieval_source_bundle_payload_helper_accepts_source_bundle_shape(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        payload = result.to_downstream_payload()
+        source_bundle = result.source_bundle()
+        payload.pop("retrieval_source_bundle", None)
+        payload["source_bundle"] = source_bundle
+
+        bundle = _build_retrieval_source_bundle_from_payload(payload)
+        self.assertEqual(bundle, source_bundle)
+        bundle["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
+        self.assertNotIn("mutated-doc-id", _build_retrieval_source_bundle_from_payload(payload)["retrieval_summary"]["doc_ids"])
+
     def test_retrieval_context_bundle_helper_accepts_source_bundle_only_sources(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
@@ -913,6 +936,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "DEFERRED_STRATEGY_IDS",
                 "active_strategy_ids",
                 "deferred_strategy_ids",
+                "build_retrieval_query",
                 "retrieval_policy_snapshot",
                 "primary_strategy_id",
                 "build_retrieval_downstream_payload",
@@ -937,6 +961,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "retrieve_auto_payload",
             ],
         )
+        self.assertTrue(hasattr(package_retrieval, "build_retrieval_query"))
+        self.assertTrue(hasattr(engine_retrieval, "build_retrieval_query"))
         self.assertTrue(hasattr(engine_retrieval, "FTSStrategy"))
         self.assertFalse(hasattr(engine_retrieval, "PageIndexStrategy"))
         self.assertFalse(hasattr(engine_retrieval, "EmbeddingsStrategy"))
@@ -961,6 +987,37 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_source_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_excerpt_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_payload"))
+
+    def test_retrieval_query_constructor_is_shared_by_both_facades(self) -> None:
+        constraints = {
+            "max_results": 7,
+            "doc_types": ["Memo", "pdf", "memo"],
+            "date_range": ["2026-01-01", "2026-01-31"],
+            "require_citations": True,
+            "section_hint": "  discussion  ",
+            "prefer_exact_matches": True,
+        }
+
+        engine_query = engine_retrieval.build_retrieval_query(
+            query_text="memo comparison",
+            scope="vault",
+            intent="compare",
+            constraints=constraints,
+            confidentiality_profile="standard",
+        )
+        package_query = package_retrieval.build_retrieval_query(
+            query_text="memo comparison",
+            scope="vault",
+            intent="compare",
+            constraints=constraints,
+            confidentiality_profile="standard",
+        )
+
+        self.assertEqual(engine_query, package_query)
+        self.assertEqual(engine_query.constraints.doc_types, ("memo", "pdf"))
+        self.assertEqual(engine_query.constraints.date_range, ("2026-01-01", "2026-01-31"))
+        self.assertEqual(engine_query.constraints.section_hint, "discussion")
+        self.assertEqual(engine_query.confidentiality_profile, "standard")
 
     def test_engine_retrieval_package_reexports_canonical_payload_helpers(self) -> None:
         result = self.service.retrieve_auto(

@@ -198,6 +198,7 @@ __all__ = [
     "DEFERRED_STRATEGY_IDS",
     "active_strategy_ids",
     "deferred_strategy_ids",
+    "build_retrieval_query",
     "retrieval_policy_snapshot",
     "primary_strategy_id",
     "build_retrieval_downstream_payload",
