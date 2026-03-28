@@ -1,0 +1,23 @@
+{
+  "scope_goal": "Harden the command surface for the engine-first MVP so spec-aware lookup helpers and smoke-contract coverage stay deterministic for the CLI-first operator flow.",
+  "tasks_completed": [
+    "Added spec-aware command lookup helpers and exported them through the command package surface.",
+    "Kept the command catalog contract deterministic and covered the lookup, flow-sequence, and ambiguity paths with focused unit tests.",
+    "Re-scoped the handoff packet to the actual feat-commands branch delta and preserved the approved shared-file note for tests/unit/test_commands_catalog.py."
+  ],
+  "risk": "LOW",
+  "roadmap_items": [
+    "Milestone 1 - Bootstrap Flow Stabilization: keep the command surface deterministic for CLI-first operator flows.",
+    "Milestone 2 - Test Hardening: add focused contract coverage for command lookup helpers, flow sequencing, and ambiguity handling.",
+    "Milestone 5 - A2UI Presentation Layer: preserve the CLI fallback surface that feeds the same engine/A2UI command contracts."
+  ],
+  "vision_capabilities": [
+    "Capability 4 - Operator-first control surface: command lookup helpers now resolve canonical command metadata deterministically for the CLI surface.",
+    "Capability 5 - Agent-to-UI protocol (`A2UI`): the command contract remains stable for downstream structured UI routing."
+  ],
+  "routing_provider_impact": "None. This change only affects local command lookup behavior and command-surface contract coverage; no routing/provider files change.",
+  "proposed_readme_patch": "",
+  "shared_file_exception": true,
+  "kickoff_budget_note": "Owned-path command work plus approved shared test coverage in `tests/unit/test_commands_catalog.py`; within default 8-task, 12-file, and 500-net-LOC limits.",
+  "approved_exception_note": "Approved shared-file exception for `tests/unit/test_commands_catalog.py` to add focused command-contract coverage required by review."
+}
