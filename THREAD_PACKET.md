@@ -4,10 +4,10 @@
 - Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`.
 - Runtime change commit: `b929fe6c7a1159c7882acedd247aca31a93cd123`
 - Handoff scope: metadata-only resubmission on the current branch tip so the roadmap and vision mapping are explicit and reviewer-auditable, including the saved planner handoff state used for future packet emissions.
-- Reviewer mapping: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`), including the exact requirement that CLI remains able to render a text fallback of the same underlying artifacts.
-- Reviewer fix status: required fix `#1` is satisfied on this branch tip because the exact roadmap milestone/scope bullets, task anchor, and product-vision capability are cited directly in the reviewer-facing packets.
+- Reviewer mapping: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullets `Add agent-side card/section/action payload generation with deterministic schemas` and `Provide CLI rendering fallback for the same structured payloads`, the `ROADMAP.md` `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`, and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`), including the exact requirement that CLI remains able to render a text fallback of the same underlying artifacts.
+- Reviewer fix status: required fix `#1` is satisfied on this branch tip because the exact `Roadmap item(s) affected` and `Vision capability affected` fields are cited directly in the reviewer-facing packets.
 - Canon note: the labels above are taken from the current `ROADMAP.md` and `PRODUCT_VISION.md` in this worktree, so the handoff uses the branch's authoritative plan wording rather than older example labels from the review thread.
-- Missing handoff fields after reviewer fix `#1`: none; both required plan-alignment fields are populated below for direct audit.
+- Missing handoff fields after reviewer fix `#1`: none; the `Roadmap item(s) affected` and `Vision capability affected` fields are populated below for direct audit.
 
 ## Plan Alignment
 
@@ -23,7 +23,7 @@
 - Tasks completed:
   1. Updated the A2UI materialization path in `src/qual/ui/a2ui.py` to sort filtered actions by canonical JSON before terminal rendering.
   2. Added contract coverage in `tests/unit/test_a2ui_contract.py` for the canonical ordering behavior.
-  3. Cleaned up the feature packet and thread packet so the required roadmap and product-vision mappings are explicit and auditable.
+  3. Cleaned up the feature packet and thread packet so the required `Roadmap item(s) affected` and `Vision capability affected` mappings are explicit and auditable.
   4. Synced `.codex/packet_planner/state.json` and `tests/unit/test_packet_planner.py` so saved and re-emitted packets preserve the same explicit Milestone 5 / Capability 5 mapping plus the `MVP Focus Through 2026-05-04` task anchor.
 
 ## Reviewer Required Fix Coverage
