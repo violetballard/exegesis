@@ -2,7 +2,7 @@
 
 - Branch: `codex/feat-a2ui-contract`
 - Lane/owned paths: `src/qual/ui/a2ui.py`, `tests/unit/test_a2ui_contract.py`
-- Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`. This maps to `ROADMAP.md` Milestone 5: A2UI Presentation Layer and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
+- Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`. This maps directly to the required handoff fields: `ROADMAP.md` Milestone 5: A2UI Presentation Layer and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 - Scope note: This is a narrow A2UI ordering and contract-coverage update. It does not expand into fallback manifest redesign or broader UI behavior changes.
 - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress), specifically the A2UI action-order canonicalization task - define the `A2UI` output contract for agent-produced presentation artifacts, add deterministic schemas, provide CLI rendering fallback for the same structured payloads, and keep the surface client-agnostic.
 - Roadmap exit criteria affected: A2UI schema/versioning is documented and stable; core workflows can emit A2UI payloads and CLI fallback views; output contracts are test-covered and backward-compatible by policy.
