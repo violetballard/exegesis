@@ -5,7 +5,7 @@
 - Tasks completed:
   1. Updated the A2UI materialization path in `src/qual/ui/a2ui.py` to sort filtered actions by canonical JSON before terminal rendering.
   2. Added contract coverage in `tests/unit/test_a2ui_contract.py` for the canonical ordering behavior.
-  3. Cleaned up the lane handoff packet so the required roadmap and product-vision mappings are explicit and auditable.
+  3. Cleaned up the feature packet and thread packet so the required roadmap and product-vision mappings are explicit and auditable.
   4. Hardened the packet planner so missing roadmap/vision handoff fields are not backfilled with placeholder text.
 
 ## Required Handoff Fields
