@@ -14,7 +14,7 @@ Keep the FTS-first retrieval lane scoped to deterministic excerpt and provenance
 
 ## Scope completed
 
-This handoff covers the retrieval lane only. The reviewed implementation delta spans `175ebc8a7484db1edaede05ac2f98d7715b4eb66`, `c92025af6e11c396f84356967cea704cadb20f5b`, `c4944661a0a682821c486810918c2c1fabac1a41`, and `47b3977d271e3f7faacb6ba3082ab94a2d327fcb`, which together add excerpt lookup audit context, deterministic excerpt payload rehydration, source-bundle context regression coverage, canonical query constructor export through both retrieval facades, and citation-bundle export through the same retrieval entrypoints. Later lane-handoff commits are packet or metadata maintenance only and are excluded from the reviewed code delta. PageIndex and embeddings remain deferred as fallback-only plumbing. The work aligns to `Milestone 3: Real workflow loop` in `ROADMAP.md` and `Retrieval-first context handling` in `PRODUCT_VISION.md`.
+This handoff covers the retrieval lane only. The reviewed implementation delta spans `175ebc8a7484db1edaede05ac2f98d7715b4eb66`, `c92025af6e11c396f84356967cea704cadb20f5b`, `c4944661a0a682821c486810918c2c1fabac1a41`, and `47b3977d271e3f7faacb6ba3082ab94a2d327fcb`, which together add excerpt lookup audit context, deterministic excerpt payload rehydration, source-bundle context regression coverage, canonical query constructor export through both retrieval facades, and citation-bundle export through the same retrieval entrypoints. PageIndex and embeddings remain deferred as fallback-only plumbing. The work aligns to `Milestone 3: Real workflow loop` in `ROADMAP.md` and `Retrieval-first context handling` in `PRODUCT_VISION.md`.
 
 Implementation file mapping:
 
@@ -22,11 +22,9 @@ Implementation file mapping:
 - `c4944661a0a682821c486810918c2c1fabac1a41` -> `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`
 - `47b3977d271e3f7faacb6ba3082ab94a2d327fcb` -> `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`
 
-`c4944661a0a682821c486810918c2c1fabac1a41` also carried a packet-maintenance edit to `THREAD_PACKET.md`; that file is not part of the reviewed code delta and is excluded from `Files changed` below.
-
 ## Files changed
 
-These are the reviewed retrieval code files only, deduplicated across the three reviewed implementation commits.
+These are the reviewed retrieval code files only, deduplicated across the reviewed implementation commits.
 
 - `src/qual/engine/retrieval/payload.py`
 - `src/qual/engine/retrieval/__init__.py`
