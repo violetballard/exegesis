@@ -20,7 +20,7 @@
   "proposed_readme_patch": "",
   "shared_file_exception": true,
   "kickoff_budget_note": "Owned-path command work plus focused diff_preview test coverage; within default 8-task, 12-file, and 500-net-LOC limits.",
-  "review_commit": "e53af6696629a9cccda27ac1b344825bae8dc858, 0df5b4a7, 1ba5ff27, a032bd49, b284202f",
+  "review_commit": "38df0f5f0e3ae10964dd3fed2284eccca57683ba, 53f46955747906ff441ea52fe11dab5b9f15596a, ed3d3fd189531779de89a0f552a9703dd265f6e5, 37518edc, 38216cff, e53af6696629a9cccda27ac1b344825bae8dc858, 0df5b4a7adf078c72c7fd93d4ab7730a2655ab05, 1ba5ff2722a499fc8c24d68dd2ab2223080f7c8a, a032bd4936d775be2e31941c3b982b520cbe7323, b284202fda6a26393d59f1b763ca0f2b5982f977",
   "files_changed": [
     {
       "path": ".codex/kickoff_packets/feat-commands.md",

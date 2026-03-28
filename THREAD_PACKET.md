@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit(s): `e53af6696629a9cccda27ac1b344825bae8dc858, 0df5b4a7, 1ba5ff27, a032bd49, b284202f`
+- Commit(s): `38df0f5f0e3ae10964dd3fed2284eccca57683ba, 53f46955747906ff441ea52fe11dab5b9f15596a, ed3d3fd189531779de89a0f552a9703dd265f6e5, 37518edc, 38216cff, e53af6696629a9cccda27ac1b344825bae8dc858, 0df5b4a7adf078c72c7fd93d4ab7730a2655ab05, 1ba5ff2722a499fc8c24d68dd2ab2223080f7c8a, a032bd4936d775be2e31941c3b982b520cbe7323, b284202fda6a26393d59f1b763ca0f2b5982f977`
 
 ## Scope goal
 - Harden `diff_preview` and command catalog output contracts so CLI-first operator flows stay deterministic, verifiable, and ready for JSON/text contract use.
@@ -20,7 +20,7 @@
 - Added spec-aware command catalog helpers and exports so command metadata resolves deterministically for canonical lookup, alias lookup, and token lookup.
 - Hardened `diff_preview` output contracts so the SHA-256 fingerprint is derived from the exact emitted diff payload after label application, header suppression, truncation, and summary-only handling.
 - Added focused unit coverage for command-catalog projections and diff-preview JSON/text output contracts, including the no-diff JSON shape, custom labels, and fingerprint correctness paths.
-- Regenerated the handoff packet so review sees the exact branch delta, the approved shared-file coverage, and the current scope boundaries instead of stale packet-only follow-ups.
+- Regenerated the handoff packet so review sees the exact branch delta, the approved shared-file coverage, the metadata-only follow-up commits, and the current scope boundaries instead of stale packet-only follow-ups.
 
 ## Kickoff budget/limits compliance
 - Stayed within the default lane budget.
