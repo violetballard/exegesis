@@ -18,7 +18,7 @@
   "shared_file_exception": false,
   "kickoff_budget_note": "Stayed within the default lane budget. The branch delta is 2 files changed and remains within the lane size limits.",
   "approved_exception_note": "",
-  "review_commit": "e8ca2e4374aa995f178a71e821bc15073ee4140b",
+  "review_commit": "f2e4e82dc8a2800c67ba451839e842ff4a3712fb",
   "files_changed": [
     {
       "path": ".codex/lane_meta/feat-commands.json",
