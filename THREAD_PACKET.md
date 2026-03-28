@@ -8,17 +8,23 @@
 
 ## Scope completed
 
-This handoff covers the retrieval implementation only. The reviewed delta is the FTS-first retrieval MVP in `c4944661a0a682821c486810918c2c1fabac1a41` and `c92025af6e11c396f84356967cea704cadb20f5b`, which adds deterministic excerpt payload rehydration, source-bundle context regression coverage, and excerpt lookup audit context in the retrieval service. This packet is a resubmission against the actual code-bearing commits, not the packet-only clarification commit, and the reviewed code delta is confined to the three retrieval paths listed below. PageIndex and embeddings remain deferred as fallback-only plumbing, and the work aligns to `Milestone 4: Retrieval Layer` in `ROADMAP.md`.
+This handoff covers the retrieval lane only. The reviewed delta is the FTS-first retrieval MVP in `c4944661a0a682821c486810918c2c1fabac1a41` and `c92025af6e11c396f84356967cea704cadb20f5b`, which adds deterministic excerpt payload rehydration, source-bundle context regression coverage, and excerpt lookup audit context in the retrieval service. PageIndex and embeddings remain deferred as fallback-only plumbing, and the work aligns to `Milestone 3: Real workflow loop` in `ROADMAP.md` and `Retrieval-first context handling` in `PRODUCT_VISION.md`.
 
 ## Files changed
-
-These are the code-bearing paths from the reviewed implementation commits. Packet/tooling artifacts such as `THREAD_PACKET.md` and `.codex/*` are excluded from the reviewed file set.
 
 - `src/qual/engine/retrieval/payload.py`
 - `tests/unit/test_unified_retrieval.py`
 - `src/qual/retrieval/service.py`
 
-The packet-only commit does not change the reviewed implementation file list above.
+## Packet/tooling artifacts excluded from review scope
+
+The following paths were updated only in the packet/tooling layer and are excluded from the reviewed implementation file set:
+
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
+- `THREAD_PACKET.md`
+
+These paths are documented here for handoff traceability only and are not part of the code review target.
 
 ## Tasks completed
 
@@ -43,7 +49,7 @@ The packet-only commit does not change the reviewed implementation file list abo
 
 ## Roadmap item(s) affected
 
-- `ROADMAP.md`: `Milestone 4: Retrieval Layer`
+- `ROADMAP.md`: `Milestone 3: Real workflow loop`
 - `docs/TASKS.md`: `feat-retrieval-fts`
 - `THREAD_OWNERSHIP.md`: `codex/feat-retrieval-fts*`
 
