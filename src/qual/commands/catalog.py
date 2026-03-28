@@ -110,6 +110,7 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
     seen_names: set[str] = set()
     seen_flow_steps: set[str] = set()
     seen_aliases: dict[str, str] = {}
+    seen_lookup_tokens: dict[str, str] = {}
     for spec in specs:
         normalized_name = _normalize_token(spec.name)
         if not normalized_name:
@@ -125,6 +126,14 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
             raise ValueError(f"Duplicate command flow step: {spec.flow_step}")
         seen_flow_steps.add(normalized_flow_step)
 
+        if normalized_name in seen_lookup_tokens and seen_lookup_tokens[normalized_name] != spec.name:
+            raise ValueError(f"Duplicate command lookup token: {spec.name}")
+        seen_lookup_tokens[normalized_name] = spec.name
+
+        if normalized_flow_step in seen_lookup_tokens and seen_lookup_tokens[normalized_flow_step] != spec.name:
+            raise ValueError(f"Duplicate command lookup token: {spec.flow_step}")
+        seen_lookup_tokens[normalized_flow_step] = spec.name
+
         seen_local_aliases: set[str] = set()
         for alias in spec.aliases:
             normalized_alias = _normalize_token(alias)
@@ -133,15 +142,13 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
             if normalized_alias in seen_local_aliases:
                 raise ValueError(f"Duplicate command lookup alias: {alias}")
             seen_local_aliases.add(normalized_alias)
-
-        for alias in _lookup_tokens(spec):
-            normalized_alias = _normalize_token(alias)
-            if not normalized_alias:
-                raise ValueError(f"Command {spec.name} has an empty lookup alias")
             existing_name = seen_aliases.get(normalized_alias)
             if existing_name is not None and existing_name != spec.name:
                 raise ValueError(f"Duplicate command lookup alias: {alias}")
             seen_aliases[normalized_alias] = spec.name
+            if normalized_alias in seen_lookup_tokens and seen_lookup_tokens[normalized_alias] != spec.name:
+                raise ValueError(f"Duplicate command lookup token: {alias}")
+            seen_lookup_tokens[normalized_alias] = spec.name
 
 
 def _build_command_spec_by_alias(specs: tuple[CommandSpec, ...]) -> dict[str, CommandSpec]:

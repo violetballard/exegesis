@@ -313,6 +313,14 @@ class CommandCatalogTests(unittest.TestCase):
                 )
             )
 
+        with self.assertRaisesRegex(ValueError, "Duplicate command lookup token"):
+            validate_command_catalog(
+                (
+                    CommandSpec(name="bootstrap", aliases=("open",), flow_step="project-open"),
+                    CommandSpec(name="project-open", flow_step="retrieval"),
+                )
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
