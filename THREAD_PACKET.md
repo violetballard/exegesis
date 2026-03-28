@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit(s): `2a89474277028aa439bd48714e3c29725fc92f27`
+- Commit(s): `e53af6696629a9cccda27ac1b344825bae8dc858`, `0df5b4a7`, `1ba5ff27`, `a032bd49`, `b284202f`
 
 ## Scope goal
 - Harden command catalog lookup helpers and `diff_preview` output contracts so CLI-first operator flows stay deterministic, verifiable, and ready for JSON/text contract use.
@@ -22,13 +22,13 @@
 - Regenerated the handoff packet so review points at the current branch tip and the actual code-bearing branch delta instead of stale packet-only follow-ups.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget. The branch delta is 9 files changed and remains within the lane size limits.
+- Stayed within the default lane budget. The branch delta is 8 files changed and remains within the lane size limits.
 
 ## Tasks completed (numbered)
 1. Added spec-aware command catalog helpers and exports so command metadata resolves deterministically.
 2. Hardened `diff_preview` fingerprint semantics so the reported digest matches the emitted artifact after labels, suppression, truncation, and summary-only handling.
 3. Added focused unit tests for command-catalog projections and diff-preview JSON/text output contracts.
-4. Regenerated the handoff packet and lane metadata so the feature review points at the actual branch delta and approved shared-file coverage.
+4. Regenerated the handoff packet and lane metadata so the feature review points at the actual code-bearing branch delta and approved shared-file coverage.
 
 ## Files changed for this turn
 - Handoff artifacts regenerated in this thread:
@@ -37,7 +37,6 @@
   - `THREAD_PACKET.md`
 - Reviewed code delta:
   - `src/qual/commands/__init__.py`
-  - `src/qual/commands/canonical.py`
   - `src/qual/commands/catalog.py`
   - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_commands_catalog.py`
