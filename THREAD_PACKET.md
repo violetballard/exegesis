@@ -3,6 +3,8 @@
 - Branch name: `codex/feat-context-storage`
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514`
+- Handoff commit:
+  - `ee2dd30ae4c3118ffe1f2129f5f3f14316868a00`
 
 ## Scope completed
 
