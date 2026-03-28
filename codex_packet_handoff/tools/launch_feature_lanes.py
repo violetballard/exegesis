@@ -308,6 +308,51 @@ def _launch_one_lane(
                 pid=0,
             )
             lane_state = feature_state.get("lanes", {}).get(lane, {})
+    if (
+        str(launch_cfg["mode"]) == "cloud_primary"
+        and bool(launch_cfg.get("disable_local_fallback_on_cloud_timeout"))
+        and str(lane_state.get("status") or "") == "error"
+    ):
+        pid = _spawn_direct_exec(launch_cfg, workdir=workdir, prompt=prompt, log_path=log_path)
+        _set_lane_state(
+            feature_state,
+            lane,
+            status="direct_exec_running",
+            mode=str(launch_cfg["mode"]),
+            profile=str(launch_cfg["profile_name"]),
+            workdir=workdir,
+            prompt_path=prompt_path,
+            log_path=log_path,
+            thread_id="",
+            error=str(lane_state.get("error") or ""),
+            action="direct_exec_cloud_restart",
+            pid=pid,
+        )
+        _write_log(
+            log_path,
+            {
+                "lane": lane,
+                "thread_id": "",
+                "mode": launch_cfg["mode"],
+                "profile": launch_cfg["profile_name"],
+                "workdir": workdir,
+                "action": "direct_exec_cloud_restart",
+                "launched_at": _ts(),
+                "status": "direct_exec_running",
+                "pid": pid,
+            },
+            f"Restarted lane with cloud direct exec after prior managed launch error: {lane_state.get('error', '')}",
+        )
+        return {
+            "lane": lane,
+            "status": "direct_exec_running",
+            "mode": launch_cfg["mode"],
+            "profile": launch_cfg["profile_name"],
+            "workdir": workdir,
+            "pid": pid,
+            "log": str(log_path),
+            "error": str(lane_state.get("error") or ""),
+        }
     thread_id = None if args.restart_existing else lane_state.get("thread_id")
     # Local fallback has no durable managed threads to resume from LM Studio.
     # If we carry over a stale cloud-era thread id here, the launcher will spin
@@ -520,6 +565,47 @@ def _launch_one_lane(
             "log": str(log_path),
         }
     except Exception as exc:
+        if str(launch_cfg["mode"]) == "cloud_primary" and bool(launch_cfg.get("disable_local_fallback_on_cloud_timeout")):
+            pid = _spawn_direct_exec(launch_cfg, workdir=workdir, prompt=prompt, log_path=log_path)
+            _set_lane_state(
+                feature_state,
+                lane,
+                status="direct_exec_running",
+                mode=str(launch_cfg["mode"]),
+                profile=str(launch_cfg["profile_name"]),
+                workdir=workdir,
+                prompt_path=prompt_path,
+                log_path=log_path,
+                thread_id="",
+                error=str(exc),
+                action="direct_exec_cloud_fallback",
+                pid=pid,
+            )
+            _write_log(
+                log_path,
+                {
+                    "lane": lane,
+                    "thread_id": "",
+                    "mode": launch_cfg["mode"],
+                    "profile": launch_cfg["profile_name"],
+                    "workdir": workdir,
+                    "action": "direct_exec_cloud_fallback",
+                    "launched_at": _ts(),
+                    "status": "direct_exec_running",
+                    "pid": pid,
+                },
+                f"Managed cloud launch failed, spawned cloud direct exec fallback: {exc}",
+            )
+            return {
+                "lane": lane,
+                "status": "direct_exec_running",
+                "mode": launch_cfg["mode"],
+                "profile": launch_cfg["profile_name"],
+                "workdir": workdir,
+                "pid": pid,
+                "log": str(log_path),
+                "error": str(exc),
+            }
         if (
             str(launch_cfg["mode"]) == "cloud_primary"
             and not bool(launch_cfg.get("disable_local_fallback_on_cloud_timeout"))
@@ -592,44 +678,6 @@ def _launch_one_lane(
                 }
             except Exception as fallback_exc:
                 exc = RuntimeError(f"cloud launch failed: {exc}; local fallback failed: {fallback_exc}")
-        if str(launch_cfg["mode"]) == "cloud_primary" and bool(launch_cfg.get("disable_local_fallback_on_cloud_timeout")):
-            _set_lane_state(
-                feature_state,
-                lane,
-                status="error",
-                mode=str(launch_cfg["mode"]),
-                profile=str(launch_cfg["profile_name"]),
-                workdir=workdir,
-                prompt_path=prompt_path,
-                log_path=log_path,
-                thread_id="",
-                error=str(exc),
-                action="cloud_launch_failed",
-                pid=0,
-            )
-            _write_log(
-                log_path,
-                {
-                    "lane": lane,
-                    "thread_id": "",
-                    "mode": launch_cfg["mode"],
-                    "profile": launch_cfg["profile_name"],
-                    "workdir": workdir,
-                    "action": "cloud_launch_failed",
-                    "launched_at": _ts(),
-                    "status": "error",
-                },
-                f"Managed cloud launch failed without local fallback: {exc}",
-            )
-            return {
-                "lane": lane,
-                "status": "error",
-                "mode": launch_cfg["mode"],
-                "profile": launch_cfg["profile_name"],
-                "workdir": workdir,
-                "log": str(log_path),
-                "error": str(exc),
-            }
         direct_profile = dict(launch_cfg.get("local_profile") or launch_cfg)
         direct_profile["mode"] = "local_fallback"
         direct_profile["profile_name"] = str(launch_cfg.get("local_profile_name") or launch_cfg["profile_name"])
