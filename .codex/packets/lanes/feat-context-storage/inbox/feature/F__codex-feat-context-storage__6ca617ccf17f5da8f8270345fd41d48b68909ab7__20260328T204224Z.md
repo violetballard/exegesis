@@ -3,7 +3,7 @@
 - Lane: `feat-context-storage`
 - Branch: `codex/feat-context-storage`
 - Commit: `47cda4df831ac41867a8792f40d720e0cb109514`
-- Final head SHA: `011589aaccd44e2dd310f196e47fe54508267fcb`
+- Final head SHA: `0ea41598c7283ac12a69fec8be64aecc593ccf2e`
 
 ## Scope goal
 - Preserve recovered_from cleanup timestamps in context basket/set/vault persistence so canonical cleanup rewrites keep the existing `updated_at` while stripping recovery provenance.
@@ -27,6 +27,7 @@
 3. Added cleanup timestamp reuse to `VaultService` recovery so canonical cleanup rewrites keep the existing `updated_at` instead of minting a fresh timestamp.
 4. Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
 5. Re-ran the required format, lint, test, typecheck, and CI gates on the committed branch head and confirmed they pass.
+6. Reconciled the packet metadata to keep the approved shared test exception, lane-owned scope, and auditable task list explicit.
 
 ## Files changed
 - `src/qual/context/set_store.py`

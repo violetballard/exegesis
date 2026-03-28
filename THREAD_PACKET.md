@@ -4,14 +4,14 @@
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514`
 - Final head SHA:
-  - `011589aaccd44e2dd310f196e47fe54508267fcb`
+  - `0ea41598c7283ac12a69fec8be64aecc593ccf2e`
 
 ## Metadata-only follow-up
 
 - `ee2dd30ae4c3118ffe1f2129f5f3f14316868a00`
 - `076a40ae6d6c4d51e4fb24be6f8a28d73a9d50ef`
 - `5cf30e759ed161dcf100b7c7c2b05bf44a3dacbf`
-- `011589aaccd44e2dd310f196e47fe54508267fcb`
+- `0ea41598c7283ac12a69fec8be64aecc593ccf2e`
 
 ## Scope completed
 
@@ -31,6 +31,7 @@ The feature commit preserved `recovered_from` cleanup timestamps across basket, 
 3. Reused the existing cleanup timestamp in `VaultService` recovery so canonical cleanup rewrites keep the prior `updated_at` value.
 4. Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
 5. Re-ran the required lane gates and confirmed the branch passes them.
+6. Reconciled the packet metadata to reflect the current head and keep the approved shared test exception, lane-owned scope, and auditable task list explicit.
 
 ## Commands run and outcomes
 
