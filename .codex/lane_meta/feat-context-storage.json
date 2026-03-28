@@ -8,10 +8,10 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 3 - Product Readiness: define and lock persistent-state safety behavior for context basket and vault recovery."
+    "Milestone 3 - Real workflow loop: persistent basket/document/session state."
   ],
   "vision_capabilities": [
-    "6. Expansion lanes"
+    "Capability 6 - Auditable state and workflow: persistent project/document/basket/session state with safe recovery and traceable rewrites."
   ],
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
