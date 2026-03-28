@@ -1,6 +1,6 @@
 {
   "feature_commit": "47cda4df831ac41867a8792f40d720e0cb109514",
-  "handoff_commit": "2d2ead69b1ac0997963ac4842fe13654388c0482",
+  "handoff_commit": "7f5b4ea2e931cffee0695a545db6c4f5417a430f",
   "scope_goal": "Preserve recovered_from cleanup timestamps in context basket/set and vault recovery so canonical cleanup rewrites keep the existing updated_at while removing recovery provenance.",
   "scope_completed": [
     "The fix stayed within the owned context/storage paths: src/qual/context/** and src/qual/storage/** were updated so recovery cleanup keeps the existing updated_at while stripping recovered_from provenance.",
@@ -13,7 +13,7 @@
     "Added cleanup timestamp reuse to VaultService recovery so canonical cleanup rewrites keep the existing updated_at instead of minting a fresh timestamp.",
     "Added regression coverage for preserved updated_at behavior in basket, context set, and vault recovery paths.",
     "Reissued the handoff packet, lane metadata, and routed packet copy together under the approved handoff-artifact exception so the reviewed file list stays synchronized without scripts/scope-check.sh.",
-    "Updated the final head bookkeeping to point at the current branch tip (2d2ead69b1ac0997963ac4842fe13654388c0482)."
+    "Updated the final head bookkeeping to point at the current branch tip (7f5b4ea2e931cffee0695a545db6c4f5417a430f)."
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
