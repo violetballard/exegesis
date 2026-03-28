@@ -4,8 +4,8 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 3: Real workflow loop",
-    "docs/TASKS.md: feat-retrieval-fts -> keep the FTS-first retrieval path authoritative; expose retrieval through the canonical engine contract; keep structured results suitable for workflow cards and basket promotion"
+    "Milestone 4: Retrieval Layer (Planned)",
+    "docs/TASKS.md: feat-retrieval-fts -> keep the FTS-first retrieval path authoritative; expose retrieval through the canonical engine contract; keep structured results suitable for deterministic retrieval-backed generation"
   ],
   "routing_provider_impact": "None",
   "related_implementation_files": [
@@ -29,7 +29,7 @@
   ],
   "vision_capabilities": [
     "2. Retrieval-first context handling",
-    "6. Auditable state and workflow"
+    "3. Auditable generation"
   ],
   "compatibility_note": "PageIndex and embeddings remain fallback-only plumbing behind the FTS-first policy for this MVP; they are not required retrieval paths."
 }
