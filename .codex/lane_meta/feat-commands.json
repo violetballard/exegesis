@@ -16,7 +16,7 @@
   "proposed_readme_patch": "",
   "shared_file_exception": false,
   "kickoff_budget_note": "Docs-only handoff repair; branch delta limited to handoff artifacts and within default size limits.",
-  "review_commit": "beee4dcb8daa31083a9f6176d000fceb841f987d",
+  "review_commit": "7ae611a96152b8e0cc7eeb6d2028eaea873b6f5a",
   "files_changed": [
     {
       "path": ".codex/kickoff_packets/feat-commands.md",

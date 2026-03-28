@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit(s): `beee4dcb8daa31083a9f6176d000fceb841f987d`
+- Commit(s): `7ae611a96152b8e0cc7eeb6d2028eaea873b6f5a`
 
 ## Scope goal
 - Retitle the feat-commands handoff to match the actual docs-only branch history and remove unsupported code/test claims.
