@@ -2,12 +2,12 @@
 
 - Branch name: `codex/feat-context-storage`
 - Reviewed commit(s):
-  - `621b7ea7500943add045955c2ac37c2c33d932f7`
-  - `19c2dd26d9f6b9d8fb7b4d7d3d6d2fa6d98f2f0e` (metadata-only branch-head bookkeeping)
+  - `47cda4df831ac41867a8792f40d720e0cb109514`
+  - `1dd6fd2460dc9794b69bfd6b211530002595159f` (metadata-only branch-head bookkeeping)
 
 ## Scope completed
 
-This handoff is compatibility-layer hardening only, not engine-canonical storage work. The lane hardened context basket, context-set, and vault persistence so malformed or incomplete local state is quarantined or canonicalized safely, valid recovery paths are preserved, and recovery rewrites stay auditable. The shipped runtime changes are in `src/qual/context/set_store.py`, `src/qual/context/store.py`, and `src/qual/storage/vault.py`. The only non-owned edit in the lane is the approved regression coverage file `tests/unit/test_context_storage_recovery.py`.
+This handoff is context basket and vault persistence hardening within the lane-owned storage/context paths. The lane hardened context basket, context-set, and vault persistence so malformed or incomplete local state is quarantined or canonicalized safely, valid recovery paths are preserved, and recovery rewrites stay auditable. The shipped runtime changes are in `src/qual/context/set_store.py`, `src/qual/context/store.py`, and `src/qual/storage/vault.py`. The only non-owned edit in the lane is the approved regression coverage file `tests/unit/test_context_storage_recovery.py`.
 
 ## Files changed
 
@@ -40,12 +40,10 @@ This handoff is compatibility-layer hardening only, not engine-canonical storage
 ## Roadmap item(s) affected
 
 - Milestone 1: Bootstrap Flow Stabilization
-- Milestone 2: Test Hardening
 
 ## Vision capability affected
 
 - 1. Local-first state and identity
-- 3. Auditable generation
 
 ## Routing/provider impact note
 

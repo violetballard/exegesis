@@ -1,5 +1,5 @@
 {
-  "scope_goal": "Restart this lane from current main with strict owned-path-only compatibility-layer context and vault persistence hardening; prior branch state is reference-only and must not be promoted as-is.",
+  "scope_goal": "Restart this lane from current main with strict owned-path-only context and vault persistence hardening; prior branch state is reference-only and must not be promoted as-is.",
   "tasks_completed": [
     "Hardened ContextBasketStore recovery so malformed basket payloads are quarantined, recoverable payloads are canonicalized, and rewritten state stays auditable.",
     "Hardened ContextSetStore recovery so malformed context-set payloads are quarantined, recoverable payloads are canonicalized, and rewritten state stays auditable.",
@@ -8,12 +8,10 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 1: Bootstrap Flow Stabilization",
-    "Milestone 2: Test Hardening"
+    "Milestone 1: Bootstrap Flow Stabilization"
   ],
   "vision_capabilities": [
-    "1. Local-first state and identity",
-    "3. Auditable generation"
+    "1. Local-first state and identity"
   ],
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
