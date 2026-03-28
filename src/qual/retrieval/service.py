@@ -161,9 +161,6 @@ class RetrievalHit:
         doc_type = self.provenance.get("doc_type")
         if isinstance(doc_type, str) and doc_type:
             payload["doc_type"] = doc_type
-        doc_identity_fingerprint = self.provenance.get("doc_identity_fingerprint")
-        if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
-            payload["doc_identity_fingerprint"] = doc_identity_fingerprint
         candidate_doc_count = self.provenance.get("candidate_doc_count")
         if isinstance(candidate_doc_count, int):
             payload["candidate_doc_count"] = candidate_doc_count
