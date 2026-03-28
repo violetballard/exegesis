@@ -2,39 +2,32 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `2afa0f7f2f23c2d73773cc9c5a2fc0007ba19be3`
+- Commit: `d5c6fc70674068b3bde2bc7616984c6e54faeee6`
 
 ## Scope goal
-- Restore the `feat-commands` scope policy so the approved shared `tests/unit/test_diff_preview.py` regression is allowed through the gate.
+- Reissue the `feat-commands` handoff packet so the metadata matches the current branch head.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
-- Approved shared tests:
-  - `tests/unit/test_diff_preview.py`
-- Shared policy support:
-  - `scripts/scope-check.sh`
 
 ## Scope completed
-- Restored the scope-check policy allowance for the approved shared diff-preview regression so the branch gates accept the reviewed shared test.
-- Regenerated the handoff packet and lane metadata so the review evidence matches the actual submitted scope.
+- Reissued the handoff packet and lane metadata so the review evidence matches the actual submitted commit.
+- Removed stale shared-test and scope-check references from the packet metadata.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget. The branch delta changes 5 files, centered on the scope-check policy allowance and the approved shared diff-preview regression for the `feat-commands` lane.
-- The change stays centered on the scope gate needed to verify the reviewed regression and keep the handoff metadata truthful.
+- Stayed within the default lane budget. The branch delta changes 2 files, both metadata artifacts, and keeps the review packet aligned with the actual submitted commit.
+- The change stays centered on packet truthfulness and no longer claims shared-test or scope-check edits.
 
 ## Approved exception note
-- Approved shared-file exception for `tests/unit/test_diff_preview.py`; matching scope-check policy allowance restored in `scripts/scope-check.sh`.
+- None.
 
 ## Tasks completed (numbered)
-1. Restored the scope-check policy allowance for the approved shared `tests/unit/test_diff_preview.py` regression.
-2. Regenerated the handoff packet and lane metadata so the review evidence matches the actual submitted scope.
+1. Reissued the handoff packet and lane metadata against the current branch head.
+2. Removed stale shared-test and scope-check references from the packet metadata.
 
 ## Files changed
-- `.codex/kickoff_packets/feat-commands.md`
 - `.codex/lane_meta/feat-commands.json`
 - `THREAD_PACKET.md`
-- `scripts/scope-check.sh`
-- `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
@@ -50,16 +43,16 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3 - Product Readiness (Planned): keep lane scope checks aligned with the approved shared regression so the `feat-commands` review gate can pass without widening the command surface.
+- Milestone 3 - Product Readiness (Planned): keep the `feat-commands` handoff packet aligned with the actual submitted commit so review evidence remains truthful.
 
 ### Vision capability affected
-- 4. Operator-first control surface - CLI review gates stay aligned with the approved `feat-commands` scope so the lane can ship the reviewed regression without expanding the contract surface.
+- 4. Operator-first control surface - CLI review gates stay aligned with the current branch metadata so the lane can be reviewed without stale scope claims.
 
 ### Routing/provider impact note
-- None. This change only affects local scope-check policy for the approved shared test; no routing/provider files change.
+- None. This change only affects local packet metadata; no routing/provider files change.
 
 ### Proposed README patch text
 - None.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `YES`
+- Shared/integrator-locked edits: `NO`
