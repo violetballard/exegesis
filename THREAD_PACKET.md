@@ -9,18 +9,20 @@
 
 ## Scope completed
 
-The lane canonicalized the FTS-first retrieval MVP so deterministic excerpt payloads and provenance now come from `src/qual/retrieval/service.py`, and source-bundle context fallbacks now flow through `src/qual/engine/retrieval/payload.py`. This matches PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 3, Auditable generation. PageIndex and embeddings remain deferred as fallback-only plumbing, and this handoff stays limited to the retrieval-owned feature surface.
+The lane tightened the FTS-first retrieval MVP so source-bundle snapshots can rehydrate the canonical retrieval context deterministically, while excerpt payloads and provenance remain stable and auditable. PageIndex and embeddings stay deferred as fallback-only plumbing, and this handoff remains limited to the retrieval-owned feature surface.
 
 ## Files changed
 
 - `src/qual/retrieval/service.py`
 - `src/qual/engine/retrieval/payload.py`
+- `tests/unit/test_unified_retrieval.py`
 
 ## Tasks completed
 
 1. Added the excerpt lookup audit trail and deterministic rehydration path in the retrieval service.
 2. Canonicalized excerpt provenance so downstream payloads carry stable hashes and fingerprints.
 3. Accepted source-bundle context fallbacks in the engine payload helpers without widening the retrieval policy.
+4. Added a regression test that exercises the source-bundle-only context reconstruction path and verifies snapshot safety.
 
 ## Commands run and outcomes
 

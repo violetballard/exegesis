@@ -581,6 +581,7 @@ def build_retrieval_context_bundle_from_result(
         return copy.deepcopy(context_source())
     source_bundle_source = getattr(result, "source_bundle", None)
     if callable(source_bundle_source):
-        return _build_retrieval_context_bundle_from_source_bundle(copy.deepcopy(source_bundle_source()))
+        source_bundle = source_bundle_source()
+        return _build_retrieval_context_bundle_from_source_bundle(copy.deepcopy(source_bundle))
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_context_bundle_from_payload(payload)

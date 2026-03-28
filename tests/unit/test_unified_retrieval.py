@@ -527,6 +527,42 @@ class UnifiedRetrievalTests(unittest.TestCase):
         refreshed = engine_build_retrieval_source_bundle_from_result(_SourceBundleOnlySource(result.source_bundle()))
         self.assertNotIn("mutated-doc-id", refreshed["retrieval_summary"]["doc_ids"])
 
+    def test_retrieval_context_bundle_helper_accepts_source_bundle_only_sources(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        source_bundle = result.source_bundle()
+        bundle = engine_build_retrieval_context_bundle_from_result(_SourceBundleOnlySource(source_bundle))
+        self.assertIsNone(bundle["audit_ref"])
+        self.assertEqual(bundle["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(bundle["retrieval_downstream_payload"], source_bundle)
+        self.assertEqual(bundle["retrieval_source_bundle"], source_bundle)
+        self.assertEqual(bundle["retrieval_citation_bundle"], result.citation_bundle())
+        self.assertEqual(bundle["retrieval_doc_bundle"], result.retrieval_doc_bundle())
+        self.assertEqual(bundle["retrieval_excerpt_bundle"], result.retrieval_excerpt_bundle())
+        bundle["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
+        bundle["retrieval_excerpt_bundle"]["excerpt_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
+        refreshed = engine_build_retrieval_context_bundle_from_result(_SourceBundleOnlySource(result.source_bundle()))
+        self.assertNotIn("mutated-doc-id", refreshed["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"])
+        self.assertNotEqual(
+            refreshed["retrieval_excerpt_bundle"]["excerpt_hits"][0]["provenance"]["doc_id"],
+            "mutated-doc-id",
+        )
+
     def test_retrieve_auto_source_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(
             query_text="memo coding comparison",
