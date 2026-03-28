@@ -1,8 +1,16 @@
 {
   "lanes": {
     "feat-a2ui-contract": {
-      "last_submitted_sha": "a03d33319170c0038f4dd9181b09db5e1799b238",
+      "last_submitted_sha": "74eaa23a5bf713d057df0aa26a33060cb2bfdd10",
       "last_emitted_packet": "F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md",
+      "last_handoff_fields": {
+        "roadmap_items": [
+          "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> define A2UI output contract for agent-produced presentation artifacts, add deterministic schemas, provide CLI rendering fallback for the same structured payloads, keep the surface client-agnostic, and preserve deterministic materialized action ordering"
+        ],
+        "vision_capabilities": [
+          "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI)"
+        ]
+      },
       "last_gate_results": [
         [
           "make scope-check",
