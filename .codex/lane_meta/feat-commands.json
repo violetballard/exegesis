@@ -1,15 +1,15 @@
 {
-  "scope_goal": "Harden the feat-commands command surface so command lookup, diff-preview text/JSON output, labels, summaries, and fingerprints stay deterministic and test-covered.",
+  "scope_goal": "Harden diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.",
   "tasks_completed": [
     "Added spec-aware command lookup helpers and catalog projections for the feat-commands surface.",
     "Hardened diff-preview output contracts for text and JSON responses, including labels, summaries, truncation, and fingerprints.",
     "Added focused unit coverage for command catalog behavior and diff-preview contract paths.",
-    "Regenerated the handoff metadata so the packet matches the reviewed command-lane delta."
+    "Regenerated the handoff metadata so the packet matches the reviewed command-lane delta and approved shared tests."
   ],
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 1: Bootstrap Flow Stabilization - command and diff-preview behavior hardening.",
-    "Milestone 2: Test Hardening - add focused unit coverage for core behaviors."
+    "MVP Focus Through 2026-05-04: `feat-commands` active implementation emphasis.",
+    "Milestone 3: Product Readiness (Planned) - Define and lock user-facing output contracts."
   ],
   "vision_capabilities": [
     "3. Auditable generation - diff-preview fingerprints verify the emitted command artifact deterministically.",
