@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `033afb03d94f9b8b6a3e00f4e6fca8d4f0b1f5a8`
+- Commit: `d50af0fb7818cf321be06cc6f70f212ca56305a0`
 
 ## Scope goal
 - Harden the command surface for the CLI-first operator flow so command lookup helpers, diff-preview output, and emitted fingerprints stay deterministic and verifiable.
@@ -40,6 +40,7 @@
 - `src/qual/commands/diff_preview.py`
 - `tests/unit/test_commands_catalog.py`
 - `tests/unit/test_diff_preview.py`
+- `THREAD_PACKET.md`
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
