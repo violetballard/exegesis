@@ -50,5 +50,6 @@ The lane hardened context basket, context-set, and vault persistence so malforme
 
 ## Scope-check / ownership note
 
-- Shared/integrator-locked edits: `YES`
-- Ownership detail: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, which is covered by the approved shared-test exception enforced by `scripts/scope-check.sh` for `codex/feat-context-storage*`.
+- Shared/integrator-locked edits: approved shared-test exception only; no integrator-locked files changed.
+- Approval basis: `scripts/scope-check.sh` explicitly allows `tests/unit/test_context_storage_recovery.py` for `codex/feat-context-storage*` when `SCOPE_ALLOW_SHARED=1` is set.
+- Ownership detail: lane-owned runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`.
