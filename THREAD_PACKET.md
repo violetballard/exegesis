@@ -3,10 +3,10 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit:
-  - `476d68b9420d61ec9b5e5ab440d40e92c0a64676`
+  - `2697db8a5ca515bfcab8b83aa8658cf741779e16`
 
 ## Scope goal
-- Harden diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.
+- Harden command catalog and diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
@@ -18,10 +18,10 @@
 - Added command-catalog projections and canonical lookup helpers for the `feat-commands` surface.
 - Hardened `diff_preview` output contracts for text and JSON responses, including labels, summaries, truncation, and fingerprints.
 - Added focused unit coverage for command catalog behavior and diff-preview contract paths.
-- Regenerated the handoff packet so the review metadata matches the actual command-lane delta and approved shared test coverage.
+- Regenerated the handoff packet and lane metadata so the review metadata matches the actual branch delta and approved shared test coverage.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget. The branch delta is 6 files changed in lane-owned paths plus approved shared tests and remains within the lane size limits.
+- Stayed within the default lane budget. The branch delta is 9 files changed overall: 4 lane-owned code files, 2 approved shared tests, and 3 handoff metadata files.
 - The change stays centered on the command surface contracts for the `feat-commands` lane.
 
 ## Approved exception note
@@ -29,11 +29,14 @@
 
 ## Tasks completed (numbered)
 1. Added command-catalog projections and canonical lookup helpers for the `feat-commands` surface.
-2. Hardened diff_preview output contracts for text and JSON responses, including labels, summaries, truncation, and fingerprints.
+2. Hardened `diff_preview` output contracts for text and JSON responses, including labels, summaries, truncation, and fingerprints.
 3. Added focused unit coverage for command catalog behavior and diff-preview contract paths.
-4. Regenerated the handoff metadata so the packet matches the reviewed command-lane delta and approved shared tests.
+4. Regenerated the handoff packet and lane metadata so the review evidence matches the actual branch delta and approved shared test coverage.
 
 ## Files changed
+- `.codex/kickoff_packets/feat-commands.md`
+- `.codex/lane_meta/feat-commands.json`
+- `THREAD_PACKET.md`
 - `src/qual/commands/__init__.py`
 - `src/qual/commands/canonical.py`
 - `src/qual/commands/catalog.py`
@@ -55,8 +58,8 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1: Bootstrap Flow Stabilization (In Progress) - Command and diff-preview behavior hardening; exit criteria depend on approved feature-lane deltas merging through integrator, `make ci` staying green on integrator and main for the final combined state, and the manual CLI smoke flow remaining stable.
-- Milestone 2: Test Hardening (In Progress) - Focused unit coverage for core behaviors; exit criteria depend on targeted review cases landing and command-level probes staying available for integration confidence.
+- Milestone 1: Bootstrap Flow Stabilization - Command and diff-preview behavior hardening; exit criteria: approved feature-lane deltas merged through integrator, `make ci` green on integrator and main for the final combined state, and the manual CLI smoke flow remaining stable.
+- Milestone 2: Test Hardening - Focused unit coverage for core behaviors; exit criteria: targeted review cases landing and command-level probes staying available for integration confidence.
 
 ### Vision capability affected
 - 3. Auditable generation - diff-preview fingerprints verify the emitted diff artifact deterministically.

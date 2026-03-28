@@ -1,15 +1,15 @@
 {
-  "scope_goal": "Harden diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.",
+  "scope_goal": "Harden command catalog and diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.",
   "tasks_completed": [
-    "Added spec-aware command lookup helpers and catalog projections for the feat-commands surface.",
+    "Added command-catalog projections and canonical lookup helpers for the feat-commands surface.",
     "Hardened diff-preview output contracts for text and JSON responses, including labels, summaries, truncation, and fingerprints.",
     "Added focused unit coverage for command catalog behavior and diff-preview contract paths.",
-    "Regenerated the handoff metadata so the packet matches the reviewed command-lane delta and approved shared tests."
+    "Regenerated the handoff packet and lane metadata so the review evidence matches the actual branch delta and approved shared test coverage."
   ],
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 1: Bootstrap Flow Stabilization (In Progress) - Command and diff-preview behavior hardening; exit criteria depend on approved feature-lane deltas merging through integrator, `make ci` staying green on integrator and main for the final combined state, and the manual CLI smoke flow remaining stable.",
-    "Milestone 2: Test Hardening (In Progress) - Focused unit coverage for core behaviors; exit criteria depend on targeted review cases landing and command-level probes staying available for integration confidence."
+    "Milestone 1: Bootstrap Flow Stabilization - Command and diff-preview behavior hardening; exit criteria: approved feature-lane deltas merged through integrator, `make ci` green on integrator and main for the final combined state, and the manual CLI smoke flow remaining stable.",
+    "Milestone 2: Test Hardening - Focused unit coverage for core behaviors; exit criteria: targeted review cases landing and command-level probes staying available for integration confidence."
   ],
   "vision_capabilities": [
     "3. Auditable generation - diff-preview fingerprints verify the emitted command artifact deterministically.",
@@ -18,10 +18,22 @@
   "routing_provider_impact": "None. This change only affects local command contracts and focused test coverage; no routing/provider files change.",
   "proposed_readme_patch": "",
   "shared_file_exception": true,
-  "kickoff_budget_note": "Stayed within the default lane budget. The branch delta is 6 files changed in lane-owned paths plus approved shared tests and remains within the lane size limits.",
+  "kickoff_budget_note": "Stayed within the default lane budget. The branch delta is 9 files changed overall: 4 lane-owned code files, 2 approved shared tests, and 3 handoff metadata files.",
   "approved_exception_note": "Approved shared-file exception for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to add focused contract coverage required by review.",
-  "review_commit": "476d68b9420d61ec9b5e5ab440d40e92c0a64676",
+  "review_commit": "2697db8a5ca515bfcab8b83aa8658cf741779e16",
   "files_changed": [
+    {
+      "path": ".codex/kickoff_packets/feat-commands.md",
+      "kind": "meta"
+    },
+    {
+      "path": ".codex/lane_meta/feat-commands.json",
+      "kind": "meta"
+    },
+    {
+      "path": "THREAD_PACKET.md",
+      "kind": "meta"
+    },
     {
       "path": "src/qual/commands/__init__.py",
       "kind": "owned"
