@@ -100,13 +100,53 @@ def read_lane_meta(lane: str) -> Json:
         return {}
     return load_json(p, {})
 
+def _coerce_text_list(value: Any) -> List[str]:
+    if isinstance(value, str):
+        return [value] if value.strip() else []
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    return []
+
+def _resolve_handoff_fields(meta: Json) -> Tuple[List[str], List[str]]:
+    roadmap_items = _coerce_text_list(meta.get("roadmap_items"))
+    vision_capabilities = _coerce_text_list(meta.get("vision_capabilities"))
+
+    required = meta.get("required_handoff_fields")
+    if isinstance(required, dict):
+        if not roadmap_items:
+            roadmap_items = _coerce_text_list(required.get("roadmap_items"))
+            if not roadmap_items:
+                roadmap_items = _coerce_text_list(required.get("roadmap_item"))
+        if not vision_capabilities:
+            vision_capabilities = _coerce_text_list(required.get("vision_capabilities"))
+            if not vision_capabilities:
+                vision_capabilities = _coerce_text_list(required.get("vision_capability"))
+
+    last = meta.get("last_handoff_fields")
+    if isinstance(last, dict):
+        if not roadmap_items:
+            roadmap_items = _coerce_text_list(last.get("roadmap_items"))
+            if not roadmap_items:
+                roadmap_items = _coerce_text_list(last.get("roadmap_item"))
+        if not vision_capabilities:
+            vision_capabilities = _coerce_text_list(last.get("vision_capabilities"))
+            if not vision_capabilities:
+                vision_capabilities = _coerce_text_list(last.get("vision_capability"))
+
+    return roadmap_items, vision_capabilities
+
 def validate_meta(meta: Json) -> List[str]:
     missing=[]
-    for k in ("tasks_completed","risk","roadmap_items","vision_capabilities","routing_provider_impact"):
+    roadmap_items, vision_capabilities = _resolve_handoff_fields(meta)
+    for k in ("tasks_completed","risk","routing_provider_impact"):
         if k not in meta: missing.append(k); continue
         v=meta[k]
         if isinstance(v,list) and len(v)==0: missing.append(k)
         if isinstance(v,str) and not v.strip(): missing.append(k)
+    if not roadmap_items:
+        missing.append("roadmap_items")
+    if not vision_capabilities:
+        missing.append("vision_capabilities")
     return missing
 
 def apply_meta_defaults(meta: Json, missing: List[str]) -> Json:
@@ -129,6 +169,7 @@ def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
 
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
+    roadmap_items, vision_capabilities = _resolve_handoff_fields(meta)
     lines=[]
     lines += ["# Feature → Review Packet",""]
     lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
@@ -147,8 +188,8 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     for cmd,rc in gate_results:
         lines.append(f"- `{cmd}`: {rcstr(rc)}")
     lines += ["","## Risks / blockers", f"- Risk: `{str(meta.get('risk','LOW')).strip()}`","- Blockers: none",""]
-    lines += ["## Required handoff fields","### Roadmap item(s) affected"] + [f"- {x}" for x in (meta.get("roadmap_items") or [])]
-    lines += ["### Vision capability affected"] + [f"- {x}" for x in (meta.get("vision_capabilities") or [])]
+    lines += ["## Required handoff fields","### Roadmap item(s) affected"] + [f"- {x}" for x in roadmap_items]
+    lines += ["### Vision capability affected"] + [f"- {x}" for x in vision_capabilities]
     lines += ["### Routing/provider impact note", f"- {str(meta.get('routing_provider_impact','None')).strip()}", ""]
     prp=str(meta.get("proposed_readme_patch","")).strip()
     if prp:
