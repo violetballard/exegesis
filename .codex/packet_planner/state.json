@@ -5,10 +5,10 @@
       "last_emitted_packet": "F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md",
       "last_handoff_fields": {
         "roadmap_items": [
-          "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> deterministic materialized action ordering, stable A2UI schemas, and CLI rendering fallback for the same structured payloads"
+          "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> define A2UI output contract for agent-produced presentation artifacts, add deterministic agent-side card/section/action payload generation, and provide CLI rendering fallback for the same structured payloads"
         ],
         "vision_capabilities": [
-          "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> structured presentation artifacts render in CLI first and remain consumable by Exegesis Console"
+          "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> agent emits structured presentation artifacts that are consumable by CLI first, then Exegesis Console, then future Studio UI"
         ]
       },
       "last_gate_results": [

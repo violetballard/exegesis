@@ -5,10 +5,10 @@
 - Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`. This lane maps to `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress), specifically deterministic materialized action ordering, stable `A2UI` schemas, and CLI rendering fallback, and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`), specifically CLI-first rendering of structured artifacts with `Exegesis Console` reuse.
 - Audit anchor: this fix is intentionally narrow and is the concrete reviewer-required mapping for the deterministic action-ordering change.
 - Scope note: This is a narrow A2UI ordering and contract-coverage update. It does not expand into fallback manifest redesign or broader UI behavior changes.
-- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> deterministic materialized action ordering, stable `A2UI` schemas, and CLI rendering fallback for agent-produced presentation artifacts.
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> define `A2UI` output contract for agent-produced presentation artifacts, add deterministic agent-side card/section/action payload generation, and provide CLI rendering fallback for the same structured payloads.
 - Roadmap exit criteria affected: A2UI schema/versioning is documented and stable; core workflows can emit A2UI payloads and CLI fallback views; output contracts are test-covered and backward-compatible by policy.
 - No other roadmap milestones are implicated by this fix.
-- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> CLI-first rendering of structured presentation artifacts with `Exegesis Console` reuse.
+- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) -> agent emits structured presentation artifacts that are consumable by CLI first, then `Exegesis Console`, then future Studio UI.
 - No other product-vision capabilities are implicated by this fix.
 - These are the reviewer-required plan-alignment mappings for this lane; they replace the prior placeholder form and should remain auditable in the handoff.
 - Canonical plan alignment: this lane maps only to `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
