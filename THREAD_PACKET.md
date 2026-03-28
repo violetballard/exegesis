@@ -69,3 +69,4 @@
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 - Validation was run on the current branch tip during this handoff update.
+- Verification pass for this fix used branch head `b55d23d3ced9a740752455b93503fe67dcf3998e` before the final handoff-note commit.
