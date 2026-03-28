@@ -18,6 +18,7 @@
     "Kept the lane record scoped to one source file plus matching tests with no routing or provider impact."
   ],
   "vision_capabilities": [
-    "Capability 5: Agent-to-UI protocol (A2UI) - agent emits structured presentation artifacts (cards, sections, actions, metadata) that remain consumable by CLI first, then Exegesis Console, then future Studio UI."
+    "Capability 5: Agent-to-UI protocol (A2UI) - agent emits structured presentation artifacts (cards, sections, actions, metadata) that remain consumable by CLI first, then Exegesis Console, then future Studio UI.",
+    "Capability 4: Operator-first control surface - CLI remains a first-class surface for development and reliability."
   ]
 }
