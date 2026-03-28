@@ -98,12 +98,13 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         flow_step="export-handoff",
     ),
 )
-MVP_COMMAND_FLOW_STEPS: tuple[str, ...] = (
+DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",
     "patch-review",
     "export-handoff",
 )
+MVP_COMMAND_FLOW_STEPS: tuple[str, ...] = DEMO_COMMAND_FLOW_STEPS
 
 
 def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> None:
@@ -297,53 +298,53 @@ def command_flow_steps(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[
 def command_mvp_flow_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandFlowEntry, ...]:
-    return command_flow_catalog(specs, command_mvp_flow_steps())
+    return command_demo_flow_catalog(specs)
 
 
 def command_mvp_flow_manifest(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandManifestEntry, ...]:
-    return command_flow_manifest(specs, command_mvp_flow_steps())
+    return command_demo_flow_manifest(specs)
 
 
 def command_mvp_flow_sequence(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandFlowSequence:
-    return command_flow_sequence(specs, command_mvp_flow_steps())
+    return command_demo_flow_sequence(specs)
 
 
 def command_mvp_flow(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[CommandManifestEntry, ...]:
-    return command_flow_manifest(specs, command_mvp_flow_steps())
+    return command_demo_flow_manifest(specs)
 
 
 def command_mvp_flow_steps() -> tuple[str, ...]:
-    return MVP_COMMAND_FLOW_STEPS
+    return command_demo_flow_steps()
 
 
 def command_mvp_flow_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
-    return command_flow_lookup_table(specs, command_mvp_flow_steps())
+    return command_demo_flow_lookup_table(specs)
 
 
 def command_mvp_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[tuple[str, str], ...]:
-    return command_flow_lookup_index(specs, command_mvp_flow_steps())
+    return command_demo_lookup_index(specs)
 
 
 def command_mvp_flow_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
-    return tuple(entry.name for entry in command_mvp_flow(specs))
+    return command_demo_flow_names(specs)
 
 
 def command_mvp_flow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandSurfaceContract:
-    return command_flow_contract(specs, command_mvp_flow_steps())
+    return command_demo_flow_contract(specs)
 
 
 def command_surface_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandSurfaceContract:
-    return command_mvp_flow_contract(specs)
+    return command_demo_surface_contract(specs)
 
 
 def command_flow_contract(
@@ -361,6 +362,58 @@ def command_flow_contract(
         lookup_tokens=sequence.lookup_tokens,
         flow_catalog=command_flow_catalog(specs, ordered_flow_steps),
     )
+
+
+def command_demo_flow_steps() -> tuple[str, ...]:
+    return DEMO_COMMAND_FLOW_STEPS
+
+
+def command_demo_flow_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandFlowEntry, ...]:
+    return command_flow_catalog(specs, command_demo_flow_steps())
+
+
+def command_demo_flow_manifest(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandManifestEntry, ...]:
+    return command_flow_manifest(specs, command_demo_flow_steps())
+
+
+def command_demo_flow_sequence(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandFlowSequence:
+    return command_flow_sequence(specs, command_demo_flow_steps())
+
+
+def command_demo_flow_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_flow_lookup_table(specs, command_demo_flow_steps())
+
+
+def command_demo_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[tuple[str, str], ...]:
+    return command_flow_lookup_index(specs, command_demo_flow_steps())
+
+
+def command_demo_flow_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
+    return tuple(entry.name for entry in command_demo_flow_manifest(specs))
+
+
+def command_demo_flow_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandSurfaceContract:
+    return command_flow_contract(specs, command_demo_flow_steps())
+
+
+def command_demo_surface_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandSurfaceContract:
+    return command_demo_flow_contract(specs)
+
+
+def command_demo_flow(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[CommandManifestEntry, ...]:
+    return command_demo_flow_manifest(specs)
 
 
 def command_tokens(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
