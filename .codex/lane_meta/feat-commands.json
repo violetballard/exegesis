@@ -1,32 +1,25 @@
 {
-  "scope_goal": "Harden command catalog and diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.",
+  "scope_goal": "Restore the feat-commands handoff packet so the submitted docs-only revision is truthful and reviewable.",
   "tasks_completed": [
-    "Added spec-aware command catalog helpers and exports so command names, aliases, flow steps, and manifest/lookup projections stay deterministic.",
-    "Hardened diff_preview output contracts so labels, header suppression, truncation, summary-only handling, JSON output, and fingerprints all reflect the emitted payload.",
-    "Added focused tests for command catalog behavior and diff_preview contract coverage, including JSON shape and fingerprint correctness.",
-    "Regenerated the handoff packet and lane metadata from the real branch delta so the submitted branch state is truthful."
+    "Restored the handoff packet and lane metadata so the submitted branch state matches the actual docs-only commit.",
+    "Narrowed the handoff fields to the two files changed in this revision.",
+    "Removed the stale shared-test approval note because this submission does not change shared tests.",
+    "Realigned the roadmap and vision mapping to the remaining product-readiness fit for the packet-only update."
   ],
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 1 - Bootstrap Flow Stabilization: keep the command surface deterministic for CLI-first operator flows.",
-    "Milestone 2 - Test Hardening: add focused contract coverage for command lookup helpers, flow sequencing, diff-preview output, and fingerprint handling.",
-    "Milestone 3 - Product Readiness: lock the emitted diff fingerprint semantics to the exact user-visible artifact."
+    "Milestone 3 - Product Readiness: define and lock user-facing output contracts."
   ],
   "vision_capabilities": [
-    "Capability 3 - Auditable generation: the emitted SHA-256 fingerprint now verifies the exact diff payload returned by `diff_preview`.",
-    "Capability 4 - Operator-first control surface: command lookup helpers and `diff_preview` now expose stable CLI-first surfaces with deterministic JSON/text contracts."
+    "Capability 4 - Operator-first control surface: the handoff packet stays aligned with the CLI-first command lane and the actual submitted revision."
   ],
-  "routing_provider_impact": "None. This change only affects local diff-preview output formatting, verification metadata, and focused command-contract test coverage; no routing/provider files change.",
+  "routing_provider_impact": "None. This change only affects handoff metadata; no routing/provider files change.",
   "proposed_readme_patch": "",
-  "shared_file_exception": true,
-  "kickoff_budget_note": "Stayed within the default lane budget. The branch delta is 9 files changed and remains within the lane size limits.",
-  "approved_exception_note": "Approved shared-file exception for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` to add focused contract coverage required by review. No policy or integrator-locked files are edited in the submitted branch.",
-  "review_commit": "e53af6696629a9cccda27ac1b344825bae8dc858",
+  "shared_file_exception": false,
+  "kickoff_budget_note": "Stayed within the default lane budget. The branch delta is 2 files changed and remains within the lane size limits.",
+  "approved_exception_note": "",
+  "review_commit": "384a096c9d8ef0ba68ec891b7c3c20bfbbd2ba72",
   "files_changed": [
-    {
-      "path": ".codex/kickoff_packets/feat-commands.md",
-      "kind": "handoff_artifact"
-    },
     {
       "path": ".codex/lane_meta/feat-commands.json",
       "kind": "handoff_artifact"
@@ -34,34 +27,7 @@
     {
       "path": "THREAD_PACKET.md",
       "kind": "handoff_artifact"
-    },
-    {
-      "path": "src/qual/commands/__init__.py",
-      "kind": "code"
-    },
-    {
-      "path": "src/qual/commands/canonical.py",
-      "kind": "code"
-    },
-    {
-      "path": "src/qual/commands/catalog.py",
-      "kind": "code"
-    },
-    {
-      "path": "src/qual/commands/diff_preview.py",
-      "kind": "code"
-    },
-    {
-      "path": "tests/unit/test_commands_catalog.py",
-      "kind": "shared_test"
-    },
-    {
-      "path": "tests/unit/test_diff_preview.py",
-      "kind": "shared_test"
     }
   ],
-  "shared_file_exceptions": [
-    "tests/unit/test_commands_catalog.py",
-    "tests/unit/test_diff_preview.py"
-  ]
+  "shared_file_exceptions": []
 }
