@@ -1,10 +1,11 @@
 {
   "feature_commit": "47cda4df831ac41867a8792f40d720e0cb109514",
-  "handoff_commit": "e19eb22b1f67afa99c75f8ab43c11b526c922f28",
+  "handoff_commit": "40f71e1a25b86811534172b541f933f83289ad42",
   "scope_goal": "Preserve recovered_from cleanup timestamps in context basket/set and vault recovery so canonical cleanup rewrites keep the existing updated_at while removing recovery provenance.",
   "scope_completed": [
     "Preserved existing updated_at during canonical cleanup rewrites in context basket, context set, and vault recovery while stripping recovered_from provenance.",
-    "Added regression coverage for preserved updated_at behavior in basket, context set, and vault recovery paths."
+    "Added regression coverage for preserved updated_at behavior in basket, context set, and vault recovery paths.",
+    "Reconciled the handoff metadata so the final packet matches Milestone 3, the approved regression-test exception, and the actual commit lineage on the branch."
   ],
   "tasks_completed": [
     "Added cleanup timestamp reuse to ContextBasketStore recovery so canonical cleanup rewrites keep the existing updated_at instead of minting a fresh timestamp.",
@@ -16,7 +17,7 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 1: Bootstrap Flow Stabilization (In Progress) - Context basket and vault persistence hardening."
+    "Milestone 3: Real workflow loop - persistent basket/document/session state plus vault hardening."
   ],
   "vision_capabilities": [
     "Capability 1 - Local-first state and identity."

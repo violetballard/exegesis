@@ -3,7 +3,7 @@
 - Lane: `feat-context-storage`
 - Branch: `codex/feat-context-storage`
 - Commit: `47cda4df831ac41867a8792f40d720e0cb109514`
-- Final head SHA: `e19eb22b1f67afa99c75f8ab43c11b526c922f28`
+- Final head SHA: `40f71e1a25b86811534172b541f933f83289ad42`
 
 ## Scope goal
 - Preserve recovered_from cleanup timestamps in context basket/set/vault persistence so canonical cleanup rewrites keep the existing `updated_at` while stripping recovery provenance.
@@ -11,6 +11,7 @@
 ## Scope completed
 - Preserved existing `updated_at` during canonical cleanup rewrites in `ContextBasketStore`, `ContextSetStore`, and `VaultService` while stripping `recovered_from` provenance.
 - Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
+- Reconciled the handoff metadata so the final packet matches Milestone 3, the approved regression-test exception, and the actual commit lineage on the branch.
 
 ## Lane/owned paths
 - `src/qual/context/**`
@@ -34,6 +35,9 @@
 - `src/qual/context/store.py`
 - `src/qual/storage/vault.py`
 - `tests/unit/test_context_storage_recovery.py`
+- `.codex/lane_meta/feat-context-storage.json`
+- `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__6ca617ccf17f5da8f8270345fd41d48b68909ab7__20260328T204224Z.md`
+- `THREAD_PACKET.md`
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
@@ -49,7 +53,7 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1: Bootstrap Flow Stabilization (In Progress) - Context basket and vault persistence hardening.
+- Milestone 3: Real workflow loop - persistent basket/document/session state plus vault hardening.
 
 ### Vision capability affected
 - Capability 1 - Local-first state and identity.

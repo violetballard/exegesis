@@ -3,8 +3,16 @@
 - Branch name: `codex/feat-context-storage`
 - Reviewed commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514`
-- Final head SHA:
+  - `ee2dd30ae4c3118ffe1f2129f5f3f14316868a00`
+  - `076a40ae6d6c4d51e4fb24be6f8a28d73a9d50ef`
+  - `5cf30e759ed161dcf100b7c7c2b05bf44a3dacbf`
+  - `0ea41598c7283ac12a69fec8be64aecc593ccf2e`
+  - `011589aa6ef6c89fa18f6f46f1a4b5ec8ad7f4a1`
+  - `d96998ed5d6a519da3139014dd404893fb9e3c58`
   - `e19eb22b1f67afa99c75f8ab43c11b526c922f28`
+  - `40f71e1a25b86811534172b541f933f83289ad42`
+- Final head SHA:
+  - `40f71e1a25b86811534172b541f933f83289ad42`
 
 ## Metadata-only follow-up
 
@@ -12,12 +20,14 @@
 - `076a40ae6d6c4d51e4fb24be6f8a28d73a9d50ef`
 - `5cf30e759ed161dcf100b7c7c2b05bf44a3dacbf`
 - `0ea41598c7283ac12a69fec8be64aecc593ccf2e`
+- `011589aa6ef6c89fa18f6f46f1a4b5ec8ad7f4a1`
 - `d96998ed5d6a519da3139014dd404893fb9e3c58`
 - `e19eb22b1f67afa99c75f8ab43c11b526c922f28`
+- `40f71e1a25b86811534172b541f933f83289ad42`
 
 ## Scope completed
 
-The feature commit preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The later handoff commits only reconcile packet metadata and branch-head bookkeeping; they do not expand the owned storage scope. The final handoff still includes the lane-approved regression test `tests/unit/test_context_storage_recovery.py`, and no `scripts/scope-check.sh` edit is part of the final handoff.
+The feature commit preserved `recovered_from` cleanup timestamps across basket, context-set, and vault canonical rewrite paths so recovery cleanup keeps the existing `updated_at` while stripping recovery provenance. The follow-up handoff commits keep the lane aligned to Milestone 3, preserve the approved regression-test exception, and reconcile the packet metadata and branch-head bookkeeping without widening scope.
 
 ## Files changed
 
@@ -25,6 +35,9 @@ The feature commit preserved `recovered_from` cleanup timestamps across basket, 
 - `src/qual/context/store.py`
 - `src/qual/storage/vault.py`
 - `tests/unit/test_context_storage_recovery.py`
+- `.codex/lane_meta/feat-context-storage.json`
+- `.codex/packets/lanes/feat-context-storage/inbox/feature/F__codex-feat-context-storage__6ca617ccf17f5da8f8270345fd41d48b68909ab7__20260328T204224Z.md`
+- `THREAD_PACKET.md`
 
 ## Tasks completed
 
@@ -32,13 +45,12 @@ The feature commit preserved `recovered_from` cleanup timestamps across basket, 
 2. Reused the existing cleanup timestamp in `ContextSetStore` recovery so canonical cleanup rewrites keep the prior `updated_at` value.
 3. Reused the existing cleanup timestamp in `VaultService` recovery so canonical cleanup rewrites keep the prior `updated_at` value.
 4. Added regression coverage for preserved `updated_at` behavior in basket, context set, and vault recovery paths.
-5. Re-ran the required lane gates and confirmed the branch passes them.
-6. Reconciled the packet metadata to reflect the current head and keep the approved shared test exception, lane-owned scope, and auditable task list explicit.
+5. Reconciled the handoff packet and lane metadata so the recorded roadmap mapping, scope completed notes, and commit lineage match the actual patch set.
+6. Preserved the approved regression-test exception for `tests/unit/test_context_storage_recovery.py` without claiming any shared or integrator-locked edits.
 
 ## Commands run and outcomes
 
 - `make scope-check`: PASS
-  - The approved shared test `tests/unit/test_context_storage_recovery.py` is whitelisted by the lane policy, so no `SCOPE_ALLOW_SHARED=1` override was needed.
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
@@ -52,7 +64,7 @@ The feature commit preserved `recovered_from` cleanup timestamps across basket, 
 
 ## Roadmap item(s) affected
 
-- Milestone 1: Bootstrap Flow Stabilization (In Progress) - Context basket and vault persistence hardening.
+- Milestone 3: Real workflow loop - persistent basket/document/session state plus vault hardening.
 
 ## Vision capability affected
 
@@ -68,5 +80,5 @@ The feature commit preserved `recovered_from` cleanup timestamps across basket, 
 
 ## Scope-check / ownership note
 
-- Shared/integrator-locked edits: none
+- Shared/integrator-locked edits: `NO`
 - Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, covered by the lane-approved regression-test exception referenced above. No integrator-locked files were edited.
