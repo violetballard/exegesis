@@ -4,9 +4,7 @@
   "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 5: A2UI Presentation Layer - define A2UI output contract for agent-produced presentation artifacts.",
-    "Milestone 5: A2UI Presentation Layer - provide CLI rendering fallback for the same structured payloads.",
-    "Milestone 5: A2UI Presentation Layer - keep schema/versioning documented and stable."
+    "Milestone 5: A2UI Presentation Layer - provide CLI rendering fallback for the same structured payloads."
   ],
   "routing_provider_impact": "None",
   "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, and keep the handoff aligned with ROADMAP.md Milestone 5: A2UI Presentation Layer - define A2UI output contract, add deterministic schemas, and provide CLI rendering fallback for the same structured payloads, plus PRODUCT_VISION.md Capability 5 (A2UI).",
@@ -18,7 +16,6 @@
     "Kept the lane record scoped to one source file plus matching tests with no routing or provider impact."
   ],
   "vision_capabilities": [
-    "Capability 5: Agent-to-UI protocol (A2UI) - agent emits structured presentation artifacts (cards, sections, actions, metadata) that remain consumable by CLI first, then Exegesis Console, then future Studio UI.",
-    "Capability 4: Operator-first control surface - CLI remains a first-class surface for development and reliability."
+    "Capability 5: Agent-to-UI protocol (A2UI) - agent emits structured presentation artifacts (cards, sections, actions, metadata) that remain consumable by CLI first, then Exegesis Console, then future Studio UI."
   ]
 }
