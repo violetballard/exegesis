@@ -7,7 +7,7 @@
     "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullet Add agent-side card/section/action payload generation with deterministic schemas and exit criteria A2UI schema/versioning is documented and stable; this deterministic action-ordering fix is the concrete implementation of that item"
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, and keep the handoff aligned with ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) and PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI), specifically deterministic materialized action ordering, stable A2UI schemas, and CLI-first rendering of structured artifacts with Exegesis Console reuse.",
+  "scope_goal": "Canonicalize materialized A2UI action order in src/qual/ui/a2ui.py so CLI fallback rendering stays deterministic, and keep the handoff aligned with ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress), specifically Add agent-side card/section/action payload generation with deterministic schemas and A2UI schema/versioning is documented and stable, plus PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI), specifically CLI-first rendering of structured artifacts with Exegesis Console reuse.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Updated the A2UI materialization path in src/qual/ui/a2ui.py to sort filtered actions by canonical JSON before rendering.",

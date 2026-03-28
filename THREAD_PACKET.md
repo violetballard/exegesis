@@ -1,7 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`. This handoff explicitly maps to `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) for auditability.
+- Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`. This handoff explicitly maps to `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) `Add agent-side card/section/action payload generation with deterministic schemas` and `A2UI schema/versioning is documented and stable`, plus `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`) for auditability.
 - Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress)
   - Scope bullet: `Add agent-side card/section/action payload generation with deterministic schemas`
   - Exit criterion: `A2UI schema/versioning is documented and stable`
@@ -17,7 +17,7 @@
     - Agent emits structured presentation artifacts that are consumable by CLI first, then `Exegesis Console`, then future Studio UI.
     - CLI fallback rendering uses the same structured artifacts.
 - Audit anchor: this fix is intentionally narrow and is the concrete reviewer-required mapping for the deterministic action-ordering change.
-- Plan alignment: this lane maps only to `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress), specifically the deterministic schema/payload-generation scope bullet, and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`); no other roadmap milestones or vision capabilities are implicated.
+- Plan alignment: this lane maps only to `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress), specifically the deterministic schema/payload-generation scope bullet and stable schema/versioning exit criterion, and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`); no other roadmap milestones or vision capabilities are implicated.
 - Reviewer-required fields are now explicit in this packet, so the handoff no longer depends on inference.
 - Roadmap detail: preserve deterministic agent-side card/section/action payload generation while keeping the `A2UI` output contract stable and client-agnostic.
 - Vision detail: structured presentation artifacts remain CLI-first and consumable by `Exegesis Console` with the same underlying artifacts.
