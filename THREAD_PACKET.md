@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-a2ui-contract`
 - Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`.
 - Runtime change commit: `b929fe6c7a1159c7882acedd247aca31a93cd123`
-- Handoff scope: metadata-only resubmission on the current branch tip so the roadmap and vision mapping are explicit and reviewer-auditable.
+- Handoff scope: metadata-only resubmission on the current branch tip so the roadmap and vision mapping are explicit and reviewer-auditable, including the saved planner handoff state used for future packet emissions.
 - Reviewer mapping: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 - Reviewer fix status: required fix `#1` is satisfied on this branch tip because the exact roadmap milestone/scope bullets and product-vision capability are cited directly in the reviewer-facing packets.
 - Canon note: the labels above are taken from the current `ROADMAP.md` and `PRODUCT_VISION.md` in this worktree, so the handoff uses the branch's authoritative plan wording rather than older example labels from the review thread.
@@ -22,6 +22,7 @@
   1. Updated the A2UI materialization path in `src/qual/ui/a2ui.py` to sort filtered actions by canonical JSON before terminal rendering.
   2. Added contract coverage in `tests/unit/test_a2ui_contract.py` for the canonical ordering behavior.
   3. Cleaned up the feature packet and thread packet so the required roadmap and product-vision mappings are explicit and auditable.
+  4. Synced `.codex/packet_planner/state.json` and `tests/unit/test_packet_planner.py` so saved and re-emitted packets preserve the same explicit Milestone 5 / Capability 5 mapping.
 
 ## Reviewer Required Fix Coverage
 
@@ -51,6 +52,7 @@
 - Reviewer-response note: this metadata-only follow-up pins the required audit mapping directly to `ROADMAP.md` Milestone 5 scope bullets `Add agent-side card/section/action payload generation with deterministic schemas` and `Provide CLI rendering fallback for the same structured payloads`, plus `PRODUCT_VISION.md` Capability 5 `Agent-to-UI protocol (A2UI)`.
 - Reviewer-required plan alignment fields are explicit above and auditable without inference: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 - This thread packet mirrors the reviewer-facing feature packet so the resubmission is explicit in both places.
+- The saved planner handoff state and its regression coverage now use the same explicit mapping as the reviewer-facing packets, so a future re-emission will not drift back to a shortened mapping.
 - The matching feature packet lives at `.codex/packets/lanes/feat-a2ui-contract/inbox/feature/F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md`.
 - This is the final handoff packet for the reviewer-required mapping fix and does not introduce any new scope.
 - This closes the reviewer-required mapping fix without changing the scope of the A2UI ordering change.

@@ -17,6 +17,19 @@ def _load_planner_module():
 
 planner = _load_planner_module()
 
+ROADMAP_MAPPING = (
+    "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullets "
+    "Add agent-side card/section/action payload generation with deterministic schemas "
+    "and Provide CLI rendering fallback for the same structured payloads, with exit "
+    "criterion A2UI schema/versioning is documented and stable"
+)
+VISION_MAPPING = (
+    "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> agent emits "
+    "structured presentation artifacts that are consumable by CLI first, then "
+    "Exegesis Console, then future Studio UI, including the CLI fallback rendering "
+    "path used by this fix"
+)
+
 
 class PacketPlannerTests(unittest.TestCase):
     def test_build_packet_uses_explicit_handoff_mappings(self) -> None:
@@ -29,8 +42,8 @@ class PacketPlannerTests(unittest.TestCase):
                 "roadmap_items": [],
                 "vision_capabilities": [],
                 "required_handoff_fields": {
-                    "roadmap_item": "ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress) -> scope bullet Add agent-side card/section/action payload generation with deterministic schemas and exit criterion A2UI schema/versioning is documented and stable",
-                    "vision_capability": "PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI) -> agent emits structured presentation artifacts that are consumable by CLI first, then Exegesis Console, then future Studio UI, including the CLI fallback rendering path used by this fix",
+                    "roadmap_item": ROADMAP_MAPPING,
+                    "vision_capability": VISION_MAPPING,
                 },
                 "tasks_completed": ["Updated packet handoff fields."],
                 "risk": "LOW",
@@ -40,8 +53,34 @@ class PacketPlannerTests(unittest.TestCase):
             gate_results=[("make scope-check", 0)],
         )
 
-        self.assertIn("ROADMAP.md Milestone 5: A2UI Presentation Layer (In Progress)", packet)
-        self.assertIn("PRODUCT_VISION.md Capability 5: Agent-to-UI protocol (A2UI)", packet)
+        self.assertIn(ROADMAP_MAPPING, packet)
+        self.assertIn(VISION_MAPPING, packet)
+        self.assertIn("Provide CLI rendering fallback for the same structured payloads", packet)
+        self.assertNotIn("pending reviewer/integrator confirmation", packet)
+
+    def test_build_packet_uses_saved_handoff_mappings_when_meta_lists_are_empty(self) -> None:
+        packet = planner.build_packet(
+            lane="feat-a2ui-contract",
+            branch="codex/feat-a2ui-contract",
+            sha="def456",
+            meta={
+                "scope_goal": "Canonicalize materialized A2UI action order.",
+                "roadmap_items": [],
+                "vision_capabilities": [],
+                "last_handoff_fields": {
+                    "roadmap_items": [ROADMAP_MAPPING],
+                    "vision_capabilities": [VISION_MAPPING],
+                },
+                "tasks_completed": ["Synced saved packet handoff fields."],
+                "risk": "LOW",
+                "routing_provider_impact": "None",
+            },
+            files=["THREAD_PACKET.md"],
+            gate_results=[("make scope-check", 0)],
+        )
+
+        self.assertIn(ROADMAP_MAPPING, packet)
+        self.assertIn(VISION_MAPPING, packet)
         self.assertNotIn("pending reviewer/integrator confirmation", packet)
 
     def test_apply_meta_defaults_does_not_invent_handoff_placeholders(self) -> None:
