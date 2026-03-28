@@ -1,16 +1,25 @@
 {
-  "scope_goal": "Restart this lane from current main with strict owned-path-only context and vault persistence hardening; prior branch state is reference-only and must not be promoted as-is.",
-  "tasks_completed": [],
+  "scope_goal": "Harden context basket/set and vault recovery so payloads missing updated_at are quarantined and rewritten safely without promoting stale auxiliary state.",
+  "scope_completed": [
+    "Quarantined payloads missing updated_at in context basket/set recovery so canonical rewrites stay normalized and auditable.",
+    "Quarantined payloads missing updated_at in vault backup/seed recovery while preserving safe reloads of valid state."
+  ],
+  "tasks_completed": [
+    "Tightened ContextBasketStore recovery to quarantine payloads missing updated_at during canonical rewrite and auxiliary refresh.",
+    "Tightened ContextSetStore recovery to quarantine payloads missing updated_at during canonical rewrite and auxiliary refresh.",
+    "Tightened VaultService recovery to quarantine backup and seed payloads missing updated_at while preserving canonical reloads.",
+    "Re-ran the required format, lint, test, typecheck, and CI gates on the committed branch head and confirmed they pass."
+  ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 1 - Bootstrap Flow Stabilization: context basket and vault persistence hardening."
+    "Milestone 3 - Real workflow loop: persistent basket/document/session state."
   ],
   "vision_capabilities": [
-    "Capability 1 - Local-first state and identity."
+    "Capability 6 - Auditable state and workflow: persistent project/document/basket/session state with safe recovery and traceable rewrites."
   ],
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
-  "shared_file_exception": true,
+  "shared_file_exception": false,
   "kickoff_budget_note": "Reset-required lane after ownership and repo-hygiene drift in the stale March 5 review generation.",
-  "approved_exception_note": "Approved shared-file exception for tests/unit/test_context_storage_recovery.py to cover the vault recovery regression alongside the owned-path storage fix."
+  "approved_exception_note": ""
 }
