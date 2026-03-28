@@ -47,7 +47,7 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 1: Bootstrap Flow Stabilization - Command and diff-preview behavior hardening.
+- feat-commands: CLI compatibility and migration-safe entrypoints.
 
 ### Vision capability affected
 - 3. Auditable generation - Draft/diff outputs are traceable to retrieved sources and support repeatable analysis.
