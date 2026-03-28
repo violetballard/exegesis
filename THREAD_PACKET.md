@@ -49,7 +49,6 @@
 ## Required handoff fields
 ### Roadmap item(s) affected
 - Milestone 3 - Real workflow loop
-- Engine persistence/state recovery hardening
 
 ### Vision capability affected
 - Capability 6 - Auditable state and workflow

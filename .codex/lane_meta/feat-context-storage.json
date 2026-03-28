@@ -9,8 +9,7 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 3 - Real workflow loop",
-    "Engine persistence/state recovery hardening"
+    "Milestone 3 - Real workflow loop"
   ],
   "vision_capabilities": [
     "Capability 6 - Auditable state and workflow"
