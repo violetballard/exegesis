@@ -24,11 +24,13 @@ import src.qual.retrieval as package_retrieval
 from src.qual.retrieval import retrieve_auto as engine_retrieve_auto
 from src.qual.retrieval import retrieve_auto_citation_bundle as engine_retrieve_auto_citation_bundle
 from src.qual.retrieval import retrieve_auto_doc_bundle as engine_retrieve_auto_doc_bundle
+from src.qual.retrieval import retrieve_auto_provenance_bundle as engine_retrieve_auto_provenance_bundle
 from src.qual.retrieval import retrieve_auto_payload as engine_retrieve_auto_payload
 from src.qual.retrieval import retrieve_auto_source_bundle as engine_retrieve_auto_source_bundle
 from src.qual.retrieval import retrieve_fts as engine_retrieve_fts
 from src.qual.retrieval import retrieve_fts_doc_bundle as engine_retrieve_fts_doc_bundle
 from src.qual.retrieval import retrieve_fts_excerpt as engine_retrieve_fts_excerpt
+from src.qual.retrieval import retrieve_fts_provenance_bundle as engine_retrieve_fts_provenance_bundle
 from src.qual.retrieval import retrieve_fts_payload as engine_retrieve_fts_payload
 from src.qual.retrieval import retrieve_fts_source_bundle as engine_retrieve_fts_source_bundle
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
@@ -616,6 +618,36 @@ class UnifiedRetrievalTests(unittest.TestCase):
         direct["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
         self.assertNotIn("mutated-doc-id", self.service.retrieve_auto_source_bundle(query)["retrieval_summary"]["doc_ids"])
 
+    def test_retrieve_auto_provenance_bundle_matches_result_snapshot(self) -> None:
+        query = RetrievalQuery(
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints=RetrievalConstraints(max_results=4),
+            confidentiality_profile="confidential",
+        )
+
+        result = self.service.retrieve_auto(query)
+        direct = self.service.retrieve_auto_provenance_bundle(query)
+        helper = engine_retrieve_auto_provenance_bundle(
+            self.service,
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints={"max_results": 4},
+            confidentiality_profile="confidential",
+        )
+
+        self.assertEqual(direct, result.retrieval_provenance_bundle())
+        self.assertEqual(helper, result.retrieval_provenance_bundle())
+        self.assertEqual(direct["doc_citations"], result.citation_bundle()["doc_citations"])
+        self.assertEqual(direct["excerpt_citations"], result.citation_bundle()["excerpt_citations"])
+        direct["excerpt_citations"][0]["excerpt_id"] = "mutated-excerpt-id"
+        self.assertNotEqual(
+            self.service.retrieve_auto_provenance_bundle(query)["excerpt_citations"][0]["excerpt_id"],
+            "mutated-excerpt-id",
+        )
+
     def test_retrieve_fts_source_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(
             query_text="theory implications",
@@ -644,6 +676,36 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(direct["retrieval_summary"]["excerpt_ids"], [item.excerpt_id for item in result.hits if item.excerpt_id is not None])
         direct["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
         self.assertNotIn("mutated-doc-id", self.service.retrieve_fts_source_bundle(query)["retrieval_summary"]["doc_ids"])
+
+    def test_retrieve_fts_provenance_bundle_matches_result_snapshot(self) -> None:
+        query = RetrievalQuery(
+            query_text="theory implications",
+            scope="doc:doc-pdf-1",
+            intent="lookup",
+            constraints=RetrievalConstraints(max_results=4),
+            confidentiality_profile="confidential",
+        )
+
+        result = self.service.retrieve_fts(query)
+        direct = self.service.retrieve_fts_provenance_bundle(query)
+        helper = engine_retrieve_fts_provenance_bundle(
+            self.service,
+            query_text="theory implications",
+            scope="doc:doc-pdf-1",
+            intent="lookup",
+            constraints={"max_results": 4},
+            confidentiality_profile="confidential",
+        )
+
+        self.assertEqual(direct, result.retrieval_provenance_bundle())
+        self.assertEqual(helper, result.retrieval_provenance_bundle())
+        self.assertEqual(direct["doc_citations"], result.citation_bundle()["doc_citations"])
+        self.assertEqual(direct["excerpt_citations"], result.citation_bundle()["excerpt_citations"])
+        direct["doc_citations"][0]["doc_id"] = "mutated-doc-id"
+        self.assertNotEqual(
+            self.service.retrieve_fts_provenance_bundle(query)["doc_citations"][0]["doc_id"],
+            "mutated-doc-id",
+        )
 
     def test_retrieve_fts_doc_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(
@@ -951,6 +1013,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "retrieve_fts",
                 "retrieve_fts_context_bundle",
                 "retrieve_fts_source_bundle",
+                "retrieve_fts_provenance_bundle",
                 "retrieve_fts_doc_bundle",
                 "retrieve_fts_excerpt_bundle",
                 "retrieve_fts_excerpt",
@@ -958,6 +1021,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "retrieve_auto_context_bundle",
                 "retrieve_auto_citation_bundle",
                 "retrieve_auto_source_bundle",
+                "retrieve_auto_provenance_bundle",
                 "retrieve_auto_doc_bundle",
                 "retrieve_auto_excerpt_bundle",
                 "retrieve_auto_payload",
@@ -983,11 +1047,13 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_context_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_citation_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_source_bundle"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_provenance_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_excerpt_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_excerpt"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_payload"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_context_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_source_bundle"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_provenance_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_excerpt_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_payload"))
         self.assertTrue(hasattr(package_retrieval, "retrieve_auto_citation_bundle"))

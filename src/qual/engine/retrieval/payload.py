@@ -35,6 +35,11 @@ class RetrievalContextBundleSource(Protocol):
         """Return the deterministic retrieval context consumed by engine flows."""
 
 
+class RetrievalProvenanceBundleSource(Protocol):
+    def retrieval_provenance_bundle(self) -> dict[str, object]:
+        """Return the deterministic retrieval provenance snapshot consumed by engine flows."""
+
+
 def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
     """Return the deterministic citation bundle from a downstream payload snapshot."""
 
@@ -457,6 +462,9 @@ def build_retrieval_provenance_from_result(
 ) -> dict[str, object]:
     """Return the deterministic retrieval provenance snapshot for a result."""
 
+    provenance_source = getattr(result, "retrieval_provenance_bundle", None)
+    if callable(provenance_source):
+        return copy.deepcopy(provenance_source())
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_provenance_from_payload(payload)
 

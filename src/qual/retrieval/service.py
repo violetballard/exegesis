@@ -408,6 +408,11 @@ class RetrievalResult:
 
         return self._retrieval_source_bundle_snapshot()
 
+    def retrieval_provenance_bundle(self) -> dict[str, object]:
+        """Return the deterministic retrieval provenance snapshot for downstream engine flows."""
+
+        return copy.deepcopy(self.to_downstream_payload()["retrieval_provenance"])
+
     def retrieval_doc_bundle(self) -> dict[str, object]:
         """Return the deterministic doc-focused snapshot for downstream engine flows."""
 
@@ -750,6 +755,11 @@ class RetrievalService:
 
         return self.retrieve_fts(query).source_bundle()
 
+    def retrieve_fts_provenance_bundle(self, query: RetrievalQuery) -> dict[str, object]:
+        """Return the canonical provenance bundle for a single FTS retrieval."""
+
+        return self.retrieve_fts(query).retrieval_provenance_bundle()
+
     def retrieve_fts_doc_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical doc-focused bundle for a single FTS retrieval."""
 
@@ -782,6 +792,11 @@ class RetrievalService:
         """Return the canonical retrieval source bundle for the FTS-first auto path."""
 
         return self.retrieve_auto(query).source_bundle()
+
+    def retrieve_auto_provenance_bundle(self, query: RetrievalQuery) -> dict[str, object]:
+        """Return the canonical provenance bundle for the FTS-first auto path."""
+
+        return self.retrieve_auto(query).retrieval_provenance_bundle()
 
     def retrieve_auto_doc_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical doc-focused bundle for the FTS-first auto path."""
