@@ -1,22 +1,27 @@
 {
-  "scope_goal": "Retitle the feat-commands handoff to match the actual docs-only branch history and remove unsupported code/test claims.",
-  "tasks_completed": [
-    "Reconciled the packet with the actual docs-only branch history.",
-    "Removed unsupported claims about lane-owned command code and shared-test coverage.",
-    "Re-aligned the handoff packet and lane metadata so the review inventory is truthful."
-  ],
+  "approved_exception_note": "Approved shared-file exception for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to add focused contract coverage required by review.",
+  "kickoff_budget_note": "Stayed within the default lane budget; the branch delta is 8 files changed and remains within the lane size limits.",
+  "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "None; this turn only corrected handoff metadata and did not change product scope."
+    "Milestone 1 - Bootstrap Flow Stabilization: harden the command surface and CLI-compatible output contracts for deterministic entrypoints.",
+    "Milestone 2 - Test Hardening: add focused unit coverage for catalog projections, JSON output shape, and fingerprint verification.",
+    "Milestone 3 - Product Readiness: lock the emitted diff fingerprint semantics to the exact user-visible artifact so downstream CLI consumers can verify what the command returned."
+  ],
+  "routing_provider_impact": "None. This change only affects local command-surface contracts, verification metadata, and focused command test coverage; no routing/provider files change.",
+  "scope_goal": "Harden command catalog and diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.",
+  "shared_file_exception": true,
+  "tasks_completed": [
+    "Added spec-aware command catalog helpers and exports for canonical names, lookup tokens, manifest projections, and flow-aware surfaces.",
+    "Hardened diff_preview so labeled output, header suppression, truncation, summary-only handling, JSON output, and SHA-256 fingerprinting stay deterministic.",
+    "Added focused tests for command catalog behavior and diff_preview contract coverage, including JSON shape and fingerprint correctness.",
+    "Regenerated the feature handoff packet and lane metadata from the real main...HEAD delta so the submitted branch state is truthful."
   ],
   "vision_capabilities": [
-    "None; this turn only corrected handoff metadata and did not change product capabilities."
+    "Capability 3 - Auditable generation: the emitted SHA-256 fingerprint verifies the exact diff payload returned by the command, including label application and truncation behavior.",
+    "Capability 4 - Operator-first control surface: diff_preview keeps a stable CLI-first surface while exposing a concrete JSON contract that matches the submitted behavior change and is covered by focused tests."
   ],
-  "routing_provider_impact": "None. This change only affects handoff metadata; no routing/provider files change.",
-  "proposed_readme_patch": "",
-  "shared_file_exception": false,
-  "kickoff_budget_note": "Docs-only handoff repair; branch delta limited to handoff artifacts and within default size limits.",
-  "review_commit": "7ae611a96152b8e0cc7eeb6d2028eaea873b6f5a",
+  "review_commit": "c33ec8c28867fdd5e042c2a992dd251b94cd2a38",
   "files_changed": [
     {
       "path": ".codex/kickoff_packets/feat-commands.md",
@@ -29,8 +34,31 @@
     {
       "path": "THREAD_PACKET.md",
       "kind": "handoff_artifact"
+    },
+    {
+      "path": "src/qual/commands/__init__.py",
+      "kind": "code"
+    },
+    {
+      "path": "src/qual/commands/catalog.py",
+      "kind": "code"
+    },
+    {
+      "path": "src/qual/commands/diff_preview.py",
+      "kind": "code"
+    },
+    {
+      "path": "tests/unit/test_commands_catalog.py",
+      "kind": "shared_test"
+    },
+    {
+      "path": "tests/unit/test_diff_preview.py",
+      "kind": "shared_test"
     }
   ],
-  "shared_file_exceptions": [],
-  "approved_exception_note": "None; this branch does not edit shared or integrator-locked files."
+  "shared_file_exceptions": [
+    "tests/unit/test_commands_catalog.py",
+    "tests/unit/test_diff_preview.py"
+  ],
+  "approved_exception_note": "Approved shared-file exception for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to add focused contract coverage required by review."
 }

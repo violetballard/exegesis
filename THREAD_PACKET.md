@@ -2,41 +2,52 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit(s): `7ae611a96152b8e0cc7eeb6d2028eaea873b6f5a`
+- Commit(s): `c33ec8c28867fdd5e042c2a992dd251b94cd2a38`
 
 ## Scope goal
-- Retitle the feat-commands handoff to match the actual docs-only branch history and remove unsupported code/test claims.
+- Harden command catalog and diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.
 
 ## Lane/owned paths
-- None in this turn; the submitted branch history is docs-only.
+- `src/qual/commands/**`
+- Shared by approval only:
+  - `tests/unit/test_commands_catalog.py`
+  - `tests/unit/test_diff_preview.py`
 
 ## Scope completed
-- Rewrote the handoff inventory so the packet matches the actual branch delta, which is limited to docs and metadata artifacts.
-- Removed unsupported claims about lane-owned command code and approved shared-test edits that are not present in this branch.
-- Aligned the scope summary, file inventory, and lane metadata with a docs-only reviewable state.
+- Added spec-aware command catalog helpers and surface exports so command names, aliases, flow steps, and manifest/lookup projections stay deterministic.
+- Hardened diff_preview output contracts so labels, header suppression, truncation, summary-only handling, JSON output, and fingerprints all reflect the emitted payload.
+- Added focused command-contract tests for command catalog projections and diff_preview JSON/text behavior, including fingerprint verification.
+- Reconciled the handoff packet and lane metadata with the actual `main...HEAD` branch delta so the review inventory matches the submitted revision.
 
 ## Kickoff budget/limits compliance
 - Stayed within the default lane budget.
-- The branch delta is 3 files changed, all handoff artifacts.
-- The change remains within the lane size limits.
+- The branch delta is 9 files changed and remains within the lane size limits.
+- The change stays centered on command-surface contract hardening plus focused shared test coverage.
 
 ## Tasks completed (numbered)
-1. Reconciled the packet with the actual docs-only branch history.
-2. Removed unsupported claims about lane-owned command code and shared-test coverage.
-3. Re-aligned the handoff packet and lane metadata so the review inventory is truthful.
+1. Added spec-aware command catalog helpers and exports for canonical names, lookup tokens, manifest projections, and flow-aware surfaces.
+2. Hardened diff_preview so labeled output, header suppression, truncation, summary-only handling, JSON output, and SHA-256 fingerprinting stay deterministic.
+3. Added focused tests for command catalog behavior and diff_preview contract coverage, including JSON shape and fingerprint correctness.
+4. Regenerated the feature handoff packet and lane metadata from the real `main...HEAD` delta so the submitted branch state is truthful.
 
 ## Files changed for this turn
 - `.codex/kickoff_packets/feat-commands.md`
 - `.codex/lane_meta/feat-commands.json`
 - `THREAD_PACKET.md`
+- `src/qual/commands/__init__.py`
+- `src/qual/commands/canonical.py`
+- `src/qual/commands/catalog.py`
+- `src/qual/commands/diff_preview.py`
+- `tests/unit/test_commands_catalog.py`
+- `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
-- `make scope-check`: PASS
-- `./quality-format.sh --check`: PASS
-- `./quality-lint.sh`: PASS
-- `./quality-test.sh`: PASS
-- `./typecheck-test.sh`: PASS
-- `make ci`: PASS
+- `make scope-check`: not yet run
+- `./quality-format.sh --check`: not yet run
+- `./quality-lint.sh`: not yet run
+- `./quality-test.sh`: not yet run
+- `./typecheck-test.sh`: not yet run
+- `make ci`: not yet run
 
 ## Risks / blockers
 - Risk: `LOW`
@@ -44,16 +55,20 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- None; this turn only corrected handoff metadata and did not change product scope.
+- Milestone 1 - Bootstrap Flow Stabilization: harden the command surface and CLI-compatible output contracts for deterministic entrypoints.
+- Milestone 2 - Test Hardening: add focused unit coverage for catalog projections, JSON output shape, and fingerprint verification.
+- Milestone 3 - Product Readiness: lock the emitted diff fingerprint semantics to the exact user-visible artifact so downstream CLI consumers can verify what the command returned.
 
 ### Vision capability affected
-- None; this turn only corrected handoff metadata and did not change product capabilities.
+- Capability 3 - Auditable generation: the emitted SHA-256 fingerprint verifies the exact diff payload returned by the command, including label application and truncation behavior.
+- Capability 4 - Operator-first control surface: diff_preview keeps a stable CLI-first surface while exposing a concrete JSON contract that matches the submitted behavior change and is covered by focused tests.
 
 ### Routing/provider impact note
-- None. This change only affects handoff metadata; no routing/provider files change.
+- None. This change only affects local command-surface contracts, verification metadata, and focused command test coverage; no routing/provider files change.
 
 ### Proposed README patch text
 - None.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO`
+- Shared/integrator-locked edits: `YES`
+- Approved shared-file exception: `tests/unit/test_commands_catalog.py`, `tests/unit/test_diff_preview.py`
