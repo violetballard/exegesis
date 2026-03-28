@@ -340,6 +340,8 @@ class ContextBasketStore:
             and not preserve_seed_corrupt
             and self._is_canonical_primary_payload(current_payload, basket)
         ):
+            # A canonical primary should not churn updated_at just to resync the
+            # backup or seed recovery path.
             backup_payload = self._backup_payload(current_payload)
             backup_written = (
                 refresh_backup

@@ -446,6 +446,9 @@ class ContextSetStore:
             and (updated_at is None or self._payload_updated_at(current_payload) == canonical_updated_at)
             and self._is_canonical_primary_payload(current_payload, normalized_records)
         ):
+            # Rewriting an unchanged canonical store only obscures the last real
+            # context mutation, so keep the primary stable and refresh recovery
+            # artifacts in place.
             backup_payload = self._backup_payload(current_payload)
             backup_written = (
                 refresh_backup
