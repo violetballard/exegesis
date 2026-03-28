@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit:
-  - `2697db8a5ca515bfcab8b83aa8658cf741779e16`
+  - `d98765fa30bef7a27126e812d08351c76a07685c`
 
 ## Scope goal
 - Harden command catalog and diff_preview output contracts so labeled/text and JSON responses stay deterministic, verifiable, and ready for CLI-first operator use.
@@ -25,7 +25,7 @@
 - The change stays centered on the command surface contracts for the `feat-commands` lane.
 
 ## Approved exception note
-- Approved shared-file exception for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` to add focused contract coverage required by review.
+- Approved by integrator for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` to add focused contract coverage required by review.
 
 ## Tasks completed (numbered)
 1. Added command-catalog projections and canonical lookup helpers for the `feat-commands` surface.

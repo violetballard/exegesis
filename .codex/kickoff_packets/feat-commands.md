@@ -11,7 +11,7 @@
 
 ### Guardrails
 - Stay in lane-owned command paths for future implementation work.
-- Shared test coverage is approved only for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
+- Shared test coverage is approved by integrator for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
 - Keep review packets synchronized with the real branch delta.
 - Keep work aligned to the current MVP: engine, FTS retrieval, A2UI, patch/export flow.
 - Do not introduce new web-facing surfaces.

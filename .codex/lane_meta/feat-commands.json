@@ -19,8 +19,8 @@
   "proposed_readme_patch": "",
   "shared_file_exception": true,
   "kickoff_budget_note": "Stayed within the default lane budget. The branch delta is 9 files changed overall: 4 lane-owned code files, 2 approved shared tests, and 3 handoff metadata files.",
-  "approved_exception_note": "Approved shared-file exception for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to add focused contract coverage required by review.",
-  "review_commit": "2697db8a5ca515bfcab8b83aa8658cf741779e16",
+  "approved_exception_note": "Approved by integrator for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py to add focused contract coverage required by review.",
+  "review_commit": "d98765fa30bef7a27126e812d08351c76a07685c",
   "files_changed": [
     {
       "path": ".codex/kickoff_packets/feat-commands.md",
