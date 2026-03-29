@@ -1,69 +1,77 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Final HEAD SHA: `12ebbb3cfe6952bd8e29c56223dfb907df430bcd`
-- Reviewed implementation commit(s):
-  - `12ebbb3cfe6952bd8e29c56223dfb907df430bcd`
-- Docs-only alignment commit(s):
-  - `8538d02a85e2cdd62a7bc749c17b69ca5cadfada`
-  - `d558f07050d888ff37872bccdd92d454cc6d3560`
-
-## Scope goal
-
-Add a strict CLI command contract so parser entrypoints, canonical command names, and lookup-table output stay explicit and deterministic for CLI-first operator use.
+- Final HEAD SHA: `7f4de16e3141dfd24e942ef3e47325d65962a279`
+- Scope goal: Tighten the CLI command surface so the parser contract and CLI-to-flow mapping are deterministic for the current MVP demo route.
 
 ## Scope completed
 
-- Added `CommandCliContract`, `command_cli_tokens`, `command_cli_lookup_table`, and `command_cli_contract` exports in `src/qual/commands/__init__.py` so the CLI surface is part of the public command API.
-- Extended `src/qual/commands/catalog.py` with explicit CLI entrypoint validation and canonical lookup-table resolution so parser tokens, canonical names, and emitted lookup rows stay deterministic.
-- Regenerated the handoff packet so the branch summary, file list, and ownership mapping match the actual `12ebbb3c` CLI contract delta and the packet-alignment trail through `8538d02a` and `d558f070`.
+- Added `CommandCliFlowEntry` and `CommandCliFlowContract` plus `command_cli_flow_contract()` and `command_cli_flow_lookup_table()` in `src/qual/commands/catalog.py`.
+- Exported the new CLI-flow contract symbols from `src/qual/commands/__init__.py`.
+- Added unit coverage that pins the parser token, canonical command, and MVP flow-step mapping together in `tests/unit/test_commands_catalog.py`.
 
 ## Files changed
 
-### Implementation files changed
-
-- `src/qual/commands/__init__.py` (lane-owned)
-- `src/qual/commands/catalog.py` (lane-owned)
-
-### Docs-only alignment files changed
-
-- `THREAD_PACKET.md` (handoff artifact)
+- `src/qual/commands/catalog.py`
+- `src/qual/commands/__init__.py`
+- `tests/unit/test_commands_catalog.py`
 
 ## Tasks completed
 
-1. Exported the CLI contract dataclass and lookup helpers from `src/qual/commands/__init__.py`.
-2. Added explicit CLI entrypoint validation and canonical lookup-table resolution in `src/qual/commands/catalog.py`.
-3. Regenerated the handoff packet so the branch summary matches the actual reviewed CLI contract commit and the packet-alignment trail through `8538d02a` and `d558f070`.
+1. Added a deterministic CLI-to-flow contract for the MVP smoke path.
+2. Exported the new contract helpers from the command package.
+3. Added unit tests for the new contract and lookup table.
 
 ## Commands run and outcomes
 
-- `make scope-check`: PASS
-- `./quality-format.sh --check`: PASS
-- `./quality-lint.sh`: PASS
-- `./quality-test.sh`: PASS
-- `./typecheck-test.sh`: PASS
-- `make ci`: PASS
+- `python -m unittest tests.unit.test_commands_catalog` PASS
+- `make scope-check` PASS
+- `./quality-format.sh --check` PASS
+- `./quality-lint.sh` PASS
+- `./quality-test.sh` PASS
+- `./typecheck-test.sh` PASS
+- `make ci` PASS
 
 ## Risks / blockers
 
-- Risk: `LOW`
+- Risk: LOW
 - Blockers: none
 
 ## Required handoff fields
 
+### Scope completed
+
+- Tightened the command surface with an explicit CLI-to-flow mapping for the current MVP smoke path.
+
+### Files changed
+
+- `src/qual/commands/catalog.py`
+- `src/qual/commands/__init__.py`
+- `tests/unit/test_commands_catalog.py`
+
+### Commands run with results
+
+- `python -m unittest tests.unit.test_commands_catalog` PASS
+- `make scope-check` PASS
+- `./quality-format.sh --check` PASS
+- `./quality-lint.sh` PASS
+- `./quality-test.sh` PASS
+- `./typecheck-test.sh` PASS
+- `make ci` PASS
+
+### Risks/blockers
+
+- Low risk and no blockers.
+
 ### Roadmap item(s) affected
 
-- `Milestone 1: Bootstrap Flow Stabilization` - command and diff-preview behavior hardening for the CLI-first command surface.
-- `MVP Focus Through 2026-05-04` - `feat-commands` active implementation emphasis for CLI-compatibility contract work.
+- `Milestone 1: Bootstrap Flow Stabilization`
+- `Milestone 5: A2UI Presentation Layer`
 
 ### Vision capability affected
 
-- `Operator-first control surface` - CLI remains a first-class surface for development and reliability, and the command contract now has explicit deterministic parser lookup behavior.
+- `Operator-first control surface`
 
 ### Routing/provider impact note
 
-- None. This change only affects local command-surface lookup contracts and parser-surface validation; no routing/provider files change.
-
-## Scope-check / ownership note
-
-- Shared/integrator-locked edits: `NO`
+- None. This change only affects local command-surface lookup contracts and parser-surface validation.
