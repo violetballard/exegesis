@@ -58,6 +58,16 @@ def _optional_text(value: object) -> str | None:
     return None
 
 
+def _optional_list_like(value: object) -> list[object] | None:
+    if value is None:
+        return None
+    if isinstance(value, list):
+        return copy.deepcopy(value)
+    if isinstance(value, tuple):
+        return list(value)
+    return [value]
+
+
 def _normalize_supported_value(value: object, *, field_name: str, allowed: set[str]) -> str:
     normalized = str(value).strip().casefold()
     if normalized not in allowed:
@@ -141,6 +151,7 @@ class RetrievalHit:
             "title_hint": self.title_hint,
             "score": self.score,
             "source_strategy": self.source_strategy,
+            "retrieval_source_strategy": self.source_strategy,
             "rationale": self.rationale,
             "node_path": copy.deepcopy(self.node_path),
             "provenance": copy.deepcopy(self.provenance),
@@ -155,8 +166,9 @@ class RetrievalHit:
         if isinstance(query_intent, str) and query_intent:
             payload["query_intent"] = query_intent
         query_date_range = self.provenance.get("query_date_range")
-        if isinstance(query_date_range, list):
-            payload["query_date_range"] = copy.deepcopy(query_date_range)
+        normalized_query_date_range = _optional_list_like(query_date_range)
+        if normalized_query_date_range is not None:
+            payload["query_date_range"] = normalized_query_date_range
         source_hash = self.provenance.get("source_hash")
         if isinstance(source_hash, str) and source_hash:
             payload["source_hash"] = source_hash
@@ -167,8 +179,9 @@ class RetrievalHit:
         if isinstance(candidate_doc_count, int):
             payload["candidate_doc_count"] = candidate_doc_count
         fts_shortlist_doc_ids = self.provenance.get("fts_shortlist_doc_ids")
-        if isinstance(fts_shortlist_doc_ids, list):
-            payload["fts_shortlist_doc_ids"] = copy.deepcopy(fts_shortlist_doc_ids)
+        normalized_fts_shortlist_doc_ids = _optional_list_like(fts_shortlist_doc_ids)
+        if normalized_fts_shortlist_doc_ids is not None:
+            payload["fts_shortlist_doc_ids"] = normalized_fts_shortlist_doc_ids
         retrieval_backend = self.provenance.get("retrieval_backend")
         if isinstance(retrieval_backend, str) and retrieval_backend:
             payload["retrieval_backend"] = retrieval_backend
@@ -231,6 +244,7 @@ class RetrievalDocHit:
             "top_excerpt_id": self.top_excerpt_id,
             "top_score": self.top_score,
             "source_strategy": self.source_strategy,
+            "retrieval_source_strategy": self.source_strategy,
             "excerpt_count": self.excerpt_count,
             "provenance": copy.deepcopy(self.provenance),
         }
@@ -244,14 +258,16 @@ class RetrievalDocHit:
         if isinstance(query_intent, str) and query_intent:
             payload["query_intent"] = query_intent
         query_date_range = self.provenance.get("query_date_range")
-        if isinstance(query_date_range, list):
-            payload["query_date_range"] = copy.deepcopy(query_date_range)
+        normalized_query_date_range = _optional_list_like(query_date_range)
+        if normalized_query_date_range is not None:
+            payload["query_date_range"] = normalized_query_date_range
         candidate_doc_count = self.provenance.get("candidate_doc_count")
         if isinstance(candidate_doc_count, int):
             payload["candidate_doc_count"] = candidate_doc_count
         fts_shortlist_doc_ids = self.provenance.get("fts_shortlist_doc_ids")
-        if isinstance(fts_shortlist_doc_ids, list):
-            payload["fts_shortlist_doc_ids"] = copy.deepcopy(fts_shortlist_doc_ids)
+        normalized_fts_shortlist_doc_ids = _optional_list_like(fts_shortlist_doc_ids)
+        if normalized_fts_shortlist_doc_ids is not None:
+            payload["fts_shortlist_doc_ids"] = normalized_fts_shortlist_doc_ids
         retrieval_backend = self.provenance.get("retrieval_backend")
         if isinstance(retrieval_backend, str) and retrieval_backend:
             payload["retrieval_backend"] = retrieval_backend
