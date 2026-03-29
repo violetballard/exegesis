@@ -80,6 +80,10 @@ Did not ship:
 Reviewed range note:
 - The handoff is cumulative, not tip-only; the reviewed implementation range ends at `42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`, and the metadata-only alignment commits above only restamp packet metadata.
 
+## Approved exception note
+
+- Approved metadata-only exception: `THREAD_PACKET.md` and `.codex/kickoff_packets/feat-retrieval-fts.md` are separate handoff alignment artifacts and are not part of the reviewed implementation diff.
+
 ## Files changed
 
 ### Reviewed implementation files

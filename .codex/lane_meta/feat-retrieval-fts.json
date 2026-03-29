@@ -1,5 +1,5 @@
 {
-  "approved_exception_note": "",
+  "approved_exception_note": "Approved metadata-only exception for the handoff alignment artifacts in `THREAD_PACKET.md` and `.codex/kickoff_packets/feat-retrieval-fts.md`: they are separate from the reviewed implementation diff and are not lane-owned retrieval code.",
   "kickoff_budget_note": "This thread finished within the low-risk 8-task cap; no sprint-mode 10-task allowance or high-risk 4-task budget was used.",
   "proposed_readme_patch": "",
   "final_head_sha": "42820d4864f8b5137a6a9e05399ad68fe5b9d4ac",
