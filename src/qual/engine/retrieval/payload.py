@@ -66,6 +66,14 @@ def _normalize_optional_text(value: object) -> str | None:
     return None
 
 
+def _first_text_value(*values: object) -> str | None:
+    for value in values:
+        text = _normalize_optional_text(value)
+        if text is not None:
+            return text
+    return None
+
+
 def _stable_fingerprint(payload: object) -> str:
     serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
@@ -243,6 +251,57 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["retrieval_provenance"] = _build_retrieval_provenance_from_payload(normalized)
     normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits", []))
     normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits", []))
+    retrieval_summary = normalized.get("retrieval_summary", {})
+    if not isinstance(retrieval_summary, dict):
+        retrieval_summary = {}
+    retrieval_provenance = normalized.get("retrieval_provenance", {})
+    if not isinstance(retrieval_provenance, dict):
+        retrieval_provenance = {}
+    retrieval_citation_bundle = normalized.get("retrieval_citation_bundle", {})
+    if not isinstance(retrieval_citation_bundle, dict):
+        retrieval_citation_bundle = {}
+    retrieval_policy = normalized.get("policy", normalized.get("retrieval_policy", {}))
+    if not isinstance(retrieval_policy, dict):
+        retrieval_policy = {}
+
+    result_fingerprint = _first_text_value(
+        normalized.get("result_fingerprint"),
+        retrieval_summary.get("result_fingerprint"),
+        retrieval_provenance.get("result_fingerprint"),
+        retrieval_citation_bundle.get("result_fingerprint"),
+    )
+    if result_fingerprint is not None:
+        normalized["result_fingerprint"] = result_fingerprint
+
+    query_fingerprint = _first_text_value(
+        normalized.get("query_fingerprint"),
+        retrieval_summary.get("query_fingerprint"),
+        retrieval_provenance.get("query_fingerprint"),
+        retrieval_citation_bundle.get("query_fingerprint"),
+    )
+    if query_fingerprint is not None:
+        normalized["query_fingerprint"] = query_fingerprint
+
+    retrieval_backend = _first_text_value(
+        normalized.get("retrieval_backend"),
+        retrieval_policy.get("retrieval_backend"),
+        retrieval_summary.get("retrieval_backend"),
+        retrieval_provenance.get("retrieval_backend"),
+        retrieval_citation_bundle.get("retrieval_backend"),
+    )
+    if retrieval_backend is not None:
+        normalized["retrieval_backend"] = retrieval_backend
+
+    retrieval_mode = _first_text_value(
+        normalized.get("retrieval_mode"),
+        retrieval_policy.get("retrieval_mode"),
+        retrieval_summary.get("retrieval_mode"),
+        retrieval_provenance.get("retrieval_mode"),
+        retrieval_citation_bundle.get("retrieval_mode"),
+    )
+    if retrieval_mode is not None:
+        normalized["retrieval_mode"] = retrieval_mode
+
     normalized["source_bundle_fingerprint"] = _stable_fingerprint(
         {key: value for key, value in normalized.items() if key != "source_bundle_fingerprint"}
     )

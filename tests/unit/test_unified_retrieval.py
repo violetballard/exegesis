@@ -1571,6 +1571,55 @@ class UnifiedRetrievalTests(unittest.TestCase):
         expected["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
         self.assertEqual(payload, expected)
 
+    def test_retrieval_downstream_payload_helper_backfills_sparse_source_bundle_fields(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SparseSourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        for key in (
+            "result_fingerprint",
+            "query_fingerprint",
+            "retrieval_backend",
+            "retrieval_mode",
+            "source_bundle_fingerprint",
+        ):
+            sparse_source_bundle.pop(key, None)
+
+        payload = build_retrieval_downstream_payload_from_result(_SparseSourceBundleOnlySource(sparse_source_bundle))
+        expected = result.to_downstream_payload()
+        payload = json.loads(json.dumps(payload))
+        expected = json.loads(json.dumps(expected))
+        payload.pop("audit_ref", None)
+        expected.pop("audit_ref", None)
+        payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        expected["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        expected["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+
+        self.assertEqual(payload["result_fingerprint"], result.result_fingerprint)
+        self.assertNotIn("query_fingerprint", payload)
+        self.assertEqual(payload["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(payload["retrieval_mode"], "fts_first")
+        self.assertEqual(payload["retrieval_source_bundle"]["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(payload["retrieval_source_bundle"]["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(payload["retrieval_source_bundle"]["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(payload["retrieval_source_bundle"]["retrieval_mode"], "fts_first")
+        self.assertEqual(payload, expected)
+
     def test_retrieve_auto_citation_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(
             query_text="memo coding comparison",
