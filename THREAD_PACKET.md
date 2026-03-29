@@ -1,12 +1,12 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Final HEAD SHA: `c3a66bb580772d65201a630d673a8de1d4a63776`
+- Final HEAD SHA: `15103c92584694742e044ade321fab83b67a9478`
 - Reviewed implementation commit(s):
   - `22ce0e2023cf2bfa03fb5cfc2ba035cf8e92e8c3`
   - `15103c92584694742e044ade321fab83b67a9478`
 - Docs-only alignment commit(s):
-  - `c3a66bb580772d65201a630d673a8de1d4a63776`
+  - `07ae98b19e44d7b30c8ee490295cd91577ae0f7b`
 
 ## Scope goal
 
@@ -17,7 +17,7 @@ Expose an explicit `command_mvp_surface_contract` alias on the `feat-commands` c
 - Added `command_mvp_surface_contract` in `src/qual/commands/catalog.py` and re-exported it from `src/qual/commands/__init__.py` so the MVP surface has an explicit importable alias.
 - Routed `command_mvp_flow_contract` and `command_surface_contract` through the new alias so the public surface contract stays a single shared object.
 - Added focused command-catalog regression coverage in `tests/unit/test_commands_catalog.py` to verify the new alias stays aligned with the public surface contract and MVP flow contract.
-- Regenerated the handoff packet from the actual `main..codex/feat-commands` delta and aligned scope-check policy with the approved `tests/unit/test_commands_catalog.py` shared test, while keeping the docs/policy alignment files separate from the 3-file implementation delta.
+- Regenerated the handoff packet from the actual `codex/feat-commands` tip and aligned scope-check policy with the approved `tests/unit/test_commands_catalog.py` shared test, while keeping the docs/policy alignment files separate from the 3-file implementation delta.
 
 ## Files changed
 
@@ -57,11 +57,11 @@ Expose an explicit `command_mvp_surface_contract` alias on the `feat-commands` c
 
 ### Roadmap item(s) affected
 
-- `feat-commands` - CLI compatibility and migration-safe entrypoints, specifically the `command_mvp_surface_contract` alias and its command-catalog contract alignment.
+- `MVP Focus Through 2026-05-04: feat-commands` - active lane for CLI-compatible command-surface hardening.
 
 ### Vision capability affected
 
-- Capability 4 - Operator-first control surface: the engine-facing command surface now exposes an explicit MVP contract alias while keeping CLI-compatible exports stable and deterministic for CLI-first automation.
+- Capability 4 - Operator-first control surface: CLI remains a first-class surface, and engine contracts stay stable for CLI-first automation and future `Exegesis Console` consumption.
 
 ### Routing/provider impact note
 
