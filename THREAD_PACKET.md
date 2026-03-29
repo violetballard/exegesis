@@ -50,7 +50,7 @@
 - Hardened context basket/set and vault recovery, kept the approved `tests/unit/test_context_storage_recovery.py` exception explicit, and kept runtime edits in owned paths.
 
 ### Roadmap item(s) affected
-- Milestone 1: Bootstrap Flow Stabilization
+- Milestone 3: Real workflow loop
 - Context basket and vault persistence hardening
 
 ### Vision capability affected
