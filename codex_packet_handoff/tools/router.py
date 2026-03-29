@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 import re
+import sys
 import time
 import subprocess
 from datetime import datetime, timezone
@@ -25,6 +26,8 @@ STATE_FILE = ROUTER_ROOT / "state.json"
 CONFIG_FILE = ROUTER_ROOT / "config.json"
 CURSOR_FILE = ROUTER_ROOT / "cursor.json"
 LEASE_FILE = ROUTER_ROOT / "lease.json"
+LOCAL_CLI_WORKER = Path(__file__).resolve().with_name("local_cli_worker.py")
+LOCAL_JOB_ROOT = ROUTER_ROOT / "local_jobs"
 
 VERDICT_INLINE_RE = re.compile(
     r"^\s*(?:\*\*)?(?:\d+\.\s*)?(?:\*\*)?Verdict(?:\*\*)?:?\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?\s*$",
@@ -55,6 +58,9 @@ FIXER_RETRY_AT_RE = re.compile(
     r"try again at\s+([A-Za-z]{3}\s+\d{1,2}(?:st|nd|rd|th)?,\s+\d{4}\s+\d{1,2}:\d{2}\s+[AP]M)",
     re.IGNORECASE,
 )
+LOCAL_REVIEWER_MAX_ACTIVE = 1
+LOCAL_INTEGRATOR_MAX_ACTIVE = 1
+LOCAL_INTEGRATOR_RETRY_COOLDOWN_SECONDS = 60.0
 
 @dataclass
 class RouterConfig:
@@ -686,6 +692,252 @@ def _run_cli_integrator(
             return None
     return text
 
+
+def _pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def _safe_job_token(raw: str) -> str:
+    return re.sub(r"[^A-Za-z0-9_.-]+", "_", raw or "job").strip("._") or "job"
+
+
+def _local_job_map(state: Dict[str, Any], key: str) -> Dict[str, Dict[str, Any]]:
+    jobs = state.get(key)
+    if isinstance(jobs, dict):
+        return jobs
+    jobs = {}
+    state[key] = jobs
+    return jobs
+
+
+def _count_active_local_jobs(job_map: Dict[str, Dict[str, Any]]) -> int:
+    active = 0
+    for job in job_map.values():
+        result_path = Path(str(job.get("result_path") or ""))
+        pid = int(job.get("pid") or 0)
+        if result_path.exists():
+            continue
+        if _pid_alive(pid):
+            active += 1
+    return active
+
+
+def _build_cli_exec_cmd(
+    profile: LaunchProfile,
+    *,
+    sandbox: str,
+    prompt: str,
+    local: bool,
+) -> List[str]:
+    cmd = [profile.codex_cmd, *profile.codex_args, "exec"]
+    if local:
+        cmd.append("--skip-git-repo-check")
+    if profile.model:
+        cmd.extend(["-m", profile.model])
+    if profile.model_args:
+        cmd.extend(profile.model_args)
+    cmd.extend(["-s", sandbox, prompt])
+    return [str(x) for x in cmd]
+
+
+def _spawn_detached_local_cli_job(
+    *,
+    role: str,
+    cfg: RouterConfig,
+    repo_cwd: str,
+    lane: str,
+    packet_name: str,
+    prompt: str,
+    sandbox: str,
+    timeout_seconds: float,
+) -> Dict[str, Any]:
+    profile = _profile_for_role(cfg, role, local=True)
+    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    token = _safe_job_token(f"{lane}__{packet_name}")
+    job_dir = LOCAL_JOB_ROOT / role
+    job_dir.mkdir(parents=True, exist_ok=True)
+    spec_path = job_dir / f"{ts}__{token}.spec.json"
+    output_path = job_dir / f"{ts}__{token}.out.log"
+    result_path = job_dir / f"{ts}__{token}.result.json"
+    spec = {
+        "cmd": _build_cli_exec_cmd(profile, sandbox=sandbox, prompt=prompt, local=True),
+        "cwd": repo_cwd,
+        "timeout_seconds": float(timeout_seconds),
+        "env_overrides": {"CODEX_HOME": isolated_codex_env(repo_cwd)["CODEX_HOME"]},
+        "output_path": str(output_path),
+        "result_path": str(result_path),
+    }
+    save_json(spec_path, spec)
+    proc = subprocess.Popen(
+        [sys.executable, str(LOCAL_CLI_WORKER), "--spec", str(spec_path)],
+        cwd=repo_cwd,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        text=True,
+        start_new_session=True,
+    )
+    return {
+        "lane": lane,
+        "packet_name": packet_name,
+        "pid": proc.pid,
+        "spec_path": str(spec_path),
+        "output_path": str(output_path),
+        "result_path": str(result_path),
+        "started_at": time.time(),
+    }
+
+
+def _poll_detached_local_cli_job(job: Dict[str, Any]) -> Dict[str, Any]:
+    result_path = Path(str(job.get("result_path") or ""))
+    output_path = Path(str(job.get("output_path") or ""))
+    if result_path.exists():
+        result = load_json(result_path, {})
+        output = ""
+        if output_path.exists():
+            try:
+                output = output_path.read_text()
+            except Exception:
+                output = ""
+        return {
+            "done": True,
+            "status": str(result.get("status") or "error"),
+            "rc": int(result.get("rc", 1) or 1),
+            "error": str(result.get("error") or ""),
+            "output": output.strip(),
+        }
+    pid = int(job.get("pid") or 0)
+    if _pid_alive(pid):
+        return {"done": False, "status": "running", "rc": 0, "error": "", "output": ""}
+    output = ""
+    if output_path.exists():
+        try:
+            output = output_path.read_text()
+        except Exception:
+            output = ""
+    return {
+        "done": True,
+        "status": "error",
+        "rc": 1,
+        "error": "local cli worker exited before writing result",
+        "output": output.strip(),
+    }
+
+
+def _prepare_local_reviewer_result(
+    cfg: RouterConfig,
+    state: Dict[str, Any],
+    repo_cwd: str,
+    lane: str,
+    pkt_path: Path,
+    pkt: str,
+) -> Tuple[bool, str, Dict[str, Any]]:
+    jobs = _local_job_map(state, "local_reviewer_jobs")
+    packet_name = pkt_path.name
+    job = jobs.get(lane)
+    if isinstance(job, dict) and str(job.get("packet_name") or "") != packet_name:
+        if not _pid_alive(int(job.get("pid") or 0)):
+            jobs.pop(lane, None)
+            job = None
+        else:
+            state["local_reviewer_jobs"] = jobs
+            return False, "", state
+
+    if isinstance(job, dict):
+        polled = _poll_detached_local_cli_job(job)
+        if not polled["done"]:
+            state["local_reviewer_jobs"] = jobs
+            return False, "", state
+        jobs.pop(lane, None)
+        state["local_reviewer_jobs"] = jobs
+        text = str(polled.get("output") or "").strip()
+        rejection = _local_cli_output_rejection_reason(text, require_verdict=True)
+        if polled.get("status") == "ok" and not rejection:
+            return True, text, state
+        reason = str(polled.get("error") or rejection or "local reviewer job failed")
+        print(f"[router] local reviewer job for {lane} failed, using offline fallback: {reason}")
+        return True, _offline_reviewer_fallback(pkt, reason), state
+
+    if _count_active_local_jobs(jobs) >= LOCAL_REVIEWER_MAX_ACTIVE:
+        state["local_reviewer_jobs"] = jobs
+        return False, "", state
+
+    jobs[lane] = _spawn_detached_local_cli_job(
+        role="reviewer",
+        cfg=cfg,
+        repo_cwd=repo_cwd,
+        lane=lane,
+        packet_name=packet_name,
+        prompt=reviewer_prompt(pkt),
+        sandbox="read-only",
+        timeout_seconds=cfg.reviewer_timeout,
+    )
+    state["local_reviewer_jobs"] = jobs
+    print(f"[router] queued local reviewer job for {lane} ({packet_name})")
+    return False, "", state
+
+
+def _prepare_local_integrator_result(
+    cfg: RouterConfig,
+    state: Dict[str, Any],
+    repo_cwd: str,
+    lane: str,
+    pkt: Path,
+    approved_text: str,
+) -> Tuple[bool, str, Dict[str, Any]]:
+    jobs = _local_job_map(state, "local_integrator_jobs")
+    retry_ts = state.get("local_integrator_retry_ts")
+    if not isinstance(retry_ts, dict):
+        retry_ts = {}
+        state["local_integrator_retry_ts"] = retry_ts
+    job_key = f"{lane}:{pkt.name}"
+    job = jobs.get(job_key)
+    if isinstance(job, dict):
+        polled = _poll_detached_local_cli_job(job)
+        if not polled["done"]:
+            state["local_integrator_jobs"] = jobs
+            return False, "", state
+        jobs.pop(job_key, None)
+        state["local_integrator_jobs"] = jobs
+        text = str(polled.get("output") or "").strip()
+        rejection = _local_cli_output_rejection_reason(text, require_verdict=False)
+        if polled.get("status") == "ok" and not rejection and text:
+            retry_ts.pop(job_key, None)
+            state["local_integrator_retry_ts"] = retry_ts
+            return True, text, state
+        reason = str(polled.get("error") or rejection or "local integrator job failed")
+        retry_ts[job_key] = time.time() + LOCAL_INTEGRATOR_RETRY_COOLDOWN_SECONDS
+        state["local_integrator_retry_ts"] = retry_ts
+        print(f"[router] local integrator job for {lane} failed; will retry later: {reason}")
+        return False, "", state
+
+    retry_at = float(retry_ts.get(job_key, 0) or 0)
+    if retry_at > time.time():
+        state["local_integrator_retry_ts"] = retry_ts
+        return False, "", state
+    if _count_active_local_jobs(jobs) >= LOCAL_INTEGRATOR_MAX_ACTIVE:
+        state["local_integrator_jobs"] = jobs
+        return False, "", state
+
+    jobs[job_key] = _spawn_detached_local_cli_job(
+        role="integrator",
+        cfg=cfg,
+        repo_cwd=repo_cwd,
+        lane=lane,
+        packet_name=pkt.name,
+        prompt=integrator_prompt(approved_text),
+        sandbox="workspace-write",
+        timeout_seconds=cfg.integrator_timeout,
+    )
+    state["local_integrator_jobs"] = jobs
+    print(f"[router] queued local integrator job for {lane} ({pkt.name})")
+    return False, "", state
+
 def _find_worktree_for_branch(repo_cwd: str, branch: str) -> Optional[str]:
     # Normalize to refs/heads/...
     ref = branch
@@ -999,20 +1251,31 @@ def process_once(
             now = time.time()
             quota_retry_at = float(reviewer_quota_retry_ts.get(lane, 0) or 0)
             runtime_local = _runtime_mode(cfg, state) == "local_fallback"
-            in_quota_cooldown = runtime_local or quota_retry_at > now or global_quota_retry_ts > now
-            if in_quota_cooldown:
+            if runtime_local:
+                ready, reviewer_text, state = _prepare_local_reviewer_result(
+                    cfg,
+                    state,
+                    repo_cwd,
+                    lane,
+                    pkt_path,
+                    pkt,
+                )
+                if not ready:
+                    continue
+            in_quota_cooldown = quota_retry_at > now or global_quota_retry_ts > now
+            if runtime_local:
+                pass
+            elif in_quota_cooldown:
                 wait_s = int(max(quota_retry_at, global_quota_retry_ts) - now)
                 reason = (
-                    f"runtime local fallback active ({wait_s}s remaining)"
-                    if runtime_local
-                    else f"reviewer quota cooldown active ({wait_s}s remaining)"
+                    f"reviewer quota cooldown active ({wait_s}s remaining)"
                 )
                 reviewer_text = _run_cli_reviewer(
                     cfg, repo_cwd, pkt, reason
                 ) or _offline_reviewer_fallback(
                     pkt, reason
                 )
-            elif cfg.prefer_cli_reviewer:
+            elif not runtime_local and cfg.prefer_cli_reviewer:
                 reviewer_text = _run_cli_reviewer(
                     cfg,
                     repo_cwd,
@@ -1110,7 +1373,9 @@ def process_once(
                 write_text(lane_dir/"outbox/integrator"/pkt_path.name.replace("F__","R__APPROVED__"), reviewer_text)
                 integ = ""
                 runtime_local = _runtime_mode(cfg, state) == "local_fallback"
-                if not runtime_local and not cfg.prefer_cli_integrator and integrator_tid:
+                if runtime_local:
+                    integ = ""
+                elif not cfg.prefer_cli_integrator and integrator_tid:
                     try:
                         integrator_tid, integ = integrator_client.codex_reply(
                             integrator_tid, integrator_prompt(reviewer_text), timeout=cfg.integrator_timeout
@@ -1293,7 +1558,18 @@ def process_integrator_backlog(
             processed += 1
             continue
         runtime_local = _runtime_mode(cfg, state) == "local_fallback"
-        if runtime_local or cfg.prefer_cli_integrator or not integrator_tid:
+        if runtime_local:
+            ready, integ, state = _prepare_local_integrator_result(
+                cfg,
+                state,
+                repo_cwd,
+                _lane,
+                pkt,
+                approved_text,
+            )
+            if not ready:
+                continue
+        elif cfg.prefer_cli_integrator or not integrator_tid:
             integ = _run_cli_integrator(cfg, repo_cwd, approved_text, local=runtime_local)
         else:
             try:

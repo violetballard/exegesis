@@ -132,6 +132,202 @@ class OfflineIntegratorGuardTests(unittest.TestCase):
         self.assertEqual(result, "Integrated successfully.")
 
 
+class LocalFallbackDetachedJobTests(unittest.TestCase):
+    def test_process_once_queues_detached_local_reviewer_job(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            lane_dir = Path(tmp)
+            pkt = lane_dir / "inbox" / "feature" / "F__codex-feat-commands__abc1234__20260328T000000Z.md"
+            pkt.parent.mkdir(parents=True, exist_ok=True)
+            pkt.write_text("Feature packet body\n", encoding="utf-8")
+
+            cfg = SimpleNamespace(
+                lanes={"feat-commands": {}},
+                max_packets_per_run=1,
+                auto_switch_to_local_on_quota=True,
+                reviewer_timeout=30,
+                integrator_timeout=30,
+                inline_fixer=False,
+                prefer_cli_reviewer=True,
+                prefer_cli_integrator=True,
+            )
+            state = {"runtime_mode": "local_fallback"}
+            queued_job = {"packet_name": pkt.name, "pid": 123, "result_path": str(lane_dir / "reviewer.result.json")}
+
+            with (
+                patch.object(router, "ensure_lane_dirs", return_value=lane_dir),
+                patch.object(router, "list_new", return_value=[pkt]),
+                patch.object(router, "load_json", return_value={}),
+                patch.object(router, "save_json"),
+                patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
+                patch.object(router, "_runtime_mode", return_value="local_fallback"),
+                patch.object(router, "_spawn_detached_local_cli_job", return_value=queued_job),
+                patch.object(router, "archive") as archive_mock,
+            ):
+                processed, new_state, _reviewer_threads, _integrator_tid = router.process_once(
+                    SimpleNamespace(),
+                    SimpleNamespace(),
+                    cfg,
+                    state,
+                    "/repo",
+                    {},
+                    "",
+                )
+
+        self.assertEqual(processed, 0)
+        self.assertEqual(new_state["local_reviewer_jobs"]["feat-commands"]["packet_name"], pkt.name)
+        archive_mock.assert_not_called()
+
+    def test_process_once_completes_detached_local_reviewer_job_on_later_tick(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            lane_dir = Path(tmp)
+            pkt = lane_dir / "inbox" / "feature" / "F__codex-feat-commands__abc1234__20260328T000000Z.md"
+            pkt.parent.mkdir(parents=True, exist_ok=True)
+            pkt.write_text("Feature packet body\n", encoding="utf-8")
+
+            cfg = SimpleNamespace(
+                lanes={"feat-commands": {}},
+                max_packets_per_run=1,
+                auto_switch_to_local_on_quota=True,
+                reviewer_timeout=30,
+                integrator_timeout=30,
+                inline_fixer=False,
+                prefer_cli_reviewer=True,
+                prefer_cli_integrator=True,
+            )
+            state = {
+                "runtime_mode": "local_fallback",
+                "local_reviewer_jobs": {
+                    "feat-commands": {
+                        "packet_name": pkt.name,
+                        "pid": 0,
+                        "result_path": str(lane_dir / "reviewer.result.json"),
+                        "output_path": str(lane_dir / "reviewer.out.log"),
+                    }
+                },
+            }
+
+            with (
+                patch.object(router, "ensure_lane_dirs", return_value=lane_dir),
+                patch.object(router, "list_new", return_value=[pkt]),
+                patch.object(router, "load_json", return_value={}),
+                patch.object(router, "save_json"),
+                patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
+                patch.object(router, "_runtime_mode", return_value="local_fallback"),
+                patch.object(
+                    router,
+                    "_poll_detached_local_cli_job",
+                    return_value={
+                        "done": True,
+                        "status": "ok",
+                        "rc": 0,
+                        "error": "",
+                        "output": "Verdict: `CHANGES_REQUESTED`\n\nPlease revise.\n",
+                    },
+                ),
+            ):
+                processed, new_state, _reviewer_threads, _integrator_tid = router.process_once(
+                    SimpleNamespace(),
+                    SimpleNamespace(),
+                    cfg,
+                    state,
+                    "/repo",
+                    {},
+                    "",
+                )
+
+        self.assertEqual(processed, 1)
+        self.assertEqual(new_state["local_reviewer_jobs"], {})
+
+    def test_process_integrator_backlog_queues_detached_local_integrator_job(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            lane_dir = Path(tmp)
+            pkt = lane_dir / "outbox" / "integrator" / "R__APPROVED__codex-feat-commands__abc1234__20260328T000000Z.md"
+            pkt.parent.mkdir(parents=True, exist_ok=True)
+            pkt.write_text("Verdict: `APPROVED`\n", encoding="utf-8")
+
+            cfg = SimpleNamespace(
+                lanes={"feat-commands": {}},
+                max_packets_per_run=1,
+                integrator_timeout=30,
+                prefer_cli_integrator=True,
+            )
+            state = {"runtime_mode": "local_fallback"}
+            queued_job = {"packet_name": pkt.name, "pid": 456, "result_path": str(lane_dir / "integrator.result.json")}
+
+            with (
+                patch.object(router, "ensure_lane_dirs", return_value=lane_dir),
+                patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
+                patch.object(router, "_runtime_mode", return_value="local_fallback"),
+                patch.object(router, "_spawn_detached_local_cli_job", return_value=queued_job),
+                patch.object(router, "archive") as archive_mock,
+            ):
+                processed, new_state, _integrator_tid = router.process_integrator_backlog(
+                    SimpleNamespace(),
+                    cfg,
+                    state,
+                    "/repo",
+                    "",
+                )
+
+        self.assertEqual(processed, 0)
+        self.assertEqual(len(new_state["local_integrator_jobs"]), 1)
+        archive_mock.assert_not_called()
+
+    def test_process_integrator_backlog_completes_detached_local_job_on_later_tick(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            lane_dir = Path(tmp)
+            pkt = lane_dir / "outbox" / "integrator" / "R__APPROVED__codex-feat-commands__abc1234__20260328T000000Z.md"
+            pkt.parent.mkdir(parents=True, exist_ok=True)
+            pkt.write_text("Verdict: `APPROVED`\n", encoding="utf-8")
+
+            cfg = SimpleNamespace(
+                lanes={"feat-commands": {}},
+                max_packets_per_run=1,
+                integrator_timeout=30,
+                prefer_cli_integrator=True,
+            )
+            job_key = f"feat-commands:{pkt.name}"
+            state = {
+                "runtime_mode": "local_fallback",
+                "local_integrator_jobs": {
+                    job_key: {
+                        "packet_name": pkt.name,
+                        "pid": 0,
+                        "result_path": str(lane_dir / "integrator.result.json"),
+                        "output_path": str(lane_dir / "integrator.out.log"),
+                    }
+                },
+                "local_integrator_retry_ts": {},
+            }
+
+            with (
+                patch.object(router, "ensure_lane_dirs", return_value=lane_dir),
+                patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
+                patch.object(router, "_runtime_mode", return_value="local_fallback"),
+                patch.object(
+                    router,
+                    "_poll_detached_local_cli_job",
+                    return_value={
+                        "done": True,
+                        "status": "ok",
+                        "rc": 0,
+                        "error": "",
+                        "output": "Integrated successfully.\n",
+                    },
+                ),
+            ):
+                processed, new_state, _integrator_tid = router.process_integrator_backlog(
+                    SimpleNamespace(),
+                    cfg,
+                    state,
+                    "/repo",
+                    "",
+                )
+
+        self.assertEqual(processed, 1)
+        self.assertEqual(new_state["local_integrator_jobs"], {})
+
+
 class OfflineHandoffProbeTests(unittest.TestCase):
     def test_probe_uses_scratch_workspace_and_returns_output(self) -> None:
         fixture = FIXTURES / "feature_packet.md"

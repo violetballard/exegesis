@@ -903,6 +903,10 @@ def main() -> None:
     print(f"integrator_thread_id={router_state.get('integrator_thread_id', '-')}")
     fallback_jobs = router_state.get("fixer_fallback_jobs") or {}
     print(f"fixer_fallback_jobs={len(fallback_jobs) if isinstance(fallback_jobs, dict) else 0}")
+    local_reviewer_jobs = router_state.get("local_reviewer_jobs") or {}
+    print(f"local_reviewer_jobs={len(local_reviewer_jobs) if isinstance(local_reviewer_jobs, dict) else 0}")
+    local_integrator_jobs = router_state.get("local_integrator_jobs") or {}
+    print(f"local_integrator_jobs={len(local_integrator_jobs) if isinstance(local_integrator_jobs, dict) else 0}")
     print()
 
     manual_sessions = _manual_feature_sessions()
