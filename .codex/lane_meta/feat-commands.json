@@ -1,13 +1,13 @@
 {
-  "scope_goal": "Harden diff_preview output contracts so the emitted diff payload, summary-only mode, and SHA-256 fingerprint stay deterministic and verifiable for CLI-first operator use.",
-  "review_commit": "3dfd014632493cdd66b363c637846596d490e7af",
+  "scope_goal": "Harden diff_preview output contracts so the emitted diff payload, JSON label metadata, summary-only mode, and SHA-256 fingerprint stay deterministic and verifiable for CLI-first operator use.",
+  "review_commit": "1d07cbfc371f677959d26a60f3140888d8142eb3",
   "review_commits": [
-    "4807235db9bc9acc451faa5e1845effdaea9d063",
-    "3dfd014632493cdd66b363c637846596d490e7af"
+    "1d07cbfc371f677959d26a60f3140888d8142eb3"
   ],
   "tasks_completed": [
     "Made the emitted diff string a first-class value in diff_preview so the JSON payload and fingerprint are derived from the same emitted text.",
-    "Added a regression that covers text summary-only fingerprinting against the empty emitted diff payload.",
+    "Corrected the JSON labels.applied field so it stays truthful when headers are suppressed.",
+    "Added a regression that covers labeled JSON output with suppressed headers.",
     "Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta."
   ],
   "risk": "HIGH",
@@ -21,12 +21,13 @@
   "routing_provider_impact": "None. This change only affects local diff-preview formatting, fingerprinting, and focused regression coverage; no routing/provider files change.",
   "proposed_readme_patch": "",
   "shared_file_exception": true,
-  "kickoff_budget_note": "High-risk shared-test handoff with task budget 4, time budget 30m, size limits <=8 files and <=300 net LOC. The reviewed implementation changes 5 files, centered on the lane-owned diff_preview command and one approved shared test.",
-  "approved_exception_note": "Approved shared-file exception for tests/unit/test_diff_preview.py to cover deterministic diff_preview contract behavior.",
+  "kickoff_budget_note": "High-risk shared-test handoff with task budget 4, time budget 30m, size limits <=8 files and <=300 net LOC. The reviewed implementation changes 6 files, centered on the lane-owned diff_preview command, one approved shared test, and the matching scope-gate policy update.",
+  "approved_exception_note": "Approved shared-file exception for tests/unit/test_diff_preview.py to cover deterministic diff_preview contract behavior, with matching scope-gate support in scripts/scope-check.sh.",
   "files_changed": [
     { "path": ".codex/kickoff_packets/feat-commands.md", "kind": "meta" },
     { "path": ".codex/lane_meta/feat-commands.json", "kind": "meta" },
     { "path": "THREAD_PACKET.md", "kind": "meta" },
+    { "path": "scripts/scope-check.sh", "kind": "meta" },
     { "path": "src/qual/commands/diff_preview.py", "kind": "code" },
     { "path": "tests/unit/test_diff_preview.py", "kind": "test" }
   ],

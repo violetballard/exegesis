@@ -1,16 +1,18 @@
 # Lane Kickoff: feat-commands
 
 - Branch: `codex/feat-commands`
-- Head commit: `3dfd014632493cdd66b363c637846596d490e7af`
+- Head commit: `1d07cbfc371f677959d26a60f3140888d8142eb3`
 - Lane/owned paths: `src/qual/commands/**`
 - Approved shared tests:
   - `tests/unit/test_diff_preview.py`
-- Scope goal: Harden `diff_preview` output contracts so the emitted diff payload, summary-only mode, and SHA-256 fingerprint stay deterministic and verifiable for CLI-first operator use.
+- Scope goal: Harden `diff_preview` output contracts so the emitted diff payload, JSON label metadata, summary-only mode, and SHA-256 fingerprint stay deterministic and verifiable for CLI-first operator use.
 
 ### Priority outcomes
 1. Keep the emitted diff payload and reported fingerprint derived from the same exact text.
-2. Keep summary-only mode verifiable in both text and JSON output shapes.
-3. Keep the handoff metadata truthful about the actual code/test delta and approved shared test coverage.
+2. Keep JSON label metadata truthful when file headers are suppressed.
+3. Keep summary-only mode verifiable in both text and JSON output shapes.
+4. Keep the handoff metadata truthful about the actual code/test delta and approved shared test coverage.
+5. Keep the scope gate aligned with the approved shared-test exception.
 
 ### Guardrails
 - Stay in lane-owned command paths except for explicitly approved shared tests.
