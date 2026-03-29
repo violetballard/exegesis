@@ -4,7 +4,7 @@
 - Implementation commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514` (implementation: runtime storage/context hardening)
 - Docs-only alignment commit(s):
-  - `ff06348b3aa25319a7433b04a849ceee42197d44` (current docs-only handoff alignment; no runtime scope)
+  - `c3b7ef981c399472b6a52aaad8dc6c5ce7276635` (current docs-only handoff alignment; no runtime scope)
 
 ## Scope goal
 - Harden engine persistence/state recovery for context basket/set and vault so malformed or incomplete local state is quarantined or canonicalized safely without promoting stale auxiliary state.
@@ -15,15 +15,11 @@
 - Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-test exception for that one non-owned test file.
 - Kept the reviewed implementation within owned runtime paths plus that approved shared-test exception, with no broader shared/integrator-locked runtime edits being claimed.
 
-## Owned-path files changed
+## Files changed
 - `src/qual/context/set_store.py`
 - `src/qual/context/store.py`
 - `src/qual/storage/vault.py`
-
-## Approved exception files changed
 - `tests/unit/test_context_storage_recovery.py` (the only approved non-owned file in scope; corresponds to implementation diff `47cda4df831ac41867a8792f40d720e0cb109514`; no broader shared-file runtime edit is being claimed; `SCOPE_ALLOW_SHARED=1` is required by `scripts/scope-check.sh`)
-
-## Docs-only handoff-alignment files changed
 - `.codex/lane_meta/feat-context-storage.json`
 - `THREAD_PACKET.md`
 
@@ -32,9 +28,9 @@
 2. Tightened `ContextSetStore` recovery so malformed context-set payloads are quarantined while `recovered_from` cleanup timestamps are preserved and canonical rewrites remain auditable.
 3. Tightened `VaultService` recovery so malformed vault state is recovered or rewritten safely while preserving the safe lock default.
 4. Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-file exception.
-5. Refreshed the handoff packet and lane metadata so the branch summary, roadmap mapping, and files changed list point at implementation commit `47cda4df831ac41867a8792f40d720e0cb109514` and current docs-only alignment commit `ff06348b3aa25319a7433b04a849ceee42197d44`.
+5. Refreshed the handoff packet and lane metadata so the branch summary, roadmap mapping, and files changed list point at implementation commit `47cda4df831ac41867a8792f40d720e0cb109514` and docs-only alignment commit `c3b7ef981c399472b6a52aaad8dc6c5ce7276635`.
 
-## Commands run and outcomes
+## Commands run with results
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
@@ -51,13 +47,16 @@
 - Hardened context basket/set and vault recovery, kept the approved `tests/unit/test_context_storage_recovery.py` exception explicit, and kept runtime edits in owned paths.
 
 ### Roadmap item(s) affected
-- Milestone 1: Bootstrap Flow Stabilization
+- Milestone 3: Real workflow loop
 - Context basket and vault persistence hardening
 
 ### Vision capability affected
 - `1. Local-first state and identity`
 
 ### Routing/provider impact note
+- None
+
+### Proposed README patch text
 - None
 
 ## Scope-check / ownership note
