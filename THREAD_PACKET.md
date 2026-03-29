@@ -1,25 +1,21 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Final HEAD SHA: `a5b0a247f2bf97ee233a8a458230a1bdda0b9dc4`
+- Final HEAD SHA: `12ebbb3cfe6952bd8e29c56223dfb907df430bcd`
 - Reviewed implementation commit(s):
-  - `a5b0a247f2bf97ee233a8a458230a1bdda0b9dc4`
+  - `12ebbb3cfe6952bd8e29c56223dfb907df430bcd`
 - Docs-only alignment commit(s):
-  - `da122acb7f5454db56b5df39186b50ac0857e14a`
-  - `da334f66ea8030060b04b15e878aa7840c6c8c5a`
-  - `df980e3031645f9b1e6d0e973437dc14684e54f1`
-  - `ebbc5c18ffa875c5c701b54ac19fc1139a12c784`
+  - `none`
 
 ## Scope goal
 
-Add grouped command smoke tokens to the command catalog so the public and MVP surface contracts expose deterministic grouped flow-surface projections for CLI smoke checks.
+Add a strict CLI command contract so parser entrypoints, canonical command names, and lookup-table output stay explicit and deterministic for CLI-first operator use.
 
 ## Scope completed
 
-- Added `command_flow_surface_tokens` and `command_mvp_flow_surface_tokens` exports in `src/qual/commands/__init__.py` so grouped smoke-token projections are part of the public command API.
-- Extended `src/qual/commands/catalog.py` with grouped flow-surface token projections and surface-contract wiring so `CommandSurfaceContract.flow_surface_tokens` stays aligned with the MVP/demo smoke path.
-- Added focused unit coverage in `tests/unit/test_commands_catalog.py` for grouped surface-token ordering, MVP/public contract alignment, and flow-surface token exposure.
-- Regenerated the handoff packet so the branch summary, file list, and ownership mapping match the actual `a5b0a247` command-surface delta and the packet-alignment trail through `ebbc5c18`.
+- Added `CommandCliContract`, `command_cli_tokens`, `command_cli_lookup_table`, and `command_cli_contract` exports in `src/qual/commands/__init__.py` so the CLI surface is part of the public command API.
+- Extended `src/qual/commands/catalog.py` with explicit CLI entrypoint validation and canonical lookup-table resolution so parser tokens, canonical names, and emitted lookup rows stay deterministic.
+- Regenerated the handoff packet so the branch summary, file list, and ownership mapping match the actual `12ebbb3c` CLI contract delta.
 
 ## Files changed
 
@@ -27,7 +23,6 @@ Add grouped command smoke tokens to the command catalog so the public and MVP su
 
 - `src/qual/commands/__init__.py` (lane-owned)
 - `src/qual/commands/catalog.py` (lane-owned)
-- `tests/unit/test_commands_catalog.py` (approved shared test)
 
 ### Docs-only alignment files changed
 
@@ -35,10 +30,9 @@ Add grouped command smoke tokens to the command catalog so the public and MVP su
 
 ## Tasks completed
 
-1. Exported grouped flow-surface token helpers from `src/qual/commands/__init__.py`.
-2. Wired grouped flow-surface token projections into `src/qual/commands/catalog.py` and exposed them through the command surface contract.
-3. Added regression coverage for grouped command smoke tokens and contract alignment in `tests/unit/test_commands_catalog.py`.
-4. Regenerated the handoff packet so the feature summary matches the actual reviewed command-surface commit and the latest packet-alignment commit trail.
+1. Exported the CLI contract dataclass and lookup helpers from `src/qual/commands/__init__.py`.
+2. Added explicit CLI entrypoint validation and canonical lookup-table resolution in `src/qual/commands/catalog.py`.
+3. Regenerated the handoff packet so the branch summary matches the actual reviewed CLI contract commit.
 
 ## Commands run and outcomes
 
@@ -59,17 +53,15 @@ Add grouped command smoke tokens to the command catalog so the public and MVP su
 ### Roadmap item(s) affected
 
 - `Milestone 1: Bootstrap Flow Stabilization` - command-surface hardening for the CLI-first command surface.
-- `Milestone 2: Test Hardening` - focused grouped-smoke regression coverage for the catalog test path.
 
 ### Vision capability affected
 
-- `Operator-first control surface` - CLI remains a first-class surface, and command contracts stay deterministic for operator-driven flows.
+- `Operator-first control surface` - CLI remains a first-class surface, and the command contract now has explicit deterministic parser lookup behavior.
 
 ### Routing/provider impact note
 
-- None. This change only affects local command-surface token projections, contract bundling, and focused command-catalog test coverage.
+- None. This change only affects local command-surface lookup contracts and parser-surface validation; no routing/provider files change.
 
 ## Scope-check / ownership note
 
-- Shared/integrator-locked edits: `YES` (approved shared test only)
-- Approved shared-file exception: `tests/unit/test_commands_catalog.py` (explicitly approved for `codex/feat-commands`)
+- Shared/integrator-locked edits: `NO`
