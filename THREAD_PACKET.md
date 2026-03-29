@@ -48,7 +48,7 @@ These metadata files record the handoff alignment work and are separate from the
 
 ## Completed scope summary
 
-Completed the cumulative `1d6057e9..aacb9cc` retrieval thread for the FTS-first retrieval MVP: SQLite FTS is authoritative, the canonical retrieval query constructor is exported through both retrieval facades, `RetrievalConstraints` are accepted by public helpers, PageIndex and embeddings stay compatibility-only, retrieval payload/provenance/hit snapshots normalize deterministically, payload bundle snapshots are canonicalized, and downstream doc hits carry source attribution.
+Completed the cumulative `1d6057e9..aacb9cc06f99cb149319da198d6c96cd9628735c` retrieval thread for the FTS-first retrieval MVP: SQLite FTS is authoritative, the canonical retrieval query constructor is exported through both retrieval facades, `RetrievalConstraints` are accepted by public helpers, PageIndex and embeddings stay compatibility-only, retrieval payload/provenance/hit snapshots normalize deterministically, payload bundle snapshots are canonicalized, and downstream doc hits carry source attribution.
 
 ## Scope completed
 
