@@ -7,7 +7,7 @@
 
 ## Scope completed
 
-This lane now keeps the FTS-first retrieval path authoritative, returns deterministic excerpt and provenance payloads for engine generation flows, and leaves PageIndex and embeddings as fallback-only plumbing behind the canonical retrieval package.
+The lane now keeps SQLite FTS as the authoritative retrieval path, exports the canonical retrieval query constructor through both facades, and normalizes downstream retrieval payload snapshots so excerpt and provenance bundles stay deterministic.
 
 ## Budget note
 
@@ -16,7 +16,7 @@ This handoff stayed within the low-risk `8`-task cap. It did not rely on the spr
 ### Priority outcomes
 1. Make SQLite FTS the primary retrieval path.
 2. Return doc hits and excerpt hits with stable provenance.
-3. Defer PageIndex, embeddings, and multi-strategy retrieval behavior.
+3. Keep PageIndex and embeddings fallback-only behind the canonical retrieval facade.
 
 ### Source of truth
 - Canonical retrieval logic remains in `src/qual/retrieval/**`.
@@ -27,6 +27,7 @@ This handoff stayed within the low-risk `8`-task cap. It did not rely on the spr
   - `src/qual/engine/retrieval/pageindex_strategy.py`
   - `src/qual/engine/retrieval/payload.py`
   - `src/qual/engine/retrieval/policy.py`
+- Payload normalization keeps query, policy, and provenance snapshots deterministic for downstream consumers.
 
 ### Guardrails
 - Keep retrieval deterministic and auditable.
