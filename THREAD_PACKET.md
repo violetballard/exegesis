@@ -1,7 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Final HEAD SHA: `cc16c21692b7ca4af9e7866a659b45fc18b87f63`
+- Final HEAD SHA: `6e6db6c49c342fb3a3b707124c446204f200d073`
 - Reviewed implementation commit(s):
   - `f8a32d372301be4a7c67b97a66ddc8e04f36011f`
   - `c7ca5bcdb3a1b829712c4b3d2f3a39e2bd26c14f`
@@ -11,7 +11,7 @@
 
 ## Scope goal
 
-Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 4 and PRODUCT_VISION.md capability 2.
+Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3 and PRODUCT_VISION.md capability 2.
 
 ## Scope completed
 
@@ -39,6 +39,7 @@ These are the exact files changed across the reviewed retrieval implementation c
 
 - The thread finished within the low-risk cap of 8 tasks.
 - No shared or integrator-locked files were edited.
+- Later metadata-only commits aligned the packet and lane metadata to the current branch tip; they did not change retrieval behavior.
 
 ## Commands run with results
 
@@ -56,7 +57,7 @@ These are the exact files changed across the reviewed retrieval implementation c
 
 ## Roadmap item(s) affected
 
-- `ROADMAP.md`: `Milestone 4: Retrieval Layer (Planned)`
+- `ROADMAP.md`: `Milestone 3: Product Readiness (Planned)`
 
 ## Vision capability affected
 

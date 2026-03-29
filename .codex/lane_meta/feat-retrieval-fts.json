@@ -2,7 +2,7 @@
   "approved_exception_note": "",
   "kickoff_budget_note": "This thread finished within the low-risk 8-task cap; no sprint-mode 10-task allowance or high-risk 4-task budget was used.",
   "proposed_readme_patch": "",
-  "final_head_sha": "cc16c21692b7ca4af9e7866a659b45fc18b87f63",
+  "final_head_sha": "6e6db6c49c342fb3a3b707124c446204f200d073",
   "risk": "LOW",
   "packet_type": "metadata-only",
   "reviewed_commits": [
@@ -13,7 +13,7 @@
     "cc16c21692b7ca4af9e7866a659b45fc18b87f63"
   ],
   "roadmap_items": [
-    "ROADMAP.md: Milestone 3: Real workflow loop"
+    "ROADMAP.md: Milestone 3: Product Readiness (Planned)"
   ],
   "routing_provider_impact": "None",
   "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3 and PRODUCT_VISION.md capability 2.",
