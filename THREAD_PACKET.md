@@ -10,13 +10,14 @@
 
 ## Scope goal
 
-Add a deterministic CLI flow smoke contract so parser tokens, canonical command names, and normalized MVP flow steps stay explicit for CLI-first operator use.
+Add a deterministic CLI flow smoke contract for Milestone 1 `Bootstrap Flow Stabilization` and Milestone 2 `Test Hardening` so parser tokens, canonical command names, and normalized MVP flow steps stay explicit for CLI-first operator use.
 
 ## Scope completed
 
 - Added `CommandCliFlowEntry` and `CommandCliFlowContract` plus `command_cli_flow_contract()` and `command_cli_flow_lookup_table()` in `src/qual/commands/catalog.py`.
 - Exported the new CLI-flow contract symbols from `src/qual/commands/__init__.py`.
 - Added focused unit coverage in `tests/unit/test_commands_catalog.py` that pins parser tokens, canonical command names, and MVP flow-step mapping together.
+- Approved the shared-file exception for `tests/unit/test_commands_catalog.py` so the lane can add the required contract coverage.
 - Regenerated the handoff packet so the branch summary, file list, and ownership mapping match the actual `7f4de16e` CLI flow delta and the packet-alignment trail through `885ac6ea` and `ed74fe0f`.
 
 ## Files changed
@@ -36,7 +37,8 @@ Add a deterministic CLI flow smoke contract so parser tokens, canonical command 
 1. Added a deterministic CLI-to-flow contract for the MVP smoke path.
 2. Exported the new contract helpers from the command package.
 3. Added unit tests for the new contract and lookup table.
-4. Regenerated the handoff packet so the branch summary matches the actual reviewed CLI flow commit and the packet-alignment trail through `885ac6ea` and `ed74fe0f`.
+4. Recorded the explicit shared-file approval for `tests/unit/test_commands_catalog.py`.
+5. Regenerated the handoff packet so the branch summary matches the actual reviewed CLI flow commit and the packet-alignment trail through `885ac6ea` and `ed74fe0f`.
 
 ## Commands run and outcomes
 
@@ -55,10 +57,39 @@ Add a deterministic CLI flow smoke contract so parser tokens, canonical command 
 
 ## Required handoff fields
 
+### Shared-file approval note
+
+- Approved shared-file exception for `tests/unit/test_commands_catalog.py` to add focused CLI-flow contract coverage.
+
+### Scope completed
+
+- Tightened the command surface with an explicit CLI-to-flow mapping for the current MVP smoke path.
+
+### Files changed
+
+- `src/qual/commands/catalog.py`
+- `src/qual/commands/__init__.py`
+- `tests/unit/test_commands_catalog.py`
+- `THREAD_PACKET.md` (handoff artifact)
+
+### Commands run with results
+
+- `python -m unittest tests.unit.test_commands_catalog` PASS
+- `make scope-check` PASS
+- `./quality-format.sh --check` PASS
+- `./quality-lint.sh` PASS
+- `./quality-test.sh` PASS
+- `./typecheck-test.sh` PASS
+- `make ci` PASS
+
+### Risks/blockers
+
+- Low risk and no blockers.
+
 ### Roadmap item(s) affected
 
-- `Milestone 1: Bootstrap Flow Stabilization` - command and diff-preview behavior hardening for the CLI-first command surface.
-- `Milestone 2: Test Hardening` - focused unit coverage for the CLI flow contract and lookup-table behavior.
+- `Milestone 1: Bootstrap Flow Stabilization` - deterministic CLI flow contract hardening for the CLI-first command surface.
+- `Milestone 2: Test Hardening` - focused unit coverage for the new CLI flow contract and lookup-table behavior.
 
 ### Vision capability affected
 
