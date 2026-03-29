@@ -18,7 +18,7 @@ class EmbeddingsStrategy:
         return False
 
     def retrieve(self, query: Any, *, candidate_doc_ids: tuple[str, ...]) -> StrategyRun:
-        return StrategyRun(strategy_id=self.id, hits=[], elapsed_ms=0, cache_used=False)
+        raise NotImplementedError("Embeddings retrieval is deferred in the FTS-first MVP lane")
 
 
 __all__ = ["EmbeddingsStrategy"]
