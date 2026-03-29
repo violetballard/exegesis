@@ -38,6 +38,7 @@ _FTS_SEGMENT_OVERLAP_CHARS = 80
 _FTS_BOUNDARY_SCAN_CHARS = 40
 _SUPPORTED_RETRIEVAL_INTENTS = {"lookup", "compare", "summarize", "quote_find", "outline_support"}
 _SUPPORTED_CONFIDENTIALITY_PROFILES = {"confidential", "standard"}
+_FTS_SOURCE_STRATEGY = "fts"
 
 
 def _canonicalize_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
@@ -130,6 +131,10 @@ class RetrievalHit:
     node_path: list[dict[str, str]] | None
     provenance: dict[str, object]
 
+    def __post_init__(self) -> None:
+        if self.source_strategy != _FTS_SOURCE_STRATEGY:
+            raise ValueError("source_strategy must be fts for the FTS-first retrieval lane")
+
     def as_dict(self) -> dict[str, object]:
         payload = {
             "doc_id": self.doc_id,
@@ -216,6 +221,10 @@ class RetrievalDocHit:
     source_strategy: Literal["fts"]
     excerpt_count: int
     provenance: dict[str, object]
+
+    def __post_init__(self) -> None:
+        if self.source_strategy != _FTS_SOURCE_STRATEGY:
+            raise ValueError("source_strategy must be fts for the FTS-first retrieval lane")
 
     def as_dict(self) -> dict[str, object]:
         payload = {

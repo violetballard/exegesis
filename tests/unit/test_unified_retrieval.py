@@ -34,6 +34,8 @@ from src.qual.retrieval import retrieve_fts_provenance_bundle as engine_retrieve
 from src.qual.retrieval import retrieve_fts_payload as engine_retrieve_fts_payload
 from src.qual.retrieval import retrieve_fts_source_bundle as engine_retrieve_fts_source_bundle
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
+from src.qual.retrieval.service import RetrievalDocHit
+from src.qual.retrieval.service import RetrievalHit
 
 
 class UnifiedRetrievalTests(unittest.TestCase):
@@ -202,6 +204,33 @@ class UnifiedRetrievalTests(unittest.TestCase):
         second = self.service.retrieve_auto(query)
         self.assertEqual(first.diagnostics["fts_shortlist_doc_ids"], second.diagnostics["fts_shortlist_doc_ids"])
         self.assertIn("doc-pdf-1", first.diagnostics["fts_shortlist_doc_ids"])
+
+    def test_retrieval_hits_reject_non_fts_source_strategies(self) -> None:
+        with self.assertRaisesRegex(ValueError, "source_strategy must be fts"):
+            RetrievalHit(
+                doc_id="doc-1",
+                excerpt_id="excerpt-1",
+                excerpt_text="excerpt text",
+                span={"char_range": {"start": 0, "end": 12}},
+                title_hint="Title",
+                score=1.0,
+                source_strategy="pageindex",
+                rationale="unsupported",
+                node_path=None,
+                provenance={},
+            )
+
+        with self.assertRaisesRegex(ValueError, "source_strategy must be fts"):
+            RetrievalDocHit(
+                doc_id="doc-1",
+                title_hint="Title",
+                source_hash="hash",
+                top_excerpt_id="excerpt-1",
+                top_score=1.0,
+                source_strategy="embeddings",
+                excerpt_count=1,
+                provenance={},
+            )
 
     def test_retrieve_auto_canonicalizes_doc_type_filters_in_fingerprints(self) -> None:
         first = self.service.retrieve_auto(
