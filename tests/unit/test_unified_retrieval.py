@@ -19,6 +19,7 @@ from src.qual.engine.retrieval import build_retrieval_source_bundle_from_result 
 from src.qual.engine.retrieval.payload import build_retrieval_citation_bundle_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_result
+from src.qual.engine.retrieval.payload import _build_retrieval_excerpt_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_source_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_provenance_from_payload
 import src.qual.retrieval as package_retrieval
@@ -1066,11 +1067,29 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "active_strategy_ids": ("fts",),
                 "deferred_strategy_ids": ("pageindex", "embeddings"),
                 "fts_shortlist_doc_ids": ("doc-1", "doc-2"),
+                "excerpt_citations": (
+                    {
+                        "doc_id": "doc-1",
+                        "excerpt_id": "excerpt-1",
+                        "excerpt_fingerprint": "excerpt-fingerprint",
+                    },
+                ),
             },
+            "doc_hits": (
+                {"doc_id": "doc-1", "provenance": {"doc_fingerprint": "doc-fingerprint"}},
+            ),
+            "excerpt_hits": (
+                {
+                    "doc_id": "doc-1",
+                    "excerpt_id": "excerpt-1",
+                    "provenance": {"excerpt_fingerprint": "excerpt-fingerprint"},
+                },
+            ),
         }
 
         provenance = _build_retrieval_provenance_from_payload(payload)
         source_bundle = _build_retrieval_source_bundle_from_payload(payload)
+        excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
 
         self.assertEqual(provenance["query_date_range"], ["2026-01-01", "2026-01-31"])
         self.assertEqual(provenance["active_strategy_ids"], ["fts"])
@@ -1080,6 +1099,12 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(source_bundle["query"]["constraints"]["date_range"], ["2026-01-01", "2026-01-31"])
         self.assertEqual(source_bundle["policy"]["active_strategy_ids"], ["fts"])
         self.assertEqual(source_bundle["policy"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(excerpt_bundle["doc_count"], 1)
+        self.assertEqual(excerpt_bundle["excerpt_count"], 1)
+        self.assertIsInstance(excerpt_bundle["excerpt_hits"], list)
+        self.assertIsInstance(excerpt_bundle["excerpt_citations"], list)
+        self.assertEqual(excerpt_bundle["excerpt_hits"][0]["excerpt_id"], "excerpt-1")
+        self.assertEqual(excerpt_bundle["excerpt_citations"][0]["excerpt_id"], "excerpt-1")
 
     def test_engine_retrieval_package_exports_are_fts_only(self) -> None:
         self.assertEqual(

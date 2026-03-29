@@ -340,14 +340,14 @@ def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> 
         return copy.deepcopy(excerpt_bundle)
     bundle_context = _build_retrieval_bundle_context_from_payload(payload)
     provenance = bundle_context["retrieval_provenance"]
-    excerpt_hits = copy.deepcopy(payload.get("excerpt_hits", []))
+    excerpt_hits = _normalize_list_like(payload.get("excerpt_hits", []))
     excerpt_citations: list[dict[str, object]] = []
     if isinstance(provenance, dict):
-        excerpt_citations = copy.deepcopy(provenance.get("excerpt_citations", []))
+        excerpt_citations = _normalize_list_like(provenance.get("excerpt_citations", []))
     return {
         **bundle_context,
-        "doc_count": len(copy.deepcopy(payload.get("doc_hits", []))),
-        "excerpt_count": len(excerpt_hits),
+        "doc_count": len(_normalize_list_like(payload.get("doc_hits", []))),
+        "excerpt_count": len(excerpt_hits) if excerpt_hits else len(excerpt_citations),
         "excerpt_hits": excerpt_hits,
         "excerpt_citations": excerpt_citations,
     }
