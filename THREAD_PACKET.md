@@ -23,7 +23,7 @@
 - `src/qual/storage/vault.py`
 
 ## Approved exception files changed
-- `tests/unit/test_context_storage_recovery.py` (approved shared-test exception; corresponds to implementation diff `47cda4df831ac41867a8792f40d720e0cb109514`; `SCOPE_ALLOW_SHARED=1` is required by `scripts/scope-check.sh`)
+- `tests/unit/test_context_storage_recovery.py` (the only approved shared-test exception; corresponds to implementation diff `47cda4df831ac41867a8792f40d720e0cb109514`; `SCOPE_ALLOW_SHARED=1` is required by `scripts/scope-check.sh`)
 
 ## Handoff-alignment files changed
 - `.codex/lane_meta/feat-context-storage.json`
@@ -67,4 +67,4 @@
 - Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, and it is covered by the explicit shared-test exception.
 - Approval basis: `scripts/scope-check.sh` explicitly allows `tests/unit/test_context_storage_recovery.py` for `codex/feat-context-storage*` when `SCOPE_ALLOW_SHARED=1` is set.
 - Branch-head bookkeeping note: `3bcca74f91465bab35a4f35d20c7fbf5cd10c5e8` records packet/metadata alignment only; it does not change the owned runtime scope.
-- Explicit handoff-alignment approval: `.codex/lane_meta/feat-context-storage.json` and `THREAD_PACKET.md` are intentionally included as docs-only alignment files and are separate from the reviewed runtime diff.
+- Explicit handoff-alignment approval: `.codex/lane_meta/feat-context-storage.json` and `THREAD_PACKET.md` are docs-only alignment files, separate from the reviewed runtime diff, and do not expand the approved shared-test exception beyond `tests/unit/test_context_storage_recovery.py`.
