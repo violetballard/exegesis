@@ -1,43 +1,32 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Final HEAD SHA: `15103c92584694742e044ade321fab83b67a9478`
+- Final HEAD SHA: `f68e4d9ed4c326476a5ab6a1047183f932da6d11`
 - Reviewed implementation commit(s):
-  - `22ce0e2023cf2bfa03fb5cfc2ba035cf8e92e8c3`
-  - `15103c92584694742e044ade321fab83b67a9478`
+  - `f68e4d9ed4c326476a5ab6a1047183f932da6d11`
 - Docs-only alignment commit(s):
-  - `07ae98b19e44d7b30c8ee490295cd91577ae0f7b`
+  - `none`
 
 ## Scope goal
 
-Expose an explicit `command_mvp_surface_contract` alias on the `feat-commands` command surface while keeping the CLI-compatible command catalog and contract projections stable.
+Tighten `command_flow_contract` defaults so the canonical command catalog uses the current MVP demo flow by default, while explicit flow-step overrides keep their existing ordering semantics.
 
 ## Scope completed
 
-- Added `command_mvp_surface_contract` in `src/qual/commands/catalog.py` and re-exported it from `src/qual/commands/__init__.py` so the MVP surface has an explicit importable alias.
-- Routed `command_mvp_flow_contract` and `command_surface_contract` through the new alias so the public surface contract stays a single shared object.
-- Added focused command-catalog regression coverage in `tests/unit/test_commands_catalog.py` to verify the new alias stays aligned with the public surface contract and MVP flow contract.
-- Regenerated the handoff packet from the actual `codex/feat-commands` tip and aligned scope-check policy with the approved `tests/unit/test_commands_catalog.py` shared test, while keeping the docs/policy alignment files separate from the 3-file implementation delta.
+- Added `_resolve_contract_flow_steps` in `src/qual/commands/catalog.py` so the default aggregate command contract selects `command_demo_flow_steps()` for the canonical `COMMAND_SPECS` catalog.
+- Kept explicit `flow_steps` overrides on the existing `command_flow_steps(specs)` path, so caller-supplied orderings remain unchanged.
+- Regenerated the handoff packet so the branch summary, file list, and ownership mapping match the actual `codex/feat-commands` tip.
 
 ## Files changed
 
-### Implementation files changed
-
-- `src/qual/commands/__init__.py` (lane-owned)
 - `src/qual/commands/catalog.py` (lane-owned)
-- `tests/unit/test_commands_catalog.py` (approved shared file)
-
-### Docs/policy alignment files changed
-
-- `scripts/scope-check.sh` (policy-support edit for the approved shared test)
-- `THREAD_PACKET.md` (handoff artifact)
 
 ## Tasks completed
 
-1. Added the explicit `command_mvp_surface_contract` alias and exported it from the public command package.
-2. Unified the public surface-contract helpers through the new alias so MVP and public entrypoints stay identical.
-3. Added focused catalog coverage for the alias and contract alignment.
-4. Regenerated the handoff packet and scope-check policy so the submitted branch matches the actual diff, passes scope checking, and keeps docs/policy alignment separate from the implementation delta.
+1. Tightened the default `command_flow_contract` path so the canonical command catalog uses the MVP demo flow by default.
+2. Preserved explicit `flow_steps` overrides through the existing command flow helpers.
+3. Regenerated the handoff packet to remove stale shared-file and policy references.
+4. Ran the required gates and confirmed scope, formatting, lint, tests, typecheck, and CI are green.
 
 ## Commands run and outcomes
 
@@ -57,22 +46,17 @@ Expose an explicit `command_mvp_surface_contract` alias on the `feat-commands` c
 
 ### Roadmap item(s) affected
 
-- `MVP Focus Through 2026-05-04: feat-commands` - active lane for CLI-compatible command-surface hardening.
+- `Milestone 1: Bootstrap Flow Stabilization` - command behavior hardening for the CLI-first command surface.
 
 ### Vision capability affected
 
-- Capability 4 - Operator-first control surface: CLI remains a first-class surface, and engine contracts stay stable for CLI-first automation and future `Exegesis Console` consumption.
+- `Operator-first control surface` - CLI remains a first-class surface, and command contracts stay deterministic for operator-driven flows.
 
 ### Routing/provider impact note
 
-- None. This change only affects local command-surface aliases, command-contract verification, and the approved scope-check policy for the shared test.
-
-## Approved exception note
-
-- Approved shared-file exception for `tests/unit/test_commands_catalog.py`.
+- None. This change only affects local command-contract default selection and preserves existing override behavior.
 
 ## Scope-check / ownership note
 
-- Shared/integrator-locked edits: `YES` (approved shared test only)
-- Approved shared-file exception: `tests/unit/test_commands_catalog.py`
-- Policy-support edit: `scripts/scope-check.sh` permits the approved `tests/unit/test_commands_catalog.py` shared test during `make scope-check`.
+- Shared/integrator-locked edits: `NO`
+- Approved shared-file exceptions: `none`
