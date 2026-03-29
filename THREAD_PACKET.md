@@ -37,9 +37,6 @@ These are the reviewed code commits that deliver the FTS-first retrieval lane ac
 
 These alignment files and commits record the handoff bookkeeping work and are separate from the reviewed implementation diff above.
 
-- `bf979b9f4400212ed9b655855f10312069ac735f` - note approved metadata-only handoff artifacts
-- `3707b35360b8c64b1fdafaaef38a00dede50eca3` - tighten handoff file list
-- `a8743f187107c8b2268907731cee5595975a19b1` - anchor packet metadata to reviewed head
 - `c160c47543da7a75e9a4e1886b7e43ffbb6b1a3d` - align handoff metadata
 - `6e6db6c49c342fb3a3b707124c446204f200d073` - align handoff milestone mapping
 - `1900aba540ad7590f24e97edca63b3fbfc121884` - correct handoff metadata
@@ -58,6 +55,9 @@ These alignment files and commits record the handoff bookkeeping work and are se
 - `e4b895ddf767deb962d269c6801df364c432a3bb` - restamp handoff packet to current head
 - `2836df72a27ba5e1803a99714a580648d7710061` - split handoff commit metadata (metadata-only)
 - `46f8d2f297bc12a3753479a6064746151ab1b0d0` - restamp handoff scope hash
+- `a8743f187107c8b2268907731cee5595975a19b1` - anchor packet metadata to reviewed head
+- `3707b35360b8c64b1fdafaaef38a00dede50eca3` - tighten handoff file list
+- `bf979b9f4400212ed9b655855f10312069ac735f` - note approved metadata-only handoff artifacts
 
 These alignment commits only restamp handoff metadata and packet-planner coordination artifacts. `a8743f187107c8b2268907731cee5595975a19b1` also touched `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` strictly to keep the planner/review packet aligned with the reviewed head.
 
