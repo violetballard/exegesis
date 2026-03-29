@@ -5,7 +5,7 @@
 - Reviewed implementation commit(s):
   - `a5b0a247f2bf97ee233a8a458230a1bdda0b9dc4`
 - Docs-only alignment commit(s):
-  - `none`
+  - `da122acb7f5454db56b5df39186b50ac0857e14a`
 
 ## Scope goal
 
