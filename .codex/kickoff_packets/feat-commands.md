@@ -1,7 +1,7 @@
 # Lane Kickoff: feat-commands
 
 - Branch: `codex/feat-commands`
- - Lane/owned paths: `src/qual/commands/**`
+- Lane/owned paths: `src/qual/commands/**`
 - Scope goal: Tighten the command surface for the engine-first MVP so the CLI can reliably drive the A2UI demo flow: project open/bootstrap, retrieval invocation, patch review, and export handoff.
 
 ### Priority outcomes
