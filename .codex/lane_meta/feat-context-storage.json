@@ -16,7 +16,7 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 3: Real workflow loop",
+    "Milestone 1: Bootstrap Flow Stabilization",
     "Context basket and vault persistence hardening"
   ],
   "vision_capabilities": [
