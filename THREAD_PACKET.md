@@ -1,7 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Final HEAD SHA: `526fbe490f77ed63284fa8de6ddec8849c7c4944`
+- Final HEAD SHA (reviewed implementation head): `526fbe490f77ed63284fa8de6ddec8849c7c4944`
 - Reviewed implementation range: `1d6057e9..526fbe490f77ed63284fa8de6ddec8849c7c4944`
 - Handoff type: cumulative full-thread retrieval handoff
 
@@ -71,17 +71,18 @@ Shipped:
 - SQLite FTS remains the authoritative retrieval path.
 - The canonical retrieval query constructor is exported through both retrieval facades.
 - The public `retrieve_*` helpers accept `RetrievalConstraints` objects as well as mapping payloads, and iterable constraint inputs normalize deterministically.
-- PageIndex and embeddings remain compatibility-only shims and fallback-only plumbing behind the FTS-first policy, failing closed when deferred.
 - Retrieval payload, citation, provenance, and hit snapshots normalize list-like and strategy fields deterministically, including the `retrieval_source_strategy` alias, downstream `source_strategy` attribution, list-like provenance rehydration, and source-bundle fallback rehydration for provenance/citation/doc/excerpt/downstream payload helpers.
 - Payload bundle snapshots are canonicalized for deterministic downstream rehydration, and direct doc/excerpt/context bundle helpers round-trip through canonical bundle shapes.
 - Regression coverage exercises the normalized payload snapshots, facade exports, FTS citation/provenance/source-attribution helpers, and the source-bundle-only downstream payload reconstruction path.
 - Constraint payloads stay mapping/dataclass-shaped; iterable `doc_types` and `date_range` values are normalized deterministically from those inputs.
 
+Stayed fallback-only:
+- PageIndex and embeddings remain compatibility-only shims and fallback-only plumbing behind the FTS-first policy, failing closed when deferred.
+
 Did not ship:
 - No shared or integrator-locked file edits in the reviewed retrieval implementation.
 - No provider or routing configuration changes.
 - No retrieval behavior beyond the FTS-first MVP, deterministic snapshot normalization, doc-hit source attribution, source-bundle payload rehydration, and direct bundle helper normalization work in the reviewed range.
-- Constraint payloads stay mapping/dataclass-shaped; iterable `doc_types` and `date_range` values are normalized deterministically from those inputs.
 
 Reviewed range note:
 - The handoff is cumulative, not tip-only; the reviewed implementation range ends at `526fbe490f77ed63284fa8de6ddec8849c7c4944`, and the docs-only alignment commits above only restamp packet metadata or packet-planner coordination artifacts.
