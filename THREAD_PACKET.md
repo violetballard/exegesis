@@ -1,27 +1,30 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Final HEAD SHA: `f68e4d9ed4c326476a5ab6a1047183f932da6d11`
+- Final HEAD SHA: `a5b0a247f2bf97ee233a8a458230a1bdda0b9dc4`
 - Reviewed implementation commit(s):
-  - `f68e4d9ed4c326476a5ab6a1047183f932da6d11`
+  - `a5b0a247f2bf97ee233a8a458230a1bdda0b9dc4`
 - Docs-only alignment commit(s):
-  - `7168ea982deb2457bacd236739b340b2db47cba8`
+  - `none`
 
 ## Scope goal
 
-Tighten `command_flow_contract` defaults so the canonical command catalog uses the current MVP demo flow by default while explicit flow-step overrides keep their existing ordering semantics.
+Add grouped command smoke tokens to the command catalog so the public and MVP surface contracts expose deterministic grouped flow-surface projections for CLI smoke checks.
 
 ## Scope completed
 
-- Added `_resolve_contract_flow_steps` in `src/qual/commands/catalog.py` so the default aggregate command contract selects `command_demo_flow_steps()` for the canonical `COMMAND_SPECS` catalog.
-- Kept explicit `flow_steps` overrides on the existing command flow helpers so caller-supplied orderings remain unchanged.
-- Regenerated the handoff packet so the branch summary, file list, and ownership mapping match the actual reviewed command-flow delta.
+- Added `command_flow_surface_tokens` and `command_mvp_flow_surface_tokens` exports in `src/qual/commands/__init__.py` so grouped smoke-token projections are part of the public command API.
+- Extended `src/qual/commands/catalog.py` with grouped flow-surface token projections and surface-contract wiring so `CommandSurfaceContract.flow_surface_tokens` stays aligned with the MVP/demo smoke path.
+- Added focused unit coverage in `tests/unit/test_commands_catalog.py` for grouped surface-token ordering, MVP/public contract alignment, and flow-surface token exposure.
+- Regenerated the handoff packet so the branch summary, file list, and ownership mapping match the actual `a5b0a247` command-surface delta.
 
 ## Files changed
 
 ### Implementation files changed
 
+- `src/qual/commands/__init__.py` (lane-owned)
 - `src/qual/commands/catalog.py` (lane-owned)
+- `tests/unit/test_commands_catalog.py` (approved shared test)
 
 ### Docs-only alignment files changed
 
@@ -29,10 +32,10 @@ Tighten `command_flow_contract` defaults so the canonical command catalog uses t
 
 ## Tasks completed
 
-1. Tightened the default `command_flow_contract` path so the canonical command catalog uses the MVP demo flow by default.
-2. Preserved explicit `flow_steps` overrides through the existing command flow helpers.
-3. Regenerated the handoff packet to remove stale shared-file and policy references.
-4. Ran the required gates and confirmed scope, formatting, lint, tests, typecheck, and CI are green.
+1. Exported grouped flow-surface token helpers from `src/qual/commands/__init__.py`.
+2. Wired grouped flow-surface token projections into `src/qual/commands/catalog.py` and exposed them through the command surface contract.
+3. Added regression coverage for grouped command smoke tokens and contract alignment in `tests/unit/test_commands_catalog.py`.
+4. Regenerated the handoff packet so the feature summary matches the actual reviewed command-surface commit.
 
 ## Commands run and outcomes
 
@@ -52,7 +55,8 @@ Tighten `command_flow_contract` defaults so the canonical command catalog uses t
 
 ### Roadmap item(s) affected
 
-- `Milestone 1: Bootstrap Flow Stabilization` - command behavior hardening for the CLI-first command surface.
+- `Milestone 1: Bootstrap Flow Stabilization` - command-surface hardening for the CLI-first command surface.
+- `Milestone 2: Test Hardening` - focused grouped-smoke regression coverage for the catalog test path.
 
 ### Vision capability affected
 
@@ -60,9 +64,9 @@ Tighten `command_flow_contract` defaults so the canonical command catalog uses t
 
 ### Routing/provider impact note
 
-- None. This change only affects local command-contract default selection and preserves existing override behavior.
+- None. This change only affects local command-surface token projections, contract bundling, and focused command-catalog test coverage.
 
 ## Scope-check / ownership note
 
-- Shared/integrator-locked edits: `NO`
-- Approved shared-file exceptions: `none`
+- Shared/integrator-locked edits: `YES` (approved shared test only)
+- Approved shared-file exception: `tests/unit/test_commands_catalog.py`
