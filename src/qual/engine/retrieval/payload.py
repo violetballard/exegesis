@@ -88,6 +88,45 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
     normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
     normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
+    retrieval_policy = normalized.get("retrieval_policy")
+    if isinstance(retrieval_policy, dict):
+        normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    citation_status = normalized.get("citation_status")
+    if isinstance(citation_status, dict):
+        normalized["citation_status"] = copy.deepcopy(citation_status)
+    elif "citation_status" in normalized:
+        normalized["citation_status"] = {}
+    return normalized
+
+
+def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, object]:
+    normalized = copy.deepcopy(doc_bundle)
+    normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
+    normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
+    normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits"))
+    normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
+    retrieval_policy = normalized.get("retrieval_policy")
+    if isinstance(retrieval_policy, dict):
+        normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    citation_status = normalized.get("citation_status")
+    if isinstance(citation_status, dict):
+        normalized["citation_status"] = copy.deepcopy(citation_status)
+    elif "citation_status" in normalized:
+        normalized["citation_status"] = {}
+    return normalized
+
+
+def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dict[str, object]:
+    normalized = copy.deepcopy(excerpt_bundle)
+    normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
+    normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
+    normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits"))
+    normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
+    retrieval_policy = normalized.get("retrieval_policy")
+    if isinstance(retrieval_policy, dict):
+        normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
     citation_status = normalized.get("citation_status")
     if isinstance(citation_status, dict):
         normalized["citation_status"] = copy.deepcopy(citation_status)
@@ -333,19 +372,19 @@ def _build_retrieval_doc_bundle_from_payload(payload: dict[str, object]) -> dict
 
     doc_bundle = payload.get("retrieval_doc_bundle")
     if isinstance(doc_bundle, dict):
-        return copy.deepcopy(doc_bundle)
+        return _normalize_doc_bundle_snapshot(doc_bundle)
     bundle_context = _build_retrieval_bundle_context_from_payload(payload)
     provenance = bundle_context["retrieval_provenance"]
-    doc_hits = copy.deepcopy(payload.get("doc_hits", []))
-    doc_citations: list[dict[str, object]] = []
+    doc_hits = _normalize_list_like(payload.get("doc_hits", []))
+    doc_citations: list[object] = []
     if isinstance(provenance, dict):
-        doc_citations = copy.deepcopy(provenance.get("doc_citations", []))
-    return {
+        doc_citations = _normalize_list_like(provenance.get("doc_citations", []))
+    return _normalize_doc_bundle_snapshot({
         **bundle_context,
         "doc_count": len(doc_hits),
         "doc_hits": doc_hits,
         "doc_citations": doc_citations,
-    }
+    })
 
 
 def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
@@ -353,20 +392,20 @@ def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> 
 
     excerpt_bundle = payload.get("retrieval_excerpt_bundle")
     if isinstance(excerpt_bundle, dict):
-        return copy.deepcopy(excerpt_bundle)
+        return _normalize_excerpt_bundle_snapshot(excerpt_bundle)
     bundle_context = _build_retrieval_bundle_context_from_payload(payload)
     provenance = bundle_context["retrieval_provenance"]
     excerpt_hits = _normalize_list_like(payload.get("excerpt_hits", []))
-    excerpt_citations: list[dict[str, object]] = []
+    excerpt_citations: list[object] = []
     if isinstance(provenance, dict):
         excerpt_citations = _normalize_list_like(provenance.get("excerpt_citations", []))
-    return {
+    return _normalize_excerpt_bundle_snapshot({
         **bundle_context,
         "doc_count": len(_normalize_list_like(payload.get("doc_hits", []))),
         "excerpt_count": len(excerpt_hits) if excerpt_hits else len(excerpt_citations),
         "excerpt_hits": excerpt_hits,
         "excerpt_citations": excerpt_citations,
-    }
+    })
 
 
 def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
@@ -483,8 +522,12 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         excerpt_citations = []
     if "doc_citations" not in normalized:
         normalized["doc_citations"] = copy.deepcopy(doc_citations)
+    else:
+        normalized["doc_citations"] = _normalize_list_like(normalized["doc_citations"])
     if "excerpt_citations" not in normalized:
         normalized["excerpt_citations"] = copy.deepcopy(excerpt_citations)
+    else:
+        normalized["excerpt_citations"] = _normalize_list_like(normalized["excerpt_citations"])
     if "primary_doc_id" not in normalized and doc_citations:
         first_doc_citation = doc_citations[0]
         if isinstance(first_doc_citation, dict):
