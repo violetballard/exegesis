@@ -16,8 +16,7 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 1: Bootstrap Flow Stabilization",
-    "Context basket and vault persistence hardening"
+    "Milestone 1: Bootstrap Flow Stabilization"
   ],
   "vision_capabilities": [
     "1. Local-first state and identity",
@@ -34,5 +33,5 @@
     ".codex/lane_meta/feat-context-storage.json"
   ],
   "kickoff_budget_note": "Reset-required lane after ownership and repo-hygiene drift in the stale March 5 review generation.",
-  "approved_exception_note": "Approved shared-file exception for tests/unit/test_context_storage_recovery.py only; it corresponds to implementation diff 47cda4df831ac41867a8792f40d720e0cb109514. No broader shared-file runtime edit is being claimed. Docs-only alignment files are handoff metadata only and do not expand the reviewed runtime scope or the approved shared-test exception."
+  "approved_exception_note": "Approved shared-file exception for tests/unit/test_context_storage_recovery.py only; it corresponds to implementation diff 47cda4df831ac41867a8792f40d720e0cb109514. Docs-only alignment files are handoff metadata only and do not expand the reviewed runtime scope."
 }

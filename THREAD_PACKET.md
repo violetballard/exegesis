@@ -1,10 +1,10 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-context-storage`
-- Reviewed commit(s):
+- Implementation commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514` (implementation: runtime storage/context hardening)
+- Docs-only alignment commit(s):
   - `ff06348b3aa25319a7433b04a849ceee42197d44` (current docs-only handoff alignment; no runtime scope)
-- Handoff-alignment commit(s):
   - `89a2faa20441a66bfeb1f305b615cb0f1a81bef9` (packet/metadata alignment only; no runtime scope)
   - `3bcca74f91465bab35a4f35d20c7fbf5cd10c5e8` (handoff metadata alignment follow-up; no runtime scope)
 
@@ -55,7 +55,6 @@
 
 ### Roadmap item(s) affected
 - Milestone 1: Bootstrap Flow Stabilization
-- Context basket and vault persistence hardening
 
 ### Vision capability affected
 - `1. Local-first state and identity`
