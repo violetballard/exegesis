@@ -54,8 +54,8 @@
 - Hardened context basket/set and vault recovery, kept the approved `tests/unit/test_context_storage_recovery.py` exception explicit, and kept runtime edits in owned paths.
 
 ### Roadmap item(s) affected
-- Milestone 3: Product Readiness
-- engine can persist project/document/basket/session state
+- Milestone 1: Bootstrap Flow Stabilization
+- Context basket and vault persistence hardening
 
 ### Vision capability affected
 - `1. Local-first state and identity`

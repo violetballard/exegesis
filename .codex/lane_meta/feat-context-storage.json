@@ -16,8 +16,8 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 3: Product Readiness",
-    "engine can persist project/document/basket/session state"
+    "Milestone 1: Bootstrap Flow Stabilization",
+    "Context basket and vault persistence hardening"
   ],
   "vision_capabilities": [
     "1. Local-first state and identity",
