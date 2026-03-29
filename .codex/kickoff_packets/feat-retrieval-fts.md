@@ -3,7 +3,7 @@
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Handoff type: retrieval feature handoff for the FTS-first retrieval lane.
-- Scope goal: Keep the FTS-first retrieval lane scoped to deterministic excerpt/provenance output, public package-level `RetrievalConstraints` support, compatibility shims for legacy retrieval imports, and the reviewed retrieval-owned files only.
+- Scope goal: Keep the FTS-first retrieval lane scoped to deterministic excerpt/provenance/hit-snapshot output, public package-level `RetrievalConstraints` support, compatibility shims for legacy retrieval imports, and the reviewed retrieval-owned files only.
 
 ## Scope completed
 
@@ -20,7 +20,7 @@ This handoff stayed within the low-risk `8`-task cap. It did not rely on the spr
 
 ### Source of truth
 - Canonical retrieval logic remains in `src/qual/retrieval/**`.
-- Engine-side retrieval exports and compatibility shims remain in `src/qual/engine/retrieval/**`.
+- Engine-side retrieval exports, compatibility shims, and payload helpers remain in `src/qual/engine/retrieval/**`.
 - Payload normalization keeps query, policy, provenance, and hit snapshots deterministic for downstream consumers.
 
 ### Guardrails

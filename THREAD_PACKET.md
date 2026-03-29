@@ -2,12 +2,12 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Final HEAD SHA: `1cc160ff7a56f539b4726dd03cc477f714243e8d`
-- Reviewed implementation range: `2c1d2737..1cc160ff`
+- Reviewed implementation range: `1d6057e9..1cc160ff`
 - Handoff type: cumulative full-thread retrieval handoff
 
 ## Scope goal
 
-Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3: Real workflow loop and PRODUCT_VISION.md capability 2, and expose `RetrievalConstraints` through the public retrieval helpers.
+Build the FTS-first retrieval MVP with deterministic excerpt, provenance, and hit-snapshot output for engine generation flows, aligned to ROADMAP.md Milestone 3: Real workflow loop and PRODUCT_VISION.md capability 2, while keeping PageIndex and embeddings fallback-only and exposing `RetrievalConstraints` through the public retrieval helpers.
 
 ## Scope completed
 
@@ -25,13 +25,13 @@ Did not ship:
 - No retrieval behavior beyond the FTS-first MVP and deterministic snapshot normalization work in the reviewed range.
 
 Reviewed range note:
-- The handoff is cumulative, not tip-only; metadata-only alignment commits in `2c1d2737..1cc160ff` only adjust handoff artifacts and do not change retrieval behavior.
+- The handoff is cumulative, not tip-only; metadata-only alignment commits in `1d6057e9..1cc160ff` only adjust handoff artifacts and do not change retrieval behavior.
 
 ## Files changed
 
 ### Source changes
 
-These are the exact source files changed across the reviewed cumulative range `2c1d2737..1cc160ff`.
+These are the exact source files changed across the reviewed cumulative range `1d6057e9..1cc160ff`.
 
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/embeddings_strategy.py`

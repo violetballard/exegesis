@@ -6,15 +6,10 @@
   "risk": "LOW",
   "packet_type": "metadata-only",
   "reviewed_commits": [
-    "91a78c3f528d8b76e39000f0aac18f87d5927629",
-    "9fef8afea6cfb69a8127093af6488f6ab25534e4",
-    "6400c4554de89773357891a91e4c9e2e5e0057a0",
+    "23e4e4273b8808f5cc5a2f9adab1a7eb2d821b75",
     "06a0e06ba9c584e209840da92171a1882ccb5628",
     "c3716f77141bdee761377f0ee1b15cbcf285e02f",
-    "a6ea3c8150ee8121b3a5efd0042e3204ae4f44c4",
-    "6969f9376160df1ed1fda88bce7c232e49dcb422",
     "321616e11e58c16701c5d227bdf160abee41a648",
-    "a19a83b5243fdc0d23b911549bbe13588d97045f",
     "439af5c84a224d23c861e0206834bfd598d3836b",
     "f511f4b5c53bae03aba746e9ceb5b1b27141f7e5",
     "20bbc5502f4a5f4e8339faa25fd44d3d7caeecdc",
@@ -24,8 +19,8 @@
     "ROADMAP.md: Milestone 3: Real workflow loop"
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3: Real workflow loop and PRODUCT_VISION.md capability 2, and expose RetrievalConstraints through the public retrieval helpers.",
-  "scope_completed": "Shipped the cumulative 2c1d2737..1cc160ff retrieval thread: SQLite FTS is the authoritative retrieval path, the canonical retrieval query constructor is exported through both retrieval facades, the public retrieve_* helpers accept RetrievalConstraints objects as well as mapping payloads, PageIndex and embeddings remain compatibility-only shims, and retrieval payload, citation, provenance, and hit snapshots normalize list-like and strategy fields deterministically, including the retrieval_source_strategy alias. Did not ship shared or integrator-locked file edits, provider or routing configuration changes, or retrieval behavior beyond the FTS-first MVP and deterministic snapshot normalization work in the reviewed range.",
+  "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt, provenance, and hit-snapshot output for engine generation flows, aligned to ROADMAP.md Milestone 3: Real workflow loop and PRODUCT_VISION.md capability 2, while keeping PageIndex and embeddings fallback-only and exposing RetrievalConstraints through the public retrieval helpers.",
+  "scope_completed": "Shipped the cumulative 1d6057e9..1cc160ff retrieval thread: SQLite FTS is the authoritative retrieval path, the canonical retrieval query constructor is exported through both retrieval facades, the public retrieve_* helpers accept RetrievalConstraints objects as well as mapping payloads, PageIndex and embeddings remain compatibility-only shims, and retrieval payload, citation, provenance, and hit snapshots normalize list-like and strategy fields deterministically, including the retrieval_source_strategy alias. Did not ship shared or integrator-locked file edits, provider or routing configuration changes, or retrieval behavior beyond the FTS-first MVP and deterministic snapshot normalization work in the reviewed range.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Added deterministic FTS provenance and excerpt output in the retrieval service.",
