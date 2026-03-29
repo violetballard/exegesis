@@ -80,12 +80,28 @@ def _normalize_policy_snapshot(policy: object) -> dict[str, object]:
     return normalized
 
 
+def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> dict[str, object]:
+    normalized = copy.deepcopy(citation_bundle)
+    normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
+    normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized.get("fts_shortlist_doc_ids"))
+    normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
+    normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
+    normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
+    citation_status = normalized.get("citation_status")
+    if isinstance(citation_status, dict):
+        normalized["citation_status"] = copy.deepcopy(citation_status)
+    elif "citation_status" in normalized:
+        normalized["citation_status"] = {}
+    return normalized
+
+
 def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
     """Return the deterministic citation bundle from a downstream payload snapshot."""
 
     citation_bundle = payload.get("retrieval_citation_bundle")
     if isinstance(citation_bundle, dict):
-        return copy.deepcopy(citation_bundle)
+        return _normalize_citation_bundle_snapshot(citation_bundle)
 
     query = payload.get("query", {})
     if not isinstance(query, dict):
@@ -134,7 +150,7 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
             summary.get("fts_shortlist_doc_ids", diagnostics.get("fts_shortlist_doc_ids", [])),
         )
     )
-    return {
+    return _normalize_citation_bundle_snapshot({
         "query_fingerprint": provenance.get(
             "query_fingerprint",
             summary.get("query_fingerprint", diagnostics.get("query_fingerprint")),
@@ -176,7 +192,7 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
         ),
         "doc_citations": copy.deepcopy(provenance.get("doc_citations", [])),
         "excerpt_citations": copy.deepcopy(provenance.get("excerpt_citations", [])),
-    }
+    })
 
 
 def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
@@ -549,7 +565,7 @@ def build_retrieval_provenance_from_result(
 
     provenance_source = getattr(result, "retrieval_provenance_bundle", None)
     if callable(provenance_source):
-        return copy.deepcopy(provenance_source())
+        return _build_retrieval_provenance_from_payload({"retrieval_provenance": provenance_source()})
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_provenance_from_payload(payload)
 
@@ -621,7 +637,7 @@ def build_retrieval_citation_bundle_from_result(
     """Return the deterministic doc and excerpt citation snapshot for a result."""
     bundle_source = getattr(result, "citation_bundle", None)
     if callable(bundle_source):
-        return copy.deepcopy(bundle_source())
+        return _build_retrieval_citation_bundle_from_payload({"retrieval_citation_bundle": bundle_source()})
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_citation_bundle_from_payload(payload)
 
@@ -632,7 +648,7 @@ def build_retrieval_source_bundle_from_result(
     """Return the deterministic retrieval source bundle for downstream engine flows."""
     bundle_source = getattr(result, "source_bundle", None)
     if callable(bundle_source):
-        return copy.deepcopy(bundle_source())
+        return _build_retrieval_source_bundle_from_payload({"retrieval_source_bundle": bundle_source()})
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_source_bundle_from_payload(payload)
 
@@ -676,7 +692,9 @@ def build_retrieval_context_bundle_from_result(
         return copy.deepcopy(context_source())
     source_bundle_source = getattr(result, "source_bundle", None)
     if callable(source_bundle_source):
-        source_bundle = source_bundle_source()
+        source_bundle = _build_retrieval_source_bundle_from_payload(
+            {"retrieval_source_bundle": source_bundle_source()}
+        )
         return _build_retrieval_context_bundle_from_source_bundle(copy.deepcopy(source_bundle))
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_context_bundle_from_payload(payload)
