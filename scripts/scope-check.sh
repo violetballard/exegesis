@@ -61,7 +61,7 @@ is_approved_shared_test() {
   case "$branch" in
     codex/feat-commands*)
       case "$f" in
-        tests/unit/test_commands_catalog.py|tests/unit/test_diff_preview.py) return 0 ;;
+        tests/unit/test_commands_catalog.py) return 0 ;;
       esac
       ;;
     codex/feat-context-storage*)

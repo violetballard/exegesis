@@ -14,7 +14,7 @@ Expose an explicit `command_mvp_surface_contract` alias on the `feat-commands` c
 - Added `command_mvp_surface_contract` in `src/qual/commands/catalog.py` and re-exported it from `src/qual/commands/__init__.py` so the MVP surface has an explicit importable alias.
 - Routed `command_mvp_flow_contract` and `command_surface_contract` through the new alias so the public surface contract stays a single shared object.
 - Added focused command-catalog regression coverage in `tests/unit/test_commands_catalog.py` to verify the new alias stays aligned with the public surface contract and MVP flow contract.
-- Regenerated the handoff packet from the actual `main..codex/feat-commands` delta and aligned scope-check policy with the approved shared test.
+- Regenerated the handoff packet from the actual `main..codex/feat-commands` delta and aligned scope-check policy with the approved `tests/unit/test_commands_catalog.py` shared test.
 
 ## Files changed
 
@@ -49,11 +49,11 @@ Expose an explicit `command_mvp_surface_contract` alias on the `feat-commands` c
 
 ### Roadmap item(s) affected
 
-- `feat-commands` - CLI compatibility and migration-safe entrypoints.
+- `feat-commands` - CLI compatibility and migration-safe entrypoints, specifically the `command_mvp_surface_contract` alias and its command-catalog contract alignment.
 
 ### Vision capability affected
 
-- Capability 4 - Operator-first control surface: the engine-facing command surface now exposes an explicit MVP contract alias while keeping CLI-compatible exports stable.
+- Capability 4 - Operator-first control surface: the engine-facing command surface now exposes an explicit MVP contract alias while keeping CLI-compatible exports stable and deterministic for CLI-first automation.
 
 ### Routing/provider impact note
 
@@ -67,4 +67,4 @@ Expose an explicit `command_mvp_surface_contract` alias on the `feat-commands` c
 
 - Shared/integrator-locked edits: `YES`
 - Approved shared-file exception: `tests/unit/test_commands_catalog.py`
-- Policy-support edit: `scripts/scope-check.sh` permits the approved feat-commands shared test during `make scope-check`.
+- Policy-support edit: `scripts/scope-check.sh` permits the approved `tests/unit/test_commands_catalog.py` shared test during `make scope-check`.
