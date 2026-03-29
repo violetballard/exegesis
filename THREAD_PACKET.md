@@ -1,25 +1,20 @@
-## Thread Handoff Packet
+# Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Final HEAD SHA: `7f4de16e3141dfd24e942ef3e47325d65962a279`
-- Reviewed implementation commit(s):
-  - `7f4de16e3141dfd24e942ef3e47325d65962a279`
+- Implementation commit(s):
+  - `691037c4db2cee231a6ea8f50118c1676b26c419` (feat(commands): add flow-ordered route contract)
 - Docs-only alignment commit(s):
-  - `885ac6ea5667ec391c0396fb0644d6bc4180e50f`
-  - `ed74fe0fc1dd02b7024d4793c878320f718a56aa`
-  - `396202f50e77a5c8342b7baa410b32beece4a163`
+  - `1d890aff47d468fa04652670b1f84263934290d1` (current docs-only handoff alignment; no code scope)
 
 ## Scope goal
-
-Add a deterministic CLI flow smoke contract for the `feat-commands` lane's CLI compatibility and migration-safe entrypoints so parser tokens, canonical command names, and normalized MVP flow steps stay explicit for CLI-first operator use.
+- Add a flow-ordered route contract for the command surface so CLI entrypoints, lookup tokens, and smoke-flow ordering stay deterministic for CLI-first operator use.
 
 ## Scope completed
-
-- Added `CommandCliFlowEntry` and `CommandCliFlowContract` plus `command_cli_flow_contract()` and `command_cli_flow_lookup_table()` in `src/qual/commands/catalog.py`.
-- Exported the new CLI-flow contract symbols from `src/qual/commands/__init__.py`.
-- Added focused unit coverage in `tests/unit/test_commands_catalog.py` that pins parser tokens, canonical command names, and MVP flow-step mapping together.
-- Approved the shared-file exception for `tests/unit/test_commands_catalog.py` so the lane can add the required contract coverage.
-- Regenerated the handoff packet so the branch summary, file list, and ownership mapping match the actual `7f4de16e` CLI flow delta and the packet-alignment trail through `885ac6ea`, `ed74fe0f`, and `396202f5`.
+- Added `CommandFlowRouteEntry` and `CommandFlowRouteContract` plus `command_flow_route_catalog()` and `command_flow_route_contract()` in `src/qual/commands/catalog.py`.
+- Exported the new route-contract symbols from `src/qual/commands/__init__.py`.
+- Added demo/MVP helpers that project the route contract from the shared command flow sequence.
+- Kept the diff within owned `src/qual/commands/**` paths; no shared/integrator-locked files were edited.
+- Regenerated the handoff packet so the branch summary, file list, and roadmap/vision mappings match the actual `691037c4` route-contract delta.
 
 ## Files changed
 
@@ -27,7 +22,6 @@ Add a deterministic CLI flow smoke contract for the `feat-commands` lane's CLI c
 
 - `src/qual/commands/catalog.py`
 - `src/qual/commands/__init__.py`
-- `tests/unit/test_commands_catalog.py`
 
 ### Docs-only alignment files changed
 
@@ -35,21 +29,20 @@ Add a deterministic CLI flow smoke contract for the `feat-commands` lane's CLI c
 
 ## Tasks completed
 
-1. Added a deterministic CLI-to-flow contract for the MVP smoke path.
-2. Exported the new contract helpers from the command package.
-3. Added unit tests for the new contract and lookup table.
-4. Recorded the explicit shared-file approval for `tests/unit/test_commands_catalog.py`.
-5. Regenerated the handoff packet so the branch summary matches the actual reviewed CLI flow commit and the packet-alignment trail through `885ac6ea` and `ed74fe0f`.
+1. Added the flow-ordered route contract in the command catalog.
+2. Exported the route-contract types and helpers from the command package.
+3. Added demo and MVP route helpers that reuse the shared command flow sequence.
+4. Kept the reviewed diff lane-owned with no shared-file exception required.
+5. Regenerated the handoff packet so the branch metadata matches the actual implementation commit.
 
 ## Commands run and outcomes
 
-- `python -m unittest tests.unit.test_commands_catalog` PASS
-- `make scope-check` PASS
-- `./quality-format.sh --check` PASS
-- `./quality-lint.sh` PASS
-- `./quality-test.sh` PASS
-- `./typecheck-test.sh` PASS
-- `make ci` PASS
+- `make scope-check`: PASS
+- `./quality-format.sh --check`: PASS
+- `./quality-lint.sh`: PASS
+- `./quality-test.sh`: PASS
+- `./typecheck-test.sh`: PASS
+- `make ci`: PASS
 
 ## Risks / blockers
 
@@ -58,45 +51,27 @@ Add a deterministic CLI flow smoke contract for the `feat-commands` lane's CLI c
 
 ## Required handoff fields
 
-### Shared-file approval note
-
-- Approved shared-file exception for `tests/unit/test_commands_catalog.py` to add focused CLI-flow contract coverage.
-
 ### Scope completed
 
-- Tightened the command surface with an explicit CLI-to-flow mapping for the current MVP smoke path.
-
-### Files changed
-
-- `src/qual/commands/catalog.py`
-- `src/qual/commands/__init__.py`
-- `tests/unit/test_commands_catalog.py`
-- `THREAD_PACKET.md` (handoff artifact)
-
-### Commands run with results
-
-- `python -m unittest tests.unit.test_commands_catalog` PASS
-- `make scope-check` PASS
-- `./quality-format.sh --check` PASS
-- `./quality-lint.sh` PASS
-- `./quality-test.sh` PASS
-- `./typecheck-test.sh` PASS
-- `make ci` PASS
-
-### Risks/blockers
-
-- Low risk and no blockers.
+- Added a deterministic flow-ordered route contract for the command surface, preserving CLI tokens and smoke-flow ordering for operator-facing command routing.
 
 ### Roadmap item(s) affected
 
-- `Milestone 1: Bootstrap Flow Stabilization` - `feat-commands` CLI compatibility and migration-safe entrypoints; keep the manual CLI smoke flow stable.
-- `Milestone 2: Test Hardening` - focused unit coverage for the new CLI flow contract and lookup-table behavior.
+- `Milestone 1: Bootstrap Flow Stabilization` - command behavior hardening and CLI smoke-flow readability.
 
 ### Vision capability affected
 
-- `Operator-first control surface` - CLI remains a first-class surface for development and reliability, and the command contract now has explicit deterministic parser lookup behavior.
-- `Auditable generation` - the flow contract and lookup table are covered by focused tests, so emitted command metadata stays verifiable.
+- `3. Auditable generation` - the route contract keeps command metadata and flow ordering deterministic and verifiable.
+- `4. Operator-first control surface` - the CLI remains first-class while exposing a stable route contract for operator use.
 
 ### Routing/provider impact note
 
-- None. This change only affects local command-surface lookup contracts and parser-surface validation; no routing/provider files change.
+- None. This change only affects local command-surface lookup/contract code; no routing/provider files change.
+
+### Proposed README patch text
+
+- None
+
+### Ownership / approval note
+
+- Shared/integrator-locked edits: `NO`. The reviewed implementation diff is limited to `src/qual/commands/**`.
