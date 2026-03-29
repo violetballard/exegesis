@@ -3,46 +3,33 @@
 - Branch name: `codex/feat-commands`
 - Final HEAD SHA: `3bbe85613c87b85fdf430fad8b1d97f9a6e14972`
 - Reviewed implementation commit(s):
+  - `a9800f08`
   - `3bbe85613c87b85fdf430fad8b1d97f9a6e14972`
 
 ## Scope goal
 
-Harden the command lane so catalog lookups, `diff_preview` output, and the branch scope gate stay deterministic, CLI-first, and verifiable.
+Restore the feat-commands handoff metadata so it matches the actual branch state and no longer claims unsubmitted `diff_preview` implementation work.
 
 ## Scope completed
 
-This handoff covers the `feat-commands` lane snapshot only.
+This handoff covers metadata cleanup only.
 
-- Added and hardened command catalog helpers for the lane-owned command API surface.
-- Tightened `diff_preview` output so the emitted diff payload, label application, summary-only handling, truncation, and SHA-256 fingerprint all derive from the exact user-visible artifact.
-- Added focused regression coverage for command catalog helpers and `diff_preview` JSON/text contract paths, including no-diff and fingerprint cases.
-- Expanded `scripts/scope-check.sh` with the approved `feat-commands` shared-test exception for `tests/unit/test_diff_preview.py`.
-- Regenerated this packet from the real branch delta so the file list and gate evidence match the submitted tree.
+- Removed stale handoff metadata that pointed at a different feature thread.
+- Restored the kickoff packet baseline for `feat-commands`.
+- Regenerated the handoff packet so it describes the metadata-only branch state currently present on this lane.
 
 ## Files changed
 
-- `scripts/scope-check.sh`
-- `src/qual/commands/__init__.py`
-- `src/qual/commands/canonical.py`
-- `src/qual/commands/catalog.py`
-- `src/qual/commands/diff_preview.py`
-- `tests/unit/test_commands_catalog.py`
-- `tests/unit/test_diff_preview.py`
+- `.codex/kickoff_packets/feat-commands.md`
+- `THREAD_PACKET.md`
 
 ## Tasks completed
 
-1. Built the command catalog surface and lookup helpers for the lane-owned command API.
-2. Hardened `diff_preview` output and fingerprint generation to track the emitted diff payload exactly.
-3. Added focused regression coverage for command catalog lookups, JSON output, no-diff shape, labels, and fingerprint correctness.
-4. Allowed the approved shared diff preview test through `scripts/scope-check.sh` so scope-check matches the reviewed branch.
-5. Regenerated this packet from the actual branch snapshot.
+1. Removed stale `diff_preview` claims from the handoff metadata.
+2. Restored the kickoff packet baseline for the lane.
+3. Regenerated the handoff packet to match the current branch contents.
 
-## Budget alignment
-
-- The thread stayed within the low-risk cap for the lane.
-- Shared-file usage stays limited to the approved `tests/unit/test_diff_preview.py` exception.
-
-## Commands run with results
+## Commands run and outcomes
 
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
@@ -51,27 +38,25 @@ This handoff covers the `feat-commands` lane snapshot only.
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 
-## Risks/blockers
+## Risks / blockers
 
 - Risk: `LOW`
 - Blockers: none
 
-## Roadmap item(s) affected
+## Required handoff fields
 
-- `ROADMAP.md`: `Milestone 1: Bootstrap Flow Stabilization`
-- `ROADMAP.md`: `Milestone 2: Test Hardening`
-- `ROADMAP.md`: `Milestone 3: Product Readiness`
+### Roadmap item(s) affected
 
-## Vision capability affected
+- Milestone 1 - Bootstrap Flow Stabilization: keep the lane metadata aligned to the actual branch contents; no runtime behavior changed.
 
-- 3. Auditable generation
-- 4. Operator-first control surface
+### Vision capability affected
 
-## Routing/provider impact note
+- Capability 4 - Operator-first control surface: handoff metadata now stays truthful to the branch state for CLI-first review and integration.
 
-- None
+### Routing/provider impact note
+
+- None. This change only updates handoff metadata and packet truthfulness.
 
 ## Scope-check / ownership note
 
-- Shared/integrator-locked edits: `YES`
-- Approved shared-file exception: `tests/unit/test_diff_preview.py`
+- Shared/integrator-locked edits: `NO`
