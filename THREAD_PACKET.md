@@ -6,6 +6,7 @@
   - `a5b0a247f2bf97ee233a8a458230a1bdda0b9dc4`
 - Docs-only alignment commit(s):
   - `da122acb7f5454db56b5df39186b50ac0857e14a`
+  - `da334f66ea8030060b04b15e878aa7840c6c8c5a`
 
 ## Scope goal
 
@@ -69,4 +70,4 @@ Add grouped command smoke tokens to the command catalog so the public and MVP su
 ## Scope-check / ownership note
 
 - Shared/integrator-locked edits: `YES` (approved shared test only)
-- Approved shared-file exception: `tests/unit/test_commands_catalog.py` (whitelisted for `codex/feat-commands` in `scripts/scope-check.sh`)
+- Approved shared-file exception: `tests/unit/test_commands_catalog.py` (explicitly approved for `codex/feat-commands`; whitelisted in `scripts/scope-check.sh`)
