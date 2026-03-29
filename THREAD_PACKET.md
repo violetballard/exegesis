@@ -10,7 +10,7 @@
 
 ## Scope goal
 
-Add a deterministic CLI flow smoke contract for Milestone 1 `Bootstrap Flow Stabilization` and Milestone 2 `Test Hardening` so parser tokens, canonical command names, and normalized MVP flow steps stay explicit for CLI-first operator use.
+Add a deterministic CLI flow smoke contract for the `feat-commands` lane during `MVP Focus Through 2026-05-04` so parser tokens, canonical command names, and normalized MVP flow steps stay explicit for CLI-first operator use.
 
 ## Scope completed
 
@@ -88,8 +88,8 @@ Add a deterministic CLI flow smoke contract for Milestone 1 `Bootstrap Flow Stab
 
 ### Roadmap item(s) affected
 
-- `Milestone 1: Bootstrap Flow Stabilization` - deterministic CLI flow contract hardening for the CLI-first command surface.
-- `Milestone 2: Test Hardening` - focused unit coverage for the new CLI flow contract and lookup-table behavior.
+- `MVP Focus Through 2026-05-04` - `feat-commands` active implementation emphasis; preserve CLI compatibility while the package/layout migration lands.
+- `Milestone 3: Product Readiness (Planned)` - define and lock user-facing output contracts; expand end-to-end verification scenarios.
 
 ### Vision capability affected
 
