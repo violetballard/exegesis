@@ -26,6 +26,11 @@ Did not ship:
 - No provider or routing configuration changes.
 - No retrieval behavior beyond the FTS-first MVP and deterministic payload normalization work in the reviewed commits.
 
+Metadata-only follow-up commits:
+- `78b27dd3ce244e99e12a336c0719a6e0bfc99a77`
+- `6e9853b24f1419b158102e1afd68b40496009bcf`
+- `2c1d2737cd4e63ca0d03acc644242477a66e8647`
+
 ## Files changed
 
 ### Source changes
@@ -58,7 +63,7 @@ These files record the handoff metadata for the lane and are separated from the 
 
 - The thread finished within the low-risk cap of 8 tasks.
 - No shared or integrator-locked files were edited.
-- Later metadata-only commits aligned the packet and lane metadata after the reviewed implementation tip; they did not change retrieval behavior.
+- Later metadata-only commits aligned the packet and lane metadata after the reviewed implementation tip; they did not change retrieval behavior and are excluded from the reviewed implementation scope.
 
 ## Commands run with results
 
