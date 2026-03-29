@@ -62,6 +62,7 @@ class CommandSurfaceContract:
     flow_tokens: tuple[str, ...] = ()
     flow_surface_tokens: tuple[tuple[str, ...], ...] = ()
     route_catalog: tuple[CommandFlowRouteEntry, ...] = ()
+    route_summary: tuple[tuple[str, str, tuple[str, ...]], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -719,6 +720,27 @@ def _resolve_contract_flow_steps(
     return command_flow_steps(specs)
 
 
+def _validate_command_surface_contract(contract: CommandSurfaceContract) -> None:
+    route_summary = tuple(
+        (entry.flow_step, entry.name, entry.cli_tokens)
+        for entry in contract.route_catalog
+    )
+    if contract.route_summary != route_summary:
+        raise ValueError("Command surface route summary is inconsistent")
+    if tuple(entry.flow_step for entry in contract.route_catalog) != contract.flow_steps:
+        raise ValueError("Command surface route steps are inconsistent")
+    if tuple(entry.name for entry in contract.route_catalog) != contract.names:
+        raise ValueError("Command surface route names are inconsistent")
+    if tuple((entry.flow_step, entry.name) for entry in contract.route_catalog) != contract.lookup_table:
+        raise ValueError("Command surface route table is inconsistent")
+    if tuple(entry.lookup_tokens for entry in contract.route_catalog) != contract.lookup_tokens:
+        raise ValueError("Command surface route lookup tokens are inconsistent")
+    if tuple(entry.surface_tokens for entry in contract.route_catalog) != contract.flow_surface_tokens:
+        raise ValueError("Command surface route surface tokens are inconsistent")
+    if contract.lookup_surface != contract.lookup_index:
+        raise ValueError("Command surface lookup surfaces must match")
+
+
 @lru_cache(maxsize=None)
 def command_flow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -726,7 +748,8 @@ def command_flow_contract(
 ) -> CommandSurfaceContract:
     ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
     sequence = command_flow_sequence(specs, ordered_flow_steps)
-    return CommandSurfaceContract(
+    route_catalog = command_flow_route_catalog(ordered_flow_steps)
+    contract = CommandSurfaceContract(
         flow_steps=sequence.flow_steps,
         names=sequence.names,
         manifest=command_flow_manifest(specs, ordered_flow_steps),
@@ -737,8 +760,11 @@ def command_flow_contract(
         flow_catalog=command_flow_catalog(specs, ordered_flow_steps),
         lookup_surface=command_flow_lookup_surface(specs, ordered_flow_steps),
         flow_surface_tokens=command_flow_surface_tokens(specs, ordered_flow_steps),
-        route_catalog=command_flow_route_catalog(ordered_flow_steps),
+        route_catalog=route_catalog,
+        route_summary=tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in route_catalog),
     )
+    _validate_command_surface_contract(contract)
+    return contract
 
 
 def command_demo_flow_steps() -> tuple[str, ...]:
