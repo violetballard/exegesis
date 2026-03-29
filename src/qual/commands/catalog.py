@@ -56,8 +56,13 @@ def _normalize_token(value: str) -> str:
     return normalized.strip("-")
 
 
+def _lookup_aliases(spec: CommandSpec) -> tuple[str, ...]:
+    # Keep the surface stable if a spec repeats the command name verbatim.
+    return tuple(alias for alias in spec.aliases if alias != spec.name)
+
+
 def _lookup_tokens(spec: CommandSpec) -> tuple[str, ...]:
-    return (spec.name, *spec.aliases)
+    return (spec.name, *_lookup_aliases(spec))
 
 
 def _validate_flow_steps(flow_steps: tuple[str, ...]) -> None:
@@ -173,14 +178,14 @@ def command_aliases_for(specs: tuple[CommandSpec, ...], name: str) -> tuple[str,
     spec = command_spec_for(specs, name)
     if spec is None:
         return ()
-    return spec.aliases
+    return _lookup_aliases(spec)
 
 
 def command_lookup_tokens_for(specs: tuple[CommandSpec, ...], name: str) -> tuple[str, ...]:
     spec = command_spec_for(specs, name)
     if spec is None:
         return ()
-    return (spec.name, *spec.aliases)
+    return _lookup_tokens(spec)
 
 
 def canonical_command_for(specs: tuple[CommandSpec, ...], name: str) -> str:
