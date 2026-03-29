@@ -1,20 +1,19 @@
 # Lane Kickoff: feat-commands
 
 - Branch: `codex/feat-commands`
-- Head commit: `cf6e4984d3d0f154d2be69c58f582868c9549585`
+- Head commit: `3dfd014632493cdd66b363c637846596d490e7af`
 - Lane/owned paths: `src/qual/commands/**`
 - Approved shared tests:
-  - `tests/unit/test_commands_catalog.py`
   - `tests/unit/test_diff_preview.py`
-- Scope goal: Keep the `feat-commands` handoff aligned with the command-catalog, canonical mapping, and diff-preview CLI contract work already present on the branch, plus the two explicitly approved shared tests.
+- Scope goal: Harden `diff_preview` output contracts so the emitted diff payload, summary-only mode, and SHA-256 fingerprint stay deterministic and verifiable for CLI-first operator use.
 
 ### Priority outcomes
-1. Keep the handoff truthful about the owned command paths, canonical command mapping, and approved shared tests.
-2. Keep the shared-test approvals explicit.
-3. Keep the lane from widening beyond the approved `feat-commands` surface while preserving the CLI-first command-catalog, canonical mapping, and diff-preview contract scope.
+1. Keep the emitted diff payload and reported fingerprint derived from the same exact text.
+2. Keep summary-only mode verifiable in both text and JSON output shapes.
+3. Keep the handoff metadata truthful about the actual code/test delta and approved shared test coverage.
 
 ### Guardrails
-- Stay in lane-owned command paths except for explicitly approved shared tests, which make the handoff high-risk.
+- Stay in lane-owned command paths except for explicitly approved shared tests.
 - Keep review packets synchronized with the real branch delta.
 - Do not introduce new web-facing surfaces.
 - Keep work aligned to the current MVP: engine, FTS retrieval, A2UI, patch/export flow.

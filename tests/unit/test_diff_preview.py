@@ -125,6 +125,19 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
             hashlib.sha256(payload["diff"].encode("utf-8")).hexdigest(),
         )
 
+    def test_json_output_marks_labels_applied_before_header_suppression(self) -> None:
+        with _env(
+            **{
+                OUTPUT_FORMAT_ENV: "json",
+                SUPPRESS_FILE_HEADERS_ENV: "1",
+                ORIGINAL_LABEL_ENV: "before.txt",
+                PROPOSED_LABEL_ENV: "after.txt",
+            }
+        ):
+            payload = json.loads(run_diff_preview(DiffPreviewInput("a\n", "b\n")))
+        self.assertTrue(payload["labels"]["applied"])
+        self.assertFalse(payload["diff"].startswith("--- before.txt\n+++ after.txt\n"))
+
     def test_json_no_diff_shape_is_stable(self) -> None:
         with _env(**{OUTPUT_FORMAT_ENV: "json"}):
             payload = json.loads(run_diff_preview(DiffPreviewInput("same\n", "same\n")))

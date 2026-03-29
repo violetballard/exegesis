@@ -1,34 +1,36 @@
 {
-  "scope_goal": "Keep the feat-commands handoff aligned with the command-catalog, canonical mapping, and diff-preview CLI contract work already present on the branch, plus the two explicitly approved shared tests.",
-  "review_commit": "cf6e4984d3d0f154d2be69c58f582868c9549585",
+  "scope_goal": "Harden diff_preview output contracts so the emitted diff payload, summary-only mode, and SHA-256 fingerprint stay deterministic and verifiable for CLI-first operator use.",
+  "review_commit": "3dfd014632493cdd66b363c637846596d490e7af",
   "review_commits": [
-    "cf6e4984d3d0f154d2be69c58f582868c9549585"
+    "4807235db9bc9acc451faa5e1845effdaea9d063",
+    "3dfd014632493cdd66b363c637846596d490e7af"
   ],
   "tasks_completed": [
-    "Restored the command-catalog surface and added spec-aware lookup helpers plus canonical command mapping under src/qual/commands/**.",
-    "Hardened diff-preview output contracts so the fingerprint covers the exact emitted payload after labels, header suppression, truncation, and summary-only handling.",
-    "Added focused coverage for the command-catalog, canonical mapping, and diff-preview contract paths.",
-    "Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta and keeps the shared-file approvals explicit."
+    "Made the emitted diff string a first-class value in diff_preview so the JSON payload and fingerprint are derived from the same emitted text.",
+    "Added a regression that covers text summary-only fingerprinting against the empty emitted diff payload.",
+    "Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta."
   ],
   "risk": "HIGH",
   "roadmap_items": [
-    "Milestone 3 - Product Readiness (Planned): lock the command-catalog and diff-preview CLI contracts so the operator-facing command surface stays deterministic, auditable, and ready for CLI-first use."
+    "Milestone 3 - Product readiness: lock the emitted diff fingerprint to the exact user-visible artifact so downstream CLI and automation consumers can verify what the command returned."
   ],
   "vision_capabilities": [
-    "3. Auditable generation - the emitted fingerprint verifies the exact diff payload users receive, including label application and truncation behavior.",
-    "4. Operator-first control surface - CLI review gates stay aligned with the command-catalog, canonical mapping, and diff-preview contract surface plus the approved shared tests."
+    "3. Auditable generation - The emitted SHA-256 now verifies the exact diff payload returned by the command, including summary-only behavior.",
+    "4. Operator-first control surface - CLI remains a first-class surface while exposing a stable command contract and a verifiable JSON shape."
   ],
-  "routing_provider_impact": "None. This change only affects local packet metadata and command-contract test coverage; no routing/provider files change.",
+  "routing_provider_impact": "None. This change only affects local diff-preview formatting, fingerprinting, and focused regression coverage; no routing/provider files change.",
   "proposed_readme_patch": "",
   "shared_file_exception": true,
-  "kickoff_budget_note": "High-risk shared-test handoff with task budget 4, time budget 30m, size limits <=8 files and <=300 net LOC. The reviewed implementation spans 6 lane-owned or approved test files, including src/qual/commands/canonical.py and the two approved shared tests.",
-  "approved_exception_note": "Approved shared-file exception for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py.",
+  "kickoff_budget_note": "High-risk shared-test handoff with task budget 4, time budget 30m, size limits <=8 files and <=300 net LOC. The reviewed implementation changes 5 files, centered on the lane-owned diff_preview command and one approved shared test.",
+  "approved_exception_note": "Approved shared-file exception for tests/unit/test_diff_preview.py to cover deterministic diff_preview contract behavior.",
   "files_changed": [
-    { "path": "src/qual/commands/__init__.py", "kind": "code" },
-    { "path": "src/qual/commands/canonical.py", "kind": "code" },
-    { "path": "src/qual/commands/catalog.py", "kind": "code" },
+    { "path": ".codex/kickoff_packets/feat-commands.md", "kind": "meta" },
+    { "path": ".codex/lane_meta/feat-commands.json", "kind": "meta" },
+    { "path": "THREAD_PACKET.md", "kind": "meta" },
     { "path": "src/qual/commands/diff_preview.py", "kind": "code" },
-    { "path": "tests/unit/test_commands_catalog.py", "kind": "test" },
     { "path": "tests/unit/test_diff_preview.py", "kind": "test" }
+  ],
+  "shared_file_exceptions": [
+    "tests/unit/test_diff_preview.py"
   ]
 }

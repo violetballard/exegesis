@@ -2,45 +2,45 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `cf6e4984d3d0f154d2be69c58f582868c9549585`
+- Commit: `3dfd014632493cdd66b363c637846596d490e7af`
 - Reviewed commit(s):
-  - `cf6e4984d3d0f154d2be69c58f582868c9549585`
+  - `0df5b4a7c6a98f0f5d2c0d1f4c3f7a6c0aeb7f1c`
+  - `4807235db9bc9acc451faa5e1845effdaea9d063`
+  - `3dfd014632493cdd66b363c637846596d490e7af`
 
 ## Scope goal
-- Keep the `feat-commands` handoff aligned with the command-catalog, canonical mapping, and diff-preview CLI contract work already present on the branch, plus the two explicitly approved shared tests.
+- Harden `diff_preview` output contracts so the emitted diff payload, JSON label metadata, summary-only mode, and SHA-256 fingerprint stay deterministic and verifiable for CLI-first operator use.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
 - Approved shared tests:
-  - `tests/unit/test_commands_catalog.py`
   - `tests/unit/test_diff_preview.py`
 
 ## Scope completed
-- Restored the command-catalog surface under `src/qual/commands/**` and added spec-aware lookup helpers plus canonical command mapping.
-- Hardened diff-preview output contracts so the emitted SHA-256 is derived from the exact payload users receive after labels, header suppression, truncation, and summary-only handling.
-- Added focused coverage for the command-catalog, canonical mapping, and diff-preview contracts.
-- Regenerated the handoff packet and lane metadata so the review evidence matches the submitted code/test delta and keeps the shared-file approvals explicit.
+- Made the emitted diff string a first-class value in `diff_preview` so the JSON `diff` field and the reported fingerprint are computed from the same exact payload.
+- Corrected the JSON `labels.applied` field so it reports whether file labels were actually applied before optional header suppression.
+- Added focused regression coverage for labeled JSON output with suppressed headers, plus the existing summary-only fingerprint coverage.
+- Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta on the branch.
 
 ## Kickoff budget/limits compliance
 - High-risk shared-test handoff: task budget `4`, time budget `30m`, size limits `<=8 files` and `<=300 net LOC`.
-- The reviewed implementation spans 6 lane-owned or approved test files, including `src/qual/commands/canonical.py` and the two approved shared tests.
-- The handoff stays centered on the command-catalog, canonical mapping, and diff-preview contract work already present on the branch.
+- The branch delta changes 5 files, centered on the lane-owned `diff_preview` command and one approved shared test.
+- The change stays centered on the command contract itself and the approved regression coverage needed to verify it.
 
 ## Approved exception note
-- Approved shared-file exception for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
+- Approved shared-file exception for `tests/unit/test_diff_preview.py`.
 
 ## Tasks completed (numbered)
-1. Restored the command-catalog surface and added spec-aware lookup helpers plus canonical command mapping under `src/qual/commands/**`.
-2. Hardened diff-preview output contracts so the fingerprint covers the exact emitted payload after labels, header suppression, truncation, and summary-only handling.
-3. Added focused coverage for the command-catalog, canonical mapping, and diff-preview contract paths.
-4. Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta and keeps the shared-file approvals explicit.
+1. Made the emitted diff string a first-class value in `diff_preview` so the JSON payload and fingerprint are derived from the same exact text.
+2. Corrected the JSON `labels.applied` field so it stays truthful when headers are suppressed.
+3. Added a regression that covers labeled JSON output with suppressed headers.
+4. Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta.
 
 ## Files changed
-- `src/qual/commands/__init__.py`
-- `src/qual/commands/canonical.py`
-- `src/qual/commands/catalog.py`
+- `.codex/kickoff_packets/feat-commands.md`
+- `.codex/lane_meta/feat-commands.json`
+- `THREAD_PACKET.md`
 - `src/qual/commands/diff_preview.py`
-- `tests/unit/test_commands_catalog.py`
 - `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
@@ -57,14 +57,15 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3 - Product Readiness (Planned): lock the command-catalog and diff-preview CLI contracts so the operator-facing command surface stays deterministic, auditable, and ready for CLI-first use.
+- Milestone 3 - Product readiness: lock the emitted diff fingerprint to the exact user-visible artifact so downstream CLI and automation consumers can verify what the command returned.
+- Milestone 2 - Test hardening: add focused regression coverage for the labeled JSON contract path introduced by the command fix.
 
 ### Vision capability affected
-- 3. Auditable generation - the emitted fingerprint verifies the exact diff payload users receive, including label application and truncation behavior.
-- 4. Operator-first control surface - CLI review gates stay aligned with the command-catalog, canonical mapping, and diff-preview contract surface plus the approved shared tests.
+- 3. Auditable generation - The emitted SHA-256 now verifies the exact diff payload returned by the command, including summary-only behavior.
+- 4. Operator-first control surface - CLI remains a first-class surface while exposing a stable command contract and a verifiable JSON shape.
 
 ### Routing/provider impact note
-- None. This change only affects local packet metadata and command-contract test coverage; no routing/provider files change.
+- None. This change only affects local diff-preview formatting, fingerprinting, and focused regression coverage; no routing/provider files change.
 
 ### Proposed README patch text
 - None.

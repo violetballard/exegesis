@@ -119,15 +119,15 @@ def _resolve_file_label(env_name: str, default: str) -> str:
     return label
 
 
-def _apply_file_labels(diff: str) -> str:
+def _apply_file_labels(diff: str) -> tuple[str, bool]:
     lines = diff.splitlines(keepends=True)
     if len(lines) < 2 or not lines[0].startswith("--- ") or not lines[1].startswith("+++ "):
-        return diff
+        return diff, False
     original_label = _resolve_file_label(ORIGINAL_LABEL_ENV, "original")
     proposed_label = _resolve_file_label(PROPOSED_LABEL_ENV, "proposed")
     lines[0] = f"--- {original_label}\n"
     lines[1] = f"+++ {proposed_label}\n"
-    return "".join(lines)
+    return "".join(lines), True
 
 
 def _max_diff_output_chars() -> int:
@@ -395,7 +395,7 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
     summary_source = diff
     original_label = _resolve_file_label(ORIGINAL_LABEL_ENV, "original")
     proposed_label = _resolve_file_label(PROPOSED_LABEL_ENV, "proposed")
-    diff = _apply_file_labels(diff)
+    diff, labels_applied = _apply_file_labels(diff)
     if suppress_file_headers:
         diff = _suppress_file_headers(diff)
     if not diff:
@@ -420,7 +420,7 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
         include_summary=include_summary,
         include_options_banner=include_options_banner,
         truncated=truncated,
-        labels_applied=not suppress_file_headers,
+        labels_applied=labels_applied,
         original_label=original_label,
         proposed_label=proposed_label,
         fingerprint=fingerprint,
