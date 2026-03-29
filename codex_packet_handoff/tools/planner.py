@@ -129,10 +129,17 @@ def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
 
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
+    reviewed_range = str(meta.get("reviewed_implementation_range", "")).strip()
+    scope_completed = str(meta.get("scope_completed", "")).strip()
+    is_cumulative = bool(reviewed_range or scope_completed)
     lines=[]
     lines += ["# Feature → Review Packet",""]
     lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
+    if reviewed_range:
+        lines += [f"- Reviewed implementation range: `{reviewed_range}`"]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
+    if scope_completed:
+        lines += ["## Scope completed", f"- {scope_completed}", ""]
     lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
     if str(meta.get("kickoff_budget_note","")).strip():
         lines += ["## Kickoff budget/limits compliance", f"- {meta['kickoff_budget_note'].strip()}", ""]
@@ -141,7 +148,7 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     lines += ["## Tasks completed (numbered)"]
     tasks=list(meta.get("tasks_completed") or [])
     lines += [f"{i+1}. {str(t).strip()}" for i,t in enumerate(tasks)] if tasks else ["1. (missing)"]
-    lines += ["","## Files changed"]
+    lines += ["", "## Files changed (cumulative range)" if is_cumulative else "## Files changed"]
     lines += [f"- `{f}`" for f in files] if files else ["- (none detected)"]
     lines += ["","## Commands run and outcomes"]
     for cmd,rc in gate_results:
