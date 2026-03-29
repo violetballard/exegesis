@@ -1,11 +1,13 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Final HEAD SHA: `5b30f60bb7eab1936010a9854843a7cdbf28d88f`
+- Final HEAD SHA: `ff2b3d0e2a21873f8b8b2c4170da828c9cb9c780`
 - Reviewed implementation commit(s):
+  - `3b4de0153788cfe2f35a761759d052dc2789fdf2`
+  - `4f1c25fa61974359518ca05eb5c9bb3ddb927427`
+  - `3378e905fab4653d38070b8e272ce4e4c6d22908`
   - `e53af6696629a9cccda27ac1b344825bae8dc858`
   - `1d07cbfc371f677959d26a60f3140888d8142eb3`
-  - `5b30f60bb7eab1936010a9854843a7cdbf28d88f`
 
 ## Scope goal
 
