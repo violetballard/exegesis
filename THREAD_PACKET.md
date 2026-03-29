@@ -70,4 +70,4 @@
 - None.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `YES`
+- Shared/integrator-locked edits: `NO`
