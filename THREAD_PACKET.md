@@ -6,11 +6,12 @@
   - `691037c4db2cee231a6ea8f50118c1676b26c419` (feat(commands): add flow-ordered route contract)
   - `f3f54de86d3a0e0d4bc501843111afad65f47f63` (feat(commands): expose route catalog on surface contract)
 - Docs-only alignment commit(s):
+  - `890050bbfd08e2e83c14f74cda6d99b46500267d` (docs(commands): realign feat-commands handoff packet)
   - `e8231dd5a8dd09386667877e5991b2b9da8c387e` (docs: correct feat-commands handoff packet)
   - `2ca7ab8c2d3981ae8cc0def9cb603f16d661846a` (docs: realign feat-commands handoff packet)
 
 ## Scope goal
-- Expose the command route catalog on the `feat-commands` surface contract so CLI-compatible entrypoints, lookup tokens, and smoke-flow ordering stay deterministic for migration-safe operator use.
+- Expose the command route catalog on the `feat-commands` surface contract so CLI compatibility and migration-safe entrypoints, lookup tokens, and smoke-flow ordering stay deterministic for operator use.
 
 ## Scope completed
 - Added `CommandFlowRouteContract` and `command_flow_route_catalog()` / `command_flow_route_contract()` in `src/qual/commands/catalog.py` so the command surface can project an explicit route catalog.
@@ -60,18 +61,17 @@
 
 ### Scope completed
 
-- Added a deterministic route catalog for `feat-commands` so CLI-compatible entrypoints and lookup tokens stay stable across the command surface.
+- Added a deterministic route catalog for `feat-commands` so CLI compatibility, migration-safe entrypoints, and lookup tokens stay stable across the command surface.
 
 ### Roadmap item(s) affected
 
-- `Milestone 1: Bootstrap Flow Stabilization` - command and diff-preview behavior hardening plus manual CLI smoke-flow stability.
 - `Milestone 2: Test Hardening` - focused unit coverage for command-surface contracts.
-- `MVP Focus Through 2026-05-04` - `feat-commands` remains an active implementation emphasis for the current MVP push.
+- `Milestone 3: Product Readiness` - define and lock user-facing output contracts for CLI-compatible, migration-safe command routing.
 
 ### Vision capability affected
 
-- `3. Auditable generation` - command metadata and ordering stay deterministic and verifiable.
-- `4. Operator-first control surface` - CLI remains first-class, with structured command outputs staying stable for operator use.
+- `3. Auditable generation` - command metadata, route ordering, and emitted contracts stay deterministic and verifiable.
+- `4. Operator-first control surface` - CLI remains first-class, with structured command outputs and entrypoints staying stable for operator use.
 
 ### Routing/provider impact note
 
