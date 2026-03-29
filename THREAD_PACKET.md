@@ -11,6 +11,7 @@
 - Docs-only alignment commit(s):
   - `4e5096a4c608a8be9005565e3e53760505281e81` (docs(commands): align feat-commands packet roadmap)
   - `530f2b96a9e3e5a2da0d6b2d1c8a2c8cbf4cc2ab` (docs(commands): update feat-commands packet roadmap)
+  - `dc452f798f306454b13601b8f489c13da5299d81` (docs(commands): realign feat-commands packet)
 
 ## Scope goal
 - Expose a deterministic CLI route summary on the `feat-commands` surface contract so command routing, smoke-flow ordering, and operator-facing route metadata stay stable for CLI-first use.
