@@ -41,7 +41,13 @@ def build_retrieval_query(
     constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> RetrievalQuery:
-    """Return the canonical retrieval query used by both facades."""
+    """Return the canonical retrieval query used by both facades.
+
+    Constraint payloads are accepted as mapping-shaped payloads or
+    RetrievalConstraints objects and normalized into the engine query
+    dataclass. Iterable doc_types/date_range values are normalized
+    deterministically from those inputs.
+    """
 
     return engine_build_retrieval_query(
         query_text=query_text,

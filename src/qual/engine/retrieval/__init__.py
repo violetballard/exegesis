@@ -61,7 +61,9 @@ def build_retrieval_query(
 
     The helper normalizes the loose dict-shaped constraint payload used by the
     engine and public retrieval facades into the stable dataclass contract that
-    the service layer consumes.
+    the service layer consumes. Constraint payloads are mapping-shaped or
+    RetrievalConstraints objects, and iterable doc_types/date_range values are
+    normalized deterministically from those inputs.
     """
 
     from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery

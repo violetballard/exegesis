@@ -2,8 +2,8 @@
   "approved_exception_note": "",
   "kickoff_budget_note": "This thread finished within the low-risk 8-task cap; no sprint-mode 10-task allowance or high-risk 4-task budget was used.",
   "proposed_readme_patch": "",
-  "final_head_sha": "c2903c0dfeca3ceb0201455b1e58a71a612fa1e1",
-  "reviewed_implementation_range": "1d6057e9..c2903c0dfeca3ceb0201455b1e58a71a612fa1e1",
+  "final_head_sha": "78f173d5c45a9a59f5098b86d95a64aa48e9b627",
+  "reviewed_implementation_range": "1d6057e9..78f173d5c45a9a59f5098b86d95a64aa48e9b627",
   "implementation_commits": [
     "c92025af6e11c396f84356967cea704cadb20f5b",
     "c4944661a0a682821c486810918c2c1fabac1a41",
@@ -19,7 +19,8 @@
     "3c51e34bc54003b8fe4a28b8d3db58450f6d9ab6",
     "1109cceba7d402d3e05c6d7ba59dac363b0d9ea6",
     "aacb9cc06f99cb149319da198d6c96cd9628735c",
-    "c2903c0dfeca3ceb0201455b1e58a71a612fa1e1"
+    "c2903c0dfeca3ceb0201455b1e58a71a612fa1e1",
+    "78f173d5c45a9a59f5098b86d95a64aa48e9b627"
   ],
   "docs_only_alignment_commits": [
     "c160c47543da7a75e9a4e1886b7e43ffbb6b1a3d",
@@ -64,8 +65,8 @@
     "ROADMAP.md: Milestone 3: Real workflow loop"
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Completed the cumulative 1d6057e9..c2903c0dfeca3ceb0201455b1e58a71a612fa1e1 retrieval thread for the FTS-first retrieval MVP: SQLite FTS is authoritative, the canonical retrieval query constructor is exported through both retrieval facades, RetrievalConstraints are accepted by public helpers, PageIndex and embeddings stay compatibility-only, retrieval payload/provenance/hit snapshots normalize deterministically, payload bundle snapshots are canonicalized, source-bundle fallbacks rehydrate provenance/citation/doc/excerpt bundles, and downstream doc hits carry source attribution.",
-  "scope_completed": "Shipped the cumulative 1d6057e9..c2903c0dfeca3ceb0201455b1e58a71a612fa1e1 retrieval thread: SQLite FTS is the authoritative retrieval path, the canonical retrieval query constructor is exported through both retrieval facades, the public retrieve_* helpers accept RetrievalConstraints objects as well as mapping payloads, PageIndex and embeddings remain compatibility-only shims, retrieval payload, citation, provenance, and hit snapshots normalize list-like and strategy fields deterministically including retrieval_source_strategy and downstream source_strategy attribution, source-bundle fallbacks rehydrate provenance/citation/doc/excerpt bundles, payload bundle snapshots are canonicalized for deterministic downstream rehydration, and regression coverage exercises the normalized payload snapshots, facade exports, and citation/provenance/source-attribution helpers. Did not ship shared or integrator-locked file edits, provider or routing configuration changes, or retrieval behavior beyond the FTS-first MVP, deterministic snapshot normalization, doc-hit source attribution, and source-bundle fallback rehydration work in the reviewed range; the metadata-only alignment commits only restamp handoff artifacts.",
+  "scope_goal": "Completed the cumulative 1d6057e9..78f173d5c45a9a59f5098b86d95a64aa48e9b627 retrieval thread for the FTS-first retrieval MVP: SQLite FTS is authoritative, the canonical retrieval query constructor is exported through both retrieval facades, RetrievalConstraints are accepted by public helpers, PageIndex and embeddings stay compatibility-only, retrieval payload/provenance/hit snapshots normalize deterministically, payload bundle snapshots are canonicalized, source-bundle fallbacks rehydrate provenance/citation/doc/excerpt bundles, downstream doc hits carry source attribution, and the follow-up query-normalization hardening keeps audit keys stable across whitespace variants.",
+  "scope_completed": "Shipped the cumulative 1d6057e9..78f173d5c45a9a59f5098b86d95a64aa48e9b627 retrieval thread: SQLite FTS is the authoritative retrieval path, the canonical retrieval query constructor is exported through both retrieval facades, the public retrieve_* helpers accept RetrievalConstraints objects as well as mapping payloads, PageIndex and embeddings remain compatibility-only shims, retrieval payload, citation, provenance, and hit snapshots normalize list-like and strategy fields deterministically including retrieval_source_strategy and downstream source_strategy attribution, source-bundle fallbacks rehydrate provenance/citation/doc/excerpt bundles, payload bundle snapshots are canonicalized for deterministic downstream rehydration, and regression coverage exercises the normalized payload snapshots, facade exports, and citation/provenance/source-attribution helpers. Did not ship shared or integrator-locked file edits, provider or routing configuration changes, or retrieval behavior beyond the FTS-first MVP, deterministic snapshot normalization, doc-hit source attribution, and source-bundle fallback rehydration work in the reviewed range. Constraint payloads stay mapping/dataclass-shaped rather than arbitrary iterable-shaped, so iterable doc_types and date_range inputs are normalized deterministically from those inputs.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Added FTS provenance retrieval bundles and retrieval service support for deterministic excerpt/provenance output.",

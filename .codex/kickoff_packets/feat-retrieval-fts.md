@@ -3,11 +3,11 @@
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Handoff type: retrieval feature handoff for the FTS-first retrieval lane.
-- Completed scope summary: The retrieval lane kept SQLite FTS authoritative, exported the canonical retrieval query constructor through both retrieval facades, exposed `RetrievalConstraints` on the public retrieval helpers, kept PageIndex and embeddings as compatibility-only shims, normalized downstream retrieval payload, provenance, and hit snapshots so deterministic excerpt, provenance, and hit-snapshot bundles remained stable, canonicalized payload bundle snapshots for deterministic downstream rehydration, added downstream doc-hit `source_strategy` attribution, and tightened source-bundle fallback handling for provenance, citation, doc, and excerpt rehydration.
+- Completed scope summary: The retrieval lane kept SQLite FTS authoritative, exported the canonical retrieval query constructor through both retrieval facades, exposed `RetrievalConstraints` on the public retrieval helpers, kept PageIndex and embeddings as compatibility-only shims, normalized downstream retrieval payload, provenance, and hit snapshots so deterministic excerpt, provenance, and hit-snapshot bundles remained stable, canonicalized payload bundle snapshots for deterministic downstream rehydration, added downstream doc-hit `source_strategy` attribution, tightened source-bundle fallback handling for provenance, citation, doc, and excerpt rehydration, and the follow-up query-normalization hardening kept audit keys stable across whitespace variants. Constraint payloads remain mapping/dataclass-shaped; iterable `doc_types` and `date_range` values are normalized deterministically from those inputs.
 
 ## Scope completed
 
-The retrieval lane kept SQLite FTS authoritative, exported the canonical retrieval query constructor through both retrieval facades, exposed `RetrievalConstraints` on the public retrieval helpers, kept PageIndex and embeddings as compatibility-only shims, normalized downstream retrieval payload, provenance, and hit snapshots so deterministic excerpt, provenance, and hit-snapshot bundles remained stable, canonicalized payload bundle snapshots for deterministic downstream rehydration, added downstream doc-hit `source_strategy` attribution, and tightened source-bundle fallback handling for provenance, citation, doc, and excerpt rehydration.
+The retrieval lane kept SQLite FTS authoritative, exported the canonical retrieval query constructor through both retrieval facades, exposed `RetrievalConstraints` on the public retrieval helpers, kept PageIndex and embeddings as compatibility-only shims, normalized downstream retrieval payload, provenance, and hit snapshots so deterministic excerpt, provenance, and hit-snapshot bundles remained stable, canonicalized payload bundle snapshots for deterministic downstream rehydration, added downstream doc-hit `source_strategy` attribution, tightened source-bundle fallback handling for provenance, citation, doc, and excerpt rehydration, and the follow-up query-normalization hardening kept audit keys stable across whitespace variants. Constraint payloads remain mapping/dataclass-shaped; iterable `doc_types` and `date_range` values are normalized deterministically from those inputs.
 
 ## Budget note
 
@@ -22,6 +22,7 @@ This handoff stayed within the low-risk `8`-task cap. It did not rely on the spr
 - Canonical retrieval logic remains in `src/qual/retrieval/**`.
 - Engine-side retrieval exports, compatibility shims, and payload helpers remain in `src/qual/engine/retrieval/**`.
 - Payload normalization keeps query, policy, provenance, and hit snapshots deterministic for downstream consumers.
+- Constraint payloads stay mapping/dataclass-shaped; iterable `doc_types` and `date_range` values are normalized deterministically from those inputs.
 
 ### Guardrails
 - Keep retrieval deterministic.
