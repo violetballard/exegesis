@@ -22,7 +22,9 @@ class PageIndexStrategy:
         self._now_fn = now_fn or (lambda: datetime.now(UTC))
 
     def supports(self, query: Any) -> bool:
-        return True
+        # Import-compatible shim only; engine routing must not select PageIndex
+        # while the FTS-first retrieval lane is authoritative.
+        return False
 
     def retrieve(self, query: Any, *, candidate_doc_ids: tuple[str, ...]) -> StrategyRun:
         started = self._now_fn()
