@@ -794,11 +794,8 @@ def build_retrieval_provenance_from_result(
     provenance_source = getattr(result, "retrieval_provenance_bundle", None)
     if callable(provenance_source):
         return _build_retrieval_provenance_from_payload({"retrieval_provenance": provenance_source()})
-    source_bundle_source = getattr(result, "source_bundle", None)
-    if callable(source_bundle_source):
-        source_bundle = _build_retrieval_source_bundle_from_payload(
-            {"retrieval_source_bundle": source_bundle_source()}
-        )
+    source_bundle = _build_retrieval_source_bundle_from_result_source(result)
+    if source_bundle is not None:
         return _build_retrieval_provenance_from_payload(source_bundle)
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_provenance_from_payload(payload)
@@ -875,9 +872,9 @@ def build_retrieval_downstream_payload_from_result(
             source_bundle = context_bundle.get("retrieval_source_bundle")
             if isinstance(source_bundle, dict):
                 return _build_retrieval_downstream_payload_from_source_bundle(source_bundle)
-    source_bundle_source = getattr(result, "source_bundle", None)
-    if callable(source_bundle_source):
-        return _build_retrieval_downstream_payload_from_source_bundle(source_bundle_source())
+    source_bundle = _build_retrieval_source_bundle_from_result_source(result)
+    if source_bundle is not None:
+        return _build_retrieval_downstream_payload_from_source_bundle(source_bundle)
     raise AttributeError(
         "result must expose a downstream payload, context bundle, or source bundle"
     )
@@ -900,6 +897,21 @@ def _build_retrieval_downstream_payload_from_source_bundle(
     return payload
 
 
+def _build_retrieval_source_bundle_from_result_source(result: object) -> dict[str, object] | None:
+    """Return a normalized source bundle from a result-like object when available."""
+
+    for attr_name in ("retrieval_source_bundle", "source_bundle"):
+        bundle_source = getattr(result, attr_name, None)
+        if not callable(bundle_source):
+            continue
+        source_bundle = bundle_source()
+        if isinstance(source_bundle, dict):
+            return _build_retrieval_source_bundle_from_payload(
+                {"retrieval_source_bundle": source_bundle}
+            )
+    return None
+
+
 def build_retrieval_citation_bundle_from_result(
     result: RetrievalDownstreamPayloadSource | RetrievalCitationBundleSource | RetrievalSourceBundleSource,
 ) -> dict[str, object]:
@@ -907,11 +919,8 @@ def build_retrieval_citation_bundle_from_result(
     bundle_source = getattr(result, "citation_bundle", None)
     if callable(bundle_source):
         return _build_retrieval_citation_bundle_from_payload({"retrieval_citation_bundle": bundle_source()})
-    source_bundle_source = getattr(result, "source_bundle", None)
-    if callable(source_bundle_source):
-        source_bundle = _build_retrieval_source_bundle_from_payload(
-            {"retrieval_source_bundle": source_bundle_source()}
-        )
+    source_bundle = _build_retrieval_source_bundle_from_result_source(result)
+    if source_bundle is not None:
         return _build_retrieval_citation_bundle_from_payload(source_bundle)
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_citation_bundle_from_payload(payload)
@@ -921,9 +930,9 @@ def build_retrieval_source_bundle_from_result(
     result: RetrievalDownstreamPayloadSource | RetrievalSourceBundleSource,
 ) -> dict[str, object]:
     """Return the deterministic retrieval source bundle for downstream engine flows."""
-    bundle_source = getattr(result, "source_bundle", None)
-    if callable(bundle_source):
-        return _build_retrieval_source_bundle_from_payload({"retrieval_source_bundle": bundle_source()})
+    source_bundle = _build_retrieval_source_bundle_from_result_source(result)
+    if source_bundle is not None:
+        return source_bundle
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_source_bundle_from_payload(payload)
 
@@ -938,11 +947,8 @@ def build_retrieval_doc_bundle_from_result(
         # Normalize the direct bundle snapshot so compatibility sources still
         # round-trip through the canonical doc bundle shape.
         return _build_retrieval_doc_bundle_from_payload({"retrieval_doc_bundle": bundle_source()})
-    source_bundle_source = getattr(result, "source_bundle", None)
-    if callable(source_bundle_source):
-        source_bundle = _build_retrieval_source_bundle_from_payload(
-            {"retrieval_source_bundle": source_bundle_source()}
-        )
+    source_bundle = _build_retrieval_source_bundle_from_result_source(result)
+    if source_bundle is not None:
         return _build_retrieval_doc_bundle_from_payload(source_bundle)
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_doc_bundle_from_payload(payload)
@@ -958,11 +964,8 @@ def build_retrieval_excerpt_bundle_from_result(
         # Normalize the direct bundle snapshot so compatibility sources still
         # round-trip through the canonical excerpt bundle shape.
         return _build_retrieval_excerpt_bundle_from_payload({"retrieval_excerpt_bundle": bundle_source()})
-    source_bundle_source = getattr(result, "source_bundle", None)
-    if callable(source_bundle_source):
-        source_bundle = _build_retrieval_source_bundle_from_payload(
-            {"retrieval_source_bundle": source_bundle_source()}
-        )
+    source_bundle = _build_retrieval_source_bundle_from_result_source(result)
+    if source_bundle is not None:
         return _build_retrieval_excerpt_bundle_from_payload(source_bundle)
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_excerpt_bundle_from_payload(payload)
@@ -989,11 +992,8 @@ def build_retrieval_context_bundle_from_result(
             if isinstance(source_bundle, dict):
                 return _build_retrieval_context_bundle_from_source_bundle(copy.deepcopy(source_bundle))
         return copy.deepcopy(context_bundle)
-    source_bundle_source = getattr(result, "source_bundle", None)
-    if callable(source_bundle_source):
-        source_bundle = _build_retrieval_source_bundle_from_payload(
-            {"retrieval_source_bundle": source_bundle_source()}
-        )
+    source_bundle = _build_retrieval_source_bundle_from_result_source(result)
+    if source_bundle is not None:
         return _build_retrieval_context_bundle_from_source_bundle(copy.deepcopy(source_bundle))
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_context_bundle_from_payload(payload)

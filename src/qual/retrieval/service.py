@@ -430,6 +430,11 @@ class RetrievalResult:
 
         return self._retrieval_source_bundle_snapshot()
 
+    def retrieval_source_bundle(self) -> dict[str, object]:
+        """Return the canonical retrieval source snapshot for downstream engine flows."""
+
+        return self.source_bundle()
+
     def retrieval_provenance_bundle(self) -> dict[str, object]:
         """Return the deterministic retrieval provenance snapshot for downstream engine flows."""
 
@@ -809,7 +814,7 @@ class RetrievalService:
     def retrieve_fts_source_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical retrieval source bundle for a single FTS retrieval."""
 
-        return self.retrieve_fts(query).source_bundle()
+        return self.retrieve_fts(query).retrieval_source_bundle()
 
     def retrieve_fts_provenance_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical provenance bundle for a single FTS retrieval."""
@@ -847,7 +852,7 @@ class RetrievalService:
     def retrieve_auto_source_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical retrieval source bundle for the FTS-first auto path."""
 
-        return self.retrieve_auto(query).source_bundle()
+        return self.retrieve_auto(query).retrieval_source_bundle()
 
     def retrieve_auto_provenance_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical provenance bundle for the FTS-first auto path."""
