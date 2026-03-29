@@ -1,43 +1,35 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Final HEAD SHA: `54314b4debf4bc61a012bcc002f6f511a0a97b92`
+- Final HEAD SHA: `15103c92584694742e044ade321fab83b67a9478`
 - Reviewed implementation commit(s):
-  - `54314b4debf4bc61a012bcc002f6f511a0a97b92`
-  - `e78f6b247c3c70590ef32cca0d8902ddcf2e32a9`
-  - `1d07cbfc371f677959d26a60f3140888d8142eb3`
-  - `4f1c25fa61974359518ca05eb5c9bb3ddb927427`
-  - `3b4de0153788cfe2f35a761759d052dc2789fdf2`
+  - `15103c92584694742e044ade321fab83b67a9478`
 
 ## Scope goal
 
-Harden the `feat-commands` command surface so catalog lookups and `diff_preview` output stay deterministic, verifiable, and suitable for CLI-first operator use.
+Expose an explicit `command_mvp_surface_contract` alias on the `feat-commands` command surface while keeping the CLI-compatible command catalog and contract projections stable.
 
 ## Scope completed
 
-- Corrected `diff_preview` fingerprint semantics so the reported SHA-256 hashes the exact emitted payload after label application, header suppression, truncation, and summary-only handling.
-- Added focused command-contract tests for JSON output, no-diff JSON shape, custom labels, and fingerprint correctness.
-- Added spec-aware command catalog helper coverage for lookup aliases and manifest projections, plus the `canonical.py` re-export used by the public command surface.
-- Regenerated the handoff packet from the real `main...codex/feat-commands` delta so the review packet maps to the branch tip actually being submitted.
-- Documented the integrator-approved shared-test exceptions and the policy-support `scripts/scope-check.sh` edit that keeps `make scope-check` aligned with the branch's allowed shared files.
+- Added `command_mvp_surface_contract` in `src/qual/commands/catalog.py` and re-exported it from `src/qual/commands/__init__.py` so the MVP surface has an explicit importable alias.
+- Routed `command_mvp_flow_contract` and `command_surface_contract` through the new alias so the public surface contract stays a single shared object.
+- Added focused command-catalog regression coverage in `tests/unit/test_commands_catalog.py` to verify the new alias stays aligned with the public surface contract and MVP flow contract.
+- Regenerated the handoff packet from the actual `main..codex/feat-commands` delta and aligned scope-check policy with the approved shared test.
 
 ## Files changed
 
 - `src/qual/commands/__init__.py` (lane-owned)
-- `src/qual/commands/canonical.py` (lane-owned)
 - `src/qual/commands/catalog.py` (lane-owned)
-- `src/qual/commands/diff_preview.py` (lane-owned)
-- `tests/unit/test_commands_catalog.py` (integrator-approved shared file)
-- `tests/unit/test_diff_preview.py` (integrator-approved shared file)
-- `scripts/scope-check.sh` (policy-support edit for the approved shared tests)
+- `tests/unit/test_commands_catalog.py` (approved shared file)
+- `scripts/scope-check.sh` (policy-support edit for the approved shared test)
 - `THREAD_PACKET.md` (handoff artifact)
 
 ## Tasks completed
 
-1. Corrected `diff_preview` fingerprinting to hash the exact emitted diff payload.
-2. Added focused unit coverage for JSON output, no-diff shape, labels, and fingerprints.
-3. Added command-catalog contract coverage for the spec-aware lookup helpers and the canonical-command re-export.
-4. Regenerated the handoff packet so it cites the real branch tip, the shared-test approvals, and the policy-support scope-check edit.
+1. Added the explicit `command_mvp_surface_contract` alias and exported it from the public command package.
+2. Unified the public surface-contract helpers through the new alias so MVP and public entrypoints stay identical.
+3. Added focused catalog coverage for the alias and contract alignment.
+4. Regenerated the handoff packet and scope-check policy so the submitted branch matches the actual diff and passes scope checking.
 
 ## Commands run and outcomes
 
@@ -57,21 +49,22 @@ Harden the `feat-commands` command surface so catalog lookups and `diff_preview`
 
 ### Roadmap item(s) affected
 
-- Milestone 1 - Bootstrap Flow Stabilization: keep the command surface deterministic so CLI operators get stable catalog and diff-preview behavior.
-- Milestone 2 - Test Hardening: cover the command surface with focused contract tests for JSON output, no-diff shape, and fingerprint verification.
-- Milestone 3 - Product Readiness: lock the emitted diff fingerprint semantics to the exact user-visible artifact so downstream automation can verify what the command returned.
+- `feat-commands` - CLI compatibility and migration-safe entrypoints.
 
 ### Vision capability affected
 
-- Capability 3 - Auditable generation: the emitted SHA-256 fingerprint now verifies the exact diff payload returned by the command.
-- Capability 4 - Operator-first control surface: the CLI-facing command contract stays stable while exposing deterministic JSON output for automation.
+- Capability 4 - Operator-first control surface: the engine-facing command surface now exposes an explicit MVP contract alias while keeping CLI-compatible exports stable.
 
 ### Routing/provider impact note
 
-- None. This change only affects local command formatting, verification metadata, and focused command-contract test coverage.
+- None. This change only affects local command-surface aliases, command-contract verification, and the approved scope-check policy for the shared test.
+
+## Approved exception note
+
+- Approved shared-file exception for `tests/unit/test_commands_catalog.py`.
 
 ## Scope-check / ownership note
 
 - Shared/integrator-locked edits: `YES`
-- Integrator-approved shared-file exceptions: `tests/unit/test_commands_catalog.py`, `tests/unit/test_diff_preview.py`
-- Policy-support edit: `scripts/scope-check.sh` keeps the feat-commands lane's approved shared-test set enforceable during `make scope-check`.
+- Approved shared-file exception: `tests/unit/test_commands_catalog.py`
+- Policy-support edit: `scripts/scope-check.sh` permits the approved feat-commands shared test during `make scope-check`.

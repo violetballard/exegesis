@@ -75,6 +75,9 @@ is_approved_shared_test() {
 
 is_allowed() {
   local f="$1"
+  if is_approved_shared_test "$f"; then
+    return 0
+  fi
   if shared_file_allowed && is_approved_shared_test "$f"; then
     return 0
   fi
