@@ -7,7 +7,7 @@
 
 ## Scope completed
 
-The cumulative retrieval thread now keeps SQLite FTS as the authoritative retrieval path, exports the canonical retrieval query constructor through both facades, exposes `RetrievalConstraints` on the public retrieval helpers, keeps PageIndex and embeddings as compatibility-only shims, and normalizes downstream retrieval payload, provenance, and hit snapshots so excerpt and provenance bundles stay deterministic.
+The retrieval lane kept SQLite FTS authoritative, exported the canonical retrieval query constructor through both retrieval facades, exposed `RetrievalConstraints` on the public retrieval helpers, kept PageIndex and embeddings as compatibility-only shims, and normalized downstream retrieval payload, provenance, and hit snapshots so deterministic excerpt, provenance, and hit-snapshot bundles remain stable.
 
 ## Budget note
 

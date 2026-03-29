@@ -29,7 +29,7 @@ Reviewed range note:
 
 ## Files changed
 
-### Source changes
+### Reviewed implementation files
 
 These are the exact source files changed across the reviewed cumulative range `1d6057e9..9f533914`.
 
@@ -41,9 +41,9 @@ These are the exact source files changed across the reviewed cumulative range `1
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
-### Handoff artifacts
+## Docs-only alignment files
 
-These files record the handoff metadata for the lane and are separated from the source diff above.
+These metadata files record the handoff alignment work and are separate from the reviewed implementation diff above.
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
