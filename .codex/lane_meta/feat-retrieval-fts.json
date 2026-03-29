@@ -2,7 +2,7 @@
   "approved_exception_note": "",
   "kickoff_budget_note": "This thread finished within the low-risk 8-task cap; no sprint-mode 10-task allowance or high-risk 4-task budget was used.",
   "proposed_readme_patch": "",
-  "final_head_sha": "23e4e4273b8808f5cc5a2f9adab1a7eb2d821b75",
+  "final_head_sha": "9fef8afea6cfb69a8127093af6488f6ab25534e4",
   "risk": "LOW",
   "packet_type": "metadata-only",
   "reviewed_commits": [
@@ -18,7 +18,7 @@
   ],
   "routing_provider_impact": "None",
   "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3: Real workflow loop and PRODUCT_VISION.md capability 2.",
-  "scope_completed": "Shipped SQLite FTS as the authoritative retrieval path, exported the canonical retrieval query constructor through both retrieval facades, and normalized retrieval payload snapshots and excerpt fallback rehydration so excerpt and provenance bundles stay deterministic. Did not ship new shared or integrator-locked file edits, provider or routing configuration changes, or retrieval behavior beyond the FTS-first MVP and deterministic payload normalization work in the reviewed commits. Later handoff-only packet and lane-metadata fixes are metadata-only and excluded from the reviewed implementation scope.",
+  "scope_completed": "Shipped SQLite FTS as the authoritative retrieval path, exported the canonical retrieval query constructor through both retrieval facades, and normalized retrieval payload snapshots and excerpt fallback rehydration so excerpt and provenance bundles stay deterministic. Did not ship new shared or integrator-locked file edits, provider or routing configuration changes, or retrieval behavior beyond the FTS-first MVP and deterministic payload normalization work in the reviewed commits. Later handoff-only packet and lane-metadata fixes are metadata-only and excluded from the reviewed implementation scope. The current handoff commit is metadata-only and does not change retrieval behavior.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Added FTS provenance retrieval bundles and retrieval service support for deterministic excerpt/provenance output.",

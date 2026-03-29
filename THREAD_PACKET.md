@@ -1,7 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Final HEAD SHA: `23e4e4273b8808f5cc5a2f9adab1a7eb2d821b75`
+- Final HEAD SHA: `9fef8afea6cfb69a8127093af6488f6ab25534e4`
 - Reviewed implementation commit(s):
   - `f8a32d372301be4a7c67b97a66ddc8e04f36011f`
   - `c7ca5bcdb3a1b829712c4b3d2f3a39e2bd26c14f`
@@ -25,11 +25,13 @@ Did not ship:
 - No new shared or integrator-locked file edits.
 - No provider or routing configuration changes.
 - No retrieval behavior beyond the FTS-first MVP and deterministic payload normalization work in the reviewed commits.
+- The current handoff commit is metadata-only and does not change retrieval behavior.
 
 Metadata-only follow-up commits:
 - `78b27dd3ce244e99e12a336c0719a6e0bfc99a77`
 - `6e9853b24f1419b158102e1afd68b40496009bcf`
 - `2c1d2737cd4e63ca0d03acc644242477a66e8647`
+- `9fef8afea6cfb69a8127093af6488f6ab25534e4`
 
 ## Files changed
 
