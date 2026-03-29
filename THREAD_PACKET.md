@@ -8,6 +8,7 @@
   - `da122acb7f5454db56b5df39186b50ac0857e14a`
   - `da334f66ea8030060b04b15e878aa7840c6c8c5a`
   - `df980e3031645f9b1e6d0e973437dc14684e54f1`
+  - `ebbc5c18ffa875c5c701b54ac19fc1139a12c784`
 
 ## Scope goal
 
@@ -18,7 +19,7 @@ Add grouped command smoke tokens to the command catalog so the public and MVP su
 - Added `command_flow_surface_tokens` and `command_mvp_flow_surface_tokens` exports in `src/qual/commands/__init__.py` so grouped smoke-token projections are part of the public command API.
 - Extended `src/qual/commands/catalog.py` with grouped flow-surface token projections and surface-contract wiring so `CommandSurfaceContract.flow_surface_tokens` stays aligned with the MVP/demo smoke path.
 - Added focused unit coverage in `tests/unit/test_commands_catalog.py` for grouped surface-token ordering, MVP/public contract alignment, and flow-surface token exposure.
-- Regenerated the handoff packet so the branch summary, file list, and ownership mapping match the actual `a5b0a247` command-surface delta and the packet-alignment trail through `df980e30`.
+- Regenerated the handoff packet so the branch summary, file list, and ownership mapping match the actual `a5b0a247` command-surface delta and the packet-alignment trail through `ebbc5c18`.
 
 ## Files changed
 
@@ -37,7 +38,7 @@ Add grouped command smoke tokens to the command catalog so the public and MVP su
 1. Exported grouped flow-surface token helpers from `src/qual/commands/__init__.py`.
 2. Wired grouped flow-surface token projections into `src/qual/commands/catalog.py` and exposed them through the command surface contract.
 3. Added regression coverage for grouped command smoke tokens and contract alignment in `tests/unit/test_commands_catalog.py`.
-4. Regenerated the handoff packet so the feature summary matches the actual reviewed command-surface commit.
+4. Regenerated the handoff packet so the feature summary matches the actual reviewed command-surface commit and the latest packet-alignment commit trail.
 
 ## Commands run and outcomes
 
