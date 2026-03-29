@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+import json
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -62,6 +64,11 @@ def _normalize_optional_text(value: object) -> str | None:
         if text:
             return text
     return None
+
+
+def _stable_fingerprint(payload: object) -> str:
+    serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
 def _normalize_query_snapshot(query: object) -> dict[str, object]:
@@ -236,6 +243,9 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["retrieval_provenance"] = _build_retrieval_provenance_from_payload(normalized)
     normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits", []))
     normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits", []))
+    normalized["source_bundle_fingerprint"] = _stable_fingerprint(
+        {key: value for key, value in normalized.items() if key != "source_bundle_fingerprint"}
+    )
     return normalized
 
 
@@ -354,7 +364,7 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         retrieval_excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
     query_snapshot = _normalize_query_snapshot(payload.get("query", {}))
     policy_snapshot = _normalize_policy_snapshot(payload.get("policy", payload.get("retrieval_policy", {})))
-    return {
+    return _normalize_retrieval_source_bundle_snapshot({
         "result_fingerprint": payload.get("result_fingerprint"),
         "query_fingerprint": payload.get("query_fingerprint"),
         "query": query_snapshot,
@@ -371,7 +381,7 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
-    }
+    })
 
 
 def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, object]) -> dict[str, object]:
@@ -391,7 +401,8 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
     if not isinstance(retrieval_provenance, dict):
         retrieval_provenance = _build_retrieval_provenance_from_payload(source_bundle)
     return {
-        "audit_ref": source_bundle.get("audit_ref"),
+        # Source-bundle-only reconstruction keeps the top-level context auditless.
+        "audit_ref": None,
         "result_fingerprint": source_bundle.get("result_fingerprint"),
         "retrieval_downstream_payload": copy.deepcopy(source_bundle),
         "retrieval_citation_bundle": copy.deepcopy(retrieval_citation_bundle),
@@ -753,6 +764,7 @@ class RetrievalDownstreamPayload:
     retrieval_manifest: dict[str, object]
     retrieval_evidence: dict[str, object]
     retrieval_provenance: dict[str, object]
+    source_bundle_fingerprint: str
     retrieval_source_bundle: dict[str, object]
 
     def as_dict(self) -> dict[str, object]:
@@ -782,6 +794,7 @@ class RetrievalDownstreamPayload:
             "retrieval_manifest": manifest,
             "retrieval_evidence": evidence,
             "retrieval_provenance": provenance,
+            "source_bundle_fingerprint": self.source_bundle_fingerprint,
             "retrieval_source_bundle": source_bundle,
         }
 
@@ -820,6 +833,7 @@ def build_retrieval_downstream_payload(
     retrieval_manifest: dict[str, object],
     retrieval_evidence: dict[str, object],
     retrieval_provenance: dict[str, object],
+    source_bundle_fingerprint: str,
     retrieval_source_bundle: dict[str, object],
 ) -> dict[str, object]:
     return RetrievalDownstreamPayload(
@@ -840,6 +854,7 @@ def build_retrieval_downstream_payload(
         retrieval_manifest=retrieval_manifest,
         retrieval_evidence=retrieval_evidence,
         retrieval_provenance=retrieval_provenance,
+        source_bundle_fingerprint=source_bundle_fingerprint,
         retrieval_source_bundle=retrieval_source_bundle,
     ).as_dict()
 

@@ -367,6 +367,7 @@ class RetrievalResult:
             retrieval_manifest=dict(self.diagnostics["retrieval_manifest"]),
             retrieval_evidence=dict(self.evidence),
             retrieval_provenance=retrieval_provenance,
+            source_bundle_fingerprint=cast(str, retrieval_source_bundle["source_bundle_fingerprint"]),
             retrieval_source_bundle=retrieval_source_bundle,
         )
 
@@ -718,7 +719,7 @@ class RetrievalResult:
                 citation_status=citation_status_snapshot,
             )
         )
-        return {
+        source_bundle = {
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query": query_snapshot,
@@ -742,6 +743,11 @@ class RetrievalResult:
                 )
             ),
         }
+        # Fingerprint the source snapshot itself so copies can be verified deterministically.
+        source_bundle["source_bundle_fingerprint"] = RetrievalService._stable_fingerprint(
+            {key: value for key, value in source_bundle.items() if key != "source_bundle_fingerprint"}
+        )
+        return source_bundle
 
 
 class RetrievalService:
