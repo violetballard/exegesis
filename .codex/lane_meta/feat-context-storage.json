@@ -20,8 +20,7 @@
     "Context basket and vault persistence hardening"
   ],
   "vision_capabilities": [
-    "1. Local-first state and identity",
-    "6. Auditable state and workflow"
+    "1. Local-first state and identity"
   ],
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",

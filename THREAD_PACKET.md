@@ -5,8 +5,6 @@
   - `47cda4df831ac41867a8792f40d720e0cb109514` (implementation: runtime storage/context hardening)
 - Docs-only alignment commit(s):
   - `ff06348b3aa25319a7433b04a849ceee42197d44` (current docs-only handoff alignment; no runtime scope)
-  - `89a2faa20441a66bfeb1f305b615cb0f1a81bef9` (packet/metadata alignment only; no runtime scope)
-  - `3bcca74f91465bab35a4f35d20c7fbf5cd10c5e8` (handoff metadata alignment follow-up; no runtime scope)
 
 ## Scope goal
 - Harden engine persistence/state recovery for context basket/set and vault so malformed or incomplete local state is quarantined or canonicalized safely without promoting stale auxiliary state.
@@ -16,7 +14,6 @@
 - Hardened vault recovery so malformed or incomplete persisted state is recovered or rewritten safely while preserving the safe lock default and local-first storage behavior.
 - Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-test exception for that one non-owned test file.
 - Kept the reviewed implementation within owned runtime paths plus that approved shared-test exception, with no broader shared/integrator-locked runtime edits being claimed.
-- Reissued the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list stay aligned with implementation commit `47cda4df831ac41867a8792f40d720e0cb109514` and the current docs-only alignment commit `ff06348b3aa25319a7433b04a849ceee42197d44`, while keeping docs-only alignment work separate from runtime changes.
 
 ## Owned-path files changed
 - `src/qual/context/set_store.py`
@@ -59,7 +56,6 @@
 
 ### Vision capability affected
 - `1. Local-first state and identity`
-- `6. Auditable state and workflow`
 
 ### Routing/provider impact note
 - None
