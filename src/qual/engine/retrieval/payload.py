@@ -40,6 +40,46 @@ class RetrievalProvenanceBundleSource(Protocol):
         """Return the deterministic retrieval provenance snapshot consumed by engine flows."""
 
 
+def _normalize_list_like(value: object) -> list[object]:
+    if isinstance(value, list):
+        return copy.deepcopy(value)
+    if isinstance(value, tuple):
+        return list(value)
+    if value is None:
+        return []
+    return [value]
+
+
+def _normalize_optional_list_like(value: object) -> list[object] | None:
+    if value is None:
+        return None
+    return _normalize_list_like(value)
+
+
+def _normalize_query_snapshot(query: object) -> dict[str, object]:
+    if not isinstance(query, dict):
+        return {}
+    normalized = copy.deepcopy(query)
+    constraints = normalized.get("constraints", {})
+    if not isinstance(constraints, dict):
+        constraints = {}
+    else:
+        constraints = copy.deepcopy(constraints)
+    constraints["doc_types"] = _normalize_list_like(constraints.get("doc_types"))
+    constraints["date_range"] = _normalize_optional_list_like(constraints.get("date_range"))
+    normalized["constraints"] = constraints
+    return normalized
+
+
+def _normalize_policy_snapshot(policy: object) -> dict[str, object]:
+    if not isinstance(policy, dict):
+        return {}
+    normalized = copy.deepcopy(policy)
+    normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
+    normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    return normalized
+
+
 def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
     """Return the deterministic citation bundle from a downstream payload snapshot."""
 
@@ -83,26 +123,17 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
         "date_range",
         provenance.get("query_date_range", summary.get("query_date_range", diagnostics.get("date_range"))),
     )
-    if isinstance(query_date_range, tuple):
-        query_date_range = list(query_date_range)
-    elif isinstance(query_date_range, list):
-        query_date_range = copy.deepcopy(query_date_range)
-    else:
-        query_date_range = None
+    query_date_range = _normalize_optional_list_like(query_date_range)
     candidate_doc_count = provenance.get(
         "candidate_doc_count",
         summary.get("candidate_doc_count", diagnostics.get("candidate_doc_count")),
     )
-    fts_shortlist_doc_ids = provenance.get(
-        "fts_shortlist_doc_ids",
-        summary.get("fts_shortlist_doc_ids", diagnostics.get("fts_shortlist_doc_ids", [])),
+    fts_shortlist_doc_ids = _normalize_list_like(
+        provenance.get(
+            "fts_shortlist_doc_ids",
+            summary.get("fts_shortlist_doc_ids", diagnostics.get("fts_shortlist_doc_ids", [])),
+        )
     )
-    if isinstance(fts_shortlist_doc_ids, list):
-        fts_shortlist_doc_ids = copy.deepcopy(fts_shortlist_doc_ids)
-    elif isinstance(fts_shortlist_doc_ids, tuple):
-        fts_shortlist_doc_ids = list(fts_shortlist_doc_ids)
-    else:
-        fts_shortlist_doc_ids = []
     return {
         "query_fingerprint": provenance.get(
             "query_fingerprint",
@@ -155,18 +186,25 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
     if not isinstance(source_bundle, dict):
         source_bundle = payload.get("source_bundle")
     if isinstance(source_bundle, dict):
-        return copy.deepcopy(source_bundle)
+        normalized_source_bundle = copy.deepcopy(source_bundle)
+        normalized_source_bundle["query"] = _normalize_query_snapshot(normalized_source_bundle.get("query", {}))
+        normalized_source_bundle["policy"] = _normalize_policy_snapshot(
+            normalized_source_bundle.get("policy", normalized_source_bundle.get("retrieval_policy", {}))
+        )
+        return normalized_source_bundle
     retrieval_doc_bundle = payload.get("retrieval_doc_bundle")
     if not isinstance(retrieval_doc_bundle, dict):
         retrieval_doc_bundle = _build_retrieval_doc_bundle_from_payload(payload)
     retrieval_excerpt_bundle = payload.get("retrieval_excerpt_bundle")
     if not isinstance(retrieval_excerpt_bundle, dict):
         retrieval_excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
+    query_snapshot = _normalize_query_snapshot(payload.get("query", {}))
+    policy_snapshot = _normalize_policy_snapshot(payload.get("policy", payload.get("retrieval_policy", {})))
     return {
         "result_fingerprint": payload.get("result_fingerprint"),
         "query_fingerprint": payload.get("query_fingerprint"),
-        "query": copy.deepcopy(payload.get("query", {})),
-        "policy": copy.deepcopy(payload.get("policy", payload.get("retrieval_policy", {}))),
+        "query": query_snapshot,
+        "policy": policy_snapshot,
         "retrieval_backend": payload.get("retrieval_backend"),
         "retrieval_mode": payload.get("retrieval_mode"),
         "citation_status": copy.deepcopy(payload.get("citation_status", {})),
@@ -234,16 +272,12 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
     citation_bundle = payload.get("retrieval_citation_bundle", {})
     if not isinstance(citation_bundle, dict):
         citation_bundle = _build_retrieval_citation_bundle_from_payload(payload)
-    query_date_range = query_constraints.get(
-        "date_range",
-        provenance.get("query_date_range", summary.get("query_date_range", diagnostics.get("date_range"))),
+    query_date_range = _normalize_optional_list_like(
+        query_constraints.get(
+            "date_range",
+            provenance.get("query_date_range", summary.get("query_date_range", diagnostics.get("date_range"))),
+        )
     )
-    if isinstance(query_date_range, tuple):
-        query_date_range = list(query_date_range)
-    elif isinstance(query_date_range, list):
-        query_date_range = copy.deepcopy(query_date_range)
-    else:
-        query_date_range = None
     return {
         "result_fingerprint": payload.get("result_fingerprint"),
         "query_fingerprint": payload.get(
@@ -261,11 +295,13 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
         "query_date_range": query_date_range,
         "retrieval_backend": payload.get("retrieval_backend", summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))),
         "retrieval_mode": payload.get("retrieval_mode", summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))),
-        "retrieval_policy": copy.deepcopy(payload.get("retrieval_policy", payload.get("policy", summary.get("retrieval_policy", diagnostics.get("retrieval_policy", {}))))),
-        "active_strategy_ids": list(
+        "retrieval_policy": _normalize_policy_snapshot(
+            payload.get("retrieval_policy", payload.get("policy", summary.get("retrieval_policy", diagnostics.get("retrieval_policy", {}))))
+        ),
+        "active_strategy_ids": _normalize_list_like(
             provenance.get("active_strategy_ids", summary.get("active_strategy_ids", diagnostics.get("active_strategy_ids", [])))
         ),
-        "deferred_strategy_ids": list(
+        "deferred_strategy_ids": _normalize_list_like(
             provenance.get("deferred_strategy_ids", summary.get("deferred_strategy_ids", diagnostics.get("deferred_strategy_ids", [])))
         ),
         "citation_status": copy.deepcopy(payload.get("citation_status", summary.get("citation_status", provenance.get("citation_status", {})))),
@@ -347,6 +383,7 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         summary = {}
     if not isinstance(diagnostics, dict):
         diagnostics = {}
+    query_date_range = _normalize_optional_list_like(normalized.get("query_date_range"))
     if "query_fingerprint" not in normalized:
         normalized["query_fingerprint"] = summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))
     if "query_scope" not in normalized:
@@ -354,7 +391,11 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     if "query_intent" not in normalized:
         normalized["query_intent"] = summary.get("query_intent", diagnostics.get("query_intent"))
     if "query_date_range" not in normalized:
-        normalized["query_date_range"] = summary.get("query_date_range", diagnostics.get("date_range"))
+        normalized["query_date_range"] = _normalize_optional_list_like(
+            summary.get("query_date_range", diagnostics.get("date_range"))
+        )
+    else:
+        normalized["query_date_range"] = query_date_range
     if "result_fingerprint" not in normalized:
         normalized["result_fingerprint"] = summary.get("result_fingerprint", diagnostics.get("result_fingerprint"))
     if "retrieval_backend" not in normalized:
@@ -362,21 +403,31 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     if "retrieval_mode" not in normalized:
         normalized["retrieval_mode"] = summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))
     if "retrieval_policy" not in normalized:
-        normalized["retrieval_policy"] = copy.deepcopy(
+        normalized["retrieval_policy"] = _normalize_policy_snapshot(
             summary.get("retrieval_policy", diagnostics.get("retrieval_policy", {}))
         )
+    else:
+        normalized["retrieval_policy"] = _normalize_policy_snapshot(normalized["retrieval_policy"])
     if "active_strategy_ids" not in normalized:
-        normalized["active_strategy_ids"] = list(
+        normalized["active_strategy_ids"] = _normalize_list_like(
             summary.get("active_strategy_ids", diagnostics.get("active_strategy_ids", []))
         )
+    else:
+        normalized["active_strategy_ids"] = _normalize_list_like(normalized["active_strategy_ids"])
     if "deferred_strategy_ids" not in normalized:
-        normalized["deferred_strategy_ids"] = list(
+        normalized["deferred_strategy_ids"] = _normalize_list_like(
             summary.get("deferred_strategy_ids", diagnostics.get("deferred_strategy_ids", []))
         )
+    else:
+        normalized["deferred_strategy_ids"] = _normalize_list_like(normalized["deferred_strategy_ids"])
     if "candidate_doc_count" not in normalized:
         normalized["candidate_doc_count"] = diagnostics.get("candidate_doc_count")
     if "fts_shortlist_doc_ids" not in normalized:
-        normalized["fts_shortlist_doc_ids"] = copy.deepcopy(diagnostics.get("fts_shortlist_doc_ids", []))
+        normalized["fts_shortlist_doc_ids"] = _normalize_list_like(
+            diagnostics.get("fts_shortlist_doc_ids", [])
+        )
+    else:
+        normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized["fts_shortlist_doc_ids"])
     if "primary_doc_id" not in normalized:
         normalized["primary_doc_id"] = summary.get("primary_doc_id")
     if "primary_doc_fingerprint" not in normalized:

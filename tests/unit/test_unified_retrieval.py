@@ -20,6 +20,7 @@ from src.qual.engine.retrieval.payload import build_retrieval_citation_bundle_fr
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_result
 from src.qual.engine.retrieval.payload import _build_retrieval_source_bundle_from_payload
+from src.qual.engine.retrieval.payload import _build_retrieval_provenance_from_payload
 import src.qual.retrieval as package_retrieval
 from src.qual.retrieval import retrieve_auto as engine_retrieve_auto
 from src.qual.retrieval import retrieve_auto_citation_bundle as engine_retrieve_auto_citation_bundle
@@ -1015,6 +1016,70 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["retrieval_policy"]["retrieval_mode"], "fts_first")
         self.assertEqual(excerpt["provenance"]["source_strategy"], "pageindex")
         self.assertEqual(excerpt["provenance"]["doc_id"], "doc-pdf-1")
+
+    def test_retrieval_payload_helpers_normalize_tuple_shaped_snapshots(self) -> None:
+        payload = {
+            "query": {
+                "query_text": "memo comparison",
+                "scope": "vault",
+                "intent": "compare",
+                "constraints": {
+                    "doc_types": ("memo", "pdf"),
+                    "date_range": ("2026-01-01", "2026-01-31"),
+                },
+            },
+            "policy": {
+                "retrieval_backend": "sqlite_fts",
+                "retrieval_mode": "fts_first",
+                "active_strategy_ids": ("fts",),
+                "deferred_strategy_ids": ("pageindex", "embeddings"),
+            },
+            "retrieval_backend": "sqlite_fts",
+            "retrieval_mode": "fts_first",
+            "retrieval_summary": {
+                "query_fingerprint": "query-fingerprint",
+                "query_scope": "vault",
+                "query_intent": "compare",
+                "query_date_range": ("2026-01-01", "2026-01-31"),
+                "active_strategy_ids": ("fts",),
+                "deferred_strategy_ids": ("pageindex", "embeddings"),
+                "citation_status": {"required": False, "available": True, "satisfied": True},
+                "doc_count": 1,
+                "excerpt_count": 1,
+            },
+            "retrieval_diagnostics": {
+                "query_fingerprint": "query-fingerprint",
+                "query_scope": "vault",
+                "query_intent": "compare",
+                "date_range": ("2026-01-01", "2026-01-31"),
+                "retrieval_backend": "sqlite_fts",
+                "retrieval_mode": "fts_first",
+                "active_strategy_ids": ("fts",),
+                "deferred_strategy_ids": ("pageindex", "embeddings"),
+                "fts_shortlist_doc_ids": ("doc-1", "doc-2"),
+            },
+            "retrieval_provenance": {
+                "query_fingerprint": "query-fingerprint",
+                "query_scope": "vault",
+                "query_intent": "compare",
+                "query_date_range": ("2026-01-01", "2026-01-31"),
+                "active_strategy_ids": ("fts",),
+                "deferred_strategy_ids": ("pageindex", "embeddings"),
+                "fts_shortlist_doc_ids": ("doc-1", "doc-2"),
+            },
+        }
+
+        provenance = _build_retrieval_provenance_from_payload(payload)
+        source_bundle = _build_retrieval_source_bundle_from_payload(payload)
+
+        self.assertEqual(provenance["query_date_range"], ["2026-01-01", "2026-01-31"])
+        self.assertEqual(provenance["active_strategy_ids"], ["fts"])
+        self.assertEqual(provenance["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(provenance["fts_shortlist_doc_ids"], ["doc-1", "doc-2"])
+        self.assertEqual(source_bundle["query"]["constraints"]["doc_types"], ["memo", "pdf"])
+        self.assertEqual(source_bundle["query"]["constraints"]["date_range"], ["2026-01-01", "2026-01-31"])
+        self.assertEqual(source_bundle["policy"]["active_strategy_ids"], ["fts"])
+        self.assertEqual(source_bundle["policy"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
 
     def test_engine_retrieval_package_exports_are_fts_only(self) -> None:
         self.assertEqual(
