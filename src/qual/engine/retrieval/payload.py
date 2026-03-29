@@ -602,13 +602,19 @@ class RetrievalDownstreamPayload:
 
 
 def build_retrieval_provenance_from_result(
-    result: RetrievalDownstreamPayloadSource,
+    result: RetrievalDownstreamPayloadSource | RetrievalProvenanceBundleSource | RetrievalSourceBundleSource,
 ) -> dict[str, object]:
     """Return the deterministic retrieval provenance snapshot for a result."""
 
     provenance_source = getattr(result, "retrieval_provenance_bundle", None)
     if callable(provenance_source):
         return _build_retrieval_provenance_from_payload({"retrieval_provenance": provenance_source()})
+    source_bundle_source = getattr(result, "source_bundle", None)
+    if callable(source_bundle_source):
+        source_bundle = _build_retrieval_source_bundle_from_payload(
+            {"retrieval_source_bundle": source_bundle_source()}
+        )
+        return _build_retrieval_provenance_from_payload(source_bundle)
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_provenance_from_payload(payload)
 
@@ -675,12 +681,18 @@ def build_retrieval_downstream_payload_from_result(
 
 
 def build_retrieval_citation_bundle_from_result(
-    result: RetrievalDownstreamPayloadSource | RetrievalCitationBundleSource,
+    result: RetrievalDownstreamPayloadSource | RetrievalCitationBundleSource | RetrievalSourceBundleSource,
 ) -> dict[str, object]:
     """Return the deterministic doc and excerpt citation snapshot for a result."""
     bundle_source = getattr(result, "citation_bundle", None)
     if callable(bundle_source):
         return _build_retrieval_citation_bundle_from_payload({"retrieval_citation_bundle": bundle_source()})
+    source_bundle_source = getattr(result, "source_bundle", None)
+    if callable(source_bundle_source):
+        source_bundle = _build_retrieval_source_bundle_from_payload(
+            {"retrieval_source_bundle": source_bundle_source()}
+        )
+        return _build_retrieval_citation_bundle_from_payload(source_bundle)
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_citation_bundle_from_payload(payload)
 
@@ -697,25 +709,37 @@ def build_retrieval_source_bundle_from_result(
 
 
 def build_retrieval_doc_bundle_from_result(
-    result: RetrievalDownstreamPayloadSource | RetrievalDocBundleSource,
+    result: RetrievalDownstreamPayloadSource | RetrievalDocBundleSource | RetrievalSourceBundleSource,
 ) -> dict[str, object]:
     """Return the deterministic doc-focused bundle for downstream engine flows."""
 
     bundle_source = getattr(result, "retrieval_doc_bundle", None)
     if callable(bundle_source):
         return copy.deepcopy(bundle_source())
+    source_bundle_source = getattr(result, "source_bundle", None)
+    if callable(source_bundle_source):
+        source_bundle = _build_retrieval_source_bundle_from_payload(
+            {"retrieval_source_bundle": source_bundle_source()}
+        )
+        return _build_retrieval_doc_bundle_from_payload(source_bundle)
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_doc_bundle_from_payload(payload)
 
 
 def build_retrieval_excerpt_bundle_from_result(
-    result: RetrievalDownstreamPayloadSource | RetrievalExcerptBundleSource,
+    result: RetrievalDownstreamPayloadSource | RetrievalExcerptBundleSource | RetrievalSourceBundleSource,
 ) -> dict[str, object]:
     """Return the deterministic excerpt-focused snapshot for downstream engine flows."""
 
     bundle_source = getattr(result, "retrieval_excerpt_bundle", None)
     if callable(bundle_source):
         return copy.deepcopy(bundle_source())
+    source_bundle_source = getattr(result, "source_bundle", None)
+    if callable(source_bundle_source):
+        source_bundle = _build_retrieval_source_bundle_from_payload(
+            {"retrieval_source_bundle": source_bundle_source()}
+        )
+        return _build_retrieval_excerpt_bundle_from_payload(source_bundle)
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_excerpt_bundle_from_payload(payload)
 
