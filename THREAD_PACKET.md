@@ -4,7 +4,7 @@
 - Implementation commit(s):
   - `47cda4df831ac41867a8792f40d720e0cb109514` (implementation: runtime storage/context hardening)
 - Docs-only alignment commit(s):
-  - `c3b7ef981c399472b6a52aaad8dc6c5ce7276635` (current docs-only handoff alignment; no runtime scope)
+  - `6c92c6885b97b8288fefb2a1255ae7c6cf15ef81` (current docs-only handoff alignment; no runtime scope)
 
 ## Scope goal
 - Harden engine persistence/state recovery for context basket/set and vault so malformed or incomplete local state is quarantined or canonicalized safely without promoting stale auxiliary state.
@@ -50,7 +50,7 @@
 - Hardened context basket/set and vault recovery, kept the approved `tests/unit/test_context_storage_recovery.py` exception explicit, and kept runtime edits in owned paths.
 
 ### Roadmap item(s) affected
-- Milestone 3: Real workflow loop
+- Milestone 1: Bootstrap Flow Stabilization
 - Context basket and vault persistence hardening
 
 ### Vision capability affected
