@@ -4,7 +4,7 @@ The retrieval lane keeps this package as the narrow public surface for the
 engine's retrieval orchestration code.
 """
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping
 
 from src.qual.engine.retrieval.fts_strategy import FTSStrategy
 from src.qual.engine.retrieval.interface import RetrievalStrategy, StrategyRun
@@ -35,11 +35,11 @@ def _normalize_constraint_values(value: object, *, field_name: str) -> tuple[str
     if isinstance(value, str):
         return (value,)
     if isinstance(value, (bytes, bytearray)):
-        raise TypeError(f"{field_name} must be a sequence of text values")
+        raise TypeError(f"{field_name} must be an iterable of text values")
     if isinstance(value, Mapping):
-        raise TypeError(f"{field_name} must be a sequence of values, not a mapping")
-    if not isinstance(value, Sequence):
-        raise TypeError(f"{field_name} must be a sequence of values or None")
+        raise TypeError(f"{field_name} must be an iterable of values, not a mapping")
+    if not isinstance(value, Iterable):
+        raise TypeError(f"{field_name} must be an iterable of values or None")
     return tuple(str(item) for item in value if item is not None)
 
 
