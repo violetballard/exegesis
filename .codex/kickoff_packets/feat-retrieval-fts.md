@@ -24,6 +24,6 @@ This handoff stayed within the low-risk `8`-task cap. It did not rely on the spr
 - Payload normalization keeps query, policy, provenance, and hit snapshots deterministic for downstream consumers.
 
 ### Guardrails
-- Keep retrieval deterministic and auditable.
+- Keep retrieval deterministic.
 - Avoid speculative future retrieval abstractions that do not help the MVP.
 - Any engine integration should stay narrowly scoped to retrieval orchestration.

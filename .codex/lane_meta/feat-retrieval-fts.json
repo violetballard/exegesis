@@ -2,18 +2,20 @@
   "approved_exception_note": "",
   "kickoff_budget_note": "This thread finished within the low-risk 8-task cap; no sprint-mode 10-task allowance or high-risk 4-task budget was used.",
   "proposed_readme_patch": "",
-  "final_head_sha": "1109cceba7d402d3e05c6d7ba59dac363b0d9ea6",
-  "reviewed_implementation_range": "1d6057e9..1109cceba7d402d3e05c6d7ba59dac363b0d9ea6",
+  "final_head_sha": "aacb9cc06f99cb149319da198d6c96cd9628735c",
+  "reviewed_implementation_range": "1d6057e9..aacb9cc06f99cb149319da198d6c96cd9628735c",
   "implementation_commits": [
     "3c51e34bc54003b8fe4a28b8d3db58450f6d9ab6",
-    "1109cceba7d402d3e05c6d7ba59dac363b0d9ea6"
+    "1109cceba7d402d3e05c6d7ba59dac363b0d9ea6",
+    "aacb9cc06f99cb149319da198d6c96cd9628735c"
   ],
   "docs_only_alignment_commits": [
     "0cff411ae4e4972707ac145ab46f002c11f38cea",
     "8e17a500af65e43d7255291807e2fbef9448a66f",
     "9f533914940b5a3f45859b0269909bbc11592030",
     "9851fb47e930cd0df2b663264683cd4a3a6e0687",
-    "e4b895ddf767deb962d269c6801df364c432a3bb"
+    "e4b895ddf767deb962d269c6801df364c432a3bb",
+    "2836df72a27ba5e1803a99714a580648d7710061"
   ],
   "risk": "LOW",
   "packet_type": "metadata-only",
@@ -28,14 +30,15 @@
     "1cc160ff7a56f539b4726dd03cc477f714243e8d",
     "9f533914940b5a3f45859b0269909bbc11592030",
     "3c51e34bc54003b8fe4a28b8d3db58450f6d9ab6",
-    "1109cceba7d402d3e05c6d7ba59dac363b0d9ea6"
+    "1109cceba7d402d3e05c6d7ba59dac363b0d9ea6",
+    "aacb9cc06f99cb149319da198d6c96cd9628735c"
   ],
   "roadmap_items": [
     "ROADMAP.md: Milestone 3: Real workflow loop"
   ],
   "routing_provider_impact": "None",
   "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt, provenance, and hit-snapshot output for engine generation flows, aligned to ROADMAP.md Milestone 3: Real workflow loop and PRODUCT_VISION.md capability 2, while keeping PageIndex and embeddings fallback-only and exposing RetrievalConstraints through the public retrieval helpers.",
-  "scope_completed": "Shipped the cumulative 1d6057e9..1109cceba7d402d3e05c6d7ba59dac363b0d9ea6 retrieval thread: SQLite FTS is the authoritative retrieval path, the canonical retrieval query constructor is exported through both retrieval facades, the public retrieve_* helpers accept RetrievalConstraints objects as well as mapping payloads, PageIndex and embeddings remain compatibility-only shims, retrieval payload, citation, provenance, and hit snapshots normalize list-like and strategy fields deterministically, including the retrieval_source_strategy alias, and payload bundle snapshots are canonicalized for deterministic downstream rehydration. Did not ship shared or integrator-locked file edits, provider or routing configuration changes, or retrieval behavior beyond the FTS-first MVP and deterministic snapshot normalization work in the reviewed range; the `3c51e34b` PageIndex routing fix and `1109cce` payload canonicalization stay inside the retrieval-owned lane.",
+  "scope_completed": "Shipped the cumulative 1d6057e9..aacb9cc06f99cb149319da198d6c96cd9628735c retrieval thread: SQLite FTS is the authoritative retrieval path, the canonical retrieval query constructor is exported through both retrieval facades, the public retrieve_* helpers accept RetrievalConstraints objects as well as mapping payloads, PageIndex and embeddings remain compatibility-only shims, retrieval payload, citation, provenance, and hit snapshots normalize list-like and strategy fields deterministically, including the retrieval_source_strategy alias, payload bundle snapshots are canonicalized for deterministic downstream rehydration, and downstream doc hits now carry source citation attribution. Did not ship shared or integrator-locked file edits, provider or routing configuration changes, or retrieval behavior beyond the FTS-first MVP and deterministic snapshot normalization work in the reviewed range; the `3c51e34b` PageIndex routing fix, `1109cce` payload canonicalization, and `aacb9cc0` source attribution update stay inside the retrieval-owned lane.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Added deterministic FTS provenance and excerpt output in the retrieval service.",
@@ -45,10 +48,9 @@
     "Normalized retrieval payload, citation, provenance, and source snapshots for deterministic rehydration and canonical payload bundle snapshots.",
     "Tightened retrieval hit snapshots to carry the canonical retrieval_source_strategy alias and list-like provenance fields.",
     "Added regression coverage for the normalized payload snapshots, facade exports, and citation/provenance helpers.",
-    "Canonicalized payload bundle snapshots for deterministic downstream rehydration."
+    "Canonicalized payload bundle snapshots for deterministic downstream rehydration and added source citation attribution to downstream doc hits."
   ],
   "vision_capabilities": [
-    "2. Retrieval-first context handling",
-    "6. Auditable state and workflow"
+    "2. Retrieval-first context handling"
   ]
 }

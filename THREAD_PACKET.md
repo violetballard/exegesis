@@ -1,14 +1,15 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Final HEAD SHA: `1109cceba7d402d3e05c6d7ba59dac363b0d9ea6`
-- Reviewed implementation range: `1d6057e9..1109cceba7d402d3e05c6d7ba59dac363b0d9ea6`
+- Final HEAD SHA: `aacb9cc06f99cb149319da198d6c96cd9628735c`
+- Reviewed implementation range: `1d6057e9..aacb9cc06f99cb149319da198d6c96cd9628735c`
 - Handoff type: cumulative full-thread retrieval handoff
 
 ## Implementation commit(s)
 
 - `3c51e34bc54003b8fe4a28b8d3db58450f6d9ab6` - keep pageindex shim out of routing
 - `1109cceba7d402d3e05c6d7ba59dac363b0d9ea6` - canonicalize payload bundle snapshots
+- `aacb9cc06f99cb149319da198d6c96cd9628735c` - add doc citation source attribution
 
 ## Docs-only alignment commit(s)
 
@@ -17,6 +18,7 @@
 - `9f533914940b5a3f45859b0269909bbc11592030` - align handoff metadata
 - `9851fb47e930cd0df2b663264683cd4a3a6e0687` - align handoff metadata to current head
 - `e4b895ddf767deb962d269c6801df364c432a3bb` - restamp handoff packet to current head
+- `2836df72a27ba5e1803a99714a580648d7710061` - split handoff commit metadata (metadata-only)
 
 ## Scope goal
 
@@ -31,6 +33,7 @@ Shipped:
 - PageIndex and embeddings remain compatibility-only shims and fallback-only plumbing behind the FTS-first policy.
 - Retrieval payload, citation, provenance, and hit snapshots normalize list-like and strategy fields deterministically, including the `retrieval_source_strategy` alias and list-like provenance rehydration.
 - Payload bundle snapshots are canonicalized for deterministic downstream rehydration.
+- Downstream doc hits now carry source citation attribution.
 - Regression coverage exercises the normalized payload snapshots, facade exports, and FTS citation/provenance helpers.
 
 Did not ship:
@@ -39,13 +42,13 @@ Did not ship:
 - No retrieval behavior beyond the FTS-first MVP and deterministic snapshot normalization work in the reviewed range.
 
 Reviewed range note:
-- The handoff is cumulative, not tip-only; the reviewed implementation range ends at `1109cce`, and the docs-only alignment commits above only restamp packet metadata.
+- The handoff is cumulative, not tip-only; the reviewed implementation range ends at `aacb9cc0`, and the docs-only alignment commits above only restamp packet metadata.
 
 ## Files changed
 
 ### Reviewed implementation files
 
-These are the exact source files changed across the reviewed cumulative range `1d6057e9..1109cceba7d402d3e05c6d7ba59dac363b0d9ea6`.
+These are the exact source files changed across the reviewed cumulative range `1d6057e9..aacb9cc06f99cb149319da198d6c96cd9628735c`.
 
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/embeddings_strategy.py`
@@ -78,7 +81,7 @@ These metadata files record the handoff alignment work and are separate from the
 
 - The thread finished within the low-risk cap of 8 tasks.
 - No shared or integrator-locked files were edited.
-- The reviewed range is cumulative; metadata-only handoff commits in the range only adjust handoff artifacts, and the `3c51e34b` / `1109cce` retrieval commits stay inside the FTS-first retrieval lane.
+- The reviewed range is cumulative; metadata-only handoff commits in the range only adjust handoff artifacts, and the `3c51e34b` / `1109cce` / `aacb9cc0` retrieval commits stay inside the FTS-first retrieval lane.
 
 ## Commands run with results
 
@@ -101,7 +104,6 @@ These metadata files record the handoff alignment work and are separate from the
 ## Vision capability affected
 
 - 2. Retrieval-first context handling
-- 6. Auditable state and workflow
 
 ## Routing/provider impact note
 
