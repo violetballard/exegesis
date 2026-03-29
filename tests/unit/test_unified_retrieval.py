@@ -1726,6 +1726,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "top_excerpt_id": item["top_excerpt_id"],
                     "top_excerpt_fingerprint": item["provenance"]["top_excerpt_fingerprint"],
                     "top_excerpt_text_hash": item["provenance"]["top_excerpt_text_hash"],
+                    "source_strategy": item["provenance"]["source_strategy"],
                 }
                 for item in payload["doc_hits"]
             ],

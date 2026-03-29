@@ -521,6 +521,7 @@ class RetrievalResult:
                 "top_excerpt_id": doc_hit.top_excerpt_id,
                 "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
                 "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
+                "source_strategy": doc_hit.provenance.get("source_strategy"),
             }
             for doc_hit in self.doc_hits
         ]
