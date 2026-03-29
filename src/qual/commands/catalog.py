@@ -32,6 +32,16 @@ class CommandFlowEntry:
 
 
 @dataclass(frozen=True)
+class CommandFlowSurfaceEntry:
+    flow_step: str
+    name: str
+    aliases: tuple[str, ...]
+    description: str
+    lookup_tokens: tuple[str, ...]
+    surface_tokens: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class CommandFlowSequence:
     flow_steps: tuple[str, ...]
     names: tuple[str, ...]
@@ -64,6 +74,18 @@ def _lookup_aliases(spec: CommandSpec) -> tuple[str, ...]:
 
 def _lookup_tokens(spec: CommandSpec) -> tuple[str, ...]:
     return (spec.name, *_lookup_aliases(spec))
+
+
+def _flow_surface_tokens(*tokens: str) -> tuple[str, ...]:
+    seen_tokens: set[str] = set()
+    surface_tokens: list[str] = []
+    for token in tokens:
+        normalized_token = _normalize_token(token)
+        if not normalized_token or normalized_token in seen_tokens:
+            continue
+        seen_tokens.add(normalized_token)
+        surface_tokens.append(normalized_token)
+    return tuple(surface_tokens)
 
 
 def _validate_flow_steps(flow_steps: tuple[str, ...]) -> None:
@@ -292,6 +314,29 @@ def command_flow_catalog(
 
 
 @lru_cache(maxsize=None)
+def command_flow_surface_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandFlowSurfaceEntry, ...]:
+    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    normalized_flow_steps = _normalize_flow_steps(ordered_flow_steps)
+    manifest = command_flow_manifest(specs, ordered_flow_steps)
+    manifest_by_flow_step = {_normalize_token(entry.flow_step): entry for entry in manifest}
+    return tuple(
+        CommandFlowSurfaceEntry(
+            flow_step=flow_step,
+            name=entry.name,
+            aliases=entry.aliases,
+            description=entry.description,
+            lookup_tokens=entry.lookup_tokens,
+            surface_tokens=_flow_surface_tokens(*entry.lookup_tokens, flow_step),
+        )
+        for flow_step in normalized_flow_steps
+        for entry in (manifest_by_flow_step[flow_step],)
+    )
+
+
+@lru_cache(maxsize=None)
 def command_flow_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
@@ -381,7 +426,17 @@ def command_flow_lookup_surface(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[tuple[str, str], ...]:
     ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
-    return _command_flow_lookup_index(specs, ordered_flow_steps, include_flow_step=True)
+    surface_catalog = command_flow_surface_catalog(specs, ordered_flow_steps)
+    seen_tokens: set[str] = set()
+    index: list[tuple[str, str]] = []
+    for entry in surface_catalog:
+        for token in entry.surface_tokens:
+            normalized_token = _normalize_token(token)
+            if normalized_token in seen_tokens:
+                continue
+            seen_tokens.add(normalized_token)
+            index.append((normalized_token, entry.name))
+    return tuple(index)
 
 
 @lru_cache(maxsize=None)
@@ -390,11 +445,11 @@ def command_flow_tokens(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[str, ...]:
     ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
-    manifest = command_flow_manifest(specs, ordered_flow_steps)
+    surface_catalog = command_flow_surface_catalog(specs, ordered_flow_steps)
     seen_tokens: set[str] = set()
     tokens: list[str] = []
-    for entry in manifest:
-        for token in (*entry.lookup_tokens, entry.flow_step):
+    for entry in surface_catalog:
+        for token in entry.surface_tokens:
             normalized_token = _normalize_token(token)
             if normalized_token in seen_tokens:
                 continue
@@ -525,6 +580,12 @@ def command_demo_flow_lookup_surface(
     return command_flow_lookup_surface(specs, command_demo_flow_steps())
 
 
+def command_demo_flow_surface_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandFlowSurfaceEntry, ...]:
+    return command_flow_surface_catalog(specs, command_demo_flow_steps())
+
+
 def command_demo_flow_tokens(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
     return command_flow_tokens(specs, command_demo_flow_steps())
 
@@ -560,6 +621,12 @@ def command_mvp_flow_lookup_surface(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_flow_lookup_surface(specs)
+
+
+def command_mvp_flow_surface_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandFlowSurfaceEntry, ...]:
+    return command_demo_flow_surface_catalog(specs)
 
 
 def command_mvp_flow_tokens(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
