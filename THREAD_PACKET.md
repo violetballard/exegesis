@@ -6,6 +6,8 @@
   - `691037c4db2cee231a6ea8f50118c1676b26c419` (feat(commands): add flow-ordered route contract)
   - `f3f54de86d3a0e0d4bc501843111afad65f47f63` (feat(commands): expose route catalog on surface contract)
 - Docs-only alignment commit(s):
+  - `4e5096a4c608a8be9005565e3e53760505281e81` (docs(commands): align feat-commands packet roadmap)
+  - `f6900379c96f4abea2be0cc231cddf62e8dbe2ac` (docs(commands): realign feat-commands handoff packet)
   - `890050bbfd08e2e83c14f74cda6d99b46500267d` (docs(commands): realign feat-commands handoff packet)
   - `e8231dd5a8dd09386667877e5991b2b9da8c387e` (docs: correct feat-commands handoff packet)
   - `2ca7ab8c2d3981ae8cc0def9cb603f16d661846a` (docs: realign feat-commands handoff packet)
@@ -66,7 +68,7 @@
 ### Roadmap item(s) affected
 
 - `MVP Focus Through 2026-05-04` - `feat-commands` remains an active implementation emphasis for the current MVP push.
-- `Milestone 2: Test Hardening` - focused unit coverage for command-surface contracts.
+- `Milestone 3: Product Readiness` - route catalog and command-surface contracts stay deterministic and verifiable for operator use.
 
 ### Vision capability affected
 
