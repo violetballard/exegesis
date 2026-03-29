@@ -13,7 +13,7 @@
   - CLI remains able to render a text fallback of the same underlying artifacts.
   - The deterministic action-ordering fix keeps that fallback stable for the same structured artifacts.
 - Task anchor: `ROADMAP.md` `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract` sits under this milestone
-- Reviewer fix status: required fix `#1` is satisfied on this branch tip because the exact `Roadmap item(s) affected` and `Vision capability affected` fields are cited directly in the reviewer-facing packets, including the `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`.
+- Reviewer fix status: required fix `#1` is satisfied on this branch tip because the exact `Roadmap item(s) affected` and `Vision capability affected` fields are cited directly in the reviewer-facing packets, including the `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`, so the plan mapping is explicit rather than inferred.
 - Canon note: the labels above are taken from the current `ROADMAP.md` and `PRODUCT_VISION.md` in this worktree, so the handoff uses the branch's authoritative plan wording rather than older example labels from the review thread.
 - Missing handoff fields after reviewer fix `#1`: none; the `Roadmap item(s) affected` field names `ROADMAP.md` Milestone 5 and the `MVP Focus Through 2026-05-04` task anchor, and the `Vision capability affected` field names `PRODUCT_VISION.md` Capability 5.
 
@@ -25,7 +25,7 @@
 - Roadmap exit criterion: `A2UI schema/versioning is documented and stable`
 - Roadmap task anchor: `ROADMAP.md` `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract` sits under this milestone.
 - Vision anchor: `PRODUCT_VISION.md` calls out current MVP emphasis on `A2UI` cards/actions that can be rendered in CLI now and `Exegesis Console` next.
-- Audit note: these are the exact handoff fields the reviewer requested, so the mapping is explicit instead of inferred from the scope goal.
+- Audit note: these are the exact handoff fields the reviewer requested, so the mapping is explicit instead of inferred from the scope goal or the ordering fix itself.
 - Audit mapping: the deterministic action-ordering fix stabilizes materialized A2UI action payloads for CLI fallback rendering, which is the concrete Milestone 5 scope-bullet and the Capability 5 requirement that CLI remains able to render a text fallback of the same underlying artifacts.
 - Source-of-truth note: reviewer examples were illustrative; the authoritative mapping for this branch tip is the Milestone 5 / Capability 5 pair quoted above from the checked-in plan docs.
 - This lane only clarifies the handoff mapping for the A2UI ordering fix; it does not expand scope beyond CLI fallback determinism and the matching contract assertions.
