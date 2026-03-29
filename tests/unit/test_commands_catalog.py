@@ -8,6 +8,8 @@ from src.qual.commands import (
     canonical_command_for,
     command_aliases,
     command_aliases_for,
+    command_cli_flow_contract,
+    command_cli_flow_lookup_table,
     command_flow_manifest,
     command_flow_catalog,
     command_cli_lookup_table,
@@ -24,6 +26,7 @@ from src.qual.commands import (
     command_lookup_tokens_for,
     command_manifest,
     command_mvp_flow,
+    command_mvp_cli_flow_contract,
     command_mvp_flow_names,
     command_mvp_flow_catalog,
     command_mvp_flow_manifest,
@@ -97,6 +100,30 @@ class CommandCatalogTests(unittest.TestCase):
                 ("terminal", "terminal"),
             ),
         )
+
+    def test_command_cli_flow_contract_maps_parser_tokens_to_mvp_flow_steps(self) -> None:
+        contract = command_cli_flow_contract()
+        self.assertEqual(
+            tuple((entry.token, entry.canonical_name, entry.flow_step) for entry in contract.entries),
+            (
+                ("bootstrap", "bootstrap", "project-open"),
+                ("diff-preview", "diff-preview", "patch-review"),
+                ("diff", "diff-preview", "patch-review"),
+                ("context-basket", "context-basket", "retrieval"),
+                ("terminal", "terminal", "export-handoff"),
+            ),
+        )
+        self.assertEqual(
+            command_cli_flow_lookup_table(),
+            (
+                ("bootstrap", "project-open"),
+                ("diff-preview", "patch-review"),
+                ("diff", "patch-review"),
+                ("context-basket", "retrieval"),
+                ("terminal", "export-handoff"),
+            ),
+        )
+        self.assertEqual(contract, command_mvp_cli_flow_contract())
 
     def test_command_lookup_helpers_support_custom_catalogs(self) -> None:
         specs = (

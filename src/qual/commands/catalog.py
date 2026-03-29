@@ -70,6 +70,18 @@ class CommandCliContract:
     lookup_table: tuple[tuple[str, str], ...]
 
 
+@dataclass(frozen=True)
+class CommandCliFlowEntry:
+    token: str
+    canonical_name: str
+    flow_step: str
+
+
+@dataclass(frozen=True)
+class CommandCliFlowContract:
+    entries: tuple[CommandCliFlowEntry, ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -442,6 +454,29 @@ def command_cli_contract() -> CommandCliContract:
 
 
 @lru_cache(maxsize=None)
+def command_cli_flow_contract() -> CommandCliFlowContract:
+    lookup_table = command_cli_lookup_table()
+    entries: list[CommandCliFlowEntry] = []
+    for token, canonical_name in lookup_table:
+        spec = command_spec_for(COMMAND_SPECS, canonical_name)
+        if spec is None:
+            raise ValueError(f"Unknown CLI command target: {canonical_name}")
+        entries.append(
+            CommandCliFlowEntry(
+                token=token,
+                canonical_name=spec.name,
+                flow_step=_normalize_token(spec.flow_step),
+            )
+        )
+    return CommandCliFlowContract(entries=tuple(entries))
+
+
+@lru_cache(maxsize=None)
+def command_cli_flow_lookup_table() -> tuple[tuple[str, str], ...]:
+    return tuple((entry.token, entry.flow_step) for entry in command_cli_flow_contract().entries)
+
+
+@lru_cache(maxsize=None)
 def command_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[tuple[str, str], ...]:
     validate_command_catalog(specs)
     seen_tokens: set[str] = set()
@@ -592,6 +627,10 @@ def command_mvp_flow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandSurfaceContract:
     return command_mvp_surface_contract(specs)
+
+
+def command_mvp_cli_flow_contract() -> CommandCliFlowContract:
+    return command_cli_flow_contract()
 
 
 def command_surface_contract(
