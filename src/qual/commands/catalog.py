@@ -129,6 +129,15 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         flow_step="export-handoff",
     ),
 )
+
+# Keep the parser surface explicit: only these tokens are accepted by the current CLI.
+_CLI_ENTRYPOINTS: tuple[tuple[str, str], ...] = (
+    ("bootstrap", "bootstrap"),
+    ("diff-preview", "diff-preview"),
+    ("diff", "diff-preview"),
+    ("context-basket", "context-basket"),
+    ("terminal", "terminal"),
+)
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",
@@ -374,6 +383,15 @@ def command_manifest(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[Co
 
 def command_lookup_table(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[tuple[str, str], ...]:
     return command_lookup_index(specs)
+
+
+@lru_cache(maxsize=None)
+def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
+    validate_command_catalog(COMMAND_SPECS)
+    lookup_table: list[tuple[str, str]] = []
+    for name, canonical_name in _CLI_ENTRYPOINTS:
+        lookup_table.append((name, canonical_command_for(COMMAND_SPECS, canonical_name)))
+    return tuple(lookup_table)
 
 
 @lru_cache(maxsize=None)

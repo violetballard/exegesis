@@ -9,6 +9,7 @@ from src.qual.commands import (
     command_aliases,
     command_aliases_for,
     command_flow_manifest,
+    command_cli_lookup_table,
     command_flow_lookup_index,
     command_flow_lookup_surface,
     command_flow_lookup_table,
@@ -81,6 +82,18 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_lookup_tokens("project-open"), ("bootstrap", "open", "project-open", "project"))
         self.assertEqual(command_aliases("missing"), ())
         self.assertEqual(command_lookup_tokens("missing"), ())
+
+    def test_command_cli_lookup_table_exposes_the_parser_surface(self) -> None:
+        self.assertEqual(
+            command_cli_lookup_table(),
+            (
+                ("bootstrap", "bootstrap"),
+                ("diff-preview", "diff-preview"),
+                ("diff", "diff-preview"),
+                ("context-basket", "context-basket"),
+                ("terminal", "terminal"),
+            ),
+        )
 
     def test_command_lookup_helpers_support_custom_catalogs(self) -> None:
         specs = (
