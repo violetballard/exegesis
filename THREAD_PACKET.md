@@ -1,8 +1,8 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Final HEAD SHA: `78f173d5c45a9a59f5098b86d95a64aa48e9b627`
-- Reviewed implementation range: `1d6057e9..78f173d5c45a9a59f5098b86d95a64aa48e9b627`
+- Final HEAD SHA: `42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`
+- Reviewed implementation range: `1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`
 - Handoff type: cumulative full-thread retrieval handoff
 
 ## Implementation commit(s)
@@ -25,6 +25,12 @@ These are the reviewed code commits that deliver the FTS-first retrieval lane ac
 - `aacb9cc06f99cb149319da198d6c96cd9628735c` - add doc citation source attribution
 - `c2903c0dfeca3ceb0201455b1e58a71a612fa1e1` - improve retrieval source bundle fallbacks
 - `78f173d5c45a9a59f5098b86d95a64aa48e9b627` - canonicalize query normalization
+- `377300b94b26ed3ef28236012ddad50483ed49e8` - harden query constraint normalization
+- `dc7b6e22ad025e84e2d8eda31c8e0aa3b0c8d833` - preserve canonical source bundle snapshots
+- `5a4e6b622b52c5a7a84dcac118e3626de22e89b6` - accept iterable constraint values
+- `f22391da7ac57f0f92346d96f783f7815e057b69` - align handoff packet and iterable contract
+- `d08edc2bdb3a3c03911f21a0a5d08b26513ea562` - fail closed on deferred strategies
+- `42820d4864f8b5137a6a9e05399ad68fe5b9d4ac` - reconstruct payload from source bundles
 
 ## Metadata-only alignment commit(s)
 
@@ -51,16 +57,16 @@ These metadata files record the handoff alignment work and are separate from the
 
 ## Completed scope summary
 
-Completed the cumulative `1d6057e9..78f173d5c45a9a59f5098b86d95a64aa48e9b627` retrieval thread for the FTS-first retrieval MVP: SQLite FTS is authoritative, the canonical retrieval query constructor is exported through both retrieval facades, `RetrievalConstraints` are accepted by public helpers, PageIndex and embeddings stay compatibility-only, retrieval payload/provenance/hit snapshots normalize deterministically, payload bundle snapshots are canonicalized, downstream doc hits carry source attribution, source-bundle fallbacks now rehydrate provenance, citation, doc, and excerpt bundles deterministically, and the latest query-normalization hardening keeps audit keys stable across whitespace variants.
+Completed the cumulative `1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac` retrieval thread for the FTS-first retrieval MVP: SQLite FTS is authoritative, the canonical retrieval query constructor is exported through both retrieval facades, `RetrievalConstraints` are accepted by public helpers, PageIndex and embeddings stay compatibility-only and fail closed, retrieval payload/provenance/hit snapshots normalize deterministically, payload bundle snapshots are canonicalized, downstream doc hits carry source attribution, source-bundle fallbacks now rehydrate provenance, citation, doc, excerpt, and downstream payload bundles deterministically, and the latest query-normalization hardening keeps audit keys stable across whitespace variants.
 
 ## Scope completed
 
 Shipped:
 - SQLite FTS remains the authoritative retrieval path.
 - The canonical retrieval query constructor is exported through both retrieval facades.
-- The public `retrieve_*` helpers accept `RetrievalConstraints` objects as well as mapping payloads.
-- PageIndex and embeddings remain compatibility-only shims and fallback-only plumbing behind the FTS-first policy.
-- Retrieval payload, citation, provenance, and hit snapshots normalize list-like and strategy fields deterministically, including the `retrieval_source_strategy` alias, downstream `source_strategy` attribution, list-like provenance rehydration, and source-bundle fallback rehydration for provenance/citation/doc/excerpt helpers.
+- The public `retrieve_*` helpers accept `RetrievalConstraints` objects as well as mapping payloads, and iterable constraint inputs normalize deterministically.
+- PageIndex and embeddings remain compatibility-only shims and fallback-only plumbing behind the FTS-first policy, failing closed when deferred.
+- Retrieval payload, citation, provenance, and hit snapshots normalize list-like and strategy fields deterministically, including the `retrieval_source_strategy` alias, downstream `source_strategy` attribution, list-like provenance rehydration, and source-bundle fallback rehydration for provenance/citation/doc/excerpt/downstream payload helpers.
 - Payload bundle snapshots are canonicalized for deterministic downstream rehydration.
 - Regression coverage exercises the normalized payload snapshots, facade exports, and FTS citation/provenance/source-attribution helpers.
 - Constraint payloads stay mapping/dataclass-shaped; iterable `doc_types` and `date_range` values are normalized deterministically from those inputs.
@@ -68,17 +74,17 @@ Shipped:
 Did not ship:
 - No shared or integrator-locked file edits.
 - No provider or routing configuration changes.
-- No retrieval behavior beyond the FTS-first MVP, deterministic snapshot normalization, and doc-hit source attribution work in the reviewed range.
+- No retrieval behavior beyond the FTS-first MVP, deterministic snapshot normalization, doc-hit source attribution, and source-bundle payload rehydration work in the reviewed range.
 - Constraint payloads stay mapping/dataclass-shaped; iterable `doc_types` and `date_range` values are normalized deterministically from those inputs.
 
 Reviewed range note:
-- The handoff is cumulative, not tip-only; the reviewed implementation range ends at `78f173d5`, and the metadata-only alignment commits above only restamp packet metadata.
+- The handoff is cumulative, not tip-only; the reviewed implementation range ends at `42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`, and the metadata-only alignment commits above only restamp packet metadata.
 
 ## Files changed
 
 ### Reviewed implementation files
 
-These are the exact source files changed across the reviewed cumulative range `1d6057e9..78f173d5c45a9a59f5098b86d95a64aa48e9b627`.
+These are the exact source files changed across the reviewed cumulative range `1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`.
 
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/embeddings_strategy.py`
@@ -100,18 +106,18 @@ These metadata files record the handoff alignment work and are separate from the
 
 1. Added FTS provenance retrieval bundles and retrieval service support for deterministic excerpt/provenance output.
 2. Canonicalized excerpt provenance so downstream payloads carry stable hashes and fingerprints.
-3. Kept retrieval FTS-first and left PageIndex/embeddings fallback-only plumbing.
-4. Exported the canonical retrieval query constructor through both retrieval facades and kept the auto path on the FTS-first implementation.
+3. Kept retrieval FTS-first, normalized retrieval constraints and query inputs through the public facades, and left PageIndex/embeddings fallback-only plumbing that fails closed.
+4. Exported the canonical retrieval query constructor through both retrieval facades and hardened query normalization.
 5. Added source bundle context regression coverage and deterministic rehydration helpers.
 6. Tightened retrieval hit snapshots to carry the canonical `retrieval_source_strategy` alias, list-like provenance fields, and downstream `source_strategy` attribution.
 7. Added regression coverage for the normalized payload snapshots, facade exports, and citation/provenance helpers.
-8. Canonicalized payload bundle snapshots for deterministic downstream rehydration, including source-bundle fallbacks for provenance, citation, doc, and excerpt helpers.
+8. Canonicalized payload bundle snapshots for deterministic downstream rehydration, including source-bundle fallbacks and source-bundle-only downstream payload reconstruction.
 
 ## Budget alignment
 
 - The thread finished within the low-risk cap of 8 tasks.
 - No shared or integrator-locked files were edited.
-- The reviewed range is cumulative; metadata-only handoff commits in the range only adjust handoff artifacts, and the retrieval commits from `c92025af` through `78f173d5` stay inside the FTS-first retrieval lane.
+- The reviewed range is cumulative; metadata-only handoff commits in the range only adjust handoff artifacts, and the retrieval commits from `c92025af` through `42820d4864f8b5137a6a9e05399ad68fe5b9d4ac` stay inside the FTS-first retrieval lane.
 
 ## Commands run with results
 
