@@ -1,35 +1,33 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Final HEAD SHA: `7dbd062c7b98e28963a87ea00d8fd7906b752094`
+- Final HEAD SHA: `cc16c21692b7ca4af9e7866a659b45fc18b87f63`
 - Reviewed implementation commit(s):
-  - `7dbd062c7b98e28963a87ea00d8fd7906b752094`
+  - `cc16c21692b7ca4af9e7866a659b45fc18b87f63`
 
 ## Scope goal
 
-Accept `RetrievalConstraints` objects in the retrieval query constructors while preserving the canonical engine/package retrieval facade behavior.
+Normalize retrieval payload snapshots so query, policy, provenance, and derived bundles remain deterministic across engine retrieval flows.
 
 ## Scope completed
 
-This handoff covers the exact constraints-object patch under review.
+This handoff covers the payload-snapshot normalization patch under review.
 
-- Extended the engine retrieval query constructor to accept `RetrievalConstraints` objects directly.
-- Updated the public retrieval facade to accept the same constraints object shape and forward it through the canonical engine path.
-- Added regression coverage for the dataclass-shaped constraints path and verified both facades construct equivalent queries.
+- Canonicalized tuple- and list-shaped query constraint and strategy fields when rebuilding retrieval payload snapshots.
+- Normalized derived source and provenance bundles so downstream payload consumers see stable list-like values.
+- Added regression coverage for tuple-shaped query, policy, and provenance snapshots in the retrieval payload helpers.
 
 ## Files changed
 
 These are the exact files changed by the reviewed commit.
 
-- `src/qual/engine/retrieval/__init__.py`
-- `src/qual/retrieval/__init__.py`
+- `src/qual/engine/retrieval/payload.py`
 - `tests/unit/test_unified_retrieval.py`
 
 ## Tasks completed
 
-1. Extended `build_retrieval_query` in the engine retrieval facade to accept `RetrievalConstraints` objects alongside mappings.
-2. Updated the public retrieval facade to accept `RetrievalConstraints` objects and route them through the canonical engine constructor.
-3. Added regression coverage for the dataclass-shaped constraints path so both facades stay equivalent.
+1. Normalized list-like retrieval payload fields so derived bundles stay deterministic across payload rebuilds.
+2. Added regression coverage for tuple-shaped query, policy, and provenance snapshots in retrieval payload helpers.
 
 ## Budget alignment
 
@@ -52,12 +50,12 @@ These are the exact files changed by the reviewed commit.
 
 ## Roadmap item(s) affected
 
-- `ROADMAP.md`: `Milestone 3: Real workflow loop`
+- `ROADMAP.md`: `Milestone 3: Product Readiness (Planned)`
 
 ## Vision capability affected
 
 - 2. Retrieval-first context handling
-- 6. Auditable state and workflow
+- 3. Auditable generation
 
 ## Routing/provider impact note
 
