@@ -65,8 +65,8 @@
 
 ### Roadmap item(s) affected
 
+- `MVP Focus Through 2026-05-04` - `feat-commands` remains an active implementation emphasis for the current MVP push.
 - `Milestone 2: Test Hardening` - focused unit coverage for command-surface contracts.
-- `Milestone 3: Product Readiness` - define and lock user-facing output contracts for CLI-compatible, migration-safe command routing.
 
 ### Vision capability affected
 
