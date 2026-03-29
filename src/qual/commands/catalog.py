@@ -516,12 +516,24 @@ def command_surface_contract(
     return command_mvp_surface_contract(specs)
 
 
+def _resolve_contract_flow_steps(
+    specs: tuple[CommandSpec, ...],
+    flow_steps: tuple[str, ...] | None,
+) -> tuple[str, ...]:
+    if flow_steps is not None:
+        return flow_steps
+    # Keep the default aggregate contract aligned with the current MVP smoke path.
+    if specs is COMMAND_SPECS:
+        return command_demo_flow_steps()
+    return command_flow_steps(specs)
+
+
 @lru_cache(maxsize=None)
 def command_flow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> CommandSurfaceContract:
-    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
     sequence = command_flow_sequence(specs, ordered_flow_steps)
     return CommandSurfaceContract(
         flow_steps=sequence.flow_steps,
