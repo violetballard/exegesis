@@ -56,6 +56,14 @@ def _normalize_optional_list_like(value: object) -> list[object] | None:
     return _normalize_list_like(value)
 
 
+def _normalize_optional_text(value: object) -> str | None:
+    if isinstance(value, str):
+        text = value.strip()
+        if text:
+            return text
+    return None
+
+
 def _normalize_query_snapshot(query: object) -> dict[str, object]:
     if not isinstance(query, dict):
         return {}
@@ -67,6 +75,7 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
         constraints = copy.deepcopy(constraints)
     constraints["doc_types"] = _normalize_list_like(constraints.get("doc_types"))
     constraints["date_range"] = _normalize_optional_list_like(constraints.get("date_range"))
+    constraints["section_hint"] = _normalize_optional_text(constraints.get("section_hint"))
     normalized["constraints"] = constraints
     return normalized
 

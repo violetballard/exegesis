@@ -1008,7 +1008,9 @@ class RetrievalService:
             "retrieval_evidence": retrieval_evidence,
             "result_fingerprint": result_fingerprint,
         }
-        query_hash = hashlib.sha256(query.query_text.encode("utf-8")).hexdigest()
+        # Hash the canonical query text so audit keys stay stable across whitespace variants.
+        normalized_query_text = self._normalized_query_text(query.query_text)
+        query_hash = hashlib.sha256(normalized_query_text.encode("utf-8")).hexdigest()
         audit = self._audit.record(
             name="retrieval_executed",
             metadata={
