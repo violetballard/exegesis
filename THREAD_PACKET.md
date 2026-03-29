@@ -5,7 +5,7 @@
 - Reviewed implementation commit(s):
   - `12ebbb3cfe6952bd8e29c56223dfb907df430bcd`
 - Docs-only alignment commit(s):
-  - `none`
+  - `8538d02a85e2cdd62a7bc749c17b69ca5cadfada`
 
 ## Scope goal
 
@@ -15,7 +15,7 @@ Add a strict CLI command contract so parser entrypoints, canonical command names
 
 - Added `CommandCliContract`, `command_cli_tokens`, `command_cli_lookup_table`, and `command_cli_contract` exports in `src/qual/commands/__init__.py` so the CLI surface is part of the public command API.
 - Extended `src/qual/commands/catalog.py` with explicit CLI entrypoint validation and canonical lookup-table resolution so parser tokens, canonical names, and emitted lookup rows stay deterministic.
-- Regenerated the handoff packet so the branch summary, file list, and ownership mapping match the actual `12ebbb3c` CLI contract delta.
+- Regenerated the handoff packet so the branch summary, file list, and ownership mapping match the actual `12ebbb3c` CLI contract delta and the packet-alignment trail through `8538d02a`.
 
 ## Files changed
 
@@ -32,7 +32,7 @@ Add a strict CLI command contract so parser entrypoints, canonical command names
 
 1. Exported the CLI contract dataclass and lookup helpers from `src/qual/commands/__init__.py`.
 2. Added explicit CLI entrypoint validation and canonical lookup-table resolution in `src/qual/commands/catalog.py`.
-3. Regenerated the handoff packet so the branch summary matches the actual reviewed CLI contract commit.
+3. Regenerated the handoff packet so the branch summary matches the actual reviewed CLI contract commit and the packet-alignment trail through `8538d02a`.
 
 ## Commands run and outcomes
 
