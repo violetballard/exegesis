@@ -509,6 +509,15 @@ def command_cli_flow_lookup_table() -> tuple[tuple[str, str], ...]:
 
 
 @lru_cache(maxsize=None)
+def command_cli_route_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
+    route_catalog = command_flow_route_catalog(flow_steps=flow_steps, specs=specs)
+    return tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in route_catalog)
+
+
+@lru_cache(maxsize=None)
 def command_flow_route_catalog(
     flow_steps: tuple[str, ...] | None = None,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -771,7 +780,7 @@ def command_flow_contract(
         lookup_surface=command_flow_lookup_surface(specs, ordered_flow_steps),
         flow_surface_tokens=command_flow_surface_tokens(specs, ordered_flow_steps),
         route_catalog=route_catalog,
-        route_summary=tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in route_catalog),
+        route_summary=command_cli_route_summary(specs, ordered_flow_steps),
     )
     _validate_command_surface_contract(contract)
     return contract

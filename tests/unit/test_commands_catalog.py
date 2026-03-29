@@ -10,6 +10,7 @@ from src.qual.commands import (
     command_aliases_for,
     command_cli_flow_contract,
     command_cli_flow_lookup_table,
+    command_cli_route_summary,
     command_flow_manifest,
     command_flow_catalog,
     command_cli_lookup_table,
@@ -125,6 +126,18 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
         self.assertEqual(contract, command_mvp_cli_flow_contract())
+
+    def test_command_cli_route_summary_tracks_the_smoke_route(self) -> None:
+        self.assertEqual(
+            command_cli_route_summary(),
+            (
+                ("project-open", "bootstrap", ("bootstrap",)),
+                ("retrieval", "context-basket", ("context-basket",)),
+                ("patch-review", "diff-preview", ("diff-preview", "diff")),
+                ("export-handoff", "terminal", ("terminal",)),
+            ),
+        )
+        self.assertEqual(command_cli_route_summary(), command_surface_contract().route_summary)
 
     def test_command_lookup_helpers_support_custom_catalogs(self) -> None:
         specs = (
