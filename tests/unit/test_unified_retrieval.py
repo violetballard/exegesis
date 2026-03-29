@@ -1243,6 +1243,46 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(engine_query.constraints.prefer_exact_matches, True)
         self.assertEqual(engine_query.confidentiality_profile, "standard")
 
+    def test_retrieval_package_helpers_accept_constraints_dataclass(self) -> None:
+        constraints = RetrievalConstraints(
+            max_results=7,
+            doc_types=("memo", "pdf"),
+            date_range=("2026-01-01", "2026-01-31"),
+            section_hint="discussion",
+            prefer_exact_matches=True,
+        )
+
+        package_result = package_retrieval.retrieve_auto(
+            self.service,
+            query_text="memo comparison",
+            scope="vault",
+            intent="compare",
+            constraints=constraints,
+            confidentiality_profile="standard",
+        )
+        direct_result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints=constraints,
+                confidentiality_profile="standard",
+            )
+        )
+
+        package_payload = package_result.to_downstream_payload()
+        direct_payload = direct_result.to_downstream_payload()
+        package_payload.pop("audit_ref")
+        direct_payload.pop("audit_ref")
+        package_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        direct_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        package_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        direct_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        self.assertEqual(package_payload, direct_payload)
+        self.assertEqual(package_result.query.constraints, constraints)
+        self.assertEqual(package_result.diagnostics["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(package_result.diagnostics["retrieval_mode"], "fts_first")
+
     def test_engine_retrieval_package_reexports_canonical_payload_helpers(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
