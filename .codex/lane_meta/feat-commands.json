@@ -8,6 +8,7 @@
     "Made the emitted diff string a first-class value in diff_preview so the JSON payload and fingerprint are derived from the same emitted text.",
     "Corrected the JSON labels.applied field so it stays truthful when headers are suppressed.",
     "Added a regression that covers labeled JSON output with suppressed headers.",
+    "Updated the scope-check policy so the approved shared test is recognized for feat-commands.",
     "Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta."
   ],
   "risk": "HIGH",

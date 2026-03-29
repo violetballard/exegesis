@@ -50,9 +50,7 @@
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
-- `SCOPE_ALLOW_SHARED=1 make scope-check`: PASS
-- `make ci`: FAIL
-- `SCOPE_ALLOW_SHARED=1 make ci`: PASS
+- `make ci`: PASS
 
 ## Risks / blockers
 - Risk: `HIGH`
