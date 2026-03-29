@@ -8,6 +8,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from codex_packet_handoff.tools import local_codex_runtime
 from codex_packet_handoff.tools import offline_handoff_probe, router, setup as setup_mod
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -48,6 +49,7 @@ class OfflineReviewerGuardTests(unittest.TestCase):
         cfg = SimpleNamespace(use_cli_reviewer_fallback=True, reviewer_timeout=30)
 
         with (
+            patch.object(router, "isolated_codex_env", return_value={"CODEX_HOME": "/tmp/codex"}),
             patch.object(router, "_profile_for_role", return_value=self.profile),
             patch.object(router, "_run_cli_codex", return_value=(0, bad_output)),
         ):
@@ -59,6 +61,7 @@ class OfflineReviewerGuardTests(unittest.TestCase):
         cfg = SimpleNamespace(use_cli_reviewer_fallback=True, reviewer_timeout=30)
 
         with (
+            patch.object(router, "isolated_codex_env", return_value={"CODEX_HOME": "/tmp/codex"}),
             patch.object(router, "_profile_for_role", return_value=self.profile),
             patch.object(router, "_run_cli_codex", return_value=(0, "Findings only, no verdict.\n")),
         ):
@@ -71,12 +74,32 @@ class OfflineReviewerGuardTests(unittest.TestCase):
         cfg = SimpleNamespace(use_cli_reviewer_fallback=True, reviewer_timeout=30)
 
         with (
+            patch.object(router, "isolated_codex_env", return_value={"CODEX_HOME": "/tmp/codex"}),
             patch.object(router, "_profile_for_role", return_value=self.profile),
             patch.object(router, "_run_cli_codex", return_value=(0, good_output)),
         ):
             result = router._run_cli_reviewer(cfg, "/repo", "packet", "probe", local=True)
 
         self.assertEqual(result, good_output.strip())
+
+    def test_local_reviewer_uses_isolated_codex_home_and_skip_git_repo_check(self) -> None:
+        cfg = SimpleNamespace(use_cli_reviewer_fallback=True, reviewer_timeout=30)
+        with tempfile.TemporaryDirectory() as tmp:
+            source_home = Path(tmp) / "source"
+            source_home.mkdir()
+            (source_home / "config.toml").write_text("[model_providers.lms]\nname='LM Studio'\n", encoding="utf-8")
+            repo_root = Path(tmp) / "repo"
+            repo_root.mkdir()
+            with (
+                patch.dict(os.environ, {"CODEX_HOME": str(source_home)}, clear=False),
+                patch.object(router, "_profile_for_role", return_value=self.profile),
+                patch.object(router, "_run_cli_codex", return_value=(0, "Verdict: `APPROVED`\n")) as run_cli,
+            ):
+                router._run_cli_reviewer(cfg, str(repo_root), "packet", "probe", local=True)
+
+        env = run_cli.call_args.kwargs["env"]
+        self.assertTrue(env["CODEX_HOME"].endswith(".codex/local_codex_runtime"))
+        self.assertTrue(run_cli.call_args.kwargs["skip_git_repo_check"])
 
 
 class OfflineIntegratorGuardTests(unittest.TestCase):
@@ -88,6 +111,7 @@ class OfflineIntegratorGuardTests(unittest.TestCase):
         cfg = SimpleNamespace(use_cli_integrator_fallback=True, integrator_timeout=30)
 
         with (
+            patch.object(router, "isolated_codex_env", return_value={"CODEX_HOME": "/tmp/codex"}),
             patch.object(router, "_profile_for_role", return_value=self.profile),
             patch.object(router, "_run_cli_codex", return_value=(0, bad_output)),
         ):
@@ -99,6 +123,7 @@ class OfflineIntegratorGuardTests(unittest.TestCase):
         cfg = SimpleNamespace(use_cli_integrator_fallback=True, integrator_timeout=30)
 
         with (
+            patch.object(router, "isolated_codex_env", return_value={"CODEX_HOME": "/tmp/codex"}),
             patch.object(router, "_profile_for_role", return_value=self.profile),
             patch.object(router, "_run_cli_codex", return_value=(0, "Integrated successfully.\n")),
         ):
@@ -129,3 +154,21 @@ class OfflineHandoffProbeTests(unittest.TestCase):
         self.assertNotEqual(Path(scratch), REPO_ROOT)
         self.assertNotEqual(Path(scratch).parent, REPO_ROOT)
 
+
+class LocalCodexRuntimeTests(unittest.TestCase):
+    def test_isolated_codex_env_copies_source_config(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            source_home = Path(tmp) / "source"
+            source_home.mkdir()
+            (source_home / "config.toml").write_text("model = 'gpt-5.4'\n", encoding="utf-8")
+            repo_root = Path(tmp) / "repo"
+            repo_root.mkdir()
+
+            with patch.dict(os.environ, {"CODEX_HOME": str(source_home)}, clear=False):
+                env = local_codex_runtime.isolated_codex_env(str(repo_root))
+
+            target_home = Path(env["CODEX_HOME"])
+            self.assertEqual(
+                (target_home / "config.toml").read_text(encoding="utf-8"),
+                "model = 'gpt-5.4'\n",
+            )

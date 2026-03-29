@@ -13,8 +13,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 try:
     from codex_mcp_client import ApprovalPolicy, CodexMcpClient
+    from local_codex_runtime import isolated_codex_env
 except ImportError:  # pragma: no cover - test/import fallback for package execution
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
+    from .local_codex_runtime import isolated_codex_env
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_FILE = REPO_ROOT / ".codex/packet_router/config.json"
@@ -217,11 +219,15 @@ def _write_log(log_path: Path, header: Dict[str, Any], content: str) -> None:
 def _spawn_direct_exec(profile_cfg: Dict[str, object], *, workdir: str, prompt: str, log_path: Path) -> int:
     cmd_args = [str(x) for x in list(profile_cfg["cmd_args"])]
     cmd: List[str] = [str(profile_cfg["cmd"]), *cmd_args, "exec"]
+    local_mode = str(profile_cfg.get("mode") or "") == "local_fallback"
+    if local_mode:
+        cmd.append("--skip-git-repo-check")
     model = str(profile_cfg.get("model") or "")
     if model and "-m" not in cmd_args and "--model" not in cmd_args:
         cmd.extend(["-m", model])
     cmd.extend([str(x) for x in list(profile_cfg.get("model_args") or [])])
     cmd.extend(["-s", "workspace-write", prompt])
+    env = isolated_codex_env(str(REPO_ROOT)) if local_mode else None
     with log_path.open("a") as lf:
         proc = subprocess.Popen(
             cmd,
@@ -229,6 +235,7 @@ def _spawn_direct_exec(profile_cfg: Dict[str, object], *, workdir: str, prompt: 
             stdout=lf,
             stderr=subprocess.STDOUT,
             text=True,
+            env=env,
         )
     return proc.pid
 

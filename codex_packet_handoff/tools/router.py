@@ -14,8 +14,10 @@ from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from codex_mcp_client import ApprovalPolicy, CodexMcpClient
+    from local_codex_runtime import isolated_codex_env
 except ImportError:  # pragma: no cover - test/import fallback for package execution
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
+    from .local_codex_runtime import isolated_codex_env
 
 PACKETS_ROOT = Path(".codex/packets/lanes")
 ROUTER_ROOT = Path(".codex/packet_router")
@@ -580,8 +582,13 @@ def _run_cli_codex(
     cwd: str,
     prompt: str,
     timeout: float,
+    *,
+    env: Optional[Dict[str, str]] = None,
+    skip_git_repo_check: bool = False,
 ) -> Tuple[int, str]:
     cmd = [codex_cmd, *codex_args, "exec"]
+    if skip_git_repo_check:
+        cmd.append("--skip-git-repo-check")
     if model:
         cmd.extend(["-m", model])
     if model_args:
@@ -594,6 +601,7 @@ def _run_cli_codex(
         stderr=subprocess.STDOUT,
         text=True,
         timeout=timeout,
+        env=env,
     )
     return p.returncode, p.stdout or ""
 
@@ -610,6 +618,7 @@ def _run_cli_reviewer(
         return None
     runtime_local = bool(local)
     prof = _profile_for_role(cfg, "reviewer", local=local)
+    env = isolated_codex_env(repo_cwd) if runtime_local else None
     try:
         rc, out = _run_cli_codex(
             prof.codex_cmd,
@@ -620,6 +629,8 @@ def _run_cli_reviewer(
             repo_cwd,
             reviewer_prompt(pkt),
             cfg.reviewer_timeout,
+            env=env,
+            skip_git_repo_check=runtime_local,
         )
     except Exception:
         return None
@@ -647,6 +658,7 @@ def _run_cli_integrator(
         return None
     runtime_local = bool(local)
     prof = _profile_for_role(cfg, "integrator", local=local)
+    env = isolated_codex_env(repo_cwd) if runtime_local else None
     try:
         rc, out = _run_cli_codex(
             prof.codex_cmd,
@@ -657,6 +669,8 @@ def _run_cli_integrator(
             repo_cwd,
             integrator_prompt(approved),
             cfg.integrator_timeout,
+            env=env,
+            skip_git_repo_check=runtime_local,
         )
     except Exception:
         return None
@@ -807,12 +821,14 @@ def run_fixer(
     logs.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     logp = logs / f"fixer__{lane}__{ts}.log"
+    env = isolated_codex_env(repo_cwd) if runtime_local else None
     with logp.open("w") as lf:
         subprocess.Popen(
             [
                 prof.codex_cmd,
                 *prof.codex_args,
                 "exec",
+                *(["--skip-git-repo-check"] if runtime_local else []),
                 *(["-m", prof.model] if prof.model else []),
                 *prof.model_args,
                 "-s",
@@ -823,6 +839,7 @@ def run_fixer(
             stdout=lf,
             stderr=subprocess.STDOUT,
             text=True,
+            env=env,
         )
     fallback = state.get("fixer_fallback_jobs") or {}
     fallback[lane] = {"log": str(logp), "ts": ts}
