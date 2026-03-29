@@ -13,7 +13,7 @@
   - CLI remains able to render a text fallback of the same underlying artifacts.
   - The deterministic action-ordering fix keeps that fallback stable for the same structured artifacts.
 - Task anchor: `ROADMAP.md` `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract` sits under this milestone
-- Reviewer fix status: required fix `#1` is satisfied on the current handoff commit (`8d52a409aa0d0e6c786dcd2b82c2521951b9d9be`) because the exact `Roadmap item(s) affected` and `Vision capability affected` fields are cited directly in the reviewer-facing packets, including the `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`, so the plan mapping is explicit rather than inferred.
+- Reviewer fix status: required fix `#1` is satisfied on the current handoff commit (`c2b9a76d0fe49a6176bc0cff1c87167f171c97fa`) because the exact `Roadmap item(s) affected` and `Vision capability affected` fields are cited directly in the reviewer-facing packets, including the `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`, so the plan mapping is explicit rather than inferred.
 - Canon note: the labels above are taken from the current `ROADMAP.md` and `PRODUCT_VISION.md` in this worktree, so the handoff uses the branch's authoritative plan wording rather than older example labels from the review thread.
 - Missing handoff fields after reviewer fix `#1`: none; the `Roadmap item(s) affected` field names `ROADMAP.md` Milestone 5 and the `MVP Focus Through 2026-05-04` task anchor, and the `Vision capability affected` field names `PRODUCT_VISION.md` Capability 5.
 
