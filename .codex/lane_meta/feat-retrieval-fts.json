@@ -2,7 +2,7 @@
   "approved_exception_note": "",
   "kickoff_budget_note": "This thread finished within the low-risk 8-task cap; no sprint-mode 10-task allowance or high-risk 4-task budget was used.",
   "proposed_readme_patch": "",
-  "final_head_sha": "9fef8afea6cfb69a8127093af6488f6ab25534e4",
+  "final_head_sha": "06a0e06ba9c584e209840da92171a1882ccb5628",
   "risk": "LOW",
   "packet_type": "metadata-only",
   "reviewed_commits": [
@@ -17,16 +17,16 @@
     "ROADMAP.md: Milestone 3: Real workflow loop"
   ],
   "routing_provider_impact": "None",
-  "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3: Real workflow loop and PRODUCT_VISION.md capability 2.",
-  "scope_completed": "Shipped SQLite FTS as the authoritative retrieval path, exported the canonical retrieval query constructor through both retrieval facades, and normalized retrieval payload snapshots and excerpt fallback rehydration so excerpt and provenance bundles stay deterministic. Did not ship new shared or integrator-locked file edits, provider or routing configuration changes, or retrieval behavior beyond the FTS-first MVP and deterministic payload normalization work in the reviewed commits. Later handoff-only packet and lane-metadata fixes are metadata-only and excluded from the reviewed implementation scope. The current handoff commit is metadata-only and does not change retrieval behavior.",
+  "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3: Real workflow loop and PRODUCT_VISION.md capability 2, and expose RetrievalConstraints through the public retrieval helpers.",
+  "scope_completed": "Shipped SQLite FTS as the authoritative retrieval path, exported the canonical retrieval query constructor through both retrieval facades, widened the public retrieve_* helpers so they accept RetrievalConstraints objects as well as mapping payloads, and normalized retrieval payload snapshots and excerpt fallback rehydration so excerpt and provenance bundles stay deterministic. Did not ship new shared or integrator-locked file edits, provider or routing configuration changes, or retrieval behavior beyond the FTS-first MVP and deterministic payload normalization work in the reviewed commits.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Added FTS provenance retrieval bundles and retrieval service support for deterministic excerpt/provenance output.",
-    "Exported the canonical retrieval query constructor through the engine and package facades.",
+    "Exported the canonical retrieval query constructor through the engine and package facades, and widened the public retrieval helpers to accept RetrievalConstraints objects.",
     "Enforced FTS-only hit strategies while keeping PageIndex and embeddings fallback-only.",
     "Normalized downstream retrieval payload snapshots so tuple-shaped query and policy data rehydrates deterministically.",
     "Normalized excerpt fallback rehydration so deterministic excerpt output survives the payload snapshot path.",
-    "Separated metadata-only handoff fixes from the reviewed implementation scope."
+    "Added regression coverage for the normalized payload snapshots, retrieval facade exports, and package-level constraint dataclass path."
   ],
   "vision_capabilities": [
     "2. Retrieval-first context handling",

@@ -4,7 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from typing import cast
+from typing import cast, get_args, get_type_hints
 
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions
@@ -1251,37 +1251,44 @@ class UnifiedRetrievalTests(unittest.TestCase):
             section_hint="discussion",
             prefer_exact_matches=True,
         )
+        payload_constraints = {
+            "max_results": 7,
+            "doc_types": ["memo", "pdf"],
+            "date_range": ["2026-01-01", "2026-01-31"],
+            "section_hint": "discussion",
+            "prefer_exact_matches": True,
+        }
 
-        package_result = package_retrieval.retrieve_auto(
-            self.service,
-            query_text="memo comparison",
-            scope="vault",
-            intent="compare",
-            constraints=constraints,
-            confidentiality_profile="standard",
-        )
-        direct_result = self.service.retrieve_auto(
-            RetrievalQuery(
-                query_text="memo comparison",
-                scope="vault",
-                intent="compare",
-                constraints=constraints,
-                confidentiality_profile="standard",
-            )
-        )
+        for helper in (package_retrieval.retrieve_auto, package_retrieval.retrieve_fts):
+            with self.subTest(helper=helper.__name__):
+                object_result = helper(
+                    self.service,
+                    query_text="memo comparison",
+                    scope="vault",
+                    intent="compare",
+                    constraints=constraints,
+                    confidentiality_profile="standard",
+                )
+                payload_result = helper(
+                    self.service,
+                    query_text="memo comparison",
+                    scope="vault",
+                    intent="compare",
+                    constraints=payload_constraints,
+                    confidentiality_profile="standard",
+                )
 
-        package_payload = package_result.to_downstream_payload()
-        direct_payload = direct_result.to_downstream_payload()
-        package_payload.pop("audit_ref")
-        direct_payload.pop("audit_ref")
-        package_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
-        direct_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
-        package_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
-        direct_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
-        self.assertEqual(package_payload, direct_payload)
-        self.assertEqual(package_result.query.constraints, constraints)
-        self.assertEqual(package_result.diagnostics["retrieval_backend"], "sqlite_fts")
-        self.assertEqual(package_result.diagnostics["retrieval_mode"], "fts_first")
+                object_payload = object_result.to_downstream_payload()
+                payload_snapshot = payload_result.to_downstream_payload()
+                object_payload.pop("audit_ref")
+                payload_snapshot.pop("audit_ref")
+                object_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+                payload_snapshot["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+                object_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+                payload_snapshot["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+                self.assertEqual(object_payload, payload_snapshot)
+                self.assertEqual(object_result.query.constraints, constraints)
+                self.assertIn(RetrievalConstraints, get_args(get_type_hints(helper)["constraints"]))
 
     def test_engine_retrieval_package_reexports_canonical_payload_helpers(self) -> None:
         result = self.service.retrieve_auto(

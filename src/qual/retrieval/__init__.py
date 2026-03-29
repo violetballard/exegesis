@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TypeAlias
+
 from src.qual.engine.retrieval import build_retrieval_query as engine_build_retrieval_query
 from src.qual.retrieval.service import (
     RetrievalConstraints,
@@ -10,7 +12,7 @@ from src.qual.retrieval.service import (
     RetrievalService,
 )
 
-RetrievalConstraintInput = dict[str, object] | RetrievalConstraints | None
+RetrievalConstraintInput: TypeAlias = dict[str, object] | RetrievalConstraints | None
 
 
 def _build_retrieval_query(

@@ -1,7 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Final HEAD SHA: `9fef8afea6cfb69a8127093af6488f6ab25534e4`
+- Final HEAD SHA: `06a0e06ba9c584e209840da92171a1882ccb5628`
 - Reviewed implementation commit(s):
   - `f8a32d372301be4a7c67b97a66ddc8e04f36011f`
   - `c7ca5bcdb3a1b829712c4b3d2f3a39e2bd26c14f`
@@ -12,13 +12,14 @@
 
 ## Scope goal
 
-Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3: Real workflow loop and PRODUCT_VISION.md capability 2.
+Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3: Real workflow loop and PRODUCT_VISION.md capability 2, and expose `RetrievalConstraints` through the public retrieval helpers.
 
 ## Scope completed
 
 Shipped:
 - SQLite FTS remains the authoritative retrieval path.
 - The canonical retrieval query constructor is exported through both retrieval facades.
+- The public `retrieve_*` helpers now accept `RetrievalConstraints` objects as well as mapping payloads.
 - Retrieval payload snapshots and excerpt fallback rehydration are normalized so excerpt and provenance bundles stay deterministic.
 
 Did not ship:
@@ -49,17 +50,18 @@ These are the exact source files changed across the reviewed retrieval implement
 
 These files record the handoff metadata for the lane and are separated from the source diff above.
 
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
 
 ## Tasks completed
 
 1. Added FTS provenance retrieval bundles and retrieval service support for deterministic excerpt/provenance output.
-2. Exported the canonical retrieval query constructor through the engine and package facades.
+2. Exported the canonical retrieval query constructor through the engine and package facades, and widened the public retrieval helpers to accept `RetrievalConstraints` objects.
 3. Enforced FTS-only hit strategies while keeping PageIndex and embeddings as fallback-only plumbing.
 4. Normalized downstream retrieval payload snapshots so tuple-shaped query and policy data rehydrates deterministically.
 5. Normalized excerpt fallback rehydration so deterministic excerpt output survives the payload snapshot path.
-6. Added regression coverage for the normalized payload snapshots and retrieval facade exports.
+6. Added regression coverage for the normalized payload snapshots, retrieval facade exports, and package-level constraint dataclass path.
 
 ## Budget alignment
 
