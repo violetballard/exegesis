@@ -11,7 +11,7 @@
 
 ## Scope goal
 
-Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3 and PRODUCT_VISION.md capability 2.
+Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 4 and PRODUCT_VISION.md capability 2.
 
 ## Scope completed
 
@@ -56,7 +56,7 @@ These are the exact files changed across the reviewed retrieval implementation c
 
 ## Roadmap item(s) affected
 
-- `ROADMAP.md`: `Milestone 3: Product Readiness (Planned)`
+- `ROADMAP.md`: `Milestone 4: Retrieval Layer (Planned)`
 
 ## Vision capability affected
 
