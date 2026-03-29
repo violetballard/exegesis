@@ -94,14 +94,6 @@ These are the exact source files changed across the reviewed cumulative range `1
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
-## Docs-only alignment files
-
-These metadata files record the handoff alignment work and are separate from the reviewed implementation diff above.
-
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
-- `THREAD_PACKET.md`
-
 ## Tasks completed
 
 1. Added FTS provenance retrieval bundles and retrieval service support for deterministic excerpt/provenance output.
