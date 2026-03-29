@@ -1,10 +1,11 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Implementation commit(s):
+- Final HEAD SHA: `691037c4db2cee231a6ea8f50118c1676b26c419`
+- Reviewed implementation commit(s):
   - `691037c4db2cee231a6ea8f50118c1676b26c419` (feat(commands): add flow-ordered route contract)
 - Docs-only alignment commit(s):
-  - `1d890aff47d468fa04652670b1f84263934290d1` (current docs-only handoff alignment; no code scope)
+  - `2ca7ab8c2d3981ae8cc0def9cb603f16d661846a` (docs-only handoff realignment; no code scope)
 
 ## Scope goal
 - Add a flow-ordered route contract for the command surface so CLI entrypoints, lookup tokens, and smoke-flow ordering stay deterministic for CLI-first operator use.
@@ -57,12 +58,13 @@
 
 ### Roadmap item(s) affected
 
+- `MVP Focus Through 2026-05-04` - `feat-commands` is an active implementation emphasis for the current MVP push.
 - `Milestone 1: Bootstrap Flow Stabilization` - command behavior hardening and CLI smoke-flow readability.
 
 ### Vision capability affected
 
 - `3. Auditable generation` - the route contract keeps command metadata and flow ordering deterministic and verifiable.
-- `4. Operator-first control surface` - the CLI remains first-class while exposing a stable route contract for operator use.
+- `6. Expansion lanes` - the route contract keeps the command surface reusable for future workflow expansion.
 
 ### Routing/provider impact note
 
