@@ -1,13 +1,13 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Final HEAD SHA: `ff2b3d0e2a21873f8b8b2c4170da828c9cb9c780`
+- Final HEAD SHA: `54314b4debf4bc61a012bcc002f6f511a0a97b92`
 - Reviewed implementation commit(s):
-  - `3b4de0153788cfe2f35a761759d052dc2789fdf2`
-  - `4f1c25fa61974359518ca05eb5c9bb3ddb927427`
-  - `3378e905fab4653d38070b8e272ce4e4c6d22908`
-  - `e53af6696629a9cccda27ac1b344825bae8dc858`
+  - `54314b4debf4bc61a012bcc002f6f511a0a97b92`
+  - `e78f6b247c3c70590ef32cca0d8902ddcf2e32a9`
   - `1d07cbfc371f677959d26a60f3140888d8142eb3`
+  - `4f1c25fa61974359518ca05eb5c9bb3ddb927427`
+  - `3b4de0153788cfe2f35a761759d052dc2789fdf2`
 
 ## Scope goal
 
@@ -17,25 +17,27 @@ Harden the `feat-commands` command surface so catalog lookups and `diff_preview`
 
 - Corrected `diff_preview` fingerprint semantics so the reported SHA-256 hashes the exact emitted payload after label application, header suppression, truncation, and summary-only handling.
 - Added focused command-contract tests for JSON output, no-diff JSON shape, custom labels, and fingerprint correctness.
-- Added spec-aware command catalog helper coverage for lookup aliases and manifest projections.
-- Regenerated the handoff packet from the real `main..codex/feat-commands` delta so the review packet maps to the branch state actually being submitted.
-- Documented explicit shared-file approval for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
+- Added spec-aware command catalog helper coverage for lookup aliases and manifest projections, plus the `canonical.py` re-export used by the public command surface.
+- Regenerated the handoff packet from the real `main...codex/feat-commands` delta so the review packet maps to the branch tip actually being submitted.
+- Documented the approved shared-test exceptions and the policy-support `scripts/scope-check.sh` edit that keeps `make scope-check` aligned with the branch's allowed shared files.
 
 ## Files changed
 
 - `src/qual/commands/__init__.py`
+- `src/qual/commands/canonical.py`
 - `src/qual/commands/catalog.py`
 - `src/qual/commands/diff_preview.py`
 - `tests/unit/test_commands_catalog.py`
 - `tests/unit/test_diff_preview.py`
+- `scripts/scope-check.sh`
 - `THREAD_PACKET.md`
 
 ## Tasks completed
 
 1. Corrected `diff_preview` fingerprinting to hash the exact emitted diff payload.
 2. Added focused unit coverage for JSON output, no-diff shape, labels, and fingerprints.
-3. Added command-catalog contract coverage for the spec-aware lookup helpers.
-4. Regenerated the handoff packet so it cites the real implementation commits and shared-file approvals.
+3. Added command-catalog contract coverage for the spec-aware lookup helpers and the canonical-command re-export.
+4. Regenerated the handoff packet so it cites the real branch tip, the shared-test approvals, and the policy-support scope-check edit.
 
 ## Commands run and outcomes
 
@@ -71,4 +73,5 @@ Harden the `feat-commands` command surface so catalog lookups and `diff_preview`
 ## Scope-check / ownership note
 
 - Shared/integrator-locked edits: `YES`
-- Approved shared-file exception: `tests/unit/test_commands_catalog.py`, `tests/unit/test_diff_preview.py`
+- Approved shared-file exceptions: `tests/unit/test_commands_catalog.py`, `tests/unit/test_diff_preview.py`
+- Policy-support edit: `scripts/scope-check.sh` keeps the feat-commands lane's approved shared-test set enforceable during `make scope-check`.
