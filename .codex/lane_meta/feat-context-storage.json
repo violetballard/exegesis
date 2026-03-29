@@ -16,8 +16,8 @@
   ],
   "risk": "MEDIUM",
   "roadmap_items": [
-    "Milestone 3: Real workflow loop",
-    "Persistent basket/document/session state hardening"
+    "Milestone 3: Product Readiness",
+    "engine can persist project/document/basket/session state"
   ],
   "vision_capabilities": [
     "1. Local-first state and identity",
