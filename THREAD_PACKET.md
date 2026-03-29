@@ -49,13 +49,16 @@
 - Blockers: none
 
 ## Required handoff fields
+### Scope completed
+- Hardened context basket/set and vault recovery, kept the approved `tests/unit/test_context_storage_recovery.py` exception explicit, and kept runtime edits in owned paths.
+
 ### Roadmap item(s) affected
-- Milestone 1: Bootstrap Flow Stabilization
+- Milestone 1: Bootstrap Flow Stabilization (In Progress)
 - Context basket and vault persistence hardening
 
 ### Vision capability affected
-- Local-first state and identity
-- Auditable generation
+- `Local-first state and identity`
+- `Auditable generation`
 
 ### Routing/provider impact note
 - None
