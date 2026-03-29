@@ -4,7 +4,7 @@
 - Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`.
 - Scope completed: Canonicalized materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`.
 - Runtime change commit: `b929fe6c7a1159c7882acedd247aca31a93cd123`
-- Handoff scope: metadata-only resubmission on the current branch tip so the roadmap and vision mapping are explicit and reviewer-auditable, including the saved planner handoff state used for future packet emissions.
+- Handoff scope: metadata-only resubmission so the roadmap and vision mapping are explicit and reviewer-auditable, including the saved planner handoff state used for future packet emissions.
 - Roadmap item(s) affected (from `ROADMAP.md`): `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress), including the `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`
   - Scope bullets: `Define A2UI output contract for agent-produced presentation artifacts`, `Add agent-side card/section/action payload generation with deterministic schemas`, and `Provide CLI rendering fallback for the same structured payloads`
   - Task anchor: `ROADMAP.md` `MVP Focus Through 2026-05-04` lists `feat-a2ui-contract` as a current active implementation emphasis
@@ -13,7 +13,7 @@
   - CLI remains able to render a text fallback of the same underlying artifacts.
   - The deterministic action-ordering fix keeps that fallback stable for the same structured artifacts.
 - Task anchor: `ROADMAP.md` `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract` sits under this milestone
-- Reviewer fix status: required fix `#1` is satisfied on this branch tip because the exact `Roadmap item(s) affected` and `Vision capability affected` fields are cited directly in the reviewer-facing packets, including the `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`, so the plan mapping is explicit rather than inferred.
+- Reviewer fix status: required fix `#1` is satisfied on the feature commit (`20c928855aed6794529208bc2ca511603dd5e802`) because the exact `Roadmap item(s) affected` and `Vision capability affected` fields are cited directly in the reviewer-facing packets, including the `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`, so the plan mapping is explicit rather than inferred.
 - Canon note: the labels above are taken from the current `ROADMAP.md` and `PRODUCT_VISION.md` in this worktree, so the handoff uses the branch's authoritative plan wording rather than older example labels from the review thread.
 - Missing handoff fields after reviewer fix `#1`: none; the `Roadmap item(s) affected` field names `ROADMAP.md` Milestone 5 and the `MVP Focus Through 2026-05-04` task anchor, and the `Vision capability affected` field names `PRODUCT_VISION.md` Capability 5.
 
@@ -27,7 +27,7 @@
 - Vision anchor: `PRODUCT_VISION.md` calls out current MVP emphasis on `A2UI` cards/actions that can be rendered in CLI now and `Exegesis Console` next.
 - Audit note: these are the exact handoff fields the reviewer requested, so the mapping is explicit instead of inferred from the scope goal or the ordering fix itself.
 - Audit mapping: the deterministic action-ordering fix stabilizes materialized A2UI action payloads for CLI fallback rendering, which is the concrete Milestone 5 scope-bullet and the Capability 5 requirement that CLI remains able to render a text fallback of the same underlying artifacts.
-- Source-of-truth note: reviewer examples were illustrative; the authoritative mapping for this branch tip is the Milestone 5 / Capability 5 pair quoted above from the checked-in plan docs.
+- Source-of-truth note: reviewer examples were illustrative; the authoritative mapping for this handoff is the Milestone 5 / Capability 5 pair quoted above from the checked-in plan docs.
 - This lane only clarifies the handoff mapping for the A2UI ordering fix; it does not expand scope beyond CLI fallback determinism and the matching contract assertions.
 - Tasks completed:
   1. Updated the A2UI materialization path in `src/qual/ui/a2ui.py` to sort filtered actions by canonical JSON before terminal rendering.
@@ -78,5 +78,5 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Validation was run on the current branch tip during this handoff update.
-- Verification pass for this fix used the current branch tip before the final handoff-note commit.
+- Validation was run before this handoff-note commit.
+- Verification pass for this fix used the branch state before the final handoff-note commit.
