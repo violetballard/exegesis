@@ -935,7 +935,9 @@ def build_retrieval_doc_bundle_from_result(
 
     bundle_source = getattr(result, "retrieval_doc_bundle", None)
     if callable(bundle_source):
-        return copy.deepcopy(bundle_source())
+        # Normalize the direct bundle snapshot so compatibility sources still
+        # round-trip through the canonical doc bundle shape.
+        return _build_retrieval_doc_bundle_from_payload({"retrieval_doc_bundle": bundle_source()})
     source_bundle_source = getattr(result, "source_bundle", None)
     if callable(source_bundle_source):
         source_bundle = _build_retrieval_source_bundle_from_payload(
@@ -953,7 +955,9 @@ def build_retrieval_excerpt_bundle_from_result(
 
     bundle_source = getattr(result, "retrieval_excerpt_bundle", None)
     if callable(bundle_source):
-        return copy.deepcopy(bundle_source())
+        # Normalize the direct bundle snapshot so compatibility sources still
+        # round-trip through the canonical excerpt bundle shape.
+        return _build_retrieval_excerpt_bundle_from_payload({"retrieval_excerpt_bundle": bundle_source()})
     source_bundle_source = getattr(result, "source_bundle", None)
     if callable(source_bundle_source):
         source_bundle = _build_retrieval_source_bundle_from_payload(
@@ -976,7 +980,15 @@ def build_retrieval_context_bundle_from_result(
 
     context_source = getattr(result, "retrieval_context_bundle", None)
     if callable(context_source):
-        return copy.deepcopy(context_source())
+        context_bundle = context_source()
+        if isinstance(context_bundle, dict):
+            downstream_payload = context_bundle.get("retrieval_downstream_payload")
+            if isinstance(downstream_payload, dict):
+                return _build_retrieval_context_bundle_from_payload(downstream_payload)
+            source_bundle = context_bundle.get("retrieval_source_bundle")
+            if isinstance(source_bundle, dict):
+                return _build_retrieval_context_bundle_from_source_bundle(copy.deepcopy(source_bundle))
+        return copy.deepcopy(context_bundle)
     source_bundle_source = getattr(result, "source_bundle", None)
     if callable(source_bundle_source):
         source_bundle = _build_retrieval_source_bundle_from_payload(
