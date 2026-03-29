@@ -33,15 +33,15 @@ def write_example_config():
     example = {
         "model": "gpt-5.1-codex",
         "codex_cmd": "codex",
-        "fallback_model": "",
+        "fallback_model": "gpt-oss-120b",
         "fallback_codex_cmd": "codex",
-        "fallback_codex_args": ["-p", "gpt-oss-120b-lms"],
+        "fallback_codex_args": ["-c", "model_provider=lms"],
         "fallback_model_args": [],
         "profiles": {
             "orchestrator": {
                 "codex_cmd": "codex",
-                "codex_args": ["-p", "gpt-oss-20b-lms"],
-                "model": "",
+                "codex_args": ["-c", "model_provider=lms"],
+                "model": "gpt-oss-20b",
                 "model_args": [],
             },
             "worker_cloud": {
@@ -52,8 +52,8 @@ def write_example_config():
             },
             "worker_local": {
                 "codex_cmd": "codex",
-                "codex_args": ["-p", "gpt-oss-120b-lms"],
-                "model": "",
+                "codex_args": ["-c", "model_provider=lms"],
+                "model": "gpt-oss-120b",
                 "model_args": [],
             },
         },

@@ -1,0 +1,4 @@
+Verdict: `CHANGES_REQUESTED`
+
+Findings
+- Please tighten the handoff summary.

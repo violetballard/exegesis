@@ -37,6 +37,12 @@ REVIEWER_QUOTA_RE = re.compile(
     r"usage limit|quota exceeded|rate limit|too many requests|try again at",
     re.IGNORECASE,
 )
+BAD_LOCAL_CLI_CONTENT_MARKERS = (
+    "not supported when using codex with a chatgpt account",
+    "invalid_request_error",
+    "missing_required_parameter",
+    "text.format",
+)
 RETRY_LIMIT_WRAPPER_RE = re.compile(
     r"exceeded retry limit|retry limit reached",
     re.IGNORECASE,
@@ -294,7 +300,8 @@ def _apply_quota_text_safeguard(
     retry_at = _quota_retry_epoch(cfg, text, default_seconds=default_seconds)
     return _switch_to_local_fallback(cfg, state, reason, retry_at)
 
-def parse_verdict(text: str) -> str:
+
+def _extract_reviewer_verdict(text: str) -> Optional[str]:
     lines = (text or "").splitlines()
     for idx, raw in enumerate(lines):
         line = raw.strip()
@@ -314,6 +321,13 @@ def parse_verdict(text: str) -> str:
                     v = m2.group(1).upper().replace(" ", "_")
                     return "APPROVED" if v == "APPROVED" else "CHANGES_REQUESTED"
                 break
+    return None
+
+
+def parse_verdict(text: str) -> str:
+    verdict = _extract_reviewer_verdict(text)
+    if verdict:
+        return verdict
     return "CHANGES_REQUESTED"
 
 
@@ -341,6 +355,21 @@ def _invalid_reviewer_output(text: str) -> bool:
     if not t:
         return True
     return bool(INVALID_REVIEWER_RE.search(t))
+
+
+def _local_cli_output_rejection_reason(text: str, *, require_verdict: bool) -> Optional[str]:
+    t = (text or "").strip()
+    if not t:
+        return "empty output"
+    if INVALID_REVIEWER_RE.search(t):
+        return "stale or missing thread reference"
+    lower = t.lower()
+    for marker in BAD_LOCAL_CLI_CONTENT_MARKERS:
+        if marker in lower:
+            return f"bad local cli marker: {marker}"
+    if require_verdict and _extract_reviewer_verdict(t) is None:
+        return "missing reviewer verdict"
+    return None
 
 
 def _is_reviewer_quota_output(text: str) -> bool:
@@ -579,6 +608,7 @@ def _run_cli_reviewer(
 ) -> Optional[str]:
     if not cfg.use_cli_reviewer_fallback:
         return None
+    runtime_local = bool(local)
     prof = _profile_for_role(cfg, "reviewer", local=local)
     try:
         rc, out = _run_cli_codex(
@@ -598,6 +628,11 @@ def _run_cli_reviewer(
     text = (out or "").strip()
     if not text:
         return None
+    if runtime_local:
+        rejection = _local_cli_output_rejection_reason(text, require_verdict=True)
+        if rejection:
+            print(f"[router] rejected local reviewer output ({reason}): {rejection}")
+            return None
     return text
 
 
@@ -610,6 +645,7 @@ def _run_cli_integrator(
 ) -> Optional[str]:
     if not cfg.use_cli_integrator_fallback:
         return None
+    runtime_local = bool(local)
     prof = _profile_for_role(cfg, "integrator", local=local)
     try:
         rc, out = _run_cli_codex(
@@ -626,7 +662,15 @@ def _run_cli_integrator(
         return None
     if rc != 0:
         return None
-    return (out or "").strip()
+    text = (out or "").strip()
+    if not text:
+        return None
+    if runtime_local:
+        rejection = _local_cli_output_rejection_reason(text, require_verdict=False)
+        if rejection:
+            print(f"[router] rejected local integrator output: {rejection}")
+            return None
+    return text
 
 def _find_worktree_for_branch(repo_cwd: str, branch: str) -> Optional[str]:
     # Normalize to refs/heads/...

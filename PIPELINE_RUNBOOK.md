@@ -95,9 +95,10 @@ Note:
 - the coordinator itself is deterministic Python, not an LLM thread
 - the role profiles control the Codex sessions it launches for feature/reviewer/fixer/integrator work
 
-Why leave `fallback_model` empty:
-- when `--oss` is active, the CLI/provider can select its configured local model
-- forcing a model id here can break fallback on accounts that do not accept that id
+Why keep `fallback_model` explicit for LM Studio:
+- the explicit provider form is `codex -c model_provider=lms -m gpt-oss-120b`
+- keeping the model explicit avoids drifting back into a ChatGPT/OpenAI path
+- leave `fallback_model` empty only when the selected local profile already hard-codes a safe model choice elsewhere
 
 Useful commands:
 - inspect runtime mode: `python codex_packet_handoff/tools/runtime_mode_ctl.py status`
