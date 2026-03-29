@@ -25,7 +25,8 @@
 - Regenerated the handoff packet and lane metadata from the branch tip so the review evidence now matches the submitted code/test delta and excludes the out-of-lane scope-check script edit.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget. The reviewed implementation spans 6 lane-owned or approved test files, including `src/qual/commands/canonical.py` and the two approved shared tests.
+- High-risk shared-test handoff: task budget `4`, time budget `30m`, size limits `<=8 files` and `<=300 net LOC`.
+- The reviewed implementation spans 6 lane-owned or approved test files, including `src/qual/commands/canonical.py` and the two approved shared tests.
 - The handoff stays centered on the command-catalog, canonical mapping, and diff-preview contract work already present on the branch and keeps the review packet truthful.
 
 ## Approved exception note
@@ -54,7 +55,7 @@
 - `make ci`: PASS
 
 ## Risks / blockers
-- Risk: `LOW`
+- Risk: `HIGH`
 - Blockers: none
 
 ## Required handoff fields
@@ -72,4 +73,4 @@
 - None.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO`
+- Shared/integrator-locked edits: `YES`

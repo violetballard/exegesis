@@ -11,7 +11,7 @@
 3. Keep the lane from widening beyond the approved `feat-commands` surface while preserving the CLI-first command-catalog, canonical mapping, and diff-preview contract scope.
 
 ### Guardrails
-- Stay in lane-owned command paths except for explicitly approved shared tests.
+- Stay in lane-owned command paths except for explicitly approved shared tests, which make the handoff high-risk.
 - Keep review packets synchronized with the real branch delta.
 - Do not introduce new web-facing surfaces.
 - Keep work aligned to the current MVP: engine, FTS retrieval, A2UI, patch/export flow.

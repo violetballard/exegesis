@@ -13,7 +13,7 @@
     "Added focused coverage for the command-catalog, canonical mapping, and diff-preview contract paths.",
     "Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta and excludes the out-of-lane scope-check script edit."
   ],
-  "risk": "LOW",
+  "risk": "HIGH",
   "roadmap_items": [
     "Milestone 3 - Product Readiness (Planned): lock the command-catalog and diff-preview CLI contracts so the operator-facing command surface remains deterministic, auditable, and ready for CLI-first use."
   ],
@@ -24,7 +24,7 @@
   "routing_provider_impact": "None. This change only affects local packet metadata and command-contract test coverage; no routing/provider files change.",
   "proposed_readme_patch": "",
   "shared_file_exception": true,
-  "kickoff_budget_note": "Stayed within the default lane budget. The reviewed implementation spans 6 lane-owned or approved test files.",
+  "kickoff_budget_note": "High-risk shared-test handoff with task budget 4, time budget 30m, size limits <=8 files and <=300 net LOC. The reviewed implementation spans 6 lane-owned or approved test files.",
   "approved_exception_note": "Approved shared-file exception for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py.",
   "files_changed": [
     { "path": "src/qual/commands/__init__.py", "kind": "code" },
