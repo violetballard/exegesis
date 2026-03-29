@@ -63,6 +63,13 @@ class CommandSurfaceContract:
     flow_surface_tokens: tuple[tuple[str, ...], ...] = ()
 
 
+@dataclass(frozen=True)
+class CommandCliContract:
+    tokens: tuple[str, ...]
+    canonical_names: tuple[str, ...]
+    lookup_table: tuple[tuple[str, str], ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -102,6 +109,20 @@ def _validate_flow_steps(flow_steps: tuple[str, ...]) -> None:
 
 def _normalize_flow_steps(flow_steps: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(_normalize_token(flow_step) for flow_step in flow_steps)
+
+
+def _validate_cli_entrypoints() -> None:
+    # Keep the parser surface explicit so the command contract stays deterministic.
+    seen_entrypoints: set[str] = set()
+    for entrypoint, canonical_name in _CLI_ENTRYPOINTS:
+        normalized_entrypoint = _normalize_token(entrypoint)
+        if not normalized_entrypoint:
+            raise ValueError("Command CLI entrypoints must not be empty")
+        if normalized_entrypoint in seen_entrypoints:
+            raise ValueError(f"Duplicate command CLI entrypoint: {entrypoint}")
+        seen_entrypoints.add(normalized_entrypoint)
+        if command_spec_for(COMMAND_SPECS, canonical_name) is None:
+            raise ValueError(f"Unknown CLI command target: {canonical_name}")
 
 
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
@@ -386,12 +407,38 @@ def command_lookup_table(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tupl
 
 
 @lru_cache(maxsize=None)
+def command_cli_tokens() -> tuple[str, ...]:
+    _validate_cli_entrypoints()
+    return tuple(entrypoint for entrypoint, _ in _CLI_ENTRYPOINTS)
+
+
+@lru_cache(maxsize=None)
 def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
-    validate_command_catalog(COMMAND_SPECS)
+    _validate_cli_entrypoints()
     lookup_table: list[tuple[str, str]] = []
-    for name, canonical_name in _CLI_ENTRYPOINTS:
-        lookup_table.append((name, canonical_command_for(COMMAND_SPECS, canonical_name)))
+    for entrypoint, canonical_name in _CLI_ENTRYPOINTS:
+        spec = command_spec_for(COMMAND_SPECS, canonical_name)
+        if spec is None:
+            raise ValueError(f"Unknown CLI command target: {canonical_name}")
+        lookup_table.append((entrypoint, spec.name))
     return tuple(lookup_table)
+
+
+@lru_cache(maxsize=None)
+def command_cli_contract() -> CommandCliContract:
+    lookup_table = command_cli_lookup_table()
+    seen_canonical_names: set[str] = set()
+    canonical_names: list[str] = []
+    for _, canonical_name in lookup_table:
+        if canonical_name in seen_canonical_names:
+            continue
+        seen_canonical_names.add(canonical_name)
+        canonical_names.append(canonical_name)
+    return CommandCliContract(
+        tokens=command_cli_tokens(),
+        canonical_names=tuple(canonical_names),
+        lookup_table=lookup_table,
+    )
 
 
 @lru_cache(maxsize=None)

@@ -2,6 +2,7 @@
 
 from src.qual.commands.catalog import (
     CommandSpec,
+    CommandCliContract,
     CommandFlowEntry,
     CommandFlowSurfaceEntry,
     CommandManifestEntry,
@@ -20,7 +21,9 @@ from src.qual.commands.catalog import (
     command_flow_lookup_table,
     command_flow_contract,
     command_flow_manifest,
+    command_cli_contract,
     command_cli_lookup_table,
+    command_cli_tokens,
     command_lookup_index,
     command_lookup_table,
     command_lookup_tokens,
@@ -72,6 +75,7 @@ from src.qual.commands.catalog import (
 
 __all__ = [
     "CommandSpec",
+    "CommandCliContract",
     "CommandFlowEntry",
     "CommandFlowSurfaceEntry",
     "CommandFlowSequence",
@@ -90,7 +94,9 @@ __all__ = [
     "command_flow_lookup_table",
     "command_flow_contract",
     "command_flow_manifest",
+    "command_cli_contract",
     "command_cli_lookup_table",
+    "command_cli_tokens",
     "command_lookup_index",
     "command_lookup_table",
     "command_lookup_tokens",
