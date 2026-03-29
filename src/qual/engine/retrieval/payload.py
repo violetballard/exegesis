@@ -521,6 +521,94 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
     }
 
 
+def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, object]) -> dict[str, object]:
+    """Return a best-effort diagnostics snapshot from a source bundle snapshot."""
+
+    normalized = _normalize_retrieval_source_bundle_snapshot(source_bundle)
+    citation_bundle = normalized.get("retrieval_citation_bundle", {})
+    if not isinstance(citation_bundle, dict):
+        citation_bundle = _build_retrieval_citation_bundle_from_payload(normalized)
+
+    query = normalized.get("query", {})
+    if not isinstance(query, dict):
+        query = {}
+    query_constraints = query.get("constraints", {})
+    if not isinstance(query_constraints, dict):
+        query_constraints = {}
+
+    retrieval_policy = _normalize_policy_snapshot(
+        normalized.get("policy", normalized.get("retrieval_policy", {}))
+    )
+    active_strategy_ids = _normalize_list_like(
+        citation_bundle.get("active_strategy_ids", retrieval_policy.get("active_strategy_ids", []))
+    )
+    deferred_strategy_ids = _normalize_list_like(
+        citation_bundle.get("deferred_strategy_ids", retrieval_policy.get("deferred_strategy_ids", []))
+    )
+    query_scope = citation_bundle.get("query_scope", query.get("scope"))
+    query_intent = citation_bundle.get("query_intent", query.get("intent"))
+    query_date_range = _normalize_optional_list_like(
+        citation_bundle.get("query_date_range", query_constraints.get("date_range"))
+    )
+    max_results = query_constraints.get("max_results", citation_bundle.get("doc_count", 10))
+    try:
+        max_results_int = int(max_results)
+    except (TypeError, ValueError):
+        max_results_int = 10
+    fts_shortlist_limit = max(25, max_results_int)
+    fts_candidate_scan_limit = (
+        fts_shortlist_limit
+        if query_date_range is None
+        else max(fts_shortlist_limit, fts_shortlist_limit * 4, 100)
+    )
+    fts_shortlist_doc_ids = _normalize_list_like(citation_bundle.get("fts_shortlist_doc_ids", []))
+    strategies_used = list(active_strategy_ids)
+
+    return {
+        "retrieval_policy": copy.deepcopy(retrieval_policy),
+        "retrieval_backend": citation_bundle.get(
+            "retrieval_backend",
+            normalized.get("retrieval_backend"),
+        ),
+        "retrieval_mode": citation_bundle.get(
+            "retrieval_mode",
+            normalized.get("retrieval_mode"),
+        ),
+        "active_strategy_ids": strategies_used,
+        "deferred_strategy_ids": deferred_strategy_ids,
+        "query_fingerprint": citation_bundle.get(
+            "query_fingerprint",
+            normalized.get("query_fingerprint"),
+        ),
+        "query_scope": query_scope,
+        "query_intent": query_intent,
+        "doc_scope_id": query_scope.split(":", 1)[1] if isinstance(query_scope, str) and query_scope.startswith("doc:") else None,
+        "date_range": query_date_range,
+        "fts_shortlist_limit": fts_shortlist_limit,
+        "fts_candidate_scan_limit": fts_candidate_scan_limit,
+        "candidate_doc_count": citation_bundle.get("candidate_doc_count"),
+        "fts_shortlist_count": len(fts_shortlist_doc_ids),
+        "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
+        "strategies_used": strategies_used,
+        "elapsed_ms_by_strategy": {strategy_id: 0 for strategy_id in strategies_used},
+        "caches_used": {strategy_id: False for strategy_id in strategies_used},
+        "elapsed_ms_total": 0,
+        "doc_hits_count": citation_bundle.get("doc_count", len(_normalize_list_like(normalized.get("doc_hits", [])))),
+        "excerpt_hits_count": citation_bundle.get("excerpt_count", len(_normalize_list_like(normalized.get("excerpt_hits", [])))),
+        "doc_hits_fingerprint": citation_bundle.get("doc_hits_fingerprint"),
+        "excerpt_hits_fingerprint": citation_bundle.get("excerpt_hits_fingerprint"),
+        "citation_status": copy.deepcopy(
+            citation_bundle.get("citation_status", normalized.get("citation_status", {}))
+        ),
+        "retrieval_manifest": copy.deepcopy(normalized.get("retrieval_manifest", {})),
+        "retrieval_evidence": copy.deepcopy(normalized.get("retrieval_evidence", {})),
+        "result_fingerprint": citation_bundle.get(
+            "result_fingerprint",
+            normalized.get("result_fingerprint"),
+        ),
+    }
+
+
 def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict[str, object]:
     """Return the deterministic retrieval provenance snapshot from a downstream payload snapshot."""
 
@@ -760,7 +848,7 @@ def build_retrieval_downstream_payload(
 
 
 def build_retrieval_downstream_payload_from_result(
-    result: RetrievalDownstreamPayloadSource,
+    result: RetrievalDownstreamPayloadSource | RetrievalContextBundleSource | RetrievalSourceBundleSource,
 ) -> dict[str, object]:
     """Return a snapshot-safe copy of a retrieval result payload.
 
@@ -774,7 +862,42 @@ def build_retrieval_downstream_payload_from_result(
     payload_source = getattr(result, "as_dict", None)
     if callable(payload_source):
         return copy.deepcopy(payload_source())
-    return copy.deepcopy(result.to_downstream_payload())
+    payload_source = getattr(result, "to_downstream_payload", None)
+    if callable(payload_source):
+        return copy.deepcopy(payload_source())
+    context_bundle_source = getattr(result, "retrieval_context_bundle", None)
+    if callable(context_bundle_source):
+        context_bundle = context_bundle_source()
+        if isinstance(context_bundle, dict):
+            downstream_payload = context_bundle.get("retrieval_downstream_payload")
+            if isinstance(downstream_payload, dict):
+                return copy.deepcopy(downstream_payload)
+            source_bundle = context_bundle.get("retrieval_source_bundle")
+            if isinstance(source_bundle, dict):
+                return _build_retrieval_downstream_payload_from_source_bundle(source_bundle)
+    source_bundle_source = getattr(result, "source_bundle", None)
+    if callable(source_bundle_source):
+        return _build_retrieval_downstream_payload_from_source_bundle(source_bundle_source())
+    raise AttributeError(
+        "result must expose a downstream payload, context bundle, or source bundle"
+    )
+
+
+def _build_retrieval_downstream_payload_from_source_bundle(
+    source_bundle: dict[str, object],
+) -> dict[str, object]:
+    normalized = _normalize_retrieval_source_bundle_snapshot(source_bundle)
+    payload = copy.deepcopy(normalized)
+    policy_snapshot = _normalize_policy_snapshot(payload.get("policy", payload.get("retrieval_policy", {})))
+    payload.pop("retrieval_diagnostics", None)
+    payload.pop("retrieval_source_bundle", None)
+    payload.pop("query_fingerprint", None)
+    payload["policy"] = copy.deepcopy(policy_snapshot)
+    payload["retrieval_policy"] = copy.deepcopy(policy_snapshot)
+    payload["audit_ref"] = payload.get("audit_ref")
+    payload["retrieval_diagnostics"] = _build_retrieval_diagnostics_from_source_bundle(normalized)
+    payload["retrieval_source_bundle"] = copy.deepcopy(normalized)
+    return payload
 
 
 def build_retrieval_citation_bundle_from_result(

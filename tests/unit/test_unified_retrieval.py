@@ -1541,6 +1541,36 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "mutated-doc-id",
         )
 
+    def test_retrieval_downstream_payload_helper_accepts_source_bundle_only_sources(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        payload = build_retrieval_downstream_payload_from_result(_SourceBundleOnlySource(result.source_bundle()))
+        expected = result.to_downstream_payload()
+        payload = json.loads(json.dumps(payload))
+        expected = json.loads(json.dumps(expected))
+        payload.pop("audit_ref", None)
+        expected.pop("audit_ref", None)
+        payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        expected["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        expected["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        self.assertEqual(payload, expected)
+
     def test_retrieve_auto_citation_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(
             query_text="memo coding comparison",
