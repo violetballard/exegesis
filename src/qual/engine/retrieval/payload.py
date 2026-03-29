@@ -377,6 +377,18 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["candidate_doc_count"] = diagnostics.get("candidate_doc_count")
     if "fts_shortlist_doc_ids" not in normalized:
         normalized["fts_shortlist_doc_ids"] = copy.deepcopy(diagnostics.get("fts_shortlist_doc_ids", []))
+    if "primary_doc_id" not in normalized:
+        normalized["primary_doc_id"] = summary.get("primary_doc_id")
+    if "primary_doc_fingerprint" not in normalized:
+        normalized["primary_doc_fingerprint"] = summary.get("primary_doc_fingerprint")
+    if "primary_doc_identity_fingerprint" not in normalized:
+        normalized["primary_doc_identity_fingerprint"] = summary.get("primary_doc_identity_fingerprint")
+    if "primary_excerpt_id" not in normalized:
+        normalized["primary_excerpt_id"] = summary.get("primary_excerpt_id")
+    if "primary_excerpt_fingerprint" not in normalized:
+        normalized["primary_excerpt_fingerprint"] = summary.get("primary_excerpt_fingerprint")
+    if "primary_excerpt_text_hash" not in normalized:
+        normalized["primary_excerpt_text_hash"] = summary.get("primary_excerpt_text_hash")
     if "doc_hits_fingerprint" not in normalized:
         normalized["doc_hits_fingerprint"] = summary.get(
             "doc_hits_fingerprint",
@@ -396,10 +408,32 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     citation_bundle = payload.get("retrieval_citation_bundle", {})
     if not isinstance(citation_bundle, dict):
         citation_bundle = {}
+    doc_citations = citation_bundle.get("doc_citations", [])
+    if not isinstance(doc_citations, list):
+        doc_citations = []
+    excerpt_citations = citation_bundle.get("excerpt_citations", [])
+    if not isinstance(excerpt_citations, list):
+        excerpt_citations = []
     if "doc_citations" not in normalized:
-        normalized["doc_citations"] = copy.deepcopy(citation_bundle.get("doc_citations", []))
+        normalized["doc_citations"] = copy.deepcopy(doc_citations)
     if "excerpt_citations" not in normalized:
-        normalized["excerpt_citations"] = copy.deepcopy(citation_bundle.get("excerpt_citations", []))
+        normalized["excerpt_citations"] = copy.deepcopy(excerpt_citations)
+    if "primary_doc_id" not in normalized and doc_citations:
+        first_doc_citation = doc_citations[0]
+        if isinstance(first_doc_citation, dict):
+            normalized["primary_doc_id"] = first_doc_citation.get("doc_id")
+            if "primary_doc_fingerprint" not in normalized:
+                normalized["primary_doc_fingerprint"] = first_doc_citation.get("doc_fingerprint")
+            if "primary_doc_identity_fingerprint" not in normalized:
+                normalized["primary_doc_identity_fingerprint"] = first_doc_citation.get("doc_identity_fingerprint")
+    if "primary_excerpt_id" not in normalized and excerpt_citations:
+        first_excerpt_citation = excerpt_citations[0]
+        if isinstance(first_excerpt_citation, dict):
+            normalized["primary_excerpt_id"] = first_excerpt_citation.get("excerpt_id")
+            if "primary_excerpt_fingerprint" not in normalized:
+                normalized["primary_excerpt_fingerprint"] = first_excerpt_citation.get("excerpt_fingerprint")
+            if "primary_excerpt_text_hash" not in normalized:
+                normalized["primary_excerpt_text_hash"] = first_excerpt_citation.get("excerpt_text_hash")
     return normalized
 
 

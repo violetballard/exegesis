@@ -568,7 +568,15 @@ class RetrievalResult:
             "primary_doc_id": self.doc_hits[0].doc_id if self.doc_hits else None,
             "primary_excerpt_id": self.hits[0].excerpt_id if self.hits else None,
             "primary_doc_fingerprint": self.doc_hits[0].provenance.get("doc_fingerprint") if self.doc_hits else None,
+            "primary_doc_identity_fingerprint": self.doc_hits[0].provenance.get("doc_identity_fingerprint")
+            if self.doc_hits
+            else None,
             "primary_excerpt_fingerprint": self.hits[0].provenance.get("excerpt_fingerprint") if self.hits else None,
+            "primary_excerpt_text_hash": (
+                self.hits[0].provenance.get("excerpt_text_hash") or self.hits[0].provenance.get("hash")
+                if self.hits
+                else None
+            ),
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
@@ -583,6 +591,8 @@ class RetrievalResult:
         citation_status: dict[str, object],
         retrieval_policy: dict[str, object],
     ) -> dict[str, object]:
+        primary_doc_hit = self.doc_hits[0] if self.doc_hits else None
+        primary_excerpt_hit = self.hits[0] if self.hits else None
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
@@ -602,6 +612,20 @@ class RetrievalResult:
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
             "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
             "fts_shortlist_doc_ids": list(self.diagnostics.get("fts_shortlist_doc_ids", [])),
+            "primary_doc_id": primary_doc_hit.doc_id if primary_doc_hit is not None else None,
+            "primary_doc_fingerprint": primary_doc_hit.provenance.get("doc_fingerprint") if primary_doc_hit is not None else None,
+            "primary_doc_identity_fingerprint": primary_doc_hit.provenance.get("doc_identity_fingerprint")
+            if primary_doc_hit is not None
+            else None,
+            "primary_excerpt_id": primary_excerpt_hit.excerpt_id if primary_excerpt_hit is not None else None,
+            "primary_excerpt_fingerprint": primary_excerpt_hit.provenance.get("excerpt_fingerprint")
+            if primary_excerpt_hit is not None
+            else None,
+            "primary_excerpt_text_hash": (
+                primary_excerpt_hit.provenance.get("excerpt_text_hash") or primary_excerpt_hit.provenance.get("hash")
+                if primary_excerpt_hit is not None
+                else None
+            ),
             "citation_status": citation_status,
             "doc_count": citation_bundle["doc_count"],
             "excerpt_count": citation_bundle["excerpt_count"],
