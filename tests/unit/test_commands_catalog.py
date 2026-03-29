@@ -9,6 +9,7 @@ from src.qual.commands import (
     command_aliases,
     command_aliases_for,
     command_flow_manifest,
+    command_flow_catalog,
     command_cli_lookup_table,
     command_flow_lookup_index,
     command_flow_lookup_surface,
@@ -31,6 +32,7 @@ from src.qual.commands import (
     command_mvp_flow_surface_lookup_index,
     command_mvp_flow_surface_tokens,
     command_mvp_flow_lookup_table,
+    command_mvp_flow_tokens,
     command_mvp_flow_sequence,
     command_mvp_flow_steps,
     command_mvp_lookup_index,
@@ -42,6 +44,7 @@ from src.qual.commands import (
     command_spec_for,
     command_specs,
     command_tokens,
+    command_flow_tokens,
     validate_command_catalog,
 )
 
@@ -201,31 +204,36 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
 
-    def test_command_flow_sequence_bundles_the_catalog_smoke_contract(self) -> None:
+    def test_command_flow_sequence_bundles_the_demo_smoke_contract(self) -> None:
         sequence = command_flow_sequence()
-        self.assertEqual(sequence.flow_steps, command_flow_steps())
-        self.assertEqual(sequence.names, command_names())
-        self.assertEqual(
-            sequence.lookup_table,
-            tuple((entry.flow_step, entry.name) for entry in command_flow_manifest()),
-        )
+        self.assertEqual(sequence, command_mvp_flow_sequence())
+        self.assertEqual(sequence.flow_steps, command_mvp_flow_steps())
+        self.assertEqual(sequence.names, command_mvp_flow_sequence().names)
+        self.assertEqual(sequence.lookup_table, command_mvp_flow_lookup_table())
         self.assertEqual(
             sequence.lookup_tokens,
-            tuple(entry.lookup_tokens for entry in command_manifest()),
+            tuple(entry.lookup_tokens for entry in command_mvp_flow()),
         )
 
+    def test_command_flow_helpers_default_to_the_demo_route(self) -> None:
+        self.assertEqual(command_flow_manifest(), command_mvp_flow_manifest())
+        self.assertEqual(command_flow_catalog(), command_mvp_flow_catalog())
+        self.assertEqual(command_flow_lookup_table(), command_mvp_flow_lookup_table())
+        self.assertEqual(command_flow_lookup_index(), command_mvp_lookup_index())
+        self.assertEqual(command_flow_lookup_surface(), command_mvp_flow_lookup_surface())
+        self.assertEqual(command_flow_surface_lookup_index(), command_mvp_flow_surface_lookup_index())
+        self.assertEqual(command_flow_surface_tokens(), command_mvp_flow_surface_tokens())
+        self.assertEqual(command_flow_tokens(), command_mvp_flow_tokens())
+
     def test_command_flow_lookup_index_reuses_the_manifest_contract(self) -> None:
-        self.assertEqual(command_flow_lookup_index(), command_lookup_index())
+        self.assertEqual(command_flow_lookup_index(), command_mvp_lookup_index())
         self.assertEqual(
             command_flow_lookup_index(flow_steps=command_mvp_flow_steps()),
             command_mvp_lookup_index(),
         )
 
     def test_command_flow_lookup_surface_includes_flow_steps_for_smoke_checks(self) -> None:
-        self.assertEqual(
-            command_flow_lookup_surface(flow_steps=command_mvp_flow_steps()),
-            command_mvp_flow_lookup_surface(),
-        )
+        self.assertEqual(command_flow_lookup_surface(), command_mvp_flow_lookup_surface())
         self.assertEqual(
             command_mvp_flow_lookup_surface(),
             (
@@ -251,6 +259,7 @@ class CommandCatalogTests(unittest.TestCase):
             command_flow_surface_tokens(flow_steps=command_mvp_flow_steps()),
             command_mvp_flow_surface_tokens(),
         )
+        self.assertEqual(command_flow_tokens(), command_mvp_flow_tokens())
         self.assertEqual(
             command_mvp_flow_surface_tokens(),
             (

@@ -286,7 +286,7 @@ def command_flow_manifest(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[CommandManifestEntry, ...]:
     validate_command_catalog(specs)
-    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
     normalized_flow_steps = _normalize_flow_steps(ordered_flow_steps)
     _validate_flow_steps(ordered_flow_steps)
     manifest_by_flow_step = {_normalize_token(entry.flow_step): entry for entry in command_manifest(specs)}
@@ -311,7 +311,7 @@ def command_flow_sequence(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> CommandFlowSequence:
-    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
     normalized_flow_steps = _normalize_flow_steps(ordered_flow_steps)
     manifest = command_flow_manifest(specs, ordered_flow_steps)
     return CommandFlowSequence(
@@ -327,7 +327,7 @@ def command_flow_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[CommandFlowEntry, ...]:
-    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
     normalized_flow_steps = _normalize_flow_steps(ordered_flow_steps)
     manifest = command_flow_manifest(specs, ordered_flow_steps)
     manifest_by_flow_step = {_normalize_token(entry.flow_step): entry for entry in manifest}
@@ -349,7 +349,7 @@ def command_flow_surface_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[CommandFlowSurfaceEntry, ...]:
-    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
     normalized_flow_steps = _normalize_flow_steps(ordered_flow_steps)
     manifest = command_flow_manifest(specs, ordered_flow_steps)
     manifest_by_flow_step = {_normalize_token(entry.flow_step): entry for entry in manifest}
@@ -372,7 +372,7 @@ def command_flow_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[tuple[str, str], ...]:
-    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
     manifest = command_flow_manifest(specs, ordered_flow_steps)
     return tuple((entry.flow_step, entry.name) for entry in manifest)
 
@@ -482,7 +482,7 @@ def command_flow_surface_lookup_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[tuple[str, str], ...]:
-    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
     return command_flow_lookup_surface(specs, ordered_flow_steps)
 
 
@@ -491,7 +491,7 @@ def command_flow_lookup_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[tuple[str, str], ...]:
-    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
     return _command_flow_lookup_index(specs, ordered_flow_steps, include_flow_step=False)
 
 
@@ -500,7 +500,7 @@ def command_flow_lookup_surface(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[tuple[str, str], ...]:
-    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
     surface_catalog = command_flow_surface_catalog(specs, ordered_flow_steps)
     seen_tokens: set[str] = set()
     index: list[tuple[str, str]] = []
@@ -529,7 +529,7 @@ def command_flow_tokens(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[str, ...]:
-    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
     seen_tokens: set[str] = set()
     tokens: list[str] = []
     for surface_tokens in command_flow_surface_tokens(specs, ordered_flow_steps):
@@ -606,7 +606,7 @@ def _resolve_contract_flow_steps(
 ) -> tuple[str, ...]:
     if flow_steps is not None:
         return flow_steps
-    # Keep the default aggregate contract aligned with the current MVP smoke path.
+    # Keep the default flow surface aligned with the current MVP smoke path.
     if specs is COMMAND_SPECS:
         return command_demo_flow_steps()
     return command_flow_steps(specs)
