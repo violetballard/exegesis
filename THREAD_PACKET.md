@@ -5,6 +5,19 @@
 - Reviewed implementation range: `1d6057e9..1109cceba7d402d3e05c6d7ba59dac363b0d9ea6`
 - Handoff type: cumulative full-thread retrieval handoff
 
+## Implementation commit(s)
+
+- `3c51e34bc54003b8fe4a28b8d3db58450f6d9ab6` - keep pageindex shim out of routing
+- `1109cceba7d402d3e05c6d7ba59dac363b0d9ea6` - canonicalize payload bundle snapshots
+
+## Docs-only alignment commit(s)
+
+- `0cff411ae4e4972707ac145ab46f002c11f38cea` - align handoff packet details
+- `8e17a500af65e43d7255291807e2fbef9448a66f` - sync handoff packet head
+- `9f533914940b5a3f45859b0269909bbc11592030` - align handoff metadata
+- `9851fb47e930cd0df2b663264683cd4a3a6e0687` - align handoff metadata to current head
+- `e4b895ddf767deb962d269c6801df364c432a3bb` - restamp handoff packet to current head
+
 ## Scope goal
 
 Build the FTS-first retrieval MVP with deterministic excerpt, provenance, and hit-snapshot output for engine generation flows, aligned to ROADMAP.md Milestone 3: Real workflow loop and PRODUCT_VISION.md capability 2, while keeping PageIndex and embeddings fallback-only and exposing `RetrievalConstraints` through the public retrieval helpers.
@@ -26,7 +39,7 @@ Did not ship:
 - No retrieval behavior beyond the FTS-first MVP and deterministic snapshot normalization work in the reviewed range.
 
 Reviewed range note:
-- The handoff is cumulative, not tip-only; the reviewed range includes the PageIndex routing fix in `3c51e34b` and the payload bundle snapshot canonicalization in `1109cce`, while the intermediate handoff alignment commits only adjust packet metadata.
+- The handoff is cumulative, not tip-only; the reviewed implementation range ends at `1109cce`, and the docs-only alignment commits above only restamp packet metadata.
 
 ## Files changed
 

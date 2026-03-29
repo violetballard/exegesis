@@ -3,6 +3,18 @@
   "kickoff_budget_note": "This thread finished within the low-risk 8-task cap; no sprint-mode 10-task allowance or high-risk 4-task budget was used.",
   "proposed_readme_patch": "",
   "final_head_sha": "1109cceba7d402d3e05c6d7ba59dac363b0d9ea6",
+  "reviewed_implementation_range": "1d6057e9..1109cceba7d402d3e05c6d7ba59dac363b0d9ea6",
+  "implementation_commits": [
+    "3c51e34bc54003b8fe4a28b8d3db58450f6d9ab6",
+    "1109cceba7d402d3e05c6d7ba59dac363b0d9ea6"
+  ],
+  "docs_only_alignment_commits": [
+    "0cff411ae4e4972707ac145ab46f002c11f38cea",
+    "8e17a500af65e43d7255291807e2fbef9448a66f",
+    "9f533914940b5a3f45859b0269909bbc11592030",
+    "9851fb47e930cd0df2b663264683cd4a3a6e0687",
+    "e4b895ddf767deb962d269c6801df364c432a3bb"
+  ],
   "risk": "LOW",
   "packet_type": "metadata-only",
   "reviewed_commits": [
