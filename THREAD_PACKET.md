@@ -19,18 +19,18 @@ Harden the `feat-commands` command surface so catalog lookups and `diff_preview`
 - Added focused command-contract tests for JSON output, no-diff JSON shape, custom labels, and fingerprint correctness.
 - Added spec-aware command catalog helper coverage for lookup aliases and manifest projections, plus the `canonical.py` re-export used by the public command surface.
 - Regenerated the handoff packet from the real `main...codex/feat-commands` delta so the review packet maps to the branch tip actually being submitted.
-- Documented the approved shared-test exceptions and the policy-support `scripts/scope-check.sh` edit that keeps `make scope-check` aligned with the branch's allowed shared files.
+- Documented the integrator-approved shared-test exceptions and the policy-support `scripts/scope-check.sh` edit that keeps `make scope-check` aligned with the branch's allowed shared files.
 
 ## Files changed
 
-- `src/qual/commands/__init__.py`
-- `src/qual/commands/canonical.py`
-- `src/qual/commands/catalog.py`
-- `src/qual/commands/diff_preview.py`
-- `tests/unit/test_commands_catalog.py`
-- `tests/unit/test_diff_preview.py`
-- `scripts/scope-check.sh`
-- `THREAD_PACKET.md`
+- `src/qual/commands/__init__.py` (lane-owned)
+- `src/qual/commands/canonical.py` (lane-owned)
+- `src/qual/commands/catalog.py` (lane-owned)
+- `src/qual/commands/diff_preview.py` (lane-owned)
+- `tests/unit/test_commands_catalog.py` (integrator-approved shared file)
+- `tests/unit/test_diff_preview.py` (integrator-approved shared file)
+- `scripts/scope-check.sh` (policy-support edit for the approved shared tests)
+- `THREAD_PACKET.md` (handoff artifact)
 
 ## Tasks completed
 
@@ -73,5 +73,5 @@ Harden the `feat-commands` command surface so catalog lookups and `diff_preview`
 ## Scope-check / ownership note
 
 - Shared/integrator-locked edits: `YES`
-- Approved shared-file exceptions: `tests/unit/test_commands_catalog.py`, `tests/unit/test_diff_preview.py`
+- Integrator-approved shared-file exceptions: `tests/unit/test_commands_catalog.py`, `tests/unit/test_diff_preview.py`
 - Policy-support edit: `scripts/scope-check.sh` keeps the feat-commands lane's approved shared-test set enforceable during `make scope-check`.
