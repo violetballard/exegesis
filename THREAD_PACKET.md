@@ -7,10 +7,11 @@
 - Docs-only alignment commit(s):
   - `885ac6ea5667ec391c0396fb0644d6bc4180e50f`
   - `ed74fe0fc1dd02b7024d4793c878320f718a56aa`
+  - `396202f50e77a5c8342b7baa410b32beece4a163`
 
 ## Scope goal
 
-Add a deterministic CLI flow smoke contract for the `feat-commands` lane during `MVP Focus Through 2026-05-04` so parser tokens, canonical command names, and normalized MVP flow steps stay explicit for CLI-first operator use.
+Add a deterministic CLI flow smoke contract for the `feat-commands` lane's CLI compatibility and migration-safe entrypoints so parser tokens, canonical command names, and normalized MVP flow steps stay explicit for CLI-first operator use.
 
 ## Scope completed
 
@@ -18,7 +19,7 @@ Add a deterministic CLI flow smoke contract for the `feat-commands` lane during 
 - Exported the new CLI-flow contract symbols from `src/qual/commands/__init__.py`.
 - Added focused unit coverage in `tests/unit/test_commands_catalog.py` that pins parser tokens, canonical command names, and MVP flow-step mapping together.
 - Approved the shared-file exception for `tests/unit/test_commands_catalog.py` so the lane can add the required contract coverage.
-- Regenerated the handoff packet so the branch summary, file list, and ownership mapping match the actual `7f4de16e` CLI flow delta and the packet-alignment trail through `885ac6ea` and `ed74fe0f`.
+- Regenerated the handoff packet so the branch summary, file list, and ownership mapping match the actual `7f4de16e` CLI flow delta and the packet-alignment trail through `885ac6ea`, `ed74fe0f`, and `396202f5`.
 
 ## Files changed
 
@@ -88,12 +89,13 @@ Add a deterministic CLI flow smoke contract for the `feat-commands` lane during 
 
 ### Roadmap item(s) affected
 
-- `MVP Focus Through 2026-05-04` - `feat-commands` active implementation emphasis; preserve CLI compatibility while the package/layout migration lands.
-- `Milestone 3: Product Readiness (Planned)` - define and lock user-facing output contracts; expand end-to-end verification scenarios.
+- `Milestone 1: Bootstrap Flow Stabilization` - `feat-commands` CLI compatibility and migration-safe entrypoints; keep the manual CLI smoke flow stable.
+- `Milestone 2: Test Hardening` - focused unit coverage for the new CLI flow contract and lookup-table behavior.
 
 ### Vision capability affected
 
 - `Operator-first control surface` - CLI remains a first-class surface for development and reliability, and the command contract now has explicit deterministic parser lookup behavior.
+- `Auditable generation` - the flow contract and lookup table are covered by focused tests, so emitted command metadata stays verifiable.
 
 ### Routing/provider impact note
 
