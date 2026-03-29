@@ -55,6 +55,7 @@
 
 ### Roadmap item(s) affected
 - Milestone 1: Bootstrap Flow Stabilization
+- Context basket and vault persistence hardening
 
 ### Vision capability affected
 - `1. Local-first state and identity`
