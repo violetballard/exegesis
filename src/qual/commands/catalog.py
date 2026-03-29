@@ -82,6 +82,21 @@ class CommandCliFlowContract:
     entries: tuple[CommandCliFlowEntry, ...]
 
 
+@dataclass(frozen=True)
+class CommandFlowRouteEntry:
+    flow_step: str
+    name: str
+    cli_tokens: tuple[str, ...]
+    lookup_tokens: tuple[str, ...]
+    surface_tokens: tuple[str, ...]
+    description: str
+
+
+@dataclass(frozen=True)
+class CommandFlowRouteContract:
+    entries: tuple[CommandFlowRouteEntry, ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -135,6 +150,13 @@ def _validate_cli_entrypoints() -> None:
         seen_entrypoints.add(normalized_entrypoint)
         if command_spec_for(COMMAND_SPECS, canonical_name) is None:
             raise ValueError(f"Unknown CLI command target: {canonical_name}")
+
+
+def _command_cli_tokens_by_name() -> dict[str, tuple[str, ...]]:
+    tokens_by_name: dict[str, list[str]] = {}
+    for token, canonical_name in command_cli_lookup_table():
+        tokens_by_name.setdefault(canonical_name, []).append(token)
+    return {name: tuple(tokens) for name, tokens in tokens_by_name.items()}
 
 
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
@@ -474,6 +496,51 @@ def command_cli_flow_contract() -> CommandCliFlowContract:
 @lru_cache(maxsize=None)
 def command_cli_flow_lookup_table() -> tuple[tuple[str, str], ...]:
     return tuple((entry.token, entry.flow_step) for entry in command_cli_flow_contract().entries)
+
+
+@lru_cache(maxsize=None)
+def command_flow_route_catalog(
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandFlowRouteEntry, ...]:
+    ordered_flow_steps = _resolve_contract_flow_steps(COMMAND_SPECS, flow_steps)
+    # Keep the route view in smoke-flow order while preserving the parser tokens
+    # that dispatch to each command.
+    route_catalog = command_flow_surface_catalog(COMMAND_SPECS, ordered_flow_steps)
+    cli_tokens_by_name = _command_cli_tokens_by_name()
+    return tuple(
+        CommandFlowRouteEntry(
+            flow_step=entry.flow_step,
+            name=entry.name,
+            cli_tokens=cli_tokens_by_name.get(entry.name, (entry.name,)),
+            lookup_tokens=entry.lookup_tokens,
+            surface_tokens=entry.surface_tokens,
+            description=entry.description,
+        )
+        for entry in route_catalog
+    )
+
+
+@lru_cache(maxsize=None)
+def command_flow_route_contract(
+    flow_steps: tuple[str, ...] | None = None,
+) -> CommandFlowRouteContract:
+    return CommandFlowRouteContract(entries=command_flow_route_catalog(flow_steps))
+
+
+def command_demo_flow_route_catalog() -> tuple[CommandFlowRouteEntry, ...]:
+    return command_flow_route_catalog(command_demo_flow_steps())
+
+
+def command_demo_flow_route_contract() -> CommandFlowRouteContract:
+    return command_flow_route_contract(command_demo_flow_steps())
+
+
+def command_mvp_flow_route_catalog() -> tuple[CommandFlowRouteEntry, ...]:
+    return command_demo_flow_route_catalog()
+
+
+def command_mvp_flow_route_contract() -> CommandFlowRouteContract:
+    return command_demo_flow_route_contract()
 
 
 @lru_cache(maxsize=None)
