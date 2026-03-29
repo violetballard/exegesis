@@ -239,6 +239,7 @@ __all__ = [
     "build_retrieval_provenance_from_result",
     "build_retrieval_source_bundle_from_result",
     "retrieve_fts",
+    "retrieve_fts_citation_bundle",
     "retrieve_fts_context_bundle",
     "retrieve_fts_source_bundle",
     "retrieve_fts_provenance_bundle",

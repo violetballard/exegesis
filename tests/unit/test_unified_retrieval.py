@@ -738,6 +738,36 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "mutated-doc-id",
         )
 
+    def test_retrieve_fts_citation_bundle_matches_result_snapshot(self) -> None:
+        query = RetrievalQuery(
+            query_text="theory implications",
+            scope="doc:doc-pdf-1",
+            intent="lookup",
+            constraints=RetrievalConstraints(max_results=4),
+            confidentiality_profile="confidential",
+        )
+
+        result = self.service.retrieve_fts(query)
+        direct = self.service.retrieve_fts_citation_bundle(query)
+        helper = engine_retrieval.retrieve_fts_citation_bundle(
+            self.service,
+            query_text="theory implications",
+            scope="doc:doc-pdf-1",
+            intent="lookup",
+            constraints={"max_results": 4},
+            confidentiality_profile="confidential",
+        )
+
+        self.assertEqual(direct, result.citation_bundle())
+        self.assertEqual(helper, result.citation_bundle())
+        self.assertEqual(direct["doc_citations"], result.citation_bundle()["doc_citations"])
+        self.assertEqual(direct["excerpt_citations"], result.citation_bundle()["excerpt_citations"])
+        direct["doc_citations"][0]["doc_id"] = "mutated-doc-id"
+        self.assertNotEqual(
+            self.service.retrieve_fts_citation_bundle(query)["doc_citations"][0]["doc_id"],
+            "mutated-doc-id",
+        )
+
     def test_retrieve_fts_doc_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(
             query_text="memo coding comparison",
@@ -1130,6 +1160,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "build_retrieval_provenance_from_result",
                 "build_retrieval_source_bundle_from_result",
                 "retrieve_fts",
+                "retrieve_fts_citation_bundle",
                 "retrieve_fts_context_bundle",
                 "retrieve_fts_source_bundle",
                 "retrieve_fts_provenance_bundle",
@@ -1164,6 +1195,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_context_bundle_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_source_bundle_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_citation_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_context_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_citation_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_source_bundle"))
