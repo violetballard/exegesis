@@ -14,8 +14,8 @@
 ## Scope completed
 - Preserved `recovered_from` cleanup timestamps while quarantining malformed context basket and context-set payloads so project-scoped local state remains normalized and auditable.
 - Hardened vault recovery so malformed or incomplete persisted state is recovered or rewritten safely while preserving the safe lock default and local-first storage behavior.
-- Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-test exception.
-- Kept the reviewed implementation within owned runtime paths plus the approved shared-test exception, with no shared/integrator-locked runtime edits.
+- Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-test exception for that one non-owned test file.
+- Kept the reviewed implementation within owned runtime paths plus that approved shared-test exception, with no broader shared/integrator-locked runtime edits being claimed.
 - Reissued the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list stay aligned with implementation commit `47cda4df831ac41867a8792f40d720e0cb109514` and the current docs-only alignment commit `ff06348b3aa25319a7433b04a849ceee42197d44`, while keeping docs-only alignment work separate from runtime changes.
 
 ## Owned-path files changed
@@ -24,7 +24,7 @@
 - `src/qual/storage/vault.py`
 
 ## Approved exception files changed
-- `tests/unit/test_context_storage_recovery.py` (the only approved shared-test exception; corresponds to implementation diff `47cda4df831ac41867a8792f40d720e0cb109514`; no broader shared-file runtime edit is being claimed; `SCOPE_ALLOW_SHARED=1` is required by `scripts/scope-check.sh`)
+- `tests/unit/test_context_storage_recovery.py` (the only approved non-owned file in scope; corresponds to implementation diff `47cda4df831ac41867a8792f40d720e0cb109514`; no broader shared-file runtime edit is being claimed; `SCOPE_ALLOW_SHARED=1` is required by `scripts/scope-check.sh`)
 
 ## Docs-only handoff-alignment files changed
 - `.codex/lane_meta/feat-context-storage.json`
@@ -54,17 +54,18 @@
 - Hardened context basket/set and vault recovery, kept the approved `tests/unit/test_context_storage_recovery.py` exception explicit, and kept runtime edits in owned paths.
 
 ### Roadmap item(s) affected
-- Milestone 1: Bootstrap Flow Stabilization (In Progress)
+- Milestone 3: Real workflow loop
+- Persistent basket/document/session state hardening
 
 ### Vision capability affected
 - `1. Local-first state and identity`
-- `3. Auditable generation`
+- `6. Auditable state and workflow`
 
 ### Routing/provider impact note
 - None
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO` in the reviewed implementation diff; the only non-owned file changed for the feature work is the approved shared-test exception at `tests/unit/test_context_storage_recovery.py`.
+- Shared/integrator-locked edits: `NO` in the reviewed implementation diff; the only non-owned file changed for the feature work is `tests/unit/test_context_storage_recovery.py`.
 - Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, and it is covered by the explicit shared-test exception.
 - Approval basis: `scripts/scope-check.sh` explicitly allows `tests/unit/test_context_storage_recovery.py` for `codex/feat-context-storage*` when `SCOPE_ALLOW_SHARED=1` is set.
 - Branch-head bookkeeping note: `ff06348b3aa25319a7433b04a849ceee42197d44` records packet/metadata alignment only; it does not change the owned runtime scope.
