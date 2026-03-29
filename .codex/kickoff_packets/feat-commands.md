@@ -1,6 +1,7 @@
 # Lane Kickoff: feat-commands
 
 - Branch: `codex/feat-commands`
+- Head commit: `3dce306b85b57f95abf348b5c2cfbc274e25bf94`
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: Keep the `feat-commands` handoff aligned with the command-catalog, canonical mapping, and diff-preview CLI contract work already present on the branch, plus the two explicitly approved shared tests.
 

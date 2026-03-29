@@ -2,13 +2,15 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
+- Commit: `3dce306b85b57f95abf348b5c2cfbc274e25bf94`
 - Reviewed commit(s):
+  - `3dce306b85b57f95abf348b5c2cfbc274e25bf94`
   - `e78f6b247c3c70590ef32cca0d8902ddcf2e32a9`
   - `e53af6696629a9cccda27ac1b344825bae8dc858`
   - `3dfd014632493cdd66b363c637846596d490e7af`
 
 ## Scope goal
-- Harden the command-catalog and diff-preview contracts so lookup helpers, canonical command mapping, labeled/text output, JSON responses, and emitted fingerprints stay deterministic and verifiable for the CLI-first operator surface.
+- Harden the command-catalog and diff-preview contracts so lookup helpers, labeled/text output, JSON responses, and emitted fingerprints stay deterministic and verifiable for the CLI-first operator surface.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
@@ -20,7 +22,7 @@
 - Restored the command-catalog surface under `src/qual/commands/**` and added spec-aware lookup helpers plus canonical command mapping.
 - Hardened diff-preview output contracts so the emitted SHA-256 is derived from the exact payload users receive after labels, suppression, truncation, and summary-only handling.
 - Added focused coverage for the command-catalog, canonical mapping, and diff-preview contracts.
-- Regenerated the handoff packet and lane metadata so the review evidence now matches the actual code/test delta and excludes the out-of-lane scope-check script edit.
+- Regenerated the handoff packet and lane metadata from the branch tip so the review evidence now matches the submitted code/test delta and excludes the out-of-lane scope-check script edit.
 
 ## Kickoff budget/limits compliance
 - Stayed within the default lane budget. The reviewed implementation spans 6 lane-owned or approved test files, including `src/qual/commands/canonical.py` and the two approved shared tests.
