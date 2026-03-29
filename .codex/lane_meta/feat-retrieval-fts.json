@@ -1,35 +1,30 @@
 {
-  "approved_exception_note": "No non-retrieval tooling edits are approved for this handoff; packet-planner/tooling work should stay in a separate packet.",
-  "kickoff_budget_note": "Within the default AGENTS.md low-risk budget: 4 completed tasks, retrieval-owned paths only, no shared or integrator-locked edits, and required local gates rerun before handoff.",
+  "approved_exception_note": "",
+  "kickoff_budget_note": "This thread finished within the low-risk 8-task cap; no sprint-mode 10-task allowance or high-risk 4-task budget was used.",
   "proposed_readme_patch": "",
+  "final_head_sha": "8de722f25d0ef3fd30b7b60646f683ab824c2057",
   "risk": "LOW",
+  "packet_type": "metadata-only",
+  "reviewed_commits": [
+    "c92025af6e11c396f84356967cea704cadb20f5b",
+    "c4944661a0a682821c486810918c2c1fabac1a41",
+    "47b3977d271e3f7faacb6ba3082ab94a2d327fcb"
+  ],
   "roadmap_items": [
-    "Milestone 3: Real workflow loop",
-    "docs/TASKS.md: feat-retrieval-fts -> keep the FTS-first retrieval path authoritative; expose retrieval through the canonical engine contract; keep structured results suitable for workflow cards and basket promotion"
+    "ROADMAP.md: Milestone 3: Real workflow loop"
   ],
   "routing_provider_impact": "None",
-  "related_implementation_files": [
-    "src/qual/engine/retrieval/__init__.py",
-    "src/qual/engine/retrieval/embeddings_strategy.py",
-    "src/qual/engine/retrieval/fts_strategy.py",
-    "src/qual/engine/retrieval/pageindex_strategy.py",
-    "src/qual/engine/retrieval/payload.py",
-    "src/qual/engine/retrieval/policy.py",
-    "src/qual/retrieval/__init__.py",
-    "src/qual/retrieval/service.py"
-  ],
-  "scope_completed": "The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and the handoff stays limited to the retrieval-owned feature surface.",
-  "scope_goal": "Canonicalize the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, with PageIndex and embeddings deferred as fallback-only plumbing.",
+  "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3 and PRODUCT_VISION.md capability 2.",
+  "scope_completed": "Reviewed code commits c92025af6e11c396f84356967cea704cadb20f5b, c4944661a0a682821c486810918c2c1fabac1a41, and 47b3977d271e3f7faacb6ba3082ab94a2d327fcb add excerpt lookup audit context, deterministic excerpt payload rehydration, source-bundle context regression coverage, and canonical query constructor export through both retrieval facades; later lane-handoff commits are packet or metadata maintenance only and are excluded.",
   "shared_file_exception": false,
   "tasks_completed": [
-    "Canonicalized FTS excerpt lookup so excerpt rehydration returns deterministic payloads and records an audit trail.",
-    "Normalized retrieval provenance and downstream payload builders so excerpt, source, citation, doc, and context bundles share stable hashes and fingerprints.",
-    "Locked the retrieval policy to FTS-first and kept PageIndex/embeddings deferred as fallback-only plumbing.",
-    "Exposed the canonical retrieval entrypoints through the engine/package facades so the FTS-first path remains the stable default."
+    "Added the excerpt lookup audit trail and deterministic rehydration path in the retrieval service.",
+    "Canonicalized excerpt provenance so downstream payloads carry stable hashes and fingerprints.",
+    "Kept retrieval FTS-first and left PageIndex/embeddings as fallback-only plumbing.",
+    "Exported the canonical retrieval query constructor through both retrieval facades and kept the auto path on the FTS-first implementation."
   ],
   "vision_capabilities": [
     "2. Retrieval-first context handling",
     "6. Auditable state and workflow"
-  ],
-  "compatibility_note": "PageIndex and embeddings remain fallback-only plumbing behind the FTS-first policy for this MVP; they are not required retrieval paths."
+  ]
 }

@@ -2,29 +2,33 @@
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
-- Reviewed commit(s):
-  - `70af1c68bfb22d39bb2cd2341f94167ad97b42f7`
-  - `b906bc9917cb0a87a031a8f80851e17328697eb5`
+- Handoff type: retrieval feature handoff for the FTS-first retrieval lane.
+- Scope goal: Keep the FTS-first retrieval lane scoped to deterministic excerpt/provenance output and the reviewed retrieval-owned files only.
 
 ## Scope completed
 
-The lane canonicalized the FTS-first retrieval MVP so generation flows receive deterministic excerpt payloads and provenance, matching PRODUCT_VISION.md capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow. PageIndex and embeddings remain deferred as fallback-only plumbing, and this handoff is limited to the retrieval-owned feature surface rather than packet-planner/tooling edits.
+This lane now keeps the FTS-first retrieval path authoritative, returns deterministic excerpt and provenance payloads for engine generation flows, and leaves PageIndex and embeddings as fallback-only plumbing behind the canonical retrieval package.
 
-### Roadmap / vision mapping
-- ROADMAP.md: Milestone 3: Real workflow loop
-- docs/TASKS.md: feat-retrieval-fts -> keep the FTS-first retrieval path authoritative; expose retrieval through the canonical engine contract; keep structured results suitable for workflow cards and basket promotion
-- PRODUCT_VISION.md: 2. Retrieval-first context handling
-- PRODUCT_VISION.md: 6. Auditable state and workflow
+## Budget note
 
-### Reviewed implementation files
-- `src/qual/engine/retrieval/__init__.py`
-- `src/qual/engine/retrieval/embeddings_strategy.py`
-- `src/qual/engine/retrieval/fts_strategy.py`
-- `src/qual/engine/retrieval/pageindex_strategy.py`
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/engine/retrieval/policy.py`
-- `src/qual/retrieval/__init__.py`
-- `src/qual/retrieval/service.py`
+This handoff stayed within the low-risk `8`-task cap. It did not rely on the sprint-mode `10`-task allowance or the high-risk `4`-task budget.
 
-### Handoff correction note
-- This packet covers the retrieval-owned feature surface only. Packet-planner/tooling edits and any other out-of-lane verification files are split out rather than bundled here.
+### Priority outcomes
+1. Make SQLite FTS the primary retrieval path.
+2. Return doc hits and excerpt hits with stable provenance.
+3. Defer PageIndex, embeddings, and multi-strategy retrieval behavior.
+
+### Source of truth
+- Canonical retrieval logic remains in `src/qual/retrieval/**`.
+- Engine-side retrieval files are compatibility/export shims that route the FTS-first path:
+  - `src/qual/engine/retrieval/__init__.py`
+  - `src/qual/engine/retrieval/embeddings_strategy.py`
+  - `src/qual/engine/retrieval/fts_strategy.py`
+  - `src/qual/engine/retrieval/pageindex_strategy.py`
+  - `src/qual/engine/retrieval/payload.py`
+  - `src/qual/engine/retrieval/policy.py`
+
+### Guardrails
+- Keep retrieval deterministic and auditable.
+- Avoid speculative future retrieval abstractions that do not help the MVP.
+- Any engine integration should stay narrowly scoped to retrieval orchestration.
