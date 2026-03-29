@@ -412,6 +412,15 @@ def _command_flow_lookup_index(
 
 
 @lru_cache(maxsize=None)
+def command_flow_surface_lookup_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, str], ...]:
+    ordered_flow_steps = command_flow_steps(specs) if flow_steps is None else flow_steps
+    return command_flow_lookup_surface(specs, ordered_flow_steps)
+
+
+@lru_cache(maxsize=None)
 def command_flow_lookup_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
@@ -540,7 +549,7 @@ def command_flow_contract(
         names=sequence.names,
         manifest=command_flow_manifest(specs, ordered_flow_steps),
         lookup_table=sequence.lookup_table,
-        lookup_index=command_flow_lookup_index(specs, ordered_flow_steps),
+        lookup_index=command_flow_surface_lookup_index(specs, ordered_flow_steps),
         lookup_tokens=sequence.lookup_tokens,
         flow_tokens=command_flow_tokens(specs, ordered_flow_steps),
         flow_catalog=command_flow_catalog(specs, ordered_flow_steps),
@@ -584,6 +593,12 @@ def command_demo_flow_lookup_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
     return command_flow_lookup_index(specs, command_demo_flow_steps())
+
+
+def command_demo_flow_surface_lookup_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_flow_surface_lookup_index(specs, command_demo_flow_steps())
 
 
 def command_demo_flow_lookup_surface(
@@ -649,6 +664,12 @@ def command_mvp_flow_lookup_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_lookup_index(specs)
+
+
+def command_mvp_flow_surface_lookup_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_flow_surface_lookup_index(specs)
 
 
 @lru_cache(maxsize=None)
