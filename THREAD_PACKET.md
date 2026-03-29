@@ -8,7 +8,7 @@
   - `3dfd014632493cdd66b363c637846596d490e7af`
 
 ## Scope goal
-- Harden the command catalog and diff-preview contracts so lookup helpers, labeled/text output, JSON responses, and emitted fingerprints stay deterministic and verifiable for the CLI operator surface.
+- Harden the command-catalog and diff-preview contracts so lookup helpers, canonical command mapping, labeled/text output, JSON responses, and emitted fingerprints stay deterministic and verifiable for the CLI-first operator surface.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
@@ -17,22 +17,22 @@
   - `tests/unit/test_diff_preview.py`
 
 ## Scope completed
-- Restored the command catalog surface under `src/qual/commands/**` and added spec-aware lookup helpers.
+- Restored the command-catalog surface under `src/qual/commands/**` and added spec-aware lookup helpers plus canonical command mapping.
 - Hardened diff-preview output contracts so the emitted SHA-256 is derived from the exact payload users receive after labels, suppression, truncation, and summary-only handling.
-- Added focused coverage for the command catalog and diff-preview contracts.
+- Added focused coverage for the command-catalog, canonical mapping, and diff-preview contracts.
 - Regenerated the handoff packet and lane metadata so the review evidence now matches the actual code/test delta and excludes the out-of-lane scope-check script edit.
 
 ## Kickoff budget/limits compliance
-- Stayed within the default lane budget. The reviewed implementation spans 6 lane-owned or approved test files.
-- The handoff stays centered on the command-catalog and diff-preview contract work already present on the branch and keeps the review packet truthful.
+- Stayed within the default lane budget. The reviewed implementation spans 6 lane-owned or approved test files, including `src/qual/commands/canonical.py` and the two approved shared tests.
+- The handoff stays centered on the command-catalog, canonical mapping, and diff-preview contract work already present on the branch and keeps the review packet truthful.
 
 ## Approved exception note
 - Approved shared-file exception for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
 
 ## Tasks completed (numbered)
-1. Restored the command catalog surface and added spec-aware lookup helpers under `src/qual/commands/**`.
+1. Restored the command-catalog surface and added spec-aware lookup helpers plus canonical command mapping under `src/qual/commands/**`.
 2. Hardened diff-preview output contracts so the fingerprint covers the exact emitted payload after labels, header suppression, truncation, and summary-only handling.
-3. Added focused coverage for the command catalog and diff-preview contract paths.
+3. Added focused coverage for the command-catalog, canonical mapping, and diff-preview contract paths.
 4. Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta and excludes the out-of-lane scope-check script edit.
 
 ## Files changed
@@ -61,7 +61,7 @@
 
 ### Vision capability affected
 - 3. Auditable generation - the emitted fingerprint verifies the exact diff payload users receive, including label application and truncation behavior.
-- 4. Operator-first control surface - CLI review gates stay aligned with the command-catalog and diff-preview contract surface plus the approved shared tests.
+- 4. Operator-first control surface - CLI review gates stay aligned with the command-catalog, canonical mapping, and diff-preview contract surface plus the approved shared tests.
 
 ### Routing/provider impact note
 - None. This change only affects local packet metadata and command-contract test coverage; no routing/provider files change.
