@@ -2,7 +2,7 @@
   "approved_exception_note": "",
   "kickoff_budget_note": "This thread finished within the low-risk 8-task cap; no sprint-mode 10-task allowance or high-risk 4-task budget was used.",
   "proposed_readme_patch": "",
-  "final_head_sha": "1cc160ff7a56f539b4726dd03cc477f714243e8d",
+  "final_head_sha": "9f533914940b5a3f45859b0269909bbc11592030",
   "risk": "LOW",
   "packet_type": "metadata-only",
   "reviewed_commits": [
@@ -13,14 +13,15 @@
     "439af5c84a224d23c861e0206834bfd598d3836b",
     "f511f4b5c53bae03aba746e9ceb5b1b27141f7e5",
     "20bbc5502f4a5f4e8339faa25fd44d3d7caeecdc",
-    "1cc160ff7a56f539b4726dd03cc477f714243e8d"
+    "1cc160ff7a56f539b4726dd03cc477f714243e8d",
+    "9f533914940b5a3f45859b0269909bbc11592030"
   ],
   "roadmap_items": [
     "ROADMAP.md: Milestone 3: Real workflow loop"
   ],
   "routing_provider_impact": "None",
   "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt, provenance, and hit-snapshot output for engine generation flows, aligned to ROADMAP.md Milestone 3: Real workflow loop and PRODUCT_VISION.md capability 2, while keeping PageIndex and embeddings fallback-only and exposing RetrievalConstraints through the public retrieval helpers.",
-  "scope_completed": "Shipped the cumulative 1d6057e9..1cc160ff retrieval thread: SQLite FTS is the authoritative retrieval path, the canonical retrieval query constructor is exported through both retrieval facades, the public retrieve_* helpers accept RetrievalConstraints objects as well as mapping payloads, PageIndex and embeddings remain compatibility-only shims, and retrieval payload, citation, provenance, and hit snapshots normalize list-like and strategy fields deterministically, including the retrieval_source_strategy alias. Did not ship shared or integrator-locked file edits, provider or routing configuration changes, or retrieval behavior beyond the FTS-first MVP and deterministic snapshot normalization work in the reviewed range.",
+  "scope_completed": "Shipped the cumulative 1d6057e9..9f533914 retrieval thread: SQLite FTS is the authoritative retrieval path, the canonical retrieval query constructor is exported through both retrieval facades, the public retrieve_* helpers accept RetrievalConstraints objects as well as mapping payloads, PageIndex and embeddings remain compatibility-only shims, and retrieval payload, citation, provenance, and hit snapshots normalize list-like and strategy fields deterministically, including the retrieval_source_strategy alias. Did not ship shared or integrator-locked file edits, provider or routing configuration changes, or retrieval behavior beyond the FTS-first MVP and deterministic snapshot normalization work in the reviewed range; the 9f533914 metadata-only alignment commit only adjusts handoff artifacts.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Added deterministic FTS provenance and excerpt output in the retrieval service.",

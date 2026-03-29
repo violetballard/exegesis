@@ -1,8 +1,8 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Final HEAD SHA: `1cc160ff7a56f539b4726dd03cc477f714243e8d`
-- Reviewed implementation range: `1d6057e9..1cc160ff`
+- Final HEAD SHA: `9f533914940b5a3f45859b0269909bbc11592030`
+- Reviewed implementation range: `1d6057e9..9f533914`
 - Handoff type: cumulative full-thread retrieval handoff
 
 ## Scope goal
@@ -25,13 +25,13 @@ Did not ship:
 - No retrieval behavior beyond the FTS-first MVP and deterministic snapshot normalization work in the reviewed range.
 
 Reviewed range note:
-- The handoff is cumulative, not tip-only; metadata-only alignment commits in `1d6057e9..1cc160ff` only adjust handoff artifacts and do not change retrieval behavior.
+- The handoff is cumulative, not tip-only; metadata-only alignment commits in `1d6057e9..9f533914` only adjust handoff artifacts and do not change retrieval behavior.
 
 ## Files changed
 
 ### Source changes
 
-These are the exact source files changed across the reviewed cumulative range `1d6057e9..1cc160ff`.
+These are the exact source files changed across the reviewed cumulative range `1d6057e9..9f533914`.
 
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/embeddings_strategy.py`
