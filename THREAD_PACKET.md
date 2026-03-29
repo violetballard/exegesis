@@ -1,8 +1,8 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Final HEAD SHA: `9f533914940b5a3f45859b0269909bbc11592030`
-- Reviewed implementation range: `1d6057e9..9f533914`
+- Final HEAD SHA: `1109cceba7d402d3e05c6d7ba59dac363b0d9ea6`
+- Reviewed implementation range: `1d6057e9..1109cceba7d402d3e05c6d7ba59dac363b0d9ea6`
 - Handoff type: cumulative full-thread retrieval handoff
 
 ## Scope goal
@@ -17,6 +17,7 @@ Shipped:
 - The public `retrieve_*` helpers accept `RetrievalConstraints` objects as well as mapping payloads.
 - PageIndex and embeddings remain compatibility-only shims and fallback-only plumbing behind the FTS-first policy.
 - Retrieval payload, citation, provenance, and hit snapshots normalize list-like and strategy fields deterministically, including the `retrieval_source_strategy` alias and list-like provenance rehydration.
+- Payload bundle snapshots are canonicalized for deterministic downstream rehydration.
 - Regression coverage exercises the normalized payload snapshots, facade exports, and FTS citation/provenance helpers.
 
 Did not ship:
@@ -25,13 +26,13 @@ Did not ship:
 - No retrieval behavior beyond the FTS-first MVP and deterministic snapshot normalization work in the reviewed range.
 
 Reviewed range note:
-- The handoff is cumulative, not tip-only; metadata-only alignment commits in `1d6057e9..9f533914` only adjust handoff artifacts and do not change retrieval behavior.
+- The handoff is cumulative, not tip-only; the reviewed range includes the PageIndex routing fix in `3c51e34b` and the payload bundle snapshot canonicalization in `1109cce`, while the intermediate handoff alignment commits only adjust packet metadata.
 
 ## Files changed
 
 ### Reviewed implementation files
 
-These are the exact source files changed across the reviewed cumulative range `1d6057e9..9f533914`.
+These are the exact source files changed across the reviewed cumulative range `1d6057e9..1109cceba7d402d3e05c6d7ba59dac363b0d9ea6`.
 
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/embeddings_strategy.py`
@@ -55,15 +56,16 @@ These metadata files record the handoff alignment work and are separate from the
 2. Exported the canonical retrieval query constructor through both retrieval facades.
 3. Widened the public retrieval helpers to accept `RetrievalConstraints` objects.
 4. Added PageIndex and embeddings compatibility shims without changing the FTS-first active path.
-5. Normalized retrieval payload, citation, provenance, and source snapshots for deterministic rehydration.
+5. Normalized retrieval payload, citation, provenance, and source snapshots for deterministic rehydration and canonical payload bundle snapshots.
 6. Tightened retrieval hit snapshots to carry the canonical `retrieval_source_strategy` alias and list-like provenance fields.
 7. Added regression coverage for the normalized payload snapshots, facade exports, and citation/provenance helpers.
+8. Canonicalized payload bundle snapshots for deterministic downstream rehydration.
 
 ## Budget alignment
 
 - The thread finished within the low-risk cap of 8 tasks.
 - No shared or integrator-locked files were edited.
-- The reviewed range is cumulative; metadata-only handoff commits in the range only adjust handoff artifacts and do not change retrieval behavior.
+- The reviewed range is cumulative; metadata-only handoff commits in the range only adjust handoff artifacts, and the `3c51e34b` / `1109cce` retrieval commits stay inside the FTS-first retrieval lane.
 
 ## Commands run with results
 
