@@ -32,6 +32,7 @@ from src.qual.commands import (
     command_mvp_flow_manifest,
     command_mvp_flow_contract,
     command_mvp_flow_lookup_surface,
+    command_mvp_flow_route_catalog,
     command_mvp_flow_surface_lookup_index,
     command_mvp_flow_surface_tokens,
     command_mvp_flow_lookup_table,
@@ -280,6 +281,20 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
 
+    def test_command_mvp_flow_route_catalog_locks_the_cli_route(self) -> None:
+        route_catalog = command_mvp_flow_route_catalog()
+        self.assertEqual(
+            tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in route_catalog),
+            (
+                ("project-open", "bootstrap", ("bootstrap",)),
+                ("retrieval", "context-basket", ("context-basket",)),
+                ("patch-review", "diff-preview", ("diff-preview", "diff")),
+                ("export-handoff", "terminal", ("terminal",)),
+            ),
+        )
+        self.assertEqual(command_surface_contract().route_catalog, route_catalog)
+        self.assertEqual(command_mvp_surface_contract().route_catalog, route_catalog)
+
     def test_command_flow_surface_tokens_group_the_smoke_surface_by_step(self) -> None:
         self.assertEqual(command_flow_surface_tokens(), command_mvp_flow_surface_tokens())
         self.assertEqual(
@@ -409,6 +424,7 @@ class CommandCatalogTests(unittest.TestCase):
             contract.lookup_tokens,
             tuple(entry.lookup_tokens for entry in command_mvp_flow()),
         )
+        self.assertEqual(contract.route_catalog, command_mvp_flow_route_catalog())
 
     def test_command_mvp_surface_contract_stays_aligned_with_public_contract(self) -> None:
         public_contract = command_surface_contract()

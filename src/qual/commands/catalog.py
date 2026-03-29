@@ -61,6 +61,7 @@ class CommandSurfaceContract:
     lookup_surface: tuple[tuple[str, str], ...] = ()
     flow_tokens: tuple[str, ...] = ()
     flow_surface_tokens: tuple[tuple[str, ...], ...] = ()
+    route_catalog: tuple[CommandFlowRouteEntry, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -736,6 +737,7 @@ def command_flow_contract(
         flow_catalog=command_flow_catalog(specs, ordered_flow_steps),
         lookup_surface=command_flow_lookup_surface(specs, ordered_flow_steps),
         flow_surface_tokens=command_flow_surface_tokens(specs, ordered_flow_steps),
+        route_catalog=command_flow_route_catalog(ordered_flow_steps),
     )
 
 
