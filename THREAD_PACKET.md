@@ -16,10 +16,13 @@
 - Kept the reviewed implementation within owned runtime paths plus that approved shared-test exception, with no broader shared/integrator-locked runtime edits being claimed.
 
 ## Files changed
+### Implementation files changed
 - `src/qual/context/set_store.py`
 - `src/qual/context/store.py`
 - `src/qual/storage/vault.py`
-- `tests/unit/test_context_storage_recovery.py` (the only approved non-owned file in scope; corresponds to implementation diff `47cda4df831ac41867a8792f40d720e0cb109514`; no broader shared-file runtime edit is being claimed; `SCOPE_ALLOW_SHARED=1` is required by `scripts/scope-check.sh`)
+- `tests/unit/test_context_storage_recovery.py` (approved non-owned test exception for implementation diff `47cda4df831ac41867a8792f40d720e0cb109514`)
+
+### Docs-only alignment files changed
 - `.codex/lane_meta/feat-context-storage.json`
 - `THREAD_PACKET.md`
 
