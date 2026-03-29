@@ -16,17 +16,34 @@ Build the FTS-first retrieval MVP with deterministic excerpt and provenance outp
 
 ## Scope completed
 
-The lane now keeps SQLite FTS as the authoritative retrieval path, exports the canonical retrieval query constructor through both facades, and normalizes downstream retrieval payload snapshots and excerpt fallback rehydration so excerpt and provenance bundles stay deterministic.
+Shipped:
+- SQLite FTS remains the authoritative retrieval path.
+- The canonical retrieval query constructor is exported through both retrieval facades.
+- Retrieval payload snapshots and excerpt fallback rehydration are normalized so excerpt and provenance bundles stay deterministic.
+
+Did not ship:
+- No new shared or integrator-locked file edits.
+- No provider or routing configuration changes.
+- No retrieval behavior beyond the FTS-first MVP and deterministic payload normalization work in the reviewed commits.
 
 ## Files changed
 
-These are the exact files changed across the reviewed retrieval implementation commits.
+### Source changes
+
+These are the exact source files changed across the reviewed retrieval implementation commits.
 
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/payload.py`
 - `src/qual/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
+
+### Handoff artifacts
+
+These files record the handoff metadata for the lane and are separated from the source diff above.
+
+- `.codex/lane_meta/feat-retrieval-fts.json`
+- `THREAD_PACKET.md`
 
 ## Tasks completed
 
