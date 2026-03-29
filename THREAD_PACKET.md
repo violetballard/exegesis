@@ -9,6 +9,8 @@
   - `1c01a74b58888f408e9fa1134a10a29478c6f39a`
   - `cc16c21692b7ca4af9e7866a659b45fc18b87f63`
   - `23e4e4273b8808f5cc5a2f9adab1a7eb2d821b75`
+  - `06a0e06ba9c584e209840da92171a1882ccb5628`
+  - `c3716f77141bdee761377f0ee1b15cbcf285e02f`
 
 ## Scope goal
 
@@ -28,17 +30,15 @@ Did not ship:
 - No retrieval behavior beyond the FTS-first MVP and deterministic payload normalization work in the reviewed commits.
 - The current handoff commit is metadata-only and does not change retrieval behavior.
 
-Metadata-only follow-up commits:
-- `78b27dd3ce244e99e12a336c0719a6e0bfc99a77`
-- `6e9853b24f1419b158102e1afd68b40496009bcf`
-- `2c1d2737cd4e63ca0d03acc644242477a66e8647`
-- `9fef8afea6cfb69a8127093af6488f6ab25534e4`
+Packet-only handoff commits:
+- `6400c4554de89773357891a91e4c9e2e5e0057a0`
+- `a6ea3c8150ee8121b3a5efd0042e3204ae4f44c4`
 
 ## Files changed
 
 ### Source changes
 
-These are the exact source files changed across the reviewed retrieval implementation commits.
+These are the exact source files changed across the reviewed retrieval implementation commits through `c3716f77141bdee761377f0ee1b15cbcf285e02f`.
 
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/payload.py`
@@ -67,7 +67,7 @@ These files record the handoff metadata for the lane and are separated from the 
 
 - The thread finished within the low-risk cap of 8 tasks.
 - No shared or integrator-locked files were edited.
-- Later metadata-only commits aligned the packet and lane metadata after the reviewed implementation tip; they did not change retrieval behavior and are excluded from the reviewed implementation scope.
+- Metadata-only commits in the handoff trail aligned the packet and lane metadata; they did not change retrieval behavior and are excluded from the reviewed implementation scope.
 
 ## Commands run with results
 

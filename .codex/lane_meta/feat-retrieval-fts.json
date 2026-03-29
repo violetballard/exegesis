@@ -11,14 +11,16 @@
     "98ec3f4c0f475308b3ebb528551de923cba549ad",
     "1c01a74b58888f408e9fa1134a10a29478c6f39a",
     "cc16c21692b7ca4af9e7866a659b45fc18b87f63",
-    "23e4e4273b8808f5cc5a2f9adab1a7eb2d821b75"
+    "23e4e4273b8808f5cc5a2f9adab1a7eb2d821b75",
+    "06a0e06ba9c584e209840da92171a1882ccb5628",
+    "c3716f77141bdee761377f0ee1b15cbcf285e02f"
   ],
   "roadmap_items": [
     "ROADMAP.md: Milestone 3: Real workflow loop"
   ],
   "routing_provider_impact": "None",
   "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3: Real workflow loop and PRODUCT_VISION.md capability 2, and expose RetrievalConstraints through the public retrieval helpers.",
-  "scope_completed": "Shipped SQLite FTS as the authoritative retrieval path, exported the canonical retrieval query constructor through both retrieval facades, widened the public retrieve_* helpers so they accept RetrievalConstraints objects as well as mapping payloads, and normalized retrieval payload snapshots and excerpt fallback rehydration so excerpt and provenance bundles stay deterministic. Did not ship new shared or integrator-locked file edits, provider or routing configuration changes, or retrieval behavior beyond the FTS-first MVP and deterministic payload normalization work in the reviewed commits.",
+  "scope_completed": "Shipped SQLite FTS as the authoritative retrieval path, exported the canonical retrieval query constructor through both retrieval facades, widened the public retrieve_* helpers so they accept RetrievalConstraints objects as well as mapping payloads, and normalized retrieval payload snapshots and excerpt fallback rehydration so excerpt and provenance bundles stay deterministic. The reviewed source tip ends at c3716f77141bdee761377f0ee1b15cbcf285e02f; the current branch head only updates handoff metadata and does not change retrieval behavior. Did not ship new shared or integrator-locked file edits, provider or routing configuration changes, or retrieval behavior beyond the FTS-first MVP and deterministic payload normalization work in the reviewed commits.",
   "shared_file_exception": false,
   "tasks_completed": [
     "Added FTS provenance retrieval bundles and retrieval service support for deterministic excerpt/provenance output.",
