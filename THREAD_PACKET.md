@@ -46,9 +46,9 @@ These metadata files record the handoff alignment work and are separate from the
 - `e4b895ddf767deb962d269c6801df364c432a3bb` - restamp handoff packet to current head
 - `2836df72a27ba5e1803a99714a580648d7710061` - split handoff commit metadata (metadata-only)
 
-## Scope goal
+## Completed scope summary
 
-Build the FTS-first retrieval MVP with deterministic excerpt, provenance, and hit-snapshot output for engine generation flows, aligned to ROADMAP.md Milestone 3: Real workflow loop and PRODUCT_VISION.md capability 2, while keeping PageIndex and embeddings fallback-only, exposing `RetrievalConstraints` through the public retrieval helpers, and carrying stable doc-hit source attribution.
+Completed the cumulative `1d6057e9..aacb9cc` retrieval thread for the FTS-first retrieval MVP: SQLite FTS is authoritative, the canonical retrieval query constructor is exported through both retrieval facades, `RetrievalConstraints` are accepted by public helpers, PageIndex and embeddings stay compatibility-only, retrieval payload/provenance/hit snapshots normalize deterministically, payload bundle snapshots are canonicalized, and downstream doc hits carry source attribution.
 
 ## Scope completed
 

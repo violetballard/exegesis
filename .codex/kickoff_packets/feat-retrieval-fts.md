@@ -3,7 +3,7 @@
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Handoff type: retrieval feature handoff for the FTS-first retrieval lane.
-- Scope goal: Keep the FTS-first retrieval lane scoped to deterministic excerpt/provenance/hit-snapshot output, public package-level `RetrievalConstraints` support, compatibility shims for legacy retrieval imports, and the reviewed retrieval-owned files only.
+- Completed scope summary: The retrieval lane kept SQLite FTS authoritative, exported the canonical retrieval query constructor through both retrieval facades, exposed `RetrievalConstraints` on the public retrieval helpers, kept PageIndex and embeddings as compatibility-only shims, normalized downstream retrieval payload, provenance, and hit snapshots so deterministic excerpt, provenance, and hit-snapshot bundles remain stable, canonicalized payload bundle snapshots for deterministic downstream rehydration, and added downstream doc-hit `source_strategy` attribution.
 
 ## Scope completed
 
