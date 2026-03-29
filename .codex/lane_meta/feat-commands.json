@@ -1,29 +1,34 @@
 {
-  "scope_goal": "Keep the feat-commands handoff truthful at the current branch head by documenting only the packet and lane-metadata repin that is actually present in the submitted delta.",
-  "review_commit": "0575a22fb4980e6980973694e53653e7e23bc615",
+  "scope_goal": "Keep the feat-commands handoff aligned with the command-catalog, canonical mapping, and diff-preview CLI contract work already present on the branch, plus the two explicitly approved shared tests.",
+  "review_commit": "cf6e4984d3d0f154d2be69c58f582868c9549585",
   "review_commits": [
-    "0575a22fb4980e6980973694e53653e7e23bc615"
+    "cf6e4984d3d0f154d2be69c58f582868c9549585"
   ],
   "tasks_completed": [
-    "Repinned the packet and lane metadata to the current branch head.",
-    "Removed stale code, test, and shared-file approval claims from the review artifact.",
-    "Rewrote the scope metadata to match the actual three-file delta."
+    "Restored the command-catalog surface and added spec-aware lookup helpers plus canonical command mapping under src/qual/commands/**.",
+    "Hardened diff-preview output contracts so the fingerprint covers the exact emitted payload after labels, header suppression, truncation, and summary-only handling.",
+    "Added focused coverage for the command-catalog, canonical mapping, and diff-preview contract paths.",
+    "Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta and keeps the shared-file approvals explicit."
   ],
-  "risk": "LOW",
+  "risk": "HIGH",
   "roadmap_items": [
-    "Milestone 3 - Product Readiness (Planned): keep the command-contract handoff aligned with the current branch head so the operator-facing command surface remains deterministic and auditable."
+    "Milestone 3 - Product Readiness (Planned): lock the command-catalog and diff-preview CLI contracts so the operator-facing command surface stays deterministic, auditable, and ready for CLI-first use."
   ],
   "vision_capabilities": [
-    "4. Operator-first control surface - the review packet stays aligned with the CLI-first command-contract lane without claiming broader UI work."
+    "3. Auditable generation - the emitted fingerprint verifies the exact diff payload users receive, including label application and truncation behavior.",
+    "4. Operator-first control surface - CLI review gates stay aligned with the command-catalog, canonical mapping, and diff-preview contract surface plus the approved shared tests."
   ],
-  "routing_provider_impact": "None. This change only affects local packet metadata; no routing/provider files change.",
+  "routing_provider_impact": "None. This change only affects local packet metadata and command-contract test coverage; no routing/provider files change.",
   "proposed_readme_patch": "",
-  "shared_file_exception": false,
-  "kickoff_budget_note": "Low-risk metadata-only handoff with task budget 8, time budget 45m, size limits <=12 files and <=500 net LOC. The submitted delta is 3 files and stays within the lane limits.",
-  "approved_exception_note": "",
+  "shared_file_exception": true,
+  "kickoff_budget_note": "High-risk shared-test handoff with task budget 4, time budget 30m, size limits <=8 files and <=300 net LOC. The reviewed implementation spans 6 lane-owned or approved test files, including src/qual/commands/canonical.py and the two approved shared tests.",
+  "approved_exception_note": "Approved shared-file exception for tests/unit/test_commands_catalog.py and tests/unit/test_diff_preview.py.",
   "files_changed": [
-    { "path": ".codex/kickoff_packets/feat-commands.md", "kind": "docs" },
-    { "path": ".codex/lane_meta/feat-commands.json", "kind": "config" },
-    { "path": "THREAD_PACKET.md", "kind": "docs" }
+    { "path": "src/qual/commands/__init__.py", "kind": "code" },
+    { "path": "src/qual/commands/canonical.py", "kind": "code" },
+    { "path": "src/qual/commands/catalog.py", "kind": "code" },
+    { "path": "src/qual/commands/diff_preview.py", "kind": "code" },
+    { "path": "tests/unit/test_commands_catalog.py", "kind": "test" },
+    { "path": "tests/unit/test_diff_preview.py", "kind": "test" }
   ]
 }

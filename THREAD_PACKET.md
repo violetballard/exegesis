@@ -2,40 +2,46 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `0575a22fb4980e6980973694e53653e7e23bc615`
+- Commit: `cf6e4984d3d0f154d2be69c58f582868c9549585`
 - Reviewed commit(s):
-  - `0575a22fb4980e6980973694e53653e7e23bc615`
+  - `cf6e4984d3d0f154d2be69c58f582868c9549585`
 
 ## Scope goal
-- Keep the feat-commands handoff truthful at the current branch head by documenting only the packet and lane-metadata repin that is actually present in the submitted delta.
+- Keep the `feat-commands` handoff aligned with the command-catalog, canonical mapping, and diff-preview CLI contract work already present on the branch, plus the two explicitly approved shared tests.
 
 ## Lane/owned paths
-- `.codex/kickoff_packets/feat-commands.md`
-- `.codex/lane_meta/feat-commands.json`
-- `THREAD_PACKET.md`
+- `src/qual/commands/**`
+- Approved shared tests:
+  - `tests/unit/test_commands_catalog.py`
+  - `tests/unit/test_diff_preview.py`
 
 ## Scope completed
-- Repinned the handoff packet and lane metadata to the current branch head.
-- Removed stale code, test, and shared-file approval claims that are not part of this commit.
-- Kept the review artifact limited to the three metadata files that actually changed.
+- Restored the command-catalog surface under `src/qual/commands/**` and added spec-aware lookup helpers plus canonical command mapping.
+- Hardened diff-preview output contracts so the emitted SHA-256 is derived from the exact payload users receive after labels, header suppression, truncation, and summary-only handling.
+- Added focused coverage for the command-catalog, canonical mapping, and diff-preview contracts.
+- Regenerated the handoff packet and lane metadata so the review evidence matches the submitted code/test delta and keeps the shared-file approvals explicit.
 
 ## Kickoff budget/limits compliance
-- Low-risk metadata-only handoff: task budget `8`, time budget `45m`, size limits `<=12 files` and `<=500 net LOC`.
-- The submitted delta is 3 files and stays within the lane size limits.
-- The handoff stays centered on keeping the packet synchronized with the current branch head.
+- High-risk shared-test handoff: task budget `4`, time budget `30m`, size limits `<=8 files` and `<=300 net LOC`.
+- The reviewed implementation spans 6 lane-owned or approved test files, including `src/qual/commands/canonical.py` and the two approved shared tests.
+- The handoff stays centered on the command-catalog, canonical mapping, and diff-preview contract work already present on the branch.
 
 ## Approved exception note
-- None. No shared test files are part of this submitted delta.
+- Approved shared-file exception for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
 
 ## Tasks completed (numbered)
-1. Repinned the packet and lane metadata to the current branch head.
-2. Removed stale code, test, and shared-file approval claims from the review artifact.
-3. Rewrote the scope metadata to match the actual three-file delta.
+1. Restored the command-catalog surface and added spec-aware lookup helpers plus canonical command mapping under `src/qual/commands/**`.
+2. Hardened diff-preview output contracts so the fingerprint covers the exact emitted payload after labels, header suppression, truncation, and summary-only handling.
+3. Added focused coverage for the command-catalog, canonical mapping, and diff-preview contract paths.
+4. Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta and keeps the shared-file approvals explicit.
 
 ## Files changed
-- `.codex/kickoff_packets/feat-commands.md`
-- `.codex/lane_meta/feat-commands.json`
-- `THREAD_PACKET.md`
+- `src/qual/commands/__init__.py`
+- `src/qual/commands/canonical.py`
+- `src/qual/commands/catalog.py`
+- `src/qual/commands/diff_preview.py`
+- `tests/unit/test_commands_catalog.py`
+- `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
@@ -46,21 +52,22 @@
 - `make ci`: PASS
 
 ## Risks / blockers
-- Risk: `LOW`
+- Risk: `HIGH`
 - Blockers: none
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3 - Product Readiness (Planned): keep the command-contract handoff aligned with the current branch head so the operator-facing command surface remains deterministic and auditable.
+- Milestone 3 - Product Readiness (Planned): lock the command-catalog and diff-preview CLI contracts so the operator-facing command surface stays deterministic, auditable, and ready for CLI-first use.
 
 ### Vision capability affected
-- 4. Operator-first control surface - the review packet stays aligned with the CLI-first command-contract lane without claiming broader UI work.
+- 3. Auditable generation - the emitted fingerprint verifies the exact diff payload users receive, including label application and truncation behavior.
+- 4. Operator-first control surface - CLI review gates stay aligned with the command-catalog, canonical mapping, and diff-preview contract surface plus the approved shared tests.
 
 ### Routing/provider impact note
-- None. This change only affects local packet metadata; no routing/provider files change.
+- None. This change only affects local packet metadata and command-contract test coverage; no routing/provider files change.
 
 ### Proposed README patch text
 - None.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO`
+- Shared/integrator-locked edits: `YES`
