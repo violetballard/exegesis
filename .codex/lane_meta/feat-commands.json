@@ -1,5 +1,5 @@
 {
-  "scope_goal": "Harden the command catalog and diff-preview contracts so lookup helpers, labeled/text output, JSON responses, and emitted fingerprints stay deterministic and verifiable for CLI-first operator use.",
+  "scope_goal": "Harden the command-catalog and diff-preview contracts so lookup helpers, labeled/text output, JSON responses, and emitted fingerprints stay deterministic and verifiable for the CLI operator surface.",
   "review_commit": "3dfd014632493cdd66b363c637846596d490e7af",
   "review_commits": [
     "e78f6b247c3c70590ef32cca0d8902ddcf2e32a9",
@@ -14,11 +14,11 @@
   ],
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 3 - Product Readiness (Planned): keep the feat-commands handoff packet aligned with the owned command-contract changes and approved shared tests."
+    "Milestone 3 - Product Readiness (Planned): lock the command-catalog and diff-preview CLI contracts so the operator-facing command surface remains deterministic, auditable, and ready for CLI-first use."
   ],
   "vision_capabilities": [
-    "3. Auditable generation - the emitted fingerprint verifies the exact diff payload users receive.",
-    "4. Operator-first control surface - CLI review gates stay aligned with the command-contract surface and approved shared tests."
+    "3. Auditable generation - the emitted fingerprint verifies the exact diff payload users receive, including label application and truncation behavior.",
+    "4. Operator-first control surface - CLI review gates stay aligned with the command-catalog and diff-preview contract surface plus the approved shared tests."
   ],
   "routing_provider_impact": "None. This change only affects local packet metadata and command-contract test coverage; no routing/provider files change.",
   "proposed_readme_patch": "",

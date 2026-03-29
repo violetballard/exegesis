@@ -8,7 +8,7 @@
   - `3dfd014632493cdd66b363c637846596d490e7af`
 
 ## Scope goal
-- Harden the command catalog and diff-preview contracts so lookup helpers, labeled/text output, JSON responses, and emitted fingerprints stay deterministic and verifiable for CLI-first operator use.
+- Harden the command catalog and diff-preview contracts so lookup helpers, labeled/text output, JSON responses, and emitted fingerprints stay deterministic and verifiable for the CLI operator surface.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
@@ -57,11 +57,11 @@
 
 ## Required handoff fields
 ### Roadmap item(s) affected
-- Milestone 3 - Product Readiness (Planned): keep the `feat-commands` handoff packet aligned with the owned command-contract changes and approved shared tests.
+- Milestone 3 - Product Readiness (Planned): lock the command-catalog and diff-preview CLI contracts so the operator-facing command surface stays deterministic, auditable, and ready for CLI-first use.
 
 ### Vision capability affected
-- 3. Auditable generation - the emitted fingerprint verifies the exact diff payload users receive.
-- 4. Operator-first control surface - CLI review gates stay aligned with the command-contract surface and approved shared tests.
+- 3. Auditable generation - the emitted fingerprint verifies the exact diff payload users receive, including label application and truncation behavior.
+- 4. Operator-first control surface - CLI review gates stay aligned with the command-catalog and diff-preview contract surface plus the approved shared tests.
 
 ### Routing/provider impact note
 - None. This change only affects local packet metadata and command-contract test coverage; no routing/provider files change.
