@@ -1,9 +1,12 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Final HEAD SHA: `15103c92584694742e044ade321fab83b67a9478`
+- Final HEAD SHA: `c3a66bb580772d65201a630d673a8de1d4a63776`
 - Reviewed implementation commit(s):
+  - `22ce0e2023cf2bfa03fb5cfc2ba035cf8e92e8c3`
   - `15103c92584694742e044ade321fab83b67a9478`
+- Docs-only alignment commit(s):
+  - `c3a66bb580772d65201a630d673a8de1d4a63776`
 
 ## Scope goal
 
@@ -14,13 +17,18 @@ Expose an explicit `command_mvp_surface_contract` alias on the `feat-commands` c
 - Added `command_mvp_surface_contract` in `src/qual/commands/catalog.py` and re-exported it from `src/qual/commands/__init__.py` so the MVP surface has an explicit importable alias.
 - Routed `command_mvp_flow_contract` and `command_surface_contract` through the new alias so the public surface contract stays a single shared object.
 - Added focused command-catalog regression coverage in `tests/unit/test_commands_catalog.py` to verify the new alias stays aligned with the public surface contract and MVP flow contract.
-- Regenerated the handoff packet from the actual `main..codex/feat-commands` delta and aligned scope-check policy with the approved `tests/unit/test_commands_catalog.py` shared test.
+- Regenerated the handoff packet from the actual `main..codex/feat-commands` delta and aligned scope-check policy with the approved `tests/unit/test_commands_catalog.py` shared test, while keeping the docs/policy alignment files separate from the 3-file implementation delta.
 
 ## Files changed
+
+### Implementation files changed
 
 - `src/qual/commands/__init__.py` (lane-owned)
 - `src/qual/commands/catalog.py` (lane-owned)
 - `tests/unit/test_commands_catalog.py` (approved shared file)
+
+### Docs/policy alignment files changed
+
 - `scripts/scope-check.sh` (policy-support edit for the approved shared test)
 - `THREAD_PACKET.md` (handoff artifact)
 
@@ -29,7 +37,7 @@ Expose an explicit `command_mvp_surface_contract` alias on the `feat-commands` c
 1. Added the explicit `command_mvp_surface_contract` alias and exported it from the public command package.
 2. Unified the public surface-contract helpers through the new alias so MVP and public entrypoints stay identical.
 3. Added focused catalog coverage for the alias and contract alignment.
-4. Regenerated the handoff packet and scope-check policy so the submitted branch matches the actual diff and passes scope checking.
+4. Regenerated the handoff packet and scope-check policy so the submitted branch matches the actual diff, passes scope checking, and keeps docs/policy alignment separate from the implementation delta.
 
 ## Commands run and outcomes
 
@@ -65,6 +73,6 @@ Expose an explicit `command_mvp_surface_contract` alias on the `feat-commands` c
 
 ## Scope-check / ownership note
 
-- Shared/integrator-locked edits: `YES`
+- Shared/integrator-locked edits: `YES` (approved shared test only)
 - Approved shared-file exception: `tests/unit/test_commands_catalog.py`
 - Policy-support edit: `scripts/scope-check.sh` permits the approved `tests/unit/test_commands_catalog.py` shared test during `make scope-check`.
