@@ -2,9 +2,10 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `1d07cbfc371f677959d26a60f3140888d8142eb3`
+- Commit: `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50`
 - Reviewed commit(s):
   - `1d07cbfc371f677959d26a60f3140888d8142eb3`
+  - `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50`
 
 ## Scope goal
 - Harden `diff_preview` output contracts so the emitted diff payload, JSON label metadata, summary-only mode, and SHA-256 fingerprint stay deterministic and verifiable for CLI-first operator use, with the approved shared-test exception encoded in the scope gate.

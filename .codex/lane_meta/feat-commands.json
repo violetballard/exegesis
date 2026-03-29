@@ -1,8 +1,9 @@
 {
   "scope_goal": "Harden diff_preview output contracts so the emitted diff payload, JSON label metadata, summary-only mode, and SHA-256 fingerprint stay deterministic and verifiable for CLI-first operator use.",
-  "review_commit": "1d07cbfc371f677959d26a60f3140888d8142eb3",
+  "review_commit": "40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50",
   "review_commits": [
-    "1d07cbfc371f677959d26a60f3140888d8142eb3"
+    "1d07cbfc371f677959d26a60f3140888d8142eb3",
+    "40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50"
   ],
   "tasks_completed": [
     "Made the emitted diff string a first-class value in diff_preview so the JSON payload and fingerprint are derived from the same emitted text.",

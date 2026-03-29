@@ -1,7 +1,7 @@
 # Lane Kickoff: feat-commands
 
 - Branch: `codex/feat-commands`
-- Head commit: `1d07cbfc371f677959d26a60f3140888d8142eb3`
+- Head commit: `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50`
 - Lane/owned paths: `src/qual/commands/**`
 - Approved shared tests:
   - `tests/unit/test_diff_preview.py`
