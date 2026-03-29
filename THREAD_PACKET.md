@@ -24,7 +24,7 @@ Add grouped command smoke tokens to the command catalog so the public and MVP su
 
 - `src/qual/commands/__init__.py` (lane-owned)
 - `src/qual/commands/catalog.py` (lane-owned)
-- `tests/unit/test_commands_catalog.py` (approved shared test)
+- `tests/unit/test_commands_catalog.py` (approved shared test; whitelisted in `scripts/scope-check.sh`)
 
 ### Docs-only alignment files changed
 
@@ -69,4 +69,4 @@ Add grouped command smoke tokens to the command catalog so the public and MVP su
 ## Scope-check / ownership note
 
 - Shared/integrator-locked edits: `YES` (approved shared test only)
-- Approved shared-file exception: `tests/unit/test_commands_catalog.py`
+- Approved shared-file exception: `tests/unit/test_commands_catalog.py` (whitelisted for `codex/feat-commands` in `scripts/scope-check.sh`)
