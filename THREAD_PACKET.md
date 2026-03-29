@@ -24,7 +24,7 @@
 - `src/qual/storage/vault.py`
 
 ## Approved exception files changed
-- `tests/unit/test_context_storage_recovery.py` (the only approved shared-test exception; corresponds to implementation diff `47cda4df831ac41867a8792f40d720e0cb109514`; `SCOPE_ALLOW_SHARED=1` is required by `scripts/scope-check.sh`)
+- `tests/unit/test_context_storage_recovery.py` (the only approved shared-test exception; corresponds to implementation diff `47cda4df831ac41867a8792f40d720e0cb109514`; no broader shared-file runtime edit is being claimed; `SCOPE_ALLOW_SHARED=1` is required by `scripts/scope-check.sh`)
 
 ## Docs-only handoff-alignment files changed
 - `.codex/lane_meta/feat-context-storage.json`
