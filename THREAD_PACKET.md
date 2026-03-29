@@ -54,11 +54,10 @@
 
 ### Roadmap item(s) affected
 - Milestone 1: Bootstrap Flow Stabilization (In Progress)
-- Context basket and vault persistence hardening
 
 ### Vision capability affected
-- `Local-first state and identity`
-- `Auditable generation`
+- `1. Local-first state and identity`
+- `3. Auditable generation`
 
 ### Routing/provider impact note
 - None
