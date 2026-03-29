@@ -24,8 +24,12 @@ class ContextSetRecord:
         self.context_set_id = self._normalize_identifier(self.context_set_id)
         self.name = self._normalize_name(self.name)
         self.item_ids = self._normalize_item_ids(self.item_ids)
-        self.created_at = self._normalize_timestamp(self.created_at)
-        self.updated_at = self._normalize_timestamp(self.updated_at)
+        normalized_created_at = self._normalize_timestamp(self.created_at)
+        normalized_updated_at = self._normalize_timestamp(self.updated_at)
+        self.created_at, self.updated_at = self._normalize_record_timestamps(
+            normalized_created_at,
+            normalized_updated_at,
+        )
 
     @staticmethod
     def _normalize_text_scalar(value: object) -> str:
@@ -101,6 +105,23 @@ class ContextSetRecord:
             parsed = parsed.replace(tzinfo=UTC)
         return parsed.astimezone(UTC).isoformat()
 
+    @staticmethod
+    def _normalize_record_timestamps(created_at: str, updated_at: str) -> tuple[str, str]:
+        if created_at and not updated_at:
+            return created_at, created_at
+        if updated_at and not created_at:
+            return updated_at, updated_at
+        if not created_at or not updated_at:
+            return created_at, updated_at
+        try:
+            created_at_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            updated_at_dt = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
+        except ValueError:
+            return created_at, updated_at
+        if updated_at_dt < created_at_dt:
+            return created_at, created_at
+        return created_at, updated_at
+
 
 class ContextSetStore:
     """Persist named context sets for excerpt selection and attachment workflows."""
@@ -134,12 +155,12 @@ class ContextSetStore:
     def load(self) -> list[ContextSetRecord]:
         primary_missing = not self._path.exists()
         backup_missing = not self._backup_path.exists()
-        primary_payload, _ = self._load_payload(self._path)
+        primary_payload, primary_quarantined = self._load_payload(self._path)
         tmp_payload, _ = self._load_payload(self._tmp_path())
         backup_tmp_payload, _ = self._load_payload(self._backup_tmp_path())
-        backup_payload, _ = self._load_payload(self._backup_path)
+        backup_payload, backup_quarantined = self._load_payload(self._backup_path)
         seed_tmp_payload, _ = self._load_payload(self._seed_tmp_path())
-        seed_payload, _ = self._load_payload(self._seed_state_path())
+        seed_payload, seed_quarantined = self._load_payload(self._seed_state_path())
         self._quarantine_missing_context_sets_payload(self._tmp_path(), tmp_payload)
         self._quarantine_missing_context_sets_payload(self._backup_tmp_path(), backup_tmp_payload)
         preserve_backup_corrupt = self._quarantine_missing_context_sets_payload(self._backup_path, backup_payload)
@@ -172,6 +193,7 @@ class ContextSetStore:
 
         payload: dict[str, object] | list[object] | None
         recovered_source: str | None
+        materialized_empty_state = False
         if primary_needs_quarantine:
             if isinstance(primary_payload, list):
                 primary_records = self._parse_context_sets(primary_payload)
@@ -194,7 +216,21 @@ class ContextSetStore:
                 parsed_records = self._parse_context_sets(raw_context_sets)
                 has_explicit_empty_context_sets = isinstance(raw_context_sets, list) and not raw_context_sets
                 has_salvageable_context_sets = parsed_records is not None and bool(parsed_records)
-                if has_explicit_empty_context_sets or has_salvageable_context_sets:
+                if has_explicit_empty_context_sets:
+                    recovery_payload, recovery_source = self._prefer_recovery_payload(
+                        tmp_payload,
+                        backup_tmp_payload,
+                        backup_payload,
+                        seed_tmp_payload,
+                        seed_payload,
+                    )
+                    if recovery_payload is not None and self._has_context_set_records(recovery_payload):
+                        payload = recovery_payload
+                        recovered_source = recovery_source
+                    else:
+                        payload = primary_payload
+                        recovered_source = None
+                elif has_salvageable_context_sets:
                     payload = primary_payload
                     recovered_source = None
                 else:
@@ -206,8 +242,15 @@ class ContextSetStore:
                         seed_payload,
                     )
                     if payload is None:
-                        payload = primary_payload
-                        recovered_source = None
+                        if primary_quarantined or backup_quarantined or seed_quarantined:
+                            # Keep a canonical empty context-set file on disk
+                            # when quarantine found only malformed state.
+                            payload = []
+                            recovered_source = None
+                            materialized_empty_state = True
+                        else:
+                            payload = primary_payload
+                            recovered_source = None
         elif isinstance(primary_payload, list):
             primary_records = self._parse_context_sets(primary_payload)
             if primary_records:
@@ -225,8 +268,27 @@ class ContextSetStore:
                     payload = primary_payload
                     recovered_source = None
         elif primary_payload is not None:
-            payload = primary_payload
-            recovered_source = None
+            if (
+                isinstance(primary_payload, dict)
+                and self._has_explicit_empty_recovery_payload(primary_payload)
+                and primary_needs_quarantine
+            ):
+                recovery_payload, recovery_source = self._prefer_recovery_payload(
+                    tmp_payload,
+                    backup_tmp_payload,
+                    backup_payload,
+                    seed_tmp_payload,
+                    seed_payload,
+                )
+                if recovery_payload is not None and self._has_context_set_records(recovery_payload):
+                    payload = recovery_payload
+                    recovered_source = recovery_source
+                else:
+                    payload = primary_payload
+                    recovered_source = None
+            else:
+                payload = primary_payload
+                recovered_source = None
         elif primary_payload is None:
             payload, recovered_source = self._prefer_recovery_payload(
                 tmp_payload,
@@ -236,12 +298,19 @@ class ContextSetStore:
                 seed_payload,
             )
             if payload is None:
-                self._clear_quarantine_file(
-                    preserve_backup_corrupt=preserve_backup_corrupt,
-                    preserve_seed_corrupt=preserve_seed_corrupt,
-                )
-                self._clear_temporary_files()
-                return []
+                if primary_quarantined or backup_quarantined or seed_quarantined:
+                    # Keep a canonical empty context-set file on disk when
+                    # quarantine found only malformed state.
+                    payload = []
+                    recovered_source = None
+                    materialized_empty_state = True
+                else:
+                    self._clear_quarantine_file(
+                        preserve_backup_corrupt=preserve_backup_corrupt,
+                        preserve_seed_corrupt=preserve_seed_corrupt,
+                    )
+                    self._clear_temporary_files()
+                    return []
         else:
             self._clear_quarantine_file(
                 preserve_backup_corrupt=preserve_backup_corrupt,
@@ -255,15 +324,15 @@ class ContextSetStore:
         explicit_empty_recovery = self._is_empty_recovery_payload(payload) and self._has_explicit_empty_recovery_payload(
             payload
         )
+        audit_recovered_source = recovered_source
         rewrite_timestamp = datetime.now(UTC).isoformat()
         records: list[ContextSetRecord]
         if explicit_empty_recovery:
             # Materialize empty canonical state when it is the only usable
-            # payload. If we are repairing an existing primary, keep the source
-            # so the canonical rewrite can record where the empty state came
-            # from and preserve the quarantine trail.
+            # payload, but explicit empty recovery should not claim provenance
+            # on the rewritten payload.
             rewrite_empty_recovery = recovered_source is not None or primary_payload is None
-            if primary_payload is None:
+            if recovered_source is not None:
                 recovered_source = None
         if isinstance(payload, list):
             parsed_records = self._parse_context_sets(payload)
@@ -315,6 +384,9 @@ class ContextSetStore:
             self._discard_payload_source(recovered_source)
             return []
 
+        cleanup_timestamp = self._recovery_marker_cleanup_timestamp(payload, records)
+        if cleanup_timestamp is not None:
+            rewrite_timestamp = cleanup_timestamp
         recovered_from = self._recovery_marker(
             primary_unavailable=primary_missing or primary_payload is None or recovered_source is not None,
             recovered_source=recovered_source,
@@ -330,11 +402,16 @@ class ContextSetStore:
             and primary_payload is not None
             and isinstance(primary_payload, dict)
         )
+        preserve_primary_corrupt = preserve_primary_corrupt or (materialized_empty_state and primary_quarantined)
         preserve_backup_corrupt = bool(
-            preserve_backup_corrupt or (recovered_source == "backup" and recovered_persisted_missing_context_sets)
+            preserve_backup_corrupt
+            or backup_quarantined
+            or (recovered_source == "backup" and recovered_persisted_missing_context_sets)
         )
         preserve_seed_corrupt = bool(
-            preserve_seed_corrupt or (recovered_source == "seed" and recovered_persisted_missing_context_sets)
+            preserve_seed_corrupt
+            or seed_quarantined
+            or (recovered_source == "seed" and recovered_persisted_missing_context_sets)
         )
         if isinstance(primary_payload, list) and (
             not self._has_context_set_records(primary_payload)
@@ -344,25 +421,25 @@ class ContextSetStore:
             # it cannot contribute cleanly recoverable context set records.
             preserve_primary_corrupt = True
         if (
-            recovered_source == "backup"
+            audit_recovered_source == "backup"
             and isinstance(backup_payload, list)
             and self._list_payload_needs_audit_quarantine(backup_payload)
         ):
             self._quarantine_invalid_backup()
             preserve_backup_corrupt = True
         if (
-            recovered_source == "seed"
+            audit_recovered_source == "seed"
             and isinstance(seed_payload, list)
             and self._list_payload_needs_audit_quarantine(seed_payload)
         ):
             self._quarantine_invalid_seed()
             preserve_seed_corrupt = True
-        if recovered_source == "backup" and backup_payload is not None and self._backup_needs_audit_quarantine(
+        if audit_recovered_source == "backup" and backup_payload is not None and self._backup_needs_audit_quarantine(
             backup_payload
         ):
             self._quarantine_invalid_backup()
             preserve_backup_corrupt = True
-        if recovered_source == "seed" and seed_payload is not None and self._backup_needs_audit_quarantine(seed_payload):
+        if audit_recovered_source == "seed" and seed_payload is not None and self._backup_needs_audit_quarantine(seed_payload):
             self._quarantine_invalid_seed()
             preserve_seed_corrupt = True
         if recovered_source is not None or should_rewrite:
@@ -438,6 +515,41 @@ class ContextSetStore:
         normalized_recovered_from = self._parse_recovered_from(recovered_from)
         current_payload, _ = self._load_payload(self._path)
         current_backup_payload, _ = self._load_payload(self._backup_path)
+        cleanup_timestamp = self._recovery_marker_cleanup_timestamp(current_payload, normalized_records)
+        if (
+            normalized_recovered_from is None
+            and cleanup_timestamp is not None
+            and not preserve_primary_corrupt
+            and not preserve_backup_corrupt
+            and not preserve_seed_corrupt
+        ):
+            payload = {
+                "schema_version": _SCHEMA_VERSION,
+                "updated_at": cleanup_timestamp,
+                "context_sets": [asdict(record) for record in normalized_records],
+            }
+            tmp = self._tmp_path()
+            tmp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+            try:
+                tmp.replace(self._path)
+            except OSError:
+                self._unlink_if_exists(tmp)
+                raise
+            backup_payload = self._backup_payload(payload)
+            backup_written = (
+                refresh_backup
+                or current_backup_payload is None
+                or self._backup_needs_refresh(current_backup_payload, normalized_records, payload)
+            )
+            if backup_written:
+                backup_written = self._write_backup_payload(backup_payload)
+            if not backup_written:
+                # Seed keeps the latest canonical context set recoverable if
+                # backup rotation cannot be completed after the recovery
+                # marker is removed from an otherwise canonical payload.
+                self._write_seed(backup_payload)
+            self._clear_recovery_artifacts(preserve_seed=not backup_written)
+            return
         if (
             normalized_recovered_from is None
             and not preserve_primary_corrupt
@@ -644,7 +756,7 @@ class ContextSetStore:
                 self._quarantine_invalid_backup()
             elif path == self._seed_state_path():
                 self._quarantine_invalid_seed()
-            return None, path.suffix == ".tmp"
+            return None, True
         if not self._is_loadable_payload(payload):
             if path == self._path:
                 self._quarantine_invalid_file()
@@ -654,7 +766,7 @@ class ContextSetStore:
                 self._quarantine_invalid_backup()
             elif path == self._seed_state_path():
                 self._quarantine_invalid_seed()
-            return None, path.suffix == ".tmp"
+            return None, True
         return payload, False
 
     def _write_backup(self) -> bool:
@@ -758,6 +870,34 @@ class ContextSetStore:
             return False
         return parsed_records == records
 
+    def _recovery_marker_cleanup_timestamp(
+        self,
+        payload: object,
+        records: list[ContextSetRecord],
+    ) -> str | None:
+        if not isinstance(payload, dict):
+            return None
+        if "recovered_from" not in payload:
+            return None
+        if self._parse_schema_version(payload) != _SCHEMA_VERSION:
+            return None
+        if self._has_unknown_fields(payload):
+            return None
+        if "updated_at" not in payload:
+            return None
+        normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
+        if normalized_updated_at is None or payload.get("updated_at") != normalized_updated_at:
+            return None
+        raw_context_sets = payload.get("context_sets")
+        parsed_records = self._parse_context_sets(raw_context_sets)
+        if parsed_records is None:
+            return None
+        if self._records_need_rewrite(raw_context_sets, parsed_records):
+            return None
+        if self._normalize_records(parsed_records) != records:
+            return None
+        return normalized_updated_at
+
     def _payload_updated_at(self, payload: object) -> str | None:
         if not isinstance(payload, dict):
             return None
@@ -802,7 +942,8 @@ class ContextSetStore:
 
     def _normalize_records(self, records: list[ContextSetRecord]) -> list[ContextSetRecord]:
         normalized: list[ContextSetRecord] = []
-        seen: set[str] = set()
+        seen_ids: set[str] = set()
+        seen_names: set[str] = set()
         for raw in records:
             record = ContextSetRecord(
                 context_set_id=raw.context_set_id,
@@ -812,10 +953,16 @@ class ContextSetStore:
                 updated_at=raw.updated_at,
             )
             record.normalize()
-            if not record.context_set_id or not record.name or record.context_set_id in seen:
+            if (
+                not record.context_set_id
+                or not record.name
+                or record.context_set_id in seen_ids
+                or record.name in seen_names
+            ):
                 continue
             normalized.append(record)
-            seen.add(record.context_set_id)
+            seen_ids.add(record.context_set_id)
+            seen_names.add(record.name)
         return normalized
 
     def _records_need_timestamp_backfill(self, records: list[ContextSetRecord]) -> bool:
@@ -935,6 +1082,8 @@ class ContextSetStore:
             return False
         if isinstance(payload, list):
             return self._list_payload_needs_audit_quarantine(payload)
+        if "updated_at" not in payload:
+            return True
         if "context_sets" not in payload:
             return True
         raw_context_sets = payload.get("context_sets")
@@ -946,24 +1095,23 @@ class ContextSetStore:
         return any(key not in _CANONICAL_DICT_KEYS for key in payload)
 
     def _recovery_payload_updated_at(self, payload: dict[str, object] | list[object]) -> str | None:
+        timestamps: list[str] = []
         if isinstance(payload, dict):
             normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
             if normalized_updated_at is not None:
-                return normalized_updated_at
+                timestamps.append(normalized_updated_at)
             raw_context_sets = payload.get("context_sets") if "context_sets" in payload else None
         else:
             raw_context_sets = payload
-        if raw_context_sets is None:
-            return None
-        records = self._parse_context_sets(raw_context_sets)
-        if not records:
-            return None
-        timestamps = [
-            timestamp
-            for record in records
-            for timestamp in (record.updated_at, record.created_at)
-            if timestamp
-        ]
+        if raw_context_sets is not None:
+            records = self._parse_context_sets(raw_context_sets)
+            if records:
+                timestamps.extend(
+                    timestamp
+                    for record in records
+                    for timestamp in (record.updated_at, record.created_at)
+                    if timestamp
+                )
         if not timestamps:
             return None
         return max(timestamps)

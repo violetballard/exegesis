@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import re
 from datetime import UTC, datetime
@@ -50,6 +52,7 @@ class VaultService:
         parsed_is_locked = self._parse_is_locked(raw_state.get("is_locked")) if has_is_locked else None
         is_locked = parsed_is_locked if parsed_is_locked is not None else False
         normalized_updated_at = self._parse_updated_at(raw_state.get("updated_at")) if "updated_at" in raw_state else None
+        cleanup_timestamp = self._recovery_marker_cleanup_timestamp(raw_state, safe_project_name)
         needs_rewrite = (
             recovered_source is not None
             or self._parse_schema_version(raw_state) != _SCHEMA_VERSION
@@ -93,6 +96,7 @@ class VaultService:
                     primary_unavailable=primary_unavailable,
                     recovered_source=recovered_source,
                 ),
+                updated_at=cleanup_timestamp if recovered_source is None and cleanup_timestamp is not None else None,
                 preserve_primary_corrupt=preserve_primary_corrupt,
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
@@ -199,11 +203,11 @@ class VaultService:
             recovered_source = None
             preserve_backup_corrupt = backup_present and backup_payload is None
             preserve_seed_corrupt = seed_present and seed_payload is None
-            if backup_payload is not None and not self._is_supported_payload(backup_payload):
+            if self._needs_audit_quarantine(backup_payload):
                 # Keep stale auxiliary state auditable before canonical rewrite.
                 self._quarantine_invalid_backup(root_dir)
                 preserve_backup_corrupt = True
-            if seed_payload is not None and not self._is_supported_payload(seed_payload):
+            if self._needs_audit_quarantine(seed_payload):
                 # Keep stale auxiliary state auditable before canonical rewrite.
                 self._quarantine_invalid_seed(root_dir)
                 preserve_seed_corrupt = True
@@ -250,10 +254,10 @@ class VaultService:
             primary_unavailable = True
         preserve_backup_corrupt = preserve_backup_corrupt or (backup_present and backup_payload is None)
         preserve_seed_corrupt = preserve_seed_corrupt or (seed_present and seed_payload is None)
-        if recovered_source == "backup" and backup_payload is not None and not self._is_supported_payload(backup_payload):
+        if recovered_source == "backup" and self._needs_audit_quarantine(backup_payload):
             self._quarantine_invalid_backup(root_dir)
             preserve_backup_corrupt = True
-        if recovered_source == "seed" and seed_payload is not None and not self._is_supported_payload(seed_payload):
+        if recovered_source == "seed" and self._needs_audit_quarantine(seed_payload):
             self._quarantine_invalid_seed(root_dir)
             preserve_seed_corrupt = True
         return payload, recovered_source, primary_unavailable, preserve_backup_corrupt, preserve_seed_corrupt
@@ -262,6 +266,7 @@ class VaultService:
         self,
         state: VaultState,
         recovered_from: str | None = None,
+        updated_at: str | None = None,
         preserve_primary_corrupt: bool = False,
         preserve_backup_corrupt: bool = False,
         preserve_seed_corrupt: bool = False,
@@ -269,7 +274,7 @@ class VaultService:
         state.root_dir.mkdir(parents=True, exist_ok=True)
         payload = {
             "schema_version": _SCHEMA_VERSION,
-            "updated_at": datetime.now(UTC).isoformat(),
+            "updated_at": updated_at or datetime.now(UTC).isoformat(),
             "project_name": state.project_name,
             "is_locked": state.is_locked,
         }
@@ -493,6 +498,15 @@ class VaultService:
             return False
         return True
 
+    def _needs_audit_quarantine(self, payload: object) -> bool:
+        if payload is None:
+            return False
+        if not isinstance(payload, dict):
+            return False
+        if "updated_at" not in payload:
+            return True
+        return not self._is_supported_payload(payload)
+
     def _primary_state_needs_recovery(self, payload: dict[str, object], expected_project_name: str) -> bool:
         if "project_name" not in payload or "is_locked" not in payload:
             return True
@@ -508,6 +522,27 @@ class VaultService:
         if project_name is None or project_name != expected_project_name:
             return False
         return self._parse_is_locked(payload.get("is_locked")) is not None
+
+    def _recovery_marker_cleanup_timestamp(self, payload: object, expected_project_name: str) -> str | None:
+        if not isinstance(payload, dict):
+            return None
+        if "recovered_from" not in payload:
+            return None
+        if self._parse_schema_version(payload) != _SCHEMA_VERSION:
+            return None
+        if self._has_unknown_fields(payload):
+            return None
+        if "project_name" not in payload or "is_locked" not in payload or "updated_at" not in payload:
+            return None
+        project_name = self._parse_project_name(payload.get("project_name"))
+        if project_name is None or project_name != expected_project_name:
+            return None
+        if self._parse_is_locked(payload.get("is_locked")) is None:
+            return None
+        normalized_updated_at = self._parse_updated_at(payload.get("updated_at"))
+        if normalized_updated_at is None or payload.get("updated_at") != normalized_updated_at:
+            return None
+        return normalized_updated_at
 
     def _recovery_payload_updated_at(self, payload: dict[str, object]) -> str | None:
         return self._parse_updated_at(payload.get("updated_at"))
