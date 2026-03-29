@@ -19,9 +19,6 @@ from src.qual.engine.retrieval import (
     FTS_FIRST_POLICY,
     FTSStrategy,
     build_retrieval_downstream_payload,
-    build_retrieval_excerpt_bundle_from_result,
-    build_retrieval_provenance_from_result,
-    build_retrieval_source_bundle_from_result,
     primary_strategy_id,
     retrieval_policy_snapshot,
 )
@@ -420,7 +417,15 @@ class RetrievalResult:
     def retrieval_provenance_bundle(self) -> dict[str, object]:
         """Return the deterministic retrieval provenance snapshot for downstream engine flows."""
 
-        return copy.deepcopy(self.to_downstream_payload()["retrieval_provenance"])
+        citation_bundle = self.citation_bundle()
+        citation_status = dict(citation_bundle["citation_status"])
+        return copy.deepcopy(
+            self._retrieval_provenance_snapshot(
+                citation_bundle=citation_bundle,
+                citation_status=citation_status,
+                retrieval_policy=self._retrieval_policy_snapshot(),
+            )
+        )
 
     def retrieval_doc_bundle(self) -> dict[str, object]:
         """Return the deterministic doc-focused snapshot for downstream engine flows."""
@@ -448,16 +453,17 @@ class RetrievalResult:
     def retrieval_context_bundle(self) -> dict[str, object]:
         """Return the canonical retrieval context for drafting, patching, and research flows."""
 
+        downstream_payload = self.to_downstream_payload()
         return {
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
-            "retrieval_downstream_payload": copy.deepcopy(self.to_downstream_payload()),
-            "retrieval_citation_bundle": copy.deepcopy(self.citation_bundle()),
-            "retrieval_doc_bundle": copy.deepcopy(self.retrieval_doc_bundle()),
-            "retrieval_excerpt_bundle": copy.deepcopy(self.retrieval_excerpt_bundle()),
-            "retrieval_provenance": copy.deepcopy(build_retrieval_provenance_from_result(self)),
-            "retrieval_source_bundle": copy.deepcopy(self.source_bundle()),
-            "retrieval_evidence": copy.deepcopy(self.evidence),
+            "retrieval_downstream_payload": copy.deepcopy(downstream_payload),
+            "retrieval_citation_bundle": copy.deepcopy(downstream_payload["retrieval_citation_bundle"]),
+            "retrieval_doc_bundle": copy.deepcopy(downstream_payload["retrieval_doc_bundle"]),
+            "retrieval_excerpt_bundle": copy.deepcopy(downstream_payload["retrieval_excerpt_bundle"]),
+            "retrieval_provenance": copy.deepcopy(downstream_payload["retrieval_provenance"]),
+            "retrieval_source_bundle": copy.deepcopy(downstream_payload["retrieval_source_bundle"]),
+            "retrieval_evidence": copy.deepcopy(downstream_payload["retrieval_evidence"]),
         }
 
     def _query_snapshot(self) -> dict[str, object]:
