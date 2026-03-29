@@ -3,11 +3,11 @@
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Handoff type: retrieval feature handoff for the FTS-first retrieval lane.
-- Completed scope summary: The retrieval lane kept SQLite FTS authoritative, exported the canonical retrieval query constructor through both retrieval facades, exposed `RetrievalConstraints` on the public retrieval helpers, kept PageIndex and embeddings as compatibility-only shims, normalized downstream retrieval payload, provenance, and hit snapshots so deterministic excerpt, provenance, and hit-snapshot bundles remain stable, canonicalized payload bundle snapshots for deterministic downstream rehydration, and added downstream doc-hit `source_strategy` attribution.
+- Completed scope summary: The retrieval lane kept SQLite FTS authoritative, exported the canonical retrieval query constructor through both retrieval facades, exposed `RetrievalConstraints` on the public retrieval helpers, kept PageIndex and embeddings as compatibility-only shims, normalized downstream retrieval payload, provenance, and hit snapshots so deterministic excerpt, provenance, and hit-snapshot bundles remained stable, canonicalized payload bundle snapshots for deterministic downstream rehydration, added downstream doc-hit `source_strategy` attribution, and tightened source-bundle fallback handling for provenance, citation, doc, and excerpt rehydration.
 
 ## Scope completed
 
-The retrieval lane kept SQLite FTS authoritative, exported the canonical retrieval query constructor through both retrieval facades, exposed `RetrievalConstraints` on the public retrieval helpers, kept PageIndex and embeddings as compatibility-only shims, normalized downstream retrieval payload, provenance, and hit snapshots so deterministic excerpt, provenance, and hit-snapshot bundles remain stable, canonicalized payload bundle snapshots for deterministic downstream rehydration, and added downstream doc-hit `source_strategy` attribution.
+The retrieval lane kept SQLite FTS authoritative, exported the canonical retrieval query constructor through both retrieval facades, exposed `RetrievalConstraints` on the public retrieval helpers, kept PageIndex and embeddings as compatibility-only shims, normalized downstream retrieval payload, provenance, and hit snapshots so deterministic excerpt, provenance, and hit-snapshot bundles remained stable, canonicalized payload bundle snapshots for deterministic downstream rehydration, added downstream doc-hit `source_strategy` attribution, and tightened source-bundle fallback handling for provenance, citation, doc, and excerpt rehydration.
 
 ## Budget note
 
