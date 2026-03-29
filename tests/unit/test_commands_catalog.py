@@ -13,6 +13,7 @@ from src.qual.commands import (
     command_flow_lookup_surface,
     command_flow_lookup_table,
     command_flow_surface_lookup_index,
+    command_flow_surface_tokens,
     command_flow_steps,
     command_flow_sequence,
     command_lookup_index,
@@ -27,12 +28,14 @@ from src.qual.commands import (
     command_mvp_flow_contract,
     command_mvp_flow_lookup_surface,
     command_mvp_flow_surface_lookup_index,
+    command_mvp_flow_surface_tokens,
     command_mvp_flow_lookup_table,
     command_mvp_flow_sequence,
     command_mvp_flow_steps,
     command_mvp_lookup_index,
     command_mvp_surface_contract,
     command_surface_contract,
+    command_demo_flow_surface_tokens,
     command_names,
     command_spec,
     command_spec_for,
@@ -229,6 +232,23 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
 
+    def test_command_flow_surface_tokens_group_the_smoke_surface_by_step(self) -> None:
+        self.assertEqual(command_flow_surface_tokens(), command_mvp_flow_surface_tokens())
+        self.assertEqual(
+            command_flow_surface_tokens(flow_steps=command_mvp_flow_steps()),
+            command_mvp_flow_surface_tokens(),
+        )
+        self.assertEqual(
+            command_mvp_flow_surface_tokens(),
+            (
+                ("bootstrap", "open", "project-open", "project"),
+                ("context-basket", "context", "basket", "retrieval"),
+                ("diff-preview", "diff", "patch-review"),
+                ("terminal", "export-handoff"),
+            ),
+        )
+        self.assertEqual(command_demo_flow_surface_tokens(), command_mvp_flow_surface_tokens())
+
     def test_command_mvp_lookup_index_stays_command_only(self) -> None:
         self.assertEqual(
             command_mvp_lookup_index(),
@@ -317,6 +337,7 @@ class CommandCatalogTests(unittest.TestCase):
             contract.lookup_surface,
             command_mvp_flow_lookup_surface(),
         )
+        self.assertEqual(contract.flow_surface_tokens, command_mvp_flow_surface_tokens())
         self.assertEqual(
             contract.lookup_index,
             (
@@ -347,6 +368,7 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(mvp_contract, command_mvp_flow_contract())
         self.assertEqual(mvp_contract.flow_catalog, command_mvp_flow_catalog())
         self.assertEqual(mvp_contract.lookup_surface, command_mvp_flow_lookup_surface())
+        self.assertEqual(mvp_contract.flow_surface_tokens, command_mvp_flow_surface_tokens())
 
     def test_command_manifest_keeps_catalog_order(self) -> None:
         manifest = command_manifest()
