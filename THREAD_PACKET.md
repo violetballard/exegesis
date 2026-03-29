@@ -1,21 +1,23 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Final HEAD SHA: `691037c4db2cee231a6ea8f50118c1676b26c419`
+- Final HEAD SHA: `f3f54de86d3a0e0d4bc501843111afad65f47f63`
 - Reviewed implementation commit(s):
   - `691037c4db2cee231a6ea8f50118c1676b26c419` (feat(commands): add flow-ordered route contract)
+  - `f3f54de86d3a0e0d4bc501843111afad65f47f63` (feat(commands): expose route catalog on surface contract)
 - Docs-only alignment commit(s):
-  - `2ca7ab8c2d3981ae8cc0def9cb603f16d661846a` (docs-only handoff realignment; no code scope)
+  - `e8231dd5a8dd09386667877e5991b2b9da8c387e` (docs: correct feat-commands handoff packet)
+  - `2ca7ab8c2d3981ae8cc0def9cb603f16d661846a` (docs: realign feat-commands handoff packet)
 
 ## Scope goal
-- Add a flow-ordered route contract for the command surface so CLI entrypoints, lookup tokens, and smoke-flow ordering stay deterministic for CLI-first operator use.
+- Expose the command route catalog on the `feat-commands` surface contract so CLI-compatible entrypoints, lookup tokens, and smoke-flow ordering stay deterministic for migration-safe operator use.
 
 ## Scope completed
-- Added `CommandFlowRouteEntry` and `CommandFlowRouteContract` plus `command_flow_route_catalog()` and `command_flow_route_contract()` in `src/qual/commands/catalog.py`.
-- Exported the new route-contract symbols from `src/qual/commands/__init__.py`.
-- Added demo/MVP helpers that project the route contract from the shared command flow sequence.
-- Kept the diff within owned `src/qual/commands/**` paths; no shared/integrator-locked files were edited.
-- Regenerated the handoff packet so the branch summary, file list, and roadmap/vision mappings match the actual `691037c4` route-contract delta.
+- Added `CommandFlowRouteContract` and `command_flow_route_catalog()` / `command_flow_route_contract()` in `src/qual/commands/catalog.py` so the command surface can project an explicit route catalog.
+- Extended `CommandSurfaceContract` with `route_catalog` and wired it through `command_flow_contract()` so the route catalog stays attached to the public surface contract.
+- Exported the new route-contract helpers from `src/qual/commands/__init__.py`.
+- Added focused unit coverage in `tests/unit/test_commands_catalog.py` for the CLI route catalog and contract parity.
+- Regenerated the handoff packet so the branch summary, file list, and roadmap/vision mappings match the actual submitted route-catalog delta.
 
 ## Files changed
 
@@ -24,17 +26,21 @@
 - `src/qual/commands/catalog.py`
 - `src/qual/commands/__init__.py`
 
+### Shared-by-approval files changed
+
+- `tests/unit/test_commands_catalog.py` (shared-by-approval only)
+
 ### Docs-only alignment files changed
 
 - `THREAD_PACKET.md` (handoff artifact)
 
 ## Tasks completed
 
-1. Added the flow-ordered route contract in the command catalog.
-2. Exported the route-contract types and helpers from the command package.
-3. Added demo and MVP route helpers that reuse the shared command flow sequence.
-4. Kept the reviewed diff lane-owned with no shared-file exception required.
-5. Regenerated the handoff packet so the branch metadata matches the actual implementation commit.
+1. Added the flow route catalog and contract to the command surface.
+2. Wired the route catalog into the public command surface contract.
+3. Exported the new route helpers from the command package.
+4. Added unit coverage for the route catalog and surface-contract parity.
+5. Regenerated the handoff packet to match the actual branch tip and file list.
 
 ## Commands run and outcomes
 
@@ -54,21 +60,22 @@
 
 ### Scope completed
 
-- Added a deterministic flow-ordered route contract for the command surface, preserving CLI tokens and smoke-flow ordering for operator-facing command routing.
+- Added a deterministic route catalog for `feat-commands` so CLI-compatible entrypoints and lookup tokens stay stable across the command surface.
 
 ### Roadmap item(s) affected
 
-- `MVP Focus Through 2026-05-04` - `feat-commands` is an active implementation emphasis for the current MVP push.
-- `Milestone 1: Bootstrap Flow Stabilization` - command behavior hardening and CLI smoke-flow readability.
+- `Milestone 1: Bootstrap Flow Stabilization` - command and diff-preview behavior hardening plus manual CLI smoke-flow stability.
+- `Milestone 2: Test Hardening` - focused unit coverage for command-surface contracts.
+- `MVP Focus Through 2026-05-04` - `feat-commands` remains an active implementation emphasis for the current MVP push.
 
 ### Vision capability affected
 
-- `3. Auditable generation` - the route contract keeps command metadata and flow ordering deterministic and verifiable.
-- `6. Expansion lanes` - the route contract keeps the command surface reusable for future workflow expansion.
+- `3. Auditable generation` - command metadata and ordering stay deterministic and verifiable.
+- `4. Operator-first control surface` - CLI remains first-class, with structured command outputs staying stable for operator use.
 
 ### Routing/provider impact note
 
-- None. This change only affects local command-surface lookup/contract code; no routing/provider files change.
+- None. This change only affects the local command-surface route contract and focused command catalog tests; no routing/provider files change.
 
 ### Proposed README patch text
 
@@ -76,4 +83,4 @@
 
 ### Ownership / approval note
 
-- Shared/integrator-locked edits: `NO`. The reviewed implementation diff is limited to `src/qual/commands/**`.
+- Shared/integrator-locked edits: `YES`. `tests/unit/test_commands_catalog.py` is shared-by-approval only and is included for focused route-catalog coverage.
