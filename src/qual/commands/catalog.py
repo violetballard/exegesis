@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from functools import lru_cache
 
 
 @dataclass(frozen=True)
@@ -159,6 +160,7 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
             seen_lookup_tokens[normalized_alias] = spec.name
 
 
+@lru_cache(maxsize=None)
 def _command_spec_for(specs: tuple[CommandSpec, ...], name: str) -> CommandSpec | None:
     normalized = _normalize_token(name)
     if not normalized:
@@ -169,11 +171,13 @@ def _command_spec_for(specs: tuple[CommandSpec, ...], name: str) -> CommandSpec 
     return alias_index.get(normalized) or _build_command_spec_by_flow_step(specs).get(normalized)
 
 
+@lru_cache(maxsize=None)
 def command_spec_for(specs: tuple[CommandSpec, ...], name: str) -> CommandSpec | None:
     validate_command_catalog(specs)
     return _command_spec_for(specs, name)
 
 
+@lru_cache(maxsize=None)
 def command_aliases_for(specs: tuple[CommandSpec, ...], name: str) -> tuple[str, ...]:
     spec = command_spec_for(specs, name)
     if spec is None:
@@ -181,6 +185,7 @@ def command_aliases_for(specs: tuple[CommandSpec, ...], name: str) -> tuple[str,
     return _lookup_aliases(spec)
 
 
+@lru_cache(maxsize=None)
 def command_lookup_tokens_for(specs: tuple[CommandSpec, ...], name: str) -> tuple[str, ...]:
     spec = command_spec_for(specs, name)
     if spec is None:
@@ -188,6 +193,7 @@ def command_lookup_tokens_for(specs: tuple[CommandSpec, ...], name: str) -> tupl
     return _lookup_tokens(spec)
 
 
+@lru_cache(maxsize=None)
 def canonical_command_for(specs: tuple[CommandSpec, ...], name: str) -> str:
     normalized = _normalize_token(name)
     if not normalized:
@@ -198,6 +204,7 @@ def canonical_command_for(specs: tuple[CommandSpec, ...], name: str) -> str:
     return spec.name
 
 
+@lru_cache(maxsize=None)
 def _build_command_spec_by_alias(specs: tuple[CommandSpec, ...]) -> dict[str, CommandSpec]:
     validate_command_catalog(specs)
     index: dict[str, CommandSpec] = {}
@@ -207,6 +214,7 @@ def _build_command_spec_by_alias(specs: tuple[CommandSpec, ...]) -> dict[str, Co
     return index
 
 
+@lru_cache(maxsize=None)
 def _build_command_spec_by_flow_step(specs: tuple[CommandSpec, ...]) -> dict[str, CommandSpec]:
     validate_command_catalog(specs)
     index: dict[str, CommandSpec] = {}
@@ -219,6 +227,7 @@ _COMMAND_SPEC_BY_ALIAS = _build_command_spec_by_alias(COMMAND_SPECS)
 _COMMAND_SPEC_BY_FLOW_STEP = _build_command_spec_by_flow_step(COMMAND_SPECS)
 
 
+@lru_cache(maxsize=None)
 def command_flow_manifest(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
@@ -244,6 +253,7 @@ def command_flow_manifest(
     )
 
 
+@lru_cache(maxsize=None)
 def command_flow_sequence(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
@@ -259,6 +269,7 @@ def command_flow_sequence(
     )
 
 
+@lru_cache(maxsize=None)
 def command_flow_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
@@ -280,6 +291,7 @@ def command_flow_catalog(
     )
 
 
+@lru_cache(maxsize=None)
 def command_flow_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
@@ -289,6 +301,7 @@ def command_flow_lookup_table(
     return tuple((entry.flow_step, entry.name) for entry in manifest)
 
 
+@lru_cache(maxsize=None)
 def command_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
     validate_command_catalog(specs)
     return tuple(spec.name for spec in specs)
@@ -298,6 +311,7 @@ def command_specs(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[Comma
     return specs
 
 
+@lru_cache(maxsize=None)
 def command_manifest(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[CommandManifestEntry, ...]:
     validate_command_catalog(specs)
     return tuple(
@@ -316,6 +330,7 @@ def command_lookup_table(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tupl
     return command_lookup_index(specs)
 
 
+@lru_cache(maxsize=None)
 def command_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[tuple[str, str], ...]:
     validate_command_catalog(specs)
     seen_tokens: set[str] = set()
@@ -330,6 +345,7 @@ def command_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tupl
     return tuple(index)
 
 
+@lru_cache(maxsize=None)
 def _command_flow_lookup_index(
     specs: tuple[CommandSpec, ...],
     flow_steps: tuple[str, ...],
@@ -350,6 +366,7 @@ def _command_flow_lookup_index(
     return tuple(index)
 
 
+@lru_cache(maxsize=None)
 def command_flow_lookup_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
@@ -358,6 +375,7 @@ def command_flow_lookup_index(
     return _command_flow_lookup_index(specs, ordered_flow_steps, include_flow_step=False)
 
 
+@lru_cache(maxsize=None)
 def command_flow_lookup_surface(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
@@ -366,6 +384,7 @@ def command_flow_lookup_surface(
     return _command_flow_lookup_index(specs, ordered_flow_steps, include_flow_step=True)
 
 
+@lru_cache(maxsize=None)
 def command_flow_tokens(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
@@ -384,6 +403,7 @@ def command_flow_tokens(
     return tuple(tokens)
 
 
+@lru_cache(maxsize=None)
 def command_flow_steps(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
     validate_command_catalog(specs)
     return tuple(_normalize_token(spec.flow_step) for spec in specs)
@@ -441,6 +461,7 @@ def command_surface_contract(
     return command_demo_surface_contract(specs)
 
 
+@lru_cache(maxsize=None)
 def command_flow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
@@ -541,9 +562,10 @@ def command_mvp_flow_tokens(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> t
 def command_mvp_flow_lookup_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
-    return command_flow_lookup_index(specs, command_demo_flow_steps())
+    return command_demo_lookup_index(specs)
 
 
+@lru_cache(maxsize=None)
 def command_tokens(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
     validate_command_catalog(specs)
     return tuple(alias for spec in specs for alias in _lookup_tokens(spec))
