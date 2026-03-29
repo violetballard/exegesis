@@ -23,11 +23,13 @@ from src.qual.commands import (
     command_mvp_flow_names,
     command_mvp_flow_catalog,
     command_mvp_flow_manifest,
+    command_mvp_flow_contract,
     command_mvp_flow_lookup_surface,
     command_mvp_flow_lookup_table,
     command_mvp_flow_sequence,
     command_mvp_flow_steps,
     command_mvp_lookup_index,
+    command_mvp_surface_contract,
     command_surface_contract,
     command_names,
     command_spec,
@@ -294,6 +296,14 @@ class CommandCatalogTests(unittest.TestCase):
             contract.lookup_tokens,
             tuple(entry.lookup_tokens for entry in command_mvp_flow()),
         )
+
+    def test_command_mvp_surface_contract_stays_aligned_with_public_contract(self) -> None:
+        public_contract = command_surface_contract()
+        mvp_contract = command_mvp_surface_contract()
+        self.assertEqual(mvp_contract, public_contract)
+        self.assertEqual(mvp_contract, command_mvp_flow_contract())
+        self.assertEqual(mvp_contract.flow_catalog, command_mvp_flow_catalog())
+        self.assertEqual(mvp_contract.lookup_surface, command_mvp_flow_lookup_surface())
 
     def test_command_manifest_keeps_catalog_order(self) -> None:
         manifest = command_manifest()

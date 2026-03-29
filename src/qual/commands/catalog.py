@@ -452,13 +452,13 @@ def command_mvp_flow_names(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tu
 def command_mvp_flow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandSurfaceContract:
-    return command_demo_flow_contract(specs)
+    return command_mvp_surface_contract(specs)
 
 
 def command_surface_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandSurfaceContract:
-    return command_demo_surface_contract(specs)
+    return command_mvp_surface_contract(specs)
 
 
 @lru_cache(maxsize=None)
@@ -543,6 +543,13 @@ def command_demo_surface_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandSurfaceContract:
     return command_demo_flow_contract(specs)
+
+
+@lru_cache(maxsize=None)
+def command_mvp_surface_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandSurfaceContract:
+    return command_demo_surface_contract(specs)
 
 
 def command_demo_flow(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[CommandManifestEntry, ...]:
