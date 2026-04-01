@@ -1,5 +1,5 @@
 {
-  "approved_exception_note": "",
+  "approved_exception_note": "Approved shared retrieval regression coverage in tests/unit/test_unified_retrieval.py for the feat-retrieval-fts lane.",
   "kickoff_budget_note": "This thread finished within the low-risk 8-task cap; no sprint-mode 10-task allowance or high-risk 4-task budget was used.",
   "proposed_readme_patch": "",
   "final_head_sha": "8de722f25d0ef3fd30b7b60646f683ab824c2057",
@@ -16,7 +16,7 @@
   "routing_provider_impact": "None",
   "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3 and PRODUCT_VISION.md capability 2.",
   "scope_completed": "Reviewed code commits c92025af6e11c396f84356967cea704cadb20f5b, c4944661a0a682821c486810918c2c1fabac1a41, and 47b3977d271e3f7faacb6ba3082ab94a2d327fcb add excerpt lookup audit context, deterministic excerpt payload rehydration, source-bundle context regression coverage, and canonical query constructor export through both retrieval facades; later lane-handoff commits are packet or metadata maintenance only and are excluded.",
-  "shared_file_exception": false,
+  "shared_file_exception": true,
   "tasks_completed": [
     "Added the excerpt lookup audit trail and deterministic rehydration path in the retrieval service.",
     "Canonicalized excerpt provenance so downstream payloads carry stable hashes and fingerprints.",

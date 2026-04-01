@@ -194,6 +194,27 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stdout)
         self.assertIn("scope-check: passed", proc.stdout)
 
+    def test_scope_check_allows_approved_shared_retrieval_tests(self) -> None:
+        subprocess.run(["git", "checkout", "-qb", "codex/feat-retrieval-fts"], cwd=self.root, check=True)
+        path = self.root / "tests" / "unit" / "test_unified_retrieval.py"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("unified retrieval tests\n", encoding="utf-8")
+        subprocess.run(["git", "add", "tests/unit/test_unified_retrieval.py"], cwd=self.root, check=True)
+        subprocess.run(["git", "commit", "-qm", "update shared retrieval test"], cwd=self.root, check=True)
+
+        proc = subprocess.run(
+            ["bash", "scripts/scope-check.sh"],
+            cwd=self.root,
+            env={**os.environ, "SCOPE_ALLOW_SHARED": "1"},
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(proc.returncode, 0, proc.stdout)
+        self.assertIn("scope-check: passed", proc.stdout)
+
     def test_planner_runs_repo_scope_check_script_against_lane_worktree(self) -> None:
         from codex_packet_handoff.tools import planner as planner_mod
 

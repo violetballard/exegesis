@@ -69,6 +69,11 @@ is_approved_shared_test() {
         tests/unit/test_context_storage_recovery.py) return 0 ;;
       esac
       ;;
+    codex/feat-retrieval-fts*)
+      case "$f" in
+        tests/unit/test_unified_retrieval.py) return 0 ;;
+      esac
+      ;;
   esac
   return 1
 }

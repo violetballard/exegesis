@@ -30,6 +30,8 @@ Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-
     - `src/qual/retrieval/**`
     - `src/qual/engine/retrieval/**`
     - `engine/src/exegesis_engine/retrieval/**`
+  - Shared by approval only:
+    - `tests/unit/test_unified_retrieval.py`
 
 - `codex/feat-a2ui-contract*`
   - Owned paths:
