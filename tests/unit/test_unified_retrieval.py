@@ -1620,6 +1620,75 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_source_bundle"]["retrieval_mode"], "fts_first")
         self.assertEqual(payload, expected)
 
+    def test_retrieval_downstream_payload_helper_backfills_sparse_context_bundle_fields(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        sparse_context_bundle = json.loads(json.dumps(result.retrieval_context_bundle()))
+        downstream_payload = sparse_context_bundle["retrieval_downstream_payload"]
+        self.assertIsInstance(downstream_payload, dict)
+        downstream_payload.pop("retrieval_backend", None)
+        downstream_payload.pop("retrieval_mode", None)
+        downstream_payload.pop("retrieval_policy", None)
+        downstream_payload.pop("policy", None)
+        downstream_payload.pop("retrieval_citation_bundle", None)
+        downstream_payload.pop("retrieval_doc_bundle", None)
+        downstream_payload.pop("retrieval_excerpt_bundle", None)
+        downstream_payload.pop("retrieval_provenance", None)
+        downstream_payload.pop("retrieval_source_bundle", None)
+        downstream_payload.pop("retrieval_evidence", None)
+        downstream_payload.pop("retrieval_manifest", None)
+        retrieval_summary = downstream_payload.get("retrieval_summary")
+        self.assertIsInstance(retrieval_summary, dict)
+        retrieval_summary.pop("doc_ids", None)
+        retrieval_summary.pop("excerpt_ids", None)
+        retrieval_summary.pop("doc_fingerprints", None)
+        retrieval_summary.pop("excerpt_fingerprints", None)
+        retrieval_summary.pop("doc_identity_fingerprints", None)
+        retrieval_summary.pop("top_excerpt_fingerprints", None)
+        retrieval_summary.pop("top_excerpt_text_hashes", None)
+
+        class _SparseContextBundleSource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def retrieval_context_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        source = _SparseContextBundleSource(sparse_context_bundle)
+
+        payload = build_retrieval_downstream_payload_from_result(source)
+        expected = result.to_downstream_payload()
+        payload = json.loads(json.dumps(payload))
+        expected = json.loads(json.dumps(expected))
+        payload.pop("audit_ref", None)
+        expected.pop("audit_ref", None)
+        payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        expected["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        expected["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        self.assertEqual(payload, expected)
+
+        context_bundle = engine_build_retrieval_context_bundle_from_result(source)
+        self.assertEqual(context_bundle["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(context_bundle["retrieval_source_bundle"], result.source_bundle())
+        self.assertEqual(
+            context_bundle["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"],
+            [item.doc_id for item in result.doc_hits],
+        )
+        self.assertEqual(
+            context_bundle["retrieval_downstream_payload"]["retrieval_summary"]["excerpt_ids"],
+            [item.excerpt_id for item in result.hits if item.excerpt_id is not None],
+        )
+        self.assertEqual(context_bundle["retrieval_downstream_payload"]["retrieval_citation_bundle"], result.citation_bundle())
+
     def test_retrieve_auto_citation_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(
             query_text="memo coding comparison",

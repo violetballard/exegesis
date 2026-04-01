@@ -79,6 +79,33 @@ def _stable_fingerprint(payload: object) -> str:
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
+def _is_missing_snapshot_value(value: object) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return value == ""
+    if isinstance(value, (dict, list, tuple, set)):
+        return len(value) == 0
+    return False
+
+
+def _backfill_sparse_snapshot(primary: dict[str, object], fallback: dict[str, object]) -> dict[str, object]:
+    merged = copy.deepcopy(primary)
+    for key, fallback_value in fallback.items():
+        if key not in merged:
+            merged[key] = copy.deepcopy(fallback_value)
+            continue
+
+        primary_value = merged[key]
+        if isinstance(primary_value, dict) and isinstance(fallback_value, dict):
+            merged[key] = _backfill_sparse_snapshot(primary_value, fallback_value)
+            continue
+
+        if _is_missing_snapshot_value(primary_value) and not _is_missing_snapshot_value(fallback_value):
+            merged[key] = copy.deepcopy(fallback_value)
+    return merged
+
+
 def _normalize_query_snapshot(query: object) -> dict[str, object]:
     if not isinstance(query, dict):
         return {}
@@ -441,6 +468,33 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
     })
+
+
+def _backfill_downstream_payload_from_context_bundle(
+    payload: dict[str, object],
+    context_bundle: dict[str, object],
+) -> dict[str, object]:
+    merged = copy.deepcopy(payload)
+    source_bundle = context_bundle.get("retrieval_source_bundle")
+    if isinstance(source_bundle, dict):
+        merged = _backfill_sparse_snapshot(
+            merged,
+            _build_retrieval_downstream_payload_from_source_bundle(source_bundle),
+        )
+    context_backfill = {
+        "audit_ref": context_bundle.get("audit_ref"),
+        "result_fingerprint": context_bundle.get("result_fingerprint"),
+        "retrieval_citation_bundle": context_bundle.get("retrieval_citation_bundle"),
+        "retrieval_doc_bundle": context_bundle.get("retrieval_doc_bundle"),
+        "retrieval_excerpt_bundle": context_bundle.get("retrieval_excerpt_bundle"),
+        "retrieval_provenance": context_bundle.get("retrieval_provenance"),
+        "retrieval_source_bundle": context_bundle.get("retrieval_source_bundle"),
+        "retrieval_evidence": context_bundle.get("retrieval_evidence"),
+    }
+    return _backfill_sparse_snapshot(
+        merged,
+        {key: value for key, value in context_backfill.items() if value is not None},
+    )
 
 
 def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, object]) -> dict[str, object]:
@@ -929,20 +983,59 @@ def build_retrieval_downstream_payload_from_result(
     """
     payload_source = getattr(result, "as_downstream_payload", None)
     if callable(payload_source):
-        return copy.deepcopy(payload_source())
+        payload = copy.deepcopy(payload_source())
+        context_source = getattr(result, "retrieval_context_bundle", None)
+        if callable(context_source):
+            context_bundle = context_source()
+            if isinstance(context_bundle, dict):
+                payload = _backfill_downstream_payload_from_context_bundle(payload, context_bundle)
+        source_bundle = _build_retrieval_source_bundle_from_result_source(result)
+        if source_bundle is not None:
+            payload = _backfill_sparse_snapshot(
+                payload,
+                _build_retrieval_downstream_payload_from_source_bundle(source_bundle),
+            )
+        return payload
     payload_source = getattr(result, "as_dict", None)
     if callable(payload_source):
-        return copy.deepcopy(payload_source())
+        payload = copy.deepcopy(payload_source())
+        context_source = getattr(result, "retrieval_context_bundle", None)
+        if callable(context_source):
+            context_bundle = context_source()
+            if isinstance(context_bundle, dict):
+                payload = _backfill_downstream_payload_from_context_bundle(payload, context_bundle)
+        source_bundle = _build_retrieval_source_bundle_from_result_source(result)
+        if source_bundle is not None:
+            payload = _backfill_sparse_snapshot(
+                payload,
+                _build_retrieval_downstream_payload_from_source_bundle(source_bundle),
+            )
+        return payload
     payload_source = getattr(result, "to_downstream_payload", None)
     if callable(payload_source):
-        return copy.deepcopy(payload_source())
+        payload = copy.deepcopy(payload_source())
+        context_source = getattr(result, "retrieval_context_bundle", None)
+        if callable(context_source):
+            context_bundle = context_source()
+            if isinstance(context_bundle, dict):
+                payload = _backfill_downstream_payload_from_context_bundle(payload, context_bundle)
+        source_bundle = _build_retrieval_source_bundle_from_result_source(result)
+        if source_bundle is not None:
+            payload = _backfill_sparse_snapshot(
+                payload,
+                _build_retrieval_downstream_payload_from_source_bundle(source_bundle),
+            )
+        return payload
     context_bundle_source = getattr(result, "retrieval_context_bundle", None)
     if callable(context_bundle_source):
         context_bundle = context_bundle_source()
         if isinstance(context_bundle, dict):
             downstream_payload = context_bundle.get("retrieval_downstream_payload")
             if isinstance(downstream_payload, dict):
-                return copy.deepcopy(downstream_payload)
+                return _backfill_downstream_payload_from_context_bundle(
+                    copy.deepcopy(downstream_payload),
+                    context_bundle,
+                )
             source_bundle = context_bundle.get("retrieval_source_bundle")
             if isinstance(source_bundle, dict):
                 return _build_retrieval_downstream_payload_from_source_bundle(source_bundle)
@@ -1061,6 +1154,10 @@ def build_retrieval_context_bundle_from_result(
         if isinstance(context_bundle, dict):
             downstream_payload = context_bundle.get("retrieval_downstream_payload")
             if isinstance(downstream_payload, dict):
+                downstream_payload = _backfill_downstream_payload_from_context_bundle(
+                    copy.deepcopy(downstream_payload),
+                    context_bundle,
+                )
                 return _build_retrieval_context_bundle_from_payload(downstream_payload)
             source_bundle = context_bundle.get("retrieval_source_bundle")
             if isinstance(source_bundle, dict):
