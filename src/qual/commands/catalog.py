@@ -155,15 +155,15 @@ def _normalize_flow_steps(flow_steps: tuple[str, ...]) -> tuple[str, ...]:
 def _validate_cli_entrypoints() -> None:
     # Keep the parser surface explicit so the command contract stays deterministic.
     seen_entrypoints: set[str] = set()
-    for entrypoint, canonical_name in _CLI_ENTRYPOINTS:
+    for entrypoint in _CLI_ENTRYPOINTS:
         normalized_entrypoint = _normalize_token(entrypoint)
         if not normalized_entrypoint:
             raise ValueError("Command CLI entrypoints must not be empty")
         if normalized_entrypoint in seen_entrypoints:
             raise ValueError(f"Duplicate command CLI entrypoint: {entrypoint}")
         seen_entrypoints.add(normalized_entrypoint)
-        if command_spec_for(COMMAND_SPECS, canonical_name) is None:
-            raise ValueError(f"Unknown CLI command target: {canonical_name}")
+        if command_spec_for(COMMAND_SPECS, entrypoint) is None:
+            raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
 
 
 def _command_cli_tokens_by_name() -> dict[str, tuple[str, ...]]:
@@ -208,12 +208,13 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
 )
 
 # Keep the parser surface explicit: only these tokens are accepted by the current CLI.
-_CLI_ENTRYPOINTS: tuple[tuple[str, str], ...] = (
-    ("bootstrap", "bootstrap"),
-    ("diff-preview", "diff-preview"),
-    ("diff", "diff-preview"),
-    ("context-basket", "context-basket"),
-    ("terminal", "terminal"),
+# Each token must resolve through the command catalog so the surface cannot drift.
+_CLI_ENTRYPOINTS: tuple[str, ...] = (
+    "bootstrap",
+    "diff-preview",
+    "diff",
+    "context-basket",
+    "terminal",
 )
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
@@ -465,17 +466,17 @@ def command_lookup_table(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tupl
 @lru_cache(maxsize=None)
 def command_cli_tokens() -> tuple[str, ...]:
     _validate_cli_entrypoints()
-    return tuple(entrypoint for entrypoint, _ in _CLI_ENTRYPOINTS)
+    return tuple(_CLI_ENTRYPOINTS)
 
 
 @lru_cache(maxsize=None)
 def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
     _validate_cli_entrypoints()
     lookup_table: list[tuple[str, str]] = []
-    for entrypoint, canonical_name in _CLI_ENTRYPOINTS:
-        spec = command_spec_for(COMMAND_SPECS, canonical_name)
+    for entrypoint in _CLI_ENTRYPOINTS:
+        spec = command_spec_for(COMMAND_SPECS, entrypoint)
         if spec is None:
-            raise ValueError(f"Unknown CLI command target: {canonical_name}")
+            raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
         lookup_table.append((entrypoint, spec.name))
     return tuple(lookup_table)
 

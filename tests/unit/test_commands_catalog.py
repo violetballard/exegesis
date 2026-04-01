@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
 
+import src.qual.commands.catalog as command_catalog
 from src.qual.commands import (
     CommandSpec,
     canonical_command,
@@ -10,6 +12,7 @@ from src.qual.commands import (
     command_aliases_for,
     command_cli_flow_contract,
     command_cli_flow_lookup_table,
+    command_cli_tokens,
     command_cli_route_summary,
     command_flow_manifest,
     command_flow_catalog,
@@ -102,6 +105,18 @@ class CommandCatalogTests(unittest.TestCase):
                 ("terminal", "terminal"),
             ),
         )
+
+    def test_command_cli_lookup_table_resolves_through_the_catalog(self) -> None:
+        self.assertEqual(
+            command_cli_lookup_table(),
+            tuple((token, canonical_command(token)) for token in command_cli_tokens()),
+        )
+
+    def test_command_cli_tokens_reject_unknown_entrypoints(self) -> None:
+        command_catalog.command_cli_tokens.cache_clear()
+        with patch.object(command_catalog, "_CLI_ENTRYPOINTS", ("bootstrap", "not-a-command")):
+            with self.assertRaisesRegex(ValueError, "Unknown CLI command entrypoint: not-a-command"):
+                command_catalog.command_cli_tokens()
 
     def test_command_cli_flow_contract_maps_parser_tokens_to_mvp_flow_steps(self) -> None:
         contract = command_cli_flow_contract()
