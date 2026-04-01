@@ -1,27 +1,21 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Final HEAD SHA: `b2a0a2d17087ce10b1e300719aaafed5ebd0ddda`
+- Final HEAD SHA: `dad3916fb8a835069fe8ef5e0a1a6c68fcd3798e`
 - Reviewed implementation commit(s):
-  - `691037c4db2cee231a6ea8f50118c1676b26c419` (feat(commands): add flow-ordered route contract)
-  - `f3f54de86d3a0e0d4bc501843111afad65f47f63` (feat(commands): expose route catalog on surface contract)
-  - `8e56a3d1a0227c0950f3b9a3c34a04c7f1cfae40` (feat(commands): add route summary smoke contract)
-  - `65a8d5db7a915bd39446988537d6de6970977ee4` (feat(commands): make route contracts spec-aware)
-  - `b2a0a2d17087ce10b1e300719aaafed5ebd0ddda` (feat(commands): add CLI route summary helper)
-- Docs-only alignment commit(s):
-  - `4e5096a4c608a8be9005565e3e53760505281e81` (docs(commands): align feat-commands packet roadmap)
-  - `530f2b96a9e3e5a2da0d6b2d1c8a2c8cbf4cc2ab` (docs(commands): update feat-commands packet roadmap)
-  - `dc452f798f306454b13601b8f489c13da5299d81` (docs(commands): realign feat-commands packet)
+  - `f9bd51f8a85491a4343738167674adc23cc3fd47` (`Add CLI route contract helper`)
+  - `dba3e806550069307b52c9d2a34268decfb3ee28` (`feat(commands): expose cli route catalog`)
+  - `dad3916fb8a835069fe8ef5e0a1a6c68fcd3798e` (`Strengthen command CLI entrypoint contract`)
 
 ## Scope goal
-- Expose a deterministic CLI route summary on the `feat-commands` surface contract so command routing, smoke-flow ordering, and operator-facing route metadata stay stable for CLI-first use.
+- Harden the `feat-commands` CLI surface so the command catalog, CLI entrypoints, and smoke-route metadata stay deterministic and compatible with the canonical engine contract.
 
 ## Scope completed
-- Added `CommandFlowRouteContract` and `command_flow_route_catalog()` / `command_flow_route_contract()` in `src/qual/commands/catalog.py` so the command surface can project an explicit route catalog.
-- Added `command_cli_route_summary()` and wired `command_flow_contract()` to populate `route_summary` from the same ordered route catalog.
-- Exported the new route helpers from `src/qual/commands/__init__.py`.
-- Added focused unit coverage in `tests/unit/test_commands_catalog.py` for the CLI route summary and surface-contract parity.
-- Regenerated the handoff packet so the branch summary, file list, and roadmap/vision mappings match the actual submitted route-contract delta.
+- Added deterministic route-catalog helpers and wired the CLI route summary to the same ordered route catalog used by the command surface.
+- Exported the new route helpers from `src/qual/commands/__init__.py` so the CLI compatibility surface can import them directly.
+- Tightened `_CLI_ENTRYPOINTS` so each accepted CLI token must resolve through `COMMAND_SPECS`, keeping the parser surface catalog-backed and deterministic.
+- Added focused unit coverage in `tests/unit/test_commands_catalog.py` for catalog-backed CLI lookup, route-summary parity, and rejection of unknown CLI entrypoints.
+- Regenerated this handoff packet so the branch summary, file list, and required handoff fields match the submitted `feat-commands` state.
 
 ## Files changed
 
@@ -40,11 +34,11 @@
 
 ## Tasks completed
 
-1. Added the flow route catalog and contract to the command surface.
-2. Added the CLI route summary helper and wired the surface contract to use it.
-3. Exported the new route helpers from the command package.
-4. Added unit coverage for the route summary helper and surface-contract parity.
-5. Regenerated the handoff packet to match the actual branch tip and file list.
+1. Added the deterministic route-catalog helpers used by the CLI route summary.
+2. Exported the new route helpers from the command package surface.
+3. Hardened CLI entrypoints so accepted tokens resolve through the command catalog.
+4. Added focused tests for catalog-backed lookup, route parity, and unknown-entrypoint rejection.
+5. Regenerated the handoff packet to match the branch tip and actual file list.
 
 ## Commands run and outcomes
 
@@ -64,22 +58,21 @@
 
 ### Scope completed
 
-- Added a deterministic CLI route summary for `feat-commands` so command routing, smoke-flow ordering, and operator-facing route metadata stay stable across the command surface.
+- Hardened the `feat-commands` CLI surface so the parser entrypoints, route catalog, and smoke-flow metadata stay deterministic and align with the canonical engine contract.
 
 ### Roadmap item(s) affected
 
-- `Milestone 1: Bootstrap Flow Stabilization` - command route hardening keeps the CLI smoke flow deterministic.
-- `Milestone 2: Test Hardening` - focused unit coverage was added for the new route-summary contract path.
-- `Milestone 3: Product Readiness` - the emitted command route summary is a user-facing output contract that now stays deterministic and verifiable.
+- `Milestone 2: Core pane interactions` - the stable command surface is part of the command-palette coverage the MVP loop needs.
+- `Milestone 3: Real workflow loop` - CLI compatibility and migration-safe entrypoints stay stable while the canonical engine contract lands.
 
 ### Vision capability affected
 
-- `3. Auditable generation` - command metadata, route ordering, and emitted contracts stay deterministic and verifiable.
-- `4. Operator-first control surface` - CLI remains first-class, with structured command outputs and entrypoints staying stable for operator use.
+- `3. Canonical engine contract` - CLI compatibility remains stable while the command surface resolves through the canonical catalog.
+- `5. Keyboard-first client behavior` - the deterministic command surface is a prerequisite for future command-palette and shortcut flows.
 
 ### Routing/provider impact note
 
-- None. This change only affects the local command-surface route contract and focused command catalog tests; no routing/provider files change.
+- None. This change only affects local command-surface route and entrypoint metadata; no routing/provider files change.
 
 ### Proposed README patch text
 
@@ -87,4 +80,4 @@
 
 ### Ownership / approval note
 
-- Shared/integrator-locked edits: `YES`. `tests/unit/test_commands_catalog.py` is shared-by-approval only and is included for focused route-summary coverage.
+- Shared/integrator-locked edits: `YES`. `tests/unit/test_commands_catalog.py` is shared-by-approval only and is included for focused CLI-entrypoint coverage.
