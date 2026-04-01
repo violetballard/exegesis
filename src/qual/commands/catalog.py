@@ -497,10 +497,18 @@ def command_cli_contract() -> CommandCliContract:
     )
 
 
+@lru_cache(maxsize=None)
+def command_cli_route_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandFlowRouteEntry, ...]:
+    return command_flow_route_catalog(flow_steps=flow_steps, specs=specs)
+
+
 def _validate_command_cli_route_contract(contract: CommandCliRouteContract) -> None:
     route_summary = tuple(
         (entry.flow_step, entry.name, entry.cli_tokens)
-        for entry in command_flow_route_catalog()
+        for entry in command_cli_route_catalog()
     )
     if contract.route_summary != route_summary:
         raise ValueError("Command CLI route summary is inconsistent")
@@ -520,7 +528,8 @@ def _validate_command_cli_route_contract(contract: CommandCliRouteContract) -> N
 @lru_cache(maxsize=None)
 def command_cli_route_contract() -> CommandCliRouteContract:
     cli_contract = command_cli_contract()
-    route_summary = command_cli_route_summary()
+    route_catalog = command_cli_route_catalog()
+    route_summary = tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in route_catalog)
     contract = CommandCliRouteContract(
         tokens=cli_contract.tokens,
         canonical_names=cli_contract.canonical_names,
@@ -561,7 +570,7 @@ def command_cli_route_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
-    route_catalog = command_flow_route_catalog(flow_steps=flow_steps, specs=specs)
+    route_catalog = command_cli_route_catalog(specs, flow_steps)
     return tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in route_catalog)
 
 
@@ -771,6 +780,10 @@ def command_mvp_cli_flow_contract() -> CommandCliFlowContract:
 
 def command_mvp_cli_route_contract() -> CommandCliRouteContract:
     return command_cli_route_contract()
+
+
+def command_mvp_cli_route_catalog() -> tuple[CommandFlowRouteEntry, ...]:
+    return command_cli_route_catalog()
 
 
 def command_surface_contract(
