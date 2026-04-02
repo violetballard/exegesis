@@ -9,7 +9,7 @@
 - The packet is anchored to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
 - The roadmap and vision mappings below use the exact canonical labels requested in the reviewer packet for re-review.
 - This resubmission reruns the required gates on `2026-04-02` in this lane worktree so the pass/fail claims match the current head.
-- Latest fixer verification reran all required gates successfully for the current docs-only reviewer-fix handoff head at `2026-04-02T16:40:40-0700`.
+- Latest fixer verification reran all required gates successfully for the current docs-only reviewer-fix handoff head at `2026-04-02T16:42:39-0700`.
 
 ## Reviewer required fixes addressed
 1. Rewrote the roadmap mapping to use the exact reviewer-requested canonical entries: `Milestone 3: Real workflow loop` and `feat-commands`.
