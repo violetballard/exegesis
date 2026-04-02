@@ -71,12 +71,11 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 3: Real workflow loop`
-- `feat-commands`
+- `Milestone 1: Bootstrap Flow Stabilization`
+- `Milestone 2: Test Hardening`
 
 ### Vision capability affected
-- `Canonical engine contract`
-- `Auditable state and workflow`
+- `4. Operator-first control surface`
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
@@ -88,3 +87,4 @@
 - Shared/integrator-locked edits: `YES`
 - Approved shared-file exception covers `tests/unit/test_commands_catalog.py`.
 - Approval basis: `scripts/scope-check.sh` explicitly permits `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, and this packet only claims that one non-owned test file.
+- Local handoff mapping basis: the roadmap and vision fields above use the exact canonical labels present in this worktree's `ROADMAP.md` and `PRODUCT_VISION.md`.
