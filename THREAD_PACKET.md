@@ -58,12 +58,12 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 3: Real workflow loop` - preserve CLI compatibility and migration-safe entrypoints while the CLI contract is hardened against catalog drift.
-- `feat-commands` - stable CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
+- `Milestone 3: Real workflow loop`
+- `feat-commands`
 
 ### Vision capability affected
-- `Canonical engine contract` - CLI compatibility remains stable while the command surface now rejects parser/catalog drift before it can reach operators.
-- `Auditable state and workflow` - the command surface now fails loudly on drift, making the operator contract explicit and traceable.
+- `Canonical engine contract`
+- `Auditable state and workflow`
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
