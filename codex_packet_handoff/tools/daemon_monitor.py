@@ -105,6 +105,21 @@ def _pid_alive(pid: int) -> bool:
         return False
 
 
+def _count_active_pid_jobs(job_map: Any, *, local: bool | None = None) -> int:
+    if not isinstance(job_map, dict):
+        return 0
+    active = 0
+    for job in job_map.values():
+        if not isinstance(job, dict):
+            continue
+        if local is not None and bool(job.get("local")) != local:
+            continue
+        pid = int(job.get("pid") or 0)
+        if _pid_alive(pid):
+            active += 1
+    return active
+
+
 def _pid_matches_daemon(pid: int) -> bool:
     try:
         p = subprocess.run(
@@ -1025,11 +1040,11 @@ def main() -> None:
         print(f"reviewer_thread_missing_lanes={','.join(str(x) for x in missing) if missing else '-'}")
     print(f"integrator_thread_id={router_state.get('integrator_thread_id', '-')}")
     fallback_jobs = router_state.get("fixer_fallback_jobs") or {}
-    print(f"fixer_fallback_jobs={len(fallback_jobs) if isinstance(fallback_jobs, dict) else 0}")
+    print(f"fixer_fallback_jobs={_count_active_pid_jobs(fallback_jobs)}")
     local_reviewer_jobs = router_state.get("local_reviewer_jobs") or {}
-    print(f"local_reviewer_jobs={len(local_reviewer_jobs) if isinstance(local_reviewer_jobs, dict) else 0}")
+    print(f"local_reviewer_jobs={_count_active_pid_jobs(local_reviewer_jobs)}")
     local_integrator_jobs = router_state.get("local_integrator_jobs") or {}
-    print(f"local_integrator_jobs={len(local_integrator_jobs) if isinstance(local_integrator_jobs, dict) else 0}")
+    print(f"local_integrator_jobs={_count_active_pid_jobs(local_integrator_jobs)}")
     print()
 
     manual_sessions = _manual_feature_sessions()

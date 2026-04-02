@@ -103,6 +103,8 @@ class RouterConfig:
     fixer_quota_retry_cooldown_seconds: float
     max_cloud_fixer_kicks_per_run: int
     max_local_fixer_kicks_per_run: int
+    max_cloud_fixer_jobs: int
+    max_local_fixer_jobs: int
     prefer_cli_fixer: bool
     prefer_cli_reviewer: bool
     prefer_cli_integrator: bool
@@ -238,7 +240,7 @@ def load_cfg() -> RouterConfig:
         runtime_mode_default=str(cfg.get("runtime_mode_default", "cloud_primary")),
         auto_switch_to_local_on_quota=bool(cfg.get("auto_switch_to_local_on_quota", True)),
         auto_probe_cloud_recovery=bool(cfg.get("auto_probe_cloud_recovery", True)),
-        cloud_probe_cooldown_seconds=float(cfg.get("cloud_probe_cooldown_seconds", 1800)),
+        cloud_probe_cooldown_seconds=float(cfg.get("cloud_probe_cooldown_seconds", 300)),
         cloud_probe_timeout_seconds=float(cfg.get("cloud_probe_timeout_seconds", 30)),
         reviewer_timeout=float(cfg.get("reviewer_timeout", 180)),
         integrator_timeout=float(cfg.get("integrator_timeout", 900)),
@@ -250,6 +252,8 @@ def load_cfg() -> RouterConfig:
         fixer_quota_retry_cooldown_seconds=float(cfg.get("fixer_quota_retry_cooldown_seconds", 3600)),
         max_cloud_fixer_kicks_per_run=int(cfg.get("max_cloud_fixer_kicks_per_run", 1)),
         max_local_fixer_kicks_per_run=int(cfg.get("max_local_fixer_kicks_per_run", 1)),
+        max_cloud_fixer_jobs=int(cfg.get("max_cloud_fixer_jobs", 2)),
+        max_local_fixer_jobs=int(cfg.get("max_local_fixer_jobs", 2)),
         prefer_cli_fixer=bool(cfg.get("prefer_cli_fixer", True)),
         prefer_cli_reviewer=bool(cfg.get("prefer_cli_reviewer", True)),
         prefer_cli_integrator=bool(cfg.get("prefer_cli_integrator", True)),
@@ -789,6 +793,19 @@ def _count_active_local_jobs(job_map: Dict[str, Dict[str, Any]]) -> int:
     return active
 
 
+def _count_active_pid_jobs(job_map: Dict[str, Dict[str, Any]], *, local: Optional[bool] = None) -> int:
+    active = 0
+    for job in job_map.values():
+        if not isinstance(job, dict):
+            continue
+        if local is not None and bool(job.get("local")) != local:
+            continue
+        pid = int(job.get("pid") or 0)
+        if _pid_alive(pid):
+            active += 1
+    return active
+
+
 def _build_cli_exec_cmd(
     profile: LaunchProfile,
     *,
@@ -1246,7 +1263,7 @@ def run_fixer(
     logp = logs / f"fixer__{lane}__{ts}.log"
     env = isolated_codex_env(repo_cwd) if runtime_local else None
     with logp.open("w") as lf:
-        subprocess.Popen(
+        proc = subprocess.Popen(
             [
                 prof.codex_cmd,
                 *prof.codex_args,
@@ -1265,7 +1282,7 @@ def run_fixer(
             env=env,
         )
     fallback = state.get("fixer_fallback_jobs") or {}
-    fallback[lane] = {"log": str(logp), "ts": ts}
+    fallback[lane] = {"log": str(logp), "ts": ts, "pid": proc.pid, "local": runtime_local}
     state["fixer_fallback_jobs"] = fallback
     return state
 
@@ -1632,9 +1649,15 @@ def process_reviewer_backlog(
     quota_retry_ts = state.get("fixer_quota_retry_ts") or {}
     local_mode = _runtime_mode(cfg, state) == "local_fallback"
     kick_limit = cfg.max_local_fixer_kicks_per_run if local_mode else cfg.max_cloud_fixer_kicks_per_run
+    max_active = cfg.max_local_fixer_jobs if local_mode else cfg.max_cloud_fixer_jobs
     kicked = 0
     for lane in cfg.lanes.keys():
         if kick_limit > 0 and kicked >= kick_limit:
+            break
+        fallback_jobs = state.get("fixer_fallback_jobs") or {}
+        if not isinstance(fallback_jobs, dict):
+            fallback_jobs = {}
+        if max_active > 0 and _count_active_pid_jobs(fallback_jobs, local=local_mode) >= max_active:
             break
         lane_dir = ensure_lane_dirs(lane)
         now = time.time()

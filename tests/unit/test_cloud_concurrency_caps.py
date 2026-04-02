@@ -24,14 +24,14 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 "feature_cloud": "worker_cloud",
                 "feature_local": "worker_local",
             },
-            "max_parallel_feature_lanes_cloud": 1,
+            "max_parallel_feature_lanes_cloud": 2,
             "max_parallel_feature_lanes_local": 2,
         }
         state = {"runtime_mode": "cloud_primary"}
         with mock.patch.object(launch_feature_lanes, "load_json", side_effect=[cfg, state]):
             launch_cfg = launch_feature_lanes.runtime_launch_config()
 
-        self.assertEqual(launch_cfg["max_parallel_feature_lanes_cloud"], 1)
+        self.assertEqual(launch_cfg["max_parallel_feature_lanes_cloud"], 2)
         self.assertEqual(launch_cfg["max_parallel_feature_lanes_local"], 2)
 
     def test_runtime_launch_config_honors_lane_cloud_profile_override(self) -> None:
@@ -91,6 +91,8 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             fixer_quota_retry_cooldown_seconds=3600.0,
             max_cloud_fixer_kicks_per_run=1,
             max_local_fixer_kicks_per_run=1,
+            max_cloud_fixer_jobs=2,
+            max_local_fixer_jobs=2,
             prefer_cli_fixer=True,
             prefer_cli_reviewer=True,
             prefer_cli_integrator=True,
@@ -152,6 +154,8 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 fixer_quota_retry_cooldown_seconds=3600.0,
                 max_cloud_fixer_kicks_per_run=1,
                 max_local_fixer_kicks_per_run=1,
+                max_cloud_fixer_jobs=1,
+                max_local_fixer_jobs=1,
                 prefer_cli_fixer=True,
                 prefer_cli_reviewer=True,
                 prefer_cli_integrator=True,
@@ -184,6 +188,70 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
 
         self.assertEqual(kicked, 1)
         self.assertEqual(len(kicked_lanes), 1)
+
+    def test_process_reviewer_backlog_respects_active_fixer_cap(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            packet_root = Path(tmpdir) / "packets"
+            lanes = {
+                "feat-a": {"branch": "codex/feat-a", "enabled": True},
+                "feat-b": {"branch": "codex/feat-b", "enabled": True},
+            }
+            for lane in lanes:
+                lane_dir = packet_root / lane / "inbox" / "reviewer"
+                lane_dir.mkdir(parents=True, exist_ok=True)
+                (lane_dir / f"R__{lane}.md").write_text("## Verdict\nCHANGES_REQUESTED\n", encoding="utf-8")
+
+            cfg = router.RouterConfig(
+                model="gpt-5.1-codex",
+                codex_cmd="codex",
+                fallback_model="gpt-oss-120b",
+                fallback_codex_cmd="codex",
+                fallback_codex_args=["-c", "model_provider=lms"],
+                fallback_model_args=[],
+                runtime_mode_default="cloud_primary",
+                auto_switch_to_local_on_quota=True,
+                auto_probe_cloud_recovery=True,
+                cloud_probe_cooldown_seconds=300.0,
+                cloud_probe_timeout_seconds=30.0,
+                reviewer_timeout=180.0,
+                integrator_timeout=900.0,
+                max_packets_per_run=5,
+                inline_fixer=True,
+                kick_fixers_on_reviewer_backlog=True,
+                fixer_kick_timeout_seconds=8.0,
+                reviewer_fixer_retry_cooldown_seconds=120.0,
+                fixer_quota_retry_cooldown_seconds=3600.0,
+                max_cloud_fixer_kicks_per_run=1,
+                max_local_fixer_kicks_per_run=1,
+                max_cloud_fixer_jobs=1,
+                max_local_fixer_jobs=1,
+                prefer_cli_fixer=True,
+                prefer_cli_reviewer=True,
+                prefer_cli_integrator=True,
+                use_cli_reviewer_fallback=True,
+                use_cli_integrator_fallback=True,
+                profiles={},
+                role_profiles={},
+                lanes=lanes,
+            )
+
+            state = {"fixer_fallback_jobs": {"feat-a": {"pid": 12345, "local": False}}}
+
+            def fake_ensure_lane_dirs(lane: str) -> Path:
+                lane_dir = packet_root / lane
+                (lane_dir / "inbox" / "feature").mkdir(parents=True, exist_ok=True)
+                (lane_dir / "outbox" / "integrator").mkdir(parents=True, exist_ok=True)
+                (lane_dir / "archive").mkdir(parents=True, exist_ok=True)
+                return lane_dir
+
+            with mock.patch.object(router, "ensure_lane_dirs", side_effect=fake_ensure_lane_dirs), mock.patch.object(
+                router, "_pid_alive", return_value=True
+            ), mock.patch.object(router, "run_fixer") as run_fixer_mock:
+                kicked, updated_state = router.process_reviewer_backlog(object(), cfg, state, str(packet_root))
+
+        self.assertEqual(kicked, 0)
+        self.assertIs(updated_state, state)
+        run_fixer_mock.assert_not_called()
 
 
 if __name__ == "__main__":
