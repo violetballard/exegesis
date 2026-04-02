@@ -22,6 +22,7 @@
 - Required fix 3 is satisfied by the dedicated `Scope completed` section above, which states the FTS-first retrieval outcome independently of the packet-refresh commits.
 
 ## Packet trace note
+- The current branch head can be metadata-only and is not automatically the reviewed implementation head.
 - The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless this packet is regenerated to move the reviewed implementation head or reviewed implementation range.
 
