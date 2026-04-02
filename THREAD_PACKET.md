@@ -4,12 +4,13 @@
 - Implementation commit(s):
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
 - Previous docs-only reviewer-fix alignment commit(s):
+  - `5c6f0f831ca0118c2ac4c0ccae55dd8c6ca8bb89` (`docs(commands): record final reviewer-fix verification pass`)
   - `c637873d0ec2e36850922067c58cdbcc1669e430` (`docs(commands): refresh reviewer-fix packet ledger`)
   - `8432f70ee859a2c64412fcf9cf7cd0695c941274` (`docs(commands): finalize reviewer fix packet`)
 
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice and naming the actual approved shared test consistently.
-- This resubmission reran the required local gates on `2026-04-02` so the packet's pass/fail claims reflect this docs-only reviewer-fix pass on `codex/feat-commands`.
+- This resubmission reran the required local gates on `2026-04-02` in the lane worktree so the packet's pass/fail claims reflect this docs-only reviewer-fix pass on `codex/feat-commands`.
 - The reviewed implementation slice remains commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
 - The roadmap and vision mappings below use the canonical labels from `ROADMAP.md` and `PRODUCT_VISION.md` for this re-review.
 
@@ -73,7 +74,7 @@
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 - Verification date: `2026-04-02`
-- Verification basis: all required gates were re-run successfully during this docs-only reviewer-fix pass; `./quality-test.sh` and `make ci` both completed with the unit suite green at `125` tests, and `./typecheck-test.sh` completed successfully via `python3 -m compileall -q src`.
+- Verification basis: all required gates were re-run successfully during this docs-only reviewer-fix pass in `/Users/doctor-violet/.codex/worktrees/5494/qual`; `./quality-test.sh` and `make ci` both completed with the unit suite green at `125` tests, and `./typecheck-test.sh` completed successfully via `python3 -m compileall -q src`.
 
 ## Risks / blockers
 - Risk: `HIGH`
