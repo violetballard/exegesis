@@ -24,7 +24,7 @@
 
 ## Verification note
 - The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range.
-- Required local gates were re-run against packet-refresh head `77a66517300c1bf9f3d0f7ae4ecba677569029c1` before this handoff was refreshed.
+- Required local gates were re-run against packet-refresh head `20440c427b5ace39e78d8a421ba65cf51078bb3b` before this handoff was refreshed.
 
 ## Packet trace note
 - The current branch head can be metadata-only and is not automatically the reviewed implementation head.
