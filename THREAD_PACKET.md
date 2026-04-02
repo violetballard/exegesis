@@ -1,9 +1,10 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation HEAD SHA: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: branch-level cumulative full-thread retrieval handoff
+- Traceability rule: later metadata-only packet refresh commits may advance the branch head, but they do not change the reviewed implementation head or reviewed implementation range unless this packet is explicitly regenerated to do so.
 
 ## Scope goal
 - Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
