@@ -2,54 +2,40 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `dad3916f`
+- Commit: `0da8dda9`
 - Reviewed commit(s):
-  - `e78f6b24` (`fix(commands): restore command catalog`)
-  - `b2a0a2d1` (`feat(commands): add CLI route summary helper`)
-  - `dad3916f` (`Strengthen command CLI entrypoint contract`)
-  - `4807235d` (`fix(commands): clarify diff_preview fingerprint payload`)
-  - `2afa0f7f` (`fix(commands): restore diff preview scope allowance`)
-  - `3dfd0146` (`fix(commands): harden diff preview handoff`)
+  - `0da8dda9` (`feat(commands): expose CLI route catalog`)
 
 ## Scope goal
-- Harden the CLI command surface so catalog-backed entrypoints, route summaries, and diff-preview output contracts stay deterministic for CLI-first operator use.
+- Keep the CLI command surface deterministic and smoke-testable by exposing the canonical route catalog, route summary, and smoke-surface metadata for the engine-first MVP loop.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
 - Approved shared tests:
   - `tests/unit/test_commands_catalog.py`
-  - `tests/unit/test_diff_preview.py`
 
 ## Scope completed
-- Added the deterministic command catalog and route contract surface in `src/qual/commands/catalog.py`, including alias resolution, flow-step ordering, CLI lookup tables, route summaries, and the canonical surface contract.
-- Re-exported the catalog helpers from `src/qual/commands/__init__.py` and routed `canonical_command` through the catalog module in `src/qual/commands/canonical.py`.
-- Hardened `src/qual/commands/diff_preview.py` so emitted diff payloads and SHA-256 fingerprints stay aligned after label application, header suppression, truncation, and summary-only collapsing.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical aliases, CLI route summaries, flow contracts, and validation errors, plus focused coverage in `tests/unit/test_diff_preview.py` for labeled JSON output and fingerprint behavior.
-- Updated `scripts/scope-check.sh` so the approved `tests/unit/test_commands_catalog.py` shared test is allowed on `feat-commands`.
-- Regenerated this packet so the review evidence matches the actual branch delta instead of the older diff-preview-only slice.
+- Added `route_catalog` to `CommandCliRouteContract` in `src/qual/commands/catalog.py` so the CLI route contract now carries the ordered route entries alongside parser tokens, canonical names, route summary, lookup surface, and flow surface tokens.
+- Validated the new route-catalog and smoke-surface fields against the canonical helpers so `command_cli_route_contract()` stays deterministic and rejects drift.
+- Extended `tests/unit/test_commands_catalog.py` with focused assertions for the route catalog, lookup surface, flow surface tokens, and the contract equality against `command_mvp_cli_route_contract()`.
+- Regenerated this packet so the handoff summary, ownership note, and roadmap/vision mapping match the actual branch delta.
 
 ## Kickoff budget/limits compliance
 - High-risk shared-file handoff: task budget `4`, time budget `30m`.
-- The submitted branch combines the command catalog surface, diff-preview contract hardening, and the scope-check allowance needed for the approved shared files.
+- The submitted branch stays within lane-owned command code plus the approved `tests/unit/test_commands_catalog.py` shared test exception.
 
 ## Approved exception note
-- Approved shared-file exception for `scripts/scope-check.sh`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`.
+- Approved shared-file exception for `tests/unit/test_commands_catalog.py`.
 
 ## Tasks completed (numbered)
-1. Added the command catalog and CLI route contract surface for deterministic command lookup and flow ordering.
-2. Re-exported the catalog helpers and kept `canonical_command` and `diff_preview` aligned with the catalog-backed command surface.
-3. Added focused unit coverage for command catalog contracts and diff-preview fingerprint behavior.
-4. Updated scope-check and regenerated the packet so the submitted branch description matches the actual net diff and explicit shared-file approvals.
+1. Added `route_catalog` to the CLI route contract and validated it against `command_cli_route_catalog()`.
+2. Added deterministic `lookup_surface` and `flow_surface_tokens` coverage to the CLI route contract.
+3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the route catalog and smoke-surface fields.
+4. Regenerated the packet so the review evidence matches the actual submitted diff and approved shared-file note.
 
 ## Files changed
-- `THREAD_PACKET.md`
-- `scripts/scope-check.sh`
-- `src/qual/commands/__init__.py`
-- `src/qual/commands/canonical.py`
 - `src/qual/commands/catalog.py`
-- `src/qual/commands/diff_preview.py`
 - `tests/unit/test_commands_catalog.py`
-- `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
@@ -60,26 +46,25 @@
 - `make ci`: PASS
 
 ## Risks / blockers
-- Risk: `HIGH`
+- Risk: `MEDIUM`
 - Blockers: none
 
 ## Required handoff fields
 ### Scope completed
 
-- Hardened the CLI command surface so catalog-backed entrypoints, route summaries, and diff-preview output contracts stay deterministic for CLI-first operator use.
+- CLI command routing now exposes a deterministic route catalog and smoke-surface metadata for the engine-first MVP CLI compatibility layer.
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` - keep CLI compatibility and migration-safe entrypoints stable while the command catalog, route summaries, and diff-preview contract harden for the MVP loop.
+- `Milestone 3: Real workflow loop` - preserve CLI compatibility and migration-safe entrypoints while the command catalog now exposes deterministic route-catalog metadata for the CLI smoke surface.
 
 ### Vision capability affected
 
-- `Canonical engine contract` - CLI compatibility remains stable while the command surface exposes a deterministic catalog, aliases, and route summaries.
-- `Auditable state and workflow` - the diff-preview fingerprint now verifies the exact emitted diff payload after normalization and summary-only collapsing.
+- `Canonical engine contract` - CLI compatibility remains stable while the command surface exposes deterministic route metadata for operator use.
 
 ### Routing/provider impact note
 
-- None. This change only affects the local command surface, diff-preview formatting, and the scope-check allowance for the approved shared files.
+- None. This change only affects local command routing metadata and focused command-catalog test coverage.
 
 ### Proposed README patch text
 
@@ -87,4 +72,4 @@
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `YES`
-- Approved shared-file exception covers `scripts/scope-check.sh`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`.
+- Approved shared-file exception covers `tests/unit/test_commands_catalog.py`.
