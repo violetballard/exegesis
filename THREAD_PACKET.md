@@ -1,6 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
+- Current branch HEAD (metadata packet head): `bbb9971681a6d3b62d765ccac711061e9f93dbd8`
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: branch-level cumulative full-thread retrieval handoff
@@ -22,6 +23,7 @@
 - Required fix 3 is satisfied by the dedicated `Scope completed` section above, which states the FTS-first retrieval outcome independently of the packet-refresh commits.
 
 ## Packet trace note
+- The current branch HEAD being handed off for packet review is `bbb9971681a6d3b62d765ccac711061e9f93dbd8`, and it is metadata-only.
 - The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - Any packet-refresh commits after that reviewed implementation head are outside the reviewed implementation range unless this packet is regenerated to say otherwise.
 
