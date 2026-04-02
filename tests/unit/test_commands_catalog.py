@@ -16,6 +16,7 @@ from src.qual.commands import (
     command_cli_route_summary,
     command_flow_manifest,
     command_flow_catalog,
+    command_flow_route_summary,
     command_cli_lookup_table,
     command_flow_lookup_index,
     command_flow_lookup_surface,
@@ -37,6 +38,7 @@ from src.qual.commands import (
     command_mvp_flow_contract,
     command_mvp_flow_lookup_surface,
     command_mvp_flow_route_catalog,
+    command_mvp_flow_route_summary,
     command_mvp_flow_surface_lookup_index,
     command_mvp_flow_surface_tokens,
     command_mvp_flow_lookup_table,
@@ -46,6 +48,7 @@ from src.qual.commands import (
     command_mvp_lookup_index,
     command_mvp_surface_contract,
     command_surface_contract,
+    command_demo_flow_route_summary,
     command_demo_flow_surface_tokens,
     command_names,
     command_spec,
@@ -280,6 +283,35 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_flow_surface_lookup_index(), command_mvp_flow_surface_lookup_index())
         self.assertEqual(command_flow_surface_tokens(), command_mvp_flow_surface_tokens())
         self.assertEqual(command_flow_tokens(), command_mvp_flow_tokens())
+
+    def test_command_flow_route_summary_tracks_the_smoke_route(self) -> None:
+        self.assertEqual(
+            command_flow_route_summary(),
+            (
+                ("project-open", "bootstrap", ("bootstrap",)),
+                ("retrieval", "context-basket", ("context-basket",)),
+                ("patch-review", "diff-preview", ("diff-preview", "diff")),
+                ("export-handoff", "terminal", ("terminal",)),
+            ),
+        )
+        self.assertEqual(command_flow_route_summary(), command_cli_route_summary())
+        self.assertEqual(command_flow_route_summary(), command_demo_flow_route_summary())
+        self.assertEqual(command_demo_flow_route_summary(), command_mvp_flow_route_summary())
+        self.assertEqual(command_flow_route_summary(), command_surface_contract().route_summary)
+
+    def test_command_flow_route_summary_supports_custom_catalogs(self) -> None:
+        specs = (
+            CommandSpec(name="bootstrap", aliases=("open",), flow_step="project-open"),
+            CommandSpec(name="review", aliases=("patch",), flow_step="patch-review"),
+        )
+
+        self.assertEqual(
+            command_flow_route_summary(specs, ("patch-review", "project-open")),
+            (
+                ("patch-review", "review", ("review", "patch")),
+                ("project-open", "bootstrap", ("bootstrap", "open")),
+            ),
+        )
 
     def test_command_flow_lookup_index_reuses_the_manifest_contract(self) -> None:
         self.assertEqual(command_flow_lookup_index(), command_mvp_lookup_index())

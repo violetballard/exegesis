@@ -531,8 +531,7 @@ def command_cli_route_contract(
     flow_steps: tuple[str, ...] | None = None,
 ) -> CommandCliRouteContract:
     cli_contract = command_cli_contract()
-    route_catalog = command_cli_route_catalog(specs, flow_steps)
-    route_summary = tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in route_catalog)
+    route_summary = command_flow_route_summary(specs, flow_steps)
     contract = CommandCliRouteContract(
         tokens=cli_contract.tokens,
         canonical_names=cli_contract.canonical_names,
@@ -573,8 +572,7 @@ def command_cli_route_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
-    route_catalog = command_cli_route_catalog(specs, flow_steps)
-    return tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in route_catalog)
+    return command_flow_route_summary(specs, flow_steps)
 
 
 @lru_cache(maxsize=None)
@@ -601,6 +599,15 @@ def command_flow_route_catalog(
 
 
 @lru_cache(maxsize=None)
+def command_flow_route_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
+    route_catalog = command_flow_route_catalog(flow_steps=flow_steps, specs=specs)
+    return tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in route_catalog)
+
+
+@lru_cache(maxsize=None)
 def command_flow_route_contract(
     flow_steps: tuple[str, ...] | None = None,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -616,12 +623,24 @@ def command_demo_flow_route_contract() -> CommandFlowRouteContract:
     return command_flow_route_contract(flow_steps=command_demo_flow_steps())
 
 
+def command_demo_flow_route_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
+    return command_flow_route_summary(specs, command_demo_flow_steps())
+
+
 def command_mvp_flow_route_catalog() -> tuple[CommandFlowRouteEntry, ...]:
     return command_demo_flow_route_catalog()
 
 
 def command_mvp_flow_route_contract() -> CommandFlowRouteContract:
     return command_demo_flow_route_contract()
+
+
+def command_mvp_flow_route_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
+    return command_demo_flow_route_summary(specs)
 
 
 @lru_cache(maxsize=None)
@@ -874,6 +893,7 @@ def command_flow_contract(
     ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
     sequence = command_flow_sequence(specs, ordered_flow_steps)
     route_catalog = command_flow_route_catalog(flow_steps=ordered_flow_steps, specs=specs)
+    route_summary = command_flow_route_summary(specs, ordered_flow_steps)
     contract = CommandSurfaceContract(
         flow_steps=sequence.flow_steps,
         names=sequence.names,
@@ -886,7 +906,7 @@ def command_flow_contract(
         lookup_surface=command_flow_lookup_surface(specs, ordered_flow_steps),
         flow_surface_tokens=command_flow_surface_tokens(specs, ordered_flow_steps),
         route_catalog=route_catalog,
-        route_summary=command_cli_route_summary(specs, ordered_flow_steps),
+        route_summary=route_summary,
     )
     _validate_command_surface_contract(contract)
     return contract
