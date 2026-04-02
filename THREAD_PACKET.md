@@ -4,7 +4,7 @@
 - Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`.
 - Scope completed: Canonicalized materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`.
 - Runtime change commit: `b929fe6c7a1159c7882acedd247aca31a93cd123`
-- Current branch tip: `cf4b969d5ede85f35443879714a2bc2d228aea98`
+- Current branch tip: `420297930ccac02807e26a3d5783393959063944`
 - Handoff scope: metadata-only resubmission so the roadmap and vision mapping are explicit and reviewer-auditable, including the saved planner handoff state used for future packet emissions.
 - Authoritative plan mapping: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`; `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 - Roadmap item(s) affected (from `ROADMAP.md`): `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress), including the `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`
@@ -36,7 +36,7 @@
   2. Added contract coverage in `tests/unit/test_a2ui_contract.py` for the canonical ordering behavior.
   3. Cleaned up the feature packet and thread packet so the required `Roadmap item(s) affected` and `Vision capability affected` mappings are explicit and auditable.
   4. Synced `.codex/packet_planner/state.json` and `tests/unit/test_packet_planner.py` so saved and re-emitted packets preserve the same explicit Milestone 5 / Capability 5 mapping plus the `MVP Focus Through 2026-05-04` task anchor.
-  5. Resynced the handoff metadata to the current branch tip `cf4b969d5ede85f35443879714a2bc2d228aea98` so the packet trail stays aligned with `HEAD`.
+  5. Resynced the handoff metadata to the current branch tip `420297930ccac02807e26a3d5783393959063944` so the packet trail stays aligned with `HEAD`.
 
 ## Reviewer Required Fix Coverage
 
