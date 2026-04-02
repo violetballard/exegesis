@@ -4,7 +4,7 @@
 - Implementation commit(s):
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
 - Most recent docs-only reviewer-fix alignment commit before this update:
-  - `3134f1e7` (`docs(commands): record final reviewer-fix rerun`)
+  - `cdd325621cc633b12e648db30535b6545f926e5b` (`docs(commands): finalize reviewer-fix handoff packet`)
 
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice and naming the actual approved shared test consistently.
