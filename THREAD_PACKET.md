@@ -1,8 +1,8 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet refresh trace anchor: `e1b75e1e720d156d5f9fe6949ece93f19f9db798`
-- Latest packet-refresh HEAD SHA before this fixer pass: `e1b75e1e720d156d5f9fe6949ece93f19f9db798`
+- Packet refresh trace anchor: `ab88c80e0ebf18848839e98729c3bae5b0eca94b`
+- Latest packet-refresh HEAD SHA before this fixer pass: `ab88c80e0ebf18848839e98729c3bae5b0eca94b`
 - Reviewed implementation HEAD SHA: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: branch-level cumulative full-thread retrieval handoff
@@ -16,8 +16,8 @@
 - The branch contains later metadata-only packet refresh commits. The only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`, and those later packet-refresh commits, including `b172559ed0889b5793e150296fa4b8b6c9943931`, do not change that reviewed implementation range.
 
 ## Docs-only alignment commits
-- Representative metadata-only packet refresh commits include `f13324d206b41c134a96ff837eea6427c31aa981`, `b172559ed0889b5793e150296fa4b8b6c9943931`, `a54d1824912cc75305acc7e96ad5ff2414d8001f`, `6b3a5ea6594c86584ff45b278b2ea220b7fdd4b0`, `20440c427b5ace39e78d8a421ba65cf51078bb3b`, `9f7206fff61ca5738c5fb751ebc551fe43f6cdba`, `2efda180cdfdaf6b347aec8f8c95179ddb0c0a12`, `77a66517457c9800649a4046b2d3e857ddbfd440`, `5665fb9f4f460918cdd33f1d914d5e7f948ba0c8`, `646582c8495e1b891ee0eedab939a22e2d19d694`, and `e1b75e1e720d156d5f9fe6949ece93f19f9db798`.
-- The latest packet-only traceability refresh before this fixer pass is `e1b75e1e720d156d5f9fe6949ece93f19f9db798`.
+- Representative metadata-only packet refresh commits include `f13324d206b41c134a96ff837eea6427c31aa981`, `b172559ed0889b5793e150296fa4b8b6c9943931`, `a54d1824912cc75305acc7e96ad5ff2414d8001f`, `6b3a5ea6594c86584ff45b278b2ea220b7fdd4b0`, `20440c427b5ace39e78d8a421ba65cf51078bb3b`, `9f7206fff61ca5738c5fb751ebc551fe43f6cdba`, `2efda180cdfdaf6b347aec8f8c95179ddb0c0a12`, `77a66517457c9800649a4046b2d3e857ddbfd440`, `5665fb9f4f460918cdd33f1d914d5e7f948ba0c8`, `646582c8495e1b891ee0eedab939a22e2d19d694`, `e1b75e1e720d156d5f9fe6949ece93f19f9db798`, and `ab88c80e0ebf18848839e98729c3bae5b0eca94b`.
+- The latest packet-only traceability refresh before this fixer pass is `ab88c80e0ebf18848839e98729c3bae5b0eca94b`.
 - Later packet-refresh commits on this branch remain metadata-only unless this handoff packet is regenerated to move the reviewed implementation head or reviewed implementation range.
 - Those packet-refresh commits update handoff metadata only and must not be read as evidence that `src/qual/retrieval/service.py` or `tests/unit/test_unified_retrieval.py` changed at those SHAs.
 
@@ -32,8 +32,8 @@
 - This fixer pass is metadata-only and exists to give the reviewer-required packet corrections their own packet-refresh commit without moving the reviewed implementation range.
 
 ## Packet trace note
-- The packet refresh trace anchor is `e1b75e1e720d156d5f9fe6949ece93f19f9db798`; it is metadata-only and is not automatically the reviewed implementation head.
-- The latest packet-refresh branch head before this fixer pass is `e1b75e1e720d156d5f9fe6949ece93f19f9db798`.
+- The packet refresh trace anchor is `ab88c80e0ebf18848839e98729c3bae5b0eca94b`; it is metadata-only and is not automatically the reviewed implementation head.
+- The latest packet-refresh branch head before this fixer pass is `ab88c80e0ebf18848839e98729c3bae5b0eca94b`.
 - The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless this packet is regenerated to move the reviewed implementation head or reviewed implementation range.
 - The packet-refresh head can continue to advance for handoff-only corrections without changing the reviewed implementation range.
