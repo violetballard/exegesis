@@ -1,13 +1,16 @@
 # Lane Kickoff: feat-retrieval-fts
 
 - Branch: `codex/feat-retrieval-fts`
+- Current packet HEAD SHA: `5420c99a7729e2263160e4c65f3fb10b06f91f7f`
+- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
 - Handoff type: retrieval feature handoff for the FTS-first retrieval lane.
 - Approved exception note: Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract. No other shared-by-approval files are part of the reviewed retrieval implementation range.
 
 ## Scope completed
 
-The retrieval lane shipped an FTS-first retrieval MVP: SQLite FTS remains authoritative, the canonical retrieval query constructor is exported through both retrieval facades, retrieval payloads and provenance snapshots are deterministic for downstream engine flows, sparse source and context bundles rehydrate deterministically, and the excerpt lookup surface now uses the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage. PageIndex plus embeddings remain compatibility-only fallback shims that fail closed. The only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`; later packet-refresh commits are metadata-only packet heads and stay outside that reviewed implementation range.
+The retrieval lane shipped an FTS-first retrieval MVP: SQLite FTS remains authoritative, the canonical retrieval query constructor is exported through both retrieval facades, retrieval payloads and provenance snapshots are deterministic for downstream engine flows, sparse source and context bundles rehydrate deterministically, and the excerpt lookup surface now uses the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage. PageIndex plus embeddings remain compatibility-only fallback shims that fail closed. The current packet head is metadata-only; the only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`, and later packet-refresh commits stay outside that reviewed implementation range.
 
 ## Budget note
 
