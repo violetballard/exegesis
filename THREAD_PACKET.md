@@ -3,8 +3,11 @@
 - Branch name: `codex/feat-commands`
 - Implementation commit(s):
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
-- Most recent docs-only alignment commit before this fixer pass:
+- Docs-only alignment baseline before this fixer pass:
   - `69f4f4a0f010761ffebdb629ab74bd1e9256b9d4` (`docs(commands): tighten reviewer-fix handoff packet`)
+
+## Reviewer-fix resubmission note
+- This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice, using canonical roadmap and vision labels, and naming the actual approved shared test consistently.
 
 ## Scope goal
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog. This keeps the CLI-first MVP surface stable while the engine contract settles.
@@ -50,6 +53,7 @@
 ## Scope boundary note
 - This packet re-submits only the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog implementation slice plus docs-only alignment at the current head.
 - It does not claim earlier branch groundwork as part of the reviewed implementation files for this re-review.
+- It does not claim any `diff_preview` implementation or `tests/unit/test_diff_preview.py` coverage in this re-review packet.
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
