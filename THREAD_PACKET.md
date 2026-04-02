@@ -30,6 +30,7 @@
 - The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range.
 - Required local gates were re-run on the packet-refresh branch head before this handoff was refreshed.
 - This fixer pass is metadata-only and exists to give the reviewer-required packet corrections their own packet-refresh commit without moving the reviewed implementation range.
+- This commit records the post-review fixer pass that re-ran all required local gates while preserving the same reviewed implementation range.
 
 ## Packet trace note
 - The packet refresh trace anchor is `d00822ca445d9df03c3ff0a140e73ec4a2d4188a`; it is metadata-only and is not automatically the reviewed implementation head.

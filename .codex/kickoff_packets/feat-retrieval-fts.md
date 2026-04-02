@@ -33,6 +33,7 @@ Metadata-only packet refresh commits may continue to advance the branch head aft
 ## Verification note
 
 The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range. Required local gates were re-run on the packet-refresh branch head before this packet was refreshed. This fixer pass is metadata-only and gives the reviewer-required packet corrections their own packet-refresh commit without moving the reviewed implementation range.
+This commit records the post-review fixer pass that re-ran all required local gates while preserving the same reviewed implementation range.
 
 ### Priority outcomes
 1. Make SQLite FTS the primary retrieval path.
