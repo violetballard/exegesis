@@ -1,6 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
+- Packet HEAD role: `metadata-only handoff refresh`
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: branch-level cumulative full-thread retrieval handoff
