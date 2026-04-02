@@ -22,6 +22,10 @@
 - Required fix 2 is satisfied by separating the metadata-only packet refresh chain from the reviewed implementation range anchored to `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - Required fix 3 is satisfied by the dedicated `Scope completed` section above, which states the FTS-first retrieval outcome independently of the packet-refresh commits.
 
+## Verification note
+- The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range.
+- Required local gates were re-run against the packet-refresh head before this handoff was refreshed.
+
 ## Packet trace note
 - The current branch head can be metadata-only and is not automatically the reviewed implementation head.
 - The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.

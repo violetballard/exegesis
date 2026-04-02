@@ -23,6 +23,10 @@ This kickoff packet now matches the reviewer-required packet corrections: the ha
 
 The current branch head can be metadata-only and is not automatically the reviewed implementation head. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless the packet is regenerated to move the reviewed implementation head or reviewed implementation range. Read the retrieval file list and completed-task summary against that reviewed implementation range, not against the later metadata-only packet refresh chain.
 
+## Verification note
+
+The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range. Required local gates were re-run against the packet-refresh head before this packet was refreshed.
+
 ### Priority outcomes
 1. Make SQLite FTS the primary retrieval path.
 2. Return doc hits and excerpt hits with stable provenance.
