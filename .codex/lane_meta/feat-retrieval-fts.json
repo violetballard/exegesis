@@ -5,10 +5,10 @@
   "traceability_rule": "Later metadata-only packet refresh commits may advance the branch head, but they do not change the reviewed implementation head or reviewed implementation range unless the packet metadata is explicitly regenerated to do so.",
   "branch_head_traceability": "Metadata-only packet refresh commits may continue to advance the branch head after this handoff packet is refreshed. Re-review should anchor traceability to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`; if a later branch head changes retrieval code or the approved shared regression file, the packet must be regenerated before approval.",
   "verification_note": "The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range. Required local gates were re-run on the packet-refresh branch head before this handoff was refreshed. This fixer pass is metadata-only and gives the reviewer-required packet corrections their own packet-refresh commit without moving the reviewed implementation range.",
-  "packet_trace_note": "The packet refresh trace anchor is `961714f2bc24e79c8df7133241e14fdef55a968e`; it is metadata-only and is not automatically the reviewed implementation head. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless the metadata is regenerated to move the reviewed implementation head or reviewed implementation range. Read the retrieval file list and completed-task summary against that reviewed implementation range, not against the later metadata-only packet refresh chain. The cited packet-refresh SHAs are representative rather than exhaustive.",
+  "packet_trace_note": "The packet refresh trace anchor is `f1608c3895048620c51585f4766cc897a022f237`; it is metadata-only and is not automatically the reviewed implementation head. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless the metadata is regenerated to move the reviewed implementation head or reviewed implementation range. Read the retrieval file list and completed-task summary against that reviewed implementation range, not against the later metadata-only packet refresh chain. The cited packet-refresh SHAs are representative rather than exhaustive.",
   "proposed_readme_patch": "",
-  "packet_refresh_trace_anchor": "961714f2bc24e79c8df7133241e14fdef55a968e",
-  "current_packet_refresh_head": "961714f2bc24e79c8df7133241e14fdef55a968e",
+  "packet_refresh_trace_anchor": "f1608c3895048620c51585f4766cc897a022f237",
+  "current_packet_refresh_head": "f1608c3895048620c51585f4766cc897a022f237",
   "final_head_sha": "adfa8cdadd43747ffbcb612e4151e262b13e52ca",
   "reviewed_implementation_range": "d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca",
   "implementation_commits": [],
@@ -33,7 +33,8 @@
     "0a78066da152d81faa52b7b8214a439830ea64bf",
     "39457eda6d26418ab373c699ee53ef34eca09934",
     "c83200b033f1b90a75700e3dc2f420e938057ca6",
-    "961714f2bc24e79c8df7133241e14fdef55a968e"
+    "961714f2bc24e79c8df7133241e14fdef55a968e",
+    "f1608c3895048620c51585f4766cc897a022f237"
   ],
   "risk": "HIGH",
   "packet_type": "metadata-only",
