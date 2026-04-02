@@ -894,7 +894,11 @@ class RetrievalService:
             lookup_entrypoint=lookup_entrypoint,
             lookup_resolution="fts",
         )
-        return self._normalize_excerpt_payload(fts_excerpt, source_strategy="fts")
+        return self._normalize_excerpt_payload(
+            fts_excerpt,
+            source_strategy="fts",
+            lookup_resolution="fts",
+        )
 
     def _record_excerpt_lookup_audit(
         self,
@@ -1064,7 +1068,11 @@ class RetrievalService:
             pass
         excerpt = self._docindex.fetch_excerpt(excerpt_id)
         if isinstance(excerpt, dict):
-            normalized = self._normalize_excerpt_payload(excerpt, source_strategy="pageindex")
+            normalized = self._normalize_excerpt_payload(
+                excerpt,
+                source_strategy="pageindex",
+                lookup_resolution="pageindex_fallback",
+            )
             self._record_excerpt_lookup_audit(
                 normalized,
                 lookup_entrypoint="fetch_excerpt",
@@ -1703,6 +1711,7 @@ class RetrievalService:
                     ),
                 },
                 source_strategy="fts",
+                lookup_resolution="fts",
             )
         return None
 
@@ -1777,6 +1786,7 @@ class RetrievalService:
         excerpt: dict[str, object],
         *,
         source_strategy: Literal["fts", "pageindex"],
+        lookup_resolution: str,
     ) -> dict[str, object]:
         provenance = excerpt.get("provenance", {})
         if not isinstance(provenance, dict):
@@ -1784,6 +1794,7 @@ class RetrievalService:
         normalized = dict(excerpt)
         normalized["source_strategy"] = source_strategy
         normalized["retrieval_source_strategy"] = source_strategy
+        normalized["lookup_resolution"] = lookup_resolution
         text_hash = provenance.get("hash") or provenance.get("excerpt_text_hash") or normalized.get("text_hash")
         if not isinstance(text_hash, str) or not text_hash:
             text_value = normalized.get("text")
@@ -1901,6 +1912,7 @@ class RetrievalService:
             normalized_provenance["retrieval_mode"] = retrieval_mode
             normalized_provenance["retrieval_policy"] = copy.deepcopy(retrieval_policy)
             normalized_provenance["retrieval_source_strategy"] = source_strategy
+            normalized_provenance["lookup_resolution"] = lookup_resolution
             normalized["provenance"] = normalized_provenance
         return normalized
 
