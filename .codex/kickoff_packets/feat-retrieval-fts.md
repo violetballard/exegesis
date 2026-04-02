@@ -1,7 +1,7 @@
 # Lane Kickoff: feat-retrieval-fts
 
 - Branch: `codex/feat-retrieval-fts`
-- Packet HEAD SHA: `be10c6b42d8aea5297c6db7da4c23ccb81185848`
+- Packet metadata refresh SHA: `be10c6b42d8aea5297c6db7da4c23ccb81185848`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
@@ -15,6 +15,10 @@ The retrieval lane shipped an FTS-first retrieval MVP: SQLite FTS remains author
 ## Budget note
 
 This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so it is shared/high-risk work and should be read against the 4-task cap. The detailed task summary in `THREAD_PACKET.md` folds the cumulative retrieval thread into four meaningful items, and later packet-refresh commits do not change the reviewed implementation range.
+
+## Reviewer fix reconciliation
+
+This kickoff packet now matches the reviewer-required packet corrections: the handoff is classified as shared/high-risk work under the 4-task cap, the reviewed implementation range remains anchored to `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and the dedicated `Scope completed` section describes the FTS-first retrieval outcome separately from later metadata-only packet refreshes.
 
 ### Priority outcomes
 1. Make SQLite FTS the primary retrieval path.

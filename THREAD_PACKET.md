@@ -1,9 +1,9 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet HEAD SHA (current branch head): `be10c6b42d8aea5297c6db7da4c23ccb81185848`
-- Packet HEAD role: `metadata-only handoff refresh`
-- Packet HEAD trace: metadata-only packet refresh commits may advance the branch head, but the reviewed implementation scope stays anchored to the `Final HEAD SHA` and `Reviewed implementation range` below.
+- Packet metadata refresh SHA: `be10c6b42d8aea5297c6db7da4c23ccb81185848`
+- Packet metadata refresh role: `metadata-only handoff refresh`
+- Packet metadata refresh trace: metadata-only packet refresh commits may advance the branch head, but the reviewed implementation scope stays anchored to the `Final HEAD SHA` and `Reviewed implementation range` below.
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: branch-level cumulative full-thread retrieval handoff
@@ -32,6 +32,11 @@
 - `221c6806230a2ed3eec71c1d5ff458dd03bbdb4d`
 - `be10c6b42d8aea5297c6db7da4c23ccb81185848`
 - These packet-refresh commits are metadata-only and do not change the reviewed implementation range above.
+
+## Reviewer fix reconciliation
+- Required fix 1 is satisfied by the `Budget alignment` section below: this handoff is explicitly classified as shared/high-risk work with the 4-task cap.
+- Required fix 2 is satisfied by separating the metadata-only packet refresh chain from the reviewed implementation range anchored to `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- Required fix 3 is satisfied by the dedicated `Scope completed` section above, which states the FTS-first retrieval outcome independently of the packet-refresh commits.
 
 ## Approved exception note
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract. No other shared-by-approval files are part of the reviewed retrieval implementation range.
