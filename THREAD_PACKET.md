@@ -16,6 +16,7 @@
 - `f13324d206b41c134a96ff837eea6427c31aa981`: updated the handoff packet wording to make the shared/high-risk 4-task cap explicit.
 - `edb36142cfe75ff8c65aee95865adb2de7ac19b0`: refreshed the same packet wording at the current branch head.
 - `b172559ed0889b5793e150296fa4b8b6c9943931`: separated the docs-only alignment commits from the reviewed retrieval implementation scope.
+- `a164d042623b8d3fc52019c72c5be74bba18990b`: traced the latest docs-only branch head so the packet history matches the lane worktree state.
 - These commits only regenerate handoff metadata and do not change the reviewed implementation range above.
 
 ## Approved exception note
