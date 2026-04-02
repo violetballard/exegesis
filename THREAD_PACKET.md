@@ -34,7 +34,8 @@
 - `a54d1824912cc75305acc7e96ad5ff2414d8001f`
 - `f7a2081d80db74f87db3ef97e11768a145b05db6`
 - `52f1a02f0bb908608335a2c721c09a0fb4ad4196`
-- These packet-refresh commits are metadata-only and do not change the reviewed implementation range above.
+- `660605df61af1a2d406ab9c57b7ebf0810cf5a2d`
+- These packet-refresh commits are metadata-only examples from the post-implementation packet-refresh chain and do not change the reviewed implementation range above.
 
 ## Reviewer fix reconciliation
 - Required fix 1 is satisfied by the `Budget alignment` section below: this handoff is explicitly classified as shared/high-risk work with the 4-task cap.
@@ -42,9 +43,8 @@
 - Required fix 3 is satisfied by the dedicated `Scope completed` section above, which states the FTS-first retrieval outcome independently of the packet-refresh commits.
 
 ## Packet trace note
-- Current branch head is `52f1a02f0bb908608335a2c721c09a0fb4ad4196`, and every commit after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` listed above is metadata-only.
 - The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-- Any later packet-only commits on `codex/feat-retrieval-fts` are metadata-only follow-ups and are not part of the reviewed implementation range unless this packet is regenerated to say otherwise.
+- Any packet-refresh commits after that reviewed implementation head, including this packet refresh chain and later metadata-only follow-ups, are not part of the reviewed implementation range unless this packet is regenerated to say otherwise.
 
 ## Approved exception note
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract. No other shared-by-approval files are part of the reviewed retrieval implementation range.

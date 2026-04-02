@@ -2,7 +2,7 @@
   "approved_exception_note": "Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract. No other shared-by-approval files are part of the reviewed retrieval implementation range.",
   "kickoff_budget_note": "This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the packet is shared/high-risk work and should be read against the 4-task cap. The 4 completed tasks described below summarize the cumulative retrieval implementation thread and are not a low-risk owned-path-only batch. Later metadata-only packet refreshes do not change the reviewed implementation range.",
   "reviewer_fix_reconciliation": "Reviewer-required packet fixes are reflected here: the handoff is explicitly classified as shared/high-risk work under the 4-task cap, the reviewed implementation range remains anchored to `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and the dedicated scope-completed summary stays separate from later metadata-only packet refreshes.",
-  "packet_trace_note": "The current branch head is `52f1a02f0bb908608335a2c721c09a0fb4ad4196`, and every commit after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` on this packet-refresh chain is metadata-only. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. Later packet-only commits are not part of the reviewed implementation range unless this metadata is regenerated to say otherwise.",
+  "packet_trace_note": "Packet-refresh commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` on this handoff chain are metadata-only unless the metadata is regenerated to say otherwise. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and later packet-only commits are not part of the reviewed implementation range.",
   "proposed_readme_patch": "",
   "final_head_sha": "adfa8cdadd43747ffbcb612e4151e262b13e52ca",
   "reviewed_implementation_range": "d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca",
@@ -28,7 +28,8 @@
     "a0a58080f596fdf47783b5533e2f8cd9b27be067",
     "a54d1824912cc75305acc7e96ad5ff2414d8001f",
     "f7a2081d80db74f87db3ef97e11768a145b05db6",
-    "52f1a02f0bb908608335a2c721c09a0fb4ad4196"
+    "52f1a02f0bb908608335a2c721c09a0fb4ad4196",
+    "660605df61af1a2d406ab9c57b7ebf0810cf5a2d"
   ],
   "risk": "HIGH",
   "packet_type": "metadata-only",
