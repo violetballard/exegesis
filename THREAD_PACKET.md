@@ -7,10 +7,11 @@
   - `4fcd5719` (`docs(commands): refresh reviewer-fix handoff packet`)
 
 ## Reviewer-fix resubmission note
-- This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice, using the exact roadmap and vision labels from this worktree, and naming the actual approved shared test consistently.
+- This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice and naming the actual approved shared test consistently.
+- This packet intentionally preserves the review packet's required roadmap and vision labels for re-review, even though the local branch docs have since drifted to a different milestone/capability naming scheme.
 - This resubmission reruns the required local gates on `2026-04-02` so the packet's pass/fail claims match the current branch head for this fixer commit.
 - The reviewed implementation slice remains commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
-- The roadmap and vision mappings below intentionally follow this worktree's canonical `ROADMAP.md` and `PRODUCT_VISION.md`, not labels from any other checkout.
+- The roadmap and vision mappings below intentionally follow the reviewer packet's required canonical labels for this re-review instead of reintroducing the local branch's drifted naming.
 
 ## Reviewer required fixes addressed
 1. Rewrote the roadmap mapping to use the exact canonical `ROADMAP.md` entries `Milestone 3: Real workflow loop` and `feat-commands`.
