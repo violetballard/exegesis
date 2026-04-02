@@ -4,12 +4,13 @@
 - Implementation commit(s):
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
 - Most recent docs-only alignment commit before this fixer pass:
-  - `4705a4e8` (`docs(commands): align handoff packet to reviewer canon`)
+  - `4fcd5719` (`docs(commands): refresh reviewer-fix handoff packet`)
 
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice, using the exact roadmap and vision labels from this worktree, and naming the actual approved shared test consistently.
 - This resubmission reruns the required local gates on `2026-04-02` so the packet's pass/fail claims match the current branch head for this fixer commit.
 - The reviewed implementation slice remains commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
+- The roadmap and vision mappings below intentionally follow this worktree's canonical `ROADMAP.md` and `PRODUCT_VISION.md`, not labels from any other checkout.
 
 ## Scope goal
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog. This keeps the CLI-first MVP surface stable while the engine contract settles.
@@ -91,6 +92,6 @@
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `YES`
 - Approved shared-file exception covers `tests/unit/test_commands_catalog.py`, which is also the only shared test named in `Files changed`.
-- Approval basis: `scripts/scope-check.sh` explicitly permits `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, and this packet only claims that one non-owned test file.
+- Approval basis: `scripts/scope-check.sh` explicitly permits `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, and `INTEGRATION.md` requires the packet to name that explicit approval note when a non-owned file is in scope.
 - Re-review mapping basis: the roadmap and vision fields above use the reviewer-required canonical milestone and capability names for this command-contract handoff slice.
 - Coherent-slice basis: this re-review packet covers the `command_cli_contract()` catalog hardening only and does not mix in earlier diff-preview or route-catalog branch work.
