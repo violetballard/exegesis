@@ -16,6 +16,7 @@
 
 ## Docs-only alignment commits
 - Representative metadata-only packet refresh commits include `f13324d206b41c134a96ff837eea6427c31aa981`, `b172559ed0889b5793e150296fa4b8b6c9943931`, `a54d1824912cc75305acc7e96ad5ff2414d8001f`, `6b3a5ea6594c86584ff45b278b2ea220b7fdd4b0`, `20440c427b5ace39e78d8a421ba65cf51078bb3b`, `9f7206fff61ca5738c5fb751ebc551fe43f6cdba`, `2efda180cdfdaf6b347aec8f8c95179ddb0c0a12`, `77a66517457c9800649a4046b2d3e857ddbfd440`, and `5665fb9f4f460918cdd33f1d914d5e7f948ba0c8`.
+- The latest packet-only traceability refresh before this fixer pass is `dfd0dbea6d50a400c7d7b7c54f8348bc66f5177f`.
 - Later packet-refresh commits on this branch remain metadata-only unless this handoff packet is regenerated to move the reviewed implementation head or reviewed implementation range.
 - Those packet-refresh commits update handoff metadata only and must not be read as evidence that `src/qual/retrieval/service.py` or `tests/unit/test_unified_retrieval.py` changed at those SHAs.
 
@@ -27,6 +28,7 @@
 ## Verification note
 - The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range.
 - Required local gates were re-run on the packet-refresh branch head before this handoff was refreshed.
+- This fixer pass is metadata-only and exists to give the reviewer-required packet corrections their own branch-head commit.
 
 ## Packet trace note
 - The packet refresh trace anchor is `1f6a57dd0d40998b0ca58bdb94cf3f2b7b0a2f05`; it is metadata-only and is not automatically the reviewed implementation head.

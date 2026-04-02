@@ -27,7 +27,7 @@ The packet refresh trace anchor is `1f6a57dd0d40998b0ca58bdb94cf3f2b7b0a2f05`; i
 
 ## Verification note
 
-The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range. Required local gates were re-run on the packet-refresh branch head before this packet was refreshed.
+The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range. Required local gates were re-run on the packet-refresh branch head before this packet was refreshed. This fixer pass is metadata-only and gives the reviewer-required packet corrections their own branch-head commit.
 
 ### Priority outcomes
 1. Make SQLite FTS the primary retrieval path.
