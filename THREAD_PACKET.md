@@ -76,12 +76,12 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - command behavior hardening for the CLI surface.
-- `Milestone 2: Test Hardening (In Progress)` - focused unit coverage for the command-catalog drift checks added in this slice.
+- `Milestone 3: Real workflow loop` - preserve CLI compatibility and migration-safe entrypoints while the command catalog contract is hardened against parser/catalog drift.
+- `feat-commands` - stable CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ### Vision capability affected
-- `Operator-first control surface` - CLI remains a first-class surface, and the command catalog now rejects silent parser/catalog drift before it can affect operators.
-- `Auditable generation` - the deterministic CLI contract makes parser/catalog drift explicit instead of leaving the operator surface to fail ambiguously.
+- `Canonical engine contract` - CLI compatibility remains stable while the command surface now rejects parser/catalog drift before it can reach operators.
+- `Auditable state and workflow` - the command surface now fails loudly on drift, making the operator contract explicit and traceable.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
@@ -93,5 +93,5 @@
 - Shared/integrator-locked edits: `YES`
 - Approved shared-file exception covers `tests/unit/test_commands_catalog.py`, which is also the only shared test named in `Files changed`.
 - Approval basis: `scripts/scope-check.sh` explicitly permits `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, and this packet only claims that one non-owned test file.
-- Re-review mapping basis: the roadmap and vision fields above use the exact canonical milestone and capability names from this worktree's `ROADMAP.md` and `PRODUCT_VISION.md` for this command-contract handoff slice.
+- Re-review mapping basis: the roadmap and vision fields above use the reviewer-required canonical milestone and capability names for this command-contract handoff slice.
 - Coherent-slice basis: this re-review packet covers the `command_cli_contract()` catalog hardening only and does not mix in earlier diff-preview or route-catalog branch work.
