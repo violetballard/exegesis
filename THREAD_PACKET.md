@@ -2,12 +2,12 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `0da8dda9`
+- Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Reviewed commit(s):
-  - `0da8dda9` (`feat(commands): expose CLI route catalog`)
+  - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
 
 ## Scope goal
-- Keep the CLI command surface deterministic and smoke-testable by exposing the canonical route catalog, route summary, and smoke-surface metadata for the engine-first MVP loop.
+- Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog. This keeps the CLI-first MVP surface stable while the engine contract settles.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
@@ -15,9 +15,9 @@
   - `tests/unit/test_commands_catalog.py`
 
 ## Scope completed
-- Added `route_catalog` to `CommandCliRouteContract` in `src/qual/commands/catalog.py` so the CLI route contract now carries the ordered route entries alongside parser tokens, canonical names, route summary, lookup surface, and flow surface tokens.
-- Validated the new route-catalog and smoke-surface fields against the canonical helpers so `command_cli_route_contract()` stays deterministic and rejects drift.
-- Extended `tests/unit/test_commands_catalog.py` with focused assertions for the route catalog, lookup surface, flow surface tokens, and the contract equality against `command_mvp_cli_route_contract()`.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares the CLI lookup-table canonical names against `command_names()` and raises `ValueError` when the catalog and parser surface drift.
+- Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the canonical-name alignment path and the drift rejection path.
 - Regenerated this packet so the handoff summary, ownership note, and roadmap/vision mapping match the actual branch delta.
 
 ## Kickoff budget/limits compliance
@@ -28,9 +28,9 @@
 - Approved shared-file exception for `tests/unit/test_commands_catalog.py`.
 
 ## Tasks completed (numbered)
-1. Added `route_catalog` to the CLI route contract and validated it against `command_cli_route_catalog()`.
-2. Added deterministic `lookup_surface` and `flow_surface_tokens` coverage to the CLI route contract.
-3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the route catalog and smoke-surface fields.
+1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on drift.
+2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
+3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
 4. Regenerated the packet so the review evidence matches the actual submitted diff and approved shared-file note.
 
 ## Files changed
@@ -51,23 +51,20 @@
 
 ## Required handoff fields
 ### Scope completed
-
-- CLI command routing now exposes a deterministic route catalog and smoke-surface metadata for the engine-first MVP CLI compatibility layer.
+- CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-
-- `Milestone 3: Real workflow loop` - preserve CLI compatibility and migration-safe entrypoints while the command catalog now exposes deterministic route-catalog metadata for the CLI smoke surface.
+- `Milestone 3: Real workflow loop` - preserve CLI compatibility and migration-safe entrypoints while the CLI contract is hardened against catalog drift.
+- `feat-commands` - stable CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ### Vision capability affected
-
-- `Canonical engine contract` - CLI compatibility remains stable while the command surface exposes deterministic route metadata for operator use.
+- `Canonical engine contract` - CLI compatibility remains stable while the command surface now rejects parser/catalog drift before it can reach operators.
+- `Auditable state and workflow` - the command surface now fails loudly on drift, making the operator contract explicit and traceable.
 
 ### Routing/provider impact note
-
-- None. This change only affects local command routing metadata and focused command-catalog test coverage.
+- None. This change only affects local command contract validation and focused command-catalog test coverage.
 
 ### Proposed README patch text
-
 - None.
 
 ## Scope-check / ownership note
