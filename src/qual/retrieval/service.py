@@ -973,22 +973,9 @@ class RetrievalService:
         )
 
     def fetch_excerpt(self, excerpt_id: str) -> dict[str, object]:
-        """Return an excerpt payload, preferring FTS and falling back to PageIndex for compatibility."""
+        """Return an excerpt payload using the canonical FTS-only lookup path."""
 
-        try:
-            return self._lookup_fts_excerpt(excerpt_id, lookup_entrypoint="fetch_excerpt")
-        except KeyError:
-            pass
-        excerpt = self._docindex.fetch_excerpt(excerpt_id)
-        if isinstance(excerpt, dict):
-            normalized = self._normalize_excerpt_payload(excerpt, source_strategy="pageindex")
-            self._record_excerpt_lookup_audit(
-                normalized,
-                lookup_entrypoint="fetch_excerpt",
-                lookup_resolution="pageindex_fallback",
-            )
-            return normalized
-        return excerpt
+        return self._lookup_fts_excerpt(excerpt_id, lookup_entrypoint="fetch_excerpt")
 
     def _run_fts_hits(self, query: RetrievalQuery, candidate_doc_ids: tuple[str, ...]) -> list[RetrievalHit]:
         match_query, query_terms = self._build_fts_match_query(query.query_text)

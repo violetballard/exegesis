@@ -9,6 +9,7 @@ from typing import cast
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions
 from src.qual.docindex.service import DocIndexQueryConstraints
+from src.qual.docindex.service import DocIndexService
 import src.qual.engine.retrieval as engine_retrieval
 from src.qual.engine.retrieval import build_retrieval_citation_bundle_from_result as engine_build_retrieval_citation_bundle_from_result
 from src.qual.engine.retrieval import build_retrieval_doc_bundle_from_result as engine_build_retrieval_doc_bundle_from_result
@@ -840,6 +841,28 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
         self.assertTrue(excerpt["text"])
 
+    def test_fetch_excerpt_requires_an_fts_lookup_hit(self) -> None:
+        docindex_service = DocIndexService(self.root, audit_log=self.audit)
+        doc_id = "doc-pageindex-only"
+        source = (
+            "# Methods\n"
+            "Sampling details and recruitment constraints.\n"
+            "# Findings\n"
+            "Theme synthesis and implications for theory.\n"
+        ).encode("utf-8")
+        docindex_service.build(doc_id, source, DocIndexBuildOptions())
+        query = docindex_service.query(
+            doc_id,
+            source,
+            "findings synthesis",
+            DocIndexQueryConstraints(max_results=1),
+            options=DocIndexBuildOptions(),
+        )
+        excerpt_id = query.hits[0]["excerpt_ids"][0]  # type: ignore[index]
+
+        with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
+            self.service.fetch_excerpt(str(excerpt_id))
+
     def test_retrieve_fts_excerpt_returns_canonical_fts_payload(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
@@ -901,7 +924,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(doc_hit["retrieval_mode"], "fts_first")
         self.assertEqual(doc_hit["retrieval_policy"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
 
-    def test_retrieval_service_normalizes_pageindex_excerpt_payloads(self) -> None:
+    def test_retrieval_service_rejects_pageindex_excerpt_payloads(self) -> None:
         query_result = self.service._docindex.query(
             "doc-pdf-1",
             self.service._read_doc_text("doc-pdf-1").encode("utf-8"),
@@ -913,17 +936,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         excerpt_ids = query_result.hits[0]["excerpt_ids"]
         self.assertTrue(excerpt_ids)
 
-        excerpt = self.service.fetch_excerpt(str(excerpt_ids[0]))
-        self.assertEqual(excerpt["source_strategy"], "pageindex")
-        self.assertEqual(excerpt["doc_id"], "doc-pdf-1")
-        self.assertIn("span", excerpt)
-        self.assertIn("text_hash", excerpt)
-        self.assertEqual(excerpt["retrieval_backend"], "sqlite_fts")
-        self.assertEqual(excerpt["retrieval_mode"], "fts_first")
-        self.assertEqual(excerpt["retrieval_policy"]["retrieval_backend"], "sqlite_fts")
-        self.assertEqual(excerpt["retrieval_policy"]["retrieval_mode"], "fts_first")
-        self.assertEqual(excerpt["provenance"]["source_strategy"], "pageindex")
-        self.assertEqual(excerpt["provenance"]["doc_id"], "doc-pdf-1")
+        with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
+            self.service.fetch_excerpt(str(excerpt_ids[0]))
 
     def test_engine_retrieval_package_exports_are_fts_only(self) -> None:
         self.assertEqual(
