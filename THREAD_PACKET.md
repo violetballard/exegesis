@@ -3,19 +3,8 @@
 - Branch name: `codex/feat-commands`
 - Implementation commit(s):
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
-- Docs-only alignment commit(s):
-  - `17068409de03625c5c0f1cc06855ce6307e1455a` (`docs(commands): align feat-commands packet with contract hardening`)
-  - `fc9939d1b8287488d16266884d6008e4fd93aa4b` (`docs(commands): resync feat-commands handoff packet`)
-  - `e62d61d1771da5a221275f858d12c965abdae76d` (`docs(commands): resync feat-commands handoff packet`)
-  - `775aa13361d295f9d78d00d8abcc0fe84fb0e160` (`docs(commands): canonicalize feat-commands packet fields`)
-  - `411e456e0119a2a073ee1754dc18e7b2f0db4e14` (`docs(commands): tighten handoff scope note`)
-  - `7b40979fcd8e7da9b9fd8161e414ef4e54e8db43` (`docs(commands): clarify re-review packet scope`)
-  - `af26fbbeeeed9bde76d2a72590b09dc805255981` (`docs(commands): finalize review-fix packet`)
-  - `0f5ee5efb06731d4044beed497f5061eb9c98cc8` (`docs(commands): narrow re-review packet scope`)
-  - `e026de450a54243611a2c81e883f9d4d8e704d44` (`docs(commands): align handoff mapping with local canon`)
-  - `59bd0a6a61392381e9544e01fdf9008682f606f2` (`docs(commands): align packet with canonical roadmap labels`)
-  - `5eb2cea2e11d3d788126414658c1d190cb016ca4` (`docs(commands): align packet with reviewer fixes`)
-  - `8301c9d960cfaf73f7fb26d4a14d673276d790a0` (`docs(commands): resync reviewer-fix packet`)
+- Most recent docs-only alignment commit before this fixer pass:
+  - `69f4f4a0f010761ffebdb629ab74bd1e9256b9d4` (`docs(commands): tighten reviewer-fix handoff packet`)
 
 ## Scope goal
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog. This keeps the CLI-first MVP surface stable while the engine contract settles.
@@ -35,7 +24,7 @@
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the canonical-name alignment path and the drift rejection path.
 - Kept this handoff scoped to the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog implementation slice only; it does not re-describe earlier route-catalog or diff-preview work on the branch.
-- Added docs-only alignment commits so the handoff packet names the implementation commit separately from the metadata-only resyncs and keeps the re-review slice aligned to the current branch state.
+- Kept docs-only packet alignment separate from the implementation commit so this re-review remains tied to the command-catalog slice instead of accumulating unrelated metadata history.
 
 ## Kickoff budget/limits compliance
 - High-risk shared-file handoff: task budget `4`, time budget `30m`.
@@ -49,7 +38,7 @@
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on drift.
 2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Regenerated and tightened the packet so the branch metadata records the implementation commit and docs-only resync commits separately, keeps the re-review scoped to the command-catalog slice, and uses canonical roadmap and vision labels.
+4. Regenerated and tightened the packet so the branch metadata stays scoped to the command-catalog slice and uses canonical roadmap and vision labels without depending on a long stale docs-only commit ledger.
 
 ## Files changed
 ### Implementation files changed
