@@ -1,7 +1,6 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Current branch HEAD SHA: `1bcf17afaf14fe73184b20c3239d8e78a7f29413`
 - Packet refresh trace anchor: `1f6a57dd0d40998b0ca58bdb94cf3f2b7b0a2f05`
 - Reviewed implementation HEAD SHA: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
@@ -29,7 +28,7 @@
 ## Verification note
 - The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range.
 - Required local gates were re-run on the packet-refresh branch head before this handoff was refreshed.
-- This fixer pass is metadata-only and exists to give the reviewer-required packet corrections their own branch-head commit.
+- This fixer pass is metadata-only and exists to give the reviewer-required packet corrections their own packet-refresh commit without moving the reviewed implementation range.
 
 ## Packet trace note
 - The packet refresh trace anchor is `1f6a57dd0d40998b0ca58bdb94cf3f2b7b0a2f05`; it is metadata-only and is not automatically the reviewed implementation head.
@@ -39,7 +38,7 @@
 - Read the file lists and task summary against the reviewed implementation range above, not against the later metadata-only packet refresh chain.
 
 ## Branch-head traceability
-- The current branch head for this fixer pass is `1bcf17afaf14fe73184b20c3239d8e78a7f29413`, a metadata-only packet refresh commit rather than a retrieval implementation commit.
+- Metadata-only packet refresh commits may continue to advance the branch head after this handoff packet is refreshed.
 - Re-review should verify packet traceability against the reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - If a later branch head changes retrieval code or the approved shared regression file, this packet must be regenerated before approval.
 

@@ -1,7 +1,6 @@
 # Lane Kickoff: feat-retrieval-fts
 
 - Branch: `codex/feat-retrieval-fts`
-- Current branch head: `1bcf17afaf14fe73184b20c3239d8e78a7f29413`
 - Packet refresh trace anchor: `1f6a57dd0d40998b0ca58bdb94cf3f2b7b0a2f05`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
@@ -28,11 +27,11 @@ The packet refresh trace anchor is `1f6a57dd0d40998b0ca58bdb94cf3f2b7b0a2f05`; i
 
 ## Branch-head traceability
 
-This fixer pass keeps the current branch head `1bcf17afaf14fe73184b20c3239d8e78a7f29413` in the metadata-only packet refresh chain rather than moving the reviewed retrieval implementation head. Re-review should anchor traceability to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`; if a later branch head changes retrieval code or the approved shared regression file, the packet must be regenerated before approval.
+Metadata-only packet refresh commits may continue to advance the branch head after this handoff packet is refreshed without moving the reviewed retrieval implementation head. Re-review should anchor traceability to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`; if a later branch head changes retrieval code or the approved shared regression file, the packet must be regenerated before approval.
 
 ## Verification note
 
-The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range. Required local gates were re-run on the packet-refresh branch head before this packet was refreshed. This fixer pass is metadata-only and gives the reviewer-required packet corrections their own branch-head commit.
+The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range. Required local gates were re-run on the packet-refresh branch head before this packet was refreshed. This fixer pass is metadata-only and gives the reviewer-required packet corrections their own packet-refresh commit without moving the reviewed implementation range.
 
 ### Priority outcomes
 1. Make SQLite FTS the primary retrieval path.
