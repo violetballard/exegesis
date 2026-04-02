@@ -7,12 +7,12 @@
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice.
 - The packet is anchored to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
-- The roadmap and vision mappings below use the exact canonical labels from this worktree's `ROADMAP.md` and `PRODUCT_VISION.md`.
+- The roadmap and vision mappings below use the exact canonical labels requested in the reviewer packet for re-review.
 - This resubmission reruns the required gates on `2026-04-02` in this lane worktree so the pass/fail claims match the current head.
 
 ## Reviewer required fixes addressed
-1. Rewrote the roadmap mapping to use the exact canonical entries from this worktree's `ROADMAP.md`: `Milestone 1: Bootstrap Flow Stabilization (In Progress)` and `Milestone 2: Test Hardening (In Progress)`.
-2. Rewrote the vision mapping to use the exact canonical `PRODUCT_VISION.md` capability name `4. Operator-first control surface`.
+1. Rewrote the roadmap mapping to use the exact reviewer-requested canonical entries: `Milestone 3: Real workflow loop` and `feat-commands`.
+2. Rewrote the vision mapping to use the exact reviewer-requested canonical `PRODUCT_VISION.md` capability names `Canonical engine contract` and `Auditable state and workflow`.
 3. Kept the non-owned test approval note and the `Files changed` section aligned on the same actual test path: `tests/unit/test_commands_catalog.py`.
 4. Re-issued the packet as one coherent slice only: the `command_cli_contract()` command-catalog hardening, without mixing in `diff_preview` or other earlier branch work.
 
@@ -47,7 +47,7 @@
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on drift.
 2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Regenerated and tightened the packet so the branch metadata stays scoped to the command-catalog slice and uses canonical roadmap and vision labels.
+4. Regenerated and tightened the packet so the branch metadata stays scoped to the command-catalog slice and uses the reviewer-requested canonical roadmap and vision labels.
 
 ## Files changed
 ### Implementation files changed
@@ -79,11 +79,12 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - command behavior hardening for a stable manual CLI smoke flow.
-- `Milestone 2: Test Hardening (In Progress)` - focused unit coverage for command-level drift checks that protect the CLI parser surface.
+- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands by keeping the command surface deterministic and smoke-testable.
+- `feat-commands` - stable CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ### Vision capability affected
-- `4. Operator-first control surface` - CLI remains a first-class operator surface, and the command catalog now rejects parser drift before it can silently change the exposed control contract.
+- `Canonical engine contract` - the command catalog now rejects parser drift before it can silently change the CLI-facing compatibility surface.
+- `Auditable state and workflow` - the command surface fails loudly on drift, making operator-visible contract changes explicit and traceable.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
@@ -95,5 +96,5 @@
 - Shared/integrator-locked edits: `YES`
 - Approved non-owned test path covers `tests/unit/test_commands_catalog.py`, which is also the only non-owned implementation file named in `Files changed`.
 - Approval basis: `scripts/scope-check.sh` explicitly permits `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`.
-- Re-review mapping basis: the roadmap and vision fields above use this worktree's canonical milestone and capability names for this command-contract handoff slice.
+- Re-review mapping basis: the roadmap and vision fields above use the exact canonical milestone and capability names requested in the reviewer packet for this command-contract handoff slice.
 - Coherent-slice basis: this re-review packet covers the `command_cli_contract()` catalog hardening only and does not mix in earlier diff-preview or route-catalog branch work.
