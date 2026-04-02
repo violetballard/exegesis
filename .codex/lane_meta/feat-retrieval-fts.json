@@ -1,11 +1,14 @@
 {
   "approved_exception_note": "Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract. No other shared-by-approval files are part of the reviewed retrieval implementation range.",
-  "kickoff_budget_note": "This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the packet is shared/high-risk work and should be read against the 4-task cap. The 4 completed tasks described below summarize the cumulative retrieval implementation thread and are not a low-risk owned-path-only batch.",
+  "kickoff_budget_note": "This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the packet is shared/high-risk work and should be read against the 4-task cap. The 4 completed tasks described below summarize the cumulative retrieval implementation thread and are not a low-risk owned-path-only batch. Docs-only alignment commits are recorded separately and do not change the reviewed implementation range.",
   "proposed_readme_patch": "",
   "final_head_sha": "adfa8cdadd43747ffbcb612e4151e262b13e52ca",
   "reviewed_implementation_range": "d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca",
   "implementation_commits": [],
-  "docs_only_alignment_commits": [],
+  "docs_only_alignment_commits": [
+    "f13324d206b41c134a96ff837eea6427c31aa981",
+    "edb36142cfe75ff8c65aee95865adb2de7ac19b0"
+  ],
   "risk": "HIGH",
   "packet_type": "metadata-only",
   "reviewed_commits": [],
@@ -14,7 +17,7 @@
   ],
   "routing_provider_impact": "None",
   "scope_goal": "Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.",
-  "scope_completed": "Branch-level cumulative handoff from `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`: SQLite FTS remains authoritative, the canonical retrieval query constructor and `retrieve_auto` helper are exported through both retrieval facades, retrieval payloads/provenance/hit snapshots are deterministic enough for downstream engine flows, sparse source and context bundles rehydrate deterministically, and the excerpt lookup surface now uses the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage. PageIndex and embeddings remain compatibility-only fallback shims that fail closed. The only shared-by-approval edit is `tests/unit/test_unified_retrieval.py`; no other shared-by-approval files are part of the reviewed retrieval implementation range.",
+  "scope_completed": "Branch-level cumulative handoff from `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`: SQLite FTS remains authoritative, the canonical retrieval query constructor and `retrieve_auto` helper are exported through both retrieval facades, retrieval payloads/provenance/hit snapshots are deterministic enough for downstream engine flows, sparse source and context bundles rehydrate deterministically, and the excerpt lookup surface now uses the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage. PageIndex and embeddings remain compatibility-only fallback shims that fail closed. The only shared-by-approval edit is `tests/unit/test_unified_retrieval.py`; the docs-only alignment commits `f13324d206b41c134a96ff837eea6427c31aa981` and `edb36142cfe75ff8c65aee95865adb2de7ac19b0` only refreshed handoff metadata and stay outside the reviewed implementation range.",
   "shared_file_exception": true,
   "tasks_completed": [
     "Added FTS-only excerpt lookup support and deterministic excerpt/provenance output.",
