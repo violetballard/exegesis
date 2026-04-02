@@ -126,6 +126,13 @@ def is_git_repo(cwd: str) -> bool:
     rc, _ = run("git rev-parse --is-inside-work-tree", cwd=cwd, timeout=120)
     return rc == 0
 
+
+def list_git_remotes(cwd: str) -> List[str]:
+    rc, out = run("git remote", cwd=cwd, timeout=120)
+    if rc != 0:
+        return []
+    return [ln.strip() for ln in out.splitlines() if ln.strip()]
+
 def find_worktree_for_branch(repo_cwd: str, branch: str) -> Optional[str]:
     ref = branch if branch.startswith("refs/") else f"refs/heads/{branch}"
     rc, out = run("git worktree list --porcelain", cwd=repo_cwd, timeout=120)
@@ -347,7 +354,15 @@ def main()->None:
     state=load_json(STATE_FILE,{})
     lane_state=state.get("lanes",{})
     repo=str(Path.cwd())
-    run("git fetch --all --prune", cwd=repo, timeout=600)
+    remotes = list_git_remotes(repo)
+    if remotes:
+        fetch_rc, fetch_out = run("git fetch --all --prune", cwd=repo, timeout=120)
+        if fetch_rc != 0:
+            print(f"[planner] git fetch warning: rc={fetch_rc}")
+            if fetch_out.strip():
+                print(fetch_out.rstrip())
+    else:
+        print("[planner] no git remotes configured; skipping fetch")
 
     for lane, lcfg in cfg["lanes"].items():
         if not bool((lcfg or {}).get("enabled", True)):

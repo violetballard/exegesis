@@ -256,6 +256,37 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         self.assertTrue(any("typecheck-test.sh" in call[0] for call in calls))
         self.assertTrue(any("quality-test.sh" in call[0] for call in calls))
 
+    def test_planner_list_git_remotes_returns_empty_without_remote(self) -> None:
+        from codex_packet_handoff.tools import planner as planner_mod
+
+        remotes = planner_mod.list_git_remotes(str(self.root))
+
+        self.assertEqual(remotes, [])
+
+    def test_planner_skips_fetch_when_no_remotes_exist(self) -> None:
+        from codex_packet_handoff.tools import planner as planner_mod
+
+        cfg = {
+            "lanes": {
+                "feat-commands": {
+                    "enabled": True,
+                    "branch": "codex/feat-commands",
+                }
+            }
+        }
+        planner_state = {"lanes": {}}
+
+        with (
+            patch.object(planner_mod, "load_json", side_effect=[cfg, planner_state]),
+            patch.object(planner_mod, "list_git_remotes", return_value=[]),
+            patch.object(planner_mod, "lane_has_pending_feature", return_value=True),
+            patch.object(planner_mod, "ensure_lane_dirs"),
+            patch.object(planner_mod, "run") as run_mock,
+        ):
+            planner_mod.main()
+
+        self.assertFalse(run_mock.called)
+
     def test_scope_check_blocks_engine_work_on_console_shell_lane(self) -> None:
         proc = self._commit_on_branch(
             "codex/feat-console-shell",
