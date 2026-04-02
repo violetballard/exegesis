@@ -1,8 +1,8 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Final HEAD SHA (reviewed implementation head): `526fbe490f77ed63284fa8de6ddec8849c7c4944`
-- Reviewed implementation range: `1d6057e9..526fbe490f77ed63284fa8de6ddec8849c7c4944`
+- Final HEAD SHA (reviewed implementation head): `6afe533d735811f245a4d04322735935a09d2477`
+- Reviewed implementation range: `1d6057e9..6afe533d735811f245a4d04322735935a09d2477`
 - Handoff type: cumulative full-thread retrieval handoff
 
 ## Implementation commit(s)
@@ -32,6 +32,11 @@ These are the reviewed code commits that deliver the FTS-first retrieval lane ac
 - `d08edc2bdb3a3c03911f21a0a5d08b26513ea562` - fail closed on deferred strategies
 - `42820d4864f8b5137a6a9e05399ad68fe5b9d4ac` - reconstruct payload from source bundles
 - `526fbe490f77ed63284fa8de6ddec8849c7c4944` - normalize bundle snapshot helpers
+- `965396ea8ec8e26e175780601794b47598987068` - harden FTS cache isolation
+- `a8efddde31b600eb123d0bea1eed22c8c863bef5` - backfill sparse retrieval source bundles
+- `d951ed275be3ebffeaecb626b4b5049d85d7ba49` - add source bundle fingerprint
+- `fe1e837b4af8ce95275bca6ac48e5c031c05931e` - add retrieval source bundle alias
+- `6afe533d735811f245a4d04322735935a09d2477` - backfill sparse retrieval context payloads
 
 ## Docs-only alignment commit(s)
 
@@ -58,12 +63,16 @@ These alignment files and commits record the handoff bookkeeping work and are se
 - `a8743f187107c8b2268907731cee5595975a19b1` - anchor packet metadata to reviewed head
 - `3707b35360b8c64b1fdafaaef38a00dede50eca3` - tighten handoff file list
 - `bf979b9f4400212ed9b655855f10312069ac735f` - note approved metadata-only handoff artifacts
+- `bf08637e50efe848841dc9e3ac1013acd1748cb0` - clarify reviewed-head handoff packet
+- `6cdfeb57f76595bab6d912e81bd60ceb14fee3d0` - clarify handoff scope sections
+- `f13522d7ce98393c1b72165a0313fe52fb6d0d14` - realign handoff packet to current head
+- `652f5e3b1ab8cbb9293530eb259c5c1e29fbf91a` - realign handoff packet to current head
 
 These alignment commits only restamp handoff metadata and packet-planner coordination artifacts. `a8743f187107c8b2268907731cee5595975a19b1` also touched `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` strictly to keep the planner/review packet aligned with the reviewed head.
 
 ## Completed scope summary
 
-Completed the cumulative `1d6057e9..526fbe490f77ed63284fa8de6ddec8849c7c4944` retrieval thread for the FTS-first retrieval MVP, with the reviewed implementation head pinned at `526fbe490f77ed63284fa8de6ddec8849c7c4944`: SQLite FTS is authoritative, the canonical retrieval query constructor is exported through both retrieval facades, `RetrievalConstraints` are accepted by public helpers, PageIndex and embeddings stay compatibility-only and fail closed, retrieval payload/provenance/hit snapshots normalize deterministically, payload bundle snapshots are canonicalized, direct doc/excerpt/context bundle helpers round-trip through canonical bundle shapes, downstream doc hits carry source attribution, source-bundle fallbacks now rehydrate provenance, citation, doc, excerpt, and downstream payload bundles deterministically, and the latest query-normalization and bundle-helper hardening keeps audit keys stable across whitespace variants.
+Completed the cumulative `1d6057e9..6afe533d735811f245a4d04322735935a09d2477` retrieval thread for the FTS-first retrieval MVP, with the reviewed implementation head pinned at `6afe533d735811f245a4d04322735935a09d2477`: SQLite FTS stayed authoritative, the canonical retrieval query constructor stayed exported through both retrieval facades, `RetrievalConstraints` stayed accepted by public helpers, FTS cache isolation was hardened, source-bundle and sparse context payloads backfilled deterministically, retrieval payload/provenance/hit snapshots normalized deterministically, payload bundle snapshots were canonicalized, direct doc/excerpt/context bundle helpers round-tripped through canonical bundle shapes, downstream doc hits carried source attribution, source-bundle fallbacks rehydrated provenance/citation/doc/excerpt/downstream payload bundles, and query-normalization plus source-bundle fingerprinting kept audit keys stable across whitespace variants.
 
 ## Scope completed
 
@@ -75,37 +84,38 @@ Shipped:
 - Payload bundle snapshots are canonicalized for deterministic downstream rehydration, and direct doc/excerpt/context bundle helpers round-trip through canonical bundle shapes.
 - Regression coverage exercises the normalized payload snapshots, facade exports, FTS citation/provenance/source-attribution helpers, and the source-bundle-only downstream payload reconstruction path.
 - Constraint payloads stay mapping/dataclass-shaped; iterable `doc_types` and `date_range` values are normalized deterministically from those inputs.
-- Docs-only alignment artifacts are listed separately below and are not counted as reviewed implementation files.
+- Approved shared regression coverage remains in `tests/unit/test_unified_retrieval.py`; docs-only alignment artifacts are listed separately below and are not counted as reviewed implementation files.
 
 Stayed fallback-only:
 - PageIndex and embeddings remain compatibility-only shims and fallback-only plumbing behind the FTS-first policy, failing closed when deferred.
 
 Did not ship:
-- No shared or integrator-locked file edits in the reviewed retrieval implementation.
+- No unapproved shared or integrator-locked file edits in the reviewed retrieval implementation.
 - No provider or routing configuration changes.
-- No retrieval behavior beyond the FTS-first MVP, deterministic snapshot normalization, doc-hit source attribution, source-bundle payload rehydration, and direct bundle helper normalization work in the reviewed range.
+- No retrieval behavior beyond the FTS-first MVP, deterministic snapshot normalization, FTS cache isolation, sparse source/context backfill, doc-hit source attribution, source-bundle payload rehydration, and direct bundle helper normalization work in the reviewed range.
 
 Reviewed range note:
-- The handoff is cumulative, not tip-only; the reviewed implementation range ends at `526fbe490f77ed63284fa8de6ddec8849c7c4944`, and the docs-only alignment commits above only restamp packet metadata or packet-planner coordination artifacts.
+- The handoff is cumulative, not tip-only; the reviewed implementation range ends at `6afe533d735811f245a4d04322735935a09d2477`, and the docs-only alignment commits above only restamp packet metadata or packet-planner coordination artifacts.
 
 ## Approved exception note
 
-- Approved metadata-only exception: `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json` are handoff alignment artifacts and are not part of the reviewed implementation diff.
-- Approved metadata-only exception: `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` are packet-planner coordination artifacts used only to keep reviewed-head packet emission aligned with the reviewed retrieval range.
+- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the shared-by-approval regression surface for the lane and exercises the canonical retrieval contract.
+- Approved metadata-only exception: `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `codex_packet_handoff/tools/planner.py`, and `tests/unit/test_packet_planner.py` are handoff alignment artifacts and packet-planner coordination artifacts used only to keep reviewed-head packet emission aligned with the reviewed retrieval range.
 
 ## Files changed
 
 ### Reviewed implementation files
 
-These are the exact source files changed across the reviewed cumulative range `1d6057e9..526fbe490f77ed63284fa8de6ddec8849c7c4944`.
+These are the exact source files changed across the reviewed cumulative range `1d6057e9..6afe533d735811f245a4d04322735935a09d2477`.
 
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/embeddings_strategy.py`
 - `src/qual/engine/retrieval/pageindex_strategy.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
 - `src/qual/engine/retrieval/payload.py`
 - `src/qual/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
+- `tests/unit/test_unified_retrieval.py` (approved shared regression coverage)
 
 ### Docs-only alignment files
 
@@ -119,25 +129,26 @@ These files were changed only in metadata-only alignment commits and are not par
 
 These files are included only under the explicit metadata-only exception above and are not lane-owned retrieval implementation files.
 
-- `codex_packet_handoff/tools/planner.py`
-- `tests/unit/test_packet_planner.py`
+- `codex_packet_handoff/tools/planner.py` (approved metadata-only alignment artifact)
+- `tests/unit/test_packet_planner.py` (approved metadata-only alignment artifact)
 
 ## Tasks completed
 
 1. Added FTS provenance retrieval bundles and retrieval service support for deterministic excerpt/provenance output.
 2. Canonicalized excerpt provenance so downstream payloads carry stable hashes and fingerprints.
-3. Kept retrieval FTS-first, normalized retrieval constraints and query inputs through the public facades, and left PageIndex/embeddings fallback-only plumbing that fails closed.
+3. Kept retrieval FTS-first, hardened FTS cache isolation, normalized retrieval constraints and query inputs through the public facades, and left PageIndex/embeddings fallback-only plumbing that fails closed.
 4. Exported the canonical retrieval query constructor through both retrieval facades and hardened query normalization.
-5. Added source bundle context regression coverage and deterministic rehydration helpers.
+5. Added source bundle context regression coverage and deterministic rehydration helpers for sparse source and context bundles.
 6. Tightened retrieval hit snapshots to carry the canonical `retrieval_source_strategy` alias, list-like provenance fields, and downstream `source_strategy` attribution.
-7. Added regression coverage for the normalized payload snapshots, facade exports, and citation/provenance helpers.
-8. Canonicalized payload bundle snapshots for deterministic downstream rehydration, including source-bundle fallbacks, source-bundle-only downstream payload reconstruction, and direct doc/excerpt/context bundle helper normalization.
+7. Added regression coverage for the normalized payload snapshots, facade exports, citation/provenance helpers, and sparse context backfill path.
+8. Canonicalized payload bundle snapshots for deterministic downstream rehydration, including source-bundle fallbacks, source-bundle-only downstream payload reconstruction, sparse context backfill, and direct doc/excerpt/context bundle helper normalization.
 
 ## Budget alignment
 
 - The thread finished within the low-risk cap of 8 tasks.
-- No shared or integrator-locked files were edited in the reviewed retrieval implementation.
-- The reviewed range is cumulative; docs-only alignment commits in the range only adjust handoff artifacts or packet-planner coordination artifacts, and the retrieval commits from `c92025af` through `526fbe490f77ed63284fa8de6ddec8849c7c4944` stay inside the FTS-first retrieval lane.
+- The reviewed range includes the approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+- Metadata-only handoff artifacts were updated under the approved exception note; no other shared or integrator-locked files were edited outside the approved `tests/unit/test_unified_retrieval.py` regression coverage.
+- The reviewed range is cumulative; docs-only alignment commits in the range only adjust handoff artifacts or packet-planner coordination artifacts, and the retrieval commits from `c92025af` through `6afe533d735811f245a4d04322735935a09d2477` stay inside the FTS-first retrieval lane.
 
 ## Commands run with results
 
@@ -173,4 +184,4 @@ These files are included only under the explicit metadata-only exception above a
 
 ## Scope-check / ownership note
 
-- Shared/integrator-locked edits: `NO` for the reviewed retrieval implementation; approved metadata-only alignment artifacts are listed above and were touched only to keep reviewed-head packet emission aligned with the reviewed retrieval range.
+- Shared/integrator-locked edits: `YES` (approved `tests/unit/test_unified_retrieval.py` regression coverage only; approved metadata-only alignment artifacts are listed above and were touched only to keep reviewed-head packet emission aligned with the reviewed retrieval range).
