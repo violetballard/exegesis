@@ -1,15 +1,15 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Final HEAD SHA (reviewed implementation head): `35b5ea46cedcfa5c1b179ae9bc4e21d9ed6238c0`
-- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..35b5ea46cedcfa5c1b179ae9bc4e21d9ed6238c0`
+- Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: branch-level cumulative full-thread retrieval handoff
 
 ## Scope goal
 - Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
 
 ## Scope completed
-- Branch-level cumulative handoff from `d7fd5d200358287fa42a18d39e2b277463b9b69f..35b5ea46cedcfa5c1b179ae9bc4e21d9ed6238c0`: SQLite FTS remains authoritative, the canonical retrieval query constructor and `retrieve_auto` helper are exported through both retrieval facades, retrieval payloads/provenance/hit snapshots are deterministic enough for downstream engine flows, sparse source and context bundles rehydrate deterministically, and PageIndex plus embeddings remain compatibility-only fallback shims that fail closed.
+- Branch-level cumulative handoff from `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`: SQLite FTS remains authoritative, the canonical retrieval query constructor and `retrieve_auto` helper are exported through both retrieval facades, retrieval payloads/provenance/hit snapshots are deterministic enough for downstream engine flows, sparse source and context bundles rehydrate deterministically, and the excerpt lookup surface now uses the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage. PageIndex and embeddings remain compatibility-only fallback shims that fail closed.
 - The only shared-by-approval edit is `tests/unit/test_unified_retrieval.py`; no other shared-by-approval files are part of the reviewed retrieval implementation range.
 
 ## Approved exception note
@@ -42,9 +42,9 @@ These files keep the cumulative branch-level handoff packet and its generator al
 
 ## Tasks completed
 
-1. Added retrieval service support for deterministic excerpt and provenance output.
+1. Added FTS-only excerpt lookup support and deterministic excerpt/provenance output.
 2. Canonicalized excerpt provenance so downstream payloads carry stable hashes and fingerprints.
-3. Kept retrieval FTS-first, hardened FTS cache isolation, and left PageIndex and embeddings fallback-only.
+3. Kept retrieval FTS-first, hardened FTS cache isolation, and made excerpt lookup FTS-only while leaving PageIndex and embeddings fallback-only.
 4. Exported the canonical retrieval query constructor and `retrieve_auto` helper through both retrieval facades and hardened query normalization.
 5. Added source bundle context regression coverage and deterministic rehydration helpers for sparse source and context bundles.
 6. Tightened retrieval hit snapshots to carry the canonical `retrieval_source_strategy` alias, list-like provenance fields, and downstream `source_strategy` attribution.
