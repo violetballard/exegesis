@@ -10,6 +10,10 @@
 ## Scope goal
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog. This keeps the CLI-first MVP surface stable while the engine contract settles.
 
+## Scoped review slice
+- This re-review packet is intentionally scoped to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` only.
+- Earlier branch groundwork such as `src/qual/commands/__init__.py` remains in the branch delta from prior command-surface work, but it is not part of the required-fix slice being re-submitted here.
+
 ## Lane/owned paths
 - `src/qual/commands/**`
 - Approved shared tests:
@@ -41,6 +45,8 @@
 - `tests/unit/test_commands_catalog.py` (approved shared-file exception for the implementation commit)
 ### Docs-only alignment files changed
 - `THREAD_PACKET.md`
+### Earlier branch groundwork outside this scoped re-review slice
+- `src/qual/commands/__init__.py`
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
