@@ -5,13 +5,10 @@
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
 
 ## Reviewer-fix resubmission note
-- This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice and naming the actual approved shared test consistently.
-- This resubmission reran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on `2026-04-02` in the lane worktree so the packet's pass/fail claims reflect the current branch head.
-- This packet is intentionally anchored to the implementation slice above rather than to a long docs-only commit ledger.
-- This packet has been re-confirmed after that fresh full gate rerun, with the required checks still green for the same coherent command-catalog review slice.
-- The reviewed implementation slice remains commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
-- The roadmap and vision mappings below use the canonical labels from `ROADMAP.md` and `PRODUCT_VISION.md` for this re-review.
-- The current worktree also contains `src/qual/commands/diff_preview.py` and `tests/unit/test_diff_preview.py`, but those paths are intentionally out of scope for this re-review packet and are not part of the claimed implementation slice.
+- This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice.
+- The packet is anchored to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
+- The roadmap and vision mappings below use the canonical labels from `ROADMAP.md` and `PRODUCT_VISION.md`.
+- This resubmission reran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on `2026-04-02` in this lane worktree so the pass/fail claims match the current head.
 
 ## Reviewer required fixes addressed
 1. Rewrote the roadmap mapping to use the exact canonical `ROADMAP.md` entries `Milestone 3: Real workflow loop` and `feat-commands`.
@@ -24,7 +21,6 @@
 
 ## Scoped review slice
 - This re-review packet is intentionally scoped to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` only.
-- Earlier branch groundwork such as `src/qual/commands/__init__.py` remains in the branch delta from prior command-surface work, but it is not part of the required-fix slice being re-submitted here.
 - This packet does not re-submit any `diff_preview` implementation or `tests/unit/test_diff_preview.py` coverage; the coherent review slice is the command-catalog contract only.
 - The implementation files claimed below exist in the current tree at the same paths named in this packet.
 
@@ -37,8 +33,7 @@
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares the CLI lookup-table canonical names against `command_names()` and raises `ValueError` when the catalog and parser surface drift.
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the canonical-name alignment path and the drift rejection path.
-- Kept this handoff scoped to the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog implementation slice only; it does not re-describe earlier route-catalog or diff-preview work on the branch.
-- Kept docs-only packet alignment separate from the implementation commit so this re-review remains tied to the command-catalog slice instead of accumulating unrelated metadata history.
+- Kept this handoff scoped to the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog implementation slice only and did not re-describe earlier route-catalog or diff-preview work on the branch.
 
 ## Kickoff budget/limits compliance
 - High-risk shared-file handoff: task budget `4`, time budget `30m`.
@@ -63,7 +58,6 @@
 
 ## Scope boundary note
 - This packet re-submits only the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog implementation slice plus docs-only alignment at the current head.
-- It does not claim earlier branch groundwork as part of the reviewed implementation files for this re-review.
 - It does not claim any `diff_preview` implementation or `tests/unit/test_diff_preview.py` coverage in this re-review packet.
 
 ## Commands run and outcomes
