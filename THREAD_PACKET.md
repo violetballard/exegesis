@@ -19,6 +19,7 @@
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares the CLI lookup-table canonical names against `command_names()` and raises `ValueError` when the catalog and parser surface drift.
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the canonical-name alignment path and the drift rejection path.
+- Kept this handoff scoped to the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog implementation slice only; it does not re-describe earlier route-catalog or diff-preview work on the branch.
 - Added docs-only alignment commits so the handoff packet names the implementation commit separately from the metadata-only resyncs.
 
 ## Kickoff budget/limits compliance
@@ -74,3 +75,4 @@
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `YES`
 - Approved shared-file exception covers `tests/unit/test_commands_catalog.py`.
+- Approval basis: `scripts/scope-check.sh` explicitly permits `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, and this packet only claims that one non-owned test file.
