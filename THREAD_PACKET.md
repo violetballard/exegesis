@@ -13,6 +13,7 @@
 - This resubmission reran the required local gates on `2026-04-02` in the lane worktree so the packet's pass/fail claims reflect this docs-only reviewer-fix pass on `codex/feat-commands`.
 - The reviewed implementation slice remains commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
 - The roadmap and vision mappings below use the canonical labels from `ROADMAP.md` and `PRODUCT_VISION.md` for this re-review.
+- The current worktree also contains `src/qual/commands/diff_preview.py` and `tests/unit/test_diff_preview.py`, but those paths are intentionally out of scope for this re-review packet and are not part of the claimed implementation slice.
 
 ## Reviewer required fixes addressed
 1. Rewrote the roadmap mapping to use the exact canonical `ROADMAP.md` entries `Milestone 3: Real workflow loop` and `feat-commands`.
@@ -27,6 +28,7 @@
 - This re-review packet is intentionally scoped to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` only.
 - Earlier branch groundwork such as `src/qual/commands/__init__.py` remains in the branch delta from prior command-surface work, but it is not part of the required-fix slice being re-submitted here.
 - This packet does not re-submit any `diff_preview` implementation or `tests/unit/test_diff_preview.py` coverage; the coherent review slice is the command-catalog contract only.
+- The implementation files claimed below exist in the current tree at the same paths named in this packet.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
