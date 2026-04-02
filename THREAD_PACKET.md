@@ -1,7 +1,6 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Current packet HEAD: `1f4d32c9bc21358a2ec7d0b8ce17e2878891bafc`
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: branch-level cumulative full-thread retrieval handoff
@@ -24,7 +23,6 @@
 
 ## Packet trace note
 - The current branch head can be metadata-only and is not automatically the reviewed implementation head.
-- The current packet HEAD for this handoff is `1f4d32c9bc21358a2ec7d0b8ce17e2878891bafc`.
 - The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless this packet is regenerated to move the reviewed implementation head or reviewed implementation range.
 
