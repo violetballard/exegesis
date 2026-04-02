@@ -2,43 +2,49 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `3dfd014632493cdd66b363c637846596d490e7af`
+- Commit: `dad3916f`
 - Reviewed commit(s):
-  - `0df5b4a7adf078c72c7fd93d4ab7730a2655ab05`
-  - `4807235db9bc9acc451faa5e1845effdaea9d063`
-  - `3dfd014632493cdd66b363c637846596d490e7af`
+  - `dad3916f` (`Strengthen command CLI entrypoint contract`)
+  - `3dfd0146` (`fix(commands): harden diff preview handoff`)
 
 ## Scope goal
-- Harden `diff_preview` output contracts so the emitted diff payload, summary-only mode, and SHA-256 fingerprint stay deterministic and verifiable for CLI-first operator use.
+- Harden the CLI command surface so catalog-backed entrypoints, route summaries, and diff-preview output contracts stay deterministic for CLI-first operator use.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
 - Approved shared tests:
+  - `tests/unit/test_commands_catalog.py`
   - `tests/unit/test_diff_preview.py`
 
 ## Scope completed
-- Updated `src/qual/commands/diff_preview.py` so the emitted diff string is a first-class value and the JSON `diff` field plus reported fingerprint are computed from the same exact payload.
-- Added focused regression coverage in `tests/unit/test_diff_preview.py` for labeled JSON output with suppressed headers, plus the existing summary-only fingerprint coverage.
-- Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta on the branch.
+- Added the deterministic command catalog and route contract surface in `src/qual/commands/catalog.py`, including alias resolution, flow-step ordering, CLI lookup tables, route summaries, and the canonical surface contract.
+- Re-exported the catalog helpers from `src/qual/commands/__init__.py` and routed `canonical_command` through the catalog module in `src/qual/commands/canonical.py`.
+- Hardened `src/qual/commands/diff_preview.py` so emitted diff payloads and SHA-256 fingerprints stay aligned after label application, header suppression, truncation, and summary-only collapsing.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical aliases, CLI route summaries, flow contracts, and validation errors, plus focused coverage in `tests/unit/test_diff_preview.py` for labeled JSON output and fingerprint behavior.
+- Updated `scripts/scope-check.sh` so the approved `tests/unit/test_commands_catalog.py` shared test is allowed on `feat-commands`.
+- Regenerated this packet so the review evidence matches the actual branch delta instead of the older diff-preview-only slice.
 
 ## Kickoff budget/limits compliance
-- High-risk shared-test handoff: task budget `4`, time budget `30m`, size limits `<=8 files` and `<=300 net LOC`.
-- The branch delta changes 5 files, centered on the lane-owned `diff_preview` command and one approved shared test.
-- The change stays centered on the command contract itself and the approved regression coverage needed to verify it.
+- High-risk shared-test handoff: task budget `4`, time budget `30m`.
+- The submitted branch combines the command catalog surface, diff-preview contract hardening, and the scope-check allowance needed for the approved shared tests.
 
 ## Approved exception note
-- Approved shared-file exception for `tests/unit/test_diff_preview.py`.
+- Approved shared-file exception for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
 
 ## Tasks completed (numbered)
-1. Updated `src/qual/commands/diff_preview.py` so the emitted diff string is the shared source of truth for the JSON payload and fingerprint.
-2. Added a regression in `tests/unit/test_diff_preview.py` that covers labeled JSON output with suppressed headers, plus summary-only fingerprint coverage.
-3. Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta.
+1. Added the command catalog and CLI route contract surface for deterministic command lookup and flow ordering.
+2. Re-exported the catalog helpers and kept `canonical_command` and `diff_preview` aligned with the catalog-backed command surface.
+3. Added focused unit coverage for command catalog contracts and diff-preview fingerprint behavior.
+4. Updated scope-check and regenerated the packet so the submitted branch description matches the actual net diff.
 
 ## Files changed
-- `.codex/kickoff_packets/feat-commands.md`
-- `.codex/lane_meta/feat-commands.json`
 - `THREAD_PACKET.md`
+- `scripts/scope-check.sh`
+- `src/qual/commands/__init__.py`
+- `src/qual/commands/canonical.py`
+- `src/qual/commands/catalog.py`
 - `src/qual/commands/diff_preview.py`
+- `tests/unit/test_commands_catalog.py`
 - `tests/unit/test_diff_preview.py`
 
 ## Commands run and outcomes
@@ -56,20 +62,20 @@
 ## Required handoff fields
 ### Scope completed
 
-- Updated `src/qual/commands/diff_preview.py` and `tests/unit/test_diff_preview.py` so the emitted diff payload, summary-only mode, and SHA-256 fingerprint stay deterministic and verifiable.
+- Hardened the CLI command surface so catalog-backed entrypoints, route summaries, and diff-preview output contracts stay deterministic for CLI-first operator use.
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` - lock the emitted diff fingerprint to the exact user-visible artifact so downstream CLI and automation consumers can verify what the command returned.
+- `Milestone 3: Real workflow loop` - keep CLI compatibility and migration-safe entrypoints stable while the command catalog, route summaries, and diff-preview contract harden for the MVP loop.
 
 ### Vision capability affected
 
-- `Canonical engine contract` - CLI compatibility remains stable while the command surface exposes a stable command contract and a verifiable JSON shape.
-- `Auditable state and workflow` - the emitted SHA-256 now verifies the exact diff payload returned by the command, including summary-only behavior.
+- `Canonical engine contract` - CLI compatibility remains stable while the command surface exposes a deterministic catalog, aliases, and route summaries.
+- `Auditable state and workflow` - the diff-preview fingerprint now verifies the exact emitted diff payload after normalization and summary-only collapsing.
 
 ### Routing/provider impact note
 
-- None. This change only affects local diff-preview formatting, fingerprinting, and focused regression coverage; no routing/provider files change.
+- None. This change only affects the local command surface, diff-preview formatting, and the scope-check allowance for the approved shared tests.
 
 ### Proposed README patch text
 
@@ -77,4 +83,4 @@
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `YES`
-- Approved shared-file exception covers `tests/unit/test_diff_preview.py` only.
+- Approved shared-file exception covers `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
