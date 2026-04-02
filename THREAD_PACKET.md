@@ -4,12 +4,12 @@
 - Implementation commit(s):
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
 - Prior docs-only alignment commit before this final fixer validation commit:
-  - `6a83c84d` (`docs(commands): finalize reviewer-fix handoff packet`)
+  - `2ad2325f` (`docs(commands): record fixer validation gate evidence`)
 
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice and naming the actual approved shared test consistently.
 - This resubmission reruns the required local gates on `2026-04-02` so the packet's pass/fail claims match the current branch head for this fixer commit.
-- This final validation commit exists only to record that the required gate sequence was re-run after the reviewer-fix packet was finalized.
+- This final validation commit exists only to record one more successful rerun of the required gate sequence after the reviewer-fix packet was finalized.
 - The reviewed implementation slice remains commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
 - The roadmap and vision mappings below use the canonical labels from `ROADMAP.md` and `PRODUCT_VISION.md` for this re-review.
 
@@ -73,7 +73,7 @@
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 - Verification date: `2026-04-02`
-- Verification basis: all required gates were re-run successfully on the current fixer-validation head before this handoff update.
+- Verification basis: all required gates were re-run successfully on the pre-commit fixer-validation head for this final docs-only handoff update.
 
 ## Risks / blockers
 - Risk: `HIGH`
