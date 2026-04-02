@@ -25,7 +25,7 @@ The current branch head can be metadata-only and is not automatically the review
 
 ## Verification note
 
-The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range. Required local gates were re-run against the packet-refresh head before this packet was refreshed.
+The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range. Required local gates were re-run against packet-refresh head `77a66517300c1bf9f3d0f7ae4ecba677569029c1` before this packet was refreshed.
 
 ### Priority outcomes
 1. Make SQLite FTS the primary retrieval path.
