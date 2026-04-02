@@ -15,6 +15,7 @@
   - `e026de450a54243611a2c81e883f9d4d8e704d44` (`docs(commands): align handoff mapping with local canon`)
   - `59bd0a6a61392381e9544e01fdf9008682f606f2` (`docs(commands): align packet with canonical roadmap labels`)
   - `5eb2cea2e11d3d788126414658c1d190cb016ca4` (`docs(commands): align packet with reviewer fixes`)
+  - `8301c9d960cfaf73f7fb26d4a14d673276d790a0` (`docs(commands): resync reviewer-fix packet`)
 
 ## Scope goal
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog. This keeps the CLI-first MVP surface stable while the engine contract settles.
