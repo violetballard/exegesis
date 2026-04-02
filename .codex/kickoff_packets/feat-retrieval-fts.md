@@ -21,7 +21,7 @@ This kickoff packet now matches the reviewer-required packet corrections: the ha
 
 ## Packet trace note
 
-Packet-refresh commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` on this handoff chain are metadata-only unless the packet is regenerated to say otherwise. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and later packet-only commits, including `b172559ed0889b5793e150296fa4b8b6c9943931`, `8580681f7f1ef53fdb07ba30676672439a19ae1f`, and `6b3a5ea6594c86584ff45b278b2ea220b7fdd4b0`, are not part of the reviewed implementation range.
+Packet-refresh commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` on this handoff chain are metadata-only unless the packet is regenerated to say otherwise. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and later packet-only commits are not part of the reviewed implementation range.
 
 ### Priority outcomes
 1. Make SQLite FTS the primary retrieval path.

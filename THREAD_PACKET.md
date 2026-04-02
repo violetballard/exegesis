@@ -13,31 +13,8 @@
 - The branch contains later metadata-only packet refresh commits. The only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`, and those later packet-refresh commits, including `b172559ed0889b5793e150296fa4b8b6c9943931`, do not change that reviewed implementation range.
 
 ## Docs-only alignment commits
-- `c254197c42ba32f7deaf9a7894efc04832c9ed42`
-- `a0ab673c299430e2ecb0a68962554d13dadd6dba`
-- `f13324d206b41c134a96ff837eea6427c31aa981`
-- `edb36142cfe75ff8c65aee95865adb2de7ac19b0`
-- `b172559ed0889b5793e150296fa4b8b6c9943931`
-- `a164d042623b8d3fc52019c72c5be74bba18990b`
-- `3cc3dc84b80a8a1983d5ab90da1ef290ac6117fe`
-- `173ef4beac7ef361136d484c4d5e586424c13126`
-- `1435baa0fb0164b2972a512816fe680eb4710ee0`
-- `25f2ae42256307bdd306c5216d3cfce438d30c37`
-- `17177091b6e891f87d2aeb19887e5c4934070c93`
-- `2188b405f32d8977703da90b4b560e53b99142bd`
-- `194612f4d9bfa121484adaf25468dd22e26eabc5`
-- `93ea7d8749e73a663db2e75af274770e404c5d2c`
-- `5420c99a7729e2263160e4c65f3fb10b06f91f7f`
-- `221c6806eec977b9f7790094a58c5fc77d666827`
-- `be10c6b42d8aea5297c6db7da4c23ccb81185848`
-- `a0a58080f596fdf47783b5533e2f8cd9b27be067`
-- `a54d1824912cc75305acc7e96ad5ff2414d8001f`
-- `f7a2081d80db74f87db3ef97e11768a145b05db6`
-- `52f1a02f0bb908608335a2c721c09a0fb4ad4196`
-- `660605df61af1a2d406ab9c57b7ebf0810cf5a2d`
-- `8580681f7f1ef53fdb07ba30676672439a19ae1f`
-- `6b3a5ea6594c86584ff45b278b2ea220b7fdd4b0`
-- These packet-refresh commits are metadata-only examples from the post-implementation packet-refresh chain and do not change the reviewed implementation range above.
+- Metadata-only packet refresh examples: `f13324d206b41c134a96ff837eea6427c31aa981`, `b172559ed0889b5793e150296fa4b8b6c9943931`, `a54d1824912cc75305acc7e96ad5ff2414d8001f`, and `6b3a5ea6594c86584ff45b278b2ea220b7fdd4b0`.
+- Later packet-refresh commits on this branch remain metadata-only unless this handoff packet is regenerated to move the reviewed implementation head or reviewed implementation range.
 
 ## Reviewer fix reconciliation
 - Required fix 1 is satisfied by the `Budget alignment` section below: this handoff is explicitly classified as shared/high-risk work with the 4-task cap.
@@ -46,7 +23,7 @@
 
 ## Packet trace note
 - The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-- Any packet-refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, this packet refresh chain, and later metadata-only follow-ups, are not part of the reviewed implementation range unless this packet is regenerated to say otherwise.
+- Any packet-refresh commits after that reviewed implementation head are outside the reviewed implementation range unless this packet is regenerated to say otherwise.
 
 ## Approved exception note
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract. No other shared-by-approval files are part of the reviewed retrieval implementation range.
