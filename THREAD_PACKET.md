@@ -1,11 +1,17 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
+- Packet HEAD role: `metadata-only fixer refresh`
 - Packet refresh trace anchor before the final fixer commit: `3da501284a9389dca2c0e33dbd6e8f40d235ab43`
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: branch-level cumulative full-thread retrieval handoff
 - Traceability rule: later metadata-only packet refresh commits may advance the branch head, but they do not change the reviewed implementation head or reviewed implementation range unless this packet is explicitly regenerated to do so.
+
+## Packet HEAD context
+- The packet-refresh branch tip created by this fixer pass is intentionally reported in the final fixer handoff rather than hard-coded here, because this file is committed before that new SHA exists.
+- The reviewer-referenced SHA `b172559ed0889b5793e150296fa4b8b6c9943931` is a metadata-only packet refresh commit, not the reviewed retrieval implementation head.
+- Re-review should anchor retrieval implementation scope to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, then use the final fixer handoff to identify the current packet-refresh branch tip.
 
 ## Scope goal
 - Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
