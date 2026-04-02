@@ -1,7 +1,6 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Current packet HEAD SHA: `5420c99a7729e2263160e4c65f3fb10b06f91f7f`
 - Packet HEAD role: `metadata-only handoff refresh`
 - Packet HEAD trace: metadata-only packet refresh commits may advance the branch head, but the reviewed implementation scope stays anchored to the `Final HEAD SHA` and `Reviewed implementation range` below.
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
@@ -13,7 +12,7 @@
 
 ## Scope completed
 - Branch-level cumulative handoff from `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`: SQLite FTS remains authoritative, the canonical retrieval query constructor and `retrieve_auto` helper are exported through both retrieval facades, retrieval payloads/provenance/hit snapshots are deterministic enough for downstream engine flows, sparse source and context bundles rehydrate deterministically, and the excerpt lookup surface now uses the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage. PageIndex and embeddings remain compatibility-only fallback shims that fail closed.
-- The current packet head `5420c99a7729e2263160e4c65f3fb10b06f91f7f` is metadata-only. The only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`; later packet-refresh commits are metadata-only and do not change that reviewed implementation range.
+- The current packet head is metadata-only. The only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`; later packet-refresh commits are metadata-only and do not change that reviewed implementation range.
 
 ## Docs-only alignment commits
 - `f13324d206b41c134a96ff837eea6427c31aa981`

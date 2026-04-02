@@ -1,6 +1,5 @@
 {
   "approved_exception_note": "Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract. No other shared-by-approval files are part of the reviewed retrieval implementation range.",
-  "current_packet_head_sha": "5420c99a7729e2263160e4c65f3fb10b06f91f7f",
   "kickoff_budget_note": "This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the packet is shared/high-risk work and should be read against the 4-task cap. The 4 completed tasks described below summarize the cumulative retrieval implementation thread and are not a low-risk owned-path-only batch. Later metadata-only packet refreshes do not change the reviewed implementation range.",
   "proposed_readme_patch": "",
   "final_head_sha": "adfa8cdadd43747ffbcb612e4151e262b13e52ca",
