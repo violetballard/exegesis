@@ -4,7 +4,7 @@
 - Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`.
 - Scope completed: Canonicalized materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`.
 - Runtime change commit: `b929fe6c7a1159c7882acedd247aca31a93cd123`
-- Current branch tip: `acc9d52961e60996f9af36bf7caf57c4ecc45c6b`
+- Current branch tip: `6643f07df1c77f3509c429b5b05c6893851d0038`
 - Handoff scope: metadata-only resubmission so the roadmap and vision mapping are explicit and reviewer-auditable, including the saved planner handoff state used for future packet emissions.
 - Authoritative plan mapping: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) -> `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`; `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
 - Roadmap item(s) affected (from `ROADMAP.md`): `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress), including the `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`
