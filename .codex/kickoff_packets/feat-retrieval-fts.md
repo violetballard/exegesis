@@ -11,7 +11,7 @@ The retrieval lane shipped an FTS-first retrieval MVP: SQLite FTS remains author
 
 ## Budget note
 
-This handoff stayed within the low-risk `8`-task cap. It did not rely on the sprint-mode `10`-task allowance or the high-risk `4`-task budget.
+This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so it is classified as shared/high-risk work for packet review. The task list is cumulative branch-level retrieval work, not a low-risk owned-path-only batch.
 
 ### Priority outcomes
 1. Make SQLite FTS the primary retrieval path.

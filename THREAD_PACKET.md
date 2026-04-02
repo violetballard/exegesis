@@ -52,7 +52,8 @@ These files keep the cumulative branch-level handoff packet and its generator al
 8. Canonicalized payload bundle snapshots for deterministic downstream rehydration, including source-bundle fallbacks, source-bundle-only downstream payload reconstruction, sparse context backfill, and direct doc/excerpt/context bundle helper normalization.
 
 ## Budget alignment
-- The thread finished within the low-risk cap of `8` tasks.
+- This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the packet is classified as shared/high-risk work.
+- The 8 tasks listed above describe the cumulative retrieval implementation thread across the branch; they are not an owned-path-only low-risk batch.
 - The reviewed range includes the approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - No other shared or integrator-locked files were edited in the reviewed retrieval implementation.
 
@@ -65,7 +66,7 @@ These files keep the cumulative branch-level handoff packet and its generator al
 - `make ci`: PASS
 
 ## Risks/blockers
-- Risk: `LOW`
+- Risk: `HIGH`
 - Blockers: none
 
 ## Roadmap item(s) affected
