@@ -24,12 +24,13 @@
 
 ## Verification note
 - The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range.
-- Required local gates were re-run against packet-refresh head `5665fb9f4f460918cdd33f1d914d5e7f948ba0c8` before this handoff was refreshed.
+- Required local gates were re-run on the packet-refresh branch head before this handoff was refreshed.
 
 ## Packet trace note
 - The current branch head can be metadata-only and is not automatically the reviewed implementation head.
 - The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless this packet is regenerated to move the reviewed implementation head or reviewed implementation range.
+- The packet-refresh head can continue to advance for handoff-only corrections without changing the reviewed implementation range.
 - Read the file lists and task summary against the reviewed implementation range above, not against the later metadata-only packet refresh chain.
 
 ## Approved exception note
