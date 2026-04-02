@@ -4,11 +4,11 @@
 - Implementation commit(s):
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
 - Most recent docs-only reviewer-fix alignment commit before this update:
-  - `cdd325621cc633b12e648db30535b6545f926e5b` (`docs(commands): finalize reviewer-fix handoff packet`)
+  - `91359882883b5ec6d656ae7f1186bef077900c4d` (`docs(commands): refresh reviewer-fix packet head`)
 
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice and naming the actual approved shared test consistently.
-- This resubmission reruns the required local gates on `2026-04-02` so the packet's pass/fail claims match the current branch head for this docs-only fixer update.
+- This resubmission reruns the required local gates on `2026-04-02` so the packet's pass/fail claims match the current branch head for this docs-only fixer update and the next docs-only reviewer-fix commit.
 - The reviewed implementation slice remains commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
 - The roadmap and vision mappings below use the canonical labels from `ROADMAP.md` and `PRODUCT_VISION.md` for this re-review.
 
