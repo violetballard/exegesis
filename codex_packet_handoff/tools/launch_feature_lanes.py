@@ -13,9 +13,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 try:
     from codex_mcp_client import ApprovalPolicy, CodexMcpClient
+    from lane_profiles import ENGINE_MILESTONE_FOCUS, engine_priority_lines
     from local_codex_runtime import isolated_codex_env
 except ImportError:  # pragma: no cover - test/import fallback for package execution
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
+    from .lane_profiles import ENGINE_MILESTONE_FOCUS, engine_priority_lines
     from .local_codex_runtime import isolated_codex_env
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -175,9 +177,15 @@ def runtime_launch_config() -> Dict[str, object]:
 
 def build_prompt(lane: str, workdir: str) -> str:
     kickoff = (KICKOFF_DIR / f"{lane}.md").read_text()
+    engine_priority = "\n".join(f"- {line}" for line in engine_priority_lines())
     return (
         f"You are the feature lane agent for {lane}.\n\n"
         f"Work only inside the lane worktree at:\n{workdir}\n\n"
+        "Current program brief:\n"
+        f"- {ENGINE_MILESTONE_FOCUS}\n"
+        "- Textual UI lanes remain disabled until explicitly enabled.\n"
+        "- Active engine execution order:\n"
+        f"{engine_priority}\n\n"
         "Before making changes, read these documents from the worktree/repo root:\n"
         "- AGENTS.md\n"
         "- INTEGRATION.md\n"

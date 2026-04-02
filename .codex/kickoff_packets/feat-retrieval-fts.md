@@ -18,6 +18,17 @@ This handoff stayed within the low-risk `8`-task cap. It did not rely on the spr
 2. Return doc hits and excerpt hits with stable provenance.
 3. Defer PageIndex, embeddings, and multi-strategy retrieval behavior.
 
+### Definition of done
+- Retrieval is FTS-first by default.
+- Results are structured and deterministic enough for basket promotion and workflow use.
+- Excerpt provenance is stable and auditable.
+- Retrieval is reachable through the canonical engine surface.
+
+### Do not spend time on
+- Over-investing in embeddings or alternate retrieval modes.
+- UI rendering concerns.
+- Search features outside the core writing loop.
+
 ### Source of truth
 - Canonical retrieval logic remains in `src/qual/retrieval/**`.
 - Engine-side retrieval files are compatibility/export shims that route the FTS-first path:

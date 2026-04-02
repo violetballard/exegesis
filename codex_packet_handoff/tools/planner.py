@@ -6,6 +6,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+try:
+    from lane_profiles import ENGINE_MILESTONE_FOCUS, default_lane_meta, engine_priority_lines
+except ImportError:  # pragma: no cover - package execution fallback
+    from .lane_profiles import ENGINE_MILESTONE_FOCUS, default_lane_meta, engine_priority_lines
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PACKETS_ROOT = Path(".codex/packets/lanes")
 PLANNER_ROOT = Path(".codex/packet_planner")
@@ -72,6 +77,25 @@ LANE_OWNED_PATHS = {
 }
 
 Json = Dict[str, Any]
+
+
+def _is_missing(value: Any) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return not value.strip()
+    if isinstance(value, (list, tuple, set, dict)):
+        return len(value) == 0
+    return False
+
+
+def merge_lane_meta_defaults(lane: str, meta: Json) -> Json:
+    merged = default_lane_meta(lane)
+    for key, value in dict(meta or {}).items():
+        if _is_missing(value) and key in merged:
+            continue
+        merged[key] = value
+    return merged
 
 def load_json(p: Path, default: Any) -> Any:
     try: return json.loads(p.read_text())
@@ -165,25 +189,33 @@ def read_lane_meta(lane: str) -> Json:
 
 def validate_meta(meta: Json) -> List[str]:
     missing=[]
-    for k in ("tasks_completed","risk","roadmap_items","vision_capabilities","routing_provider_impact"):
-        if k not in meta: missing.append(k); continue
-        v=meta[k]
-        if isinstance(v,list) and len(v)==0: missing.append(k)
-        if isinstance(v,str) and not v.strip(): missing.append(k)
+    for k in ("scope_goal","tasks_completed","risk","roadmap_items","vision_capabilities","routing_provider_impact"):
+        if k not in meta:
+            missing.append(k)
+            continue
+        if _is_missing(meta[k]):
+            missing.append(k)
     return missing
 
-def apply_meta_defaults(meta: Json, missing: List[str]) -> Json:
+def apply_meta_defaults(meta: Json, missing: List[str], lane: str) -> Json:
     out = dict(meta or {})
+    lane_defaults = default_lane_meta(lane)
+    for key in missing:
+        default_value = lane_defaults.get(key)
+        if not _is_missing(default_value):
+            out[key] = default_value
     if "tasks_completed" in missing:
         out["tasks_completed"] = ["(auto) reviewer handback update; see lane commits for concrete changes"]
-    if "roadmap_items" in missing:
+    if "roadmap_items" in missing and _is_missing(out.get("roadmap_items")):
         out["roadmap_items"] = ["(auto) roadmap mapping pending reviewer/integrator confirmation"]
-    if "vision_capabilities" in missing:
+    if "vision_capabilities" in missing and _is_missing(out.get("vision_capabilities")):
         out["vision_capabilities"] = ["(auto) capability mapping pending reviewer/integrator confirmation"]
-    if "risk" in missing:
+    if "risk" in missing and _is_missing(out.get("risk")):
         out["risk"] = "MEDIUM"
-    if "routing_provider_impact" in missing:
+    if "routing_provider_impact" in missing and _is_missing(out.get("routing_provider_impact")):
         out["routing_provider_impact"] = "None"
+    if "scope_goal" in missing and _is_missing(out.get("scope_goal")):
+        out["scope_goal"] = "(missing)"
     return out
 
 def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
@@ -249,7 +281,18 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     lines=[]
     lines += ["# Feature → Review Packet",""]
     lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
+    lines += ["## Current program focus", f"- {ENGINE_MILESTONE_FOCUS}", ""]
+    lines += ["## Current engine execution order"] + [f"- {line}" for line in engine_priority_lines()] + [""]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
+    priority_outcomes = [str(item).strip() for item in (meta.get("priority_outcomes") or []) if str(item).strip()]
+    if priority_outcomes:
+        lines += ["## Priority outcomes"] + [f"{i+1}. {item}" for i, item in enumerate(priority_outcomes)] + [""]
+    definition_of_done = [str(item).strip() for item in (meta.get("definition_of_done") or []) if str(item).strip()]
+    if definition_of_done:
+        lines += ["## Definition of done for this lane"] + [f"- {item}" for item in definition_of_done] + [""]
+    do_not_spend_time_on = [str(item).strip() for item in (meta.get("do_not_spend_time_on") or []) if str(item).strip()]
+    if do_not_spend_time_on:
+        lines += ["## Do not spend time on"] + [f"- {item}" for item in do_not_spend_time_on] + [""]
     lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
     scope_completed = meta.get("scope_completed")
     if isinstance(scope_completed, list) and scope_completed:
@@ -340,11 +383,11 @@ def main()->None:
         if last_submitted_sha == sha:
             continue
         fast_reemit = bool(has_reviewer_notes and last_submitted_sha and last_submitted_sha != sha)
-        meta=read_lane_meta(lane)
+        meta=merge_lane_meta_defaults(lane, read_lane_meta(lane))
         miss=validate_meta(meta)
         if miss:
             print(f"[planner] {lane}: lane_meta missing: {miss} (using auto defaults)")
-            meta = apply_meta_defaults(meta, miss)
+            meta = apply_meta_defaults(meta, miss, lane)
         try:
             files=compute_changed_files(active_repo, base_ref)
         except Exception as e:

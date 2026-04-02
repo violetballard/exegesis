@@ -192,4 +192,32 @@ Current MVP work should target:
 - FTS-first retrieval
 - A2UI contracts with CLI fallback
 
+Current execution order for active engine lanes:
+1. `feat-context-storage`
+   - persistence floor for document, basket, vault, and session state
+2. `feat-commands`
+   - stable CLI control surface for the engine-first MVP loop
+3. `feat-retrieval-fts`
+   - authoritative FTS-first retrieval feeding the engine loop
+4. `feat-engine-runs`
+   - close the plan/revise/patch/apply loop in the engine
+5. `feat-a2ui-contract`
+   - support the engine loop with stable shared contracts, not UI ambition
+
+Definition of progress right now:
+- We are closing the engine-side Milestone 3 loop before activating Textual lanes.
+- Work should bias toward proving one engine-side path for:
+  - open document
+  - retrieve relevant material
+  - gather context
+  - plan or revise
+  - apply or reject a patch
+  - save and continue
+
+Do not spend milestone time on:
+- Textual implementation work
+- UI polish
+- full A2UI ambition beyond what the engine loop needs
+- speculative sync, collaboration, or workstation features
+
 Do not start `feat-console-shell` or `feat-console-workflow` until they are explicitly enabled.
