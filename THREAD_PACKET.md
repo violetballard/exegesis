@@ -10,7 +10,7 @@
 
 ## Scope completed
 - Branch-level cumulative handoff from `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`: SQLite FTS remains authoritative, the canonical retrieval query constructor and `retrieve_auto` helper are exported through both retrieval facades, retrieval payloads/provenance/hit snapshots are deterministic enough for downstream engine flows, sparse source and context bundles rehydrate deterministically, and the excerpt lookup surface now uses the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage. PageIndex and embeddings remain compatibility-only fallback shims that fail closed.
-- The branch contains later metadata-only packet refresh commits. The only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`, and those later packet-refresh commits do not change that reviewed implementation range.
+- The branch contains later metadata-only packet refresh commits. The only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`, and those later packet-refresh commits, including `b172559ed0889b5793e150296fa4b8b6c9943931`, do not change that reviewed implementation range.
 
 ## Docs-only alignment commits
 - `c254197c42ba32f7deaf9a7894efc04832c9ed42`
@@ -44,7 +44,7 @@
 
 ## Packet trace note
 - The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-- Any packet-refresh commits after that reviewed implementation head, including this packet refresh chain and later metadata-only follow-ups, are not part of the reviewed implementation range unless this packet is regenerated to say otherwise.
+- Any packet-refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, this packet refresh chain, and later metadata-only follow-ups, are not part of the reviewed implementation range unless this packet is regenerated to say otherwise.
 
 ## Approved exception note
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract. No other shared-by-approval files are part of the reviewed retrieval implementation range.

@@ -9,7 +9,7 @@
 
 ## Scope completed
 
-The retrieval lane shipped an FTS-first retrieval MVP: SQLite FTS remains authoritative, the canonical retrieval query constructor is exported through both retrieval facades, retrieval payloads and provenance snapshots are deterministic for downstream engine flows, sparse source and context bundles rehydrate deterministically, and the excerpt lookup surface now uses the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage. PageIndex plus embeddings remain compatibility-only fallback shims that fail closed. The branch contains later metadata-only packet refresh commits; the only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`, and those later packet-refresh commits stay outside that reviewed implementation range.
+The retrieval lane shipped an FTS-first retrieval MVP: SQLite FTS remains authoritative, the canonical retrieval query constructor is exported through both retrieval facades, retrieval payloads and provenance snapshots are deterministic for downstream engine flows, sparse source and context bundles rehydrate deterministically, and the excerpt lookup surface now uses the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage. PageIndex plus embeddings remain compatibility-only fallback shims that fail closed. The branch contains later metadata-only packet refresh commits; the only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`, and those later packet-refresh commits, including `b172559ed0889b5793e150296fa4b8b6c9943931`, stay outside that reviewed implementation range.
 
 ## Budget note
 
@@ -21,7 +21,7 @@ This kickoff packet now matches the reviewer-required packet corrections: the ha
 
 ## Packet trace note
 
-Packet-refresh commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` on this handoff chain are metadata-only unless the packet is regenerated to say otherwise. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and later packet-only commits are not part of the reviewed implementation range.
+Packet-refresh commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` on this handoff chain are metadata-only unless the packet is regenerated to say otherwise. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and later packet-only commits, including `b172559ed0889b5793e150296fa4b8b6c9943931`, are not part of the reviewed implementation range.
 
 ### Priority outcomes
 1. Make SQLite FTS the primary retrieval path.
