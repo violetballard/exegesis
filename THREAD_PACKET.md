@@ -43,17 +43,13 @@ These files keep the cumulative branch-level handoff packet and its generator al
 ## Tasks completed
 
 1. Added FTS-only excerpt lookup support and deterministic excerpt/provenance output.
-2. Canonicalized excerpt provenance so downstream payloads carry stable hashes and fingerprints.
-3. Kept retrieval FTS-first, hardened FTS cache isolation, and made excerpt lookup FTS-only while leaving PageIndex and embeddings fallback-only.
-4. Exported the canonical retrieval query constructor and `retrieve_auto` helper through both retrieval facades and hardened query normalization.
-5. Added source bundle context regression coverage and deterministic rehydration helpers for sparse source and context bundles.
-6. Tightened retrieval hit snapshots to carry the canonical `retrieval_source_strategy` alias, list-like provenance fields, and downstream `source_strategy` attribution.
-7. Added regression coverage for normalized payload snapshots, facade exports, citation/provenance helpers, and the sparse context backfill path.
-8. Canonicalized payload bundle snapshots for deterministic downstream rehydration, including source-bundle fallbacks, source-bundle-only downstream payload reconstruction, sparse context backfill, and direct doc/excerpt/context bundle helper normalization.
+2. Canonicalized retrieval payload snapshots, provenance fingerprints, and sparse source/context rehydration for downstream engine flows.
+3. Kept retrieval FTS-first, hardened FTS cache isolation, and exported the canonical retrieval query constructor and `retrieve_auto` helper through both retrieval facades while leaving PageIndex and embeddings fallback-only.
+4. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for normalized payload snapshots, facade exports, citation/provenance helpers, and the FTS-only excerpt backfill path.
 
 ## Budget alignment
 - This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the packet is shared/high-risk work and should be read against the 4-task cap.
-- The 8 tasks listed above describe the cumulative retrieval implementation thread across the branch; they are not an owned-path-only low-risk batch.
+- The 4 tasks listed above describe the cumulative retrieval implementation thread across the branch; they are not an owned-path-only low-risk batch.
 - The reviewed range includes the approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - No other shared or integrator-locked files were edited in the reviewed retrieval implementation.
 
