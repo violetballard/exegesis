@@ -81,6 +81,7 @@
 
 ### Vision capability affected
 - `Operator-first control surface` - CLI remains a first-class surface, and the command catalog now rejects silent parser/catalog drift before it can affect operators.
+- `Auditable generation` - the deterministic CLI contract makes parser/catalog drift explicit instead of leaving the operator surface to fail ambiguously.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
@@ -92,5 +93,5 @@
 - Shared/integrator-locked edits: `YES`
 - Approved shared-file exception covers `tests/unit/test_commands_catalog.py`, which is also the only shared test named in `Files changed`.
 - Approval basis: `scripts/scope-check.sh` explicitly permits `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, and this packet only claims that one non-owned test file.
-- Re-review mapping basis: the roadmap and vision fields above use the canonical labels from `ROADMAP.md` and `PRODUCT_VISION.md` for this command-contract handoff slice.
+- Re-review mapping basis: the roadmap and vision fields above use the exact canonical milestone and capability names from this worktree's `ROADMAP.md` and `PRODUCT_VISION.md` for this command-contract handoff slice.
 - Coherent-slice basis: this re-review packet covers the `command_cli_contract()` catalog hardening only and does not mix in earlier diff-preview or route-catalog branch work.
