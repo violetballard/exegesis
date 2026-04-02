@@ -2,6 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet HEAD role: `metadata-only handoff refresh`
+- Packet HEAD trace: metadata-only packet refresh commits may advance the branch head, but the reviewed implementation scope stays anchored to the `Final HEAD SHA` and `Reviewed implementation range` below.
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: branch-level cumulative full-thread retrieval handoff

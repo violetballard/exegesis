@@ -70,6 +70,7 @@ class PacketPlannerTests(unittest.TestCase):
         self.assertIn("## Scope goal", packet)
         self.assertIn("## Scope completed", packet)
         self.assertIn("- Packet HEAD role: `metadata-only handoff refresh`", packet)
+        self.assertIn("- Packet HEAD SHA (this packet refresh): `42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`", packet)
         self.assertIn("- Final HEAD SHA (reviewed implementation head): `42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`", packet)
         self.assertIn("- Reviewed implementation range: `1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`", packet)
         self.assertIn("## Docs-only alignment commits", packet)

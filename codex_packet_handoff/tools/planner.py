@@ -154,7 +154,11 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     lines += ["# Feature → Review Packet",""]
     lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
     if packet_type == "metadata-only":
-        lines += ["- Packet HEAD role: `metadata-only handoff refresh`", ""]
+        lines += [
+            "- Packet HEAD role: `metadata-only handoff refresh`",
+            f"- Packet HEAD SHA (this packet refresh): `{sha}`",
+            "",
+        ]
     if reviewed_head_sha:
         lines += [f"- Final HEAD SHA (reviewed implementation head): `{reviewed_head_sha}`"]
     if reviewed_range:
