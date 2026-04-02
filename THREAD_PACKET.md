@@ -4,7 +4,11 @@
 - Branch: `codex/feat-commands`
 - Commit: `dad3916f`
 - Reviewed commit(s):
+  - `e78f6b24` (`fix(commands): restore command catalog`)
+  - `b2a0a2d1` (`feat(commands): add CLI route summary helper`)
   - `dad3916f` (`Strengthen command CLI entrypoint contract`)
+  - `4807235d` (`fix(commands): clarify diff_preview fingerprint payload`)
+  - `2afa0f7f` (`fix(commands): restore diff preview scope allowance`)
   - `3dfd0146` (`fix(commands): harden diff preview handoff`)
 
 ## Scope goal
@@ -25,17 +29,17 @@
 - Regenerated this packet so the review evidence matches the actual branch delta instead of the older diff-preview-only slice.
 
 ## Kickoff budget/limits compliance
-- High-risk shared-test handoff: task budget `4`, time budget `30m`.
-- The submitted branch combines the command catalog surface, diff-preview contract hardening, and the scope-check allowance needed for the approved shared tests.
+- High-risk shared-file handoff: task budget `4`, time budget `30m`.
+- The submitted branch combines the command catalog surface, diff-preview contract hardening, and the scope-check allowance needed for the approved shared files.
 
 ## Approved exception note
-- Approved shared-file exception for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
+- Approved shared-file exception for `scripts/scope-check.sh`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`.
 
 ## Tasks completed (numbered)
 1. Added the command catalog and CLI route contract surface for deterministic command lookup and flow ordering.
 2. Re-exported the catalog helpers and kept `canonical_command` and `diff_preview` aligned with the catalog-backed command surface.
 3. Added focused unit coverage for command catalog contracts and diff-preview fingerprint behavior.
-4. Updated scope-check and regenerated the packet so the submitted branch description matches the actual net diff.
+4. Updated scope-check and regenerated the packet so the submitted branch description matches the actual net diff and explicit shared-file approvals.
 
 ## Files changed
 - `THREAD_PACKET.md`
@@ -75,7 +79,7 @@
 
 ### Routing/provider impact note
 
-- None. This change only affects the local command surface, diff-preview formatting, and the scope-check allowance for the approved shared tests.
+- None. This change only affects the local command surface, diff-preview formatting, and the scope-check allowance for the approved shared files.
 
 ### Proposed README patch text
 
@@ -83,4 +87,4 @@
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `YES`
-- Approved shared-file exception covers `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
+- Approved shared-file exception covers `scripts/scope-check.sh`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`.
