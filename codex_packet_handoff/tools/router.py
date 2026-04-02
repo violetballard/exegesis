@@ -73,7 +73,9 @@ FIXER_RETRY_AT_RE = re.compile(
 )
 LOCAL_REVIEWER_MAX_ACTIVE = 1
 LOCAL_INTEGRATOR_MAX_ACTIVE = 1
+CLOUD_INTEGRATOR_MAX_ACTIVE = 1
 LOCAL_INTEGRATOR_RETRY_COOLDOWN_SECONDS = 60.0
+CLOUD_INTEGRATOR_RETRY_COOLDOWN_SECONDS = 60.0
 ROUTER_LOG_KEEP_RECENT = 36
 ROUTER_LOG_MAX_TOTAL_BYTES = 16 * 1024 * 1024
 ROUTER_LOG_MIN_AGE_SECONDS = 1800
@@ -782,7 +784,7 @@ def _build_cli_exec_cmd(
     return [str(x) for x in cmd]
 
 
-def _spawn_detached_local_cli_job(
+def _spawn_detached_cli_job(
     *,
     role: str,
     cfg: RouterConfig,
@@ -792,8 +794,9 @@ def _spawn_detached_local_cli_job(
     prompt: str,
     sandbox: str,
     timeout_seconds: float,
+    local: bool,
 ) -> Dict[str, Any]:
-    profile = _profile_for_role(cfg, role, local=True)
+    profile = _profile_for_role(cfg, role, local=local)
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     token = _safe_job_token(f"{lane}__{packet_name}")
     job_dir = LOCAL_JOB_ROOT / role
@@ -802,10 +805,10 @@ def _spawn_detached_local_cli_job(
     output_path = job_dir / f"{ts}__{token}.out.log"
     result_path = job_dir / f"{ts}__{token}.result.json"
     spec = {
-        "cmd": _build_cli_exec_cmd(profile, sandbox=sandbox, prompt=prompt, local=True),
+        "cmd": _build_cli_exec_cmd(profile, sandbox=sandbox, prompt=prompt, local=local),
         "cwd": repo_cwd,
         "timeout_seconds": float(timeout_seconds),
-        "env_overrides": {"CODEX_HOME": isolated_codex_env(repo_cwd)["CODEX_HOME"]},
+        "env_overrides": {"CODEX_HOME": isolated_codex_env(repo_cwd)["CODEX_HOME"]} if local else {},
         "output_path": str(output_path),
         "result_path": str(result_path),
     }
@@ -827,6 +830,30 @@ def _spawn_detached_local_cli_job(
         "result_path": str(result_path),
         "started_at": time.time(),
     }
+
+
+def _spawn_detached_local_cli_job(
+    *,
+    role: str,
+    cfg: RouterConfig,
+    repo_cwd: str,
+    lane: str,
+    packet_name: str,
+    prompt: str,
+    sandbox: str,
+    timeout_seconds: float,
+) -> Dict[str, Any]:
+    return _spawn_detached_cli_job(
+        role=role,
+        cfg=cfg,
+        repo_cwd=repo_cwd,
+        lane=lane,
+        packet_name=packet_name,
+        prompt=prompt,
+        sandbox=sandbox,
+        timeout_seconds=timeout_seconds,
+        local=True,
+    )
 
 
 def _poll_detached_local_cli_job(job: Dict[str, Any]) -> Dict[str, Any]:
@@ -972,6 +999,85 @@ def _prepare_local_integrator_result(
     )
     state["local_integrator_jobs"] = jobs
     print(f"[router] queued local integrator job for {lane} ({pkt.name})")
+    return False, "", state
+
+
+def _prepare_cli_integrator_result(
+    cfg: RouterConfig,
+    state: Dict[str, Any],
+    repo_cwd: str,
+    lane: str,
+    pkt: Path,
+    approved_text: str,
+    *,
+    local: bool,
+) -> Tuple[bool, str, Dict[str, Any]]:
+    jobs_key = "local_integrator_jobs" if local else "cloud_integrator_jobs"
+    retry_key = "local_integrator_retry_ts" if local else "cloud_integrator_retry_ts"
+    max_active = LOCAL_INTEGRATOR_MAX_ACTIVE if local else CLOUD_INTEGRATOR_MAX_ACTIVE
+    retry_cooldown = (
+        LOCAL_INTEGRATOR_RETRY_COOLDOWN_SECONDS if local else CLOUD_INTEGRATOR_RETRY_COOLDOWN_SECONDS
+    )
+    mode_label = "local" if local else "cloud"
+    jobs = _local_job_map(state, jobs_key)
+    retry_ts = state.get(retry_key)
+    if not isinstance(retry_ts, dict):
+        retry_ts = {}
+        state[retry_key] = retry_ts
+    job_key = f"{lane}:{pkt.name}"
+    job = jobs.get(job_key)
+    if isinstance(job, dict):
+        polled = _poll_detached_local_cli_job(job)
+        if not polled["done"]:
+            state[jobs_key] = jobs
+            return False, "", state
+        jobs.pop(job_key, None)
+        state[jobs_key] = jobs
+        text = str(polled.get("output") or "").strip()
+        rejection = _local_cli_output_rejection_reason(text, require_verdict=False)
+        if polled.get("status") == "ok" and not rejection and text:
+            retry_ts.pop(job_key, None)
+            state[retry_key] = retry_ts
+            return True, text, state
+        reason = str(polled.get("error") or rejection or f"{mode_label} integrator job failed")
+        quota_text = "\n".join(part for part in (text, reason) if part)
+        if not local and cfg.auto_switch_to_local_on_quota and _has_real_quota_signal(quota_text):
+            state = _switch_to_local_fallback(
+                cfg,
+                state,
+                f"cloud integrator job failed/timed out: {reason}",
+                _quota_retry_epoch(cfg, quota_text),
+            )
+            retry_ts.pop(job_key, None)
+            state[retry_key] = retry_ts
+            print(f"[router] cloud integrator job for {lane} hit quota; switching to local fallback: {reason}")
+            return False, "", state
+        retry_ts[job_key] = time.time() + retry_cooldown
+        state[retry_key] = retry_ts
+        print(f"[router] {mode_label} integrator job for {lane} failed; will retry later: {reason}")
+        return False, "", state
+
+    retry_at = float(retry_ts.get(job_key, 0) or 0)
+    if retry_at > time.time():
+        state[retry_key] = retry_ts
+        return False, "", state
+    if _count_active_local_jobs(jobs) >= max_active:
+        state[jobs_key] = jobs
+        return False, "", state
+
+    jobs[job_key] = _spawn_detached_cli_job(
+        role="integrator",
+        cfg=cfg,
+        repo_cwd=repo_cwd,
+        lane=lane,
+        packet_name=pkt.name,
+        prompt=integrator_prompt(approved_text),
+        sandbox="workspace-write",
+        timeout_seconds=cfg.integrator_timeout,
+        local=local,
+    )
+    state[jobs_key] = jobs
+    print(f"[router] queued {mode_label} integrator job for {lane} ({pkt.name})")
     return False, "", state
 
 def _find_worktree_for_branch(repo_cwd: str, branch: str) -> Optional[str]:
@@ -1604,18 +1710,29 @@ def process_integrator_backlog(
             continue
         runtime_local = _runtime_mode(cfg, state) == "local_fallback"
         if runtime_local:
-            ready, integ, state = _prepare_local_integrator_result(
+            ready, integ, state = _prepare_cli_integrator_result(
                 cfg,
                 state,
                 repo_cwd,
                 _lane,
                 pkt,
                 approved_text,
+                local=True,
             )
             if not ready:
                 continue
         elif cfg.prefer_cli_integrator or not integrator_tid:
-            integ = _run_cli_integrator(cfg, repo_cwd, approved_text, local=runtime_local)
+            ready, integ, state = _prepare_cli_integrator_result(
+                cfg,
+                state,
+                repo_cwd,
+                _lane,
+                pkt,
+                approved_text,
+                local=False,
+            )
+            if not ready:
+                continue
         else:
             try:
                 integrator_tid, integ = integrator_client.codex_reply(
