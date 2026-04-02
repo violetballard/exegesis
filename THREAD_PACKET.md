@@ -80,4 +80,5 @@
 
 ### Ownership / approval note
 
-- Shared/integrator-locked edits: `YES`. `tests/unit/test_commands_catalog.py` is shared-by-approval only and is included for focused CLI-entrypoint coverage.
+- Shared/integrator-locked edits: `YES`.
+- Explicit approval covers `tests/unit/test_commands_catalog.py`, which is shared-by-approval only and is included for focused CLI-entrypoint coverage.
