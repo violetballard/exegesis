@@ -23,6 +23,7 @@
 ## Scoped review slice
 - This re-review packet is intentionally scoped to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` only.
 - Earlier branch groundwork such as `src/qual/commands/__init__.py` remains in the branch delta from prior command-surface work, but it is not part of the required-fix slice being re-submitted here.
+- This packet does not re-submit any `diff_preview` implementation or `tests/unit/test_diff_preview.py` coverage; the coherent review slice is the command-catalog contract only.
 
 ## Lane/owned paths
 - `src/qual/commands/**`
@@ -34,7 +35,7 @@
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the canonical-name alignment path and the drift rejection path.
 - Kept this handoff scoped to the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog implementation slice only; it does not re-describe earlier route-catalog or diff-preview work on the branch.
-- Added docs-only alignment commits so the handoff packet names the implementation commit separately from the metadata-only resyncs and keeps the re-review slice aligned to the current branch head through the latest reviewer-fix resyncs.
+- Added docs-only alignment commits so the handoff packet names the implementation commit separately from the metadata-only resyncs and keeps the re-review slice aligned to the current branch state.
 
 ## Kickoff budget/limits compliance
 - High-risk shared-file handoff: task budget `4`, time budget `30m`.
@@ -42,6 +43,7 @@
 
 ## Approved exception note
 - Approved shared-file exception for `tests/unit/test_commands_catalog.py`.
+- No other shared-by-approval path is claimed in this re-review packet.
 
 ## Tasks completed (numbered)
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on drift.
@@ -94,4 +96,5 @@
 - Shared/integrator-locked edits: `YES`
 - Approved shared-file exception covers `tests/unit/test_commands_catalog.py`.
 - Approval basis: `scripts/scope-check.sh` explicitly permits `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, and this packet only claims that one non-owned test file.
-- Re-review mapping basis: the roadmap and vision fields above follow the reviewer-required canonical labels for this command-contract handoff slice.
+- Re-review mapping basis: the roadmap and vision fields above use the canonical labels from `ROADMAP.md` and `PRODUCT_VISION.md` for this command-contract handoff slice.
+- Coherent-slice basis: this re-review packet covers the `command_cli_contract()` catalog hardening only and does not mix in earlier diff-preview or route-catalog branch work.
