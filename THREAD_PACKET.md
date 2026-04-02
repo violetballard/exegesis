@@ -6,10 +6,9 @@
 
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice and naming the actual approved shared test consistently.
-- This resubmission reran the required local gates on `2026-04-02` in the lane worktree so the packet's pass/fail claims reflect this docs-only reviewer-fix pass on `codex/feat-commands`.
-- The final fixer verification reran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` successfully against the current branch head before this packet refresh.
+- This resubmission reran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on `2026-04-02` in the lane worktree so the packet's pass/fail claims reflect the current branch head.
 - This packet is intentionally anchored to the implementation slice above rather than to a long docs-only commit ledger.
-- This packet has been re-confirmed after a fresh full gate rerun on `2026-04-02`, with the required checks still green for the same coherent command-catalog review slice.
+- This packet has been re-confirmed after that fresh full gate rerun, with the required checks still green for the same coherent command-catalog review slice.
 - The reviewed implementation slice remains commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
 - The roadmap and vision mappings below use the canonical labels from `ROADMAP.md` and `PRODUCT_VISION.md` for this re-review.
 - The current worktree also contains `src/qual/commands/diff_preview.py` and `tests/unit/test_diff_preview.py`, but those paths are intentionally out of scope for this re-review packet and are not part of the claimed implementation slice.
@@ -75,7 +74,7 @@
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS (`125` unit tests green)
 - Verification date: `2026-04-02`
-- Verification basis: all six required gates were re-run successfully during this docs-only reviewer-fix pass in `/Users/doctor-violet/.codex/worktrees/5494/qual`; both `./quality-test.sh` and `make ci` completed with the unit suite green at `125` tests, and `./typecheck-test.sh` completed successfully via `python3 -m compileall -q src`.
+- Verification basis: all six required gates were re-run successfully during this docs-only reviewer-fix pass in `/Users/doctor-violet/.codex/worktrees/5494/qual`; `tests/smoke.sh` passed, the unit suite completed green at `125` tests in both `./quality-test.sh` and `make ci`, and `./typecheck-test.sh` completed successfully via `python3 -m compileall -q src`.
 
 ## Risks / blockers
 - Risk: `HIGH`
