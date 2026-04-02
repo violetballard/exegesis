@@ -35,6 +35,7 @@ class PacketPlannerTests(unittest.TestCase):
                 "retrieval payload/provenance helpers stayed deterministic while payloads were reconstructed from "
                 "source bundles."
             ),
+            "final_head_sha": "42820d4864f8b5137a6a9e05399ad68fe5b9d4ac",
             "reviewed_implementation_range": "1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac",
             "tasks_completed": [
                 "Kept SQLite FTS authoritative.",
@@ -63,6 +64,7 @@ class PacketPlannerTests(unittest.TestCase):
 
         self.assertIn("## Scope goal", packet)
         self.assertIn("## Scope completed", packet)
+        self.assertIn("- Final HEAD SHA (reviewed implementation head): `42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`", packet)
         self.assertIn("- Reviewed implementation range: `1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`", packet)
         self.assertIn("## Files changed (cumulative range)", packet)
         self.assertIn("Shipped the cumulative 1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac retrieval thread", packet)

@@ -3,7 +3,6 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Current branch HEAD SHA (docs-only alignment head): `25f2ae42256307bdd306c5216d3cfce438d30c37`
 - Handoff type: branch-level cumulative full-thread retrieval handoff
 
 ## Scope goal
@@ -11,18 +10,11 @@
 
 ## Scope completed
 - Branch-level cumulative handoff from `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`: SQLite FTS remains authoritative, the canonical retrieval query constructor and `retrieve_auto` helper are exported through both retrieval facades, retrieval payloads/provenance/hit snapshots are deterministic enough for downstream engine flows, sparse source and context bundles rehydrate deterministically, and the excerpt lookup surface now uses the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage. PageIndex and embeddings remain compatibility-only fallback shims that fail closed.
-- The only shared-by-approval edit is `tests/unit/test_unified_retrieval.py`; no other shared-by-approval files are part of the reviewed retrieval implementation range.
+- The only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`; later packet-refresh commits are metadata-only and do not change that reviewed implementation range.
 
 ## Docs-only alignment commits
-- `f13324d206b41c134a96ff837eea6427c31aa981`: updated the handoff packet wording to make the shared/high-risk 4-task cap explicit.
-- `edb36142cfe75ff8c65aee95865adb2de7ac19b0`: refreshed the same packet wording at the current branch head.
-- `b172559ed0889b5793e150296fa4b8b6c9943931`: separated the docs-only alignment commits from the reviewed retrieval implementation scope.
-- `a164d042623b8d3fc52019c72c5be74bba18990b`: traced the latest docs-only branch head so the packet history matches the lane worktree state.
-- `3cc3dc84b80a8a1983d5ab90da1ef290ac6117fe`: reconciled the handoff metadata with the latest docs-only branch head without changing the reviewed implementation range.
-- `173ef4bebddcd460cbfbaf7f281ab145be9e25d8`: aligned the packet wording with the next docs-only branch head.
-- `1435baa0fb0164b2972a512816fe680eb4710ee0`: kept the current lane branch head traceable as docs-only metadata.
-- `25f2ae42256307bdd306c5216d3cfce438d30c37`: completed the re-review packet fixes without changing the reviewed implementation range.
-- These commits only regenerate handoff metadata and do not change the reviewed implementation range above.
+- Packet-refresh commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` are metadata-only and do not change the reviewed implementation range above.
+- They exist only to keep handoff wording aligned with reviewer feedback and should not be read as additional retrieval implementation work.
 
 ## Approved exception note
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract. No other shared-by-approval files are part of the reviewed retrieval implementation range.

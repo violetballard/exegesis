@@ -141,13 +141,18 @@ def compute_changed_files(cwd: str, base_ref: str, head_ref: str) -> List[str]:
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
     reviewed_range = str(meta.get("reviewed_implementation_range", "")).strip()
+    reviewed_head_sha = str(meta.get("final_head_sha", "")).strip()
     scope_completed = str(meta.get("scope_completed", "")).strip()
     is_cumulative = bool(reviewed_range or scope_completed)
     lines=[]
     lines += ["# Feature → Review Packet",""]
     lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
+    if reviewed_head_sha:
+        lines += [f"- Final HEAD SHA (reviewed implementation head): `{reviewed_head_sha}`"]
     if reviewed_range:
         lines += [f"- Reviewed implementation range: `{reviewed_range}`"]
+    if reviewed_head_sha or reviewed_range:
+        lines += [""]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
     if scope_completed:
         lines += ["## Scope completed", f"- {scope_completed}", ""]
