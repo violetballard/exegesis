@@ -10,6 +10,11 @@
   - `775aa13361d295f9d78d00d8abcc0fe84fb0e160` (`docs(commands): canonicalize feat-commands packet fields`)
   - `411e456e0119a2a073ee1754dc18e7b2f0db4e14` (`docs(commands): tighten handoff scope note`)
   - `7b40979fcd8e7da9b9fd8161e414ef4e54e8db43` (`docs(commands): clarify re-review packet scope`)
+  - `af26fbbeeeed9bde76d2a72590b09dc805255981` (`docs(commands): finalize review-fix packet`)
+  - `0f5ee5efb06731d4044beed497f5061eb9c98cc8` (`docs(commands): narrow re-review packet scope`)
+  - `e026de450a54243611a2c81e883f9d4d8e704d44` (`docs(commands): align handoff mapping with local canon`)
+  - `59bd0a6a61392381e9544e01fdf9008682f606f2` (`docs(commands): align packet with canonical roadmap labels`)
+  - `5eb2cea2e11d3d788126414658c1d190cb016ca4` (`docs(commands): align packet with reviewer fixes`)
 
 ## Scope goal
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog. This keeps the CLI-first MVP surface stable while the engine contract settles.
@@ -28,7 +33,7 @@
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the canonical-name alignment path and the drift rejection path.
 - Kept this handoff scoped to the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog implementation slice only; it does not re-describe earlier route-catalog or diff-preview work on the branch.
-- Added docs-only alignment commits so the handoff packet names the implementation commit separately from the metadata-only resyncs and keeps the re-review slice aligned to the current branch head.
+- Added docs-only alignment commits so the handoff packet names the implementation commit separately from the metadata-only resyncs and keeps the re-review slice aligned to the current branch head through the latest reviewer-fix resyncs.
 
 ## Kickoff budget/limits compliance
 - High-risk shared-file handoff: task budget `4`, time budget `30m`.
