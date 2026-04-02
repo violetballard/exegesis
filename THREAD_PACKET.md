@@ -68,7 +68,7 @@
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS (`125` unit tests green)
 - Verification date: `2026-04-02`
-- Verification rerun timestamp: `2026-04-02T15:04:12-0700`
+- Verification rerun timestamp: `2026-04-02T16:06:28-0700`
 - Verification basis: all six required gates were re-run successfully during this docs-only reviewer-fix pass in `/Users/doctor-violet/.codex/worktrees/5494/qual`; `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all exited successfully, `tests/smoke.sh` passed, the unit suite completed green at `125` tests in both `./quality-test.sh` and `make ci`, and `./typecheck-test.sh` completed successfully via `python3 -m compileall -q src`.
 
 ## Risks / blockers
