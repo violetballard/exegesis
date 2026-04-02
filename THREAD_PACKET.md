@@ -40,7 +40,7 @@
 - The submitted branch stays within lane-owned command code plus the single non-owned test path `tests/unit/test_commands_catalog.py`, which is explicitly permitted for `codex/feat-commands*` in `scripts/scope-check.sh`.
 
 ## Approved exception note
-- Approved non-owned test path for `tests/unit/test_commands_catalog.py` under the lane's scope-check policy.
+- Explicit approved non-owned test path for `tests/unit/test_commands_catalog.py` under the lane's scope-check policy for `codex/feat-commands*`.
 - No other shared-by-approval or integrator-locked path is claimed in this re-review packet.
 
 ## Tasks completed (numbered)
@@ -68,7 +68,7 @@
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS (`125` unit tests green)
 - Verification date: `2026-04-02`
-- Verification rerun timestamp: `2026-04-02T16:09:08-0700`
+- Verification rerun timestamp: `2026-04-02T16:10:53-0700`
 - Verification basis: all six required gates were re-run successfully during this docs-only reviewer-fix pass in `/Users/doctor-violet/.codex/worktrees/5494/qual`; `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all exited successfully, `tests/smoke.sh` passed, the unit suite completed green at `125` tests in both `./quality-test.sh` and `make ci`, and `./typecheck-test.sh` completed successfully via `python3 -m compileall -q src`.
 
 ## Risks / blockers
@@ -95,6 +95,6 @@
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `YES`
 - Approved non-owned test path covers `tests/unit/test_commands_catalog.py`, which is also the only non-owned implementation file named in `Files changed`.
-- Approval basis: `scripts/scope-check.sh` explicitly permits `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, and `INTEGRATION.md` requires the packet to name an explicit approval note when a non-owned file is in scope.
+- Approval basis: `scripts/scope-check.sh` explicitly permits `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, and this packet's `Approved exception note` names that same path explicitly for re-review.
 - Re-review mapping basis: the roadmap and vision fields above use the current worktree's canonical milestone and capability names for this command-contract handoff slice.
 - Coherent-slice basis: this re-review packet covers the `command_cli_contract()` catalog hardening only and does not mix in earlier diff-preview or route-catalog branch work.
