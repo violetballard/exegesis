@@ -4,11 +4,13 @@
 - Implementation commit(s):
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
 - Docs-only alignment commit(s) before this fixer pass:
+  - `5f3de6da3017f034d0f5c517c5de41935690ef89` (`docs(commands): record reviewer-fix gate rerun`)
   - `69f4f4a0f010761ffebdb629ab74bd1e9256b9d4` (`docs(commands): tighten reviewer-fix handoff packet`)
 
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice, using canonical roadmap and vision labels, and naming the actual approved shared test consistently.
 - This resubmission also reran the required local gates on `2026-04-02` before handoff so the packet's pass/fail claims match the current branch head for this reviewer-fix commit.
+- This packet now records that the reviewer-fix rerun was verified again after the latest docs-only gate-rerun commit, so the handoff artifact and the submitted HEAD stay aligned.
 
 ## Scope goal
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog. This keeps the CLI-first MVP surface stable while the engine contract settles.
@@ -63,6 +65,7 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
+- Verification date: `2026-04-02`
 
 ## Risks / blockers
 - Risk: `HIGH`
