@@ -74,7 +74,7 @@ class CommandCliContract:
 
 @dataclass(frozen=True)
 class CommandCliRouteContract:
-    """Bundle the parser surface with the deterministic MVP route order."""
+    """Bundle the parser surface, deterministic MVP route order, and smoke surface."""
 
     tokens: tuple[str, ...]
     canonical_names: tuple[str, ...]
@@ -82,6 +82,8 @@ class CommandCliRouteContract:
     flow_steps: tuple[str, ...]
     flow_names: tuple[str, ...]
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
+    lookup_surface: tuple[tuple[str, str], ...] = ()
+    flow_surface_tokens: tuple[tuple[str, ...], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -509,6 +511,9 @@ def command_cli_route_catalog(
 def _validate_command_cli_route_contract(
     contract: CommandCliRouteContract,
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...],
+    *,
+    specs: tuple[CommandSpec, ...],
+    flow_steps: tuple[str, ...],
 ) -> None:
     if contract.route_summary != route_summary:
         raise ValueError("Command CLI route summary is inconsistent")
@@ -523,6 +528,10 @@ def _validate_command_cli_route_contract(
         raise ValueError("Command CLI route canonical names are inconsistent")
     if contract.lookup_table != cli_contract.lookup_table:
         raise ValueError("Command CLI route lookup table is inconsistent")
+    if contract.lookup_surface != command_flow_lookup_surface(specs, flow_steps):
+        raise ValueError("Command CLI route lookup surface is inconsistent")
+    if contract.flow_surface_tokens != command_flow_surface_tokens(specs, flow_steps):
+        raise ValueError("Command CLI route surface tokens are inconsistent")
 
 
 @lru_cache(maxsize=None)
@@ -532,15 +541,23 @@ def command_cli_route_contract(
 ) -> CommandCliRouteContract:
     cli_contract = command_cli_contract()
     route_summary = command_flow_route_summary(specs, flow_steps)
+    ordered_flow_steps = tuple(flow_step for flow_step, _, _ in route_summary)
     contract = CommandCliRouteContract(
         tokens=cli_contract.tokens,
         canonical_names=cli_contract.canonical_names,
         lookup_table=cli_contract.lookup_table,
-        flow_steps=tuple(flow_step for flow_step, _, _ in route_summary),
+        flow_steps=ordered_flow_steps,
         flow_names=tuple(name for _, name, _ in route_summary),
         route_summary=route_summary,
+        lookup_surface=command_flow_lookup_surface(specs, ordered_flow_steps),
+        flow_surface_tokens=command_flow_surface_tokens(specs, ordered_flow_steps),
     )
-    _validate_command_cli_route_contract(contract, route_summary)
+    _validate_command_cli_route_contract(
+        contract,
+        route_summary,
+        specs=specs,
+        flow_steps=ordered_flow_steps,
+    )
     return contract
 
 

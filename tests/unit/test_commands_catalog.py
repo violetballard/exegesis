@@ -13,6 +13,7 @@ from src.qual.commands import (
     command_cli_flow_contract,
     command_cli_flow_lookup_table,
     command_cli_tokens,
+    command_cli_route_contract,
     command_cli_route_summary,
     command_flow_manifest,
     command_flow_catalog,
@@ -32,6 +33,7 @@ from src.qual.commands import (
     command_manifest,
     command_mvp_flow,
     command_mvp_cli_flow_contract,
+    command_mvp_cli_route_contract,
     command_mvp_flow_names,
     command_mvp_flow_catalog,
     command_mvp_flow_manifest,
@@ -156,6 +158,13 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
         self.assertEqual(command_cli_route_summary(), command_surface_contract().route_summary)
+
+    def test_command_cli_route_contract_tracks_the_smoke_surface(self) -> None:
+        contract = command_cli_route_contract()
+        surface_contract = command_surface_contract()
+        self.assertEqual(contract.lookup_surface, surface_contract.lookup_surface)
+        self.assertEqual(contract.flow_surface_tokens, surface_contract.flow_surface_tokens)
+        self.assertEqual(contract, command_mvp_cli_route_contract())
 
     def test_command_lookup_helpers_support_custom_catalogs(self) -> None:
         specs = (
