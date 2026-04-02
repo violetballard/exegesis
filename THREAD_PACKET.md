@@ -4,14 +4,14 @@
 - Scope goal: Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`.
 - Scope completed: Canonicalized materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, with matching assertions in `tests/unit/test_a2ui_contract.py`.
 - Runtime change commit: `b929fe6c7a1159c7882acedd247aca31a93cd123`
-- Current branch tip: `97f6507764c9b6377dd7792872d37295ecf7208a`
+- Current branch tip: `7e24aa3dfba0b504a2f5b7213f2b55272bd8694c`
 - Handoff scope: metadata-only resubmission so the roadmap and vision mapping are explicit and reviewer-auditable, including the saved planner handoff state used for future packet emissions.
 - Authoritative plan mapping: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and `ROADMAP.md` `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`; `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`).
-- Roadmap item(s) affected (from `ROADMAP.md`): `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and the `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress) and the `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`
   - Scope bullets: `Define A2UI output contract for agent-produced presentation artifacts`, `Add agent-side card/section/action payload generation with deterministic schemas`, and `Provide CLI rendering fallback for the same structured payloads`
   - Task anchor: `ROADMAP.md` `MVP Focus Through 2026-05-04` lists `feat-a2ui-contract` as a current active implementation emphasis
   - Exit criterion: `A2UI schema/versioning is documented and stable`
-- Vision capability affected (from `PRODUCT_VISION.md`): `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`)
+- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`)
   - CLI remains able to render a text fallback of the same underlying artifacts.
   - The deterministic action-ordering fix keeps that fallback stable for the same structured artifacts.
 - Task anchor: `ROADMAP.md` `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract` sits under this milestone
@@ -36,7 +36,7 @@
   2. Added contract coverage in `tests/unit/test_a2ui_contract.py` for the canonical ordering behavior.
   3. Cleaned up the feature packet and thread packet so the required `Roadmap item(s) affected` and `Vision capability affected` mappings are explicit and auditable.
   4. Synced `.codex/packet_planner/state.json` and `tests/unit/test_packet_planner.py` so saved and re-emitted packets preserve the same explicit Milestone 5 / Capability 5 mapping plus the `MVP Focus Through 2026-05-04` task anchor.
-  5. Resynced the handoff metadata to the current branch tip `97f6507764c9b6377dd7792872d37295ecf7208a` so the packet trail stays aligned with `HEAD`.
+  5. Resynced the handoff metadata to the current branch tip `7e24aa3dfba0b504a2f5b7213f2b55272bd8694c` so the packet trail stays aligned with `HEAD`.
 
 ## Reviewer Required Fix Coverage
 
