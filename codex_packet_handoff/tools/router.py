@@ -42,6 +42,17 @@ REVIEWER_QUOTA_RE = re.compile(
     r"usage limit|quota exceeded|rate limit|too many requests|try again at",
     re.IGNORECASE,
 )
+REAL_QUOTA_LINE_RE = re.compile(
+    r"you(?:'| a)ve hit your usage limit|quota exceeded|429 too many requests|rate limit|too many requests|try again at\s+[A-Za-z]{3}\s+\d{1,2}",
+    re.IGNORECASE,
+)
+CODE_LIKE_QUOTA_CONTEXT_RE = re.compile(
+    r"REVIEWER_QUOTA_RE|FIXER_QUOTA_RE|_apply_quota_text_safeguard|auto_switch_to_local_on_quota|"
+    r"fixer_quota_retry_cooldown_seconds|reviewer quota/rate-limit response|quota text on lane|"
+    r"self\.assert|def\s+_|^\s*[+\-]{1,3}\s|^\s*@@|^\s*diff --git|^\s*index\s|^\s*---\s|^\s*\+\+\+\s|"
+    r"\br[\"'].*(usage limit|quota exceeded|rate limit|too many requests|try again at)",
+    re.IGNORECASE,
+)
 BAD_LOCAL_CLI_CONTENT_MARKERS = (
     "not supported when using codex with a chatgpt account",
     "invalid_request_error",
@@ -301,12 +312,28 @@ def _apply_quota_text_safeguard(
     reason: str,
     default_seconds: Optional[float] = None,
 ) -> Dict[str, Any]:
-    if not text or not REVIEWER_QUOTA_RE.search(text):
+    if not _has_real_quota_signal(text):
         return state
     if RETRY_LIMIT_WRAPPER_RE.search(text):
         return state
     retry_at = _quota_retry_epoch(cfg, text, default_seconds=default_seconds)
     return _switch_to_local_fallback(cfg, state, reason, retry_at)
+
+
+def _has_real_quota_signal(text: str) -> bool:
+    if not text:
+        return False
+    for raw in text.splitlines()[-200:]:
+        line = raw.strip()
+        if not line:
+            continue
+        if RETRY_LIMIT_WRAPPER_RE.search(line):
+            continue
+        if CODE_LIKE_QUOTA_CONTEXT_RE.search(line):
+            continue
+        if REAL_QUOTA_LINE_RE.search(line):
+            return True
+    return False
 
 
 def _extract_reviewer_verdict(text: str) -> Optional[str]:
@@ -1489,7 +1516,7 @@ def process_reviewer_backlog(
                 text = latest_log.read_text(errors="ignore")
             except Exception:
                 text = ""
-            if text and FIXER_QUOTA_RE.search(text) and not RETRY_LIMIT_WRAPPER_RE.search(text):
+            if _has_real_quota_signal(text):
                 retry_at = _quota_retry_epoch(
                     cfg,
                     text,

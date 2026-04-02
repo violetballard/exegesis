@@ -3,7 +3,11 @@ from __future__ import annotations
 import time
 import unittest
 
-from codex_packet_handoff.tools.router import RouterConfig, _apply_quota_text_safeguard
+from codex_packet_handoff.tools.router import (
+    RouterConfig,
+    _apply_quota_text_safeguard,
+    _has_real_quota_signal,
+)
 
 
 def _router_cfg() -> RouterConfig:
@@ -39,6 +43,17 @@ def _router_cfg() -> RouterConfig:
 
 
 class RouterQuotaFallbackTests(unittest.TestCase):
+    def test_code_like_quota_text_does_not_count_as_real_quota_signal(self) -> None:
+        text = '\n'.join(
+            [
+                'diff --git a/codex_packet_handoff/tools/router.py b/codex_packet_handoff/tools/router.py',
+                '+ REVIEWER_QUOTA_RE = re.compile(r"usage limit|quota exceeded|rate limit|too many requests|try again at", re.IGNORECASE)',
+                '+ reason="fixer log quota text on lane feat-engine-runs"',
+            ]
+        )
+
+        self.assertFalse(_has_real_quota_signal(text))
+
     def test_retry_limit_wrapper_does_not_flip_runtime_mode(self) -> None:
         cfg = _router_cfg()
         state = {"runtime_mode": "cloud_primary"}
@@ -71,6 +86,30 @@ class RouterQuotaFallbackTests(unittest.TestCase):
         self.assertEqual(updated["runtime_mode"], "local_fallback")
         self.assertEqual(updated["last_quota_reason"], "fixer log quota text on lane feat-commands")
         self.assertGreater(updated["cloud_retry_at"], time.time())
+
+    def test_code_like_quota_text_does_not_flip_runtime_mode(self) -> None:
+        cfg = _router_cfg()
+        state = {"runtime_mode": "cloud_primary"}
+
+        updated = _apply_quota_text_safeguard(
+            cfg,
+            state,
+            '\n'.join(
+                [
+                    'diff --git a/codex_packet_handoff/tools/router.py b/codex_packet_handoff/tools/router.py',
+                    '+ FIXER_QUOTA_RE = REVIEWER_QUOTA_RE',
+                    '+ reason="fixer log quota text on lane feat-engine-runs"',
+                    '+ REVIEWER_QUOTA_RE = re.compile(r"usage limit|quota exceeded|rate limit|too many requests|try again at", re.IGNORECASE)',
+                ]
+            ),
+            reason="fixer log quota text on lane feat-engine-runs",
+            default_seconds=300,
+        )
+
+        self.assertIs(updated, state)
+        self.assertEqual(updated["runtime_mode"], "cloud_primary")
+        self.assertNotIn("last_quota_reason", updated)
+        self.assertNotIn("cloud_retry_at", updated)
 
 
 if __name__ == "__main__":
