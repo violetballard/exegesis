@@ -7,13 +7,13 @@
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice.
 - The packet is anchored to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
-- The roadmap and vision mappings below use the canonical labels from `ROADMAP.md` and `PRODUCT_VISION.md`.
+- The roadmap and vision mappings below use the canonical labels from the current worktree's `ROADMAP.md` and `PRODUCT_VISION.md`.
 - This resubmission reran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on `2026-04-02` in this lane worktree so the pass/fail claims match the current head.
 
 ## Reviewer required fixes addressed
-1. Rewrote the roadmap mapping to use the exact canonical `ROADMAP.md` entries `Milestone 3: Real workflow loop` and `feat-commands`.
-2. Rewrote the vision mapping to use the exact canonical `PRODUCT_VISION.md` capability names `Canonical engine contract` and `Auditable state and workflow`.
-3. Kept the approved shared-file exception and the `Files changed` section aligned on the same actual shared test path: `tests/unit/test_commands_catalog.py`.
+1. Rewrote the roadmap mapping to use the exact canonical entries from the current `ROADMAP.md` for this slice: `Milestone 1: Bootstrap Flow Stabilization (In Progress)` and `Milestone 2: Test Hardening (In Progress)`.
+2. Rewrote the vision mapping to use the exact canonical `PRODUCT_VISION.md` capability name `Operator-first control surface`.
+3. Kept the non-owned test approval note and the `Files changed` section aligned on the same actual test path: `tests/unit/test_commands_catalog.py`.
 4. Re-issued the packet as one coherent slice only: the `command_cli_contract()` command-catalog hardening, without mixing in `diff_preview` or other earlier branch work.
 
 ## Scope goal
@@ -26,7 +26,7 @@
 
 ## Lane/owned paths
 - `src/qual/commands/**`
-- Approved shared tests:
+- Non-owned test path covered by scope-check policy:
   - `tests/unit/test_commands_catalog.py`
 
 ## Scope completed
@@ -37,11 +37,11 @@
 
 ## Kickoff budget/limits compliance
 - High-risk shared-file handoff: task budget `4`, time budget `30m`.
-- The submitted branch stays within lane-owned command code plus the approved `tests/unit/test_commands_catalog.py` shared test exception.
+- The submitted branch stays within lane-owned command code plus the single non-owned test path `tests/unit/test_commands_catalog.py`, which is explicitly permitted for `codex/feat-commands*` in `scripts/scope-check.sh`.
 
 ## Approved exception note
-- Approved shared-file exception for `tests/unit/test_commands_catalog.py`.
-- No other shared-by-approval path is claimed in this re-review packet.
+- Approved non-owned test path for `tests/unit/test_commands_catalog.py` under the lane's scope-check policy.
+- No other shared-by-approval or integrator-locked path is claimed in this re-review packet.
 
 ## Tasks completed (numbered)
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on drift.
@@ -52,7 +52,7 @@
 ## Files changed
 ### Implementation files changed
 - `src/qual/commands/catalog.py`
-- `tests/unit/test_commands_catalog.py` (approved shared-file exception for the implementation commit)
+- `tests/unit/test_commands_catalog.py` (approved non-owned test path for the implementation commit)
 ### Docs-only alignment files changed
 - `THREAD_PACKET.md`
 
@@ -68,7 +68,7 @@
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS (`125` unit tests green)
 - Verification date: `2026-04-02`
-- Verification rerun timestamp: `2026-04-02T16:06:28-0700`
+- Verification rerun timestamp: `2026-04-02T16:09:08-0700`
 - Verification basis: all six required gates were re-run successfully during this docs-only reviewer-fix pass in `/Users/doctor-violet/.codex/worktrees/5494/qual`; `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all exited successfully, `tests/smoke.sh` passed, the unit suite completed green at `125` tests in both `./quality-test.sh` and `make ci`, and `./typecheck-test.sh` completed successfully via `python3 -m compileall -q src`.
 
 ## Risks / blockers
@@ -80,12 +80,11 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 3: Real workflow loop` - preserve CLI compatibility and migration-safe entrypoints while the command catalog contract is hardened against parser/catalog drift.
-- `feat-commands` - stable CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
+- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - harden command behavior so the CLI contract stays deterministic and manual smoke flow remains stable.
+- `Milestone 2: Test Hardening (In Progress)` - add focused unit coverage for the command-catalog drift checks that protect the CLI parser surface.
 
 ### Vision capability affected
-- `Canonical engine contract` - CLI compatibility remains stable while the command surface now rejects parser/catalog drift before it can reach operators.
-- `Auditable state and workflow` - the command surface now fails loudly on drift, making the operator contract explicit and traceable.
+- `Operator-first control surface` - CLI remains a first-class operator surface, and the command catalog now rejects parser drift before it can silently change the exposed control contract.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
@@ -95,7 +94,7 @@
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `YES`
-- Approved shared-file exception covers `tests/unit/test_commands_catalog.py`, which is also the only shared test named in `Files changed`.
-- Approval basis: `scripts/scope-check.sh` explicitly permits `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, and `INTEGRATION.md` requires the packet to name that explicit approval note when a non-owned file is in scope.
-- Re-review mapping basis: the roadmap and vision fields above use the reviewer-required canonical milestone and capability names for this command-contract handoff slice.
+- Approved non-owned test path covers `tests/unit/test_commands_catalog.py`, which is also the only non-owned implementation file named in `Files changed`.
+- Approval basis: `scripts/scope-check.sh` explicitly permits `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, and `INTEGRATION.md` requires the packet to name an explicit approval note when a non-owned file is in scope.
+- Re-review mapping basis: the roadmap and vision fields above use the current worktree's canonical milestone and capability names for this command-contract handoff slice.
 - Coherent-slice basis: this re-review packet covers the `command_cli_contract()` catalog hardening only and does not mix in earlier diff-preview or route-catalog branch work.
