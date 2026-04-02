@@ -487,16 +487,19 @@ def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
 @lru_cache(maxsize=None)
 def command_cli_contract() -> CommandCliContract:
     lookup_table = command_cli_lookup_table()
+    canonical_names = command_names()
     seen_canonical_names: set[str] = set()
-    canonical_names: list[str] = []
+    lookup_canonical_names: list[str] = []
     for _, canonical_name in lookup_table:
         if canonical_name in seen_canonical_names:
             continue
         seen_canonical_names.add(canonical_name)
-        canonical_names.append(canonical_name)
+        lookup_canonical_names.append(canonical_name)
+    if tuple(lookup_canonical_names) != canonical_names:
+        raise ValueError("Command CLI canonical names are inconsistent")
     return CommandCliContract(
         tokens=command_cli_tokens(),
-        canonical_names=tuple(canonical_names),
+        canonical_names=canonical_names,
         lookup_table=lookup_table,
     )
 

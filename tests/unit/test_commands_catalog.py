@@ -10,6 +10,7 @@ from src.qual.commands import (
     canonical_command_for,
     command_aliases,
     command_aliases_for,
+    command_cli_contract,
     command_cli_flow_contract,
     command_cli_flow_lookup_table,
     command_cli_tokens,
@@ -111,6 +112,18 @@ class CommandCatalogTests(unittest.TestCase):
                 ("terminal", "terminal"),
             ),
         )
+
+    def test_command_cli_contract_matches_the_catalog_order(self) -> None:
+        contract = command_cli_contract()
+        self.assertEqual(contract.tokens, command_cli_tokens())
+        self.assertEqual(contract.canonical_names, command_names())
+        self.assertEqual(contract.lookup_table, command_cli_lookup_table())
+
+    def test_command_cli_contract_rejects_catalog_drift(self) -> None:
+        command_catalog.command_cli_contract.cache_clear()
+        with patch.object(command_catalog, "command_names", return_value=("bootstrap", "diff-preview")):
+            with self.assertRaisesRegex(ValueError, "Command CLI canonical names are inconsistent"):
+                command_catalog.command_cli_contract()
 
     def test_command_cli_lookup_table_resolves_through_the_catalog(self) -> None:
         self.assertEqual(
