@@ -76,6 +76,8 @@ def write_example_config():
         "cloud_probe_cooldown_seconds": 1800,
         "cloud_probe_timeout_seconds": 30,
         "feature_launch_timeout_seconds": 300,
+        "max_parallel_feature_lanes_cloud": 1,
+        "max_parallel_feature_lanes_local": 2,
         "prefer_direct_exec_feature_cloud": True,
         "prefer_cli_reviewer": True,
         "prefer_cli_integrator": True,
@@ -84,6 +86,8 @@ def write_example_config():
         "idle_seconds": 1.2,
         "reviewer_timeout": 180,
         "integrator_timeout": 900,
+        "max_cloud_fixer_kicks_per_run": 1,
+        "max_local_fixer_kicks_per_run": 1,
         "lanes": lanes_cfg,
         "planner": {
             "base_ref": "codex/integrator",

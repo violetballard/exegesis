@@ -172,6 +172,8 @@ def runtime_launch_config() -> Dict[str, object]:
         "mode": mode,
         "profile_name": profile_name,
         "launch_timeout_seconds": float(cfg.get("feature_launch_timeout_seconds", 120)),
+        "max_parallel_feature_lanes_cloud": int(cfg.get("max_parallel_feature_lanes_cloud", 1)),
+        "max_parallel_feature_lanes_local": int(cfg.get("max_parallel_feature_lanes_local", 2)),
         "disable_local_fallback_on_cloud_timeout": bool(cfg.get("disable_local_fallback_on_cloud_timeout", False)),
         "prefer_direct_exec_cloud": bool(cfg.get("prefer_direct_exec_feature_cloud", True)),
         "local_profile_name": local_profile_name,
@@ -829,7 +831,13 @@ def main() -> int:
         print(json.dumps({"runtime_mode": launch_cfg["mode"], "launched": launched}, indent=2))
         return 0
 
-    max_workers = min(len(args.lanes), 5)
+    if str(launch_cfg["mode"]) == "local_fallback":
+        parallel_limit = int(launch_cfg.get("max_parallel_feature_lanes_local", 2))
+    else:
+        parallel_limit = int(launch_cfg.get("max_parallel_feature_lanes_cloud", 1))
+    if parallel_limit <= 0:
+        parallel_limit = 1
+    max_workers = min(len(args.lanes), parallel_limit)
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [
             executor.submit(

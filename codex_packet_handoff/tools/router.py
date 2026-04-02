@@ -99,6 +99,8 @@ class RouterConfig:
     fixer_kick_timeout_seconds: float
     reviewer_fixer_retry_cooldown_seconds: float
     fixer_quota_retry_cooldown_seconds: float
+    max_cloud_fixer_kicks_per_run: int
+    max_local_fixer_kicks_per_run: int
     prefer_cli_fixer: bool
     prefer_cli_reviewer: bool
     prefer_cli_integrator: bool
@@ -244,6 +246,8 @@ def load_cfg() -> RouterConfig:
         fixer_kick_timeout_seconds=float(cfg.get("fixer_kick_timeout_seconds", 8)),
         reviewer_fixer_retry_cooldown_seconds=float(cfg.get("reviewer_fixer_retry_cooldown_seconds", 900)),
         fixer_quota_retry_cooldown_seconds=float(cfg.get("fixer_quota_retry_cooldown_seconds", 3600)),
+        max_cloud_fixer_kicks_per_run=int(cfg.get("max_cloud_fixer_kicks_per_run", 1)),
+        max_local_fixer_kicks_per_run=int(cfg.get("max_local_fixer_kicks_per_run", 1)),
         prefer_cli_fixer=bool(cfg.get("prefer_cli_fixer", True)),
         prefer_cli_reviewer=bool(cfg.get("prefer_cli_reviewer", True)),
         prefer_cli_integrator=bool(cfg.get("prefer_cli_integrator", True)),
@@ -1495,8 +1499,11 @@ def process_reviewer_backlog(
     retry_ts = state.get("reviewer_fixer_retry_ts") or {}
     quota_retry_ts = state.get("fixer_quota_retry_ts") or {}
     local_mode = _runtime_mode(cfg, state) == "local_fallback"
+    kick_limit = cfg.max_local_fixer_kicks_per_run if local_mode else cfg.max_cloud_fixer_kicks_per_run
     kicked = 0
     for lane in cfg.lanes.keys():
+        if kick_limit > 0 and kicked >= kick_limit:
+            break
         lane_dir = ensure_lane_dirs(lane)
         now = time.time()
         lane_quota_until = float(quota_retry_ts.get(lane, 0) or 0)
