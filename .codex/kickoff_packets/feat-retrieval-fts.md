@@ -1,6 +1,7 @@
 # Lane Kickoff: feat-retrieval-fts
 
 - Branch: `codex/feat-retrieval-fts`
+- Current branch head: `1bcf17afaf14fe73184b20c3239d8e78a7f29413`
 - Packet refresh trace anchor: `1f6a57dd0d40998b0ca58bdb94cf3f2b7b0a2f05`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
@@ -27,7 +28,7 @@ The packet refresh trace anchor is `1f6a57dd0d40998b0ca58bdb94cf3f2b7b0a2f05`; i
 
 ## Branch-head traceability
 
-This fixer pass keeps the branch head in the metadata-only packet refresh chain rather than moving the reviewed retrieval implementation head. Re-review should anchor traceability to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`; if a later branch head changes retrieval code or the approved shared regression file, the packet must be regenerated before approval.
+This fixer pass keeps the current branch head `1bcf17afaf14fe73184b20c3239d8e78a7f29413` in the metadata-only packet refresh chain rather than moving the reviewed retrieval implementation head. Re-review should anchor traceability to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`; if a later branch head changes retrieval code or the approved shared regression file, the packet must be regenerated before approval.
 
 ## Verification note
 

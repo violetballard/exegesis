@@ -1,6 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
+- Current branch HEAD SHA: `1bcf17afaf14fe73184b20c3239d8e78a7f29413`
 - Packet refresh trace anchor: `1f6a57dd0d40998b0ca58bdb94cf3f2b7b0a2f05`
 - Reviewed implementation HEAD SHA: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
@@ -38,7 +39,7 @@
 - Read the file lists and task summary against the reviewed implementation range above, not against the later metadata-only packet refresh chain.
 
 ## Branch-head traceability
-- The current branch head for this fixer pass is a metadata-only packet refresh commit, not a retrieval implementation commit.
+- The current branch head for this fixer pass is `1bcf17afaf14fe73184b20c3239d8e78a7f29413`, a metadata-only packet refresh commit rather than a retrieval implementation commit.
 - Re-review should verify packet traceability against the reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - If a later branch head changes retrieval code or the approved shared regression file, this packet must be regenerated before approval.
 
