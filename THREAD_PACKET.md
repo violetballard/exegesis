@@ -14,10 +14,10 @@
 - Retrieval payloads, provenance, and hit snapshots are deterministic enough for downstream engine flows.
 - Sparse source and context bundles rehydrate deterministically.
 - PageIndex and embeddings remain compatibility-only fallback shims that fail closed.
-- The only shared-by-approval edit is `tests/unit/test_unified_retrieval.py`.
+- The only shared-by-approval edit is `tests/unit/test_unified_retrieval.py`; no other shared-by-approval files are part of the reviewed retrieval implementation range.
 
 ## Approved exception note
-- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract.
+- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract. No other shared-by-approval files are part of the reviewed retrieval implementation range.
 
 ## Files changed
 

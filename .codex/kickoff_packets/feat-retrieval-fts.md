@@ -3,11 +3,11 @@
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
 - Handoff type: retrieval feature handoff for the FTS-first retrieval lane.
-- Approved exception note: Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract.
+- Approved exception note: Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract. No other shared-by-approval files are part of the reviewed retrieval implementation range.
 
 ## Scope completed
 
-The retrieval lane shipped an FTS-first retrieval MVP: SQLite FTS remains authoritative, the canonical retrieval query constructor is exported through both retrieval facades, retrieval payloads and provenance snapshots are deterministic for downstream engine flows, sparse source and context bundles rehydrate deterministically, and PageIndex plus embeddings remain compatibility-only fallback shims that fail closed. The only shared-by-approval edit is `tests/unit/test_unified_retrieval.py`.
+The retrieval lane shipped an FTS-first retrieval MVP: SQLite FTS remains authoritative, the canonical retrieval query constructor is exported through both retrieval facades, retrieval payloads and provenance snapshots are deterministic for downstream engine flows, sparse source and context bundles rehydrate deterministically, and PageIndex plus embeddings remain compatibility-only fallback shims that fail closed. The only shared-by-approval edit is `tests/unit/test_unified_retrieval.py`; no other shared-by-approval files are part of the reviewed retrieval implementation range.
 
 ## Budget note
 
