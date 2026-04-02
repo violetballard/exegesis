@@ -17,8 +17,8 @@
   - `tests/unit/test_diff_preview.py`
 
 ## Scope completed
-- Made the emitted diff string a first-class value in `diff_preview` so the JSON `diff` field and the reported fingerprint are computed from the same exact payload.
-- Added focused regression coverage for labeled JSON output with suppressed headers, plus the existing summary-only fingerprint coverage.
+- Updated `src/qual/commands/diff_preview.py` so the emitted diff string is a first-class value and the JSON `diff` field plus reported fingerprint are computed from the same exact payload.
+- Added focused regression coverage in `tests/unit/test_diff_preview.py` for labeled JSON output with suppressed headers, plus the existing summary-only fingerprint coverage.
 - Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta on the branch.
 
 ## Kickoff budget/limits compliance
@@ -30,8 +30,8 @@
 - Approved shared-file exception for `tests/unit/test_diff_preview.py`.
 
 ## Tasks completed (numbered)
-1. Made the emitted diff string a first-class value in `diff_preview` so the JSON payload and fingerprint are derived from the same exact text.
-2. Added a regression that covers labeled JSON output with suppressed headers, plus summary-only fingerprint coverage.
+1. Updated `src/qual/commands/diff_preview.py` so the emitted diff string is the shared source of truth for the JSON payload and fingerprint.
+2. Added a regression in `tests/unit/test_diff_preview.py` that covers labeled JSON output with suppressed headers, plus summary-only fingerprint coverage.
 3. Regenerated the handoff packet and lane metadata so the review evidence matches the actual code/test delta.
 
 ## Files changed
@@ -56,7 +56,7 @@
 ## Required handoff fields
 ### Scope completed
 
-- Hardened the `diff_preview` command surface so the emitted diff payload, summary-only mode, and SHA-256 fingerprint stay deterministic and verifiable.
+- Updated `src/qual/commands/diff_preview.py` and `tests/unit/test_diff_preview.py` so the emitted diff payload, summary-only mode, and SHA-256 fingerprint stay deterministic and verifiable.
 
 ### Roadmap item(s) affected
 
