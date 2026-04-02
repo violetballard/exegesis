@@ -3,8 +3,9 @@
 - Branch name: `codex/feat-commands`
 - Implementation commit(s):
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
-- Previous docs-only reviewer-fix alignment commit:
+- Previous docs-only reviewer-fix alignment commit(s):
   - `c637873d0ec2e36850922067c58cdbcc1669e430` (`docs(commands): refresh reviewer-fix packet ledger`)
+  - `8432f70ee859a2c64412fcf9cf7cd0695c941274` (`docs(commands): finalize reviewer fix packet`)
 
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice and naming the actual approved shared test consistently.
@@ -72,7 +73,7 @@
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 - Verification date: `2026-04-02`
-- Verification basis: all required gates were re-run successfully during this docs-only reviewer-fix pass and recorded here for the current handoff update.
+- Verification basis: all required gates were re-run successfully during this docs-only reviewer-fix pass; `./quality-test.sh` and `make ci` both completed with the unit suite green at `125` tests, and `./typecheck-test.sh` completed successfully via `python3 -m compileall -q src`.
 
 ## Risks / blockers
 - Risk: `HIGH`
