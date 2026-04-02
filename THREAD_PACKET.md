@@ -10,6 +10,7 @@
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice, using canonical roadmap and vision labels, and naming the actual approved shared test consistently.
 - This resubmission also reran the required local gates on `2026-04-02` before handoff so the packet's pass/fail claims match the current branch head for this reviewer-fix commit.
+- The final verifier pass reran the exact requested sequence on `2026-04-02`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - This packet now records that the reviewer-fix rerun was verified again after the latest docs-only gate-rerun commit, so the handoff artifact and the submitted HEAD stay aligned.
 - This final packet refresh re-confirms that the reviewed implementation slice is still commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
 
