@@ -3,12 +3,13 @@
 - Branch name: `codex/feat-commands`
 - Implementation commit(s):
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
-- Prior docs-only alignment commit before this fixer commit:
-  - `31c9e80c` (`docs(commands): clarify reviewer-fix packet basis`)
+- Prior docs-only alignment commit before this final fixer validation commit:
+  - `6a83c84d` (`docs(commands): finalize reviewer-fix handoff packet`)
 
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice and naming the actual approved shared test consistently.
 - This resubmission reruns the required local gates on `2026-04-02` so the packet's pass/fail claims match the current branch head for this fixer commit.
+- This final validation commit exists only to record that the required gate sequence was re-run after the reviewer-fix packet was finalized.
 - The reviewed implementation slice remains commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
 - The roadmap and vision mappings below use the canonical labels from `ROADMAP.md` and `PRODUCT_VISION.md` for this re-review.
 
