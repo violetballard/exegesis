@@ -1,7 +1,6 @@
 # Lane Kickoff: feat-retrieval-fts
 
 - Branch: `codex/feat-retrieval-fts`
-- Current branch HEAD: `bbb9971681a6d3b62d765ccac711061e9f93dbd8`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
@@ -22,7 +21,7 @@ This kickoff packet now matches the reviewer-required packet corrections: the ha
 
 ## Packet trace note
 
-The current branch HEAD for packet review is `bbb9971681a6d3b62d765ccac711061e9f93dbd8`, and it is metadata-only. Packet-refresh commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` on this handoff chain are metadata-only unless the packet is regenerated to say otherwise. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and later packet-only commits are not part of the reviewed implementation range.
+The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless the packet is regenerated to move the reviewed implementation head or reviewed implementation range.
 
 ### Priority outcomes
 1. Make SQLite FTS the primary retrieval path.
