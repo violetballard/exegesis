@@ -19,6 +19,10 @@ This handoff includes approved shared regression coverage in `tests/unit/test_un
 
 This kickoff packet now matches the reviewer-required packet corrections: the handoff is classified as shared/high-risk work under the 4-task cap, the reviewed implementation range remains anchored to `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and the dedicated `Scope completed` section describes the FTS-first retrieval outcome separately from later metadata-only packet refreshes.
 
+## Packet trace note
+
+The current branch head may move forward with metadata-only packet refreshes, but the reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. Later packet-only commits are not part of the reviewed implementation range unless this kickoff packet is regenerated to say otherwise.
+
 ### Priority outcomes
 1. Make SQLite FTS the primary retrieval path.
 2. Return doc hits and excerpt hits with stable provenance.
