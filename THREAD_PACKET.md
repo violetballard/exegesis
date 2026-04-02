@@ -37,6 +37,11 @@
 - The packet-refresh head can continue to advance for handoff-only corrections without changing the reviewed implementation range.
 - Read the file lists and task summary against the reviewed implementation range above, not against the later metadata-only packet refresh chain.
 
+## Branch-head traceability
+- The current branch head for this fixer pass is a metadata-only packet refresh commit, not a retrieval implementation commit.
+- Re-review should verify packet traceability against the reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- If a later branch head changes retrieval code or the approved shared regression file, this packet must be regenerated before approval.
+
 ## Approved exception note
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract. No other shared-by-approval files are part of the reviewed retrieval implementation range.
 
