@@ -1,8 +1,8 @@
 # Lane Kickoff: feat-retrieval-fts
 
 - Branch: `codex/feat-retrieval-fts`
-- Packet refresh trace anchor: `4246fc2582a92ace426a4635ad2e76be0eb72df5`
-- Final HEAD SHA (packet-refresh branch head): `4246fc2582a92ace426a4635ad2e76be0eb72df5`
+- Packet refresh trace anchor: `d00822ca445d9df03c3ff0a140e73ec4a2d4188a`
+- Final HEAD SHA (packet-refresh branch head): `d00822ca445d9df03c3ff0a140e73ec4a2d4188a`
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
@@ -24,7 +24,7 @@ This kickoff packet now matches the reviewer-required packet corrections: the ha
 
 ## Packet trace note
 
-The packet refresh trace anchor is `4246fc2582a92ace426a4635ad2e76be0eb72df5`; it is metadata-only and is not automatically the reviewed implementation head. The latest packet-refresh branch head for this handoff packet is `4246fc2582a92ace426a4635ad2e76be0eb72df5`. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless the packet is regenerated to move the reviewed implementation head or reviewed implementation range. Read the retrieval file list and completed-task summary against that reviewed implementation range, not against the later metadata-only packet refresh chain; the cited packet-refresh SHAs are representative rather than exhaustive.
+The packet refresh trace anchor is `d00822ca445d9df03c3ff0a140e73ec4a2d4188a`; it is metadata-only and is not automatically the reviewed implementation head. The latest packet-refresh branch head for this handoff packet is `d00822ca445d9df03c3ff0a140e73ec4a2d4188a`. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless the packet is regenerated to move the reviewed implementation head or reviewed implementation range. Read the retrieval file list and completed-task summary against that reviewed implementation range, not against the later metadata-only packet refresh chain; the cited packet-refresh SHAs are representative rather than exhaustive.
 
 ## Branch-head traceability
 
