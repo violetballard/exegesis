@@ -15,6 +15,7 @@
 ## Docs-only alignment commits
 - `f13324d206b41c134a96ff837eea6427c31aa981`: updated the handoff packet wording to make the shared/high-risk 4-task cap explicit.
 - `edb36142cfe75ff8c65aee95865adb2de7ac19b0`: refreshed the same packet wording at the current branch head.
+- `b172559ed0889b5793e150296fa4b8b6c9943931`: separated the docs-only alignment commits from the reviewed retrieval implementation scope.
 - These commits only regenerate handoff metadata and do not change the reviewed implementation range above.
 
 ## Approved exception note
