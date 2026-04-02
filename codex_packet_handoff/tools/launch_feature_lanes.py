@@ -14,10 +14,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 try:
     from codex_mcp_client import ApprovalPolicy, CodexMcpClient
     from lane_profiles import ENGINE_MILESTONE_FOCUS, engine_priority_lines
+    from log_maintenance import prune_log_dir
     from local_codex_runtime import isolated_codex_env
 except ImportError:  # pragma: no cover - test/import fallback for package execution
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
     from .lane_profiles import ENGINE_MILESTONE_FOCUS, engine_priority_lines
+    from .log_maintenance import prune_log_dir
     from .local_codex_runtime import isolated_codex_env
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -43,6 +45,9 @@ BAD_LOCAL_MCP_CONTENT_RE = (
     "missing_required_parameter",
     "text.format",
 )
+FEATURE_LOG_KEEP_RECENT = 24
+FEATURE_LOG_MAX_TOTAL_BYTES = 12 * 1024 * 1024
+FEATURE_LOG_MIN_AGE_SECONDS = 1800
 
 
 def load_json(path: Path, default: Any) -> Any:
@@ -220,11 +225,23 @@ def _open_client(launch_cfg: Dict[str, object]) -> CodexMcpClient:
 
 
 def _write_log(log_path: Path, header: Dict[str, Any], content: str) -> None:
+    prune_log_dir(
+        log_path.parent,
+        keep_recent=FEATURE_LOG_KEEP_RECENT,
+        max_total_bytes=FEATURE_LOG_MAX_TOTAL_BYTES,
+        min_age_seconds=FEATURE_LOG_MIN_AGE_SECONDS,
+    )
     lines = [json.dumps(header, sort_keys=True), "", content.strip(), ""]
     log_path.write_text("\n".join(lines))
 
 
 def _spawn_direct_exec(profile_cfg: Dict[str, object], *, workdir: str, prompt: str, log_path: Path) -> int:
+    prune_log_dir(
+        log_path.parent,
+        keep_recent=FEATURE_LOG_KEEP_RECENT,
+        max_total_bytes=FEATURE_LOG_MAX_TOTAL_BYTES,
+        min_age_seconds=FEATURE_LOG_MIN_AGE_SECONDS,
+    )
     cmd_args = [str(x) for x in list(profile_cfg["cmd_args"])]
     cmd: List[str] = [str(profile_cfg["cmd"]), *cmd_args, "exec"]
     local_mode = str(profile_cfg.get("mode") or "") == "local_fallback"

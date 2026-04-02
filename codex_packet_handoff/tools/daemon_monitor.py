@@ -6,8 +6,10 @@ import errno
 import os
 import re
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -42,6 +44,10 @@ EXEC_RESULT_RE = re.compile(r"exited (\d+)|succeeded", re.IGNORECASE)
 REQUIRED_FIX_RE = re.compile(r"^\s*\d+\.\s+", re.MULTILINE)
 LANE_NAME_RE = re.compile(r"feature lane agent for\s+`?([A-Za-z0-9._-]+)`?", re.IGNORECASE)
 CODEX_EXEC_RE = re.compile(r"\bcodex\b.*\bexec\b", re.IGNORECASE)
+PROC_TIMEOUT_SECONDS = 2.0
+LOG_TAIL_MAX_BYTES = 128 * 1024
+LOG_TAIL_MAX_LINES = 240
+PACKET_PREVIEW_MAX_BYTES = 64 * 1024
 
 
 def _load_json(path: Path, default: Any) -> Any:
@@ -106,6 +112,7 @@ def _pid_matches_daemon(pid: int) -> bool:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             text=True,
+            timeout=PROC_TIMEOUT_SECONDS,
         )
     except Exception:
         # In restricted environments, process table inspection may be blocked.
@@ -126,6 +133,7 @@ def _matching_pids() -> list[int]:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             text=True,
+            timeout=PROC_TIMEOUT_SECONDS,
         )
     except Exception:
         return []
@@ -158,6 +166,7 @@ def _manual_feature_sessions() -> list[dict[str, str]]:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             text=True,
+            timeout=PROC_TIMEOUT_SECONDS,
         )
     except Exception:
         return []
@@ -187,10 +196,24 @@ def _manual_feature_sessions() -> list[dict[str, str]]:
     return rows
 
 
+def _latest_by_mtime(paths) -> Path | None:
+    latest: Path | None = None
+    latest_mtime = float("-inf")
+    for path in paths:
+        try:
+            mtime = path.stat().st_mtime
+        except Exception:
+            continue
+        if latest is None or mtime > latest_mtime:
+            latest = path
+            latest_mtime = mtime
+    return latest
+
+
+@lru_cache(maxsize=None)
 def _latest_feature_runner_log(lane: str) -> Path | None:
     log_dir = FEATURE_RUNNER_ROOT / "logs"
-    files = sorted(log_dir.glob(f"{lane}__*.log"), key=lambda p: p.stat().st_mtime, reverse=True)
-    return files[0] if files else None
+    return _latest_by_mtime(log_dir.glob(f"{lane}__*.log"))
 
 
 def _manual_feature_session_map() -> Dict[str, dict[str, str]]:
@@ -221,6 +244,7 @@ def _manual_feature_logs(limit: int = 5) -> list[Path]:
     return sorted(log_dir.glob("*.log"), key=lambda p: p.stat().st_mtime, reverse=True)[:limit]
 
 
+@lru_cache(maxsize=1)
 def _feature_thread_state() -> Dict[str, Dict[str, Any]]:
     data = _load_json(FEATURE_STATE, {})
     lanes = data.get("lanes") if isinstance(data, dict) else {}
@@ -339,7 +363,7 @@ def _coordinator_state() -> Dict[str, Any]:
 def _tail_log(lines: int = 15) -> str:
     if not DAEMON_LOG.exists():
         return "(no daemon log yet)"
-    txt = DAEMON_LOG.read_text(errors="ignore").splitlines()
+    txt = _read_log_tail_lines(DAEMON_LOG, max_lines=lines, max_bytes=64 * 1024)
     return "\n".join(txt[-lines:]) if txt else "(daemon log empty)"
 
 
@@ -369,15 +393,64 @@ def _tail_scope_check_note(totals: Dict[str, int], tail: str) -> str:
 
 
 def _branch_head(branch: str) -> str:
-    p = subprocess.run(
-        ["git", "rev-parse", branch],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        text=True,
-    )
+    try:
+        p = subprocess.run(
+            ["git", "rev-parse", branch],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=PROC_TIMEOUT_SECONDS,
+        )
+    except Exception:
+        return "-"
     if p.returncode != 0:
         return "-"
     return (p.stdout or "").strip()[:8]
+
+
+@lru_cache(maxsize=None)
+def _read_log_tail_lines(path: Path, *, max_lines: int = LOG_TAIL_MAX_LINES, max_bytes: int = LOG_TAIL_MAX_BYTES) -> List[str]:
+    if not path.exists():
+        return []
+    try:
+        size = path.stat().st_size
+    except Exception:
+        size = 0
+    try:
+        with path.open("rb") as fh:
+            if size > max_bytes:
+                fh.seek(max(size - max_bytes, 0))
+                fh.readline()
+            chunk = fh.read()
+    except Exception:
+        return []
+    text = chunk.decode("utf-8", errors="ignore")
+    lines = text.splitlines()
+    if len(lines) > max_lines:
+        lines = lines[-max_lines:]
+    return lines
+
+
+@lru_cache(maxsize=None)
+def _read_text_window(path: Path, *, head_bytes: int = PACKET_PREVIEW_MAX_BYTES, tail_bytes: int = PACKET_PREVIEW_MAX_BYTES) -> str:
+    if not path.exists():
+        return ""
+    try:
+        size = path.stat().st_size
+    except Exception:
+        size = 0
+    try:
+        with path.open("rb") as fh:
+            if size <= (head_bytes + tail_bytes):
+                data = fh.read()
+            else:
+                head = fh.read(head_bytes)
+                fh.seek(max(size - tail_bytes, 0))
+                tail = fh.read(tail_bytes)
+                data = head + b"\n...\n" + tail
+    except Exception:
+        return ""
+    return data.decode("utf-8", errors="ignore")
 
 
 def _lane_branch_map() -> Dict[str, str]:
@@ -392,33 +465,25 @@ def _lane_branch_map() -> Dict[str, str]:
 
 def _lane_latest_review_file(lane: str) -> Path | None:
     lane_dir = PACKETS_ROOT / lane / "inbox" / "reviewer"
-    notes = sorted(lane_dir.glob("*.md"), key=lambda p: p.stat().st_mtime)
-    if not notes:
-        return None
-    return notes[-1]
+    return _latest_by_mtime(lane_dir.glob("*.md"))
 
 
 def _lane_latest_feature_archive(lane: str) -> Path | None:
     lane_dir = PACKETS_ROOT / lane / "archive"
-    notes = sorted(lane_dir.glob("F__*.md"), key=lambda p: p.stat().st_mtime)
-    if not notes:
-        return None
-    return notes[-1]
+    return _latest_by_mtime(lane_dir.glob("F__*.md"))
 
 
 def _lane_latest_feature_pending(lane: str) -> Path | None:
     lane_dir = PACKETS_ROOT / lane / "inbox" / "feature"
-    notes = sorted(lane_dir.glob("*.md"), key=lambda p: p.stat().st_mtime)
-    if not notes:
-        return None
-    return notes[-1]
+    return _latest_by_mtime(lane_dir.glob("*.md"))
 
 
+@lru_cache(maxsize=None)
 def _lane_verdict_summary(lane: str) -> str:
     note = _lane_latest_review_file(lane)
     if note is None:
         return "no reviewer note"
-    txt = note.read_text(errors="ignore")
+    txt = _read_text_window(note)
     m = VERDICT_RE.search(txt)
     if not m:
         return "review note present (verdict not explicit)"
@@ -426,11 +491,12 @@ def _lane_verdict_summary(lane: str) -> str:
     return v
 
 
+@lru_cache(maxsize=None)
 def _review_history_summary(lane: str) -> Dict[str, Any]:
     rf = _lane_latest_review_file(lane)
     if rf is None:
         return {"state": "none", "required_fixes": 0, "age_s": None, "msg": "no reviewer note"}
-    txt = rf.read_text(errors="ignore")
+    txt = _read_text_window(rf)
     lower = txt.lower()
     if "session not found for thread_id" in lower:
         state = "invalid_session_note"
@@ -447,6 +513,7 @@ def _review_history_summary(lane: str) -> Dict[str, Any]:
     }
 
 
+@lru_cache(maxsize=1)
 def _integrator_history_summary() -> Dict[str, Any]:
     approved_now = 0
     integrated_archived = 0
@@ -469,7 +536,7 @@ def _first_nonempty_line(path: Path | None, max_len: int = 140) -> str:
     if path is None:
         return "-"
     try:
-        for ln in path.read_text(errors="ignore").splitlines():
+        for ln in _read_text_window(path, head_bytes=16 * 1024, tail_bytes=0).splitlines():
             s = ln.strip()
             if not s:
                 continue
@@ -496,7 +563,7 @@ def _reviewer_live_summary() -> Dict[str, Any]:
         if rf is not None:
             if latest_review is None or rf.stat().st_mtime > latest_review[1].stat().st_mtime:
                 latest_review = (lane, rf)
-            txt = rf.read_text(errors="ignore").lower()
+            txt = _read_text_window(rf).lower()
             if "session not found for thread_id" in txt or "thread not found" in txt:
                 invalid_count += 1
     pending_items.sort(key=lambda x: x[1].stat().st_mtime)
@@ -579,15 +646,16 @@ def _integrator_live_summary() -> Dict[str, Any]:
     }
 
 
+@lru_cache(maxsize=None)
 def _latest_fixer_log(lane: str) -> Path | None:
-    files = sorted(LOG_DIR.glob(f"fixer__{lane}__*.log"), key=lambda p: p.stat().st_mtime, reverse=True)
-    return files[0] if files else None
+    return _latest_by_mtime(LOG_DIR.glob(f"fixer__{lane}__*.log"))
 
 
+@lru_cache(maxsize=None)
 def _conversation_summary(log_path: Path | None) -> str:
     if log_path is None:
         return "no fixer log"
-    lines = log_path.read_text(errors="ignore").splitlines()
+    lines = _read_log_tail_lines(log_path)
     picked: list[str] = []
     for ln in lines[-120:]:
         s = ln.strip()
@@ -627,6 +695,7 @@ def _compact_cmd(cmd_line: str) -> str:
     return s
 
 
+@lru_cache(maxsize=None)
 def _detailed_conversation_summary(log_path: Path | None) -> Dict[str, Any]:
     if log_path is None:
         return {
@@ -639,7 +708,7 @@ def _detailed_conversation_summary(log_path: Path | None) -> Dict[str, Any]:
             "head_sha": None,
         }
 
-    lines = log_path.read_text(errors="ignore").splitlines()
+    lines = _read_log_tail_lines(log_path)
     log_age_seconds = int(max(0, time.time() - log_path.stat().st_mtime))
     objective = "Apply reviewer required fixes"
     packet = "review packet present"
@@ -736,7 +805,36 @@ def _detailed_conversation_summary(log_path: Path | None) -> Dict[str, Any]:
     }
 
 
+@lru_cache(maxsize=None)
+def _lane_counts_for(lane: str) -> Dict[str, int]:
+    lane_dir = PACKETS_ROOT / lane
+    if not lane_dir.exists():
+        return {"pending": 0, "review": 0, "approved": 0}
+    return _lane_counts(lane_dir)
+
+
+def _should_print_lane_conversation(
+    lane: str,
+    counts: Dict[str, int],
+    verdict: str,
+    feature_state: Dict[str, Any],
+    detail: Dict[str, Any],
+) -> bool:
+    if lane.startswith("feat-console"):
+        return False
+    if any(counts.values()):
+        return True
+    if verdict != "no reviewer note":
+        return True
+    if feature_state["state"] in {"live", "recent_empty", "recent_log", "managed_thread", "launching", "error", "direct_exec_running"}:
+        return True
+    if detail.get("blockers") or detail.get("recent"):
+        return True
+    return False
+
+
 def _feature_runner_state(lane: str, live_sessions: Dict[str, dict[str, str]]) -> Dict[str, Any]:
+    counts = _lane_counts_for(lane)
     live = live_sessions.get(lane)
     if live:
         return {
@@ -787,6 +885,27 @@ def _feature_runner_state(lane: str, live_sessions: Dict[str, dict[str, str]]) -
                 "log": log_name,
                 "age_s": None,
             }
+    if counts["review"] > 0:
+        return {
+            "state": "review_wait",
+            "summary": "reviewer note present; waiting on fixer/re-emit path",
+            "log": None,
+            "age_s": None,
+        }
+    if counts["approved"] > 0:
+        return {
+            "state": "integrator_wait",
+            "summary": "approved packet waiting on integrator",
+            "log": None,
+            "age_s": None,
+        }
+    if counts["pending"] <= 0:
+        return {
+            "state": "none",
+            "summary": "no recent feature launch",
+            "log": None,
+            "age_s": None,
+        }
     logp = _latest_feature_runner_log(lane)
     if logp is None:
         return {
@@ -820,6 +939,10 @@ def _feature_runner_state(lane: str, live_sessions: Dict[str, dict[str, str]]) -
 
 
 def main() -> None:
+    try:
+        sys.stdout.reconfigure(line_buffering=True, write_through=True)
+    except Exception:
+        pass
     pid = _read_pid()
     lease_pid, lease_ts = _lease_pid_ts()
     if not pid and lease_pid:
@@ -989,7 +1112,7 @@ def main() -> None:
     branch_map = _lane_branch_map()
     print("LANE LIVE SUMMARY")
     for lane in _configured_lanes():
-        c = _lane_counts(PACKETS_ROOT / lane) if (PACKETS_ROOT / lane).exists() else {"pending": 0, "review": 0, "approved": 0}
+        c = _lane_counts_for(lane)
         logp = _latest_fixer_log(lane)
         feature_state = _feature_runner_state(lane, manual_session_map)
         age = "-"
@@ -1018,6 +1141,7 @@ def main() -> None:
     print()
 
     print("LANE CONVERSATIONS")
+    printed_lane_conversations = 0
     for lane in _configured_lanes():
         branch = branch_map.get(lane, f"codex/{lane}")
         head = _branch_head(branch)
@@ -1025,7 +1149,7 @@ def main() -> None:
         logp = _latest_fixer_log(lane)
         log_name = logp.name if logp else "-"
         feature_state = _feature_runner_state(lane, manual_session_map)
-        counts = _lane_counts(PACKETS_ROOT / lane) if (PACKETS_ROOT / lane).exists() else {"pending": 0, "review": 0, "approved": 0}
+        counts = _lane_counts_for(lane)
         stale_idle = False
         if logp is not None:
             age_s = int(max(0, time.time() - logp.stat().st_mtime))
@@ -1055,6 +1179,9 @@ def main() -> None:
         else:
             convo = _conversation_summary(logp)
             detail = _detailed_conversation_summary(logp)
+        if not _should_print_lane_conversation(lane, counts, verdict, feature_state, detail):
+            continue
+        printed_lane_conversations += 1
         print(f"{lane:22} head={head} verdict={verdict} log={log_name}")
         print(f"  convo: {convo}")
         print(f"  objective: {detail['objective']}")
@@ -1071,22 +1198,24 @@ def main() -> None:
             print("  blockers:")
             for item in detail["blockers"]:
                 print(f"    - {item}")
+    if printed_lane_conversations == 0:
+        print("(no active lane conversations)")
     print()
 
     print("MANUAL FEATURE LOGS")
-    logs = _manual_feature_logs()
-    if not logs:
-        print("(none)")
+    if not manual_sessions:
+        print("(skipped; no live manual feature sessions)")
     else:
-        for logp in logs:
-            age = int(max(0, time.time() - logp.stat().st_mtime))
-            print(f"{logp.name} age={age}s")
-            try:
-                tail = logp.read_text(errors="ignore").splitlines()[-5:]
-            except Exception:
-                tail = ["(unable to read log)"]
-            for line in tail:
-                print(f"  {line[:200]}")
+        logs = _manual_feature_logs()
+        if not logs:
+            print("(none)")
+        else:
+            for logp in logs:
+                age = int(max(0, time.time() - logp.stat().st_mtime))
+                print(f"{logp.name} age={age}s")
+                tail = _read_log_tail_lines(logp, max_lines=5, max_bytes=16 * 1024) or ["(unable to read log)"]
+                for line in tail:
+                    print(f"  {line[:200]}")
     print()
 
     tail = _tail_log()

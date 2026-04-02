@@ -15,9 +15,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from codex_mcp_client import ApprovalPolicy, CodexMcpClient
+    from log_maintenance import prune_log_dir
     from local_codex_runtime import isolated_codex_env
 except ImportError:  # pragma: no cover - test/import fallback for package execution
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
+    from .log_maintenance import prune_log_dir
     from .local_codex_runtime import isolated_codex_env
 
 PACKETS_ROOT = Path(".codex/packets/lanes")
@@ -72,6 +74,9 @@ FIXER_RETRY_AT_RE = re.compile(
 LOCAL_REVIEWER_MAX_ACTIVE = 1
 LOCAL_INTEGRATOR_MAX_ACTIVE = 1
 LOCAL_INTEGRATOR_RETRY_COOLDOWN_SECONDS = 60.0
+ROUTER_LOG_KEEP_RECENT = 36
+ROUTER_LOG_MAX_TOTAL_BYTES = 16 * 1024 * 1024
+ROUTER_LOG_MIN_AGE_SECONDS = 1800
 
 @dataclass
 class RouterConfig:
@@ -1098,6 +1103,12 @@ def run_fixer(
     prof = _profile_for_role(cfg, "fixer", local=runtime_local)
     logs = ROUTER_ROOT / "logs"
     logs.mkdir(parents=True, exist_ok=True)
+    prune_log_dir(
+        logs,
+        keep_recent=ROUTER_LOG_KEEP_RECENT,
+        max_total_bytes=ROUTER_LOG_MAX_TOTAL_BYTES,
+        min_age_seconds=ROUTER_LOG_MIN_AGE_SECONDS,
+    )
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     logp = logs / f"fixer__{lane}__{ts}.log"
     env = isolated_codex_env(repo_cwd) if runtime_local else None

@@ -11,6 +11,11 @@ import time
 from pathlib import Path
 from typing import Optional
 
+try:
+    from log_maintenance import compact_log_file
+except ImportError:  # pragma: no cover - package execution fallback
+    from .log_maintenance import compact_log_file
+
 COORD_DIR = Path(".codex/packet_coordinator")
 PID_FILE = COORD_DIR / "daemon.pid"
 LOG_FILE = COORD_DIR / "daemon.log"
@@ -26,6 +31,8 @@ AUTOMATION_MARKERS = (
     "You are the INTEGRATOR",
     "codex mcp-server",
 )
+DAEMON_LOG_MAX_BYTES = 2 * 1024 * 1024
+DAEMON_LOG_KEEP_BYTES = 512 * 1024
 
 
 def _ensure_dirs() -> None:
@@ -212,6 +219,7 @@ def _status() -> int:
 def _start() -> int:
     _ensure_dirs()
     _clear_stale_lease()
+    compact_log_file(LOG_FILE, max_bytes=DAEMON_LOG_MAX_BYTES, keep_bytes=DAEMON_LOG_KEEP_BYTES)
     pid = _read_pid()
     if _is_running():
         print(f"already_running pid={pid}")
