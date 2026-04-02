@@ -74,7 +74,7 @@ class CommandCliContract:
 
 @dataclass(frozen=True)
 class CommandCliRouteContract:
-    """Bundle the parser surface, deterministic MVP route order, and smoke surface."""
+    """Bundle the parser surface, deterministic MVP route order, route catalog, and smoke surface."""
 
     tokens: tuple[str, ...]
     canonical_names: tuple[str, ...]
@@ -84,6 +84,7 @@ class CommandCliRouteContract:
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
     lookup_surface: tuple[tuple[str, str], ...] = ()
     flow_surface_tokens: tuple[tuple[str, ...], ...] = ()
+    route_catalog: tuple[CommandFlowRouteEntry, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -521,6 +522,9 @@ def _validate_command_cli_route_contract(
         raise ValueError("Command CLI route steps are inconsistent")
     if contract.flow_names != tuple(name for _, name, _ in route_summary):
         raise ValueError("Command CLI route names are inconsistent")
+    expected_route_catalog = command_cli_route_catalog(specs, flow_steps)
+    if contract.route_catalog != expected_route_catalog:
+        raise ValueError("Command CLI route catalog is inconsistent")
     cli_contract = command_cli_contract()
     if contract.tokens != cli_contract.tokens:
         raise ValueError("Command CLI route tokens are inconsistent")
@@ -542,6 +546,7 @@ def command_cli_route_contract(
     cli_contract = command_cli_contract()
     route_summary = command_flow_route_summary(specs, flow_steps)
     ordered_flow_steps = tuple(flow_step for flow_step, _, _ in route_summary)
+    route_catalog = command_cli_route_catalog(specs, ordered_flow_steps)
     contract = CommandCliRouteContract(
         tokens=cli_contract.tokens,
         canonical_names=cli_contract.canonical_names,
@@ -551,6 +556,7 @@ def command_cli_route_contract(
         route_summary=route_summary,
         lookup_surface=command_flow_lookup_surface(specs, ordered_flow_steps),
         flow_surface_tokens=command_flow_surface_tokens(specs, ordered_flow_steps),
+        route_catalog=route_catalog,
     )
     _validate_command_cli_route_contract(
         contract,
