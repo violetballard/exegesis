@@ -75,6 +75,7 @@ Shipped:
 - Payload bundle snapshots are canonicalized for deterministic downstream rehydration, and direct doc/excerpt/context bundle helpers round-trip through canonical bundle shapes.
 - Regression coverage exercises the normalized payload snapshots, facade exports, FTS citation/provenance/source-attribution helpers, and the source-bundle-only downstream payload reconstruction path.
 - Constraint payloads stay mapping/dataclass-shaped; iterable `doc_types` and `date_range` values are normalized deterministically from those inputs.
+- Docs-only alignment artifacts are listed separately below and are not counted as reviewed implementation files.
 
 Stayed fallback-only:
 - PageIndex and embeddings remain compatibility-only shims and fallback-only plumbing behind the FTS-first policy, failing closed when deferred.
@@ -89,7 +90,8 @@ Reviewed range note:
 
 ## Approved exception note
 
-- Approved metadata-only exception: `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, `codex_packet_handoff/tools/planner.py`, and `tests/unit/test_packet_planner.py` are separate handoff alignment artifacts and are not part of the reviewed implementation diff.
+- Approved metadata-only exception: `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json` are handoff alignment artifacts and are not part of the reviewed implementation diff.
+- Approved metadata-only exception: `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` are packet-planner coordination artifacts used only to keep reviewed-head packet emission aligned with the reviewed retrieval range.
 
 ## Files changed
 
@@ -112,6 +114,11 @@ These files were changed only in metadata-only alignment commits and are not par
 - `THREAD_PACKET.md`
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
+
+### Approved metadata-only alignment artifacts
+
+These files are included only under the explicit metadata-only exception above and are not lane-owned retrieval implementation files.
+
 - `codex_packet_handoff/tools/planner.py`
 - `tests/unit/test_packet_planner.py`
 
@@ -166,4 +173,4 @@ These files were changed only in metadata-only alignment commits and are not par
 
 ## Scope-check / ownership note
 
-- Shared/integrator-locked edits: `NO` for the reviewed retrieval implementation; packet-planner alignment files were touched only in metadata-only alignment commits.
+- Shared/integrator-locked edits: `NO` for the reviewed retrieval implementation; approved metadata-only alignment artifacts are listed above and were touched only to keep reviewed-head packet emission aligned with the reviewed retrieval range.
