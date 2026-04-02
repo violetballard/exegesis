@@ -18,6 +18,8 @@
 - `b172559ed0889b5793e150296fa4b8b6c9943931`: separated the docs-only alignment commits from the reviewed retrieval implementation scope.
 - `a164d042623b8d3fc52019c72c5be74bba18990b`: traced the latest docs-only branch head so the packet history matches the lane worktree state.
 - `3cc3dc84b80a8a1983d5ab90da1ef290ac6117fe`: reconciled the handoff metadata with the latest docs-only branch head without changing the reviewed implementation range.
+- `173ef4bebddcd460cbfbaf7f281ab145be9e25d8`: aligned the packet wording with the next docs-only branch head.
+- `1435baa0fb0164b2972a512816fe680eb4710ee0`: kept the current lane branch head traceable as docs-only metadata.
 - These commits only regenerate handoff metadata and do not change the reviewed implementation range above.
 
 ## Approved exception note
