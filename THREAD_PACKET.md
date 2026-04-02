@@ -49,8 +49,10 @@
 - `tests/unit/test_commands_catalog.py` (approved shared-file exception for the implementation commit)
 ### Docs-only alignment files changed
 - `THREAD_PACKET.md`
-### Earlier branch groundwork outside this scoped re-review slice
-- `src/qual/commands/__init__.py`
+
+## Scope boundary note
+- This packet re-submits only the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog implementation slice plus docs-only alignment at the current head.
+- It does not claim earlier branch groundwork as part of the reviewed implementation files for this re-review.
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
