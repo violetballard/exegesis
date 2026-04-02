@@ -1,6 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
+- Current branch head (docs-only metadata head): `3cc3dc84b80a8a1983d5ab90da1ef290ac6117fe`
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: branch-level cumulative full-thread retrieval handoff
@@ -17,6 +18,7 @@
 - `edb36142cfe75ff8c65aee95865adb2de7ac19b0`: refreshed the same packet wording at the current branch head.
 - `b172559ed0889b5793e150296fa4b8b6c9943931`: separated the docs-only alignment commits from the reviewed retrieval implementation scope.
 - `a164d042623b8d3fc52019c72c5be74bba18990b`: traced the latest docs-only branch head so the packet history matches the lane worktree state.
+- `3cc3dc84b80a8a1983d5ab90da1ef290ac6117fe`: reconciled the handoff metadata with the latest docs-only branch head without changing the reviewed implementation range.
 - These commits only regenerate handoff metadata and do not change the reviewed implementation range above.
 
 ## Approved exception note
