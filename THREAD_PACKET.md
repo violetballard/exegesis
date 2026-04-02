@@ -13,8 +13,17 @@
 - The only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`; later packet-refresh commits are metadata-only and do not change that reviewed implementation range.
 
 ## Docs-only alignment commits
-- Packet-refresh commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` are metadata-only and do not change the reviewed implementation range above.
-- They exist only to keep handoff wording aligned with reviewer feedback and should not be read as additional retrieval implementation work.
+- `f13324d206b41c134a96ff837eea6427c31aa981`
+- `edb36142cfe75ff8c65aee95865adb2de7ac19b0`
+- `b172559ed0889b5793e150296fa4b8b6c9943931`
+- `a164d042623b8d3fc52019c72c5be74bba18990b`
+- `3cc3dc84b80a8a1983d5ab90da1ef290ac6117fe`
+- `173ef4bebddcd460cbfbaf7f281ab145be9e25d8`
+- `1435baa0fb0164b2972a512816fe680eb4710ee0`
+- `25f2ae42256307bdd306c5216d3cfce438d30c37`
+- `17177091ff7bc8231cd02a5e7bb05766c0963c50`
+- `2188b405f32d8977703da90b4b560e53b99142bd`
+- These packet-refresh commits are metadata-only and do not change the reviewed implementation range above.
 
 ## Approved exception note
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract. No other shared-by-approval files are part of the reviewed retrieval implementation range.

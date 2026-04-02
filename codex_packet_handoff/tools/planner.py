@@ -142,11 +142,19 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
     reviewed_range = str(meta.get("reviewed_implementation_range", "")).strip()
     reviewed_head_sha = str(meta.get("final_head_sha", "")).strip()
+    packet_type = str(meta.get("packet_type", "")).strip()
     scope_completed = str(meta.get("scope_completed", "")).strip()
+    docs_only_alignment_commits = [
+        str(item).strip()
+        for item in (meta.get("docs_only_alignment_commits") or [])
+        if str(item).strip()
+    ]
     is_cumulative = bool(reviewed_range or scope_completed)
     lines=[]
     lines += ["# Feature → Review Packet",""]
     lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
+    if packet_type == "metadata-only":
+        lines += ["- Packet HEAD role: `metadata-only handoff refresh`", ""]
     if reviewed_head_sha:
         lines += [f"- Final HEAD SHA (reviewed implementation head): `{reviewed_head_sha}`"]
     if reviewed_range:
@@ -156,6 +164,8 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
     if scope_completed:
         lines += ["## Scope completed", f"- {scope_completed}", ""]
+    if docs_only_alignment_commits:
+        lines += ["## Docs-only alignment commits"] + [f"- `{commit}`" for commit in docs_only_alignment_commits] + [""]
     lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
     if str(meta.get("kickoff_budget_note","")).strip():
         lines += ["## Kickoff budget/limits compliance", f"- {meta['kickoff_budget_note'].strip()}", ""]

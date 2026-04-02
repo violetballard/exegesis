@@ -35,8 +35,13 @@ class PacketPlannerTests(unittest.TestCase):
                 "retrieval payload/provenance helpers stayed deterministic while payloads were reconstructed from "
                 "source bundles."
             ),
+            "packet_type": "metadata-only",
             "final_head_sha": "42820d4864f8b5137a6a9e05399ad68fe5b9d4ac",
             "reviewed_implementation_range": "1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac",
+            "docs_only_alignment_commits": [
+                "f13324d206b41c134a96ff837eea6427c31aa981",
+                "edb36142cfe75ff8c65aee95865adb2de7ac19b0",
+            ],
             "tasks_completed": [
                 "Kept SQLite FTS authoritative.",
                 "Normalized retrieval payload and provenance snapshots.",
@@ -64,8 +69,11 @@ class PacketPlannerTests(unittest.TestCase):
 
         self.assertIn("## Scope goal", packet)
         self.assertIn("## Scope completed", packet)
+        self.assertIn("- Packet HEAD role: `metadata-only handoff refresh`", packet)
         self.assertIn("- Final HEAD SHA (reviewed implementation head): `42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`", packet)
         self.assertIn("- Reviewed implementation range: `1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`", packet)
+        self.assertIn("## Docs-only alignment commits", packet)
+        self.assertIn("- `f13324d206b41c134a96ff837eea6427c31aa981`", packet)
         self.assertIn("## Files changed (cumulative range)", packet)
         self.assertIn("Shipped the cumulative 1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac retrieval thread", packet)
 
