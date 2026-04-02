@@ -1,6 +1,7 @@
 # Lane Kickoff: feat-retrieval-fts
 
 - Branch: `codex/feat-retrieval-fts`
+- Packet HEAD SHA: `be10c6b42d8aea5297c6db7da4c23ccb81185848`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
@@ -9,7 +10,7 @@
 
 ## Scope completed
 
-The retrieval lane shipped an FTS-first retrieval MVP: SQLite FTS remains authoritative, the canonical retrieval query constructor is exported through both retrieval facades, retrieval payloads and provenance snapshots are deterministic for downstream engine flows, sparse source and context bundles rehydrate deterministically, and the excerpt lookup surface now uses the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage. PageIndex plus embeddings remain compatibility-only fallback shims that fail closed. The current packet head is metadata-only; the only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`, and later packet-refresh commits stay outside that reviewed implementation range.
+The retrieval lane shipped an FTS-first retrieval MVP: SQLite FTS remains authoritative, the canonical retrieval query constructor is exported through both retrieval facades, retrieval payloads and provenance snapshots are deterministic for downstream engine flows, sparse source and context bundles rehydrate deterministically, and the excerpt lookup surface now uses the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage. PageIndex plus embeddings remain compatibility-only fallback shims that fail closed. The current packet head `be10c6b42d8aea5297c6db7da4c23ccb81185848` is metadata-only; the only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`, and later packet-refresh commits stay outside that reviewed implementation range.
 
 ## Budget note
 

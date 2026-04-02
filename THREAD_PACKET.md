@@ -1,6 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
+- Packet HEAD SHA (current branch head): `be10c6b42d8aea5297c6db7da4c23ccb81185848`
 - Packet HEAD role: `metadata-only handoff refresh`
 - Packet HEAD trace: metadata-only packet refresh commits may advance the branch head, but the reviewed implementation scope stays anchored to the `Final HEAD SHA` and `Reviewed implementation range` below.
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
@@ -25,6 +26,11 @@
 - `25f2ae42256307bdd306c5216d3cfce438d30c37`
 - `17177091ff7bc8231cd02a5e7bb05766c0963c50`
 - `2188b405f32d8977703da90b4b560e53b99142bd`
+- `194612f481860e466f4a55064999126df2f0371a`
+- `93ea7d8771d6d2f6060dbdf76eb4dc7f0a2d395d`
+- `5420c99a08df9bfb08f93b117b59e08fd6c86be3`
+- `221c6806230a2ed3eec71c1d5ff458dd03bbdb4d`
+- `be10c6b42d8aea5297c6db7da4c23ccb81185848`
 - These packet-refresh commits are metadata-only and do not change the reviewed implementation range above.
 
 ## Approved exception note
