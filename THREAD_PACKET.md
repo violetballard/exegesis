@@ -12,6 +12,12 @@
 - The reviewed implementation slice remains commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
 - The roadmap and vision mappings below intentionally follow this worktree's canonical `ROADMAP.md` and `PRODUCT_VISION.md`, not labels from any other checkout.
 
+## Reviewer required fixes addressed
+1. Rewrote the roadmap mapping to use the exact canonical `ROADMAP.md` entries `Milestone 3: Real workflow loop` and `feat-commands`.
+2. Rewrote the vision mapping to use the exact canonical `PRODUCT_VISION.md` capability names `Canonical engine contract` and `Auditable state and workflow`.
+3. Kept the approved shared-file exception and the `Files changed` section aligned on the same actual shared test path: `tests/unit/test_commands_catalog.py`.
+4. Re-issued the packet as one coherent slice only: the `command_cli_contract()` command-catalog hardening, without mixing in `diff_preview` or other earlier branch work.
+
 ## Scope goal
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog. This keeps the CLI-first MVP surface stable while the engine contract settles.
 
