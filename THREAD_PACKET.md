@@ -13,21 +13,27 @@
 - The branch contains later metadata-only packet refresh commits. The only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`, and those later packet-refresh commits do not change that reviewed implementation range.
 
 ## Docs-only alignment commits
+- `c254197c42ba32f7deaf9a7894efc04832c9ed42`
+- `a0ab673c299430e2ecb0a68962554d13dadd6dba`
 - `f13324d206b41c134a96ff837eea6427c31aa981`
 - `edb36142cfe75ff8c65aee95865adb2de7ac19b0`
 - `b172559ed0889b5793e150296fa4b8b6c9943931`
 - `a164d042623b8d3fc52019c72c5be74bba18990b`
 - `3cc3dc84b80a8a1983d5ab90da1ef290ac6117fe`
-- `173ef4bebddcd460cbfbaf7f281ab145be9e25d8`
+- `173ef4beac7ef361136d484c4d5e586424c13126`
 - `1435baa0fb0164b2972a512816fe680eb4710ee0`
 - `25f2ae42256307bdd306c5216d3cfce438d30c37`
-- `17177091ff7bc8231cd02a5e7bb05766c0963c50`
+- `17177091b6e891f87d2aeb19887e5c4934070c93`
 - `2188b405f32d8977703da90b4b560e53b99142bd`
-- `194612f481860e466f4a55064999126df2f0371a`
-- `93ea7d8771d6d2f6060dbdf76eb4dc7f0a2d395d`
-- `5420c99a08df9bfb08f93b117b59e08fd6c86be3`
-- `221c6806230a2ed3eec71c1d5ff458dd03bbdb4d`
+- `194612f4d9bfa121484adaf25468dd22e26eabc5`
+- `93ea7d8749e73a663db2e75af274770e404c5d2c`
+- `5420c99a7729e2263160e4c65f3fb10b06f91f7f`
+- `221c6806eec977b9f7790094a58c5fc77d666827`
 - `be10c6b42d8aea5297c6db7da4c23ccb81185848`
+- `a0a58080f596fdf47783b5533e2f8cd9b27be067`
+- `a54d1824912cc75305acc7e96ad5ff2414d8001f`
+- `f7a2081d80db74f87db3ef97e11768a145b05db6`
+- `52f1a02f0bb908608335a2c721c09a0fb4ad4196`
 - These packet-refresh commits are metadata-only and do not change the reviewed implementation range above.
 
 ## Reviewer fix reconciliation
@@ -36,7 +42,7 @@
 - Required fix 3 is satisfied by the dedicated `Scope completed` section above, which states the FTS-first retrieval outcome independently of the packet-refresh commits.
 
 ## Packet trace note
-- Current branch head metadata refreshes may continue after the reviewed implementation head.
+- Current branch head is `52f1a02f0bb908608335a2c721c09a0fb4ad4196`, and every commit after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` listed above is metadata-only.
 - The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - Any later packet-only commits on `codex/feat-retrieval-fts` are metadata-only follow-ups and are not part of the reviewed implementation range unless this packet is regenerated to say otherwise.
 
