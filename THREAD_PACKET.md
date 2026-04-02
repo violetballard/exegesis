@@ -35,6 +35,8 @@
 - `f7a2081d80db74f87db3ef97e11768a145b05db6`
 - `52f1a02f0bb908608335a2c721c09a0fb4ad4196`
 - `660605df61af1a2d406ab9c57b7ebf0810cf5a2d`
+- `8580681f7f1ef53fdb07ba30676672439a19ae1f`
+- `6b3a5ea6594c86584ff45b278b2ea220b7fdd4b0`
 - These packet-refresh commits are metadata-only examples from the post-implementation packet-refresh chain and do not change the reviewed implementation range above.
 
 ## Reviewer fix reconciliation
