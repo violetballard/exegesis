@@ -1,8 +1,8 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Final HEAD SHA (reviewed implementation head): `6afe533d735811f245a4d04322735935a09d2477`
-- Reviewed implementation range: `1d6057e9..6afe533d735811f245a4d04322735935a09d2477`
+- Final HEAD SHA (reviewed implementation head): `35b5ea46cedcfa5c1b179ae9bc4e21d9ed6238c0`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..35b5ea46cedcfa5c1b179ae9bc4e21d9ed6238c0`
 - Handoff type: cumulative full-thread retrieval handoff
 
 ## Scope goal
@@ -13,6 +13,7 @@
 - The canonical retrieval query constructor is exported through both retrieval facades.
 - Retrieval payloads, provenance, and hit snapshots are deterministic enough for downstream engine flows.
 - Sparse source and context bundles rehydrate deterministically.
+- The branch-level handoff packet and lane metadata now reflect the full cumulative retrieval scope.
 - PageIndex and embeddings remain compatibility-only fallback shims that fail closed.
 - The only shared-by-approval edit is `tests/unit/test_unified_retrieval.py`; no other shared-by-approval files are part of the reviewed retrieval implementation range.
 
@@ -33,6 +34,16 @@ These are the source files changed across the reviewed cumulative range.
 - `src/qual/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py` (approved shared regression coverage)
+
+### Reviewed handoff and tooling files
+
+These files keep the cumulative branch-level handoff packet and its generator aligned.
+
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
+- `THREAD_PACKET.md`
+- `codex_packet_handoff/tools/planner.py`
+- `tests/unit/test_packet_planner.py`
 
 ## Tasks completed
 
