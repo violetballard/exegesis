@@ -31,6 +31,8 @@ def _router_cfg() -> RouterConfig:
         fixer_kick_timeout_seconds=8,
         reviewer_fixer_retry_cooldown_seconds=120,
         fixer_quota_retry_cooldown_seconds=3600,
+        max_cloud_fixer_kicks_per_run=1,
+        max_local_fixer_kicks_per_run=1,
         prefer_cli_fixer=True,
         prefer_cli_reviewer=True,
         prefer_cli_integrator=True,

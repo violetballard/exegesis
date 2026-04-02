@@ -30,6 +30,15 @@ def write_example_config():
         lanes_cfg[lane] = {"branch": f"codex/{lane}", "enabled": True}
     lanes_cfg["feat-console-shell"]["enabled"] = False
     lanes_cfg["feat-console-workflow"]["enabled"] = False
+    for lane in ("feat-commands", "feat-retrieval-fts"):
+        lanes_cfg[lane].update(
+            {
+                "feature_cloud_profile": "worker_cloud_standard_medium",
+                "reviewer_cloud_profile": "worker_cloud_standard_medium",
+                "fixer_cloud_profile": "worker_cloud_standard_medium",
+                "integrator_cloud_profile": "worker_cloud_standard_medium",
+            }
+        )
     example = {
         "model": "gpt-5.1-codex",
         "codex_cmd": "codex",
@@ -45,6 +54,18 @@ def write_example_config():
                 "model_args": [],
             },
             "worker_cloud": {
+                "codex_cmd": "codex",
+                "codex_args": [],
+                "model": "gpt-5.4-mini",
+                "model_args": [],
+            },
+            "worker_cloud_standard_medium": {
+                "codex_cmd": "codex",
+                "codex_args": [],
+                "model": "gpt-5.4",
+                "model_args": ["-c", "model_reasoning_effort=medium"],
+            },
+            "integrator_cloud": {
                 "codex_cmd": "codex",
                 "codex_args": [],
                 "model": "gpt-5.4",
@@ -64,7 +85,7 @@ def write_example_config():
             "feature_local": "worker_local",
             "reviewer_cloud": "worker_cloud",
             "reviewer_local": "worker_local",
-            "integrator_cloud": "worker_cloud",
+            "integrator_cloud": "integrator_cloud",
             "integrator_local": "worker_local",
             "fixer_cloud": "worker_cloud",
             "fixer_local": "worker_local",

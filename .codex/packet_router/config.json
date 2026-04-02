@@ -24,6 +24,15 @@
       "model": "gpt-5.4-mini",
       "model_args": []
     },
+    "worker_cloud_standard_medium": {
+      "codex_cmd": "codex",
+      "codex_args": [],
+      "model": "gpt-5.4",
+      "model_args": [
+        "-c",
+        "model_reasoning_effort=medium"
+      ]
+    },
     "integrator_cloud": {
       "codex_cmd": "codex",
       "codex_args": [],
@@ -83,11 +92,19 @@
     },
     "feat-commands": {
       "branch": "codex/feat-commands",
-      "enabled": true
+      "enabled": true,
+      "feature_cloud_profile": "worker_cloud_standard_medium",
+      "reviewer_cloud_profile": "worker_cloud_standard_medium",
+      "fixer_cloud_profile": "worker_cloud_standard_medium",
+      "integrator_cloud_profile": "worker_cloud_standard_medium"
     },
     "feat-retrieval-fts": {
       "branch": "codex/feat-retrieval-fts",
-      "enabled": true
+      "enabled": true,
+      "feature_cloud_profile": "worker_cloud_standard_medium",
+      "reviewer_cloud_profile": "worker_cloud_standard_medium",
+      "fixer_cloud_profile": "worker_cloud_standard_medium",
+      "integrator_cloud_profile": "worker_cloud_standard_medium"
     },
     "feat-a2ui-contract": {
       "branch": "codex/feat-a2ui-contract",

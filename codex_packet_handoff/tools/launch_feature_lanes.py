@@ -154,7 +154,25 @@ def branch_worktrees() -> Dict[str, str]:
     return out
 
 
-def runtime_launch_config() -> Dict[str, object]:
+def _lane_profile_name(
+    cfg: Dict[str, object],
+    role_profiles: Dict[str, str],
+    lane: str | None,
+    *,
+    local: bool,
+) -> str:
+    role_key = "feature_local" if local else "feature_cloud"
+    default_name = str(role_profiles[role_key])
+    if not lane:
+        return default_name
+    lane_cfg = dict(cfg.get("lanes") or {}).get(lane) or {}
+    if not isinstance(lane_cfg, dict):
+        return default_name
+    override = lane_cfg.get(f"{role_key}_profile") or lane_cfg.get("feature_profile")
+    return str(override or default_name)
+
+
+def runtime_launch_config(lane: str | None = None) -> Dict[str, object]:
     cfg = load_json(CONFIG_FILE, {})
     state = load_json(STATE_FILE, {})
     mode = str(state.get("runtime_mode") or cfg.get("runtime_mode_default") or "cloud_primary")
@@ -164,11 +182,12 @@ def runtime_launch_config() -> Dict[str, object]:
         **{str(k): str(v) for k, v in dict(cfg.get("role_profiles") or {}).items() if v},
     }
     profiles = _resolved_profiles(cfg)
-    profile_name = role_profiles["feature_local" if mode == "local_fallback" else "feature_cloud"]
-    local_profile_name = role_profiles["feature_local"]
+    profile_name = _lane_profile_name(cfg, role_profiles, lane, local=mode == "local_fallback")
+    local_profile_name = _lane_profile_name(cfg, role_profiles, lane, local=True)
     prof = profiles[profile_name]
     local_prof = profiles[local_profile_name]
     return {
+        "lane": lane or "",
         "mode": mode,
         "profile_name": profile_name,
         "launch_timeout_seconds": float(cfg.get("feature_launch_timeout_seconds", 120)),
@@ -804,6 +823,7 @@ def main() -> int:
     if args.lanes is None:
         args.lanes = _enabled_lanes()
     launch_cfg = runtime_launch_config()
+    lane_launch_cfgs = {lane: runtime_launch_config(lane) for lane in args.lanes}
     worktrees = branch_worktrees()
     prompts_dir = FEATURE_ROOT / "prompts"
     logs_dir = FEATURE_ROOT / "logs"
@@ -819,11 +839,12 @@ def main() -> int:
         for lane in args.lanes:
             branch = f"refs/heads/codex/{lane}"
             workdir = worktrees.get(branch)
+            lane_launch_cfg = lane_launch_cfgs[lane]
             launched.append(
                 {
                     "lane": lane,
-                    "mode": launch_cfg["mode"],
-                    "profile": launch_cfg["profile_name"],
+                    "mode": lane_launch_cfg["mode"],
+                    "profile": lane_launch_cfg["profile_name"],
                     "workdir": workdir,
                     "action": "launch" if args.restart_existing or lane not in lanes_state else "resume",
                 }
@@ -844,7 +865,7 @@ def main() -> int:
                 _launch_one_lane,
                 lane,
                 args=args,
-                launch_cfg=launch_cfg,
+                launch_cfg=lane_launch_cfgs[lane],
                 worktrees=worktrees,
                 prompts_dir=prompts_dir,
                 logs_dir=logs_dir,
