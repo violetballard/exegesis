@@ -44,9 +44,10 @@ class FTSStrategy:
         ``cache_used=True``; otherwise we invoke the runner, store the result in
         the one‑slot cache and report ``cache_used=False``.
         """
+        cache_key = self._make_cache_key(query, candidate_doc_ids)
         # Check for a cache hit before measuring time – a cached path is fast
         # enough that timing it would be misleading.
-        if self._cache_key == (query, candidate_doc_ids) and self._cache_hits is not None:
+        if self._cache_key == cache_key and self._cache_hits is not None:
             return StrategyRun(
                 strategy_id=self.id,
                 hits=copy.deepcopy(self._cache_hits),
@@ -57,9 +58,24 @@ class FTSStrategy:
         started = int(self._now_fn())
         hits = self._runner(query, candidate_doc_ids)
         # Update the one‑slot cache with the fresh result.
-        self._cache_key = (query, candidate_doc_ids)
+        self._cache_key = cache_key
         self._cache_hits = copy.deepcopy(hits)
 
         elapsed_ns = max(0, int(self._now_fn()) - started)
         elapsed_ms = elapsed_ns // 1_000_000
         return StrategyRun(strategy_id=self.id, hits=hits, elapsed_ms=elapsed_ms, cache_used=False)
+
+    @staticmethod
+    def _make_cache_key(query: Any, candidate_doc_ids: tuple[str, ...]) -> tuple[Any, tuple[str, ...]]:
+        """Return a defensive snapshot for the one-entry cache key.
+
+        Retrieval queries are usually immutable dataclasses, but some callers may
+        still hand in mutable query-shaped objects. Snapshotting the query keeps
+        later caller mutations from silently altering the cached key.
+        """
+
+        try:
+            query_snapshot = copy.deepcopy(query)
+        except Exception:
+            query_snapshot = query
+        return query_snapshot, tuple(candidate_doc_ids)
