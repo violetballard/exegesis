@@ -22,7 +22,7 @@
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog.
 
 ## Lane/owned paths
-- Owned runtime paths: `src/qual/commands/**`
+- Owned runtime paths from `THREAD_OWNERSHIP.md`: `src/qual/commands/**`
 - Approved non-owned test path for this handoff: `tests/unit/test_commands_catalog.py`
 
 ## Scope completed
@@ -37,6 +37,7 @@
 
 ## Approved exception note
 - Approved non-owned test exception for `tests/unit/test_commands_catalog.py`.
+- This reviewer-fix handoff records that path consistently in the approval note, tasks, files changed list, and scope-check note.
 
 ## Scope-policy note
 - `tests/unit/test_commands_catalog.py` is the only non-owned implementation file named in this handoff.
@@ -75,13 +76,13 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - harden command behavior so the CLI command contract stays deterministic and the catalog/parser surface cannot silently drift.
-- `Milestone 2: Test Hardening (In Progress)` - keep focused command-level probes for integration confidence with regression coverage around canonical-order alignment and drift rejection.
-- `Milestone 3: Product Readiness (Planned)` - define and lock the user-facing command contract by failing fast when parser/catalog drift would otherwise change the surface implicitly.
+- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - command and diff-preview behavior hardening includes keeping the CLI command contract deterministic so catalog/parser drift cannot change the surface silently.
+- `Milestone 2: Test Hardening (In Progress)` - keep command-level probes for integration confidence with focused regression coverage around canonical-order alignment and drift rejection.
+- `Milestone 3: Product Readiness (Planned)` - define and lock user-facing output contracts by failing fast when parser/catalog drift would otherwise change the command surface implicitly.
 
 ### Vision capability affected
 - `3. Auditable generation` - command-surface drift now fails explicitly instead of changing the operator-facing contract silently.
-- `4. Operator-first control surface` - the CLI remains a deterministic first-class surface, with canonical command ordering and a catalog-backed parser contract.
+- `4. Operator-first control surface` - CLI remains a first-class surface with deterministic canonical ordering and a catalog-backed parser contract.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
@@ -94,5 +95,5 @@
 - The scope-policy note and `Files changed` section name the same non-owned test path: `tests/unit/test_commands_catalog.py`.
 - No integrator-locked file is claimed in the implementation slice.
 - `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*`; this packet records `tests/unit/test_commands_catalog.py` separately as the approved non-owned test edit rather than presenting it as lane-owned.
-- The current local scope policy in `scripts/scope-check.sh` explicitly allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, so this packet records that exact path consistently.
+- The current local scope policy in `scripts/scope-check.sh` explicitly allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, which is the approval basis recorded for this non-owned test path in this worktree.
 - This packet's implementation slice is coherent with the `Files changed` list: it is the command-catalog handoff only, not a mixed command-catalog and `diff_preview` handoff.
