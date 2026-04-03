@@ -1,8 +1,8 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet HEAD role: `metadata-only reviewer-fix refresh`
-- Packet refresh trace anchor before the final fixer commit: `bba460f378584ed873358ad6010a9c9f9a3b08b0`
+- Packet HEAD role: `metadata-only reviewer-fix finalization`
+- Packet refresh trace anchor before the final fixer commit: `061eaecee61f53424555028c38ae2bf4854f57ad`
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: branch-level cumulative full-thread retrieval handoff
@@ -17,14 +17,12 @@
 - Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
 
 ## Scope completed
-- Branch-level cumulative handoff from `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`: SQLite FTS remains authoritative, the canonical retrieval query constructor and `retrieve_auto` helper are exported through both retrieval facades, retrieval payloads/provenance/hit snapshots are deterministic enough for downstream engine flows, sparse source and context bundles rehydrate deterministically, and the excerpt lookup surface now uses the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage. PageIndex and embeddings remain compatibility-only fallback shims that fail closed.
-- The branch contains later metadata-only packet refresh commits. The only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`, and those later packet-refresh commits, including `b172559ed0889b5793e150296fa4b8b6c9943931`, do not change that reviewed implementation range.
+- SQLite FTS remains the authoritative MVP retrieval path. Across the reviewed implementation range, the retrieval lane exported the canonical retrieval query constructor and `retrieve_auto` helper through both facades, made payload/provenance/hit snapshots deterministic for downstream engine flows, rehydrated sparse source/context bundles deterministically, and kept excerpt lookup on the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under approved shared regression coverage.
+- The only shared-by-approval file in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`. Later packet-refresh commits, including `b172559ed0889b5793e150296fa4b8b6c9943931`, are metadata-only and do not change that reviewed implementation range.
 
 ## Docs-only alignment commits
-- Representative metadata-only packet refresh commits include `f13324d206b41c134a96ff837eea6427c31aa981`, `b172559ed0889b5793e150296fa4b8b6c9943931`, `a54d1824912cc75305acc7e96ad5ff2414d8001f`, `6b3a5ea6594c86584ff45b278b2ea220b7fdd4b0`, `20440c427b5ace39e78d8a421ba65cf51078bb3b`, `9f7206fff61ca5738c5fb751ebc551fe43f6cdba`, `2efda180cdfdaf6b347aec8f8c95179ddb0c0a12`, `77a66517457c9800649a4046b2d3e857ddbfd440`, `5665fb9f4f460918cdd33f1d914d5e7f948ba0c8`, `646582c8495e1b891ee0eedab939a22e2d19d694`, `e1b75e1e720d156d5f9fe6949ece93f19f9db798`, `ab88c80e0ebf18848839e98729c3bae5b0eca94b`, `c0edeec541d7a9b03d59b80ff8e98d08081cbdf7`, `0a78066da152d81faa52b7b8214a439830ea64bf`, `19d7a725b26e3575eeaada9e2a72734b66a97205`, `ce6967d1c32baff0d60aba1b983affcdd7524375`, `287461d4b811d01efcd9e690ccd63362b773fe6b`, `2026498d8644e5f9f4f13c68e03c68443cb045e9`, and `bba460f378584ed873358ad6010a9c9f9a3b08b0`.
-- The latest packet-only traceability refresh before this packet correction is `bba460f378584ed873358ad6010a9c9f9a3b08b0`.
-- Later packet-refresh commits on this branch remain metadata-only unless this handoff packet is regenerated to move the reviewed implementation head or reviewed implementation range.
-- Those packet-refresh commits update handoff metadata only and must not be read as evidence that `src/qual/retrieval/service.py` or `tests/unit/test_unified_retrieval.py` changed at those SHAs.
+- Representative metadata-only packet refresh commits include `ce6967d1c32baff0d60aba1b983affcdd7524375`, `287461d4b811d01efcd9e690ccd63362b773fe6b`, `2026498d8644e5f9f4f13c68e03c68443cb045e9`, `bba460f378584ed873358ad6010a9c9f9a3b08b0`, `061eaecee61f53424555028c38ae2bf4854f57ad`, and the reviewer-cited `b172559ed0889b5793e150296fa4b8b6c9943931`.
+- Those commits update handoff metadata only and must not be read as evidence that `src/qual/retrieval/service.py` or `tests/unit/test_unified_retrieval.py` changed at those SHAs.
 
 ## Reviewer fix reconciliation
 - Required fix 1 is satisfied by the `Budget alignment` section below: this handoff is explicitly classified as shared/high-risk work with the 4-task cap.
@@ -43,7 +41,7 @@
 - This commit records the post-review fixer pass that re-ran all required local gates while preserving the same reviewed implementation range.
 
 ## Packet trace note
-- The packet refresh trace anchor is `bba460f378584ed873358ad6010a9c9f9a3b08b0`; it is metadata-only and is not automatically the reviewed implementation head.
+- The packet refresh trace anchor is `061eaecee61f53424555028c38ae2bf4854f57ad`; it is metadata-only and is not automatically the reviewed implementation head.
 - This packet does not self-record the current branch head because doing so would become stale as soon as the fixer commit is created; use the final HEAD SHA reported with the fixer handoff for the actual branch tip.
 - The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless this packet is regenerated to move the reviewed implementation head or reviewed implementation range.
