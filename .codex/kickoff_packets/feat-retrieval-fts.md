@@ -2,7 +2,7 @@
 
 - Branch: `codex/feat-retrieval-fts`
 - Packet HEAD role: `metadata-only reviewer-fix refresh`
-- Packet refresh trace anchor before the final fixer commit: `2d83344eb07ab4f1747bdf5845923c8c988d17b5`
+- Packet refresh trace anchor before the final fixer commit: `fa2ecdd70836d7c719124e16214e54be189c0d33`
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
@@ -12,7 +12,7 @@
 
 ## Scope completed
 
-The retrieval lane shipped an FTS-first retrieval MVP: SQLite FTS remains authoritative, the canonical retrieval query constructor is exported through both retrieval facades, retrieval payloads and provenance snapshots are deterministic for downstream engine flows, sparse source and context bundles rehydrate deterministically, and the excerpt lookup surface now uses the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage. PageIndex plus embeddings remain compatibility-only fallback shims that fail closed. The branch contains later metadata-only packet refresh commits; the only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`, and those later packet-refresh commits, including `b172559ed0889b5793e150296fa4b8b6c9943931` and `2d83344eb07ab4f1747bdf5845923c8c988d17b5`, stay outside that reviewed implementation range.
+The retrieval lane shipped an FTS-first retrieval MVP: SQLite FTS remains authoritative, the canonical retrieval query constructor is exported through both retrieval facades, retrieval payloads and provenance snapshots are deterministic for downstream engine flows, sparse source and context bundles rehydrate deterministically, and the excerpt lookup surface now uses the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage. PageIndex plus embeddings remain compatibility-only fallback shims that fail closed. The branch contains later metadata-only packet refresh commits; the only shared-by-approval edit in the reviewed implementation range is `tests/unit/test_unified_retrieval.py`, and those later packet-refresh commits, including `b172559ed0889b5793e150296fa4b8b6c9943931`, `2d83344eb07ab4f1747bdf5845923c8c988d17b5`, and `fa2ecdd70836d7c719124e16214e54be189c0d33`, stay outside that reviewed implementation range.
 
 ## Budget note
 
@@ -30,11 +30,11 @@ This kickoff packet now matches the reviewer-required packet corrections: the ha
 
 ## Packet trace note
 
-The packet refresh trace anchor is `2d83344eb07ab4f1747bdf5845923c8c988d17b5`; it is metadata-only and is not automatically the reviewed implementation head. This packet does not self-record the current branch head because doing so would become stale as soon as the fixer commit is created; use the final HEAD SHA reported with the fixer handoff for the actual branch tip. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless the packet is regenerated to move the reviewed implementation head or reviewed implementation range. Read the retrieval file list and completed-task summary against that reviewed implementation range, not against the later metadata-only packet refresh chain; the cited packet-refresh SHAs are representative rather than exhaustive.
+The packet refresh trace anchor is `fa2ecdd70836d7c719124e16214e54be189c0d33`; it is metadata-only and is not automatically the reviewed implementation head. This packet does not self-record the current branch head because doing so would become stale as soon as the fixer commit is created; use the final HEAD SHA reported with the fixer handoff for the actual branch tip. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless the packet is regenerated to move the reviewed implementation head or reviewed implementation range. Read the retrieval file list and completed-task summary against that reviewed implementation range, not against the later metadata-only packet refresh chain; the cited packet-refresh SHAs are representative rather than exhaustive.
 
 ## Packet HEAD context
 
-This fixer pass creates another metadata-only packet refresh commit, so the packet-refresh branch tip is reported in the final fixer handoff rather than embedded here before the commit exists. The reviewer-referenced SHA `b172559ed0889b5793e150296fa4b8b6c9943931` remains a metadata-only packet refresh commit, not the reviewed retrieval implementation head. Re-review should anchor retrieval implementation scope to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, then use the final fixer handoff for the current packet-refresh branch tip after `2d83344eb07ab4f1747bdf5845923c8c988d17b5`.
+This fixer pass creates another metadata-only packet refresh commit, so the packet-refresh branch tip is reported in the final fixer handoff rather than embedded here before the commit exists. The reviewer-referenced SHA `b172559ed0889b5793e150296fa4b8b6c9943931` remains a metadata-only packet refresh commit, not the reviewed retrieval implementation head. Re-review should anchor retrieval implementation scope to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, then use the final fixer handoff for the current packet-refresh branch tip after `fa2ecdd70836d7c719124e16214e54be189c0d33`.
 
 ## Branch-head traceability
 
