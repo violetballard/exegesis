@@ -2,7 +2,7 @@
 
 - Branch: `codex/feat-retrieval-fts`
 - Packet HEAD role: `metadata-only reviewer-fix finalization`
-- Packet refresh trace anchor before the final fixer commit: `adf1fe69f16d3a5b4350d27ea70aa48bae3ca44d`
+- Packet refresh trace anchor before the final fixer commit: `4d81f80747cab5055cd400c357a1c96d6fb79c5c`
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
@@ -30,11 +30,11 @@ This kickoff packet now matches the reviewer-required packet corrections: the ha
 
 ## Packet trace note
 
-The packet refresh trace anchor is `adf1fe69f16d3a5b4350d27ea70aa48bae3ca44d`; it is metadata-only and is not automatically the reviewed implementation head. This packet does not self-record the current branch head because doing so would become stale as soon as the fixer commit is created; use the final HEAD SHA reported with the fixer handoff for the actual branch tip. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless the packet is regenerated to move the reviewed implementation head or reviewed implementation range. Read the retrieval file list and completed-task summary against that reviewed implementation range, not against the later metadata-only packet refresh chain.
+The packet refresh trace anchor is `4d81f80747cab5055cd400c357a1c96d6fb79c5c`; it is metadata-only and is not automatically the reviewed implementation head. This packet does not self-record the current branch head because doing so would become stale as soon as the fixer commit is created; use the final HEAD SHA reported with the fixer handoff for the actual branch tip. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless the packet is regenerated to move the reviewed implementation head or reviewed implementation range. Read the retrieval file list and completed-task summary against that reviewed implementation range, not against the later metadata-only packet refresh chain.
 
 ## Packet HEAD context
 
-This fixer pass creates another metadata-only packet refresh commit, so the packet-refresh branch tip is reported in the final fixer handoff rather than embedded here before the commit exists. The reviewer-referenced SHA `b172559ed0889b5793e150296fa4b8b6c9943931` remains a metadata-only packet refresh commit, not the reviewed retrieval implementation head. Re-review should anchor retrieval implementation scope to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, then use the final fixer handoff for the current packet-refresh branch tip after `adf1fe69f16d3a5b4350d27ea70aa48bae3ca44d`.
+This fixer pass creates another metadata-only packet refresh commit, so the packet-refresh branch tip is reported in the final fixer handoff rather than embedded here before the commit exists. The reviewer-referenced SHA `b172559ed0889b5793e150296fa4b8b6c9943931` remains a metadata-only packet refresh commit, not the reviewed retrieval implementation head. Re-review should anchor retrieval implementation scope to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, then use the final fixer handoff for the current packet-refresh branch tip after `4d81f80747cab5055cd400c357a1c96d6fb79c5c`.
 
 ## Branch-head traceability
 
@@ -42,8 +42,8 @@ Metadata-only packet refresh commits may continue to advance the branch head aft
 
 ## Verification note
 
-The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range. Required local gates are re-run on the packet-refresh branch head `adf1fe69f16d3a5b4350d27ea70aa48bae3ca44d` before this packet is refreshed. This fixer pass is metadata-only and gives the reviewer-required packet corrections their own packet-refresh commit without moving the reviewed implementation range.
-This commit records the post-review fixer pass that re-ran all required local gates while preserving the same reviewed implementation range after `adf1fe69f16d3a5b4350d27ea70aa48bae3ca44d`.
+The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range. Required local gates are re-run on the packet-refresh branch head `4d81f80747cab5055cd400c357a1c96d6fb79c5c` before this packet is refreshed. This fixer pass is metadata-only and gives the reviewer-required packet corrections their own packet-refresh commit without moving the reviewed implementation range.
+This commit records the post-review fixer pass that re-ran all required local gates while preserving the same reviewed implementation range after `4d81f80747cab5055cd400c357a1c96d6fb79c5c`.
 
 ### Priority outcomes
 1. Make SQLite FTS the primary retrieval path.
