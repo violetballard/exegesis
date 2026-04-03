@@ -11,6 +11,7 @@
 - Those implementation paths are the live files present at `HEAD` in this worktree.
 - The roadmap and vision mappings below use the current canonical labels from this worktree's `ROADMAP.md` and `PRODUCT_VISION.md`.
 - The non-owned test path named in the approval note and in `Files changed` is the same file: `tests/unit/test_commands_catalog.py`.
+- The reviewer packet is the source of truth for the required fix list; this resubmission keeps that named shared test path consistent throughout the handoff.
 
 ## Scope goal
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog.
@@ -22,8 +23,8 @@
 - Reissued the handoff packet as a command-catalog-only slice so the review scope matches the claimed live implementation files at `HEAD`.
 
 ## Kickoff budget/limits compliance
-- Default lane budget respected.
-- The implementation slice remained limited to one owned command file plus one non-owned test file.
+- High-risk shared-file handoff: task budget `4`, time budget `30m`.
+- The implementation slice remained limited to one owned command file plus one approved non-owned test file, so the handoff stays within the high-risk budget.
 
 ## Approved exception note
 - Approved non-owned test exception for `tests/unit/test_commands_catalog.py`.
