@@ -20,6 +20,10 @@
 ## Scope goal
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog.
 
+## Lane/owned paths
+- Owned runtime paths: `src/qual/commands/**`
+- Approved non-owned test path for this handoff: `tests/unit/test_commands_catalog.py`
+
 ## Scope completed
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
