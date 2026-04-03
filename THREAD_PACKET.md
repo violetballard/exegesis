@@ -7,6 +7,7 @@
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and keeps the handoff on one coherent slice: the `command_cli_contract()` catalog hardening from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - The packet does not make any `diff_preview` claims.
+- The implementation slice named below is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 - The roadmap and vision mappings below use the exact labels from the current `ROADMAP.md` and `PRODUCT_VISION.md` in this worktree.
 - The non-owned test path named in the approval note and in `Files changed` is the same file: `tests/unit/test_commands_catalog.py`.
 
