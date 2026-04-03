@@ -74,11 +74,12 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - command behavior hardening stays deterministic by rejecting parser/catalog drift instead of letting the CLI surface silently diverge.
-- `Milestone 2: Test Hardening (In Progress)` - focused unit coverage keeps command-level probes on the catalog-order and drift-rejection paths for integration confidence.
+- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - this handoff is limited to command behavior hardening by rejecting parser/catalog drift instead of letting the CLI surface silently diverge.
+- `Milestone 2: Test Hardening (In Progress)` - this handoff adds and preserves focused command-level probes for the catalog-order and drift-rejection paths.
 
 ### Vision capability affected
-- `4. Operator-first control surface` - CLI remains a first-class operator surface, and the command catalog now rejects parser drift before it can silently change operator-visible routing tokens or ordering.
+- `3. Auditable generation` - the command contract now fails loudly on parser/catalog drift, so command-surface changes cannot silently alter operator-visible behavior.
+- `4. Operator-first control surface` - CLI remains a first-class operator surface, and the command catalog now rejects parser drift before it can silently change routing tokens or ordering.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
