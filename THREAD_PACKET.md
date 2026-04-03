@@ -3,6 +3,8 @@
 - Branch name: `codex/feat-commands`
 - Implementation commit(s):
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
+- Docs-only alignment commit(s):
+  - `2e321a8d54eb9f17c9c48a0a0a58e35774cfc1d4` (`docs(commands): apply reviewer packet fixes`)
 
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and keeps the handoff on one coherent slice: the `command_cli_contract()` catalog hardening from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
@@ -31,6 +33,7 @@
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
 - Reissued the handoff packet as a command-catalog-only slice so the review scope matches the claimed live implementation files at `HEAD`.
+- Recorded the docs-only reviewer-fix alignment commit separately from the implementation commit so the handoff lineage is explicit.
 
 ## Kickoff budget/limits compliance
 - High-risk shared-file handoff: task budget `4`, time budget `30m`.
