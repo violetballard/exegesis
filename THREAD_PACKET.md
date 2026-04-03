@@ -12,6 +12,7 @@
 - The roadmap and vision mappings below use the current canonical labels from this worktree's `ROADMAP.md` and `PRODUCT_VISION.md`.
 - The non-owned test path named in the approval note and in `Files changed` is the same file: `tests/unit/test_commands_catalog.py`.
 - The reviewer packet is the source of truth for the required fix list; this resubmission keeps that named shared test path consistent throughout the handoff.
+- The canonical handoff mapping in this packet is intentionally limited to `Milestone 3: Real workflow loop`, `feat-commands`, `3. Canonical engine contract`, and `6. Auditable state and workflow`.
 
 ## Scope goal
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog.
@@ -84,3 +85,4 @@
 - No integrator-locked file is claimed in the implementation slice.
 - `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*`; this packet records `tests/unit/test_commands_catalog.py` separately as the approved non-owned test edit.
 - The current local scope policy in `scripts/scope-check.sh` explicitly allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, so this packet records that exact path consistently.
+- This packet's implementation slice is coherent with the `Files changed` list: it is the command-catalog handoff only, not a mixed command-catalog and `diff_preview` handoff.
