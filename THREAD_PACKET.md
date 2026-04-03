@@ -24,7 +24,7 @@
 ## Lane/owned paths
 - Owned runtime paths from `THREAD_OWNERSHIP.md`: `src/qual/commands/**`
 - Approved non-owned test path for this handoff: `tests/unit/test_commands_catalog.py`
-- The current `THREAD_OWNERSHIP.md` only marks `src/qual/cli.py` as shared-by-approval for `feat-commands`, so this handoff records `tests/unit/test_commands_catalog.py` separately as the approved non-owned test exception backed by the local scope policy allowlist.
+- The current `THREAD_OWNERSHIP.md` only marks `src/qual/cli.py` as shared-by-approval for `feat-commands`, so this handoff records `tests/unit/test_commands_catalog.py` separately as an approved non-owned test exception backed by the local scope policy allowlist.
 
 ## Scope completed
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
@@ -78,8 +78,8 @@
 
 ### Roadmap item(s) affected
 - `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - command behavior hardening includes keeping the CLI command contract deterministic so catalog/parser drift cannot change the surface silently.
-- `Milestone 2: Test Hardening (In Progress)` - add focused unit coverage for the command-catalog slice and keep command-level probes for integration confidence.
-- `Milestone 3: Product Readiness (Planned)` - define and lock user-facing output contracts by failing fast when parser/catalog drift would otherwise change the command surface implicitly.
+- `Milestone 2: Test Hardening (In Progress)` - adds focused unit coverage for the command-catalog slice and keeps command-level probes for integration confidence.
+- `Milestone 3: Product Readiness (Planned)` - defines and locks a user-facing command contract by failing fast when parser/catalog drift would otherwise change the surface implicitly.
 
 ### Vision capability affected
 - `3. Auditable generation` - command-surface drift now fails explicitly instead of changing the operator-facing contract silently.
@@ -95,6 +95,6 @@
 - Shared/integrator-locked edits: `YES` (non-owned test coverage only; no integrator-locked implementation files)
 - The scope-policy note and `Files changed` section name the same non-owned test path: `tests/unit/test_commands_catalog.py`.
 - No integrator-locked file is claimed in the implementation slice.
-- `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*` and only names `src/qual/cli.py` as shared-by-approval; this packet records `tests/unit/test_commands_catalog.py` separately as the approved non-owned test edit rather than presenting it as lane-owned.
+- `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*` and names `src/qual/cli.py` as shared-by-approval; this packet records `tests/unit/test_commands_catalog.py` separately as the approved non-owned test edit rather than presenting it as lane-owned.
 - The current local scope policy in `scripts/scope-check.sh` explicitly allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, which is the approval basis recorded for this non-owned test path in this worktree.
 - This packet's implementation slice is coherent with the `Files changed` list: it is the command-catalog handoff only, not a mixed command-catalog and `diff_preview` handoff.
