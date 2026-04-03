@@ -10,6 +10,10 @@
 - The roadmap and vision mappings below use the exact canonical labels requested in the reviewer packet for re-review.
 - This resubmission reruns the required gates in this lane worktree so the pass/fail claims match the submitted docs-only reviewer-fix state.
 
+## Verification refresh
+- Revalidated on `2026-04-02` in the current `codex/feat-commands` lane worktree with a docs-only handoff refresh; no implementation files were changed in this fixer pass.
+- The reviewed implementation slice remains the same command-catalog hardening from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+
 ## Reviewer required fixes addressed
 1. Rewrote the roadmap mapping to use the exact reviewer-requested canonical entries: `Milestone 3: Real workflow loop` and `feat-commands`.
 2. Rewrote the vision mapping to use the exact reviewer-requested canonical `PRODUCT_VISION.md` capability names `Canonical engine contract` and `Auditable state and workflow`.
