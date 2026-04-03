@@ -14,7 +14,7 @@
 - Revalidated on `2026-04-02` in the current `codex/feat-commands` lane worktree with a docs-only handoff refresh; no implementation files were changed in this fixer pass.
 - The reviewed implementation slice remains the same command-catalog hardening from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Latest required-gate verification run completed at `2026-04-02 18:23:03 PDT` in this worktree before this docs-only fixer commit.
-- Reviewer packet remains the source of truth for the required re-review fixes even though this lane worktree's current `ROADMAP.md` uses different in-repo milestone naming.
+- This packet keeps the reviewer-requested roadmap and vision labels intact for the re-review packet.
 
 ## Reviewer required fixes addressed
 1. Rewrote the roadmap mapping to use the exact reviewer-requested canonical entries: `Milestone 3: Real workflow loop` and `feat-commands`.
@@ -39,7 +39,7 @@
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares the CLI lookup-table canonical names against `command_names()` and raises `ValueError` when the catalog and parser surface drift.
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the canonical-name alignment path and the drift rejection path.
-- Kept this handoff scoped to the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog implementation slice only and did not re-describe earlier route-catalog or diff-preview work on the branch.
+- Kept this handoff scoped to the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog implementation slice only and excluded earlier route-catalog or diff-preview branch work from the re-review packet.
 
 ## Kickoff budget/limits compliance
 - High-risk shared-file handoff: task budget `4`, time budget `30m`.
@@ -66,6 +66,7 @@
 ## Scope boundary note
 - This packet re-submits only the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog implementation slice plus docs-only alignment at the current head.
 - It does not claim any `diff_preview` implementation or `tests/unit/test_diff_preview.py` coverage in this re-review packet.
+- It names `tests/unit/test_commands_catalog.py` as the only shared-by-approval test path for the implementation slice in both the approval note and the files-changed list.
 
 ## Commands run and outcomes
 - `make scope-check`: PASS
