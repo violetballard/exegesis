@@ -7,7 +7,7 @@
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and keeps the handoff on one coherent slice: the `command_cli_contract()` catalog hardening from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - The packet does not make any `diff_preview` claims.
-- The roadmap and vision mappings below use the exact labels from this worktree's canonical docs.
+- The roadmap and vision mappings below use the exact labels requested by the reviewer packet for re-review.
 - The non-owned test path named in the approval note and in `Files changed` is the same file: `tests/unit/test_commands_catalog.py`.
 
 ## Scope goal
@@ -58,14 +58,12 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 1: Bootstrap Flow Stabilization (In Progress)`
-- `Milestone 2: Test Hardening (In Progress)`
-- Scope alignment: command hardening keeps the manual CLI smoke flow stable and adds focused unit coverage for command-catalog drift plus canonical-order contract checks.
+- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands.
+- `feat-commands` - stable CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ### Vision capability affected
-- `4. Operator-first control surface`
-- `3. Auditable generation`
-- Capability alignment: CLI remains a first-class surface while the command catalog rejects silent parser drift and makes operator-visible contract changes explicit.
+- `Canonical engine contract` - CLI compatibility remains stable while the command catalog rejects silent parser drift before it reaches operators.
+- `Auditable state and workflow` - command-surface drift now fails loudly instead of changing the operator contract silently.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
