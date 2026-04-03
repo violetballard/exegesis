@@ -59,13 +59,13 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - this change hardens command behavior for the CLI control surface.
-- `Milestone 2: Test Hardening (In Progress)` - this change adds focused unit coverage for the command-catalog drift case.
-- `MVP Focus Through 2026-05-04` - `feat-commands` remains part of the current active implementation emphasis.
+- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - this change hardens command behavior on the CLI-first control surface by rejecting parser/catalog drift.
+- `Milestone 2: Test Hardening (In Progress)` - this change adds focused unit coverage for canonical-order alignment and catalog-drift rejection.
+- `MVP Focus Through 2026-05-04` - `feat-commands` remains an active implementation lane in the current MVP push.
 
 ### Vision capability affected
-- `Operator-first control surface` - CLI remains a first-class reliability surface, and the command contract stays deterministic for operator use.
-- `Auditable generation` - parser/catalog drift now fails loudly instead of silently changing the command surface.
+- `4. Operator-first control surface` - CLI remains a first-class reliability surface, and the command contract stays deterministic for operator use.
+- `3. Auditable generation` - parser/catalog drift now fails loudly instead of silently changing an operator-visible contract.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
@@ -78,5 +78,5 @@
 - The only non-owned implementation file named in this packet is `tests/unit/test_commands_catalog.py`.
 - The approval note and `Files changed` section name the same shared test path.
 - No integrator-locked file is claimed in the implementation slice.
-- `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*`, so this packet treats `tests/unit/test_commands_catalog.py` as an explicit non-owned test-file exception rather than as a lane-owned file.
-- The current local scope policy in `scripts/scope-check.sh` explicitly allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, so this packet records that exact path as the approval note for review.
+- `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*`, so this packet treats `tests/unit/test_commands_catalog.py` as an explicit non-owned shared-test exception rather than as a lane-owned file.
+- The current local scope policy in `scripts/scope-check.sh` explicitly allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, so this packet records that exact path as the required approval note for review.
