@@ -25,10 +25,10 @@
 - The implementation slice remained limited to one owned command file plus one non-owned test file.
 
 ## Approved exception note
-- Approved non-owned test exception for `tests/unit/test_commands_catalog.py`.
+- Approved shared-file exception for `tests/unit/test_commands_catalog.py`.
 
 ## Scope-policy note
-- `tests/unit/test_commands_catalog.py` is the only non-owned implementation file named in this handoff.
+- `tests/unit/test_commands_catalog.py` is the only shared-by-approval implementation file named in this handoff.
 - The local scope policy in `scripts/scope-check.sh` explicitly allowlists that same path on `codex/feat-commands*`.
 
 ## Tasks completed (numbered)
@@ -40,7 +40,7 @@
 ## Files changed
 ### Implementation files changed
 - `src/qual/commands/catalog.py`
-- `tests/unit/test_commands_catalog.py` (non-owned test path allowlisted by the local scope policy for this lane)
+- `tests/unit/test_commands_catalog.py` (approved shared-file exception; allowlisted by the local scope policy for this lane)
 
 ### Docs-only alignment files changed
 - `THREAD_PACKET.md`
@@ -76,9 +76,8 @@
 - None.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO`
-- Non-owned allowlisted test edits: `YES` (`tests/unit/test_commands_catalog.py`)
-- The scope-policy note and `Files changed` section name the same test path.
+- Shared/integrator-locked edits: `YES` (`tests/unit/test_commands_catalog.py` only; approved shared-file exception)
+- The scope-policy note and `Files changed` section name the same shared-by-approval test path.
 - No integrator-locked file is claimed in the implementation slice.
-- `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*`, so this packet treats `tests/unit/test_commands_catalog.py` as a non-owned allowlisted test path rather than as a lane-owned file.
+- `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*` and marks `tests/unit/test_commands_catalog.py` as shared by approval only, so this packet records that file as the one approved shared edit.
 - The current local scope policy in `scripts/scope-check.sh` explicitly allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, so this packet records that exact path consistently.
