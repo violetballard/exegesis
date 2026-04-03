@@ -31,6 +31,11 @@
 - Required fix 2 is satisfied by separating the metadata-only packet refresh chain from the reviewed implementation range anchored to `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - Required fix 3 is satisfied by the dedicated `Scope completed` section above, which states the FTS-first retrieval outcome independently of the packet-refresh commits.
 
+## Required fixes addressed
+1. Reclassified the handoff as shared/high-risk work because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file, and anchored the packet to the 4-task cap.
+2. Separated metadata-only packet refresh commits from the reviewed retrieval implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+3. Preserved a dedicated `Scope completed` section that summarizes the FTS-first retrieval outcome without relying on the later metadata-only packet refresh chain.
+
 ## Verification note
 - The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range.
 - Required local gates were re-run on the packet-refresh branch head before this handoff was refreshed.
