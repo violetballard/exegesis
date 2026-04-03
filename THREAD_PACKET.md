@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet HEAD role: `metadata-only reviewer-fix finalization`
-- Packet refresh trace anchor before the final fixer commit: `c1e2e90a20e27f1f7044d707fdf162f36769c4e7`
+- Packet refresh trace anchor before the final fixer commit: `b187060980a84ead0b28c3e84d9554f760bfc1c6`
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: branch-level cumulative full-thread retrieval handoff
@@ -22,7 +22,7 @@
 
 ## Docs-only alignment commits
 - Representative metadata-only packet refresh commits include `ce6967d1c32baff0d60aba1b983affcdd7524375`, `287461d4b811d01efcd9e690ccd63362b773fe6b`, `2026498d8644e5f9f4f13c68e03c68443cb045e9`, `bba460f378584ed873358ad6010a9c9f9a3b08b0`, `061eaecee61f53424555028c38ae2bf4854f57ad`, `9f26474a2264b38735726bcf4460664a4016097d`, `34a0b21ac12d1ec607deb95de7d484e041f4d42d`, `624409bac4b7805979931d9b8d0973e986580574`, and the reviewer-cited `b172559ed0889b5793e150296fa4b8b6c9943931`.
-- The immediately preceding packet-refresh head for this final fixer pass is `c1e2e90a20e27f1f7044d707fdf162f36769c4e7`.
+- The immediately preceding packet-refresh head for this final fixer pass is `b187060980a84ead0b28c3e84d9554f760bfc1c6`.
 - Those commits update handoff metadata only and must not be read as evidence that `src/qual/retrieval/service.py` or `tests/unit/test_unified_retrieval.py` changed at those SHAs.
 
 ## Reviewer fix reconciliation
@@ -39,10 +39,10 @@
 - The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range.
 - Required local gates are re-run on the packet-refresh branch head before this handoff is refreshed.
 - This fixer pass is metadata-only and exists to carry the reviewer-required packet corrections forward into a fresh packet-refresh commit without moving the reviewed implementation range.
-- This commit records the post-review fixer pass that re-ran all required local gates while preserving the same reviewed implementation range and updating the trace anchor from `c1e2e90a20e27f1f7044d707fdf162f36769c4e7`.
+- This commit records the post-review fixer pass that re-ran all required local gates while preserving the same reviewed implementation range and updating the trace anchor from `b187060980a84ead0b28c3e84d9554f760bfc1c6`.
 
 ## Packet trace note
-- The packet refresh trace anchor is `c1e2e90a20e27f1f7044d707fdf162f36769c4e7`; it is metadata-only and is not automatically the reviewed implementation head.
+- The packet refresh trace anchor is `b187060980a84ead0b28c3e84d9554f760bfc1c6`; it is metadata-only and is not automatically the reviewed implementation head.
 - This packet does not self-record the current branch head because doing so would become stale as soon as the fixer commit is created; use the final HEAD SHA reported with the fixer handoff for the actual branch tip.
 - The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless this packet is regenerated to move the reviewed implementation head or reviewed implementation range.
