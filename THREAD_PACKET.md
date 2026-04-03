@@ -10,7 +10,7 @@
 - The packet does not make any `diff_preview` claims.
 - The implementation slice named below is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 - Those implementation paths are the live files present at `HEAD` in this worktree.
-- The roadmap and vision mappings below use the current canonical labels from this worktree's `ROADMAP.md` and `PRODUCT_VISION.md`.
+- The roadmap and vision mappings below use the reviewer-required canonical labels for this re-review.
 - The non-owned test path named in the approval note and in `Files changed` is the same file: `tests/unit/test_commands_catalog.py`.
 - The reviewer packet is the source of truth for the required fix list; this resubmission keeps that named shared test path consistent throughout the handoff.
 - The canonical handoff mapping in this packet is intentionally limited to `Milestone 3: Real workflow loop`, `feat-commands`, `3. Canonical engine contract`, and `6. Auditable state and workflow`.
@@ -46,7 +46,7 @@
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on drift.
 2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Regenerated the packet so the branch metadata stays scoped to the command-catalog slice and uses the current canonical roadmap and vision labels from this worktree.
+4. Regenerated the packet so the branch metadata stays scoped to the command-catalog slice and uses the reviewer-required roadmap and vision labels for this handoff.
 
 ## Files changed
 ### Implementation files changed
