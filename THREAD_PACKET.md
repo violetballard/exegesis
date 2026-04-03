@@ -63,7 +63,7 @@
 - `Milestone 2: Test Hardening (In Progress)` - adds focused unit coverage for command-catalog alignment and parser-drift rejection.
 
 ### Vision capability affected
-- `Operator-first control surface` - CLI remains a first-class operator surface, and this change keeps the exposed command contract deterministic instead of allowing silent parser/catalog drift.
+- `4. Operator-first control surface` - CLI remains a first-class operator surface, and this change keeps the exposed command contract deterministic instead of allowing silent parser/catalog drift.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
