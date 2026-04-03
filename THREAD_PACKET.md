@@ -11,7 +11,7 @@
 - The packet does not make any `diff_preview` claims.
 - The implementation slice named below is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 - Those implementation paths are the live files present at `HEAD` in this worktree.
-- The roadmap and vision mappings below are rewritten to the exact reviewer-requested canonical slice for re-review.
+- The roadmap and vision mappings below are rewritten to the exact canonical labels in this worktree's current `ROADMAP.md` and `PRODUCT_VISION.md`.
 - The non-owned test path named in the approval note and in `Files changed` is the same file: `tests/unit/test_commands_catalog.py`.
 - The reviewer packet is the source of truth for the required fix list; this resubmission keeps that named shared test path consistent throughout the handoff.
 - The handoff mapping in this packet is intentionally limited to the command-contract hardening slice that matches this implementation.
@@ -47,7 +47,7 @@
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on drift.
 2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Regenerated the packet so the branch metadata stays scoped to the command-catalog slice and uses the reviewer-requested canonical roadmap and vision labels for re-review.
+4. Regenerated the packet so the branch metadata stays scoped to the command-catalog slice and uses the current worktree's canonical roadmap and vision labels for re-review.
 
 ## Files changed
 ### Implementation files changed
@@ -75,12 +75,13 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands by keeping the command surface deterministic and rejecting parser/catalog drift before it reaches operators.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
+- `Milestone 1: Bootstrap Flow Stabilization` - harden command behavior so the CLI command contract stays deterministic and the catalog/parser surface cannot silently drift.
+- `Milestone 2: Test Hardening` - keep focused command-level probes for integration confidence with regression coverage around canonical-order alignment and drift rejection.
+- `Milestone 3: Product Readiness` - define and lock the user-facing command output contract by failing fast when parser/catalog drift would otherwise change the surface implicitly.
 
 ### Vision capability affected
-- `Canonical engine contract` - CLI compatibility remains stable while the command surface now rejects parser/catalog drift before it can reach operators.
-- `Auditable state and workflow` - the command surface now fails loudly on drift, making the operator contract explicit and traceable.
+- `Auditable generation` - command-surface drift now fails explicitly instead of changing the operator-facing contract silently.
+- `Operator-first control surface` - the CLI remains a deterministic first-class surface, with canonical command ordering and a catalog-backed parser contract.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
