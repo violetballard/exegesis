@@ -8,8 +8,7 @@
 - This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice.
 - The packet is anchored to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
 - The roadmap and vision mappings below use the exact canonical labels requested in the reviewer packet for re-review.
-- This resubmission reran the required gates on `2026-04-02` in this lane worktree so the pass/fail claims match the latest pre-restamp fixer head.
-- Latest fixer verification reran all required gates successfully for pre-restamp docs-only reviewer-fix head `dcb5eb955fd009efe2f22977b91ef0db74ac52d5` at `2026-04-02T17:20:45-0700`.
+- This resubmission reruns the required gates in this lane worktree so the pass/fail claims match the submitted docs-only reviewer-fix state.
 
 ## Reviewer required fixes addressed
 1. Rewrote the roadmap mapping to use the exact reviewer-requested canonical entries: `Milestone 3: Real workflow loop` and `feat-commands`.
@@ -69,9 +68,6 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Verification head: `dcb5eb955fd009efe2f22977b91ef0db74ac52d5`
-- Verification date: `2026-04-02`
-- Verification timestamp: `2026-04-02T17:20:45-0700`
 
 ## Risks / blockers
 - Risk: `HIGH`
