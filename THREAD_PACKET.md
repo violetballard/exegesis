@@ -26,7 +26,7 @@
 
 ## Approved exception note
 - Explicit non-owned test-file exception for `tests/unit/test_commands_catalog.py`.
-- Approval basis: the local scope policy in `scripts/scope-check.sh` explicitly allows `tests/unit/test_commands_catalog.py` on `codex/feat-commands*`.
+- Approval basis: the local scope policy in `scripts/scope-check.sh` explicitly allows `tests/unit/test_commands_catalog.py` on `codex/feat-commands*`, and this packet names that same path everywhere the exception is referenced.
 
 ## Tasks completed (numbered)
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on drift.
@@ -76,4 +76,5 @@
 - The only non-owned implementation file named in this packet is `tests/unit/test_commands_catalog.py`.
 - The approval note and `Files changed` section name the same non-owned test path.
 - No integrator-locked file is claimed in the implementation slice.
+- `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*`, so this packet treats `tests/unit/test_commands_catalog.py` as an explicit non-owned exception rather than as a lane-owned file.
 - The current local scope policy in `scripts/scope-check.sh` explicitly allows `tests/unit/test_commands_catalog.py` on `codex/feat-commands*`, so this packet records that exact path as the non-owned-file approval note for review.
