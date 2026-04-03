@@ -13,7 +13,7 @@
 ## Verification refresh
 - Revalidated on `2026-04-02` in the current `codex/feat-commands` lane worktree with a docs-only handoff refresh; no implementation files were changed in this fixer pass.
 - The reviewed implementation slice remains the same command-catalog hardening from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Latest required-gate verification run completed at `2026-04-02 18:43:23 PDT` in this worktree before this docs-only fixer commit.
+- Latest required-gate verification run completed at `2026-04-02 18:46:42 PDT` in this worktree before this docs-only fixer commit.
 - This packet keeps the reviewer-requested roadmap and vision labels intact for the re-review packet.
 
 ## Reviewer required fixes addressed
