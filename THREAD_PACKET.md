@@ -8,7 +8,7 @@
 - This fixer pass is docs-only and keeps the handoff on one coherent slice: the `command_cli_contract()` catalog hardening from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - The packet does not make any `diff_preview` claims.
 - The implementation slice named below is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
-- The roadmap and vision mappings below use the exact labels from the current `ROADMAP.md` and `PRODUCT_VISION.md` in this worktree.
+- The roadmap and vision mappings below use the exact milestone and capability labels from the current `ROADMAP.md` and `PRODUCT_VISION.md` in this worktree.
 - The non-owned test path named in the approval note and in `Files changed` is the same file: `tests/unit/test_commands_catalog.py`.
 
 ## Scope goal
@@ -59,12 +59,13 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints.
+- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - command behavior hardening for the CLI control surface.
+- `Milestone 2: Test Hardening (In Progress)` - focused unit coverage for command-level integration confidence.
+- `MVP Focus Through 2026-05-04` - `feat-commands` remains part of the current active implementation emphasis.
 
 ### Vision capability affected
-- `Canonical engine contract` - CLI compatibility remains stable while the command surface rejects parser/catalog drift before it reaches operators.
-- `Auditable state and workflow` - the command surface now fails loudly on drift so contract mismatches are explicit and traceable.
+- `Operator-first control surface` - CLI remains a first-class reliability surface, and the command contract stays deterministic for operator use.
+- `Auditable generation` - parser/catalog drift now fails loudly instead of silently changing the command surface.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
@@ -77,5 +78,5 @@
 - The only non-owned implementation file named in this packet is `tests/unit/test_commands_catalog.py`.
 - The approval note and `Files changed` section name the same shared test path.
 - No integrator-locked file is claimed in the implementation slice.
-- `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*`, so this packet treats `tests/unit/test_commands_catalog.py` as an explicit shared-file exception rather than as a lane-owned file.
-- The current local scope policy in `scripts/scope-check.sh` explicitly allows `tests/unit/test_commands_catalog.py` on `codex/feat-commands*`, so this packet records that exact path as the shared-file approval note for review.
+- `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*`, so this packet treats `tests/unit/test_commands_catalog.py` as an explicit non-owned shared test file rather than as a lane-owned file.
+- The current local scope policy in `scripts/scope-check.sh` explicitly allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, so this packet records that exact path as the shared-file approval note for review.
