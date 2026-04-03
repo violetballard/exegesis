@@ -13,8 +13,8 @@
 ## Verification refresh
 - Revalidated on `2026-04-02` in the current `codex/feat-commands` lane worktree with a docs-only handoff refresh; no implementation files were changed in this fixer pass.
 - The reviewed implementation slice remains the same command-catalog hardening from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Latest required-gate verification run completed at `2026-04-02 18:20:03 PDT` in this worktree before the next docs-only fixer commit.
-- Reviewer packet remains the source of truth for the required re-review fixes even though this lane worktree's current `ROADMAP.md` and `PRODUCT_VISION.md` use different in-repo milestone/capability naming.
+- Latest required-gate verification run completed at `2026-04-02 18:23:03 PDT` in this worktree before this docs-only fixer commit.
+- Reviewer packet remains the source of truth for the required re-review fixes even though this lane worktree's current `ROADMAP.md` uses different in-repo milestone naming.
 
 ## Reviewer required fixes addressed
 1. Rewrote the roadmap mapping to use the exact reviewer-requested canonical entries: `Milestone 3: Real workflow loop` and `feat-commands`.
@@ -32,7 +32,7 @@
 
 ## Lane/owned paths
 - `src/qual/commands/**`
-- Shared-by-approval test file explicitly permitted by `scripts/scope-check.sh` for `codex/feat-commands*`:
+- Shared test path explicitly permitted by the current `scripts/scope-check.sh` policy for `codex/feat-commands*`:
   - `tests/unit/test_commands_catalog.py`
 
 ## Scope completed
@@ -46,7 +46,7 @@
 - The submitted branch stays within lane-owned command code plus the single non-owned test path `tests/unit/test_commands_catalog.py`, which is explicitly permitted for `codex/feat-commands*` in `scripts/scope-check.sh`.
 
 ## Approved exception note
-- Explicit shared-by-approval test-file approval for `tests/unit/test_commands_catalog.py` under the lane's scope-check policy for `codex/feat-commands*`.
+- Explicit shared-test approval for `tests/unit/test_commands_catalog.py` under the lane's current scope-check policy for `codex/feat-commands*`.
 - No other shared-by-approval or integrator-locked path is claimed in this re-review packet.
 
 ## Tasks completed (numbered)
