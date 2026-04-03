@@ -9,7 +9,7 @@
 - The packet does not make any `diff_preview` claims.
 - The implementation slice named below is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 - Those implementation paths are the live files present at `HEAD` in this worktree.
-- The roadmap and vision mappings below use the exact milestone and capability labels from the current `ROADMAP.md` and `PRODUCT_VISION.md` in this worktree.
+- The roadmap and vision mappings below preserve the reviewer-required canonical labels from the review packet so the resubmission stays aligned to the requested fixes.
 - The non-owned test path named in the approval note and in `Files changed` is the same file: `tests/unit/test_commands_catalog.py`.
 
 ## Scope goal
@@ -47,6 +47,7 @@
 - `THREAD_PACKET.md`
 
 ## Commands run with results
+- Revalidated on this reviewer-fix pass in the current worktree.
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
