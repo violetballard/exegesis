@@ -59,13 +59,12 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - this change hardens command behavior on the CLI-first control surface by rejecting parser/catalog drift.
-- `Milestone 2: Test Hardening (In Progress)` - this change adds focused unit coverage for canonical-order alignment and catalog-drift rejection.
-- `MVP Focus Through 2026-05-04` - `feat-commands` remains an active implementation lane in the current MVP push.
+- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands by keeping the command contract deterministic and rejecting parser/catalog drift.
+- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ### Vision capability affected
-- `4. Operator-first control surface` - CLI remains a first-class reliability surface, and the command contract stays deterministic for operator use.
-- `3. Auditable generation` - parser/catalog drift now fails loudly instead of silently changing an operator-visible contract.
+- `3. Canonical engine contract` - CLI compatibility remains stable while Textual stays disabled, and the command surface now rejects parser/catalog drift before it reaches operators.
+- `6. Auditable state and workflow` - parser/catalog drift now fails loudly instead of silently changing an operator-visible contract.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
