@@ -8,12 +8,12 @@
 - This fixer pass is docs-only and addresses the reviewer's required fixes by keeping the packet on one coherent command-catalog slice.
 - The packet is anchored to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, with `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as the only implementation files claimed by this re-review.
 - The roadmap and vision mappings below use the exact canonical labels requested in the reviewer packet for re-review: `Milestone 3: Real workflow loop`, `feat-commands`, `Canonical engine contract`, and `Auditable state and workflow`.
-- This resubmission reran the required gates in this lane worktree at `2026-04-03 00:34:43 PDT`, and all listed gates passed again before this docs-only fixer commit.
+- This resubmission reran the required gates in this lane worktree at `2026-04-03 00:40:48 PDT`, and all listed gates passed again before this docs-only fixer commit.
 
 ## Verification refresh
 - Revalidated on `2026-04-03` in the current `codex/feat-commands` lane worktree with a docs-only handoff refresh; no implementation files were changed in this fixer pass.
 - The reviewed implementation slice remains the same command-catalog hardening from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Latest required-gate verification run completed at `2026-04-03 00:34:43 PDT` in this worktree before this docs-only fixer commit.
+- Latest required-gate verification run completed at `2026-04-03 00:40:48 PDT` in this worktree before this docs-only fixer commit.
 - This packet keeps the reviewer-requested roadmap and vision labels intact for the re-review packet.
 - This packet refresh supersedes the earlier docs-only reviewer-fix packet refreshes on this branch without changing the claimed implementation slice.
 
