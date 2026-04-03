@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet HEAD role: `metadata-only reviewer-fix finalization`
-- Packet refresh trace anchor before the final fixer commit: `624409bac4b7805979931d9b8d0973e986580574`
+- Packet refresh trace anchor before the final fixer commit: `368eeb8afbf8e7763555d42dae18ba0d490031b5`
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: branch-level cumulative full-thread retrieval handoff
@@ -36,12 +36,12 @@
 
 ## Verification note
 - The current packet-refresh head preserves the reviewed implementation range above and does not expand retrieval scope beyond that range.
-- Required local gates were re-run on the packet-refresh branch head before this handoff was refreshed.
+- Required local gates are re-run on the packet-refresh branch head before this handoff is refreshed.
 - This fixer pass is metadata-only and exists to carry the reviewer-required packet corrections forward into a fresh packet-refresh commit without moving the reviewed implementation range.
-- This commit records the post-review fixer pass that re-ran all required local gates while preserving the same reviewed implementation range and updating the trace anchor from `624409bac4b7805979931d9b8d0973e986580574`.
+- This commit records the post-review fixer pass that re-ran all required local gates while preserving the same reviewed implementation range and updating the trace anchor from `368eeb8afbf8e7763555d42dae18ba0d490031b5`.
 
 ## Packet trace note
-- The packet refresh trace anchor is `624409bac4b7805979931d9b8d0973e986580574`; it is metadata-only and is not automatically the reviewed implementation head.
+- The packet refresh trace anchor is `368eeb8afbf8e7763555d42dae18ba0d490031b5`; it is metadata-only and is not automatically the reviewed implementation head.
 - This packet does not self-record the current branch head because doing so would become stale as soon as the fixer commit is created; use the final HEAD SHA reported with the fixer handoff for the actual branch tip.
 - The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless this packet is regenerated to move the reviewed implementation head or reviewed implementation range.
