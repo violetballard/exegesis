@@ -9,7 +9,7 @@
 - The packet does not make any `diff_preview` claims.
 - The implementation slice named below is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 - Those implementation paths are the live files present at `HEAD` in this worktree.
-- The roadmap and vision mappings below preserve the reviewer-required canonical labels from the review packet so the resubmission stays aligned to the requested fixes.
+- The roadmap and vision mappings below use the current canonical labels from this worktree's `ROADMAP.md` and `PRODUCT_VISION.md`.
 - The non-owned test path named in the approval note and in `Files changed` is the same file: `tests/unit/test_commands_catalog.py`.
 
 ## Scope goal
@@ -26,11 +26,11 @@
 - The implementation slice remained limited to one owned command file plus one non-owned test file.
 
 ## Approved exception note
-- Approved shared-by-approval test exception for `tests/unit/test_commands_catalog.py`.
+- Approved non-owned test exception for `tests/unit/test_commands_catalog.py`.
 
 ## Scope-policy note
-- `tests/unit/test_commands_catalog.py` is the only shared-by-approval implementation file named in this handoff.
-- The local scope policy in `scripts/scope-check.sh` explicitly allowlists that same path for `codex/feat-commands*` when `SCOPE_ALLOW_SHARED=1` is set.
+- `tests/unit/test_commands_catalog.py` is the only non-owned implementation file named in this handoff.
+- The local scope policy in `scripts/scope-check.sh` explicitly allowlists that same path for `codex/feat-commands*`.
 
 ## Tasks completed (numbered)
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on drift.
@@ -41,7 +41,7 @@
 ## Files changed
 ### Implementation files changed
 - `src/qual/commands/catalog.py`
-- `tests/unit/test_commands_catalog.py` (approved shared-by-approval test exception; allowlisted by the local scope policy for this lane)
+- `tests/unit/test_commands_catalog.py` (approved non-owned test exception; allowlisted by the local scope policy for this lane)
 
 ### Docs-only alignment files changed
 - `THREAD_PACKET.md`
@@ -78,8 +78,8 @@
 - None.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `YES` (`tests/unit/test_commands_catalog.py` only; approved shared-by-approval test exception)
-- The scope-policy note and `Files changed` section name the same shared-by-approval test path.
+- Shared/integrator-locked edits: `NO`
+- The scope-policy note and `Files changed` section name the same non-owned test path: `tests/unit/test_commands_catalog.py`.
 - No integrator-locked file is claimed in the implementation slice.
 - `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*`; this packet records `tests/unit/test_commands_catalog.py` separately as the approved non-owned test edit.
 - The current local scope policy in `scripts/scope-check.sh` explicitly allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, so this packet records that exact path consistently.
