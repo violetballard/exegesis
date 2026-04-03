@@ -2,7 +2,7 @@
 
 - Branch: `codex/feat-retrieval-fts`
 - Packet HEAD role: `metadata-only reviewer-fix refresh`
-- Packet refresh trace anchor before the final fixer commit: `bc0154fc271a17d046780708655563758f2b947d`
+- Packet refresh trace anchor before the final fixer commit: `a391867c843944d703e73a6426d6c18dc3e57d0d`
 - Final HEAD SHA (reviewed implementation head): `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
@@ -30,11 +30,11 @@ This kickoff packet now matches the reviewer-required packet corrections: the ha
 
 ## Packet trace note
 
-The packet refresh trace anchor is `bc0154fc271a17d046780708655563758f2b947d`; it is metadata-only and is not automatically the reviewed implementation head. This packet does not self-record the current branch head because doing so would become stale as soon as the fixer commit is created; use the final HEAD SHA reported with the fixer handoff for the actual branch tip. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless the packet is regenerated to move the reviewed implementation head or reviewed implementation range. Read the retrieval file list and completed-task summary against that reviewed implementation range, not against the later metadata-only packet refresh chain; the cited packet-refresh SHAs are representative rather than exhaustive.
+The packet refresh trace anchor is `a391867c843944d703e73a6426d6c18dc3e57d0d`; it is metadata-only and is not automatically the reviewed implementation head. This packet does not self-record the current branch head because doing so would become stale as soon as the fixer commit is created; use the final HEAD SHA reported with the fixer handoff for the actual branch tip. The reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. Metadata-only packet refresh commits after that reviewed implementation head, including `b172559ed0889b5793e150296fa4b8b6c9943931`, remain outside the reviewed implementation range unless the packet is regenerated to move the reviewed implementation head or reviewed implementation range. Read the retrieval file list and completed-task summary against that reviewed implementation range, not against the later metadata-only packet refresh chain; the cited packet-refresh SHAs are representative rather than exhaustive.
 
 ## Packet HEAD context
 
-This fixer pass creates another metadata-only packet refresh commit, so the packet-refresh branch tip is reported in the final fixer handoff rather than embedded here before the commit exists. The reviewer-referenced SHA `b172559ed0889b5793e150296fa4b8b6c9943931` remains a metadata-only packet refresh commit, not the reviewed retrieval implementation head. Re-review should anchor retrieval implementation scope to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, then use the final fixer handoff for the current packet-refresh branch tip after `bc0154fc271a17d046780708655563758f2b947d`.
+This fixer pass creates another metadata-only packet refresh commit, so the packet-refresh branch tip is reported in the final fixer handoff rather than embedded here before the commit exists. The reviewer-referenced SHA `b172559ed0889b5793e150296fa4b8b6c9943931` remains a metadata-only packet refresh commit, not the reviewed retrieval implementation head. Re-review should anchor retrieval implementation scope to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, then use the final fixer handoff for the current packet-refresh branch tip after `a391867c843944d703e73a6426d6c18dc3e57d0d`.
 
 ## Branch-head traceability
 
