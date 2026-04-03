@@ -58,7 +58,8 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - command behavior hardening.
+- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - command and diff-preview behavior hardening.
+- `Milestone 2: Test Hardening (In Progress)` - add focused unit coverage for core behaviors and keep command-level probes for integration confidence.
 
 ### Vision capability affected
 - `4. Operator-first control surface` - the CLI remains a stable first-class operator surface while the command catalog rejects silent parser drift.
@@ -74,3 +75,4 @@
 - The only non-owned implementation file named in this packet is `tests/unit/test_commands_catalog.py`.
 - The approval note and `Files changed` section name the same non-owned test path.
 - No integrator-locked file is claimed in the implementation slice.
+- The local scope policy explicitly allows `tests/unit/test_commands_catalog.py` on `codex/feat-commands*` in `scripts/scope-check.sh`.
