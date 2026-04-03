@@ -31,7 +31,7 @@
 
 ## Lane/owned paths
 - `src/qual/commands/**`
-- Non-owned test path explicitly permitted by `scripts/scope-check.sh` for `codex/feat-commands*`:
+- Shared-by-approval test file explicitly permitted by `scripts/scope-check.sh` for `codex/feat-commands*`:
   - `tests/unit/test_commands_catalog.py`
 
 ## Scope completed
@@ -45,7 +45,7 @@
 - The submitted branch stays within lane-owned command code plus the single non-owned test path `tests/unit/test_commands_catalog.py`, which is explicitly permitted for `codex/feat-commands*` in `scripts/scope-check.sh`.
 
 ## Approved exception note
-- Explicit non-owned test-path approval for `tests/unit/test_commands_catalog.py` under the lane's scope-check policy for `codex/feat-commands*`.
+- Explicit shared-by-approval test-file approval for `tests/unit/test_commands_catalog.py` under the lane's scope-check policy for `codex/feat-commands*`.
 - No other shared-by-approval or integrator-locked path is claimed in this re-review packet.
 
 ## Tasks completed (numbered)
@@ -57,7 +57,7 @@
 ## Files changed
 ### Implementation files changed
 - `src/qual/commands/catalog.py`
-- `tests/unit/test_commands_catalog.py` (explicit non-owned test-path approval for the implementation commit)
+- `tests/unit/test_commands_catalog.py` (explicit shared-by-approval test-file approval for the implementation commit)
 
 ### Docs-only alignment files changed
 - `THREAD_PACKET.md`
@@ -98,7 +98,7 @@
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `YES`
-- Approved non-owned test path covers `tests/unit/test_commands_catalog.py`, which is also the only non-owned implementation file named in `Files changed`.
+- Approved shared-by-approval test file covers `tests/unit/test_commands_catalog.py`, which is also the only shared implementation file named in `Files changed`.
 - Approval basis: `scripts/scope-check.sh` explicitly permits `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`.
 - Re-review mapping basis: the roadmap and vision fields above use the exact canonical milestone and capability names requested in the reviewer packet for this command-contract handoff slice.
 - Coherent-slice basis: this re-review packet covers the `command_cli_contract()` catalog hardening only and does not mix in earlier diff-preview or route-catalog branch work.
