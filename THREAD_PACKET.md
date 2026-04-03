@@ -10,10 +10,10 @@
 - The packet does not make any `diff_preview` claims.
 - The implementation slice named below is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 - Those implementation paths are the live files present at `HEAD` in this worktree.
-- The roadmap and vision mappings below use the reviewer-required canonical labels for this re-review.
+- The roadmap and vision mappings below use the current canonical labels from this worktree's `ROADMAP.md` and `PRODUCT_VISION.md`.
 - The non-owned test path named in the approval note and in `Files changed` is the same file: `tests/unit/test_commands_catalog.py`.
 - The reviewer packet is the source of truth for the required fix list; this resubmission keeps that named shared test path consistent throughout the handoff.
-- The canonical handoff mapping in this packet is intentionally limited to `Milestone 3: Real workflow loop`, `feat-commands`, `3. Canonical engine contract`, and `6. Auditable state and workflow`.
+- The canonical handoff mapping in this packet is intentionally limited to the command-contract hardening and focused unit-coverage milestones that match this implementation slice.
 - The required local gates were rerun in this worktree on `2026-04-03` before this handoff was finalized.
 - This packet now reflects the completed `2026-04-03` gate rerun order exactly: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
@@ -46,7 +46,7 @@
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on drift.
 2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Regenerated the packet so the branch metadata stays scoped to the command-catalog slice and uses the reviewer-required roadmap and vision labels for this handoff.
+4. Regenerated the packet so the branch metadata stays scoped to the command-catalog slice and uses the current canonical roadmap and vision labels from this worktree for re-review.
 
 ## Files changed
 ### Implementation files changed
@@ -74,12 +74,11 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands by keeping the command contract deterministic and rejecting parser/catalog drift.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
+- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - command behavior hardening stays deterministic by rejecting parser/catalog drift instead of letting the CLI surface silently diverge.
+- `Milestone 2: Test Hardening (In Progress)` - focused unit coverage keeps command-level probes on the catalog-order and drift-rejection paths for integration confidence.
 
 ### Vision capability affected
-- `3. Canonical engine contract` - CLI compatibility remains stable while Textual stays disabled, and the command surface now rejects parser/catalog drift before it reaches operators.
-- `6. Auditable state and workflow` - parser/catalog drift now fails loudly instead of silently changing an operator-visible contract.
+- `4. Operator-first control surface` - CLI remains a first-class operator surface, and the command catalog now rejects parser drift before it can silently change operator-visible routing tokens or ordering.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
@@ -88,9 +87,9 @@
 - None.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `YES` (shared-by-approval test coverage only; no integrator-locked implementation files)
+- Shared/integrator-locked edits: `YES` (non-owned test coverage only; no integrator-locked implementation files)
 - The scope-policy note and `Files changed` section name the same non-owned test path: `tests/unit/test_commands_catalog.py`.
 - No integrator-locked file is claimed in the implementation slice.
-- `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*`; this packet records `tests/unit/test_commands_catalog.py` separately as the approved non-owned test edit.
+- `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*`; this packet records `tests/unit/test_commands_catalog.py` separately as the approved non-owned test edit rather than presenting it as lane-owned.
 - The current local scope policy in `scripts/scope-check.sh` explicitly allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`, so this packet records that exact path consistently.
 - This packet's implementation slice is coherent with the `Files changed` list: it is the command-catalog handoff only, not a mixed command-catalog and `diff_preview` handoff.
