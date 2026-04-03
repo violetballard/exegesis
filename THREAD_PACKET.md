@@ -59,12 +59,11 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands by hardening the command-catalog contract against parser drift.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
+- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - command behavior hardening now includes locking the CLI command-catalog contract so parser drift is rejected deterministically.
+- `Milestone 2: Test Hardening (In Progress)` - adds focused unit coverage for command-catalog alignment and parser-drift rejection.
 
 ### Vision capability affected
-- `Canonical engine contract` - CLI compatibility remains stable while the command surface now rejects parser/catalog drift before it reaches operators.
-- `Auditable state and workflow` - the command surface now fails loudly on drift instead of letting operator-visible behavior change silently.
+- `Operator-first control surface` - CLI remains a first-class operator surface, and this change keeps the exposed command contract deterministic instead of allowing silent parser/catalog drift.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
@@ -77,4 +76,4 @@
 - The only non-owned implementation file named in this packet is `tests/unit/test_commands_catalog.py`.
 - The approval note and `Files changed` section name the same non-owned test path.
 - No integrator-locked file is claimed in the implementation slice.
-- The local scope policy explicitly allows `tests/unit/test_commands_catalog.py` on `codex/feat-commands*` in `scripts/scope-check.sh`, and this packet records that exact path as the non-owned-file approval note for review.
+- The current local scope policy in `scripts/scope-check.sh` explicitly allows `tests/unit/test_commands_catalog.py` on `codex/feat-commands*`, so this packet records that exact path as the non-owned-file approval note for review.
