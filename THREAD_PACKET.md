@@ -6,6 +6,7 @@
 
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and keeps the handoff on one coherent slice: the `command_cli_contract()` catalog hardening from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- This packet is the reviewer-fix resubmission artifact for the numbered fixes requested on `2026-04-02`, and it resolves them by keeping the handoff canonical, coherent, and limited to the command-catalog slice only.
 - This packet was revalidated again on `2026-04-03` after a fresh full gate run in the lane worktree so the reviewer-fix handoff reflects the current branch state.
 - The packet does not make any `diff_preview` claims.
 - The implementation slice named below is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
