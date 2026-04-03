@@ -10,10 +10,10 @@
 - The packet does not make any `diff_preview` claims.
 - The implementation slice named below is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 - Those implementation paths are the live files present at `HEAD` in this worktree.
-- The roadmap and vision mappings below use the current canonical labels from this worktree's `ROADMAP.md` and `PRODUCT_VISION.md`.
+- The roadmap and vision mappings below are rewritten to the exact reviewer-requested canonical slice for re-review.
 - The non-owned test path named in the approval note and in `Files changed` is the same file: `tests/unit/test_commands_catalog.py`.
 - The reviewer packet is the source of truth for the required fix list; this resubmission keeps that named shared test path consistent throughout the handoff.
-- The canonical handoff mapping in this packet is intentionally limited to the command-contract hardening and focused unit-coverage milestones that match this implementation slice.
+- The handoff mapping in this packet is intentionally limited to the command-contract hardening slice that matches this implementation.
 - The required local gates were rerun in this worktree on `2026-04-03` before this handoff was finalized.
 - This packet now reflects the completed `2026-04-03` gate rerun order exactly: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
@@ -46,7 +46,7 @@
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on drift.
 2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Regenerated the packet so the branch metadata stays scoped to the command-catalog slice and uses the current canonical roadmap and vision labels from this worktree for re-review.
+4. Regenerated the packet so the branch metadata stays scoped to the command-catalog slice and uses the reviewer-requested canonical roadmap and vision labels for re-review.
 
 ## Files changed
 ### Implementation files changed
@@ -74,12 +74,12 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - this handoff is limited to command behavior hardening by rejecting parser/catalog drift instead of letting the CLI surface silently diverge.
-- `Milestone 2: Test Hardening (In Progress)` - this handoff adds and preserves focused command-level probes for the catalog-order and drift-rejection paths.
+- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands by keeping the command surface deterministic and rejecting parser/catalog drift before it reaches operators.
+- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ### Vision capability affected
-- `3. Auditable generation` - the command contract now fails loudly on parser/catalog drift, so command-surface changes cannot silently alter operator-visible behavior.
-- `4. Operator-first control surface` - CLI remains a first-class operator surface, and the command catalog now rejects parser drift before it can silently change routing tokens or ordering.
+- `Canonical engine contract` - CLI compatibility remains stable while the command surface now rejects parser/catalog drift before it can reach operators.
+- `Auditable state and workflow` - the command surface now fails loudly on drift, making the operator contract explicit and traceable.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
