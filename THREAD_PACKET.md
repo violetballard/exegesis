@@ -78,7 +78,7 @@
 - None.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO`
+- Shared/integrator-locked edits: `YES` (shared-by-approval test coverage only; no integrator-locked implementation files)
 - The scope-policy note and `Files changed` section name the same non-owned test path: `tests/unit/test_commands_catalog.py`.
 - No integrator-locked file is claimed in the implementation slice.
 - `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*`; this packet records `tests/unit/test_commands_catalog.py` separately as the approved non-owned test edit.
