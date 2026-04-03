@@ -75,13 +75,13 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 1: Bootstrap Flow Stabilization` - harden command behavior so the CLI command contract stays deterministic and the catalog/parser surface cannot silently drift.
-- `Milestone 2: Test Hardening` - keep focused command-level probes for integration confidence with regression coverage around canonical-order alignment and drift rejection.
-- `Milestone 3: Product Readiness` - define and lock the user-facing command output contract by failing fast when parser/catalog drift would otherwise change the surface implicitly.
+- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - harden command behavior so the CLI command contract stays deterministic and the catalog/parser surface cannot silently drift.
+- `Milestone 2: Test Hardening (In Progress)` - keep focused command-level probes for integration confidence with regression coverage around canonical-order alignment and drift rejection.
+- `Milestone 3: Product Readiness (Planned)` - define and lock the user-facing command contract by failing fast when parser/catalog drift would otherwise change the surface implicitly.
 
 ### Vision capability affected
-- `Auditable generation` - command-surface drift now fails explicitly instead of changing the operator-facing contract silently.
-- `Operator-first control surface` - the CLI remains a deterministic first-class surface, with canonical command ordering and a catalog-backed parser contract.
+- `3. Auditable generation` - command-surface drift now fails explicitly instead of changing the operator-facing contract silently.
+- `4. Operator-first control surface` - the CLI remains a deterministic first-class surface, with canonical command ordering and a catalog-backed parser contract.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
