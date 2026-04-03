@@ -59,11 +59,9 @@
 
 ### Roadmap item(s) affected
 - `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - command behavior hardening.
-- `Milestone 2: Test Hardening (In Progress)` - focused unit coverage for parser-edge command contracts.
 
 ### Vision capability affected
 - `4. Operator-first control surface` - the CLI remains a stable first-class operator surface while the command catalog rejects silent parser drift.
-- `3. Auditable generation` - operator-visible command-contract drift now fails loudly and remains traceable in focused tests.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
