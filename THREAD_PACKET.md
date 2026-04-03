@@ -24,6 +24,7 @@
 ## Lane/owned paths
 - Owned runtime paths from `THREAD_OWNERSHIP.md`: `src/qual/commands/**`
 - Approved non-owned test path for this handoff: `tests/unit/test_commands_catalog.py`
+- The current `THREAD_OWNERSHIP.md` does not list shared test paths for `feat-commands`; this handoff records the test exception separately and relies on the local scope policy allowlist plus the reviewer packet's named fix target.
 
 ## Scope completed
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
@@ -42,7 +43,7 @@
 ## Scope-policy note
 - `tests/unit/test_commands_catalog.py` is the only non-owned implementation file named in this handoff.
 - The local scope policy in `scripts/scope-check.sh` explicitly allowlists that same path for `codex/feat-commands*`.
-- `THREAD_OWNERSHIP.md` still defines the owned runtime path as `src/qual/commands/**`, so this handoff keeps the non-owned test path called out separately instead of presenting it as lane-owned.
+- `THREAD_OWNERSHIP.md` defines the owned runtime path as `src/qual/commands/**`, so this handoff keeps the non-owned test path called out separately instead of presenting it as lane-owned.
 
 ## Tasks completed (numbered)
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on drift.
