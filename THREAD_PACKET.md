@@ -7,7 +7,7 @@
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and keeps the handoff on one coherent slice: the `command_cli_contract()` catalog hardening from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - The packet does not make any `diff_preview` claims.
-- The roadmap and vision mappings below use the exact labels requested by the reviewer packet for re-review.
+- The roadmap and vision mappings below use the exact labels from the current `ROADMAP.md` and `PRODUCT_VISION.md` in this worktree.
 - The non-owned test path named in the approval note and in `Files changed` is the same file: `tests/unit/test_commands_catalog.py`.
 
 ## Scope goal
@@ -58,12 +58,12 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands.
-- `feat-commands` - stable CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
+- `Milestone 1: Bootstrap Flow Stabilization` - command behavior hardening for the CLI surface.
+- `Milestone 2: Test Hardening` - focused unit coverage for the command-catalog contract and parser drift rejection.
 
 ### Vision capability affected
-- `Canonical engine contract` - CLI compatibility remains stable while the command catalog rejects silent parser drift before it reaches operators.
-- `Auditable state and workflow` - command-surface drift now fails loudly instead of changing the operator contract silently.
+- `Auditable generation` - the command surface now fails loudly on parser/catalog drift instead of letting operator-visible behavior change silently.
+- `Operator-first control surface` - CLI command routing stays deterministic and stable while the engine-first MVP loop remains on the command surface.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
