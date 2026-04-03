@@ -51,9 +51,16 @@ STATE_FILE = COORD_ROOT / "state.json"
 LEASE_FILE = COORD_ROOT / "lease.json"
 ROUTER_CONFIG_FILE = REPO_ROOT / ".codex/packet_router/config.json"
 ROUTER_EXAMPLE_FILE = REPO_ROOT / ".codex/packet_router/example.json"
+ROUTER_STATE_FILE = REPO_ROOT / ".codex/packet_router/state.json"
 FEATURE_RUNNER_ROOT = REPO_ROOT / ".codex/feature_runner"
 FEATURE_RUNNER_STATE_FILE = FEATURE_RUNNER_ROOT / "state.json"
 FEATURE_RELAUNCH_COOLDOWN_SECONDS = 60
+ROUTER_JOB_STATE_KEYS = (
+    "fixer_fallback_jobs",
+    "local_reviewer_jobs",
+    "local_integrator_jobs",
+    "cloud_integrator_jobs",
+)
 DEFAULT_LANES = [
     "feat-context-storage",
     "feat-commands",
@@ -165,6 +172,86 @@ def _pid_alive(pid: int) -> bool:
         return True
     except OSError:
         return False
+
+
+def _job_result_exists(job: Dict[str, object]) -> bool:
+    result_path = str(job.get("result_path") or "")
+    if not result_path:
+        return False
+    return Path(result_path).exists()
+
+
+def _reconcile_feature_runner_state() -> List[str]:
+    state = load_json(FEATURE_RUNNER_STATE_FILE, {})
+    lanes = state.get("lanes") if isinstance(state, dict) else {}
+    if not isinstance(lanes, dict):
+        return []
+
+    removed: List[str] = []
+    for lane, lane_state in list(lanes.items()):
+        if not isinstance(lane_state, dict):
+            lanes.pop(lane, None)
+            removed.append(str(lane))
+            continue
+        if str(lane_state.get("status") or "") != "direct_exec_running":
+            continue
+        pid = int(lane_state.get("pid") or 0)
+        if _pid_alive(pid):
+            continue
+        lanes.pop(lane, None)
+        removed.append(str(lane))
+
+    if removed:
+        state["lanes"] = lanes
+        save_json(FEATURE_RUNNER_STATE_FILE, state)
+    return sorted(removed)
+
+
+def _reconcile_router_state() -> Dict[str, List[str]]:
+    state = load_json(ROUTER_STATE_FILE, {})
+    if not isinstance(state, dict):
+        return {}
+
+    removed: Dict[str, List[str]] = {}
+    changed = False
+    for key in ROUTER_JOB_STATE_KEYS:
+        jobs = state.get(key)
+        if not isinstance(jobs, dict):
+            continue
+        stale: List[str] = []
+        for job_name, job in list(jobs.items()):
+            if not isinstance(job, dict):
+                jobs.pop(job_name, None)
+                stale.append(str(job_name))
+                continue
+            if _job_result_exists(job):
+                continue
+            pid = int(job.get("pid") or 0)
+            if _pid_alive(pid):
+                continue
+            jobs.pop(job_name, None)
+            stale.append(str(job_name))
+        if stale:
+            removed[key] = sorted(stale)
+            state[key] = jobs
+            changed = True
+
+    if changed:
+        save_json(ROUTER_STATE_FILE, state)
+    return removed
+
+
+def _reconcile_control_plane_state() -> Dict[str, object]:
+    feature_runner_removed = _reconcile_feature_runner_state()
+    router_removed = _reconcile_router_state()
+    if feature_runner_removed:
+        print(f"[reconcile] pruned stale feature-runner state: {', '.join(feature_runner_removed)}")
+    for key, names in sorted(router_removed.items()):
+        print(f"[reconcile] pruned stale router state from {key}: {', '.join(names)}")
+    return {
+        "feature_runner_removed": feature_runner_removed,
+        "router_removed": router_removed,
+    }
 
 
 def _all_configured_lanes() -> List[str]:
@@ -691,6 +778,9 @@ def _run_cycle(
     coordinator_state: Dict[str, object],
 ) -> Dict[str, object]:
     cycle_event: Dict[str, object] = {"started_at": utc_now()}
+    cycle_event["reconcile"] = _reconcile_control_plane_state()
+    if args.execution_mode == "direct" and direct_ctx is not None:
+        direct_ctx.state = direct_ctx.router_mod.load_json(direct_ctx.router_mod.STATE_FILE, {})
 
     print("[planner]")
     if args.execution_mode == "direct":

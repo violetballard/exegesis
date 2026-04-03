@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -554,6 +555,107 @@ class StatusStateTests(unittest.TestCase):
         state, note = _derive_lane_state([], [], [], "abc123", "abc123", feature_active=True)
         self.assertEqual(state, "feature_in_progress")
         self.assertIn("actively working", note)
+
+
+class CoordinatorStateReconcileTests(unittest.TestCase):
+    def test_reconcile_control_plane_state_prunes_dead_feature_and_router_jobs(self) -> None:
+        from codex_packet_handoff.tools import agents_coordinator as coordinator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            feature_state = root / "feature_runner_state.json"
+            router_state = root / "router_state.json"
+            completed_result = root / "done.result.json"
+            completed_result.write_text(json.dumps({"status": "ok"}), encoding="utf-8")
+
+            feature_state.write_text(
+                json.dumps(
+                    {
+                        "lanes": {
+                            "feat-stale": {"status": "direct_exec_running", "pid": 4242},
+                            "feat-live": {"status": "direct_exec_running", "pid": 1111},
+                            "feat-managed": {"status": "managed_thread", "thread_id": "tid-1"},
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            router_state.write_text(
+                json.dumps(
+                    {
+                        "fixer_fallback_jobs": {
+                            "feat-stale": {"pid": 4242, "log": "fixer.log"},
+                            "feat-live": {"pid": 1111, "log": "fixer-live.log"},
+                        },
+                        "local_reviewer_jobs": {
+                            "feat-stale": {"pid": 4242, "result_path": str(root / "missing.result.json")},
+                        },
+                        "local_integrator_jobs": {
+                            "feat-done:packet": {"pid": 4242, "result_path": str(completed_result)},
+                        },
+                        "cloud_integrator_jobs": {
+                            "feat-cloud:packet": {"pid": 4242, "result_path": str(root / "missing-cloud.result.json")},
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with (
+                patch.object(coordinator, "FEATURE_RUNNER_STATE_FILE", feature_state),
+                patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
+                patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 1111),
+            ):
+                summary = coordinator._reconcile_control_plane_state()
+
+            self.assertEqual(summary["feature_runner_removed"], ["feat-stale"])
+            self.assertEqual(summary["router_removed"]["fixer_fallback_jobs"], ["feat-stale"])
+            self.assertEqual(summary["router_removed"]["local_reviewer_jobs"], ["feat-stale"])
+            self.assertEqual(summary["router_removed"]["cloud_integrator_jobs"], ["feat-cloud:packet"])
+
+            feature_doc = json.loads(feature_state.read_text(encoding="utf-8"))
+            router_doc = json.loads(router_state.read_text(encoding="utf-8"))
+
+            self.assertNotIn("feat-stale", feature_doc["lanes"])
+            self.assertIn("feat-live", feature_doc["lanes"])
+            self.assertIn("feat-managed", feature_doc["lanes"])
+
+            self.assertNotIn("feat-stale", router_doc["fixer_fallback_jobs"])
+            self.assertIn("feat-live", router_doc["fixer_fallback_jobs"])
+            self.assertNotIn("feat-stale", router_doc["local_reviewer_jobs"])
+            self.assertIn("feat-done:packet", router_doc["local_integrator_jobs"])
+            self.assertNotIn("feat-cloud:packet", router_doc["cloud_integrator_jobs"])
+
+    def test_run_cycle_reloads_cleaned_router_state_before_direct_router(self) -> None:
+        from codex_packet_handoff.tools import agents_coordinator as coordinator
+
+        router_state = {"runtime_mode": "local_fallback", "fixer_fallback_jobs": {}}
+        fake_router_mod = SimpleNamespace(
+            STATE_FILE=Path("/tmp/router_state.json"),
+            load_json=lambda path, default: dict(router_state),
+        )
+        ctx = DirectRouterCtx(
+            router_mod=fake_router_mod,
+            cfg=SimpleNamespace(),
+            state={"fixer_fallback_jobs": {"feat-stale": {"pid": 4242}}},
+            repo_cwd="/repo",
+            reviewer_client=SimpleNamespace(),
+            integrator_client=SimpleNamespace(),
+            reviewer_thread_ids={},
+            integrator_tid="",
+            local_mode=False,
+        )
+        args = argparse.Namespace(execution_mode="direct", planner_retries=0, router_retries=0)
+
+        with (
+            patch.object(coordinator, "_reconcile_control_plane_state", return_value={"feature_runner_removed": [], "router_removed": {"fixer_fallback_jobs": ["feat-stale"]}}),
+            patch.object(coordinator, "_run_planner_direct", return_value=(0, "", 1)),
+            patch.object(coordinator, "_run_router_direct", return_value=(0, "", 1)),
+            patch.object(coordinator, "_launch_free_lanes", return_value=[]),
+        ):
+            coordinator._run_cycle(args, ctx, {})
+
+        self.assertEqual(ctx.state, router_state)
 
 
 class RouterReviewerBootstrapTests(unittest.TestCase):
