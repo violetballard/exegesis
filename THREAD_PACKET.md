@@ -6,8 +6,8 @@
 
 ## Reviewer-fix resubmission note
 - This fixer pass is docs-only and keeps the handoff on one coherent slice: the `command_cli_contract()` catalog hardening from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- The packet no longer mixes `diff_preview` claims into this re-review.
-- The roadmap and vision mappings below use the current canonical labels from this worktree's `ROADMAP.md` and `PRODUCT_VISION.md`.
+- The packet does not make any `diff_preview` claims.
+- The roadmap and vision mappings below use the exact labels from this worktree's canonical docs.
 - The non-owned test path named in the approval note and in `Files changed` is the same file: `tests/unit/test_commands_catalog.py`.
 
 ## Scope goal
@@ -17,7 +17,7 @@
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-- Reissued the handoff packet as a command-catalog-only slice so the review scope matches the claimed implementation.
+- Reissued the handoff packet as a command-catalog-only slice so the review scope matches the claimed implementation files.
 
 ## Kickoff budget/limits compliance
 - High-risk shared-file handoff: task budget `4`, time budget `30m`.
@@ -25,7 +25,7 @@
 
 ## Approved exception note
 - Explicit non-owned test-file exception for `tests/unit/test_commands_catalog.py`.
-- Approval basis: `scripts/scope-check.sh` explicitly allows `tests/unit/test_commands_catalog.py` on `codex/feat-commands*`.
+- Approval basis: `scripts/scope-check.sh` explicitly treats `tests/unit/test_commands_catalog.py` as an approved shared test on `codex/feat-commands*`.
 
 ## Tasks completed (numbered)
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on drift.
@@ -58,12 +58,12 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - command and diff-preview behavior hardening.
-- `Milestone 2: Test Hardening (In Progress)` - add focused unit coverage for core behaviors and keep command-level probes for integration confidence.
+- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - command behavior hardening.
+- `Milestone 2: Test Hardening (In Progress)` - focused unit coverage for parser-edge command contracts.
 
 ### Vision capability affected
 - `4. Operator-first control surface` - the CLI remains a stable first-class operator surface while the command catalog rejects silent parser drift.
-- `3. Auditable generation` - command-contract drift now fails loudly instead of silently changing operator-visible behavior.
+- `3. Auditable generation` - operator-visible command-contract drift now fails loudly and remains traceable in focused tests.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
