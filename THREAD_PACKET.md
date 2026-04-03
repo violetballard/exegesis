@@ -8,6 +8,7 @@
 - This fixer pass is docs-only and keeps the handoff on one coherent slice: the `command_cli_contract()` catalog hardening from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - The packet does not make any `diff_preview` claims.
 - The implementation slice named below is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
+- Those implementation paths are the live files present at `HEAD` in this worktree.
 - The roadmap and vision mappings below use the exact milestone and capability labels from the current `ROADMAP.md` and `PRODUCT_VISION.md` in this worktree.
 - The non-owned test path named in the scope note and in `Files changed` is the same file: `tests/unit/test_commands_catalog.py`.
 
@@ -18,7 +19,7 @@
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-- Reissued the handoff packet as a command-catalog-only slice so the review scope matches the claimed implementation files.
+- Reissued the handoff packet as a command-catalog-only slice so the review scope matches the claimed live implementation files at `HEAD`.
 
 ## Kickoff budget/limits compliance
 - Default lane budget respected.
