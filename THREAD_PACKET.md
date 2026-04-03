@@ -24,6 +24,9 @@
 - Default lane budget respected.
 - The implementation slice remained limited to one owned command file plus one non-owned test file.
 
+## Approved exception note
+- Approved non-owned test exception for `tests/unit/test_commands_catalog.py`.
+
 ## Scope-policy note
 - `tests/unit/test_commands_catalog.py` is the only non-owned implementation file named in this handoff.
 - The local scope policy in `scripts/scope-check.sh` explicitly allowlists that same path on `codex/feat-commands*`.
@@ -74,7 +77,7 @@
 
 ## Scope-check / ownership note
 - Shared/integrator-locked edits: `NO`
-- The only non-owned implementation file named in this packet is `tests/unit/test_commands_catalog.py`.
+- Non-owned allowlisted test edits: `YES` (`tests/unit/test_commands_catalog.py`)
 - The scope-policy note and `Files changed` section name the same test path.
 - No integrator-locked file is claimed in the implementation slice.
 - `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned path for `codex/feat-commands*`, so this packet treats `tests/unit/test_commands_catalog.py` as a non-owned allowlisted test path rather than as a lane-owned file.
