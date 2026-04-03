@@ -13,6 +13,7 @@
 - The non-owned test path named in the approval note and in `Files changed` is the same file: `tests/unit/test_commands_catalog.py`.
 - The reviewer packet is the source of truth for the required fix list; this resubmission keeps that named shared test path consistent throughout the handoff.
 - The canonical handoff mapping in this packet is intentionally limited to `Milestone 3: Real workflow loop`, `feat-commands`, `3. Canonical engine contract`, and `6. Auditable state and workflow`.
+- The required local gates were rerun in this worktree on `2026-04-03` before this handoff was finalized.
 
 ## Scope goal
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog.
