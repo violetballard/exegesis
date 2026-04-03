@@ -63,6 +63,7 @@
 
 ### Vision capability affected
 - `4. Operator-first control surface` - CLI remains a first-class surface while the command catalog rejects silent parser drift.
+- `3. Auditable generation` - the command contract now fails loudly on parser/catalog drift instead of letting operator-visible behavior change silently.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
