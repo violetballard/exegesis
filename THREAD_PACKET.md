@@ -24,7 +24,7 @@
 ## Lane/owned paths
 - Owned runtime paths from `THREAD_OWNERSHIP.md`: `src/qual/commands/**`
 - Approved non-owned test path for this handoff: `tests/unit/test_commands_catalog.py`
-- The current `THREAD_OWNERSHIP.md` only marks `src/qual/cli.py` as shared-by-approval for `feat-commands`, so this handoff records `tests/unit/test_commands_catalog.py` separately as an approved non-owned test exception backed by the local scope policy allowlist.
+- `THREAD_OWNERSHIP.md` keeps `src/qual/commands/**` as the lane-owned runtime path, and this handoff records `tests/unit/test_commands_catalog.py` separately as the approved non-owned test exception for the command-catalog slice.
 
 ## Scope completed
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
@@ -77,13 +77,12 @@
 - CLI command compatibility now has a deterministic canonical-name contract so the parser surface cannot silently drift from the command catalog.
 
 ### Roadmap item(s) affected
-- `Milestone 1: Bootstrap Flow Stabilization (In Progress)` - command behavior hardening includes keeping the CLI command contract deterministic so catalog/parser drift cannot change the surface silently.
-- `Milestone 2: Test Hardening (In Progress)` - adds focused unit coverage for the command-catalog slice and keeps command-level probes for integration confidence.
-- `Milestone 3: Product Readiness (Planned)` - defines and locks a user-facing command contract by failing fast when parser/catalog drift would otherwise change the surface implicitly.
+- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands by keeping the command-catalog contract deterministic and drift-resistant.
+- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ### Vision capability affected
-- `3. Auditable generation` - command-surface drift now fails explicitly instead of changing the operator-facing contract silently.
-- `4. Operator-first control surface` - CLI remains a first-class surface with deterministic canonical ordering and a catalog-backed parser contract.
+- `Canonical engine contract` - CLI compatibility remains stable while the command-catalog surface rejects parser drift before it can silently change the operator contract.
+- `Auditable state and workflow` - the command surface now fails loudly on catalog/parser drift, making the operator-facing contract explicit and traceable.
 
 ### Routing/provider impact note
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
