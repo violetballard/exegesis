@@ -15,6 +15,7 @@
 - The reviewer packet is the source of truth for the required fix list; this resubmission keeps that named shared test path consistent throughout the handoff.
 - The canonical handoff mapping in this packet is intentionally limited to `Milestone 3: Real workflow loop`, `feat-commands`, `3. Canonical engine contract`, and `6. Auditable state and workflow`.
 - The required local gates were rerun in this worktree on `2026-04-03` before this handoff was finalized.
+- This packet now reflects the completed `2026-04-03` gate rerun order exactly: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ## Scope goal
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog.
@@ -35,6 +36,7 @@
 ## Scope-policy note
 - `tests/unit/test_commands_catalog.py` is the only non-owned implementation file named in this handoff.
 - The local scope policy in `scripts/scope-check.sh` explicitly allowlists that same path for `codex/feat-commands*`.
+- `THREAD_OWNERSHIP.md` still defines the owned runtime path as `src/qual/commands/**`, so this handoff keeps the non-owned test path called out separately instead of presenting it as lane-owned.
 
 ## Tasks completed (numbered)
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on drift.
