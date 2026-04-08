@@ -831,8 +831,8 @@ class CloudDirectExecLaunchTests(unittest.TestCase):
             "codex_cmd": "codex",
             "model": "gpt-5.4-mini",
             "fallback_codex_cmd": "codex",
-            "fallback_codex_args": ["-p", "gpt-oss-120b-lms"],
-            "fallback_model": "",
+            "fallback_codex_args": ["-c", "model_provider=lms"],
+            "fallback_model": "gpt-oss-20b",
         }
         state = {"runtime_mode": "cloud_primary"}
 
@@ -868,8 +868,8 @@ class CloudDirectExecLaunchTests(unittest.TestCase):
                 "local_profile_name": "worker_local",
                 "local_profile": {
                     "cmd": "codex",
-                    "cmd_args": ["-p", "gpt-oss-120b-lms"],
-                    "model": "",
+                    "cmd_args": ["-c", "model_provider=lms"],
+                    "model": "gpt-oss-20b",
                     "model_args": [],
                 },
             }

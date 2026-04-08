@@ -19,9 +19,13 @@ class OfflineHandoffConfigTests(unittest.TestCase):
     def test_live_router_config_uses_explicit_lms_provider(self) -> None:
         cfg = json.loads((REPO_ROOT / ".codex/packet_router/config.json").read_text(encoding="utf-8"))
         self.assertEqual(cfg["fallback_codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["fallback_model"], "gpt-oss-120b")
+        self.assertEqual(cfg["fallback_model"], "gpt-oss-20b")
         self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gpt-oss-120b")
+        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gpt-oss-20b")
+        self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "gpt-oss-120b")
+        self.assertEqual(cfg["role_profiles"]["integrator_local"], "worker_local_heavy")
+        self.assertEqual(cfg["lanes"]["feat-a2ui-contract"]["fixer_local_profile"], "worker_local_heavy")
+        self.assertEqual(cfg["lanes"]["feat-engine-runs"]["fixer_local_profile"], "worker_local_heavy")
 
     def test_setup_example_uses_explicit_lms_provider(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -35,9 +39,13 @@ class OfflineHandoffConfigTests(unittest.TestCase):
                 os.chdir(prev_cwd)
 
         self.assertEqual(cfg["fallback_codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["fallback_model"], "gpt-oss-120b")
+        self.assertEqual(cfg["fallback_model"], "gpt-oss-20b")
         self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gpt-oss-120b")
+        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gpt-oss-20b")
+        self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "gpt-oss-120b")
+        self.assertEqual(cfg["role_profiles"]["integrator_local"], "worker_local_heavy")
+        self.assertEqual(cfg["lanes"]["feat-a2ui-contract"]["fixer_local_profile"], "worker_local_heavy")
+        self.assertEqual(cfg["lanes"]["feat-engine-runs"]["fixer_local_profile"], "worker_local_heavy")
 
 
 class OfflineReviewerGuardTests(unittest.TestCase):

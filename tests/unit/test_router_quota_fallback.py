@@ -14,7 +14,7 @@ def _router_cfg() -> RouterConfig:
     return RouterConfig(
         model="gpt-5.1-codex",
         codex_cmd="codex",
-        fallback_model="gpt-oss-120b",
+        fallback_model="gpt-oss-20b",
         fallback_codex_cmd="codex",
         fallback_codex_args=["--oss", "--local-provider", "lmstudio"],
         fallback_model_args=[],
@@ -33,6 +33,8 @@ def _router_cfg() -> RouterConfig:
         fixer_quota_retry_cooldown_seconds=3600,
         max_cloud_fixer_kicks_per_run=1,
         max_local_fixer_kicks_per_run=1,
+        max_cloud_fixer_jobs=1,
+        max_local_fixer_jobs=1,
         prefer_cli_fixer=True,
         prefer_cli_reviewer=True,
         prefer_cli_integrator=True,

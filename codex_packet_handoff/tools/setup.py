@@ -39,10 +39,19 @@ def write_example_config():
                 "integrator_cloud_profile": "worker_cloud_standard_medium",
             }
         )
+    for lane in ("feat-a2ui-contract", "feat-engine-runs"):
+        lanes_cfg[lane].update(
+            {
+                "feature_local_profile": "worker_local_heavy",
+                "reviewer_local_profile": "worker_local_heavy",
+                "fixer_local_profile": "worker_local_heavy",
+                "integrator_local_profile": "worker_local_heavy",
+            }
+        )
     example = {
         "model": "gpt-5.1-codex",
         "codex_cmd": "codex",
-        "fallback_model": "gpt-oss-120b",
+        "fallback_model": "gpt-oss-20b",
         "fallback_codex_cmd": "codex",
         "fallback_codex_args": ["-c", "model_provider=lms"],
         "fallback_model_args": [],
@@ -74,6 +83,12 @@ def write_example_config():
             "worker_local": {
                 "codex_cmd": "codex",
                 "codex_args": ["-c", "model_provider=lms"],
+                "model": "gpt-oss-20b",
+                "model_args": [],
+            },
+            "worker_local_heavy": {
+                "codex_cmd": "codex",
+                "codex_args": ["-c", "model_provider=lms"],
                 "model": "gpt-oss-120b",
                 "model_args": [],
             },
@@ -86,7 +101,7 @@ def write_example_config():
             "reviewer_cloud": "worker_cloud",
             "reviewer_local": "worker_local",
             "integrator_cloud": "integrator_cloud",
-            "integrator_local": "worker_local",
+            "integrator_local": "worker_local_heavy",
             "fixer_cloud": "worker_cloud",
             "fixer_local": "worker_local",
         },

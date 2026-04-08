@@ -17,7 +17,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 "worker_local": {
                     "codex_cmd": "codex",
                     "codex_args": ["-c", "model_provider=lms"],
-                    "model": "gpt-oss-120b",
+                    "model": "gpt-oss-20b",
                 },
             },
             "role_profiles": {
@@ -47,7 +47,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 "worker_local": {
                     "codex_cmd": "codex",
                     "codex_args": ["-c", "model_provider=lms"],
-                    "model": "gpt-oss-120b",
+                    "model": "gpt-oss-20b",
                 },
             },
             "role_profiles": {
@@ -68,11 +68,45 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         self.assertEqual(launch_cfg["model"], "gpt-5.4")
         self.assertEqual(launch_cfg["model_args"], ["-c", "model_reasoning_effort=medium"])
 
+    def test_runtime_launch_config_honors_lane_local_profile_override(self) -> None:
+        cfg = {
+            "runtime_mode_default": "cloud_primary",
+            "profiles": {
+                "worker_cloud": {"codex_cmd": "codex", "model": "gpt-5.4-mini"},
+                "worker_local": {
+                    "codex_cmd": "codex",
+                    "codex_args": ["-c", "model_provider=lms"],
+                    "model": "gpt-oss-20b",
+                },
+                "worker_local_heavy": {
+                    "codex_cmd": "codex",
+                    "codex_args": ["-c", "model_provider=lms"],
+                    "model": "gpt-oss-120b",
+                },
+            },
+            "role_profiles": {
+                "feature_cloud": "worker_cloud",
+                "feature_local": "worker_local",
+                "integrator_local": "worker_local_heavy",
+            },
+            "lanes": {
+                "feat-engine-runs": {
+                    "feature_local_profile": "worker_local_heavy",
+                }
+            },
+        }
+        state = {"runtime_mode": "local_fallback"}
+        with mock.patch.object(launch_feature_lanes, "load_json", side_effect=[cfg, state]):
+            launch_cfg = launch_feature_lanes.runtime_launch_config("feat-engine-runs")
+
+        self.assertEqual(launch_cfg["profile_name"], "worker_local_heavy")
+        self.assertEqual(launch_cfg["model"], "gpt-oss-120b")
+
     def test_router_profile_for_role_honors_lane_cloud_profile_override(self) -> None:
         cfg = router.RouterConfig(
             model="gpt-5.1-codex",
             codex_cmd="codex",
-            fallback_model="gpt-oss-120b",
+            fallback_model="gpt-oss-20b",
             fallback_codex_cmd="codex",
             fallback_codex_args=["-c", "model_provider=lms"],
             fallback_model_args=[],
@@ -120,6 +154,57 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         self.assertEqual(profile.model, "gpt-5.4")
         self.assertEqual(profile.model_args, ["-c", "model_reasoning_effort=medium"])
 
+    def test_router_profile_for_role_honors_lane_local_profile_override(self) -> None:
+        cfg = router.RouterConfig(
+            model="gpt-5.1-codex",
+            codex_cmd="codex",
+            fallback_model="gpt-oss-20b",
+            fallback_codex_cmd="codex",
+            fallback_codex_args=["-c", "model_provider=lms"],
+            fallback_model_args=[],
+            runtime_mode_default="cloud_primary",
+            auto_switch_to_local_on_quota=True,
+            auto_probe_cloud_recovery=True,
+            cloud_probe_cooldown_seconds=1800.0,
+            cloud_probe_timeout_seconds=30.0,
+            reviewer_timeout=180.0,
+            integrator_timeout=900.0,
+            max_packets_per_run=5,
+            inline_fixer=True,
+            kick_fixers_on_reviewer_backlog=True,
+            fixer_kick_timeout_seconds=8.0,
+            reviewer_fixer_retry_cooldown_seconds=120.0,
+            fixer_quota_retry_cooldown_seconds=3600.0,
+            max_cloud_fixer_kicks_per_run=1,
+            max_local_fixer_kicks_per_run=1,
+            max_cloud_fixer_jobs=2,
+            max_local_fixer_jobs=2,
+            prefer_cli_fixer=True,
+            prefer_cli_reviewer=True,
+            prefer_cli_integrator=True,
+            use_cli_reviewer_fallback=True,
+            use_cli_integrator_fallback=True,
+            profiles={
+                "worker_local": router.LaunchProfile("codex", ["-c", "model_provider=lms"], "gpt-oss-20b", []),
+                "worker_local_heavy": router.LaunchProfile(
+                    "codex",
+                    ["-c", "model_provider=lms"],
+                    "gpt-oss-120b",
+                    [],
+                ),
+            },
+            role_profiles={"reviewer_local": "worker_local", "integrator_local": "worker_local_heavy"},
+            lanes={
+                "feat-engine-runs": {
+                    "reviewer_local_profile": "worker_local_heavy",
+                }
+            },
+        )
+
+        profile = router._profile_for_role(cfg, "reviewer", local=True, lane="feat-engine-runs")
+
+        self.assertEqual(profile.model, "gpt-oss-120b")
+
     def test_process_reviewer_backlog_respects_cloud_kick_limit(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             packet_root = Path(tmpdir) / "packets"
@@ -135,7 +220,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             cfg = router.RouterConfig(
                 model="gpt-5.1-codex",
                 codex_cmd="codex",
-                fallback_model="gpt-oss-120b",
+                fallback_model="gpt-oss-20b",
                 fallback_codex_cmd="codex",
                 fallback_codex_args=["-c", "model_provider=lms"],
                 fallback_model_args=[],
@@ -204,7 +289,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             cfg = router.RouterConfig(
                 model="gpt-5.1-codex",
                 codex_cmd="codex",
-                fallback_model="gpt-oss-120b",
+                fallback_model="gpt-oss-20b",
                 fallback_codex_cmd="codex",
                 fallback_codex_args=["-c", "model_provider=lms"],
                 fallback_model_args=[],
