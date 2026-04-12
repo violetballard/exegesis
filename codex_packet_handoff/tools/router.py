@@ -16,12 +16,14 @@ from typing import Any, Dict, List, Optional, Tuple
 try:
     from codex_mcp_client import ApprovalPolicy, CodexMcpClient
     from git_ops import run_git
+    from git_hygiene import prune_stale_index_locks
     from log_maintenance import prune_log_dir
     from local_codex_runtime import isolated_codex_env
     from packet_progress import infer_last_submitted_sha
 except ImportError:  # pragma: no cover - test/import fallback for package execution
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
     from .git_ops import run_git
+    from .git_hygiene import prune_stale_index_locks
     from .log_maintenance import prune_log_dir
     from .local_codex_runtime import isolated_codex_env
     from .packet_progress import infer_last_submitted_sha
@@ -1199,6 +1201,7 @@ def _sync_lane_runbook_files(repo_cwd: str, workdir: Optional[str]) -> None:
             continue
 
 def fixer_prompt(lane: str, branch: str, reviewer_packet: str, workdir: Optional[str]) -> str:
+    lane_commit_helper = REPO_ROOT / "codex_packet_handoff/tools/lane_repo_commit.py"
     if workdir:
         return (
             f"You are the FEATURE FIXER for lane `{lane}`.\n"
@@ -1212,7 +1215,9 @@ def fixer_prompt(lane: str, branch: str, reviewer_packet: str, workdir: Optional
             "- Do not block on searching for reviewer metadata files; use the packet below as the source of truth.\n"
             "- Prioritize implementing numbered REQUIRED FIXES over exploratory file hunting.\n\n"
             "- Do not replace `.git`, create `.git-local`, or create shadow git repos/index/object directories.\n"
-            "- If normal `git add` / `git commit` fails, stop and report the failure instead of inventing alternate git plumbing.\n\n"
+            f"- If normal `git add` / `git commit` fails on a stale lock or index error, use the approved helper instead:\n"
+            f"  `python {lane_commit_helper} --message \\\"<commit message>\\\"`\n"
+            "- Do not invent any other git plumbing beyond that helper.\n\n"
             "Run: make scope-check; ./quality-format.sh --check; ./quality-lint.sh; ./quality-test.sh; ./typecheck-test.sh; make ci\n\n"
             "Deliverable: a new commit that addresses the numbered required fixes, plus the final HEAD SHA.\n\n"
             "Reviewer packet to satisfy:\n\n"
@@ -1229,6 +1234,8 @@ def fixer_prompt(lane: str, branch: str, reviewer_packet: str, workdir: Optional
         "- If a referenced path is missing and non-essential, skip it and continue with available evidence.\n"
         "- Do not block on searching for reviewer metadata files; use the packet below as the source of truth.\n"
         "- Prioritize implementing numbered REQUIRED FIXES over exploratory file hunting.\n\n"
+        f"If normal git commit fails on stale locks, the approved helper is:\n"
+        f"  python {lane_commit_helper} --message \"<commit message>\"\n\n"
         "Run: make scope-check; ./quality-format.sh --check; ./quality-lint.sh; ./quality-test.sh; ./typecheck-test.sh; make ci\n\n"
         "Reviewer packet to satisfy:\n\n"
         f"{reviewer_packet}\n"
@@ -1248,6 +1255,7 @@ def run_fixer(
     branch = str(lane_cfg.get("branch") or f"codex/{lane}")
     wt = _find_worktree_for_branch(repo_cwd, branch)
     _sync_lane_runbook_files(repo_cwd, wt)
+    prune_stale_index_locks(Path(repo_cwd))
     runtime_local = _runtime_mode(cfg, state) == "local_fallback" if local_mode is None else bool(local_mode)
     if not runtime_local and not cfg.prefer_cli_fixer:
         fixer_map = state.get("fixer_thread_ids") or {}

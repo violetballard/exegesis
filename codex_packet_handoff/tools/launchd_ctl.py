@@ -10,12 +10,13 @@ from pathlib import Path
 from typing import Any, Dict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-COORD_DIR = REPO_ROOT / ".codex/packet_coordinator"
 LAUNCH_AGENT_DIR = Path.home() / "Library/LaunchAgents"
 LABEL = "com.qual.packet-coordinator"
 PLIST_PATH = LAUNCH_AGENT_DIR / f"{LABEL}.plist"
+LAUNCHD_RUNTIME_DIR = Path.home() / ".codex/launchd" / LABEL
+COORD_DIR = LAUNCHD_RUNTIME_DIR
 DAEMON_CTL = REPO_ROOT / "codex_packet_handoff/tools/daemon_ctl.py"
-LAUNCHD_WRAPPER = REPO_ROOT / "codex_packet_handoff/tools/launchd_daemon.sh"
+LAUNCHD_WRAPPER = LAUNCHD_RUNTIME_DIR / "launchd_daemon.sh"
 LOG_FILE = COORD_DIR / "daemon.log"
 ERR_FILE = COORD_DIR / "daemon.err.log"
 
@@ -36,18 +37,35 @@ def _plist_dict() -> Dict[str, Any]:
     return {
         "Label": LABEL,
         "ProgramArguments": ["/bin/zsh", str(LAUNCHD_WRAPPER)],
-        "WorkingDirectory": str(REPO_ROOT),
+        "WorkingDirectory": str(LAUNCHD_RUNTIME_DIR),
         "RunAtLoad": True,
         "KeepAlive": True,
         "StandardOutPath": str(LOG_FILE),
         "StandardErrorPath": str(ERR_FILE),
-        "EnvironmentVariables": {"PYTHONUNBUFFERED": "1"},
+        "EnvironmentVariables": {
+            "PYTHONUNBUFFERED": "1",
+            "QUAL_REPO_ROOT": str(REPO_ROOT),
+        },
     }
+
+
+def _write_wrapper() -> None:
+    LAUNCHD_RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+    wrapper_text = (
+        "#!/bin/zsh\n"
+        "set -euo pipefail\n\n"
+        f"REPO_ROOT={str(REPO_ROOT)!r}\n"
+        "cd \"$REPO_ROOT\"\n"
+        f"exec /usr/bin/python3 {str(DAEMON_CTL)!r} launchd-run\n"
+    )
+    LAUNCHD_WRAPPER.write_text(wrapper_text, encoding="utf-8")
+    LAUNCHD_WRAPPER.chmod(0o755)
 
 
 def _write_plist() -> None:
     LAUNCH_AGENT_DIR.mkdir(parents=True, exist_ok=True)
     COORD_DIR.mkdir(parents=True, exist_ok=True)
+    _write_wrapper()
     with PLIST_PATH.open("wb") as handle:
         plistlib.dump(_plist_dict(), handle, sort_keys=True)
 

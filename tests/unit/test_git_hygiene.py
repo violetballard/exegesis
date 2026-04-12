@@ -71,6 +71,26 @@ class GitHygieneTests(unittest.TestCase):
             found = git_hygiene._find_metadata_dir(repo, worktree)
             self.assertEqual(found, meta)
 
+    def test_prune_stale_index_locks_removes_old_repo_and_worktree_locks(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td) / "repo"
+            (repo / ".git" / "worktrees" / "qual6").mkdir(parents=True, exist_ok=True)
+            root_lock = repo / ".git" / "index.lock"
+            wt_lock = repo / ".git" / "worktrees" / "qual6" / "index.lock"
+            root_lock.write_text("", encoding="utf-8")
+            wt_lock.write_text("", encoding="utf-8")
+            old = __import__("time").time() - 1000
+            os = __import__("os")
+            os.utime(root_lock, (old, old))
+            os.utime(wt_lock, (old, old))
+
+            removed = git_hygiene.prune_stale_index_locks(repo, min_age_seconds=300)
+
+            self.assertIn(str(root_lock), removed)
+            self.assertIn(str(wt_lock), removed)
+            self.assertFalse(root_lock.exists())
+            self.assertFalse(wt_lock.exists())
+
 
 if __name__ == "__main__":
     unittest.main()
