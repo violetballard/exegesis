@@ -4,6 +4,8 @@ This file is the operator-facing reference for the packet pipeline, daemon dashb
 
 ## Canonical Commands
 
+- Full operator dashboard: `./codex_packet_handoff/tools/status_report.sh`
+- Git hygiene sweep: `python codex_packet_handoff/tools/git_hygiene.py`
 - Filesystem truth: `python codex_packet_handoff/tools/status.py`
 - Rich dashboard: `python codex_packet_handoff/tools/daemon_monitor.py`
 - Start daemon: `python codex_packet_handoff/tools/daemon_ctl.py start`

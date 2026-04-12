@@ -19,6 +19,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+try:
+    from git_hygiene import run_hygiene
+except ImportError:  # pragma: no cover - package execution fallback
+    from .git_hygiene import run_hygiene
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(line_buffering=True, write_through=True)
 if hasattr(sys.stderr, "reconfigure"):
@@ -276,6 +281,7 @@ def _reconcile_control_plane_state() -> Dict[str, object]:
     feature_runner_removed = _reconcile_feature_runner_state()
     router_removed = _reconcile_router_state()
     worktree_reconcile = _reconcile_lane_worktrees()
+    git_hygiene = run_hygiene(REPO_ROOT)
     if feature_runner_removed:
         print(f"[reconcile] pruned stale feature-runner state: {', '.join(feature_runner_removed)}")
     for key, names in sorted(router_removed.items()):
@@ -286,10 +292,15 @@ def _reconcile_control_plane_state() -> Dict[str, object]:
         print(f"[reconcile] preserved shadow git repo at {backup}")
     for lane, names in sorted(worktree_reconcile["artifacts_removed"].items()):
         print(f"[reconcile] pruned generated worktree artifacts for {lane}: {', '.join(names)}")
+    if git_hygiene["stale_git_pids"]:
+        print(f"[reconcile] reaped stale git helpers: {', '.join(str(pid) for pid in git_hygiene['stale_git_pids'])}")
+    if git_hygiene["temp_worktrees_removed"]:
+        print(f"[reconcile] pruned stale temp worktrees: {', '.join(git_hygiene['temp_worktrees_removed'])}")
     return {
         "feature_runner_removed": feature_runner_removed,
         "router_removed": router_removed,
         "worktree_reconcile": worktree_reconcile,
+        "git_hygiene": git_hygiene,
     }
 
 

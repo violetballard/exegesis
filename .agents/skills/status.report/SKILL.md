@@ -4,6 +4,9 @@ description: "Show the real full status report for daemon, reviewer lanes, integ
 ---
 
 Run from repo root:
+- `./codex_packet_handoff/tools/status_report.sh`
+
+Manual breakdown if you need to inspect each step:
 - `python codex_packet_handoff/tools/daemon_ctl.py status`
 - `python codex_packet_handoff/tools/status.py`
 - `python codex_packet_handoff/tools/daemon_monitor.py`
