@@ -3,6 +3,7 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 from codex_packet_handoff.tools import launch_feature_lanes, router
@@ -274,6 +275,69 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         self.assertEqual(kicked, 1)
         self.assertEqual(len(kicked_lanes), 1)
 
+    def test_process_reviewer_backlog_skips_lane_that_already_advanced(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            packet_root = Path(tmpdir) / "packets"
+            lane = "feat-a"
+            lane_dir = packet_root / lane / "inbox" / "reviewer"
+            lane_dir.mkdir(parents=True, exist_ok=True)
+            (lane_dir / "R__CHANGES__codex-feat-a__1111111111111111111111111111111111111111__20260402T000000Z.md").write_text(
+                "## Verdict\nCHANGES_REQUESTED\n",
+                encoding="utf-8",
+            )
+
+            cfg = router.RouterConfig(
+                model="gpt-5.1-codex",
+                codex_cmd="codex",
+                fallback_model="gpt-oss-20b",
+                fallback_codex_cmd="codex",
+                fallback_codex_args=["-c", "model_provider=lms"],
+                fallback_model_args=[],
+                runtime_mode_default="cloud_primary",
+                auto_switch_to_local_on_quota=True,
+                auto_probe_cloud_recovery=True,
+                cloud_probe_cooldown_seconds=1800.0,
+                cloud_probe_timeout_seconds=30.0,
+                reviewer_timeout=180.0,
+                integrator_timeout=900.0,
+                max_packets_per_run=5,
+                inline_fixer=True,
+                kick_fixers_on_reviewer_backlog=True,
+                fixer_kick_timeout_seconds=8.0,
+                reviewer_fixer_retry_cooldown_seconds=120.0,
+                fixer_quota_retry_cooldown_seconds=3600.0,
+                max_cloud_fixer_kicks_per_run=1,
+                max_local_fixer_kicks_per_run=1,
+                max_cloud_fixer_jobs=1,
+                max_local_fixer_jobs=1,
+                prefer_cli_fixer=True,
+                prefer_cli_reviewer=True,
+                prefer_cli_integrator=True,
+                use_cli_reviewer_fallback=True,
+                use_cli_integrator_fallback=True,
+                profiles={},
+                role_profiles={},
+                lanes={lane: {"branch": "codex/feat-a", "enabled": True}},
+            )
+
+            def fake_ensure_lane_dirs(lane_name: str) -> Path:
+                lane_root = packet_root / lane_name
+                (lane_root / "inbox" / "feature").mkdir(parents=True, exist_ok=True)
+                (lane_root / "outbox" / "integrator").mkdir(parents=True, exist_ok=True)
+                (lane_root / "archive").mkdir(parents=True, exist_ok=True)
+                return lane_root
+
+            with mock.patch.object(router, "ensure_lane_dirs", side_effect=fake_ensure_lane_dirs), mock.patch.object(
+                router, "_latest_fixer_log", return_value=None
+            ), mock.patch.object(router, "_branch_head_sha", return_value="2222222222222222222222222222222222222222"), mock.patch.object(
+                router, "_maybe_restore_cloud", side_effect=lambda cfg, state, repo_cwd: state
+            ), mock.patch.object(router, "run_fixer") as run_fixer_mock:
+                kicked, state = router.process_reviewer_backlog(object(), cfg, {}, str(packet_root))
+
+        self.assertEqual(kicked, 0)
+        run_fixer_mock.assert_not_called()
+        self.assertEqual(state["reviewer_fixer_cursor"], {})
+
     def test_process_reviewer_backlog_respects_active_fixer_cap(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             packet_root = Path(tmpdir) / "packets"
@@ -337,6 +401,75 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         self.assertEqual(kicked, 0)
         self.assertIs(updated_state, state)
         run_fixer_mock.assert_not_called()
+
+    def test_run_fixer_detached_cli_uses_devnull_stdin_for_local_mode(self) -> None:
+        cfg = router.RouterConfig(
+            model="gpt-5.4-mini",
+            codex_cmd="codex",
+            fallback_model="unsloth/gpt-oss-20b",
+            fallback_codex_cmd="codex",
+            fallback_codex_args=["-c", "model_provider=lms"],
+            fallback_model_args=[],
+            runtime_mode_default="cloud_primary",
+            auto_switch_to_local_on_quota=True,
+            auto_probe_cloud_recovery=True,
+            cloud_probe_cooldown_seconds=300.0,
+            cloud_probe_timeout_seconds=30.0,
+            reviewer_timeout=180.0,
+            integrator_timeout=900.0,
+            max_packets_per_run=5,
+            inline_fixer=True,
+            kick_fixers_on_reviewer_backlog=True,
+            fixer_kick_timeout_seconds=8.0,
+            reviewer_fixer_retry_cooldown_seconds=120.0,
+            fixer_quota_retry_cooldown_seconds=3600.0,
+            max_cloud_fixer_kicks_per_run=2,
+            max_local_fixer_kicks_per_run=2,
+            max_cloud_fixer_jobs=2,
+            max_local_fixer_jobs=2,
+            prefer_cli_fixer=True,
+            prefer_cli_reviewer=True,
+            prefer_cli_integrator=True,
+            use_cli_reviewer_fallback=True,
+            use_cli_integrator_fallback=True,
+            profiles={
+                "worker_local": router.LaunchProfile(
+                    "codex",
+                    ["-c", "model_provider=lms"],
+                    "unsloth/gpt-oss-20b",
+                    [],
+                ),
+            },
+            role_profiles={"fixer_local": "worker_local"},
+            lanes={"feat-commands": {"branch": "codex/feat-commands"}},
+        )
+        state = {"runtime_mode": "local_fallback"}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            worktree = Path(tmp) / "wt"
+            worktree.mkdir()
+            proc = SimpleNamespace(pid=12345)
+            with (
+                mock.patch.object(router, "_find_worktree_for_branch", return_value=str(worktree)),
+                mock.patch.object(router, "_sync_lane_runbook_files"),
+                mock.patch.object(router, "_profile_for_role", return_value=cfg.profiles["worker_local"]),
+                mock.patch.object(router, "isolated_codex_env", return_value={"CODEX_HOME": "/tmp/codex"}),
+                mock.patch.object(router, "fixer_prompt", return_value="Prompt"),
+                mock.patch.object(router, "prune_log_dir"),
+                mock.patch.object(router.subprocess, "Popen", return_value=proc) as popen_mock,
+            ):
+                updated = router.run_fixer(
+                    object(),
+                    cfg,
+                    state,
+                    "feat-commands",
+                    "review packet",
+                    str(worktree),
+                    local_mode=True,
+                )
+
+        self.assertEqual(updated["fixer_fallback_jobs"]["feat-commands"]["pid"], 12345)
+        self.assertIs(popen_mock.call_args.kwargs["stdin"], router.subprocess.DEVNULL)
 
 
 if __name__ == "__main__":

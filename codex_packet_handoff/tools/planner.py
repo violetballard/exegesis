@@ -7,6 +7,11 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 try:
+    from packet_progress import infer_last_submitted_sha
+except ImportError:  # pragma: no cover - package execution fallback
+    from .packet_progress import infer_last_submitted_sha
+
+try:
     from lane_profiles import ENGINE_MILESTONE_FOCUS, default_lane_meta, engine_priority_lines
 except ImportError:  # pragma: no cover - package execution fallback
     from .lane_profiles import ENGINE_MILESTONE_FOCUS, default_lane_meta, engine_priority_lines
@@ -390,7 +395,7 @@ def main()->None:
             print(f"[planner] {lane}: unable to resolve HEAD in {active_repo}: {e}")
             continue
         prev_lane_state = lane_state.get(lane) or {}
-        last_submitted_sha = prev_lane_state.get("last_submitted_sha")
+        last_submitted_sha = infer_last_submitted_sha(PACKETS_ROOT / lane, prev_lane_state)
         # Reviewer notes should block new packets until lane HEAD advances.
         # This allows one-at-a-time re-review submissions from the feature lane.
         if has_reviewer_notes and (not last_submitted_sha or last_submitted_sha == sha):

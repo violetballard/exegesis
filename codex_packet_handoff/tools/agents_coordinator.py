@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import fnmatch
 import importlib.util
 import io
 import json
@@ -55,6 +56,7 @@ ROUTER_STATE_FILE = REPO_ROOT / ".codex/packet_router/state.json"
 FEATURE_RUNNER_ROOT = REPO_ROOT / ".codex/feature_runner"
 FEATURE_RUNNER_STATE_FILE = FEATURE_RUNNER_ROOT / "state.json"
 FEATURE_RELAUNCH_COOLDOWN_SECONDS = 60
+WORKTREE_RECOVERY_ROOT = REPO_ROOT / ".codex/worktree_recovery"
 ROUTER_JOB_STATE_KEYS = (
     "fixer_fallback_jobs",
     "local_reviewer_jobs",
@@ -70,6 +72,35 @@ DEFAULT_LANES = [
     "feat-console-shell",
     "feat-console-workflow",
 ]
+
+WORKTREE_TEMP_PATTERNS = (
+    ".git-alt*",
+    ".git-bisect*",
+    ".git-commit*",
+    ".git-feature-fixer*",
+    ".git-fix*",
+    ".git-head-tree",
+    ".git-index*",
+    ".git-local*",
+    ".git-manual-reviewfix*",
+    ".git-meta*",
+    ".git-objects*",
+    ".git-plumb*",
+    ".git-review*",
+    ".git-reviewer*",
+    ".git-reviewfix*",
+    ".git-run*",
+    ".git-sandbox*",
+    ".git-shadow*",
+    ".git-standalone-test*",
+    ".git-temp*",
+    ".lane-meta.*",
+    ".root-tree-*",
+    ".write-test",
+    "visible-temp.txt",
+    "worktree-commit*.txt",
+    "worktree-probe*.txt",
+)
 
 
 @dataclass
@@ -244,13 +275,21 @@ def _reconcile_router_state() -> Dict[str, List[str]]:
 def _reconcile_control_plane_state() -> Dict[str, object]:
     feature_runner_removed = _reconcile_feature_runner_state()
     router_removed = _reconcile_router_state()
+    worktree_reconcile = _reconcile_lane_worktrees()
     if feature_runner_removed:
         print(f"[reconcile] pruned stale feature-runner state: {', '.join(feature_runner_removed)}")
     for key, names in sorted(router_removed.items()):
         print(f"[reconcile] pruned stale router state from {key}: {', '.join(names)}")
+    for repaired in worktree_reconcile["gitdir_repaired"]:
+        print(f"[reconcile] restored shared gitdir for {repaired}")
+    for backup in worktree_reconcile["gitdir_backups"]:
+        print(f"[reconcile] preserved shadow git repo at {backup}")
+    for lane, names in sorted(worktree_reconcile["artifacts_removed"].items()):
+        print(f"[reconcile] pruned generated worktree artifacts for {lane}: {', '.join(names)}")
     return {
         "feature_runner_removed": feature_runner_removed,
         "router_removed": router_removed,
+        "worktree_reconcile": worktree_reconcile,
     }
 
 
@@ -260,6 +299,143 @@ def _all_configured_lanes() -> List[str]:
     if isinstance(lanes, dict) and lanes:
         return list(lanes.keys())
     return list(DEFAULT_LANES)
+
+
+def _lane_branch_map() -> Dict[str, str]:
+    cfg = load_json(ROUTER_CONFIG_FILE, {})
+    lanes = cfg.get("lanes") if isinstance(cfg, dict) else {}
+    if not isinstance(lanes, dict):
+        return {lane: f"codex/{lane}" for lane in DEFAULT_LANES}
+    return {
+        str(lane): str((lane_cfg or {}).get("branch") or f"codex/{lane}")
+        for lane, lane_cfg in lanes.items()
+    }
+
+
+def _git_worktree_branch_map() -> Dict[str, str]:
+    proc = subprocess.run(
+        ["git", "worktree", "list", "--porcelain"],
+        cwd=str(REPO_ROOT),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        return {}
+    out: Dict[str, str] = {}
+    current_worktree: Optional[str] = None
+    current_branch: Optional[str] = None
+    for raw in proc.stdout.splitlines():
+        line = raw.strip()
+        if not line:
+            if current_worktree and current_branch:
+                out[current_branch] = current_worktree
+            current_worktree = None
+            current_branch = None
+            continue
+        if line.startswith("worktree "):
+            current_worktree = line.split(" ", 1)[1].strip()
+        elif line.startswith("branch "):
+            current_branch = line.split(" ", 1)[1].strip()
+    if current_worktree and current_branch:
+        out[current_branch] = current_worktree
+    return out
+
+
+def _shared_gitdir_for_worktree(worktree: Path) -> Optional[Path]:
+    base = REPO_ROOT / ".git" / "worktrees"
+    if not base.exists():
+        return None
+    target = str(worktree / ".git")
+    for entry in base.iterdir():
+        gitdir_file = entry / "gitdir"
+        try:
+            content = gitdir_file.read_text().strip()
+        except Exception:
+            continue
+        if content == target:
+            return entry
+    return None
+
+
+def _repair_shadow_gitdir(worktree: Path, lane: str) -> Tuple[bool, Optional[str]]:
+    git_file = worktree / ".git"
+    try:
+        content = git_file.read_text().strip()
+    except Exception:
+        return False, None
+    if ".git-local" not in content:
+        return False, None
+    shared_gitdir = _shared_gitdir_for_worktree(worktree)
+    if shared_gitdir is None:
+        return False, None
+    shadow_gitdir = content.split("gitdir:", 1)[1].strip() if "gitdir:" in content else ""
+    backup_path: Optional[str] = None
+    if shadow_gitdir:
+        shadow_path = Path(shadow_gitdir)
+        if shadow_path.exists():
+            WORKTREE_RECOVERY_ROOT.mkdir(parents=True, exist_ok=True)
+            stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+            target = WORKTREE_RECOVERY_ROOT / f"{lane}__git-local__{stamp}"
+            shutil.move(str(shadow_path), target)
+            backup_path = str(target)
+    git_file.write_text(f"gitdir: {shared_gitdir}\n")
+    return True, backup_path
+
+
+def _prune_generated_worktree_artifacts(worktree: Path) -> List[str]:
+    removed: List[str] = []
+    for child in sorted(worktree.iterdir(), key=lambda p: p.name):
+        name = child.name
+        if not any(fnmatch.fnmatch(name, pattern) for pattern in WORKTREE_TEMP_PATTERNS):
+            continue
+        try:
+            if child.is_dir() and not child.is_symlink():
+                shutil.rmtree(child)
+            else:
+                child.unlink()
+            removed.append(name)
+        except FileNotFoundError:
+            continue
+        except Exception:
+            continue
+    packets_dir = worktree / ".codex" / "packets"
+    if packets_dir.exists():
+        try:
+            shutil.rmtree(packets_dir)
+            removed.append(".codex/packets")
+        except Exception:
+            pass
+    return removed
+
+
+def _reconcile_lane_worktrees() -> Dict[str, object]:
+    repaired: List[str] = []
+    backups: List[str] = []
+    removed: Dict[str, List[str]] = {}
+    branch_map = _lane_branch_map()
+    worktree_map = _git_worktree_branch_map()
+    for lane, branch in branch_map.items():
+        worktree_path = worktree_map.get(f"refs/heads/{branch}") or worktree_map.get(branch)
+        if not worktree_path:
+            continue
+        worktree = Path(worktree_path)
+        if not worktree.exists():
+            continue
+        did_repair, backup = _repair_shadow_gitdir(worktree, lane)
+        if did_repair:
+            repaired.append(str(worktree))
+        if backup:
+            backups.append(backup)
+        pruned = _prune_generated_worktree_artifacts(worktree)
+        if pruned:
+            removed[lane] = pruned
+    return {
+        "gitdir_repaired": repaired,
+        "gitdir_backups": backups,
+        "artifacts_removed": removed,
+    }
 
 
 def _enabled_lanes() -> List[str]:

@@ -17,10 +17,12 @@ try:
     from codex_mcp_client import ApprovalPolicy, CodexMcpClient
     from log_maintenance import prune_log_dir
     from local_codex_runtime import isolated_codex_env
+    from packet_progress import infer_last_submitted_sha
 except ImportError:  # pragma: no cover - test/import fallback for package execution
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
     from .log_maintenance import prune_log_dir
     from .local_codex_runtime import isolated_codex_env
+    from .packet_progress import infer_last_submitted_sha
 
 PACKETS_ROOT = Path(".codex/packets/lanes")
 ROUTER_ROOT = Path(".codex/packet_router")
@@ -291,6 +293,23 @@ def list_new(lane_dir: Path, last_seen: Optional[str]) -> List[Path]:
 def _packet_sha(name: str) -> str:
     m = PACKET_SHA_RE.search(name or "")
     return (m.group("sha") if m else "").lower()
+
+
+def _branch_head_sha(repo_cwd: str, branch: str) -> str:
+    try:
+        proc = subprocess.run(
+            ["git", "rev-parse", branch],
+            cwd=repo_cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            check=False,
+        )
+    except Exception:
+        return ""
+    if proc.returncode != 0:
+        return ""
+    return (proc.stdout or "").strip().lower()
 
 
 def _latest_fixer_log(lane: str) -> Optional[Path]:
@@ -668,6 +687,7 @@ def _run_cli_codex(
         cwd=cwd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
+        stdin=subprocess.DEVNULL,
         text=True,
         timeout=timeout,
         env=env,
@@ -1189,6 +1209,8 @@ def fixer_prompt(lane: str, branch: str, reviewer_packet: str, workdir: Optional
             "- If a referenced path is missing and non-essential, skip it and continue with available evidence.\n"
             "- Do not block on searching for reviewer metadata files; use the packet below as the source of truth.\n"
             "- Prioritize implementing numbered REQUIRED FIXES over exploratory file hunting.\n\n"
+            "- Do not replace `.git`, create `.git-local`, or create shadow git repos/index/object directories.\n"
+            "- If normal `git add` / `git commit` fails, stop and report the failure instead of inventing alternate git plumbing.\n\n"
             "Run: make scope-check; ./quality-format.sh --check; ./quality-lint.sh; ./quality-test.sh; ./typecheck-test.sh; make ci\n\n"
             "Deliverable: a new commit that addresses the numbered required fixes, plus the final HEAD SHA.\n\n"
             "Reviewer packet to satisfy:\n\n"
@@ -1278,6 +1300,7 @@ def run_fixer(
             cwd=(wt or repo_cwd),
             stdout=lf,
             stderr=subprocess.STDOUT,
+            stdin=subprocess.DEVNULL,
             text=True,
             env=env,
         )
@@ -1706,6 +1729,12 @@ def process_reviewer_backlog(
                     )
                 continue
         newest_note = notes[-1]
+        branch = str((cfg.lanes.get(lane, {}) or {}).get("branch") or f"codex/{lane}")
+        head_sha = _branch_head_sha(repo_cwd, branch)
+        last_submitted_sha = infer_last_submitted_sha(lane_dir)
+        if head_sha and last_submitted_sha and head_sha != last_submitted_sha.lower():
+            print(f"[router] {lane}: branch advanced past reviewer note; waiting for planner re-emit instead of kicking fixer")
+            continue
         if cursor.get(lane) == newest_note.name:
             last_kick = float(retry_ts.get(lane, 0) or 0)
             # Backward compatibility: if timestamp missing, allow one immediate retry.

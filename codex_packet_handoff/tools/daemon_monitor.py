@@ -13,6 +13,11 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List
 
+try:
+    from packet_progress import infer_last_submitted_sha
+except ImportError:  # pragma: no cover - package execution fallback
+    from .packet_progress import infer_last_submitted_sha
+
 PACKETS_ROOT = Path(".codex/packets/lanes")
 COORD_STATE = Path(".codex/packet_coordinator/state.json")
 ROUTER_STATE = Path(".codex/packet_router/state.json")
@@ -314,7 +319,7 @@ def _collect_lane_totals() -> Dict[str, int]:
         if c["review"] <= 0:
             continue
         head = _branch_head(branch_map.get(lane, f"codex/{lane}"))
-        last_sub = str(((planner_lanes.get(lane) or {}).get("last_submitted_sha") or ""))[:8]
+        last_sub = str(infer_last_submitted_sha(lane_dir, planner_lanes.get(lane, {})) or "")[:8]
         if head and last_sub and head != last_sub:
             totals["ready_for_reemit"] += 1
         else:

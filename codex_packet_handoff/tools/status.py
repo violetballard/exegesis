@@ -24,6 +24,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
 
+try:
+    from packet_progress import infer_last_submitted_sha
+except ImportError:  # pragma: no cover - package execution fallback
+    from .packet_progress import infer_last_submitted_sha
+
 ROOT = Path('.codex/packets/lanes')
 CONFIG_FILE = Path('.codex/packet_router/config.json')
 PLANNER_STATE_FILE = Path('.codex/packet_planner/state.json')
@@ -123,7 +128,7 @@ def scan_lane(lane_dir: Path, lane_cfg: Dict, planner_lane_state: Dict) -> LaneS
     integ = sorted((lane_dir/'archive').glob('INTEGRATOR__*.md'))
     branch = (lane_cfg or {}).get("branch")
     head_sha = _branch_head_sha(branch)
-    last_submitted_sha = (planner_lane_state or {}).get("last_submitted_sha")
+    last_submitted_sha = infer_last_submitted_sha(lane_dir, planner_lane_state)
     if not bool((lane_cfg or {}).get("enabled", True)):
         state, note = ("disabled", "lane disabled in router config")
     else:
