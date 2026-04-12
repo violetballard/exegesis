@@ -288,6 +288,47 @@ class ScopeCheckMigrationTests(unittest.TestCase):
 
         self.assertFalse(run_mock.called)
 
+    def test_compute_changed_files_falls_back_to_branch_ref_diff_tree(self) -> None:
+        from codex_packet_handoff.tools import planner as planner_mod
+
+        calls: list[tuple[str, str, int]] = []
+
+        def fake_run(cmd: str, cwd: str, timeout: int, env: dict[str, str] | None = None) -> tuple[int, str]:
+            calls.append((cmd, cwd, timeout))
+            if "git diff --name-only" in cmd:
+                return 124, "[TIMEOUT]"
+            if "git diff-tree --no-commit-id --name-only -r codex/feat-context-storage" in cmd:
+                return 0, "THREAD_PACKET.md\n.codex/lane_meta/feat-context-storage.json\n"
+            raise AssertionError(f"unexpected command: {cmd}")
+
+        with patch.object(planner_mod, "run", side_effect=fake_run):
+            files = planner_mod.compute_changed_files(
+                str(self.root),
+                "codex/integrator",
+                head_ref="codex/feat-context-storage",
+            )
+
+        self.assertEqual(
+            files,
+            ["THREAD_PACKET.md", ".codex/lane_meta/feat-context-storage.json"],
+        )
+        self.assertEqual(
+            calls[0],
+            (
+                "git diff --name-only codex/integrator...codex/feat-context-storage",
+                str(self.root),
+                planner_mod.CHANGED_FILES_DIFF_TIMEOUT,
+            ),
+        )
+        self.assertEqual(
+            calls[1],
+            (
+                "git diff-tree --no-commit-id --name-only -r codex/feat-context-storage",
+                str(self.root),
+                planner_mod.CHANGED_FILES_FALLBACK_TIMEOUT,
+            ),
+        )
+
     def test_scope_check_blocks_engine_work_on_console_shell_lane(self) -> None:
         proc = self._commit_on_branch(
             "codex/feat-console-shell",

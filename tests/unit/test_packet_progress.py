@@ -45,6 +45,42 @@ class PacketProgressTests(unittest.TestCase):
 
         self.assertEqual(sha, "3333333333333333333333333333333333333333")
 
+    def test_infer_last_gate_results_recovers_from_latest_feature_packet(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            lane_dir = Path(tmpdir)
+            feature_dir = lane_dir / "archive"
+            feature_dir.mkdir(parents=True, exist_ok=True)
+            packet = (
+                feature_dir
+                / "F__codex-feat-a__3333333333333333333333333333333333333333__20260403T000000Z.md"
+            )
+            packet.write_text(
+                "\n".join(
+                    [
+                        "# Feature → Review Packet",
+                        "",
+                        "## Commands run and outcomes",
+                        "- `make scope-check`: PASS",
+                        "- `./quality-test.sh`: FAIL (1)",
+                        "",
+                        "## Risks / blockers",
+                        "- Risk: `MEDIUM`",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            gate_results = packet_progress.infer_last_gate_results(
+                lane_dir,
+                {},
+                sha="3333333333333333333333333333333333333333",
+            )
+
+        self.assertEqual(
+            gate_results,
+            [("make scope-check", 0), ("./quality-test.sh", 1)],
+        )
+
 
 class WorktreeCleanupTests(unittest.TestCase):
     def test_repair_shadow_gitdir_repoints_worktree_and_preserves_backup(self) -> None:

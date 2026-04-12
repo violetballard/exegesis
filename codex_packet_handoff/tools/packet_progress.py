@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Mapping, Optional
+from typing import List, Mapping, Optional, Tuple
 
 PACKET_SHA_RE = re.compile(r"__([0-9a-f]{40})__\d{8}T\d{6}Z\.md$")
+GATE_RESULT_RE = re.compile(r"^- `(?P<cmd>.+)`: (?P<status>PASS|FAIL \((?P<rc>-?\d+)\))$")
 
 
 def packet_sha_from_name(name: str) -> Optional[str]:
@@ -43,3 +44,84 @@ def infer_last_submitted_sha(
         if sha:
             return sha
     return None
+
+
+def _normalize_gate_results(raw: object) -> List[Tuple[str, int]]:
+    out: List[Tuple[str, int]] = []
+    if not isinstance(raw, list):
+        return out
+    for item in raw:
+        if not isinstance(item, (list, tuple)) or len(item) != 2:
+            continue
+        cmd = str(item[0]).strip()
+        if not cmd:
+            continue
+        try:
+            rc = int(item[1])
+        except Exception:
+            continue
+        out.append((cmd, rc))
+    return out
+
+
+def _parse_gate_results_from_packet(packet: Path) -> List[Tuple[str, int]]:
+    try:
+        lines = packet.read_text(encoding="utf-8").splitlines()
+    except Exception:
+        return []
+    in_section = False
+    results: List[Tuple[str, int]] = []
+    for line in lines:
+        if line.strip() == "## Commands run and outcomes":
+            in_section = True
+            continue
+        if in_section and line.startswith("## "):
+            break
+        if not in_section:
+            continue
+        match = GATE_RESULT_RE.match(line.strip())
+        if not match:
+            continue
+        cmd = match.group("cmd").strip()
+        rc_text = match.group("rc")
+        rc = 0 if rc_text is None else int(rc_text)
+        results.append((cmd, rc))
+    return results
+
+
+def infer_last_gate_results(
+    lane_dir: Optional[Path],
+    planner_lane_state: Optional[Mapping[str, object]] = None,
+    *,
+    sha: Optional[str] = None,
+) -> List[Tuple[str, int]]:
+    state_results = None
+    if isinstance(planner_lane_state, Mapping):
+        state_results = planner_lane_state.get("last_gate_results")
+    normalized = _normalize_gate_results(state_results)
+    if normalized:
+        return normalized
+    if lane_dir is None:
+        return []
+
+    candidates: List[Path] = []
+    for rel in ("inbox/feature", "archive"):
+        directory = lane_dir / rel
+        try:
+            packets = sorted(
+                directory.glob("F__*.md"),
+                key=lambda path: path.stat().st_mtime,
+                reverse=True,
+            )
+        except Exception:
+            continue
+        for packet in packets:
+            packet_sha = packet_sha_from_name(packet.name)
+            if sha and packet_sha != sha:
+                continue
+            candidates.append(packet)
+    for packet in candidates:
+        parsed = _parse_gate_results_from_packet(packet)
+        if parsed:
+            return parsed
+    return []

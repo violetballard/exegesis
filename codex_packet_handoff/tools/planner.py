@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 try:
-    from packet_progress import infer_last_submitted_sha
+    from packet_progress import infer_last_gate_results, infer_last_submitted_sha
 except ImportError:  # pragma: no cover - package execution fallback
-    from .packet_progress import infer_last_submitted_sha
+    from .packet_progress import infer_last_gate_results, infer_last_submitted_sha
 
 try:
     from lane_profiles import ENGINE_MILESTONE_FOCUS, default_lane_meta, engine_priority_lines
@@ -36,6 +36,9 @@ REQUIRED_GATES_DEFAULT = [
     "./typecheck-test.sh",
     "make ci",
 ]
+
+CHANGED_FILES_DIFF_TIMEOUT = 8
+CHANGED_FILES_FALLBACK_TIMEOUT = 8
 
 LANE_OWNED_PATHS = {
     "feat-commands": ["src/qual/commands/**"],
@@ -230,9 +233,33 @@ def apply_meta_defaults(meta: Json, missing: List[str], lane: str) -> Json:
         out["scope_goal"] = "(missing)"
     return out
 
-def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
-    out = git(f"diff --name-only {base_ref}...HEAD", cwd=cwd)
+def _parse_changed_files(out: str) -> List[str]:
     return [ln.strip() for ln in out.splitlines() if ln.strip()]
+
+
+def compute_changed_files(cwd: str, base_ref: str, *, head_ref: str = "HEAD") -> List[str]:
+    rc, out = run(
+        f"git diff --name-only {shlex.quote(base_ref)}...{shlex.quote(head_ref)}",
+        cwd=cwd,
+        timeout=CHANGED_FILES_DIFF_TIMEOUT,
+    )
+    files = _parse_changed_files(out)
+    if rc == 0:
+        return files
+    fallback_cmds = (
+        f"git diff-tree --no-commit-id --name-only -r {shlex.quote(head_ref)}",
+        f"git show --pretty='' --name-only {shlex.quote(head_ref)}",
+    )
+    for cmd in fallback_cmds:
+        fallback_rc, fallback_out = run(cmd, cwd=cwd, timeout=CHANGED_FILES_FALLBACK_TIMEOUT)
+        fallback_files = _parse_changed_files(fallback_out)
+        if fallback_rc == 0 and fallback_files:
+            print(
+                f"[planner] changed-files fallback for {cwd}: "
+                f"{cmd} (base diff rc={rc}, head_ref={head_ref})"
+            )
+            return fallback_files
+    raise RuntimeError(out)
 
 
 def run_scope_check(cwd: str, env: Optional[Dict[str, str]] = None) -> Tuple[int, str]:
@@ -378,21 +405,20 @@ def main()->None:
         has_reviewer_notes = lane_has_reviewer_notes(lane)
         branch=str((lcfg or {}).get("branch") or f"codex/{lane}")
         lane_repo = find_worktree_for_branch(repo, branch)
+        active_repo: Optional[str] = None
         if lane_repo and is_git_repo(lane_repo):
             active_repo = lane_repo
-        else:
-            # Do not switch branches in the main repo from planner automation.
-            # Lane automation is worktree-scoped; missing/stale worktrees should be fixed
-            # out-of-band without mutating main checkout state.
-            if lane_repo and not is_git_repo(lane_repo):
-                print(f"[planner] {lane}: stale non-git worktree for {branch} at {lane_repo}; skipping")
-            else:
-                print(f"[planner] {lane}: no usable worktree for {branch}; skipping")
-            continue
+        elif lane_repo and not is_git_repo(lane_repo):
+            print(f"[planner] {lane}: stale non-git worktree for {branch} at {lane_repo}; considering branch-ref fallback")
+
         try:
-            sha=git("rev-parse HEAD", cwd=active_repo)
+            sha = git(
+                f"rev-parse {shlex.quote('HEAD' if active_repo else branch)}",
+                cwd=active_repo or repo,
+            )
         except Exception as e:
-            print(f"[planner] {lane}: unable to resolve HEAD in {active_repo}: {e}")
+            where = active_repo or repo
+            print(f"[planner] {lane}: unable to resolve {'HEAD' if active_repo else branch} in {where}: {e}")
             continue
         prev_lane_state = lane_state.get(lane) or {}
         last_submitted_sha = infer_last_submitted_sha(PACKETS_ROOT / lane, prev_lane_state)
@@ -403,13 +429,23 @@ def main()->None:
         if last_submitted_sha == sha:
             continue
         fast_reemit = bool(has_reviewer_notes and last_submitted_sha and last_submitted_sha != sha)
+        if not active_repo and not fast_reemit:
+            # Do not switch branches in the main repo from planner automation.
+            # Lane automation is worktree-scoped; missing/stale worktrees should be fixed
+            # out-of-band without mutating main checkout state.
+            print(f"[planner] {lane}: no usable worktree for {branch}; skipping")
+            continue
         meta=merge_lane_meta_defaults(lane, read_lane_meta(lane))
         miss=validate_meta(meta)
         if miss:
             print(f"[planner] {lane}: lane_meta missing: {miss} (using auto defaults)")
             meta = apply_meta_defaults(meta, miss, lane)
         try:
-            files=compute_changed_files(active_repo, base_ref)
+            files=compute_changed_files(
+                active_repo or repo,
+                base_ref,
+                head_ref="HEAD" if active_repo else branch,
+            )
         except Exception as e:
             print(f"[planner] {lane}: diff failed vs {base_ref}: {e}")
             continue
@@ -417,14 +453,27 @@ def main()->None:
         if bool(meta.get("shared_file_exception")):
             env["SCOPE_ALLOW_SHARED"]="1"
         if fast_reemit:
-            carried = _normalize_gate_results(prev_lane_state.get("last_gate_results"))
+            carried = infer_last_gate_results(
+                PACKETS_ROOT / lane,
+                prev_lane_state,
+                sha=last_submitted_sha,
+            )
             if carried:
-                print(f"[planner] {lane}: fast re-emit from advanced HEAD after reviewer notes (reuse prior gate results)")
+                if active_repo:
+                    print(f"[planner] {lane}: fast re-emit from advanced HEAD after reviewer notes (reuse prior gate results)")
+                else:
+                    print(
+                        f"[planner] {lane}: fast re-emit from advanced branch ref {branch} "
+                        "(reuse prior gate results; no usable worktree)"
+                    )
                 results = carried
             else:
                 print(f"[planner] {lane}: fast re-emit has no prior gate results; rerunning local gates")
                 fast_reemit = False
         if not fast_reemit:
+            if not active_repo:
+                print(f"[planner] {lane}: no usable worktree for {branch}; cannot rerun local gates")
+                continue
             scope_rc,scope_out=run_scope_check(active_repo, env=env)
             if scope_rc!=0:
                 print(f"[planner] {lane}: scope-check FAIL:\n{scope_out}")
