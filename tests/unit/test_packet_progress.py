@@ -117,6 +117,49 @@ class PacketProgressTests(unittest.TestCase):
             ["THREAD_PACKET.md", ".codex/lane_meta/feat-a.json"],
         )
 
+    def test_infer_last_changed_files_reads_reviewed_and_metadata_sections(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            lane_dir = Path(tmpdir)
+            feature_dir = lane_dir / "archive"
+            feature_dir.mkdir(parents=True, exist_ok=True)
+            packet = (
+                feature_dir
+                / "F__codex-feat-a__4444444444444444444444444444444444444444__20260403T010000Z.md"
+            )
+            packet.write_text(
+                "\n".join(
+                    [
+                        "# Feature → Review Packet",
+                        "",
+                        "## Files changed",
+                        "### Reviewed implementation files",
+                        "- `src/qual/retrieval/service.py`",
+                        "- `tests/unit/test_unified_retrieval.py`",
+                        "### Metadata-only handoff files",
+                        "- `THREAD_PACKET.md`",
+                        "",
+                        "## Commands run and outcomes",
+                        "- `make scope-check`: PASS",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            changed_files = packet_progress.infer_last_changed_files(
+                lane_dir,
+                {},
+                sha="4444444444444444444444444444444444444444",
+            )
+
+        self.assertEqual(
+            changed_files,
+            [
+                "src/qual/retrieval/service.py",
+                "tests/unit/test_unified_retrieval.py",
+                "THREAD_PACKET.md",
+            ],
+        )
+
 
 class WorktreeCleanupTests(unittest.TestCase):
     def test_repair_shadow_gitdir_repoints_worktree_and_preserves_backup(self) -> None:

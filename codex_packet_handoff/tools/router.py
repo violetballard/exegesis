@@ -34,6 +34,7 @@ STATE_FILE = ROUTER_ROOT / "state.json"
 CONFIG_FILE = ROUTER_ROOT / "config.json"
 CURSOR_FILE = ROUTER_ROOT / "cursor.json"
 LEASE_FILE = ROUTER_ROOT / "lease.json"
+REPO_ROOT = Path(__file__).resolve().parents[2]
 LOCAL_CLI_WORKER = Path(__file__).resolve().with_name("local_cli_worker.py")
 LOCAL_JOB_ROOT = ROUTER_ROOT / "local_jobs"
 

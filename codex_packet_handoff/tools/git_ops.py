@@ -161,12 +161,19 @@ def commit_paths_via_fast_import(
     message: str,
     paths: Iterable[str | Path],
     deleted_paths: Iterable[str | Path] = (),
-    ref: str = "refs/heads/main",
+    ref: str | None = None,
 ) -> str:
     cwd = repo_root.resolve()
     top_level = _git_top_level(cwd)
     common_git_dir = _git_common_dir(cwd)
     lock_root = _git_lock_root(cwd)
+    if ref is None:
+        ref = require_git_output(
+            ["symbolic-ref", "--quiet", "HEAD"],
+            cwd=top_level,
+            repo_root=lock_root,
+            acquire_write_lock=False,
+        )
     relpaths = _normalize_repo_relpaths(top_level, paths)
     deleted_relpaths = _normalize_repo_relpaths(top_level, deleted_paths)
     with git_write_lock(lock_root):

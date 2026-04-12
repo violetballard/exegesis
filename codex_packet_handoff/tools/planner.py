@@ -360,9 +360,36 @@ def run_required_gate(cmd: str, cwd: str, env: Optional[Dict[str, str]] = None) 
 
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
+    def str_list(value: Any) -> List[str]:
+        if isinstance(value, list):
+            return [str(item).strip() for item in value if str(item).strip()]
+        if isinstance(value, str):
+            stripped = value.strip()
+            return [stripped] if stripped else []
+        if value is None:
+            return []
+        stripped = str(value).strip()
+        return [stripped] if stripped else []
     lines=[]
+    reviewed_commit = str(meta.get("reviewed_commit") or meta.get("reviewed_head_sha") or "").strip()
+    reviewed_range = str(meta.get("reviewed_commit_range") or meta.get("reviewed_range") or "").strip()
+    packet_refresh_role = str(meta.get("packet_head_role") or meta.get("packet_type") or "").strip()
+    metadata_only_note = str(meta.get("metadata_only_note") or "").strip()
     lines += ["# Feature → Review Packet",""]
-    lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
+    lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`"]
+    if reviewed_commit and reviewed_commit != sha:
+        lines += [f"- Commit: `{reviewed_commit}`", f"- Packet refresh commit: `{sha}`"]
+        if packet_refresh_role:
+            lines += [f"- Packet refresh role: `{packet_refresh_role}`"]
+        if reviewed_range:
+            lines += [f"- Reviewed implementation range: `{reviewed_range}`"]
+    else:
+        lines += [f"- Commit: `{sha}`"]
+        if packet_refresh_role:
+            lines += [f"- Packet role: `{packet_refresh_role}`"]
+    lines += [""]
+    if metadata_only_note:
+        lines += ["## Packet traceability note", f"- {metadata_only_note}", ""]
     lines += ["## Current program focus", f"- {ENGINE_MILESTONE_FOCUS}", ""]
     lines += ["## Current engine execution order"] + [f"- {line}" for line in engine_priority_lines()] + [""]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
@@ -376,9 +403,9 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     if do_not_spend_time_on:
         lines += ["## Do not spend time on"] + [f"- {item}" for item in do_not_spend_time_on] + [""]
     lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
-    scope_completed = meta.get("scope_completed")
-    if isinstance(scope_completed, list) and scope_completed:
-        lines += ["## Scope completed"] + [f"- {str(item).strip()}" for item in scope_completed if str(item).strip()] + [""]
+    scope_completed = str_list(meta.get("scope_completed"))
+    if scope_completed:
+        lines += ["## Scope completed"] + [f"- {item}" for item in scope_completed] + [""]
     if str(meta.get("kickoff_budget_note","")).strip():
         lines += ["## Kickoff budget/limits compliance", f"- {meta['kickoff_budget_note'].strip()}", ""]
     if str(meta.get("approved_exception_note","")).strip():
@@ -387,7 +414,15 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     tasks=list(meta.get("tasks_completed") or [])
     lines += [f"{i+1}. {str(t).strip()}" for i,t in enumerate(tasks)] if tasks else ["1. (missing)"]
     lines += ["","## Files changed"]
-    lines += [f"- `{f}`" for f in files] if files else ["- (none detected)"]
+    reviewed_files = str_list(meta.get("reviewed_files"))
+    metadata_only_files = str_list(meta.get("metadata_only_files"))
+    if reviewed_files or metadata_only_files:
+        if reviewed_files:
+            lines += ["### Reviewed implementation files"] + [f"- `{f}`" for f in reviewed_files]
+        if metadata_only_files:
+            lines += ["### Metadata-only handoff files"] + [f"- `{f}`" for f in metadata_only_files]
+    else:
+        lines += [f"- `{f}`" for f in files] if files else ["- (none detected)"]
     lines += ["","## Commands run and outcomes"]
     for cmd,rc in gate_results:
         lines.append(f"- `{cmd}`: {rcstr(rc)}")
