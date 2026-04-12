@@ -20,8 +20,10 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 try:
+    from git_ops import run_git
     from git_hygiene import run_hygiene
 except ImportError:  # pragma: no cover - package execution fallback
+    from .git_ops import run_git
     from .git_hygiene import run_hygiene
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -68,6 +70,10 @@ ROUTER_JOB_STATE_KEYS = (
     "local_integrator_jobs",
     "cloud_integrator_jobs",
 )
+MANAGED_WORKTREE_ROOT = Path.home() / ".codex/worktrees"
+WORKTREE_HEALTH_TIMEOUT_SECONDS = 15.0
+WORKTREE_REBUILD_TIMEOUT_SECONDS = 180.0
+GIT_HYGIENE_ALERT_THRESHOLD = 3
 DEFAULT_LANES = [
     "feat-context-storage",
     "feat-commands",
@@ -277,11 +283,28 @@ def _reconcile_router_state() -> Dict[str, List[str]]:
     return removed
 
 
-def _reconcile_control_plane_state() -> Dict[str, object]:
+def _update_git_hygiene_status(coordinator_state: Dict[str, object], git_hygiene: Dict[str, object]) -> Dict[str, object]:
+    status = dict(coordinator_state.get("git_hygiene_status") or {})
+    stale_count = len(list(git_hygiene.get("stale_git_pids") or []))
+    consecutive = int(status.get("consecutive_cycles", 0) or 0) + 1 if stale_count else 0
+    status.update(
+        {
+            "last_stale_count": stale_count,
+            "consecutive_cycles": consecutive,
+            "last_checked_at": utc_now(),
+            "alert": "persistent_stale_git_helpers" if consecutive >= GIT_HYGIENE_ALERT_THRESHOLD else "",
+        }
+    )
+    coordinator_state["git_hygiene_status"] = status
+    return status
+
+
+def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict[str, object]:
     feature_runner_removed = _reconcile_feature_runner_state()
     router_removed = _reconcile_router_state()
     worktree_reconcile = _reconcile_lane_worktrees()
     git_hygiene = run_hygiene(REPO_ROOT)
+    git_hygiene_status = _update_git_hygiene_status(coordinator_state, git_hygiene)
     if feature_runner_removed:
         print(f"[reconcile] pruned stale feature-runner state: {', '.join(feature_runner_removed)}")
     for key, names in sorted(router_removed.items()):
@@ -296,11 +319,25 @@ def _reconcile_control_plane_state() -> Dict[str, object]:
         print(f"[reconcile] reaped stale git helpers: {', '.join(str(pid) for pid in git_hygiene['stale_git_pids'])}")
     if git_hygiene["temp_worktrees_removed"]:
         print(f"[reconcile] pruned stale temp worktrees: {', '.join(git_hygiene['temp_worktrees_removed'])}")
+    for lane, reason in sorted(worktree_reconcile["health_failures"].items()):
+        print(f"[reconcile] unhealthy worktree for {lane}: {reason}")
+    for lane, rebuilt_path in sorted(worktree_reconcile["rebuilt"].items()):
+        print(f"[reconcile] rebuilt lane worktree for {lane}: {rebuilt_path}")
+    for lane, backup_path in sorted(worktree_reconcile["rebuild_backups"].items()):
+        print(f"[reconcile] backed up unhealthy worktree for {lane}: {backup_path}")
+    for lane, reason in sorted(worktree_reconcile["rebuild_failures"].items()):
+        print(f"[reconcile] worktree rebuild failed for {lane}: {reason}")
+    if git_hygiene_status["alert"]:
+        print(
+            "[warning] repeated stale git helper cleanup detected; "
+            "the parent process is likely leaking git children and launchd isolation should be preferred"
+        )
     return {
         "feature_runner_removed": feature_runner_removed,
         "router_removed": router_removed,
         "worktree_reconcile": worktree_reconcile,
         "git_hygiene": git_hygiene,
+        "git_hygiene_status": git_hygiene_status,
     }
 
 
@@ -324,14 +361,7 @@ def _lane_branch_map() -> Dict[str, str]:
 
 
 def _git_worktree_branch_map() -> Dict[str, str]:
-    proc = subprocess.run(
-        ["git", "worktree", "list", "--porcelain"],
-        cwd=str(REPO_ROOT),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        text=True,
-        check=False,
-    )
+    proc = run_git(["worktree", "list", "--porcelain"], cwd=REPO_ROOT, timeout=120)
     if proc.returncode != 0:
         return {}
     out: Dict[str, str] = {}
@@ -421,12 +451,86 @@ def _prune_generated_worktree_artifacts(worktree: Path) -> List[str]:
     return removed
 
 
+def _lane_has_active_router_job(lane: str) -> bool:
+    state = load_json(ROUTER_STATE_FILE, {})
+    if not isinstance(state, dict):
+        return False
+    for key in ROUTER_JOB_STATE_KEYS:
+        jobs = state.get(key)
+        if not isinstance(jobs, dict):
+            continue
+        for job_name, job in jobs.items():
+            if not isinstance(job, dict):
+                continue
+            if str(job_name) != lane and str(job.get("lane") or "") != lane:
+                continue
+            if _job_result_exists(job):
+                return True
+            pid = int(job.get("pid") or 0)
+            if _pid_alive(pid):
+                return True
+    return False
+
+
+def _is_managed_lane_worktree(worktree: Path) -> bool:
+    try:
+        worktree.resolve().relative_to(MANAGED_WORKTREE_ROOT.resolve())
+        return True
+    except Exception:
+        return False
+
+
+def _probe_worktree_health(worktree: Path) -> Optional[str]:
+    probes = (
+        (["rev-parse", "--is-inside-work-tree"], "not-a-repo"),
+        (["rev-parse", "HEAD"], "head-unreadable"),
+        (["status", "--short", "--branch", "--untracked-files=no"], "status-unreadable"),
+    )
+    for args, label in probes:
+        result = run_git(args, cwd=worktree, timeout=WORKTREE_HEALTH_TIMEOUT_SECONDS)
+        if result.returncode != 0:
+            reason = result.stdout.strip().splitlines()[-1] if result.stdout.strip() else label
+            return f"{label}: {reason}"
+    return None
+
+
+def _rebuild_lane_worktree(lane: str, branch: str, worktree: Path) -> Tuple[bool, Optional[str], Optional[str]]:
+    metadata_dir = _shared_gitdir_for_worktree(worktree)
+    backup_path: Optional[str] = None
+    if worktree.exists():
+        WORKTREE_RECOVERY_ROOT.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        backup = WORKTREE_RECOVERY_ROOT / f"{lane}__worktree__{stamp}"
+        shutil.move(str(worktree), backup)
+        backup_path = str(backup)
+    if metadata_dir is not None:
+        with contextlib.suppress(Exception):
+            shutil.rmtree(metadata_dir)
+    run_git(["worktree", "prune", "--expire", "now"], cwd=REPO_ROOT, timeout=120, write=True)
+    worktree.parent.mkdir(parents=True, exist_ok=True)
+    result = run_git(
+        ["worktree", "add", "--force", str(worktree), branch],
+        cwd=REPO_ROOT,
+        timeout=WORKTREE_REBUILD_TIMEOUT_SECONDS,
+        write=True,
+    )
+    if result.returncode != 0:
+        reason = result.stdout.strip().splitlines()[-1] if result.stdout.strip() else "git worktree add failed"
+        return False, backup_path, reason
+    return True, backup_path, None
+
+
 def _reconcile_lane_worktrees() -> Dict[str, object]:
     repaired: List[str] = []
     backups: List[str] = []
     removed: Dict[str, List[str]] = {}
+    health_failures: Dict[str, str] = {}
+    rebuilt: Dict[str, str] = {}
+    rebuild_backups: Dict[str, str] = {}
+    rebuild_failures: Dict[str, str] = {}
     branch_map = _lane_branch_map()
     worktree_map = _git_worktree_branch_map()
+    feature_threads = _feature_thread_state()
     for lane, branch in branch_map.items():
         worktree_path = worktree_map.get(f"refs/heads/{branch}") or worktree_map.get(branch)
         if not worktree_path:
@@ -442,10 +546,30 @@ def _reconcile_lane_worktrees() -> Dict[str, object]:
         pruned = _prune_generated_worktree_artifacts(worktree)
         if pruned:
             removed[lane] = pruned
+        reason = _probe_worktree_health(worktree)
+        if not reason:
+            continue
+        health_failures[lane] = reason
+        if _lane_has_active_feature_session(lane, feature_threads=feature_threads) or _lane_has_active_router_job(lane):
+            continue
+        if not _is_managed_lane_worktree(worktree):
+            continue
+        rebuilt_ok, backup_path, failure_reason = _rebuild_lane_worktree(lane, branch, worktree)
+        if backup_path:
+            rebuild_backups[lane] = backup_path
+        if rebuilt_ok:
+            rebuilt[lane] = str(worktree)
+            health_failures.pop(lane, None)
+        elif failure_reason:
+            rebuild_failures[lane] = failure_reason
     return {
         "gitdir_repaired": repaired,
         "gitdir_backups": backups,
         "artifacts_removed": removed,
+        "health_failures": health_failures,
+        "rebuilt": rebuilt,
+        "rebuild_backups": rebuild_backups,
+        "rebuild_failures": rebuild_failures,
     }
 
 
@@ -819,10 +943,10 @@ def _run_router_direct(ctx: DirectRouterCtx, retries: int) -> Tuple[int, str, in
 
 
 def _git_rev(branch: str) -> str:
-    p = subprocess.run(["git", "rev-parse", branch], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    p = run_git(["rev-parse", branch], cwd=REPO_ROOT, timeout=30)
     if p.returncode != 0:
         return ""
-    return (p.stdout or "").strip()
+    return p.stdout.strip()
 
 
 def _lane_digest(lane: str) -> Dict[str, object]:
@@ -965,7 +1089,7 @@ def _run_cycle(
     coordinator_state: Dict[str, object],
 ) -> Dict[str, object]:
     cycle_event: Dict[str, object] = {"started_at": utc_now()}
-    cycle_event["reconcile"] = _reconcile_control_plane_state()
+    cycle_event["reconcile"] = _reconcile_control_plane_state(coordinator_state)
     if args.execution_mode == "direct" and direct_ctx is not None:
         direct_ctx.state = direct_ctx.router_mod.load_json(direct_ctx.router_mod.STATE_FILE, {})
 

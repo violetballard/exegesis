@@ -12,6 +12,11 @@ except ImportError:  # pragma: no cover - package execution fallback
     from .packet_progress import infer_last_gate_results, infer_last_submitted_sha
 
 try:
+    from git_ops import require_git_output, run_git
+except ImportError:  # pragma: no cover - package execution fallback
+    from .git_ops import require_git_output, run_git
+
+try:
     from lane_profiles import ENGINE_MILESTONE_FOCUS, default_lane_meta, engine_priority_lines
 except ImportError:  # pragma: no cover - package execution fallback
     from .lane_profiles import ENGINE_MILESTONE_FOCUS, default_lane_meta, engine_priority_lines
@@ -123,32 +128,29 @@ def run(cmd: str, cwd: str, env: Optional[Dict[str,str]] = None, timeout: int = 
         return 124, (out or "") + "\n[TIMEOUT]"
     return p.returncode, out or ""
 
-def git(cmd: str, cwd: str) -> str:
-    rc, out = run(f"git {cmd}", cwd=cwd, timeout=600)
-    if rc != 0:
-        raise RuntimeError(out)
-    return out.strip()
+def git(args: List[str], cwd: str) -> str:
+    return require_git_output(args, cwd=cwd, timeout=600)
 
 
 def is_git_repo(cwd: str) -> bool:
-    rc, _ = run("git rev-parse --is-inside-work-tree", cwd=cwd, timeout=120)
-    return rc == 0
+    result = run_git(["rev-parse", "--is-inside-work-tree"], cwd=cwd, timeout=120)
+    return result.returncode == 0
 
 
 def list_git_remotes(cwd: str) -> List[str]:
-    rc, out = run("git remote", cwd=cwd, timeout=120)
-    if rc != 0:
+    result = run_git(["remote"], cwd=cwd, timeout=120)
+    if result.returncode != 0:
         return []
-    return [ln.strip() for ln in out.splitlines() if ln.strip()]
+    return [ln.strip() for ln in result.stdout.splitlines() if ln.strip()]
 
 def find_worktree_for_branch(repo_cwd: str, branch: str) -> Optional[str]:
     ref = branch if branch.startswith("refs/") else f"refs/heads/{branch}"
-    rc, out = run("git worktree list --porcelain", cwd=repo_cwd, timeout=120)
-    if rc != 0:
+    result = run_git(["worktree", "list", "--porcelain"], cwd=repo_cwd, timeout=120)
+    if result.returncode != 0:
         return None
     cur_wt: Optional[str] = None
     cur_branch: Optional[str] = None
-    for ln in out.splitlines() + [""]:
+    for ln in result.stdout.splitlines() + [""]:
         if ln.startswith("worktree "):
             cur_wt = ln[len("worktree "):].strip()
         elif ln.startswith("branch "):
@@ -238,28 +240,28 @@ def _parse_changed_files(out: str) -> List[str]:
 
 
 def compute_changed_files(cwd: str, base_ref: str, *, head_ref: str = "HEAD") -> List[str]:
-    rc, out = run(
-        f"git diff --name-only {shlex.quote(base_ref)}...{shlex.quote(head_ref)}",
+    result = run_git(
+        ["diff", "--name-only", f"{base_ref}...{head_ref}"],
         cwd=cwd,
         timeout=CHANGED_FILES_DIFF_TIMEOUT,
     )
-    files = _parse_changed_files(out)
-    if rc == 0:
+    files = _parse_changed_files(result.stdout)
+    if result.returncode == 0:
         return files
     fallback_cmds = (
-        f"git diff-tree --no-commit-id --name-only -r {shlex.quote(head_ref)}",
-        f"git show --pretty='' --name-only {shlex.quote(head_ref)}",
+        ["diff-tree", "--no-commit-id", "--name-only", "-r", head_ref],
+        ["show", "--pretty=", "--name-only", head_ref],
     )
     for cmd in fallback_cmds:
-        fallback_rc, fallback_out = run(cmd, cwd=cwd, timeout=CHANGED_FILES_FALLBACK_TIMEOUT)
-        fallback_files = _parse_changed_files(fallback_out)
-        if fallback_rc == 0 and fallback_files:
+        fallback_result = run_git(cmd, cwd=cwd, timeout=CHANGED_FILES_FALLBACK_TIMEOUT)
+        fallback_files = _parse_changed_files(fallback_result.stdout)
+        if fallback_result.returncode == 0 and fallback_files:
             print(
                 f"[planner] changed-files fallback for {cwd}: "
-                f"{cmd} (base diff rc={rc}, head_ref={head_ref})"
+                f"{' '.join(cmd)} (base diff rc={result.returncode}, head_ref={head_ref})"
             )
             return fallback_files
-    raise RuntimeError(out)
+    raise RuntimeError(result.stdout)
 
 
 def run_scope_check(cwd: str, env: Optional[Dict[str, str]] = None) -> Tuple[int, str]:
@@ -388,11 +390,11 @@ def main()->None:
     repo=str(Path.cwd())
     remotes = list_git_remotes(repo)
     if remotes:
-        fetch_rc, fetch_out = run("git fetch --all --prune", cwd=repo, timeout=120)
-        if fetch_rc != 0:
-            print(f"[planner] git fetch warning: rc={fetch_rc}")
-            if fetch_out.strip():
-                print(fetch_out.rstrip())
+        fetch_result = run_git(["fetch", "--all", "--prune"], cwd=repo, timeout=120, write=True)
+        if fetch_result.returncode != 0:
+            print(f"[planner] git fetch warning: rc={fetch_result.returncode}")
+            if fetch_result.stdout.strip():
+                print(fetch_result.stdout.rstrip())
     else:
         print("[planner] no git remotes configured; skipping fetch")
 
@@ -412,10 +414,7 @@ def main()->None:
             print(f"[planner] {lane}: stale non-git worktree for {branch} at {lane_repo}; considering branch-ref fallback")
 
         try:
-            sha = git(
-                f"rev-parse {shlex.quote('HEAD' if active_repo else branch)}",
-                cwd=active_repo or repo,
-            )
+            sha = git(["rev-parse", "HEAD" if active_repo else branch], cwd=active_repo or repo)
         except Exception as e:
             where = active_repo or repo
             print(f"[planner] {lane}: unable to resolve {'HEAD' if active_repo else branch} in {where}: {e}")

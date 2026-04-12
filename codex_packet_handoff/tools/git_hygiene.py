@@ -13,6 +13,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
 
+try:
+    from git_ops import run_git
+except ImportError:  # pragma: no cover - package execution fallback
+    from .git_ops import run_git
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TMP_WORKTREE_ROOT = "/private/tmp/"
 TMP_WORKTREE_PREFIXES = (
@@ -192,14 +197,7 @@ def reap_stale_git_helpers(
 
 
 def prune_stale_temp_worktrees(repo_root: Path = REPO_ROOT) -> List[str]:
-    proc = subprocess.run(
-        ["git", "worktree", "list", "--porcelain"],
-        cwd=str(repo_root),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        text=True,
-        check=False,
-    )
+    proc = run_git(["worktree", "list", "--porcelain"], cwd=repo_root, timeout=120)
     if proc.returncode != 0:
         return []
     removed: List[str] = []
@@ -220,14 +218,7 @@ def prune_stale_temp_worktrees(repo_root: Path = REPO_ROOT) -> List[str]:
                 pass
         removed.append(entry.path)
     if removed:
-        subprocess.run(
-            ["git", "worktree", "prune", "--expire", "now"],
-            cwd=str(repo_root),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            text=True,
-            check=False,
-        )
+        run_git(["worktree", "prune", "--expire", "now"], cwd=repo_root, timeout=120, write=True)
     return sorted(set(removed))
 
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import errno
 import os
 import signal
@@ -24,6 +25,7 @@ FEATURE_RUNNER_STATE_FILE = Path(".codex/feature_runner/state.json")
 CMD = [sys.executable, "codex_packet_handoff/tools/agents_coordinator.py", "--daemon"]
 PROC_MATCH = "codex_packet_handoff/tools/agents_coordinator.py --daemon"
 LEASE_FRESH_SECONDS = 3600
+REPO_ROOT = Path(__file__).resolve().parents[2]
 AUTOMATION_MARKERS = (
     "You are the REVIEWER.",
     "You are the FEATURE FIXER",
@@ -234,9 +236,11 @@ def _start() -> int:
         env["PYTHONUNBUFFERED"] = "1"
         proc = subprocess.Popen(
             CMD,
+            stdin=subprocess.DEVNULL,
             stdout=lf,
             stderr=subprocess.STDOUT,
             start_new_session=True,
+            close_fds=True,
             cwd=str(Path.cwd()),
             env=env,
         )
@@ -310,14 +314,37 @@ def _stop() -> int:
     return 0
 
 
+def _launchd_run() -> int:
+    _ensure_dirs()
+    _clear_stale_lease()
+    compact_log_file(LOG_FILE, max_bytes=DAEMON_LOG_MAX_BYTES, keep_bytes=DAEMON_LOG_KEEP_BYTES)
+    devnull_fd = os.open(os.devnull, os.O_RDONLY)
+    try:
+        os.dup2(devnull_fd, 0)
+    finally:
+        with contextlib.suppress(OSError):
+            os.close(devnull_fd)
+    PID_FILE.write_text(str(os.getpid()))
+    env = os.environ.copy()
+    env["PYTHONUNBUFFERED"] = "1"
+    os.execvpe(
+        sys.executable,
+        [sys.executable, str(REPO_ROOT / "codex_packet_handoff/tools/agents_coordinator.py"), "--daemon"],
+        env,
+    )
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Start/stop/status for coordinator daemon.")
-    ap.add_argument("action", choices=["start", "stop", "status"])
+    ap.add_argument("action", choices=["start", "stop", "status", "launchd-run"])
     args = ap.parse_args()
     if args.action == "start":
         return _start()
     if args.action == "stop":
         return _stop()
+    if args.action == "launchd-run":
+        return _launchd_run()
     return _status()
 
 

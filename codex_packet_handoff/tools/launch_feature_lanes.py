@@ -13,11 +13,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 try:
     from codex_mcp_client import ApprovalPolicy, CodexMcpClient
+    from git_ops import run_git
     from lane_profiles import ENGINE_MILESTONE_FOCUS, engine_priority_lines
     from log_maintenance import prune_log_dir
     from local_codex_runtime import isolated_codex_env
 except ImportError:  # pragma: no cover - test/import fallback for package execution
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
+    from .git_ops import run_git
     from .lane_profiles import ENGINE_MILESTONE_FOCUS, engine_priority_lines
     from .log_maintenance import prune_log_dir
     from .local_codex_runtime import isolated_codex_env
@@ -128,16 +130,9 @@ def parse_args() -> argparse.Namespace:
 
 
 def branch_worktrees() -> Dict[str, str]:
-    import subprocess
-
-    p = subprocess.run(
-        ["git", "worktree", "list", "--porcelain"],
-        cwd=REPO_ROOT,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        check=True,
-    )
+    p = run_git(["worktree", "list", "--porcelain"], cwd=REPO_ROOT, timeout=120)
+    if p.returncode != 0:
+        raise RuntimeError(p.stdout.strip() or "git worktree list failed")
     out: Dict[str, str] = {}
     wt = None
     br = None

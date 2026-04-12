@@ -1002,6 +1002,11 @@ def main() -> None:
     print(f"last_cycle_at={coord_state['last_cycle_at']}")
     print(f"last_cycle_age_seconds={coord_state['last_cycle_age_s']}")
     print(f"last_cycle_activity={coord_state['last_cycle_activity']}")
+    git_hygiene = coord_state.get("git_hygiene_status") if isinstance(coord_state, dict) else {}
+    if isinstance(git_hygiene, dict):
+        print(f"git_hygiene_last_stale_count={git_hygiene.get('last_stale_count', 0)}")
+        print(f"git_hygiene_consecutive_cycles={git_hygiene.get('consecutive_cycles', 0)}")
+        print(f"git_hygiene_alert={git_hygiene.get('alert', '-') or '-'}")
     print()
 
     router_state = _load_json(ROUTER_STATE, {})

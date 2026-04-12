@@ -15,11 +15,13 @@ from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from codex_mcp_client import ApprovalPolicy, CodexMcpClient
+    from git_ops import run_git
     from log_maintenance import prune_log_dir
     from local_codex_runtime import isolated_codex_env
     from packet_progress import infer_last_submitted_sha
 except ImportError:  # pragma: no cover - test/import fallback for package execution
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
+    from .git_ops import run_git
     from .log_maintenance import prune_log_dir
     from .local_codex_runtime import isolated_codex_env
     from .packet_progress import infer_last_submitted_sha
@@ -1147,7 +1149,7 @@ def _find_worktree_for_branch(repo_cwd: str, branch: str) -> Optional[str]:
         want = ref
     else:
         want = f"refs/heads/{ref}"
-    p = subprocess.run(["git","worktree","list","--porcelain"], cwd=repo_cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    p = run_git(["worktree", "list", "--porcelain"], cwd=repo_cwd, timeout=120)
     if p.returncode != 0:
         return None
     blocks = p.stdout.split("\n\n")
