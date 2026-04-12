@@ -29,6 +29,19 @@ LANE_OWNED_PATHS = {
     "feat-console": ["src/qual/console/**"],
 }
 
+A2UI_CONTRACT_ROADMAP_MAPPING = (
+    "ROADMAP.md Milestone 3: Real workflow loop (see ROADMAP.md lines 43-65) -> "
+    "lane mapping `feat-a2ui-contract`: shared card/action contracts and selection "
+    "models; scope bullet `move A2UI contracts into shared while keeping renderers "
+    "outside shared`"
+)
+
+A2UI_CONTRACT_VISION_MAPPING = (
+    "PRODUCT_VISION.md Capability 4: Shared UI contract (A2UI) (see PRODUCT_VISION.md "
+    "lines 39-41) -> cards/actions/selection types live in a client-agnostic shared "
+    "layer; rendering adapters stay outside shared"
+)
+
 Json = Dict[str, Any]
 
 def load_json(p: Path, default: Any) -> Any:
@@ -135,6 +148,31 @@ def _resolve_handoff_fields(meta: Json) -> Tuple[List[str], List[str]]:
 
     return roadmap_items, vision_capabilities
 
+
+def _canonicalize_handoff_fields_for_lane(
+    lane: str,
+    roadmap_items: List[str],
+    vision_capabilities: List[str],
+) -> Tuple[List[str], List[str]]:
+    if lane != "feat-a2ui-contract":
+        return roadmap_items, vision_capabilities
+
+    stale_tokens = ("Milestone 5", "Capability 5", "MVP Focus Through 2026-05-04")
+    combined = " ".join([*roadmap_items, *vision_capabilities])
+    if any(token in combined for token in stale_tokens):
+        return [A2UI_CONTRACT_ROADMAP_MAPPING], [A2UI_CONTRACT_VISION_MAPPING]
+    return roadmap_items, vision_capabilities
+
+
+def _resolve_scope_completed(meta: Json) -> str:
+    scope_completed = str(meta.get("scope_completed", "")).strip()
+    if scope_completed:
+        return scope_completed
+    tasks_completed = _coerce_text_list(meta.get("tasks_completed"))
+    if tasks_completed:
+        return "; ".join(tasks_completed)
+    return "(missing)"
+
 def validate_meta(meta: Json) -> List[str]:
     missing=[]
     roadmap_items, vision_capabilities = _resolve_handoff_fields(meta)
@@ -151,8 +189,8 @@ def validate_meta(meta: Json) -> List[str]:
 
 def apply_meta_defaults(meta: Json, missing: List[str]) -> Json:
     out = dict(meta or {})
-    if "tasks_completed" in missing:
-        out["tasks_completed"] = ["(auto) reviewer handback update; see lane commits for concrete changes"]
+    # Leave tasks_completed empty when it is missing so packet generation
+    # surfaces the gap explicitly instead of inventing a synthetic handback note.
     # Leave roadmap/vision handoff fields empty when they are missing rather
     # than inventing placeholder mappings. Those fields are review-facing and
     # must be supplied explicitly by the lane metadata.
@@ -169,10 +207,16 @@ def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
     roadmap_items, vision_capabilities = _resolve_handoff_fields(meta)
+    roadmap_items, vision_capabilities = _canonicalize_handoff_fields_for_lane(
+        lane,
+        roadmap_items,
+        vision_capabilities,
+    )
     lines=[]
     lines += ["# Feature → Review Packet",""]
     lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
+    lines += ["## Scope completed", f"- {_resolve_scope_completed(meta)}", ""]
     lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
     if str(meta.get("kickoff_budget_note","")).strip():
         lines += ["## Kickoff budget/limits compliance", f"- {meta['kickoff_budget_note'].strip()}", ""]
