@@ -291,17 +291,29 @@ class ScopeCheckMigrationTests(unittest.TestCase):
     def test_compute_changed_files_falls_back_to_branch_ref_diff_tree(self) -> None:
         from codex_packet_handoff.tools import planner as planner_mod
 
-        calls: list[tuple[str, str, int]] = []
+        calls: list[tuple[list[str], str, int]] = []
 
-        def fake_run(cmd: str, cwd: str, timeout: int, env: dict[str, str] | None = None) -> tuple[int, str]:
-            calls.append((cmd, cwd, timeout))
-            if "git diff --name-only" in cmd:
-                return 124, "[TIMEOUT]"
-            if "git diff-tree --no-commit-id --name-only -r codex/feat-context-storage" in cmd:
-                return 0, "THREAD_PACKET.md\n.codex/lane_meta/feat-context-storage.json\n"
-            raise AssertionError(f"unexpected command: {cmd}")
+        def fake_require(args: list[str], cwd: str, timeout: int) -> str:
+            calls.append((args, cwd, timeout))
+            if args == ["merge-base", "codex/integrator", "codex/feat-context-storage"]:
+                return "abc123\n"
+            raise AssertionError(f"unexpected require args: {args}")
 
-        with patch.object(planner_mod, "run", side_effect=fake_run):
+        def fake_run_git(args: list[str], cwd: str, timeout: int, **_: object):
+            calls.append((args, cwd, timeout))
+            if args == ["rev-list", "--reverse", "abc123..codex/feat-context-storage"]:
+                return SimpleNamespace(returncode=0, stdout="def456\n")
+            if args == ["diff-tree", "--no-commit-id", "--name-only", "-r", "def456"]:
+                return SimpleNamespace(
+                    returncode=0,
+                    stdout="THREAD_PACKET.md\n.codex/lane_meta/feat-context-storage.json\n",
+                )
+            raise AssertionError(f"unexpected args: {args}")
+
+        with (
+            patch.object(planner_mod, "require_git_output", side_effect=fake_require),
+            patch.object(planner_mod, "run_git", side_effect=fake_run_git),
+        ):
             files = planner_mod.compute_changed_files(
                 str(self.root),
                 "codex/integrator",
@@ -315,7 +327,7 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         self.assertEqual(
             calls[0],
             (
-                "git diff --name-only codex/integrator...codex/feat-context-storage",
+                ["merge-base", "codex/integrator", "codex/feat-context-storage"],
                 str(self.root),
                 planner_mod.CHANGED_FILES_DIFF_TIMEOUT,
             ),
@@ -323,7 +335,15 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         self.assertEqual(
             calls[1],
             (
-                "git diff-tree --no-commit-id --name-only -r codex/feat-context-storage",
+                ["rev-list", "--reverse", "abc123..codex/feat-context-storage"],
+                str(self.root),
+                planner_mod.CHANGED_FILES_DIFF_TIMEOUT,
+            ),
+        )
+        self.assertEqual(
+            calls[2],
+            (
+                ["diff-tree", "--no-commit-id", "--name-only", "-r", "def456"],
                 str(self.root),
                 planner_mod.CHANGED_FILES_FALLBACK_TIMEOUT,
             ),
@@ -647,7 +667,7 @@ class CoordinatorStateReconcileTests(unittest.TestCase):
                 patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
                 patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 1111),
             ):
-                summary = coordinator._reconcile_control_plane_state()
+                summary = coordinator._reconcile_control_plane_state({})
 
             self.assertEqual(summary["feature_runner_removed"], ["feat-stale"])
             self.assertEqual(summary["router_removed"]["fixer_fallback_jobs"], ["feat-stale"])

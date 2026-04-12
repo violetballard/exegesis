@@ -89,6 +89,28 @@ def _parse_gate_results_from_packet(packet: Path) -> List[Tuple[str, int]]:
     return results
 
 
+def _parse_changed_files_from_packet(packet: Path) -> List[str]:
+    try:
+        lines = packet.read_text(encoding="utf-8").splitlines()
+    except Exception:
+        return []
+    in_section = False
+    files: List[str] = []
+    for line in lines:
+        if line.strip() == "## Files changed":
+            in_section = True
+            continue
+        if in_section and line.startswith("## "):
+            break
+        if not in_section:
+            continue
+        stripped = line.strip()
+        if not stripped.startswith("- `") or not stripped.endswith("`"):
+            continue
+        files.append(stripped[3:-1])
+    return files
+
+
 def infer_last_gate_results(
     lane_dir: Optional[Path],
     planner_lane_state: Optional[Mapping[str, object]] = None,
@@ -122,6 +144,39 @@ def infer_last_gate_results(
             candidates.append(packet)
     for packet in candidates:
         parsed = _parse_gate_results_from_packet(packet)
+        if parsed:
+            return parsed
+    return []
+
+
+def infer_last_changed_files(
+    lane_dir: Optional[Path],
+    planner_lane_state: Optional[Mapping[str, object]] = None,
+    *,
+    sha: Optional[str] = None,
+) -> List[str]:
+    del planner_lane_state  # reserved for future state-backed snapshots
+    if lane_dir is None:
+        return []
+
+    candidates: List[Path] = []
+    for rel in ("inbox/feature", "archive"):
+        directory = lane_dir / rel
+        try:
+            packets = sorted(
+                directory.glob("F__*.md"),
+                key=lambda path: path.stat().st_mtime,
+                reverse=True,
+            )
+        except Exception:
+            continue
+        for packet in packets:
+            packet_sha = packet_sha_from_name(packet.name)
+            if sha and packet_sha != sha:
+                continue
+            candidates.append(packet)
+    for packet in candidates:
+        parsed = _parse_changed_files_from_packet(packet)
         if parsed:
             return parsed
     return []
