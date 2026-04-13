@@ -128,7 +128,8 @@ class FTSStrategy:
             "scope": FTSStrategy._normalize_scope(payload.get("scope")),
             "intent": FTSStrategy._normalize_text(payload.get("intent")),
             "constraints": constraints,
-            "confidentiality_profile": FTSStrategy._normalize_text(payload.get("confidentiality_profile")),
+            "confidentiality_profile": FTSStrategy._normalize_text(payload.get("confidentiality_profile"))
+            or "confidential",
         }
 
     @staticmethod
@@ -147,13 +148,44 @@ class FTSStrategy:
                 "prefer_exact_matches": getattr(constraints, "prefer_exact_matches", None),
             }
         return {
-            "max_results": int(payload.get("max_results", 0) or 0),
+            "max_results": FTSStrategy._normalize_optional_int(payload.get("max_results"), default=10),
             "doc_types": FTSStrategy._normalize_list_like(payload.get("doc_types")),
             "date_range": FTSStrategy._normalize_optional_list_like(payload.get("date_range")),
-            "require_citations": bool(payload.get("require_citations", False)),
+            "require_citations": FTSStrategy._normalize_optional_bool(
+                payload.get("require_citations"),
+                default=False,
+            ),
             "section_hint": FTSStrategy._normalize_text(payload.get("section_hint")),
-            "prefer_exact_matches": bool(payload.get("prefer_exact_matches", False)),
+            "prefer_exact_matches": FTSStrategy._normalize_optional_bool(
+                payload.get("prefer_exact_matches"),
+                default=False,
+            ),
         }
+
+    @staticmethod
+    def _normalize_optional_int(value: object, *, default: int) -> int:
+        if value is None:
+            return default
+        return int(value)
+
+    @staticmethod
+    def _normalize_optional_bool(value: object, *, default: bool) -> bool:
+        if value is None:
+            return default
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, int):
+            return bool(value)
+        if isinstance(value, str):
+            normalized = value.strip().casefold()
+            if not normalized:
+                return default
+            if normalized in {"1", "true", "yes", "on"}:
+                return True
+            if normalized in {"0", "false", "no", "off"}:
+                return False
+            raise ValueError(f"unsupported boolean value: {value}")
+        return bool(value)
 
     @staticmethod
     def _normalize_query_text(value: object) -> str | None:

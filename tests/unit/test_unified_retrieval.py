@@ -1635,6 +1635,77 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(replayed.hits, ["fresh-hit"])
         self.assertEqual(runner_hits, [])
 
+    def test_fts_strategy_reuses_cache_between_mapping_query_and_dataclass_defaults(self) -> None:
+        runner_hits = [["fresh-hit"]]
+        strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: list(runner_hits.pop(0)))
+        mapping_query = {
+            "query_text": "  Discussion   Theory  ",
+            "scope": "  DOC:doc-pdf-1  ",
+            "intent": "outline_support",
+            "constraints": {
+                "doc_types": ["PDF", "memo", "pdf"],
+                "date_range": ("2026-01-31", "2026-01-01"),
+                "section_hint": "  discussion  ",
+            },
+        }
+        dataclass_query = RetrievalQuery(
+            query_text="discussion theory",
+            scope="doc:doc-pdf-1",
+            intent="outline_support",
+            constraints=RetrievalConstraints(
+                doc_types=("memo", "pdf"),
+                date_range=("2026-01-01", "2026-01-31"),
+                section_hint="discussion",
+            ),
+            confidentiality_profile="confidential",
+        )
+
+        first = strategy.retrieve(mapping_query, candidate_doc_ids=("doc-b", "doc-a"))
+        replayed = strategy.retrieve(dataclass_query, candidate_doc_ids=("doc-a", "doc-b"))
+
+        self.assertFalse(first.cache_used)
+        self.assertEqual(first.hits, ["fresh-hit"])
+        self.assertTrue(replayed.cache_used)
+        self.assertEqual(replayed.hits, ["fresh-hit"])
+        self.assertEqual(runner_hits, [])
+
+    def test_fts_strategy_normalizes_string_boolean_constraints_in_mapping_queries(self) -> None:
+        runner_hits = [["fresh-hit"]]
+        strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: list(runner_hits.pop(0)))
+        mapping_query = {
+            "query_text": "discussion theory",
+            "scope": "doc:doc-pdf-1",
+            "intent": "outline_support",
+            "constraints": {
+                "max_results": "6",
+                "require_citations": "true",
+                "prefer_exact_matches": "1",
+                "section_hint": "discussion",
+            },
+            "confidentiality_profile": "CONFIDENTIAL",
+        }
+        dataclass_query = RetrievalQuery(
+            query_text="discussion theory",
+            scope="doc:doc-pdf-1",
+            intent="outline_support",
+            constraints=RetrievalConstraints(
+                max_results=6,
+                require_citations=True,
+                section_hint="discussion",
+                prefer_exact_matches=True,
+            ),
+            confidentiality_profile="confidential",
+        )
+
+        first = strategy.retrieve(mapping_query, candidate_doc_ids=("doc-a",))
+        replayed = strategy.retrieve(dataclass_query, candidate_doc_ids=("doc-a",))
+
+        self.assertFalse(first.cache_used)
+        self.assertEqual(first.hits, ["fresh-hit"])
+        self.assertTrue(replayed.cache_used)
+        self.assertEqual(replayed.hits, ["fresh-hit"])
+        self.assertEqual(runner_hits, [])
+
     def test_fts_strategy_does_not_alias_case_distinct_scoped_ids_in_cache(self) -> None:
         runner_hits = [["upper-hit"], ["lower-hit"]]
         strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: list(runner_hits.pop(0)))
