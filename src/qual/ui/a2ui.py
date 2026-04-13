@@ -247,10 +247,11 @@ def build_terminal_artifact_envelope(artifact: Any, *, kind: str) -> dict[str, A
     """
 
     normalized_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+    artifact_snapshot = _copy_terminal_artifact_payload(artifact)
     envelope = {
         "type": _TERMINAL_ARTIFACT_ENVELOPE_TYPE,
         "kind": normalized_kind,
-        "artifact": artifact,
+        "artifact": artifact_snapshot,
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
     }
@@ -1483,6 +1484,25 @@ def _copy_action_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
     except Exception:
         copied = dict(payload)
     return copied
+
+
+def _copy_terminal_artifact_payload(artifact: Any) -> Any:
+    """Return an isolated snapshot for a terminal artifact payload.
+
+    The terminal artifact envelope is a public contract boundary. Snapshotting
+    the payload keeps engine-produced envelopes deterministic even if the
+    original object is mutated after the wrapper is built.
+    """
+
+    try:
+        return copy.deepcopy(artifact)
+    except Exception:
+        if isinstance(artifact, Mapping):
+            try:
+                return dict(artifact)
+            except Exception:
+                return artifact
+        return artifact
 
 
 def _validate_action_payload(action_id: str, payload: Mapping[str, Any]) -> None:

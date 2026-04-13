@@ -205,6 +205,26 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Action schema v1", text)
         self.assertIn("- confirm: {\"message\":\"Export now?\",\"title\":\"Approve\"}", text)
 
+    def test_terminal_artifact_envelope_snapshots_source_payloads(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": " Run Log ",
+            "a2ui_version": 1,
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Original"}],
+            "actions": [],
+        }
+
+        envelope = build_terminal_artifact_envelope(card, kind="card")
+        card["title"] = "Changed"
+        card["blocks"][0]["markdown"] = "Mutated"
+
+        text = render_terminal_artifact(envelope)
+
+        self.assertIn("[GenericCard] Run Log", text)
+        self.assertIn("Original", text)
+        self.assertNotIn("Changed", text)
+        self.assertNotIn("Mutated", text)
+
     def test_terminal_artifact_envelope_builder_rejects_kind_payload_mismatches(self) -> None:
         with self.assertRaises(ValueError):
             build_terminal_artifact_envelope(
