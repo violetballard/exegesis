@@ -2,24 +2,30 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Handoff type: `retrieval feature handoff for the FTS-first retrieval lane`
+- Packet HEAD role: `docs-only reviewer-fix handoff correction`
+- Reviewed implementation head: `96bed1e1feb3a4708e74b768b9e3659cb0a000de`
+- Reviewed implementation range: `410b8fa0dc040ae4805ecf7627fc2468ccc58ace..96bed1e1feb3a4708e74b768b9e3659cb0a000de`
 
 ## Scope completed
-- Kept SQLite FTS as the authoritative MVP retrieval path.
-- Removed the public `fetch_excerpt` PageIndex fallback so excerpt lookup now fails closed on the canonical FTS-only path.
-- Kept the approved shared regression surface in `tests/unit/test_unified_retrieval.py` aligned with that contract by asserting PageIndex-only excerpt ids raise `KeyError`.
+- Normalized retrieval document identity inputs so document ids, document types, and title hints are canonicalized before metadata, blob, and FTS writes, and legacy blob rows are cleaned up when an input doc id changes only by surrounding whitespace.
+- Normalized retrieval evidence strategy ids when rebuilding downstream payloads from source bundles so active and deferred strategy lists stay deterministic and deduplicated in the auditable FTS-first payload surface.
+- Kept SQLite FTS as the authoritative MVP retrieval path and limited the reviewed implementation slice to lane-owned retrieval code plus the approved shared regression file.
 
 ## Canonical demo-path step advanced
-- `retrieve relevant material`: this handoff makes the canonical retrieval step more real by requiring FTS-backed excerpt ids on the public excerpt lookup surface. `fetch_excerpt` now fails closed unless the excerpt resolves through the canonical SQLite FTS path, which preserves deterministic and auditable provenance for downstream engine flows.
+- `retrieve relevant material`: this slice makes the canonical retrieval step more real by keeping document identity and retrieval evidence payloads deterministic, which preserves stable provenance for downstream basket promotion and workflow use.
 
 ## AGENTS.md handoff packet
 - Risk reason: shared-by-approval regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed implementation range, so this handoff uses the high-risk/shared-work framing required by `AGENTS.md`.
-- Approved exception note: `tests/unit/test_unified_retrieval.py` is the sole shared-by-approval file exercised in this lane for the canonical retrieval contract.
+- Approved exception note: `tests/unit/test_unified_retrieval.py` is the sole shared-by-approval file exercised in this reviewed slice.
 - Task budget: `4`
 - Tasks completed:
-  1. Removed the PageIndex fallback from `src/qual/retrieval/service.py` so `fetch_excerpt` resolves only through the canonical FTS excerpt lookup path.
-  2. Added approved shared regression coverage proving PageIndex-only excerpt ids fail closed with `KeyError`.
+  1. Canonicalized retrieval document ids, document types, and title hints before storage and FTS updates.
+  2. Removed legacy blob/meta duplication when a document is rewritten with a normalized doc id.
+  3. Normalized evidence strategy id lists rebuilt from source bundles so downstream payloads keep stable FTS-first provenance.
+  4. Added regression coverage for document identity normalization and evidence strategy id normalization.
 - Files changed:
   - `src/qual/retrieval/service.py`
+  - `src/qual/engine/retrieval/payload.py`
   - `tests/unit/test_unified_retrieval.py`
 
 ## Commands run with results
@@ -30,12 +36,8 @@
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 
-## Final reviewer-fix verification
-- `2026-04-13`: Updated the handoff packet to state the canonical demo-path step explicitly as `retrieve relevant material` and tied it to the FTS-only `fetch_excerpt` contract change the reviewer requested.
-- `2026-04-13`: Re-ran all required gates after confirming the handoff packet reflects both the high-risk/shared-work framing and the required demo-path alignment from review.
-
 ## Risks/blockers
-- Risks: high; shared approved regression coverage is part of the reviewed slice, but runtime behavior remains narrowed to the FTS-only retrieval contract.
+- Risks: high; the slice includes approved shared regression coverage, but runtime scope remains limited to deterministic FTS-first retrieval payload handling.
 - Blockers: none
 
 ## Roadmap item(s) affected
