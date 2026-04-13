@@ -2501,6 +2501,64 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "mutated-doc-id",
         )
 
+    def test_result_citation_and_evidence_snapshots_are_copy_safe(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        citation_bundle = result.citation_bundle()
+        evidence = result.to_downstream_payload()["retrieval_evidence"]
+
+        citation_bundle["excerpt_citations"][0]["matched_terms"].append("mutated-term")
+        cast(dict[str, object], citation_bundle["excerpt_citations"][0]["span"])["char_range"] = {
+            "start": -1,
+            "end": -1,
+        }
+        evidence["doc_citations"][0]["matched_terms"].append("mutated-term")
+        cast(dict[str, object], evidence["doc_citations"][0]["top_excerpt_span"])["char_range"] = {
+            "start": -1,
+            "end": -1,
+        }
+        evidence["excerpt_citations"][0]["matched_terms"].append("mutated-term")
+        cast(dict[str, object], evidence["excerpt_citations"][0]["span"])["char_range"] = {
+            "start": -1,
+            "end": -1,
+        }
+
+        refreshed_citation_bundle = result.citation_bundle()
+        refreshed_evidence = result.to_downstream_payload()["retrieval_evidence"]
+
+        self.assertNotIn(
+            "mutated-term",
+            refreshed_citation_bundle["excerpt_citations"][0]["matched_terms"],
+        )
+        self.assertNotEqual(
+            refreshed_citation_bundle["excerpt_citations"][0]["span"]["char_range"],
+            {"start": -1, "end": -1},
+        )
+        self.assertNotIn(
+            "mutated-term",
+            refreshed_evidence["doc_citations"][0]["matched_terms"],
+        )
+        self.assertNotEqual(
+            refreshed_evidence["doc_citations"][0]["top_excerpt_span"]["char_range"],
+            {"start": -1, "end": -1},
+        )
+        self.assertNotIn(
+            "mutated-term",
+            refreshed_evidence["excerpt_citations"][0]["matched_terms"],
+        )
+        self.assertNotEqual(
+            refreshed_evidence["excerpt_citations"][0]["span"]["char_range"],
+            {"start": -1, "end": -1},
+        )
+
     def test_engine_retrieval_policy_snapshot_is_stable_and_copy_safe(self) -> None:
         first = engine_retrieval.retrieval_policy_snapshot()
         second = engine_retrieval.retrieval_policy_snapshot()
