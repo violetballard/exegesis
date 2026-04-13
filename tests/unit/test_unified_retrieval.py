@@ -1203,6 +1203,35 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt_bundle["excerpt_hits"][0]["excerpt_id"], "excerpt-1")
         self.assertEqual(excerpt_bundle["excerpt_citations"][0]["excerpt_id"], "excerpt-1")
 
+    def test_retrieval_source_bundle_normalizer_backfills_sparse_top_level_hits(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        sparse_source_bundle = result.source_bundle()
+        sparse_source_bundle.pop("doc_hits", None)
+        sparse_source_bundle.pop("excerpt_hits", None)
+
+        normalized = _build_retrieval_source_bundle_from_payload(
+            {"retrieval_source_bundle": sparse_source_bundle}
+        )
+
+        self.assertEqual(normalized["doc_hits"], result.to_downstream_payload()["doc_hits"])
+        self.assertEqual(normalized["excerpt_hits"], result.to_downstream_payload()["excerpt_hits"])
+        normalized["doc_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
+        normalized["excerpt_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
+        refreshed = _build_retrieval_source_bundle_from_payload(
+            {"retrieval_source_bundle": sparse_source_bundle}
+        )
+        self.assertNotEqual(refreshed["doc_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
+        self.assertNotEqual(refreshed["excerpt_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
+
     def test_engine_retrieval_package_exports_are_fts_only(self) -> None:
         self.assertEqual(
             engine_retrieval.__all__,

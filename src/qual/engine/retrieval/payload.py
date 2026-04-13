@@ -291,6 +291,16 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["retrieval_provenance"] = _build_retrieval_provenance_from_payload(normalized)
     normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits", []))
     normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits", []))
+    retrieval_doc_bundle = normalized.get("retrieval_doc_bundle", {})
+    if not isinstance(retrieval_doc_bundle, dict):
+        retrieval_doc_bundle = {}
+    retrieval_excerpt_bundle = normalized.get("retrieval_excerpt_bundle", {})
+    if not isinstance(retrieval_excerpt_bundle, dict):
+        retrieval_excerpt_bundle = {}
+    if not normalized["doc_hits"]:
+        normalized["doc_hits"] = _normalize_list_like(retrieval_doc_bundle.get("doc_hits", []))
+    if not normalized["excerpt_hits"]:
+        normalized["excerpt_hits"] = _normalize_list_like(retrieval_excerpt_bundle.get("excerpt_hits", []))
     retrieval_summary = normalized.get("retrieval_summary", {})
     if not isinstance(retrieval_summary, dict):
         retrieval_summary = {}
