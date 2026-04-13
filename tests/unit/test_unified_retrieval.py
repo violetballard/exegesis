@@ -1821,6 +1821,29 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(replayed.hits, ["fresh-hit"])
         self.assertEqual(runner_hits, [])
 
+    def test_fts_strategy_normalizes_candidate_doc_id_whitespace_for_runner_and_cache(self) -> None:
+        runner_hits = [["fresh-hit"]]
+        captured_candidate_doc_ids: list[tuple[str, ...]] = []
+
+        def runner(query, candidate_doc_ids):
+            captured_candidate_doc_ids.append(candidate_doc_ids)
+            return list(runner_hits.pop(0))
+
+        strategy = engine_retrieval.FTSStrategy(runner)
+
+        first = strategy.retrieve(
+            "discussion theory",
+            candidate_doc_ids=(" doc-b ", "doc-a", "doc-a", "", "  "),
+        )
+        replayed = strategy.retrieve("discussion theory", candidate_doc_ids=("doc-a", "doc-b"))
+
+        self.assertFalse(first.cache_used)
+        self.assertEqual(first.hits, ["fresh-hit"])
+        self.assertEqual(captured_candidate_doc_ids, [("doc-a", "doc-b")])
+        self.assertTrue(replayed.cache_used)
+        self.assertEqual(replayed.hits, ["fresh-hit"])
+        self.assertEqual(runner_hits, [])
+
     def test_fts_strategy_normalizes_string_boolean_constraints_in_mapping_queries(self) -> None:
         runner_hits = [["fresh-hit"]]
         strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: list(runner_hits.pop(0)))

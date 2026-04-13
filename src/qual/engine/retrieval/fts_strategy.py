@@ -94,7 +94,13 @@ class FTSStrategy:
 
     @staticmethod
     def _normalize_candidate_doc_ids(candidate_doc_ids: tuple[str, ...]) -> tuple[str, ...]:
-        return tuple(sorted({str(doc_id) for doc_id in candidate_doc_ids}))
+        normalized: set[str] = set()
+        for doc_id in candidate_doc_ids:
+            text = str(doc_id).strip()
+            if not text:
+                continue
+            normalized.add(text)
+        return tuple(sorted(normalized))
 
     @staticmethod
     def _canonicalize_query_for_cache(query: Any) -> Any:
