@@ -8,6 +8,7 @@ from typing import Any, Callable, Protocol
 A2UI_VERSION = 1
 A2UI_CONTRACT_VERSION = 2
 A2UI_ACTION_SCHEMA_VERSION = 1
+SELECTION_SCHEMA_VERSION = 1
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
 DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES = 8_192
@@ -15,6 +16,7 @@ FALLBACK_COPY_ACTION_ID = "copy_to_clipboard"
 GENERIC_FALLBACK_SUBTITLE = "Rendered as GenericCard because client does not support this specialized card."
 UNKNOWN_FALLBACK_SUBTITLE = "Read-only fallback view with safe primitive blocks and raw JSON preview."
 GENERIC_FALLBACK_TITLE_PREFIX = "Fallback view for "
+UNKNOWN_FALLBACK_TITLE_PREFIX = "Unsupported card type: "
 _RESERVED_CARD_TYPES: tuple[str, ...] = (GENERIC_CARD_TYPE, UNKNOWN_CARD_TYPE)
 _SPECIALIZED_CARD_TYPES: tuple[str, ...] = (
     "ProposedEditCard",
@@ -103,6 +105,15 @@ class ActionRef:
     policy_sensitive: bool = False
 
 
+@dataclass(frozen=True)
+class SelectionRef:
+    id: str
+    label: str
+    payload: dict[str, Any]
+    selected: bool = False
+    disabled: bool = False
+
+
 class PolicyGate(Protocol):
     def allow_action(self, action_id: str, payload: dict[str, Any], *, policy_sensitive: bool) -> bool:
         ...
@@ -131,6 +142,28 @@ def describe_a2ui_contract() -> dict[str, Any]:
 
     manifest = _build_a2ui_contract_manifest()
     manifest["contract_fingerprint"] = a2ui_contract_fingerprint()
+    return manifest
+
+
+def describe_a2ui_contract_fingerprints() -> dict[str, str]:
+    """Return stable fingerprints for the contract sections and whole manifest."""
+
+    manifest = _build_a2ui_contract_manifest()
+    return {
+        "contract": _fingerprint_manifest_section(manifest),
+        "cards": _fingerprint_manifest_section(manifest["cards"]),
+        "fallbacks": _fingerprint_manifest_section(manifest["fallbacks"]),
+        "primitive_blocks": _fingerprint_manifest_section(manifest["primitive_blocks"]),
+        "actions": _fingerprint_manifest_section(manifest["actions"]),
+        "schemas": _fingerprint_manifest_section(manifest["schemas"]),
+    }
+
+
+def describe_selection_contract() -> dict[str, Any]:
+    """Return the stable, versioned SelectionRef contract manifest."""
+
+    manifest = _build_selection_contract_manifest()
+    manifest["selection_fingerprint"] = selection_contract_fingerprint()
     return manifest
 
 
@@ -175,6 +208,24 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
             }
             for action_id, schema in sorted(_ACTION_SCHEMAS.items())
         ],
+    }
+
+
+def _build_selection_contract_manifest() -> dict[str, Any]:
+    return {
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "selection_version": SELECTION_SCHEMA_VERSION,
+        "type": "SelectionRef",
+        "required_fields": ["id", "label", "payload"],
+        "optional_fields": ["selected", "disabled"],
+        "normalization": {
+            "id": "trimmed non-empty string",
+            "label": "trimmed non-empty string",
+            "payload": "object copy",
+            "selected": "bool default false",
+            "disabled": "bool default false",
+        },
     }
 
 
@@ -241,7 +292,18 @@ def a2ui_contract_fingerprint() -> str:
     """Return a stable fingerprint for the current contract manifest."""
 
     manifest = _build_a2ui_contract_manifest()
-    return hashlib.sha256(_canonical_json(manifest).encode("utf-8")).hexdigest()
+    return _fingerprint_manifest_section(manifest)
+
+
+def selection_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the SelectionRef contract manifest."""
+
+    manifest = _build_selection_contract_manifest()
+    return _fingerprint_manifest_section(manifest)
+
+
+def _fingerprint_manifest_section(section: Any) -> str:
+    return hashlib.sha256(_canonical_json(section).encode("utf-8")).hexdigest()
 
 
 def validate_capabilities(capabilities: A2UICapabilities) -> None:
@@ -515,6 +577,12 @@ def validate_action_ref(action: Any) -> None:
     _normalize_action(action, supported_actions=_ALLOWED_ACTION_SET)
 
 
+def validate_selection_ref(selection: Any) -> None:
+    if isinstance(selection, SelectionRef):
+        selection = _selection_ref_to_dict(selection)
+    _normalize_selection(selection)
+
+
 def normalize_action_ref(action: ActionRef) -> ActionRef:
     action_dict: dict[str, Any] = {
         "id": action.id,
@@ -532,6 +600,19 @@ def normalize_action_ref(action: ActionRef) -> ActionRef:
         payload=dict(normalized["payload"]),
         confirm=dict(normalized["confirm"]) if "confirm" in normalized else None,
         policy_sensitive=bool(normalized.get("policy_sensitive", False)),
+    )
+
+
+def normalize_selection_ref(selection: SelectionRef | dict[str, Any]) -> SelectionRef:
+    if isinstance(selection, SelectionRef):
+        selection = _selection_ref_to_dict(selection)
+    normalized = _normalize_selection(selection)
+    return SelectionRef(
+        id=str(normalized["id"]),
+        label=str(normalized["label"]),
+        payload=dict(normalized["payload"]),
+        selected=bool(normalized.get("selected", False)),
+        disabled=bool(normalized.get("disabled", False)),
     )
 
 
@@ -616,6 +697,33 @@ def render_terminal_card(card: dict[str, Any]) -> str:
             lines.append("Actions filtered out by allowlist or validation")
         elif not actions_are_list:
             lines.append("Actions filtered out by allowlist or validation")
+    return "\n".join(lines)
+
+
+def render_terminal_selection(selection: Any) -> str:
+    if isinstance(selection, SelectionRef):
+        selection = _selection_ref_to_dict(selection)
+
+    try:
+        normalized = _normalize_selection(selection)
+    except ValueError:
+        return "\n".join(
+            [
+                "[SelectionRef] <invalid selection>",
+                f"Selection schema v{SELECTION_SCHEMA_VERSION}",
+            ]
+        )
+
+    lines = [
+        f"[SelectionRef] {_render_terminal_inline_text(normalized['label'])}",
+        f"Selection schema v{SELECTION_SCHEMA_VERSION}",
+        f"- id: {_render_terminal_inline_text(normalized['id'])}",
+        f"- selected: {'true' if bool(normalized.get('selected', False)) else 'false'}",
+        f"- disabled: {'true' if bool(normalized.get('disabled', False)) else 'false'}",
+    ]
+    payload = normalized.get("payload")
+    if isinstance(payload, dict):
+        lines.append(f"- payload: {_render_payload_preview(payload, max_payload_bytes=256)}")
     return "\n".join(lines)
 
 
@@ -804,6 +912,54 @@ def _normalize_action(action: Any, *, supported_actions: set[str]) -> dict[str, 
     if policy_sensitive:
         normalized["policy_sensitive"] = True
     return normalized
+
+
+def _normalize_selection(selection: Any) -> dict[str, Any]:
+    if not isinstance(selection, dict):
+        raise ValueError("SelectionRef must be an object")
+    extra_keys = set(selection) - {"id", "label", "payload", "selected", "disabled"}
+    if extra_keys:
+        extras = ", ".join(sorted(extra_keys))
+        raise ValueError(f"Unexpected selection field(s): {extras}")
+    selection_id = str(selection.get("id", "")).strip()
+    if not selection_id:
+        raise ValueError("Selection id is required")
+    label = selection.get("label")
+    if not isinstance(label, str) or not label.strip():
+        raise ValueError("Selection label is required")
+    payload = selection.get("payload")
+    if not isinstance(payload, dict):
+        raise ValueError("Selection payload must be an object")
+
+    normalized: dict[str, Any] = {
+        "id": selection_id,
+        "label": label.strip(),
+        "payload": dict(payload),
+    }
+    selected = selection.get("selected", False)
+    if not isinstance(selected, bool):
+        raise ValueError("Selection selected must be a bool")
+    if selected:
+        normalized["selected"] = True
+    disabled = selection.get("disabled", False)
+    if not isinstance(disabled, bool):
+        raise ValueError("Selection disabled must be a bool")
+    if disabled:
+        normalized["disabled"] = True
+    return normalized
+
+
+def _selection_ref_to_dict(selection: SelectionRef) -> dict[str, Any]:
+    selection_dict: dict[str, Any] = {
+        "id": selection.id,
+        "label": selection.label,
+        "payload": selection.payload,
+    }
+    if selection.selected:
+        selection_dict["selected"] = selection.selected
+    if selection.disabled:
+        selection_dict["disabled"] = selection.disabled
+    return selection_dict
 
 
 def _normalize_confirm(confirm: Any) -> dict[str, str]:
@@ -1073,10 +1229,12 @@ def _render_terminal_fallback_debug(card_type: str, title: str, debug: Any) -> l
         fallback_kind, source_card_type = fallback_debug
 
     lines: list[str] = []
+    contract_version = None
     if isinstance(debug, dict):
         contract_version = debug.get("contract_version")
-        if type(contract_version) is int:
-            lines.append(f"- contract_version: {contract_version}")
+    if type(contract_version) is not int:
+        contract_version = A2UI_CONTRACT_VERSION
+    lines.append(f"- contract_version: {contract_version}")
     lines.append(f"- fallback_kind: {_render_terminal_inline_text(fallback_kind)}")
     lines.append(f"- source_card_type: {_render_terminal_inline_text(source_card_type)}")
     return lines
@@ -1146,10 +1304,9 @@ def _infer_generic_fallback_source(title: str) -> str | None:
 
 
 def _infer_unknown_fallback_source(title: str) -> str | None:
-    prefix = "Unsupported card type: "
-    if not title.startswith(prefix):
+    if not title.startswith(UNKNOWN_FALLBACK_TITLE_PREFIX):
         return None
-    source_card_type = title[len(prefix) :].strip()
+    source_card_type = title[len(UNKNOWN_FALLBACK_TITLE_PREFIX) :].strip()
     return source_card_type or None
 
 
@@ -1220,7 +1377,7 @@ def _build_fallback_title(expected_type: str, *, source_card_type: str) -> str:
     if expected_type == GENERIC_CARD_TYPE:
         return f"Fallback view for {source_card_type}"
     if expected_type == UNKNOWN_CARD_TYPE:
-        return f"Unsupported card type: {source_card_type}"
+        return f"{UNKNOWN_FALLBACK_TITLE_PREFIX}{source_card_type}"
     raise ValueError(f"Unsupported fallback card type: {expected_type}")
 
 

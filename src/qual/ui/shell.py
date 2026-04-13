@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Set
 
 from src.qual.engine.service import EngineRuntime
 
@@ -36,9 +36,18 @@ class ShellUI:
             return [item_ids]
         if isinstance(item_ids, Mapping):
             return [item_ids]
+        if isinstance(item_ids, Set):
+            return sorted(item_ids, key=ShellUI._snapshot_item_sort_key)
         if isinstance(item_ids, Iterable):
             return list(item_ids)
         return [item_ids]
+
+    @staticmethod
+    def _snapshot_item_sort_key(value: object) -> tuple[str, str]:
+        # Use the full normalized value so distinct items do not collapse
+        # when their truncated preview strings happen to match.
+        baseline = " ".join(str(value).split())
+        return (type(value).__name__, ShellUI._escape_control_chars(baseline))
 
     @staticmethod
     def _format_item_id(value: object) -> str:
