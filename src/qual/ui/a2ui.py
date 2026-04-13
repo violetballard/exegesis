@@ -1018,6 +1018,8 @@ def _normalize_terminal_artifact_kind(artifact: Any, *, kind: str | None) -> str
                 return inferred_kind
         return "card"
 
+    if not isinstance(kind, str):
+        raise ValueError("kind must be a string")
     normalized_kind = kind.strip().lower()
     if normalized_kind not in {"card", "action", "selection"}:
         raise ValueError("kind must be one of: card, action, selection")

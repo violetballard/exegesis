@@ -316,6 +316,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[SelectionRef] Choice", selection_text)
         with self.assertRaises(ValueError):
             render_terminal_artifact({"type": "GenericCard", "title": "Run Log", "blocks": [], "actions": []}, kind="dialog")
+        with self.assertRaises(ValueError):
+            render_terminal_artifact({"type": "GenericCard", "title": "Run Log", "blocks": [], "actions": []}, kind=1)
 
     def test_terminal_artifact_infers_typed_action_and_selection_mappings(self) -> None:
         action_text = render_terminal_artifact(
