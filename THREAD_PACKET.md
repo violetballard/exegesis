@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet HEAD role: `metadata-only reviewer-fix refresh`
-- Current branch head before this fixer commit: `a56545f2aa8800fef268ad00b468a99e849a0a5b`
+- Current branch head before this fixer commit: `00becda9e2d05badd2ed25d0073c81c24482aec8`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: `shared/high-risk retrieval handoff with explicit canonical demo-path alignment`
