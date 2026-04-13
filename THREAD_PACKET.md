@@ -1,7 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet HEAD role: `metadata-only reviewer-fix finalization`
+- Packet HEAD role: `review-packet correction for the actual reviewed tip`
 - Current branch head before this fixer commit: `380748890f6b79e9f5eb0e6842018d7d36a4b492`
 - Reviewed implementation head: `380748890f6b79e9f5eb0e6842018d7d36a4b492`
 - Reviewed implementation range: `712714c24f92cdfe43f21127c2de1d4ea0bd2599..380748890f6b79e9f5eb0e6842018d7d36a4b492`
