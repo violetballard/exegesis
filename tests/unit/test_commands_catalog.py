@@ -90,6 +90,7 @@ from src.qual.commands import (
     command_demo_cli_route_contract,
     command_demo_cli_route_summary,
     command_demo_flow_surface_tokens,
+    command_demo_smoke_contract,
     command_names,
     command_primary_cli_token_for,
     command_mvp_cli_shim_catalog,
@@ -101,8 +102,10 @@ from src.qual.commands import (
     command_spec,
     command_spec_for,
     command_specs,
+    command_smoke_contract,
     command_tokens,
     command_flow_tokens,
+    command_mvp_smoke_contract,
     validate_command_catalog,
 )
 
@@ -790,6 +793,25 @@ class CommandCatalogTests(unittest.TestCase):
             sequence.lookup_tokens,
             tuple(entry.lookup_tokens for entry in command_mvp_flow()),
         )
+
+    def test_command_smoke_contract_bundles_the_mvp_invocation_surface(self) -> None:
+        contract = command_smoke_contract()
+        self.assertEqual(contract, command_demo_smoke_contract())
+        self.assertEqual(contract, command_mvp_smoke_contract())
+        self.assertEqual(contract.flow_steps, command_mvp_flow_steps())
+        self.assertEqual(contract.names, command_mvp_flow_names())
+        self.assertEqual(
+            tuple((entry.flow_step, entry.name, entry.argv) for entry in contract.invocation_plan),
+            (
+                ("project-open", "bootstrap", ("bootstrap",)),
+                ("retrieval", "context-basket", ("context-basket",)),
+                ("patch-review", "diff-preview", ("diff-preview",)),
+                ("export-handoff", "terminal", ("terminal",)),
+            ),
+        )
+        self.assertEqual(contract.invocation_plan, command_flow_invocation_plan())
+        self.assertEqual(contract.route_summary, command_flow_route_summary())
+        self.assertEqual(contract.lookup_surface, command_flow_lookup_surface())
 
     def test_command_flow_helpers_default_to_the_demo_route(self) -> None:
         self.assertEqual(command_flow_manifest(), command_mvp_flow_manifest())

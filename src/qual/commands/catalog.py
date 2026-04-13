@@ -59,6 +59,7 @@ class CommandSmokeContract:
     names: tuple[str, ...]
     entries: tuple[CommandSmokeEntry, ...]
     primary_cli_tokens: tuple[str, ...]
+    invocation_plan: tuple[CommandInvocationPlanEntry, ...]
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
     lookup_surface: tuple[tuple[str, str], ...]
 
@@ -1519,6 +1520,11 @@ def _validate_command_smoke_contract(contract: CommandSmokeContract) -> None:
         raise ValueError("Command smoke primary CLI tokens are inconsistent")
     if tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in contract.entries) != contract.route_summary:
         raise ValueError("Command smoke route summary is inconsistent")
+    if tuple((entry.flow_step, entry.name, entry.argv) for entry in contract.invocation_plan) != tuple(
+        (entry.flow_step, entry.name, (entry.primary_cli_token,))
+        for entry in contract.entries
+    ):
+        raise ValueError("Command smoke invocation plan is inconsistent")
 
     expected_lookup_surface: list[tuple[str, str]] = []
     seen_tokens: set[str] = set()
@@ -1662,6 +1668,7 @@ def command_smoke_contract(
         names=tuple(entry.name for entry in entries),
         entries=entries,
         primary_cli_tokens=tuple(entry.primary_cli_token for entry in entries),
+        invocation_plan=command_flow_invocation_plan(specs, ordered_flow_steps),
         route_summary=tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in entries),
         lookup_surface=command_flow_lookup_surface(specs, ordered_flow_steps),
     )
