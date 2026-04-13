@@ -22,7 +22,7 @@
 
 ## Reviewer fix reconciliation
 - Required fix 1 is satisfied by explicitly naming the canonical demo-path step advanced: `retrieve relevant material`.
-- Required fix 2 is satisfied by classifying this handoff as shared/high-risk work under the 4-task cap because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file.
+- Required fix 2 is satisfied by explicitly classifying this handoff under the AGENTS.md high-risk/shared kickoff rules: approved shared coverage in `tests/unit/test_unified_retrieval.py` makes this a shared/high-risk packet reviewed against the `4`-task / `30m` template.
 - Required fix 3 is satisfied by refreshing this handoff packet so roadmap alignment, budget framing, and reviewed implementation traceability read cleanly in one place for re-review.
 
 ## Approved exception note
