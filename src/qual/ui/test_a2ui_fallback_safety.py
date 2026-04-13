@@ -72,6 +72,13 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["action"], describe_action_contract())
         self.assertEqual(manifest["action"]["contract_fingerprint"], manifest["action"]["action_fingerprint"])
         self.assertEqual(len(manifest["action"]["contract_fingerprint"]), 64)
+        self.assertEqual(manifest["terminal_artifact"], describe_terminal_artifact_contract())
+        self.assertEqual(manifest["schemas"]["terminal_artifact"], describe_terminal_artifact_contract())
+        self.assertEqual(
+            manifest["terminal_artifact"]["contract_fingerprint"],
+            manifest["schemas"]["terminal_artifact"]["contract_fingerprint"],
+        )
+        self.assertEqual(len(manifest["terminal_artifact"]["contract_fingerprint"]), 64)
 
     def test_a2ui_contract_fingerprint_map_matches_section_contracts(self) -> None:
         manifest = describe_a2ui_contract()

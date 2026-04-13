@@ -223,6 +223,7 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
         "terminal_fallback": describe_terminal_fallback_contract(),
+        "terminal_artifact": describe_terminal_artifact_contract(),
         "cards": {
             "generic": GENERIC_CARD_TYPE,
             "unknown": UNKNOWN_CARD_TYPE,
@@ -420,6 +421,7 @@ def _build_a2ui_schema_manifest() -> dict[str, Any]:
             }
         ],
         "terminal_fallback": describe_terminal_fallback_contract(),
+        "terminal_artifact": describe_terminal_artifact_contract(),
     }
 
 
