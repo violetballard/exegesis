@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from types import SimpleNamespace
 
 from src.qual.ui.a2ui import (
     A2UI_ACTION_SCHEMA_VERSION,
@@ -9,6 +10,7 @@ from src.qual.ui.a2ui import (
     action_contract_fingerprint,
     build_unknown_card,
     describe_a2ui_contract,
+    describe_a2ui_contract_fingerprints,
     describe_action_contract,
     describe_selection_contract,
     engine_prepare_card,
@@ -16,6 +18,7 @@ from src.qual.ui.a2ui import (
     render_terminal_card,
     render_terminal_selection,
 )
+from src.qual.ui.shell import ShellUI
 
 
 class _OpaqueValue:
@@ -55,6 +58,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["action"], describe_action_contract())
         self.assertEqual(manifest["action"]["contract_fingerprint"], manifest["action"]["action_fingerprint"])
         self.assertEqual(len(manifest["action"]["contract_fingerprint"]), 64)
+
+    def test_a2ui_contract_fingerprint_map_matches_section_contracts(self) -> None:
+        manifest = describe_a2ui_contract()
+        fingerprints = describe_a2ui_contract_fingerprints()
+
+        self.assertEqual(fingerprints["contract"], manifest["contract_fingerprint"])
+        self.assertEqual(fingerprints["selection"], describe_selection_contract()["contract_fingerprint"])
+        self.assertEqual(len(fingerprints["actions"]), 64)
 
     def test_action_contract_manifest_exposes_contract_fingerprint_alias(self) -> None:
         manifest = describe_action_contract()
@@ -287,6 +298,20 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("- Owner: alice", text)
         self.assertIn("- Enabled: true", text)
         self.assertNotIn("- Opaque:", text)
+
+    def test_shell_ui_escapes_unicode_format_controls_in_preview(self) -> None:
+        runtime = SimpleNamespace(
+            vault=SimpleNamespace(project_name="Demo", root_dir="/tmp/demo", is_locked=False),
+            basket=SimpleNamespace(item_ids=["alpha\u202ebeta"]),
+        )
+
+        text = ShellUI().render_startup(runtime)
+
+        self.assertIn('- context_preview: "alpha\\\\u202ebeta"', text)
+        self.assertNotIn("alpha\u202ebeta", text)
+
+    def test_shell_ui_truncates_without_splitting_unicode_escape_sequences(self) -> None:
+        self.assertEqual(ShellUI._format_item_id("x" * 18 + "\u202e" + "yz"), "xxxxxxxxxxxxxxxxxx...")
 
 
 if __name__ == "__main__":

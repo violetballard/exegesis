@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Set
+import unicodedata
 
 from src.qual.engine.service import EngineRuntime
 
@@ -70,6 +71,11 @@ class ShellUI:
             code = ord(char)
             if code < 32 or code == 127:
                 parts.append(f"\\x{code:02x}")
+            elif unicodedata.category(char).startswith("C"):
+                if code <= 0xFFFF:
+                    parts.append(f"\\u{code:04x}")
+                else:
+                    parts.append(f"\\U{code:08x}")
             else:
                 parts.append(char)
         return "".join(parts)
@@ -84,9 +90,16 @@ class ShellUI:
             if prefix.endswith("\\"):
                 prefix = prefix[:-1]
                 continue
-            escape_start = prefix.rfind("\\x")
-            if escape_start != -1 and len(prefix) - escape_start < 4:
-                prefix = prefix[:escape_start]
-                continue
+            escape_start = prefix.rfind("\\")
+            if escape_start != -1 and escape_start < len(prefix) - 1:
+                escape_type = prefix[escape_start + 1]
+                escape_length = {
+                    "x": 4,
+                    "u": 6,
+                    "U": 10,
+                }.get(escape_type)
+                if escape_length is not None and len(prefix) - escape_start < escape_length:
+                    prefix = prefix[:escape_start]
+                    continue
             break
         return f"{prefix}..."
