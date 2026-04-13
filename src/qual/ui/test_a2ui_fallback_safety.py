@@ -18,12 +18,14 @@ from src.qual.ui.a2ui import (
     describe_action_contract,
     describe_card_contract,
     describe_selection_contract,
+    describe_terminal_fallback_contract,
     engine_prepare_card,
     render_terminal_action,
     render_terminal_artifact,
     render_terminal_card,
     render_terminal_selection,
     SelectionRef,
+    terminal_fallback_contract_fingerprint,
 )
 from src.qual.ui.shell import ShellUI
 
@@ -89,6 +91,26 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(len(manifest["card_fingerprint"]), 64)
         self.assertEqual(manifest["card_schemas"], a2ui_manifest["schemas"]["cards"])
         self.assertEqual(manifest["fallbacks"], a2ui_manifest["fallbacks"])
+
+    def test_terminal_fallback_contract_manifest_is_versioned_and_embedded_in_a2ui_contract(self) -> None:
+        manifest = describe_terminal_fallback_contract()
+        a2ui_manifest = describe_a2ui_contract()
+
+        self.assertEqual(manifest["contract_version"], 2)
+        self.assertEqual(manifest["a2ui_version"], 1)
+        self.assertEqual(manifest["terminal_fallback_schema_version"], 1)
+        self.assertEqual(manifest["terminal_fallback_version"], 1)
+        self.assertEqual(manifest["type"], "TerminalFallbackContract")
+        self.assertEqual(manifest["supported_kinds"], ["card", "action", "selection"])
+        self.assertEqual(manifest["default_kind"], "card")
+        self.assertEqual(
+            manifest["read_only_action"],
+            {"id": "copy_to_clipboard", "label": "Copy JSON", "version": 1, "payload_fields": ["text"]},
+        )
+        self.assertEqual(manifest["card_fallbacks"], a2ui_manifest["fallbacks"])
+        self.assertEqual(manifest["contract_fingerprint"], terminal_fallback_contract_fingerprint())
+        self.assertEqual(len(manifest["contract_fingerprint"]), 64)
+        self.assertEqual(a2ui_manifest["schemas"]["terminal_fallback"], manifest)
 
     def test_action_contract_manifest_exposes_contract_fingerprint_alias(self) -> None:
         manifest = describe_action_contract()

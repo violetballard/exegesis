@@ -13,6 +13,7 @@ A2UI_CONTRACT_VERSION = 2
 A2UI_ACTION_SCHEMA_VERSION = 1
 SELECTION_SCHEMA_VERSION = 1
 CARD_CONTRACT_VERSION = 1
+TERMINAL_FALLBACK_SCHEMA_VERSION = 1
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
 DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES = 8_192
@@ -194,6 +195,16 @@ def describe_card_contract() -> dict[str, Any]:
     return manifest
 
 
+def describe_terminal_fallback_contract() -> dict[str, Any]:
+    """Return the stable terminal fallback contract manifest."""
+
+    manifest = _build_terminal_fallback_contract_manifest()
+    fingerprint = terminal_fallback_contract_fingerprint()
+    manifest["terminal_fallback_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
+    return manifest
+
+
 def _build_a2ui_contract_manifest() -> dict[str, Any]:
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
@@ -266,6 +277,20 @@ def _build_card_contract_manifest() -> dict[str, Any]:
         "type": "CardContract",
         "card_schemas": _build_card_schema_manifest(),
         "fallbacks": _build_card_fallback_manifest(),
+    }
+
+
+def _build_terminal_fallback_contract_manifest() -> dict[str, Any]:
+    return {
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "terminal_fallback_schema_version": TERMINAL_FALLBACK_SCHEMA_VERSION,
+        "terminal_fallback_version": TERMINAL_FALLBACK_SCHEMA_VERSION,
+        "type": "TerminalFallbackContract",
+        "supported_kinds": ["card", "action", "selection"],
+        "default_kind": "card",
+        "read_only_action": _build_read_only_fallback_action_manifest()[0],
+        "card_fallbacks": _build_card_fallback_manifest(),
     }
 
 
@@ -351,6 +376,7 @@ def _build_a2ui_schema_manifest() -> dict[str, Any]:
                 "payload_schemas": _build_action_payload_schema_manifest(),
             }
         ],
+        "terminal_fallback": describe_terminal_fallback_contract(),
     }
 
 
@@ -379,6 +405,13 @@ def card_contract_fingerprint() -> str:
     """Return a stable fingerprint for the card contract manifest."""
 
     manifest = _build_card_contract_manifest()
+    return _fingerprint_manifest_section(manifest)
+
+
+def terminal_fallback_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the terminal fallback contract manifest."""
+
+    manifest = _build_terminal_fallback_contract_manifest()
     return _fingerprint_manifest_section(manifest)
 
 

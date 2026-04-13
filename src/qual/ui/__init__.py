@@ -14,6 +14,7 @@ from .a2ui import (
     GENERIC_CARD_TYPE,
     GENERIC_FALLBACK_SUBTITLE,
     SELECTION_SCHEMA_VERSION,
+    TERMINAL_FALLBACK_SCHEMA_VERSION,
     UNKNOWN_CARD_TYPE,
     UNKNOWN_FALLBACK_SUBTITLE,
     card_contract_fingerprint,
@@ -25,6 +26,7 @@ from .a2ui import (
     build_unknown_card,
     describe_a2ui_contract,
     describe_selection_contract,
+    describe_terminal_fallback_contract,
     engine_prepare_card,
     execute_action_with_policy_gate,
     normalize_action_ref,
@@ -42,6 +44,7 @@ from .a2ui import (
     validate_primitive_block,
     validate_unknown_card,
     selection_contract_fingerprint,
+    terminal_fallback_contract_fingerprint,
 )
 from .shell import ShellUI
 
@@ -59,6 +62,7 @@ __all__ = [
     "GENERIC_CARD_TYPE",
     "GENERIC_FALLBACK_SUBTITLE",
     "SELECTION_SCHEMA_VERSION",
+    "TERMINAL_FALLBACK_SCHEMA_VERSION",
     "ShellUI",
     "UNKNOWN_CARD_TYPE",
     "UNKNOWN_FALLBACK_SUBTITLE",
@@ -71,6 +75,7 @@ __all__ = [
     "describe_card_contract",
     "describe_a2ui_contract",
     "describe_selection_contract",
+    "describe_terminal_fallback_contract",
     "engine_prepare_card",
     "execute_action_with_policy_gate",
     "normalize_action_ref",
@@ -88,4 +93,5 @@ __all__ = [
     "validate_primitive_block",
     "validate_unknown_card",
     "selection_contract_fingerprint",
+    "terminal_fallback_contract_fingerprint",
 ]
