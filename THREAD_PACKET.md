@@ -8,6 +8,9 @@
 - Removed the public `fetch_excerpt` PageIndex fallback so excerpt lookup now fails closed on the canonical FTS-only path.
 - Kept the approved shared regression surface in `tests/unit/test_unified_retrieval.py` aligned with that contract by asserting PageIndex-only excerpt ids raise `KeyError`.
 
+## Canonical demo-path step advanced
+- `retrieve relevant material`: this handoff makes the canonical retrieval step more real by requiring FTS-backed excerpt ids on the public excerpt lookup surface and preserving deterministic provenance on that canonical retrieval path.
+
 ## AGENTS.md handoff packet
 - Risk reason: shared-by-approval regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed implementation range, so this handoff uses the high-risk/shared-work framing required by `AGENTS.md`.
 - Approved exception note: `tests/unit/test_unified_retrieval.py` is the sole shared-by-approval file exercised in this lane for the canonical retrieval contract.
@@ -26,6 +29,9 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
+
+## Final reviewer-fix verification
+- `2026-04-13`: Re-ran all required gates after confirming the handoff packet already reflects the high-risk/shared-work framing requested in review.
 
 ## Risks/blockers
 - Risks: high; shared approved regression coverage is part of the reviewed slice, but runtime behavior remains narrowed to the FTS-only retrieval contract.
