@@ -940,6 +940,35 @@ def command_cli_shim_invocation_table(
 
 
 @lru_cache(maxsize=None)
+def command_cli_shim_primary_token_for(
+    specs: tuple[CommandSpec, ...],
+    token: str,
+    flow_steps: tuple[str, ...] | None = None,
+) -> str:
+    normalized_token = _normalize_token(token)
+    if not normalized_token:
+        return ""
+    shim_lookup = dict(command_cli_shim_lookup_table(specs, flow_steps))
+    return shim_lookup.get(normalized_token, "")
+
+
+def command_cli_shim_argv_for(
+    specs: tuple[CommandSpec, ...],
+    argv: tuple[str, ...] | list[str],
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    raw_argv = tuple(argv)
+    if not raw_argv:
+        return ()
+    if raw_argv[0].lstrip().startswith("-"):
+        return raw_argv
+    primary_token = command_cli_shim_primary_token_for(specs, raw_argv[0], flow_steps)
+    if not primary_token:
+        return raw_argv
+    return (primary_token, *raw_argv[1:])
+
+
+@lru_cache(maxsize=None)
 def command_cli_shim_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
@@ -1769,3 +1798,17 @@ def command_aliases(name: str) -> tuple[str, ...]:
 
 def canonical_command(name: str) -> str:
     return canonical_command_for(COMMAND_SPECS, name)
+
+
+def command_cli_shim_primary_token(
+    token: str,
+    flow_steps: tuple[str, ...] | None = None,
+) -> str:
+    return command_cli_shim_primary_token_for(COMMAND_SPECS, token, flow_steps)
+
+
+def command_cli_shim_argv(
+    argv: tuple[str, ...] | list[str],
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    return command_cli_shim_argv_for(COMMAND_SPECS, argv, flow_steps)

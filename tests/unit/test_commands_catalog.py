@@ -19,6 +19,10 @@ from src.qual.commands import (
     command_cli_shim_contract,
     command_cli_shim_invocation_table,
     command_cli_shim_lookup_table,
+    command_cli_shim_primary_token,
+    command_cli_shim_primary_token_for,
+    command_cli_shim_argv,
+    command_cli_shim_argv_for,
     command_cli_surface_catalog,
     command_cli_surface_contract,
     command_cli_tokens,
@@ -254,6 +258,22 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(contract.lookup_table, command_cli_shim_lookup_table())
         self.assertEqual(contract.invocation_table, command_cli_shim_invocation_table())
 
+    def test_command_cli_shim_helpers_rewrite_legacy_surface_tokens_to_primary_argv(self) -> None:
+        self.assertEqual(command_cli_shim_primary_token("open"), "bootstrap")
+        self.assertEqual(command_cli_shim_primary_token("project-open"), "bootstrap")
+        self.assertEqual(command_cli_shim_primary_token("patch-review"), "diff-preview")
+        self.assertEqual(command_cli_shim_primary_token("missing"), "")
+        self.assertEqual(
+            command_cli_shim_argv(["open", "--project", "demo"]),
+            ("bootstrap", "--project", "demo"),
+        )
+        self.assertEqual(
+            command_cli_shim_argv(("patch-review", "--original", "a", "--proposed", "b")),
+            ("diff-preview", "--original", "a", "--proposed", "b"),
+        )
+        self.assertEqual(command_cli_shim_argv(["--project", "demo"]), ("--project", "demo"))
+        self.assertEqual(command_cli_shim_argv(()), ())
+
     def test_command_cli_contract_supports_custom_specs(self) -> None:
         specs = (
             CommandSpec(
@@ -325,6 +345,15 @@ class CommandCatalogTests(unittest.TestCase):
                 ("patch", "review-patch"),
                 ("patch-review", "review-patch"),
             ),
+        )
+        self.assertEqual(command_cli_shim_primary_token_for(specs, "open"), "project-open")
+        self.assertEqual(
+            command_cli_shim_argv_for(specs, ("patch", "--format", "json")),
+            ("review-patch", "--format", "json"),
+        )
+        self.assertEqual(
+            command_cli_shim_argv_for(specs, ("patch", "--format", "json"), ("project-open",)),
+            ("patch", "--format", "json"),
         )
 
     def test_command_demo_and_mvp_cli_shim_helpers_alias_the_public_contract(self) -> None:
