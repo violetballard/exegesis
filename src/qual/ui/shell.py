@@ -210,19 +210,28 @@ class ShellUI:
                 fallback_kind = ShellUI._infer_fallback_kind(artifact)
             return artifact, fallback_kind
 
+        envelope_kind = None
+        raw_kind = artifact.get("kind")
+        if isinstance(raw_kind, str):
+            normalized_raw_kind = raw_kind.strip().lower()
+            if normalized_raw_kind in {"card", "action", "selection"}:
+                envelope_kind = normalized_raw_kind
+        payload = artifact.get("artifact")
+        payload_kind = ShellUI._infer_fallback_kind(payload) if payload is not None else None
+
         try:
             validate_terminal_artifact_envelope(artifact)
         except Exception:
-            payload = artifact.get("artifact")
             if fallback_kind in {"action", "selection"}:
                 if payload is not None:
                     return payload, fallback_kind
-            if (
-                requested_kind == "card"
-                and isinstance(payload, Mapping)
-                and ShellUI._infer_fallback_kind(payload) is None
-            ):
+            if envelope_kind in {"action", "selection"} and payload is not None and payload_kind == envelope_kind:
+                return payload, envelope_kind
+            if requested_kind == "card" and isinstance(payload, Mapping) and payload_kind is None:
                 # Keep explicit card hints usable even when the wrapper metadata is stale.
+                return payload, "card"
+            if envelope_kind == "card" and isinstance(payload, Mapping) and payload_kind is None:
+                # Preserve valid card payloads when only the wrapper metadata is malformed.
                 return payload, "card"
             return artifact, fallback_kind
 

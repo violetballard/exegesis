@@ -290,6 +290,43 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn('"trace_id":"drop-me"', text)
         self.assertIn('"kind":"action"', text)
 
+    def test_shell_ui_recovers_matching_kinds_from_malformed_terminal_artifacts(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            action_text = shell.render_artifact(
+                build_terminal_artifact_envelope(
+                    ActionRef(
+                        id=" export_document ",
+                        label=" Export ",
+                        payload={"format": "md"},
+                    ),
+                    kind="action",
+                )
+                | {"trace_id": "drop-me"}
+            )
+            selection_text = shell.render_artifact(
+                build_terminal_artifact_envelope(
+                    SelectionRef(
+                        id=" choice-1 ",
+                        label=" Choice ",
+                        payload={"nested": {"items": [1, 2]}},
+                    ),
+                    kind="selection",
+                )
+                | {"trace_id": "drop-me"}
+            )
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", action_text)
+        self.assertNotIn("trace_id", action_text)
+
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
+        self.assertNotIn("trace_id", selection_text)
+
     def test_shell_ui_unwraps_valid_terminal_artifact_envelopes_during_fallback(self) -> None:
         shell = ShellUI()
         action_envelope = build_terminal_artifact_envelope(
