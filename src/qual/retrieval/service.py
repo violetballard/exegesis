@@ -58,6 +58,13 @@ def _optional_text(value: object) -> str | None:
     return None
 
 
+def _normalized_text(value: object) -> str | None:
+    text = _optional_text(value)
+    if text is None:
+        return None
+    return " ".join(text.split())
+
+
 def _parse_date_value(value: str) -> date | None:
     try:
         return datetime.fromisoformat(value).date()
@@ -136,7 +143,7 @@ class RetrievalConstraints:
             if len(normalized) != 2:
                 raise ValueError("date_range must contain exactly two non-empty values")
             object.__setattr__(self, "date_range", _normalize_date_range(normalized))
-        object.__setattr__(self, "section_hint", _optional_text(self.section_hint))
+        object.__setattr__(self, "section_hint", _normalized_text(self.section_hint))
 
 
 @dataclass(frozen=True)
@@ -148,6 +155,10 @@ class RetrievalQuery:
     confidentiality_profile: Literal["confidential", "standard"] = "confidential"
 
     def __post_init__(self) -> None:
+        normalized_query_text = _normalized_text(self.query_text)
+        if normalized_query_text is None:
+            raise ValueError("query_text is required")
+        object.__setattr__(self, "query_text", normalized_query_text)
         object.__setattr__(self, "scope", _normalize_scope(self.scope))
         object.__setattr__(
             self,

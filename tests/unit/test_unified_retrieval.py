@@ -231,6 +231,51 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(compact.to_downstream_payload()["query"]["constraints"]["section_hint"], "discussion")
         self.assertEqual(spaced.to_downstream_payload()["query"]["constraints"]["section_hint"], "discussion")
 
+    def test_retrieve_auto_normalizes_internal_query_text_and_section_hint_whitespace(self) -> None:
+        self.service.add_or_update_document(
+            doc_id="doc-memo-spaces",
+            doc_type="memo",
+            title_hint="Discussion Notes",
+            text="Discussion notes cover theory comparison evidence.",
+        )
+
+        compact = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-memo-spaces",
+                intent="lookup",
+                constraints=RetrievalConstraints(max_results=4, section_hint="discussion notes"),
+                confidentiality_profile="confidential",
+            )
+        )
+        spaced = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="  Discussion   Theory  ",
+                scope="doc:doc-memo-spaces",
+                intent="lookup",
+                constraints=RetrievalConstraints(max_results=4, section_hint="  discussion   notes  "),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        self.assertEqual(compact.query.query_text, "discussion theory")
+        self.assertEqual(spaced.query.query_text, "Discussion Theory")
+        self.assertEqual(compact.query.constraints.section_hint, "discussion notes")
+        self.assertEqual(spaced.query.constraints.section_hint, "discussion notes")
+        self.assertEqual(compact.diagnostics["query_fingerprint"], spaced.diagnostics["query_fingerprint"])
+        self.assertEqual(compact.result_fingerprint, spaced.result_fingerprint)
+        self.assertEqual([hit.excerpt_id for hit in compact.hits], [hit.excerpt_id for hit in spaced.hits])
+        self.assertEqual(compact.hits[0].provenance["section_hint"], "discussion notes")
+        self.assertEqual(spaced.hits[0].provenance["section_hint"], "discussion notes")
+        self.assertEqual(
+            compact.to_downstream_payload()["query"]["constraints"]["section_hint"],
+            "discussion notes",
+        )
+        self.assertEqual(
+            spaced.to_downstream_payload()["query"]["constraints"]["section_hint"],
+            "discussion notes",
+        )
+
     def test_retrieve_auto_normalizes_scope_whitespace_in_query_fingerprint(self) -> None:
         compact = self.service.retrieve_auto(
             RetrievalQuery(
@@ -1654,6 +1699,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
 
         self.assertEqual(engine_query, package_query)
+        self.assertEqual(engine_query.query_text, "memo comparison")
         self.assertEqual(engine_query.constraints.doc_types, ("memo", "pdf"))
         self.assertEqual(engine_query.constraints.date_range, ("2026-01-01", "2026-01-31"))
         self.assertEqual(engine_query.constraints.section_hint, "discussion")
