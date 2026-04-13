@@ -1157,6 +1157,49 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(canonical["provenance"]["hash"], result.hits[0].provenance["hash"])
         self.assertEqual(canonical["text_hash"], result.hits[0].provenance["excerpt_text_hash"])
 
+    def test_retrieve_fts_excerpt_honors_confidentiality_profile_for_title_hint(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="lookup",
+                constraints=RetrievalConstraints(max_results=3),
+                confidentiality_profile="standard",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+
+        confidential = self.service.retrieve_fts_excerpt(excerpt_id or "")
+        standard = self.service.retrieve_fts_excerpt(
+            excerpt_id or "",
+            confidentiality_profile="standard",
+        )
+        alias = self.service.fetch_fts_excerpt(
+            excerpt_id or "",
+            confidentiality_profile="standard",
+        )
+        helper = engine_retrieval.retrieve_fts_excerpt(
+            self.service,
+            excerpt_id=excerpt_id or "",
+            confidentiality_profile="standard",
+        )
+        package_helper = engine_retrieve_fts_excerpt(
+            self.service,
+            excerpt_id=excerpt_id or "",
+            confidentiality_profile="standard",
+        )
+
+        self.assertNotEqual(confidential["title_hint"], "Interview Packet")
+        self.assertEqual(standard["title_hint"], "Interview Packet")
+        self.assertEqual(alias["title_hint"], "Interview Packet")
+        self.assertEqual(helper["title_hint"], "Interview Packet")
+        self.assertEqual(package_helper["title_hint"], "Interview Packet")
+        self.assertEqual(standard, alias)
+        self.assertEqual(standard, helper)
+        self.assertEqual(standard, package_helper)
+
     def test_retrieval_hits_surface_top_level_retrieval_context(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

@@ -256,20 +256,28 @@ def retrieve_fts_excerpt(
     service: RetrievalService,
     *,
     excerpt_id: str,
+    confidentiality_profile: str = "confidential",
 ) -> dict[str, object]:
     """Return an excerpt payload using the canonical FTS-only lookup path."""
 
-    return service.retrieve_fts_excerpt(excerpt_id)
+    return service.retrieve_fts_excerpt(
+        excerpt_id,
+        confidentiality_profile=confidentiality_profile,
+    )
 
 
 def fetch_fts_excerpt(
     service: RetrievalService,
     *,
     excerpt_id: str,
+    confidentiality_profile: str = "confidential",
 ) -> dict[str, object]:
     """Backward-compatible alias for the canonical FTS-only excerpt lookup path."""
 
-    return service.fetch_fts_excerpt(excerpt_id)
+    return service.fetch_fts_excerpt(
+        excerpt_id,
+        confidentiality_profile=confidentiality_profile,
+    )
 
 
 def retrieve_auto(

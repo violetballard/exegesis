@@ -950,18 +950,50 @@ class RetrievalService:
 
         return self.retrieve_auto(query).retrieval_excerpt_bundle()
 
-    def fetch_fts_excerpt(self, excerpt_id: str) -> dict[str, object]:
+    def fetch_fts_excerpt(
+        self,
+        excerpt_id: str,
+        *,
+        confidentiality_profile: str = "confidential",
+    ) -> dict[str, object]:
         """Backward-compatible alias for the canonical FTS-only excerpt lookup path."""
 
-        return self._lookup_fts_excerpt(excerpt_id, lookup_entrypoint="fetch_fts_excerpt")
+        return self._lookup_fts_excerpt(
+            excerpt_id,
+            lookup_entrypoint="fetch_fts_excerpt",
+            confidentiality_profile=confidentiality_profile,
+        )
 
-    def retrieve_fts_excerpt(self, excerpt_id: str) -> dict[str, object]:
+    def retrieve_fts_excerpt(
+        self,
+        excerpt_id: str,
+        *,
+        confidentiality_profile: str = "confidential",
+    ) -> dict[str, object]:
         """Return an excerpt payload using the canonical FTS-only lookup path."""
 
-        return self._lookup_fts_excerpt(excerpt_id, lookup_entrypoint="retrieve_fts_excerpt")
+        return self._lookup_fts_excerpt(
+            excerpt_id,
+            lookup_entrypoint="retrieve_fts_excerpt",
+            confidentiality_profile=confidentiality_profile,
+        )
 
-    def _lookup_fts_excerpt(self, excerpt_id: str, *, lookup_entrypoint: str) -> dict[str, object]:
-        fts_excerpt = self._find_fts_excerpt(excerpt_id)
+    def _lookup_fts_excerpt(
+        self,
+        excerpt_id: str,
+        *,
+        lookup_entrypoint: str,
+        confidentiality_profile: str,
+    ) -> dict[str, object]:
+        normalized_confidentiality_profile = _normalize_supported_value(
+            confidentiality_profile,
+            field_name="confidentiality_profile",
+            allowed=_SUPPORTED_CONFIDENTIALITY_PROFILES,
+        )
+        fts_excerpt = self._find_fts_excerpt(
+            excerpt_id,
+            confidentiality_profile=normalized_confidentiality_profile,
+        )
         if fts_excerpt is None:
             raise KeyError(f"unknown excerpt_id: {excerpt_id}")
         self._record_excerpt_lookup_audit(
@@ -1141,10 +1173,19 @@ class RetrievalService:
             result_fingerprint=result_fingerprint,
         )
 
-    def fetch_excerpt(self, excerpt_id: str) -> dict[str, object]:
+    def fetch_excerpt(
+        self,
+        excerpt_id: str,
+        *,
+        confidentiality_profile: str = "confidential",
+    ) -> dict[str, object]:
         """Return an excerpt payload using the canonical FTS-only lookup path."""
 
-        return self._lookup_fts_excerpt(excerpt_id, lookup_entrypoint="fetch_excerpt")
+        return self._lookup_fts_excerpt(
+            excerpt_id,
+            lookup_entrypoint="fetch_excerpt",
+            confidentiality_profile=confidentiality_profile,
+        )
 
     def _run_fts_hits(self, query: RetrievalQuery, candidate_doc_ids: tuple[str, ...]) -> list[RetrievalHit]:
         match_query, query_terms = self._build_fts_match_query(query.query_text)
@@ -1786,7 +1827,12 @@ class RetrievalService:
         payload = f"{doc_id}:{char_start}:{char_end}:{hashlib.sha256(text.encode('utf-8')).hexdigest()}"
         return f"fts_{hashlib.sha256(payload.encode('utf-8')).hexdigest()[:24]}"
 
-    def _find_fts_excerpt(self, excerpt_id: str) -> dict[str, object] | None:
+    def _find_fts_excerpt(
+        self,
+        excerpt_id: str,
+        *,
+        confidentiality_profile: str,
+    ) -> dict[str, object] | None:
         row = self._fetch_fts_row(excerpt_id)
         if row is not None:
             text = str(row["text"])
@@ -1799,7 +1845,7 @@ class RetrievalService:
                     "doc_type": str(row["doc_type"]),
                     "title_hint": self._safe_title_hint(
                         str(row["title_hint"] or ""),
-                        confidentiality_profile="confidential",
+                        confidentiality_profile=confidentiality_profile,
                     ),
                     "source_hash": self._doc_source_hash(doc_id),
                     "source_strategy": "fts",
