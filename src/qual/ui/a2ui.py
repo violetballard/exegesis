@@ -535,7 +535,7 @@ def _validate_fallback_card(
         raise ValueError("Fallback card actions must be a list or tuple")
     _validate_canonical_read_only_fallback_actions(actions)
     debug = card.get("debug")
-    if not isinstance(debug, dict):
+    if not isinstance(debug, Mapping):
         raise ValueError("Fallback card debug is required")
     extra_debug_keys = set(debug) - {"contract_version", "fallback_kind", "source_card_type"}
     if extra_debug_keys:
@@ -569,7 +569,7 @@ def _validate_card_version(card: dict[str, Any]) -> None:
 
 
 def validate_primitive_block(block: Any) -> None:
-    if not isinstance(block, dict):
+    if not isinstance(block, Mapping):
         raise ValueError("Primitive block must be an object")
     block_type = str(block.get("type", ""))
     if block_type not in _PRIMITIVE_BLOCK_SET:
@@ -578,18 +578,16 @@ def validate_primitive_block(block: Any) -> None:
 
 
 def validate_action_ref(action: Any) -> None:
-    if isinstance(action, ActionRef):
-        action = _action_ref_to_dict(action)
+    action = _action_ref_to_dict(action)
     _normalize_action(action, supported_actions=_ALLOWED_ACTION_SET)
 
 
 def validate_selection_ref(selection: Any) -> None:
-    if isinstance(selection, SelectionRef):
-        selection = _selection_ref_to_dict(selection)
+    selection = _selection_ref_to_dict(selection)
     _normalize_selection(selection)
 
 
-def normalize_action_ref(action: ActionRef) -> ActionRef:
+def normalize_action_ref(action: ActionRef | Mapping[str, Any]) -> ActionRef:
     normalized = _normalize_action(_action_ref_to_dict(action), supported_actions=_ALLOWED_ACTION_SET)
     return ActionRef(
         id=str(normalized["id"]),
@@ -600,10 +598,8 @@ def normalize_action_ref(action: ActionRef) -> ActionRef:
     )
 
 
-def normalize_selection_ref(selection: SelectionRef | dict[str, Any]) -> SelectionRef:
-    if isinstance(selection, SelectionRef):
-        selection = _selection_ref_to_dict(selection)
-    normalized = _normalize_selection(selection)
+def normalize_selection_ref(selection: SelectionRef | Mapping[str, Any]) -> SelectionRef:
+    normalized = _normalize_selection(_selection_ref_to_dict(selection))
     return SelectionRef(
         id=str(normalized["id"]),
         label=str(normalized["label"]),
@@ -615,7 +611,7 @@ def normalize_selection_ref(selection: SelectionRef | dict[str, Any]) -> Selecti
 
 def execute_action_with_policy_gate(
     *,
-    action: ActionRef,
+    action: ActionRef | Mapping[str, Any],
     capabilities: A2UICapabilities,
     policy_gate: PolicyGate,
     executor: Callable[[ActionRef], Any],
@@ -726,7 +722,7 @@ def render_terminal_selection(selection: Any) -> str:
         f"- disabled: {'true' if bool(normalized.get('disabled', False)) else 'false'}",
     ]
     payload = normalized.get("payload")
-    if isinstance(payload, dict):
+    if isinstance(payload, Mapping):
         lines.append(f"- payload: {_render_payload_preview(payload, max_payload_bytes=256)}")
     return "\n".join(lines)
 
@@ -811,22 +807,21 @@ def _validate_canonical_read_only_fallback_actions(
     seen_actions: set[str] = set()
     for action in actions:
         validate_action_ref(action)
-        if not isinstance(action, dict):
+        action_dict = _action_ref_to_dict(action)
+        if action_dict.get("id") != FALLBACK_COPY_ACTION_ID:
             raise ValueError("Fallback card actions must be copy_to_clipboard only")
-        if action.get("id") != FALLBACK_COPY_ACTION_ID:
-            raise ValueError("Fallback card actions must be copy_to_clipboard only")
-        if action.get("label") != "Copy JSON":
+        if action_dict.get("label") != "Copy JSON":
             raise ValueError("Fallback card actions must use the canonical Copy JSON label")
-        if "confirm" in action:
+        if "confirm" in action_dict:
             raise ValueError("Fallback card actions must not require confirmation")
-        if action.get("policy_sensitive") is True:
+        if action_dict.get("policy_sensitive") is True:
             raise ValueError("Fallback card actions must not be policy-sensitive")
-        payload = action.get("payload")
-        if not isinstance(payload, dict) or set(payload) != {"text"}:
+        payload = action_dict.get("payload")
+        if not isinstance(payload, Mapping) or set(payload) != {"text"}:
             raise ValueError("Fallback card actions must use the canonical clipboard payload")
         if not isinstance(payload.get("text"), str):
             raise ValueError("Fallback card actions must use a string clipboard payload")
-        action_key = _canonical_json(action)
+        action_key = _canonical_json(action_dict)
         if action_key in seen_actions:
             raise ValueError("Fallback card actions must not contain duplicates")
         seen_actions.add(action_key)
@@ -887,7 +882,7 @@ def _materialize_unknown_card(card: dict[str, Any], capabilities: A2UICapabiliti
 
 
 def _normalize_action(action: Any, *, supported_actions: set[str]) -> dict[str, Any]:
-    if not isinstance(action, dict):
+    if not isinstance(action, Mapping):
         raise ValueError("ActionRef must be an object")
     extra_keys = set(action) - {"id", "label", "payload", "confirm", "policy_sensitive"}
     if extra_keys:
@@ -905,7 +900,7 @@ def _normalize_action(action: Any, *, supported_actions: set[str]) -> dict[str, 
     if not isinstance(label, str) or not label.strip():
         raise ValueError("Action label is required")
     payload = action.get("payload")
-    if not isinstance(payload, dict):
+    if not isinstance(payload, Mapping):
         raise ValueError("Action payload must be an object")
     _validate_action_payload(action_id, payload)
 
@@ -926,7 +921,7 @@ def _normalize_action(action: Any, *, supported_actions: set[str]) -> dict[str, 
 
 
 def _normalize_selection(selection: Any) -> dict[str, Any]:
-    if not isinstance(selection, dict):
+    if not isinstance(selection, Mapping):
         raise ValueError("SelectionRef must be an object")
     extra_keys = set(selection) - {"id", "label", "payload", "selected", "disabled"}
     if extra_keys:
@@ -942,7 +937,7 @@ def _normalize_selection(selection: Any) -> dict[str, Any]:
     if not isinstance(label, str) or not label.strip():
         raise ValueError("Selection label is required")
     payload = selection.get("payload")
-    if not isinstance(payload, dict):
+    if not isinstance(payload, Mapping):
         raise ValueError("Selection payload must be an object")
 
     normalized: dict[str, Any] = {
@@ -963,34 +958,42 @@ def _normalize_selection(selection: Any) -> dict[str, Any]:
     return normalized
 
 
-def _selection_ref_to_dict(selection: SelectionRef) -> dict[str, Any]:
-    selection_dict: dict[str, Any] = {
-        "id": selection.id,
-        "label": selection.label,
-        "payload": _copy_selection_payload(selection.payload),
-    }
-    if selection.selected:
-        selection_dict["selected"] = selection.selected
-    if selection.disabled:
-        selection_dict["disabled"] = selection.disabled
-    return selection_dict
+def _selection_ref_to_dict(selection: SelectionRef | Mapping[str, Any]) -> dict[str, Any]:
+    if isinstance(selection, SelectionRef):
+        selection_dict: dict[str, Any] = {
+            "id": selection.id,
+            "label": selection.label,
+            "payload": _copy_selection_payload(selection.payload),
+        }
+        if selection.selected:
+            selection_dict["selected"] = selection.selected
+        if selection.disabled:
+            selection_dict["disabled"] = selection.disabled
+        return selection_dict
+    if isinstance(selection, Mapping):
+        return dict(selection)
+    raise ValueError("SelectionRef must be an object")
 
 
-def _action_ref_to_dict(action: ActionRef) -> dict[str, Any]:
-    action_dict: dict[str, Any] = {
-        "id": action.id,
-        "label": action.label,
-        "payload": action.payload,
-    }
-    if action.confirm is not None:
-        action_dict["confirm"] = action.confirm
-    if action.policy_sensitive:
-        action_dict["policy_sensitive"] = action.policy_sensitive
-    return action_dict
+def _action_ref_to_dict(action: ActionRef | Mapping[str, Any]) -> dict[str, Any]:
+    if isinstance(action, ActionRef):
+        action_dict: dict[str, Any] = {
+            "id": action.id,
+            "label": action.label,
+            "payload": action.payload,
+        }
+        if action.confirm is not None:
+            action_dict["confirm"] = action.confirm
+        if action.policy_sensitive:
+            action_dict["policy_sensitive"] = action.policy_sensitive
+        return action_dict
+    if isinstance(action, Mapping):
+        return dict(action)
+    raise ValueError("ActionRef must be an object")
 
 
 def _normalize_confirm(confirm: Any) -> dict[str, str]:
-    if not isinstance(confirm, dict):
+    if not isinstance(confirm, Mapping):
         raise ValueError("Action confirm must be an object")
     title = confirm.get("title")
     message = confirm.get("message")
@@ -1005,7 +1008,7 @@ def _normalize_confirm(confirm: Any) -> dict[str, str]:
     return {"title": title.strip(), "message": message.strip()}
 
 
-def _copy_selection_payload(payload: dict[str, Any]) -> dict[str, Any]:
+def _copy_selection_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
     try:
         copied = copy.deepcopy(payload)
     except Exception:
@@ -1013,7 +1016,7 @@ def _copy_selection_payload(payload: dict[str, Any]) -> dict[str, Any]:
     return copied
 
 
-def _validate_action_payload(action_id: str, payload: dict[str, Any]) -> None:
+def _validate_action_payload(action_id: str, payload: Mapping[str, Any]) -> None:
     schema = _ACTION_SCHEMAS.get(action_id)
     if schema is None:
         raise ValueError(f"No schema for action id: {action_id}")
@@ -1028,7 +1031,7 @@ def _validate_action_payload(action_id: str, payload: dict[str, Any]) -> None:
             raise ValueError(f"Invalid payload type for {action_id}:{key}")
 
 
-def _validate_primitive_block_fields(block_type: str, block: dict[str, Any]) -> None:
+def _validate_primitive_block_fields(block_type: str, block: Mapping[str, Any]) -> None:
     schema_fields = set(_PRIMITIVE_BLOCK_SCHEMAS[block_type])
     required_fields = set(_PRIMITIVE_BLOCK_REQUIRED_FIELDS[block_type])
     extra_keys = set(block) - ({"type"} | schema_fields)
@@ -1142,7 +1145,7 @@ def _sanitize_json_preview_value(value: Any, *, _seen_ids: set[int] | None = Non
     if value_id in _seen_ids:
         return f"<cycle:{type(value).__name__}>"
 
-    if isinstance(value, dict):
+    if isinstance(value, Mapping):
         _seen_ids.add(value_id)
         try:
             sanitized_items = [
@@ -1179,7 +1182,7 @@ def _sanitize_json_preview_value(value: Any, *, _seen_ids: set[int] | None = Non
 
 
 def _canonical_json_sort_key(value: Any) -> str:
-    if isinstance(value, dict):
+    if isinstance(value, Mapping):
         return _canonical_json({str(key): value[key] for key in sorted(value, key=lambda item: str(item))})
     if isinstance(value, list):
         return _canonical_json({"items": value})
@@ -1218,7 +1221,7 @@ def _render_terminal_actions(actions: Any, *, supported_actions: set[str]) -> li
 def _render_action_variant_suffix(action: dict[str, Any]) -> str:
     suffix_parts: list[str] = []
     confirm = action.get("confirm")
-    if isinstance(confirm, dict):
+    if isinstance(confirm, Mapping):
         confirm_title = confirm.get("title")
         if isinstance(confirm_title, str) and confirm_title.strip():
             suffix_parts.append(f"confirm: {_render_terminal_inline_text(confirm_title.strip())}")
@@ -1232,7 +1235,7 @@ def _render_action_variant_suffix(action: dict[str, Any]) -> str:
 
 
 def _render_terminal_debug(debug: Any) -> list[str]:
-    if not isinstance(debug, dict):
+    if not isinstance(debug, Mapping):
         return []
     lines: list[str] = []
     for key in sorted(debug):
@@ -1265,7 +1268,7 @@ def _render_terminal_fallback_debug(card_type: str, title: str, debug: Any) -> l
 
     lines: list[str] = []
     contract_version = None
-    if isinstance(debug, dict):
+    if isinstance(debug, Mapping):
         contract_version = debug.get("contract_version")
     if type(contract_version) is not int:
         contract_version = A2UI_CONTRACT_VERSION
@@ -1295,7 +1298,7 @@ def _render_terminal_fallback_notice(card_type: str, title: str, *, debug: Any) 
 
 
 def _extract_terminal_fallback_debug(debug: Any) -> tuple[str, str] | None:
-    if not isinstance(debug, dict):
+    if not isinstance(debug, Mapping):
         return None
     fallback_kind = debug.get("fallback_kind")
     source_card_type = debug.get("source_card_type")
@@ -1381,7 +1384,7 @@ def _build_fallback_debug(source_card_type: str, *, fallback_kind: str) -> dict[
 
 def _extract_unknown_card_source_type(card: dict[str, Any]) -> str:
     debug = card.get("debug")
-    if isinstance(debug, dict):
+    if isinstance(debug, Mapping):
         source_card_type = debug.get("source_card_type")
         if isinstance(source_card_type, str):
             normalized_source_card_type = source_card_type.strip()
@@ -1431,7 +1434,7 @@ def _extract_safe_primitive_blocks(card: dict[str, Any], *, allow_code_block: bo
 
 
 def _sanitize_safe_primitive_block(block: Any, *, allow_code_block: bool = True) -> dict[str, Any] | None:
-    if not isinstance(block, dict):
+    if not isinstance(block, Mapping):
         return None
     block_type = str(block.get("type", "")).strip()
     if block_type not in _PRIMITIVE_BLOCK_SET:
@@ -1494,13 +1497,13 @@ def _sanitize_safe_primitive_block(block: Any, *, allow_code_block: bool = True)
             return None
         sanitized_items: list[dict[str, Any]] = []
         for item in items:
-            if not isinstance(item, dict):
+            if not isinstance(item, Mapping):
                 continue
             key = item.get("key")
             if not isinstance(key, str) or not key.strip():
                 continue
             value = item.get("value")
-            if isinstance(value, (dict, list)):
+            if isinstance(value, (Mapping, list)):
                 continue
             sanitized_items.append({"key": key.strip(), "value": value})
         if not sanitized_items:
@@ -1516,7 +1519,7 @@ def _sanitize_safe_primitive_block(block: Any, *, allow_code_block: bool = True)
                 rendered_item = item.strip()
                 if rendered_item:
                     sanitized_items.append(rendered_item)
-            elif isinstance(item, dict):
+            elif isinstance(item, Mapping):
                 label = item.get("label")
                 if isinstance(label, str) and label.strip():
                     sanitized_items.append({"label": label.strip()})
@@ -1592,7 +1595,7 @@ def _validate_supported_string_sequence(values: Any, *, field_name: str) -> tupl
 
 
 def _render_terminal_block(block: Any) -> list[str]:
-    if not isinstance(block, dict):
+    if not isinstance(block, Mapping):
         return ["[unsupported block: malformed]"]
     block_type = str(block.get("type", "")).strip()
     if not block_type:
@@ -1619,7 +1622,7 @@ def _render_terminal_block(block: Any) -> list[str]:
             return ["[KeyValueBlock: invalid items]"]
         lines: list[str] = []
         for item in items:
-            if not isinstance(item, dict):
+            if not isinstance(item, Mapping):
                 continue
             key = _render_terminal_inline_text(item.get("key", ""))
             if not key:
@@ -1637,7 +1640,7 @@ def _render_terminal_block(block: Any) -> list[str]:
                 rendered_item = _render_terminal_inline_text(item)
                 if rendered_item:
                     lines.append(f"- {rendered_item}")
-            elif isinstance(item, dict):
+            elif isinstance(item, Mapping):
                 label = _render_terminal_inline_text(item.get("label", ""))
                 if label:
                     lines.append(f"- {label}")
