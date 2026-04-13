@@ -18,6 +18,7 @@ from src.qual.ui.a2ui import (
     describe_action_contract,
     describe_card_contract,
     describe_selection_contract,
+    describe_terminal_artifact_contract_fingerprints,
     describe_terminal_artifact_contract,
     describe_terminal_fallback_contract,
     engine_prepare_card,
@@ -26,6 +27,7 @@ from src.qual.ui.a2ui import (
     render_terminal_card,
     render_terminal_selection,
     SelectionRef,
+    selection_contract_fingerprint,
     terminal_artifact_contract_fingerprint,
     terminal_fallback_contract_fingerprint,
     TERMINAL_ARTIFACT_SCHEMA_VERSION,
@@ -107,6 +109,29 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             manifest["terminal_fallback_contract"]["contract_fingerprint"],
+            terminal_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"],
+            describe_terminal_artifact_contract_fingerprints(),
+        )
+        self.assertEqual(
+            set(manifest["contract_fingerprints"]),
+            {
+                "card_contract",
+                "action_contract",
+                "selection_contract",
+                "terminal_fallback_contract",
+            },
+        )
+        self.assertEqual(manifest["contract_fingerprints"]["card_contract"], card_contract_fingerprint())
+        self.assertEqual(manifest["contract_fingerprints"]["action_contract"], action_contract_fingerprint())
+        self.assertEqual(
+            manifest["contract_fingerprints"]["selection_contract"],
+            selection_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["terminal_fallback_contract"],
             terminal_fallback_contract_fingerprint(),
         )
         self.assertEqual(manifest["contract_fingerprint"], terminal_artifact_contract_fingerprint())

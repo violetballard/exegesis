@@ -218,6 +218,17 @@ def describe_terminal_artifact_contract() -> dict[str, Any]:
     return manifest
 
 
+def describe_terminal_artifact_contract_fingerprints() -> dict[str, str]:
+    """Return stable fingerprints for the embedded terminal artifact subcontracts."""
+
+    return {
+        "card_contract": card_contract_fingerprint(),
+        "action_contract": action_contract_fingerprint(),
+        "selection_contract": selection_contract_fingerprint(),
+        "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
+    }
+
+
 def _build_a2ui_contract_manifest() -> dict[str, Any]:
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
@@ -335,6 +346,7 @@ def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
             "kind": "card",
             "contract_fingerprint": terminal_fallback_contract_fingerprint(),
         },
+        "contract_fingerprints": describe_terminal_artifact_contract_fingerprints(),
     }
 
 
