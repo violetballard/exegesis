@@ -60,6 +60,7 @@
 ## Canonical demo-path step advanced
 - Primary step advanced: `open project/document`
 - Secondary step supported: `continue working`
+- Reviewer exact mapping: this hardens the `open project/document` CLI entry contract and the surrounding `continue working` operator surface while Textual remains disabled.
 - This work advances the canonical engine-first demo path from `AGENTS.md` and `ROADMAP.md` by hardening the CLI operator entry contract that starts and preserves the MVP loop while Textual remains disabled.
 - It makes that CLI-first Milestone 3 step more real by ensuring parser drift cannot silently change the command contract a user depends on to open a project or document and continue working through the same stable command surface.
 
