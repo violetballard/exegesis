@@ -1063,6 +1063,8 @@ class RetrievalService:
             retrieval_manifest=retrieval_manifest,
             query_fingerprint=query_fingerprint,
             retrieval_policy=retrieval_policy,
+            candidate_doc_count=effective_candidate_doc_count,
+            fts_shortlist_doc_ids=fts_shortlist,
         )
         result_fingerprint = self._build_result_fingerprint(
             query_fingerprint=query_fingerprint,
@@ -1447,6 +1449,8 @@ class RetrievalService:
         retrieval_manifest: dict[str, object],
         query_fingerprint: str,
         retrieval_policy: dict[str, object],
+        candidate_doc_count: int | None = None,
+        fts_shortlist_doc_ids: tuple[str, ...] = (),
     ) -> dict[str, object]:
         doc_citations: list[dict[str, object]] = []
         for doc_hit in doc_hits:
@@ -1504,11 +1508,18 @@ class RetrievalService:
             "query_fingerprint": query_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
+            "query_date_range": (
+                list(query.constraints.date_range)
+                if query.constraints.date_range is not None
+                else None
+            ),
             "retrieval_policy": dict(retrieval_policy),
             "retrieval_backend": cast(str, retrieval_policy["retrieval_backend"]),
             "retrieval_mode": cast(str, retrieval_policy["retrieval_mode"]),
             "active_strategy_ids": list(cast(list[str], retrieval_policy["active_strategy_ids"])),
             "deferred_strategy_ids": list(cast(list[str], retrieval_policy["deferred_strategy_ids"])),
+            "candidate_doc_count": candidate_doc_count,
+            "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
             "doc_hits_fingerprint": retrieval_manifest.get("doc_hits_fingerprint"),
             "excerpt_hits_fingerprint": retrieval_manifest.get("excerpt_hits_fingerprint"),
             "citation_status": {

@@ -255,6 +255,8 @@ def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[
 
 def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(evidence)
+    normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
+    normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized.get("fts_shortlist_doc_ids"))
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
     normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))

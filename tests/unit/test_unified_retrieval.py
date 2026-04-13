@@ -2271,6 +2271,36 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(provenance["retrieval_backend"], "sqlite_fts")
         self.assertEqual(provenance["retrieval_mode"], "fts_first")
 
+    def test_retrieval_evidence_surfaces_query_context_and_shortlist(self) -> None:
+        updated_at = self.service._load_doc_meta()["doc-pdf-1"]["updated_at"]
+        self.assertIsInstance(updated_at, str)
+        query_day = str(updated_at)[:10]
+
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="theory implications",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(
+                    max_results=4,
+                    date_range=(query_day, query_day),
+                ),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        evidence = result.to_downstream_payload()["retrieval_evidence"]
+        self.assertEqual(evidence["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(evidence["query_scope"], "vault")
+        self.assertEqual(evidence["query_intent"], "compare")
+        self.assertEqual(evidence["query_date_range"], [query_day, query_day])
+        self.assertEqual(evidence["candidate_doc_count"], result.diagnostics["candidate_doc_count"])
+        self.assertEqual(evidence["fts_shortlist_doc_ids"], result.diagnostics["fts_shortlist_doc_ids"])
+        self.assertEqual(evidence["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(evidence["retrieval_mode"], "fts_first")
+        self.assertEqual(evidence["doc_citations"], result.evidence["doc_citations"])
+        self.assertEqual(evidence["excerpt_citations"], result.evidence["excerpt_citations"])
+
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(
             self.service,
