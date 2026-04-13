@@ -32,6 +32,10 @@
 - Required fix 2 is satisfied by explicitly classifying this handoff under the AGENTS.md high-risk/shared kickoff rules: approved shared coverage in `tests/unit/test_unified_retrieval.py` makes this a shared/high-risk packet reviewed against the `4`-task / `30m` template.
 - Required fix 3 is satisfied by refreshing this handoff packet so roadmap alignment, budget framing, and reviewed implementation traceability read cleanly in one place for re-review.
 
+## Authoritative re-review note
+- `THREAD_PACKET.md` is the authoritative handoff packet for this fixer pass.
+- It carries the reviewer-required canonical demo-path statement and the shared/high-risk budget framing for re-review of the narrowed implementation range.
+
 ## Approved exception note
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract.
 
