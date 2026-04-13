@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 from collections.abc import Mapping
@@ -606,7 +607,7 @@ def normalize_selection_ref(selection: SelectionRef | dict[str, Any]) -> Selecti
     return SelectionRef(
         id=str(normalized["id"]),
         label=str(normalized["label"]),
-        payload=dict(normalized["payload"]),
+        payload=_copy_selection_payload(normalized["payload"]),
         selected=bool(normalized.get("selected", False)),
         disabled=bool(normalized.get("disabled", False)),
     )
@@ -947,7 +948,7 @@ def _normalize_selection(selection: Any) -> dict[str, Any]:
     normalized: dict[str, Any] = {
         "id": selection_id,
         "label": label.strip(),
-        "payload": dict(payload),
+        "payload": _copy_selection_payload(payload),
     }
     selected = selection.get("selected", False)
     if not isinstance(selected, bool):
@@ -966,7 +967,7 @@ def _selection_ref_to_dict(selection: SelectionRef) -> dict[str, Any]:
     selection_dict: dict[str, Any] = {
         "id": selection.id,
         "label": selection.label,
-        "payload": selection.payload,
+        "payload": _copy_selection_payload(selection.payload),
     }
     if selection.selected:
         selection_dict["selected"] = selection.selected
@@ -1002,6 +1003,14 @@ def _normalize_confirm(confirm: Any) -> dict[str, str]:
         extras = ", ".join(sorted(extra_keys))
         raise ValueError(f"Unexpected confirm field(s): {extras}")
     return {"title": title.strip(), "message": message.strip()}
+
+
+def _copy_selection_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    try:
+        copied = copy.deepcopy(payload)
+    except Exception:
+        copied = dict(payload)
+    return copied
 
 
 def _validate_action_payload(action_id: str, payload: dict[str, Any]) -> None:

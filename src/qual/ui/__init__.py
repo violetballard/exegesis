@@ -2,6 +2,7 @@
 
 from .a2ui import (
     A2UI_CONTRACT_VERSION,
+    A2UI_ACTION_SCHEMA_VERSION,
     A2UI_VERSION,
     A2UICapabilities,
     A2UISessionStore,
@@ -38,6 +39,7 @@ from .shell import ShellUI
 
 __all__ = [
     "A2UI_CONTRACT_VERSION",
+    "A2UI_ACTION_SCHEMA_VERSION",
     "A2UI_VERSION",
     "A2UICapabilities",
     "A2UISessionStore",

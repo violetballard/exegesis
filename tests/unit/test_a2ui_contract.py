@@ -5,9 +5,11 @@ import unittest
 from dataclasses import dataclass
 
 from src.qual.ui.a2ui import (
+    A2UI_ACTION_SCHEMA_VERSION,
     A2UICapabilities,
     A2UISessionStore,
     ActionRef,
+    SelectionRef,
     a2ui_contract_fingerprint,
     build_unknown_card,
     describe_a2ui_contract,
@@ -17,11 +19,15 @@ from src.qual.ui.a2ui import (
     engine_prepare_card,
     execute_action_with_policy_gate,
     normalize_action_ref,
+    normalize_selection_ref,
     render_terminal_card,
+    render_terminal_selection,
     studio_materialize_card,
+    selection_contract_fingerprint,
     validate_action_ref,
     UNKNOWN_FALLBACK_SUBTITLE,
     validate_generic_card,
+    validate_selection_ref,
     validate_unknown_card,
     validate_capabilities,
 )
@@ -229,6 +235,21 @@ class A2UIContractTests(unittest.TestCase):
         )
         self.assertEqual(len(a2ui_contract_fingerprint()), 64)
 
+    def test_selection_contract_manifest_is_versioned_and_fingerprintable(self) -> None:
+        manifest = describe_selection_contract()
+
+        self.assertEqual(manifest["contract_version"], 2)
+        self.assertEqual(manifest["a2ui_version"], 1)
+        self.assertEqual(manifest["selection_version"], 1)
+        self.assertEqual(manifest["type"], "SelectionRef")
+        self.assertEqual(manifest["required_fields"], ["id", "label", "payload"])
+        self.assertEqual(manifest["optional_fields"], ["selected", "disabled"])
+        self.assertEqual(manifest["selection_fingerprint"], selection_contract_fingerprint())
+        self.assertEqual(len(manifest["selection_fingerprint"]), 64)
+
+    def test_public_ui_exports_action_schema_version(self) -> None:
+        self.assertEqual(A2UI_ACTION_SCHEMA_VERSION, 1)
+
     def test_session_store_rejects_invalid_capabilities(self) -> None:
         store = A2UISessionStore()
         with self.assertRaises(ValueError):
@@ -368,6 +389,54 @@ class A2UIContractTests(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             store.register("sess-2i", caps)
+
+    def test_normalize_selection_ref_detaches_payload_from_source(self) -> None:
+        source_payload = {"nested": {"items": [1, 2]}, "note": "alpha"}
+
+        normalized = normalize_selection_ref(
+            SelectionRef(
+                id=" choice-1 ",
+                label=" Choice ",
+                payload=source_payload,
+                selected=True,
+            )
+        )
+
+        source_payload["nested"]["items"].append(3)
+        source_payload["note"] = "beta"
+
+        self.assertEqual(normalized.id, "choice-1")
+        self.assertEqual(normalized.label, "Choice")
+        self.assertEqual(normalized.payload, {"nested": {"items": [1, 2]}, "note": "alpha"})
+        self.assertTrue(normalized.selected)
+        self.assertFalse(normalized.disabled)
+
+    def test_render_terminal_selection_renders_canonical_payload_preview(self) -> None:
+        text = render_terminal_selection(
+            SelectionRef(
+                id=" choice-1 ",
+                label=" Choice ",
+                payload={"nested": {"items": [1, 2]}, "note": "alpha"},
+                selected=True,
+            )
+        )
+
+        self.assertIn("[SelectionRef] Choice", text)
+        self.assertIn("Selection schema v1", text)
+        self.assertIn("- id: choice-1", text)
+        self.assertIn("- selected: true", text)
+        self.assertIn("- disabled: false", text)
+        self.assertIn('- payload: {"nested":{"items":[1,2]},"note":"alpha"}', text)
+
+    def test_validate_selection_ref_accepts_selectionref_instances(self) -> None:
+        validate_selection_ref(
+            SelectionRef(
+                id="choice-1",
+                label="Choice",
+                payload={"nested": {"items": [1, 2]}},
+                selected=True,
+            )
+        )
 
     def test_session_store_rejects_bool_version_and_payload_size(self) -> None:
         store = A2UISessionStore()
