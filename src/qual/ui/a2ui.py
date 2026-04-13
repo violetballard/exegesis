@@ -242,7 +242,8 @@ def build_terminal_artifact_envelope(artifact: Any, *, kind: str) -> dict[str, A
 
     The envelope keeps the kind explicit so engine callers can emit stable
     artifacts now and future UI clients can consume the same payload shape
-    later without guessing.
+    later without guessing. The helper rejects mismatched kind/payload pairs
+    so the engine cannot accidentally label an action as a card or vice versa.
     """
 
     normalized_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
@@ -295,6 +296,7 @@ def validate_terminal_artifact_envelope(envelope: Any) -> None:
         raise ValueError("TerminalArtifact a2ui_version is invalid")
     if a2ui_version is not None and a2ui_version != A2UI_VERSION:
         raise ValueError("TerminalArtifact a2ui_version is invalid")
+    _validate_terminal_artifact_payload_kind(envelope["artifact"], normalized_kind)
 
 
 def _build_a2ui_contract_manifest() -> dict[str, Any]:
@@ -331,6 +333,31 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
             for action_id, schema in sorted(_ACTION_SCHEMAS.items())
         ],
     }
+
+
+def _validate_terminal_artifact_payload_kind(artifact: Any, kind: str) -> None:
+    if kind == "card":
+        if not isinstance(artifact, Mapping):
+            raise ValueError("TerminalArtifact card artifact must be a mapping")
+        card_type = _normalize_card_type(artifact)
+        if card_type in {"<missing>", _TERMINAL_ARTIFACT_ENVELOPE_TYPE, "ActionRef", "SelectionRef"}:
+            raise ValueError("TerminalArtifact card artifact must be a typed card")
+        if _infer_terminal_artifact_kind_from_mapping(artifact) in {"action", "selection"}:
+            raise ValueError("TerminalArtifact card artifact must not use action or selection payload shape")
+        return
+    if kind == "action":
+        try:
+            normalize_action_ref(artifact)
+        except ValueError as exc:
+            raise ValueError("TerminalArtifact action artifact is invalid") from exc
+        return
+    if kind == "selection":
+        try:
+            normalize_selection_ref(artifact)
+        except ValueError as exc:
+            raise ValueError("TerminalArtifact selection artifact is invalid") from exc
+        return
+    raise ValueError("TerminalArtifact kind must be one of: card, action, selection")
 
 
 def _build_selection_contract_manifest() -> dict[str, Any]:

@@ -205,6 +205,27 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Action schema v1", text)
         self.assertIn("- confirm: {\"message\":\"Export now?\",\"title\":\"Approve\"}", text)
 
+    def test_terminal_artifact_envelope_builder_rejects_kind_payload_mismatches(self) -> None:
+        with self.assertRaises(ValueError):
+            build_terminal_artifact_envelope(
+                ActionRef(
+                    id=" export_document ",
+                    label=" Export ",
+                    payload={"format": "md"},
+                ),
+                kind="card",
+            )
+
+        with self.assertRaises(ValueError):
+            build_terminal_artifact_envelope(
+                SelectionRef(
+                    id=" choice-1 ",
+                    label=" Choice ",
+                    payload={"nested": {"items": [1, 2]}},
+                ),
+                kind="action",
+            )
+
     def test_terminal_artifact_envelope_validator_rejects_invalid_or_overspecified_payloads(self) -> None:
         with self.assertRaises(ValueError):
             validate_terminal_artifact_envelope({"type": "TerminalArtifact", "kind": "dialog", "artifact": {}})
@@ -268,6 +289,25 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("TerminalArtifact schema v1", text)
         self.assertIn('"trace_id":"drop-me"', text)
         self.assertIn('"kind":"action"', text)
+
+    def test_shell_ui_keeps_cli_fallback_for_mismatched_terminal_artifacts(self) -> None:
+        shell = ShellUI()
+
+        text = shell.render_artifact(
+            {
+                "type": "TerminalArtifact",
+                "kind": "action",
+                "artifact": {
+                    "type": "SelectionRef",
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                },
+            }
+        )
+
+        self.assertIn("[TerminalArtifact] <invalid artifact>", text)
+        self.assertIn("TerminalArtifact schema v1", text)
 
     def test_card_contract_manifest_is_versioned_and_aligns_with_a2ui_schema(self) -> None:
         manifest = describe_card_contract()
