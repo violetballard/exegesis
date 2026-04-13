@@ -231,6 +231,12 @@ class RetrievalHit:
         match_count = self.provenance.get("match_count")
         if isinstance(match_count, int):
             payload["match_count"] = match_count
+        section_hint = self.provenance.get("section_hint")
+        if isinstance(section_hint, str) and section_hint:
+            payload["section_hint"] = section_hint
+        section_hint_rank = self.provenance.get("section_hint_rank")
+        if isinstance(section_hint_rank, int):
+            payload["section_hint_rank"] = section_hint_rank
         retrieval_backend = self.provenance.get("retrieval_backend")
         if isinstance(retrieval_backend, str) and retrieval_backend:
             payload["retrieval_backend"] = retrieval_backend
@@ -317,6 +323,12 @@ class RetrievalDocHit:
         top_excerpt_rank = self.provenance.get("top_excerpt_rank")
         if isinstance(top_excerpt_rank, int):
             payload["top_excerpt_rank"] = top_excerpt_rank
+        section_hint = self.provenance.get("section_hint")
+        if isinstance(section_hint, str) and section_hint:
+            payload["section_hint"] = section_hint
+        top_section_hint_rank = self.provenance.get("top_section_hint_rank")
+        if isinstance(top_section_hint_rank, int):
+            payload["top_section_hint_rank"] = top_section_hint_rank
         top_fts_rank = self.provenance.get("top_fts_rank")
         if isinstance(top_fts_rank, (int, float)):
             payload["top_fts_rank"] = top_fts_rank
@@ -539,8 +551,9 @@ class RetrievalResult:
         }
 
     def _doc_citation_snapshots(self) -> list[dict[str, object]]:
-        return [
-            {
+        citations: list[dict[str, object]] = []
+        for doc_hit in self.doc_hits:
+            citation = {
                 "doc_id": doc_hit.doc_id,
                 "source_hash": doc_hit.source_hash,
                 "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
@@ -551,12 +564,21 @@ class RetrievalResult:
                 "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
                 "source_strategy": doc_hit.provenance.get("source_strategy"),
             }
-            for doc_hit in self.doc_hits
-        ]
+            section_hint = doc_hit.provenance.get("section_hint")
+            if isinstance(section_hint, str) and section_hint:
+                citation["section_hint"] = section_hint
+            top_section_hint_rank = doc_hit.provenance.get("top_section_hint_rank")
+            if isinstance(top_section_hint_rank, int):
+                citation["top_section_hint_rank"] = top_section_hint_rank
+            citations.append(citation)
+        return citations
 
     def _excerpt_citation_snapshots(self) -> list[dict[str, object]]:
-        return [
-            {
+        citations: list[dict[str, object]] = []
+        for hit in self.hits:
+            if hit.excerpt_id is None:
+                continue
+            citation = {
                 "doc_id": hit.doc_id,
                 "excerpt_id": hit.excerpt_id,
                 "doc_type": hit.provenance.get("doc_type"),
@@ -572,9 +594,14 @@ class RetrievalResult:
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
             }
-            for hit in self.hits
-            if hit.excerpt_id is not None
-        ]
+            section_hint = hit.provenance.get("section_hint")
+            if isinstance(section_hint, str) and section_hint:
+                citation["section_hint"] = section_hint
+            section_hint_rank = hit.provenance.get("section_hint_rank")
+            if isinstance(section_hint_rank, int):
+                citation["section_hint_rank"] = section_hint_rank
+            citations.append(citation)
+        return citations
 
     def _retrieval_summary_snapshot(
         self,
@@ -1099,11 +1126,24 @@ class RetrievalService:
         scope_doc = self._doc_scope_id(query.scope)
         allowed_doc_types = self._normalized_doc_types(query.constraints.doc_types)
         effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
-        select_exact_rank = "CASE WHEN instr(lower(text), ?) > 0 THEN 0 ELSE 1 END AS exact_rank" if query.constraints.prefer_exact_matches else "0 AS exact_rank"
+        select_exact_rank = (
+            "CASE WHEN instr(lower(text), ?) > 0 THEN 0 ELSE 1 END AS exact_rank"
+            if query.constraints.prefer_exact_matches
+            else "0 AS exact_rank"
+        )
+        section_hint = query.constraints.section_hint.casefold() if query.constraints.section_hint is not None else None
+        select_section_hint_rank = (
+            "CASE WHEN instr(lower(text), ?) > 0 OR instr(lower(coalesce(title_hint, '')), ?) > 0 "
+            "THEN 0 ELSE 1 END AS section_hint_rank"
+            if section_hint is not None
+            else "0 AS section_hint_rank"
+        )
         where_clauses = ["fts_entries MATCH ?"]
         params: list[object] = []
         if query.constraints.prefer_exact_matches:
             params.append(exact_phrase)
+        if section_hint is not None:
+            params.extend((section_hint, section_hint))
         params.append(match_query)
         if scope_doc is not None:
             where_clauses.append("doc_id = ?")
@@ -1120,10 +1160,11 @@ class RetrievalService:
         params.append(limit)
         sql = (
             f"SELECT rowid, doc_id, excerpt_id, doc_type, title_hint, char_start, char_end, text, "
-            f"bm25(fts_entries) AS fts_rank, {select_exact_rank} "
+            f"bm25(fts_entries) AS fts_rank, {select_exact_rank}, {select_section_hint_rank} "
             "FROM fts_entries "
             f"WHERE {' AND '.join(where_clauses)} "
-            "ORDER BY exact_rank ASC, fts_rank ASC, doc_id ASC, char_start ASC, char_end ASC, excerpt_id ASC "
+            "ORDER BY exact_rank ASC, section_hint_rank ASC, "
+            "fts_rank ASC, doc_id ASC, char_start ASC, char_end ASC, excerpt_id ASC "
             "LIMIT ?"
         )
         rows = self._query_fts_db(sql, tuple(params))
@@ -1141,6 +1182,8 @@ class RetrievalService:
                 matched_terms=matched_terms,
                 rank=rank,
                 fts_rank=float(row["fts_rank"]),
+                section_hint=query.constraints.section_hint,
+                section_hint_rank=int(row["section_hint_rank"]) if section_hint is not None else None,
                 query_scope=query.scope,
                 query_intent=query.intent,
                 query_fingerprint=self._query_fingerprint(query),
@@ -1263,6 +1306,8 @@ class RetrievalService:
                         "top_matched_terms": top_hit.provenance.get("matched_terms"),
                         "top_match_count": top_hit.provenance.get("match_count"),
                         "top_excerpt_rank": top_hit.provenance.get("rank"),
+                        "section_hint": query.constraints.section_hint,
+                        "top_section_hint_rank": top_hit.provenance.get("section_hint_rank"),
                         "top_fts_rank": top_hit.provenance.get("fts_rank"),
                         "retrieval_backend": top_hit.provenance.get(
                             "retrieval_backend",
@@ -1378,45 +1423,55 @@ class RetrievalService:
     ) -> dict[str, object]:
         doc_citations: list[dict[str, object]] = []
         for doc_hit in doc_hits:
-            doc_citations.append(
-                {
-                    "doc_id": doc_hit.doc_id,
-                    "doc_type": doc_hit.provenance.get("doc_type"),
-                    "source_hash": doc_hit.source_hash,
-                    "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
-                    "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
-                    "top_excerpt_id": doc_hit.top_excerpt_id,
-                    "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
-                    "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
-                    "top_excerpt_span": doc_hit.provenance.get("top_excerpt_span"),
-                    "excerpt_ids": list(doc_hit.provenance.get("excerpt_ids", [])),
-                    "excerpt_count": doc_hit.excerpt_count,
-                    "matched_terms": doc_hit.provenance.get("top_matched_terms"),
-                }
-            )
+            citation = {
+                "doc_id": doc_hit.doc_id,
+                "doc_type": doc_hit.provenance.get("doc_type"),
+                "source_hash": doc_hit.source_hash,
+                "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
+                "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
+                "top_excerpt_id": doc_hit.top_excerpt_id,
+                "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
+                "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
+                "top_excerpt_span": doc_hit.provenance.get("top_excerpt_span"),
+                "excerpt_ids": list(doc_hit.provenance.get("excerpt_ids", [])),
+                "excerpt_count": doc_hit.excerpt_count,
+                "matched_terms": doc_hit.provenance.get("top_matched_terms"),
+            }
+            section_hint = doc_hit.provenance.get("section_hint")
+            if isinstance(section_hint, str) and section_hint:
+                citation["section_hint"] = section_hint
+            top_section_hint_rank = doc_hit.provenance.get("top_section_hint_rank")
+            if isinstance(top_section_hint_rank, int):
+                citation["top_section_hint_rank"] = top_section_hint_rank
+            doc_citations.append(citation)
 
         excerpt_citations: list[dict[str, object]] = []
         for hit in hits:
             if hit.excerpt_id is None:
                 continue
-            excerpt_citations.append(
-                {
-                    "doc_id": hit.doc_id,
-                    "excerpt_id": hit.excerpt_id,
-                    "doc_type": hit.provenance.get("doc_type"),
-                    "source_hash": hit.provenance.get("source_hash"),
-                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
-                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
-                    "span": hit.provenance.get("span"),
-                    "matched_terms": hit.provenance.get("matched_terms"),
-                    "match_count": hit.provenance.get("match_count"),
-                    "rank": hit.provenance.get("rank"),
-                    "fts_rank": hit.provenance.get("fts_rank"),
-                    "source_strategy": hit.provenance.get("source_strategy"),
-                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
-                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
-                }
-            )
+            citation = {
+                "doc_id": hit.doc_id,
+                "excerpt_id": hit.excerpt_id,
+                "doc_type": hit.provenance.get("doc_type"),
+                "source_hash": hit.provenance.get("source_hash"),
+                "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                "span": hit.provenance.get("span"),
+                "matched_terms": hit.provenance.get("matched_terms"),
+                "match_count": hit.provenance.get("match_count"),
+                "rank": hit.provenance.get("rank"),
+                "fts_rank": hit.provenance.get("fts_rank"),
+                "source_strategy": hit.provenance.get("source_strategy"),
+                "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                "retrieval_mode": hit.provenance.get("retrieval_mode"),
+            }
+            section_hint = hit.provenance.get("section_hint")
+            if isinstance(section_hint, str) and section_hint:
+                citation["section_hint"] = section_hint
+            section_hint_rank = hit.provenance.get("section_hint_rank")
+            if isinstance(section_hint_rank, int):
+                citation["section_hint_rank"] = section_hint_rank
+            excerpt_citations.append(citation)
 
         return {
             "query_fingerprint": query_fingerprint,
@@ -1739,6 +1794,8 @@ class RetrievalService:
         matched_terms: tuple[str, ...] = (),
         rank: int | None = None,
         fts_rank: float | None = None,
+        section_hint: str | None = None,
+        section_hint_rank: int | None = None,
         query_scope: str | None = None,
         query_intent: str | None = None,
         query_date_range: tuple[str, str] | None = None,
@@ -1777,6 +1834,10 @@ class RetrievalService:
             provenance["query_scope"] = query_scope
         if query_intent is not None:
             provenance["query_intent"] = query_intent
+        if section_hint is not None:
+            provenance["section_hint"] = section_hint
+        if section_hint_rank is not None:
+            provenance["section_hint_rank"] = section_hint_rank
         if query_date_range is not None:
             provenance["query_date_range"] = list(query_date_range)
         if query_fingerprint is not None:

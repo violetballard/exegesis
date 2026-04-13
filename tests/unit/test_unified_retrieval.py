@@ -344,6 +344,44 @@ class UnifiedRetrievalTests(unittest.TestCase):
             self.assertEqual(hit_payload["rank"], hit.provenance["rank"])
             self.assertEqual(hit_payload["match_count"], hit.provenance["match_count"])
             self.assertEqual(hit_payload["matched_terms"], hit.provenance["matched_terms"])
+            self.assertEqual(hit_payload["section_hint"], "discussion")
+            self.assertEqual(hit_payload["section_hint_rank"], hit.provenance["section_hint_rank"])
+
+    def test_section_hint_biases_fts_ranking_and_provenance(self) -> None:
+        self.service.add_or_update_document(
+            doc_id="doc-alpha",
+            doc_type="memo",
+            title_hint="Alpha Notes",
+            text="Methods notes cover theory comparison evidence.",
+        )
+        self.service.add_or_update_document(
+            doc_id="doc-zeta",
+            doc_type="memo",
+            title_hint="Zeta Notes",
+            text="Discussion notes cover theory comparison evidence.",
+        )
+
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="theory comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=5, doc_types=("memo",), section_hint="discussion"),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        self.assertEqual(result.hits[0].doc_id, "doc-zeta")
+        self.assertEqual(result.hits[0].provenance["section_hint"], "discussion")
+        self.assertEqual(result.hits[0].provenance["section_hint_rank"], 0)
+        alpha_hit = next(hit for hit in result.hits if hit.doc_id == "doc-alpha")
+        self.assertEqual(alpha_hit.provenance["section_hint"], "discussion")
+        self.assertEqual(alpha_hit.provenance["section_hint_rank"], 1)
+        zeta_doc_hit = next(hit for hit in result.doc_hits if hit.doc_id == "doc-zeta")
+        self.assertEqual(zeta_doc_hit.provenance["section_hint"], "discussion")
+        self.assertEqual(zeta_doc_hit.provenance["top_section_hint_rank"], 0)
+        alpha_doc_hit = next(hit for hit in result.doc_hits if hit.doc_id == "doc-alpha")
+        self.assertEqual(alpha_doc_hit.provenance["top_section_hint_rank"], 1)
 
     def test_doc_scope_falls_back_to_fts_when_pageindex_missing(self) -> None:
         result = self.service.retrieve_auto(
@@ -408,6 +446,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(doc_hit_payload["top_excerpt_fingerprint"], doc_hit.provenance["top_excerpt_fingerprint"])
         self.assertEqual(doc_hit_payload["top_excerpt_text_hash"], doc_hit.provenance["top_excerpt_text_hash"])
         self.assertEqual(doc_hit_payload["top_excerpt_rank"], doc_hit.provenance["top_excerpt_rank"])
+        self.assertIsNone(doc_hit_payload.get("section_hint"))
         self.assertEqual(doc_hit_payload["source_hash"], doc_hit.source_hash)
         self.assertEqual(result.diagnostics["doc_hits_count"], len(result.doc_hits))
         self.assertEqual(result.diagnostics["excerpt_hits_count"], len(result.hits))
