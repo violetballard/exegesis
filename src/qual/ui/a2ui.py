@@ -14,6 +14,7 @@ A2UI_ACTION_SCHEMA_VERSION = 1
 SELECTION_SCHEMA_VERSION = 1
 CARD_CONTRACT_VERSION = 1
 TERMINAL_FALLBACK_SCHEMA_VERSION = 1
+TERMINAL_ARTIFACT_SCHEMA_VERSION = 1
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
 DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES = 8_192
@@ -207,6 +208,16 @@ def describe_terminal_fallback_contract() -> dict[str, Any]:
     return manifest
 
 
+def describe_terminal_artifact_contract() -> dict[str, Any]:
+    """Return the stable terminal artifact dispatch contract manifest."""
+
+    manifest = _build_terminal_artifact_contract_manifest()
+    fingerprint = terminal_artifact_contract_fingerprint()
+    manifest["terminal_artifact_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
+    return manifest
+
+
 def _build_a2ui_contract_manifest() -> dict[str, Any]:
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
@@ -294,6 +305,35 @@ def _build_terminal_fallback_contract_manifest() -> dict[str, Any]:
         "default_kind": "card",
         "read_only_action": _build_read_only_fallback_action_manifest()[0],
         "card_fallbacks": _build_card_fallback_manifest(),
+    }
+
+
+def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
+    return {
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
+        "type": "TerminalArtifactContract",
+        "supported_kinds": ["card", "action", "selection"],
+        "default_kind": "card",
+        "kind_contracts": {
+            "card": {
+                "kind": "card",
+                "contract_fingerprint": card_contract_fingerprint(),
+            },
+            "action": {
+                "kind": "action",
+                "contract_fingerprint": action_contract_fingerprint(),
+            },
+            "selection": {
+                "kind": "selection",
+                "contract_fingerprint": selection_contract_fingerprint(),
+            },
+        },
+        "terminal_fallback_contract": {
+            "kind": "card",
+            "contract_fingerprint": terminal_fallback_contract_fingerprint(),
+        },
     }
 
 
@@ -415,6 +455,13 @@ def terminal_fallback_contract_fingerprint() -> str:
     """Return a stable fingerprint for the terminal fallback contract manifest."""
 
     manifest = _build_terminal_fallback_contract_manifest()
+    return _fingerprint_manifest_section(manifest)
+
+
+def terminal_artifact_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the terminal artifact dispatch manifest."""
+
+    manifest = _build_terminal_artifact_contract_manifest()
     return _fingerprint_manifest_section(manifest)
 
 

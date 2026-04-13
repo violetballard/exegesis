@@ -18,6 +18,7 @@ from src.qual.ui.a2ui import (
     describe_action_contract,
     describe_card_contract,
     describe_selection_contract,
+    describe_terminal_artifact_contract,
     describe_terminal_fallback_contract,
     engine_prepare_card,
     render_terminal_action,
@@ -25,7 +26,9 @@ from src.qual.ui.a2ui import (
     render_terminal_card,
     render_terminal_selection,
     SelectionRef,
+    terminal_artifact_contract_fingerprint,
     terminal_fallback_contract_fingerprint,
+    TERMINAL_ARTIFACT_SCHEMA_VERSION,
 )
 from src.qual.ui.shell import ShellUI
 
@@ -79,6 +82,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(fingerprints["card_contract"], card_contract_fingerprint())
         self.assertEqual(fingerprints["terminal_fallback"], terminal_fallback_contract_fingerprint())
         self.assertEqual(len(fingerprints["actions"]), 64)
+
+    def test_terminal_artifact_contract_manifest_is_versioned_and_points_to_subcontracts(self) -> None:
+        manifest = describe_terminal_artifact_contract()
+
+        self.assertEqual(manifest["contract_version"], 2)
+        self.assertEqual(manifest["a2ui_version"], 1)
+        self.assertEqual(manifest["terminal_artifact_schema_version"], TERMINAL_ARTIFACT_SCHEMA_VERSION)
+        self.assertEqual(manifest["type"], "TerminalArtifactContract")
+        self.assertEqual(manifest["supported_kinds"], ["card", "action", "selection"])
+        self.assertEqual(manifest["default_kind"], "card")
+        self.assertEqual(manifest["kind_contracts"]["card"]["contract_fingerprint"], card_contract_fingerprint())
+        self.assertEqual(manifest["kind_contracts"]["action"]["contract_fingerprint"], action_contract_fingerprint())
+        self.assertEqual(
+            manifest["kind_contracts"]["selection"]["contract_fingerprint"],
+            describe_selection_contract()["contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["terminal_fallback_contract"]["contract_fingerprint"],
+            terminal_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(manifest["contract_fingerprint"], terminal_artifact_contract_fingerprint())
+        self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
     def test_card_contract_manifest_is_versioned_and_aligns_with_a2ui_schema(self) -> None:
         manifest = describe_card_contract()
@@ -216,6 +241,21 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[ActionRef] Export", shell.render_artifact(action))
         self.assertIn("[SelectionRef] Choice", shell.render_artifact(selection))
         self.assertIn("[GenericCard] Run Log", shell.render_artifact(card))
+
+    def test_shell_ui_forwards_explicit_artifact_kind_hints(self) -> None:
+        shell = ShellUI()
+
+        action_text = shell.render_artifact(
+            {"id": "export_document", "label": "Export", "payload": {"format": "md"}},
+            kind="action",
+        )
+        selection_text = shell.render_artifact(
+            {"id": "choice-1", "label": "Choice", "payload": {"nested": {"items": [1, 2]}}},
+            kind="selection",
+        )
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("[SelectionRef] Choice", selection_text)
 
     def test_terminal_artifact_uses_explicit_kind_for_raw_mappings(self) -> None:
         action_text = render_terminal_artifact(
