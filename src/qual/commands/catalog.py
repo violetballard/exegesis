@@ -9,6 +9,7 @@ from functools import lru_cache
 class CommandSpec:
     name: str
     aliases: tuple[str, ...] = ()
+    cli_tokens: tuple[str, ...] = ()
     description: str = ""
     flow_step: str = "general"
 
@@ -61,6 +62,8 @@ class CommandSurfaceContract:
     lookup_surface: tuple[tuple[str, str], ...] = ()
     flow_tokens: tuple[str, ...] = ()
     flow_surface_tokens: tuple[tuple[str, ...], ...] = ()
+    route_tokens: tuple[str, ...] = ()
+    invocation_plan: tuple[CommandInvocationPlanEntry, ...] = ()
     route_catalog: tuple[CommandFlowRouteEntry, ...] = ()
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...] = ()
 
@@ -79,11 +82,15 @@ class CommandCliRouteContract:
     tokens: tuple[str, ...]
     canonical_names: tuple[str, ...]
     lookup_table: tuple[tuple[str, str], ...]
+    route_lookup_table: tuple[tuple[str, str], ...]
+    route_flow_lookup_table: tuple[tuple[str, str], ...]
     flow_steps: tuple[str, ...]
     flow_names: tuple[str, ...]
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
     lookup_surface: tuple[tuple[str, str], ...] = ()
     flow_surface_tokens: tuple[tuple[str, ...], ...] = ()
+    route_tokens: tuple[str, ...] = ()
+    invocation_plan: tuple[CommandInvocationPlanEntry, ...] = ()
     route_catalog: tuple[CommandFlowRouteEntry, ...] = ()
 
 
@@ -95,8 +102,31 @@ class CommandCliFlowEntry:
 
 
 @dataclass(frozen=True)
+class CommandCliSurfaceEntry:
+    token: str
+    canonical_name: str
+    flow_step: str
+    aliases: tuple[str, ...]
+    lookup_tokens: tuple[str, ...]
+    description: str
+
+
+@dataclass(frozen=True)
 class CommandCliFlowContract:
     entries: tuple[CommandCliFlowEntry, ...]
+
+
+@dataclass(frozen=True)
+class CommandCliSurfaceContract:
+    entries: tuple[CommandCliSurfaceEntry, ...]
+
+
+@dataclass(frozen=True)
+class CommandInvocationPlanEntry:
+    flow_step: str
+    name: str
+    argv: tuple[str, ...]
+    description: str
 
 
 @dataclass(frozen=True)
@@ -104,6 +134,7 @@ class CommandFlowRouteEntry:
     flow_step: str
     name: str
     cli_tokens: tuple[str, ...]
+    primary_cli_token: str
     lookup_tokens: tuple[str, ...]
     surface_tokens: tuple[str, ...]
     description: str
@@ -112,6 +143,11 @@ class CommandFlowRouteEntry:
 @dataclass(frozen=True)
 class CommandFlowRouteContract:
     entries: tuple[CommandFlowRouteEntry, ...]
+
+
+@dataclass(frozen=True)
+class CommandInvocationPlanContract:
+    entries: tuple[CommandInvocationPlanEntry, ...]
 
 
 def _normalize_token(value: str) -> str:
@@ -126,6 +162,10 @@ def _lookup_aliases(spec: CommandSpec) -> tuple[str, ...]:
 
 def _lookup_tokens(spec: CommandSpec) -> tuple[str, ...]:
     return (spec.name, *_lookup_aliases(spec))
+
+
+def _lookup_resolution_tokens(spec: CommandSpec) -> tuple[str, ...]:
+    return (*_lookup_tokens(spec), *spec.cli_tokens)
 
 
 def _flow_surface_tokens(*tokens: str) -> tuple[str, ...]:
@@ -155,25 +195,72 @@ def _normalize_flow_steps(flow_steps: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(_normalize_token(flow_step) for flow_step in flow_steps)
 
 
-def _validate_cli_entrypoints() -> None:
-    # Keep the parser surface explicit so the command contract stays deterministic.
+def _validated_cli_entrypoints_for(
+    specs: tuple[CommandSpec, ...],
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    validate_command_catalog(specs)
+    require_lookup_resolution = specs is COMMAND_SPECS
     seen_entrypoints: set[str] = set()
-    for entrypoint in _CLI_ENTRYPOINTS:
-        normalized_entrypoint = _normalize_token(entrypoint)
-        if not normalized_entrypoint:
-            raise ValueError("Command CLI entrypoints must not be empty")
-        if normalized_entrypoint in seen_entrypoints:
-            raise ValueError(f"Duplicate command CLI entrypoint: {entrypoint}")
-        seen_entrypoints.add(normalized_entrypoint)
-        if command_spec_for(COMMAND_SPECS, entrypoint) is None:
-            raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
+    validated_entrypoints: list[tuple[str, tuple[str, ...]]] = []
+    for spec in specs:
+        entrypoints = spec.cli_tokens or _lookup_tokens(spec)
+        if not entrypoints:
+            raise ValueError(f"Command {spec.name} must define at least one CLI entrypoint")
+        normalized_entrypoints: list[str] = []
+        for entrypoint in entrypoints:
+            normalized_entrypoint = _normalize_token(entrypoint)
+            if not normalized_entrypoint:
+                raise ValueError("Command CLI entrypoints must not be empty")
+            if normalized_entrypoint in seen_entrypoints:
+                raise ValueError(f"Duplicate command CLI entrypoint: {entrypoint}")
+            seen_entrypoints.add(normalized_entrypoint)
+            if require_lookup_resolution:
+                resolved = command_spec_for(specs, entrypoint)
+                if resolved is None:
+                    raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
+                if resolved.name != spec.name:
+                    raise ValueError(
+                        "Command CLI entrypoint resolves to the wrong command: "
+                        f"{entrypoint} -> {resolved.name}"
+                    )
+            normalized_entrypoints.append(normalized_entrypoint)
+        validated_entrypoints.append((spec.name, tuple(normalized_entrypoints)))
+    return tuple(validated_entrypoints)
+
+def _cli_entrypoints_by_name(
+    specs: tuple[CommandSpec, ...],
+) -> dict[str, tuple[str, ...]]:
+    return {name: entrypoints for name, entrypoints in _validated_cli_entrypoints_for(specs)}
 
 
 def _command_cli_tokens_by_name() -> dict[str, tuple[str, ...]]:
-    tokens_by_name: dict[str, list[str]] = {}
-    for token, canonical_name in command_cli_lookup_table():
-        tokens_by_name.setdefault(canonical_name, []).append(token)
-    return {name: tuple(tokens) for name, tokens in tokens_by_name.items()}
+    return _cli_entrypoints_by_name(COMMAND_SPECS)
+
+
+def _command_cli_contract_for(specs: tuple[CommandSpec, ...]) -> CommandCliContract:
+    validated_entrypoints = _validated_cli_entrypoints_for(specs)
+    tokens: list[str] = []
+    lookup_table: list[tuple[str, str]] = []
+    seen_canonical_names: set[str] = set()
+    canonical_names: list[str] = []
+    for spec_name, entrypoints in validated_entrypoints:
+        for normalized_entrypoint in entrypoints:
+            tokens.append(normalized_entrypoint)
+            lookup_table.append((normalized_entrypoint, spec_name))
+        if spec_name in seen_canonical_names:
+            continue
+        seen_canonical_names.add(spec_name)
+        canonical_names.append(spec_name)
+
+    expected_canonical_names = command_names(specs)
+    if tuple(canonical_names) != expected_canonical_names:
+        raise ValueError("Command CLI canonical names are inconsistent")
+
+    return CommandCliContract(
+        tokens=tuple(tokens),
+        canonical_names=expected_canonical_names,
+        lookup_table=tuple(lookup_table),
+    )
 
 
 def _route_cli_tokens_by_name(specs: tuple[CommandSpec, ...]) -> dict[str, tuple[str, ...]]:
@@ -181,43 +268,50 @@ def _route_cli_tokens_by_name(specs: tuple[CommandSpec, ...]) -> dict[str, tuple
     # supplied spec lookup tokens when callers build custom smoke surfaces.
     if specs == COMMAND_SPECS:
         return _command_cli_tokens_by_name()
-    return {spec.name: _lookup_tokens(spec) for spec in specs}
+    route_tokens_by_name: dict[str, tuple[str, ...]] = {}
+    for spec in specs:
+        if spec.cli_tokens:
+            route_tokens_by_name[spec.name] = _flow_surface_tokens(*spec.cli_tokens)
+            continue
+        route_tokens_by_name[spec.name] = _flow_surface_tokens(*_lookup_tokens(spec))
+    return route_tokens_by_name
+
+
+def _primary_route_cli_token(cli_tokens: tuple[str, ...], *, name: str) -> str:
+    if not cli_tokens:
+        raise ValueError(f"Command {name} must define at least one CLI entrypoint")
+    return cli_tokens[0]
 
 
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         name="bootstrap",
-        aliases=("open", "project-open", "project"),
+        aliases=("open", "project-open", "project", "bootstrap-run"),
+        cli_tokens=("bootstrap",),
         description="Run the project bootstrap flow.",
         flow_step="project-open",
     ),
     CommandSpec(
         name="diff-preview",
-        aliases=("diff", "diff_preview"),
+        aliases=("diff", "diff_preview", "review-patch"),
+        cli_tokens=("diff-preview", "diff"),
         description="Preview unified diff output.",
         flow_step="patch-review",
     ),
     CommandSpec(
         name="context-basket",
-        aliases=("context", "basket"),
+        aliases=("context", "basket", "retrieval", "retrieve"),
+        cli_tokens=("context-basket",),
         description="Manage retrieval context basket items.",
         flow_step="retrieval",
     ),
     CommandSpec(
         name="terminal",
+        aliases=("export", "save-export"),
+        cli_tokens=("terminal",),
         description="Run terminal export handoff routing.",
         flow_step="export-handoff",
     ),
-)
-
-# Keep the parser surface explicit: only these tokens are accepted by the current CLI.
-# Each token must resolve through the command catalog so the surface cannot drift.
-_CLI_ENTRYPOINTS: tuple[str, ...] = (
-    "bootstrap",
-    "diff-preview",
-    "diff",
-    "context-basket",
-    "terminal",
 )
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
@@ -272,6 +366,18 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
                 raise ValueError(f"Duplicate command lookup token: {alias}")
             seen_lookup_tokens[normalized_alias] = spec.name
 
+        seen_local_cli_tokens: set[str] = set()
+        for cli_token in spec.cli_tokens:
+            normalized_cli_token = _normalize_token(cli_token)
+            if not normalized_cli_token:
+                raise ValueError(f"Command {spec.name} has an empty CLI entrypoint")
+            if normalized_cli_token in seen_local_cli_tokens:
+                raise ValueError(f"Duplicate command CLI entrypoint: {cli_token}")
+            seen_local_cli_tokens.add(normalized_cli_token)
+            if normalized_cli_token in seen_lookup_tokens and seen_lookup_tokens[normalized_cli_token] != spec.name:
+                raise ValueError(f"Duplicate command lookup token: {cli_token}")
+            seen_lookup_tokens[normalized_cli_token] = spec.name
+
 
 @lru_cache(maxsize=None)
 def _command_spec_for(specs: tuple[CommandSpec, ...], name: str) -> CommandSpec | None:
@@ -307,6 +413,30 @@ def command_lookup_tokens_for(specs: tuple[CommandSpec, ...], name: str) -> tupl
 
 
 @lru_cache(maxsize=None)
+def command_resolution_tokens_for(specs: tuple[CommandSpec, ...], name: str) -> tuple[str, ...]:
+    spec = command_spec_for(specs, name)
+    if spec is None:
+        return ()
+    return _lookup_resolution_tokens(spec)
+
+
+@lru_cache(maxsize=None)
+def command_cli_tokens_for(specs: tuple[CommandSpec, ...], name: str) -> tuple[str, ...]:
+    spec = command_spec_for(specs, name)
+    if spec is None:
+        return ()
+    return _cli_entrypoints_by_name(specs).get(spec.name, ())
+
+
+@lru_cache(maxsize=None)
+def command_primary_cli_token_for(specs: tuple[CommandSpec, ...], name: str) -> str:
+    cli_tokens = command_cli_tokens_for(specs, name)
+    if not cli_tokens:
+        return ""
+    return cli_tokens[0]
+
+
+@lru_cache(maxsize=None)
 def canonical_command_for(specs: tuple[CommandSpec, ...], name: str) -> str:
     normalized = _normalize_token(name)
     if not normalized:
@@ -322,7 +452,7 @@ def _build_command_spec_by_alias(specs: tuple[CommandSpec, ...]) -> dict[str, Co
     validate_command_catalog(specs)
     index: dict[str, CommandSpec] = {}
     for spec in specs:
-        for alias in _lookup_tokens(spec):
+        for alias in _lookup_resolution_tokens(spec):
             index[_normalize_token(alias)] = spec
     return index
 
@@ -413,6 +543,7 @@ def command_flow_surface_catalog(
     normalized_flow_steps = _normalize_flow_steps(ordered_flow_steps)
     manifest = command_flow_manifest(specs, ordered_flow_steps)
     manifest_by_flow_step = {_normalize_token(entry.flow_step): entry for entry in manifest}
+    route_tokens_by_name = _route_cli_tokens_by_name(specs)
     return tuple(
         CommandFlowSurfaceEntry(
             flow_step=flow_step,
@@ -420,7 +551,11 @@ def command_flow_surface_catalog(
             aliases=entry.aliases,
             description=entry.description,
             lookup_tokens=entry.lookup_tokens,
-            surface_tokens=_flow_surface_tokens(*entry.lookup_tokens, flow_step),
+            surface_tokens=_flow_surface_tokens(
+                *route_tokens_by_name.get(entry.name, (entry.name,)),
+                *entry.lookup_tokens,
+                flow_step,
+            ),
         )
         for flow_step in normalized_flow_steps
         for entry in (manifest_by_flow_step[flow_step],)
@@ -466,42 +601,41 @@ def command_lookup_table(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tupl
     return command_lookup_index(specs)
 
 
-@lru_cache(maxsize=None)
-def command_cli_tokens() -> tuple[str, ...]:
-    _validate_cli_entrypoints()
-    return tuple(_CLI_ENTRYPOINTS)
+def command_resolution_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_resolution_lookup_index(specs)
 
 
 @lru_cache(maxsize=None)
-def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
-    _validate_cli_entrypoints()
-    lookup_table: list[tuple[str, str]] = []
-    for entrypoint in _CLI_ENTRYPOINTS:
-        spec = command_spec_for(COMMAND_SPECS, entrypoint)
-        if spec is None:
-            raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
-        lookup_table.append((entrypoint, spec.name))
-    return tuple(lookup_table)
+def command_cli_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return _command_cli_contract_for(specs).tokens
 
 
 @lru_cache(maxsize=None)
-def command_cli_contract() -> CommandCliContract:
-    lookup_table = command_cli_lookup_table()
-    canonical_names = command_names()
-    seen_canonical_names: set[str] = set()
-    lookup_canonical_names: list[str] = []
-    for _, canonical_name in lookup_table:
-        if canonical_name in seen_canonical_names:
-            continue
-        seen_canonical_names.add(canonical_name)
-        lookup_canonical_names.append(canonical_name)
-    if tuple(lookup_canonical_names) != canonical_names:
-        raise ValueError("Command CLI canonical names are inconsistent")
-    return CommandCliContract(
-        tokens=command_cli_tokens(),
-        canonical_names=canonical_names,
-        lookup_table=lookup_table,
+def command_cli_primary_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return tuple(
+        command_primary_cli_token_for(specs, name)
+        for name in command_names(specs)
     )
+
+
+@lru_cache(maxsize=None)
+def command_cli_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return _command_cli_contract_for(specs).lookup_table
+
+
+@lru_cache(maxsize=None)
+def command_cli_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandCliContract:
+    return _command_cli_contract_for(specs)
 
 
 @lru_cache(maxsize=None)
@@ -510,6 +644,32 @@ def command_cli_route_catalog(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[CommandFlowRouteEntry, ...]:
     return command_flow_route_catalog(flow_steps=flow_steps, specs=specs)
+
+
+@lru_cache(maxsize=None)
+def command_cli_route_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, str], ...]:
+    route_catalog = command_cli_route_catalog(specs, flow_steps)
+    return tuple(
+        (cli_token, entry.name)
+        for entry in route_catalog
+        for cli_token in entry.cli_tokens
+    )
+
+
+@lru_cache(maxsize=None)
+def command_cli_route_flow_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, str], ...]:
+    route_catalog = command_cli_route_catalog(specs, flow_steps)
+    return tuple(
+        (cli_token, entry.flow_step)
+        for entry in route_catalog
+        for cli_token in entry.cli_tokens
+    )
 
 
 def _validate_command_cli_route_contract(
@@ -528,17 +688,27 @@ def _validate_command_cli_route_contract(
     expected_route_catalog = command_cli_route_catalog(specs, flow_steps)
     if contract.route_catalog != expected_route_catalog:
         raise ValueError("Command CLI route catalog is inconsistent")
-    cli_contract = command_cli_contract()
+    cli_contract = _command_cli_contract_for(specs)
     if contract.tokens != cli_contract.tokens:
         raise ValueError("Command CLI route tokens are inconsistent")
     if contract.canonical_names != cli_contract.canonical_names:
         raise ValueError("Command CLI route canonical names are inconsistent")
     if contract.lookup_table != cli_contract.lookup_table:
         raise ValueError("Command CLI route lookup table is inconsistent")
+    if contract.route_lookup_table != command_cli_route_lookup_table(specs, flow_steps):
+        raise ValueError("Command CLI route canonical lookup surface is inconsistent")
+    if contract.route_flow_lookup_table != command_cli_route_flow_lookup_table(specs, flow_steps):
+        raise ValueError("Command CLI route flow lookup surface is inconsistent")
     if contract.lookup_surface != command_flow_lookup_surface(specs, flow_steps):
         raise ValueError("Command CLI route lookup surface is inconsistent")
     if contract.flow_surface_tokens != command_flow_surface_tokens(specs, flow_steps):
         raise ValueError("Command CLI route surface tokens are inconsistent")
+    if tuple(entry.primary_cli_token for entry in contract.route_catalog) != contract.route_tokens:
+        raise ValueError("Command CLI route catalog invocation tokens are inconsistent")
+    if contract.route_tokens != command_flow_route_tokens(specs, flow_steps):
+        raise ValueError("Command CLI route invocation tokens are inconsistent")
+    if contract.invocation_plan != command_flow_invocation_plan(specs, flow_steps):
+        raise ValueError("Command CLI route invocation plan is inconsistent")
 
 
 @lru_cache(maxsize=None)
@@ -546,7 +716,7 @@ def command_cli_route_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> CommandCliRouteContract:
-    cli_contract = command_cli_contract()
+    cli_contract = _command_cli_contract_for(specs)
     route_summary = command_flow_route_summary(specs, flow_steps)
     ordered_flow_steps = tuple(flow_step for flow_step, _, _ in route_summary)
     route_catalog = command_cli_route_catalog(specs, ordered_flow_steps)
@@ -554,11 +724,15 @@ def command_cli_route_contract(
         tokens=cli_contract.tokens,
         canonical_names=cli_contract.canonical_names,
         lookup_table=cli_contract.lookup_table,
+        route_lookup_table=command_cli_route_lookup_table(specs, ordered_flow_steps),
+        route_flow_lookup_table=command_cli_route_flow_lookup_table(specs, ordered_flow_steps),
         flow_steps=ordered_flow_steps,
         flow_names=tuple(name for _, name, _ in route_summary),
         route_summary=route_summary,
         lookup_surface=command_flow_lookup_surface(specs, ordered_flow_steps),
         flow_surface_tokens=command_flow_surface_tokens(specs, ordered_flow_steps),
+        route_tokens=command_flow_route_tokens(specs, ordered_flow_steps),
+        invocation_plan=command_flow_invocation_plan(specs, ordered_flow_steps),
         route_catalog=route_catalog,
     )
     _validate_command_cli_route_contract(
@@ -571,11 +745,13 @@ def command_cli_route_contract(
 
 
 @lru_cache(maxsize=None)
-def command_cli_flow_contract() -> CommandCliFlowContract:
-    lookup_table = command_cli_lookup_table()
+def command_cli_flow_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandCliFlowContract:
+    cli_contract = _command_cli_contract_for(specs)
     entries: list[CommandCliFlowEntry] = []
-    for token, canonical_name in lookup_table:
-        spec = command_spec_for(COMMAND_SPECS, canonical_name)
+    for token, canonical_name in cli_contract.lookup_table:
+        spec = command_spec_for(specs, canonical_name)
         if spec is None:
             raise ValueError(f"Unknown CLI command target: {canonical_name}")
         entries.append(
@@ -589,8 +765,40 @@ def command_cli_flow_contract() -> CommandCliFlowContract:
 
 
 @lru_cache(maxsize=None)
-def command_cli_flow_lookup_table() -> tuple[tuple[str, str], ...]:
-    return tuple((entry.token, entry.flow_step) for entry in command_cli_flow_contract().entries)
+def command_cli_flow_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return tuple((entry.token, entry.flow_step) for entry in command_cli_flow_contract(specs).entries)
+
+
+@lru_cache(maxsize=None)
+def command_cli_surface_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandCliSurfaceEntry, ...]:
+    cli_contract = _command_cli_contract_for(specs)
+    entries: list[CommandCliSurfaceEntry] = []
+    for token, canonical_name in cli_contract.lookup_table:
+        spec = command_spec_for(specs, canonical_name)
+        if spec is None:
+            raise ValueError(f"Unknown CLI command target: {canonical_name}")
+        entries.append(
+            CommandCliSurfaceEntry(
+                token=token,
+                canonical_name=spec.name,
+                flow_step=_normalize_token(spec.flow_step),
+                aliases=_lookup_aliases(spec),
+                lookup_tokens=_flow_surface_tokens(*_lookup_resolution_tokens(spec)),
+                description=spec.description,
+            )
+        )
+    return tuple(entries)
+
+
+@lru_cache(maxsize=None)
+def command_cli_surface_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandCliSurfaceContract:
+    return CommandCliSurfaceContract(entries=command_cli_surface_catalog(specs))
 
 
 @lru_cache(maxsize=None)
@@ -599,6 +807,14 @@ def command_cli_route_summary(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
     return command_flow_route_summary(specs, flow_steps)
+
+
+@lru_cache(maxsize=None)
+def command_cli_route_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    return command_flow_route_tokens(specs, flow_steps)
 
 
 @lru_cache(maxsize=None)
@@ -616,6 +832,10 @@ def command_flow_route_catalog(
             flow_step=entry.flow_step,
             name=entry.name,
             cli_tokens=cli_tokens_by_name.get(entry.name, (entry.name,)),
+            primary_cli_token=_primary_route_cli_token(
+                cli_tokens_by_name.get(entry.name, (entry.name,)),
+                name=entry.name,
+            ),
             lookup_tokens=entry.lookup_tokens,
             surface_tokens=entry.surface_tokens,
             description=entry.description,
@@ -634,6 +854,15 @@ def command_flow_route_summary(
 
 
 @lru_cache(maxsize=None)
+def command_flow_route_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    route_catalog = command_flow_route_catalog(flow_steps=flow_steps, specs=specs)
+    return tuple(entry.primary_cli_token for entry in route_catalog)
+
+
+@lru_cache(maxsize=None)
 def command_flow_route_contract(
     flow_steps: tuple[str, ...] | None = None,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -641,12 +870,41 @@ def command_flow_route_contract(
     return CommandFlowRouteContract(entries=command_flow_route_catalog(flow_steps, specs))
 
 
-def command_demo_flow_route_catalog() -> tuple[CommandFlowRouteEntry, ...]:
-    return command_flow_route_catalog(flow_steps=command_demo_flow_steps())
+@lru_cache(maxsize=None)
+def command_flow_invocation_plan(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandInvocationPlanEntry, ...]:
+    route_catalog = command_flow_route_catalog(flow_steps=flow_steps, specs=specs)
+    return tuple(
+        CommandInvocationPlanEntry(
+            flow_step=entry.flow_step,
+            name=entry.name,
+            argv=(entry.primary_cli_token,),
+            description=entry.description,
+        )
+        for entry in route_catalog
+    )
 
 
-def command_demo_flow_route_contract() -> CommandFlowRouteContract:
-    return command_flow_route_contract(flow_steps=command_demo_flow_steps())
+@lru_cache(maxsize=None)
+def command_flow_invocation_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> CommandInvocationPlanContract:
+    return CommandInvocationPlanContract(entries=command_flow_invocation_plan(specs, flow_steps))
+
+
+def command_demo_flow_route_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandFlowRouteEntry, ...]:
+    return command_flow_route_catalog(flow_steps=command_demo_flow_steps(), specs=specs)
+
+
+def command_demo_flow_route_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandFlowRouteContract:
+    return command_flow_route_contract(flow_steps=command_demo_flow_steps(), specs=specs)
 
 
 def command_demo_flow_route_summary(
@@ -655,18 +913,58 @@ def command_demo_flow_route_summary(
     return command_flow_route_summary(specs, command_demo_flow_steps())
 
 
-def command_mvp_flow_route_catalog() -> tuple[CommandFlowRouteEntry, ...]:
-    return command_demo_flow_route_catalog()
+def command_demo_flow_route_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return command_flow_route_tokens(specs, command_demo_flow_steps())
 
 
-def command_mvp_flow_route_contract() -> CommandFlowRouteContract:
-    return command_demo_flow_route_contract()
+def command_demo_flow_invocation_plan(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandInvocationPlanEntry, ...]:
+    return command_flow_invocation_plan(specs, command_demo_flow_steps())
+
+
+def command_demo_flow_invocation_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandInvocationPlanContract:
+    return command_flow_invocation_contract(specs, command_demo_flow_steps())
+
+
+def command_mvp_flow_route_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandFlowRouteEntry, ...]:
+    return command_demo_flow_route_catalog(specs)
+
+
+def command_mvp_flow_route_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandFlowRouteContract:
+    return command_demo_flow_route_contract(specs)
 
 
 def command_mvp_flow_route_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
     return command_demo_flow_route_summary(specs)
+
+
+def command_mvp_flow_route_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return command_demo_flow_route_tokens(specs)
+
+
+def command_mvp_flow_invocation_plan(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandInvocationPlanEntry, ...]:
+    return command_demo_flow_invocation_plan(specs)
+
+
+def command_mvp_flow_invocation_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandInvocationPlanContract:
+    return command_demo_flow_invocation_contract(specs)
 
 
 @lru_cache(maxsize=None)
@@ -681,6 +979,23 @@ def command_lookup_index(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tupl
                 continue
             seen_tokens.add(normalized_alias)
             index.append((normalized_alias, spec.name))
+    return tuple(index)
+
+
+@lru_cache(maxsize=None)
+def command_resolution_lookup_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    validate_command_catalog(specs)
+    seen_tokens: set[str] = set()
+    index: list[tuple[str, str]] = []
+    for spec in specs:
+        for token in _lookup_resolution_tokens(spec):
+            normalized_token = _normalize_token(token)
+            if normalized_token in seen_tokens:
+                continue
+            seen_tokens.add(normalized_token)
+            index.append((normalized_token, spec.name))
     return tuple(index)
 
 
@@ -822,54 +1137,100 @@ def command_mvp_flow_contract(
     return command_mvp_surface_contract(specs)
 
 
-def command_mvp_cli_flow_contract() -> CommandCliFlowContract:
-    return command_cli_flow_contract()
+def command_mvp_cli_flow_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandCliFlowContract:
+    return command_cli_flow_contract(specs)
 
 
-def command_demo_cli_flow_contract() -> CommandCliFlowContract:
-    return command_cli_flow_contract()
+def command_demo_cli_flow_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandCliFlowContract:
+    return command_cli_flow_contract(specs)
+
+
+def command_demo_cli_surface_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandCliSurfaceEntry, ...]:
+    return command_cli_surface_catalog(specs)
+
+
+def command_demo_cli_surface_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandCliSurfaceContract:
+    return command_cli_surface_contract(specs)
 
 
 def command_demo_cli_route_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[CommandFlowRouteEntry, ...]:
-    return command_cli_route_catalog(specs, flow_steps)
+    ordered_flow_steps = command_demo_flow_steps() if flow_steps is None else flow_steps
+    return command_cli_route_catalog(specs, ordered_flow_steps)
 
 
 def command_demo_cli_route_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
-    return command_cli_route_summary(specs, flow_steps)
+    ordered_flow_steps = command_demo_flow_steps() if flow_steps is None else flow_steps
+    return command_cli_route_summary(specs, ordered_flow_steps)
+
+
+def command_demo_cli_route_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    ordered_flow_steps = command_demo_flow_steps() if flow_steps is None else flow_steps
+    return command_cli_route_tokens(specs, ordered_flow_steps)
 
 
 def command_demo_cli_route_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> CommandCliRouteContract:
-    return command_cli_route_contract(specs, flow_steps)
+    ordered_flow_steps = command_demo_flow_steps() if flow_steps is None else flow_steps
+    return command_cli_route_contract(specs, ordered_flow_steps)
 
 
 def command_mvp_cli_route_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> CommandCliRouteContract:
-    return command_cli_route_contract(specs, flow_steps)
+    return command_demo_cli_route_contract(specs, flow_steps)
+
+
+def command_mvp_cli_surface_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandCliSurfaceEntry, ...]:
+    return command_demo_cli_surface_catalog(specs)
+
+
+def command_mvp_cli_surface_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandCliSurfaceContract:
+    return command_demo_cli_surface_contract(specs)
 
 
 def command_mvp_cli_route_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[CommandFlowRouteEntry, ...]:
-    return command_cli_route_catalog(specs, flow_steps)
+    return command_demo_cli_route_catalog(specs, flow_steps)
 
 
 def command_mvp_cli_route_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
-    return command_cli_route_summary(specs, flow_steps)
+    return command_demo_cli_route_summary(specs, flow_steps)
+
+
+def command_mvp_cli_route_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    return command_demo_cli_route_tokens(specs, flow_steps)
 
 
 def command_surface_contract(
@@ -907,6 +1268,12 @@ def _validate_command_surface_contract(contract: CommandSurfaceContract) -> None
         raise ValueError("Command surface route lookup tokens are inconsistent")
     if tuple(entry.surface_tokens for entry in contract.route_catalog) != contract.flow_surface_tokens:
         raise ValueError("Command surface route surface tokens are inconsistent")
+    if tuple(entry.primary_cli_token for entry in contract.route_catalog) != contract.route_tokens:
+        raise ValueError("Command surface route invocation tokens are inconsistent")
+    if tuple(entry.argv for entry in contract.invocation_plan) != tuple((token,) for token in contract.route_tokens):
+        raise ValueError("Command surface invocation argv is inconsistent")
+    if tuple((entry.flow_step, entry.name) for entry in contract.invocation_plan) != contract.lookup_table:
+        raise ValueError("Command surface invocation order is inconsistent")
     if contract.lookup_surface != contract.lookup_index:
         raise ValueError("Command surface lookup surfaces must match")
 
@@ -931,6 +1298,8 @@ def command_flow_contract(
         flow_catalog=command_flow_catalog(specs, ordered_flow_steps),
         lookup_surface=command_flow_lookup_surface(specs, ordered_flow_steps),
         flow_surface_tokens=command_flow_surface_tokens(specs, ordered_flow_steps),
+        route_tokens=command_flow_route_tokens(specs, ordered_flow_steps),
+        invocation_plan=command_flow_invocation_plan(specs, ordered_flow_steps),
         route_catalog=route_catalog,
         route_summary=route_summary,
     )
@@ -1071,8 +1440,18 @@ def command_tokens(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str,
     return tuple(alias for spec in specs for alias in _lookup_tokens(spec))
 
 
+@lru_cache(maxsize=None)
+def command_resolution_tokens(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
+    validate_command_catalog(specs)
+    return tuple(token for spec in specs for token in _lookup_resolution_tokens(spec))
+
+
 def command_lookup_tokens(name: str) -> tuple[str, ...]:
     return command_lookup_tokens_for(COMMAND_SPECS, name)
+
+
+def command_resolution_lookup_tokens(name: str) -> tuple[str, ...]:
+    return command_resolution_tokens_for(COMMAND_SPECS, name)
 
 
 def command_spec(name: str) -> CommandSpec | None:
