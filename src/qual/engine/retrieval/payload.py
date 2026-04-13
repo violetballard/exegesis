@@ -73,6 +73,13 @@ def _normalize_query_text(value: object) -> str | None:
     return " ".join(text.casefold().split())
 
 
+def _normalize_query_confidentiality_profile(value: object) -> str | None:
+    text = _normalize_optional_text(value)
+    if text is None:
+        return None
+    return text.casefold()
+
+
 def _first_text_value(*values: object) -> str | None:
     for value in values:
         text = _normalize_optional_text(value)
@@ -522,6 +529,24 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
             ),
         ),
     )
+    query_confidentiality_profile = _normalize_query_confidentiality_profile(
+        query.get(
+            "confidentiality_profile",
+            provenance.get(
+                "query_confidentiality_profile",
+                summary.get(
+                    "query_confidentiality_profile",
+                    doc_bundle.get(
+                        "query_confidentiality_profile",
+                        excerpt_bundle.get(
+                            "query_confidentiality_profile",
+                            diagnostics.get("query_confidentiality_profile"),
+                        ),
+                    ),
+                ),
+            ),
+        )
+    )
     query_date_range = query_constraints.get(
         "date_range",
         provenance.get(
@@ -606,6 +631,7 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
         ),
         "query_scope": query_scope,
         "query_intent": query_intent,
+        "query_confidentiality_profile": query_confidentiality_profile,
         "query_date_range": query_date_range,
         "candidate_doc_count": candidate_doc_count,
         "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
@@ -792,6 +818,18 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
             "intent",
             provenance.get("query_intent", summary.get("query_intent", diagnostics.get("query_intent"))),
         ),
+        "query_confidentiality_profile": _normalize_query_confidentiality_profile(
+            query.get(
+                "confidentiality_profile",
+                provenance.get(
+                    "query_confidentiality_profile",
+                    summary.get(
+                        "query_confidentiality_profile",
+                        diagnostics.get("query_confidentiality_profile"),
+                    ),
+                ),
+            )
+        ),
         "query_date_range": query_date_range,
         "retrieval_backend": payload.get("retrieval_backend", summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))),
         "retrieval_mode": payload.get("retrieval_mode", summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))),
@@ -893,6 +931,12 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
     )
     query_scope = citation_bundle.get("query_scope", query.get("scope"))
     query_intent = citation_bundle.get("query_intent", query.get("intent"))
+    query_confidentiality_profile = _normalize_query_confidentiality_profile(
+        citation_bundle.get(
+            "query_confidentiality_profile",
+            query.get("confidentiality_profile"),
+        )
+    )
     query_date_range = _normalize_optional_list_like(
         citation_bundle.get("query_date_range", query_constraints.get("date_range"))
     )
@@ -928,6 +972,7 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
         ),
         "query_scope": query_scope,
         "query_intent": query_intent,
+        "query_confidentiality_profile": query_confidentiality_profile,
         "doc_scope_id": query_scope.split(":", 1)[1] if isinstance(query_scope, str) and query_scope.startswith("doc:") else None,
         "date_range": query_date_range,
         "fts_shortlist_limit": fts_shortlist_limit,
@@ -982,6 +1027,20 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["query_scope"] = query.get("scope", summary.get("query_scope", diagnostics.get("query_scope")))
     if _is_missing_snapshot_value(normalized.get("query_intent")):
         normalized["query_intent"] = query.get("intent", summary.get("query_intent", diagnostics.get("query_intent")))
+    if _is_missing_snapshot_value(normalized.get("query_confidentiality_profile")):
+        normalized["query_confidentiality_profile"] = _normalize_query_confidentiality_profile(
+            query.get(
+                "confidentiality_profile",
+                summary.get(
+                    "query_confidentiality_profile",
+                    diagnostics.get("query_confidentiality_profile"),
+                ),
+            )
+        )
+    else:
+        normalized["query_confidentiality_profile"] = _normalize_query_confidentiality_profile(
+            normalized.get("query_confidentiality_profile")
+        )
     if "query_date_range" not in normalized or _is_missing_snapshot_value(query_date_range):
         normalized["query_date_range"] = _normalize_optional_list_like(
             query_constraints.get("date_range", summary.get("query_date_range", diagnostics.get("date_range")))

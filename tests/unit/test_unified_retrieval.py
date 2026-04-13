@@ -2309,6 +2309,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertIsInstance(retrieval_provenance, dict)
         retrieval_provenance["query_scope"] = None
         retrieval_provenance["query_intent"] = None
+        retrieval_provenance["query_confidentiality_profile"] = None
         retrieval_provenance["active_strategy_ids"] = []
         retrieval_provenance["deferred_strategy_ids"] = []
         retrieval_provenance["fts_shortlist_doc_ids"] = []
@@ -2584,6 +2585,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(provenance["query_fingerprint"], result.diagnostics["query_fingerprint"])
         self.assertEqual(provenance["query_scope"], "vault")
         self.assertEqual(provenance["query_intent"], "compare")
+        self.assertEqual(provenance["query_confidentiality_profile"], "confidential")
         self.assertEqual(provenance["retrieval_backend"], "sqlite_fts")
         self.assertEqual(provenance["retrieval_mode"], "fts_first")
 
@@ -2609,6 +2611,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(evidence["query_fingerprint"], result.diagnostics["query_fingerprint"])
         self.assertEqual(evidence["query_scope"], "vault")
         self.assertEqual(evidence["query_intent"], "compare")
+        self.assertEqual(evidence["query_confidentiality_profile"], "confidential")
         self.assertEqual(evidence["query_date_range"], [query_day, query_day])
         self.assertEqual(evidence["candidate_doc_count"], result.diagnostics["candidate_doc_count"])
         self.assertEqual(evidence["fts_shortlist_doc_ids"], result.diagnostics["fts_shortlist_doc_ids"])

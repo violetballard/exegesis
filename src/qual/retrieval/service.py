@@ -65,6 +65,13 @@ def _normalized_text(value: object) -> str | None:
     return " ".join(text.split())
 
 
+def _normalized_profile_text(value: object) -> str | None:
+    text = _normalized_text(value)
+    if text is None:
+        return None
+    return text.casefold()
+
+
 def _parse_date_value(value: str) -> date | None:
     try:
         return datetime.fromisoformat(value).date()
@@ -220,6 +227,11 @@ class RetrievalHit:
         query_intent = self.provenance.get("query_intent")
         if isinstance(query_intent, str) and query_intent:
             payload["query_intent"] = query_intent
+        query_confidentiality_profile = _normalized_profile_text(
+            self.provenance.get("query_confidentiality_profile")
+        )
+        if query_confidentiality_profile is not None:
+            payload["query_confidentiality_profile"] = query_confidentiality_profile
         query_date_range = self.provenance.get("query_date_range")
         normalized_query_date_range = _optional_list_like(query_date_range)
         if normalized_query_date_range is not None:
@@ -324,6 +336,11 @@ class RetrievalDocHit:
         query_intent = self.provenance.get("query_intent")
         if isinstance(query_intent, str) and query_intent:
             payload["query_intent"] = query_intent
+        query_confidentiality_profile = _normalized_profile_text(
+            self.provenance.get("query_confidentiality_profile")
+        )
+        if query_confidentiality_profile is not None:
+            payload["query_confidentiality_profile"] = query_confidentiality_profile
         query_date_range = self.provenance.get("query_date_range")
         normalized_query_date_range = _optional_list_like(query_date_range)
         if normalized_query_date_range is not None:
@@ -469,6 +486,7 @@ class RetrievalResult:
             "result_fingerprint": self.result_fingerprint,
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
+            "query_confidentiality_profile": self.query.confidentiality_profile,
             "query_date_range": query_date_range,
             "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
             "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
@@ -675,6 +693,7 @@ class RetrievalResult:
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "result_fingerprint": self.result_fingerprint,
+            "query_confidentiality_profile": self.query.confidentiality_profile,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
             "retrieval_policy": copy.deepcopy(retrieval_policy),
@@ -721,6 +740,7 @@ class RetrievalResult:
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
+            "query_confidentiality_profile": self.query.confidentiality_profile,
             "query_date_range": (
                 list(self.query.constraints.date_range)
                 if self.query.constraints.date_range is not None
@@ -778,6 +798,7 @@ class RetrievalResult:
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
+            "query_confidentiality_profile": self.query.confidentiality_profile,
             "query_date_range": query_date_range,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
@@ -1140,6 +1161,7 @@ class RetrievalService:
             "query_fingerprint": query_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
+            "query_confidentiality_profile": query.confidentiality_profile,
             "doc_scope_id": self._doc_scope_id(query.scope),
             "date_range": list(date_range) if date_range is not None else None,
             "fts_shortlist_limit": fts_shortlist_limit,
@@ -1173,6 +1195,7 @@ class RetrievalService:
                 "retrieval_policy": retrieval_policy,
                 "retrieval_mode": diagnostics["retrieval_mode"],
                 "query_scope": query.scope,
+                "query_confidentiality_profile": query.confidentiality_profile,
                 "date_range": diagnostics["date_range"],
                 "active_strategy_ids": diagnostics["active_strategy_ids"],
                 "deferred_strategy_ids": diagnostics["deferred_strategy_ids"],
@@ -1281,6 +1304,7 @@ class RetrievalService:
                 section_hint_rank=int(row["section_hint_rank"]) if section_hint is not None else None,
                 query_scope=query.scope,
                 query_intent=query.intent,
+                query_confidentiality_profile=query.confidentiality_profile,
                 query_fingerprint=self._query_fingerprint(query),
                 candidate_doc_count=effective_candidate_doc_count,
                 query_date_range=query.constraints.date_range,
@@ -1429,6 +1453,7 @@ class RetrievalService:
                         "retrieval_mode": cast(str, retrieval_policy["retrieval_mode"]),
                         "query_scope": query.scope,
                         "query_intent": query.intent,
+                        "query_confidentiality_profile": query.confidentiality_profile,
                         "query_date_range": list(query.constraints.date_range) if query.constraints.date_range is not None else None,
                         "candidate_doc_count": candidate_doc_count,
                         "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
@@ -1578,6 +1603,7 @@ class RetrievalService:
             "query_fingerprint": query_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
+            "query_confidentiality_profile": query.confidentiality_profile,
             "query_date_range": (
                 list(query.constraints.date_range)
                 if query.constraints.date_range is not None
@@ -1909,6 +1935,7 @@ class RetrievalService:
         section_hint_rank: int | None = None,
         query_scope: str | None = None,
         query_intent: str | None = None,
+        query_confidentiality_profile: str | None = None,
         query_date_range: tuple[str, str] | None = None,
         query_fingerprint: str | None = None,
         candidate_doc_count: int | None = None,
@@ -1945,6 +1972,8 @@ class RetrievalService:
             provenance["query_scope"] = query_scope
         if query_intent is not None:
             provenance["query_intent"] = query_intent
+        if query_confidentiality_profile is not None:
+            provenance["query_confidentiality_profile"] = query_confidentiality_profile
         if section_hint is not None:
             provenance["section_hint"] = section_hint
         if section_hint_rank is not None:
@@ -2192,6 +2221,7 @@ class RetrievalService:
             "query_fingerprint",
             "query_scope",
             "query_intent",
+            "query_confidentiality_profile",
             "query_date_range",
             "candidate_doc_count",
             "matched_terms",
