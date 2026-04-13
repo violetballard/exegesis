@@ -1903,20 +1903,36 @@ def _render_terminal_block(block: Any) -> list[str]:
     if not block_type:
         return ["[unsupported block: missing type]"]
     if block_type == "MarkdownBlock":
-        return [_render_terminal_text(block.get("markdown", ""))]
+        markdown = block.get("markdown")
+        if not isinstance(markdown, str):
+            return _render_terminal_invalid_primitive_block(block_type, "markdown")
+        return [_render_terminal_text(markdown)]
     if block_type == "AlertBlock":
+        message = block.get("message")
+        if not isinstance(message, str):
+            return _render_terminal_invalid_primitive_block(block_type, "message")
         severity_value = block.get("severity", "info")
         if isinstance(severity_value, str):
             severity = _render_terminal_inline_text(severity_value.strip()).upper() or "INFO"
         else:
             severity = "INFO"
-        message = _render_terminal_inline_text(block.get("message", ""))
+        message = _render_terminal_inline_text(message)
         return [f"{severity}: {message}"]
     if block_type == "CodeBlock":
-        return [_render_terminal_text(block.get("code", ""))]
+        code = block.get("code")
+        if not isinstance(code, str):
+            return _render_terminal_invalid_primitive_block(block_type, "code")
+        return [_render_terminal_text(code)]
     if block_type == "ProgressBlock":
-        title = _render_terminal_inline_text(block.get("title", "progress"))
-        status_text = _render_terminal_inline_text(block.get("status_text", ""))
+        status_text = block.get("status_text")
+        if not isinstance(status_text, str):
+            return _render_terminal_invalid_primitive_block(block_type, "status_text")
+        title_value = block.get("title", "progress")
+        if isinstance(title_value, str):
+            title = _render_terminal_inline_text(title_value) or "progress"
+        else:
+            title = "progress"
+        status_text = _render_terminal_inline_text(status_text)
         return [f"{title}: {status_text}"]
     if block_type == "KeyValueBlock":
         items = block.get("items", [])
@@ -1948,9 +1964,11 @@ def _render_terminal_block(block: Any) -> list[str]:
                 if rendered_item:
                     lines.append(f"- {rendered_item}")
             elif isinstance(item, Mapping):
-                label = _render_terminal_inline_text(item.get("label", ""))
-                if label:
-                    lines.append(f"- {label}")
+                label = item.get("label", "")
+                if isinstance(label, str):
+                    rendered_label = _render_terminal_inline_text(label)
+                    if rendered_label:
+                        lines.append(f"- {rendered_label}")
         return lines or ["[ListBlock: empty]"]
     if block_type == "TableBlock":
         rows = block.get("rows", [])
@@ -1966,12 +1984,18 @@ def _render_terminal_block(block: Any) -> list[str]:
                     rendered_cells.append("<blank>")
                 elif isinstance(cell, bool):
                     rendered_cells.append("true" if cell else "false")
-                else:
+                elif isinstance(cell, (str, int, float)):
                     rendered_cells.append(_render_terminal_inline_text(cell))
+                else:
+                    rendered_cells.append(f"<non-json:{type(cell).__name__}>")
             if rendered_cells:
                 lines.append(f"- {' | '.join(rendered_cells)}")
         return lines if len(lines) > 1 else ["[table: empty]"]
     return [f"[unsupported block: {_render_terminal_inline_text(block_type)}]"]
+
+
+def _render_terminal_invalid_primitive_block(block_type: str, field_name: str) -> list[str]:
+    return [f"[{block_type}: invalid {field_name}]"]
 
 
 def _coerce_terminal_card(card: Any) -> dict[str, Any] | None:

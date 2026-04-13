@@ -573,6 +573,31 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("- Enabled: true", text)
         self.assertNotIn("- Opaque:", text)
 
+    def test_terminal_renderer_marks_malformed_primitive_fields_without_object_repr_leaks(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Fallback",
+                "blocks": [
+                    {"type": "MarkdownBlock", "markdown": _OpaqueValue()},
+                    {"type": "AlertBlock", "message": _OpaqueValue(), "severity": {"level": "info"}},
+                    {"type": "CodeBlock", "code": _OpaqueValue()},
+                    {"type": "ProgressBlock", "status_text": _OpaqueValue(), "title": _OpaqueValue()},
+                    {"type": "ListBlock", "items": [{"label": _OpaqueValue()}]},
+                    {"type": "TableBlock", "rows": [[_OpaqueValue(), 2, True, None]]},
+                ],
+                "actions": [],
+            }
+        )
+
+        self.assertIn("[MarkdownBlock: invalid markdown]", text)
+        self.assertIn("[AlertBlock: invalid message]", text)
+        self.assertIn("[CodeBlock: invalid code]", text)
+        self.assertIn("[ProgressBlock: invalid status_text]", text)
+        self.assertIn("[table]", text)
+        self.assertIn("- <non-json:_OpaqueValue> | 2 | true | <blank>", text)
+        self.assertNotIn("object at 0x", text)
+
     def test_shell_ui_escapes_unicode_format_controls_in_preview(self) -> None:
         runtime = SimpleNamespace(
             vault=SimpleNamespace(project_name="Demo", root_dir="/tmp/demo", is_locked=False),
@@ -583,6 +608,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertIn('- context_preview: "alpha\\\\u202ebeta"', text)
         self.assertNotIn("alpha\u202ebeta", text)
+
+    def test_shell_ui_replaces_opaque_object_reprs_in_preview(self) -> None:
+        runtime = SimpleNamespace(
+            vault=SimpleNamespace(project_name="Demo", root_dir="/tmp/demo", is_locked=False),
+            basket=SimpleNamespace(item_ids=[_OpaqueValue()]),
+        )
+
+        text = ShellUI().render_startup(runtime)
+
+        self.assertIn("- context_items: 1", text)
+        self.assertIn("- context_preview: <non-json:_OpaqueValue>", text)
+        self.assertNotIn("object at 0x", text)
 
     def test_shell_ui_quotes_ambiguous_preview_tokens_and_keeps_set_order(self) -> None:
         runtime = SimpleNamespace(

@@ -65,6 +65,8 @@ class ShellUI:
         if not baseline:
             return "<blank>"
         escaped = ShellUI._escape_control_chars(baseline)
+        if not is_string and ShellUI._looks_like_opaque_object_repr(escaped):
+            return f"<non-json:{type(value).__name__}>"
         rendered = ShellUI._truncate_for_preview(escaped, max_len=24)
         if is_string and not ShellUI._is_safe_preview_token(rendered):
             return json.dumps(rendered, ensure_ascii=False)
@@ -118,3 +120,7 @@ class ShellUI:
         if not value:
             return False
         return all(char.isalnum() or char in {".", "_", "-"} for char in value)
+
+    @staticmethod
+    def _looks_like_opaque_object_repr(value: str) -> bool:
+        return value.startswith("<") and value.endswith(">") and " object at 0x" in value
