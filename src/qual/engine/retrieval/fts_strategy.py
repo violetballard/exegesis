@@ -199,16 +199,13 @@ class FTSStrategy:
         raw_text = FTSStrategy._normalize_raw_text(value)
         if raw_text is None:
             return None
-        canonical_prefix = raw_text.casefold()
-        if canonical_prefix == "vault":
+        if raw_text.casefold() == "vault":
             return "vault"
         prefix, separator, remainder = raw_text.partition(":")
-        if separator and prefix in {"doc", "collection", "section"}:
-            return f"{prefix}:{remainder.strip()}"
         normalized_prefix = prefix.strip().casefold()
         if separator and normalized_prefix in {"doc", "collection", "section"}:
             return f"{normalized_prefix}:{remainder.strip()}"
-        return canonical_prefix
+        return raw_text
 
     @staticmethod
     def _normalize_list_like(value: object) -> list[str]:
