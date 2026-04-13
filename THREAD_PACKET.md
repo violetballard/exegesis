@@ -22,7 +22,7 @@
 
 ## Canonical demo-path step advanced
 - `retrieve relevant material`
-- This reviewed implementation range makes `retrieve relevant material` more real by exposing the canonical `retrieve_auto_excerpt` surface, preserving deterministic retrieval snapshot copying, and normalizing sparse excerpt provenance fields so downstream engine flows receive stable excerpt metadata from the FTS-first path.
+- This reviewed implementation range makes `retrieve relevant material` more real by removing the PageIndex fallback from `fetch_excerpt`, preserving the canonical FTS-only excerpt lookup path, and keeping excerpt lookup fail-closed when the excerpt was not produced by the authoritative FTS path.
 - PageIndex and embeddings remain deferred compatibility paths only; this handoff does not widen them into required MVP runtime retrieval paths.
 
 ## Scope completed
