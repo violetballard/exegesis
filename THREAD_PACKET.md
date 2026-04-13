@@ -15,15 +15,15 @@
 - Docs-only alignment commit(s):
   - Numerous packet-only `docs(commands): ...` commits touched `THREAD_PACKET.md` between the implementation commits above.
   - `ee88483683f57242406bbd0b5a895dddf7da8537` (`docs(commands): fix handoff traceability packet`) corrected the stale narrowed review basis and re-scoped the packet to the real branch-tip implementation.
-  - `774d944962849aa114e9b04ec478b2da97a16d7f` (`docs(commands): refresh reviewer fix packet evidence`) is the prior docs-only branch tip before this refresh and does not change the implementation scope.
-  - This fixer pass updates `THREAD_PACKET.md` only so the handoff packet stays anchored to the actual current branch tip and today's gate rerun for re-review after the reviewer requested a commit-accurate regeneration.
+  - `3445f4bbfb3737cf294eb2500a87e7e2533683da` (`docs(commands): tighten reviewer fix handoff packet`) is the prior docs-only branch tip before this refresh and does not change the implementation scope.
+  - This fixer pass updates `THREAD_PACKET.md` only so the handoff packet stays anchored to the actual current branch tip and the verified gate rerun on `2026-04-13` for re-review after the reviewer requested a commit-accurate regeneration.
 
 ## Reviewer-required fixes closure
 - Required fix `1`: the packet is anchored to branch tip rather than `f8d860ed...` alone, and it lists the non-metadata implementation commits and implementation files changed after that earlier slice.
 - Required fix `2`: the stale claim that later commits were metadata-only has been removed; only the packet-only `docs(commands): ...` commits are treated as docs-only alignment commits.
 - Required fix `3`: the canonical demo-path step advanced is stated explicitly below and mapped to the Milestone 3 CLI-first loop.
 - Required fix `4`: the commands-run and budget/limits notes below are stated against the same current branch-tip scope named in this packet.
-- Fixer verification on `2026-04-13`: reran the full required gate set in this lane worktree during this packet refresh. The reviewed implementation scope remains the same code-bearing lineage through `cea5da3599799e72b24ed5f3e88474f3e275846a`, with this fixer pass changing `THREAD_PACKET.md` only.
+- Fixer verification on `2026-04-13`: reran the full required gate set in this lane worktree during this packet refresh. The reviewed implementation scope remains the same code-bearing lineage through `cea5da3599799e72b24ed5f3e88474f3e275846a`, with this fixer pass changing `THREAD_PACKET.md` only and confirming the reviewer-requested parser-surface drift rejection tests still pass in the live worktree.
 
 ## Reviewer-fix resubmission note
 - This packet no longer narrows review to `f8d860ed...` alone. It covers the full current branch-tip lineage: implementation through `cea5da3599799e72b24ed5f3e88474f3e275846a`, then packet-only docs refreshes through `774d944962849aa114e9b04ec478b2da97a16d7f`, plus this current metadata-only packet refresh.
@@ -99,7 +99,7 @@
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS (`155` tests + smoke)
-- `./typecheck-test.sh`: PASS
+- `./typecheck-test.sh`: PASS (`python3 -m compileall -q src`)
 - `make ci`: PASS
 
 ## Risks / blockers
