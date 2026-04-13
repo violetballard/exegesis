@@ -10,6 +10,13 @@
 ## Scope goal
 - Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
 
+## High-risk kickoff alignment
+- Risk reason: approved shared regression coverage in `tests/unit/test_unified_retrieval.py` makes this shared/high-risk work under `AGENTS.md`.
+- Task budget: `4`
+- Time budget: `30m`
+- Size limits: `<=8 files`, `<=300 net LOC`
+- Max fix attempts per failing gate: `2`
+
 ## Canonical demo-path step advanced
 - `retrieve relevant material`
 - This reviewed slice makes `retrieve relevant material` more real by keeping excerpt lookup on the canonical FTS-backed path so PageIndex-only excerpt IDs fail closed and downstream engine flows consume deterministic retrieval provenance.
