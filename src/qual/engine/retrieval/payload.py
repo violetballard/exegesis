@@ -263,6 +263,62 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
     return normalized
 
 
+def _derive_doc_citations_from_hits(doc_hits: object) -> list[dict[str, object]]:
+    derived: list[dict[str, object]] = []
+    for item in _normalize_list_like(doc_hits):
+        if not isinstance(item, dict):
+            continue
+        provenance = item.get("provenance")
+        if not isinstance(provenance, dict):
+            provenance = {}
+        derived.append(
+            {
+                "doc_id": item.get("doc_id"),
+                "source_hash": item.get("source_hash"),
+                "doc_fingerprint": provenance.get("doc_fingerprint"),
+                "doc_identity_fingerprint": provenance.get("doc_identity_fingerprint"),
+                "doc_rank": provenance.get("doc_rank"),
+                "top_excerpt_id": item.get("top_excerpt_id"),
+                "top_excerpt_fingerprint": provenance.get("top_excerpt_fingerprint"),
+                "top_excerpt_text_hash": provenance.get("top_excerpt_text_hash"),
+                "source_strategy": provenance.get("source_strategy"),
+            }
+        )
+    return derived
+
+
+def _derive_excerpt_citations_from_hits(excerpt_hits: object) -> list[dict[str, object]]:
+    derived: list[dict[str, object]] = []
+    for item in _normalize_list_like(excerpt_hits):
+        if not isinstance(item, dict):
+            continue
+        excerpt_id = item.get("excerpt_id")
+        if excerpt_id is None:
+            continue
+        provenance = item.get("provenance")
+        if not isinstance(provenance, dict):
+            provenance = {}
+        derived.append(
+            {
+                "doc_id": item.get("doc_id"),
+                "excerpt_id": excerpt_id,
+                "doc_type": provenance.get("doc_type"),
+                "source_hash": item.get("source_hash"),
+                "excerpt_fingerprint": provenance.get("excerpt_fingerprint"),
+                "excerpt_text_hash": provenance.get("excerpt_text_hash"),
+                "match_count": provenance.get("match_count"),
+                "matched_terms": provenance.get("matched_terms"),
+                "fts_rank": provenance.get("fts_rank"),
+                "rank": provenance.get("rank"),
+                "span": provenance.get("span"),
+                "source_strategy": provenance.get("source_strategy"),
+                "retrieval_backend": provenance.get("retrieval_backend"),
+                "retrieval_mode": provenance.get("retrieval_mode"),
+            }
+        )
+    return derived
+
+
 def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(source_bundle)
     if not isinstance(normalized, dict):
@@ -492,8 +548,18 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
         excerpt_bundle.get("retrieval_policy"),
         diagnostics.get("retrieval_policy", {}),
     )
+    top_level_doc_hits = payload.get("doc_hits", [])
+    top_level_excerpt_hits = payload.get("excerpt_hits", [])
     doc_citations = copy.deepcopy(doc_bundle.get("doc_citations", provenance.get("doc_citations", [])))
+    if _is_missing_snapshot_value(doc_citations):
+        doc_citations = _derive_doc_citations_from_hits(
+            doc_bundle.get("doc_hits", top_level_doc_hits)
+        )
     excerpt_citations = copy.deepcopy(excerpt_bundle.get("excerpt_citations", provenance.get("excerpt_citations", [])))
+    if _is_missing_snapshot_value(excerpt_citations):
+        excerpt_citations = _derive_excerpt_citations_from_hits(
+            excerpt_bundle.get("excerpt_hits", top_level_excerpt_hits)
+        )
     derived_citation_bundle = _normalize_citation_bundle_snapshot({
         "query_fingerprint": provenance.get(
             "query_fingerprint",
