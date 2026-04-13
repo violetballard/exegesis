@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet HEAD role: `metadata-only reviewer-fix refresh`
-- Current branch head before this fixer commit: `00becda9e2d05badd2ed25d0073c81c24482aec8`
+- Current branch head before this fixer commit: `7fe156fcc30ed04baa36c053fd80ca3aa8c9671e`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: `shared/high-risk retrieval handoff with explicit canonical demo-path alignment`
@@ -29,12 +29,13 @@
 
 ## Reviewer fix reconciliation
 - Required fix 1 is satisfied by explicitly naming the canonical demo-path step advanced: `retrieve relevant material`.
-- Required fix 2 is satisfied by explicitly classifying this handoff under the AGENTS.md high-risk/shared kickoff rules: approved shared coverage in `tests/unit/test_unified_retrieval.py` makes this a shared/high-risk packet reviewed against the `4`-task / `30m` template.
-- Required fix 3 is satisfied by refreshing this handoff packet so roadmap alignment, budget framing, and reviewed implementation traceability read cleanly in one place for re-review.
+- Required fix 2 is satisfied by explicitly classifying this handoff under the `AGENTS.md` high-risk/shared kickoff rules: approved shared coverage in `tests/unit/test_unified_retrieval.py` makes this a shared/high-risk packet reviewed against the `4`-task / `30m` template.
+- Required fix 3 is satisfied by keeping the narrowed review scope anchored to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` without broadening back into PageIndex or embeddings behavior.
 
 ## Authoritative re-review note
 - `THREAD_PACKET.md` is the authoritative handoff packet for this fixer pass.
-- It carries the reviewer-required canonical demo-path statement and the shared/high-risk budget framing for re-review of the narrowed implementation range.
+- It carries the reviewer-required canonical demo-path statement, shared/high-risk budget framing, and the narrowed reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- The mirrored `.codex` packet files remain read-only in this worktree, so re-review should use this packet as the source of truth for the corrected handoff metadata.
 
 ## Approved exception note
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract.
@@ -51,12 +52,12 @@
 - `THREAD_PACKET.md`
 
 ## Commands run and outcomes
-- `make scope-check`: PASS
-- `./quality-format.sh --check`: PASS
-- `./quality-lint.sh`: PASS
-- `./quality-test.sh`: PASS
-- `./typecheck-test.sh`: PASS
-- `make ci`: PASS
+- `make scope-check`: pending rerun in this fixer pass
+- `./quality-format.sh --check`: pending rerun in this fixer pass
+- `./quality-lint.sh`: pending rerun in this fixer pass
+- `./quality-test.sh`: pending rerun in this fixer pass
+- `./typecheck-test.sh`: pending rerun in this fixer pass
+- `make ci`: pending rerun in this fixer pass
 
 ## Risks/blockers
 - Risk: `HIGH`
