@@ -5,6 +5,7 @@ import hashlib
 import json
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
+from datetime import date, datetime
 from typing import Protocol
 
 
@@ -95,6 +96,49 @@ def _normalize_query_confidentiality_profile(value: object) -> str | None:
     return text.casefold()
 
 
+def _parse_query_date_value(value: str) -> date | None:
+    try:
+        return datetime.fromisoformat(value).date()
+    except ValueError:
+        try:
+            return date.fromisoformat(value)
+        except ValueError:
+            return None
+
+
+def _normalize_query_doc_types(value: object) -> list[str]:
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for item in _normalize_list_like(value):
+        text = _normalize_optional_text(item)
+        if text is None:
+            continue
+        canonical = text.casefold()
+        if canonical in seen:
+            continue
+        seen.add(canonical)
+        normalized.append(canonical)
+    return sorted(normalized)
+
+
+def _normalize_query_date_range(value: object) -> list[str] | None:
+    normalized: list[str] = []
+    for item in _normalize_list_like(value):
+        text = _normalize_optional_text(item)
+        if text is not None:
+            normalized.append(text)
+    if not normalized:
+        return None
+    if len(normalized) != 2:
+        return normalized
+    start_raw, end_raw = normalized
+    start_date = _parse_query_date_value(start_raw)
+    end_date = _parse_query_date_value(end_raw)
+    if start_date is not None and end_date is not None and start_date > end_date:
+        return [end_raw, start_raw]
+    return normalized
+
+
 def _first_text_value(*values: object) -> str | None:
     for value in values:
         text = _normalize_optional_text(value)
@@ -159,8 +203,8 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
         constraints = {}
     else:
         constraints = copy.deepcopy(constraints)
-    constraints["doc_types"] = _normalize_list_like(constraints.get("doc_types"))
-    constraints["date_range"] = _normalize_optional_list_like(constraints.get("date_range"))
+    constraints["doc_types"] = _normalize_query_doc_types(constraints.get("doc_types"))
+    constraints["date_range"] = _normalize_query_date_range(constraints.get("date_range"))
     constraints["section_hint"] = _normalize_optional_text(constraints.get("section_hint"))
     normalized["constraints"] = constraints
     return normalized
