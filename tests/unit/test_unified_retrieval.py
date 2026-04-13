@@ -1456,6 +1456,45 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(replayed.hits, ["fresh-hit"])
         self.assertEqual(runner_hits, [])
 
+    def test_fts_strategy_reuses_cache_for_semantically_equivalent_query_objects(self) -> None:
+        runner_hits = [["fresh-hit"]]
+        strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: list(runner_hits.pop(0)))
+        compact = RetrievalQuery(
+            query_text="discussion theory",
+            scope="doc:doc-pdf-1",
+            intent="outline_support",
+            constraints=RetrievalConstraints(
+                max_results=6,
+                doc_types=("pdf", "memo"),
+                date_range=("2026-01-01", "2026-01-31"),
+                section_hint="discussion",
+                prefer_exact_matches=True,
+            ),
+            confidentiality_profile="confidential",
+        )
+        spaced = RetrievalQuery(
+            query_text="  Discussion   Theory  ",
+            scope="  DOC:doc-pdf-1  ",
+            intent="outline_support",
+            constraints=RetrievalConstraints(
+                max_results=6,
+                doc_types=("Memo", "PDF", "memo"),
+                date_range=("2026-01-31", "2026-01-01"),
+                section_hint="  discussion  ",
+                prefer_exact_matches=True,
+            ),
+            confidentiality_profile="CONFIDENTIAL",
+        )
+
+        first = strategy.retrieve(compact, candidate_doc_ids=("doc-b", "doc-a"))
+        replayed = strategy.retrieve(spaced, candidate_doc_ids=("doc-a", "doc-b"))
+
+        self.assertFalse(first.cache_used)
+        self.assertEqual(first.hits, ["fresh-hit"])
+        self.assertTrue(replayed.cache_used)
+        self.assertEqual(replayed.hits, ["fresh-hit"])
+        self.assertEqual(runner_hits, [])
+
     def test_retrieve_auto_invalidates_fts_cache_after_document_update(self) -> None:
         query = RetrievalQuery(
             query_text="theory implications",
