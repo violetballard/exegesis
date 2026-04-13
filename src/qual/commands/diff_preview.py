@@ -343,14 +343,40 @@ def _truncation_marker(omitted: int) -> str:
 
 def _truncate_diff(diff: str, max_chars: int) -> str:
     strategy = _truncation_strategy()
-    if strategy == "tail":
-        omitted = len(diff) - max_chars
-        return f"{diff[:max_chars]}\n{_truncation_marker(omitted)}"
+    separator = "\n" if strategy == "tail" else ""
+    omitted = max(len(diff) - max_chars, 0)
+    marker = _truncation_marker(omitted)
 
-    head_chars = max_chars // 2
-    tail_chars = max_chars - head_chars
-    omitted = len(diff) - (head_chars + tail_chars)
-    return f"{diff[:head_chars]}{_truncation_marker(omitted)}{diff[-tail_chars:]}"
+    while True:
+        visible_budget = max_chars - len(separator) - len(marker)
+        if visible_budget <= 0:
+            return marker[:max_chars]
+        new_omitted = max(len(diff) - visible_budget, 0)
+        new_marker = _truncation_marker(new_omitted)
+        if new_omitted == omitted and new_marker == marker:
+            break
+        omitted = new_omitted
+        marker = new_marker
+
+    if strategy == "tail":
+        return f"{diff[:visible_budget]}{separator}{marker}"
+
+    lines = diff.splitlines(keepends=True)
+    header_prefix = ""
+    if len(lines) >= 2 and lines[0].startswith("--- ") and lines[1].startswith("+++ "):
+        header_prefix = "".join(lines[:2])
+    if header_prefix:
+        if len(header_prefix) >= visible_budget:
+            return f"{header_prefix[:visible_budget]}{marker}"
+        remaining = diff[len(header_prefix):]
+        remaining_budget = visible_budget - len(header_prefix)
+        head_chars = remaining_budget // 2
+        tail_chars = remaining_budget - head_chars
+        return f"{header_prefix}{remaining[:head_chars]}{marker}{remaining[-tail_chars:]}"
+
+    head_chars = visible_budget // 2
+    tail_chars = visible_budget - head_chars
+    return f"{diff[:head_chars]}{marker}{diff[-tail_chars:]}"
 
 
 def run_diff_preview(payload: DiffPreviewInput) -> str:
