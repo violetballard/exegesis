@@ -821,6 +821,8 @@ def render_terminal_card(card: Any) -> str:
 def render_terminal_selection(selection: Any) -> str:
     if isinstance(selection, SelectionRef):
         selection = _selection_ref_to_dict(selection)
+    elif isinstance(selection, Mapping):
+        selection = _strip_terminal_type_hint(selection, expected_type="SelectionRef")
 
     try:
         normalized = _normalize_selection(selection)
@@ -843,6 +845,8 @@ def render_terminal_selection(selection: Any) -> str:
 def render_terminal_action(action: Any) -> str:
     if isinstance(action, ActionRef):
         action = _action_ref_to_dict(action)
+    elif isinstance(action, Mapping):
+        action = _strip_terminal_type_hint(action, expected_type="ActionRef")
 
     try:
         normalized = normalize_action_ref(action)
@@ -910,12 +914,48 @@ def _normalize_terminal_artifact_kind(artifact: Any, *, kind: str | None) -> str
             return "action"
         if isinstance(artifact, SelectionRef):
             return "selection"
+        if isinstance(artifact, Mapping):
+            inferred_kind = _infer_terminal_artifact_kind_from_mapping(artifact)
+            if inferred_kind is not None:
+                return inferred_kind
         return "card"
 
     normalized_kind = kind.strip().lower()
     if normalized_kind not in {"card", "action", "selection"}:
         raise ValueError("kind must be one of: card, action, selection")
     return normalized_kind
+
+
+def _infer_terminal_artifact_kind_from_mapping(artifact: Mapping[str, Any]) -> str | None:
+    artifact_type = artifact.get("type")
+    if isinstance(artifact_type, str):
+        normalized_type = artifact_type.strip()
+        if normalized_type == "ActionRef":
+            return "action"
+        if normalized_type == "SelectionRef":
+            return "selection"
+
+    has_required_fields = all(field in artifact for field in ("id", "label", "payload"))
+    if not has_required_fields:
+        return None
+
+    has_action_hints = any(field in artifact for field in ("confirm", "policy_sensitive"))
+    has_selection_hints = any(field in artifact for field in ("selected", "disabled"))
+    if has_action_hints and not has_selection_hints:
+        return "action"
+    if has_selection_hints and not has_action_hints:
+        return "selection"
+    return None
+
+
+def _strip_terminal_type_hint(artifact: Mapping[str, Any], *, expected_type: str) -> dict[str, Any]:
+    artifact_type = artifact.get("type")
+    if not isinstance(artifact_type, str) or artifact_type.strip() != expected_type:
+        return dict(artifact)
+
+    stripped = dict(artifact)
+    stripped.pop("type", None)
+    return stripped
 
 
 def _filter_card_actions(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:

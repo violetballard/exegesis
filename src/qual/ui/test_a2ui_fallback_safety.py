@@ -229,6 +229,60 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             render_terminal_artifact({"type": "GenericCard", "title": "Run Log", "blocks": [], "actions": []}, kind="dialog")
 
+    def test_terminal_artifact_infers_typed_action_and_selection_mappings(self) -> None:
+        action_text = render_terminal_artifact(
+            {"type": "ActionRef", "id": "export_document", "label": "Export", "payload": {"format": "md"}}
+        )
+        selection_text = render_terminal_artifact(
+            {
+                "type": "SelectionRef",
+                "id": "choice-1",
+                "label": "Choice",
+                "payload": {"nested": {"items": [1, 2]}},
+            }
+        )
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+
+    def test_terminal_artifact_infers_action_and_selection_hints_without_type_markers(self) -> None:
+        action_text = render_terminal_artifact(
+            {
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+                "confirm": {"title": "Approve", "message": "Proceed?"},
+            }
+        )
+        selection_text = render_terminal_artifact(
+            {
+                "id": "choice-1",
+                "label": "Choice",
+                "payload": {"nested": {"items": [1, 2]}},
+                "selected": True,
+            }
+        )
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("- confirm: {\"message\":\"Proceed?\",\"title\":\"Approve\"}", action_text)
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("- selected: true", selection_text)
+
+    def test_terminal_artifact_keeps_ambiguous_shared_key_mappings_as_cards(self) -> None:
+        ambiguous = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        text = render_terminal_artifact(ambiguous)
+
+        self.assertIn("[<missing>] <untitled>", text)
+        self.assertNotIn("[ActionRef]", text)
+        self.assertNotIn("[SelectionRef]", text)
+
     def test_generic_cards_preserve_nested_actionref_instances(self) -> None:
         raw_card = {
             "type": "GenericCard",
