@@ -52,12 +52,12 @@
 - `THREAD_PACKET.md`
 
 ## Commands run and outcomes
-- `make scope-check`: pending rerun in this fixer pass
-- `./quality-format.sh --check`: pending rerun in this fixer pass
-- `./quality-lint.sh`: pending rerun in this fixer pass
-- `./quality-test.sh`: pending rerun in this fixer pass
-- `./typecheck-test.sh`: pending rerun in this fixer pass
-- `make ci`: pending rerun in this fixer pass
+- `make scope-check`: PASS
+- `./quality-format.sh --check`: PASS
+- `./quality-lint.sh`: PASS
+- `./quality-test.sh`: PASS
+- `./typecheck-test.sh`: PASS
+- `make ci`: PASS
 
 ## Risks/blockers
 - Risk: `HIGH`
