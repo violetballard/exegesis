@@ -2,9 +2,9 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Handoff type: `retrieval feature handoff for the FTS-first retrieval lane`
-- Packet HEAD role: `metadata-only traceability correction after the reviewed implementation head`
+- Packet HEAD role: `reviewed implementation head`
 - Reviewed implementation head: `ded01c00cdaa76ebe13ba0cedaef0b76736b6473`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..ded01c00cdaa76ebe13ba0cedaef0b76736b6473`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..ded01c00cdaa76ebe13ba0cedaef0b76736b6473`
 
 ## Scope completed
 - Kept SQLite FTS as the authoritative retrieval path for the MVP and preserved the canonical `retrieve_auto`/`retrieve_fts` engine surface.
@@ -18,7 +18,7 @@
 ## AGENTS.md handoff packet
 - Risk reason: the reviewed range includes shared-by-approval regression coverage in `tests/unit/test_unified_retrieval.py`, so this handoff remains shared/high-risk work under the 4-task cap.
 - Approved exception note: `tests/unit/test_unified_retrieval.py` remains the sole shared-by-approval regression surface exercised by the retrieval implementation in this range.
-- Traceability note: earlier packet text that treated post-`adfa8cda` commits as metadata-only was incorrect and is superseded by this packet. Re-review should use the full reviewed range above.
+- Traceability note: earlier packet text that treated post-`adfa8cda` commits as metadata-only was incorrect and is superseded by this packet. Re-review should use the full reviewed range above and treat `ded01c00cdaa76ebe13ba0cedaef0b76736b6473` as the reviewed implementation head.
 - Task budget: `4`
 - Tasks completed:
   1. Kept the retrieval lane FTS-first, including stable retrieval entrypoints, normalized candidate-doc handling, and unresolved collection-scope guards.
