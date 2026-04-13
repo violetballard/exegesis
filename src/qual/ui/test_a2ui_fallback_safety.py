@@ -107,6 +107,13 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(fingerprints["terminal_fallback"], terminal_fallback_contract_fingerprint())
         self.assertEqual(len(fingerprints["actions"]), 64)
 
+    def test_a2ui_contract_fingerprint_map_can_opt_into_terminal_artifact_dispatch(self) -> None:
+        fingerprints = describe_a2ui_contract_fingerprints(include_terminal_artifact=True)
+
+        self.assertEqual(fingerprints["terminal_artifact"], terminal_artifact_contract_fingerprint())
+        self.assertEqual(len(fingerprints["terminal_artifact"]), 64)
+        self.assertNotIn("terminal_artifact", describe_a2ui_contract_fingerprints())
+
     def test_terminal_artifact_contract_manifest_is_versioned_and_points_to_subcontracts(self) -> None:
         manifest = describe_terminal_artifact_contract()
 

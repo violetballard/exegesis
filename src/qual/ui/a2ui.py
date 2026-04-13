@@ -152,11 +152,15 @@ def describe_a2ui_contract() -> dict[str, Any]:
     return manifest
 
 
-def describe_a2ui_contract_fingerprints() -> dict[str, str]:
-    """Return stable fingerprints for the contract sections and embedded contracts."""
+def describe_a2ui_contract_fingerprints(include_terminal_artifact: bool = False) -> dict[str, str]:
+    """Return stable fingerprints for the contract sections and embedded contracts.
+
+    ``include_terminal_artifact`` opts into the terminal artifact dispatch fingerprint
+    without changing the legacy default key set used by existing callers.
+    """
 
     manifest = _build_a2ui_contract_manifest()
-    return {
+    fingerprints = {
         "contract": _fingerprint_manifest_section(manifest),
         "cards": _fingerprint_manifest_section(manifest["cards"]),
         "fallbacks": _fingerprint_manifest_section(manifest["fallbacks"]),
@@ -167,6 +171,9 @@ def describe_a2ui_contract_fingerprints() -> dict[str, str]:
         "card_contract": card_contract_fingerprint(),
         "terminal_fallback": terminal_fallback_contract_fingerprint(),
     }
+    if include_terminal_artifact:
+        fingerprints["terminal_artifact"] = manifest["terminal_artifact_fingerprint"]
+    return fingerprints
 
 
 def describe_selection_contract() -> dict[str, Any]:
