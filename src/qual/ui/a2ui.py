@@ -151,7 +151,7 @@ def describe_a2ui_contract() -> dict[str, Any]:
 
 
 def describe_a2ui_contract_fingerprints() -> dict[str, str]:
-    """Return stable fingerprints for the contract sections and whole manifest."""
+    """Return stable fingerprints for the contract sections and embedded contracts."""
 
     manifest = _build_a2ui_contract_manifest()
     return {
@@ -162,6 +162,8 @@ def describe_a2ui_contract_fingerprints() -> dict[str, str]:
         "primitive_blocks": _fingerprint_manifest_section(manifest["primitive_blocks"]),
         "actions": _fingerprint_manifest_section(manifest["actions"]),
         "schemas": _fingerprint_manifest_section(manifest["schemas"]),
+        "card_contract": card_contract_fingerprint(),
+        "terminal_fallback": terminal_fallback_contract_fingerprint(),
     }
 
 

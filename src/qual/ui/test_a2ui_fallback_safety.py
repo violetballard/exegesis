@@ -76,6 +76,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(fingerprints["contract"], manifest["contract_fingerprint"])
         self.assertEqual(fingerprints["selection"], describe_selection_contract()["contract_fingerprint"])
+        self.assertEqual(fingerprints["card_contract"], card_contract_fingerprint())
+        self.assertEqual(fingerprints["terminal_fallback"], terminal_fallback_contract_fingerprint())
         self.assertEqual(len(fingerprints["actions"]), 64)
 
     def test_card_contract_manifest_is_versioned_and_aligns_with_a2ui_schema(self) -> None:

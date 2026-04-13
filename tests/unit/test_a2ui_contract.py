@@ -9,6 +9,7 @@ from src.qual.ui.a2ui import (
     A2UICapabilities,
     A2UISessionStore,
     ActionRef,
+    card_contract_fingerprint,
     SelectionRef,
     a2ui_contract_fingerprint,
     build_unknown_card,
@@ -24,6 +25,7 @@ from src.qual.ui.a2ui import (
     render_terminal_selection,
     studio_materialize_card,
     selection_contract_fingerprint,
+    terminal_fallback_contract_fingerprint,
     validate_action_ref,
     UNKNOWN_FALLBACK_SUBTITLE,
     validate_generic_card,
@@ -95,12 +97,24 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(fingerprints["contract"], manifest["contract_fingerprint"])
         self.assertEqual(
             set(fingerprints),
-            {"contract", "cards", "fallbacks", "selection", "primitive_blocks", "actions", "schemas"},
+            {
+                "contract",
+                "cards",
+                "fallbacks",
+                "selection",
+                "primitive_blocks",
+                "actions",
+                "schemas",
+                "card_contract",
+                "terminal_fallback",
+            },
         )
         for fingerprint in fingerprints.values():
             self.assertEqual(len(fingerprint), 64)
         self.assertEqual(manifest["selection"], describe_selection_contract())
         self.assertEqual(fingerprints["selection"], manifest["selection"]["selection_fingerprint"])
+        self.assertEqual(fingerprints["card_contract"], card_contract_fingerprint())
+        self.assertEqual(fingerprints["terminal_fallback"], terminal_fallback_contract_fingerprint())
         self.assertEqual(
             manifest["cards"],
             {
