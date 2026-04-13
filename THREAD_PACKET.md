@@ -16,7 +16,8 @@
   - Numerous packet-only `docs(commands): ...` commits touched `THREAD_PACKET.md` between the implementation commits above.
   - `ee88483683f57242406bbd0b5a895dddf7da8537` (`docs(commands): fix handoff traceability packet`) corrected the stale narrowed review basis and re-scoped the packet to the real branch-tip implementation.
   - `82fb2cd0576d0ded9e0790908a266d9f3634d39f` (`docs(commands): tighten patch-review demo path mapping`) is the prior docs-only branch tip before this refresh and does not change the implementation scope.
-  - This fixer pass updates `THREAD_PACKET.md` only so the handoff packet stays anchored to the actual current branch tip and the verified gate rerun on `2026-04-13` for re-review after the reviewer requested a commit-accurate regeneration.
+  - `0113bb75c4b22b80dfbaaf0850ea3205a2b6d104` (`docs(commands): refresh reviewer fix packet tip`) remained packet-only and kept the review basis anchored to the full branch-tip implementation lineage.
+  - This follow-up fixer refresh also updates `THREAD_PACKET.md` only after rerunning the full required gate set on `2026-04-13`; it does not change the implementation scope.
 
 ## Reviewer-required fixes closure
 - Required fix `1`: the packet is anchored to branch tip rather than `f8d860ed...` alone, and it lists the non-metadata implementation commits and implementation files changed after that earlier slice.
@@ -26,7 +27,7 @@
 - Fixer verification on `2026-04-13`: reran the full required gate set in this lane worktree during this packet refresh. The reviewed implementation scope remains the same code-bearing lineage through `cea5da3599799e72b24ed5f3e88474f3e275846a`, with this fixer pass changing `THREAD_PACKET.md` only and confirming the reviewer-requested parser-surface drift rejection tests still pass in the live worktree.
 
 ## Reviewer-fix resubmission note
-- This packet no longer narrows review to `f8d860ed...` alone. It covers the full current branch-tip lineage: implementation through `cea5da3599799e72b24ed5f3e88474f3e275846a`, then packet-only docs refreshes through `774d944962849aa114e9b04ec478b2da97a16d7f`, plus this current metadata-only packet refresh.
+- This packet no longer narrows review to `f8d860ed...` alone. It covers the full current branch-tip lineage: implementation through `cea5da3599799e72b24ed5f3e88474f3e275846a`, then packet-only docs refreshes through prior tip `0113bb75c4b22b80dfbaaf0850ea3205a2b6d104`, plus this current metadata-only packet refresh.
 - The implementation scope under review is the actual branch-tip runtime and test surface changed after `f8d860ed...`: `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, and `tests/unit/test_commands_catalog.py`.
 - The concrete blocker removed is silent drift in the CLI `patch-review` surface: without these follow-on validations and smoke-contract helpers, parser/catalog divergence can change the operator contract for `preview and apply or reject a patch` without a fast failure in smoke tests.
 - The focused regression additions include the concrete drift cases requested in review: alias-for-canonical substitution and CLI entrypoint reordering.
@@ -43,8 +44,8 @@
 - `26658f39` added the CLI shim contract so compatibility imports stay aligned with the expanded command surface.
 - `8b52002c` completed the reviewer-fix series by rejecting parser-surface drift when validated CLI entrypoints no longer match the canonical contract.
 - `cea5da35` added invocation metadata to the command smoke contract in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`, so the CLI-first smoke route also exposes deterministic invocation planning for the canonical `patch-review` step.
-- Additional `docs(commands): ...` commits after `cea5da35` through `774d9449` update `THREAD_PACKET.md` only and do not change the implementation files above.
-- This current fixer refresh also updates `THREAD_PACKET.md` only.
+- Additional `docs(commands): ...` commits after `cea5da35` through `0113bb75` update `THREAD_PACKET.md` only and do not change the implementation files above.
+- This current fixer refresh also updates `THREAD_PACKET.md` only after rerunning the required handoff gates.
 
 ## Scope goal
 - Harden the CLI command contract so command catalog, parser entrypoints, route ordering, and invocation planning stay deterministic and fail fast if the parser surface drifts from the catalog.
@@ -95,7 +96,7 @@
 - `THREAD_PACKET.md`
 
 ## Commands run with results
-- Revalidated on `2026-04-13` in this feature-fixer closure pass after refreshing `THREAD_PACKET.md`; the reviewed implementation scope remains the same code-bearing lineage through `cea5da3599799e72b24ed5f3e88474f3e275846a`.
+- Revalidated on `2026-04-13` in this feature-fixer closure pass during this packet refresh; the reviewed implementation scope remains the same code-bearing lineage through `cea5da3599799e72b24ed5f3e88474f3e275846a`.
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
