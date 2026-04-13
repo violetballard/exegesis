@@ -12,7 +12,7 @@
 - Kept SQLite FTS as the authoritative MVP retrieval path and limited the reviewed implementation slice to lane-owned retrieval code plus the approved shared regression file.
 
 ## Canonical demo-path step advanced
-- `retrieve relevant material`: this slice makes the canonical retrieval step more real by keeping document identity and retrieval evidence payloads deterministic, which preserves stable provenance for downstream basket promotion and workflow use.
+- `retrieve relevant material`: this slice hardens deterministic, auditable FTS-only excerpt retrieval on the canonical engine retrieval step, keeping downstream basket promotion and workflow use anchored to stable provenance.
 
 ## AGENTS.md handoff packet
 - Risk reason: shared-by-approval regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed implementation range, so this handoff uses the high-risk/shared-work framing required by `AGENTS.md`.
