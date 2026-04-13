@@ -58,6 +58,28 @@ def _optional_text(value: object) -> str | None:
     return None
 
 
+def _parse_date_value(value: str) -> date | None:
+    try:
+        return datetime.fromisoformat(value).date()
+    except ValueError:
+        try:
+            return date.fromisoformat(value)
+        except ValueError:
+            return None
+
+
+def _normalize_date_range(value: tuple[str, str]) -> tuple[str, str]:
+    start_raw, end_raw = (str(item).strip() for item in value)
+    if not start_raw or not end_raw:
+        raise ValueError("date_range must contain exactly two non-empty values")
+
+    start_date = _parse_date_value(start_raw)
+    end_date = _parse_date_value(end_raw)
+    if start_date is not None and end_date is not None and start_date > end_date:
+        return (end_raw, start_raw)
+    return (start_raw, end_raw)
+
+
 def _normalize_scope(value: object) -> str:
     scope = str(value).strip()
     if not scope:
@@ -111,9 +133,9 @@ class RetrievalConstraints:
         object.__setattr__(self, "doc_types", _canonicalize_doc_types(self.doc_types))
         if self.date_range is not None:
             normalized = tuple(str(value).strip() for value in self.date_range)
-            if len(normalized) != 2 or any(not value for value in normalized):
+            if len(normalized) != 2:
                 raise ValueError("date_range must contain exactly two non-empty values")
-            object.__setattr__(self, "date_range", normalized)
+            object.__setattr__(self, "date_range", _normalize_date_range(normalized))
         object.__setattr__(self, "section_hint", _optional_text(self.section_hint))
 
 
@@ -1668,13 +1690,7 @@ class RetrievalService:
 
     @staticmethod
     def _parse_date_value(value: str) -> date | None:
-        try:
-            return datetime.fromisoformat(value).date()
-        except ValueError:
-            try:
-                return date.fromisoformat(value)
-            except ValueError:
-                return None
+        return _parse_date_value(value)
 
     def _is_long_structured_doc(self, doc_id: str) -> bool:
         meta = self._load_doc_meta().get(doc_id)
