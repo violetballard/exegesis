@@ -9,7 +9,7 @@
 - Kept the approved shared regression surface in `tests/unit/test_unified_retrieval.py` aligned with that contract by asserting PageIndex-only excerpt ids raise `KeyError`.
 
 ## Canonical demo-path step advanced
-- `retrieve relevant material`: this handoff makes the canonical retrieval step more real by requiring FTS-backed excerpt ids on the public excerpt lookup surface and preserving deterministic provenance on that canonical retrieval path.
+- `retrieve relevant material`: this handoff makes the canonical retrieval step more real by requiring FTS-backed excerpt ids on the public excerpt lookup surface. `fetch_excerpt` now fails closed unless the excerpt resolves through the canonical SQLite FTS path, which preserves deterministic and auditable provenance for downstream engine flows.
 
 ## AGENTS.md handoff packet
 - Risk reason: shared-by-approval regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed implementation range, so this handoff uses the high-risk/shared-work framing required by `AGENTS.md`.
@@ -31,7 +31,8 @@
 - `make ci`: PASS
 
 ## Final reviewer-fix verification
-- `2026-04-13`: Re-ran all required gates after confirming the handoff packet already reflects the high-risk/shared-work framing requested in review.
+- `2026-04-13`: Updated the handoff packet to state the canonical demo-path step explicitly as `retrieve relevant material` and tied it to the FTS-only `fetch_excerpt` contract change the reviewer requested.
+- `2026-04-13`: Re-ran all required gates after confirming the handoff packet reflects both the high-risk/shared-work framing and the required demo-path alignment from review.
 
 ## Risks/blockers
 - Risks: high; shared approved regression coverage is part of the reviewed slice, but runtime behavior remains narrowed to the FTS-only retrieval contract.
