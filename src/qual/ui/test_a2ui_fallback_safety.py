@@ -20,8 +20,10 @@ from src.qual.ui.a2ui import (
     describe_selection_contract,
     engine_prepare_card,
     render_terminal_action,
+    render_terminal_artifact,
     render_terminal_card,
     render_terminal_selection,
+    SelectionRef,
 )
 from src.qual.ui.shell import ShellUI
 
@@ -161,6 +163,49 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[ActionRef] <invalid action>", invalid)
         self.assertIn("Action schema v1", invalid)
         self.assertIn('"icon":"sparkle"', invalid)
+
+    def test_terminal_artifact_dispatches_structured_payloads_and_shell_forwards(self) -> None:
+        action = ActionRef(
+            id=" export_document ",
+            label=" Export ",
+            payload={"format": "md"},
+        )
+        selection = SelectionRef(
+            id=" choice-1 ",
+            label=" Choice ",
+            payload={"nested": {"items": [1, 2]}},
+            selected=True,
+        )
+        card = {
+            "type": "GenericCard",
+            "title": " Run Log ",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+            "actions": [],
+        }
+
+        shell = ShellUI()
+
+        self.assertIn("[ActionRef] Export", render_terminal_artifact(action))
+        self.assertIn("[SelectionRef] Choice", render_terminal_artifact(selection))
+        self.assertIn("[GenericCard] Run Log", render_terminal_artifact(card))
+        self.assertIn("[ActionRef] Export", shell.render_artifact(action))
+        self.assertIn("[SelectionRef] Choice", shell.render_artifact(selection))
+        self.assertIn("[GenericCard] Run Log", shell.render_artifact(card))
+
+    def test_terminal_artifact_uses_explicit_kind_for_raw_mappings(self) -> None:
+        action_text = render_terminal_artifact(
+            {"id": "export_document", "label": "Export", "payload": {"format": "md"}},
+            kind="action",
+        )
+        selection_text = render_terminal_artifact(
+            {"id": "choice-1", "label": "Choice", "payload": {"nested": {"items": [1, 2]}}},
+            kind="selection",
+        )
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        with self.assertRaises(ValueError):
+            render_terminal_artifact({"type": "GenericCard", "title": "Run Log", "blocks": [], "actions": []}, kind="dialog")
 
     def test_generic_cards_preserve_nested_actionref_instances(self) -> None:
         raw_card = {

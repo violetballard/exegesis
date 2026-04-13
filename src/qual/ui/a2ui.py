@@ -829,6 +829,26 @@ def render_terminal_action(action: Any) -> str:
     return "\n".join(lines)
 
 
+def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
+    """Render a structured A2UI artifact through the terminal fallback path.
+
+    Raw card dictionaries remain the default because they are the common CLI
+    payload shape. Callers that already know the artifact kind can pass
+    ``kind="action"`` or ``kind="selection"`` to render those payloads
+    without ambiguity.
+    """
+
+    resolved_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+    if resolved_kind == "action":
+        return render_terminal_action(artifact)
+    if resolved_kind == "selection":
+        return render_terminal_selection(artifact)
+    return render_terminal_card(artifact)
+
+
+render_terminal_a2ui = render_terminal_artifact
+
+
 def _render_invalid_terminal_selection(selection: Any) -> str:
     lines = [
         "[SelectionRef] <invalid selection>",
@@ -849,6 +869,20 @@ def _render_invalid_terminal_action(action: Any) -> str:
         f"- raw: {_render_payload_preview(action, max_payload_bytes=256)}",
     ]
     return "\n".join(lines)
+
+
+def _normalize_terminal_artifact_kind(artifact: Any, *, kind: str | None) -> str:
+    if kind is None:
+        if isinstance(artifact, ActionRef):
+            return "action"
+        if isinstance(artifact, SelectionRef):
+            return "selection"
+        return "card"
+
+    normalized_kind = kind.strip().lower()
+    if normalized_kind not in {"card", "action", "selection"}:
+        raise ValueError("kind must be one of: card, action, selection")
+    return normalized_kind
 
 
 def _filter_card_actions(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
