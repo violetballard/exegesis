@@ -32,4 +32,5 @@ def isolated_codex_env(root: str) -> Dict[str, str]:
 
     env = os.environ.copy()
     env["CODEX_HOME"] = str(target_home)
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
     return env

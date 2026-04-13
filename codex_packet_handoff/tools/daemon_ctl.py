@@ -235,6 +235,7 @@ def _start() -> int:
     with LOG_FILE.open("a") as lf:
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
+        env["PYTHONDONTWRITEBYTECODE"] = "1"
         current_path = env.get("PATH", "")
         path_parts = [p for p in current_path.split(os.pathsep) if p]
         path_parts = [p for p in path_parts if p != APP_CODEX_DIR]
