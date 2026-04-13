@@ -5,11 +5,14 @@ import unittest
 from src.qual.ui.a2ui import (
     A2UI_ACTION_SCHEMA_VERSION,
     A2UICapabilities,
+    ActionRef,
     action_contract_fingerprint,
     build_unknown_card,
+    describe_a2ui_contract,
     describe_action_contract,
     describe_selection_contract,
     engine_prepare_card,
+    render_terminal_action,
     render_terminal_card,
     render_terminal_selection,
 )
@@ -45,6 +48,13 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(manifest["contract_fingerprint"], manifest["selection_fingerprint"])
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
+
+    def test_a2ui_contract_manifest_exposes_action_contract_alias(self) -> None:
+        manifest = describe_a2ui_contract()
+
+        self.assertEqual(manifest["action"], describe_action_contract())
+        self.assertEqual(manifest["action"]["contract_fingerprint"], manifest["action"]["action_fingerprint"])
+        self.assertEqual(len(manifest["action"]["contract_fingerprint"]), 64)
 
     def test_action_contract_manifest_exposes_contract_fingerprint_alias(self) -> None:
         manifest = describe_action_contract()
@@ -88,6 +98,37 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             ],
         )
         self.assertEqual(action_contract_fingerprint(), manifest["contract_fingerprint"])
+
+    def test_terminal_renderer_renders_canonical_actionref_and_invalid_fallback(self) -> None:
+        text = render_terminal_action(
+            ActionRef(
+                id=" export_document ",
+                label=" Export ",
+                payload={"format": "md"},
+                confirm={"title": " Approve ", "message": " Export now? "},
+                policy_sensitive=True,
+            )
+        )
+
+        self.assertIn("[ActionRef] Export", text)
+        self.assertIn("Action schema v1", text)
+        self.assertIn("- id: export_document", text)
+        self.assertIn('- payload: {"format":"md"}', text)
+        self.assertIn('- confirm: {"message":"Export now?","title":"Approve"}', text)
+        self.assertIn("- policy_sensitive: true", text)
+
+        invalid = render_terminal_action(
+            {
+                "id": "launch_missiles",
+                "label": "Run",
+                "payload": {"operation": "x"},
+                "icon": "sparkle",
+            }
+        )
+
+        self.assertIn("[ActionRef] <invalid action>", invalid)
+        self.assertIn("Action schema v1", invalid)
+        self.assertIn('"icon":"sparkle"', invalid)
 
     def test_engine_materializes_generic_cards_by_sanitizing_unsupported_content(self) -> None:
         card = engine_prepare_card(

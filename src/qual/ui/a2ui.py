@@ -194,6 +194,7 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
             "specialized": list(_SPECIALIZED_CARD_TYPES),
         },
         "selection": describe_selection_contract(),
+        "action": describe_action_contract(),
         "fallbacks": {
             "generic_card": {
                 "type": GENERIC_CARD_TYPE,
@@ -759,11 +760,46 @@ def render_terminal_selection(selection: Any) -> str:
     return "\n".join(lines)
 
 
+def render_terminal_action(action: Any) -> str:
+    if isinstance(action, ActionRef):
+        action = _action_ref_to_dict(action)
+
+    try:
+        normalized = normalize_action_ref(action)
+    except ValueError:
+        return _render_invalid_terminal_action(action)
+
+    lines = [
+        f"[ActionRef] {_render_terminal_inline_text(normalized.label)}",
+        f"Action schema v{A2UI_ACTION_SCHEMA_VERSION}",
+        f"- id: {_render_terminal_inline_text(normalized.id)}",
+        f"- payload: {_render_payload_preview(normalized.payload, max_payload_bytes=256)}",
+    ]
+    if normalized.confirm is not None:
+        lines.append(f"- confirm: {_render_payload_preview(normalized.confirm, max_payload_bytes=256)}")
+    if normalized.policy_sensitive:
+        lines.append("- policy_sensitive: true")
+    return "\n".join(lines)
+
+
 def _render_invalid_terminal_selection(selection: Any) -> str:
     lines = [
         "[SelectionRef] <invalid selection>",
         f"Selection schema v{SELECTION_SCHEMA_VERSION}",
         f"- raw: {_render_payload_preview(selection, max_payload_bytes=256)}",
+    ]
+    return "\n".join(lines)
+
+
+def _render_invalid_terminal_action(action: Any) -> str:
+    if isinstance(action, ActionRef):
+        action = _action_ref_to_dict(action)
+    elif isinstance(action, Mapping):
+        action = dict(action)
+    lines = [
+        "[ActionRef] <invalid action>",
+        f"Action schema v{A2UI_ACTION_SCHEMA_VERSION}",
+        f"- raw: {_render_payload_preview(action, max_payload_bytes=256)}",
     ]
     return "\n".join(lines)
 
