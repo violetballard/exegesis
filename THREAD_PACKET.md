@@ -2,30 +2,27 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Handoff type: `retrieval feature handoff for the FTS-first retrieval lane`
-- Packet HEAD role: `docs-only reviewer-fix handoff correction`
-- Reviewed implementation head: `96bed1e1feb3a4708e74b768b9e3659cb0a000de`
-- Reviewed implementation range: `410b8fa0dc040ae4805ecf7627fc2468ccc58ace..96bed1e1feb3a4708e74b768b9e3659cb0a000de`
+- Packet HEAD role: `metadata-only reviewer-fix finalization`
+- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 ## Scope completed
-- Normalized retrieval document identity inputs so document ids, document types, and title hints are canonicalized before metadata, blob, and FTS writes, and legacy blob rows are cleaned up when an input doc id changes only by surrounding whitespace.
-- Normalized retrieval evidence strategy ids when rebuilding downstream payloads from source bundles so active and deferred strategy lists stay deterministic and deduplicated in the auditable FTS-first payload surface.
-- Kept SQLite FTS as the authoritative MVP retrieval path and limited the reviewed implementation slice to lane-owned retrieval code plus the approved shared regression file.
+- Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface resolves through the canonical FTS-only path.
+- Added approved shared regression coverage proving PageIndex-only excerpt ids fail closed with `KeyError`.
+- Kept SQLite FTS as the authoritative MVP retrieval path and did not reintroduce PageIndex or embeddings as required runtime paths.
 
 ## Canonical demo-path step advanced
-- `retrieve relevant material`: this slice hardens deterministic, auditable FTS-only excerpt retrieval on the canonical engine retrieval step, keeping downstream basket promotion and workflow use anchored to stable provenance.
+- `retrieve relevant material`: this slice hardens deterministic, auditable FTS-only excerpt retrieval on the canonical retrieval step, which keeps provenance stable for downstream basket promotion and workflow use.
 
 ## AGENTS.md handoff packet
 - Risk reason: shared-by-approval regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed implementation range, so this handoff uses the high-risk/shared-work framing required by `AGENTS.md`.
 - Approved exception note: `tests/unit/test_unified_retrieval.py` is the sole shared-by-approval file exercised in this reviewed slice.
 - Task budget: `4`
 - Tasks completed:
-  1. Canonicalized retrieval document ids, document types, and title hints before storage and FTS updates.
-  2. Removed legacy blob/meta duplication when a document is rewritten with a normalized doc id.
-  3. Normalized evidence strategy id lists rebuilt from source bundles so downstream payloads keep stable FTS-first provenance.
-  4. Added regression coverage for document identity normalization and evidence strategy id normalization.
+  1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
+  2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt ids fail closed with `KeyError`.
 - Files changed:
   - `src/qual/retrieval/service.py`
-  - `src/qual/engine/retrieval/payload.py`
   - `tests/unit/test_unified_retrieval.py`
 
 ## Commands run with results
@@ -37,7 +34,7 @@
 - `make ci`: PASS
 
 ## Risks/blockers
-- Risks: high; the slice includes approved shared regression coverage, but runtime scope remains limited to deterministic FTS-first retrieval payload handling.
+- Risks: high; the slice changes the public excerpt lookup contract, but keeps runtime behavior narrowed to deterministic FTS-only retrieval.
 - Blockers: none
 
 ## Roadmap item(s) affected
