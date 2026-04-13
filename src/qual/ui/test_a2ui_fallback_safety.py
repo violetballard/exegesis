@@ -137,6 +137,19 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["contract_fingerprint"], terminal_artifact_contract_fingerprint())
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
+    def test_terminal_artifact_contract_manifest_includes_explicit_envelope_shape(self) -> None:
+        manifest = describe_terminal_artifact_contract()
+
+        self.assertEqual(manifest["envelope"]["type"], "TerminalArtifact")
+        self.assertEqual(manifest["envelope"]["contract_version"], 2)
+        self.assertEqual(manifest["envelope"]["a2ui_version"], 1)
+        self.assertEqual(manifest["envelope"]["terminal_artifact_schema_version"], TERMINAL_ARTIFACT_SCHEMA_VERSION)
+        self.assertEqual(manifest["envelope"]["required_fields"], ["kind", "artifact"])
+        self.assertEqual(manifest["envelope"]["optional_fields"], ["contract_version", "a2ui_version"])
+        self.assertEqual(manifest["envelope"]["kind_field"], "kind")
+        self.assertEqual(manifest["envelope"]["artifact_field"], "artifact")
+        self.assertEqual(manifest["envelope"]["supported_kinds"], ["card", "action", "selection"])
+
     def test_card_contract_manifest_is_versioned_and_aligns_with_a2ui_schema(self) -> None:
         manifest = describe_card_contract()
         a2ui_manifest = describe_a2ui_contract()
@@ -344,6 +357,62 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("- confirm: {\"message\":\"Proceed?\",\"title\":\"Approve\"}", action_text)
         self.assertIn("[SelectionRef] Choice", selection_text)
         self.assertIn("- selected: true", selection_text)
+
+    def test_terminal_artifact_envelope_renders_structured_payloads_and_rejects_conflicting_hints(self) -> None:
+        action_text = render_terminal_artifact(
+            {
+                "type": "TerminalArtifact",
+                "kind": "action",
+                "artifact": {
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                },
+            }
+        )
+        selection_text = render_terminal_artifact(
+            {
+                "type": "TerminalArtifact",
+                "kind": "selection",
+                "artifact": {
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                    "selected": True,
+                },
+            }
+        )
+        card_text = render_terminal_artifact(
+            {
+                "type": "TerminalArtifact",
+                "kind": "card",
+                "artifact": {
+                    "type": "GenericCard",
+                    "title": "Run Log",
+                    "blocks": [],
+                    "actions": [],
+                },
+            }
+        )
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("[GenericCard] Run Log", card_text)
+
+        with self.assertRaises(ValueError):
+            render_terminal_artifact(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "action",
+                    "artifact": {
+                        "type": "SelectionRef",
+                        "id": "choice-1",
+                        "label": "Choice",
+                        "payload": {"nested": {"items": [1, 2]}},
+                    },
+                },
+                kind="selection",
+            )
 
     def test_terminal_artifact_keeps_ambiguous_shared_key_mappings_as_cards(self) -> None:
         ambiguous = {

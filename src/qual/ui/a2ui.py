@@ -15,6 +15,7 @@ SELECTION_SCHEMA_VERSION = 1
 CARD_CONTRACT_VERSION = 1
 TERMINAL_FALLBACK_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_SCHEMA_VERSION = 1
+_TERMINAL_ARTIFACT_ENVELOPE_TYPE = "TerminalArtifact"
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
 DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES = 8_192
@@ -326,6 +327,7 @@ def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
         "a2ui_version": A2UI_VERSION,
         "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
         "type": "TerminalArtifactContract",
+        "envelope": _build_terminal_artifact_envelope_manifest(),
         "supported_kinds": ["card", "action", "selection"],
         "default_kind": "card",
         "kind_contracts": {
@@ -347,6 +349,20 @@ def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
             "contract_fingerprint": terminal_fallback_contract_fingerprint(),
         },
         "contract_fingerprints": describe_terminal_artifact_contract_fingerprints(),
+    }
+
+
+def _build_terminal_artifact_envelope_manifest() -> dict[str, Any]:
+    return {
+        "type": _TERMINAL_ARTIFACT_ENVELOPE_TYPE,
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
+        "required_fields": ["kind", "artifact"],
+        "optional_fields": ["contract_version", "a2ui_version"],
+        "kind_field": "kind",
+        "artifact_field": "artifact",
+        "supported_kinds": ["card", "action", "selection"],
     }
 
 
@@ -941,8 +957,21 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
     Raw card dictionaries remain the default because they are the common CLI
     payload shape. Callers that already know the artifact kind can pass
     ``kind="action"`` or ``kind="selection"`` to render those payloads
-    without ambiguity.
+    without ambiguity. A typed ``TerminalArtifact`` envelope with ``kind`` and
+    ``artifact`` fields is also accepted so engine payloads can stay explicit
+    without forcing heuristic kind detection.
     """
+
+    envelope = _extract_terminal_artifact_envelope(artifact)
+    if envelope is not None:
+        artifact, envelope_kind = envelope
+        if kind is None:
+            kind = envelope_kind
+        else:
+            normalized_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+            if normalized_kind != envelope_kind:
+                raise ValueError("kind does not match TerminalArtifact envelope")
+            kind = normalized_kind
 
     resolved_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
     if resolved_kind == "action":
@@ -993,6 +1022,28 @@ def _normalize_terminal_artifact_kind(artifact: Any, *, kind: str | None) -> str
     if normalized_kind not in {"card", "action", "selection"}:
         raise ValueError("kind must be one of: card, action, selection")
     return normalized_kind
+
+
+def _extract_terminal_artifact_envelope(artifact: Any) -> tuple[Any, str] | None:
+    if not isinstance(artifact, Mapping):
+        return None
+    artifact_type = artifact.get("type")
+    if not isinstance(artifact_type, str) or artifact_type.strip() != _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+        return None
+    if "kind" not in artifact:
+        raise ValueError("TerminalArtifact kind is required")
+    kind = artifact.get("kind")
+    if not isinstance(kind, str):
+        raise ValueError("TerminalArtifact kind must be a string")
+    normalized_kind = kind.strip().lower()
+    if normalized_kind not in {"card", "action", "selection"}:
+        raise ValueError("TerminalArtifact kind must be one of: card, action, selection")
+    if "artifact" not in artifact:
+        raise ValueError("TerminalArtifact artifact is required")
+    payload = artifact.get("artifact")
+    if payload is None:
+        raise ValueError("TerminalArtifact artifact is required")
+    return payload, normalized_kind
 
 
 def _infer_terminal_artifact_kind_from_mapping(artifact: Mapping[str, Any]) -> str | None:
