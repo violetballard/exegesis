@@ -43,7 +43,7 @@
 ## Authoritative re-review note
 - `THREAD_PACKET.md` is the authoritative handoff packet for this fixer pass.
 - It carries the reviewer-required canonical demo-path statement, shared/high-risk budget framing, and the true reviewed implementation head `ad711fd427137a06dcf32ec7e3a692a179747f6e`.
-- The mirrored `.codex` packet files are readable in this worktree but sandbox-denied for writes, so this packet is the source of truth for the corrected handoff metadata.
+- The mirrored `.codex` packet files remain permission-locked in this worktree, so `THREAD_PACKET.md` is the authoritative corrected handoff packet for this fixer pass.
 - This refresh commit is metadata-only; if a later branch tip changes retrieval code or `tests/unit/test_unified_retrieval.py`, the packet must be regenerated again.
 
 ## Approved exception note
