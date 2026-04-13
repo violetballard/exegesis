@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import unicodedata
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Callable, Protocol
@@ -1716,6 +1717,11 @@ def _escape_terminal_text(value: str) -> str:
             parts.append(char)
         elif code < 32 or code == 127:
             parts.append(f"\\x{code:02x}")
+        elif unicodedata.category(char).startswith("C"):
+            if code <= 0xFFFF:
+                parts.append(f"\\u{code:04x}")
+            else:
+                parts.append(f"\\U{code:08x}")
         else:
             parts.append(char)
     return "".join(parts)

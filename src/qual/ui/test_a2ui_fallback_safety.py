@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from src.qual.ui.a2ui import build_unknown_card, render_terminal_card
+from src.qual.ui.a2ui import build_unknown_card, render_terminal_card, render_terminal_selection
 
 
 class _OpaqueValue:
@@ -55,6 +55,31 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("- Owner: alice", text)
         self.assertIn("- Enabled: true", text)
         self.assertNotIn("- Opaque:", text)
+
+    def test_terminal_renderers_escape_unicode_format_controls(self) -> None:
+        unsafe_title = "Future\u202eCard"
+        unsafe_label = "Choice\u202eOne"
+
+        card_text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": unsafe_title,
+                "blocks": [{"type": "MarkdownBlock", "markdown": "safe"}],
+                "actions": [],
+            }
+        )
+        selection_text = render_terminal_selection(
+            {
+                "id": "choice-1",
+                "label": unsafe_label,
+                "payload": {"note": "safe"},
+            }
+        )
+
+        self.assertIn("Future\\u202eCard", card_text)
+        self.assertNotIn(unsafe_title, card_text)
+        self.assertIn("Choice\\u202eOne", selection_text)
+        self.assertNotIn(unsafe_label, selection_text)
 
     def test_terminal_renderer_skips_non_scalar_key_value_entries(self) -> None:
         text = render_terminal_card(
