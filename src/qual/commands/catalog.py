@@ -802,6 +802,29 @@ def command_cli_surface_contract(
 
 
 @lru_cache(maxsize=None)
+def command_cli_surface_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    seen_tokens: set[str] = set()
+    lookup_table: list[tuple[str, str]] = []
+    for entry in command_cli_surface_catalog(specs):
+        for token in entry.lookup_tokens:
+            normalized_token = _normalize_token(token)
+            if normalized_token in seen_tokens:
+                continue
+            seen_tokens.add(normalized_token)
+            lookup_table.append((normalized_token, entry.canonical_name))
+    return tuple(lookup_table)
+
+
+@lru_cache(maxsize=None)
+def command_cli_surface_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return tuple(token for token, _ in command_cli_surface_lookup_table(specs))
+
+
+@lru_cache(maxsize=None)
 def command_cli_route_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
