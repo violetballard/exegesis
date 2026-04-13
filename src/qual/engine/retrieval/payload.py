@@ -281,19 +281,24 @@ def _derive_doc_citations_from_hits(doc_hits: object) -> list[dict[str, object]]
         provenance = item.get("provenance")
         if not isinstance(provenance, dict):
             provenance = {}
-        derived.append(
-            {
-                "doc_id": item.get("doc_id"),
-                "source_hash": item.get("source_hash"),
-                "doc_fingerprint": provenance.get("doc_fingerprint"),
-                "doc_identity_fingerprint": provenance.get("doc_identity_fingerprint"),
-                "doc_rank": provenance.get("doc_rank"),
-                "top_excerpt_id": item.get("top_excerpt_id"),
-                "top_excerpt_fingerprint": provenance.get("top_excerpt_fingerprint"),
-                "top_excerpt_text_hash": provenance.get("top_excerpt_text_hash"),
-                "source_strategy": provenance.get("source_strategy"),
-            }
-        )
+        citation = {
+            "doc_id": item.get("doc_id"),
+            "source_hash": item.get("source_hash", provenance.get("source_hash")),
+            "doc_fingerprint": provenance.get("doc_fingerprint"),
+            "doc_identity_fingerprint": provenance.get("doc_identity_fingerprint"),
+            "doc_rank": provenance.get("doc_rank"),
+            "top_excerpt_id": item.get("top_excerpt_id"),
+            "top_excerpt_fingerprint": provenance.get("top_excerpt_fingerprint"),
+            "top_excerpt_text_hash": provenance.get("top_excerpt_text_hash"),
+            "source_strategy": provenance.get("source_strategy"),
+        }
+        section_hint = _normalize_optional_text(provenance.get("section_hint"))
+        if section_hint is not None:
+            citation["section_hint"] = section_hint
+        top_section_hint_rank = provenance.get("top_section_hint_rank")
+        if isinstance(top_section_hint_rank, int):
+            citation["top_section_hint_rank"] = top_section_hint_rank
+        derived.append(citation)
     return derived
 
 
@@ -308,24 +313,29 @@ def _derive_excerpt_citations_from_hits(excerpt_hits: object) -> list[dict[str, 
         provenance = item.get("provenance")
         if not isinstance(provenance, dict):
             provenance = {}
-        derived.append(
-            {
-                "doc_id": item.get("doc_id"),
-                "excerpt_id": excerpt_id,
-                "doc_type": provenance.get("doc_type"),
-                "source_hash": item.get("source_hash"),
-                "excerpt_fingerprint": provenance.get("excerpt_fingerprint"),
-                "excerpt_text_hash": provenance.get("excerpt_text_hash"),
-                "match_count": provenance.get("match_count"),
-                "matched_terms": provenance.get("matched_terms"),
-                "fts_rank": provenance.get("fts_rank"),
-                "rank": provenance.get("rank"),
-                "span": provenance.get("span"),
-                "source_strategy": provenance.get("source_strategy"),
-                "retrieval_backend": provenance.get("retrieval_backend"),
-                "retrieval_mode": provenance.get("retrieval_mode"),
-            }
-        )
+        citation = {
+            "doc_id": item.get("doc_id"),
+            "excerpt_id": excerpt_id,
+            "doc_type": provenance.get("doc_type"),
+            "source_hash": item.get("source_hash", provenance.get("source_hash")),
+            "excerpt_fingerprint": provenance.get("excerpt_fingerprint"),
+            "excerpt_text_hash": provenance.get("excerpt_text_hash", provenance.get("hash")),
+            "match_count": provenance.get("match_count"),
+            "matched_terms": copy.deepcopy(provenance.get("matched_terms")),
+            "fts_rank": provenance.get("fts_rank"),
+            "rank": provenance.get("rank"),
+            "span": copy.deepcopy(provenance.get("span")),
+            "source_strategy": provenance.get("source_strategy"),
+            "retrieval_backend": provenance.get("retrieval_backend"),
+            "retrieval_mode": provenance.get("retrieval_mode"),
+        }
+        section_hint = _normalize_optional_text(provenance.get("section_hint"))
+        if section_hint is not None:
+            citation["section_hint"] = section_hint
+        section_hint_rank = provenance.get("section_hint_rank")
+        if isinstance(section_hint_rank, int):
+            citation["section_hint_rank"] = section_hint_rank
+        derived.append(citation)
     return derived
 
 
