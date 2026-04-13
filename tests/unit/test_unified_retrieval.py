@@ -1157,6 +1157,42 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(canonical["provenance"]["hash"], result.hits[0].provenance["hash"])
         self.assertEqual(canonical["text_hash"], result.hits[0].provenance["excerpt_text_hash"])
 
+    def test_normalize_excerpt_payload_backfills_canonical_provenance_for_sparse_inputs(self) -> None:
+        normalized = self.service._normalize_excerpt_payload(
+            {
+                "excerpt_id": "excerpt-sparse-1",
+                "doc_id": "doc-pdf-1",
+                "doc_type": "pdf",
+                "text": "Methods section with recruitment constraints.",
+                "span": {"char_range": {"start": "5", "end": "21"}},
+            },
+            source_strategy="fts",
+            lookup_resolution="fts",
+        )
+
+        self.assertEqual(normalized["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(normalized["retrieval_mode"], "fts_first")
+        self.assertEqual(normalized["retrieval_policy"]["active_strategy_ids"], ["fts"])
+        self.assertEqual(normalized["retrieval_policy"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(normalized["span"], {"char_range": {"start": 5, "end": 21}})
+        self.assertEqual(normalized["provenance"]["excerpt_id"], "excerpt-sparse-1")
+        self.assertEqual(normalized["provenance"]["doc_id"], "doc-pdf-1")
+        self.assertEqual(normalized["provenance"]["doc_type"], "pdf")
+        self.assertEqual(normalized["provenance"]["span"], {"char_range": {"start": 5, "end": 21}})
+        self.assertEqual(normalized["provenance"]["source_strategy"], "fts")
+        self.assertEqual(normalized["provenance"]["retrieval_source_strategy"], "fts")
+        self.assertEqual(normalized["provenance"]["lookup_resolution"], "fts")
+        self.assertEqual(normalized["provenance"]["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(normalized["provenance"]["retrieval_mode"], "fts_first")
+        self.assertEqual(
+            normalized["provenance"]["retrieval_policy"]["deferred_strategy_ids"],
+            ["pageindex", "embeddings"],
+        )
+        self.assertEqual(normalized["provenance"]["hash"], normalized["text_hash"])
+        self.assertEqual(normalized["provenance"]["excerpt_text_hash"], normalized["text_hash"])
+        self.assertEqual(normalized["provenance"]["excerpt_fingerprint"], normalized["excerpt_fingerprint"])
+        self.assertTrue(normalized["provenance"]["doc_identity_fingerprint"])
+
     def test_retrieve_fts_excerpt_honors_confidentiality_profile_for_title_hint(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

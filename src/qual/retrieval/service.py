@@ -2044,32 +2044,34 @@ class RetrievalService:
                 source_hash=str(normalized.get("source_hash") or provenance.get("source_hash") or ""),
             )
         normalized["excerpt_fingerprint"] = excerpt_fingerprint
-        if "provenance" in normalized:
-            normalized_provenance = {
-                **provenance,
-                "source_strategy": source_strategy,
-            }
-            if doc_id_value is not None:
-                normalized_provenance["doc_id"] = doc_id_value
-            if isinstance(source_hash, str) and source_hash:
-                normalized_provenance["source_hash"] = source_hash
-            if isinstance(doc_type, str) and doc_type:
-                normalized_provenance["doc_type"] = doc_type
-            if canonical_span is not None:
-                normalized_provenance["span"] = canonical_span
-            normalized_provenance["text_hash"] = text_hash
-            if isinstance(text_hash, str) and text_hash:
-                normalized_provenance["hash"] = text_hash
-                normalized_provenance["excerpt_text_hash"] = text_hash
-            normalized_provenance["excerpt_fingerprint"] = excerpt_fingerprint
-            if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
-                normalized_provenance["doc_identity_fingerprint"] = doc_identity_fingerprint
-            normalized_provenance["retrieval_backend"] = retrieval_backend
-            normalized_provenance["retrieval_mode"] = retrieval_mode
-            normalized_provenance["retrieval_policy"] = copy.deepcopy(retrieval_policy)
-            normalized_provenance["retrieval_source_strategy"] = source_strategy
-            normalized_provenance["lookup_resolution"] = lookup_resolution
-            normalized["provenance"] = normalized_provenance
+        normalized_provenance = {
+            **provenance,
+            "source_strategy": source_strategy,
+        }
+        excerpt_id_value = normalized.get("excerpt_id")
+        if isinstance(excerpt_id_value, str) and excerpt_id_value:
+            normalized_provenance["excerpt_id"] = excerpt_id_value
+        if doc_id_value is not None:
+            normalized_provenance["doc_id"] = doc_id_value
+        if isinstance(source_hash, str) and source_hash:
+            normalized_provenance["source_hash"] = source_hash
+        if isinstance(doc_type, str) and doc_type:
+            normalized_provenance["doc_type"] = doc_type
+        if canonical_span is not None:
+            normalized_provenance["span"] = canonical_span
+        normalized_provenance["text_hash"] = text_hash
+        if isinstance(text_hash, str) and text_hash:
+            normalized_provenance["hash"] = text_hash
+            normalized_provenance["excerpt_text_hash"] = text_hash
+        normalized_provenance["excerpt_fingerprint"] = excerpt_fingerprint
+        if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
+            normalized_provenance["doc_identity_fingerprint"] = doc_identity_fingerprint
+        normalized_provenance["retrieval_backend"] = retrieval_backend
+        normalized_provenance["retrieval_mode"] = retrieval_mode
+        normalized_provenance["retrieval_policy"] = copy.deepcopy(retrieval_policy)
+        normalized_provenance["retrieval_source_strategy"] = source_strategy
+        normalized_provenance["lookup_resolution"] = lookup_resolution
+        normalized["provenance"] = normalized_provenance
         return normalized
 
     @staticmethod
