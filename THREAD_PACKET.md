@@ -54,11 +54,15 @@
 - Keep the `patch-review` command entrypoint stable for the canonical demo-path step `preview and apply or reject a patch`, with downstream support for `continue working`, so this contract hardening remains first-order Milestone 3 CLI compatibility work instead of generic cleanup.
 - High-risk rationale for this handoff: the implementation includes one approved shared test edit in `tests/unit/test_commands_catalog.py`; no integrator-locked runtime entrypoints, provider surfaces, or routing/config files were changed.
 
+## Risk reason
+- High-risk/shared-file template is used because this handoff touches the approved shared test path `tests/unit/test_commands_catalog.py` and hardens the public CLI command-contract surface that must stay deterministic for the CLI-first MVP loop.
+
 ## Lane/owned paths
 - Owned runtime path in this worktree: `src/qual/commands/**`
 - Approved non-owned test path for this handoff: `tests/unit/test_commands_catalog.py`
 
 ## Canonical demo-path step advanced
+- Exact demo-path mapping for re-review: this command-catalog hardening makes `preview and apply or reject a patch` more real by preventing silent parser/catalog drift in the CLI `patch-review` surface, with secondary support for `continue working`.
 - Primary step advanced: `open project/document`
 - Secondary step supported: `continue working`
 - Reviewer exact mapping: this hardens the `open project/document` CLI entry contract and the surrounding `continue working` operator surface while Textual remains disabled.
@@ -144,3 +148,4 @@
 - The lane-owned runtime edits remain inside `src/qual/commands/**`.
 - No provider surfaces, routing/config behavior, or core CLI entrypoints such as `src/main.py`, `src/qual/cli.py`, or `src/qual/app.py` were edited in the reviewed implementation scope.
 - This packet does not claim `8c9e22903ec7048ecfee2cb18709894c1daf8f41` is metadata-only; it is an implementation commit and is included above as part of the reviewed branch-tip scope.
+- Approval basis remains explicit and unchanged: the reviewed implementation scope is limited to `src/qual/commands/catalog.py`, `src/qual/commands/__init__.py`, `src/qual/commands/diff_preview.py`, and the approved shared test exception `tests/unit/test_commands_catalog.py`; this packet refresh does not expand the command-surface scope beyond those files.
