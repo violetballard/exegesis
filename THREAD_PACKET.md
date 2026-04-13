@@ -1,11 +1,11 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet HEAD role: `review-packet correction for the actual committed tip`
-- Current branch head before this fixer commit: `7668efb05966b8ee6eeeb2960a3862b005596a98`
-- Reviewed implementation head: `7668efb05966b8ee6eeeb2960a3862b005596a98`
-- Reviewed implementation range: `712714c24f92cdfe43f21127c2de1d4ea0bd2599..7668efb05966b8ee6eeeb2960a3862b005596a98`
-- Handoff type: `shared/high-risk retrieval handoff regenerated against the actual committed branch tip`
+- Packet HEAD role: `review-packet correction for canonical demo-path alignment`
+- Current branch head before this fixer commit: `456846086d8a59cd9c86825f14c80f35e64c086c`
+- Reviewed implementation head: `456846086d8a59cd9c86825f14c80f35e64c086c`
+- Reviewed implementation range: `3848e7dc0ed9199b8f92dc0f8efd70f36bfdff31..456846086d8a59cd9c86825f14c80f35e64c086c`
+- Handoff type: `shared/high-risk retrieval handoff with explicit canonical demo-path alignment`
 
 ## Packet HEAD context
 - The actual committed branch tip before this fixer commit is `7668efb05966b8ee6eeeb2960a3862b005596a98`.
@@ -44,6 +44,7 @@
 
 ## Scope completed
 - SQLite FTS remains the authoritative MVP retrieval path in this reviewed slice.
+- This reviewed slice explicitly advances the canonical demo-path step `retrieve relevant material` by hardening the FTS-only excerpt lookup contract that downstream engine flows consume.
 - Retrieval query snapshots, scope and constraint normalization, and FTS cache keys are canonicalized so equivalent requests produce deterministic payloads, fingerprints, and cache reuse.
 - Sparse citation, excerpt, and provenance reconstruction now rehydrates from canonical retrieval bundles with stable excerpt provenance fingerprints, confidentiality-aware excerpt lookup payloads, normalized lookup metadata, and doc-identity fingerprints.
 - Retrieval evidence and top-level hit payloads now expose canonical rank-oriented fields needed for downstream engine flows without reintroducing PageIndex or embeddings as required paths.
@@ -53,7 +54,7 @@
 - Required fix 1 is satisfied by anchoring the packet to the true reviewed implementation head `7668efb05966b8ee6eeeb2960a3862b005596a98` and the actual reviewed implementation range `712714c24f92cdfe43f21127c2de1d4ea0bd2599..7668efb05966b8ee6eeeb2960a3862b005596a98`.
 - Required fix 2 is satisfied by removing the false metadata-only framing for the committed tip and aligning the traceability fields with git history.
 - Required fix 3 is satisfied by listing the real files changed in the reviewed range and dropping stale packet-only framing from this handoff.
-- Required fix 4 is satisfied by explicitly naming the canonical demo-path step advanced by this lane: `retrieve relevant material`.
+- Required fix 4 is satisfied by explicitly naming the canonical demo-path step advanced by this lane: `retrieve relevant material`, and by stating in the scope summary that removing the `fetch_excerpt()` PageIndex fallback hardens the FTS-only retrieval contract used by downstream engine flows.
 
 ## Approved exception note
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract.
