@@ -992,6 +992,19 @@ class RetrievalService:
 
         return self.retrieve_auto(query).retrieval_excerpt_bundle()
 
+    def retrieve_auto_excerpt(
+        self,
+        excerpt_id: str,
+        *,
+        confidentiality_profile: str = "confidential",
+    ) -> dict[str, object]:
+        """Return an excerpt payload using the FTS-first auto lookup path."""
+
+        return self.retrieve_fts_excerpt(
+            excerpt_id,
+            confidentiality_profile=confidentiality_profile,
+        )
+
     def fetch_fts_excerpt(
         self,
         excerpt_id: str,

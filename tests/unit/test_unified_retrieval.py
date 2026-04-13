@@ -28,6 +28,7 @@ import src.qual.retrieval as package_retrieval
 from src.qual.retrieval import retrieve_auto as engine_retrieve_auto
 from src.qual.retrieval import retrieve_auto_citation_bundle as engine_retrieve_auto_citation_bundle
 from src.qual.retrieval import retrieve_auto_doc_bundle as engine_retrieve_auto_doc_bundle
+from src.qual.retrieval import retrieve_auto_excerpt as engine_retrieve_auto_excerpt
 from src.qual.retrieval import retrieve_auto_provenance_bundle as engine_retrieve_auto_provenance_bundle
 from src.qual.retrieval import retrieve_auto_payload as engine_retrieve_auto_payload
 from src.qual.retrieval import retrieve_auto_source_bundle as engine_retrieve_auto_source_bundle
@@ -1222,6 +1223,40 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(canonical["excerpt_text_hash"], result.hits[0].provenance["excerpt_text_hash"])
         self.assertEqual(canonical["lookup_fingerprint"], canonical["provenance"]["lookup_fingerprint"])
 
+    def test_retrieve_auto_excerpt_routes_to_canonical_fts_lookup(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+
+        direct = self.service.retrieve_auto_excerpt(excerpt_id or "")
+        helper = engine_retrieval.retrieve_auto_excerpt(
+            self.service,
+            excerpt_id=excerpt_id or "",
+        )
+        package_helper = engine_retrieve_auto_excerpt(
+            self.service,
+            excerpt_id=excerpt_id or "",
+        )
+        canonical = self.service.retrieve_fts_excerpt(excerpt_id or "")
+
+        self.assertEqual(direct, canonical)
+        self.assertEqual(helper, canonical)
+        self.assertEqual(package_helper, canonical)
+        self.assertEqual(direct["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(direct["retrieval_mode"], "fts_first")
+        self.assertEqual(direct["active_strategy_ids"], ["fts"])
+        self.assertEqual(direct["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(direct["lookup_fingerprint"], direct["provenance"]["lookup_fingerprint"])
+
     def test_normalize_excerpt_payload_backfills_canonical_provenance_for_sparse_inputs(self) -> None:
         normalized = self.service._normalize_excerpt_payload(
             {
@@ -1592,6 +1627,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "retrieve_fts_excerpt",
                 "fetch_fts_excerpt",
                 "retrieve_fts_payload",
+                "retrieve_auto_excerpt",
                 "retrieve_auto",
                 "retrieve_auto_context_bundle",
                 "retrieve_auto_citation_bundle",
@@ -1629,6 +1665,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_excerpt"))
         self.assertTrue(hasattr(engine_retrieval, "fetch_fts_excerpt"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_payload"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_excerpt"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_context_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_source_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_provenance_bundle"))
