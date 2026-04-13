@@ -252,6 +252,9 @@ class RetrievalHit:
         excerpt_fingerprint = self.provenance.get("excerpt_fingerprint")
         if isinstance(excerpt_fingerprint, str) and excerpt_fingerprint:
             payload["excerpt_fingerprint"] = excerpt_fingerprint
+        excerpt_provenance_fingerprint = self.provenance.get("excerpt_provenance_fingerprint")
+        if isinstance(excerpt_provenance_fingerprint, str) and excerpt_provenance_fingerprint:
+            payload["excerpt_provenance_fingerprint"] = excerpt_provenance_fingerprint
         excerpt_text_hash = self.provenance.get("excerpt_text_hash") or self.provenance.get("hash")
         if isinstance(excerpt_text_hash, str) and excerpt_text_hash:
             payload["excerpt_text_hash"] = excerpt_text_hash
@@ -619,6 +622,7 @@ class RetrievalResult:
                 "doc_type": hit.provenance.get("doc_type"),
                 "source_hash": hit.provenance.get("source_hash"),
                 "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                "excerpt_provenance_fingerprint": hit.provenance.get("excerpt_provenance_fingerprint"),
                 "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                 "match_count": hit.provenance.get("match_count"),
                 "matched_terms": hit.provenance.get("matched_terms"),
@@ -1045,6 +1049,8 @@ class RetrievalService:
                 "source_hash": excerpt.get("source_hash"),
                 "text_hash": excerpt.get("text_hash"),
                 "excerpt_fingerprint": excerpt.get("excerpt_fingerprint"),
+                "excerpt_provenance_fingerprint": excerpt.get("excerpt_provenance_fingerprint"),
+                "doc_identity_fingerprint": excerpt.get("doc_identity_fingerprint"),
                 "span": copy.deepcopy(span),
             },
         )
@@ -1538,6 +1544,7 @@ class RetrievalService:
                 "doc_type": hit.provenance.get("doc_type"),
                 "source_hash": hit.provenance.get("source_hash"),
                 "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                "excerpt_provenance_fingerprint": hit.provenance.get("excerpt_provenance_fingerprint"),
                 "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                 "span": hit.provenance.get("span"),
                 "matched_terms": hit.provenance.get("matched_terms"),
@@ -1946,6 +1953,15 @@ class RetrievalService:
                 "excerpt_text_hash": text_hash,
             }
         )
+        provenance["excerpt_provenance_fingerprint"] = self._build_excerpt_provenance_fingerprint(
+            doc_id=doc_id,
+            excerpt_id=excerpt_id,
+            doc_type=doc_type,
+            span=cast(dict[str, object], provenance["span"]),
+            source_hash=source_hash,
+            text_hash=text_hash,
+            doc_identity_fingerprint=doc_identity_fingerprint,
+        )
         return provenance
 
     def _normalize_excerpt_payload(
@@ -2055,6 +2071,25 @@ class RetrievalService:
                 source_hash=str(normalized.get("source_hash") or provenance.get("source_hash") or ""),
             )
         normalized["excerpt_fingerprint"] = excerpt_fingerprint
+        excerpt_provenance_fingerprint = normalized.get("excerpt_provenance_fingerprint")
+        if not isinstance(excerpt_provenance_fingerprint, str) or not excerpt_provenance_fingerprint:
+            provenance_excerpt_provenance_fingerprint = provenance.get("excerpt_provenance_fingerprint")
+            if (
+                isinstance(provenance_excerpt_provenance_fingerprint, str)
+                and provenance_excerpt_provenance_fingerprint
+            ):
+                excerpt_provenance_fingerprint = provenance_excerpt_provenance_fingerprint
+        if not isinstance(excerpt_provenance_fingerprint, str) or not excerpt_provenance_fingerprint:
+            excerpt_provenance_fingerprint = RetrievalService._build_excerpt_provenance_fingerprint(
+                doc_id=doc_id_value,
+                excerpt_id=str(normalized.get("excerpt_id") or provenance.get("excerpt_id") or ""),
+                doc_type=doc_type,
+                span=canonical_span,
+                source_hash=source_hash,
+                text_hash=str(text_hash or ""),
+                doc_identity_fingerprint=doc_identity_fingerprint,
+            )
+        normalized["excerpt_provenance_fingerprint"] = excerpt_provenance_fingerprint
         normalized_provenance = {
             **provenance,
             "source_strategy": source_strategy,
@@ -2075,6 +2110,7 @@ class RetrievalService:
             normalized_provenance["hash"] = text_hash
             normalized_provenance["excerpt_text_hash"] = text_hash
         normalized_provenance["excerpt_fingerprint"] = excerpt_fingerprint
+        normalized_provenance["excerpt_provenance_fingerprint"] = excerpt_provenance_fingerprint
         if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
             normalized_provenance["doc_identity_fingerprint"] = doc_identity_fingerprint
         normalized_provenance["retrieval_backend"] = retrieval_backend
@@ -2131,6 +2167,28 @@ class RetrievalService:
             "span": span,
             "text_hash": text_hash,
             "source_hash": source_hash,
+        }
+        return RetrievalService._stable_fingerprint(payload)
+
+    @staticmethod
+    def _build_excerpt_provenance_fingerprint(
+        *,
+        doc_id: str | None,
+        excerpt_id: str | None,
+        doc_type: str | None,
+        span: dict[str, object] | None,
+        source_hash: str | None,
+        text_hash: str | None,
+        doc_identity_fingerprint: str | None,
+    ) -> str:
+        payload = {
+            "doc_id": doc_id,
+            "excerpt_id": excerpt_id,
+            "doc_type": doc_type,
+            "span": span,
+            "source_hash": source_hash,
+            "text_hash": text_hash,
+            "doc_identity_fingerprint": doc_identity_fingerprint,
         }
         return RetrievalService._stable_fingerprint(payload)
 

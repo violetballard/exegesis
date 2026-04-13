@@ -1199,6 +1199,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(canonical["provenance"]["retrieval_mode"], "fts_first")
         self.assertEqual(canonical["provenance"]["doc_id"], result.hits[0].doc_id)
         self.assertEqual(canonical["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
+        self.assertEqual(
+            canonical["provenance"]["excerpt_provenance_fingerprint"],
+            result.hits[0].provenance["excerpt_provenance_fingerprint"],
+        )
+        self.assertEqual(
+            canonical["excerpt_provenance_fingerprint"],
+            result.hits[0].provenance["excerpt_provenance_fingerprint"],
+        )
         self.assertEqual(canonical["provenance"]["hash"], result.hits[0].provenance["hash"])
         self.assertEqual(canonical["text_hash"], result.hits[0].provenance["excerpt_text_hash"])
 
@@ -1236,6 +1244,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["provenance"]["hash"], normalized["text_hash"])
         self.assertEqual(normalized["provenance"]["excerpt_text_hash"], normalized["text_hash"])
         self.assertEqual(normalized["provenance"]["excerpt_fingerprint"], normalized["excerpt_fingerprint"])
+        self.assertEqual(
+            normalized["provenance"]["excerpt_provenance_fingerprint"],
+            normalized["excerpt_provenance_fingerprint"],
+        )
         self.assertTrue(normalized["provenance"]["doc_identity_fingerprint"])
 
     def test_retrieve_fts_excerpt_honors_confidentiality_profile_for_title_hint(self) -> None:
@@ -1280,6 +1292,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(standard, alias)
         self.assertEqual(standard, helper)
         self.assertEqual(standard, package_helper)
+        self.assertEqual(
+            confidential["excerpt_provenance_fingerprint"],
+            standard["excerpt_provenance_fingerprint"],
+        )
 
     def test_retrieval_hits_surface_top_level_retrieval_context(self) -> None:
         result = self.service.retrieve_auto(
@@ -2497,6 +2513,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "doc_type": item["provenance"]["doc_type"],
                     "source_hash": item["source_hash"],
                     "excerpt_fingerprint": item["provenance"]["excerpt_fingerprint"],
+                    "excerpt_provenance_fingerprint": item["provenance"]["excerpt_provenance_fingerprint"],
                     "excerpt_text_hash": item["provenance"]["excerpt_text_hash"],
                     "rank": item["provenance"]["rank"],
                     "span": item["provenance"]["span"],
@@ -2519,6 +2536,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             payload["excerpt_hits"][0]["excerpt_fingerprint"],
             payload["excerpt_hits"][0]["provenance"]["excerpt_fingerprint"],
+        )
+        self.assertEqual(
+            payload["excerpt_hits"][0]["excerpt_provenance_fingerprint"],
+            payload["excerpt_hits"][0]["provenance"]["excerpt_provenance_fingerprint"],
         )
         self.assertEqual(
             payload["excerpt_hits"][0]["excerpt_text_hash"],
