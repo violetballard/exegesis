@@ -1417,6 +1417,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         self.assertEqual(event["metadata"]["lookup_entrypoint"], "retrieve_fts_excerpt")
         self.assertEqual(event["metadata"]["lookup_resolution"], "fts")
+        self.assertEqual(event["metadata"]["lookup_confidentiality_profile"], "confidential")
         self.assertEqual(event["metadata"]["active_strategy_ids"], ["fts"])
         self.assertEqual(event["metadata"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
         self.assertEqual(event["metadata"]["strategies_used"], ["fts"])
@@ -1465,10 +1466,15 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(standard, alias)
         self.assertEqual(standard, helper)
         self.assertEqual(standard, package_helper)
+        self.assertEqual(confidential["lookup_confidentiality_profile"], "confidential")
+        self.assertEqual(confidential["provenance"]["lookup_confidentiality_profile"], "confidential")
+        self.assertEqual(standard["lookup_confidentiality_profile"], "standard")
+        self.assertEqual(standard["provenance"]["lookup_confidentiality_profile"], "standard")
         self.assertEqual(
             confidential["excerpt_provenance_fingerprint"],
             standard["excerpt_provenance_fingerprint"],
         )
+        self.assertNotEqual(confidential["lookup_fingerprint"], standard["lookup_fingerprint"])
 
     def test_retrieval_hits_surface_top_level_retrieval_context(self) -> None:
         result = self.service.retrieve_auto(

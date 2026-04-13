@@ -1103,11 +1103,13 @@ class RetrievalService:
             fts_excerpt,
             lookup_entrypoint=lookup_entrypoint,
             lookup_resolution="fts",
+            lookup_confidentiality_profile=normalized_confidentiality_profile,
         )
         return self._normalize_excerpt_payload(
             fts_excerpt,
             source_strategy="fts",
             lookup_resolution="fts",
+            lookup_confidentiality_profile=normalized_confidentiality_profile,
         )
 
     def _record_excerpt_lookup_audit(
@@ -1116,6 +1118,7 @@ class RetrievalService:
         *,
         lookup_entrypoint: str,
         lookup_resolution: str,
+        lookup_confidentiality_profile: str,
     ) -> None:
         """Record a compact audit trail for deterministic excerpt lookups."""
 
@@ -1131,6 +1134,7 @@ class RetrievalService:
                 "source_strategy": excerpt.get("source_strategy"),
                 "lookup_entrypoint": lookup_entrypoint,
                 "lookup_resolution": lookup_resolution,
+                "lookup_confidentiality_profile": lookup_confidentiality_profile,
                 "retrieval_backend": excerpt.get("retrieval_backend"),
                 "retrieval_mode": excerpt.get("retrieval_mode"),
                 "retrieval_policy": copy.deepcopy(self._retrieval_policy.as_snapshot()),
@@ -1978,6 +1982,7 @@ class RetrievalService:
                 },
                 source_strategy="fts",
                 lookup_resolution="fts",
+                lookup_confidentiality_profile=confidentiality_profile,
             )
         return None
 
@@ -2071,6 +2076,7 @@ class RetrievalService:
         *,
         source_strategy: Literal["fts", "pageindex"],
         lookup_resolution: str,
+        lookup_confidentiality_profile: str | None = None,
     ) -> dict[str, object]:
         provenance = excerpt.get("provenance", {})
         if not isinstance(provenance, dict):
@@ -2079,6 +2085,8 @@ class RetrievalService:
         normalized["source_strategy"] = source_strategy
         normalized["retrieval_source_strategy"] = source_strategy
         normalized["lookup_resolution"] = lookup_resolution
+        if lookup_confidentiality_profile is not None:
+            normalized["lookup_confidentiality_profile"] = lookup_confidentiality_profile
         text_hash = provenance.get("hash") or provenance.get("excerpt_text_hash") or normalized.get("text_hash")
         if not isinstance(text_hash, str) or not text_hash:
             text_value = normalized.get("text")
@@ -2253,6 +2261,8 @@ class RetrievalService:
         normalized_provenance["strategies_used"] = list(strategies_used)
         normalized_provenance["retrieval_source_strategy"] = source_strategy
         normalized_provenance["lookup_resolution"] = lookup_resolution
+        if lookup_confidentiality_profile is not None:
+            normalized_provenance["lookup_confidentiality_profile"] = lookup_confidentiality_profile
         matched_terms = _optional_list_like(normalized_provenance.get("matched_terms"))
         if matched_terms is not None:
             normalized_provenance["matched_terms"] = matched_terms
@@ -2286,6 +2296,7 @@ class RetrievalService:
                 "excerpt_id": normalized.get("excerpt_id"),
                 "source_strategy": source_strategy,
                 "lookup_resolution": lookup_resolution,
+                "lookup_confidentiality_profile": lookup_confidentiality_profile,
                 "retrieval_backend": retrieval_backend,
                 "retrieval_mode": retrieval_mode,
                 "active_strategy_ids": active_strategy_ids,
@@ -2311,6 +2322,7 @@ class RetrievalService:
             "fts_rank",
             "section_hint",
             "section_hint_rank",
+            "lookup_confidentiality_profile",
         ):
             value = normalized_provenance.get(key)
             if value is not None:
