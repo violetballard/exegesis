@@ -54,10 +54,9 @@
 - Approved non-owned test path for this handoff: `tests/unit/test_commands_catalog.py`
 
 ## Canonical demo-path step advanced
-- `preview and apply or reject a patch`
-- `continue working`
-- This work advances the `preview and apply or reject a patch` step in the canonical engine-first demo path from `AGENTS.md` and `ROADMAP.md`.
-- It makes that CLI-first Milestone 3 step more real by keeping the `patch-review` command surface, parser entrypoints, and the smoke route `project-open -> retrieval -> patch-review -> export-handoff` deterministic, so the operator contract stays explicit and easy to smoke-test instead of drifting silently between review cycles.
+- Primary step advanced: `continue working`
+- This work advances the `continue working` step in the canonical engine-first demo path from `AGENTS.md` and `ROADMAP.md`.
+- It makes that CLI-first Milestone 3 step more real by keeping the `patch-review` operator surface deterministic, so parser drift cannot silently change the command contract a user depends on to continue the workflow after reviewing a patch.
 
 ## Scope completed
 - Hardened `command_cli_contract()` in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py) so canonical CLI names must match `command_names()` and declared per-command CLI entrypoints must match the validated parser surface, with drift raising `ValueError`.
@@ -110,12 +109,11 @@
 ## Required handoff fields
 ### Scope completed
 - CLI compatibility now depends on one deterministic command catalog that defines parser entrypoints, parser lookup helpers, route ordering, smoke-route metadata, and invocation metadata without allowing silent parser/catalog drift.
-- This specifically hardens the canonical demo-path step `preview and apply or reject a patch` by keeping the `patch-review` operator entrypoint, the smoke route `project-open -> retrieval -> patch-review -> export-handoff`, and bounded diff output stable and smoke-testable while Textual remains disabled.
+- This specifically hardens the canonical demo-path step `continue working` by keeping the `patch-review` operator entrypoint, the smoke route `project-open -> retrieval -> patch-review -> export-handoff`, and bounded diff output stable and smoke-testable while Textual remains disabled.
 
 ### Canonical demo-path step advanced
-- `preview and apply or reject a patch`
-- Secondary support: `continue working`
-- The packet fix is first-order Milestone 3 work because it protects the CLI-first `patch-review` contract used to execute that canonical engine workflow step.
+- Primary step advanced: `continue working`
+- The packet fix is first-order Milestone 3 work because it protects the stable CLI operator surface used to continue the workflow after a patch-review step without silent parser/catalog drift.
 
 ### Roadmap item(s) affected
 - `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands by keeping the CLI-first smoke route `project-open -> retrieval -> patch-review -> export-handoff` deterministic and smoke-testable, with direct protection for the `patch-review` demo-path step.
