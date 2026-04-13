@@ -481,14 +481,14 @@ def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) 
         raise ValueError("GenericCard subtitle must be a string when provided")
     blocks = card.get("blocks")
     if blocks is not None:
-        if not isinstance(blocks, list):
-            raise ValueError("GenericCard blocks must be a list when provided")
+        if not isinstance(blocks, (list, tuple)):
+            raise ValueError("GenericCard blocks must be a list or tuple when provided")
         for block in blocks:
             validate_primitive_block(block)
     actions = card.get("actions", [])
     if strict_actions:
-        if not isinstance(actions, list):
-            raise ValueError("GenericCard actions must be a list")
+        if not isinstance(actions, (list, tuple)):
+            raise ValueError("GenericCard actions must be a list or tuple")
         seen_actions: set[str] = set()
         for action in actions:
             validate_action_ref(action)
@@ -522,13 +522,13 @@ def _validate_fallback_card(
     if not isinstance(subtitle, str) or not subtitle.strip():
         raise ValueError("Fallback card subtitle is required")
     blocks = card.get("blocks")
-    if not isinstance(blocks, list):
-        raise ValueError("Fallback card blocks must be a list")
+    if not isinstance(blocks, (list, tuple)):
+        raise ValueError("Fallback card blocks must be a list or tuple")
     for block in blocks:
         validate_primitive_block(block)
     actions = card.get("actions")
-    if not isinstance(actions, list):
-        raise ValueError("Fallback card actions must be a list")
+    if not isinstance(actions, (list, tuple)):
+        raise ValueError("Fallback card actions must be a list or tuple")
     _validate_canonical_read_only_fallback_actions(actions)
     debug = card.get("debug")
     if not isinstance(debug, dict):
@@ -782,7 +782,7 @@ def _build_read_only_fallback_actions(
 
 
 def _filter_supported_actions(actions: Any, *, supported_actions: set[str]) -> list[dict[str, Any]]:
-    if not isinstance(actions, list):
+    if not isinstance(actions, (list, tuple)):
         return []
     filtered: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -796,12 +796,14 @@ def _filter_supported_actions(actions: Any, *, supported_actions: set[str]) -> l
             continue
         seen.add(action_key)
         filtered.append(normalized)
-    # Keep the materialized payload deterministic even when the model emits
-    # supported actions in a different order.
+    # Keep tuple-shaped or reordered action containers deterministic once
+    # they are materialized back into the canonical list form.
     return sorted(filtered, key=_canonical_json)
 
 
-def _validate_canonical_read_only_fallback_actions(actions: list[Any]) -> None:
+def _validate_canonical_read_only_fallback_actions(
+    actions: list[Any] | tuple[Any, ...],
+) -> None:
     seen_actions: set[str] = set()
     for action in actions:
         validate_action_ref(action)
@@ -847,8 +849,8 @@ def _materialize_generic_card(card: dict[str, Any], capabilities: A2UICapabiliti
     actions = out.get("actions")
     if actions is None:
         out["actions"] = []
-    elif not isinstance(actions, list):
-        raise ValueError("GenericCard actions must be a list when provided")
+    elif not isinstance(actions, (list, tuple)):
+        raise ValueError("GenericCard actions must be a list or tuple when provided")
     else:
         out["actions"] = _filter_supported_actions(actions, supported_actions=set(capabilities.actions_supported))
     out["title"] = _normalize_card_text(out.get("title"), fallback="<untitled>")
