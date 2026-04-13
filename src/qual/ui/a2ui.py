@@ -326,6 +326,7 @@ def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
         "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
+        "terminal_artifact_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
         "type": "TerminalArtifactContract",
         "envelope": _build_terminal_artifact_envelope_manifest(),
         "supported_kinds": ["card", "action", "selection"],

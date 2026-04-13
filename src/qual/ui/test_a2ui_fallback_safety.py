@@ -137,6 +137,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["contract_fingerprint"], terminal_artifact_contract_fingerprint())
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
+    def test_terminal_artifact_contract_version_alias_matches_schema_version(self) -> None:
+        manifest = describe_terminal_artifact_contract()
+
+        self.assertEqual(manifest["terminal_artifact_version"], manifest["terminal_artifact_schema_version"])
+        self.assertEqual(manifest["terminal_artifact_version"], TERMINAL_ARTIFACT_SCHEMA_VERSION)
+
     def test_terminal_artifact_contract_manifest_includes_explicit_envelope_shape(self) -> None:
         manifest = describe_terminal_artifact_contract()
 
@@ -765,6 +771,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("- context_items: 1", text)
         self.assertIn("- context_preview: <non-json:_OpaqueValue>", text)
         self.assertNotIn("object at 0x", text)
+
+    def test_shell_ui_snapshot_sort_key_reuses_stable_opaque_preview_tokens(self) -> None:
+        type_name, preview_token = ShellUI._snapshot_item_sort_key(_OpaqueValue())
+
+        self.assertEqual(type_name, "_OpaqueValue")
+        self.assertEqual(preview_token, "<non-json:_OpaqueValue>")
 
     def test_shell_ui_quotes_ambiguous_preview_tokens_and_keeps_set_order(self) -> None:
         runtime = SimpleNamespace(

@@ -54,7 +54,10 @@ class ShellUI:
         # Use the full normalized value so distinct items do not collapse
         # when their truncated preview strings happen to match.
         baseline = " ".join(str(value).split())
-        return (type(value).__name__, ShellUI._escape_control_chars(baseline))
+        escaped = ShellUI._escape_control_chars(baseline)
+        if not isinstance(value, str) and ShellUI._looks_like_opaque_object_repr(escaped):
+            return (type(value).__name__, ShellUI._format_item_id(value))
+        return (type(value).__name__, escaped)
 
     @staticmethod
     def _format_item_id(value: object) -> str:
