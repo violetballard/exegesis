@@ -1335,6 +1335,44 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["lookup_fingerprint"], normalized["provenance"]["lookup_fingerprint"])
         self.assertTrue(normalized["provenance"]["doc_identity_fingerprint"])
 
+    def test_normalize_excerpt_payload_canonicalizes_sparse_query_metadata_types(self) -> None:
+        normalized = self.service._normalize_excerpt_payload(
+            {
+                "excerpt_id": "excerpt-sparse-typed-1",
+                "doc_id": "doc-pdf-1",
+                "doc_type": "pdf",
+                "text": "Discussion theory evidence stays deterministic.",
+                "span": {"char_range": {"start": "7", "end": "38"}},
+                "provenance": {
+                    "matched_terms": ("discussion", "theory"),
+                    "query_scope": "vault",
+                    "query_intent": "compare",
+                    "query_confidentiality_profile": "  StAnDaRd  ",
+                    "query_date_range": ("2026-02-01", "2026-02-29"),
+                    "candidate_doc_count": "3",
+                    "rank": "4",
+                    "fts_rank": "-0.75",
+                    "section_hint": "  discussion   notes  ",
+                    "section_hint_rank": "1",
+                },
+            },
+            source_strategy="fts",
+            lookup_resolution="fts",
+        )
+
+        self.assertEqual(normalized["query_confidentiality_profile"], "standard")
+        self.assertEqual(normalized["candidate_doc_count"], 3)
+        self.assertEqual(normalized["rank"], 4)
+        self.assertEqual(normalized["fts_rank"], -0.75)
+        self.assertEqual(normalized["section_hint"], "discussion notes")
+        self.assertEqual(normalized["section_hint_rank"], 1)
+        self.assertEqual(normalized["provenance"]["query_confidentiality_profile"], "standard")
+        self.assertEqual(normalized["provenance"]["candidate_doc_count"], 3)
+        self.assertEqual(normalized["provenance"]["rank"], 4)
+        self.assertEqual(normalized["provenance"]["fts_rank"], -0.75)
+        self.assertEqual(normalized["provenance"]["section_hint"], "discussion notes")
+        self.assertEqual(normalized["provenance"]["section_hint_rank"], 1)
+
     def test_retrieve_fts_excerpt_records_lookup_fingerprint_in_audit(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

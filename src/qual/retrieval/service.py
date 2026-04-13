@@ -72,6 +72,24 @@ def _normalized_profile_text(value: object) -> str | None:
     return text.casefold()
 
 
+def _optional_int(value: object) -> int | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _optional_float(value: object) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _parse_date_value(value: str) -> date | None:
     try:
         return datetime.fromisoformat(value).date()
@@ -2212,6 +2230,26 @@ class RetrievalService:
         query_date_range = _optional_list_like(normalized_provenance.get("query_date_range"))
         if query_date_range is not None:
             normalized_provenance["query_date_range"] = query_date_range
+        query_confidentiality_profile = _normalized_profile_text(
+            normalized_provenance.get("query_confidentiality_profile")
+        )
+        if query_confidentiality_profile is not None:
+            normalized_provenance["query_confidentiality_profile"] = query_confidentiality_profile
+        section_hint = _normalized_text(normalized_provenance.get("section_hint"))
+        if section_hint is not None:
+            normalized_provenance["section_hint"] = section_hint
+        candidate_doc_count = _optional_int(normalized_provenance.get("candidate_doc_count"))
+        if candidate_doc_count is not None:
+            normalized_provenance["candidate_doc_count"] = candidate_doc_count
+        rank = _optional_int(normalized_provenance.get("rank"))
+        if rank is not None:
+            normalized_provenance["rank"] = rank
+        fts_rank = _optional_float(normalized_provenance.get("fts_rank"))
+        if fts_rank is not None:
+            normalized_provenance["fts_rank"] = fts_rank
+        section_hint_rank = _optional_int(normalized_provenance.get("section_hint_rank"))
+        if section_hint_rank is not None:
+            normalized_provenance["section_hint_rank"] = section_hint_rank
         lookup_fingerprint = RetrievalService._stable_fingerprint(
             {
                 "doc_id": doc_id_value,
