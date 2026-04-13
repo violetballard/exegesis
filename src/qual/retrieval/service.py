@@ -261,6 +261,9 @@ class RetrievalHit:
         rank = self.provenance.get("rank")
         if isinstance(rank, int):
             payload["rank"] = rank
+        fts_rank = self.provenance.get("fts_rank")
+        if isinstance(fts_rank, (int, float)):
+            payload["fts_rank"] = fts_rank
         matched_terms = self.provenance.get("matched_terms")
         if isinstance(matched_terms, list):
             payload["matched_terms"] = copy.deepcopy(matched_terms)
@@ -338,6 +341,9 @@ class RetrievalDocHit:
         retrieval_mode = self.provenance.get("retrieval_mode")
         if isinstance(retrieval_mode, str) and retrieval_mode:
             payload["retrieval_mode"] = retrieval_mode
+        doc_rank = self.provenance.get("doc_rank")
+        if isinstance(doc_rank, int):
+            payload["doc_rank"] = doc_rank
         doc_type = self.provenance.get("doc_type")
         if isinstance(doc_type, str) and doc_type:
             payload["doc_type"] = doc_type
