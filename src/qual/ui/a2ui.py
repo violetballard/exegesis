@@ -12,6 +12,7 @@ A2UI_VERSION = 1
 A2UI_CONTRACT_VERSION = 2
 A2UI_ACTION_SCHEMA_VERSION = 1
 SELECTION_SCHEMA_VERSION = 1
+CARD_CONTRACT_VERSION = 1
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
 DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES = 8_192
@@ -183,6 +184,16 @@ def describe_action_contract() -> dict[str, Any]:
     return manifest
 
 
+def describe_card_contract() -> dict[str, Any]:
+    """Return the stable, versioned card contract manifest."""
+
+    manifest = _build_card_contract_manifest()
+    fingerprint = card_contract_fingerprint()
+    manifest["card_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
+    return manifest
+
+
 def _build_a2ui_contract_manifest() -> dict[str, Any]:
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
@@ -195,21 +206,7 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
         },
         "selection": describe_selection_contract(),
         "action": describe_action_contract(),
-        "fallbacks": {
-            "generic_card": {
-                "type": GENERIC_CARD_TYPE,
-                "action_policy": "client_allowlist",
-                "allowed_actions": [FALLBACK_COPY_ACTION_ID],
-                "actions": _build_read_only_fallback_action_manifest(),
-            },
-            "unknown_card": {
-                "type": UNKNOWN_CARD_TYPE,
-                "action_policy": "copy_to_clipboard_only",
-                "allowed_actions": [FALLBACK_COPY_ACTION_ID],
-                "default_preview_bytes": DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES,
-                "actions": _build_read_only_fallback_action_manifest(),
-            },
-        },
+        "fallbacks": _build_card_fallback_manifest(),
         "schemas": _build_a2ui_schema_manifest(),
         "primitive_blocks": [
             {
@@ -260,6 +257,17 @@ def _build_action_contract_manifest() -> dict[str, Any]:
     }
 
 
+def _build_card_contract_manifest() -> dict[str, Any]:
+    return {
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "card_contract_version": CARD_CONTRACT_VERSION,
+        "type": "CardContract",
+        "card_schemas": _build_card_schema_manifest(),
+        "fallbacks": _build_card_fallback_manifest(),
+    }
+
+
 def _build_read_only_fallback_action_manifest() -> list[dict[str, Any]]:
     return [
         {
@@ -291,26 +299,48 @@ def _build_action_payload_schema_manifest() -> list[dict[str, Any]]:
     ]
 
 
+def _build_card_schema_manifest() -> list[dict[str, Any]]:
+    return [
+        {
+            "type": GENERIC_CARD_TYPE,
+            "version": A2UI_VERSION,
+            "required_fields": ["type", "title", "a2ui_version", "blocks", "actions"],
+            "optional_fields": ["subtitle", "debug"],
+            "allowed_actions": sorted(ALLOWED_ACTION_IDS),
+            "action_policy": "client_allowlist",
+        },
+        {
+            "type": UNKNOWN_CARD_TYPE,
+            "version": A2UI_VERSION,
+            "required_fields": ["type", "title", "subtitle", "a2ui_version", "debug", "blocks", "actions"],
+            "optional_fields": [],
+            "allowed_actions": [FALLBACK_COPY_ACTION_ID],
+            "action_policy": "copy_to_clipboard_only",
+        },
+    ]
+
+
+def _build_card_fallback_manifest() -> dict[str, Any]:
+    return {
+        "generic_card": {
+            "type": GENERIC_CARD_TYPE,
+            "action_policy": "client_allowlist",
+            "allowed_actions": [FALLBACK_COPY_ACTION_ID],
+            "actions": _build_read_only_fallback_action_manifest(),
+        },
+        "unknown_card": {
+            "type": UNKNOWN_CARD_TYPE,
+            "action_policy": "copy_to_clipboard_only",
+            "allowed_actions": [FALLBACK_COPY_ACTION_ID],
+            "default_preview_bytes": DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES,
+            "actions": _build_read_only_fallback_action_manifest(),
+        },
+    }
+
+
 def _build_a2ui_schema_manifest() -> dict[str, Any]:
     return {
-        "cards": [
-            {
-                "type": GENERIC_CARD_TYPE,
-                "version": A2UI_VERSION,
-                "required_fields": ["type", "title", "a2ui_version", "blocks", "actions"],
-                "optional_fields": ["subtitle", "debug"],
-                "allowed_actions": sorted(ALLOWED_ACTION_IDS),
-                "action_policy": "client_allowlist",
-            },
-            {
-                "type": UNKNOWN_CARD_TYPE,
-                "version": A2UI_VERSION,
-                "required_fields": ["type", "title", "subtitle", "a2ui_version", "debug", "blocks", "actions"],
-                "optional_fields": [],
-                "allowed_actions": [FALLBACK_COPY_ACTION_ID],
-                "action_policy": "copy_to_clipboard_only",
-            },
-        ],
+        "cards": _build_card_schema_manifest(),
         "actions": [
             {
                 "type": "ActionRef",
@@ -341,6 +371,13 @@ def action_contract_fingerprint() -> str:
     """Return a stable fingerprint for the ActionRef contract manifest."""
 
     manifest = _build_action_contract_manifest()
+    return _fingerprint_manifest_section(manifest)
+
+
+def card_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the card contract manifest."""
+
+    manifest = _build_card_contract_manifest()
     return _fingerprint_manifest_section(manifest)
 
 
