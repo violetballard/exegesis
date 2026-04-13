@@ -18,6 +18,7 @@
 
 ## Scope goal
 - Harden the CLI command contract so command catalog, parser entrypoints, route ordering, and invocation planning stay deterministic and fail fast if the parser surface drifts from the catalog.
+- Keep the `patch-review` command entrypoint stable for the canonical demo-path step `preview and apply or reject a patch`, so this contract hardening remains first-order Milestone 3 CLI compatibility work instead of generic cleanup.
 
 ## Lane/owned paths
 - Owned runtime path in this worktree: `src/qual/commands/**`
@@ -75,7 +76,7 @@
 - CLI compatibility now depends on one deterministic command catalog that defines parser entrypoints, route ordering, and invocation metadata without allowing silent parser/catalog drift.
 
 ### Roadmap item(s) affected
-- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands.
+- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands by keeping the `patch-review` demo-path step deterministic and smoke-testable.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ### Vision capability affected
