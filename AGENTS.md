@@ -214,6 +214,23 @@ Definition of progress right now:
   - apply or reject a patch
   - save and continue
 
+Canonical demo path right now:
+- open project/document
+- retrieve relevant material
+- promote or gather context into the basket
+- produce a plan or revision
+- preview and apply or reject a patch
+- persist the updated document/session state
+- continue working without losing context
+
+Operational narrowing rules:
+- Every active lane task must name which step of the canonical demo path it advances.
+- If a change does not directly unblock or strengthen that path, it is second-order work and should wait.
+- Prefer one believable end-to-end path over broad partial improvements across multiple alternate flows.
+- Contracts, docs, and infra changes count only when they remove a concrete blocker on the canonical demo path.
+- Do not expand lane scope to speculative product surfaces, alternate workflows, or UI ambition outside the current demo path.
+- Before handoff, state explicitly which canonical demo-path step the work now makes more real.
+
 Do not spend milestone time on:
 - Textual implementation work
 - UI polish

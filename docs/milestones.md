@@ -78,3 +78,14 @@ Deliverables:
 Status:
 - Planned
 - Owned as cross-lane/integrator work, not a dedicated feature lane
+
+Current operating rule:
+- Until this milestone is standing, all active engine work should be evaluated against one canonical demo path:
+  - open project/document
+  - retrieve relevant material
+  - promote or gather context into the basket
+  - produce a plan or revision
+  - preview and apply or reject a patch
+  - persist updated document/session state
+  - continue working
+- Code churn, contract cleanup, or infra work do not count toward this milestone unless they directly unblock or harden that specific path.

@@ -90,6 +90,18 @@ Exit criteria:
 - one clean 60-180 second demo path exists
 - the app reads as a writing environment rather than a terminal trick
 
+Current operational narrowing:
+- Treat the canonical closure target as one engine-first demo path:
+  - open project/document
+  - retrieve relevant material
+  - promote or gather context into the basket
+  - produce a plan or revision
+  - preview and apply or reject a patch
+  - persist the updated document/session state
+  - continue working
+- Active lane work should be judged against whether it directly advances that path.
+- Improvements that do not make that path more real are second-order and should wait until the demo loop stands.
+
 ## Active now
 - `feat-commands`
 - `feat-context-storage`
