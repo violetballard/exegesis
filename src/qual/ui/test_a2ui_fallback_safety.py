@@ -108,6 +108,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             {"id": "copy_to_clipboard", "label": "Copy JSON", "version": 1, "payload_fields": ["text"]},
         )
         self.assertEqual(manifest["card_fallbacks"], a2ui_manifest["fallbacks"])
+        self.assertEqual(a2ui_manifest["terminal_fallback"], manifest)
         self.assertEqual(manifest["contract_fingerprint"], terminal_fallback_contract_fingerprint())
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
         self.assertEqual(a2ui_manifest["schemas"]["terminal_fallback"], manifest)
@@ -517,6 +518,23 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("- fallback_kind: generic", text)
         self.assertIn("- source_card_type: FutureCard", text)
         self.assertIn("- Copy JSON (copy_to_clipboard)", text)
+
+    def test_terminal_renderer_treats_generic_fallback_subtitle_as_a_fallback_signal(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Operator notes",
+                "subtitle": GENERIC_FALLBACK_SUBTITLE,
+                "blocks": [],
+                "actions": None,
+            }
+        )
+
+        self.assertIn("[GenericCard] Operator notes", text)
+        self.assertIn(GENERIC_FALLBACK_SUBTITLE, text)
+        self.assertIn("Fallback: generic card", text)
+        self.assertIn("Action policy: client_allowlist", text)
+        self.assertNotIn("Debug:", text)
 
     def test_invalid_selection_renderer_keeps_safe_raw_preview(self) -> None:
         text = render_terminal_selection(
