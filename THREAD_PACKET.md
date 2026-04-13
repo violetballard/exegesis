@@ -27,7 +27,8 @@
 ## Canonical demo-path step advanced
 - `preview and apply or reject a patch`
 - `continue working`
-- This work removes a concrete blocker on the canonical MVP loop by keeping the CLI command surface and smoke-route ordering deterministic, so patch-review entrypoints remain explicit, stable, and easy to smoke-test instead of drifting silently between review cycles.
+- This work advances the `preview and apply or reject a patch` step in the canonical engine-first demo path from `AGENTS.md` and `ROADMAP.md`.
+- It makes that CLI-first Milestone 3 step more real by keeping the `patch-review` command surface, parser entrypoints, and smoke-route ordering deterministic, so the operator contract stays explicit and easy to smoke-test instead of drifting silently between review cycles.
 
 ## Scope completed
 - Hardened `command_cli_contract()` in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py) so canonical CLI names must match `command_names()` and drift raises `ValueError`.
