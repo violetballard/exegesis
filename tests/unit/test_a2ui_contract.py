@@ -11,6 +11,8 @@ from src.qual.ui.a2ui import (
     a2ui_contract_fingerprint,
     build_unknown_card,
     describe_a2ui_contract,
+    describe_a2ui_contract_fingerprints,
+    describe_selection_contract,
     GENERIC_FALLBACK_SUBTITLE,
     engine_prepare_card,
     execute_action_with_policy_gate,
@@ -82,6 +84,16 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(manifest["contract_version"], 2)
         self.assertEqual(manifest["contract_fingerprint"], a2ui_contract_fingerprint())
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
+        fingerprints = describe_a2ui_contract_fingerprints()
+        self.assertEqual(fingerprints["contract"], manifest["contract_fingerprint"])
+        self.assertEqual(
+            set(fingerprints),
+            {"contract", "cards", "fallbacks", "selection", "primitive_blocks", "actions", "schemas"},
+        )
+        for fingerprint in fingerprints.values():
+            self.assertEqual(len(fingerprint), 64)
+        self.assertEqual(manifest["selection"], describe_selection_contract())
+        self.assertEqual(fingerprints["selection"], manifest["selection"]["selection_fingerprint"])
         self.assertEqual(
             manifest["cards"],
             {
@@ -1768,6 +1780,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("Fallback: unknown from FutureCard", text)
         self.assertIn("Action policy: copy_to_clipboard_only", text)
         self.assertIn("Debug:", text)
+        self.assertIn("- contract_version: 2", text)
         self.assertIn("- fallback_kind: unknown", text)
         self.assertIn("- source_card_type: FutureCard", text)
 
@@ -1787,6 +1800,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("Fallback: generic from FutureCard", text)
         self.assertIn("Action policy: client_allowlist", text)
         self.assertIn("Debug:", text)
+        self.assertIn("- contract_version: 2", text)
         self.assertIn("- fallback_kind: generic", text)
         self.assertIn("- source_card_type: FutureCard", text)
         self.assertNotIn("raw subtitle should not leak", text)

@@ -153,6 +153,7 @@ def describe_a2ui_contract_fingerprints() -> dict[str, str]:
         "contract": _fingerprint_manifest_section(manifest),
         "cards": _fingerprint_manifest_section(manifest["cards"]),
         "fallbacks": _fingerprint_manifest_section(manifest["fallbacks"]),
+        "selection": selection_contract_fingerprint(),
         "primitive_blocks": _fingerprint_manifest_section(manifest["primitive_blocks"]),
         "actions": _fingerprint_manifest_section(manifest["actions"]),
         "schemas": _fingerprint_manifest_section(manifest["schemas"]),
@@ -177,6 +178,7 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
             "reserved": list(_RESERVED_CARD_TYPES),
             "specialized": list(_SPECIALIZED_CARD_TYPES),
         },
+        "selection": describe_selection_contract(),
         "fallbacks": {
             "generic_card": {
                 "type": GENERIC_CARD_TYPE,
