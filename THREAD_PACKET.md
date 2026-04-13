@@ -113,6 +113,7 @@
 ### Scope completed
 - CLI compatibility now depends on one deterministic command catalog that defines parser entrypoints, parser lookup helpers, route ordering, smoke-route metadata, and invocation metadata without allowing silent parser/catalog drift.
 - This specifically hardens the canonical demo-path step `preview and apply or reject a patch` by keeping the `patch-review` operator entrypoint, the smoke route `project-open -> retrieval -> patch-review -> export-handoff`, and bounded diff output stable and smoke-testable while Textual remains disabled.
+- Scope boundary: this change only hardens command-catalog and CLI-contract determinism; it does not add new commands, new flags, or CLI-side business logic.
 
 ### Canonical demo-path step advanced
 - Primary step advanced: `preview and apply or reject a patch`
@@ -128,7 +129,7 @@
 - `Auditable state and workflow` - parser/catalog drift now fails loudly instead of silently changing the operator contract for that CLI-first smoke route.
 
 ### Routing/provider impact note
-- None. This change only affects local command-catalog and CLI contract validation.
+- None. This change only affects local command-catalog and CLI contract validation, with no new commands, flags, or CLI-side business logic.
 
 ### Proposed README patch text
 - None.
