@@ -2472,6 +2472,8 @@ class RetrievalService:
             raise ValueError("max_results must be greater than zero")
         if query.scope.startswith("section:"):
             raise ValueError("section scope is unsupported until FTS fallback can resolve section targets")
+        if query.scope.startswith("collection:"):
+            raise ValueError("collection scope is unsupported until the FTS lane can resolve collection targets")
         if query.scope not in {"vault"} and not any(query.scope.startswith(prefix) for prefix in ("collection:", "doc:")):
             raise ValueError("unsupported scope")
         if query.intent not in _SUPPORTED_RETRIEVAL_INTENTS:
