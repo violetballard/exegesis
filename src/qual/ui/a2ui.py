@@ -1181,6 +1181,10 @@ def _sanitize_json_preview_value(value: Any, *, _seen_ids: set[int] | None = Non
     return f"<non-json:{type(value).__name__}>"
 
 
+def _is_safe_scalar_value(value: Any) -> bool:
+    return value is None or isinstance(value, (bool, int, float, str))
+
+
 def _canonical_json_sort_key(value: Any) -> str:
     if isinstance(value, Mapping):
         return _canonical_json({str(key): value[key] for key in sorted(value, key=lambda item: str(item))})
@@ -1450,13 +1454,11 @@ def _sanitize_safe_primitive_block(block: Any, *, allow_code_block: bool = True)
             return None
         sanitized: dict[str, Any] = {
             "type": block_type,
-            "severity": str(block.get("severity", "info")).strip() or "info",
+            "severity": _normalize_card_text(block.get("severity"), fallback="info") or "info",
             "message": message,
         }
-        title = block.get("title")
+        title = _normalize_card_text(block.get("title"))
         if title is not None:
-            if not isinstance(title, str):
-                return None
             sanitized["title"] = title
         return sanitized
     if block_type == "CodeBlock":
@@ -1503,7 +1505,7 @@ def _sanitize_safe_primitive_block(block: Any, *, allow_code_block: bool = True)
             if not isinstance(key, str) or not key.strip():
                 continue
             value = item.get("value")
-            if isinstance(value, (Mapping, list)):
+            if not _is_safe_scalar_value(value):
                 continue
             sanitized_items.append({"key": key.strip(), "value": value})
         if not sanitized_items:
@@ -1627,7 +1629,12 @@ def _render_terminal_block(block: Any) -> list[str]:
             key = _render_terminal_inline_text(item.get("key", ""))
             if not key:
                 continue
-            value = _render_terminal_inline_text(item.get("value", "")) or "<blank>"
+            value = item.get("value", None)
+            if not _is_safe_scalar_value(value):
+                continue
+            if isinstance(value, bool):
+                value = "true" if value else "false"
+            value = _render_terminal_inline_text(value) or "<blank>"
             lines.append(f"- {key}: {value}")
         return lines or ["[KeyValueBlock: empty]"]
     if block_type == "ListBlock":
