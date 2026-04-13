@@ -920,7 +920,7 @@ def execute_action_with_policy_gate(
 def render_terminal_card(card: Any) -> str:
     normalized_card = _coerce_terminal_card(card)
     if normalized_card is None:
-        return _render_invalid_terminal_card()
+        return _render_invalid_terminal_card(card)
 
     try:
         raw_title = _normalize_card_title(normalized_card)
@@ -1001,7 +1001,7 @@ def render_terminal_card(card: Any) -> str:
                 lines.append("Actions filtered out by allowlist or validation")
         return "\n".join(lines)
     except Exception:
-        return _render_invalid_terminal_card()
+        return _render_invalid_terminal_card(normalized_card)
 
 
 def render_terminal_selection(selection: Any) -> str:
@@ -2217,14 +2217,15 @@ def _coerce_terminal_card(card: Any) -> dict[str, Any] | None:
     return None
 
 
-def _render_invalid_terminal_card() -> str:
-    return "\n".join(
-        [
-            "[UnknownCard] <invalid card>",
-            "Fallback: unknown card",
-            "Action policy: copy_to_clipboard_only",
-        ]
-    )
+def _render_invalid_terminal_card(card: Any | None = None) -> str:
+    lines = [
+        "[UnknownCard] <invalid card>",
+        "Fallback: unknown card",
+        "Action policy: copy_to_clipboard_only",
+    ]
+    if card is not None:
+        lines.append(f"- raw: {_render_payload_preview(card, max_payload_bytes=256)}")
+    return "\n".join(lines)
 
 
 def _render_invalid_terminal_artifact(artifact: Any) -> str:

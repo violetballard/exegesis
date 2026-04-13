@@ -42,7 +42,7 @@ class ShellUI:
             try:
                 return render_terminal_card(fallback_artifact)
             except Exception:
-                return _render_invalid_terminal_card()
+                return _render_invalid_terminal_card(fallback_artifact)
 
     def render_startup(self, runtime: EngineRuntime) -> str:
         item_ids = self._snapshot_item_ids(runtime.basket.item_ids)

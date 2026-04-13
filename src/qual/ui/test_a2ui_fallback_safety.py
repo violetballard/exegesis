@@ -406,6 +406,29 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[TerminalArtifact] <invalid artifact>", text)
         self.assertIn("TerminalArtifact schema v1", text)
 
+    def test_terminal_renderer_includes_safe_raw_preview_for_invalid_cards(self) -> None:
+        text = render_terminal_card(_OpaqueValue())
+
+        self.assertIn("[UnknownCard] <invalid card>", text)
+        self.assertIn("Fallback: unknown card", text)
+        self.assertIn("Action policy: copy_to_clipboard_only", text)
+        self.assertIn("- raw:", text)
+        self.assertIn("<non-json:_OpaqueValue>", text)
+        self.assertNotIn("object at 0x", text)
+
+    def test_shell_ui_falls_back_to_safe_invalid_card_preview_when_primary_rendering_fails(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            text = shell.render_artifact(_OpaqueValue())
+
+        self.assertIn("[UnknownCard] <invalid card>", text)
+        self.assertIn("Fallback: unknown card", text)
+        self.assertIn("Action policy: copy_to_clipboard_only", text)
+        self.assertIn("- raw:", text)
+        self.assertIn("<non-json:_OpaqueValue>", text)
+        self.assertNotIn("object at 0x", text)
+
     def test_shell_ui_unwraps_malformed_terminal_envelopes_for_explicit_kinds(self) -> None:
         shell = ShellUI()
 
