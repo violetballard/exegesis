@@ -1,26 +1,25 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet HEAD role: `reviewer-fix packet refresh for the actual implementation tip`
-- Current packet-refresh branch head before the final fixer commit: `712714c24f92cdfe43f21127c2de1d4ea0bd2599`
+- Packet HEAD role: `metadata-only reviewer-fix finalization`
+- Current packet-refresh branch head before the final fixer commit: `b008fe29758f55182ad0a704d26e8490605c5dbb`
 - Reviewed implementation head: `712714c24f92cdfe43f21127c2de1d4ea0bd2599`
 - Reviewed implementation range: `bccc788cb555029e699628b2bd1549d4d283e714..712714c24f92cdfe43f21127c2de1d4ea0bd2599`
 - Handoff type: shared/high-risk retrieval handoff regenerated against the actual implementation tip
-- Traceability rule: this packet is regenerated against the real branch tip because commits `0d21c11e2a3866b6944c98240a2fe8f0678551bf`, `226121095e4d889d79feabfb9966a84b756d5753`, `2b32538cdaf7e00726607fbe11c6957de0d7d739`, `73ad9229b1a6c1d47a90a52f6a92dbc5fab0f64f`, and `91899af618c0d62461c1512db42f4466b962beb2` all contain implementation changes and remain inside the reviewed scope.
-- Authoritative traceability for this re-review: current branch head before the final fixer commit is `712714c24f92cdfe43f21127c2de1d4ea0bd2599`; reviewed implementation head and reviewed implementation range are intentionally aligned to that real implementation tip rather than described as metadata-only.
+- Traceability rule: later metadata-only packet refresh commits may advance the branch head, but they do not change the reviewed implementation head or reviewed implementation range unless this packet is explicitly regenerated.
 
 ## Packet HEAD context
-- The branch tip before this fixer commit is `712714c24f92cdfe43f21127c2de1d4ea0bd2599`.
-- The docs-only packet refresh commit inside this span is `b3d5fec4cc9c31aa2e184d4c8f6780d8f1b119c0`.
-- Re-review should anchor retrieval implementation scope to `bccc788cb555029e699628b2bd1549d4d283e714..712714c24f92cdfe43f21127c2de1d4ea0bd2599`, then use the final fixer handoff to identify the new packet-refresh branch tip created by this metadata correction commit.
-- This file is the reviewer-facing source of truth for the regenerated handoff, and the `.codex` packet mirrors are refreshed alongside it in this fixer pass.
+- The branch tip before this fixer commit is `b008fe29758f55182ad0a704d26e8490605c5dbb`.
+- The latest reviewed implementation commit remains `712714c24f92cdfe43f21127c2de1d4ea0bd2599`.
+- The metadata-only packet refresh commits inside this handoff chain are `b3d5fec4cc9c31aa2e184d4c8f6780d8f1b119c0` and `b008fe29758f55182ad0a704d26e8490605c5dbb`.
+- Re-review should anchor retrieval implementation scope to `bccc788cb555029e699628b2bd1549d4d283e714..712714c24f92cdfe43f21127c2de1d4ea0bd2599`, then use the final fixer handoff for the new packet-refresh branch tip created by this commit.
 
 ## Scope goal
 - Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
 
 ## Canonical demo-path step advanced
 - `retrieve relevant material`
-- This reviewed slice makes that step more real by keeping SQLite FTS authoritative while improving ranking with section hints, preserving title hints on canonical excerpt lookups, normalizing date-range ordering for deterministic filtering, and ensuring downstream retrieval payloads rehydrate deterministic hits and provenance.
+- This reviewed slice makes that step more real by keeping SQLite FTS authoritative while hardening deterministic downstream retrieval payloads, keeping excerpt lookup on the canonical FTS-only path, honoring section hints in FTS ranking, preserving title hints on excerpt lookup, and normalizing reversed date ranges for deterministic filtering.
 
 ## Scope completed
 - SQLite FTS remains the authoritative MVP retrieval path in this reviewed slice.
@@ -33,28 +32,27 @@
 ## Traceability note
 - Earlier packet refresh commits such as `856f6ccd78ca52a73d1a757e8bd7d922dcef4ab9` and `bccc788cb555029e699628b2bd1549d4d283e714` remain useful trace anchors for the handoff chain.
 - The actual reviewed implementation changes for this packet are the six implementation commits `0d21c11e2a3866b6944c98240a2fe8f0678551bf`, `226121095e4d889d79feabfb9966a84b756d5753`, `2b32538cdaf7e00726607fbe11c6957de0d7d739`, `73ad9229b1a6c1d47a90a52f6a92dbc5fab0f64f`, `91899af618c0d62461c1512db42f4466b962beb2`, and `712714c24f92cdfe43f21127c2de1d4ea0bd2599`.
-- The docs-only alignment commit in that range is `b3d5fec4cc9c31aa2e184d4c8f6780d8f1b119c0`.
-- This regenerated packet stops describing the implementation tip as metadata-only.
+- The docs-only alignment commits inside that reviewed span are `b3d5fec4cc9c31aa2e184d4c8f6780d8f1b119c0` and `b008fe29758f55182ad0a704d26e8490605c5dbb`.
 
 ## Reviewer fix reconciliation
-- Required fix 1 is satisfied by regenerating the handoff against the actual branch tip instead of treating a later implementation commit as metadata-only.
-- Required fix 2 is satisfied by updating the reviewed implementation range, scope summary, file list, tasks, and risk to include the retrieval payload, ranking, excerpt-lookup, and date-range normalization behavior now present at the real branch tip.
-- Required fix 3 is satisfied by tightening scope to the canonical demo-path step `retrieve relevant material` and explaining how the post-`adfa8c...` retrieval work directly advances the Milestone 3 FTS-first retrieval lane.
-- Required fix 4 is satisfied by adding the explicit AGENTS-required canonical demo-path step statement.
+- Required fix 1 is satisfied by making every packet file anchor to the same reviewed implementation head `712714c24f92cdfe43f21127c2de1d4ea0bd2599` and reviewed implementation range `bccc788cb555029e699628b2bd1549d4d283e714..712714c24f92cdfe43f21127c2de1d4ea0bd2599`.
+- Required fix 2 is satisfied by limiting the metadata-only handoff file list to the actual packet files edited in this fixer pass.
+- Required fix 3 is satisfied by naming the AGENTS-required canonical demo-path step `retrieve relevant material`.
+- Required fix 4 is satisfied by keeping scope explicit to Milestone 3 FTS-first retrieval work and tying the included post-`adfa8c...` retrieval changes directly to that engine demo path.
 
 ## Required fixes addressed
-1. Regenerated the packet against the actual implementation tip `91899af618c0d62461c1512db42f4466b962beb2`.
-2. Updated `Reviewed implementation range`, `Scope completed`, `Files changed`, `Tasks completed`, and `Risk` to include the real retrieval behavior changes now on branch.
-3. Tightened scope explicitly to the canonical demo-path step `retrieve relevant material` and tied the later retrieval changes to the Milestone 3 FTS-first retrieval contract.
-4. Added the missing AGENTS-required statement naming the canonical demo-path step made more real by this handoff.
+1. Regenerated the handoff metadata so the reviewed implementation head/range is authoritative and consistent across packet files.
+2. Reconciled the metadata-only handoff files with the actual packet files edited in this fixer pass.
+3. Added the explicit AGENTS-required canonical demo-path step advanced by this lane.
+4. Kept scope tightened to Milestone 3 / FTS-first retrieval and explained how the included post-`adfa8c...` changes still directly advance the canonical engine retrieval step.
 
 ## Verification note
 - The current implementation head before this fixer commit is `712714c24f92cdfe43f21127c2de1d4ea0bd2599`.
-- Required local gates are re-run on top of that implementation state before this handoff is refreshed.
-- This fixer pass is metadata-only, but it corrects the packet to describe the real implementation tip instead of preserving the stale narrowed slice.
+- Required local gates are re-run on top of the current packet-refresh branch head before this handoff is finalized.
+- This fixer pass is metadata-only and does not change the reviewed implementation range.
 
 ## Packet trace note
-- The packet trace anchor for the implementation under review is `712714c24f92cdfe43f21127c2de1d4ea0bd2599`.
+- The packet trace anchor before this fixer commit is `b008fe29758f55182ad0a704d26e8490605c5dbb`.
 - This packet does not self-record the new fixer commit SHA because that value exists only after commit creation; use the final fixer handoff for the actual branch tip after this metadata correction lands.
 - Read the file list and task summary against `bccc788cb555029e699628b2bd1549d4d283e714..712714c24f92cdfe43f21127c2de1d4ea0bd2599`.
 
@@ -81,7 +79,7 @@ These are the files changed across the reviewed implementation range.
 
 ### Metadata-only handoff files
 
-These files keep the branch-level handoff packet aligned and are outside the retrieval implementation scope.
+These are the packet files edited in this fixer pass.
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
@@ -96,7 +94,7 @@ These files keep the branch-level handoff packet aligned and are outside the ret
 
 ## Budget alignment
 - This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the packet is shared/high-risk work and should be read against the 4-task cap.
-- The reviewed implementation range changes 7 retrieval files plus this packet file, and the only shared-by-approval implementation file in the reviewed range is `tests/unit/test_unified_retrieval.py`.
+- The reviewed implementation range changes 7 retrieval files, and the only shared-by-approval implementation file in the reviewed range is `tests/unit/test_unified_retrieval.py`.
 - No integrator-locked files were edited in the reviewed retrieval implementation.
 
 ## Commands run and outcomes
