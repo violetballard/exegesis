@@ -27,6 +27,7 @@
 - The implementation scope under review is the actual branch-tip runtime and test surface changed after `f8d860ed...`: `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, and `tests/unit/test_commands_catalog.py`.
 - The concrete blocker removed is silent drift in the CLI `patch-review` surface: without these follow-on validations and smoke-contract helpers, parser/catalog divergence can change the operator contract for `preview and apply or reject a patch` without a fast failure in smoke tests.
 - The focused regression additions include the concrete drift cases requested in review: alias-for-canonical substitution and CLI entrypoint reordering.
+- The protected CLI-first smoke route is stated explicitly for re-review: `project-open -> retrieval -> patch-review -> export-handoff`.
 
 ## Branch-tip traceability
 - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` introduced the original command-catalog drift guard in `src/qual/commands/catalog.py` and the focused regression coverage in `tests/unit/test_commands_catalog.py`.
@@ -52,7 +53,7 @@
 - `preview and apply or reject a patch`
 - `continue working`
 - This work advances the `preview and apply or reject a patch` step in the canonical engine-first demo path from `AGENTS.md` and `ROADMAP.md`.
-- It makes that CLI-first Milestone 3 step more real by keeping the `patch-review` command surface, parser entrypoints, and smoke-route ordering deterministic, so the operator contract stays explicit and easy to smoke-test instead of drifting silently between review cycles.
+- It makes that CLI-first Milestone 3 step more real by keeping the `patch-review` command surface, parser entrypoints, and the smoke route `project-open -> retrieval -> patch-review -> export-handoff` deterministic, so the operator contract stays explicit and easy to smoke-test instead of drifting silently between review cycles.
 
 ## Scope completed
 - Hardened `command_cli_contract()` in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py) so canonical CLI names must match `command_names()` and declared per-command CLI entrypoints must match the validated parser surface, with drift raising `ValueError`.
@@ -104,7 +105,7 @@
 ## Required handoff fields
 ### Scope completed
 - CLI compatibility now depends on one deterministic command catalog that defines parser entrypoints, parser lookup helpers, route ordering, smoke-route metadata, and invocation metadata without allowing silent parser/catalog drift.
-- This specifically hardens the canonical demo-path step `preview and apply or reject a patch` by keeping the `patch-review` operator entrypoint, smoke route, and bounded diff output stable and smoke-testable while Textual remains disabled.
+- This specifically hardens the canonical demo-path step `preview and apply or reject a patch` by keeping the `patch-review` operator entrypoint, the smoke route `project-open -> retrieval -> patch-review -> export-handoff`, and bounded diff output stable and smoke-testable while Textual remains disabled.
 
 ### Canonical demo-path step advanced
 - `preview and apply or reject a patch`
@@ -112,12 +113,12 @@
 - The packet fix is first-order Milestone 3 work because it protects the CLI-first `patch-review` contract used to execute that canonical engine workflow step.
 
 ### Roadmap item(s) affected
-- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands by keeping the `patch-review` demo-path step deterministic and smoke-testable.
+- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands by keeping the CLI-first smoke route `project-open -> retrieval -> patch-review -> export-handoff` deterministic and smoke-testable, with direct protection for the `patch-review` demo-path step.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ### Vision capability affected
-- `Canonical engine contract` - the CLI surface stays stable and machine-checkable while Textual remains disabled.
-- `Auditable state and workflow` - parser/catalog drift now fails loudly instead of silently changing the operator contract.
+- `Canonical engine contract` - the CLI surface for `project-open -> retrieval -> patch-review -> export-handoff` stays stable and machine-checkable while Textual remains disabled.
+- `Auditable state and workflow` - parser/catalog drift now fails loudly instead of silently changing the operator contract for that CLI-first smoke route.
 
 ### Routing/provider impact note
 - None. This change only affects local command-catalog and CLI contract validation.
