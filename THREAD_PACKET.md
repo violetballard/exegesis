@@ -15,7 +15,7 @@
 - Docs-only alignment commit(s):
   - Numerous packet-only `docs(commands): ...` commits touched `THREAD_PACKET.md` between the implementation commits above.
   - `ee88483683f57242406bbd0b5a895dddf7da8537` (`docs(commands): fix handoff traceability packet`) corrected the stale narrowed review basis and re-scoped the packet to the real branch-tip implementation.
-  - `16ef7c9141be6f04b40b87bf54b96f2be436570f` (`docs(commands): refresh reviewer fix handoff packet`) is the current docs-only branch tip before this refresh and does not change the implementation scope.
+  - `774d944962849aa114e9b04ec478b2da97a16d7f` (`docs(commands): refresh reviewer fix packet evidence`) is the prior docs-only branch tip before this refresh and does not change the implementation scope.
   - This fixer pass updates `THREAD_PACKET.md` only so the handoff packet stays anchored to the actual current branch tip and today's gate rerun for re-review after the reviewer requested a commit-accurate regeneration.
 
 ## Reviewer-required fixes closure
@@ -23,10 +23,10 @@
 - Required fix `2`: the stale claim that later commits were metadata-only has been removed; only the packet-only `docs(commands): ...` commits are treated as docs-only alignment commits.
 - Required fix `3`: the canonical demo-path step advanced is stated explicitly below and mapped to the Milestone 3 CLI-first loop.
 - Required fix `4`: the commands-run and budget/limits notes below are stated against the same current branch-tip scope named in this packet.
-- Fixer verification on `2026-04-13`: reran the focused command-catalog unittest slice and the full required gate set in this lane worktree during this packet refresh. The reviewed implementation scope remains the same code-bearing lineage through `cea5da3599799e72b24ed5f3e88474f3e275846a`, with this fixer pass changing `THREAD_PACKET.md` only.
+- Fixer verification on `2026-04-13`: reran the full required gate set in this lane worktree during this packet refresh. The reviewed implementation scope remains the same code-bearing lineage through `cea5da3599799e72b24ed5f3e88474f3e275846a`, with this fixer pass changing `THREAD_PACKET.md` only.
 
 ## Reviewer-fix resubmission note
-- This packet no longer narrows review to `f8d860ed...` alone. It covers the full current branch-tip lineage: implementation through `cea5da3599799e72b24ed5f3e88474f3e275846a`, then packet-only docs refreshes through `16ef7c9141be6f04b40b87bf54b96f2be436570f`, plus this current metadata-only packet refresh.
+- This packet no longer narrows review to `f8d860ed...` alone. It covers the full current branch-tip lineage: implementation through `cea5da3599799e72b24ed5f3e88474f3e275846a`, then packet-only docs refreshes through `774d944962849aa114e9b04ec478b2da97a16d7f`, plus this current metadata-only packet refresh.
 - The implementation scope under review is the actual branch-tip runtime and test surface changed after `f8d860ed...`: `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, and `tests/unit/test_commands_catalog.py`.
 - The concrete blocker removed is silent drift in the CLI `patch-review` surface: without these follow-on validations and smoke-contract helpers, parser/catalog divergence can change the operator contract for `preview and apply or reject a patch` without a fast failure in smoke tests.
 - The focused regression additions include the concrete drift cases requested in review: alias-for-canonical substitution and CLI entrypoint reordering.
@@ -43,7 +43,7 @@
 - `26658f39` added the CLI shim contract so compatibility imports stay aligned with the expanded command surface.
 - `8b52002c` completed the reviewer-fix series by rejecting parser-surface drift when validated CLI entrypoints no longer match the canonical contract.
 - `cea5da35` added invocation metadata to the command smoke contract in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`, so the CLI-first smoke route also exposes deterministic invocation planning for the canonical `patch-review` step.
-- Additional `docs(commands): ...` commits after `cea5da35` through `16ef7c91` update `THREAD_PACKET.md` only and do not change the implementation files above.
+- Additional `docs(commands): ...` commits after `cea5da35` through `774d9449` update `THREAD_PACKET.md` only and do not change the implementation files above.
 - This current fixer refresh also updates `THREAD_PACKET.md` only.
 
 ## Scope goal
@@ -94,11 +94,10 @@
 
 ## Commands run with results
 - Revalidated on `2026-04-13` in this feature-fixer closure pass after refreshing `THREAD_PACKET.md`; the reviewed implementation scope remains the same code-bearing lineage through `cea5da3599799e72b24ed5f3e88474f3e275846a`.
-- `python -m unittest discover -s tests/unit -p 'test_commands_catalog.py'`: PASS (`73` tests)
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
-- `./quality-test.sh`: PASS
+- `./quality-test.sh`: PASS (`155` tests + smoke)
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 
