@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import unittest
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from src.qual.ui.a2ui import (
     A2UI_ACTION_SCHEMA_VERSION,
@@ -419,6 +420,22 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertIn("[ActionRef] Export", action_text)
         self.assertIn("[SelectionRef] Choice", selection_text)
+
+    def test_shell_ui_falls_back_when_primary_renderer_raises_unexpected_error(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            text = shell.render_artifact(
+                {
+                    "type": "GenericCard",
+                    "title": "Fallback",
+                    "blocks": [],
+                    "actions": [],
+                }
+            )
+
+        self.assertIn("[GenericCard] Fallback", text)
+        self.assertNotIn("boom", text)
 
     def test_terminal_artifact_uses_explicit_kind_for_raw_mappings(self) -> None:
         action_text = render_terminal_artifact(

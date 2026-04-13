@@ -15,8 +15,8 @@ class ShellUI:
     def render_artifact(self, artifact: Any, *, kind: str | None = None) -> str:
         try:
             return render_terminal_artifact(artifact, kind=kind)
-        except ValueError:
-            # CLI fallback should stay usable even when the terminal envelope is malformed.
+        except Exception:
+            # Keep the CLI usable even if the structured artifact renderer fails unexpectedly.
             return render_terminal_card(artifact)
 
     def render_startup(self, runtime: EngineRuntime) -> str:
