@@ -546,7 +546,9 @@ class RetrievalResult:
 
     def _query_snapshot(self) -> dict[str, object]:
         return {
-            "query_text": self.query.query_text,
+            # Keep exported retrieval snapshots stable across whitespace-only
+            # query variants that already share fingerprints and hit ordering.
+            "query_text": RetrievalService._normalized_query_text(self.query.query_text),
             "scope": self.query.scope,
             "intent": self.query.intent,
             "constraints": {

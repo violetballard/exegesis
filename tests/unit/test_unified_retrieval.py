@@ -170,6 +170,41 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual([hit.excerpt_id for hit in compact.hits], [hit.excerpt_id for hit in spaced.hits])
         self.assertEqual(compact.result_fingerprint, spaced.result_fingerprint)
 
+    def test_retrieve_auto_normalizes_query_text_in_canonical_payloads(self) -> None:
+        compact = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="outline_support",
+                constraints=RetrievalConstraints(max_results=6, section_hint="discussion", prefer_exact_matches=True),
+                confidentiality_profile="confidential",
+            )
+        )
+        spaced = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="  Discussion   Theory  ",
+                scope="doc:doc-pdf-1",
+                intent="outline_support",
+                constraints=RetrievalConstraints(max_results=6, section_hint="discussion", prefer_exact_matches=True),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        compact_payload = compact.to_downstream_payload()
+        spaced_payload = spaced.to_downstream_payload()
+        compact_payload.pop("audit_ref")
+        spaced_payload.pop("audit_ref")
+        compact_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        spaced_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        compact_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        spaced_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+
+        self.assertEqual(compact_payload["query"]["query_text"], "discussion theory")
+        self.assertEqual(spaced_payload["query"]["query_text"], "discussion theory")
+        self.assertEqual(compact_payload, spaced_payload)
+        self.assertEqual(compact.source_bundle()["query"]["query_text"], "discussion theory")
+        self.assertEqual(spaced.source_bundle()["query"]["query_text"], "discussion theory")
+
     def test_retrieve_auto_normalizes_section_hint_in_query_fingerprint(self) -> None:
         compact = self.service.retrieve_auto(
             RetrievalQuery(
@@ -1160,7 +1195,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
     def test_retrieval_payload_helpers_normalize_tuple_shaped_snapshots(self) -> None:
         payload = {
             "query": {
-                "query_text": "memo comparison",
+                "query_text": "  Memo   Comparison  ",
                 "scope": "vault",
                 "intent": "compare",
                 "constraints": {
@@ -1234,6 +1269,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(provenance["active_strategy_ids"], ["fts"])
         self.assertEqual(provenance["deferred_strategy_ids"], ["pageindex", "embeddings"])
         self.assertEqual(provenance["fts_shortlist_doc_ids"], ["doc-1", "doc-2"])
+        self.assertEqual(source_bundle["query"]["query_text"], "memo comparison")
         self.assertEqual(source_bundle["query"]["constraints"]["doc_types"], ["memo", "pdf"])
         self.assertEqual(source_bundle["query"]["constraints"]["date_range"], ["2026-01-01", "2026-01-31"])
         self.assertEqual(source_bundle["policy"]["active_strategy_ids"], ["fts"])

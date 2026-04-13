@@ -66,6 +66,13 @@ def _normalize_optional_text(value: object) -> str | None:
     return None
 
 
+def _normalize_query_text(value: object) -> str | None:
+    text = _normalize_optional_text(value)
+    if text is None:
+        return None
+    return " ".join(text.casefold().split())
+
+
 def _first_text_value(*values: object) -> str | None:
     for value in values:
         text = _normalize_optional_text(value)
@@ -122,6 +129,9 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
     if not isinstance(query, dict):
         return {}
     normalized = copy.deepcopy(query)
+    normalized_query_text = _normalize_query_text(normalized.get("query_text"))
+    if normalized_query_text is not None:
+        normalized["query_text"] = normalized_query_text
     constraints = normalized.get("constraints", {})
     if not isinstance(constraints, dict):
         constraints = {}
