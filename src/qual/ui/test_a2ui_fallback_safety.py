@@ -336,6 +336,57 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("A2UI v1", card_text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", card_text)
 
+    def test_shell_ui_recovers_structured_kinds_from_raw_payloads_during_fallback(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            action_text = shell.render_artifact(
+                ActionRef(
+                    id=" export_document ",
+                    label=" Export ",
+                    payload={"format": "md"},
+                )
+            )
+            selection_text = shell.render_artifact(
+                SelectionRef(
+                    id=" choice-1 ",
+                    label=" Choice ",
+                    payload={"nested": {"items": [1, 2]}},
+                )
+            )
+            typed_action_text = shell.render_artifact(
+                {
+                    "type": "ActionRef",
+                    "id": " export_document ",
+                    "label": " Export ",
+                    "payload": {"format": "md"},
+                }
+            )
+            typed_selection_text = shell.render_artifact(
+                {
+                    "type": "SelectionRef",
+                    "id": " choice-1 ",
+                    "label": " Choice ",
+                    "payload": {"nested": {"items": [1, 2]}},
+                }
+            )
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[GenericCard]", action_text)
+
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[GenericCard]", selection_text)
+
+        self.assertIn("[ActionRef] Export", typed_action_text)
+        self.assertIn("Action schema v1", typed_action_text)
+        self.assertNotIn("[GenericCard]", typed_action_text)
+
+        self.assertIn("[SelectionRef] Choice", typed_selection_text)
+        self.assertIn("Selection schema v1", typed_selection_text)
+        self.assertNotIn("[GenericCard]", typed_selection_text)
+
     def test_shell_ui_keeps_cli_fallback_for_mismatched_terminal_artifacts(self) -> None:
         shell = ShellUI()
 

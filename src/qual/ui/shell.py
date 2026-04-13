@@ -7,6 +7,8 @@ import unicodedata
 
 from src.qual.engine.service import EngineRuntime
 from .a2ui import (
+    ActionRef,
+    SelectionRef,
     render_terminal_action,
     render_terminal_artifact,
     render_terminal_card,
@@ -85,6 +87,35 @@ class ShellUI:
         if not isinstance(value, str) and ShellUI._looks_like_opaque_object_repr(escaped):
             return (type(value).__name__, ShellUI._format_item_id(value))
         return (type(value).__name__, escaped)
+
+    @staticmethod
+    def _infer_fallback_kind(artifact: Any) -> str | None:
+        if isinstance(artifact, ActionRef):
+            return "action"
+        if isinstance(artifact, SelectionRef):
+            return "selection"
+        if not isinstance(artifact, Mapping):
+            return None
+
+        artifact_type = artifact.get("type")
+        if isinstance(artifact_type, str):
+            normalized_type = artifact_type.strip()
+            if normalized_type == "ActionRef":
+                return "action"
+            if normalized_type == "SelectionRef":
+                return "selection"
+
+        has_required_fields = all(field in artifact for field in ("id", "label", "payload"))
+        if not has_required_fields:
+            return None
+
+        has_action_hints = any(field in artifact for field in ("confirm", "policy_sensitive"))
+        has_selection_hints = any(field in artifact for field in ("selected", "disabled"))
+        if has_action_hints and not has_selection_hints:
+            return "action"
+        if has_selection_hints and not has_action_hints:
+            return "selection"
+        return None
 
     @staticmethod
     def _format_item_id(value: object) -> str:
@@ -168,10 +199,14 @@ class ShellUI:
     def _resolve_fallback_artifact(artifact: Any, *, kind: str | None) -> tuple[Any, str | None]:
         fallback_kind = ShellUI._normalize_fallback_kind(kind)
         if not isinstance(artifact, Mapping):
+            if fallback_kind is None:
+                fallback_kind = ShellUI._infer_fallback_kind(artifact)
             return artifact, fallback_kind
 
         artifact_type = artifact.get("type")
         if not isinstance(artifact_type, str) or artifact_type.strip() != "TerminalArtifact":
+            if fallback_kind is None:
+                fallback_kind = ShellUI._infer_fallback_kind(artifact)
             return artifact, fallback_kind
 
         try:
