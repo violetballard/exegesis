@@ -18,7 +18,7 @@
 
 ## Scope goal
 - Harden the CLI command contract so command catalog, parser entrypoints, route ordering, and invocation planning stay deterministic and fail fast if the parser surface drifts from the catalog.
-- Keep the `patch-review` command entrypoint stable for the canonical demo-path step `preview and apply or reject a patch`, so this contract hardening remains first-order Milestone 3 CLI compatibility work instead of generic cleanup.
+- Keep the `patch-review` command entrypoint stable for the canonical demo-path steps `preview and apply or reject a patch` and `continue working`, so this contract hardening remains first-order Milestone 3 CLI compatibility work instead of generic cleanup.
 
 ## Lane/owned paths
 - Owned runtime path in this worktree: `src/qual/commands/**`
@@ -26,7 +26,8 @@
 
 ## Canonical demo-path step advanced
 - `preview and apply or reject a patch`
-- This work makes that step more real by keeping the CLI command surface and smoke-route ordering deterministic, so patch-review entrypoints remain explicit, stable, and easy to smoke-test while the engine-first MVP loop stays on the canonical contract.
+- `continue working`
+- This work removes a concrete blocker on the canonical MVP loop by keeping the CLI command surface and smoke-route ordering deterministic, so patch-review entrypoints remain explicit, stable, and easy to smoke-test instead of drifting silently between review cycles.
 
 ## Scope completed
 - Hardened `command_cli_contract()` in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py) so canonical CLI names must match `command_names()` and drift raises `ValueError`.
