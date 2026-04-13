@@ -2137,6 +2137,13 @@ class RetrievalService:
         normalized_provenance["strategies_used"] = list(strategies_used)
         normalized_provenance["retrieval_source_strategy"] = source_strategy
         normalized_provenance["lookup_resolution"] = lookup_resolution
+        matched_terms = _optional_list_like(normalized_provenance.get("matched_terms"))
+        if matched_terms is not None:
+            normalized_provenance["matched_terms"] = matched_terms
+            normalized_provenance["match_count"] = len(matched_terms)
+        query_date_range = _optional_list_like(normalized_provenance.get("query_date_range"))
+        if query_date_range is not None:
+            normalized_provenance["query_date_range"] = query_date_range
         lookup_fingerprint = RetrievalService._stable_fingerprint(
             {
                 "doc_id": doc_id_value,
@@ -2154,6 +2161,23 @@ class RetrievalService:
         )
         normalized["lookup_fingerprint"] = lookup_fingerprint
         normalized_provenance["lookup_fingerprint"] = lookup_fingerprint
+        normalized["excerpt_text_hash"] = text_hash
+        for key in (
+            "query_fingerprint",
+            "query_scope",
+            "query_intent",
+            "query_date_range",
+            "candidate_doc_count",
+            "matched_terms",
+            "match_count",
+            "rank",
+            "fts_rank",
+            "section_hint",
+            "section_hint_rank",
+        ):
+            value = normalized_provenance.get(key)
+            if value is not None:
+                normalized[key] = copy.deepcopy(value)
         normalized["provenance"] = normalized_provenance
         return normalized
 

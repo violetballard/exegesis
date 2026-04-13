@@ -1217,6 +1217,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(canonical["provenance"]["hash"], result.hits[0].provenance["hash"])
         self.assertEqual(canonical["text_hash"], result.hits[0].provenance["excerpt_text_hash"])
+        self.assertEqual(canonical["excerpt_text_hash"], result.hits[0].provenance["excerpt_text_hash"])
         self.assertEqual(canonical["lookup_fingerprint"], canonical["provenance"]["lookup_fingerprint"])
 
     def test_normalize_excerpt_payload_backfills_canonical_provenance_for_sparse_inputs(self) -> None:
@@ -1227,6 +1228,16 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "doc_type": "pdf",
                 "text": "Methods section with recruitment constraints.",
                 "span": {"char_range": {"start": "5", "end": "21"}},
+                "provenance": {
+                    "matched_terms": ("methods", "constraints"),
+                    "query_fingerprint": "query-fingerprint-1",
+                    "query_scope": "vault",
+                    "query_intent": "lookup",
+                    "query_date_range": ("2026-01-01", "2026-01-31"),
+                    "candidate_doc_count": 2,
+                    "rank": 1,
+                    "fts_rank": -0.25,
+                },
             },
             source_strategy="fts",
             lookup_resolution="fts",
@@ -1240,6 +1251,16 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["deferred_strategy_ids"], ["pageindex", "embeddings"])
         self.assertEqual(normalized["strategies_used"], ["fts"])
         self.assertEqual(normalized["span"], {"char_range": {"start": 5, "end": 21}})
+        self.assertEqual(normalized["excerpt_text_hash"], normalized["text_hash"])
+        self.assertEqual(normalized["matched_terms"], ["methods", "constraints"])
+        self.assertEqual(normalized["match_count"], 2)
+        self.assertEqual(normalized["query_fingerprint"], "query-fingerprint-1")
+        self.assertEqual(normalized["query_scope"], "vault")
+        self.assertEqual(normalized["query_intent"], "lookup")
+        self.assertEqual(normalized["query_date_range"], ["2026-01-01", "2026-01-31"])
+        self.assertEqual(normalized["candidate_doc_count"], 2)
+        self.assertEqual(normalized["rank"], 1)
+        self.assertEqual(normalized["fts_rank"], -0.25)
         self.assertEqual(normalized["provenance"]["excerpt_id"], "excerpt-sparse-1")
         self.assertEqual(normalized["provenance"]["doc_id"], "doc-pdf-1")
         self.assertEqual(normalized["provenance"]["doc_type"], "pdf")
@@ -1256,6 +1277,15 @@ class UnifiedRetrievalTests(unittest.TestCase):
             normalized["provenance"]["retrieval_policy"]["deferred_strategy_ids"],
             ["pageindex", "embeddings"],
         )
+        self.assertEqual(normalized["provenance"]["matched_terms"], ["methods", "constraints"])
+        self.assertEqual(normalized["provenance"]["match_count"], 2)
+        self.assertEqual(normalized["provenance"]["query_fingerprint"], "query-fingerprint-1")
+        self.assertEqual(normalized["provenance"]["query_scope"], "vault")
+        self.assertEqual(normalized["provenance"]["query_intent"], "lookup")
+        self.assertEqual(normalized["provenance"]["query_date_range"], ["2026-01-01", "2026-01-31"])
+        self.assertEqual(normalized["provenance"]["candidate_doc_count"], 2)
+        self.assertEqual(normalized["provenance"]["rank"], 1)
+        self.assertEqual(normalized["provenance"]["fts_rank"], -0.25)
         self.assertEqual(normalized["provenance"]["hash"], normalized["text_hash"])
         self.assertEqual(normalized["provenance"]["excerpt_text_hash"], normalized["text_hash"])
         self.assertEqual(normalized["provenance"]["excerpt_fingerprint"], normalized["excerpt_fingerprint"])
