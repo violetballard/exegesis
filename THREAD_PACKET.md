@@ -24,6 +24,7 @@
 ## Canonical demo-path step advanced
 - `retrieve relevant material`
 - This reviewed slice makes that step more real by making `fetch_excerpt` fail closed unless the excerpt exists on the canonical FTS path, which tightens deterministic excerpt and provenance behavior for the engine retrieval step.
+- This reviewed slice explicitly advances the canonical demo-path step `retrieve relevant material` by keeping excerpt lookup on the authoritative FTS-only path with deterministic provenance output.
 - SQLite FTS remains authoritative while deterministic retrieval payloads, sparse citation/provenance reconstruction, and one-entry FTS cache reuse continue to support the same canonical retrieval step without reintroducing alternate required paths.
 
 ## Scope completed
