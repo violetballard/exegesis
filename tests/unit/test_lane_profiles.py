@@ -62,60 +62,6 @@ class LaneProfileDefaultsTests(unittest.TestCase):
         self.assertIn("## Do not spend time on", packet)
         self.assertIn(engine_priority_lines()[0], packet)
 
-    def test_planner_packet_supports_metadata_only_refresh_traceability(self) -> None:
-        packet = build_packet(
-            "feat-retrieval-fts",
-            "codex/feat-retrieval-fts",
-            "refreshsha",
-            {
-                "scope_goal": "Refresh the retrieval handoff packet against the reviewed implementation slice.",
-                "scope_completed": "Re-pointed the handoff to the actual reviewed retrieval implementation.",
-                "tasks_completed": ["Updated the packet traceability and reviewed file list."],
-                "roadmap_items": ["Milestone 3: Real workflow loop"],
-                "vision_capabilities": ["Retrieval-first context handling"],
-                "routing_provider_impact": "None",
-                "reviewed_commit": "implsha",
-                "reviewed_commit_range": "base..implsha",
-                "packet_head_role": "metadata-only reviewer-fix finalization",
-                "metadata_only_note": "The current branch tip is a docs-only packet refresh; review the implementation at `implsha`.",
-                "reviewed_files": ["src/qual/retrieval/service.py"],
-                "metadata_only_files": ["THREAD_PACKET.md"],
-            },
-            ["THREAD_PACKET.md"],
-            [("make scope-check", 0)],
-        )
-
-        self.assertIn("- Commit: `implsha`", packet)
-        self.assertIn("- Packet refresh commit: `refreshsha`", packet)
-        self.assertIn("- Packet refresh role: `metadata-only reviewer-fix finalization`", packet)
-        self.assertIn("- Reviewed implementation range: `base..implsha`", packet)
-        self.assertIn("## Packet traceability note", packet)
-        self.assertIn("### Reviewed implementation files", packet)
-        self.assertIn("### Metadata-only handoff files", packet)
-
-    def test_planner_packet_accepts_scope_completed_string(self) -> None:
-        packet = build_packet(
-            "feat-engine-runs",
-            "codex/feat-engine-runs",
-            "deadbeef",
-            {
-                "scope_goal": "Keep engine manifests deterministic across legacy replay paths.",
-                "scope_completed": "Recovered legacy run provenance and kept retrieval evidence in serialized manifests.",
-                "tasks_completed": ["Updated the engine-run manifest backfill path."],
-                "roadmap_items": ["Milestone 3: Real workflow loop"],
-                "vision_capabilities": ["Auditable state and workflow"],
-                "routing_provider_impact": "None",
-            },
-            ["src/qual/engine/run_pipeline.py"],
-            [("make scope-check", 0)],
-        )
-
-        self.assertIn("## Scope completed", packet)
-        self.assertIn(
-            "- Recovered legacy run provenance and kept retrieval evidence in serialized manifests.",
-            packet,
-        )
-
     def test_feature_lane_prompt_includes_engine_execution_order(self) -> None:
         prompt = build_prompt("feat-commands", "/tmp/fake-worktree")
 

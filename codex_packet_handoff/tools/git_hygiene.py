@@ -26,7 +26,6 @@ TMP_WORKTREE_PREFIXES = (
 )
 STALE_GIT_HELPER_MIN_AGE_SECONDS = 300
 STALE_GIT_READONLY_MIN_AGE_SECONDS = 900
-STALE_INDEX_LOCK_MIN_AGE_SECONDS = 300
 GIT_HELPER_RE = re.compile(r"(?:^|\s)\S*git (write-tree|read-tree|commit-tree|commit)(?:\s|$)")
 GIT_READONLY_RE = re.compile(
     r"(?:^|\s)\S*git (status|diff(?:-index|-tree)?|show|ls-tree|rev-parse)(?:\s|$)"
@@ -223,46 +222,11 @@ def prune_stale_temp_worktrees(repo_root: Path = REPO_ROOT) -> List[str]:
     return sorted(set(removed))
 
 
-def prune_stale_index_locks(
-    repo_root: Path = REPO_ROOT,
-    *,
-    min_age_seconds: int = STALE_INDEX_LOCK_MIN_AGE_SECONDS,
-) -> List[str]:
-    now = time.time()
-    removed: List[str] = []
-    patterns = [
-        repo_root / ".git" / "index.lock",
-        repo_root / ".git" / "worktrees",
-    ]
-    lock_paths: List[Path] = []
-    if patterns[0].exists():
-        lock_paths.append(patterns[0])
-    if patterns[1].exists():
-        lock_paths.extend(patterns[1].glob("*/index.lock"))
-    for lock_path in lock_paths:
-        try:
-            age_seconds = now - lock_path.stat().st_mtime
-        except FileNotFoundError:
-            continue
-        if age_seconds < min_age_seconds:
-            continue
-        try:
-            lock_path.unlink()
-        except FileNotFoundError:
-            continue
-        except Exception:
-            continue
-        removed.append(str(lock_path))
-    return sorted(set(removed))
-
-
 def run_hygiene(repo_root: Path = REPO_ROOT) -> Dict[str, object]:
     stale_git_pids = reap_stale_git_helpers(repo_root)
-    stale_index_locks = prune_stale_index_locks(repo_root)
     temp_worktrees_removed = prune_stale_temp_worktrees(repo_root)
     return {
         "stale_git_pids": stale_git_pids,
-        "stale_index_locks": stale_index_locks,
         "temp_worktrees_removed": temp_worktrees_removed,
     }
 
@@ -273,7 +237,6 @@ def main() -> int:
     args = parser.parse_args()
     summary = run_hygiene(Path(args.repo_root))
     print(f"stale_git_pids={summary['stale_git_pids']}")
-    print(f"stale_index_locks={summary['stale_index_locks']}")
     print(f"temp_worktrees_removed={summary['temp_worktrees_removed']}")
     return 0
 

@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 import json
 
+APP_CODEX_CMD = "/Applications/Codex.app/Contents/Resources/codex"
+
 LANES = [
     'feat-context-storage',
     'feat-commands',
@@ -50,44 +52,44 @@ def write_example_config():
         )
     example = {
         "model": "gpt-5.1-codex",
-        "codex_cmd": "codex",
-        "fallback_model": "gpt-oss-20b",
-        "fallback_codex_cmd": "codex",
+        "codex_cmd": APP_CODEX_CMD,
+        "fallback_model": "unsloth/gpt-oss-20b",
+        "fallback_codex_cmd": APP_CODEX_CMD,
         "fallback_codex_args": ["-c", "model_provider=lms"],
         "fallback_model_args": [],
         "profiles": {
             "orchestrator": {
-                "codex_cmd": "codex",
+                "codex_cmd": APP_CODEX_CMD,
                 "codex_args": ["-c", "model_provider=lms"],
-                "model": "gpt-oss-20b",
+                "model": "unsloth/gpt-oss-20b",
                 "model_args": [],
             },
             "worker_cloud": {
-                "codex_cmd": "codex",
+                "codex_cmd": APP_CODEX_CMD,
                 "codex_args": [],
                 "model": "gpt-5.4-mini",
                 "model_args": [],
             },
             "worker_cloud_standard_medium": {
-                "codex_cmd": "codex",
+                "codex_cmd": APP_CODEX_CMD,
                 "codex_args": [],
                 "model": "gpt-5.4",
                 "model_args": ["-c", "model_reasoning_effort=medium"],
             },
             "integrator_cloud": {
-                "codex_cmd": "codex",
+                "codex_cmd": APP_CODEX_CMD,
                 "codex_args": [],
                 "model": "gpt-5.4",
                 "model_args": [],
             },
             "worker_local": {
-                "codex_cmd": "codex",
+                "codex_cmd": APP_CODEX_CMD,
                 "codex_args": ["-c", "model_provider=lms"],
-                "model": "gpt-oss-20b",
+                "model": "unsloth/gpt-oss-20b",
                 "model_args": [],
             },
             "worker_local_heavy": {
-                "codex_cmd": "codex",
+                "codex_cmd": APP_CODEX_CMD,
                 "codex_args": ["-c", "model_provider=lms"],
                 "model": "gpt-oss-120b",
                 "model_args": [],

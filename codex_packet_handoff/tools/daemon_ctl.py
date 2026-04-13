@@ -35,6 +35,7 @@ AUTOMATION_MARKERS = (
 )
 DAEMON_LOG_MAX_BYTES = 2 * 1024 * 1024
 DAEMON_LOG_KEEP_BYTES = 512 * 1024
+APP_CODEX_DIR = "/Applications/Codex.app/Contents/Resources"
 
 
 def _ensure_dirs() -> None:
@@ -234,6 +235,11 @@ def _start() -> int:
     with LOG_FILE.open("a") as lf:
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
+        current_path = env.get("PATH", "")
+        path_parts = [p for p in current_path.split(os.pathsep) if p]
+        path_parts = [p for p in path_parts if p != APP_CODEX_DIR]
+        path_parts.insert(0, APP_CODEX_DIR)
+        env["PATH"] = os.pathsep.join(path_parts)
         proc = subprocess.Popen(
             CMD,
             stdin=subprocess.DEVNULL,
