@@ -18,6 +18,7 @@
   - `82fb2cd0576d0ded9e0790908a266d9f3634d39f` (`docs(commands): tighten patch-review demo path mapping`) is the prior docs-only branch tip before this refresh and does not change the implementation scope.
   - `0113bb75c4b22b80dfbaaf0850ea3205a2b6d104` (`docs(commands): refresh reviewer fix packet tip`) remained packet-only and kept the review basis anchored to the full branch-tip implementation lineage.
   - This follow-up fixer refresh also updates `THREAD_PACKET.md` only after rerunning the full required gate set on `2026-04-13`; it does not change the implementation scope.
+  - This final feature-fixer closure commit is also packet-only and records the green gate rerun from this lane worktree on `2026-04-13`.
 
 ## Reviewer-required fixes closure
 - Required fix `1`: the packet is anchored to branch tip rather than `f8d860ed...` alone, and it lists the non-metadata implementation commits and implementation files changed after that earlier slice.
@@ -103,7 +104,7 @@
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
-- `./quality-test.sh`: PASS (`155` tests + smoke)
+- `./quality-test.sh`: PASS (`156` tests + smoke)
 - `./typecheck-test.sh`: PASS (`python3 -m compileall -q src`)
 - `make ci`: PASS
 
