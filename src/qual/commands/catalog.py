@@ -143,6 +143,23 @@ class CommandCliSurfaceContract:
 
 
 @dataclass(frozen=True)
+class CommandCliShimEntry:
+    token: str
+    canonical_name: str
+    flow_step: str
+    primary_cli_token: str
+    argv: tuple[str, ...]
+    kind: str
+
+
+@dataclass(frozen=True)
+class CommandCliShimContract:
+    entries: tuple[CommandCliShimEntry, ...]
+    lookup_table: tuple[tuple[str, str], ...]
+    invocation_table: tuple[tuple[str, tuple[str, ...]], ...]
+
+
+@dataclass(frozen=True)
 class CommandInvocationPlanEntry:
     flow_step: str
     name: str
@@ -851,6 +868,75 @@ def command_cli_surface_contract(
     return CommandCliSurfaceContract(entries=command_cli_surface_catalog(specs))
 
 
+def _surface_token_kind(token: str, route_entry: CommandFlowRouteEntry) -> str:
+    normalized_token = _normalize_token(token)
+    if normalized_token == route_entry.primary_cli_token:
+        return "primary"
+    if normalized_token in route_entry.cli_tokens:
+        return "cli"
+    if normalized_token == route_entry.flow_step:
+        return "flow-step"
+    return "lookup"
+
+
+@lru_cache(maxsize=None)
+def command_cli_shim_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandCliShimEntry, ...]:
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
+    route_catalog = command_flow_route_catalog(flow_steps=ordered_flow_steps, specs=specs)
+    entries: list[CommandCliShimEntry] = []
+    for route_entry in route_catalog:
+        argv = (route_entry.primary_cli_token,)
+        for token in route_entry.surface_tokens:
+            entries.append(
+                CommandCliShimEntry(
+                    token=token,
+                    canonical_name=route_entry.name,
+                    flow_step=route_entry.flow_step,
+                    primary_cli_token=route_entry.primary_cli_token,
+                    argv=argv,
+                    kind=_surface_token_kind(token, route_entry),
+                )
+            )
+    return tuple(entries)
+
+
+@lru_cache(maxsize=None)
+def command_cli_shim_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (entry.token, entry.primary_cli_token)
+        for entry in command_cli_shim_catalog(specs, flow_steps)
+    )
+
+
+@lru_cache(maxsize=None)
+def command_cli_shim_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return tuple(
+        (entry.token, entry.argv)
+        for entry in command_cli_shim_catalog(specs, flow_steps)
+    )
+
+
+@lru_cache(maxsize=None)
+def command_cli_shim_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> CommandCliShimContract:
+    return CommandCliShimContract(
+        entries=command_cli_shim_catalog(specs, flow_steps),
+        lookup_table=command_cli_shim_lookup_table(specs, flow_steps),
+        invocation_table=command_cli_shim_invocation_table(specs, flow_steps),
+    )
+
+
 @lru_cache(maxsize=None)
 def command_cli_surface_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -1234,6 +1320,38 @@ def command_demo_cli_surface_contract(
     return command_cli_surface_contract(specs)
 
 
+def command_demo_cli_shim_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandCliShimEntry, ...]:
+    ordered_flow_steps = command_demo_flow_steps() if flow_steps is None else flow_steps
+    return command_cli_shim_catalog(specs, ordered_flow_steps)
+
+
+def command_demo_cli_shim_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, str], ...]:
+    ordered_flow_steps = command_demo_flow_steps() if flow_steps is None else flow_steps
+    return command_cli_shim_lookup_table(specs, ordered_flow_steps)
+
+
+def command_demo_cli_shim_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    ordered_flow_steps = command_demo_flow_steps() if flow_steps is None else flow_steps
+    return command_cli_shim_invocation_table(specs, ordered_flow_steps)
+
+
+def command_demo_cli_shim_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> CommandCliShimContract:
+    ordered_flow_steps = command_demo_flow_steps() if flow_steps is None else flow_steps
+    return command_cli_shim_contract(specs, ordered_flow_steps)
+
+
 def command_demo_cli_route_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
@@ -1283,6 +1401,34 @@ def command_mvp_cli_surface_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandCliSurfaceContract:
     return command_demo_cli_surface_contract(specs)
+
+
+def command_mvp_cli_shim_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandCliShimEntry, ...]:
+    return command_demo_cli_shim_catalog(specs, flow_steps)
+
+
+def command_mvp_cli_shim_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_cli_shim_lookup_table(specs, flow_steps)
+
+
+def command_mvp_cli_shim_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_cli_shim_invocation_table(specs, flow_steps)
+
+
+def command_mvp_cli_shim_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> CommandCliShimContract:
+    return command_demo_cli_shim_contract(specs, flow_steps)
 
 
 def command_mvp_cli_route_catalog(

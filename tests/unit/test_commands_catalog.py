@@ -15,6 +15,10 @@ from src.qual.commands import (
     command_cli_contract,
     command_cli_flow_contract,
     command_cli_flow_lookup_table,
+    command_cli_shim_catalog,
+    command_cli_shim_contract,
+    command_cli_shim_invocation_table,
+    command_cli_shim_lookup_table,
     command_cli_surface_catalog,
     command_cli_surface_contract,
     command_cli_tokens,
@@ -78,6 +82,8 @@ from src.qual.commands import (
     command_demo_flow_route_summary,
     command_demo_flow_route_tokens,
     command_demo_cli_flow_contract,
+    command_demo_cli_shim_catalog,
+    command_demo_cli_shim_contract,
     command_demo_cli_surface_catalog,
     command_demo_cli_surface_contract,
     command_demo_cli_route_catalog,
@@ -86,6 +92,8 @@ from src.qual.commands import (
     command_demo_flow_surface_tokens,
     command_names,
     command_primary_cli_token_for,
+    command_mvp_cli_shim_catalog,
+    command_mvp_cli_shim_contract,
     command_mvp_cli_surface_catalog,
     command_mvp_cli_surface_contract,
     command_mvp_cli_route_catalog,
@@ -198,6 +206,51 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(contract.canonical_names, command_names())
         self.assertEqual(contract.lookup_table, command_cli_lookup_table())
 
+    def test_command_cli_shim_lookup_table_rewrites_surface_tokens_to_primary_entrypoints(self) -> None:
+        self.assertEqual(
+            command_cli_shim_lookup_table(),
+            (
+                ("bootstrap", "bootstrap"),
+                ("open", "bootstrap"),
+                ("project-open", "bootstrap"),
+                ("project", "bootstrap"),
+                ("bootstrap-run", "bootstrap"),
+                ("context-basket", "context-basket"),
+                ("context", "context-basket"),
+                ("basket", "context-basket"),
+                ("retrieval", "context-basket"),
+                ("retrieve", "context-basket"),
+                ("diff-preview", "diff-preview"),
+                ("diff", "diff-preview"),
+                ("review-patch", "diff-preview"),
+                ("patch-review", "diff-preview"),
+                ("terminal", "terminal"),
+                ("export", "terminal"),
+                ("save-export", "terminal"),
+                ("export-handoff", "terminal"),
+            ),
+        )
+        self.assertEqual(
+            command_cli_shim_invocation_table(),
+            tuple((token, (primary,)) for token, primary in command_cli_shim_lookup_table()),
+        )
+
+    def test_command_cli_shim_catalog_marks_surface_token_kinds(self) -> None:
+        shim_catalog = command_cli_shim_catalog()
+        shim_by_token = {entry.token: entry for entry in shim_catalog}
+        self.assertEqual(shim_by_token["bootstrap"].kind, "primary")
+        self.assertEqual(shim_by_token["open"].kind, "lookup")
+        self.assertEqual(shim_by_token["project-open"].kind, "flow-step")
+        self.assertEqual(shim_by_token["diff"].kind, "cli")
+        self.assertEqual(shim_by_token["patch-review"].kind, "flow-step")
+        self.assertEqual(shim_by_token["export-handoff"].argv, ("terminal",))
+
+    def test_command_cli_shim_contract_matches_catalog_helpers(self) -> None:
+        contract = command_cli_shim_contract()
+        self.assertEqual(contract.entries, command_cli_shim_catalog())
+        self.assertEqual(contract.lookup_table, command_cli_shim_lookup_table())
+        self.assertEqual(contract.invocation_table, command_cli_shim_invocation_table())
+
     def test_command_cli_contract_supports_custom_specs(self) -> None:
         specs = (
             CommandSpec(
@@ -241,6 +294,41 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_cli_tokens_for(specs, "open"), ("project-open", "bootstrap-run"))
         self.assertEqual(command_primary_cli_token_for(specs, "patch"), "review-patch")
         self.assertEqual(command_cli_primary_tokens(specs), ("project-open", "review-patch"))
+
+    def test_command_cli_shim_contract_supports_custom_specs(self) -> None:
+        specs = (
+            CommandSpec(
+                name="bootstrap",
+                aliases=("open",),
+                cli_tokens=("project-open", "bootstrap-run"),
+                flow_step="project-open",
+            ),
+            CommandSpec(
+                name="review",
+                aliases=("patch",),
+                cli_tokens=("review-patch",),
+                flow_step="patch-review",
+            ),
+        )
+        self.assertEqual(
+            command_cli_shim_lookup_table(specs),
+            (
+                ("project-open", "project-open"),
+                ("bootstrap-run", "project-open"),
+                ("bootstrap", "project-open"),
+                ("open", "project-open"),
+                ("review-patch", "review-patch"),
+                ("review", "review-patch"),
+                ("patch", "review-patch"),
+                ("patch-review", "review-patch"),
+            ),
+        )
+
+    def test_command_demo_and_mvp_cli_shim_helpers_alias_the_public_contract(self) -> None:
+        self.assertEqual(command_demo_cli_shim_contract(), command_cli_shim_contract())
+        self.assertEqual(command_mvp_cli_shim_contract(), command_demo_cli_shim_contract())
+        self.assertEqual(command_demo_cli_shim_catalog(), command_cli_shim_catalog())
+        self.assertEqual(command_mvp_cli_shim_catalog(), command_demo_cli_shim_catalog())
 
     def test_command_cli_contract_rejects_parser_surface_drift(self) -> None:
         command_catalog.command_cli_contract.cache_clear()
