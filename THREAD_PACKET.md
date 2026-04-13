@@ -15,18 +15,18 @@
 - Docs-only alignment commit(s):
   - Numerous packet-only `docs(commands): ...` commits touched `THREAD_PACKET.md` between the implementation commits above.
   - `ee88483683f57242406bbd0b5a895dddf7da8537` (`docs(commands): fix handoff traceability packet`) corrected the stale narrowed review basis and re-scoped the packet to the real branch-tip implementation.
-  - `8432439a94479099929d7ffd282360535e1b71c3` (`docs(commands): record fixer gate rerun`) is the current docs-only branch tip before this refresh and records the last gate rerun without changing implementation scope.
-  - This fixer pass updates `THREAD_PACKET.md` only so the handoff packet remains anchored to the actual branch-tip scope for re-review after the reviewer requested explicit packet regeneration.
+  - `2f41eeb10ef94b334f0a2128eecfabeef268ac53` (`docs(commands): tighten demo-path handoff mapping`) is the current docs-only branch tip before this refresh and does not change the implementation scope.
+  - This fixer pass updates `THREAD_PACKET.md` only so the handoff packet stays anchored to the actual current branch tip for re-review after the reviewer requested a commit-accurate regeneration.
 
 ## Reviewer-required fixes closure
 - Required fix `1`: the packet is anchored to branch tip rather than `f8d860ed...` alone, and it lists the non-metadata implementation commits and implementation files changed after that earlier slice.
 - Required fix `2`: the stale claim that later commits were metadata-only has been removed; only the packet-only `docs(commands): ...` commits are treated as docs-only alignment commits.
 - Required fix `3`: the canonical demo-path step advanced is stated explicitly below and mapped to the Milestone 3 CLI-first loop.
-- Required fix `4`: the budget/limits note below is stated against the true branch-tip implementation scope rather than the earlier narrowed slice.
-- Fixer verification on `2026-04-12`: reran the focused command-catalog unittest slice and the full required gate set in this lane worktree before this packet refresh so the parser-surface drift guards and handoff fields are revalidated against the real branch-tip scope.
+- Required fix `4`: the commands-run and budget/limits notes below are stated against the same current branch-tip scope named in this packet.
+- Fixer verification on `2026-04-12`: reran the focused command-catalog unittest slice and the full required gate set in this lane worktree during this packet refresh. The reviewed implementation scope remains the same code-bearing lineage through `cea5da3599799e72b24ed5f3e88474f3e275846a`, with this fixer pass changing `THREAD_PACKET.md` only.
 
 ## Reviewer-fix resubmission note
-- This packet no longer narrows review to `f8d860ed...` alone. It covers the full branch-tip implementation lineage through `cea5da3599799e72b24ed5f3e88474f3e275846a`.
+- This packet no longer narrows review to `f8d860ed...` alone. It covers the full current branch-tip lineage: implementation through `cea5da3599799e72b24ed5f3e88474f3e275846a`, then packet-only docs refreshes through `2f41eeb10ef94b334f0a2128eecfabeef268ac53`, plus this current metadata-only packet refresh.
 - The implementation scope under review is the actual branch-tip runtime and test surface changed after `f8d860ed...`: `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, and `tests/unit/test_commands_catalog.py`.
 - The concrete blocker removed is silent drift in the CLI `patch-review` surface: without these follow-on validations and smoke-contract helpers, parser/catalog divergence can change the operator contract for `preview and apply or reject a patch` without a fast failure in smoke tests.
 - The focused regression additions include the concrete drift cases requested in review: alias-for-canonical substitution and CLI entrypoint reordering.
@@ -43,7 +43,8 @@
 - `26658f39` added the CLI shim contract so compatibility imports stay aligned with the expanded command surface.
 - `8b52002c` completed the reviewer-fix series by rejecting parser-surface drift when validated CLI entrypoints no longer match the canonical contract.
 - `cea5da35` added invocation metadata to the command smoke contract in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`, so the CLI-first smoke route also exposes deterministic invocation planning for the canonical `patch-review` step.
-- Additional `docs(commands): ...` commits between these implementation commits update `THREAD_PACKET.md` only and do not change the implementation files above.
+- Additional `docs(commands): ...` commits after `cea5da35` through `2f41eeb1` update `THREAD_PACKET.md` only and do not change the implementation files above.
+- This current fixer refresh also updates `THREAD_PACKET.md` only.
 
 ## Scope goal
 - Harden the CLI command contract so command catalog, parser entrypoints, route ordering, and invocation planning stay deterministic and fail fast if the parser surface drifts from the catalog.
@@ -69,8 +70,7 @@
 ## Kickoff budget/limits compliance
 - High-risk/shared-file handoff: the implementation stayed within the `4`-task cap and the file-count cap.
 - The full branch-tip implementation under review changed `4` implementation files plus `THREAD_PACKET.md`, with one approved non-owned shared test path.
-- This full branch-tip recovery handoff does not fit the original high-risk net-size guideline: the implementation diff from `f8d860ed...` to branch tip `cea5da35...` is `1840` insertions and `147` deletions across `THREAD_PACKET.md`, `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, and `tests/unit/test_commands_catalog.py`.
-- This packet is intentionally reporting that broader branch-tip scope instead of restating the earlier narrowed one-file slice.
+- The broader reviewed branch-tip scope from `f8d860ed...` through current tip `2f41eeb1...` still exceeds the original high-risk net-size guideline, so this packet reports the real recovered scope instead of restating the earlier narrowed one-file slice.
 
 ## Approved exception note
 - `tests/unit/test_commands_catalog.py` is the only non-owned implementation file named in this handoff.
@@ -93,7 +93,7 @@
 - `THREAD_PACKET.md`
 
 ## Commands run with results
-- Revalidated on `2026-04-12` in this feature-fixer closure pass.
+- Revalidated on `2026-04-12` in this feature-fixer closure pass after refreshing `THREAD_PACKET.md`; the reviewed implementation scope remains the same code-bearing lineage through `cea5da3599799e72b24ed5f3e88474f3e275846a`.
 - `python -m unittest discover -s tests/unit -p 'test_commands_catalog.py'`: PASS (`73` tests)
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
