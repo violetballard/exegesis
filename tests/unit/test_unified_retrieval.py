@@ -2559,6 +2559,45 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(context_bundle["retrieval_downstream_payload"]["retrieval_citation_bundle"], result.citation_bundle())
 
+    def test_retrieval_downstream_payload_helper_normalizes_evidence_strategy_ids_from_source_bundle(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        mutated_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        retrieval_evidence = mutated_source_bundle.get("retrieval_evidence")
+        self.assertIsInstance(retrieval_evidence, dict)
+        retrieval_evidence["active_strategy_ids"] = ["fts", " fts ", "", None]
+        retrieval_evidence["deferred_strategy_ids"] = ["pageindex", " embeddings ", "pageindex", None]
+
+        payload = build_retrieval_downstream_payload_from_result(
+            _SourceBundleOnlySource(mutated_source_bundle)
+        )
+
+        self.assertEqual(payload["retrieval_evidence"]["active_strategy_ids"], ["fts"])
+        self.assertEqual(
+            payload["retrieval_evidence"]["deferred_strategy_ids"],
+            ["pageindex", "embeddings"],
+        )
+        self.assertEqual(payload["retrieval_provenance"]["active_strategy_ids"], ["fts"])
+        self.assertEqual(
+            payload["retrieval_provenance"]["deferred_strategy_ids"],
+            ["pageindex", "embeddings"],
+        )
+
     def test_retrieve_auto_citation_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(
             query_text="memo coding comparison",
