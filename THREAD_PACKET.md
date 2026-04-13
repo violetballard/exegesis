@@ -19,11 +19,12 @@
 
 ## Canonical demo-path step advanced
 - `retrieve relevant material`
-- This reviewed implementation range advances the Milestone 3 engine-first `retrieve relevant material` step by keeping excerpt lookup on the canonical FTS-backed path, shaping deterministic payload and provenance output, and canonicalizing FTS cache keys so semantically equivalent FTS-first retrieval requests reuse the same deterministic cache entry instead of drifting by whitespace, scope-prefix, or candidate-doc ordering noise.
+- This reviewed implementation range advances the Milestone 3 engine-first canonical demo-path step `retrieve relevant material` by hardening FTS-only excerpt retrieval and deterministic provenance on the canonical engine retrieval surface.
 - PageIndex and embeddings remain deferred compatibility paths only; this handoff does not widen them into required MVP runtime retrieval paths.
 
 ## Scope completed
 - SQLite FTS remains the authoritative MVP retrieval path across the reviewed implementation range.
+- The reviewed retrieval contract explicitly strengthens `retrieve relevant material` on the canonical engine-facing retrieval path.
 - Retrieval query construction, payload normalization, citation/provenance bundles, and sparse source/context rehydration stay deterministic for downstream engine flows using the canonical retrieval facade.
 - `RetrievalService.fetch_excerpt()` now resolves through the canonical FTS-only lookup path, so PageIndex-only excerpt IDs fail closed instead of reviving PageIndex as a required runtime path.
 - `FTSStrategy` now canonicalizes query-shaped cache keys and candidate doc scopes, so semantically equivalent FTS requests reuse the same one-entry cache deterministically while preserving FTS-first behavior.
