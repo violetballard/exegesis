@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import time
 from collections.abc import Mapping
+from datetime import date, datetime
 from typing import Any, Callable
 
 from src.qual.engine.retrieval.interface import StrategyRun
@@ -150,7 +151,7 @@ class FTSStrategy:
         return {
             "max_results": FTSStrategy._normalize_optional_int(payload.get("max_results"), default=10),
             "doc_types": FTSStrategy._normalize_list_like(payload.get("doc_types")),
-            "date_range": FTSStrategy._normalize_optional_list_like(payload.get("date_range")),
+            "date_range": FTSStrategy._normalize_date_range(payload.get("date_range")),
             "require_citations": FTSStrategy._normalize_optional_bool(
                 payload.get("require_citations"),
                 default=False,
@@ -232,11 +233,35 @@ class FTSStrategy:
         return FTSStrategy._normalize_list_like(value)
 
     @staticmethod
+    def _normalize_date_range(value: object) -> list[str] | None:
+        normalized = FTSStrategy._normalize_optional_list_like(value)
+        if normalized is None:
+            return None
+        if len(normalized) != 2:
+            return normalized
+        start_raw, end_raw = normalized
+        start_date = FTSStrategy._parse_date_value(start_raw)
+        end_date = FTSStrategy._parse_date_value(end_raw)
+        if start_date is not None and end_date is not None and start_date > end_date:
+            return [end_raw, start_raw]
+        return normalized
+
+    @staticmethod
     def _normalize_text(value: object) -> str | None:
         raw_text = FTSStrategy._normalize_raw_text(value)
         if raw_text is None:
             return None
         return " ".join(raw_text.casefold().split())
+
+    @staticmethod
+    def _parse_date_value(value: str) -> date | None:
+        try:
+            return datetime.fromisoformat(value).date()
+        except ValueError:
+            try:
+                return date.fromisoformat(value)
+            except ValueError:
+                return None
 
     @staticmethod
     def _normalize_raw_text(value: object) -> str | None:
