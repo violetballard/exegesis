@@ -2,27 +2,43 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Handoff type: `retrieval feature handoff for the FTS-first retrieval lane`
-- Packet HEAD role: `metadata-only reviewer-fix finalization`
-- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Packet HEAD role: `metadata-only traceability correction after the reviewed implementation head`
+- Reviewed implementation head: `ded01c00cdaa76ebe13ba0cedaef0b76736b6473`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..ded01c00cdaa76ebe13ba0cedaef0b76736b6473`
 
 ## Scope completed
-- Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface resolves through the canonical FTS-only path.
-- Added approved shared regression coverage proving PageIndex-only excerpt ids fail closed with `KeyError`.
-- Kept SQLite FTS as the authoritative MVP retrieval path and did not reintroduce PageIndex or embeddings as required runtime paths.
+- Kept SQLite FTS as the authoritative retrieval path for the MVP and preserved the canonical `retrieve_auto`/`retrieve_fts` engine surface.
+- Hardened retrieval query, cache, payload, provenance, evidence, and fingerprint normalization so downstream bundles stay deterministic and auditable.
+- Removed the `fetch_excerpt` PageIndex fallback so excerpt lookup now fails closed on the canonical FTS-only path, and hardened sparse source bundle normalization.
+- Added and updated regression coverage for the canonical retrieval contract, including PageIndex-only excerpt ids raising `KeyError` and packet-planner traceability coverage.
 
 ## Canonical demo-path step advanced
-- `retrieve relevant material`: this slice hardens deterministic, auditable FTS-only excerpt retrieval on the canonical retrieval step, which keeps provenance stable for downstream basket promotion and workflow use.
+- `retrieve relevant material`: this reviewed range hardens the engine-side retrieval step by keeping excerpt lookup, payloads, and provenance deterministic on the FTS-first path used for downstream basket promotion and workflow use.
 
 ## AGENTS.md handoff packet
-- Risk reason: shared-by-approval regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed implementation range, so this handoff uses the high-risk/shared-work framing required by `AGENTS.md`.
-- Approved exception note: `tests/unit/test_unified_retrieval.py` is the sole shared-by-approval file exercised in this reviewed slice.
+- Risk reason: the reviewed range includes shared-by-approval regression coverage in `tests/unit/test_unified_retrieval.py`, so this handoff remains shared/high-risk work under the 4-task cap.
+- Approved exception note: `tests/unit/test_unified_retrieval.py` remains the sole shared-by-approval regression surface exercised by the retrieval implementation in this range.
+- Traceability note: earlier packet text that treated post-`adfa8cda` commits as metadata-only was incorrect and is superseded by this packet. Re-review should use the full reviewed range above.
 - Task budget: `4`
 - Tasks completed:
-  1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
-  2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt ids fail closed with `KeyError`.
+  1. Kept the retrieval lane FTS-first, including stable retrieval entrypoints, normalized candidate-doc handling, and unresolved collection-scope guards.
+  2. Hardened deterministic retrieval payloads, evidence, provenance, query snapshots, and fingerprint generation across the retrieval facade and engine payload helpers.
+  3. Narrowed excerpt lookup to the canonical FTS-only path and hardened sparse retrieval source bundle normalization.
+  4. Expanded regression coverage for retrieval determinism, fail-closed excerpt lookup, and packet-planner traceability for the reviewed range.
 - Files changed:
+  - `.codex/kickoff_packets/feat-retrieval-fts.md`
+  - `.codex/lane_meta/feat-retrieval-fts.json`
+  - `THREAD_PACKET.md`
+  - `codex_packet_handoff/tools/planner.py`
+  - `src/qual/engine/retrieval/__init__.py`
+  - `src/qual/engine/retrieval/embeddings_strategy.py`
+  - `src/qual/engine/retrieval/fts_strategy.py`
+  - `src/qual/engine/retrieval/interface.py`
+  - `src/qual/engine/retrieval/pageindex_strategy.py`
+  - `src/qual/engine/retrieval/payload.py`
+  - `src/qual/retrieval/__init__.py`
   - `src/qual/retrieval/service.py`
+  - `tests/unit/test_packet_planner.py`
   - `tests/unit/test_unified_retrieval.py`
 
 ## Commands run with results
@@ -34,7 +50,7 @@
 - `make ci`: PASS
 
 ## Risks/blockers
-- Risks: high; the slice changes the public excerpt lookup contract, but keeps runtime behavior narrowed to deterministic FTS-only retrieval.
+- Risks: high; the reviewed range changes retrieval payload normalization and the public excerpt lookup contract, but it keeps runtime behavior narrowed to deterministic FTS-first retrieval.
 - Blockers: none
 
 ## Roadmap item(s) affected
