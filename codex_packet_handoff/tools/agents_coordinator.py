@@ -305,6 +305,18 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
     worktree_reconcile = _reconcile_lane_worktrees()
     git_hygiene = run_hygiene(REPO_ROOT)
     git_hygiene_status = _update_git_hygiene_status(coordinator_state, git_hygiene)
+    lane_refill = coordinator_state.setdefault("lane_refill", {})
+    if not isinstance(lane_refill, dict):
+        lane_refill = {}
+        coordinator_state["lane_refill"] = lane_refill
+    for lane in feature_runner_removed:
+        lane_state = lane_refill.get(lane)
+        if not isinstance(lane_state, dict):
+            lane_state = {}
+        lane_state["force_resume_once"] = True
+        lane_state["force_resume_reason"] = "stale_direct_exec_pruned"
+        lane_state["force_resume_marked_at"] = utc_now()
+        lane_refill[lane] = lane_state
     if feature_runner_removed:
         print(f"[reconcile] pruned stale feature-runner state: {', '.join(feature_runner_removed)}")
     for key, names in sorted(router_removed.items()):
@@ -1018,14 +1030,26 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
         if not isinstance(lane_state, dict):
             lane_state = {}
         last_launch_attempt_ts = float(lane_state.get("last_launch_attempt_ts", 0) or 0)
+        force_resume_once = bool(lane_state.get("force_resume_once"))
         if (
             queue_empty
             and not feature_active
-            and (now - last_launch_attempt_ts) >= FEATURE_RELAUNCH_COOLDOWN_SECONDS
+            and (
+                force_resume_once
+                or (now - last_launch_attempt_ts) >= FEATURE_RELAUNCH_COOLDOWN_SECONDS
+            )
         ):
             to_launch.append(lane)
             lane_state["last_launch_attempt_ts"] = now
-            lane_state["last_launch_reason"] = "queue_empty_without_active_feature_session"
+            lane_state["last_launch_reason"] = (
+                "stale_direct_exec_resume"
+                if force_resume_once
+                else "queue_empty_without_active_feature_session"
+            )
+            lane_state.pop("force_resume_once", None)
+        elif feature_active and force_resume_once:
+            lane_state.pop("force_resume_once", None)
+            lane_state["force_resume_cleared_at"] = utc_now()
         lane_state["queue_empty"] = queue_empty
         lane_state["feature_active"] = feature_active
         lane_state["last_seen_at"] = utc_now()
