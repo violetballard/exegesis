@@ -1495,6 +1495,33 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(replayed.hits, ["fresh-hit"])
         self.assertEqual(runner_hits, [])
 
+    def test_fts_strategy_does_not_alias_case_distinct_scoped_ids_in_cache(self) -> None:
+        runner_hits = [["upper-hit"], ["lower-hit"]]
+        strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: list(runner_hits.pop(0)))
+        upper_scope = RetrievalQuery(
+            query_text="discussion theory",
+            scope="doc:Doc-PDF-1",
+            intent="outline_support",
+            constraints=RetrievalConstraints(max_results=6),
+            confidentiality_profile="confidential",
+        )
+        lower_scope = RetrievalQuery(
+            query_text="discussion theory",
+            scope="doc:doc-pdf-1",
+            intent="outline_support",
+            constraints=RetrievalConstraints(max_results=6),
+            confidentiality_profile="confidential",
+        )
+
+        first = strategy.retrieve(upper_scope, candidate_doc_ids=("doc-a",))
+        second = strategy.retrieve(lower_scope, candidate_doc_ids=("doc-a",))
+
+        self.assertFalse(first.cache_used)
+        self.assertEqual(first.hits, ["upper-hit"])
+        self.assertFalse(second.cache_used)
+        self.assertEqual(second.hits, ["lower-hit"])
+        self.assertEqual(runner_hits, [])
+
     def test_retrieve_auto_invalidates_fts_cache_after_document_update(self) -> None:
         query = RetrievalQuery(
             query_text="theory implications",

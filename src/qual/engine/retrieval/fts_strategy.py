@@ -164,13 +164,19 @@ class FTSStrategy:
 
     @staticmethod
     def _normalize_scope(value: object) -> str | None:
-        text = FTSStrategy._normalize_text(value)
-        if text is None:
+        raw_text = FTSStrategy._normalize_raw_text(value)
+        if raw_text is None:
             return None
-        prefix, separator, remainder = text.partition(":")
+        canonical_prefix = raw_text.casefold()
+        if canonical_prefix == "vault":
+            return "vault"
+        prefix, separator, remainder = raw_text.partition(":")
         if separator and prefix in {"doc", "collection", "section"}:
             return f"{prefix}:{remainder.strip()}"
-        return text
+        normalized_prefix = prefix.strip().casefold()
+        if separator and normalized_prefix in {"doc", "collection", "section"}:
+            return f"{normalized_prefix}:{remainder.strip()}"
+        return canonical_prefix
 
     @staticmethod
     def _normalize_list_like(value: object) -> list[str]:
@@ -196,9 +202,16 @@ class FTSStrategy:
 
     @staticmethod
     def _normalize_text(value: object) -> str | None:
+        raw_text = FTSStrategy._normalize_raw_text(value)
+        if raw_text is None:
+            return None
+        return raw_text.casefold()
+
+    @staticmethod
+    def _normalize_raw_text(value: object) -> str | None:
         if value is None:
             return None
-        text = str(value).strip().casefold()
+        text = str(value).strip()
         if not text:
             return None
         return text
