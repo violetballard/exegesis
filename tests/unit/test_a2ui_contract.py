@@ -19,6 +19,7 @@ from src.qual.ui.a2ui import (
     normalize_action_ref,
     render_terminal_card,
     studio_materialize_card,
+    validate_action_ref,
     UNKNOWN_FALLBACK_SUBTITLE,
     validate_generic_card,
     validate_unknown_card,
@@ -1687,6 +1688,17 @@ class A2UIContractTests(unittest.TestCase):
             ],
         )
 
+    def test_validate_action_ref_accepts_actionref_instances(self) -> None:
+        validate_action_ref(
+            ActionRef(
+                id="copy_to_clipboard",
+                label="Copy JSON",
+                payload={"text": "{}"},
+                confirm={"title": "Copy", "message": "Copy now?"},
+                policy_sensitive=True,
+            )
+        )
+
     def test_terminal_can_render_inline_generic_and_unknown_cards(self) -> None:
         generic = {
             "type": "GenericCard",
@@ -1804,6 +1816,28 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("- fallback_kind: generic", text)
         self.assertIn("- source_card_type: FutureCard", text)
         self.assertNotIn("raw subtitle should not leak", text)
+
+    def test_terminal_renderer_ignores_malformed_generic_fallback_debug(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "subtitle": "Operator notes",
+                "debug": {
+                    "contract_version": 2,
+                    "fallback_kind": "generic",
+                    "source_card_type": "   ",
+                },
+                "blocks": [],
+                "actions": [],
+            }
+        )
+
+        self.assertIn("[GenericCard] Run Log", text)
+        self.assertIn("Operator notes", text)
+        self.assertNotIn(GENERIC_FALLBACK_SUBTITLE, text)
+        self.assertNotIn("Fallback: generic from", text)
+        self.assertNotIn("Action policy: client_allowlist", text)
 
     def test_terminal_renderer_synthesizes_canonical_fallback_subtitles(self) -> None:
         generic = render_terminal_card(

@@ -576,6 +576,8 @@ def validate_primitive_block(block: Any) -> None:
 
 
 def validate_action_ref(action: Any) -> None:
+    if isinstance(action, ActionRef):
+        action = _action_ref_to_dict(action)
     _normalize_action(action, supported_actions=_ALLOWED_ACTION_SET)
 
 
@@ -586,16 +588,7 @@ def validate_selection_ref(selection: Any) -> None:
 
 
 def normalize_action_ref(action: ActionRef) -> ActionRef:
-    action_dict: dict[str, Any] = {
-        "id": action.id,
-        "label": action.label,
-        "payload": action.payload,
-    }
-    if action.confirm is not None:
-        action_dict["confirm"] = action.confirm
-    if action.policy_sensitive:
-        action_dict["policy_sensitive"] = action.policy_sensitive
-    normalized = _normalize_action(action_dict, supported_actions=_ALLOWED_ACTION_SET)
+    normalized = _normalize_action(_action_ref_to_dict(action), supported_actions=_ALLOWED_ACTION_SET)
     return ActionRef(
         id=str(normalized["id"]),
         label=str(normalized["label"]),
@@ -974,6 +967,19 @@ def _selection_ref_to_dict(selection: SelectionRef) -> dict[str, Any]:
     return selection_dict
 
 
+def _action_ref_to_dict(action: ActionRef) -> dict[str, Any]:
+    action_dict: dict[str, Any] = {
+        "id": action.id,
+        "label": action.label,
+        "payload": action.payload,
+    }
+    if action.confirm is not None:
+        action_dict["confirm"] = action.confirm
+    if action.policy_sensitive:
+        action_dict["policy_sensitive"] = action.policy_sensitive
+    return action_dict
+
+
 def _normalize_confirm(confirm: Any) -> dict[str, str]:
     if not isinstance(confirm, dict):
         raise ValueError("Action confirm must be an object")
@@ -1299,13 +1305,7 @@ def _render_terminal_action_policy(card_type: str, title: str, debug: Any) -> li
 
 
 def _is_fallback_card_debug(debug: Any) -> bool:
-    if not isinstance(debug, dict):
-        return False
-    fallback_kind = debug.get("fallback_kind")
-    source_card_type = debug.get("source_card_type")
-    return isinstance(fallback_kind, str) and fallback_kind.strip() in {"generic", "unknown"} and isinstance(
-        source_card_type, str
-    )
+    return _extract_terminal_fallback_debug(debug) is not None
 
 
 def _infer_generic_fallback_source(title: str) -> str | None:
