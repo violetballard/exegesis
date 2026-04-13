@@ -4,17 +4,18 @@
 - Implementation commit(s):
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
   - `8c9e22903ec7048ecfee2cb18709894c1daf8f41` (`feat(commands): stabilize command catalog contracts`)
-- `552bec587c40cde059a4d329de958e06da5a0460` (`Add command parser surface lookup helpers`)
-- `ad1f61fc5f29acc54f230e8361f6b85c776ddea7` (`Fix bounded diff preview truncation`)
-- `9c485853ec0689e14bec3c5141e2b556538100f6` (`Add MVP command smoke contract`)
-- `81cbb9529642b0647459d447f467a5fcbebdbe2e` (`fix(commands): align handoff and catalog tests`)
-- `1abb3bc162bc6e718db82ff79beb8cfadda47d90` (`fix(commands): validate CLI parser surface`)
-- `26658f395761421f90e4b843e50883787e60b1d0` (`Add command CLI shim contract`)
+  - `552bec587c40cde059a4d329de958e06da5a0460` (`Add command parser surface lookup helpers`)
+  - `ad1f61fc5f29acc54f230e8361f6b85c776ddea7` (`Fix bounded diff preview truncation`)
+  - `9c485853ec0689e14bec3c5141e2b556538100f6` (`Add MVP command smoke contract`)
+  - `81cbb9529642b0647459d447f467a5fcbebdbe2e` (`fix(commands): align handoff and catalog tests`)
+  - `1abb3bc162bc6e718db82ff79beb8cfadda47d90` (`fix(commands): validate CLI parser surface`)
+  - `26658f395761421f90e4b843e50883787e60b1d0` (`Add command CLI shim contract`)
   - `8b52002c3f963820bb1b3efe7698c7f97c952ae5` (`fix(commands): reject parser surface drift`)
-- `cea5da3599799e72b24ed5f3e88474f3e275846a` (`Add invocation metadata to command smoke contract`)
+  - `cea5da3599799e72b24ed5f3e88474f3e275846a` (`Add invocation metadata to command smoke contract`)
 - Docs-only alignment commit(s):
   - Numerous packet-only `docs(commands): ...` commits touched `THREAD_PACKET.md` between the implementation commits above.
   - `ee88483683f57242406bbd0b5a895dddf7da8537` (`docs(commands): fix handoff traceability packet`) corrected the stale narrowed review basis and re-scoped the packet to the real branch-tip implementation.
+  - `8432439a94479099929d7ffd282360535e1b71c3` (`docs(commands): record fixer gate rerun`) is the current docs-only branch tip before this refresh and records the last gate rerun without changing implementation scope.
   - This fixer pass updates `THREAD_PACKET.md` only so the handoff packet remains anchored to the actual branch-tip scope for re-review after the reviewer requested explicit packet regeneration.
 
 ## Reviewer-required fixes closure
@@ -22,7 +23,7 @@
 - Required fix `2`: the stale claim that later commits were metadata-only has been removed; only the packet-only `docs(commands): ...` commits are treated as docs-only alignment commits.
 - Required fix `3`: the canonical demo-path step advanced is stated explicitly below and mapped to the Milestone 3 CLI-first loop.
 - Required fix `4`: the budget/limits note below is stated against the true branch-tip implementation scope rather than the earlier narrowed slice.
-- Fixer verification on `2026-04-12`: reran the focused command-catalog unittest slice and the full required gate set in this lane worktree to confirm the parser-surface drift guards and packet fields are green before re-review.
+- Fixer verification on `2026-04-12`: reran the focused command-catalog unittest slice and the full required gate set in this lane worktree before this packet refresh so the parser-surface drift guards and handoff fields are revalidated against the real branch-tip scope.
 
 ## Reviewer-fix resubmission note
 - This packet no longer narrows review to `f8d860ed...` alone. It covers the full branch-tip implementation lineage through `cea5da3599799e72b24ed5f3e88474f3e275846a`.
