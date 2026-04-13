@@ -4,31 +4,34 @@
 - Implementation commit(s):
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
   - `8c9e22903ec7048ecfee2cb18709894c1daf8f41` (`feat(commands): stabilize command catalog contracts`)
-  - `552bec58` (`Add command parser surface lookup helpers`)
-  - `9c485853` (`Add MVP command smoke contract`)
-  - `ad1f61fc` (`Fix bounded diff preview truncation`)
-  - `81cbb952` (`fix(commands): align handoff and catalog tests`)
+  - `552bec58f1a19643b4797d770b0a8896443b9279` (`Add command parser surface lookup helpers`)
+  - `ad1f61fc1d7e35025b5b1865953340b7a14c7fa7` (`Fix bounded diff preview truncation`)
+  - `9c48585385f07f6861f5646663da8622714e8d73` (`Add MVP command smoke contract`)
+  - `81cbb95200a4bf3a5e66a1bc927596fc59d6445f` (`fix(commands): align handoff and catalog tests`)
+  - `1abb3bc1245cfd652ed0d26159f3bc78d85fcabe` (`fix(commands): validate CLI parser surface`)
+  - `26658f398b5487455c4a14f9eb7e6d89fc4c72d6` (`Add command CLI shim contract`)
+  - `8b52002c3f963820bb1b3efe7698c7f97c952ae5` (`fix(commands): reject parser surface drift`)
 - Docs-only alignment commit(s):
-  - `17f9d69c144f98c56293794e7a7dff8fcfcb762f` (`docs(commands): tighten reviewer handoff blocker note`)
-  - `220971e5f6cd32241a5164e8dd41790f14e4af4f` (`docs(commands): fix reviewer packet traceability`)
-  - Current fixer pass updates `THREAD_PACKET.md` only so the handoff matches the actual branch-tip implementation and latest gate rerun.
+  - Numerous packet-only `docs(commands): ...` commits touched `THREAD_PACKET.md` between the implementation commits above.
+  - This fixer pass updates `THREAD_PACKET.md` only so the handoff packet matches the real branch-tip implementation at `8b52002c3f963820bb1b3efe7698c7f97c952ae5`.
 
 ## Reviewer-fix resubmission note
-- This fixer pass closes the reviewer’s remaining command-contract gap by making `command_cli_contract()` reject parser-surface drift directly when validated CLI entrypoints no longer match the declared per-command CLI surface.
-- The focused regression additions cover the two concrete drift cases requested in review: alias-for-canonical substitution and CLI entrypoint reordering.
-- This packet now treats the pre-fix branch tip `220971e5f6cd32241a5164e8dd41790f14e4af4f` as a docs-only alignment commit on top of the real implementation lineage listed above.
-- The implementation scope described below matches the real branch-tip implementation files changed after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`: `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, and `tests/unit/test_commands_catalog.py`.
-- `src/qual/commands/__init__.py` is included explicitly because the branch tip exports the expanded command-catalog contract surface and is part of the implementation under review.
-- The concrete blocker removed is silent drift in the CLI `patch-review` surface: without this guard, parser/catalog divergence can change the operator contract for the canonical `preview and apply or reject a patch` step without a fast failure in smoke tests.
+- This packet no longer narrows review to `f8d860ed...` alone. It covers the full branch-tip implementation lineage through `8b52002c3f963820bb1b3efe7698c7f97c952ae5`.
+- The implementation scope under review is the actual branch-tip runtime and test surface changed after `f8d860ed...`: `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, and `tests/unit/test_commands_catalog.py`.
+- The concrete blocker removed is silent drift in the CLI `patch-review` surface: without these follow-on validations and smoke-contract helpers, parser/catalog divergence can change the operator contract for `preview and apply or reject a patch` without a fast failure in smoke tests.
+- The focused regression additions include the concrete drift cases requested in review: alias-for-canonical substitution and CLI entrypoint reordering.
 
 ## Branch-tip traceability
 - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` introduced the original command-catalog drift guard in `src/qual/commands/catalog.py` and the focused regression coverage in `tests/unit/test_commands_catalog.py`.
 - `8c9e22903ec7048ecfee2cb18709894c1daf8f41` expanded the branch-tip implementation in `src/qual/commands/catalog.py` and `src/qual/commands/__init__.py` with deterministic CLI surface, route, and invocation contracts.
 - `552bec58` added parser-surface lookup helpers and expanded contract coverage in `tests/unit/test_commands_catalog.py`.
-- `9c485853` added the MVP smoke contract so the CLI-first smoke route stays machine-checkable from the same canonical catalog.
 - `ad1f61fc` tightened bounded diff preview truncation in `src/qual/commands/diff_preview.py`, which keeps the `patch-review` step stable under output limits.
+- `9c485853` added the MVP smoke contract so the CLI-first smoke route stays machine-checkable from the same canonical catalog.
 - `81cbb952` aligned the branch-tip tests and handoff packet with that implementation so the reviewed branch tip remains internally consistent.
-- `17f9d69c144f98c56293794e7a7dff8fcfcb762f` and `220971e5f6cd32241a5164e8dd41790f14e4af4f` are docs-only and update `THREAD_PACKET.md` without changing the implementation files above.
+- `1abb3bc1` added parser-surface validation so declared per-command CLI entrypoints must match the validated CLI surface.
+- `26658f39` added the CLI shim contract so compatibility imports stay aligned with the expanded command surface.
+- `8b52002c` completed the reviewer-fix series by rejecting parser-surface drift when validated CLI entrypoints no longer match the canonical contract.
+- Additional `docs(commands): ...` commits between these implementation commits update `THREAD_PACKET.md` only and do not change the implementation files above.
 
 ## Scope goal
 - Harden the CLI command contract so command catalog, parser entrypoints, route ordering, and invocation planning stay deterministic and fail fast if the parser surface drifts from the catalog.
@@ -50,11 +53,13 @@
 - Exported the expanded catalog contract surface from [src/qual/commands/__init__.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/__init__.py) so compatibility imports stay aligned with the branch-tip implementation.
 - Fixed bounded diff preview truncation in [src/qual/commands/diff_preview.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/diff_preview.py) so the `patch-review` step stays deterministic when CLI output must be truncated.
 - Added and retained focused regression coverage in [tests/unit/test_commands_catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/tests/unit/test_commands_catalog.py) for canonical-order alignment, alias-substitution and reorder parser-drift rejection, explicit CLI token handling, route-token determinism, invocation-plan consistency, parser-surface lookup helpers, and MVP smoke-contract behavior.
-- Reissued the handoff packet so the review basis, files changed list, and AGENTS mapping now match the actual implementation on this branch.
+- Reissued the handoff packet so the review basis, files changed list, demo-path field, and AGENTS mapping now match the full branch-tip implementation on this branch.
 
 ## Kickoff budget/limits compliance
-- High-risk shared-file handoff: stayed within `4` tasks, `30m`, and the lane size limits.
-- The implementation stayed in the owned command path plus the one approved non-owned shared test file.
+- High-risk/shared-file handoff: the implementation stayed within the `4`-task cap and the file-count cap.
+- The full branch-tip implementation under review changed `4` implementation files plus `THREAD_PACKET.md`, with one approved non-owned shared test path.
+- This full branch-tip recovery handoff does not fit the original high-risk net-size guideline: the implementation diff from `f8d860ed...` to `8b52002c...` is `1718` insertions and `112` deletions across the implementation files, plus `80` insertions and `35` deletions in `THREAD_PACKET.md`.
+- This packet is intentionally reporting that broader branch-tip scope instead of restating the earlier narrowed one-file slice.
 
 ## Approved exception note
 - `tests/unit/test_commands_catalog.py` is the only non-owned implementation file named in this handoff.
