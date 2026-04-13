@@ -22,6 +22,7 @@
 - Required fix `2`: the stale claim that later commits were metadata-only has been removed; only the packet-only `docs(commands): ...` commits are treated as docs-only alignment commits.
 - Required fix `3`: the canonical demo-path step advanced is stated explicitly below and mapped to the Milestone 3 CLI-first loop.
 - Required fix `4`: the budget/limits note below is stated against the true branch-tip implementation scope rather than the earlier narrowed slice.
+- Fixer verification on `2026-04-12`: reran the focused command-catalog unittest slice and the full required gate set in this lane worktree to confirm the parser-surface drift guards and packet fields are green before re-review.
 
 ## Reviewer-fix resubmission note
 - This packet no longer narrows review to `f8d860ed...` alone. It covers the full branch-tip implementation lineage through `cea5da3599799e72b24ed5f3e88474f3e275846a`.
@@ -92,7 +93,8 @@
 - `THREAD_PACKET.md`
 
 ## Commands run with results
-- Revalidated on `2026-04-12` in this reviewer-fix closure pass.
+- Revalidated on `2026-04-12` in this feature-fixer closure pass.
+- `python -m unittest discover -s tests/unit -p 'test_commands_catalog.py'`: PASS (`73` tests)
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
