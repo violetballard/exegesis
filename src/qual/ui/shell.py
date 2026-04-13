@@ -212,6 +212,10 @@ class ShellUI:
         try:
             validate_terminal_artifact_envelope(artifact)
         except Exception:
+            if fallback_kind in {"action", "selection"}:
+                payload = artifact.get("artifact")
+                if payload is not None:
+                    return payload, fallback_kind
             return artifact, fallback_kind
 
         payload = artifact.get("artifact")

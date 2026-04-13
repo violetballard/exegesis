@@ -384,6 +384,7 @@ def _build_action_contract_manifest() -> dict[str, Any]:
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
         "action_schema_version": A2UI_ACTION_SCHEMA_VERSION,
+        "action_version": A2UI_ACTION_SCHEMA_VERSION,
         "type": "ActionRef",
         "required_fields": ["id", "label", "payload"],
         "optional_fields": ["confirm", "policy_sensitive"],

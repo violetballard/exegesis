@@ -406,6 +406,47 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[TerminalArtifact] <invalid artifact>", text)
         self.assertIn("TerminalArtifact schema v1", text)
 
+    def test_shell_ui_unwraps_malformed_terminal_envelopes_for_explicit_kinds(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            action_text = shell.render_artifact(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "action",
+                    "artifact": {
+                        "id": "export_document",
+                        "label": "Export",
+                        "payload": {"format": "md"},
+                    },
+                    "trace_id": "drop-me",
+                },
+                kind="action",
+            )
+            selection_text = shell.render_artifact(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "selection",
+                    "artifact": {
+                        "id": "choice-1",
+                        "label": "Choice",
+                        "payload": {"nested": {"items": [1, 2]}},
+                    },
+                    "trace_id": "drop-me",
+                },
+                kind="selection",
+            )
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", action_text)
+        self.assertNotIn("trace_id", action_text)
+
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
+        self.assertNotIn("trace_id", selection_text)
+
     def test_card_contract_manifest_is_versioned_and_aligns_with_a2ui_schema(self) -> None:
         manifest = describe_card_contract()
         a2ui_manifest = describe_a2ui_contract()
@@ -447,6 +488,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["contract_fingerprint"], manifest["action_fingerprint"])
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
         self.assertEqual(manifest["action_schema_version"], A2UI_ACTION_SCHEMA_VERSION)
+        self.assertEqual(manifest["action_version"], A2UI_ACTION_SCHEMA_VERSION)
         self.assertEqual(manifest["type"], "ActionRef")
 
     def test_action_contract_manifest_lists_canonical_payload_schemas(self) -> None:
