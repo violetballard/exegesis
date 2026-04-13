@@ -164,6 +164,33 @@ def _normalize_supported_value(value: object, *, field_name: str, allowed: set[s
     return normalized
 
 
+def _normalize_matched_terms(value: object) -> list[str] | None:
+    raw_items = _optional_list_like(value)
+    if raw_items is None:
+        return None
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for item in raw_items:
+        text = _normalized_profile_text(item)
+        if text is None or text in seen:
+            continue
+        seen.add(text)
+        normalized.append(text)
+    return normalized
+
+
+def _normalize_query_date_range_payload(value: object) -> list[str] | None:
+    raw_items = _optional_list_like(value)
+    if raw_items is None:
+        return None
+    normalized = [text for item in raw_items if (text := _optional_text(item)) is not None]
+    if not normalized:
+        return None
+    if len(normalized) != 2:
+        return normalized
+    return list(_normalize_date_range((normalized[0], normalized[1])))
+
+
 @dataclass(frozen=True)
 class RetrievalConstraints:
     max_results: int = 10
@@ -2263,11 +2290,11 @@ class RetrievalService:
         normalized_provenance["lookup_resolution"] = lookup_resolution
         if lookup_confidentiality_profile is not None:
             normalized_provenance["lookup_confidentiality_profile"] = lookup_confidentiality_profile
-        matched_terms = _optional_list_like(normalized_provenance.get("matched_terms"))
+        matched_terms = _normalize_matched_terms(normalized_provenance.get("matched_terms"))
         if matched_terms is not None:
             normalized_provenance["matched_terms"] = matched_terms
             normalized_provenance["match_count"] = len(matched_terms)
-        query_date_range = _optional_list_like(normalized_provenance.get("query_date_range"))
+        query_date_range = _normalize_query_date_range_payload(normalized_provenance.get("query_date_range"))
         if query_date_range is not None:
             normalized_provenance["query_date_range"] = query_date_range
         query_confidentiality_profile = _normalized_profile_text(
