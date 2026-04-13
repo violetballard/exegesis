@@ -891,7 +891,12 @@ def _normalize_action(action: Any, *, supported_actions: set[str]) -> dict[str, 
     if extra_keys:
         extras = ", ".join(sorted(extra_keys))
         raise ValueError(f"Unexpected action field(s): {extras}")
-    action_id = str(action.get("id", "")).strip()
+    action_id = action.get("id")
+    if not isinstance(action_id, str):
+        raise ValueError("Action id is required")
+    action_id = action_id.strip()
+    if not action_id:
+        raise ValueError("Action id is required")
     if action_id not in supported_actions:
         raise ValueError(f"Unsupported action id: {action_id}")
     label = action.get("label")
@@ -925,7 +930,10 @@ def _normalize_selection(selection: Any) -> dict[str, Any]:
     if extra_keys:
         extras = ", ".join(sorted(extra_keys))
         raise ValueError(f"Unexpected selection field(s): {extras}")
-    selection_id = str(selection.get("id", "")).strip()
+    selection_id = selection.get("id")
+    if not isinstance(selection_id, str):
+        raise ValueError("Selection id is required")
+    selection_id = selection_id.strip()
     if not selection_id:
         raise ValueError("Selection id is required")
     label = selection.get("label")
