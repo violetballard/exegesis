@@ -10,10 +10,11 @@
   - `81cbb952` (`fix(commands): align handoff and catalog tests`)
 - Docs-only alignment commit(s):
   - `17f9d69c144f98c56293794e7a7dff8fcfcb762f` (`docs(commands): tighten reviewer handoff blocker note`)
-  - Current fixer pass updates `THREAD_PACKET.md` only so the handoff matches the actual branch-tip implementation.
+  - `220971e5f6cd32241a5164e8dd41790f14e4af4f` (`docs(commands): fix reviewer packet traceability`)
+  - Current fixer pass updates `THREAD_PACKET.md` only so the handoff matches the actual branch-tip implementation and latest gate rerun.
 
 ## Reviewer-fix resubmission note
-- This packet now treats the current branch tip `17f9d69c144f98c56293794e7a7dff8fcfcb762f` as a docs-only alignment commit on top of the real implementation lineage listed above.
+- This packet now treats the pre-fix branch tip `220971e5f6cd32241a5164e8dd41790f14e4af4f` as a docs-only alignment commit on top of the real implementation lineage listed above.
 - The implementation scope described below matches the real branch-tip implementation files changed after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`: `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, and `tests/unit/test_commands_catalog.py`.
 - `src/qual/commands/__init__.py` is included explicitly because the branch tip exports the expanded command-catalog contract surface and is part of the implementation under review.
 - The concrete blocker removed is silent drift in the CLI `patch-review` surface: without this guard, parser/catalog divergence can change the operator contract for the canonical `preview and apply or reject a patch` step without a fast failure in smoke tests.
@@ -25,7 +26,7 @@
 - `9c485853` added the MVP smoke contract so the CLI-first smoke route stays machine-checkable from the same canonical catalog.
 - `ad1f61fc` tightened bounded diff preview truncation in `src/qual/commands/diff_preview.py`, which keeps the `patch-review` step stable under output limits.
 - `81cbb952` aligned the branch-tip tests and handoff packet with that implementation so the reviewed branch tip remains internally consistent.
-- `17f9d69c144f98c56293794e7a7dff8fcfcb762f` is docs-only and updates `THREAD_PACKET.md` without changing the implementation files above.
+- `17f9d69c144f98c56293794e7a7dff8fcfcb762f` and `220971e5f6cd32241a5164e8dd41790f14e4af4f` are docs-only and update `THREAD_PACKET.md` without changing the implementation files above.
 
 ## Scope goal
 - Harden the CLI command contract so command catalog, parser entrypoints, route ordering, and invocation planning stay deterministic and fail fast if the parser surface drifts from the catalog.
@@ -74,7 +75,7 @@
 - `THREAD_PACKET.md`
 
 ## Commands run with results
-- Revalidated on `2026-04-12` in this fixer pass.
+- Revalidated on `2026-04-12` in this traceability-fix pass.
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
