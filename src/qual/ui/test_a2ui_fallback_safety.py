@@ -418,6 +418,26 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("Debug:", text)
         self.assertIn("- Open (open_section)", text)
 
+    def test_terminal_renderer_infers_generic_fallback_when_actions_are_missing(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Fallback view for FutureCard",
+                "blocks": [],
+                "actions": None,
+            }
+        )
+
+        self.assertIn("[GenericCard] Fallback view for FutureCard", text)
+        self.assertIn(GENERIC_FALLBACK_SUBTITLE, text)
+        self.assertIn("Fallback: generic from FutureCard", text)
+        self.assertIn("Action policy: client_allowlist", text)
+        self.assertIn("Debug:", text)
+        self.assertIn("- contract_version: 2", text)
+        self.assertIn("- fallback_kind: generic", text)
+        self.assertIn("- source_card_type: FutureCard", text)
+        self.assertNotIn("Actions:", text)
+
     def test_terminal_renderer_infers_generic_fallback_when_actions_are_canonical_copy_only(self) -> None:
         text = render_terminal_card(
             {

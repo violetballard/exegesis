@@ -1565,6 +1565,8 @@ def _resolve_generic_fallback_source(title: str, actions: Any, debug: Any) -> st
     source_card_type = _infer_generic_fallback_source(title)
     if source_card_type is None:
         return None
+    if actions is None:
+        return source_card_type
     if not _is_canonical_read_only_fallback_actions(actions):
         return None
     return source_card_type
