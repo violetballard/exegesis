@@ -843,15 +843,15 @@ def _materialize_versioned_card(card: dict[str, Any], capabilities: A2UICapabili
 
 
 def _materialize_generic_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
-    validate_generic_card(card, strict_actions=False)
+    _validate_card_version(card)
     out = _canonicalize_card_top_level_fields(card)
     out["blocks"] = _extract_safe_primitive_blocks(out)
     actions = out.get("actions")
     if actions is None:
         out["actions"] = []
-    elif not isinstance(actions, (list, tuple)):
-        raise ValueError("GenericCard actions must be a list or tuple when provided")
     else:
+        # Generic cards should keep the safe subset of content instead of
+        # aborting on malformed nested payloads.
         out["actions"] = _filter_supported_actions(actions, supported_actions=set(capabilities.actions_supported))
     out["title"] = _normalize_card_text(out.get("title"), fallback="<untitled>")
     subtitle = _normalize_card_text(out.get("subtitle"))
@@ -860,6 +860,7 @@ def _materialize_generic_card(card: dict[str, Any], capabilities: A2UICapabiliti
     else:
         out["subtitle"] = subtitle
     out["a2ui_version"] = A2UI_VERSION
+    validate_generic_card(out)
     return out
 
 

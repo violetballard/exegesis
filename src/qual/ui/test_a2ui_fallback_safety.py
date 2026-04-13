@@ -2,14 +2,90 @@ from __future__ import annotations
 
 import unittest
 
-from src.qual.ui.a2ui import build_unknown_card, render_terminal_card, render_terminal_selection
+from src.qual.ui.a2ui import (
+    A2UICapabilities,
+    build_unknown_card,
+    engine_prepare_card,
+    render_terminal_card,
+    render_terminal_selection,
+)
 
 
 class _OpaqueValue:
     pass
 
 
+def _capabilities() -> A2UICapabilities:
+    return A2UICapabilities(
+        a2ui_version=1,
+        client_name="Exegesis Studio",
+        cards_supported=("RunLogCard",),
+        primitive_blocks_supported=(
+            "MarkdownBlock",
+            "KeyValueBlock",
+            "ListBlock",
+            "TableBlock",
+            "AlertBlock",
+            "ProgressBlock",
+            "CodeBlock",
+        ),
+        actions_supported=("copy_to_clipboard",),
+        max_payload_bytes=1_000_000,
+        supports_streaming=True,
+    )
+
+
 class A2UIFallbackSafetyTests(unittest.TestCase):
+    def test_engine_materializes_generic_cards_by_sanitizing_unsupported_content(self) -> None:
+        card = engine_prepare_card(
+            {
+                "type": "GenericCard",
+                "title": "   ",
+                "subtitle": "  Ready  ",
+                "blocks": [
+                    {"type": "ChartBlock", "series": [1, 2, 3]},
+                    {"type": "MarkdownBlock", "markdown": "Kept"},
+                    {
+                        "type": "KeyValueBlock",
+                        "items": [
+                            {"key": "Owner", "value": "alice"},
+                            {"key": "Opaque", "value": _OpaqueValue()},
+                        ],
+                    },
+                ],
+                "actions": [
+                    {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "safe"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+                "trace_id": "drop-me",
+            },
+            _capabilities(),
+        )
+
+        self.assertEqual(card["type"], "GenericCard")
+        self.assertEqual(card["title"], "<untitled>")
+        self.assertEqual(card["subtitle"], "Ready")
+        self.assertNotIn("trace_id", card)
+        self.assertEqual(
+            card["blocks"],
+            [
+                {"type": "MarkdownBlock", "markdown": "Kept"},
+                {"type": "KeyValueBlock", "items": [{"key": "Owner", "value": "alice"}]},
+            ],
+        )
+        self.assertEqual(
+            card["actions"],
+            [{"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "safe"}}],
+        )
+
+        text = render_terminal_card(card)
+        self.assertIn("[GenericCard] <untitled>", text)
+        self.assertIn("Ready", text)
+        self.assertIn("- Owner: alice", text)
+        self.assertIn("- Copy (copy_to_clipboard)", text)
+        self.assertNotIn("ChartBlock", text)
+        self.assertNotIn("Opaque", text)
+
     def test_unknown_card_sanitizes_key_value_and_alert_blocks(self) -> None:
         unknown = build_unknown_card(
             {
