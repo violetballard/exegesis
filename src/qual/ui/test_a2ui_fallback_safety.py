@@ -21,6 +21,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_contract_fingerprints,
     describe_terminal_artifact_contract,
     describe_terminal_fallback_contract,
+    build_terminal_artifact_envelope,
     engine_prepare_card,
     render_terminal_action,
     render_terminal_artifact,
@@ -31,6 +32,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_contract_fingerprint,
     terminal_fallback_contract_fingerprint,
     TERMINAL_ARTIFACT_SCHEMA_VERSION,
+    validate_terminal_artifact_envelope,
     validate_generic_card,
 )
 from src.qual.ui.shell import ShellUI
@@ -177,6 +179,44 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["envelope"]["kind_field"], "kind")
         self.assertEqual(manifest["envelope"]["artifact_field"], "artifact")
         self.assertEqual(manifest["envelope"]["supported_kinds"], ["card", "action", "selection"])
+
+    def test_terminal_artifact_envelope_builder_creates_canonical_payloads(self) -> None:
+        action = ActionRef(
+            id=" export_document ",
+            label=" Export ",
+            payload={"format": "md"},
+            confirm={"title": " Approve ", "message": " Export now? "},
+            policy_sensitive=True,
+        )
+
+        envelope = build_terminal_artifact_envelope(action, kind=" ACTION ")
+
+        self.assertEqual(envelope["type"], "TerminalArtifact")
+        self.assertEqual(envelope["kind"], "action")
+        self.assertEqual(envelope["contract_version"], 2)
+        self.assertEqual(envelope["a2ui_version"], 1)
+        self.assertEqual(envelope["artifact"], action)
+        validate_terminal_artifact_envelope(envelope)
+
+        text = render_terminal_artifact(envelope)
+
+        self.assertIn("[ActionRef] Export", text)
+        self.assertIn("Action schema v1", text)
+        self.assertIn("- confirm: {\"message\":\"Export now?\",\"title\":\"Approve\"}", text)
+
+    def test_terminal_artifact_envelope_validator_rejects_invalid_or_overspecified_payloads(self) -> None:
+        with self.assertRaises(ValueError):
+            validate_terminal_artifact_envelope({"type": "TerminalArtifact", "kind": "dialog", "artifact": {}})
+
+        with self.assertRaises(ValueError):
+            validate_terminal_artifact_envelope(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "selection",
+                    "artifact": {"id": "choice-1"},
+                    "trace_id": "drop-me",
+                }
+            )
 
     def test_card_contract_manifest_is_versioned_and_aligns_with_a2ui_schema(self) -> None:
         manifest = describe_card_contract()

@@ -237,6 +237,66 @@ def describe_terminal_artifact_contract_fingerprints() -> dict[str, str]:
     }
 
 
+def build_terminal_artifact_envelope(artifact: Any, *, kind: str) -> dict[str, Any]:
+    """Build a canonical ``TerminalArtifact`` envelope for structured CLI payloads.
+
+    The envelope keeps the kind explicit so engine callers can emit stable
+    artifacts now and future UI clients can consume the same payload shape
+    later without guessing.
+    """
+
+    normalized_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+    envelope = {
+        "type": _TERMINAL_ARTIFACT_ENVELOPE_TYPE,
+        "kind": normalized_kind,
+        "artifact": artifact,
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+    }
+    validate_terminal_artifact_envelope(envelope)
+    return envelope
+
+
+def validate_terminal_artifact_envelope(envelope: Any) -> None:
+    if not isinstance(envelope, Mapping):
+        raise ValueError("TerminalArtifact must be an object")
+    extra_keys = set(envelope) - {
+        "type",
+        "kind",
+        "artifact",
+        "contract_version",
+        "a2ui_version",
+    }
+    if extra_keys:
+        extras = ", ".join(sorted(extra_keys))
+        raise ValueError(f"Unexpected TerminalArtifact field(s): {extras}")
+    artifact_type = envelope.get("type")
+    if not isinstance(artifact_type, str) or artifact_type.strip() != _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+        raise ValueError("TerminalArtifact type must be TerminalArtifact")
+    if "kind" not in envelope:
+        raise ValueError("TerminalArtifact kind is required")
+    kind = envelope.get("kind")
+    if not isinstance(kind, str):
+        raise ValueError("TerminalArtifact kind must be a string")
+    normalized_kind = kind.strip().lower()
+    if normalized_kind not in {"card", "action", "selection"}:
+        raise ValueError("TerminalArtifact kind must be one of: card, action, selection")
+    if "artifact" not in envelope:
+        raise ValueError("TerminalArtifact artifact is required")
+    if envelope.get("artifact") is None:
+        raise ValueError("TerminalArtifact artifact is required")
+    contract_version = envelope.get("contract_version")
+    if contract_version is not None and (
+        type(contract_version) is not int or contract_version != A2UI_CONTRACT_VERSION
+    ):
+        raise ValueError("TerminalArtifact contract_version is invalid")
+    a2ui_version = envelope.get("a2ui_version")
+    if a2ui_version is not None and type(a2ui_version) is not int:
+        raise ValueError("TerminalArtifact a2ui_version is invalid")
+    if a2ui_version is not None and a2ui_version != A2UI_VERSION:
+        raise ValueError("TerminalArtifact a2ui_version is invalid")
+
+
 def _build_a2ui_contract_manifest() -> dict[str, Any]:
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
