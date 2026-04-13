@@ -5,6 +5,7 @@ import unittest
 from src.qual.ui.a2ui import (
     A2UICapabilities,
     build_unknown_card,
+    describe_selection_contract,
     engine_prepare_card,
     render_terminal_card,
     render_terminal_selection,
@@ -36,6 +37,12 @@ def _capabilities() -> A2UICapabilities:
 
 
 class A2UIFallbackSafetyTests(unittest.TestCase):
+    def test_selection_contract_manifest_exposes_contract_fingerprint_alias(self) -> None:
+        manifest = describe_selection_contract()
+
+        self.assertEqual(manifest["contract_fingerprint"], manifest["selection_fingerprint"])
+        self.assertEqual(len(manifest["contract_fingerprint"]), 64)
+
     def test_engine_materializes_generic_cards_by_sanitizing_unsupported_content(self) -> None:
         card = engine_prepare_card(
             {
@@ -156,6 +163,20 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn(unsafe_title, card_text)
         self.assertIn("Choice\\u202eOne", selection_text)
         self.assertNotIn(unsafe_label, selection_text)
+
+    def test_invalid_selection_renderer_keeps_safe_raw_preview(self) -> None:
+        text = render_terminal_selection(
+            {
+                "id": " choice-1 ",
+                "label": 123,
+                "payload": {"secret": "safe"},
+                "selected": "yes",
+            }
+        )
+
+        self.assertIn("[SelectionRef] <invalid selection>", text)
+        self.assertIn("Selection schema v1", text)
+        self.assertIn('- raw: {"id":" choice-1 ","label":123,"payload":{"secret":"safe"},"selected":"yes"}', text)
 
     def test_terminal_renderer_skips_non_scalar_key_value_entries(self) -> None:
         text = render_terminal_card(

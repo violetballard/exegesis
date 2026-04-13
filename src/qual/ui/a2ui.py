@@ -167,7 +167,9 @@ def describe_selection_contract() -> dict[str, Any]:
     """Return the stable, versioned SelectionRef contract manifest."""
 
     manifest = _build_selection_contract_manifest()
-    manifest["selection_fingerprint"] = selection_contract_fingerprint()
+    fingerprint = selection_contract_fingerprint()
+    manifest["selection_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
     return manifest
 
 
@@ -708,12 +710,7 @@ def render_terminal_selection(selection: Any) -> str:
     try:
         normalized = _normalize_selection(selection)
     except ValueError:
-        return "\n".join(
-            [
-                "[SelectionRef] <invalid selection>",
-                f"Selection schema v{SELECTION_SCHEMA_VERSION}",
-            ]
-        )
+        return _render_invalid_terminal_selection(selection)
 
     lines = [
         f"[SelectionRef] {_render_terminal_inline_text(normalized['label'])}",
@@ -725,6 +722,15 @@ def render_terminal_selection(selection: Any) -> str:
     payload = normalized.get("payload")
     if isinstance(payload, Mapping):
         lines.append(f"- payload: {_render_payload_preview(payload, max_payload_bytes=256)}")
+    return "\n".join(lines)
+
+
+def _render_invalid_terminal_selection(selection: Any) -> str:
+    lines = [
+        "[SelectionRef] <invalid selection>",
+        f"Selection schema v{SELECTION_SCHEMA_VERSION}",
+        f"- raw: {_render_payload_preview(selection, max_payload_bytes=256)}",
+    ]
     return "\n".join(lines)
 
 
