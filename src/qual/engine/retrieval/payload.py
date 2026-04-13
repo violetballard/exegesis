@@ -458,6 +458,72 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     retrieval_policy = normalized.get("policy", normalized.get("retrieval_policy", {}))
     if not isinstance(retrieval_policy, dict):
         retrieval_policy = {}
+    query_snapshot = normalized.get("query", {})
+    if not isinstance(query_snapshot, dict):
+        query_snapshot = {}
+    query_constraints = query_snapshot.get("constraints", {})
+    if not isinstance(query_constraints, dict):
+        query_constraints = {}
+
+    if _is_missing_snapshot_value(query_snapshot.get("scope")):
+        query_snapshot["scope"] = _first_text_value(
+            retrieval_citation_bundle.get("query_scope"),
+            retrieval_provenance.get("query_scope"),
+        )
+    if _is_missing_snapshot_value(query_snapshot.get("intent")):
+        query_snapshot["intent"] = _first_text_value(
+            retrieval_citation_bundle.get("query_intent"),
+            retrieval_provenance.get("query_intent"),
+        )
+    if _is_missing_snapshot_value(query_snapshot.get("confidentiality_profile")):
+        query_confidentiality_profile = _normalize_query_confidentiality_profile(
+            _first_text_value(
+                retrieval_citation_bundle.get("query_confidentiality_profile"),
+                retrieval_provenance.get("query_confidentiality_profile"),
+            )
+        )
+        if query_confidentiality_profile is not None:
+            query_snapshot["confidentiality_profile"] = query_confidentiality_profile
+    if _is_missing_snapshot_value(query_constraints.get("date_range")):
+        query_date_range = _normalize_query_date_range(
+            retrieval_citation_bundle.get(
+                "query_date_range",
+                retrieval_provenance.get("query_date_range"),
+            )
+        )
+        if query_date_range is not None:
+            query_constraints["date_range"] = query_date_range
+    query_snapshot["constraints"] = query_constraints
+    normalized["query"] = _normalize_query_snapshot(query_snapshot)
+
+    if _is_missing_snapshot_value(retrieval_policy):
+        retrieval_policy = _normalize_policy_snapshot(
+            _first_dict_value(
+                retrieval_citation_bundle.get("retrieval_policy"),
+                retrieval_summary.get("retrieval_policy"),
+                retrieval_provenance.get("retrieval_policy"),
+                normalized["retrieval_evidence"].get("retrieval_policy"),
+                retrieval_doc_bundle.get("retrieval_policy"),
+                retrieval_excerpt_bundle.get("retrieval_policy"),
+            )
+            or {}
+        )
+        normalized["policy"] = copy.deepcopy(retrieval_policy)
+
+    citation_status = normalized.get("citation_status")
+    if not isinstance(citation_status, dict):
+        citation_status = {}
+    if _is_missing_snapshot_value(citation_status):
+        citation_status = _first_dict_value(
+            retrieval_citation_bundle.get("citation_status"),
+            retrieval_summary.get("citation_status"),
+            retrieval_provenance.get("citation_status"),
+            normalized["retrieval_evidence"].get("citation_status"),
+            retrieval_doc_bundle.get("citation_status"),
+            retrieval_excerpt_bundle.get("citation_status"),
+        ) or {}
+        normalized["citation_status"] = copy.deepcopy(citation_status)
+
     manifest_top_excerpt_ids = _normalize_list_like(normalized["retrieval_manifest"].get("top_excerpt_ids"))
     if not normalized["retrieval_summary"].get("top_excerpt_ids") and manifest_top_excerpt_ids:
         normalized["retrieval_summary"]["top_excerpt_ids"] = manifest_top_excerpt_ids
