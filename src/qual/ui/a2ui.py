@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Callable, Protocol
 
@@ -631,68 +632,75 @@ def execute_action_with_policy_gate(
     return executor(normalized_action)
 
 
-def render_terminal_card(card: dict[str, Any]) -> str:
-    raw_title = _normalize_card_title(card)
-    title = _render_terminal_inline_text(raw_title)
-    card_type = _normalize_card_type(card)
-    rendered_card_type = _render_terminal_inline_text(card_type)
-    generic_fallback_source = _infer_generic_fallback_source(raw_title)
-    lines = [f"[{rendered_card_type}] {title}"]
-    subtitle = card.get("subtitle")
-    if card_type == UNKNOWN_CARD_TYPE:
-        lines.append(UNKNOWN_FALLBACK_SUBTITLE)
-    elif card_type == GENERIC_CARD_TYPE and (
-        _is_fallback_card_debug(card.get("debug")) or generic_fallback_source is not None
-    ):
-        lines.append(GENERIC_FALLBACK_SUBTITLE)
-    elif isinstance(subtitle, str) and subtitle.strip():
-        lines.append(_render_terminal_inline_text(subtitle.strip()))
-    version = card.get("a2ui_version")
-    if type(version) is int:
-        lines.append(f"A2UI v{version}")
-    rendered_fallback = _render_terminal_fallback_notice(
-        card_type,
-        title,
-        debug=card.get("debug"),
-    )
-    if rendered_fallback:
-        lines.extend(rendered_fallback)
-    rendered_policy = _render_terminal_action_policy(
-        card_type,
-        title,
-        debug=card.get("debug"),
-    )
-    if rendered_policy:
-        lines.extend(rendered_policy)
-    debug = card.get("debug")
-    rendered_debug = _render_terminal_fallback_debug(card_type, title, debug)
-    if not rendered_debug:
-        rendered_debug = _render_terminal_debug(debug)
-    if rendered_debug:
-        lines.append("Debug:")
-        lines.extend(rendered_debug)
-    for block in _iter_card_entries(card.get("blocks")):
-        lines.extend(_render_terminal_block(block))
-    actions = card.get("actions")
-    rendered_actions = _render_terminal_actions(
-        actions,
-        supported_actions={FALLBACK_COPY_ACTION_ID} if card_type == UNKNOWN_CARD_TYPE else _ALLOWED_ACTION_SET,
-    )
-    actions_present = actions is not None
-    actions_are_list = isinstance(actions, (list, tuple))
-    filtered_actions = actions_are_list and len(rendered_actions) < len(actions)
-    if rendered_actions:
-        lines.append("Actions:")
-        lines.extend(rendered_actions)
-        if filtered_actions:
-            lines.append("Some actions filtered out by allowlist or validation")
-    elif actions_present:
-        lines.append("Actions: none available")
-        if actions_are_list and actions:
-            lines.append("Actions filtered out by allowlist or validation")
-        elif not actions_are_list:
-            lines.append("Actions filtered out by allowlist or validation")
-    return "\n".join(lines)
+def render_terminal_card(card: Any) -> str:
+    normalized_card = _coerce_terminal_card(card)
+    if normalized_card is None:
+        return _render_invalid_terminal_card()
+
+    try:
+        raw_title = _normalize_card_title(normalized_card)
+        title = _render_terminal_inline_text(raw_title)
+        card_type = _normalize_card_type(normalized_card)
+        rendered_card_type = _render_terminal_inline_text(card_type)
+        generic_fallback_source = _infer_generic_fallback_source(raw_title)
+        lines = [f"[{rendered_card_type}] {title}"]
+        subtitle = normalized_card.get("subtitle")
+        if card_type == UNKNOWN_CARD_TYPE:
+            lines.append(UNKNOWN_FALLBACK_SUBTITLE)
+        elif card_type == GENERIC_CARD_TYPE and (
+            _is_fallback_card_debug(normalized_card.get("debug")) or generic_fallback_source is not None
+        ):
+            lines.append(GENERIC_FALLBACK_SUBTITLE)
+        elif isinstance(subtitle, str) and subtitle.strip():
+            lines.append(_render_terminal_inline_text(subtitle.strip()))
+        version = normalized_card.get("a2ui_version")
+        if type(version) is int:
+            lines.append(f"A2UI v{version}")
+        rendered_fallback = _render_terminal_fallback_notice(
+            card_type,
+            title,
+            debug=normalized_card.get("debug"),
+        )
+        if rendered_fallback:
+            lines.extend(rendered_fallback)
+        rendered_policy = _render_terminal_action_policy(
+            card_type,
+            title,
+            debug=normalized_card.get("debug"),
+        )
+        if rendered_policy:
+            lines.extend(rendered_policy)
+        debug = normalized_card.get("debug")
+        rendered_debug = _render_terminal_fallback_debug(card_type, title, debug)
+        if not rendered_debug:
+            rendered_debug = _render_terminal_debug(debug)
+        if rendered_debug:
+            lines.append("Debug:")
+            lines.extend(rendered_debug)
+        for block in _iter_card_entries(normalized_card.get("blocks")):
+            lines.extend(_render_terminal_block(block))
+        actions = normalized_card.get("actions")
+        rendered_actions = _render_terminal_actions(
+            actions,
+            supported_actions={FALLBACK_COPY_ACTION_ID} if card_type == UNKNOWN_CARD_TYPE else _ALLOWED_ACTION_SET,
+        )
+        actions_present = actions is not None
+        actions_are_list = isinstance(actions, (list, tuple))
+        filtered_actions = actions_are_list and len(rendered_actions) < len(actions)
+        if rendered_actions:
+            lines.append("Actions:")
+            lines.extend(rendered_actions)
+            if filtered_actions:
+                lines.append("Some actions filtered out by allowlist or validation")
+        elif actions_present:
+            lines.append("Actions: none available")
+            if actions_are_list and actions:
+                lines.append("Actions filtered out by allowlist or validation")
+            elif not actions_are_list:
+                lines.append("Actions filtered out by allowlist or validation")
+        return "\n".join(lines)
+    except Exception:
+        return _render_invalid_terminal_card()
 
 
 def render_terminal_selection(selection: Any) -> str:
@@ -1274,7 +1282,6 @@ def _render_terminal_fallback_notice(card_type: str, title: str, *, debug: Any) 
         source_card_type = _infer_generic_fallback_source(title)
         if source_card_type is not None:
             return [f"Fallback: generic from {_render_terminal_inline_text(source_card_type)}"]
-        return ["Fallback: generic card"]
     return []
 
 
@@ -1646,6 +1653,27 @@ def _render_terminal_block(block: Any) -> list[str]:
                 lines.append(f"- {' | '.join(rendered_cells)}")
         return lines if len(lines) > 1 else ["[table: empty]"]
     return [f"[unsupported block: {_render_terminal_inline_text(block_type)}]"]
+
+
+def _coerce_terminal_card(card: Any) -> dict[str, Any] | None:
+    if isinstance(card, dict):
+        return card
+    if isinstance(card, Mapping):
+        try:
+            return dict(card)
+        except Exception:
+            return None
+    return None
+
+
+def _render_invalid_terminal_card() -> str:
+    return "\n".join(
+        [
+            "[UnknownCard] <invalid card>",
+            "Fallback: unknown card",
+            "Action policy: copy_to_clipboard_only",
+        ]
+    )
 
 
 def _render_terminal_text(value: Any) -> str:
