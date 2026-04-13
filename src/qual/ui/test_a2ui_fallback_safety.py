@@ -247,6 +247,27 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 }
             )
 
+    def test_shell_ui_falls_back_to_safe_card_rendering_for_invalid_terminal_artifacts(self) -> None:
+        shell = ShellUI()
+
+        text = shell.render_artifact(
+            {
+                "type": "TerminalArtifact",
+                "kind": "action",
+                "artifact": {
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                },
+                "trace_id": "drop-me",
+            }
+        )
+
+        self.assertIn("[TerminalArtifact] <invalid artifact>", text)
+        self.assertIn("TerminalArtifact schema v1", text)
+        self.assertIn('"trace_id":"drop-me"', text)
+        self.assertIn('"kind":"action"', text)
+
     def test_card_contract_manifest_is_versioned_and_aligns_with_a2ui_schema(self) -> None:
         manifest = describe_card_contract()
         a2ui_manifest = describe_a2ui_contract()

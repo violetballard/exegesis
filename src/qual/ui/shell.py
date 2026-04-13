@@ -6,14 +6,18 @@ from typing import Any
 import unicodedata
 
 from src.qual.engine.service import EngineRuntime
-from .a2ui import render_terminal_artifact
+from .a2ui import render_terminal_artifact, render_terminal_card
 
 
 class ShellUI:
     """Minimal CLI shell used to verify bootstrap wiring."""
 
     def render_artifact(self, artifact: Any, *, kind: str | None = None) -> str:
-        return render_terminal_artifact(artifact, kind=kind)
+        try:
+            return render_terminal_artifact(artifact, kind=kind)
+        except ValueError:
+            # CLI fallback should stay usable even when the terminal envelope is malformed.
+            return render_terminal_card(artifact)
 
     def render_startup(self, runtime: EngineRuntime) -> str:
         item_ids = self._snapshot_item_ids(runtime.basket.item_ids)

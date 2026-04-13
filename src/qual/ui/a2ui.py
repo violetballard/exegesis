@@ -897,6 +897,8 @@ def render_terminal_card(card: Any) -> str:
         raw_title = _normalize_card_title(normalized_card)
         title = _render_terminal_inline_text(raw_title)
         card_type = _normalize_card_type(normalized_card)
+        if card_type == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+            return _render_invalid_terminal_artifact(normalized_card)
         rendered_card_type = _render_terminal_inline_text(card_type)
         actions = normalized_card.get("actions")
         subtitle = normalized_card.get("subtitle")
@@ -2192,6 +2194,16 @@ def _render_invalid_terminal_card() -> str:
             "[UnknownCard] <invalid card>",
             "Fallback: unknown card",
             "Action policy: copy_to_clipboard_only",
+        ]
+    )
+
+
+def _render_invalid_terminal_artifact(artifact: Any) -> str:
+    return "\n".join(
+        [
+            "[TerminalArtifact] <invalid artifact>",
+            f"TerminalArtifact schema v{TERMINAL_ARTIFACT_SCHEMA_VERSION}",
+            f"- raw: {_render_payload_preview(artifact, max_payload_bytes=256)}",
         ]
     )
 
