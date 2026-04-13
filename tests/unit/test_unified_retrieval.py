@@ -1206,6 +1206,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(canonical["provenance"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
         self.assertEqual(canonical["provenance"]["strategies_used"], ["fts"])
         self.assertEqual(canonical["provenance"]["doc_id"], result.hits[0].doc_id)
+        self.assertEqual(canonical["doc_fingerprint"], canonical["provenance"]["doc_fingerprint"])
+        self.assertEqual(canonical["doc_identity_fingerprint"], canonical["provenance"]["doc_identity_fingerprint"])
         self.assertEqual(canonical["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
         self.assertEqual(
             canonical["provenance"]["excerpt_provenance_fingerprint"],
@@ -1261,6 +1263,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["candidate_doc_count"], 2)
         self.assertEqual(normalized["rank"], 1)
         self.assertEqual(normalized["fts_rank"], -0.25)
+        self.assertTrue(normalized["doc_fingerprint"])
+        self.assertEqual(normalized["doc_fingerprint"], normalized["provenance"]["doc_fingerprint"])
         self.assertEqual(normalized["provenance"]["excerpt_id"], "excerpt-sparse-1")
         self.assertEqual(normalized["provenance"]["doc_id"], "doc-pdf-1")
         self.assertEqual(normalized["provenance"]["doc_type"], "pdf")
@@ -1320,6 +1324,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(event["metadata"]["active_strategy_ids"], ["fts"])
         self.assertEqual(event["metadata"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
         self.assertEqual(event["metadata"]["strategies_used"], ["fts"])
+        self.assertEqual(event["metadata"]["doc_fingerprint"], excerpt["doc_fingerprint"])
         self.assertEqual(event["metadata"]["lookup_fingerprint"], excerpt["lookup_fingerprint"])
 
     def test_retrieve_fts_excerpt_honors_confidentiality_profile_for_title_hint(self) -> None:

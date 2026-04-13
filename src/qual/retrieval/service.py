@@ -1056,6 +1056,7 @@ class RetrievalService:
                 "deferred_strategy_ids": copy.deepcopy(excerpt.get("deferred_strategy_ids")),
                 "strategies_used": copy.deepcopy(excerpt.get("strategies_used")),
                 "source_hash": excerpt.get("source_hash"),
+                "doc_fingerprint": excerpt.get("doc_fingerprint"),
                 "text_hash": excerpt.get("text_hash"),
                 "excerpt_fingerprint": excerpt.get("excerpt_fingerprint"),
                 "excerpt_provenance_fingerprint": excerpt.get("excerpt_provenance_fingerprint"),
@@ -2087,6 +2088,29 @@ class RetrievalService:
                 source_hash=str(normalized.get("source_hash") or provenance.get("source_hash") or ""),
             )
         normalized["excerpt_fingerprint"] = excerpt_fingerprint
+        doc_fingerprint = normalized.get("doc_fingerprint")
+        if not isinstance(doc_fingerprint, str) or not doc_fingerprint:
+            provenance_doc_fingerprint = provenance.get("doc_fingerprint")
+            if isinstance(provenance_doc_fingerprint, str) and provenance_doc_fingerprint:
+                doc_fingerprint = provenance_doc_fingerprint
+        if (
+            (not isinstance(doc_fingerprint, str) or not doc_fingerprint)
+            and doc_id_value is not None
+            and isinstance(source_hash, str)
+            and source_hash
+            and isinstance(doc_type, str)
+            and doc_type
+        ):
+            doc_fingerprint = RetrievalService._build_lookup_doc_fingerprint(
+                doc_id=doc_id_value,
+                source_hash=source_hash,
+                doc_type=doc_type,
+                excerpt_id=str(normalized.get("excerpt_id") or provenance.get("excerpt_id") or ""),
+                excerpt_fingerprint=excerpt_fingerprint,
+                doc_identity_fingerprint=doc_identity_fingerprint,
+            )
+        if isinstance(doc_fingerprint, str) and doc_fingerprint:
+            normalized["doc_fingerprint"] = doc_fingerprint
         excerpt_provenance_fingerprint = normalized.get("excerpt_provenance_fingerprint")
         if not isinstance(excerpt_provenance_fingerprint, str) or not excerpt_provenance_fingerprint:
             provenance_excerpt_provenance_fingerprint = provenance.get("excerpt_provenance_fingerprint")
@@ -2129,6 +2153,8 @@ class RetrievalService:
         normalized_provenance["excerpt_provenance_fingerprint"] = excerpt_provenance_fingerprint
         if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
             normalized_provenance["doc_identity_fingerprint"] = doc_identity_fingerprint
+        if isinstance(doc_fingerprint, str) and doc_fingerprint:
+            normalized_provenance["doc_fingerprint"] = doc_fingerprint
         normalized_provenance["retrieval_backend"] = retrieval_backend
         normalized_provenance["retrieval_mode"] = retrieval_mode
         normalized_provenance["retrieval_policy"] = copy.deepcopy(retrieval_policy)
@@ -2193,6 +2219,27 @@ class RetrievalService:
                 "doc_id": doc_id,
                 "source_hash": source_hash,
                 "doc_type": doc_type,
+            }
+        )
+
+    @staticmethod
+    def _build_lookup_doc_fingerprint(
+        *,
+        doc_id: str,
+        source_hash: str,
+        doc_type: str,
+        excerpt_id: str,
+        excerpt_fingerprint: str | None,
+        doc_identity_fingerprint: str | None,
+    ) -> str:
+        return RetrievalService._stable_fingerprint(
+            {
+                "doc_id": doc_id,
+                "source_hash": source_hash,
+                "doc_type": doc_type,
+                "excerpt_id": excerpt_id,
+                "excerpt_fingerprint": excerpt_fingerprint,
+                "doc_identity_fingerprint": doc_identity_fingerprint,
             }
         )
 
