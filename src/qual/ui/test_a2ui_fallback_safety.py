@@ -549,6 +549,42 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[GenericCard]", action_text)
         self.assertNotIn("[GenericCard]", selection_text)
 
+    def test_shell_ui_falls_back_to_invalid_action_when_action_recovery_renderer_raises(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            with patch("src.qual.ui.shell.render_terminal_action", side_effect=RuntimeError("fallback boom")):
+                text = shell.render_artifact(
+                    {
+                        "id": "export_document",
+                        "label": "Export",
+                        "payload": {"format": "md"},
+                    },
+                    kind="action",
+                )
+
+        self.assertIn("[ActionRef] <invalid action>", text)
+        self.assertIn("Action schema v1", text)
+        self.assertNotIn("fallback boom", text)
+
+    def test_shell_ui_falls_back_to_invalid_selection_when_selection_recovery_renderer_raises(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            with patch("src.qual.ui.shell.render_terminal_selection", side_effect=RuntimeError("fallback boom")):
+                text = shell.render_artifact(
+                    {
+                        "id": "choice-1",
+                        "label": "Choice",
+                        "payload": {"nested": {"items": [1, 2]}},
+                    },
+                    kind="selection",
+                )
+
+        self.assertIn("[SelectionRef] <invalid selection>", text)
+        self.assertIn("Selection schema v1", text)
+        self.assertNotIn("fallback boom", text)
+
     def test_terminal_artifact_uses_explicit_kind_for_raw_mappings(self) -> None:
         action_text = render_terminal_artifact(
             {"id": "export_document", "label": "Export", "payload": {"format": "md"}},

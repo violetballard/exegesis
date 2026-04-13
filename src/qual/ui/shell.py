@@ -11,6 +11,9 @@ from .a2ui import (
     render_terminal_artifact,
     render_terminal_card,
     render_terminal_selection,
+    _render_invalid_terminal_action,
+    _render_invalid_terminal_card,
+    _render_invalid_terminal_selection,
     validate_terminal_artifact_envelope,
 )
 
@@ -25,10 +28,19 @@ class ShellUI:
             # Keep the CLI usable even if the structured artifact renderer fails unexpectedly.
             fallback_artifact, fallback_kind = self._resolve_fallback_artifact(artifact, kind=kind)
             if fallback_kind == "action":
-                return render_terminal_action(fallback_artifact)
+                try:
+                    return render_terminal_action(fallback_artifact)
+                except Exception:
+                    return _render_invalid_terminal_action(fallback_artifact)
             if fallback_kind == "selection":
-                return render_terminal_selection(fallback_artifact)
-            return render_terminal_card(fallback_artifact)
+                try:
+                    return render_terminal_selection(fallback_artifact)
+                except Exception:
+                    return _render_invalid_terminal_selection(fallback_artifact)
+            try:
+                return render_terminal_card(fallback_artifact)
+            except Exception:
+                return _render_invalid_terminal_card()
 
     def render_startup(self, runtime: EngineRuntime) -> str:
         item_ids = self._snapshot_item_ids(runtime.basket.item_ids)
