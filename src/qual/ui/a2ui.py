@@ -1102,19 +1102,10 @@ def _extract_terminal_artifact_envelope(artifact: Any) -> tuple[Any, str] | None
     artifact_type = artifact.get("type")
     if not isinstance(artifact_type, str) or artifact_type.strip() != _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
         return None
-    if "kind" not in artifact:
-        raise ValueError("TerminalArtifact kind is required")
-    kind = artifact.get("kind")
-    if not isinstance(kind, str):
-        raise ValueError("TerminalArtifact kind must be a string")
+    validate_terminal_artifact_envelope(artifact)
+    kind = artifact["kind"]
     normalized_kind = kind.strip().lower()
-    if normalized_kind not in {"card", "action", "selection"}:
-        raise ValueError("TerminalArtifact kind must be one of: card, action, selection")
-    if "artifact" not in artifact:
-        raise ValueError("TerminalArtifact artifact is required")
-    payload = artifact.get("artifact")
-    if payload is None:
-        raise ValueError("TerminalArtifact artifact is required")
+    payload = artifact["artifact"]
     return payload, normalized_kind
 
 

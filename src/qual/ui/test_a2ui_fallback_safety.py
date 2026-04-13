@@ -218,6 +218,35 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 }
             )
 
+    def test_terminal_artifact_renderer_rejects_invalid_envelopes(self) -> None:
+        with self.assertRaises(ValueError):
+            render_terminal_artifact(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "action",
+                    "artifact": {
+                        "id": "export_document",
+                        "label": "Export",
+                        "payload": {"format": "md"},
+                    },
+                    "trace_id": "drop-me",
+                }
+            )
+
+        with self.assertRaises(ValueError):
+            render_terminal_artifact(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "selection",
+                    "artifact": {
+                        "id": "choice-1",
+                        "label": "Choice",
+                        "payload": {"nested": {"items": [1, 2]}},
+                    },
+                    "contract_version": 999,
+                }
+            )
+
     def test_card_contract_manifest_is_versioned_and_aligns_with_a2ui_schema(self) -> None:
         manifest = describe_card_contract()
         a2ui_manifest = describe_a2ui_contract()
