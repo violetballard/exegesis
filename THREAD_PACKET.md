@@ -49,6 +49,7 @@
 ## Scope goal
 - Harden the CLI command contract so command catalog, parser entrypoints, route ordering, and invocation planning stay deterministic and fail fast if the parser surface drifts from the catalog.
 - Keep the `patch-review` command entrypoint stable for the canonical demo-path steps `preview and apply or reject a patch` and `continue working`, so this contract hardening remains first-order Milestone 3 CLI compatibility work instead of generic cleanup.
+- High-risk rationale for this handoff: the implementation includes one approved shared test edit in `tests/unit/test_commands_catalog.py`; no integrator-locked runtime entrypoints, provider surfaces, or routing/config files were changed.
 
 ## Lane/owned paths
 - Owned runtime path in this worktree: `src/qual/commands/**`
@@ -68,7 +69,7 @@
 - Reissued the handoff packet so the review basis, files changed list, demo-path field, and AGENTS mapping now match the full branch-tip implementation on this branch.
 
 ## Kickoff budget/limits compliance
-- High-risk/shared-file handoff: the implementation stayed within the `4`-task cap and the file-count cap.
+- High-risk/shared-file handoff by approved shared-test exception only: the implementation stayed within the `4`-task cap and the file-count cap.
 - The full branch-tip implementation under review changed `4` implementation files plus `THREAD_PACKET.md`, with one approved non-owned shared test path.
 - The broader reviewed branch-tip scope from `f8d860ed...` through pre-refresh tip `16ef7c91...` still exceeds the original high-risk net-size guideline, so this packet reports the real recovered scope instead of restating the earlier narrowed one-file slice.
 
@@ -102,7 +103,8 @@
 - `make ci`: PASS
 
 ## Risks / blockers
-- Risk: `HIGH`
+- Risk: `MEDIUM`
+- Risk note: the only non-owned implementation path is `tests/unit/test_commands_catalog.py` under the approved shared-test exception; no integrator-locked files or provider/routing surfaces changed.
 - Blockers: none
 
 ## Required handoff fields
@@ -129,7 +131,8 @@
 - None.
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `YES` (non-owned test path only; no integrator-locked implementation files)
+- Shared/integrator-locked edits: `YES` (approved non-owned shared test only; no integrator-locked implementation files)
 - Non-owned implementation edit recorded explicitly: `tests/unit/test_commands_catalog.py`
 - The lane-owned runtime edits remain inside `src/qual/commands/**`.
+- No provider surfaces, routing/config behavior, or core CLI entrypoints such as `src/main.py`, `src/qual/cli.py`, or `src/qual/app.py` were edited in the reviewed implementation scope.
 - This packet does not claim `8c9e22903ec7048ecfee2cb18709894c1daf8f41` is metadata-only; it is an implementation commit and is included above as part of the reviewed branch-tip scope.
