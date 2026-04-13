@@ -398,6 +398,7 @@ def _build_card_contract_manifest() -> dict[str, Any]:
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
         "card_contract_version": CARD_CONTRACT_VERSION,
+        "card_version": CARD_CONTRACT_VERSION,
         "type": "CardContract",
         "card_schemas": _build_card_schema_manifest(),
         "fallbacks": _build_card_fallback_manifest(),

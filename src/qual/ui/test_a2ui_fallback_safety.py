@@ -454,6 +454,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["contract_version"], 2)
         self.assertEqual(manifest["a2ui_version"], 1)
         self.assertEqual(manifest["card_contract_version"], CARD_CONTRACT_VERSION)
+        self.assertEqual(manifest["card_version"], CARD_CONTRACT_VERSION)
         self.assertEqual(manifest["type"], "CardContract")
         self.assertEqual(manifest["card_fingerprint"], card_contract_fingerprint())
         self.assertEqual(manifest["contract_fingerprint"], manifest["card_fingerprint"])
