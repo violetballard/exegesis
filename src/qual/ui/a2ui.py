@@ -230,6 +230,7 @@ def _build_selection_contract_manifest() -> dict[str, Any]:
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
+        "selection_schema_version": SELECTION_SCHEMA_VERSION,
         "selection_version": SELECTION_SCHEMA_VERSION,
         "type": "SelectionRef",
         "required_fields": ["id", "label", "payload"],

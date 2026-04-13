@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable, Mapping, Set
 import unicodedata
 
@@ -54,12 +55,15 @@ class ShellUI:
     def _format_item_id(value: object) -> str:
         if value is None:
             return "<blank>"
+        is_string = isinstance(value, str)
         baseline = " ".join(str(value).split())
         if not baseline:
             return "<blank>"
         escaped = ShellUI._escape_control_chars(baseline)
         rendered = ShellUI._truncate_for_preview(escaped, max_len=24)
-        if "," in rendered or '"' in rendered or "\\" in rendered:
+        if is_string and not ShellUI._is_safe_preview_token(rendered):
+            return json.dumps(rendered, ensure_ascii=False)
+        if not is_string and ("," in rendered or '"' in rendered or "\\" in rendered):
             escaped = rendered.replace("\\", "\\\\").replace('"', '\\"')
             return f'"{escaped}"'
         return rendered
@@ -103,3 +107,9 @@ class ShellUI:
                     continue
             break
         return f"{prefix}..."
+
+    @staticmethod
+    def _is_safe_preview_token(value: str) -> bool:
+        if not value:
+            return False
+        return all(char.isalnum() or char in {".", "_", "-"} for char in value)

@@ -8,6 +8,7 @@ from src.qual.ui.a2ui import (
     A2UICapabilities,
     ActionRef,
     CARD_CONTRACT_VERSION,
+    SELECTION_SCHEMA_VERSION,
     GENERIC_FALLBACK_SUBTITLE,
     card_contract_fingerprint,
     action_contract_fingerprint,
@@ -55,6 +56,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(manifest["contract_fingerprint"], manifest["selection_fingerprint"])
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
+        self.assertEqual(manifest["selection_schema_version"], SELECTION_SCHEMA_VERSION)
+        self.assertEqual(manifest["selection_version"], SELECTION_SCHEMA_VERSION)
 
     def test_a2ui_contract_manifest_exposes_action_contract_alias(self) -> None:
         manifest = describe_a2ui_contract()
@@ -378,6 +381,17 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertIn('- context_preview: "alpha\\\\u202ebeta"', text)
         self.assertNotIn("alpha\u202ebeta", text)
+
+    def test_shell_ui_quotes_ambiguous_preview_tokens_and_keeps_set_order(self) -> None:
+        runtime = SimpleNamespace(
+            vault=SimpleNamespace(project_name="Demo", root_dir="/tmp/demo", is_locked=False),
+            basket=SimpleNamespace(item_ids={"gamma", "alpha beta"}),
+        )
+
+        text = ShellUI().render_startup(runtime)
+
+        self.assertIn('- context_preview: "alpha beta", gamma', text)
+        self.assertNotIn("alpha beta, gamma", text)
 
     def test_shell_ui_truncates_without_splitting_unicode_escape_sequences(self) -> None:
         self.assertEqual(ShellUI._format_item_id("x" * 18 + "\u202e" + "yz"), "xxxxxxxxxxxxxxxxxx...")
