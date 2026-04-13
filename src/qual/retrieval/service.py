@@ -72,6 +72,20 @@ def _normalized_profile_text(value: object) -> str | None:
     return text.casefold()
 
 
+def _normalize_doc_id(value: object) -> str:
+    doc_id = _optional_text(value)
+    if doc_id is None:
+        raise ValueError("doc_id must be a non-empty string")
+    return doc_id
+
+
+def _normalize_doc_type(value: object) -> str:
+    doc_type = _normalized_profile_text(value)
+    if doc_type is None:
+        raise ValueError("doc_type must be a non-empty string")
+    return doc_type
+
+
 def _optional_int(value: object) -> int | None:
     if value is None or isinstance(value, bool):
         return None
@@ -904,28 +918,44 @@ class RetrievalService:
         text: str,
         title_hint: str | None = None,
     ) -> None:
+        normalized_doc_id = _normalize_doc_id(doc_id)
+        normalized_doc_type = _normalize_doc_type(doc_type)
+        normalized_title_hint = _normalized_text(title_hint)
         content = text.encode("utf-8")
         source_hash = hashlib.sha256(content).hexdigest()
-        blob_path = self._root / _DOC_BLOBS / f"{doc_id}.enc"
+        blob_path = self._root / _DOC_BLOBS / f"{normalized_doc_id}.enc"
         blob_path.write_bytes(encrypt_bytes(content, self._key))
 
         meta = self._load_doc_meta()
-        meta[doc_id] = {
-            "doc_id": doc_id,
-            "doc_type": doc_type,
-            "title_hint": title_hint,
+        raw_doc_id = str(doc_id)
+        if raw_doc_id != normalized_doc_id:
+            legacy_blob_path = self._root / _DOC_BLOBS / f"{raw_doc_id}.enc"
+            legacy_blob_path.unlink(missing_ok=True)
+            meta.pop(raw_doc_id, None)
+        meta[normalized_doc_id] = {
+            "doc_id": normalized_doc_id,
+            "doc_type": normalized_doc_type,
+            "title_hint": normalized_title_hint,
             "source_hash": source_hash,
             "size_bytes": len(content),
             "updated_at": self._now_fn().isoformat(),
         }
         self._write_encrypted_json(self._root / _DOC_META_FILE, meta)
-        self._upsert_fts_entries(doc_id=doc_id, doc_type=doc_type, title_hint=title_hint, text=text)
+        self._upsert_fts_entries(
+            doc_id=normalized_doc_id,
+            doc_type=normalized_doc_type,
+            title_hint=normalized_title_hint,
+            text=text,
+        )
+        if raw_doc_id != normalized_doc_id:
+            with self._connect_fts_db() as conn:
+                conn.execute("DELETE FROM fts_entries WHERE doc_id = ?", (raw_doc_id,))
         self._fts.clear_cache()
 
     def build_pageindex(self, *, doc_id: str, options: DocIndexBuildOptions | None = None) -> str:
         source = self._read_doc_text(doc_id)
         build_opts = options if options is not None else DocIndexBuildOptions()
-        job = self._docindex.build(doc_id, source.encode("utf-8"), build_opts)
+        job = self._docindex.build(_normalize_doc_id(doc_id), source.encode("utf-8"), build_opts)
         return job.status
 
     def retrieve_fts(self, query: RetrievalQuery) -> RetrievalResult:
@@ -2416,7 +2446,7 @@ class RetrievalService:
         return out
 
     def _read_doc_text(self, doc_id: str) -> str:
-        blob = self._root / _DOC_BLOBS / f"{doc_id}.enc"
+        blob = self._root / _DOC_BLOBS / f"{_normalize_doc_id(doc_id)}.enc"
         if not blob.exists():
             raise KeyError(f"unknown doc_id: {doc_id}")
         return decrypt_bytes(blob.read_bytes(), self._key).decode("utf-8")
