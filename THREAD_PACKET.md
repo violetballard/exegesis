@@ -11,6 +11,7 @@
 - This packet now treats the branch tip `8c9e22903ec7048ecfee2cb18709894c1daf8f41` as implementation work, not as a metadata-only refresh.
 - The implementation scope described below matches the real branch-tip files and the earlier test coverage commit that established regression coverage for this lane.
 - `src/qual/commands/__init__.py` is included explicitly because the branch tip exports the expanded command-catalog contract surface and is part of the implementation under review.
+- The concrete blocker removed is silent drift in the CLI `patch-review` surface: without this guard, parser/catalog divergence can change the operator contract for the canonical `preview and apply or reject a patch` step without a fast failure in smoke tests.
 
 ## Branch-tip traceability
 - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` introduced the original command-catalog drift guard in `src/qual/commands/catalog.py` and the focused regression coverage in `tests/unit/test_commands_catalog.py`.
