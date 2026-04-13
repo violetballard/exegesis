@@ -43,6 +43,27 @@ class CommandFlowSurfaceEntry:
 
 
 @dataclass(frozen=True)
+class CommandSmokeEntry:
+    flow_step: str
+    name: str
+    primary_cli_token: str
+    cli_tokens: tuple[str, ...]
+    lookup_tokens: tuple[str, ...]
+    surface_tokens: tuple[str, ...]
+    description: str
+
+
+@dataclass(frozen=True)
+class CommandSmokeContract:
+    flow_steps: tuple[str, ...]
+    names: tuple[str, ...]
+    entries: tuple[CommandSmokeEntry, ...]
+    primary_cli_tokens: tuple[str, ...]
+    route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
+    lookup_surface: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
 class CommandFlowSequence:
     flow_steps: tuple[str, ...]
     names: tuple[str, ...]
@@ -1301,6 +1322,29 @@ def _validate_command_surface_contract(contract: CommandSurfaceContract) -> None
         raise ValueError("Command surface lookup surfaces must match")
 
 
+def _validate_command_smoke_contract(contract: CommandSmokeContract) -> None:
+    if tuple(entry.flow_step for entry in contract.entries) != contract.flow_steps:
+        raise ValueError("Command smoke flow steps are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != contract.names:
+        raise ValueError("Command smoke names are inconsistent")
+    if tuple(entry.primary_cli_token for entry in contract.entries) != contract.primary_cli_tokens:
+        raise ValueError("Command smoke primary CLI tokens are inconsistent")
+    if tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in contract.entries) != contract.route_summary:
+        raise ValueError("Command smoke route summary is inconsistent")
+
+    expected_lookup_surface: list[tuple[str, str]] = []
+    seen_tokens: set[str] = set()
+    for entry in contract.entries:
+        for token in entry.surface_tokens:
+            normalized_token = _normalize_token(token)
+            if normalized_token in seen_tokens:
+                continue
+            seen_tokens.add(normalized_token)
+            expected_lookup_surface.append((normalized_token, entry.name))
+    if tuple(expected_lookup_surface) != contract.lookup_surface:
+        raise ValueError("Command smoke lookup surface is inconsistent")
+
+
 @lru_cache(maxsize=None)
 def command_flow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -1406,6 +1450,43 @@ def command_demo_flow_contract(
     return command_flow_contract(specs, command_demo_flow_steps())
 
 
+@lru_cache(maxsize=None)
+def command_smoke_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> CommandSmokeContract:
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
+    route_catalog = command_flow_route_catalog(flow_steps=ordered_flow_steps, specs=specs)
+    entries = tuple(
+        CommandSmokeEntry(
+            flow_step=entry.flow_step,
+            name=entry.name,
+            primary_cli_token=entry.primary_cli_token,
+            cli_tokens=entry.cli_tokens,
+            lookup_tokens=entry.lookup_tokens,
+            surface_tokens=entry.surface_tokens,
+            description=entry.description,
+        )
+        for entry in route_catalog
+    )
+    contract = CommandSmokeContract(
+        flow_steps=tuple(entry.flow_step for entry in entries),
+        names=tuple(entry.name for entry in entries),
+        entries=entries,
+        primary_cli_tokens=tuple(entry.primary_cli_token for entry in entries),
+        route_summary=tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in entries),
+        lookup_surface=command_flow_lookup_surface(specs, ordered_flow_steps),
+    )
+    _validate_command_smoke_contract(contract)
+    return contract
+
+
+def command_demo_smoke_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandSmokeContract:
+    return command_smoke_contract(specs, command_demo_flow_steps())
+
+
 def command_demo_surface_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandSurfaceContract:
@@ -1421,6 +1502,12 @@ def command_mvp_surface_contract(
 
 def command_demo_flow(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[CommandManifestEntry, ...]:
     return command_demo_flow_manifest(specs)
+
+
+def command_mvp_smoke_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandSmokeContract:
+    return command_demo_smoke_contract(specs)
 
 
 def command_mvp_flow_lookup_surface(
