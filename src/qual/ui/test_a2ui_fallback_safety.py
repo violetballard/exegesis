@@ -440,8 +440,9 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             }
         )
 
-        self.assertIn("[TerminalArtifact] <invalid artifact>", text)
-        self.assertIn("TerminalArtifact schema v1", text)
+        self.assertIn("[SelectionRef] Choice", text)
+        self.assertIn("Selection schema v1", text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
 
     def test_terminal_renderer_includes_safe_raw_preview_for_invalid_cards(self) -> None:
         text = render_terminal_card(_OpaqueValue())
@@ -645,6 +646,49 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[ActionRef] Export", shell.render_artifact(action))
         self.assertIn("[SelectionRef] Choice", shell.render_artifact(selection))
         self.assertIn("[GenericCard] Run Log", shell.render_artifact(card))
+
+    def test_shell_ui_recovers_action_and_selection_payloads_from_malformed_terminal_artifacts(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            action_text = shell.render_artifact(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "dialog",
+                    "artifact": {
+                        "type": "ActionRef",
+                        "id": "export_document",
+                        "label": "Export",
+                        "payload": {"format": "md"},
+                        "confirm": {"title": "Approve", "message": "Proceed?"},
+                    },
+                    "trace_id": "drop-me",
+                }
+            )
+            selection_text = shell.render_artifact(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "dialog",
+                    "artifact": {
+                        "type": "SelectionRef",
+                        "id": "choice-1",
+                        "label": "Choice",
+                        "payload": {"nested": {"items": [1, 2]}},
+                        "selected": True,
+                    },
+                    "trace_id": "drop-me",
+                }
+            )
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", action_text)
+        self.assertNotIn("trace_id", action_text)
+
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
+        self.assertNotIn("trace_id", selection_text)
 
     def test_shell_ui_forwards_explicit_artifact_kind_hints(self) -> None:
         shell = ShellUI()

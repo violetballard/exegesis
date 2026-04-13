@@ -880,7 +880,7 @@ def normalize_action_ref(action: ActionRef | Mapping[str, Any]) -> ActionRef:
     return ActionRef(
         id=str(normalized["id"]),
         label=str(normalized["label"]),
-        payload=dict(normalized["payload"]),
+        payload=_copy_action_payload(normalized["payload"]),
         confirm=dict(normalized["confirm"]) if "confirm" in normalized else None,
         policy_sensitive=bool(normalized.get("policy_sensitive", False)),
     )
@@ -1368,7 +1368,7 @@ def _normalize_action(action: ActionRef | Mapping[str, Any], *, supported_action
     normalized: dict[str, Any] = {
         "id": action_id,
         "label": label.strip(),
-        "payload": dict(payload),
+        "payload": _copy_action_payload(payload),
     }
     confirm = action.get("confirm")
     if confirm is not None:
@@ -1441,7 +1441,7 @@ def _action_ref_to_dict(action: ActionRef | Mapping[str, Any]) -> dict[str, Any]
         action_dict: dict[str, Any] = {
             "id": action.id,
             "label": action.label,
-            "payload": action.payload,
+            "payload": _copy_action_payload(action.payload),
         }
         if action.confirm is not None:
             action_dict["confirm"] = action.confirm
@@ -1470,6 +1470,14 @@ def _normalize_confirm(confirm: Any) -> dict[str, str]:
 
 
 def _copy_selection_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
+    try:
+        copied = copy.deepcopy(payload)
+    except Exception:
+        copied = dict(payload)
+    return copied
+
+
+def _copy_action_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
     try:
         copied = copy.deepcopy(payload)
     except Exception:

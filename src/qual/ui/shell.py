@@ -225,6 +225,9 @@ class ShellUI:
             if fallback_kind in {"action", "selection"}:
                 if payload is not None:
                     return payload, fallback_kind
+            # Recover from a corrupted wrapper kind when the embedded payload is still typed.
+            if payload_kind in {"action", "selection"}:
+                return payload, payload_kind
             if envelope_kind in {"action", "selection"} and payload is not None and payload_kind == envelope_kind:
                 return payload, envelope_kind
             if requested_kind == "card" and isinstance(payload, Mapping) and payload_kind is None:
