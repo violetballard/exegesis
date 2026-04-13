@@ -6,7 +6,7 @@ from typing import Any
 import unicodedata
 
 from src.qual.engine.service import EngineRuntime
-from .a2ui import render_terminal_artifact, render_terminal_card
+from .a2ui import render_terminal_action, render_terminal_artifact, render_terminal_card, render_terminal_selection
 
 
 class ShellUI:
@@ -17,6 +17,11 @@ class ShellUI:
             return render_terminal_artifact(artifact, kind=kind)
         except Exception:
             # Keep the CLI usable even if the structured artifact renderer fails unexpectedly.
+            fallback_kind = self._normalize_fallback_kind(kind)
+            if fallback_kind == "action":
+                return render_terminal_action(artifact)
+            if fallback_kind == "selection":
+                return render_terminal_selection(artifact)
             return render_terminal_card(artifact)
 
     def render_startup(self, runtime: EngineRuntime) -> str:
@@ -131,3 +136,12 @@ class ShellUI:
     @staticmethod
     def _looks_like_opaque_object_repr(value: str) -> bool:
         return value.startswith("<") and value.endswith(">") and " object at 0x" in value
+
+    @staticmethod
+    def _normalize_fallback_kind(kind: str | None) -> str | None:
+        if not isinstance(kind, str):
+            return None
+        normalized_kind = kind.strip().lower()
+        if normalized_kind in {"action", "selection"}:
+            return normalized_kind
+        return None

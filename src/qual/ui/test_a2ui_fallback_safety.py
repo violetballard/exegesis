@@ -477,6 +477,32 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[GenericCard] Fallback", text)
         self.assertNotIn("boom", text)
 
+    def test_shell_ui_preserves_explicit_kind_hints_during_fallback(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            action_text = shell.render_artifact(
+                {
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                },
+                kind="action",
+            )
+            selection_text = shell.render_artifact(
+                {
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                },
+                kind="selection",
+            )
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertNotIn("[GenericCard]", action_text)
+        self.assertNotIn("[GenericCard]", selection_text)
+
     def test_terminal_artifact_uses_explicit_kind_for_raw_mappings(self) -> None:
         action_text = render_terminal_artifact(
             {"id": "export_document", "label": "Export", "payload": {"format": "md"}},
