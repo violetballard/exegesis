@@ -198,6 +198,7 @@ class ShellUI:
     @staticmethod
     def _resolve_fallback_artifact(artifact: Any, *, kind: str | None) -> tuple[Any, str | None]:
         fallback_kind = ShellUI._normalize_fallback_kind(kind)
+        requested_kind = kind.strip().lower() if isinstance(kind, str) else None
         if not isinstance(artifact, Mapping):
             if fallback_kind is None:
                 fallback_kind = ShellUI._infer_fallback_kind(artifact)
@@ -212,10 +213,17 @@ class ShellUI:
         try:
             validate_terminal_artifact_envelope(artifact)
         except Exception:
+            payload = artifact.get("artifact")
             if fallback_kind in {"action", "selection"}:
-                payload = artifact.get("artifact")
                 if payload is not None:
                     return payload, fallback_kind
+            if (
+                requested_kind == "card"
+                and isinstance(payload, Mapping)
+                and ShellUI._infer_fallback_kind(payload) is None
+            ):
+                # Keep explicit card hints usable even when the wrapper metadata is stale.
+                return payload, "card"
             return artifact, fallback_kind
 
         payload = artifact.get("artifact")
