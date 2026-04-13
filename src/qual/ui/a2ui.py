@@ -236,6 +236,8 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
         "a2ui_version": A2UI_VERSION,
         "terminal_fallback": describe_terminal_fallback_contract(),
         "terminal_artifact": describe_terminal_artifact_contract(),
+        "terminal_fallback_fingerprint": terminal_fallback_contract_fingerprint(),
+        "terminal_artifact_fingerprint": terminal_artifact_contract_fingerprint(),
         "cards": {
             "generic": GENERIC_CARD_TYPE,
             "unknown": UNKNOWN_CARD_TYPE,
