@@ -76,6 +76,12 @@
 ## Required handoff fields
 ### Scope completed
 - CLI compatibility now depends on one deterministic command catalog that defines parser entrypoints, route ordering, and invocation metadata without allowing silent parser/catalog drift.
+- This specifically hardens the canonical demo-path step `preview and apply or reject a patch` by keeping the `patch-review` operator entrypoint stable and smoke-testable while Textual remains disabled.
+
+### Canonical demo-path step advanced
+- `preview and apply or reject a patch`
+- Secondary support: `continue working`
+- The packet fix is first-order Milestone 3 work because it protects the CLI-first `patch-review` contract used to execute that canonical engine workflow step.
 
 ### Roadmap item(s) affected
 - `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands by keeping the `patch-review` demo-path step deterministic and smoke-testable.

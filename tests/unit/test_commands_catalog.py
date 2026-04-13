@@ -375,14 +375,14 @@ class CommandCatalogTests(unittest.TestCase):
                     "diff-preview",
                     "patch-review",
                     ("diff", "diff_preview", "review-patch"),
-                    ("diff-preview", "diff", "diff_preview", "review-patch"),
+                    ("diff-preview", "diff", "review-patch"),
                 ),
                 (
                     "diff",
                     "diff-preview",
                     "patch-review",
                     ("diff", "diff_preview", "review-patch"),
-                    ("diff-preview", "diff", "diff_preview", "review-patch"),
+                    ("diff-preview", "diff", "review-patch"),
                 ),
                 (
                     "context-basket",
@@ -408,6 +408,42 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(contract.entries, command_cli_surface_catalog())
         self.assertEqual(contract, command_demo_cli_surface_contract())
         self.assertEqual(contract, command_mvp_cli_surface_contract())
+
+    def test_command_cli_surface_catalog_includes_parser_only_cli_tokens(self) -> None:
+        specs = (
+            CommandSpec(
+                name="bootstrap",
+                aliases=("open",),
+                cli_tokens=("project-open", "bootstrap-run"),
+                flow_step="project-open",
+                description="Open the project bootstrap flow.",
+            ),
+            CommandSpec(
+                name="review",
+                aliases=("patch",),
+                cli_tokens=("review-patch",),
+                flow_step="patch-review",
+                description="Review the patch output.",
+            ),
+        )
+
+        self.assertEqual(
+            tuple((entry.token, entry.lookup_tokens) for entry in command_cli_surface_catalog(specs)),
+            (
+                (
+                    "project-open",
+                    ("bootstrap", "open", "project-open", "bootstrap-run"),
+                ),
+                (
+                    "bootstrap-run",
+                    ("bootstrap", "open", "project-open", "bootstrap-run"),
+                ),
+                (
+                    "review-patch",
+                    ("review", "patch", "review-patch"),
+                ),
+            ),
+        )
 
     def test_command_cli_route_summary_tracks_the_smoke_route(self) -> None:
         self.assertEqual(
@@ -819,11 +855,29 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
         self.assertEqual(
-            tuple((entry.token, entry.canonical_name, entry.flow_step) for entry in surface_contract.entries),
+            tuple(
+                (entry.token, entry.canonical_name, entry.flow_step, entry.lookup_tokens)
+                for entry in surface_contract.entries
+            ),
             (
-                ("project-open", "bootstrap", "project-open"),
-                ("bootstrap-run", "bootstrap", "project-open"),
-                ("review-patch", "review", "patch-review"),
+                (
+                    "project-open",
+                    "bootstrap",
+                    "project-open",
+                    ("bootstrap", "open", "project-open", "bootstrap-run"),
+                ),
+                (
+                    "bootstrap-run",
+                    "bootstrap",
+                    "project-open",
+                    ("bootstrap", "open", "project-open", "bootstrap-run"),
+                ),
+                (
+                    "review-patch",
+                    "review",
+                    "patch-review",
+                    ("review", "patch", "review-patch"),
+                ),
             ),
         )
 
