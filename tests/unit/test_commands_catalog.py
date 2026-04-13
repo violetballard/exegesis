@@ -242,7 +242,22 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_primary_cli_token_for(specs, "patch"), "review-patch")
         self.assertEqual(command_cli_primary_tokens(specs), ("project-open", "review-patch"))
 
-    def test_command_cli_contract_rejects_catalog_drift(self) -> None:
+    def test_command_cli_contract_rejects_parser_surface_drift(self) -> None:
+        command_catalog.command_cli_contract.cache_clear()
+        with patch.object(
+            command_catalog,
+            "_validated_cli_entrypoints_for",
+            return_value=(
+                ("bootstrap", ("bootstrap",)),
+                ("diff-preview", ("diff-preview", "diff", "review-patch")),
+                ("context-basket", ("context-basket",)),
+                ("terminal", ("terminal",)),
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
+                command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_canonical_name_drift(self) -> None:
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(command_catalog, "command_names", return_value=("bootstrap", "diff-preview")):
             with self.assertRaisesRegex(ValueError, "Command CLI canonical names are inconsistent"):

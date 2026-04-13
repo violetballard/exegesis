@@ -258,6 +258,37 @@ def _command_cli_tokens_by_name() -> dict[str, tuple[str, ...]]:
     return _cli_entrypoints_by_name(COMMAND_SPECS)
 
 
+def _declared_cli_entrypoints_for(spec: CommandSpec) -> tuple[str, ...]:
+    entrypoints = spec.cli_tokens or _lookup_tokens(spec)
+    return tuple(_normalize_token(entrypoint) for entrypoint in entrypoints)
+
+
+def _validate_command_cli_contract(
+    contract: CommandCliContract,
+    specs: tuple[CommandSpec, ...],
+) -> None:
+    validate_command_catalog(specs)
+    expected_canonical_names = command_names(specs)
+    if contract.canonical_names != expected_canonical_names:
+        raise ValueError("Command CLI canonical names are inconsistent")
+
+    expected_tokens = tuple(
+        normalized_entrypoint
+        for spec in specs
+        for normalized_entrypoint in _declared_cli_entrypoints_for(spec)
+    )
+    if contract.tokens != expected_tokens:
+        raise ValueError("Command CLI tokens are inconsistent")
+
+    expected_lookup_table = tuple(
+        (normalized_entrypoint, spec.name)
+        for spec in specs
+        for normalized_entrypoint in _declared_cli_entrypoints_for(spec)
+    )
+    if contract.lookup_table != expected_lookup_table:
+        raise ValueError("Command CLI lookup table is inconsistent")
+
+
 def _command_cli_contract_for(specs: tuple[CommandSpec, ...]) -> CommandCliContract:
     validated_entrypoints = _validated_cli_entrypoints_for(specs)
     tokens: list[str] = []
@@ -273,15 +304,13 @@ def _command_cli_contract_for(specs: tuple[CommandSpec, ...]) -> CommandCliContr
         seen_canonical_names.add(spec_name)
         canonical_names.append(spec_name)
 
-    expected_canonical_names = command_names(specs)
-    if tuple(canonical_names) != expected_canonical_names:
-        raise ValueError("Command CLI canonical names are inconsistent")
-
-    return CommandCliContract(
+    contract = CommandCliContract(
         tokens=tuple(tokens),
-        canonical_names=expected_canonical_names,
+        canonical_names=tuple(canonical_names),
         lookup_table=tuple(lookup_table),
     )
+    _validate_command_cli_contract(contract, specs)
+    return contract
 
 
 def _route_cli_tokens_by_name(specs: tuple[CommandSpec, ...]) -> dict[str, tuple[str, ...]]:
