@@ -4,16 +4,23 @@
 - Implementation commit(s):
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
   - `8c9e22903ec7048ecfee2cb18709894c1daf8f41` (`feat(commands): stabilize command catalog contracts`)
-  - `552bec58f1a19643b4797d770b0a8896443b9279` (`Add command parser surface lookup helpers`)
-  - `ad1f61fc1d7e35025b5b1865953340b7a14c7fa7` (`Fix bounded diff preview truncation`)
-  - `9c48585385f07f6861f5646663da8622714e8d73` (`Add MVP command smoke contract`)
-  - `81cbb95200a4bf3a5e66a1bc927596fc59d6445f` (`fix(commands): align handoff and catalog tests`)
-  - `1abb3bc1245cfd652ed0d26159f3bc78d85fcabe` (`fix(commands): validate CLI parser surface`)
-  - `26658f398b5487455c4a14f9eb7e6d89fc4c72d6` (`Add command CLI shim contract`)
+- `552bec587c40cde059a4d329de958e06da5a0460` (`Add command parser surface lookup helpers`)
+- `ad1f61fc5f29acc54f230e8361f6b85c776ddea7` (`Fix bounded diff preview truncation`)
+- `9c485853ec0689e14bec3c5141e2b556538100f6` (`Add MVP command smoke contract`)
+- `81cbb9529642b0647459d447f467a5fcbebdbe2e` (`fix(commands): align handoff and catalog tests`)
+- `1abb3bc162bc6e718db82ff79beb8cfadda47d90` (`fix(commands): validate CLI parser surface`)
+- `26658f395761421f90e4b843e50883787e60b1d0` (`Add command CLI shim contract`)
   - `8b52002c3f963820bb1b3efe7698c7f97c952ae5` (`fix(commands): reject parser surface drift`)
 - Docs-only alignment commit(s):
   - Numerous packet-only `docs(commands): ...` commits touched `THREAD_PACKET.md` between the implementation commits above.
-  - This fixer pass updates `THREAD_PACKET.md` only so the handoff packet matches the real branch-tip implementation at `8b52002c3f963820bb1b3efe7698c7f97c952ae5`.
+  - `ee88483683f57242406bbd0b5a895dddf7da8537` (`docs(commands): fix handoff traceability packet`) corrected the stale narrowed review basis and re-scoped the packet to the real branch-tip implementation.
+  - This fixer pass updates `THREAD_PACKET.md` only so the handoff packet remains anchored to the actual branch-tip scope for re-review after the reviewer requested explicit packet regeneration.
+
+## Reviewer-required fixes closure
+- Required fix `1`: the packet is anchored to branch tip rather than `f8d860ed...` alone, and it lists the non-metadata implementation commits and implementation files changed after that earlier slice.
+- Required fix `2`: the stale claim that later commits were metadata-only has been removed; only the packet-only `docs(commands): ...` commits are treated as docs-only alignment commits.
+- Required fix `3`: the canonical demo-path step advanced is stated explicitly below and mapped to the Milestone 3 CLI-first loop.
+- Required fix `4`: the budget/limits note below is stated against the true branch-tip implementation scope rather than the earlier narrowed slice.
 
 ## Reviewer-fix resubmission note
 - This packet no longer narrows review to `f8d860ed...` alone. It covers the full branch-tip implementation lineage through `8b52002c3f963820bb1b3efe7698c7f97c952ae5`.
@@ -82,7 +89,7 @@
 - `THREAD_PACKET.md`
 
 ## Commands run with results
-- Revalidated on `2026-04-12` in this traceability-fix pass.
+- Revalidated on `2026-04-12` in this reviewer-fix closure pass.
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
