@@ -195,6 +195,55 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(compact.to_downstream_payload()["query"]["constraints"]["section_hint"], "discussion")
         self.assertEqual(spaced.to_downstream_payload()["query"]["constraints"]["section_hint"], "discussion")
 
+    def test_retrieve_auto_normalizes_scope_whitespace_in_query_fingerprint(self) -> None:
+        compact = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="outline_support",
+                constraints=RetrievalConstraints(max_results=6, section_hint="discussion"),
+                confidentiality_profile="confidential",
+            )
+        )
+        spaced = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="  doc:doc-pdf-1  ",
+                intent="outline_support",
+                constraints=RetrievalConstraints(max_results=6, section_hint="discussion"),
+                confidentiality_profile="confidential",
+            )
+        )
+        self.assertEqual(compact.diagnostics["query_fingerprint"], spaced.diagnostics["query_fingerprint"])
+        self.assertEqual(compact.result_fingerprint, spaced.result_fingerprint)
+        self.assertEqual(spaced.query.scope, "doc:doc-pdf-1")
+        self.assertEqual(spaced.to_downstream_payload()["query"]["scope"], "doc:doc-pdf-1")
+
+    def test_retrieve_auto_normalizes_scope_prefix_case_in_query_fingerprint(self) -> None:
+        canonical = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="outline_support",
+                constraints=RetrievalConstraints(max_results=6, section_hint="discussion"),
+                confidentiality_profile="confidential",
+            )
+        )
+        mixed_case = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="  DOC:doc-pdf-1  ",
+                intent="outline_support",
+                constraints=RetrievalConstraints(max_results=6, section_hint="discussion"),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        self.assertEqual(canonical.diagnostics["query_fingerprint"], mixed_case.diagnostics["query_fingerprint"])
+        self.assertEqual(canonical.result_fingerprint, mixed_case.result_fingerprint)
+        self.assertEqual(mixed_case.query.scope, "doc:doc-pdf-1")
+        self.assertEqual(mixed_case.to_downstream_payload()["query"]["scope"], "doc:doc-pdf-1")
+
     def test_retrieve_auto_reports_stable_fts_shortlist_doc_ids(self) -> None:
         query = RetrievalQuery(
             query_text="theory implications",
@@ -412,6 +461,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             payload["retrieval_summary"]["excerpt_ids"],
             [item.excerpt_id for item in result.hits if item.excerpt_id is not None],
+        )
+        self.assertEqual(
+            payload["retrieval_summary"]["top_excerpt_ids"],
+            [item.top_excerpt_id for item in result.doc_hits],
         )
         self.assertEqual(
             payload["retrieval_summary"]["primary_doc_id"],
@@ -1227,6 +1280,70 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_payload"))
         self.assertTrue(hasattr(package_retrieval, "retrieve_auto_citation_bundle"))
 
+    def test_fts_strategy_refreshes_same_key_cache_after_uncached_read(self) -> None:
+        runner_hits = [["stale-hit"], ["fresh-hit"]]
+        strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: list(runner_hits.pop(0)))
+
+        cached = strategy.retrieve("theory implications", candidate_doc_ids=("doc-b", "doc-a"))
+        refreshed = strategy.retrieve(
+            "theory implications",
+            candidate_doc_ids=("doc-a", "doc-b"),
+            use_cache=False,
+        )
+        replayed = strategy.retrieve("theory implications", candidate_doc_ids=("doc-b", "doc-a"))
+
+        self.assertFalse(cached.cache_used)
+        self.assertEqual(cached.hits, ["stale-hit"])
+        self.assertFalse(refreshed.cache_used)
+        self.assertEqual(refreshed.hits, ["fresh-hit"])
+        self.assertTrue(replayed.cache_used)
+        self.assertEqual(replayed.hits, ["fresh-hit"])
+        self.assertEqual(runner_hits, [])
+
+    def test_fts_strategy_primes_cache_after_uncached_read_without_prior_entry(self) -> None:
+        runner_hits = [["fresh-hit"]]
+        strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: list(runner_hits.pop(0)))
+
+        uncached = strategy.retrieve(
+            "theory implications",
+            candidate_doc_ids=("doc-b", "doc-a"),
+            use_cache=False,
+        )
+        replayed = strategy.retrieve("theory implications", candidate_doc_ids=("doc-a", "doc-b"))
+
+        self.assertFalse(uncached.cache_used)
+        self.assertEqual(uncached.hits, ["fresh-hit"])
+        self.assertTrue(replayed.cache_used)
+        self.assertEqual(replayed.hits, ["fresh-hit"])
+        self.assertEqual(runner_hits, [])
+
+    def test_retrieve_auto_invalidates_fts_cache_after_document_update(self) -> None:
+        query = RetrievalQuery(
+            query_text="theory implications",
+            scope="vault",
+            intent="lookup",
+            constraints=RetrievalConstraints(max_results=5),
+            confidentiality_profile="confidential",
+        )
+
+        initial = self.service.retrieve_auto(query)
+        self.assertTrue(any(hit.doc_id == "doc-pdf-1" for hit in initial.hits))
+
+        self.service.add_or_update_document(
+            doc_id="doc-pdf-1",
+            doc_type="pdf",
+            title_hint="Interview Packet Revised",
+            text="Methods section with recruitment constraints and ethics notes only.",
+        )
+
+        refreshed = self.service.retrieve_auto(query)
+        self.assertFalse(any(hit.doc_id == "doc-pdf-1" for hit in refreshed.hits))
+        self.assertNotEqual(initial.result_fingerprint, refreshed.result_fingerprint)
+        self.assertNotEqual(
+            initial.diagnostics["excerpt_hits_fingerprint"],
+            refreshed.diagnostics["excerpt_hits_fingerprint"],
+        )
+
     def test_retrieval_query_constructor_is_shared_by_both_facades(self) -> None:
         constraints = {
             "max_results": 7,
@@ -1256,6 +1373,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(engine_query.constraints.doc_types, ("memo", "pdf"))
         self.assertEqual(engine_query.constraints.date_range, ("2026-01-01", "2026-01-31"))
         self.assertEqual(engine_query.constraints.section_hint, "discussion")
+        self.assertEqual(engine_query.scope, "vault")
         self.assertEqual(engine_query.confidentiality_profile, "standard")
 
     def test_retrieval_query_constructor_accepts_generic_iterable_constraint_values(self) -> None:
@@ -1289,6 +1407,44 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(engine_query.constraints.date_range, ("2026-01-01", "2026-01-31"))
         self.assertEqual(engine_query.constraints.section_hint, "discussion")
         self.assertEqual(engine_query.confidentiality_profile, "standard")
+
+    def test_retrieval_query_constructor_normalizes_scope_whitespace(self) -> None:
+        engine_query = engine_retrieval.build_retrieval_query(
+            query_text="memo comparison",
+            scope="  doc:doc-memo-1  ",
+            intent="compare",
+            constraints={"max_results": 4},
+            confidentiality_profile="standard",
+        )
+        package_query = package_retrieval.build_retrieval_query(
+            query_text="memo comparison",
+            scope="  doc:doc-memo-1  ",
+            intent="compare",
+            constraints={"max_results": 4},
+            confidentiality_profile="standard",
+        )
+
+        self.assertEqual(engine_query, package_query)
+        self.assertEqual(engine_query.scope, "doc:doc-memo-1")
+
+    def test_retrieval_query_constructor_normalizes_scope_prefix_case(self) -> None:
+        engine_query = engine_retrieval.build_retrieval_query(
+            query_text="memo comparison",
+            scope="  DOC:doc-memo-1  ",
+            intent="compare",
+            constraints={"max_results": 4},
+            confidentiality_profile="standard",
+        )
+        package_query = package_retrieval.build_retrieval_query(
+            query_text="memo comparison",
+            scope=" Vault ",
+            intent="compare",
+            constraints={"max_results": 4},
+            confidentiality_profile="standard",
+        )
+
+        self.assertEqual(engine_query.scope, "doc:doc-memo-1")
+        self.assertEqual(package_query.scope, "vault")
 
     def test_retrieval_query_constructor_accepts_constraints_dataclass(self) -> None:
         constraints = RetrievalConstraints(
@@ -1636,6 +1792,50 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_source_bundle"]["retrieval_mode"], "fts_first")
         self.assertEqual(payload, expected)
 
+    def test_retrieval_provenance_helper_backfills_sparse_source_bundle_provenance_fields(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SparseSourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        retrieval_provenance = sparse_source_bundle.get("retrieval_provenance")
+        self.assertIsInstance(retrieval_provenance, dict)
+        retrieval_provenance["query_scope"] = None
+        retrieval_provenance["query_intent"] = None
+        retrieval_provenance["active_strategy_ids"] = []
+        retrieval_provenance["deferred_strategy_ids"] = []
+        retrieval_provenance["fts_shortlist_doc_ids"] = []
+        retrieval_provenance["primary_doc_id"] = None
+        retrieval_provenance["primary_doc_fingerprint"] = None
+        retrieval_provenance["primary_doc_identity_fingerprint"] = None
+        retrieval_provenance["primary_excerpt_id"] = None
+        retrieval_provenance["primary_excerpt_fingerprint"] = None
+        retrieval_provenance["primary_excerpt_text_hash"] = None
+        retrieval_provenance["citation_status"] = {}
+        retrieval_provenance["doc_count"] = None
+        retrieval_provenance["excerpt_count"] = None
+        retrieval_provenance["doc_citations"] = []
+        retrieval_provenance["excerpt_citations"] = []
+
+        provenance = build_retrieval_provenance_from_result(
+            _SparseSourceBundleOnlySource(sparse_source_bundle)
+        )
+
+        self.assertEqual(provenance, result.retrieval_provenance_bundle())
+
     def test_retrieval_downstream_payload_helper_backfills_sparse_context_bundle_fields(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
@@ -1668,6 +1868,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         retrieval_summary.pop("doc_fingerprints", None)
         retrieval_summary.pop("excerpt_fingerprints", None)
         retrieval_summary.pop("doc_identity_fingerprints", None)
+        retrieval_summary.pop("top_excerpt_ids", None)
         retrieval_summary.pop("top_excerpt_fingerprints", None)
         retrieval_summary.pop("top_excerpt_text_hashes", None)
 

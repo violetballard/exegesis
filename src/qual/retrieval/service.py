@@ -58,6 +58,27 @@ def _optional_text(value: object) -> str | None:
     return None
 
 
+def _normalize_scope(value: object) -> str:
+    scope = str(value).strip()
+    if not scope:
+        raise ValueError("scope must be a non-empty string")
+
+    canonical_scope = scope.casefold()
+    if canonical_scope == "vault":
+        return "vault"
+
+    prefix, separator, remainder = scope.partition(":")
+    if not separator:
+        return scope
+    normalized_prefix = prefix.strip().casefold()
+    if normalized_prefix in {"doc", "collection", "section"}:
+        normalized_remainder = remainder.strip()
+        if not normalized_remainder:
+            raise ValueError(f"{normalized_prefix} scope must include a non-empty identifier")
+        return f"{normalized_prefix}:{normalized_remainder}"
+    return scope
+
+
 def _optional_list_like(value: object) -> list[object] | None:
     if value is None:
         return None
@@ -105,6 +126,7 @@ class RetrievalQuery:
     confidentiality_profile: Literal["confidential", "standard"] = "confidential"
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "scope", _normalize_scope(self.scope))
         object.__setattr__(
             self,
             "intent",
@@ -592,6 +614,7 @@ class RetrievalResult:
             "excerpt_ids": [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None],
             "excerpt_fingerprints": excerpt_fingerprints,
             "excerpt_text_hashes": excerpt_text_hashes,
+            "top_excerpt_ids": [doc_hit.top_excerpt_id for doc_hit in self.doc_hits],
             "top_excerpt_fingerprints": top_excerpt_fingerprints,
             "top_excerpt_text_hashes": top_excerpt_text_hashes,
             "primary_doc_id": self.doc_hits[0].doc_id if self.doc_hits else None,
@@ -786,6 +809,7 @@ class RetrievalService:
         }
         self._write_encrypted_json(self._root / _DOC_META_FILE, meta)
         self._upsert_fts_entries(doc_id=doc_id, doc_type=doc_type, title_hint=title_hint, text=text)
+        self._fts.clear_cache()
 
     def build_pageindex(self, *, doc_id: str, options: DocIndexBuildOptions | None = None) -> str:
         source = self._read_doc_text(doc_id)
@@ -1012,7 +1036,9 @@ class RetrievalService:
             "fts_shortlist_doc_ids": list(fts_shortlist),
             "strategies_used": list(retrieval_policy["active_strategy_ids"]),
             "elapsed_ms_by_strategy": {fts_run.strategy_id: fts_run.elapsed_ms},
-            "caches_used": {fts_run.strategy_id: fts_run.cache_used},
+            # Cache use is an internal optimization detail; keep the public
+            # diagnostics deterministic across equivalent retrieval calls.
+            "caches_used": {fts_run.strategy_id: False},
             "elapsed_ms_total": elapsed_ms_total,
             "doc_hits_count": len(doc_hits),
             "excerpt_hits_count": len(merged_hits),
@@ -1038,6 +1064,9 @@ class RetrievalService:
                 "active_strategy_ids": diagnostics["active_strategy_ids"],
                 "deferred_strategy_ids": diagnostics["deferred_strategy_ids"],
                 "strategies_used": diagnostics["strategies_used"],
+                # Keep runtime cache behavior in audit metadata even though the
+                # downstream contract masks it for deterministic payloads.
+                "caches_used": {fts_run.strategy_id: fts_run.cache_used},
                 "elapsed_ms_by_strategy": diagnostics["elapsed_ms_by_strategy"],
                 "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
                 "hits_count": len(merged_hits),
@@ -1443,7 +1472,7 @@ class RetrievalService:
     ) -> tuple[str, ...]:
         shortlist_query = self._build_fts_shortlist_query(query, max_results=limit)
         if date_range is None:
-            run = self._fts.retrieve(shortlist_query, candidate_doc_ids=())
+            run = self._fts.retrieve(shortlist_query, candidate_doc_ids=(), use_cache=False)
             doc_ids: list[str] = []
             seen = set()
             for hit in run.hits:
@@ -1463,6 +1492,7 @@ class RetrievalService:
             run = self._fts.retrieve(
                 self._build_fts_shortlist_query(query, max_results=batch_limit),
                 candidate_doc_ids=(),
+                use_cache=False,
             )
             for hit in run.hits:
                 if hit.doc_id in seen:
