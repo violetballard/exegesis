@@ -677,14 +677,17 @@ def render_terminal_card(card: Any) -> str:
         title = _render_terminal_inline_text(raw_title)
         card_type = _normalize_card_type(normalized_card)
         rendered_card_type = _render_terminal_inline_text(card_type)
-        generic_fallback_source = _infer_generic_fallback_source(raw_title)
+        actions = normalized_card.get("actions")
+        generic_fallback_source = _resolve_generic_fallback_source(
+            raw_title,
+            actions,
+            normalized_card.get("debug"),
+        )
         lines = [f"[{rendered_card_type}] {title}"]
         subtitle = normalized_card.get("subtitle")
         if card_type == UNKNOWN_CARD_TYPE:
             lines.append(UNKNOWN_FALLBACK_SUBTITLE)
-        elif card_type == GENERIC_CARD_TYPE and (
-            _is_fallback_card_debug(normalized_card.get("debug")) or generic_fallback_source is not None
-        ):
+        elif card_type == GENERIC_CARD_TYPE and generic_fallback_source is not None:
             lines.append(GENERIC_FALLBACK_SUBTITLE)
         elif isinstance(subtitle, str) and subtitle.strip():
             lines.append(_render_terminal_inline_text(subtitle.strip()))
@@ -695,6 +698,7 @@ def render_terminal_card(card: Any) -> str:
             card_type,
             title,
             debug=normalized_card.get("debug"),
+            generic_fallback_source=generic_fallback_source,
         )
         if rendered_fallback:
             lines.extend(rendered_fallback)
@@ -702,11 +706,17 @@ def render_terminal_card(card: Any) -> str:
             card_type,
             title,
             debug=normalized_card.get("debug"),
+            generic_fallback_source=generic_fallback_source,
         )
         if rendered_policy:
             lines.extend(rendered_policy)
         debug = normalized_card.get("debug")
-        rendered_debug = _render_terminal_fallback_debug(card_type, title, debug)
+        rendered_debug = _render_terminal_fallback_debug(
+            card_type,
+            title,
+            debug,
+            generic_fallback_source=generic_fallback_source,
+        )
         if not rendered_debug:
             rendered_debug = _render_terminal_debug(debug)
         if rendered_debug:
@@ -714,7 +724,6 @@ def render_terminal_card(card: Any) -> str:
             lines.extend(rendered_debug)
         for block in _iter_card_entries(normalized_card.get("blocks")):
             lines.extend(_render_terminal_block(block))
-        actions = normalized_card.get("actions")
         rendered_actions = _render_terminal_actions(
             actions,
             supported_actions={FALLBACK_COPY_ACTION_ID} if card_type == UNKNOWN_CARD_TYPE else _ALLOWED_ACTION_SET,
@@ -902,6 +911,20 @@ def _validate_canonical_read_only_fallback_actions(
         if action_key in seen_actions:
             raise ValueError("Fallback card actions must not contain duplicates")
         seen_actions.add(action_key)
+
+
+def _is_canonical_read_only_fallback_actions(actions: Any) -> bool:
+    if actions is None:
+        return True
+    if not isinstance(actions, (list, tuple)):
+        return False
+    if not actions:
+        return True
+    try:
+        _validate_canonical_read_only_fallback_actions(actions)
+    except ValueError:
+        return False
+    return True
 
 
 def _materialize_versioned_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
@@ -1332,14 +1355,20 @@ def _render_terminal_debug(debug: Any) -> list[str]:
     return lines
 
 
-def _render_terminal_fallback_debug(card_type: str, title: str, debug: Any) -> list[str]:
+def _render_terminal_fallback_debug(
+    card_type: str,
+    title: str,
+    debug: Any,
+    *,
+    generic_fallback_source: str | None = None,
+) -> list[str]:
     fallback_debug = _extract_terminal_fallback_debug(debug)
     if fallback_debug is None:
         if card_type == UNKNOWN_CARD_TYPE:
             source_card_type = _infer_unknown_fallback_source(title)
             fallback_kind = "unknown"
         elif card_type == GENERIC_CARD_TYPE:
-            source_card_type = _infer_generic_fallback_source(title)
+            source_card_type = generic_fallback_source
             fallback_kind = "generic"
         else:
             return []
@@ -1360,7 +1389,13 @@ def _render_terminal_fallback_debug(card_type: str, title: str, debug: Any) -> l
     return lines
 
 
-def _render_terminal_fallback_notice(card_type: str, title: str, *, debug: Any) -> list[str]:
+def _render_terminal_fallback_notice(
+    card_type: str,
+    title: str,
+    *,
+    debug: Any,
+    generic_fallback_source: str | None = None,
+) -> list[str]:
     fallback_debug = _extract_terminal_fallback_debug(debug)
     if fallback_debug is not None:
         fallback_kind, source_card_type = fallback_debug
@@ -1372,10 +1407,8 @@ def _render_terminal_fallback_notice(card_type: str, title: str, *, debug: Any) 
         if source_card_type is not None:
             return [f"Fallback: unknown from {_render_terminal_inline_text(source_card_type)}"]
         return ["Fallback: unknown card"]
-    if card_type == GENERIC_CARD_TYPE:
-        source_card_type = _infer_generic_fallback_source(title)
-        if source_card_type is not None:
-            return [f"Fallback: generic from {_render_terminal_inline_text(source_card_type)}"]
+    if card_type == GENERIC_CARD_TYPE and generic_fallback_source is not None:
+        return [f"Fallback: generic from {_render_terminal_inline_text(generic_fallback_source)}"]
     return []
 
 
@@ -1395,11 +1428,17 @@ def _extract_terminal_fallback_debug(debug: Any) -> tuple[str, str] | None:
     return normalized_fallback_kind, normalized_source_card_type
 
 
-def _render_terminal_action_policy(card_type: str, title: str, debug: Any) -> list[str]:
+def _render_terminal_action_policy(
+    card_type: str,
+    title: str,
+    debug: Any,
+    *,
+    generic_fallback_source: str | None = None,
+) -> list[str]:
     if card_type == UNKNOWN_CARD_TYPE:
         return ["Action policy: copy_to_clipboard_only"]
     if card_type == GENERIC_CARD_TYPE and (
-        _is_fallback_card_debug(debug) or _infer_generic_fallback_source(title) is not None
+        _is_fallback_card_debug(debug) or generic_fallback_source is not None
     ):
         return ["Action policy: client_allowlist"]
     return []
@@ -1407,6 +1446,22 @@ def _render_terminal_action_policy(card_type: str, title: str, debug: Any) -> li
 
 def _is_fallback_card_debug(debug: Any) -> bool:
     return _extract_terminal_fallback_debug(debug) is not None
+
+
+def _resolve_generic_fallback_source(title: str, actions: Any, debug: Any) -> str | None:
+    fallback_debug = _extract_terminal_fallback_debug(debug)
+    if fallback_debug is not None:
+        fallback_kind, source_card_type = fallback_debug
+        if fallback_kind == "generic":
+            return source_card_type
+        return None
+
+    source_card_type = _infer_generic_fallback_source(title)
+    if source_card_type is None:
+        return None
+    if not _is_canonical_read_only_fallback_actions(actions):
+        return None
+    return source_card_type
 
 
 def _infer_generic_fallback_source(title: str) -> str | None:

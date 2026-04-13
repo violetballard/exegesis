@@ -7,6 +7,7 @@ from src.qual.ui.a2ui import (
     A2UI_ACTION_SCHEMA_VERSION,
     A2UICapabilities,
     ActionRef,
+    GENERIC_FALLBACK_SUBTITLE,
     action_contract_fingerprint,
     build_unknown_card,
     describe_a2ui_contract,
@@ -261,6 +262,57 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn(unsafe_title, card_text)
         self.assertIn("Choice\\u202eOne", selection_text)
         self.assertNotIn(unsafe_label, selection_text)
+
+    def test_terminal_renderer_requires_read_only_actions_for_generic_fallback_inference(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Fallback view for FutureCard",
+                "subtitle": "Operator notes",
+                "blocks": [],
+                "actions": [
+                    {
+                        "id": "open_section",
+                        "label": "Open",
+                        "payload": {"section_id": "section-1"},
+                    }
+                ],
+            }
+        )
+
+        self.assertIn("[GenericCard] Fallback view for FutureCard", text)
+        self.assertIn("Operator notes", text)
+        self.assertNotIn(GENERIC_FALLBACK_SUBTITLE, text)
+        self.assertNotIn("Fallback: generic from", text)
+        self.assertNotIn("Action policy: client_allowlist", text)
+        self.assertNotIn("Debug:", text)
+        self.assertIn("- Open (open_section)", text)
+
+    def test_terminal_renderer_infers_generic_fallback_when_actions_are_canonical_copy_only(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Fallback view for FutureCard",
+                "blocks": [],
+                "actions": [
+                    {
+                        "id": "copy_to_clipboard",
+                        "label": "Copy JSON",
+                        "payload": {"text": "{}"},
+                    }
+                ],
+            }
+        )
+
+        self.assertIn("[GenericCard] Fallback view for FutureCard", text)
+        self.assertIn(GENERIC_FALLBACK_SUBTITLE, text)
+        self.assertIn("Fallback: generic from FutureCard", text)
+        self.assertIn("Action policy: client_allowlist", text)
+        self.assertIn("Debug:", text)
+        self.assertIn("- contract_version: 2", text)
+        self.assertIn("- fallback_kind: generic", text)
+        self.assertIn("- source_card_type: FutureCard", text)
+        self.assertIn("- Copy JSON (copy_to_clipboard)", text)
 
     def test_invalid_selection_renderer_keeps_safe_raw_preview(self) -> None:
         text = render_terminal_selection(
