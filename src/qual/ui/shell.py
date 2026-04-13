@@ -196,7 +196,12 @@ class ShellUI:
         return None
 
     @staticmethod
-    def _resolve_fallback_artifact(artifact: Any, *, kind: str | None) -> tuple[Any, str | None]:
+    def _resolve_fallback_artifact(
+        artifact: Any,
+        *,
+        kind: str | None,
+        _seen_terminal_artifact_ids: set[int] | None = None,
+    ) -> tuple[Any, str | None]:
         fallback_kind = ShellUI._normalize_fallback_kind(kind)
         requested_kind = kind.strip().lower() if isinstance(kind, str) else None
         if not isinstance(artifact, Mapping):
@@ -210,6 +215,13 @@ class ShellUI:
                 fallback_kind = ShellUI._infer_fallback_kind(artifact)
             return artifact, fallback_kind
 
+        if _seen_terminal_artifact_ids is None:
+            _seen_terminal_artifact_ids = set()
+        artifact_id = id(artifact)
+        if artifact_id in _seen_terminal_artifact_ids:
+            return artifact, fallback_kind
+        _seen_terminal_artifact_ids.add(artifact_id)
+
         envelope_kind = None
         raw_kind = artifact.get("kind")
         if isinstance(raw_kind, str):
@@ -218,6 +230,18 @@ class ShellUI:
                 envelope_kind = normalized_raw_kind
         payload = artifact.get("artifact")
         payload_kind = ShellUI._infer_fallback_kind(payload) if payload is not None else None
+
+        if isinstance(payload, Mapping):
+            payload_type = payload.get("type")
+            if isinstance(payload_type, str) and payload_type.strip() == "TerminalArtifact":
+                # Peel nested wrappers so a bad outer envelope does not hide the concrete payload.
+                resolved_artifact, resolved_kind = ShellUI._resolve_fallback_artifact(
+                    payload,
+                    kind=None,
+                    _seen_terminal_artifact_ids=_seen_terminal_artifact_ids,
+                )
+                if resolved_kind is not None:
+                    return resolved_artifact, resolved_kind
 
         try:
             validate_terminal_artifact_envelope(artifact)
