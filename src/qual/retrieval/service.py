@@ -1196,7 +1196,10 @@ class RetrievalService:
                     excerpt_id=str(row["excerpt_id"]),
                     excerpt_text=excerpt_text,
                     span={"char_range": {"start": int(row["char_start"]), "end": int(row["char_end"])}},
-                    title_hint=self._safe_title_hint(query, str(row["title_hint"] or "")),
+                    title_hint=self._safe_title_hint(
+                        str(row["title_hint"] or ""),
+                        confidentiality_profile=query.confidentiality_profile,
+                    ),
                     score=round(1.0 / rank, 3),
                     source_strategy="fts",
                     rationale="sqlite_fts_match",
@@ -1765,6 +1768,10 @@ class RetrievalService:
                     "excerpt_id": excerpt_id,
                     "doc_id": doc_id,
                     "doc_type": str(row["doc_type"]),
+                    "title_hint": self._safe_title_hint(
+                        str(row["title_hint"] or ""),
+                        confidentiality_profile="confidential",
+                    ),
                     "source_hash": self._doc_source_hash(doc_id),
                     "source_strategy": "fts",
                     "span": {"char_range": {"start": int(row["char_start"]), "end": int(row["char_end"])}},
@@ -2112,10 +2119,10 @@ class RetrievalService:
             pass
 
     @staticmethod
-    def _safe_title_hint(query: RetrievalQuery, value: str) -> str | None:
+    def _safe_title_hint(value: str, *, confidentiality_profile: str) -> str | None:
         if not value:
             return None
-        if query.confidentiality_profile == "confidential":
+        if confidentiality_profile == "confidential":
             return f"doc:{hashlib.sha256(value.encode('utf-8')).hexdigest()[:10]}"
         return value[:80]
 
