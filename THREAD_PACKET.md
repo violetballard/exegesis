@@ -2,14 +2,14 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet HEAD role: `review-packet correction for the actual committed tip`
-- Current branch head before this fixer commit: `8284cdef636198b9accd8a60bb0f8ff5deeb82ea`
-- Reviewed implementation head: `8284cdef636198b9accd8a60bb0f8ff5deeb82ea`
-- Reviewed implementation range: `712714c24f92cdfe43f21127c2de1d4ea0bd2599..8284cdef636198b9accd8a60bb0f8ff5deeb82ea`
+- Current branch head before this fixer commit: `7668efb05966b8ee6eeeb2960a3862b005596a98`
+- Reviewed implementation head: `7668efb05966b8ee6eeeb2960a3862b005596a98`
+- Reviewed implementation range: `712714c24f92cdfe43f21127c2de1d4ea0bd2599..7668efb05966b8ee6eeeb2960a3862b005596a98`
 - Handoff type: `shared/high-risk retrieval handoff regenerated against the actual committed branch tip`
 
 ## Packet HEAD context
-- The actual committed branch tip before this fixer commit is `8284cdef636198b9accd8a60bb0f8ff5deeb82ea`.
-- `8284cdef636198b9accd8a60bb0f8ff5deeb82ea` is an implementation commit, not a metadata-only packet refresh.
+- The actual committed branch tip before this fixer commit is `7668efb05966b8ee6eeeb2960a3862b005596a98`.
+- `7668efb05966b8ee6eeeb2960a3862b005596a98` is an implementation commit, not a metadata-only packet refresh.
 - The reviewed implementation commits in this regenerated slice are:
   - `3048d517` `Normalize retrieval query snapshots`
   - `fb2f0445` `feat-retrieval-fts: preserve sparse citation provenance`
@@ -23,6 +23,9 @@
   - `3b905670` `Add stable excerpt provenance fingerprints`
   - `1ac6ac38` `Normalize FTS cache query payloads`
   - `8284cdef` `Expose canonical retrieval rank fields`
+  - `74d6c2f8` `feat(retrieval): stabilize excerpt lookup metadata`
+  - `95610bda` `Tighten FTS excerpt payload normalization`
+  - `7668efb0` `feat(retrieval): add excerpt lookup doc fingerprints`
 - The docs-only alignment commits in this regenerated slice are:
   - `b008fe29` `docs(retrieval): refresh handoff traceability`
   - `c85b5f26` `docs(retrieval): finalize reviewer packet traceability`
@@ -30,25 +33,26 @@
   - `da5e2db3` `fix(retrieval): correct reviewed tip packet role`
   - `249a0c50` `docs(retrieval): clarify canonical demo-path step`
   - `0cf508e5` `docs(retrieval): record canonical demo-path step`
+  - `c163944c` `fix(retrieval): correct reviewed handoff packet tip`
 
 ## Scope goal
 - Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
 
 ## Canonical demo-path step advanced
 - `retrieve relevant material`
-- This reviewed slice makes `retrieve relevant material` more real by keeping excerpt lookup, retrieval evidence, and downstream provenance on the authoritative FTS-first path with deterministic rank and fingerprint fields.
+- This reviewed slice makes `retrieve relevant material` more real by keeping excerpt lookup, retrieval evidence, and downstream provenance on the authoritative FTS-first path with deterministic rank, fingerprint, and doc-identity fields.
 
 ## Scope completed
 - SQLite FTS remains the authoritative MVP retrieval path in this reviewed slice.
-- Retrieval query snapshots, scope/constraint normalization, and FTS cache keys are canonicalized so equivalent requests produce deterministic payloads, fingerprints, and cache reuse.
-- Sparse citation, excerpt, and provenance reconstruction now rehydrates from canonical retrieval bundles with stable excerpt provenance fingerprints and confidentiality-aware excerpt lookup payloads.
+- Retrieval query snapshots, scope and constraint normalization, and FTS cache keys are canonicalized so equivalent requests produce deterministic payloads, fingerprints, and cache reuse.
+- Sparse citation, excerpt, and provenance reconstruction now rehydrates from canonical retrieval bundles with stable excerpt provenance fingerprints, confidentiality-aware excerpt lookup payloads, normalized lookup metadata, and doc-identity fingerprints.
 - Retrieval evidence and top-level hit payloads now expose canonical rank-oriented fields needed for downstream engine flows without reintroducing PageIndex or embeddings as required paths.
 - PageIndex and embeddings remain deferred compatibility strategies rather than required MVP paths.
 
 ## Reviewer fix reconciliation
-- Required fix 1 is satisfied by anchoring the packet to the true reviewed implementation head `8284cdef636198b9accd8a60bb0f8ff5deeb82ea` and the actual reviewed implementation range `712714c24f92cdfe43f21127c2de1d4ea0bd2599..8284cdef636198b9accd8a60bb0f8ff5deeb82ea`.
+- Required fix 1 is satisfied by anchoring the packet to the true reviewed implementation head `7668efb05966b8ee6eeeb2960a3862b005596a98` and the actual reviewed implementation range `712714c24f92cdfe43f21127c2de1d4ea0bd2599..7668efb05966b8ee6eeeb2960a3862b005596a98`.
 - Required fix 2 is satisfied by removing the false metadata-only framing for the committed tip and aligning the traceability fields with git history.
-- Required fix 3 is satisfied by listing the real files changed in the reviewed range and dropping stale/nonexistent packet-only inventory from this handoff.
+- Required fix 3 is satisfied by listing the real files changed in the reviewed range and dropping stale packet-only framing from this handoff.
 - Required fix 4 is satisfied by explicitly naming the canonical demo-path step advanced by this lane: `retrieve relevant material`.
 
 ## Approved exception note
@@ -76,9 +80,9 @@
 
 ## Tasks completed
 1. Normalized retrieval query, scope, date-range, and boolean constraint inputs so equivalent requests produce deterministic retrieval payloads and fingerprints.
-2. Preserved sparse citation and excerpt provenance by rebuilding canonical retrieval bundles with stable excerpt provenance fingerprints and confidentiality-aware excerpt lookup payloads.
-3. Canonicalized the FTS cache and evidence surfaces so equivalent requests reuse cached hits deterministically and expose stable shortlist, evidence, and rank fields for downstream consumers.
-4. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for payload normalization, provenance reconstruction, cache-key canonicalization, and canonical rank-field exposure.
+2. Preserved sparse citation and excerpt provenance by rebuilding canonical retrieval bundles with stable excerpt provenance fingerprints, confidentiality-aware excerpt lookup payloads, and deterministic lookup metadata.
+3. Canonicalized the FTS cache and evidence surfaces so equivalent requests reuse cached hits deterministically and expose stable shortlist, evidence, rank, and doc-identity fields for downstream consumers.
+4. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for payload normalization, provenance reconstruction, cache-key canonicalization, rank-field exposure, and excerpt lookup normalization.
 
 ## Budget alignment
 - This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the packet is shared/high-risk work and should be read against the 4-task cap.
