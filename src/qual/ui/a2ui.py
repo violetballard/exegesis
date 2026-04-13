@@ -685,8 +685,8 @@ def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) 
             raise ValueError("GenericCard actions must be a list or tuple")
         seen_actions: set[str] = set()
         for action in actions:
-            validate_action_ref(action)
-            action_key = _canonical_json(action)
+            normalized_action = _normalize_action(_action_ref_to_dict(action), supported_actions=_ALLOWED_ACTION_SET)
+            action_key = _canonical_json(normalized_action)
             if action_key in seen_actions:
                 raise ValueError("GenericCard actions must not contain duplicates")
             seen_actions.add(action_key)

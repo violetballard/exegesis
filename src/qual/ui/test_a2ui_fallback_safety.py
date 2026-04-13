@@ -31,6 +31,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_contract_fingerprint,
     terminal_fallback_contract_fingerprint,
     TERMINAL_ARTIFACT_SCHEMA_VERSION,
+    validate_generic_card,
 )
 from src.qual.ui.shell import ShellUI
 
@@ -477,6 +478,39 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         text = render_terminal_card(raw_card)
         self.assertIn("- Apply (apply_patch)", text)
         self.assertNotIn("Actions: none available", text)
+
+    def test_validate_generic_card_accepts_actionref_instances_and_rejects_duplicates(self) -> None:
+        validate_generic_card(
+            {
+                "type": "GenericCard",
+                "title": "Patch",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Kept"}],
+                "actions": [
+                    ActionRef(
+                        id=" apply_patch ",
+                        label=" Apply ",
+                        payload={"patch_id": "p1"},
+                    ),
+                ],
+            }
+        )
+
+        with self.assertRaises(ValueError):
+            validate_generic_card(
+                {
+                    "type": "GenericCard",
+                    "title": "Patch",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Kept"}],
+                    "actions": [
+                        ActionRef(
+                            id=" apply_patch ",
+                            label=" Apply ",
+                            payload={"patch_id": "p1"},
+                        ),
+                        {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    ],
+                }
+            )
 
     def test_engine_materializes_generic_cards_by_sanitizing_unsupported_content(self) -> None:
         card = engine_prepare_card(
