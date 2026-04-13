@@ -15,7 +15,7 @@
 - Docs-only alignment commit(s):
   - Numerous packet-only `docs(commands): ...` commits touched `THREAD_PACKET.md` between the implementation commits above.
   - `ee88483683f57242406bbd0b5a895dddf7da8537` (`docs(commands): fix handoff traceability packet`) corrected the stale narrowed review basis and re-scoped the packet to the real branch-tip implementation.
-  - `3445f4bbfb3737cf294eb2500a87e7e2533683da` (`docs(commands): tighten reviewer fix handoff packet`) is the prior docs-only branch tip before this refresh and does not change the implementation scope.
+  - `82fb2cd0576d0ded9e0790908a266d9f3634d39f` (`docs(commands): tighten patch-review demo path mapping`) is the prior docs-only branch tip before this refresh and does not change the implementation scope.
   - This fixer pass updates `THREAD_PACKET.md` only so the handoff packet stays anchored to the actual current branch tip and the verified gate rerun on `2026-04-13` for re-review after the reviewer requested a commit-accurate regeneration.
 
 ## Reviewer-required fixes closure
