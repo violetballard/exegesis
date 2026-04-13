@@ -1196,9 +1196,15 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(canonical["retrieval_mode"], "fts_first")
         self.assertEqual(canonical["retrieval_policy"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(canonical["retrieval_policy"]["retrieval_mode"], "fts_first")
+        self.assertEqual(canonical["active_strategy_ids"], ["fts"])
+        self.assertEqual(canonical["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(canonical["strategies_used"], ["fts"])
         self.assertEqual(canonical["provenance"]["source_strategy"], "fts")
         self.assertEqual(canonical["provenance"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(canonical["provenance"]["retrieval_mode"], "fts_first")
+        self.assertEqual(canonical["provenance"]["active_strategy_ids"], ["fts"])
+        self.assertEqual(canonical["provenance"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(canonical["provenance"]["strategies_used"], ["fts"])
         self.assertEqual(canonical["provenance"]["doc_id"], result.hits[0].doc_id)
         self.assertEqual(canonical["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
         self.assertEqual(
@@ -1211,6 +1217,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(canonical["provenance"]["hash"], result.hits[0].provenance["hash"])
         self.assertEqual(canonical["text_hash"], result.hits[0].provenance["excerpt_text_hash"])
+        self.assertEqual(canonical["lookup_fingerprint"], canonical["provenance"]["lookup_fingerprint"])
 
     def test_normalize_excerpt_payload_backfills_canonical_provenance_for_sparse_inputs(self) -> None:
         normalized = self.service._normalize_excerpt_payload(
@@ -1229,6 +1236,9 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["retrieval_mode"], "fts_first")
         self.assertEqual(normalized["retrieval_policy"]["active_strategy_ids"], ["fts"])
         self.assertEqual(normalized["retrieval_policy"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(normalized["active_strategy_ids"], ["fts"])
+        self.assertEqual(normalized["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(normalized["strategies_used"], ["fts"])
         self.assertEqual(normalized["span"], {"char_range": {"start": 5, "end": 21}})
         self.assertEqual(normalized["provenance"]["excerpt_id"], "excerpt-sparse-1")
         self.assertEqual(normalized["provenance"]["doc_id"], "doc-pdf-1")
@@ -1239,6 +1249,9 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["provenance"]["lookup_resolution"], "fts")
         self.assertEqual(normalized["provenance"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(normalized["provenance"]["retrieval_mode"], "fts_first")
+        self.assertEqual(normalized["provenance"]["active_strategy_ids"], ["fts"])
+        self.assertEqual(normalized["provenance"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(normalized["provenance"]["strategies_used"], ["fts"])
         self.assertEqual(
             normalized["provenance"]["retrieval_policy"]["deferred_strategy_ids"],
             ["pageindex", "embeddings"],
@@ -1250,7 +1263,34 @@ class UnifiedRetrievalTests(unittest.TestCase):
             normalized["provenance"]["excerpt_provenance_fingerprint"],
             normalized["excerpt_provenance_fingerprint"],
         )
+        self.assertEqual(normalized["lookup_fingerprint"], normalized["provenance"]["lookup_fingerprint"])
         self.assertTrue(normalized["provenance"]["doc_identity_fingerprint"])
+
+    def test_retrieve_fts_excerpt_records_lookup_fingerprint_in_audit(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+
+        excerpt = self.service.retrieve_fts_excerpt(excerpt_id or "")
+
+        lines = [json.loads(line) for line in (self.root / "audit_events.jsonl").read_text(encoding="utf-8").splitlines()]
+        event = next(item for item in lines if item["name"] == "excerpt_lookup_completed")
+
+        self.assertEqual(event["metadata"]["lookup_entrypoint"], "retrieve_fts_excerpt")
+        self.assertEqual(event["metadata"]["lookup_resolution"], "fts")
+        self.assertEqual(event["metadata"]["active_strategy_ids"], ["fts"])
+        self.assertEqual(event["metadata"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(event["metadata"]["strategies_used"], ["fts"])
+        self.assertEqual(event["metadata"]["lookup_fingerprint"], excerpt["lookup_fingerprint"])
 
     def test_retrieve_fts_excerpt_honors_confidentiality_profile_for_title_hint(self) -> None:
         result = self.service.retrieve_auto(

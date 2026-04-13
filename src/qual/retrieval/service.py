@@ -1052,10 +1052,14 @@ class RetrievalService:
                 "retrieval_backend": excerpt.get("retrieval_backend"),
                 "retrieval_mode": excerpt.get("retrieval_mode"),
                 "retrieval_policy": copy.deepcopy(self._retrieval_policy.as_snapshot()),
+                "active_strategy_ids": copy.deepcopy(excerpt.get("active_strategy_ids")),
+                "deferred_strategy_ids": copy.deepcopy(excerpt.get("deferred_strategy_ids")),
+                "strategies_used": copy.deepcopy(excerpt.get("strategies_used")),
                 "source_hash": excerpt.get("source_hash"),
                 "text_hash": excerpt.get("text_hash"),
                 "excerpt_fingerprint": excerpt.get("excerpt_fingerprint"),
                 "excerpt_provenance_fingerprint": excerpt.get("excerpt_provenance_fingerprint"),
+                "lookup_fingerprint": excerpt.get("lookup_fingerprint"),
                 "doc_identity_fingerprint": excerpt.get("doc_identity_fingerprint"),
                 "span": copy.deepcopy(span),
             },
@@ -2060,9 +2064,15 @@ class RetrievalService:
         retrieval_policy = self._retrieval_policy.as_snapshot()
         retrieval_backend = cast(str, retrieval_policy["retrieval_backend"])
         retrieval_mode = cast(str, retrieval_policy["retrieval_mode"])
+        active_strategy_ids = list(cast(list[str], retrieval_policy["active_strategy_ids"]))
+        deferred_strategy_ids = list(cast(list[str], retrieval_policy["deferred_strategy_ids"]))
+        strategies_used = list(active_strategy_ids)
         normalized["retrieval_backend"] = retrieval_backend
         normalized["retrieval_mode"] = retrieval_mode
         normalized["retrieval_policy"] = copy.deepcopy(retrieval_policy)
+        normalized["active_strategy_ids"] = list(active_strategy_ids)
+        normalized["deferred_strategy_ids"] = list(deferred_strategy_ids)
+        normalized["strategies_used"] = list(strategies_used)
         excerpt_fingerprint = normalized.get("excerpt_fingerprint")
         if not isinstance(excerpt_fingerprint, str) or not excerpt_fingerprint:
             provenance_excerpt_fingerprint = provenance.get("excerpt_fingerprint")
@@ -2122,8 +2132,28 @@ class RetrievalService:
         normalized_provenance["retrieval_backend"] = retrieval_backend
         normalized_provenance["retrieval_mode"] = retrieval_mode
         normalized_provenance["retrieval_policy"] = copy.deepcopy(retrieval_policy)
+        normalized_provenance["active_strategy_ids"] = list(active_strategy_ids)
+        normalized_provenance["deferred_strategy_ids"] = list(deferred_strategy_ids)
+        normalized_provenance["strategies_used"] = list(strategies_used)
         normalized_provenance["retrieval_source_strategy"] = source_strategy
         normalized_provenance["lookup_resolution"] = lookup_resolution
+        lookup_fingerprint = RetrievalService._stable_fingerprint(
+            {
+                "doc_id": doc_id_value,
+                "excerpt_id": normalized.get("excerpt_id"),
+                "source_strategy": source_strategy,
+                "lookup_resolution": lookup_resolution,
+                "retrieval_backend": retrieval_backend,
+                "retrieval_mode": retrieval_mode,
+                "active_strategy_ids": active_strategy_ids,
+                "deferred_strategy_ids": deferred_strategy_ids,
+                "excerpt_fingerprint": excerpt_fingerprint,
+                "excerpt_provenance_fingerprint": excerpt_provenance_fingerprint,
+                "doc_identity_fingerprint": doc_identity_fingerprint,
+            }
+        )
+        normalized["lookup_fingerprint"] = lookup_fingerprint
+        normalized_provenance["lookup_fingerprint"] = lookup_fingerprint
         normalized["provenance"] = normalized_provenance
         return normalized
 
