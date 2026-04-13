@@ -290,6 +290,52 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn('"trace_id":"drop-me"', text)
         self.assertIn('"kind":"action"', text)
 
+    def test_shell_ui_unwraps_valid_terminal_artifact_envelopes_during_fallback(self) -> None:
+        shell = ShellUI()
+        action_envelope = build_terminal_artifact_envelope(
+            ActionRef(
+                id=" export_document ",
+                label=" Export ",
+                payload={"format": "md"},
+            ),
+            kind="action",
+        )
+        selection_envelope = build_terminal_artifact_envelope(
+            SelectionRef(
+                id=" choice-1 ",
+                label=" Choice ",
+                payload={"nested": {"items": [1, 2]}},
+            ),
+            kind="selection",
+        )
+        card_envelope = build_terminal_artifact_envelope(
+            {
+                "type": "GenericCard",
+                "title": " Run Log ",
+                "a2ui_version": 1,
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+                "actions": [],
+            },
+            kind="card",
+        )
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            action_text = shell.render_artifact(action_envelope)
+            selection_text = shell.render_artifact(selection_envelope)
+            card_text = shell.render_artifact(card_envelope)
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", action_text)
+
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
+
+        self.assertIn("[GenericCard] Run Log", card_text)
+        self.assertIn("A2UI v1", card_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", card_text)
+
     def test_shell_ui_keeps_cli_fallback_for_mismatched_terminal_artifacts(self) -> None:
         shell = ShellUI()
 

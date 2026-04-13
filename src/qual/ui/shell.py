@@ -6,7 +6,13 @@ from typing import Any
 import unicodedata
 
 from src.qual.engine.service import EngineRuntime
-from .a2ui import render_terminal_action, render_terminal_artifact, render_terminal_card, render_terminal_selection
+from .a2ui import (
+    render_terminal_action,
+    render_terminal_artifact,
+    render_terminal_card,
+    render_terminal_selection,
+    validate_terminal_artifact_envelope,
+)
 
 
 class ShellUI:
@@ -17,12 +23,12 @@ class ShellUI:
             return render_terminal_artifact(artifact, kind=kind)
         except Exception:
             # Keep the CLI usable even if the structured artifact renderer fails unexpectedly.
-            fallback_kind = self._normalize_fallback_kind(kind)
+            fallback_artifact, fallback_kind = self._resolve_fallback_artifact(artifact, kind=kind)
             if fallback_kind == "action":
-                return render_terminal_action(artifact)
+                return render_terminal_action(fallback_artifact)
             if fallback_kind == "selection":
-                return render_terminal_selection(artifact)
-            return render_terminal_card(artifact)
+                return render_terminal_selection(fallback_artifact)
+            return render_terminal_card(fallback_artifact)
 
     def render_startup(self, runtime: EngineRuntime) -> str:
         item_ids = self._snapshot_item_ids(runtime.basket.item_ids)
@@ -145,3 +151,23 @@ class ShellUI:
         if normalized_kind in {"action", "selection"}:
             return normalized_kind
         return None
+
+    @staticmethod
+    def _resolve_fallback_artifact(artifact: Any, *, kind: str | None) -> tuple[Any, str | None]:
+        fallback_kind = ShellUI._normalize_fallback_kind(kind)
+        if not isinstance(artifact, Mapping):
+            return artifact, fallback_kind
+
+        artifact_type = artifact.get("type")
+        if not isinstance(artifact_type, str) or artifact_type.strip() != "TerminalArtifact":
+            return artifact, fallback_kind
+
+        try:
+            validate_terminal_artifact_envelope(artifact)
+        except Exception:
+            return artifact, fallback_kind
+
+        payload = artifact.get("artifact")
+        if fallback_kind is None:
+            fallback_kind = ShellUI._normalize_fallback_kind(artifact.get("kind"))
+        return payload, fallback_kind
