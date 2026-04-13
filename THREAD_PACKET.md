@@ -14,6 +14,8 @@
   - Current fixer pass updates `THREAD_PACKET.md` only so the handoff matches the actual branch-tip implementation and latest gate rerun.
 
 ## Reviewer-fix resubmission note
+- This fixer pass closes the reviewer’s remaining command-contract gap by making `command_cli_contract()` reject parser-surface drift directly when validated CLI entrypoints no longer match the declared per-command CLI surface.
+- The focused regression additions cover the two concrete drift cases requested in review: alias-for-canonical substitution and CLI entrypoint reordering.
 - This packet now treats the pre-fix branch tip `220971e5f6cd32241a5164e8dd41790f14e4af4f` as a docs-only alignment commit on top of the real implementation lineage listed above.
 - The implementation scope described below matches the real branch-tip implementation files changed after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`: `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, and `tests/unit/test_commands_catalog.py`.
 - `src/qual/commands/__init__.py` is included explicitly because the branch tip exports the expanded command-catalog contract surface and is part of the implementation under review.
@@ -43,11 +45,11 @@
 - It makes that CLI-first Milestone 3 step more real by keeping the `patch-review` command surface, parser entrypoints, and smoke-route ordering deterministic, so the operator contract stays explicit and easy to smoke-test instead of drifting silently between review cycles.
 
 ## Scope completed
-- Hardened `command_cli_contract()` in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py) so canonical CLI names must match `command_names()` and drift raises `ValueError`.
+- Hardened `command_cli_contract()` in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py) so canonical CLI names must match `command_names()` and declared per-command CLI entrypoints must match the validated parser surface, with drift raising `ValueError`.
 - Expanded the command catalog contract in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py) to model explicit per-command CLI entrypoints, deterministic route tokens, invocation-plan metadata, parser-surface lookup helpers, and the MVP smoke contract from the same canonical catalog.
 - Exported the expanded catalog contract surface from [src/qual/commands/__init__.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/__init__.py) so compatibility imports stay aligned with the branch-tip implementation.
 - Fixed bounded diff preview truncation in [src/qual/commands/diff_preview.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/diff_preview.py) so the `patch-review` step stays deterministic when CLI output must be truncated.
-- Added and retained focused regression coverage in [tests/unit/test_commands_catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/tests/unit/test_commands_catalog.py) for canonical-order alignment, parser-drift rejection, explicit CLI token handling, route-token determinism, invocation-plan consistency, parser-surface lookup helpers, and MVP smoke-contract behavior.
+- Added and retained focused regression coverage in [tests/unit/test_commands_catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/tests/unit/test_commands_catalog.py) for canonical-order alignment, alias-substitution and reorder parser-drift rejection, explicit CLI token handling, route-token determinism, invocation-plan consistency, parser-surface lookup helpers, and MVP smoke-contract behavior.
 - Reissued the handoff packet so the review basis, files changed list, and AGENTS mapping now match the actual implementation on this branch.
 
 ## Kickoff budget/limits compliance

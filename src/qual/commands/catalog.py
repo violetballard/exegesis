@@ -283,11 +283,20 @@ def _declared_cli_entrypoints_for(spec: CommandSpec) -> tuple[str, ...]:
 def _validate_command_cli_contract(
     contract: CommandCliContract,
     specs: tuple[CommandSpec, ...],
+    *,
+    validated_entrypoints: tuple[tuple[str, tuple[str, ...]], ...] | None = None,
 ) -> None:
     validate_command_catalog(specs)
     expected_canonical_names = command_names(specs)
     if contract.canonical_names != expected_canonical_names:
         raise ValueError("Command CLI canonical names are inconsistent")
+
+    expected_parser_surface = tuple(
+        (spec.name, _declared_cli_entrypoints_for(spec))
+        for spec in specs
+    )
+    if validated_entrypoints is not None and validated_entrypoints != expected_parser_surface:
+        raise ValueError("Command CLI parser surface is inconsistent")
 
     expected_tokens = tuple(
         normalized_entrypoint
@@ -326,7 +335,11 @@ def _command_cli_contract_for(specs: tuple[CommandSpec, ...]) -> CommandCliContr
         canonical_names=tuple(canonical_names),
         lookup_table=tuple(lookup_table),
     )
-    _validate_command_cli_contract(contract, specs)
+    _validate_command_cli_contract(
+        contract,
+        specs,
+        validated_entrypoints=validated_entrypoints,
+    )
     return contract
 
 
