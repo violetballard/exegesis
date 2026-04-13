@@ -173,6 +173,16 @@ def describe_selection_contract() -> dict[str, Any]:
     return manifest
 
 
+def describe_action_contract() -> dict[str, Any]:
+    """Return the stable, versioned ActionRef contract manifest."""
+
+    manifest = _build_action_contract_manifest()
+    fingerprint = action_contract_fingerprint()
+    manifest["action_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
+    return manifest
+
+
 def _build_a2ui_contract_manifest() -> dict[str, Any]:
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
@@ -236,6 +246,19 @@ def _build_selection_contract_manifest() -> dict[str, Any]:
     }
 
 
+def _build_action_contract_manifest() -> dict[str, Any]:
+    return {
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "action_schema_version": A2UI_ACTION_SCHEMA_VERSION,
+        "type": "ActionRef",
+        "required_fields": ["id", "label", "payload"],
+        "optional_fields": ["confirm", "policy_sensitive"],
+        "allowed_actions": sorted(ALLOWED_ACTION_IDS),
+        "payload_schemas": _build_action_payload_schema_manifest(),
+    }
+
+
 def _build_read_only_fallback_action_manifest() -> list[dict[str, Any]]:
     return [
         {
@@ -254,6 +277,17 @@ def _build_read_only_json_preview_block(payload: dict[str, Any], *, max_payload_
         "code": _render_payload_preview(payload, max_payload_bytes=max_payload_bytes, pretty=True),
         "collapsed": True,
     }
+
+
+def _build_action_payload_schema_manifest() -> list[dict[str, Any]]:
+    return [
+        {
+            "id": action_id,
+            "version": A2UI_ACTION_SCHEMA_VERSION,
+            "fields": sorted(schema),
+        }
+        for action_id, schema in sorted(_ACTION_SCHEMAS.items())
+    ]
 
 
 def _build_a2ui_schema_manifest() -> dict[str, Any]:
@@ -282,14 +316,7 @@ def _build_a2ui_schema_manifest() -> dict[str, Any]:
                 "version": A2UI_ACTION_SCHEMA_VERSION,
                 "required_fields": ["id", "label", "payload"],
                 "optional_fields": ["confirm", "policy_sensitive"],
-                "payload_schemas": [
-                    {
-                        "id": action_id,
-                        "version": A2UI_ACTION_SCHEMA_VERSION,
-                        "fields": sorted(schema),
-                    }
-                    for action_id, schema in sorted(_ACTION_SCHEMAS.items())
-                ],
+                "payload_schemas": _build_action_payload_schema_manifest(),
             }
         ],
     }
@@ -306,6 +333,13 @@ def selection_contract_fingerprint() -> str:
     """Return a stable fingerprint for the SelectionRef contract manifest."""
 
     manifest = _build_selection_contract_manifest()
+    return _fingerprint_manifest_section(manifest)
+
+
+def action_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the ActionRef contract manifest."""
+
+    manifest = _build_action_contract_manifest()
     return _fingerprint_manifest_section(manifest)
 
 

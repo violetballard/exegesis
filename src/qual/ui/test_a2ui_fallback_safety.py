@@ -3,8 +3,11 @@ from __future__ import annotations
 import unittest
 
 from src.qual.ui.a2ui import (
+    A2UI_ACTION_SCHEMA_VERSION,
     A2UICapabilities,
+    action_contract_fingerprint,
     build_unknown_card,
+    describe_action_contract,
     describe_selection_contract,
     engine_prepare_card,
     render_terminal_card,
@@ -42,6 +45,49 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(manifest["contract_fingerprint"], manifest["selection_fingerprint"])
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
+
+    def test_action_contract_manifest_exposes_contract_fingerprint_alias(self) -> None:
+        manifest = describe_action_contract()
+
+        self.assertEqual(manifest["contract_fingerprint"], manifest["action_fingerprint"])
+        self.assertEqual(len(manifest["contract_fingerprint"]), 64)
+        self.assertEqual(manifest["action_schema_version"], A2UI_ACTION_SCHEMA_VERSION)
+        self.assertEqual(manifest["type"], "ActionRef")
+
+    def test_action_contract_manifest_lists_canonical_payload_schemas(self) -> None:
+        manifest = describe_action_contract()
+
+        self.assertEqual(
+            manifest["allowed_actions"],
+            [
+                "apply_patch",
+                "copy_to_clipboard",
+                "create_context_set",
+                "export_document",
+                "open_corpus_item",
+                "open_section",
+                "pin_to_context_set",
+                "refresh_license",
+                "reject_patch",
+                "run_agent",
+            ],
+        )
+        self.assertEqual(
+            manifest["payload_schemas"],
+            [
+                {"id": "apply_patch", "version": 1, "fields": ["patch_id"]},
+                {"id": "copy_to_clipboard", "version": 1, "fields": ["text"]},
+                {"id": "create_context_set", "version": 1, "fields": ["name"]},
+                {"id": "export_document", "version": 1, "fields": ["format"]},
+                {"id": "open_corpus_item", "version": 1, "fields": ["item_id"]},
+                {"id": "open_section", "version": 1, "fields": ["section_id"]},
+                {"id": "pin_to_context_set", "version": 1, "fields": ["item_id"]},
+                {"id": "refresh_license", "version": 1, "fields": []},
+                {"id": "reject_patch", "version": 1, "fields": ["patch_id"]},
+                {"id": "run_agent", "version": 1, "fields": ["operation"]},
+            ],
+        )
+        self.assertEqual(action_contract_fingerprint(), manifest["contract_fingerprint"])
 
     def test_engine_materializes_generic_cards_by_sanitizing_unsupported_content(self) -> None:
         card = engine_prepare_card(
