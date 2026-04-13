@@ -48,7 +48,7 @@
 
 ## Scope goal
 - Harden the CLI command contract so command catalog, parser entrypoints, route ordering, and invocation planning stay deterministic and fail fast if the parser surface drifts from the catalog.
-- Keep the `patch-review` command entrypoint stable for the canonical demo-path steps `preview and apply or reject a patch` and `continue working`, so this contract hardening remains first-order Milestone 3 CLI compatibility work instead of generic cleanup.
+- Keep the `patch-review` command entrypoint stable for the canonical demo-path step `preview and apply or reject a patch`, with downstream support for `continue working`, so this contract hardening remains first-order Milestone 3 CLI compatibility work instead of generic cleanup.
 - High-risk rationale for this handoff: the implementation includes one approved shared test edit in `tests/unit/test_commands_catalog.py`; no integrator-locked runtime entrypoints, provider surfaces, or routing/config files were changed.
 
 ## Lane/owned paths
@@ -56,9 +56,10 @@
 - Approved non-owned test path for this handoff: `tests/unit/test_commands_catalog.py`
 
 ## Canonical demo-path step advanced
-- Primary step advanced: `continue working`
-- This work advances the `continue working` step in the canonical engine-first demo path from `AGENTS.md` and `ROADMAP.md`.
-- It makes that CLI-first Milestone 3 step more real by keeping the `patch-review` operator surface deterministic, so parser drift cannot silently change the command contract a user depends on to continue the workflow after reviewing a patch.
+- Primary step advanced: `preview and apply or reject a patch`
+- Secondary step supported: `continue working`
+- This work advances the canonical engine-first demo path from `AGENTS.md` and `ROADMAP.md` by locking the CLI contract used for the `patch-review` operator surface.
+- It makes that CLI-first Milestone 3 step more real by ensuring parser drift cannot silently change the command contract a user depends on when reviewing a patch and deciding whether to apply or reject it.
 
 ## Scope completed
 - Hardened `command_cli_contract()` in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py) so canonical CLI names must match `command_names()` and declared per-command CLI entrypoints must match the validated parser surface, with drift raising `ValueError`.
@@ -110,18 +111,19 @@
 ## Required handoff fields
 ### Scope completed
 - CLI compatibility now depends on one deterministic command catalog that defines parser entrypoints, parser lookup helpers, route ordering, smoke-route metadata, and invocation metadata without allowing silent parser/catalog drift.
-- This specifically hardens the canonical demo-path step `continue working` by keeping the `patch-review` operator entrypoint, the smoke route `project-open -> retrieval -> patch-review -> export-handoff`, and bounded diff output stable and smoke-testable while Textual remains disabled.
+- This specifically hardens the canonical demo-path step `preview and apply or reject a patch` by keeping the `patch-review` operator entrypoint, the smoke route `project-open -> retrieval -> patch-review -> export-handoff`, and bounded diff output stable and smoke-testable while Textual remains disabled.
 
 ### Canonical demo-path step advanced
-- Primary step advanced: `continue working`
-- The packet fix is first-order Milestone 3 work because it protects the stable CLI operator surface used to continue the workflow after a patch-review step without silent parser/catalog drift.
+- Primary step advanced: `preview and apply or reject a patch`
+- Secondary step supported: `continue working`
+- The packet fix is first-order Milestone 3 work because it protects the stable CLI operator surface used during the `patch-review` step without silent parser/catalog drift.
 
 ### Roadmap item(s) affected
-- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands by keeping the CLI-first smoke route `project-open -> retrieval -> patch-review -> export-handoff` deterministic and smoke-testable, with direct protection for the `patch-review` demo-path step.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
+- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands by keeping the CLI-first smoke route `project-open -> retrieval -> patch-review -> export-handoff` deterministic and smoke-testable, with direct protection for the demo-path step `preview and apply or reject a patch`.
+- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop, specifically the `patch-review` portion of that loop.
 
 ### Vision capability affected
-- `Canonical engine contract` - the CLI surface for `project-open -> retrieval -> patch-review -> export-handoff` stays stable and machine-checkable while Textual remains disabled.
+- `Canonical engine contract` - the CLI surface for `project-open -> retrieval -> patch-review -> export-handoff` stays stable and machine-checkable while Textual remains disabled, especially at `preview and apply or reject a patch`.
 - `Auditable state and workflow` - parser/catalog drift now fails loudly instead of silently changing the operator contract for that CLI-first smoke route.
 
 ### Routing/provider impact note
