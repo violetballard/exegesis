@@ -1020,7 +1020,8 @@ def _materialize_unknown_card(card: dict[str, Any], capabilities: A2UICapabiliti
     )
 
 
-def _normalize_action(action: Any, *, supported_actions: set[str]) -> dict[str, Any]:
+def _normalize_action(action: ActionRef | Mapping[str, Any], *, supported_actions: set[str]) -> dict[str, Any]:
+    action = _action_ref_to_dict(action)
     if not isinstance(action, Mapping):
         raise ValueError("ActionRef must be an object")
     extra_keys = set(action) - {"id", "label", "payload", "confirm", "policy_sensitive"}

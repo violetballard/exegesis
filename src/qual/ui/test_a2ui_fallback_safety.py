@@ -162,6 +162,49 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Action schema v1", invalid)
         self.assertIn('"icon":"sparkle"', invalid)
 
+    def test_generic_cards_preserve_nested_actionref_instances(self) -> None:
+        raw_card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Kept"}],
+            "actions": [
+                ActionRef(
+                    id=" apply_patch ",
+                    label=" Apply ",
+                    payload={"patch_id": "p1"},
+                ),
+            ],
+        }
+
+        caps = A2UICapabilities(
+            a2ui_version=1,
+            client_name="Exegesis Studio",
+            cards_supported=("RunLogCard",),
+            primitive_blocks_supported=(
+                "MarkdownBlock",
+                "KeyValueBlock",
+                "ListBlock",
+                "TableBlock",
+                "AlertBlock",
+                "ProgressBlock",
+                "CodeBlock",
+            ),
+            actions_supported=("apply_patch",),
+            max_payload_bytes=1_000_000,
+            supports_streaming=True,
+        )
+
+        card = engine_prepare_card(raw_card, caps)
+
+        self.assertEqual(
+            card["actions"],
+            [{"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}}],
+        )
+
+        text = render_terminal_card(raw_card)
+        self.assertIn("- Apply (apply_patch)", text)
+        self.assertNotIn("Actions: none available", text)
+
     def test_engine_materializes_generic_cards_by_sanitizing_unsupported_content(self) -> None:
         card = engine_prepare_card(
             {
