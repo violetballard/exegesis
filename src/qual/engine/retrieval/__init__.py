@@ -46,6 +46,8 @@ def _normalize_constraint_values(value: object, *, field_name: str) -> tuple[str
 def _normalize_optional_int(value: object, *, default: int) -> int:
     if value is None:
         return default
+    if isinstance(value, bool):
+        raise TypeError("integer value must not be a boolean")
     return int(value)
 
 
