@@ -68,6 +68,7 @@ FEATURE_LOOP_MIN_RUNTIME_SECONDS = 300.0
 FEATURE_LOOP_LOG_TAIL_BYTES = 32768
 FEATURE_LOOP_BAD_APPLYPATCH_THRESHOLD = 6
 FEATURE_LOOP_RECONNECT_THRESHOLD = 4
+FEATURE_LOOP_PARSE_ERROR_THRESHOLD = 2
 WORKTREE_RECOVERY_ROOT = REPO_ROOT / ".codex/worktree_recovery"
 ROUTER_JOB_STATE_KEYS = (
     "fixer_fallback_jobs",
@@ -278,13 +279,20 @@ def _feature_runner_loop_reason(lane_state: Dict[str, object]) -> Optional[str]:
     text = _read_text_tail(log_path)
     if not text:
         return None
+    parse_failures = text.count("failed to parse function arguments")
     bad_apply_patch = text.count("Usage: apply_patch 'PATCH'")
     malformed_args = text.count("failed to parse function arguments: invalid type: sequence, expected a string")
+    missing_cmd = text.count("failed to parse function arguments: missing field `cmd`")
     echoed_bad_tool = text.count('<|channel|>functions.exec_command{"cmd":"apply_patch"')
     if bad_apply_patch >= FEATURE_LOOP_BAD_APPLYPATCH_THRESHOLD and (malformed_args > 0 or echoed_bad_tool > 0):
         return (
             "malformed apply_patch loop "
             f"({bad_apply_patch} bad invocations, {malformed_args} parse errors, {echoed_bad_tool} raw tool echoes)"
+        )
+    if parse_failures >= FEATURE_LOOP_PARSE_ERROR_THRESHOLD and missing_cmd > 0:
+        return (
+            "malformed tool-call loop "
+            f"({parse_failures} parse failures, {missing_cmd} missing-cmd errors)"
         )
     reconnects = text.count("stream disconnected - retrying sampling request")
     idle_timeouts = text.count("idle timeout waiting for SSE")
