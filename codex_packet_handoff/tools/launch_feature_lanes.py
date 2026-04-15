@@ -221,6 +221,8 @@ def build_prompt(lane: str, workdir: str) -> str:
         "- Stay inside lane-owned paths only.\n"
         "- Use the existing git worktree exactly as provided; do not replace `.git` or create `.git-local`, `.git-alt*`, shadow repos, or alternate object/index stores.\n"
         "- If normal git operations fail, stop and report the failure rather than inventing custom git plumbing.\n"
+        "- When using `apply_patch`, pass the patch as a single patch string. Do not call `apply_patch` with no patch body and do not emit raw JSON-style tool calls for it.\n"
+        "- If the same tool call fails twice with the same error, stop retrying the malformed call and report the blocker.\n"
         "- Use the kickoff budget and stop triggers exactly as written.\n"
         "- Make a real, meaningful code change from current lane HEAD.\n"
         "- Run the required gates before handoff.\n"

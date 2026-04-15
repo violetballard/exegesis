@@ -41,6 +41,7 @@ def write_example_config():
                 "integrator_cloud_profile": "worker_cloud_standard_medium",
             }
         )
+    lanes_cfg["feat-retrieval-fts"]["integrator_local_profile"] = "worker_local_heavy"
     for lane in ("feat-a2ui-contract", "feat-engine-runs"):
         lanes_cfg[lane].update(
             {
@@ -103,7 +104,7 @@ def write_example_config():
             "reviewer_cloud": "worker_cloud",
             "reviewer_local": "worker_local",
             "integrator_cloud": "integrator_cloud",
-            "integrator_local": "worker_local_heavy",
+            "integrator_local": "worker_local",
             "fixer_cloud": "worker_cloud",
             "fixer_local": "worker_local",
         },

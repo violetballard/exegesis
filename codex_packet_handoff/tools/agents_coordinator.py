@@ -9,6 +9,7 @@ import io
 import json
 import os
 import re
+import signal
 import shutil
 import subprocess
 import sys
@@ -63,6 +64,10 @@ ROUTER_STATE_FILE = REPO_ROOT / ".codex/packet_router/state.json"
 FEATURE_RUNNER_ROOT = REPO_ROOT / ".codex/feature_runner"
 FEATURE_RUNNER_STATE_FILE = FEATURE_RUNNER_ROOT / "state.json"
 FEATURE_RELAUNCH_COOLDOWN_SECONDS = 60
+FEATURE_LOOP_MIN_RUNTIME_SECONDS = 300.0
+FEATURE_LOOP_LOG_TAIL_BYTES = 32768
+FEATURE_LOOP_BAD_APPLYPATCH_THRESHOLD = 6
+FEATURE_LOOP_RECONNECT_THRESHOLD = 4
 WORKTREE_RECOVERY_ROOT = REPO_ROOT / ".codex/worktree_recovery"
 ROUTER_JOB_STATE_KEYS = (
     "fixer_fallback_jobs",
@@ -223,13 +228,82 @@ def _job_result_exists(job: Dict[str, object]) -> bool:
     return Path(result_path).exists()
 
 
-def _reconcile_feature_runner_state() -> List[str]:
+def _parse_feature_runner_ts(raw: str) -> float:
+    token = str(raw or "").strip()
+    if not token:
+        return 0.0
+    for fmt in ("%Y%m%dT%H%M%SZ", "%Y-%m-%dT%H:%M:%SZ"):
+        try:
+            return datetime.strptime(token, fmt).replace(tzinfo=timezone.utc).timestamp()
+        except ValueError:
+            continue
+    return 0.0
+
+
+def _read_text_tail(path: Path, *, max_bytes: int = FEATURE_LOOP_LOG_TAIL_BYTES) -> str:
+    try:
+        with path.open("rb") as handle:
+            handle.seek(0, os.SEEK_END)
+            size = handle.tell()
+            handle.seek(max(0, size - max_bytes), os.SEEK_SET)
+            return handle.read().decode("utf-8", errors="replace")
+    except Exception:
+        return ""
+
+
+def _terminate_pid(pid: int, *, grace_seconds: float = 1.0) -> None:
+    if pid <= 0:
+        return
+    with contextlib.suppress(ProcessLookupError):
+        os.kill(pid, signal.SIGTERM)
+    deadline = time.time() + grace_seconds
+    while time.time() < deadline:
+        if not _pid_alive(pid):
+            return
+        time.sleep(0.1)
+    with contextlib.suppress(ProcessLookupError):
+        os.kill(pid, signal.SIGKILL)
+
+
+def _feature_runner_loop_reason(lane_state: Dict[str, object]) -> Optional[str]:
+    pid = int(lane_state.get("pid") or 0)
+    if pid <= 0 or not _pid_alive(pid):
+        return None
+    launched_at = _parse_feature_runner_ts(str(lane_state.get("last_launch_at") or ""))
+    if launched_at and (time.time() - launched_at) < FEATURE_LOOP_MIN_RUNTIME_SECONDS:
+        return None
+    log_path = Path(str(lane_state.get("log_path") or ""))
+    if not log_path.exists():
+        return None
+    text = _read_text_tail(log_path)
+    if not text:
+        return None
+    bad_apply_patch = text.count("Usage: apply_patch 'PATCH'")
+    malformed_args = text.count("failed to parse function arguments: invalid type: sequence, expected a string")
+    echoed_bad_tool = text.count('<|channel|>functions.exec_command{"cmd":"apply_patch"')
+    if bad_apply_patch >= FEATURE_LOOP_BAD_APPLYPATCH_THRESHOLD and (malformed_args > 0 or echoed_bad_tool > 0):
+        return (
+            "malformed apply_patch loop "
+            f"({bad_apply_patch} bad invocations, {malformed_args} parse errors, {echoed_bad_tool} raw tool echoes)"
+        )
+    reconnects = text.count("stream disconnected - retrying sampling request")
+    idle_timeouts = text.count("idle timeout waiting for SSE")
+    if reconnects >= FEATURE_LOOP_RECONNECT_THRESHOLD and idle_timeouts > 0:
+        return (
+            "reconnect timeout loop "
+            f"({reconnects} reconnect retries, {idle_timeouts} idle timeouts)"
+        )
+    return None
+
+
+def _reconcile_feature_runner_state() -> Dict[str, object]:
     state = load_json(FEATURE_RUNNER_STATE_FILE, {})
     lanes = state.get("lanes") if isinstance(state, dict) else {}
     if not isinstance(lanes, dict):
-        return []
+        return {"removed": [], "terminated": {}}
 
     removed: List[str] = []
+    terminated: Dict[str, str] = {}
     for lane, lane_state in list(lanes.items()):
         if not isinstance(lane_state, dict):
             lanes.pop(lane, None)
@@ -239,6 +313,13 @@ def _reconcile_feature_runner_state() -> List[str]:
             continue
         pid = int(lane_state.get("pid") or 0)
         if _pid_alive(pid):
+            loop_reason = _feature_runner_loop_reason(lane_state)
+            if loop_reason:
+                _terminate_pid(pid)
+                lanes.pop(lane, None)
+                removed.append(str(lane))
+                terminated[str(lane)] = loop_reason
+                continue
             continue
         lanes.pop(lane, None)
         removed.append(str(lane))
@@ -246,7 +327,7 @@ def _reconcile_feature_runner_state() -> List[str]:
     if removed:
         state["lanes"] = lanes
         save_json(FEATURE_RUNNER_STATE_FILE, state)
-    return sorted(removed)
+    return {"removed": sorted(set(removed)), "terminated": terminated}
 
 
 def _reconcile_router_state() -> Dict[str, List[str]]:
@@ -300,13 +381,34 @@ def _update_git_hygiene_status(coordinator_state: Dict[str, object], git_hygiene
 
 
 def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict[str, object]:
-    feature_runner_removed = _reconcile_feature_runner_state()
+    feature_runner_reconcile = _reconcile_feature_runner_state()
+    feature_runner_removed = list(feature_runner_reconcile.get("removed") or [])
+    feature_runner_terminated = dict(feature_runner_reconcile.get("terminated") or {})
     router_removed = _reconcile_router_state()
     worktree_reconcile = _reconcile_lane_worktrees()
     git_hygiene = run_hygiene(REPO_ROOT)
     git_hygiene_status = _update_git_hygiene_status(coordinator_state, git_hygiene)
+    lane_refill = coordinator_state.setdefault("lane_refill", {})
+    if not isinstance(lane_refill, dict):
+        lane_refill = {}
+        coordinator_state["lane_refill"] = lane_refill
+    for lane in feature_runner_removed:
+        lane_state = lane_refill.get(lane)
+        if not isinstance(lane_state, dict):
+            lane_state = {}
+        lane_state["force_resume_once"] = True
+        if lane in feature_runner_terminated:
+            lane_state["force_resume_reason"] = "feature_tool_loop_detected"
+            lane_state["force_resume_detail"] = feature_runner_terminated[lane]
+        else:
+            lane_state["force_resume_reason"] = "stale_direct_exec_pruned"
+            lane_state.pop("force_resume_detail", None)
+        lane_state["force_resume_marked_at"] = utc_now()
+        lane_refill[lane] = lane_state
     if feature_runner_removed:
         print(f"[reconcile] pruned stale feature-runner state: {', '.join(feature_runner_removed)}")
+    for lane, reason in sorted(feature_runner_terminated.items()):
+        print(f"[reconcile] terminated looping feature-runner for {lane}: {reason}")
     for key, names in sorted(router_removed.items()):
         print(f"[reconcile] pruned stale router state from {key}: {', '.join(names)}")
     for repaired in worktree_reconcile["gitdir_repaired"]:
@@ -334,6 +436,7 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
         )
     return {
         "feature_runner_removed": feature_runner_removed,
+        "feature_runner_terminated": feature_runner_terminated,
         "router_removed": router_removed,
         "worktree_reconcile": worktree_reconcile,
         "git_hygiene": git_hygiene,
@@ -1018,14 +1121,27 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
         if not isinstance(lane_state, dict):
             lane_state = {}
         last_launch_attempt_ts = float(lane_state.get("last_launch_attempt_ts", 0) or 0)
+        force_resume_once = bool(lane_state.get("force_resume_once"))
         if (
             queue_empty
             and not feature_active
-            and (now - last_launch_attempt_ts) >= FEATURE_RELAUNCH_COOLDOWN_SECONDS
+            and (
+                force_resume_once
+                or (now - last_launch_attempt_ts) >= FEATURE_RELAUNCH_COOLDOWN_SECONDS
+            )
         ):
             to_launch.append(lane)
             lane_state["last_launch_attempt_ts"] = now
-            lane_state["last_launch_reason"] = "queue_empty_without_active_feature_session"
+            if force_resume_once and str(lane_state.get("force_resume_reason") or "") == "feature_tool_loop_detected":
+                lane_state["last_launch_reason"] = "feature_tool_loop_resume"
+            elif force_resume_once:
+                lane_state["last_launch_reason"] = "stale_direct_exec_resume"
+            else:
+                lane_state["last_launch_reason"] = "queue_empty_without_active_feature_session"
+            lane_state.pop("force_resume_once", None)
+        elif feature_active and force_resume_once:
+            lane_state.pop("force_resume_once", None)
+            lane_state["force_resume_cleared_at"] = utc_now()
         lane_state["queue_empty"] = queue_empty
         lane_state["feature_active"] = feature_active
         lane_state["last_seen_at"] = utc_now()

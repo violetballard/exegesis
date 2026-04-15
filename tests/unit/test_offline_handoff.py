@@ -19,11 +19,12 @@ class OfflineHandoffConfigTests(unittest.TestCase):
     def test_live_router_config_uses_explicit_lms_provider(self) -> None:
         cfg = json.loads((REPO_ROOT / ".codex/packet_router/config.json").read_text(encoding="utf-8"))
         self.assertEqual(cfg["fallback_codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["fallback_model"], "gpt-oss-20b")
+        self.assertEqual(cfg["fallback_model"], "unsloth/gpt-oss-20b")
         self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gpt-oss-20b")
+        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "unsloth/gpt-oss-20b")
         self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "gpt-oss-120b")
-        self.assertEqual(cfg["role_profiles"]["integrator_local"], "worker_local_heavy")
+        self.assertEqual(cfg["role_profiles"]["integrator_local"], "worker_local")
+        self.assertEqual(cfg["lanes"]["feat-retrieval-fts"]["integrator_local_profile"], "worker_local_heavy")
         self.assertEqual(cfg["lanes"]["feat-a2ui-contract"]["fixer_local_profile"], "worker_local_heavy")
         self.assertEqual(cfg["lanes"]["feat-engine-runs"]["fixer_local_profile"], "worker_local_heavy")
 
@@ -39,11 +40,12 @@ class OfflineHandoffConfigTests(unittest.TestCase):
                 os.chdir(prev_cwd)
 
         self.assertEqual(cfg["fallback_codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["fallback_model"], "gpt-oss-20b")
+        self.assertEqual(cfg["fallback_model"], "unsloth/gpt-oss-20b")
         self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gpt-oss-20b")
+        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "unsloth/gpt-oss-20b")
         self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "gpt-oss-120b")
-        self.assertEqual(cfg["role_profiles"]["integrator_local"], "worker_local_heavy")
+        self.assertEqual(cfg["role_profiles"]["integrator_local"], "worker_local")
+        self.assertEqual(cfg["lanes"]["feat-retrieval-fts"]["integrator_local_profile"], "worker_local_heavy")
         self.assertEqual(cfg["lanes"]["feat-a2ui-contract"]["fixer_local_profile"], "worker_local_heavy")
         self.assertEqual(cfg["lanes"]["feat-engine-runs"]["fixer_local_profile"], "worker_local_heavy")
 
@@ -108,6 +110,23 @@ class OfflineReviewerGuardTests(unittest.TestCase):
         env = run_cli.call_args.kwargs["env"]
         self.assertTrue(env["CODEX_HOME"].endswith(".codex/local_codex_runtime"))
         self.assertTrue(run_cli.call_args.kwargs["skip_git_repo_check"])
+
+    def test_run_cli_codex_uses_devnull_stdin(self) -> None:
+        completed = SimpleNamespace(returncode=0, stdout="ok")
+        with patch.object(router.subprocess, "run", return_value=completed) as run_mock:
+            rc, out = router._run_cli_codex(
+                "codex",
+                ["-c", "model_provider=lms"],
+                "unsloth/gpt-oss-20b",
+                [],
+                "read-only",
+                "/repo",
+                "Prompt",
+                30,
+            )
+
+        self.assertEqual((rc, out), (0, "ok"))
+        self.assertIs(run_mock.call_args.kwargs["stdin"], router.subprocess.DEVNULL)
 
 
 class OfflineIntegratorGuardTests(unittest.TestCase):

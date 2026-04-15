@@ -66,7 +66,7 @@
     "reviewer_cloud": "worker_cloud",
     "reviewer_local": "worker_local",
     "integrator_cloud": "integrator_cloud",
-    "integrator_local": "worker_local_heavy",
+    "integrator_local": "worker_local",
     "fixer_cloud": "worker_cloud",
     "fixer_local": "worker_local"
   },
@@ -110,7 +110,8 @@
       "feature_cloud_profile": "worker_cloud_standard_medium",
       "reviewer_cloud_profile": "worker_cloud_standard_medium",
       "fixer_cloud_profile": "worker_cloud_standard_medium",
-      "integrator_cloud_profile": "worker_cloud_standard_medium"
+      "integrator_cloud_profile": "worker_cloud_standard_medium",
+      "integrator_local_profile": "worker_local_heavy"
     },
     "feat-a2ui-contract": {
       "branch": "codex/feat-a2ui-contract",
