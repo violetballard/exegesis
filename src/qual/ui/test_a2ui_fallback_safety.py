@@ -191,6 +191,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["terminal_artifact_cli_fallback_fingerprint"],
         )
         self.assertEqual(
+            manifest["terminal_artifact"]["terminal_fallback_fingerprint"],
+            terminal_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact"]["terminal_artifact_rendering_fingerprint"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact"]["terminal_artifact_cli_fallback_fingerprint"],
+            terminal_artifact_cli_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
             manifest["contract_fingerprints"]["capabilities"],
             a2ui_capabilities_contract_fingerprint(),
         )
@@ -260,9 +272,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["terminal_fallback_contract"]["contract_fingerprint"],
             terminal_fallback_contract_fingerprint(),
         )
+        self.assertEqual(manifest["terminal_fallback_fingerprint"], terminal_fallback_contract_fingerprint())
         self.assertEqual(
             manifest["cli_fallback"]["contract_fingerprint"],
             terminal_artifact_cli_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_rendering_fingerprint"],
+            terminal_artifact_rendering_contract_fingerprint(),
         )
         self.assertEqual(
             manifest["rendering"]["contract_fingerprint"],
@@ -271,6 +288,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["rendering_contract"]["contract_fingerprint"],
             terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_fingerprint"],
+            terminal_artifact_cli_fallback_contract_fingerprint(),
         )
         self.assertEqual(
             manifest["contract_fingerprints"],
