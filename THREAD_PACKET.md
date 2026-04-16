@@ -37,7 +37,7 @@
 
 - Explicit canonical demo-path step advanced: `open project/document`.
 - This change makes the `open project/document` step more real by keeping the operator-facing CLI command contract deterministic, preserving canonical command ordering, and rejecting parser/catalog drift before the entry command surface can silently change.
-- Secondary effect: the same deterministic contract helps the existing CLI fallback remain smoke-testable across the rest of the engine-first MVP loop while Textual stays disabled.
+- Secondary effect: the same deterministic contract helps the existing CLI fallback remain smoke-testable for downstream loop steps, including `preview/apply or reject a patch`, while Textual stays disabled.
 
 ## Definition of Done for This Lane
 
@@ -102,13 +102,14 @@
 ## Risks / Blockers
 
 - Risk: `LOW`
+- Residual risk rationale: this is a metadata-only packet refresh over an already-reviewed two-file contract-hardening diff with no routing/provider changes and no remaining known blockers after the required gate suite.
 - Blockers: none
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` - preserve CLI compatibility while the package/layout migration lands by keeping the command-catalog contract deterministic and drift-resistant for the current `open project/document` entry step.
+- `Milestone 3: Real workflow loop` - this change strengthens the requirement that the CLI can still execute the MVP loop while Textual remains disabled by keeping the command-catalog contract deterministic and drift-resistant for the current `open project/document` entry step.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ### Vision capability affected
