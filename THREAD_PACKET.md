@@ -11,10 +11,10 @@
 - Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt, provenance, and evidence output.
 
 ## Scope completed
-- SQLite FTS remains the authoritative MVP retrieval path in the narrowed slice. The reviewed implementation commit removes the PageIndex fallback from `fetch_excerpt`, keeping excerpt lookup on the canonical FTS-only path, while approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs now raise `KeyError`. PageIndex and embeddings remain non-required compatibility paths in this slice.
+- SQLite FTS remains the authoritative MVP retrieval path in the narrowed slice. The reviewed implementation commit removes the PageIndex fallback from `fetch_excerpt`, keeping excerpt lookup on the canonical FTS-only path, while approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs now raise `KeyError`. This means the public excerpt lookup surface no longer promotes PageIndex as a required runtime path. PageIndex and embeddings remain non-required compatibility paths in this slice.
 
 ## Canonical demo-path step advanced
-- `retrieve relevant material`: this handoff explicitly advances that canonical demo-path step by enforcing FTS-only excerpt resolution with deterministic provenance on the canonical retrieval surface. Retrieval hits, excerpt lookup payloads, and downstream evidence/provenance bundles now stay deterministic and auditable on the FTS-first path.
+- `retrieve relevant material`: this handoff explicitly advances that canonical demo-path step because `fetch_excerpt` now fails closed to the canonical FTS-backed lookup path instead of falling back to PageIndex. Retrieval hits, excerpt lookup payloads, and downstream evidence/provenance bundles now stay deterministic and auditable on the FTS-first path.
 - Specific contract tightening: `fetch_excerpt` now fails closed to the FTS-backed canonical retrieval surface, so `PageIndex` is not promoted as a required runtime path for the MVP retrieval contract.
 
 ## AGENTS.md handoff packet
