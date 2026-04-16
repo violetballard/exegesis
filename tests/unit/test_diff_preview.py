@@ -229,7 +229,7 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
             f"Diff fingerprint: sha256:{hashlib.sha256(diff_output.encode('utf-8')).hexdigest()}",
         )
 
-    def test_text_summary_only_fingerprint_matches_empty_emitted_diff(self) -> None:
+    def test_text_summary_only_fingerprint_matches_reviewed_diff_payload(self) -> None:
         with _env(
             **{
                 INCLUDE_FINGERPRINT_ENV: "1",
@@ -238,11 +238,14 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
         ):
             output = run_diff_preview(DiffPreviewInput("a\n", "b\n"))
         self.assertTrue(output.startswith("Diff summary: +"))
+        reviewed_diff = "--- original\n+++ proposed\n@@ -1 +1 @@\n-a\n+b\n"
         self.assertTrue(
-            output.endswith(f"Diff fingerprint: sha256:{hashlib.sha256(b'').hexdigest()}")
+            output.endswith(
+                f"Diff fingerprint: sha256:{hashlib.sha256(reviewed_diff.encode('utf-8')).hexdigest()}"
+            )
         )
 
-    def test_summary_only_json_fingerprint_matches_empty_diff_payload(self) -> None:
+    def test_summary_only_json_fingerprint_matches_reviewed_diff_payload(self) -> None:
         with _env(
             **{
                 OUTPUT_FORMAT_ENV: "json",
@@ -253,9 +256,10 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
             payload = json.loads(run_diff_preview(DiffPreviewInput("a\n", "b\n")))
         self.assertEqual(payload["diff"], "")
         self.assertTrue(payload["summary_only"])
+        reviewed_diff = "--- original\n+++ proposed\n@@ -1 +1 @@\n-a\n+b\n"
         self.assertEqual(
             payload["fingerprint"]["sha256"],
-            hashlib.sha256(b"").hexdigest(),
+            hashlib.sha256(reviewed_diff.encode("utf-8")).hexdigest(),
         )
 
 

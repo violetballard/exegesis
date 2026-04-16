@@ -224,6 +224,14 @@ def _emitted_diff_payload(*, output: str, summary_only: bool) -> str:
     return output
 
 
+def _fingerprint_source_payload(*, diff: str, output: str, summary_only: bool) -> str:
+    # Fingerprints must identify the reviewed diff, even when the rendered view
+    # is collapsed to summary-only text for a thin CLI surface.
+    if summary_only:
+        return diff
+    return output
+
+
 def _emitted_fingerprint_payload(fingerprint: dict[str, object]) -> dict[str, object] | None:
     if not _env_enabled(INCLUDE_FINGERPRINT_ENV):
         return None
@@ -433,8 +441,9 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
         output = _truncate_diff(diff, max_chars)
         truncated = True
     emitted_diff = _emitted_diff_payload(output=output, summary_only=summary_only)
-    # Hash the exact payload we expose after summary-only collapsing.
-    fingerprint = _diff_fingerprint(emitted_diff)
+    fingerprint = _diff_fingerprint(
+        _fingerprint_source_payload(diff=diff, output=output, summary_only=summary_only)
+    )
 
     return _text_or_json_result(
         summary_source=summary_source,
