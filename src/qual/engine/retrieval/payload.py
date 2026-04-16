@@ -49,6 +49,8 @@ def _normalize_list_like(value: object) -> list[object]:
         return copy.deepcopy(value)
     if isinstance(value, tuple):
         return list(value)
+    if isinstance(value, (set, frozenset)):
+        return _normalize_unordered_iterable(value)
     if isinstance(value, Iterable) and not isinstance(value, (str, bytes, bytearray, Mapping)):
         return [copy.deepcopy(item) for item in value]
     if value is None:
@@ -182,6 +184,15 @@ def _first_dict_value(*values: object) -> dict[str, object] | None:
 def _stable_fingerprint(payload: object) -> str:
     serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def _stable_sort_key(value: object) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+
+
+def _normalize_unordered_iterable(value: set[object] | frozenset[object]) -> list[object]:
+    items = [copy.deepcopy(item) for item in value]
+    return sorted(items, key=_stable_sort_key)
 
 
 def _is_missing_snapshot_value(value: object) -> bool:

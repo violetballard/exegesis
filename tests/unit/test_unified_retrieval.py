@@ -1725,6 +1725,57 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(provenance["query_date_range"], ["2026-01-01", "2026-01-31"])
         self.assertEqual(diagnostics["date_range"], ["2026-01-01", "2026-01-31"])
 
+    def test_retrieval_payload_normalizers_canonicalize_unordered_iterables(self) -> None:
+        source_bundle = _build_retrieval_source_bundle_from_payload(
+            {
+                "retrieval_source_bundle": {
+                    "query": {
+                        "query_text": "memo comparison",
+                        "scope": "vault",
+                        "intent": "compare",
+                        "confidentiality_profile": "standard",
+                        "constraints": {
+                            "doc_types": {"pdf", "memo"},
+                        },
+                    },
+                    "policy": {
+                        "retrieval_backend": "sqlite_fts",
+                        "retrieval_mode": "fts_first",
+                        "active_strategy_ids": {"fts"},
+                        "deferred_strategy_ids": {"embeddings", "pageindex"},
+                    },
+                    "retrieval_summary": {
+                        "doc_ids": {"doc-b", "doc-a"},
+                        "excerpt_ids": {"excerpt-b", "excerpt-a"},
+                        "retrieval_backend": "sqlite_fts",
+                        "retrieval_mode": "fts_first",
+                        "active_strategy_ids": {"fts"},
+                        "deferred_strategy_ids": {"embeddings", "pageindex"},
+                    },
+                }
+            }
+        )
+        provenance = _build_retrieval_provenance_from_payload(
+            {
+                "retrieval_provenance": {
+                    "fts_shortlist_doc_ids": {"doc-b", "doc-a"},
+                    "active_strategy_ids": {"fts"},
+                    "deferred_strategy_ids": {"embeddings", "pageindex"},
+                    "retrieval_backend": "sqlite_fts",
+                    "retrieval_mode": "fts_first",
+                }
+            }
+        )
+
+        self.assertEqual(source_bundle["query"]["constraints"]["doc_types"], ["memo", "pdf"])
+        self.assertEqual(source_bundle["policy"]["active_strategy_ids"], ["fts"])
+        self.assertEqual(source_bundle["policy"]["deferred_strategy_ids"], ["embeddings", "pageindex"])
+        self.assertEqual(source_bundle["retrieval_summary"]["doc_ids"], ["doc-a", "doc-b"])
+        self.assertEqual(source_bundle["retrieval_summary"]["excerpt_ids"], ["excerpt-a", "excerpt-b"])
+        self.assertEqual(provenance["fts_shortlist_doc_ids"], ["doc-a", "doc-b"])
+        self.assertEqual(provenance["active_strategy_ids"], ["fts"])
+        self.assertEqual(provenance["deferred_strategy_ids"], ["embeddings", "pageindex"])
+
     def test_retrieval_source_bundle_normalizer_backfills_sparse_top_level_hits(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
