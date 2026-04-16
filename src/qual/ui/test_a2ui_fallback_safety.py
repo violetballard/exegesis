@@ -1220,6 +1220,19 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("<non-json:_OpaqueValue>", text)
         self.assertNotIn("object at 0x", text)
 
+    def test_shell_ui_falls_back_when_fallback_resolution_raises(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            with patch.object(ShellUI, "_resolve_fallback_artifact", side_effect=RuntimeError("resolver boom")):
+                text = shell.render_artifact(_OpaqueValue(), kind="action")
+
+        self.assertIn("[ActionRef] <invalid action>", text)
+        self.assertIn("Action schema v1", text)
+        self.assertIn("- raw:", text)
+        self.assertIn("<non-json:_OpaqueValue>", text)
+        self.assertNotIn("resolver boom", text)
+
     def test_shell_ui_unwraps_malformed_terminal_envelopes_for_explicit_kinds(self) -> None:
         shell = ShellUI()
 

@@ -30,7 +30,13 @@ class ShellUI:
             return render_terminal_artifact(artifact, kind=kind)
         except Exception:
             # Keep the CLI usable even if the structured artifact renderer fails unexpectedly.
-            fallback_artifact, fallback_kind = self._resolve_fallback_artifact(artifact, kind=kind)
+            try:
+                fallback_artifact, fallback_kind = self._resolve_fallback_artifact(artifact, kind=kind)
+            except Exception:
+                fallback_artifact = artifact
+                fallback_kind = self._normalize_fallback_kind(kind)
+                if fallback_kind is None:
+                    fallback_kind = self._infer_fallback_kind(artifact)
             if fallback_kind == "action":
                 try:
                     return render_terminal_action(fallback_artifact)
