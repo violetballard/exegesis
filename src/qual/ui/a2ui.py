@@ -165,7 +165,6 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["action_fingerprint"] = manifest["action"]["contract_fingerprint"]
     manifest["selection_fingerprint"] = manifest["selection"]["contract_fingerprint"]
     manifest["card_fingerprint"] = card_contract_fingerprint()
-    manifest["contract_fingerprints"] = _build_a2ui_contract_fingerprint_summary()
     manifest["terminal_artifact_rendering"] = manifest["schemas"]["terminal_artifact_rendering"]
     manifest["terminal_artifact_rendering_fingerprint"] = manifest["schemas"]["terminal_artifact_rendering"][
         "contract_fingerprint"
@@ -174,6 +173,7 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_cli_fallback_fingerprint"] = manifest["terminal_artifact_cli_fallback"][
         "contract_fingerprint"
     ]
+    manifest["contract_fingerprints"] = _build_a2ui_contract_fingerprint_summary()
     return manifest
 
 
@@ -181,6 +181,7 @@ def describe_a2ui_contract_fingerprints(
     include_terminal_artifact: bool = False,
     include_action: bool = False,
     include_terminal_artifact_rendering: bool = False,
+    include_terminal_artifact_cli_fallback: bool = False,
 ) -> dict[str, str]:
     """Return stable fingerprints for the contract sections and embedded contracts.
 
@@ -209,6 +210,8 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["terminal_artifact"] = manifest["terminal_artifact_fingerprint"]
     if include_terminal_artifact_rendering:
         fingerprints["terminal_artifact_rendering"] = terminal_artifact_rendering_contract_fingerprint()
+    if include_terminal_artifact_cli_fallback:
+        fingerprints["terminal_artifact_cli_fallback"] = terminal_artifact_cli_fallback_contract_fingerprint()
     return fingerprints
 
 
@@ -217,6 +220,7 @@ def _build_a2ui_contract_fingerprint_summary() -> dict[str, str]:
         include_terminal_artifact=True,
         include_action=True,
         include_terminal_artifact_rendering=True,
+        include_terminal_artifact_cli_fallback=True,
     )
 
 
@@ -309,6 +313,7 @@ def describe_terminal_artifact_contract_fingerprints() -> dict[str, str]:
         "selection_contract": selection_contract_fingerprint(),
         "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
         "rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
+        "cli_fallback_contract": terminal_artifact_cli_fallback_contract_fingerprint(),
     }
 
 

@@ -193,6 +193,7 @@ class A2UIContractTests(unittest.TestCase):
                 include_action=True,
                 include_terminal_artifact=True,
                 include_terminal_artifact_rendering=True,
+                include_terminal_artifact_cli_fallback=True,
             ),
         )
         self.assertEqual(fingerprints["capabilities"], manifest["capabilities_fingerprint"])
