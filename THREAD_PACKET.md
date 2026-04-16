@@ -15,6 +15,7 @@
 - This re-review packet is scoped to the full current command-surface implementation on the branch tip through `621dc00a194f79ae52611d240a8521853cd374e2`.
 - The earlier narrow packet that treated later commits as metadata-only was inaccurate: substantive command-surface changes landed after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, including trusted demo-path contract helpers, demo/MVP entrypoint wrappers, and the parser-surface drift rejection finalized in `621dc00a194f79ae52611d240a8521853cd374e2`.
 - The implementation under review is therefore the full code-bearing command-surface range from `8c9e2290fefb92bb07ff99681421a666cbbe4e0f` through `621dc00a194f79ae52611d240a8521853cd374e2`, plus this packet refresh.
+- Reviewer-fix follow-up on the current branch tip tightens the default catalog contract further by requiring canonical commands to remain the primary parser entrypoints in canonical order, with regression coverage for canonical-token removal, alias substitution, and parser-order drift.
 - This packet refresh explicitly satisfies the reviewer-requested `AGENTS.md` demo-path mapping requirement and keeps the new fixer change scoped to handoff metadata only.
 
 ## Current Program Focus
@@ -60,11 +61,11 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it validates the full approved parser surface, not just deduplicated canonical names, and now raises `ValueError` if canonical CLI tokens are dropped, aliases are substituted, or parser token order drifts from the catalog contract.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the default catalog requires canonical commands to remain the primary parser entrypoints in canonical order, and now raises `ValueError` if canonical CLI tokens are dropped, aliases are substituted ahead of the canonical token, or parser token order drifts from the catalog contract.
 - Added deterministic parser-surface helpers for CLI shims, parser-ready argv rewriting, smoke invocations, trusted demo-path routing, and command resolution so the existing CLI-first MVP loop stays stable and smoke-testable.
 - Exposed the public command exports needed for the command catalog, canonical wrapper, demo/MVP helper entrypoints, and smoke/resolution contracts from `src/qual/commands/__init__.py` and `src/qual/commands/canonical.py`.
 - Tightened `src/qual/commands/diff_preview.py` so summary-only output keeps a fingerprint tied to the reviewed diff and truncation remains bounded without corrupting the header-aware preview contract.
-- Expanded `tests/unit/test_commands_catalog.py` with focused regression coverage for canonical-order alignment, parser drift rejection, shim/surface contracts, smoke argv helpers, deterministic resolution, and demo/MVP path helpers.
+- Expanded `tests/unit/test_commands_catalog.py` with focused regression coverage for canonical-order alignment, parser drift rejection, canonical-token removal, alias-substitution rejection, shim/surface contracts, smoke argv helpers, deterministic resolution, and demo/MVP path helpers.
 - Finalized parser-surface drift rejection in `621dc00a194f79ae52611d240a8521853cd374e2` so re-review targets the real branch-tip implementation instead of the earlier incorrect metadata-only framing.
 - Regenerated the handoff packet so re-review targets the real implementation tip and records the explicit demo-path mapping and shared-test approval basis requested by the reviewer.
 
