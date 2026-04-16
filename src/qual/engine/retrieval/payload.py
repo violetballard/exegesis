@@ -1011,7 +1011,15 @@ def _build_retrieval_doc_bundle_from_payload(payload: dict[str, object]) -> dict
 
     doc_bundle = payload.get("retrieval_doc_bundle")
     if isinstance(doc_bundle, dict):
-        return _normalize_doc_bundle_snapshot(doc_bundle)
+        primary_doc_bundle = _normalize_doc_bundle_snapshot(doc_bundle)
+        fallback_payload = copy.deepcopy(payload)
+        fallback_payload.pop("retrieval_doc_bundle", None)
+        if "doc_hits" not in fallback_payload and primary_doc_bundle.get("doc_hits"):
+            fallback_payload["doc_hits"] = copy.deepcopy(primary_doc_bundle["doc_hits"])
+        fallback_doc_bundle = _build_retrieval_doc_bundle_from_payload(fallback_payload)
+        return _normalize_doc_bundle_snapshot(
+            _backfill_sparse_snapshot(primary_doc_bundle, fallback_doc_bundle)
+        )
     bundle_context = _build_retrieval_bundle_context_from_payload(payload)
     provenance = bundle_context["retrieval_provenance"]
     doc_hits = _normalize_list_like(payload.get("doc_hits", []))
@@ -1031,7 +1039,15 @@ def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> 
 
     excerpt_bundle = payload.get("retrieval_excerpt_bundle")
     if isinstance(excerpt_bundle, dict):
-        return _normalize_excerpt_bundle_snapshot(excerpt_bundle)
+        primary_excerpt_bundle = _normalize_excerpt_bundle_snapshot(excerpt_bundle)
+        fallback_payload = copy.deepcopy(payload)
+        fallback_payload.pop("retrieval_excerpt_bundle", None)
+        if "excerpt_hits" not in fallback_payload and primary_excerpt_bundle.get("excerpt_hits"):
+            fallback_payload["excerpt_hits"] = copy.deepcopy(primary_excerpt_bundle["excerpt_hits"])
+        fallback_excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(fallback_payload)
+        return _normalize_excerpt_bundle_snapshot(
+            _backfill_sparse_snapshot(primary_excerpt_bundle, fallback_excerpt_bundle)
+        )
     bundle_context = _build_retrieval_bundle_context_from_payload(payload)
     provenance = bundle_context["retrieval_provenance"]
     excerpt_hits = _normalize_list_like(payload.get("excerpt_hits", []))
