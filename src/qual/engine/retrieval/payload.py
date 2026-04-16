@@ -538,6 +538,11 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
     if not isinstance(snapshot, dict):
         return {}
     normalized = copy.deepcopy(snapshot)
+    doc_type = _normalize_optional_text(normalized.get("doc_type"))
+    if doc_type is not None:
+        normalized["doc_type"] = doc_type
+    elif "doc_type" in normalized:
+        normalized["doc_type"] = None
     span = _normalize_span_snapshot(normalized.get("span"))
     if span is not None:
         normalized["span"] = copy.deepcopy(span)
@@ -634,6 +639,14 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
             first_doc_citation.get("doc_id"),
             retrieval_provenance.get("primary_doc_id"),
             retrieval_summary.get("primary_doc_id"),
+        ),
+        "doc_type": _first_text_value(
+            first_excerpt_hit.get("doc_type") if isinstance(first_excerpt_hit, dict) else None,
+            first_doc_hit.get("doc_type") if isinstance(first_doc_hit, dict) else None,
+            first_excerpt_provenance.get("doc_type"),
+            first_doc_provenance.get("doc_type"),
+            first_excerpt_citation.get("doc_type"),
+            first_doc_citation.get("doc_type"),
         ),
         "doc_fingerprint": _first_text_value(
             first_doc_hit.get("doc_fingerprint") if isinstance(first_doc_hit, dict) else None,

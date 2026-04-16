@@ -965,6 +965,7 @@ class RetrievalResult:
                 if primary_excerpt_hit is not None
                 else primary_doc_hit.doc_id if primary_doc_hit is not None else None
             ),
+            "doc_type": primary_excerpt_provenance.get("doc_type") or primary_doc_provenance.get("doc_type"),
             "doc_fingerprint": primary_doc_provenance.get("doc_fingerprint")
             or primary_excerpt_provenance.get("doc_fingerprint"),
             "doc_identity_fingerprint": primary_doc_provenance.get("doc_identity_fingerprint")
