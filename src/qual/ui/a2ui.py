@@ -580,6 +580,7 @@ def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
         },
         "terminal_fallback_fingerprint": terminal_fallback_contract_fingerprint(),
         "cli_fallback": cli_fallback_contract,
+        "cli_fallback_contract": cli_fallback_contract,
         "terminal_artifact_rendering_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
         "rendering_contract": {
             "kind": "card",
