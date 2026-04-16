@@ -1,16 +1,20 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Implementation commit(s):
+- Implementation commit range: `8c9e2290fefb92bb07ff99681421a666cbbe4e0f..621dc00a194f79ae52611d240a8521853cd374e2`
+- Key implementation tip commits:
+  - `8c9e2290fefb92bb07ff99681421a666cbbe4e0f` (`feat(commands): stabilize command catalog contracts`)
+  - `4c5bc538bd2d5325ce198183d31d6bc3c2d63c68` (`Fix diff preview summary fingerprint contract`)
   - `cb93dafa2c451893778b1c7f0c2e23f16090d8b5` (`feat(commands): harden demo path contract`)
   - `621dc00a194f79ae52611d240a8521853cd374e2` (`fix(commands): reject parser surface drift`)
 - Prior command-catalog anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Docs-only alignment commits after the implementation tip: none
 
 ## Packet Traceability Note
 
 - This re-review packet is scoped to the full current command-surface implementation on the branch tip through `621dc00a194f79ae52611d240a8521853cd374e2`.
 - The earlier narrow packet that treated later commits as metadata-only was inaccurate: substantive command-surface changes landed after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, including trusted demo-path contract helpers, demo/MVP entrypoint wrappers, and the parser-surface drift rejection finalized in `621dc00a194f79ae52611d240a8521853cd374e2`.
-- The implementation under review is therefore the combined scope from `cb93dafa2c451893778b1c7f0c2e23f16090d8b5` through `621dc00a194f79ae52611d240a8521853cd374e2`, plus this packet refresh.
+- The implementation under review is therefore the full code-bearing command-surface range from `8c9e2290fefb92bb07ff99681421a666cbbe4e0f` through `621dc00a194f79ae52611d240a8521853cd374e2`, plus this packet refresh.
 - This packet refresh explicitly satisfies the reviewer-requested `AGENTS.md` demo-path mapping requirement and keeps the new fixer change scoped to handoff metadata only.
 
 ## Current Program Focus
@@ -52,7 +56,7 @@
   - `tests/unit/test_diff_preview.py`
 - Shared/integrator-locked edits: `YES`
 - Shared edits are limited to the approved `feat-commands` shared-test paths listed above.
-- Approval basis: the reviewer packet for this branch explicitly includes `Approved exception note - Approved shared-test exception for tests/unit/test_commands_catalog.py`, and the branch-tip implementation kept shared edits confined to the approved command test files.
+- Approval basis: the reviewer packet for this branch explicitly includes `Approved exception note - Approved shared-test exception for tests/unit/test_commands_catalog.py`, and `scripts/scope-check.sh` allowlists that exact path for `codex/feat-commands*`. The branch-tip implementation kept the reviewer-fix packet's shared command-test scope explicit and auditable.
 
 ## Scope Completed
 
@@ -83,7 +87,7 @@
 - High-risk shared-file handoff: this packet groups the branch-tip work into `4` meaningful tasks, which matches the high-risk task cap for the actual implementation scope under review.
 - Current implementation scope remains within owned command paths plus the approved shared test files.
 - Files changed in implementation scope: `6`
-- Implementation review target range: `cb93dafa2c451893778b1c7f0c2e23f16090d8b5..621dc00a194f79ae52611d240a8521853cd374e2`
+- Implementation review target range: `8c9e2290fefb92bb07ff99681421a666cbbe4e0f..621dc00a194f79ae52611d240a8521853cd374e2`
 
 ## Files Changed
 
