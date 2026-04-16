@@ -94,6 +94,8 @@
 ## Reviewer Reconciliation
 - This packet is the writable source of truth for re-review in this fixer environment and supersedes any stale risk classification in blocked `.codex` packet mirrors.
 - Blocked mirror detail: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` return `EPERM` on write in this sandbox, so this packet carries the authoritative reviewer-fix reconciliation for this pass.
+- Mirror staleness note: those blocked `.codex` packet mirrors still reflect the older broader reviewed range metadata and should not be treated as the re-review source for this pass.
+- Reviewer-required demo-path mapping is authoritative here: this narrowed reviewed implementation range advances `retrieve relevant material` by forcing excerpt lookup through the canonical SQLite FTS path and making non-FTS excerpt IDs fail closed.
 - Treat this narrowed slice as shared/high-risk work under the `4`-task cap because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 - Re-review should use the narrowed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the explicit canonical demo-path mapping above.
 
@@ -112,6 +114,7 @@
 - The current branch tip reported in the final fixer handoff is a metadata-only packet refresh commit.
 - No post-reviewed commit changes executable code outside the retrieval lane.
 - This packet refresh exists specifically to satisfy the reviewer-required handoff correction for explicit canonical demo-path mapping.
+- This packet refresh also records that the `.codex` packet mirrors remained write-blocked with `EPERM` during the fixer pass, so `THREAD_PACKET.md` is the only updated handoff artifact in this worktree.
 - Re-review should treat the canonical demo-path mapping above as the explicit `AGENTS.md` handoff answer for this narrowed retrieval slice.
 - Fixer refresh date: `2026-04-16`
 - Pre-fix packet trace anchor for this metadata-only fixer pass: `ad09cc1aad6b330171eb38344e8c07aae605c2e5`
