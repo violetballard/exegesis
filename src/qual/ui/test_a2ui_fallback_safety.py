@@ -344,6 +344,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         a2ui_manifest = describe_a2ui_contract()
 
         self.assertEqual(manifest["kind_resolution"], rendering_manifest["kind_resolution"])
+        self.assertEqual(
+            manifest["kind_resolution"]["leaf_recovery"],
+            rendering_manifest["kind_resolution"]["leaf_recovery"],
+        )
         self.assertEqual(manifest["fallback_recovery"], rendering_manifest["fallback_recovery"])
         self.assertEqual(
             a2ui_manifest["terminal_artifact"]["kind_resolution"],
@@ -394,10 +398,20 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "validated envelope kind",
                 "typed payload kind",
                 "explicit caller kind hint",
+                "schema-valid leaf payload recovery",
                 "card default",
             ],
         )
         self.assertTrue(manifest["kind_resolution"]["card_payloads_override_conflicting_action_or_selection_hints"])
+        self.assertEqual(
+            manifest["kind_resolution"]["leaf_recovery"],
+            {
+                "malformed_card_envelopes": {
+                    "action": "normalize_action_ref",
+                    "selection": "normalize_selection_ref",
+                }
+            },
+        )
         self.assertEqual(
             manifest["fallback_recovery"],
             {

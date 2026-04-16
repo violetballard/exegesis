@@ -615,9 +615,11 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
                 "validated envelope kind",
                 "typed payload kind",
                 "explicit caller kind hint",
+                "schema-valid leaf payload recovery",
                 "card default",
             ],
             "card_payloads_override_conflicting_action_or_selection_hints": True,
+            "leaf_recovery": _build_terminal_artifact_leaf_recovery_manifest(),
         },
         "fallback_recovery": {
             "malformed_card_envelopes": {
@@ -666,6 +668,15 @@ def _build_terminal_artifact_envelope_manifest() -> dict[str, Any]:
         "kind_field": "kind",
         "artifact_field": "artifact",
         "supported_kinds": ["card", "action", "selection"],
+    }
+
+
+def _build_terminal_artifact_leaf_recovery_manifest() -> dict[str, Any]:
+    return {
+        "malformed_card_envelopes": {
+            "action": "normalize_action_ref",
+            "selection": "normalize_selection_ref",
+        }
     }
 
 
