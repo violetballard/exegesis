@@ -24,6 +24,20 @@ This handoff stayed within the low-risk `8`-task cap. It did not rely on the spr
 - Excerpt provenance is stable and auditable.
 - Retrieval is reachable through the canonical engine surface.
 
+### Milestone 3 closure focus
+- Canonical demo-path step advanced by this lane:
+  - retrieve relevant material
+  - promote or gather context into the basket
+- Optimize for reviewer closure on the current retrieval contract, not broader retrieval ambition.
+- The shortest path to closure is a stable, auditable retrieval result shape that the engine loop can trust right now.
+- If reviewer feedback is satisfied, stop widening retrieval scope and re-emit quickly.
+
+### Current intervention guidance
+1. Prioritize deterministic excerpt/provenance output over extra retrieval strategies.
+2. Solve the reviewer’s concrete objection directly; avoid cleanup that does not change demo-path behavior.
+3. Keep engine-facing payloads narrow, structured, and easy to promote into basket/context flows.
+4. Handoff should state exactly how retrieval output supports basket promotion and later revise/apply steps.
+
 ### Do not spend time on
 - Over-investing in embeddings or alternate retrieval modes.
 - UI rendering concerns.

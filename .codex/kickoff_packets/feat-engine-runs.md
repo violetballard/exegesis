@@ -16,6 +16,22 @@
 - Apply and reject update document state consistently.
 - One explicit engine-side acceptance flow proves the loop end to end.
 
+### Milestone 3 closure focus
+- Canonical demo-path step advanced by this lane:
+  - produce a plan or revision
+  - preview and apply or reject a patch
+  - continue working without breaking document state
+- Optimize for one believable acceptance path, not broader engine ambition.
+- Prefer mergeable, integrator-friendly closure over more branch-local refinement.
+- If the core loop already works for one path, stop widening scope and prove it with tests and handoff evidence.
+- Treat review/integration closure as the current priority once the run path is coherent.
+
+### Current intervention guidance
+1. Minimize changes outside the core run loop needed for the canonical demo path.
+2. Favor deterministic apply/reject behavior and explicit acceptance evidence over new run modes.
+3. If a change does not directly make the retrieve -> revise/apply loop more real, defer it.
+4. Handoff should state exactly which engine-side loop is now standing and which post-merge checks prove it.
+
 ### Do not spend time on
 - UI-driven workflow behavior.
 - Speculative orchestration layers before one path is clearly solid.
