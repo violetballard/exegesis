@@ -323,6 +323,16 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(lookup_resolved.argv, ("diff-preview",))
         self.assertEqual(lookup_resolved.kind, "lookup")
 
+        normalized_lookup = command_resolve("diff_preview")
+        self.assertTrue(normalized_lookup.matched)
+        self.assertEqual(normalized_lookup.primary_cli_token, "diff-preview")
+        self.assertEqual(normalized_lookup.kind, "lookup")
+
+        primary = command_resolve("DIFF-PREVIEW")
+        self.assertTrue(primary.matched)
+        self.assertEqual(primary.primary_cli_token, "diff-preview")
+        self.assertEqual(primary.kind, "primary")
+
     def test_command_resolve_argv_rewrites_to_primary_cli_tokens(self) -> None:
         resolved = command_resolve_argv(("review-patch", "--format", "json"))
         self.assertTrue(resolved.matched)
@@ -340,6 +350,11 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(unknown.canonical_name, "missing")
         self.assertEqual(unknown.kind, "unknown")
         self.assertEqual(unknown.argv, ("missing", "--format", "json"))
+
+        normalized_lookup = command_resolve_argv(("diff_preview", "--format", "json"))
+        self.assertTrue(normalized_lookup.matched)
+        self.assertEqual(normalized_lookup.argv, ("diff-preview", "--format", "json"))
+        self.assertEqual(normalized_lookup.kind, "lookup")
 
     def test_command_resolve_helpers_support_custom_specs(self) -> None:
         specs = (

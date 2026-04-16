@@ -899,6 +899,16 @@ def command_cli_surface_contract(
 
 
 def _surface_token_kind(token: str, route_entry: CommandFlowRouteEntry) -> str:
+    raw_token = token.strip().casefold()
+    if raw_token == route_entry.primary_cli_token.casefold():
+        return "primary"
+    if any(raw_token == cli_token.casefold() for cli_token in route_entry.cli_tokens):
+        return "cli"
+    if raw_token == route_entry.flow_step.casefold():
+        return "flow-step"
+    if any(raw_token == lookup_token.casefold() for lookup_token in route_entry.lookup_tokens):
+        return "lookup"
+
     normalized_token = _normalize_token(token)
     if normalized_token == route_entry.primary_cli_token:
         return "primary"
@@ -1892,7 +1902,7 @@ def command_resolve_for(
             lookup_tokens=route_entry.lookup_tokens,
             surface_tokens=route_entry.surface_tokens,
             description=route_entry.description,
-            kind=_surface_token_kind(normalized_token, route_entry),
+            kind=_surface_token_kind(token, route_entry),
             matched=True,
         )
 
