@@ -79,6 +79,13 @@ def _normalize_doc_id(value: object) -> str:
     return doc_id
 
 
+def _normalize_excerpt_id(value: object) -> str:
+    excerpt_id = _optional_text(value)
+    if excerpt_id is None:
+        raise ValueError("excerpt_id must be a non-empty string")
+    return excerpt_id
+
+
 def _normalize_doc_type(value: object) -> str:
     doc_type = _normalized_profile_text(value)
     if doc_type is None:
@@ -1241,17 +1248,18 @@ class RetrievalService:
         lookup_entrypoint: str,
         confidentiality_profile: str,
     ) -> dict[str, object]:
+        normalized_excerpt_id = _normalize_excerpt_id(excerpt_id)
         normalized_confidentiality_profile = _normalize_supported_value(
             confidentiality_profile,
             field_name="confidentiality_profile",
             allowed=_SUPPORTED_CONFIDENTIALITY_PROFILES,
         )
         fts_excerpt = self._find_fts_excerpt(
-            excerpt_id,
+            normalized_excerpt_id,
             confidentiality_profile=normalized_confidentiality_profile,
         )
         if fts_excerpt is None:
-            raise KeyError(f"unknown excerpt_id: {excerpt_id}")
+            raise KeyError(f"unknown excerpt_id: {normalized_excerpt_id}")
         self._record_excerpt_lookup_audit(
             fts_excerpt,
             lookup_entrypoint=lookup_entrypoint,
@@ -2862,10 +2870,11 @@ class RetrievalService:
         return rows
 
     def _fetch_fts_row(self, excerpt_id: str) -> sqlite3.Row | None:
+        normalized_excerpt_id = _normalize_excerpt_id(excerpt_id)
         rows = self._query_fts_db(
             "SELECT doc_id, excerpt_id, doc_type, title_hint, char_start, char_end, text FROM fts_entries "
             "WHERE excerpt_id = ? LIMIT 1",
-            (excerpt_id,),
+            (normalized_excerpt_id,),
         )
         return rows[0] if rows else None
 
