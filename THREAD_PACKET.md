@@ -30,6 +30,7 @@
 - Primary step advanced: `preview and apply or reject a patch`
 - Secondary step supported: `continue working without losing context`
 - Exact mapping: this lane hardens the `patch-review` command surface so parser/catalog drift cannot silently change the live CLI operator contract used to preview and apply or reject a patch and then continue working without losing context through the same stable command surface.
+- Operational narrowing: this packet claims only CLI contract support for the active operator loop, not a broad engine-stability improvement outside the live demo path.
 
 ## Lane / Ownership
 
@@ -79,7 +80,7 @@
 
 ## Risks / Blockers
 
-- Residual risk: low. The remaining exposure is limited to the approved shared-test exception `tests/unit/test_commands_catalog.py`; runtime behavior stays confined to lane-owned command code and is covered by the full required gate set.
+- Residual risk: no material runtime risk remains after the passing gate set. The only remaining exposure is the approved shared-test exception `tests/unit/test_commands_catalog.py`; runtime behavior stays confined to lane-owned command code.
 - Blockers: none
 
 ## Required Handoff Fields
@@ -88,11 +89,13 @@
 
 - `Milestone 3: Real workflow loop` because deterministic command ordering and parser-drift rejection keep the live CLI `open/retrieve/basket/patch-review` operator loop stable while the package/layout migration lands.
 - `feat-commands` because this slice keeps the CLI-first MVP operator surface deterministic and smoke-testable for the active engine-first loop.
+- Concrete loop impact: the branch preserves a deterministic CLI contract for the live `patch-review` step inside the current engine-first demo path instead of allowing parser/catalog drift to change that operator surface silently.
 
 ### Vision capability affected
 
 - `Canonical engine contract` because the active CLI compatibility surface stays stable and deterministic while Textual remains disabled.
 - `Auditable state and workflow` because parser/catalog drift is rejected explicitly instead of silently mutating the operator contract that drives patch review and continued work.
+- Concrete contract impact: operators can rely on the same catalog-backed CLI surface when entering the patch-review path and continuing work, which keeps the MVP contract explicit and reviewable.
 
 ### Routing/provider impact note
 
