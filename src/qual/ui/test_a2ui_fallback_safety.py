@@ -1759,6 +1759,52 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("A2UI v1", card_text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", card_text)
 
+    def test_terminal_card_renderer_recovers_action_payloads_from_malformed_terminal_artifacts(
+        self,
+    ) -> None:
+        with patch("src.qual.ui.a2ui.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            text = render_terminal_card(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "dialog",
+                    "artifact": {
+                        "type": "ActionRef",
+                        "id": "export_document",
+                        "label": "Export",
+                        "payload": {"format": "md"},
+                    },
+                    "trace_id": "drop-me",
+                }
+            )
+
+        self.assertIn("[ActionRef] Export", text)
+        self.assertIn("Action schema v1", text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+        self.assertNotIn("trace_id", text)
+
+    def test_terminal_card_renderer_recovers_selection_payloads_from_malformed_terminal_artifacts(
+        self,
+    ) -> None:
+        with patch("src.qual.ui.a2ui.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            text = render_terminal_card(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "dialog",
+                    "artifact": {
+                        "type": "SelectionRef",
+                        "id": "choice-1",
+                        "label": "Choice",
+                        "payload": {"nested": {"items": [1, 2]}},
+                    },
+                    "trace_id": "drop-me",
+                }
+            )
+
+        self.assertIn("[SelectionRef] Choice", text)
+        self.assertIn("Selection schema v1", text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+        self.assertNotIn("trace_id", text)
+
     def test_terminal_artifact_unwraps_nested_envelopes_before_rendering(self) -> None:
         nested_envelope = {
             "type": "TerminalArtifact",

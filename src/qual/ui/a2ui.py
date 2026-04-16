@@ -1045,8 +1045,9 @@ def execute_action_with_policy_gate(
 def render_terminal_card(card: Any) -> str:
     """Render a card payload, or unwrap a valid TerminalArtifact envelope.
 
-    The shared CLI still calls this helper directly, so valid envelopes are
-    accepted here as a compatibility bridge to the generic artifact renderer.
+    The shared CLI still calls this helper directly, so recoverable envelopes
+    are accepted here as a compatibility bridge to the generic artifact
+    renderer.
     """
 
     normalized_card = _coerce_terminal_card(card)
@@ -1059,6 +1060,30 @@ def render_terminal_card(card: Any) -> str:
             try:
                 return render_terminal_artifact(normalized_card)
             except Exception:
+                try:
+                    recovered_artifact, recovered_kind = _resolve_terminal_artifact_render_target(
+                        normalized_card,
+                        allow_invalid_envelope_recovery=True,
+                    )
+                except Exception:
+                    recovered_artifact = None
+                    recovered_kind = None
+                else:
+                    if recovered_kind == "action":
+                        try:
+                            return render_terminal_action(recovered_artifact)
+                        except Exception:
+                            return _render_invalid_terminal_action(recovered_artifact)
+                    if recovered_kind == "selection":
+                        try:
+                            return render_terminal_selection(recovered_artifact)
+                        except Exception:
+                            return _render_invalid_terminal_selection(recovered_artifact)
+                    if recovered_kind == "card":
+                        try:
+                            return render_terminal_card(recovered_artifact)
+                        except Exception:
+                            pass
                 recovered_card = _resolve_terminal_artifact_card_fallback(normalized_card)
                 if recovered_card is not None:
                     try:
