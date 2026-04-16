@@ -153,6 +153,9 @@ class ShellUI:
         inferred_selection_kind = ShellUI._infer_selection_payload_kind(artifact)
         if inferred_selection_kind is not None:
             return inferred_selection_kind
+        inferred_partial_leaf_kind = ShellUI._infer_partial_leaf_fallback_kind(artifact)
+        if inferred_partial_leaf_kind is not None:
+            return inferred_partial_leaf_kind
         return None
 
     @staticmethod
@@ -174,6 +177,34 @@ class ShellUI:
         except ValueError:
             return None
         return "selection"
+
+    @staticmethod
+    def _infer_partial_leaf_fallback_kind(artifact: Any) -> str | None:
+        if not isinstance(artifact, Mapping):
+            return None
+
+        artifact_type = artifact.get("type")
+        if isinstance(artifact_type, str):
+            normalized_type = artifact_type.strip()
+            if normalized_type == "ActionRef":
+                return "action"
+            if normalized_type == "SelectionRef":
+                return "selection"
+            if normalized_type and normalized_type != "TerminalArtifact":
+                return None
+
+        if any(field in artifact for field in ("blocks", "actions")):
+            return None
+        if not all(field in artifact for field in ("id", "payload")):
+            return None
+
+        has_action_hints = any(field in artifact for field in ("confirm", "policy_sensitive"))
+        has_selection_hints = any(field in artifact for field in ("selected", "disabled"))
+        if has_action_hints and not has_selection_hints:
+            return "action"
+        if has_selection_hints and not has_action_hints:
+            return "selection"
+        return None
 
     @staticmethod
     def _format_item_id(value: object) -> str:
@@ -261,11 +292,16 @@ class ShellUI:
     ) -> tuple[Any, str | None]:
         fallback_kind = ShellUI._normalize_fallback_kind(kind)
         try:
-            return resolve_terminal_artifact_render_target(
+            fallback_artifact, resolved_kind = resolve_terminal_artifact_render_target(
                 artifact,
                 requested_kind=fallback_kind,
                 allow_invalid_envelope_recovery=True,
             )
+            if fallback_kind is None and resolved_kind == "card":
+                inferred_kind = ShellUI._infer_partial_leaf_fallback_kind(fallback_artifact)
+                if inferred_kind is not None:
+                    return fallback_artifact, inferred_kind
+            return fallback_artifact, resolved_kind
         except Exception:
             inferred_kind = ShellUI._infer_fallback_kind(artifact)
             if inferred_kind is not None:

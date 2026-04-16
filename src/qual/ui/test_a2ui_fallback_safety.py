@@ -1451,6 +1451,33 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Selection schema v1", selection_text)
         self.assertNotIn("[UnknownCard] <invalid card>", selection_text)
 
+    def test_shell_ui_prefers_partial_leaf_hints_over_generic_card_fallbacks(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            action_text = shell.render_artifact(
+                {
+                    "id": "export_document",
+                    "payload": {"format": "md"},
+                    "confirm": {"title": "Approve", "message": "Export now?"},
+                }
+            )
+            selection_text = shell.render_artifact(
+                {
+                    "id": "choice-1",
+                    "payload": {"nested": {"items": [1, 2]}},
+                    "selected": True,
+                }
+            )
+
+        self.assertIn("[ActionRef] <invalid action>", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[UnknownCard] <invalid card>", action_text)
+
+        self.assertIn("[SelectionRef] <invalid selection>", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[UnknownCard] <invalid card>", selection_text)
+
     def test_shell_ui_unwraps_malformed_terminal_envelopes_for_explicit_kinds(self) -> None:
         shell = ShellUI()
 
