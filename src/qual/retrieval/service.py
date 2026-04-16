@@ -2448,6 +2448,71 @@ class RetrievalService:
         normalized_provenance["lookup_resolution"] = canonical_lookup_resolution
         if canonical_lookup_confidentiality_profile is not None:
             normalized_provenance["lookup_confidentiality_profile"] = canonical_lookup_confidentiality_profile
+        top_level_query_fingerprint = _optional_text(normalized.get("query_fingerprint"))
+        if (
+            top_level_query_fingerprint is not None
+            and _optional_text(normalized_provenance.get("query_fingerprint")) is None
+        ):
+            normalized_provenance["query_fingerprint"] = top_level_query_fingerprint
+        top_level_query_scope = _normalize_query_scope_payload(normalized.get("query_scope"))
+        if top_level_query_scope is not None and _normalize_query_scope_payload(
+            normalized_provenance.get("query_scope")
+        ) is None:
+            normalized_provenance["query_scope"] = top_level_query_scope
+        top_level_query_intent = _normalize_query_intent_payload(normalized.get("query_intent"))
+        if top_level_query_intent is not None and _normalize_query_intent_payload(
+            normalized_provenance.get("query_intent")
+        ) is None:
+            normalized_provenance["query_intent"] = top_level_query_intent
+        top_level_query_confidentiality_profile = _normalized_profile_text(
+            normalized.get("query_confidentiality_profile")
+        )
+        if (
+            top_level_query_confidentiality_profile is not None
+            and _normalized_profile_text(normalized_provenance.get("query_confidentiality_profile")) is None
+        ):
+            normalized_provenance["query_confidentiality_profile"] = top_level_query_confidentiality_profile
+        top_level_query_date_range = _normalize_query_date_range_payload(normalized.get("query_date_range"))
+        if (
+            top_level_query_date_range is not None
+            and _normalize_query_date_range_payload(normalized_provenance.get("query_date_range")) is None
+        ):
+            normalized_provenance["query_date_range"] = top_level_query_date_range
+        top_level_candidate_doc_count = _optional_int(normalized.get("candidate_doc_count"))
+        if (
+            top_level_candidate_doc_count is not None
+            and _optional_int(normalized_provenance.get("candidate_doc_count")) is None
+        ):
+            normalized_provenance["candidate_doc_count"] = top_level_candidate_doc_count
+        top_level_fts_shortlist_doc_ids = _normalize_doc_id_list_payload(normalized.get("fts_shortlist_doc_ids"))
+        if (
+            top_level_fts_shortlist_doc_ids is not None
+            and _normalize_doc_id_list_payload(normalized_provenance.get("fts_shortlist_doc_ids")) is None
+        ):
+            normalized_provenance["fts_shortlist_doc_ids"] = top_level_fts_shortlist_doc_ids
+        top_level_matched_terms = _normalize_matched_terms(normalized.get("matched_terms"))
+        if top_level_matched_terms is not None and _normalize_matched_terms(
+            normalized_provenance.get("matched_terms")
+        ) is None:
+            normalized_provenance["matched_terms"] = top_level_matched_terms
+        top_level_rank = _optional_int(normalized.get("rank"))
+        if top_level_rank is not None and _optional_int(normalized_provenance.get("rank")) is None:
+            normalized_provenance["rank"] = top_level_rank
+        top_level_fts_rank = _optional_float(normalized.get("fts_rank"))
+        if top_level_fts_rank is not None and _optional_float(normalized_provenance.get("fts_rank")) is None:
+            normalized_provenance["fts_rank"] = top_level_fts_rank
+        top_level_section_hint = _normalized_text(normalized.get("section_hint"))
+        if (
+            top_level_section_hint is not None
+            and _normalized_text(normalized_provenance.get("section_hint")) is None
+        ):
+            normalized_provenance["section_hint"] = top_level_section_hint
+        top_level_section_hint_rank = _optional_int(normalized.get("section_hint_rank"))
+        if (
+            top_level_section_hint_rank is not None
+            and _optional_int(normalized_provenance.get("section_hint_rank")) is None
+        ):
+            normalized_provenance["section_hint_rank"] = top_level_section_hint_rank
         matched_terms = _normalize_matched_terms(normalized_provenance.get("matched_terms"))
         if matched_terms is not None:
             normalized_provenance["matched_terms"] = matched_terms
