@@ -461,6 +461,51 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("A2UI v1", card_text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", card_text)
 
+    def test_shell_ui_keeps_authoritative_envelope_kind_during_fallback(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            text = shell.render_artifact(
+                build_terminal_artifact_envelope(
+                    ActionRef(
+                        id=" export_document ",
+                        label=" Export ",
+                        payload={"format": "md"},
+                    ),
+                    kind="action",
+                ),
+                kind="selection",
+            )
+
+        self.assertIn("[ActionRef] Export", text)
+        self.assertIn("Action schema v1", text)
+        self.assertNotIn("[SelectionRef]", text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+
+    def test_shell_ui_prefers_typed_payload_kind_over_conflicting_hint_during_fallback(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            text = shell.render_artifact(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "dialog",
+                    "artifact": {
+                        "type": "ActionRef",
+                        "id": "export_document",
+                        "label": "Export",
+                        "payload": {"format": "md"},
+                    },
+                    "trace_id": "drop-me",
+                },
+                kind="selection",
+            )
+
+        self.assertIn("[ActionRef] Export", text)
+        self.assertIn("Action schema v1", text)
+        self.assertNotIn("[SelectionRef]", text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+
     def test_shell_ui_recovers_structured_kinds_from_raw_payloads_during_fallback(self) -> None:
         shell = ShellUI()
 

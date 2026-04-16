@@ -248,12 +248,12 @@ class ShellUI:
         try:
             validate_terminal_artifact_envelope(artifact)
         except Exception:
-            if fallback_kind in {"action", "selection"}:
-                if payload is not None:
-                    return payload, fallback_kind
             # Recover from a corrupted wrapper kind when the embedded payload is still typed.
             if payload_kind in {"action", "selection"}:
                 return payload, payload_kind
+            if fallback_kind in {"action", "selection"}:
+                if payload is not None:
+                    return payload, fallback_kind
             if envelope_kind in {"action", "selection"} and payload is not None and payload_kind == envelope_kind:
                 return payload, envelope_kind
             if envelope_kind == "action" and payload is not None:
@@ -279,6 +279,4 @@ class ShellUI:
             return artifact, fallback_kind
 
         payload = artifact.get("artifact")
-        if fallback_kind is None:
-            fallback_kind = ShellUI._normalize_fallback_kind(artifact.get("kind"))
-        return payload, fallback_kind
+        return payload, envelope_kind
