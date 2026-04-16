@@ -2041,19 +2041,11 @@ def _normalize_confirm(confirm: Any) -> dict[str, str]:
 
 
 def _copy_selection_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
-    try:
-        copied = copy.deepcopy(payload)
-    except Exception:
-        copied = dict(payload)
-    return copied
+    return _copy_terminal_artifact_payload(payload)
 
 
 def _copy_action_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
-    try:
-        copied = copy.deepcopy(payload)
-    except Exception:
-        copied = dict(payload)
-    return copied
+    return _copy_terminal_artifact_payload(payload)
 
 
 def _copy_terminal_artifact_payload(artifact: Any) -> Any:
@@ -2061,18 +2053,79 @@ def _copy_terminal_artifact_payload(artifact: Any) -> Any:
 
     The terminal artifact envelope is a public contract boundary. Snapshotting
     the payload keeps engine-produced envelopes deterministic even if the
-    original object is mutated after the wrapper is built.
+    original object is mutated after the wrapper is built. Nested A2UI
+    dataclasses are converted to plain dictionaries so the snapshot stays
+    client-friendly for CLI fallback rendering.
     """
 
-    try:
-        return copy.deepcopy(artifact)
-    except Exception:
-        if isinstance(artifact, Mapping):
+    return _snapshot_terminal_artifact_value(artifact)
+
+
+def _snapshot_terminal_artifact_value(value: Any, *, _seen_ids: set[int] | None = None) -> Any:
+    if isinstance(value, ActionRef):
+        return _snapshot_terminal_artifact_value(_action_ref_to_dict(value), _seen_ids=_seen_ids)
+    if isinstance(value, SelectionRef):
+        return _snapshot_terminal_artifact_value(_selection_ref_to_dict(value), _seen_ids=_seen_ids)
+    if is_dataclass(value):
+        try:
+            value = asdict(value)
+        except Exception:
             try:
-                return dict(artifact)
+                return copy.deepcopy(value)
             except Exception:
-                return artifact
-        return artifact
+                return value
+        return _snapshot_terminal_artifact_value(value, _seen_ids=_seen_ids)
+    if isinstance(value, Mapping):
+        if _seen_ids is None:
+            _seen_ids = set()
+        value_id = id(value)
+        if value_id in _seen_ids:
+            return value
+        _seen_ids.add(value_id)
+        try:
+            return {
+                key: _snapshot_terminal_artifact_value(item, _seen_ids=_seen_ids)
+                for key, item in value.items()
+            }
+        finally:
+            _seen_ids.remove(value_id)
+    if isinstance(value, list):
+        if _seen_ids is None:
+            _seen_ids = set()
+        value_id = id(value)
+        if value_id in _seen_ids:
+            return value
+        _seen_ids.add(value_id)
+        try:
+            return [_snapshot_terminal_artifact_value(item, _seen_ids=_seen_ids) for item in value]
+        finally:
+            _seen_ids.remove(value_id)
+    if isinstance(value, tuple):
+        if _seen_ids is None:
+            _seen_ids = set()
+        value_id = id(value)
+        if value_id in _seen_ids:
+            return value
+        _seen_ids.add(value_id)
+        try:
+            return tuple(_snapshot_terminal_artifact_value(item, _seen_ids=_seen_ids) for item in value)
+        finally:
+            _seen_ids.remove(value_id)
+    if isinstance(value, set):
+        if _seen_ids is None:
+            _seen_ids = set()
+        value_id = id(value)
+        if value_id in _seen_ids:
+            return value
+        _seen_ids.add(value_id)
+        try:
+            return {_snapshot_terminal_artifact_value(item, _seen_ids=_seen_ids) for item in value}
+        finally:
+            _seen_ids.remove(value_id)
+    try:
+        return copy.deepcopy(value)
+    except Exception:
+        return value
 
 
 def _validate_action_payload(action_id: str, payload: Mapping[str, Any]) -> None:

@@ -614,6 +614,37 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("Changed", text)
         self.assertNotIn("Mutated", text)
 
+    def test_terminal_artifact_card_snapshots_nested_action_refs_into_plain_dicts(self) -> None:
+        action = ActionRef(
+            id="copy_to_clipboard",
+            label="Copy JSON",
+            payload={"text": "{}"},
+        )
+        card = {
+            "type": "GenericCard",
+            "title": " Run Log ",
+            "a2ui_version": 1,
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Original"}],
+            "actions": [action],
+        }
+
+        normalized_card = normalize_terminal_artifact_payload(card, kind="card")
+        envelope = build_terminal_artifact_envelope(card, kind="card")
+        action.payload["text"] = '{"changed": true}'
+
+        self.assertEqual(
+            normalized_card["actions"],
+            [{"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": "{}"}}],
+        )
+        self.assertIsInstance(normalized_card["actions"][0], dict)
+        self.assertEqual(
+            envelope["artifact"]["actions"],
+            [{"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": "{}"}}],
+        )
+        self.assertIsInstance(envelope["artifact"]["actions"][0], dict)
+        self.assertNotIn("changed", envelope["artifact"]["actions"][0]["payload"]["text"])
+        self.assertIn("- Copy JSON (copy_to_clipboard)", render_terminal_artifact(envelope))
+
     def test_terminal_artifact_envelope_builder_rejects_kind_payload_mismatches(self) -> None:
         with self.assertRaises(ValueError):
             build_terminal_artifact_envelope(
