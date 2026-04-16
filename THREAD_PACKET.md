@@ -101,6 +101,7 @@
 
 - `Milestone 3: Real workflow loop` because deterministic command ordering and parser-drift rejection keep the live CLI `patch-review` step stable while the package/layout migration lands.
 - `feat-commands` because this slice keeps the CLI-first MVP operator surface deterministic and smoke-testable for the active engine-first loop.
+- Primary demo-path claim repeated for review clarity: this branch advances only the `preview and apply or reject a patch` step.
 - Concrete loop impact: the branch preserves a deterministic CLI contract for the live `patch-review` step inside the current engine-first demo path instead of allowing parser/catalog drift to change that operator surface silently.
 
 ### Vision capability affected
