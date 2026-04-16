@@ -1214,7 +1214,11 @@ class RetrievalService:
         retrieval_policy = retrieval_policy_snapshot()
         fts_shortlist_limit = self._fts_shortlist_limit(query.constraints.max_results)
         date_range = query.constraints.date_range
-        fts_candidate_scan_limit = self._fts_candidate_scan_limit(fts_shortlist_limit, date_range=date_range)
+        fts_candidate_scan_limit = self._fts_candidate_scan_limit(
+            query,
+            fts_shortlist_limit,
+            date_range=date_range,
+        )
         fts_shortlist = (
             self._candidate_docs_from_fts(
                 query,
@@ -1800,7 +1804,11 @@ class RetrievalService:
                     break
             return tuple(doc_ids)
 
-        effective_scan_limit = scan_limit if scan_limit is not None else self._fts_candidate_scan_limit(limit, date_range=date_range)
+        effective_scan_limit = (
+            scan_limit
+            if scan_limit is not None
+            else self._fts_candidate_scan_limit(query, limit, date_range=date_range)
+        )
         doc_ids: list[str] = []
         seen: set[str] = set()
         batch_limit = max(25, min(limit, effective_scan_limit))
@@ -1854,11 +1862,41 @@ class RetrievalService:
     def _fts_shortlist_limit(max_results: int) -> int:
         return max(25, max_results)
 
-    @staticmethod
-    def _fts_candidate_scan_limit(limit: int, *, date_range: tuple[str, str] | None) -> int:
+    def _fts_candidate_scan_limit(
+        self,
+        query: RetrievalQuery,
+        limit: int,
+        *,
+        date_range: tuple[str, str] | None,
+    ) -> int:
         if date_range is None:
             return limit
-        return max(limit, limit * 4, 100)
+        return max(limit, self._fts_matching_row_count(query))
+
+    def _fts_matching_row_count(self, query: RetrievalQuery) -> int:
+        match_query, _ = self._build_fts_match_query(query.query_text)
+        scope_doc = self._doc_scope_id(query.scope)
+        allowed_doc_types = self._normalized_doc_types(query.constraints.doc_types)
+        where_clauses = ["fts_entries MATCH ?"]
+        params: list[object] = []
+        params.append(match_query)
+        if scope_doc is not None:
+            where_clauses.append("doc_id = ?")
+            params.append(scope_doc)
+        if allowed_doc_types:
+            placeholders = ",".join("?" for _ in allowed_doc_types)
+            where_clauses.append(f"lower(doc_type) IN ({placeholders})")
+            params.extend(allowed_doc_types)
+
+        sql = (
+            "SELECT COUNT(*) AS row_count "
+            "FROM fts_entries "
+            f"WHERE {' AND '.join(where_clauses)}"
+        )
+        rows = self._query_fts_db(sql, tuple(params))
+        if not rows:
+            return 0
+        return max(0, int(rows[0]["row_count"]))
 
     @staticmethod
     def _hit_sort_key(hit: RetrievalHit) -> tuple[float, str, str, int, int, str]:

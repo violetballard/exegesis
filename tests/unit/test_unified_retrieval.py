@@ -3065,6 +3065,48 @@ class UnifiedRetrievalTests(unittest.TestCase):
             ],
         )
 
+    def test_date_range_shortlist_keeps_late_qualifying_docs_in_fts_order(self) -> None:
+        for index in range(120):
+            self.service.add_or_update_document(
+                doc_id=f"doc-{index:03d}",
+                doc_type="memo",
+                title_hint=f"Memo {index:03d}",
+                text="date constrained needle evidence repeated for shortlist coverage",
+            )
+        self.service.add_or_update_document(
+            doc_id="doc-zzz-target",
+            doc_type="memo",
+            title_hint="Target Memo",
+            text="date constrained needle evidence repeated for shortlist coverage",
+        )
+
+        meta = self.service._load_doc_meta()
+        for doc_id, payload in meta.items():
+            if not doc_id.startswith("doc-") and doc_id != "doc-zzz-target":
+                continue
+            payload["updated_at"] = "2026-01-01T12:00:00+00:00"
+        meta["doc-zzz-target"]["updated_at"] = "2026-02-15T12:00:00+00:00"
+        self.service._write_encrypted_json(self.service._root / "doc_meta_v1.enc.json", meta)
+
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="date constrained needle",
+                scope="vault",
+                intent="lookup",
+                constraints=RetrievalConstraints(
+                    max_results=1,
+                    date_range=("2026-02-15", "2026-02-15"),
+                    doc_types=("memo",),
+                ),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        self.assertEqual([doc_hit.doc_id for doc_hit in result.doc_hits], ["doc-zzz-target"])
+        self.assertEqual([hit.doc_id for hit in result.hits], ["doc-zzz-target"])
+        self.assertEqual(result.diagnostics["fts_shortlist_doc_ids"], ["doc-zzz-target"])
+        self.assertEqual(result.diagnostics["candidate_doc_count"], 1)
+
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(
             self.service,
