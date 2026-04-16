@@ -2,9 +2,9 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Handoff type: `retrieval feature handoff for the FTS-first retrieval lane`
-- Packet HEAD role: `metadata-only gate-refresh handoff`
-- Reviewed implementation head: `d528d36a257a948d6636a9609db244ed8bf8383b`
-- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..d528d36a257a948d6636a9609db244ed8bf8383b`
+- Packet HEAD role: `metadata-only reviewer-fix handoff`
+- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 ## Scope completed
 - Kept SQLite FTS as the authoritative retrieval path for the MVP and preserved the canonical `retrieve_auto`/`retrieve_fts` engine surface.
@@ -18,7 +18,7 @@
 ## AGENTS.md handoff packet
 - Risk reason: the reviewed range includes shared-by-approval regression coverage in `tests/unit/test_unified_retrieval.py`, so this handoff remains shared/high-risk work under the 4-task cap.
 - Approved exception note: `tests/unit/test_unified_retrieval.py` remains the sole shared-by-approval regression surface exercised by the retrieval implementation in this range. Approval source is the earlier lane handoff packet commit `50181dd5900ccee8cef2494f15e25ff04a624252` (`docs(retrieval): refresh handoff packet for current head`, dated `2026-04-01 17:02:24 -0700`), which recorded this approved shared regression surface before the shared-file edit shipped in reviewed implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` on `2026-04-02 12:10:54 -0700`.
-- Traceability note: earlier packet text that treated post-`adfa8cda` commits as metadata-only was incorrect and is superseded by this packet. Re-review should use the full reviewed range above and treat `d528d36a257a948d6636a9609db244ed8bf8383b` as the reviewed implementation head.
+- Traceability note: re-review should stay narrowed to the reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`; this fixer pass does not widen retrieval scope beyond that slice.
 - Task budget: `4`
 - Required checkpoint status notes:
   - `plan complete`: the thread scope was locked to the canonical demo-path retrieval step and the shared/high-risk 4-task budget before the reviewed implementation work proceeded.
@@ -46,9 +46,9 @@
 - `make ci`: PASS
 
 ## Reviewer-required fix evidence
-- Reviewer fix addressed: refreshed the handoff packet to satisfy the `AGENTS.md` requirement for an explicit canonical demo-path mapping and tied that statement to the narrowed FTS-only excerpt lookup scope the reviewer requested.
+- Reviewer fix addressed: refreshed this packet so it preserves the reviewer-requested narrowed implementation range, names the canonical demo-path step directly, records the required AGENTS checkpoint notes, and cites the shared-file approval traceability explicitly.
 - Gate refresh date: `2026-04-16`
-- Packet note: this fixer pass is metadata-only. It records the reviewer-required scope-to-demo-path mapping without changing the reviewed implementation range.
+- Packet note: this fixer pass is metadata-only. It records the reviewer-required packet fixes without changing the reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` or the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - Re-review focus: verify the handoff now states explicitly that this slice advances the canonical `retrieve relevant material` demo-path step.
 
 ## Risks/blockers
