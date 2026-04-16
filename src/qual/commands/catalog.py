@@ -53,6 +53,7 @@ class CommandSmokeEntry:
     lookup_tokens: tuple[str, ...]
     surface_tokens: tuple[str, ...]
     description: str
+    smoke_argv: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -64,6 +65,7 @@ class CommandSmokeContract:
     invocation_plan: tuple[CommandInvocationPlanEntry, ...]
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
     lookup_surface: tuple[tuple[str, str], ...]
+    smoke_invocation_plan: tuple[CommandInvocationPlanEntry, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -1710,6 +1712,10 @@ def _validate_command_smoke_contract(contract: CommandSmokeContract) -> None:
         raise ValueError("Command smoke names are inconsistent")
     if tuple(entry.primary_cli_token for entry in contract.entries) != contract.primary_cli_tokens:
         raise ValueError("Command smoke primary CLI tokens are inconsistent")
+    if tuple(entry.smoke_argv for entry in contract.entries) != tuple(
+        entry.argv for entry in contract.smoke_invocation_plan
+    ):
+        raise ValueError("Command smoke argv is inconsistent")
     if tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in contract.entries) != contract.route_summary:
         raise ValueError("Command smoke route summary is inconsistent")
     if tuple((entry.flow_step, entry.name, entry.argv) for entry in contract.invocation_plan) != tuple(
@@ -1717,6 +1723,11 @@ def _validate_command_smoke_contract(contract: CommandSmokeContract) -> None:
         for entry in contract.entries
     ):
         raise ValueError("Command smoke invocation plan is inconsistent")
+    if tuple((entry.flow_step, entry.name) for entry in contract.smoke_invocation_plan) != tuple(
+        (entry.flow_step, entry.name)
+        for entry in contract.entries
+    ):
+        raise ValueError("Command smoke parser invocation order is inconsistent")
 
     expected_lookup_surface: list[tuple[str, str]] = []
     seen_tokens: set[str] = set()
@@ -1843,6 +1854,8 @@ def command_smoke_contract(
 ) -> CommandSmokeContract:
     ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
     route_catalog = command_flow_route_catalog(flow_steps=ordered_flow_steps, specs=specs)
+    smoke_invocation_plan = command_smoke_invocation_plan(specs, ordered_flow_steps)
+    smoke_argv_by_name = {entry.name: entry.argv for entry in smoke_invocation_plan}
     entries = tuple(
         CommandSmokeEntry(
             flow_step=entry.flow_step,
@@ -1852,6 +1865,7 @@ def command_smoke_contract(
             lookup_tokens=entry.lookup_tokens,
             surface_tokens=entry.surface_tokens,
             description=entry.description,
+            smoke_argv=smoke_argv_by_name.get(entry.name, (entry.primary_cli_token,)),
         )
         for entry in route_catalog
     )
@@ -1861,6 +1875,7 @@ def command_smoke_contract(
         entries=entries,
         primary_cli_tokens=tuple(entry.primary_cli_token for entry in entries),
         invocation_plan=command_flow_invocation_plan(specs, ordered_flow_steps),
+        smoke_invocation_plan=smoke_invocation_plan,
         route_summary=tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in entries),
         lookup_surface=command_flow_lookup_surface(specs, ordered_flow_steps),
     )
