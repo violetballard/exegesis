@@ -17,13 +17,15 @@
 - PageIndex and embeddings remain deferred compatibility identifiers, not required runtime retrieval paths for the MVP contract.
 
 ## Canonical Demo-Path Step Advanced
-- `retrieve relevant material`: this delivered implementation makes that step more real by keeping retrieval FTS-first, normalizing deterministic excerpt/provenance payloads, and ensuring excerpt lookup resolves through the canonical audited FTS surface before basket promotion.
+- `retrieve relevant material`
+- `fetch_excerpt` now resolves only through the canonical FTS path, which makes the retrieval step more deterministic and auditable for downstream basket/workflow use.
 
 ## Reviewer-Required Fixes Addressed
 1. The handoff is regenerated around the actual delivered retrieval implementation head `e8b19940cfc70e123d53c63d5846efaaa64287aa` instead of the older narrowed slice ending at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 2. The packet no longer labels `e8b19940cfc70e123d53c63d5846efaaa64287aa` as metadata-only; it is treated as the reviewed implementation head and its retrieval/test changes are included in the scope summary and file list.
 3. `Scope completed` and `Files changed` now reflect the real delivered retrieval state through `e8b19940cfc70e123d53c63d5846efaaa64287aa`, while the current packet tip is described separately as a packet-only refresh.
 4. The packet explicitly states which canonical demo-path step this lane advances.
+5. The canonical demo-path note is stated as a standalone handoff field so re-review can verify AGENTS alignment without inferring it from the broader scope summary.
 
 ## AGENTS.md Handoff Packet
 - Risk reason: shared/high-risk work because the delivered implementation range includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
