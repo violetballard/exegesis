@@ -16,6 +16,7 @@ SELECTION_SCHEMA_VERSION = 1
 CARD_CONTRACT_VERSION = 1
 TERMINAL_FALLBACK_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_SCHEMA_VERSION = 1
+TERMINAL_ARTIFACT_RENDER_TARGET_SCHEMA_VERSION = 1
 _TERMINAL_ARTIFACT_ENVELOPE_TYPE = "TerminalArtifact"
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
@@ -169,6 +170,10 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_rendering_fingerprint"] = manifest["schemas"]["terminal_artifact_rendering"][
         "contract_fingerprint"
     ]
+    manifest["terminal_artifact_render_target"] = manifest["schemas"]["terminal_artifact_render_target"]
+    manifest["terminal_artifact_render_target_fingerprint"] = manifest["terminal_artifact_render_target"][
+        "contract_fingerprint"
+    ]
     manifest["terminal_artifact_cli_fallback"] = manifest["schemas"]["terminal_artifact_cli_fallback"]
     manifest["terminal_artifact_cli_fallback_fingerprint"] = manifest["terminal_artifact_cli_fallback"][
         "contract_fingerprint"
@@ -180,6 +185,7 @@ def describe_a2ui_contract() -> dict[str, Any]:
 def describe_a2ui_contract_fingerprints(
     include_terminal_artifact: bool = False,
     include_action: bool = False,
+    include_terminal_artifact_render_target: bool = False,
     include_terminal_artifact_rendering: bool = False,
     include_terminal_artifact_cli_fallback: bool = False,
 ) -> dict[str, str]:
@@ -208,6 +214,8 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["action"] = action_contract_fingerprint()
     if include_terminal_artifact:
         fingerprints["terminal_artifact"] = manifest["terminal_artifact_fingerprint"]
+    if include_terminal_artifact_render_target:
+        fingerprints["terminal_artifact_render_target"] = terminal_artifact_render_target_contract_fingerprint()
     if include_terminal_artifact_rendering:
         fingerprints["terminal_artifact_rendering"] = terminal_artifact_rendering_contract_fingerprint()
     if include_terminal_artifact_cli_fallback:
@@ -281,6 +289,18 @@ def describe_terminal_artifact_contract() -> dict[str, Any]:
     fingerprint = terminal_artifact_contract_fingerprint()
     manifest["terminal_artifact_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
+    manifest["terminal_artifact_render_target"] = manifest["render_target_contract"]
+    manifest["terminal_artifact_render_target_fingerprint"] = terminal_artifact_render_target_contract_fingerprint()
+    return manifest
+
+
+def describe_terminal_artifact_render_target_contract() -> dict[str, Any]:
+    """Return the stable terminal artifact render-target contract manifest."""
+
+    manifest = _build_terminal_artifact_render_target_contract_manifest()
+    fingerprint = terminal_artifact_render_target_contract_fingerprint()
+    manifest["terminal_artifact_render_target_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
     return manifest
 
 
@@ -291,6 +311,8 @@ def describe_terminal_artifact_rendering_contract() -> dict[str, Any]:
     fingerprint = terminal_artifact_rendering_contract_fingerprint()
     manifest["terminal_artifact_rendering_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
+    manifest["terminal_artifact_render_target"] = manifest["render_target_contract"]
+    manifest["terminal_artifact_render_target_fingerprint"] = terminal_artifact_render_target_contract_fingerprint()
     return manifest
 
 
@@ -301,6 +323,8 @@ def describe_terminal_artifact_cli_fallback_contract() -> dict[str, Any]:
     fingerprint = terminal_artifact_cli_fallback_contract_fingerprint()
     manifest["terminal_artifact_cli_fallback_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
+    manifest["terminal_artifact_render_target"] = manifest["render_target_contract"]
+    manifest["terminal_artifact_render_target_fingerprint"] = terminal_artifact_render_target_contract_fingerprint()
     return manifest
 
 
@@ -319,6 +343,7 @@ def describe_terminal_artifact_contract_fingerprints(
         "card_contract": card_contract_fingerprint(),
         "action_contract": action_contract_fingerprint(),
         "selection_contract": selection_contract_fingerprint(),
+        "render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
         "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
         "rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
         "cli_fallback_contract": terminal_artifact_cli_fallback_contract_fingerprint(),
@@ -330,6 +355,7 @@ def describe_terminal_artifact_contract_fingerprints(
 
 def _build_terminal_artifact_cli_fallback_contract_fingerprints() -> dict[str, str]:
     return {
+        "render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
         "rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
         "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
     }
@@ -566,6 +592,7 @@ def _build_terminal_fallback_contract_manifest() -> dict[str, Any]:
 
 
 def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
+    render_target_contract = describe_terminal_artifact_render_target_contract()
     rendering_contract = describe_terminal_artifact_rendering_contract()
     cli_fallback_contract = describe_terminal_artifact_cli_fallback_contract()
     return {
@@ -577,6 +604,7 @@ def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
         "envelope": _build_terminal_artifact_envelope_manifest(),
         "supported_kinds": ["card", "action", "selection"],
         "default_kind": "card",
+        "render_target_contract": render_target_contract,
         "rendering": rendering_contract,
         "kind_contracts": _build_terminal_artifact_kind_contracts(),
         "terminal_fallback_contract": {
@@ -586,19 +614,21 @@ def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
         "terminal_fallback_fingerprint": terminal_fallback_contract_fingerprint(),
         "cli_fallback": cli_fallback_contract,
         "cli_fallback_contract": cli_fallback_contract,
+        "terminal_artifact_render_target_fingerprint": terminal_artifact_render_target_contract_fingerprint(),
         "terminal_artifact_rendering_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
         "rendering_contract": {
             "kind": "card",
             "contract_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
         },
         "terminal_artifact_cli_fallback_fingerprint": terminal_artifact_cli_fallback_contract_fingerprint(),
-        "kind_resolution": copy.deepcopy(rendering_contract["kind_resolution"]),
-        "fallback_recovery": copy.deepcopy(rendering_contract["fallback_recovery"]),
+        "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
+        "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
         "contract_fingerprints": describe_terminal_artifact_contract_fingerprints(),
     }
 
 
 def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
+    render_target_contract = describe_terminal_artifact_render_target_contract()
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
@@ -608,6 +638,7 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
         "default_kind": "card",
         "envelope": _build_terminal_artifact_envelope_manifest(),
         "kind_contracts": _build_terminal_artifact_kind_contracts(),
+        "render_target_contract": render_target_contract,
         "renderer_entrypoints": {
             "terminal_artifact": "render_terminal_artifact",
             "card": "render_terminal_card",
@@ -618,27 +649,13 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
         "fallback_renderer": "ShellUI.render_artifact",
         "terminal_fallback_contract": describe_terminal_fallback_contract(),
         "terminal_fallback_fingerprint": terminal_fallback_contract_fingerprint(),
-        "kind_resolution": {
-            "precedence": [
-                "validated envelope kind",
-                "typed payload kind",
-                "explicit caller kind hint",
-                "schema-valid leaf payload recovery",
-                "card default",
-            ],
-            "card_payloads_override_conflicting_action_or_selection_hints": True,
-            "leaf_recovery": _build_terminal_artifact_leaf_recovery_manifest(),
-        },
-        "fallback_recovery": {
-            "malformed_card_envelopes": {
-                "action": "normalize_action_ref",
-                "selection": "normalize_selection_ref",
-            }
-        },
+        "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
+        "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
     }
 
 
 def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
+    render_target_contract = describe_terminal_artifact_render_target_contract()
     rendering_contract = describe_terminal_artifact_rendering_contract()
     terminal_fallback_contract = describe_terminal_fallback_contract()
     return {
@@ -653,11 +670,12 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "default_kind": "card",
         "envelope": _build_terminal_artifact_envelope_manifest(),
         "kind_contracts": _build_terminal_artifact_kind_contracts(),
+        "render_target_contract": render_target_contract,
         "renderer_entrypoints": copy.deepcopy(rendering_contract["renderer_entrypoints"]),
         "rendering": rendering_contract,
         "rendering_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
-        "kind_resolution": copy.deepcopy(rendering_contract["kind_resolution"]),
-        "fallback_recovery": copy.deepcopy(rendering_contract["fallback_recovery"]),
+        "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
+        "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
         "kind_policy": {
             "card": "defer to terminal artifact dispatch and keep card as the default recovery path",
             "action": "recover action payloads with render_terminal_action",
@@ -683,6 +701,29 @@ def _build_terminal_artifact_envelope_manifest() -> dict[str, Any]:
     }
 
 
+def _build_terminal_artifact_kind_resolution_manifest() -> dict[str, Any]:
+    return {
+        "precedence": [
+            "validated envelope kind",
+            "typed payload kind",
+            "explicit caller kind hint",
+            "schema-valid leaf payload recovery",
+            "card default",
+        ],
+        "card_payloads_override_conflicting_action_or_selection_hints": True,
+        "leaf_recovery": _build_terminal_artifact_leaf_recovery_manifest(),
+    }
+
+
+def _build_terminal_artifact_fallback_recovery_manifest() -> dict[str, Any]:
+    return {
+        "malformed_card_envelopes": {
+            "action": "normalize_action_ref",
+            "selection": "normalize_selection_ref",
+        }
+    }
+
+
 def _build_terminal_artifact_leaf_recovery_manifest() -> dict[str, Any]:
     return {
         "malformed_card_envelopes": {
@@ -705,6 +746,27 @@ def _build_terminal_artifact_kind_contracts() -> dict[str, dict[str, str]]:
         "selection": {
             "kind": "selection",
             "contract_fingerprint": selection_contract_fingerprint(),
+        },
+    }
+
+
+def _build_terminal_artifact_render_target_contract_manifest() -> dict[str, Any]:
+    return {
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
+        "terminal_artifact_render_target_schema_version": TERMINAL_ARTIFACT_RENDER_TARGET_SCHEMA_VERSION,
+        "terminal_artifact_render_target_version": TERMINAL_ARTIFACT_RENDER_TARGET_SCHEMA_VERSION,
+        "type": "TerminalArtifactRenderTargetContract",
+        "render_target_resolver": "resolve_terminal_artifact_render_target",
+        "supported_kinds": ["card", "action", "selection"],
+        "default_kind": "card",
+        "envelope": _build_terminal_artifact_envelope_manifest(),
+        "kind_contracts": _build_terminal_artifact_kind_contracts(),
+        "kind_resolution": _build_terminal_artifact_kind_resolution_manifest(),
+        "fallback_recovery": _build_terminal_artifact_fallback_recovery_manifest(),
+        "contract_fingerprints": {
+            "kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
         },
     }
 
@@ -792,6 +854,7 @@ def _build_a2ui_schema_manifest() -> dict[str, Any]:
         "cards": _build_card_schema_manifest(),
         "selection": describe_selection_contract(),
         "action": describe_action_contract(),
+        "terminal_artifact_render_target": describe_terminal_artifact_render_target_contract(),
         "actions": [
             {
                 "type": "ActionRef",
@@ -904,6 +967,13 @@ def terminal_artifact_cli_fallback_contract_fingerprint() -> str:
     """Return a stable fingerprint for the terminal artifact CLI fallback manifest."""
 
     manifest = _build_terminal_artifact_cli_fallback_contract_manifest()
+    return _fingerprint_manifest_section(manifest)
+
+
+def terminal_artifact_render_target_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the terminal artifact render-target manifest."""
+
+    manifest = _build_terminal_artifact_render_target_contract_manifest()
     return _fingerprint_manifest_section(manifest)
 
 
