@@ -2,66 +2,53 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Handoff type: `retrieval feature handoff for the FTS-first retrieval lane`
-- Packet HEAD role: `metadata-only reviewer-fix handoff`
-- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Packet HEAD role: `feature implementation + handoff packet`
+- Reviewed implementation head: `25c2d2093ea0b302f0d64985831f2f679bb62b29`
+- Reviewed implementation range: `c55390593445b97a28a5b4520641c2c26b70788f..25c2d2093ea0b302f0d64985831f2f679bb62b29`
 
 ## Scope completed
-- Kept SQLite FTS as the authoritative retrieval path for the MVP and preserved the canonical `retrieve_auto`/`retrieve_fts` engine surface.
-- Hardened retrieval query, cache, payload, provenance, evidence, and fingerprint normalization so downstream bundles stay deterministic and auditable, including sparse provenance metadata normalization.
-- Removed the `fetch_excerpt` PageIndex fallback so excerpt lookup now fails closed on the canonical FTS-only path, and hardened sparse source bundle normalization.
-- Added and updated regression coverage for the canonical retrieval contract, including PageIndex-only excerpt ids raising `KeyError` and packet-planner traceability coverage.
+- Hardened engine retrieval payload reconstruction so sparse `retrieval_doc_bundle` and `retrieval_excerpt_bundle` snapshots are backfilled from the surrounding canonical payload instead of remaining partially populated.
+- Kept the lane FTS-first and retrieval-owned by limiting the implementation change to `src/qual/engine/retrieval/payload.py`.
+- Preserved deterministic downstream retrieval output shapes for basket promotion and engine workflow consumers when callers provide partial bundle snapshots.
 
 ## Canonical demo-path step advanced
-- `retrieve relevant material`: this narrowed retrieval slice makes the canonical engine retrieval step more real by ensuring excerpt lookup stays on the authoritative FTS-first path and fails closed for PageIndex-only excerpt ids, while keeping payloads and provenance deterministic for downstream basket promotion and workflow use.
+- `retrieve relevant material`: sparse retrieval bundle snapshots now reconstruct deterministically from the canonical retrieval payload, which keeps excerpt/doc provenance packaging stable for downstream engine generation flows.
 
 ## AGENTS.md handoff packet
-- Risk reason: the reviewed range includes shared-by-approval regression coverage in `tests/unit/test_unified_retrieval.py`, so this handoff remains shared/high-risk work under the 4-task cap.
-- Approved exception note: `tests/unit/test_unified_retrieval.py` remains the sole shared-by-approval regression surface exercised by the retrieval implementation in this range. Approval source is the earlier lane handoff packet commit `50181dd5900ccee8cef2494f15e25ff04a624252` (`docs(retrieval): refresh handoff packet for current head`, dated `2026-04-01 17:02:24 -0700`), which recorded this approved shared regression surface before the shared-file edit shipped in reviewed implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` on `2026-04-02 12:10:54 -0700`.
-- Traceability note: re-review should stay narrowed to the reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`; this fixer pass does not widen retrieval scope beyond that slice.
-- Task budget: `4`
+- Risk reason: low-risk retrieval-owned payload helper hardening only; no shared or integrator-locked product files were edited in the implementation commit.
+- Task budget: `8`
 - Required checkpoint status notes:
-  - `plan complete`: the thread scope was locked to the canonical demo-path retrieval step and the shared/high-risk 4-task budget before the reviewed implementation work proceeded.
-  - `first green local tests`: the lane reached a green local test state before the final high-risk handoff, as reflected by the passing gate set recorded in this packet.
-  - `before risky/shared file edit`: the shared-file exception for `tests/unit/test_unified_retrieval.py` was already recorded in the earlier lane handoff packet commit `50181dd5900ccee8cef2494f15e25ff04a624252` before the reviewed shared-file edit landed in `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-  - `ready for handoff`: this packet refresh records the final re-review state with the canonical demo-path step, shared-file approval traceability, and passing gate evidence aligned.
+  - `plan complete`: scope was narrowed to retrieval-owned payload reconstruction for the FTS-first lane before editing.
+  - `first green local tests`: `./tests/unit.sh tests/unit/test_unified_retrieval.py` passed before the final gate sweep.
+  - `before risky/shared file edit`: no risky/shared implementation files were edited for the retrieval change.
+  - `ready for handoff`: required gates passed and the reviewed implementation commit is recorded below.
 - Tasks completed:
-  1. Kept the retrieval lane FTS-first, including stable retrieval entrypoints, normalized candidate-doc handling, and unresolved collection-scope guards.
-  2. Hardened deterministic retrieval payloads, evidence, provenance, query snapshots, and fingerprint generation across the retrieval facade and engine payload helpers.
-  3. Narrowed excerpt lookup to the canonical FTS-only path and hardened sparse retrieval source bundle normalization.
-  4. Expanded regression coverage for retrieval determinism and fail-closed excerpt lookup, then normalized sparse provenance metadata in the canonical retrieval service without widening scope beyond the FTS-first lane.
+  1. Backfilled sparse retrieval doc bundles from the surrounding canonical payload when callers provide only partial `retrieval_doc_bundle` snapshots.
+  2. Backfilled sparse retrieval excerpt bundles from the surrounding canonical payload when callers provide only partial `retrieval_excerpt_bundle` snapshots.
+  3. Re-ran the retrieval regression surface and full required gates to confirm the FTS-first downstream contract stayed green.
 - Files changed:
-  - `.codex/kickoff_packets/feat-retrieval-fts.md`
-  - `.codex/lane_meta/feat-retrieval-fts.json`
+  - `src/qual/engine/retrieval/payload.py`
   - `THREAD_PACKET.md`
-  - `src/qual/retrieval/service.py`
-  - `tests/unit/test_unified_retrieval.py`
 
 ## Commands run with results
-- `make scope-check`: PASS
+- `./tests/unit.sh tests/unit/test_unified_retrieval.py`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 
-## Reviewer-required fix evidence
-- Reviewer fix addressed: refreshed this packet so it preserves the reviewer-requested narrowed implementation range, names the canonical demo-path step directly, records the required AGENTS checkpoint notes, and cites the shared-file approval traceability explicitly.
-- Gate refresh date: `2026-04-16`
-- Packet note: this fixer pass is metadata-only. It records the reviewer-required packet fixes without changing the reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` or the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-- Re-review focus: verify the handoff now states explicitly that this slice advances the canonical `retrieve relevant material` demo-path step.
-
 ## Risks/blockers
-- Risks: high; the reviewed range changes retrieval payload normalization and the public excerpt lookup contract, but it keeps runtime behavior narrowed to deterministic FTS-first retrieval.
+- Risks: low; the change is limited to payload backfill helpers and preserves the existing FTS-first retrieval policy and canonical engine surface.
 - Blockers: none
 
 ## Roadmap item(s) affected
-- `ROADMAP.md`: `Milestone 3: Real workflow loop`
-- `ROADMAP.md`: `feat-retrieval-fts - retrieval/search`
+- `ROADMAP.md`: `Milestone 4: Retrieval Layer`
+- `ROADMAP.md`: `Milestone 3: Product Readiness`
 
 ## Vision capability affected
 - `PRODUCT_VISION.md`: `2. Retrieval-first context handling`
-- `PRODUCT_VISION.md`: `6. Auditable state and workflow`
+- `PRODUCT_VISION.md`: `3. Auditable generation`
 
 ## Routing/provider impact note
 - None
