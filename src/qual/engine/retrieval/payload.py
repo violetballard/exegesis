@@ -594,6 +594,13 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
             retrieval_provenance.get("primary_excerpt_fingerprint"),
             retrieval_summary.get("primary_excerpt_fingerprint"),
         ),
+        "excerpt_provenance_fingerprint": _first_text_value(
+            first_excerpt_hit.get("excerpt_provenance_fingerprint") if isinstance(first_excerpt_hit, dict) else None,
+            first_excerpt_provenance.get("excerpt_provenance_fingerprint"),
+            first_excerpt_citation.get("excerpt_provenance_fingerprint"),
+            retrieval_provenance.get("primary_excerpt_provenance_fingerprint"),
+            retrieval_summary.get("primary_excerpt_provenance_fingerprint"),
+        ),
         "excerpt_text_hash": _first_text_value(
             first_excerpt_hit.get("excerpt_text_hash") if isinstance(first_excerpt_hit, dict) else None,
             first_excerpt_provenance.get("excerpt_text_hash"),
@@ -1468,6 +1475,8 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["primary_excerpt_id"] = summary.get("primary_excerpt_id")
     if _is_missing_snapshot_value(normalized.get("primary_excerpt_fingerprint")):
         normalized["primary_excerpt_fingerprint"] = summary.get("primary_excerpt_fingerprint")
+    if _is_missing_snapshot_value(normalized.get("primary_excerpt_provenance_fingerprint")):
+        normalized["primary_excerpt_provenance_fingerprint"] = summary.get("primary_excerpt_provenance_fingerprint")
     if _is_missing_snapshot_value(normalized.get("primary_excerpt_text_hash")):
         normalized["primary_excerpt_text_hash"] = summary.get("primary_excerpt_text_hash")
     if _is_missing_snapshot_value(normalized.get("doc_hits_fingerprint")):
@@ -1527,6 +1536,10 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
             normalized["primary_excerpt_id"] = first_excerpt_citation.get("excerpt_id")
             if _is_missing_snapshot_value(normalized.get("primary_excerpt_fingerprint")):
                 normalized["primary_excerpt_fingerprint"] = first_excerpt_citation.get("excerpt_fingerprint")
+            if _is_missing_snapshot_value(normalized.get("primary_excerpt_provenance_fingerprint")):
+                normalized["primary_excerpt_provenance_fingerprint"] = first_excerpt_citation.get(
+                    "excerpt_provenance_fingerprint"
+                )
             if _is_missing_snapshot_value(normalized.get("primary_excerpt_text_hash")):
                 normalized["primary_excerpt_text_hash"] = first_excerpt_citation.get("excerpt_text_hash")
     return normalized

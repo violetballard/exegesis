@@ -821,6 +821,9 @@ class RetrievalResult:
             if self.doc_hits
             else None,
             "primary_excerpt_fingerprint": self.hits[0].provenance.get("excerpt_fingerprint") if self.hits else None,
+            "primary_excerpt_provenance_fingerprint": (
+                self.hits[0].provenance.get("excerpt_provenance_fingerprint") if self.hits else None
+            ),
             "primary_excerpt_text_hash": (
                 self.hits[0].provenance.get("excerpt_text_hash") or self.hits[0].provenance.get("hash")
                 if self.hits
@@ -871,6 +874,11 @@ class RetrievalResult:
             "primary_excerpt_fingerprint": primary_excerpt_hit.provenance.get("excerpt_fingerprint")
             if primary_excerpt_hit is not None
             else None,
+            "primary_excerpt_provenance_fingerprint": (
+                primary_excerpt_hit.provenance.get("excerpt_provenance_fingerprint")
+                if primary_excerpt_hit is not None
+                else None
+            ),
             "primary_excerpt_text_hash": (
                 primary_excerpt_hit.provenance.get("excerpt_text_hash") or primary_excerpt_hit.provenance.get("hash")
                 if primary_excerpt_hit is not None
@@ -956,6 +964,11 @@ class RetrievalResult:
             "excerpt_fingerprint": primary_excerpt_provenance.get("excerpt_fingerprint")
             if primary_excerpt_hit is not None
             else None,
+            "excerpt_provenance_fingerprint": (
+                primary_excerpt_provenance.get("excerpt_provenance_fingerprint")
+                if primary_excerpt_hit is not None
+                else None
+            ),
             "excerpt_text_hash": (
                 primary_excerpt_provenance.get("excerpt_text_hash") or primary_excerpt_provenance.get("hash")
                 if primary_excerpt_hit is not None
