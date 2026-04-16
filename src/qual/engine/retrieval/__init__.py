@@ -40,7 +40,11 @@ def _normalize_constraint_values(value: object, *, field_name: str) -> tuple[str
         raise TypeError(f"{field_name} must be an iterable of values, not a mapping")
     if not isinstance(value, Iterable):
         raise TypeError(f"{field_name} must be an iterable of values or None")
-    return tuple(str(item) for item in value if item is not None)
+
+    items = [str(item) for item in value if item is not None]
+    if isinstance(value, (set, frozenset)):
+        return tuple(sorted(items))
+    return tuple(items)
 
 
 def _normalize_optional_int(value: object, *, default: int) -> int:
