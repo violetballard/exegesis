@@ -1504,6 +1504,14 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
     requested_kind = None
     if kind is not None:
         requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+    # Only malformed card envelopes get a second recovery pass here; action
+    # and selection envelopes stay strict so we do not widen leaf recovery.
+    allow_invalid_envelope_recovery = (
+        requested_kind is None
+        and _is_malformed_terminal_artifact_envelope(artifact)
+        and isinstance(artifact, Mapping)
+        and _normalize_terminal_artifact_envelope_kind(artifact.get("kind")) == "card"
+    )
     if requested_kind == "card" and _is_malformed_terminal_artifact_envelope(artifact):
         payload = artifact.get("artifact") if isinstance(artifact, Mapping) else None
         payload_kind = _infer_terminal_artifact_explicit_kind(payload)
@@ -1514,6 +1522,7 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
     artifact, resolved_kind = _resolve_terminal_artifact_render_target(
         artifact,
         requested_kind=requested_kind,
+        allow_invalid_envelope_recovery=allow_invalid_envelope_recovery,
     )
     if resolved_kind == "action":
         return render_terminal_action(artifact)

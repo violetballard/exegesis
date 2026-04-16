@@ -887,6 +887,41 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(fallback_kind, resolved_kind)
         self.assertEqual(fallback_artifact, resolved_artifact)
 
+    def test_terminal_artifact_recovers_schema_valid_leaf_payloads_from_malformed_card_envelopes(self) -> None:
+        action_envelope = {
+            "type": "TerminalArtifact",
+            "kind": "card",
+            "artifact": {
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+            },
+            "trace_id": "drop-me",
+        }
+        selection_envelope = {
+            "type": "TerminalArtifact",
+            "kind": "card",
+            "artifact": {
+                "id": "choice-1",
+                "label": "Choice",
+                "payload": {"nested": {"items": [1, 2]}},
+            },
+            "trace_id": "drop-me",
+        }
+
+        action_text = render_terminal_artifact(action_envelope)
+        selection_text = render_terminal_artifact(selection_envelope)
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", action_text)
+        self.assertNotIn("trace_id", action_text)
+
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
+        self.assertNotIn("trace_id", selection_text)
+
     def test_terminal_artifact_render_target_resolver_recovers_partial_leaf_payloads_in_fallback_mode(
         self,
     ) -> None:
