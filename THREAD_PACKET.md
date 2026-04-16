@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Handoff type: `retrieval feature handoff for the FTS-first retrieval lane`
-- Packet HEAD role: `metadata-only reviewer-fix finalization`
+- Packet HEAD role: `metadata-only reviewer-fix gate evidence refresh`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet refresh commit: `df05d063dfec3d8ed15a625a0044f090853a9011`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
@@ -18,6 +18,11 @@
 - Reviewer-required alignment note: this metadata-only fixer pass keeps the handoff explicit about the canonical demo-path step required by `AGENTS.md`.
 - `retrieve relevant material`: this handoff explicitly advances that canonical demo-path step because `fetch_excerpt` now fails closed to the canonical FTS-backed lookup path instead of falling back to PageIndex. Retrieval hits, excerpt lookup payloads, and downstream evidence/provenance bundles now stay deterministic and auditable on the FTS-first path.
 - Specific contract tightening: `fetch_excerpt` now fails closed to the FTS-backed canonical retrieval surface, so `PageIndex` is not promoted as a required runtime path for the MVP retrieval contract.
+
+## Reviewer-required fix
+- Reviewer packet fix addressed: `Resolve failing gate output and include passing results.`
+- Local reproduction note: no failing gate was reproducible on this branch tip; the full required gate sweep completed cleanly.
+- Fixer action: refresh the handoff packet on the lane branch so the passing gate evidence is explicit for re-review.
 
 ## AGENTS.md handoff packet
 - Risk reason: shared/high-risk work because the reviewed implementation range includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
@@ -41,7 +46,7 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final fixer-pass note: the full required gate sweep was rerun on the current reviewer-fix branch tip after the explicit canonical demo-path alignment note landed.
+- Final fixer-pass note: the full required gate sweep was rerun on the current reviewer-fix branch tip, and this metadata-only refresh commit records that passing evidence for re-review.
 
 ## Risks/blockers
 - Risks: high, because the narrowed reviewed range includes approved shared regression coverage.
