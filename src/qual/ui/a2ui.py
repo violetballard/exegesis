@@ -5,7 +5,7 @@ import hashlib
 import json
 import unicodedata
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, is_dataclass
 from typing import Any, Callable, Protocol
 
 A2UI_VERSION = 1
@@ -291,8 +291,8 @@ def normalize_terminal_artifact_payload(artifact: Any, *, kind: str | None = Non
 
     Action and selection payloads are normalized through the public ref
     validators before being converted to plain dictionaries. Card payloads are
-    copied as mappings so the envelope does not retain references to mutable
-    source objects.
+    copied as mappings or dataclass snapshots so the envelope does not retain
+    references to mutable source objects.
     """
 
     normalized_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
@@ -301,9 +301,10 @@ def normalize_terminal_artifact_payload(artifact: Any, *, kind: str | None = Non
     if normalized_kind == "selection":
         return _selection_ref_to_dict(normalize_selection_ref(artifact))
     _validate_terminal_artifact_card_payload(artifact)
-    if not isinstance(artifact, Mapping):
-        raise ValueError("TerminalArtifact card artifact must be a mapping")
-    card_snapshot = _canonicalize_card_top_level_fields(dict(artifact))
+    card_snapshot = _coerce_terminal_card(artifact)
+    if card_snapshot is None:
+        raise ValueError("TerminalArtifact card artifact must be a mapping or card-like object")
+    card_snapshot = _canonicalize_card_top_level_fields(card_snapshot)
     return _copy_terminal_artifact_payload(card_snapshot)
 
 
@@ -386,12 +387,13 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
 
 def _validate_terminal_artifact_payload_kind(artifact: Any, kind: str) -> None:
     if kind == "card":
-        if not isinstance(artifact, Mapping):
-            raise ValueError("TerminalArtifact card artifact must be a mapping")
-        card_type = _normalize_card_type(artifact)
+        card_artifact = _coerce_terminal_card(artifact)
+        if card_artifact is None:
+            raise ValueError("TerminalArtifact card artifact must be a mapping or card-like object")
+        card_type = _normalize_card_type(card_artifact)
         if card_type in {"<missing>", _TERMINAL_ARTIFACT_ENVELOPE_TYPE, "ActionRef", "SelectionRef"}:
             raise ValueError("TerminalArtifact card artifact must be a typed card")
-        if _infer_terminal_artifact_kind_from_mapping(artifact) in {"action", "selection"}:
+        if _infer_terminal_artifact_kind_from_mapping(card_artifact) in {"action", "selection"}:
             raise ValueError("TerminalArtifact card artifact must not use action or selection payload shape")
         return
     if kind == "action":
@@ -1235,9 +1237,12 @@ def _resolve_terminal_artifact_card_fallback(
             )
             if recovered_card is not None:
                 return recovered_card
-        if _infer_terminal_artifact_kind_from_mapping(payload) in {"action", "selection"}:
+        card_payload = _coerce_terminal_card(payload)
+        if card_payload is None:
             return None
-        return dict(payload)
+        if _infer_terminal_artifact_kind_from_mapping(card_payload) in {"action", "selection"}:
+            return None
+        return card_payload
     return None
 
 
@@ -2463,6 +2468,29 @@ def _coerce_terminal_card(card: Any) -> dict[str, Any] | None:
             return dict(card)
         except Exception:
             return None
+    required_attrs = ("type", "title", "blocks", "actions")
+    if not all(hasattr(card, attr) for attr in required_attrs):
+        return None
+    card_type = getattr(card, "type")
+    if not isinstance(card_type, str):
+        return None
+    normalized_card_type = card_type.strip()
+    if not normalized_card_type or normalized_card_type in {"ActionRef", "SelectionRef", _TERMINAL_ARTIFACT_ENVELOPE_TYPE}:
+        return None
+    if is_dataclass(card):
+        try:
+            snapshot = asdict(card)
+        except Exception:
+            return None
+        if isinstance(snapshot, Mapping):
+            return dict(snapshot)
+        return None
+    try:
+        snapshot = dict(vars(card))
+    except Exception:
+        return None
+    if isinstance(snapshot, Mapping):
+        return dict(snapshot)
     return None
 
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import dataclass
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -44,6 +45,15 @@ from src.qual.ui.shell import ShellUI
 
 class _OpaqueValue:
     pass
+
+
+@dataclass
+class _StructuredCard:
+    type: str
+    title: str
+    a2ui_version: int
+    blocks: list[dict[str, object]]
+    actions: list[dict[str, object]]
 
 
 def _capabilities() -> A2UICapabilities:
@@ -1243,6 +1253,32 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             render_terminal_artifact({"type": "GenericCard", "title": "Run Log", "blocks": [], "actions": []}, kind="dialog")
         with self.assertRaises(ValueError):
             render_terminal_artifact({"type": "GenericCard", "title": "Run Log", "blocks": [], "actions": []}, kind=1)
+
+    def test_terminal_artifact_snapshots_card_dataclasses_before_rendering(self) -> None:
+        card = _StructuredCard(
+            type="GenericCard",
+            title=" Run Log ",
+            a2ui_version=1,
+            blocks=[{"type": "MarkdownBlock", "markdown": "Hello"}],
+            actions=[],
+        )
+
+        envelope = build_terminal_artifact_envelope(card, kind="card")
+        rendered_card = render_terminal_artifact(card)
+
+        card.title = "Changed"
+        card.blocks[0]["markdown"] = "Mutated"
+
+        rendered_envelope = render_terminal_artifact(envelope)
+
+        self.assertIn("[GenericCard] Run Log", rendered_card)
+        self.assertIn("A2UI v1", rendered_card)
+        self.assertEqual(envelope["artifact"]["title"], " Run Log ")
+        self.assertEqual(envelope["artifact"]["blocks"], [{"type": "MarkdownBlock", "markdown": "Hello"}])
+        self.assertIn("[GenericCard] Run Log", rendered_envelope)
+        self.assertIn("Hello", rendered_envelope)
+        self.assertNotIn("Changed", rendered_envelope)
+        self.assertNotIn("Mutated", rendered_envelope)
 
     def test_terminal_artifact_prefers_typed_card_payloads_over_conflicting_non_card_hints(self) -> None:
         artifact = {
