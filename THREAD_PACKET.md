@@ -18,8 +18,10 @@
   - `adffc42fe4a23e8196ce76a09f58fcf512dc3c4c` `fix(commands): close reviewer packet fixes`
   - `d71711d733585988c4c670db103745b01ce79c37` `Add parser-ready command entrypoint argv helper`
   - `2edf67f71042b6156a9e845dcd87b0b5362468a1` `feat(commands): classify legacy aliases correctly`
+  - `f3e88eb90a1116054bac208067568d3c7fbed927` `Add runnable smoke argv for commands`
+  - `923e61c123b2b1cb2d67a9a952c3e4672d79d4d4` `Fix canonical command wrapper export`
 - Docs-only `docs(commands): ...` commits after those implementation commits update `THREAD_PACKET.md` only.
-- This packet refresh commit updates `THREAD_PACKET.md` only after rerunning the full required gate set; it does not widen the implementation scope beyond the implementation commits listed above, and it exists specifically to satisfy the reviewer-requested handoff traceability fixes.
+- This packet refresh commit updates `THREAD_PACKET.md` only after rerunning the full required gate set; it does not widen the implementation scope beyond the implementation commits listed above, and it exists specifically to keep the review basis aligned with the real branch tip after the reviewer-required parser-surface fixes landed.
 
 ## Reviewer Fix Closure
 
@@ -50,7 +52,9 @@
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so canonical CLI names must match `command_names()`, and the declared parser surface must exactly match the catalog-backed CLI entrypoint layout or raise `ValueError`.
 - Added parser-surface lookup helpers, deterministic route and invocation metadata, CLI shim contract helpers, and MVP smoke-contract metadata in `src/qual/commands/catalog.py`.
 - Classified legacy command aliases deterministically in `src/qual/commands/catalog.py` so raw CLI tokens preserve the intended `primary` vs `cli` vs `flow-step` vs `lookup` kind even when the user input differs only by case or underscore normalization.
+- Added runnable smoke argv metadata in `src/qual/commands/catalog.py` so the deterministic command contract covers the actual CLI invocation plan for the active smoke path.
 - Exported the expanded command-contract helpers from `src/qual/commands/__init__.py` so compatibility imports remain aligned with the branch-tip implementation.
+- Restored the public `canonical_command` wrapper export in `src/qual/commands/canonical.py` so compatibility imports keep resolving against the catalog-backed implementation.
 - Fixed bounded diff preview truncation in `src/qual/commands/diff_preview.py` so the `patch-review` path stays deterministic under output limits.
 - Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order validation, parser-surface alias substitution rejection, parser-token reordering rejection, shim argv helpers, deterministic resolution helpers, legacy-alias kind classification, route determinism, and smoke invocation metadata.
 - Refreshed this handoff packet so the review basis, files changed, and demo-path mapping match the actual current branch-tip implementation.
@@ -59,6 +63,7 @@
 
 - `src/qual/commands/catalog.py`
 - `src/qual/commands/__init__.py`
+- `src/qual/commands/canonical.py`
 - `src/qual/commands/diff_preview.py`
 - `tests/unit/test_commands_catalog.py`
 - `THREAD_PACKET.md`
