@@ -69,6 +69,22 @@ class CommandSmokeContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoPathEntry:
+    flow_step: str
+    name: str
+    primary_cli_token: str
+    smoke_argv: tuple[str, ...]
+    description: str
+
+
+@dataclass(frozen=True)
+class CommandDemoPathContract:
+    flow_steps: tuple[str, ...]
+    names: tuple[str, ...]
+    entries: tuple[CommandDemoPathEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandFlowSequence:
     flow_steps: tuple[str, ...]
     names: tuple[str, ...]
@@ -1948,6 +1964,28 @@ def command_demo_smoke_contract(
     return command_smoke_contract(specs, command_demo_flow_steps())
 
 
+@lru_cache(maxsize=None)
+def command_demo_path_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoPathContract:
+    smoke_contract = command_demo_smoke_contract(specs)
+    entries = tuple(
+        CommandDemoPathEntry(
+            flow_step=entry.flow_step,
+            name=entry.name,
+            primary_cli_token=entry.primary_cli_token,
+            smoke_argv=entry.smoke_argv,
+            description=entry.description,
+        )
+        for entry in smoke_contract.entries
+    )
+    return CommandDemoPathContract(
+        flow_steps=smoke_contract.flow_steps,
+        names=smoke_contract.names,
+        entries=entries,
+    )
+
+
 def command_demo_surface_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandSurfaceContract:
@@ -1969,6 +2007,13 @@ def command_mvp_smoke_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandSmokeContract:
     return command_demo_smoke_contract(specs)
+
+
+@lru_cache(maxsize=None)
+def command_mvp_path_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoPathContract:
+    return command_demo_path_contract(specs)
 
 
 def command_mvp_flow_lookup_surface(
