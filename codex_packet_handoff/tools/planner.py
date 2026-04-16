@@ -141,35 +141,16 @@ def compute_changed_files(cwd: str, base_ref: str, head_ref: str) -> List[str]:
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
     reviewed_range = str(meta.get("reviewed_implementation_range", "")).strip()
-    reviewed_head_sha = str(meta.get("final_head_sha", "")).strip()
-    packet_type = str(meta.get("packet_type", "")).strip()
     scope_completed = str(meta.get("scope_completed", "")).strip()
-    docs_only_alignment_commits = [
-        str(item).strip()
-        for item in (meta.get("docs_only_alignment_commits") or [])
-        if str(item).strip()
-    ]
     is_cumulative = bool(reviewed_range or scope_completed)
     lines=[]
     lines += ["# Feature → Review Packet",""]
     lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
-    if packet_type == "metadata-only":
-        lines += [
-            "- Packet HEAD role: `metadata-only handoff refresh`",
-            f"- Packet HEAD SHA (this packet refresh): `{sha}`",
-            "",
-        ]
-    if reviewed_head_sha:
-        lines += [f"- Final HEAD SHA (reviewed implementation head): `{reviewed_head_sha}`"]
     if reviewed_range:
         lines += [f"- Reviewed implementation range: `{reviewed_range}`"]
-    if reviewed_head_sha or reviewed_range:
-        lines += [""]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
     if scope_completed:
         lines += ["## Scope completed", f"- {scope_completed}", ""]
-    if docs_only_alignment_commits:
-        lines += ["## Docs-only alignment commits"] + [f"- `{commit}`" for commit in docs_only_alignment_commits] + [""]
     lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
     if str(meta.get("kickoff_budget_note","")).strip():
         lines += ["## Kickoff budget/limits compliance", f"- {meta['kickoff_budget_note'].strip()}", ""]
@@ -190,17 +171,7 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     prp=str(meta.get("proposed_readme_patch","")).strip()
     if prp:
         lines += ["### Proposed README patch text","```diff",prp,"```",""]
-    lines += ["## Scope-check / ownership note"]
-    if bool(meta.get("shared_file_exception")):
-        approved_exception_note = str(meta.get("approved_exception_note", "")).strip()
-        ownership_note = (
-            f"- Shared-by-approval edits: `YES`"
-            if not approved_exception_note
-            else f"- Shared-by-approval edits: `YES` ({approved_exception_note})"
-        )
-        lines += [ownership_note, "- Integrator-locked edits: `NO`", ""]
-    else:
-        lines += ["- Shared-by-approval edits: `NO`", "- Integrator-locked edits: `NO`", ""]
+    lines += ["## Scope-check / ownership note", f"- Shared/integrator-locked edits: `{'YES' if bool(meta.get('shared_file_exception')) else 'NO'}`",""]
     return "\n".join(lines)
 
 
