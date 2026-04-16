@@ -1211,6 +1211,7 @@ def _resolve_terminal_artifact_render_target(
         recovered = _recover_terminal_artifact_payload_from_invalid_envelope(
             artifact,
             requested_kind=requested_kind,
+            envelope_kind_hint=envelope_kind_hint,
             allow_invalid_metadata=allow_invalid_envelope_recovery,
         )
         if recovered is None:
@@ -1411,6 +1412,7 @@ def _recover_terminal_artifact_payload_from_invalid_envelope(
     artifact: Any,
     *,
     requested_kind: str | None,
+    envelope_kind_hint: str | None = None,
     allow_invalid_metadata: bool = False,
     _seen_envelope_ids: set[int] | None = None,
 ) -> tuple[Any, str] | None:
@@ -1458,20 +1460,10 @@ def _recover_terminal_artifact_payload_from_invalid_envelope(
     payload_kind = _infer_terminal_artifact_explicit_kind(payload)
     if payload_kind is not None:
         return payload, payload_kind
-    if requested_kind == "action":
-        try:
-            normalize_action_ref(payload)
-        except Exception:
-            pass
-        else:
-            return payload, "action"
-    if requested_kind == "selection":
-        try:
-            normalize_selection_ref(payload)
-        except Exception:
-            pass
-        else:
-            return payload, "selection"
+    if envelope_kind_hint in {"action", "selection"}:
+        return payload, envelope_kind_hint
+    if requested_kind in {"action", "selection"}:
+        return payload, requested_kind
     if isinstance(payload, Mapping) or _coerce_terminal_card(payload) is not None:
         return payload, "card"
     return None

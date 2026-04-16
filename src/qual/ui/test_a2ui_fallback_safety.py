@@ -598,6 +598,63 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
         self.assertNotIn("trace_id", text)
 
+    def test_shell_ui_preserves_authoritative_and_explicit_kinds_for_malformed_action_and_selection_payloads(
+        self,
+    ) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            action_envelope_text = shell.render_artifact(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "action",
+                    "artifact": {
+                        "id": "export_document",
+                        "payload": {"format": "md"},
+                    },
+                    "trace_id": "drop-me",
+                }
+            )
+            selection_envelope_text = shell.render_artifact(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "selection",
+                    "artifact": {
+                        "id": "choice-1",
+                        "label": "Choice",
+                    },
+                    "trace_id": "drop-me",
+                }
+            )
+            explicit_action_text = shell.render_artifact(
+                {
+                    "id": "export_document",
+                    "payload": {"format": "md"},
+                },
+                kind="action",
+            )
+            explicit_selection_text = shell.render_artifact(
+                {
+                    "id": "choice-1",
+                    "label": "Choice",
+                },
+                kind="selection",
+            )
+
+        for text in (action_envelope_text, explicit_action_text):
+            self.assertIn("[ActionRef] <invalid action>", text)
+            self.assertIn("Action schema v1", text)
+            self.assertNotIn("[<missing>] <untitled>", text)
+            self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+            self.assertNotIn("trace_id", text)
+
+        for text in (selection_envelope_text, explicit_selection_text):
+            self.assertIn("[SelectionRef] <invalid selection>", text)
+            self.assertIn("Selection schema v1", text)
+            self.assertNotIn("[<missing>] <untitled>", text)
+            self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+            self.assertNotIn("trace_id", text)
+
     def test_shell_ui_recovers_canonical_action_payloads_without_hints_during_fallback(self) -> None:
         shell = ShellUI()
 
