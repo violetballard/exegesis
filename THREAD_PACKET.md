@@ -19,6 +19,7 @@
 ## Canonical Demo-Path Step Advanced
 - Canonical demo-path step advanced: `retrieve relevant material`
 - `fetch_excerpt` now resolves only through the canonical FTS path, which makes the retrieval step more deterministic and auditable for downstream basket/workflow use.
+- This reviewer fix is intentionally scope-tight: it documents the narrowed `fetch_excerpt` change rather than expanding the lane claim beyond the delivered FTS-first retrieval slice.
 
 ## Reviewer-Required Fixes Addressed
 1. The handoff is regenerated around the actual delivered retrieval implementation head `e8b19940cfc70e123d53c63d5846efaaa64287aa` instead of the older narrowed slice ending at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
