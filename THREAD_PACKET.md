@@ -6,6 +6,7 @@
 
 - This packet is anchored to the actual current branch-tip implementation lineage on `codex/feat-commands` at `2edf67f71042b6156a9e845dcd87b0b5362468a1`.
 - Current implementation commit proposed for review: `2edf67f71042b6156a9e845dcd87b0b5362468a1` `feat(commands): classify legacy aliases correctly`
+- This packet supersedes the earlier narrowed re-review request that asked reviewers to inspect only `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; that narrowed basis was incomplete and should not be used for re-review.
 - It does not treat all commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as metadata-only.
 - Non-doc implementation commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` that remain in scope for review:
   - `1abb3bc162bc6e718db82ff79beb8cfadda47d90` `fix(commands): validate CLI parser surface`
@@ -18,7 +19,7 @@
   - `d71711d733585988c4c670db103745b01ce79c37` `Add parser-ready command entrypoint argv helper`
   - `2edf67f71042b6156a9e845dcd87b0b5362468a1` `feat(commands): classify legacy aliases correctly`
 - Docs-only `docs(commands): ...` commits after those implementation commits update `THREAD_PACKET.md` only.
-- This packet refresh commit updates `THREAD_PACKET.md` only after rerunning the full required gate set; it does not widen the implementation scope beyond the implementation commits listed above.
+- This packet refresh commit updates `THREAD_PACKET.md` only after rerunning the full required gate set; it does not widen the implementation scope beyond the implementation commits listed above, and it exists specifically to satisfy the reviewer-requested handoff traceability fixes.
 
 ## Scope Goal
 
