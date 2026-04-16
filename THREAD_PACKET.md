@@ -1,21 +1,22 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Implementation commit range: `8c9e2290fefb92bb07ff99681421a666cbbe4e0f..621dc00a194f79ae52611d240a8521853cd374e2`
+- Implementation commit range: `8c9e2290fefb92bb07ff99681421a666cbbe4e0f..177e04efcc51b2ee95015ce2096ff0be49caa820`
 - Key implementation tip commits:
   - `8c9e2290fefb92bb07ff99681421a666cbbe4e0f` (`feat(commands): stabilize command catalog contracts`)
   - `4c5bc538bd2d5325ce198183d31d6bc3c2d63c68` (`Fix diff preview summary fingerprint contract`)
   - `cb93dafa2c451893778b1c7f0c2e23f16090d8b5` (`feat(commands): harden demo path contract`)
   - `621dc00a194f79ae52611d240a8521853cd374e2` (`fix(commands): reject parser surface drift`)
+  - `177e04efcc51b2ee95015ce2096ff0be49caa820` (`Tighten single-token command resolution`)
 - Prior command-catalog anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Docs-only alignment commits after the implementation tip: none
 
 ## Packet Traceability Note
 
-- This re-review packet is scoped to the full current command-surface implementation on the branch tip through `621dc00a194f79ae52611d240a8521853cd374e2`.
+- This re-review packet is scoped to the full current command-surface implementation on the branch tip through `177e04efcc51b2ee95015ce2096ff0be49caa820`.
 - The earlier narrow packet that treated later commits as metadata-only was inaccurate: substantive command-surface changes landed after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, including trusted demo-path contract helpers, demo/MVP entrypoint wrappers, and the parser-surface drift rejection finalized in `621dc00a194f79ae52611d240a8521853cd374e2`.
-- The implementation under review is therefore the full code-bearing command-surface range from `8c9e2290fefb92bb07ff99681421a666cbbe4e0f` through `621dc00a194f79ae52611d240a8521853cd374e2`, plus this packet refresh.
-- Reviewer-fix follow-up on the current branch tip tightens the default catalog contract further by requiring canonical commands to remain the primary parser entrypoints in canonical order, with regression coverage for canonical-token removal, alias substitution, and parser-order drift.
+- The implementation under review is therefore the full code-bearing command-surface range from `8c9e2290fefb92bb07ff99681421a666cbbe4e0f` through `177e04efcc51b2ee95015ce2096ff0be49caa820`, plus this packet refresh.
+- Reviewer-fix follow-up on the current branch tip tightens the default catalog contract further by requiring canonical commands to remain the primary parser entrypoints in canonical order, preserving deterministic single-token command resolution, and carrying regression coverage for canonical-token removal, alias substitution, and parser-order drift.
 - This packet refresh explicitly satisfies the reviewer-requested `AGENTS.md` demo-path mapping requirement and keeps the new fixer change scoped to handoff metadata only.
 
 ## Current Program Focus
@@ -67,7 +68,7 @@
 - Exposed the public command exports needed for the command catalog, canonical wrapper, demo/MVP helper entrypoints, and smoke/resolution contracts from `src/qual/commands/__init__.py` and `src/qual/commands/canonical.py`.
 - Tightened `src/qual/commands/diff_preview.py` so summary-only output keeps a fingerprint tied to the reviewed diff and truncation remains bounded without corrupting the header-aware preview contract.
 - Expanded `tests/unit/test_commands_catalog.py` with focused regression coverage for canonical-order alignment, parser drift rejection, canonical-token removal, alias-substitution rejection, shim/surface contracts, smoke argv helpers, deterministic resolution, and demo/MVP path helpers.
-- Finalized parser-surface drift rejection in `621dc00a194f79ae52611d240a8521853cd374e2` so re-review targets the real branch-tip implementation instead of the earlier incorrect metadata-only framing.
+- Finalized parser-surface drift rejection in `621dc00a194f79ae52611d240a8521853cd374e2` and tightened single-token command resolution in `177e04efcc51b2ee95015ce2096ff0be49caa820` so re-review targets the real branch-tip implementation instead of the earlier incorrect metadata-only framing.
 - Regenerated the handoff packet so re-review targets the real implementation tip and records the explicit demo-path mapping and shared-test approval basis requested by the reviewer.
 
 ## Tasks Completed
@@ -89,7 +90,7 @@
 - High-risk shared-file handoff: this packet groups the branch-tip work into `4` meaningful tasks, which matches the high-risk task cap for the actual implementation scope under review.
 - Current implementation scope remains within owned command paths plus the approved shared test files.
 - Files changed in implementation scope: `6`
-- Implementation review target range: `8c9e2290fefb92bb07ff99681421a666cbbe4e0f..621dc00a194f79ae52611d240a8521853cd374e2`
+- Implementation review target range: `8c9e2290fefb92bb07ff99681421a666cbbe4e0f..177e04efcc51b2ee95015ce2096ff0be49caa820`
 
 ## Files Changed
 
