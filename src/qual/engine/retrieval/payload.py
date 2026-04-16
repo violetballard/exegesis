@@ -514,14 +514,19 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
             first_doc_hit.get("doc_id") if isinstance(first_doc_hit, dict) else None,
         ),
         "doc_fingerprint": _first_text_value(
+            first_doc_hit.get("doc_fingerprint") if isinstance(first_doc_hit, dict) else None,
+            first_excerpt_hit.get("doc_fingerprint") if isinstance(first_excerpt_hit, dict) else None,
             first_doc_provenance.get("doc_fingerprint"),
             first_excerpt_provenance.get("doc_fingerprint"),
         ),
         "doc_identity_fingerprint": _first_text_value(
+            first_doc_hit.get("doc_identity_fingerprint") if isinstance(first_doc_hit, dict) else None,
+            first_excerpt_hit.get("doc_identity_fingerprint") if isinstance(first_excerpt_hit, dict) else None,
             first_doc_provenance.get("doc_identity_fingerprint"),
             first_excerpt_provenance.get("doc_identity_fingerprint"),
         ),
         "source_hash": _first_text_value(
+            first_excerpt_hit.get("source_hash") if isinstance(first_excerpt_hit, dict) else None,
             first_excerpt_provenance.get("source_hash"),
             first_doc_hit.get("source_hash") if isinstance(first_doc_hit, dict) else None,
             first_doc_provenance.get("source_hash"),
@@ -533,15 +538,24 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
         "excerpt_id": _first_text_value(
             first_excerpt_hit.get("excerpt_id") if isinstance(first_excerpt_hit, dict) else None,
         ),
-        "excerpt_fingerprint": _first_text_value(first_excerpt_provenance.get("excerpt_fingerprint")),
+        "excerpt_fingerprint": _first_text_value(
+            first_excerpt_hit.get("excerpt_fingerprint") if isinstance(first_excerpt_hit, dict) else None,
+            first_excerpt_provenance.get("excerpt_fingerprint"),
+        ),
         "excerpt_text_hash": _first_text_value(
+            first_excerpt_hit.get("excerpt_text_hash") if isinstance(first_excerpt_hit, dict) else None,
             first_excerpt_provenance.get("excerpt_text_hash"),
             first_excerpt_provenance.get("hash"),
         ),
         "excerpt_text": _first_text_value(
             first_excerpt_hit.get("excerpt_text") if isinstance(first_excerpt_hit, dict) else None,
         ),
-        "span": copy.deepcopy(first_excerpt_hit.get("span")) if isinstance(first_excerpt_hit, dict) else None,
+        "span": copy.deepcopy(
+            _first_dict_value(
+                first_excerpt_hit.get("span") if isinstance(first_excerpt_hit, dict) else None,
+                first_excerpt_provenance.get("span"),
+            )
+        ),
         "source_strategy": _first_text_value(
             first_excerpt_hit.get("source_strategy") if isinstance(first_excerpt_hit, dict) else None,
             first_doc_hit.get("source_strategy") if isinstance(first_doc_hit, dict) else None,
