@@ -22,6 +22,7 @@
 
 ## Reviewer-required fix
 - Reviewer packet fix addressed: `Resolve failing gate output and include passing results.`
+- Reviewer packet fix addressed: `Add an explicit canonical demo-path step and tighten the roadmap/vision mapping to that step-level rationale.`
 - Local reproduction note: no failing gate was reproducible on branch tip `e4d7956110458f2d9e375d82c50e443b039a0571` when rerun on `2026-04-16`.
 - Fixer action: reran the full required gate sweep and refreshed this handoff packet so the passing evidence is explicit for re-review.
 
