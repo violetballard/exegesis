@@ -88,6 +88,7 @@
 
 ## Reviewer Reconciliation
 - This packet is the writable source of truth for re-review in this fixer environment and supersedes any stale risk classification in blocked `.codex` packet mirrors.
+- Blocked mirror detail: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` return `EPERM` on write in this sandbox, so this packet carries the authoritative reviewer-fix reconciliation for this pass.
 - Treat this narrowed slice as shared/high-risk work under the `4`-task cap because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 - Re-review should use the narrowed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the explicit canonical demo-path mapping above.
 
