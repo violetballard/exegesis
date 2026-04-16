@@ -9,6 +9,7 @@
 
 - Keep the approval basis pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - This packet refresh is metadata-only and exists to satisfy the reviewer's required fixes without changing the reviewed implementation scope.
+- Re-review basis: the packet now states the exact canonical demo-path step advanced and the concrete CLI contract blocker removed, matching the reviewer's numbered required fixes.
 - Preserve the approved shared-test exception note for `tests/unit/test_commands_catalog.py`.
 
 ## Current Program Focus
