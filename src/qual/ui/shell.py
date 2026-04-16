@@ -12,6 +12,9 @@ from .a2ui import (
     normalize_action_ref,
     normalize_selection_ref,
     _resolve_terminal_artifact_render_target,
+    _is_malformed_terminal_artifact_envelope,
+    _infer_terminal_artifact_explicit_kind,
+    _recover_terminal_artifact_leaf_kind,
     render_terminal_action,
     render_terminal_artifact,
     render_terminal_card,
@@ -30,6 +33,13 @@ class ShellUI:
             return render_terminal_artifact(artifact, kind=kind)
         except Exception:
             # Keep the CLI usable even if the structured artifact renderer fails unexpectedly.
+            if self._normalize_fallback_kind(kind) == "card" and _is_malformed_terminal_artifact_envelope(artifact):
+                payload = artifact.get("artifact") if isinstance(artifact, Mapping) else None
+                payload_kind = _infer_terminal_artifact_explicit_kind(payload)
+                if payload_kind not in {"action", "selection"}:
+                    payload_kind = _recover_terminal_artifact_leaf_kind(payload)
+                if payload_kind in {"action", "selection"}:
+                    return _render_invalid_terminal_card(artifact)
             try:
                 fallback_artifact, fallback_kind = self._resolve_fallback_artifact(artifact, kind=kind)
             except Exception:

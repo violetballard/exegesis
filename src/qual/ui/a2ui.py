@@ -1486,6 +1486,13 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
     requested_kind = None
     if kind is not None:
         requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+    if requested_kind == "card" and _is_malformed_terminal_artifact_envelope(artifact):
+        payload = artifact.get("artifact") if isinstance(artifact, Mapping) else None
+        payload_kind = _infer_terminal_artifact_explicit_kind(payload)
+        if payload_kind not in {"action", "selection"}:
+            payload_kind = _recover_terminal_artifact_leaf_kind(payload)
+        if payload_kind in {"action", "selection"}:
+            return _render_invalid_terminal_card(artifact)
     artifact, resolved_kind = _resolve_terminal_artifact_render_target(
         artifact,
         requested_kind=requested_kind,
@@ -1675,12 +1682,11 @@ def _recover_terminal_artifact_payload_from_invalid_envelope(
             if recovered is not None:
                 return recovered
 
-    if requested_kind == "card":
-        return payload, "card"
-
     payload_kind = _infer_terminal_artifact_explicit_kind(payload)
     if payload_kind is not None:
         return payload, payload_kind
+    if requested_kind == "card":
+        return payload, "card"
     if envelope_kind_hint in {"action", "selection"}:
         return payload, envelope_kind_hint
     if requested_kind in {"action", "selection"}:
@@ -1697,6 +1703,19 @@ def _normalize_terminal_artifact_envelope_kind(kind: Any) -> str | None:
     if normalized_kind in {"card", "action", "selection"}:
         return normalized_kind
     return None
+
+
+def _is_malformed_terminal_artifact_envelope(artifact: Any) -> bool:
+    if not isinstance(artifact, Mapping):
+        return False
+    artifact_type = artifact.get("type")
+    if not isinstance(artifact_type, str) or artifact_type.strip() != _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+        return False
+    try:
+        validate_terminal_artifact_envelope(artifact)
+    except ValueError:
+        return True
+    return False
 
 
 def _unwrap_terminal_artifact_leaf_payload(artifact: Any, *, expected_kind: str) -> Any:

@@ -1030,6 +1030,32 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
         self.assertNotIn("trace_id", text)
 
+    def test_terminal_artifact_renderer_and_shell_fallback_preserve_card_hints_for_malformed_action_envelopes(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        envelope = {
+            "type": "TerminalArtifact",
+            "kind": "card",
+            "artifact": {
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+            },
+            "trace_id": "drop-me",
+        }
+
+        direct_text = render_terminal_artifact(envelope, kind="card")
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            shell_text = shell.render_artifact(envelope, kind="card")
+
+        for text in (direct_text, shell_text):
+            self.assertIn("[UnknownCard] <invalid card>", text)
+            self.assertIn("- raw:", text)
+            self.assertNotIn("[ActionRef]", text)
+            self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+
     def test_shell_ui_recovers_matching_kinds_from_malformed_terminal_artifacts(self) -> None:
         shell = ShellUI()
 
