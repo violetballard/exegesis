@@ -5,7 +5,7 @@ import hashlib
 import json
 import unicodedata
 from collections.abc import Mapping
-from dataclasses import asdict, dataclass, is_dataclass
+from dataclasses import dataclass, fields, is_dataclass
 from typing import Any, Callable, Protocol
 
 A2UI_VERSION = 1
@@ -2092,25 +2092,53 @@ def _copy_terminal_artifact_payload(artifact: Any) -> Any:
 
 
 def _snapshot_terminal_artifact_value(value: Any, *, _seen_ids: set[int] | None = None) -> Any:
+    if _seen_ids is None:
+        _seen_ids = set()
+
     if isinstance(value, ActionRef):
-        return _snapshot_terminal_artifact_value(_action_ref_to_dict(value), _seen_ids=_seen_ids)
-    if isinstance(value, SelectionRef):
-        return _snapshot_terminal_artifact_value(_selection_ref_to_dict(value), _seen_ids=_seen_ids)
-    if is_dataclass(value):
-        try:
-            value = asdict(value)
-        except Exception:
-            try:
-                return copy.deepcopy(value)
-            except Exception:
-                return value
-        return _snapshot_terminal_artifact_value(value, _seen_ids=_seen_ids)
-    if isinstance(value, Mapping):
-        if _seen_ids is None:
-            _seen_ids = set()
         value_id = id(value)
         if value_id in _seen_ids:
-            return value
+            return f"<cycle:{type(value).__name__}>"
+        _seen_ids.add(value_id)
+        try:
+            return _snapshot_terminal_artifact_value(_action_ref_to_dict(value), _seen_ids=_seen_ids)
+        finally:
+            _seen_ids.remove(value_id)
+
+    if isinstance(value, SelectionRef):
+        value_id = id(value)
+        if value_id in _seen_ids:
+            return f"<cycle:{type(value).__name__}>"
+        _seen_ids.add(value_id)
+        try:
+            return _snapshot_terminal_artifact_value(_selection_ref_to_dict(value), _seen_ids=_seen_ids)
+        finally:
+            _seen_ids.remove(value_id)
+
+    if is_dataclass(value) and not isinstance(value, type):
+        value_id = id(value)
+        if value_id in _seen_ids:
+            return f"<cycle:{type(value).__name__}>"
+        _seen_ids.add(value_id)
+        try:
+            try:
+                snapshot = {field.name: getattr(value, field.name) for field in fields(value)}
+            except Exception:
+                try:
+                    return copy.deepcopy(value)
+                except Exception:
+                    return f"<non-json:{type(value).__name__}>"
+            return {
+                key: _snapshot_terminal_artifact_value(item, _seen_ids=_seen_ids)
+                for key, item in snapshot.items()
+            }
+        finally:
+            _seen_ids.remove(value_id)
+
+    if isinstance(value, Mapping):
+        value_id = id(value)
+        if value_id in _seen_ids:
+            return f"<cycle:{type(value).__name__}>"
         _seen_ids.add(value_id)
         try:
             return {
@@ -2119,39 +2147,37 @@ def _snapshot_terminal_artifact_value(value: Any, *, _seen_ids: set[int] | None 
             }
         finally:
             _seen_ids.remove(value_id)
+
     if isinstance(value, list):
-        if _seen_ids is None:
-            _seen_ids = set()
         value_id = id(value)
         if value_id in _seen_ids:
-            return value
+            return f"<cycle:{type(value).__name__}>"
         _seen_ids.add(value_id)
         try:
             return [_snapshot_terminal_artifact_value(item, _seen_ids=_seen_ids) for item in value]
         finally:
             _seen_ids.remove(value_id)
+
     if isinstance(value, tuple):
-        if _seen_ids is None:
-            _seen_ids = set()
         value_id = id(value)
         if value_id in _seen_ids:
-            return value
+            return f"<cycle:{type(value).__name__}>"
         _seen_ids.add(value_id)
         try:
             return tuple(_snapshot_terminal_artifact_value(item, _seen_ids=_seen_ids) for item in value)
         finally:
             _seen_ids.remove(value_id)
+
     if isinstance(value, set):
-        if _seen_ids is None:
-            _seen_ids = set()
         value_id = id(value)
         if value_id in _seen_ids:
-            return value
+            return f"<cycle:{type(value).__name__}>"
         _seen_ids.add(value_id)
         try:
             return {_snapshot_terminal_artifact_value(item, _seen_ids=_seen_ids) for item in value}
         finally:
             _seen_ids.remove(value_id)
+
     try:
         return copy.deepcopy(value)
     except Exception:
@@ -2906,7 +2932,7 @@ def _coerce_terminal_card(card: Any) -> dict[str, Any] | None:
         return None
     if is_dataclass(card):
         try:
-            snapshot = asdict(card)
+            snapshot = _snapshot_terminal_artifact_value(card)
         except Exception:
             return None
         if isinstance(snapshot, Mapping):

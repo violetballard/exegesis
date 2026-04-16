@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import unittest
 from dataclasses import dataclass
 from types import SimpleNamespace
@@ -60,6 +61,7 @@ class _StructuredCard:
     a2ui_version: int
     blocks: list[dict[str, object]]
     actions: list[dict[str, object]]
+    debug: dict[str, object] | None = None
 
 
 def _capabilities() -> A2UICapabilities:
@@ -674,6 +676,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIsInstance(envelope["artifact"]["actions"][0], dict)
         self.assertNotIn("changed", envelope["artifact"]["actions"][0]["payload"]["text"])
         self.assertIn("- Copy JSON (copy_to_clipboard)", render_terminal_artifact(envelope))
+
+    def test_terminal_artifact_envelope_snapshots_cyclic_dataclass_payloads(self) -> None:
+        debug: dict[str, object] = {}
+        card = _StructuredCard(
+            type="GenericCard",
+            title=" Run Log ",
+            a2ui_version=1,
+            blocks=[{"type": "MarkdownBlock", "markdown": "Original"}],
+            actions=[],
+            debug=debug,
+        )
+        debug["self"] = debug
+
+        envelope = build_terminal_artifact_envelope(card, kind="card")
+        rendered = render_terminal_artifact(envelope)
+        serialized = json.dumps(envelope, sort_keys=True)
+        round_tripped = json.loads(serialized)
+
+        self.assertEqual(envelope["artifact"]["debug"]["self"], "<cycle:dict>")
+        self.assertEqual(round_tripped["artifact"]["debug"]["self"], "<cycle:dict>")
+        self.assertIn("<cycle:dict>", rendered)
+        self.assertIn("[GenericCard] Run Log", rendered)
 
     def test_terminal_artifact_envelope_builder_rejects_kind_payload_mismatches(self) -> None:
         with self.assertRaises(ValueError):
