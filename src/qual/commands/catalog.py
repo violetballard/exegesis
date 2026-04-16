@@ -76,6 +76,7 @@ class CommandDemoPathEntry:
     primary_cli_token: str
     smoke_argv: tuple[str, ...]
     description: str
+    parser_argv: tuple[str, ...] = ()
     argv: tuple[str, ...] = ()
     lookup_tokens: tuple[str, ...] = ()
     surface_tokens: tuple[str, ...] = ()
@@ -86,6 +87,7 @@ class CommandDemoPathContract:
     flow_steps: tuple[str, ...]
     names: tuple[str, ...]
     entries: tuple[CommandDemoPathEntry, ...]
+    invocation_plan: tuple[CommandInvocationPlanEntry, ...] = ()
     lookup_table: tuple[tuple[str, str], ...] = ()
     lookup_surface: tuple[tuple[str, str], ...] = ()
 
@@ -2024,10 +2026,16 @@ def _validate_command_demo_path_contract(
         entry.argv for entry in smoke_contract.invocation_plan
     ):
         raise ValueError("Command demo path invocation argv is inconsistent")
+    if tuple(entry.parser_argv for entry in contract.entries) != tuple(
+        entry.argv for entry in smoke_contract.smoke_invocation_plan
+    ):
+        raise ValueError("Command demo path parser argv is inconsistent")
     if tuple(entry.smoke_argv for entry in contract.entries) != tuple(
         entry.smoke_argv for entry in smoke_contract.entries
     ):
         raise ValueError("Command demo path smoke argv is inconsistent")
+    if contract.invocation_plan != smoke_contract.smoke_invocation_plan:
+        raise ValueError("Command demo path invocation plan is inconsistent")
     if tuple(entry.lookup_tokens for entry in contract.entries) != tuple(
         entry.lookup_tokens for entry in smoke_contract.entries
     ):
@@ -2192,13 +2200,15 @@ def command_demo_path_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoPathContract:
     smoke_contract = command_demo_smoke_contract(specs)
-    invocation_plan = smoke_contract.invocation_plan
+    route_invocation_plan = smoke_contract.invocation_plan
+    parser_invocation_plan = smoke_contract.smoke_invocation_plan
     entries = tuple(
         CommandDemoPathEntry(
             flow_step=entry.flow_step,
             name=entry.name,
             primary_cli_token=entry.primary_cli_token,
-            argv=invocation_plan[index].argv,
+            argv=route_invocation_plan[index].argv,
+            parser_argv=parser_invocation_plan[index].argv,
             smoke_argv=entry.smoke_argv,
             description=entry.description,
             lookup_tokens=entry.lookup_tokens,
@@ -2210,6 +2220,7 @@ def command_demo_path_contract(
         flow_steps=smoke_contract.flow_steps,
         names=smoke_contract.names,
         entries=entries,
+        invocation_plan=parser_invocation_plan,
         lookup_table=tuple((entry.flow_step, entry.name) for entry in entries),
         lookup_surface=smoke_contract.lookup_surface,
     )
@@ -2245,6 +2256,20 @@ def command_mvp_path_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoPathContract:
     return command_demo_path_contract(specs)
+
+
+def command_demo_path_invocation_plan(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandInvocationPlanEntry, ...]:
+    """Return parser-ready argv for the canonical demo-path command sequence."""
+    return command_demo_path_contract(specs).invocation_plan
+
+
+def command_mvp_path_invocation_plan(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandInvocationPlanEntry, ...]:
+    """Return parser-ready argv for the current MVP command sequence."""
+    return command_demo_path_invocation_plan(specs)
 
 
 def command_mvp_flow_lookup_surface(
