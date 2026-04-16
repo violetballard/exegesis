@@ -4,7 +4,7 @@
 
 ## Review Basis
 
-- This packet is anchored to the actual current branch-tip implementation lineage on `codex/feat-commands`.
+- This packet is anchored to the actual current branch-tip implementation lineage on `codex/feat-commands` at `2edf67f71042b6156a9e845dcd87b0b5362468a1`.
 - Current implementation commit proposed for review: `2edf67f71042b6156a9e845dcd87b0b5362468a1` `feat(commands): classify legacy aliases correctly`
 - It does not treat all commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as metadata-only.
 - Non-doc implementation commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` that remain in scope for review:
@@ -16,8 +16,9 @@
   - `87c41dfca9176387c07223a15ea08c5deea68578` `Add deterministic command resolution helpers`
   - `adffc42fe4a23e8196ce76a09f58fcf512dc3c4c` `fix(commands): close reviewer packet fixes`
   - `d71711d733585988c4c670db103745b01ce79c37` `Add parser-ready command entrypoint argv helper`
+  - `2edf67f71042b6156a9e845dcd87b0b5362468a1` `feat(commands): classify legacy aliases correctly`
 - Docs-only `docs(commands): ...` commits after those implementation commits update `THREAD_PACKET.md` only.
-- This fixer commit refreshes `THREAD_PACKET.md` after rerunning the full required gate set; it does not widen the implementation scope.
+- This packet refresh commit updates `THREAD_PACKET.md` only after rerunning the full required gate set; it does not widen the implementation scope beyond the implementation commits listed above.
 
 ## Scope Goal
 
@@ -40,9 +41,10 @@
 
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so canonical CLI names must match `command_names()` and parser-surface drift raises `ValueError`.
 - Added parser-surface lookup helpers, deterministic route and invocation metadata, CLI shim contract helpers, and MVP smoke-contract metadata in `src/qual/commands/catalog.py`.
+- Classified legacy command aliases deterministically in `src/qual/commands/catalog.py` so raw CLI tokens preserve the intended `primary` vs `cli` vs `flow-step` vs `lookup` kind even when the user input differs only by case or underscore normalization.
 - Exported the expanded command-contract helpers from `src/qual/commands/__init__.py` so compatibility imports remain aligned with the branch-tip implementation.
 - Fixed bounded diff preview truncation in `src/qual/commands/diff_preview.py` so the `patch-review` path stays deterministic under output limits.
-- Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order validation, parser drift rejection, shim argv helpers, deterministic resolution helpers, route determinism, and smoke invocation metadata.
+- Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order validation, parser drift rejection, shim argv helpers, deterministic resolution helpers, legacy-alias kind classification, route determinism, and smoke invocation metadata.
 - Refreshed this handoff packet so the review basis, files changed, and demo-path mapping match the actual current branch-tip implementation.
 
 ## Files Changed
@@ -57,8 +59,8 @@
 
 1. Locked the CLI `patch-review` contract to canonical command ordering and fail-fast parser validation.
 2. Stabilized CLI shim, route, parser lookup, invocation metadata, and parser-ready argv normalization from the canonical command catalog.
-3. Kept the patch-preview path deterministic under truncation and compatibility-import usage.
-4. Added regression coverage for drift rejection and deterministic command-resolution behavior.
+3. Preserved deterministic legacy-alias classification and patch-preview behavior under normalized CLI input and truncation.
+4. Added regression coverage for drift rejection, alias classification, and deterministic command-resolution behavior.
 
 ## Kickoff Budget / Limits Compliance
 
