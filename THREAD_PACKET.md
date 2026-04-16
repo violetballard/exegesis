@@ -18,18 +18,21 @@
 ## Canonical Demo-Path Step Advanced
 - Canonical demo-path step advanced: `retrieve relevant material`
 - This reviewed implementation range makes `retrieve relevant material` more real by keeping retrieval output deterministic and auditable while forcing excerpt lookup through the canonical FTS-only path.
+- Reviewer-required explicit handoff statement: this change advances the canonical demo-path step `retrieve relevant material` by making excerpt lookup fail closed to the authoritative SQLite FTS path instead of permitting PageIndex as a runtime-required excerpt source.
 - Concretely, `src/qual/retrieval/service.py` now resolves `fetch_excerpt` through the canonical FTS-only lookup path, and the approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs fail closed with `KeyError`.
 - This explicit demo-path mapping is the required `AGENTS.md` handoff answer for the narrowed slice under review, not an inferred roadmap-only mapping.
 - This metadata-only fixer refresh exists to keep that canonical demo-path mapping explicit in the handoff packet for re-review.
 
 ## Reviewer Fix Addressed
 - Required fix satisfied: the handoff now states explicitly which canonical demo-path step this slice advances, instead of relying on roadmap and vision mapping alone.
+- Required fix satisfied: this packet states that the slice advances `retrieve relevant material` and explains that excerpt lookup now fails closed to the authoritative SQLite FTS path, preventing PageIndex from acting as a required runtime retrieval path in the MVP loop.
 - Re-review should evaluate this narrowed slice as advancing `retrieve relevant material`.
 - Reviewer-required handoff correction satisfied here: this packet explicitly maps the slice to the canonical demo-path step `retrieve relevant material`.
 
 ## Reviewer-required fixes addressed
 - Fix 1: The handoff packet now states explicitly that this slice advances the canonical demo-path step `retrieve relevant material`.
-- Fix 2: The scope wording remains narrowed to the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the approved shared regression exception in `tests/unit/test_unified_retrieval.py`, rather than reading as broader PageIndex compatibility work.
+- Fix 2: The handoff packet now explains how this slice makes `retrieve relevant material` more real by forcing excerpt lookup through the authoritative SQLite FTS path, keeping retrieval output deterministic and auditable without promoting PageIndex into a required MVP runtime path.
+- Fix 3: The scope wording remains narrowed to the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the approved shared regression exception in `tests/unit/test_unified_retrieval.py`, rather than reading as broader PageIndex compatibility work.
 
 ## Authoritative Re-review Note
 - This `THREAD_PACKET.md` refresh is the authoritative handoff packet for the reviewer-fix re-review pass in this worktree.
@@ -106,4 +109,4 @@
 - This packet refresh exists specifically to satisfy the reviewer-required handoff correction for explicit canonical demo-path mapping.
 - Re-review should treat the canonical demo-path mapping above as the explicit `AGENTS.md` handoff answer for this narrowed retrieval slice.
 - Fixer refresh date: `2026-04-16`
-- Pre-fix packet trace anchor for this metadata-only fixer pass: `d4d9c03aefbf3d606a3d1d3d85ebda54c3d05a15`
+- Pre-fix packet trace anchor for this metadata-only fixer pass: `ad09cc1aad6b330171eb38344e8c07aae605c2e5`
