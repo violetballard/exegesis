@@ -9,6 +9,7 @@
 - This packet reviews the actual current branch tip at `9bdddce9308d84fbbe6cee989fc3f45c5dcfe992`.
 - The implementation under review is the validator hardening in `src/qual/commands/catalog.py` plus the matching regression coverage in `tests/unit/test_commands_catalog.py`.
 - This packet refresh commit is metadata-only and exists to align review traceability, scope wording, and handoff fields to that real implementation tip.
+- Reviewer-required packet fix addressed here: the handoff now names the exact canonical demo-path step it advances and explains the concrete blocker removed for that step.
 
 ## Scope Goal
 
@@ -79,13 +80,14 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` because this keeps the CLI `patch-review` step deterministic while the package/layout migration lands.
-- `feat-commands` because this hardens the stable CLI command surface and compatibility shims for the engine-first MVP loop.
-- Exact demo-path mapping: this slice makes `preview and apply or reject a patch` more real by validating the `diff-preview` parser, surface, and shim contracts against the catalog-backed source of truth.
+- `Milestone 3: Real workflow loop` via the canonical demo-path step `preview and apply or reject a patch`.
+- Exact demo-path mapping: this slice makes `preview and apply or reject a patch` more real by validating the `diff-preview` parser, surface, and shim contracts against the catalog-backed source of truth before patch-review routing can drift silently.
+- `feat-commands` contribution for this slice is limited to keeping the CLI patch-review compatibility surface deterministic while the engine-first MVP loop remains CLI-first.
 
 ### Vision capability affected
 
-- `Canonical engine contract` because the active CLI compatibility surface remains stable and deterministic while Textual stays disabled.
+- `Writing-centered workflow` because the patch-review step in the operator trust surface stays deterministic while the MVP loop still runs through the CLI.
+- `Canonical engine contract` because the active CLI compatibility surface for patch review remains stable and deterministic while Textual stays disabled.
 - `Auditable state and workflow` because parser/catalog drift in flow, surface, and shim contracts now fails loudly instead of silently mutating the operator-facing patch-review contract.
 
 ### Routing/provider impact note
