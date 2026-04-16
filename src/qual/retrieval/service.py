@@ -86,6 +86,13 @@ def _normalize_doc_type(value: object) -> str:
     return doc_type
 
 
+def _normalize_source_strategy(value: object) -> Literal["fts"]:
+    source_strategy = _normalized_profile_text(value)
+    if source_strategy != _FTS_SOURCE_STRATEGY:
+        raise ValueError("source_strategy must be fts for the FTS-first retrieval lane")
+    return _FTS_SOURCE_STRATEGY
+
+
 def _optional_int(value: object) -> int | None:
     if value is None or isinstance(value, bool):
         return None
@@ -2242,10 +2249,11 @@ class RetrievalService:
         self,
         excerpt: dict[str, object],
         *,
-        source_strategy: Literal["fts", "pageindex"],
+        source_strategy: Literal["fts"],
         lookup_resolution: str,
         lookup_confidentiality_profile: str | None = None,
     ) -> dict[str, object]:
+        source_strategy = _normalize_source_strategy(source_strategy)
         provenance = excerpt.get("provenance", {})
         if not isinstance(provenance, dict):
             provenance = {}
