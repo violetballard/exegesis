@@ -66,7 +66,8 @@
 - None
 
 ## Scope-check / ownership note
-- Shared/integrator-locked edits: `YES`
+- Shared-by-approval edits: `YES` (Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract. No other shared-by-approval files are part of the reviewed retrieval implementation range.)
+- Integrator-locked edits: `NO`
 
 ## Traceability note
 - This packet refresh stays metadata-only and does not move the reviewed retrieval implementation head.

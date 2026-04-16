@@ -77,6 +77,8 @@ class PacketPlannerTests(unittest.TestCase):
         self.assertIn("- `f13324d206b41c134a96ff837eea6427c31aa981`", packet)
         self.assertIn("## Files changed (cumulative range)", packet)
         self.assertIn("Shipped the cumulative 1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac retrieval thread", packet)
+        self.assertIn("- Shared-by-approval edits: `NO`", packet)
+        self.assertIn("- Integrator-locked edits: `NO`", packet)
 
 
 if __name__ == "__main__":
