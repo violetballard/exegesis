@@ -5,8 +5,8 @@
 - Implementation commits in scope:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` - `feat(commands): lock CLI contract to command catalog`
   - `4c5bc5386b48bdf9429530d17b7353562592e7ff` - `Fix diff preview summary fingerprint contract`
-- Packet refresh commit: pending current handoff refresh
-- Packet refresh role: `reviewer-fix packet regeneration`
+- Packet refresh commit: pending current final handoff commit
+- Packet refresh role: `reviewer-fix finalization`
 
 ## Review Basis
 
@@ -18,6 +18,7 @@
   - correct the traceability story so the handoff matches the real branch tip
   - include the full implementation scope, files, tasks, and shared-file approvals
   - state the exact canonical demo-path step this branch makes more real
+  - reflect the current green gate status for the real merge candidate rather than the stale intermediate packet
 
 ## Current Program Focus
 
@@ -96,17 +97,17 @@
 
 ## Commands Run With Results
 
-- `make scope-check`: FAIL - rejected `tests/unit/test_diff_preview.py` as a disallowed shared-file change on `codex/feat-commands`.
+- `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
-- `make ci`: FAIL - stops at the same `scope-check` rejection for `tests/unit/test_diff_preview.py`.
+- `make ci`: PASS
 
 ## Risks / Blockers
 
 - Residual risk: low in the code paths touched; the branch remains confined to CLI command-surface determinism and diff-preview output integrity.
-- Blocker: `scripts/scope-check.sh` currently allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands` but not `tests/unit/test_diff_preview.py`, so `make scope-check` and `make ci` fail even though the handoff treats that test file as an approved shared path.
+- Blockers: none
 
 ## Required Handoff Fields
 
