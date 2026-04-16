@@ -1,10 +1,10 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Reviewed implementation head: `629f7c27f8aea0f0299f516126f41cd40065d70b`
+- Reviewed implementation head before final fixer commit: `f98bca04dadd4c819583d97028c6db128f809196`
 - Packet refresh commit: `reported in final fixer handoff`
-- Packet refresh role: `metadata-only reviewer-fix packet sync`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..629f7c27f8aea0f0299f516126f41cd40065d70b`
+- Packet refresh role: `reviewer-fix implementation and handoff refresh`
+- Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`
 
 ## Scope goal
 - Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
@@ -37,7 +37,7 @@
 - `src/qual/engine/retrieval/payload.py`
 - `tests/unit/test_unified_retrieval.py`
 
-### Metadata-only handoff files
+### Handoff metadata files
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
@@ -77,6 +77,5 @@
 - `tests/unit/test_unified_retrieval.py::test_fetch_excerpt_requires_an_fts_lookup_hit`
 
 ## Traceability note
-- The reviewed implementation scope ends at `629f7c27f8aea0f0299f516126f41cd40065d70b`.
-- The packet refresh commit created after this edit is metadata-only and does not change the reviewed retrieval implementation range.
-- Re-review should anchor retrieval implementation scope to `378cf9a74a3658058079a32f186fcd254c4a4034..629f7c27f8aea0f0299f516126f41cd40065d70b`.
+- This packet no longer treats the branch tip as metadata-only.
+- Re-review should anchor retrieval implementation scope to the actual current branch tip reported in the final fixer handoff.

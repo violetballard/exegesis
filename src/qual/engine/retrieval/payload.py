@@ -72,6 +72,26 @@ def _normalize_optional_text(value: object) -> str | None:
     return None
 
 
+def _normalize_span_snapshot(value: object) -> dict[str, object] | None:
+    if not isinstance(value, dict):
+        return None
+    char_range = value.get("char_range")
+    if not isinstance(char_range, dict):
+        return None
+    if "start" not in char_range or "end" not in char_range:
+        return None
+    start = int(char_range["start"])
+    end = int(char_range["end"])
+    if start > end:
+        start, end = end, start
+    return {
+        "char_range": {
+            "start": start,
+            "end": end,
+        }
+    }
+
+
 def _normalize_optional_bool(value: object) -> bool | None:
     if isinstance(value, bool):
         return value
@@ -435,7 +455,7 @@ def _derive_excerpt_citations_from_hits(excerpt_hits: object) -> list[dict[str, 
             "matched_terms": copy.deepcopy(provenance.get("matched_terms")),
             "fts_rank": provenance.get("fts_rank"),
             "rank": provenance.get("rank"),
-            "span": copy.deepcopy(provenance.get("span")),
+            "span": copy.deepcopy(_normalize_span_snapshot(provenance.get("span"))),
             "source_strategy": provenance.get("source_strategy"),
             "retrieval_backend": provenance.get("retrieval_backend"),
             "retrieval_mode": provenance.get("retrieval_mode"),
@@ -454,8 +474,8 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
     if not isinstance(snapshot, dict):
         return {}
     normalized = copy.deepcopy(snapshot)
-    span = normalized.get("span")
-    if isinstance(span, dict):
+    span = _normalize_span_snapshot(normalized.get("span"))
+    if span is not None:
         normalized["span"] = copy.deepcopy(span)
     elif "span" in normalized:
         normalized["span"] = None
