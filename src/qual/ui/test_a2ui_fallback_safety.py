@@ -887,6 +887,35 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(fallback_kind, resolved_kind)
         self.assertEqual(fallback_artifact, resolved_artifact)
 
+    def test_terminal_artifact_render_target_resolver_recovers_partial_leaf_payloads_in_fallback_mode(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        partial_action = {
+            "id": "export_document",
+            "payload": {"format": "md"},
+            "confirm": {"title": "Approve", "message": "Proceed?"},
+        }
+        partial_selection = {
+            "id": "choice-1",
+            "payload": {"nested": {"items": [1, 2]}},
+            "selected": True,
+        }
+
+        for artifact, expected_kind in ((partial_action, "action"), (partial_selection, "selection")):
+            resolved_artifact, resolved_kind = resolve_terminal_artifact_render_target(
+                artifact,
+                requested_kind=None,
+                allow_invalid_envelope_recovery=True,
+            )
+            with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+                fallback_artifact, fallback_kind = shell._resolve_fallback_artifact(artifact, kind=None)
+
+            self.assertEqual(resolved_kind, expected_kind)
+            self.assertEqual(resolved_artifact, artifact)
+            self.assertEqual(fallback_artifact, resolved_artifact)
+            self.assertEqual(fallback_kind, resolved_kind)
+
     def test_terminal_card_renderer_recovers_valid_card_payloads_from_malformed_terminal_artifacts(
         self,
     ) -> None:

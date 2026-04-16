@@ -1482,7 +1482,12 @@ def _resolve_terminal_artifact_render_target(
         if recovered_kind is not None:
             kind = recovered_kind
 
-    return artifact, _normalize_terminal_artifact_kind(artifact, kind=kind)
+    resolved_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+    if allow_invalid_envelope_recovery and requested_kind is None and resolved_kind == "card":
+        recovered_partial_kind = _infer_terminal_artifact_partial_leaf_kind(artifact)
+        if recovered_partial_kind is not None:
+            resolved_kind = recovered_partial_kind
+    return artifact, resolved_kind
 
 
 def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
@@ -1823,6 +1828,36 @@ def _recover_terminal_artifact_leaf_kind(artifact: Any) -> str | None:
             return None
         return "selection"
     return "action"
+
+
+def _infer_terminal_artifact_partial_leaf_kind(artifact: Any) -> str | None:
+    """Infer a leaf kind from a partial payload that still carries action hints."""
+
+    if not isinstance(artifact, Mapping):
+        return None
+
+    artifact_type = artifact.get("type")
+    if isinstance(artifact_type, str):
+        normalized_type = artifact_type.strip()
+        if normalized_type == "ActionRef":
+            return "action"
+        if normalized_type == "SelectionRef":
+            return "selection"
+        if normalized_type and normalized_type != _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+            return None
+
+    if any(field in artifact for field in ("blocks", "actions")):
+        return None
+    if not all(field in artifact for field in ("id", "payload")):
+        return None
+
+    has_action_hints = any(field in artifact for field in ("confirm", "policy_sensitive"))
+    has_selection_hints = any(field in artifact for field in ("selected", "disabled"))
+    if has_action_hints and not has_selection_hints:
+        return "action"
+    if has_selection_hints and not has_action_hints:
+        return "selection"
+    return None
 
 
 def _strip_terminal_type_hint(artifact: Mapping[str, Any], *, expected_type: str) -> dict[str, Any]:
