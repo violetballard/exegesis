@@ -298,7 +298,11 @@ class ShellUI:
                 allow_invalid_envelope_recovery=True,
             )
             if fallback_kind is None and resolved_kind == "card":
-                inferred_kind = ShellUI._infer_partial_leaf_fallback_kind(fallback_artifact)
+                # Prefer full schema recovery first, then recover partial leaf
+                # hints so leaf payloads do not get trapped in the card path.
+                inferred_kind = ShellUI._infer_fallback_kind(fallback_artifact)
+                if inferred_kind is None:
+                    inferred_kind = ShellUI._infer_partial_leaf_fallback_kind(fallback_artifact)
                 if inferred_kind is not None:
                     return fallback_artifact, inferred_kind
             return fallback_artifact, resolved_kind
