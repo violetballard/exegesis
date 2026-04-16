@@ -32,6 +32,7 @@ from src.qual.ui.a2ui import (
     render_terminal_card,
     render_terminal_selection,
     SelectionRef,
+    _resolve_terminal_artifact_render_target,
     selection_contract_fingerprint,
     terminal_artifact_contract_fingerprint,
     terminal_artifact_rendering_contract_fingerprint,
@@ -515,6 +516,42 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[SelectionRef] Choice", text)
         self.assertIn("Selection schema v1", text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+
+    def test_terminal_artifact_render_target_resolver_matches_shell_fallback_for_malformed_envelopes(self) -> None:
+        envelope = {
+            "type": "TerminalArtifact",
+            "kind": "dialog",
+            "artifact": {
+                "type": "SelectionRef",
+                "id": "choice-1",
+                "label": "Choice",
+                "payload": {"nested": {"items": [1, 2]}},
+                "selected": True,
+            },
+        }
+
+        resolved_artifact, resolved_kind = _resolve_terminal_artifact_render_target(
+            envelope,
+            requested_kind=None,
+        )
+
+        shell = ShellUI()
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            fallback_artifact, fallback_kind = shell._resolve_fallback_artifact(envelope, kind="dialog")
+
+        self.assertEqual(resolved_kind, "selection")
+        self.assertEqual(
+            resolved_artifact,
+            {
+                "type": "SelectionRef",
+                "id": "choice-1",
+                "label": "Choice",
+                "payload": {"nested": {"items": [1, 2]}},
+                "selected": True,
+            },
+        )
+        self.assertEqual(fallback_kind, resolved_kind)
+        self.assertEqual(fallback_artifact, resolved_artifact)
 
     def test_terminal_card_renderer_recovers_valid_card_payloads_from_malformed_terminal_artifacts(
         self,

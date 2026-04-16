@@ -1184,6 +1184,75 @@ def render_terminal_action(action: Any) -> str:
     return "\n".join(lines)
 
 
+def _resolve_terminal_artifact_render_target(
+    artifact: Any,
+    *,
+    requested_kind: str | None = None,
+    allow_invalid_envelope_recovery: bool = False,
+) -> tuple[Any, str]:
+    """Resolve the concrete payload and render kind for a terminal artifact.
+
+    The renderer and CLI fallback path both use this helper so they stay in
+    lockstep when terminal envelopes are malformed but still recoverable.
+    """
+
+    envelope_kind_hint = None
+    if isinstance(artifact, Mapping):
+        artifact_type = artifact.get("type")
+        if isinstance(artifact_type, str) and artifact_type.strip() == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+            envelope_kind_hint = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
+
+    try:
+        artifact, envelope_kind = _unwrap_terminal_artifact_payload(artifact)
+    except ValueError:
+        if not allow_invalid_envelope_recovery and envelope_kind_hint is not None:
+            raise
+        recovered = _recover_terminal_artifact_payload_from_invalid_envelope(
+            artifact,
+            requested_kind=requested_kind,
+            allow_invalid_metadata=allow_invalid_envelope_recovery,
+        )
+        if recovered is None:
+            raise
+        artifact, envelope_kind = recovered
+
+    typed_kind = _infer_terminal_artifact_explicit_kind(artifact)
+    kind = requested_kind
+    if envelope_kind is not None:
+        if (
+            requested_kind is not None
+            and requested_kind != envelope_kind
+            and not allow_invalid_envelope_recovery
+        ):
+            raise ValueError("kind does not match TerminalArtifact envelope")
+        kind = envelope_kind
+    elif typed_kind in {"action", "selection"}:
+        if requested_kind == "card":
+            _validate_terminal_artifact_card_payload(artifact)
+        kind = typed_kind
+    elif typed_kind == "card":
+        # Preserve typed card payloads as cards even if a caller passes a
+        # conflicting action/selection hint.
+        kind = "card"
+    elif requested_kind is not None:
+        kind = requested_kind
+    if allow_invalid_envelope_recovery and requested_kind is None and typed_kind is None and kind == "card":
+        try:
+            normalize_action_ref(artifact)
+        except Exception:
+            if envelope_kind_hint == "selection":
+                try:
+                    normalize_selection_ref(artifact)
+                except Exception:
+                    pass
+                else:
+                    kind = "selection"
+        else:
+            kind = "action"
+
+    return artifact, _normalize_terminal_artifact_kind(artifact, kind=kind)
+
+
 def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
     """Render a structured A2UI artifact through the terminal fallback path.
 
@@ -1198,42 +1267,10 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
     requested_kind = None
     if kind is not None:
         requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
-
-    envelope_kind_hint = None
-    if isinstance(artifact, Mapping):
-        artifact_type = artifact.get("type")
-        if isinstance(artifact_type, str) and artifact_type.strip() == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
-            envelope_kind_hint = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
-
-    try:
-        artifact, envelope_kind = _unwrap_terminal_artifact_payload(artifact)
-    except ValueError:
-        if envelope_kind_hint is not None:
-            raise
-        recovered = _recover_terminal_artifact_payload_from_invalid_envelope(
-            artifact,
-            requested_kind=requested_kind,
-        )
-        if recovered is None:
-            raise
-        artifact, envelope_kind = recovered
-    typed_kind = _infer_terminal_artifact_explicit_kind(artifact)
-    if envelope_kind is not None:
-        if requested_kind is not None and requested_kind != envelope_kind:
-            raise ValueError("kind does not match TerminalArtifact envelope")
-        kind = envelope_kind
-    elif typed_kind in {"action", "selection"}:
-        if requested_kind == "card":
-            _validate_terminal_artifact_card_payload(artifact)
-        kind = typed_kind
-    elif typed_kind == "card":
-        # Preserve typed card payloads as cards even if a caller passes a
-        # conflicting action/selection hint.
-        kind = "card"
-    elif requested_kind is not None:
-        kind = requested_kind
-
-    resolved_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+    artifact, resolved_kind = _resolve_terminal_artifact_render_target(
+        artifact,
+        requested_kind=requested_kind,
+    )
     if resolved_kind == "action":
         return render_terminal_action(artifact)
     if resolved_kind == "selection":
@@ -1373,6 +1410,7 @@ def _recover_terminal_artifact_payload_from_invalid_envelope(
     artifact: Any,
     *,
     requested_kind: str | None,
+    allow_invalid_metadata: bool = False,
     _seen_envelope_ids: set[int] | None = None,
 ) -> tuple[Any, str] | None:
     """Recover a render target from an otherwise-shaped TerminalArtifact envelope."""
@@ -1382,17 +1420,18 @@ def _recover_terminal_artifact_payload_from_invalid_envelope(
     artifact_type = artifact.get("type")
     if not isinstance(artifact_type, str) or artifact_type.strip() != _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
         return None
-    extra_keys = set(artifact) - {"type", "kind", "artifact", "contract_version", "a2ui_version"}
-    if extra_keys:
-        return None
-    contract_version = artifact.get("contract_version")
-    if contract_version is not None and (
-        type(contract_version) is not int or contract_version != A2UI_CONTRACT_VERSION
-    ):
-        return None
-    a2ui_version = artifact.get("a2ui_version")
-    if a2ui_version is not None and (type(a2ui_version) is not int or a2ui_version != A2UI_VERSION):
-        return None
+    if not allow_invalid_metadata:
+        extra_keys = set(artifact) - {"type", "kind", "artifact", "contract_version", "a2ui_version"}
+        if extra_keys:
+            return None
+        contract_version = artifact.get("contract_version")
+        if contract_version is not None and (
+            type(contract_version) is not int or contract_version != A2UI_CONTRACT_VERSION
+        ):
+            return None
+        a2ui_version = artifact.get("a2ui_version")
+        if a2ui_version is not None and (type(a2ui_version) is not int or a2ui_version != A2UI_VERSION):
+            return None
     if "artifact" not in artifact or artifact.get("artifact") is None:
         return None
 

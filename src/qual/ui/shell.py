@@ -11,6 +11,7 @@ from .a2ui import (
     SelectionRef,
     normalize_action_ref,
     normalize_selection_ref,
+    _resolve_terminal_artifact_render_target,
     render_terminal_action,
     render_terminal_artifact,
     render_terminal_card,
@@ -18,7 +19,6 @@ from .a2ui import (
     _render_invalid_terminal_action,
     _render_invalid_terminal_card,
     _render_invalid_terminal_selection,
-    validate_terminal_artifact_envelope,
 )
 
 
@@ -223,84 +223,16 @@ class ShellUI:
         artifact: Any,
         *,
         kind: str | None,
-        _seen_terminal_artifact_ids: set[int] | None = None,
     ) -> tuple[Any, str | None]:
         fallback_kind = ShellUI._normalize_fallback_kind(kind)
-        requested_kind = kind.strip().lower() if isinstance(kind, str) else None
-        inferred_kind = ShellUI._infer_fallback_kind(artifact)
-        if not isinstance(artifact, Mapping):
-            # Prefer the artifact's own typed shape over a conflicting hint so fallback stays authoritative.
-            return artifact, inferred_kind if inferred_kind is not None else fallback_kind
-
-        artifact_type = artifact.get("type")
-        if not isinstance(artifact_type, str) or artifact_type.strip() != "TerminalArtifact":
-            # Prefer the artifact's own typed shape over a conflicting hint so fallback stays authoritative.
-            return artifact, inferred_kind if inferred_kind is not None else fallback_kind
-
-        if _seen_terminal_artifact_ids is None:
-            _seen_terminal_artifact_ids = set()
-        artifact_id = id(artifact)
-        if artifact_id in _seen_terminal_artifact_ids:
-            return artifact, fallback_kind
-        _seen_terminal_artifact_ids.add(artifact_id)
-
-        envelope_kind = None
-        raw_kind = artifact.get("kind")
-        if isinstance(raw_kind, str):
-            normalized_raw_kind = raw_kind.strip().lower()
-            if normalized_raw_kind in {"card", "action", "selection"}:
-                envelope_kind = normalized_raw_kind
-        payload = artifact.get("artifact")
-        payload_kind = ShellUI._infer_fallback_kind(payload) if payload is not None else None
-
-        if isinstance(payload, Mapping):
-            payload_type = payload.get("type")
-            if isinstance(payload_type, str) and payload_type.strip() == "TerminalArtifact":
-                # Peel nested wrappers so a bad outer envelope does not hide the concrete payload.
-                resolved_artifact, resolved_kind = ShellUI._resolve_fallback_artifact(
-                    payload,
-                    kind=None,
-                    _seen_terminal_artifact_ids=_seen_terminal_artifact_ids,
-                )
-                if resolved_kind is not None:
-                    return resolved_artifact, resolved_kind
-
         try:
-            validate_terminal_artifact_envelope(artifact)
+            return _resolve_terminal_artifact_render_target(
+                artifact,
+                requested_kind=fallback_kind,
+                allow_invalid_envelope_recovery=True,
+            )
         except Exception:
-            # Recover from a corrupted wrapper kind when the embedded payload is still typed.
-            if payload_kind in {"action", "selection", "card"}:
-                return payload, payload_kind
-            if requested_kind is None:
-                inferred_action_kind = ShellUI._infer_action_payload_kind(payload)
-                if inferred_action_kind is not None:
-                    return payload, inferred_action_kind
-            if fallback_kind in {"action", "selection"}:
-                if payload is not None:
-                    return payload, fallback_kind
-            if envelope_kind in {"action", "selection"} and payload is not None and payload_kind == envelope_kind:
-                return payload, envelope_kind
-            if envelope_kind == "action" and payload is not None:
-                try:
-                    normalize_action_ref(payload)
-                except Exception:
-                    pass
-                else:
-                    return payload, "action"
-            if envelope_kind == "selection" and payload is not None:
-                try:
-                    normalize_selection_ref(payload)
-                except Exception:
-                    pass
-                else:
-                    return payload, "selection"
-            if requested_kind == "card" and isinstance(payload, Mapping) and payload_kind is None:
-                # Keep explicit card hints usable even when the wrapper metadata is stale.
-                return payload, "card"
-            if envelope_kind == "card" and isinstance(payload, Mapping) and payload_kind is None:
-                # Preserve valid card payloads when only the wrapper metadata is malformed.
-                return payload, "card"
+            inferred_kind = ShellUI._infer_fallback_kind(artifact)
+            if inferred_kind is not None:
+                return artifact, inferred_kind
             return artifact, fallback_kind
-
-        payload = artifact.get("artifact")
-        return payload, envelope_kind
