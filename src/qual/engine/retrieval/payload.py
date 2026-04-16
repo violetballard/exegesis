@@ -785,6 +785,18 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     retrieval_citation_bundle = normalized.get("retrieval_citation_bundle", {})
     if not isinstance(retrieval_citation_bundle, dict):
         retrieval_citation_bundle = {}
+    if isinstance(retrieval_doc_bundle, dict):
+        retrieval_doc_bundle["doc_citations"] = copy.deepcopy(
+            retrieval_citation_bundle.get("doc_citations", retrieval_doc_bundle.get("doc_citations", []))
+        )
+        normalized["retrieval_doc_bundle"] = _normalize_doc_bundle_snapshot(retrieval_doc_bundle)
+        retrieval_doc_bundle = normalized["retrieval_doc_bundle"]
+    if isinstance(retrieval_excerpt_bundle, dict):
+        retrieval_excerpt_bundle["excerpt_citations"] = copy.deepcopy(
+            retrieval_citation_bundle.get("excerpt_citations", retrieval_excerpt_bundle.get("excerpt_citations", []))
+        )
+        normalized["retrieval_excerpt_bundle"] = _normalize_excerpt_bundle_snapshot(retrieval_excerpt_bundle)
+        retrieval_excerpt_bundle = normalized["retrieval_excerpt_bundle"]
     retrieval_policy = normalized.get("policy", normalized.get("retrieval_policy", {}))
     if not isinstance(retrieval_policy, dict):
         retrieval_policy = {}
