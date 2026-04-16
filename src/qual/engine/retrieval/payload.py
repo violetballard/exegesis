@@ -649,14 +649,20 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
         ),
         "retrieval_backend": _first_text_value(
             payload.get("retrieval_backend"),
+            first_doc_provenance.get("retrieval_backend"),
+            first_doc_citation.get("retrieval_backend"),
             first_excerpt_provenance.get("retrieval_backend"),
             first_excerpt_citation.get("retrieval_backend"),
+            retrieval_summary.get("retrieval_backend"),
             retrieval_provenance.get("retrieval_backend"),
         ),
         "retrieval_mode": _first_text_value(
             payload.get("retrieval_mode"),
+            first_doc_provenance.get("retrieval_mode"),
+            first_doc_citation.get("retrieval_mode"),
             first_excerpt_provenance.get("retrieval_mode"),
             first_excerpt_citation.get("retrieval_mode"),
+            retrieval_summary.get("retrieval_mode"),
             retrieval_provenance.get("retrieval_mode"),
         ),
     }

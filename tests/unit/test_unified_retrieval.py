@@ -3035,6 +3035,67 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         self.assertEqual(payload["basket_promotion"], result.to_downstream_payload()["basket_promotion"])
 
+    def test_retrieval_downstream_payload_helper_backfills_doc_only_basket_policy_fields(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        sparse_source_bundle["retrieval_backend"] = None
+        sparse_source_bundle["retrieval_mode"] = None
+        sparse_source_bundle["excerpt_hits"] = []
+
+        retrieval_excerpt_bundle = sparse_source_bundle.get("retrieval_excerpt_bundle")
+        self.assertIsInstance(retrieval_excerpt_bundle, dict)
+        retrieval_excerpt_bundle["excerpt_hits"] = []
+
+        retrieval_citation_bundle = sparse_source_bundle.get("retrieval_citation_bundle")
+        self.assertIsInstance(retrieval_citation_bundle, dict)
+        retrieval_citation_bundle["excerpt_citations"] = []
+        retrieval_citation_bundle["retrieval_backend"] = None
+        retrieval_citation_bundle["retrieval_mode"] = None
+
+        retrieval_provenance = sparse_source_bundle.get("retrieval_provenance")
+        self.assertIsInstance(retrieval_provenance, dict)
+        retrieval_provenance["primary_excerpt_id"] = None
+        retrieval_provenance["primary_excerpt_fingerprint"] = None
+        retrieval_provenance["primary_excerpt_provenance_fingerprint"] = None
+        retrieval_provenance["primary_excerpt_text_hash"] = None
+        retrieval_provenance["excerpt_citations"] = []
+        retrieval_provenance["retrieval_backend"] = None
+        retrieval_provenance["retrieval_mode"] = None
+
+        basket_promotion = sparse_source_bundle.get("basket_promotion")
+        self.assertIsInstance(basket_promotion, dict)
+        basket_promotion["retrieval_backend"] = None
+        basket_promotion["retrieval_mode"] = None
+
+        payload = build_retrieval_downstream_payload_from_result(
+            _SourceBundleOnlySource(sparse_source_bundle)
+        )
+
+        self.assertEqual(
+            payload["basket_promotion"]["retrieval_backend"],
+            result.to_downstream_payload()["basket_promotion"]["retrieval_backend"],
+        )
+        self.assertEqual(
+            payload["basket_promotion"]["retrieval_mode"],
+            result.to_downstream_payload()["basket_promotion"]["retrieval_mode"],
+        )
+
     def test_retrieve_auto_citation_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(
             query_text="memo coding comparison",
