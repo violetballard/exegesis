@@ -2939,6 +2939,42 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(evidence["retrieval_mode"], "fts_first")
         self.assertEqual(evidence["doc_citations"], result.evidence["doc_citations"])
         self.assertEqual(evidence["excerpt_citations"], result.evidence["excerpt_citations"])
+        self.assertEqual(
+            evidence["doc_citations"],
+            [
+                {
+                    "doc_id": item.doc_id,
+                    "doc_type": item.provenance["doc_type"],
+                    "source_hash": item.source_hash,
+                    "doc_fingerprint": item.provenance["doc_fingerprint"],
+                    "doc_identity_fingerprint": item.provenance["doc_identity_fingerprint"],
+                    "doc_rank": item.provenance["doc_rank"],
+                    "top_excerpt_id": item.top_excerpt_id,
+                    "top_excerpt_fingerprint": item.provenance["top_excerpt_fingerprint"],
+                    "top_excerpt_text_hash": item.provenance["top_excerpt_text_hash"],
+                    "top_excerpt_span": item.provenance["top_excerpt_span"],
+                    "top_excerpt_rank": item.provenance["top_excerpt_rank"],
+                    "top_fts_rank": item.provenance["top_fts_rank"],
+                    "excerpt_ids": item.provenance["excerpt_ids"],
+                    "excerpt_count": item.excerpt_count,
+                    "matched_terms": item.provenance["top_matched_terms"],
+                    "source_strategy": item.provenance["source_strategy"],
+                    "retrieval_backend": item.provenance["retrieval_backend"],
+                    "retrieval_mode": item.provenance["retrieval_mode"],
+                    **(
+                        {"section_hint": item.provenance["section_hint"]}
+                        if item.provenance.get("section_hint")
+                        else {}
+                    ),
+                    **(
+                        {"top_section_hint_rank": item.provenance["top_section_hint_rank"]}
+                        if isinstance(item.provenance.get("top_section_hint_rank"), int)
+                        else {}
+                    ),
+                }
+                for item in result.doc_hits
+            ],
+        )
 
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(
