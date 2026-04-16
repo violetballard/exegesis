@@ -1,14 +1,14 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Review target: `f85970321a39c5d2151a72143ce740fdfbfeb69f`
+- Review target: `cb93dafa2c451893778b1c7f0c2e23f16090d8b5`
 - Prior command-catalog anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 
 ## Packet Traceability Note
 
-- This re-review packet is scoped to the current command-surface implementation at `f85970321a39c5d2151a72143ce740fdfbfeb69f`.
+- This re-review packet is scoped to the current command-surface implementation at `cb93dafa2c451893778b1c7f0c2e23f16090d8b5`.
 - The earlier narrow packet that treated later commits as metadata-only was inaccurate: substantive command-surface changes landed after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, including trusted demo-path contract helpers and demo/MVP entrypoint wrappers.
-- This packet refresh is docs-only and does not change the implementation scope described below.
+- Commits after `cb93dafa2c451893778b1c7f0c2e23f16090d8b5` in this handoff are docs-only packet refreshes and do not change the implementation scope described below.
 - This packet refresh explicitly satisfies the reviewer-requested `AGENTS.md` demo-path mapping requirement and keeps the fix scoped to packet metadata only.
 
 ## Current Program Focus
@@ -47,8 +47,9 @@
 - Owned runtime paths: `src/qual/commands/**`
 - Approved shared-test path:
   - `tests/unit/test_commands_catalog.py`
+  - `tests/unit/test_diff_preview.py`
 - Shared/integrator-locked edits: `YES`
-- Shared edits are limited to the approved `feat-commands` shared-test path listed above.
+- Shared edits are limited to the approved `feat-commands` shared-test paths listed above.
 
 ## Scope Completed
 
@@ -61,18 +62,16 @@
 
 ## Tasks Completed
 
-1. Hardened the command-catalog contract to reject parser drift and preserve canonical command ordering.
-2. Added deterministic parser-surface, shim, smoke, and resolution helpers for the CLI-first MVP command path.
-3. Published trusted demo/MVP command-path helpers and public exports needed by the compatibility surface.
-4. Tightened diff-preview truncation and fingerprint behavior to keep patch-review output stable.
-5. Added and updated focused regression coverage in `tests/unit/test_commands_catalog.py` for the expanded command-surface contract.
-6. Corrected the handoff packet so review scope and demo-path mapping match the actual branch tip.
+1. Hardened the command catalog and demo-path contracts so parser drift, canonical ordering, and trusted route metadata stay deterministic for the CLI-first MVP loop.
+2. Added parser-surface, shim argv, smoke argv, and deterministic command-resolution helpers needed by the compatibility surface.
+3. Published the public command exports and tightened diff-preview summary behavior so the existing CLI entrypoints stay stable and smoke-testable.
+4. Expanded the approved shared regression coverage and corrected the handoff packet so re-review targets the real implementation tip and exact merge scope.
 
 ## Kickoff Budget / Limits Compliance
 
-- High-risk shared-file handoff: stayed within the `4`-task cap for the original narrow command-catalog slice, but the current branch tip now carries a broader command-surface implementation.
-- Current implementation scope remains within owned command paths plus the approved shared test file.
-- Files changed in implementation scope: `5`
+- High-risk shared-file handoff: this packet groups the branch-tip work into `4` meaningful tasks, which matches the high-risk task cap for the actual implementation scope under review.
+- Current implementation scope remains within owned command paths plus the approved shared test files.
+- Files changed in implementation scope: `6`
 
 ## Files Changed
 
@@ -83,6 +82,7 @@
 - `src/qual/commands/catalog.py`
 - `src/qual/commands/diff_preview.py`
 - `tests/unit/test_commands_catalog.py`
+- `tests/unit/test_diff_preview.py`
 
 ### Metadata-only handoff file
 
@@ -90,7 +90,7 @@
 
 ## Commands Run With Results
 
-- `python -m unittest tests.unit.test_commands_catalog -q`: PASS
+- `python -m unittest tests.unit.test_commands_catalog tests.unit.test_diff_preview -q`: PASS
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
