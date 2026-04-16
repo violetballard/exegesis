@@ -309,6 +309,7 @@ __all__ = [
     "retrieve_fts_excerpt_bundle",
     "retrieve_fts_excerpt",
     "fetch_fts_excerpt",
+    "fetch_excerpt",
     "retrieve_fts_payload",
     "retrieve_auto_excerpt",
     "retrieve_auto",
