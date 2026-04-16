@@ -2288,7 +2288,7 @@ def command_smoke_argv_for(
     if not resolved.matched:
         return raw_argv
     if len(raw_argv) == 1:
-        return command_smoke_entry_argv_for(specs, resolved.canonical_name)
+        return resolved.smoke_argv
     return (resolved.primary_cli_token, *raw_argv[1:])
 
 
@@ -2361,20 +2361,26 @@ def command_resolve_for(
 
     ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
     route_catalog = command_flow_route_catalog(flow_steps=ordered_flow_steps, specs=specs)
+    shim_invocations = dict(command_cli_shim_invocation_table(specs, ordered_flow_steps))
     for route_entry in route_catalog:
         if normalized_token not in route_entry.surface_tokens:
             continue
+        resolved_argv = shim_invocations.get(
+            normalized_token,
+            (route_entry.primary_cli_token,),
+        )
         return ResolvedCommand(
             token=token,
             normalized_token=normalized_token,
             canonical_name=route_entry.name,
             flow_step=route_entry.flow_step,
             primary_cli_token=route_entry.primary_cli_token,
-            argv=dict(command_cli_shim_invocation_table(specs, ordered_flow_steps)).get(
-                normalized_token,
-                (route_entry.primary_cli_token,),
+            argv=resolved_argv,
+            smoke_argv=_resolved_single_token_argv(
+                specs,
+                route_entry.name,
+                resolved_argv,
             ),
-            smoke_argv=_resolved_smoke_argv_for(specs, route_entry.name),
             cli_tokens=route_entry.cli_tokens,
             lookup_tokens=route_entry.lookup_tokens,
             surface_tokens=route_entry.surface_tokens,

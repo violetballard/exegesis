@@ -100,6 +100,7 @@ from src.qual.commands import (
     command_demo_cli_route_contract,
     command_demo_cli_route_summary,
     command_demo_flow_surface_tokens,
+    command_demo_smoke_argv,
     command_demo_smoke_contract,
     command_names,
     command_primary_cli_token_for,
@@ -502,6 +503,10 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(persist.primary_cli_token, "terminal")
         self.assertEqual(
             persist.argv,
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+        self.assertEqual(
+            persist.smoke_argv,
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
         )
         self.assertEqual(persist.kind, "lookup")
@@ -1264,6 +1269,18 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_smoke_argv(("export",)),
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
+        self.assertEqual(
+            command_demo_smoke_argv(("persist",)),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+        self.assertEqual(
+            command_demo_smoke_argv(("apply-patch",)),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(
+            command_demo_smoke_argv(("reject-patch",)),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
         )
         self.assertEqual(
             command_cli_entry_argv(("persist",)),
