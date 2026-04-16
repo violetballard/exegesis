@@ -83,3 +83,4 @@
 - No post-reviewed commit changes executable code outside the retrieval lane.
 - This packet refresh exists specifically to satisfy the reviewer-required handoff correction for explicit canonical demo-path mapping.
 - Re-review should treat the canonical demo-path mapping above as the explicit `AGENTS.md` handoff answer for this narrowed retrieval slice.
+- Fixer refresh date: `2026-04-16`
