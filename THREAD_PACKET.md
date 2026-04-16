@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Reviewed implementation head before final handoff refresh: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet refresh commit: `reported in final fixer handoff`
-- Packet refresh role: `reviewer-fix handoff metadata refresh for explicit canonical demo-path mapping`
+- Packet refresh role: `reviewer-fix handoff metadata refresh with final traceability anchor`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 ## Scope goal
@@ -92,3 +92,4 @@
 - This packet refresh exists specifically to satisfy the reviewer-required handoff correction for explicit canonical demo-path mapping.
 - Re-review should treat the canonical demo-path mapping above as the explicit `AGENTS.md` handoff answer for this narrowed retrieval slice.
 - Fixer refresh date: `2026-04-16`
+- Pre-fix packet trace anchor for this metadata-only fixer pass: `a6c62cdf722baf631533e89d5a3270c00c2d6c99`
