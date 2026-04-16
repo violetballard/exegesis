@@ -499,7 +499,8 @@ def _shim_option_names(argv: tuple[str, ...]) -> set[str]:
         if not token.startswith("-"):
             index += 1
             continue
-        option_names.add(token)
+        option_name, _, _ = token.partition("=")
+        option_names.add(option_name or token)
         if index + 1 < len(argv) and not argv[index + 1].startswith("-"):
             index += 2
             continue

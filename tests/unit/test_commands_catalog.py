@@ -433,6 +433,14 @@ class CommandCatalogTests(unittest.TestCase):
             command_cli_shim_argv(("persist", "--message", "Resume later")),
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Resume later"),
         )
+        self.assertEqual(
+            command_cli_shim_argv(("export", "--message=Queued for export")),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message=Queued for export"),
+        )
+        self.assertEqual(
+            command_cli_shim_argv(("apply-patch", "--operation-kind=terminal_synthesis_request")),
+            ("terminal", "--message", "Apply patch", "--operation-kind=terminal_synthesis_request"),
+        )
         self.assertEqual(command_cli_shim_argv(["--project", "demo"]), ("--project", "demo"))
         self.assertEqual(command_cli_shim_argv(()), ())
 
@@ -477,6 +485,10 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_cli_entry_argv(("export-handoff", "--message", "Queued for export")),
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Queued for export"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv(("persist", "--message=Resume later")),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message=Resume later"),
         )
         self.assertEqual(
             command_cli_entry_argv(("missing", "--format", "json")),
@@ -1351,6 +1363,10 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_demo_smoke_argv(("apply-patch", "--message", "Apply immediately")),
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply immediately"),
+        )
+        self.assertEqual(
+            command_demo_smoke_argv(("export", "--message=Queued for export")),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message=Queued for export"),
         )
         self.assertEqual(
             command_cli_entry_argv(("persist",)),
