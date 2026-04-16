@@ -6,15 +6,18 @@ from dataclasses import dataclass
 
 from src.qual.ui.a2ui import (
     A2UI_ACTION_SCHEMA_VERSION,
+    A2UI_CAPABILITIES_SCHEMA_VERSION,
     A2UICapabilities,
     A2UISessionStore,
     ActionRef,
     card_contract_fingerprint,
+    a2ui_capabilities_contract_fingerprint,
     SelectionRef,
     a2ui_contract_fingerprint,
     build_unknown_card,
     describe_a2ui_contract,
     describe_a2ui_contract_fingerprints,
+    describe_a2ui_capabilities_contract,
     describe_selection_contract,
     GENERIC_FALLBACK_SUBTITLE,
     engine_prepare_card,
@@ -86,6 +89,73 @@ class A2UIContractTests(unittest.TestCase):
         store.register("sess-1", caps)
         self.assertEqual(store.get("sess-1").client_name, "Exegesis Studio")
 
+    def test_capabilities_contract_manifest_is_versioned_and_fingerprintable(self) -> None:
+        manifest = describe_a2ui_capabilities_contract()
+
+        self.assertEqual(manifest["contract_version"], 2)
+        self.assertEqual(manifest["a2ui_version"], 1)
+        self.assertEqual(manifest["capabilities_schema_version"], A2UI_CAPABILITIES_SCHEMA_VERSION)
+        self.assertEqual(manifest["capabilities_version"], A2UI_CAPABILITIES_SCHEMA_VERSION)
+        self.assertEqual(manifest["type"], "A2UICapabilities")
+        self.assertEqual(manifest["message_type"], "A2UI_CAPABILITIES")
+        self.assertEqual(manifest["session_scope"], "per-session")
+        self.assertEqual(
+            manifest["required_fields"],
+            [
+                "a2ui_version",
+                "client_name",
+                "cards_supported",
+                "primitive_blocks_supported",
+                "actions_supported",
+                "max_payload_bytes",
+                "supports_streaming",
+            ],
+        )
+        self.assertEqual(
+            [field["field"] for field in manifest["field_contracts"]],
+            [
+                "a2ui_version",
+                "client_name",
+                "cards_supported",
+                "primitive_blocks_supported",
+                "actions_supported",
+                "max_payload_bytes",
+                "supports_streaming",
+            ],
+        )
+        self.assertEqual(manifest["field_contracts"][0]["description"], "must equal 1")
+        self.assertEqual(manifest["field_contracts"][2]["reserved_values"], ["GenericCard", "UnknownCard"])
+        self.assertEqual(
+            manifest["field_contracts"][3]["required_values"],
+            [
+                "MarkdownBlock",
+                "KeyValueBlock",
+                "ListBlock",
+                "TableBlock",
+                "AlertBlock",
+                "ProgressBlock",
+                "CodeBlock",
+            ],
+        )
+        self.assertEqual(
+            manifest["field_contracts"][4]["allowed_values"],
+            [
+                "apply_patch",
+                "copy_to_clipboard",
+                "create_context_set",
+                "export_document",
+                "open_corpus_item",
+                "open_section",
+                "pin_to_context_set",
+                "refresh_license",
+                "reject_patch",
+                "run_agent",
+            ],
+        )
+        self.assertEqual(manifest["capabilities_fingerprint"], a2ui_capabilities_contract_fingerprint())
+        self.assertEqual(manifest["contract_fingerprint"], a2ui_capabilities_contract_fingerprint())
+        self.assertEqual(len(manifest["contract_fingerprint"]), 64)
+
     def test_contract_manifest_is_versioned_and_fingerprintable(self) -> None:
         manifest = describe_a2ui_contract()
 
@@ -93,12 +163,18 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(manifest["contract_version"], 2)
         self.assertEqual(manifest["contract_fingerprint"], a2ui_contract_fingerprint())
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
+        self.assertEqual(manifest["capabilities"], describe_a2ui_capabilities_contract())
+        self.assertEqual(
+            manifest["capabilities_fingerprint"],
+            a2ui_capabilities_contract_fingerprint(),
+        )
         fingerprints = describe_a2ui_contract_fingerprints()
         self.assertEqual(fingerprints["contract"], manifest["contract_fingerprint"])
         self.assertEqual(
             set(fingerprints),
             {
                 "contract",
+                "capabilities",
                 "cards",
                 "fallbacks",
                 "selection",
@@ -111,10 +187,21 @@ class A2UIContractTests(unittest.TestCase):
         )
         for fingerprint in fingerprints.values():
             self.assertEqual(len(fingerprint), 64)
+        self.assertEqual(
+            manifest["contract_fingerprints"],
+            describe_a2ui_contract_fingerprints(
+                include_action=True,
+                include_terminal_artifact=True,
+                include_terminal_artifact_rendering=True,
+            ),
+        )
+        self.assertEqual(fingerprints["capabilities"], manifest["capabilities_fingerprint"])
         self.assertEqual(manifest["selection"], describe_selection_contract())
         self.assertEqual(fingerprints["selection"], manifest["selection"]["selection_fingerprint"])
         self.assertEqual(fingerprints["card_contract"], card_contract_fingerprint())
         self.assertEqual(fingerprints["terminal_fallback"], terminal_fallback_contract_fingerprint())
+        self.assertEqual(manifest["schemas"]["capabilities"], describe_a2ui_capabilities_contract())
+        self.assertEqual(manifest["capabilities"]["contract_fingerprint"], a2ui_capabilities_contract_fingerprint())
         self.assertEqual(
             manifest["cards"],
             {

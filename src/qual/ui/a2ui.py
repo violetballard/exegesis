@@ -11,6 +11,7 @@ from typing import Any, Callable, Protocol
 A2UI_VERSION = 1
 A2UI_CONTRACT_VERSION = 2
 A2UI_ACTION_SCHEMA_VERSION = 1
+A2UI_CAPABILITIES_SCHEMA_VERSION = 1
 SELECTION_SCHEMA_VERSION = 1
 CARD_CONTRACT_VERSION = 1
 TERMINAL_FALLBACK_SCHEMA_VERSION = 1
@@ -91,6 +92,16 @@ _ACTION_SCHEMAS: dict[str, dict[str, type]] = {
     "copy_to_clipboard": {"text": str},
 }
 
+_CAPABILITIES_REQUIRED_FIELDS: tuple[str, ...] = (
+    "a2ui_version",
+    "client_name",
+    "cards_supported",
+    "primitive_blocks_supported",
+    "actions_supported",
+    "max_payload_bytes",
+    "supports_streaming",
+)
+
 
 @dataclass(frozen=True)
 class A2UICapabilities:
@@ -149,6 +160,8 @@ def describe_a2ui_contract() -> dict[str, Any]:
 
     manifest = _build_a2ui_contract_manifest()
     manifest["contract_fingerprint"] = a2ui_contract_fingerprint()
+    manifest["capabilities"] = manifest["schemas"]["capabilities"]
+    manifest["capabilities_fingerprint"] = manifest["capabilities"]["contract_fingerprint"]
     manifest["action_fingerprint"] = manifest["action"]["contract_fingerprint"]
     manifest["selection_fingerprint"] = manifest["selection"]["contract_fingerprint"]
     manifest["card_fingerprint"] = card_contract_fingerprint()
@@ -176,6 +189,7 @@ def describe_a2ui_contract_fingerprints(
     manifest = _build_a2ui_contract_manifest()
     fingerprints = {
         "contract": _fingerprint_manifest_section(manifest),
+        "capabilities": a2ui_capabilities_contract_fingerprint(),
         "cards": _fingerprint_manifest_section(manifest["cards"]),
         "fallbacks": _fingerprint_manifest_section(manifest["fallbacks"]),
         "selection": selection_contract_fingerprint(),
@@ -228,6 +242,16 @@ def describe_card_contract() -> dict[str, Any]:
     manifest = _build_card_contract_manifest()
     fingerprint = card_contract_fingerprint()
     manifest["card_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
+    return manifest
+
+
+def describe_a2ui_capabilities_contract() -> dict[str, Any]:
+    """Return the stable, versioned A2UI capabilities handshake manifest."""
+
+    manifest = _build_a2ui_capabilities_contract_manifest()
+    fingerprint = a2ui_capabilities_contract_fingerprint()
+    manifest["capabilities_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     return manifest
 
@@ -365,6 +389,7 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
+        "capabilities": describe_a2ui_capabilities_contract(),
         "terminal_fallback": describe_terminal_fallback_contract(),
         "terminal_artifact": describe_terminal_artifact_contract(),
         "terminal_fallback_fingerprint": terminal_fallback_contract_fingerprint(),
@@ -394,6 +419,21 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
             }
             for action_id, schema in sorted(_ACTION_SCHEMAS.items())
         ],
+    }
+
+
+def _build_a2ui_capabilities_contract_manifest() -> dict[str, Any]:
+    return {
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "capabilities_schema_version": A2UI_CAPABILITIES_SCHEMA_VERSION,
+        "capabilities_version": A2UI_CAPABILITIES_SCHEMA_VERSION,
+        "type": "A2UICapabilities",
+        "message_type": "A2UI_CAPABILITIES",
+        "session_scope": "per-session",
+        "required_fields": list(_CAPABILITIES_REQUIRED_FIELDS),
+        "optional_fields": [],
+        "field_contracts": _build_a2ui_capabilities_field_contracts(),
     }
 
 
@@ -649,6 +689,7 @@ def _build_card_fallback_manifest() -> dict[str, Any]:
 
 def _build_a2ui_schema_manifest() -> dict[str, Any]:
     return {
+        "capabilities": describe_a2ui_capabilities_contract(),
         "cards": _build_card_schema_manifest(),
         "selection": describe_selection_contract(),
         "action": describe_action_contract(),
@@ -665,6 +706,49 @@ def _build_a2ui_schema_manifest() -> dict[str, Any]:
         "terminal_artifact": describe_terminal_artifact_contract(),
         "terminal_artifact_rendering": describe_terminal_artifact_rendering_contract(),
     }
+
+
+def _build_a2ui_capabilities_field_contracts() -> list[dict[str, Any]]:
+    return [
+        {
+            "field": "a2ui_version",
+            "type": "int",
+            "description": f"must equal {A2UI_VERSION}",
+        },
+        {
+            "field": "client_name",
+            "type": "str",
+            "description": "trimmed non-empty string",
+        },
+        {
+            "field": "cards_supported",
+            "type": "tuple[str, ...]",
+            "description": "canonical unique card types excluding reserved card names",
+            "reserved_values": list(_RESERVED_CARD_TYPES),
+        },
+        {
+            "field": "primitive_blocks_supported",
+            "type": "tuple[str, ...]",
+            "description": "canonical unique primitive block types",
+            "required_values": list(REQUIRED_PRIMITIVE_BLOCKS),
+        },
+        {
+            "field": "actions_supported",
+            "type": "tuple[str, ...]",
+            "description": "canonical unique allowlisted action ids",
+            "allowed_values": sorted(ALLOWED_ACTION_IDS),
+        },
+        {
+            "field": "max_payload_bytes",
+            "type": "int",
+            "description": "positive payload byte ceiling",
+        },
+        {
+            "field": "supports_streaming",
+            "type": "bool",
+            "description": "streaming support flag",
+        },
+    ]
 
 
 def a2ui_contract_fingerprint() -> str:
@@ -713,6 +797,13 @@ def terminal_artifact_rendering_contract_fingerprint() -> str:
     """Return a stable fingerprint for the terminal artifact rendering manifest."""
 
     manifest = _build_terminal_artifact_rendering_contract_manifest()
+    return _fingerprint_manifest_section(manifest)
+
+
+def a2ui_capabilities_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the A2UI capabilities handshake manifest."""
+
+    manifest = _build_a2ui_capabilities_contract_manifest()
     return _fingerprint_manifest_section(manifest)
 
 

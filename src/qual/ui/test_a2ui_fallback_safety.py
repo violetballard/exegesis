@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from src.qual.ui.a2ui import (
     A2UI_ACTION_SCHEMA_VERSION,
+    A2UI_CAPABILITIES_SCHEMA_VERSION,
     A2UICapabilities,
     ActionRef,
     CARD_CONTRACT_VERSION,
@@ -14,9 +15,11 @@ from src.qual.ui.a2ui import (
     GENERIC_FALLBACK_SUBTITLE,
     card_contract_fingerprint,
     action_contract_fingerprint,
+    a2ui_capabilities_contract_fingerprint,
     build_unknown_card,
     describe_a2ui_contract,
     describe_a2ui_contract_fingerprints,
+    describe_a2ui_capabilities_contract,
     describe_action_contract,
     describe_card_contract,
     describe_selection_contract,
@@ -89,13 +92,19 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
     def test_a2ui_contract_manifest_exposes_action_contract_alias(self) -> None:
         manifest = describe_a2ui_contract()
 
+        self.assertEqual(manifest["capabilities"], describe_a2ui_capabilities_contract())
+        self.assertEqual(manifest["capabilities"]["contract_fingerprint"], manifest["capabilities_fingerprint"])
+        self.assertEqual(manifest["capabilities_fingerprint"], a2ui_capabilities_contract_fingerprint())
+        self.assertEqual(manifest["capabilities"]["capabilities_schema_version"], A2UI_CAPABILITIES_SCHEMA_VERSION)
         self.assertEqual(manifest["action"], describe_action_contract())
         self.assertEqual(manifest["action"]["contract_fingerprint"], manifest["action"]["action_fingerprint"])
         self.assertEqual(len(manifest["action"]["contract_fingerprint"]), 64)
         self.assertEqual(manifest["action_fingerprint"], action_contract_fingerprint())
         self.assertEqual(manifest["selection_fingerprint"], selection_contract_fingerprint())
         self.assertEqual(manifest["card_fingerprint"], card_contract_fingerprint())
+        self.assertEqual(manifest["schemas"]["capabilities"], describe_a2ui_capabilities_contract())
         self.assertEqual(manifest["schemas"]["action"], describe_action_contract())
+        self.assertEqual(manifest["contract_fingerprints"]["capabilities"], a2ui_capabilities_contract_fingerprint())
         self.assertEqual(manifest["contract_fingerprints"]["selection"], selection_contract_fingerprint())
         self.assertEqual(manifest["contract_fingerprints"]["card_contract"], card_contract_fingerprint())
         self.assertEqual(
@@ -122,14 +131,19 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_rendering_contract_fingerprint(),
         )
         self.assertEqual(
-            manifest["contract_fingerprints"]["terminal_artifact_rendering"],
-            terminal_artifact_rendering_contract_fingerprint(),
+            manifest["contract_fingerprints"],
+            describe_a2ui_contract_fingerprints(
+                include_action=True,
+                include_terminal_artifact=True,
+                include_terminal_artifact_rendering=True,
+            ),
         )
         self.assertEqual(len(manifest["terminal_artifact"]["contract_fingerprint"]), 64)
 
     def test_a2ui_contract_manifest_exposes_terminal_fallback_and_artifact_fingerprints(self) -> None:
         manifest = describe_a2ui_contract()
 
+        self.assertEqual(manifest["capabilities_fingerprint"], a2ui_capabilities_contract_fingerprint())
         self.assertEqual(manifest["terminal_fallback_fingerprint"], terminal_fallback_contract_fingerprint())
         self.assertEqual(manifest["terminal_artifact_fingerprint"], terminal_artifact_contract_fingerprint())
         self.assertEqual(
@@ -145,8 +159,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["terminal_artifact_fingerprint"],
         )
         self.assertEqual(
-            manifest["contract_fingerprints"]["terminal_artifact_rendering"],
-            terminal_artifact_rendering_contract_fingerprint(),
+            manifest["contract_fingerprints"]["capabilities"],
+            a2ui_capabilities_contract_fingerprint(),
         )
 
     def test_a2ui_contract_fingerprint_map_matches_section_contracts(self) -> None:
@@ -154,9 +168,11 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         fingerprints = describe_a2ui_contract_fingerprints()
 
         self.assertEqual(fingerprints["contract"], manifest["contract_fingerprint"])
+        self.assertEqual(fingerprints["capabilities"], manifest["capabilities_fingerprint"])
         self.assertEqual(fingerprints["selection"], describe_selection_contract()["contract_fingerprint"])
         self.assertEqual(fingerprints["card_contract"], card_contract_fingerprint())
         self.assertEqual(fingerprints["terminal_fallback"], terminal_fallback_contract_fingerprint())
+        self.assertEqual(fingerprints["capabilities"], a2ui_capabilities_contract_fingerprint())
         self.assertEqual(len(fingerprints["actions"]), 64)
 
     def test_a2ui_contract_fingerprint_map_can_opt_into_terminal_artifact_dispatch(self) -> None:
@@ -178,6 +194,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             fingerprints["terminal_artifact_rendering"],
             terminal_artifact_rendering_contract_fingerprint(),
         )
+        self.assertEqual(fingerprints["capabilities"], a2ui_capabilities_contract_fingerprint())
         self.assertEqual(fingerprints, describe_a2ui_contract()["contract_fingerprints"])
         self.assertNotIn("action", describe_a2ui_contract_fingerprints())
         self.assertNotIn("terminal_artifact_rendering", describe_a2ui_contract_fingerprints())
