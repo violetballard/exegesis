@@ -27,10 +27,6 @@
 
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog.
 
-## High-Risk Rationale
-
-- This handoff uses the high-risk/shared-file path because it tightens a public CLI command contract and includes one approved shared test file, `tests/unit/test_commands_catalog.py`, outside the lane-owned `src/qual/commands/**` paths.
-
 ## Priority Outcomes
 
 1. Keep command behavior deterministic and easy to smoke-test.
@@ -42,7 +38,7 @@
 - Canonical demo-path step advanced: `open project/document`.
 - AGENTS alignment statement: this packet explicitly maps the work to the `open project/document` step of the canonical demo path so the handoff names the concrete step this slice makes more real.
 - Why this step is strengthened: the operator reaches that step through the CLI-first command surface today, so keeping `command_cli_contract()` deterministic, preserving canonical command ordering, and rejecting parser/catalog drift prevents the entry command surface from silently changing underneath the engine-first MVP loop.
-- Concrete blocker removed: Milestone 3 requires that the CLI can still execute the MVP loop while Textual remains disabled. Before this slice, parser entrypoints could drift from the catalog without the contract failing fast; this change turns that into an immediate contract error instead of a silent operator-surface regression.
+- Concrete blocker removed: Milestone 3 requires that the CLI can still execute the MVP loop while Textual remains disabled. Before this slice, parser entrypoints could drift from the catalog without the contract failing fast, which could silently destabilize the `open project/document` operator path. This change turns that failure mode into an immediate contract error instead of a silent operator-surface regression.
 - Secondary effect only: the same deterministic contract keeps the existing CLI fallback smoke-testable for downstream demo-path steps, including `preview and apply or reject a patch`, but this handoff is anchored to `open project/document` as the primary justified step.
 
 ## Definition of Done for This Lane
