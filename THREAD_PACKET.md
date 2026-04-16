@@ -70,6 +70,10 @@
 - `tests/unit/test_unified_retrieval.py::test_fetch_excerpt_requires_an_fts_lookup_hit`
 - `tests/unit/test_unified_retrieval.py::test_retrieval_service_rejects_pageindex_excerpt_payloads`
 
+## Reviewer Fixes Applied
+- Required fix 1: the packet explicitly names the canonical demo-path step advanced as `retrieve relevant material`.
+- Required fix 2: the scope statement is tied to that step and states this handoff strengthens the engine-side FTS-only retrieval path without expanding into alternate retrieval modes.
+
 ## Traceability note
 - Re-review should anchor retrieval implementation scope to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - The current branch tip reported in the final fixer handoff is a metadata-only packet refresh commit unless a later regenerated packet says otherwise.
