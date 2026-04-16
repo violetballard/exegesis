@@ -1479,7 +1479,8 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
         return render_terminal_action(artifact)
     if resolved_kind == "selection":
         return render_terminal_selection(artifact)
-    _validate_terminal_artifact_card_payload(artifact)
+    if requested_kind != "card":
+        _validate_terminal_artifact_card_payload(artifact)
     return render_terminal_card(artifact)
 
 
@@ -1658,6 +1659,9 @@ def _recover_terminal_artifact_payload_from_invalid_envelope(
             )
             if recovered is not None:
                 return recovered
+
+    if requested_kind == "card":
+        return payload, "card"
 
     payload_kind = _infer_terminal_artifact_explicit_kind(payload)
     if payload_kind is not None:

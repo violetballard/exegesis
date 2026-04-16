@@ -1698,6 +1698,34 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[SelectionRef]", text)
         self.assertNotIn("[ActionRef]", text)
 
+    def test_terminal_artifact_renderer_and_shell_fallback_preserve_card_hints_for_malformed_envelopes(
+        self,
+    ) -> None:
+        envelope = {
+            "type": "TerminalArtifact",
+            "kind": "dialog",
+            "artifact": {
+                "type": "SelectionRef",
+                "id": "choice-1",
+                "label": "Choice",
+                "payload": {"nested": {"items": [1, 2]}},
+                "selected": True,
+            },
+        }
+
+        direct_text = render_terminal_artifact(envelope, kind="card")
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            shell_text = shell.render_artifact(envelope, kind="card")
+
+        for text in (direct_text, shell_text):
+            self.assertIn("[UnknownCard] <invalid card>", text)
+            self.assertIn("- raw:", text)
+            self.assertNotIn("[SelectionRef]", text)
+            self.assertNotIn("[ActionRef]", text)
+            self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+
     def test_shell_ui_recovers_card_hints_from_malformed_terminal_artifacts(self) -> None:
         shell = ShellUI()
 
