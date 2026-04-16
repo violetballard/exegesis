@@ -42,6 +42,7 @@
 
 ## Reviewer-required fix evidence
 - Reviewer fix addressed: reran the full required gate set on reviewed implementation head `d528d36a257a948d6636a9609db244ed8bf8383b` and refreshed this packet with the passing results above.
+- Gate refresh date: `2026-04-16`
 - Packet note: this fixer pass is metadata-only. It records the green gate evidence the reviewer requested without changing the reviewed implementation range.
 
 ## Risks/blockers
