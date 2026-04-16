@@ -10,6 +10,7 @@ class CommandSpec:
     name: str
     aliases: tuple[str, ...] = ()
     cli_tokens: tuple[str, ...] = ()
+    smoke_argv: tuple[str, ...] = ()
     description: str = ""
     flow_step: str = "general"
 
@@ -186,6 +187,11 @@ class CommandFlowRouteContract:
 
 @dataclass(frozen=True)
 class CommandInvocationPlanContract:
+    entries: tuple[CommandInvocationPlanEntry, ...]
+
+
+@dataclass(frozen=True)
+class CommandSmokeInvocationContract:
     entries: tuple[CommandInvocationPlanEntry, ...]
 
 
@@ -380,6 +386,30 @@ def _primary_route_cli_token(cli_tokens: tuple[str, ...], *, name: str) -> str:
     return cli_tokens[0]
 
 
+def _default_smoke_argv(spec: CommandSpec) -> tuple[str, ...]:
+    entrypoints = _declared_cli_entrypoints_for(spec)
+    if not entrypoints:
+        raise ValueError(f"Command {spec.name} must define at least one CLI entrypoint")
+    return (entrypoints[0],)
+
+
+def _smoke_argv_for_spec(spec: CommandSpec) -> tuple[str, ...]:
+    if not spec.smoke_argv:
+        return _default_smoke_argv(spec)
+
+    normalized_argv = tuple(_normalize_token(token) for token in spec.smoke_argv)
+    if any(not token for token in normalized_argv):
+        raise ValueError(f"Command {spec.name} has an empty smoke argv token")
+
+    primary_cli_token = _default_smoke_argv(spec)[0]
+    if normalized_argv[0] != primary_cli_token:
+        raise ValueError(
+            "Command smoke argv must start with the primary CLI entrypoint: "
+            f"{spec.name} -> {spec.smoke_argv[0]}"
+        )
+    return normalized_argv
+
+
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         name="bootstrap",
@@ -399,6 +429,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         name="context-basket",
         aliases=("context", "basket", "retrieval", "retrieve"),
         cli_tokens=("context-basket",),
+        smoke_argv=("context-basket", "list"),
         description="Manage retrieval context basket items.",
         flow_step="retrieval",
     ),
@@ -474,6 +505,8 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
             if normalized_cli_token in seen_lookup_tokens and seen_lookup_tokens[normalized_cli_token] != spec.name:
                 raise ValueError(f"Duplicate command lookup token: {cli_token}")
             seen_lookup_tokens[normalized_cli_token] = spec.name
+
+        _smoke_argv_for_spec(spec)
 
 
 @lru_cache(maxsize=None)
@@ -1137,6 +1170,70 @@ def command_flow_invocation_contract(
     flow_steps: tuple[str, ...] | None = None,
 ) -> CommandInvocationPlanContract:
     return CommandInvocationPlanContract(entries=command_flow_invocation_plan(specs, flow_steps))
+
+
+@lru_cache(maxsize=None)
+def command_smoke_entry_argv_for(
+    specs: tuple[CommandSpec, ...],
+    name: str,
+) -> tuple[str, ...]:
+    spec = command_spec_for(specs, name)
+    if spec is None:
+        return ()
+    return _smoke_argv_for_spec(spec)
+
+
+def command_smoke_entry_argv(name: str) -> tuple[str, ...]:
+    return command_smoke_entry_argv_for(COMMAND_SPECS, name)
+
+
+@lru_cache(maxsize=None)
+def command_smoke_invocation_plan(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandInvocationPlanEntry, ...]:
+    route_catalog = command_flow_route_catalog(flow_steps=flow_steps, specs=specs)
+    return tuple(
+        CommandInvocationPlanEntry(
+            flow_step=entry.flow_step,
+            name=entry.name,
+            argv=command_smoke_entry_argv_for(specs, entry.name),
+            description=entry.description,
+        )
+        for entry in route_catalog
+    )
+
+
+@lru_cache(maxsize=None)
+def command_smoke_invocation_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> CommandSmokeInvocationContract:
+    return CommandSmokeInvocationContract(entries=command_smoke_invocation_plan(specs, flow_steps))
+
+
+def command_demo_smoke_invocation_plan(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandInvocationPlanEntry, ...]:
+    return command_smoke_invocation_plan(specs, command_demo_flow_steps())
+
+
+def command_demo_smoke_invocation_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandSmokeInvocationContract:
+    return command_smoke_invocation_contract(specs, command_demo_flow_steps())
+
+
+def command_mvp_smoke_invocation_plan(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandInvocationPlanEntry, ...]:
+    return command_demo_smoke_invocation_plan(specs)
+
+
+def command_mvp_smoke_invocation_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandSmokeInvocationContract:
+    return command_demo_smoke_invocation_contract(specs)
 
 
 def command_demo_flow_route_catalog(
@@ -1861,6 +1958,34 @@ def command_cli_entry_argv(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[str, ...]:
     return command_cli_entry_argv_for(COMMAND_SPECS, argv, flow_steps)
+
+
+def command_smoke_argv_for(
+    specs: tuple[CommandSpec, ...],
+    argv: tuple[str, ...] | list[str],
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    raw_argv = tuple(argv)
+    smoke_plan = command_smoke_invocation_plan(specs, flow_steps)
+    default_argv = smoke_plan[0].argv if smoke_plan else ()
+    if not raw_argv:
+        return default_argv
+    if raw_argv[0].lstrip().startswith("-"):
+        return (*default_argv, *raw_argv) if default_argv else raw_argv
+
+    resolved = command_resolve_for(specs, raw_argv[0], flow_steps)
+    if not resolved.matched:
+        return raw_argv
+    if len(raw_argv) == 1:
+        return command_smoke_entry_argv_for(specs, resolved.canonical_name)
+    return (resolved.primary_cli_token, *raw_argv[1:])
+
+
+def command_smoke_argv(
+    argv: tuple[str, ...] | list[str],
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    return command_smoke_argv_for(COMMAND_SPECS, argv, flow_steps)
 
 
 @lru_cache(maxsize=None)
