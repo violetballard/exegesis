@@ -4,8 +4,8 @@
 
 ## Review Basis
 
-- This packet is anchored to the actual current branch-tip implementation lineage on `codex/feat-commands` at `2edf67f71042b6156a9e845dcd87b0b5362468a1`.
-- Current implementation commit proposed for review: `2edf67f71042b6156a9e845dcd87b0b5362468a1` `feat(commands): classify legacy aliases correctly`
+- This packet is anchored to the actual current branch-tip implementation lineage on `codex/feat-commands`, including this packet refresh commit.
+- Current implementation proposed for review is the branch tip on `codex/feat-commands`; reviewers should use this packet plus the listed in-scope implementation commits below rather than the earlier narrowed packet.
 - This packet supersedes the earlier narrowed re-review request that asked reviewers to inspect only `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; that narrowed basis was incomplete and should not be used for re-review.
 - It does not treat all commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as metadata-only.
 - Non-doc implementation commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` that remain in scope for review:
@@ -20,6 +20,12 @@
   - `2edf67f71042b6156a9e845dcd87b0b5362468a1` `feat(commands): classify legacy aliases correctly`
 - Docs-only `docs(commands): ...` commits after those implementation commits update `THREAD_PACKET.md` only.
 - This packet refresh commit updates `THREAD_PACKET.md` only after rerunning the full required gate set; it does not widen the implementation scope beyond the implementation commits listed above, and it exists specifically to satisfy the reviewer-requested handoff traceability fixes.
+
+## Reviewer Fix Closure
+
+- Parser-surface invariant: `command_cli_contract()` now validates both canonical command ordering and the exact declared per-command CLI parser surface, so alias substitution or token reordering raises `ValueError` instead of silently mutating the operator contract.
+- Regression coverage: `tests/unit/test_commands_catalog.py` includes focused rejection tests for alias substitution in the parser surface, parser-token reordering, and canonical-name drift, in addition to the deterministic contract-order assertions.
+- Demo-path mapping: this packet explicitly names the canonical demo-path step advanced by the lane so the handoff satisfies the `AGENTS.md` narrowing rule instead of relying on reviewer inference.
 
 ## Scope Goal
 
@@ -41,12 +47,12 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so canonical CLI names must match `command_names()` and parser-surface drift raises `ValueError`.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so canonical CLI names must match `command_names()`, and the declared parser surface must exactly match the catalog-backed CLI entrypoint layout or raise `ValueError`.
 - Added parser-surface lookup helpers, deterministic route and invocation metadata, CLI shim contract helpers, and MVP smoke-contract metadata in `src/qual/commands/catalog.py`.
 - Classified legacy command aliases deterministically in `src/qual/commands/catalog.py` so raw CLI tokens preserve the intended `primary` vs `cli` vs `flow-step` vs `lookup` kind even when the user input differs only by case or underscore normalization.
 - Exported the expanded command-contract helpers from `src/qual/commands/__init__.py` so compatibility imports remain aligned with the branch-tip implementation.
 - Fixed bounded diff preview truncation in `src/qual/commands/diff_preview.py` so the `patch-review` path stays deterministic under output limits.
-- Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order validation, parser drift rejection, shim argv helpers, deterministic resolution helpers, legacy-alias kind classification, route determinism, and smoke invocation metadata.
+- Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order validation, parser-surface alias substitution rejection, parser-token reordering rejection, shim argv helpers, deterministic resolution helpers, legacy-alias kind classification, route determinism, and smoke invocation metadata.
 - Refreshed this handoff packet so the review basis, files changed, and demo-path mapping match the actual current branch-tip implementation.
 
 ## Files Changed
