@@ -488,6 +488,45 @@ def _shim_argv_overrides_for_spec(spec: CommandSpec) -> tuple[tuple[str, tuple[s
     return tuple(overrides)
 
 
+def _shim_option_names(argv: tuple[str, ...]) -> set[str]:
+    option_names: set[str] = set()
+    index = 0
+    while index < len(argv):
+        token = argv[index]
+        if not token.startswith("-"):
+            index += 1
+            continue
+        option_names.add(token)
+        if index + 1 < len(argv) and not argv[index + 1].startswith("-"):
+            index += 2
+            continue
+        index += 1
+    return option_names
+
+
+def _merge_shim_argv(
+    shim_argv: tuple[str, ...],
+    explicit_args: tuple[str, ...],
+) -> tuple[str, ...]:
+    if len(shim_argv) <= 1 or not explicit_args:
+        return (*shim_argv, *explicit_args)
+
+    overridden_options = _shim_option_names(explicit_args)
+    merged: list[str] = [shim_argv[0]]
+    index = 1
+    while index < len(shim_argv):
+        token = shim_argv[index]
+        if token.startswith("-") and token in overridden_options:
+            if index + 1 < len(shim_argv) and not shim_argv[index + 1].startswith("-"):
+                index += 2
+                continue
+            index += 1
+            continue
+        merged.append(token)
+        index += 1
+    return (*merged, *explicit_args)
+
+
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         name="bootstrap",
@@ -532,6 +571,36 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
             "Export handoff",
         ),
         shim_argv=(
+            (
+                "export",
+                (
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_synthesis_request",
+                    "--message",
+                    "Export handoff",
+                ),
+            ),
+            (
+                "save-export",
+                (
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_synthesis_request",
+                    "--message",
+                    "Export handoff",
+                ),
+            ),
+            (
+                "export-handoff",
+                (
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_synthesis_request",
+                    "--message",
+                    "Export handoff",
+                ),
+            ),
             (
                 "persist",
                 (
@@ -1212,7 +1281,7 @@ def command_cli_shim_argv_for(
     elif shim_argv is not None and len(shim_argv) > 1:
         # Preserve alias-specific default routing while still allowing callers to
         # append explicit parser flags for deterministic CLI smoke paths.
-        return (*shim_argv, *raw_argv[1:])
+        return _merge_shim_argv(shim_argv, raw_argv[1:])
     primary_token = command_cli_shim_primary_token_for(specs, raw_argv[0], flow_steps)
     if not primary_token:
         return raw_argv
@@ -2293,7 +2362,7 @@ def command_smoke_argv_for(
         return raw_argv
     if len(raw_argv) == 1:
         return resolved.smoke_argv
-    return (resolved.primary_cli_token, *raw_argv[1:])
+    return command_cli_shim_argv_for(specs, raw_argv, flow_steps)
 
 
 def command_smoke_argv(
