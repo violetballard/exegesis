@@ -17,16 +17,16 @@
   - `ee88483683f57242406bbd0b5a895dddf7da8537` (`docs(commands): fix handoff traceability packet`) corrected the stale narrowed review basis and re-scoped the packet to the real branch-tip implementation.
   - `82fb2cd0576d0ded9e0790908a266d9f3634d39f` (`docs(commands): tighten patch-review demo path mapping`) is the prior docs-only branch tip before this refresh and does not change the implementation scope.
   - `0113bb75c4b22b80dfbaaf0850ea3205a2b6d104` (`docs(commands): refresh reviewer fix packet tip`) remained packet-only and kept the review basis anchored to the full branch-tip implementation lineage.
-  - This follow-up fixer refresh also updates `THREAD_PACKET.md` only after rerunning the full required gate set on `2026-04-13`; it does not change the implementation scope.
-  - This final feature-fixer closure commit is also packet-only and records the green gate rerun from this lane worktree on `2026-04-13`.
+- This follow-up fixer refresh also updates `THREAD_PACKET.md` only after rerunning the full required gate set on `2026-04-16`; it does not change the implementation scope.
+- This final feature-fixer closure pass on `2026-04-16` adds deterministic command-resolution helpers in `src/qual/commands/catalog.py`, re-exports them from `src/qual/commands/__init__.py`, extends `tests/unit/test_commands_catalog.py`, and refreshes this packet after a green gate rerun.
 
 ## Reviewer-required fixes closure
 - Required fix `1`: the packet is anchored to branch tip rather than `f8d860ed...` alone, and it lists the non-metadata implementation commits and implementation files changed after that earlier slice.
 - Required fix `2`: the stale claim that later commits were metadata-only has been removed; only the packet-only `docs(commands): ...` commits are treated as docs-only alignment commits.
 - Required fix `3`: the canonical demo-path step advanced is stated explicitly below and mapped to the Milestone 3 CLI-first loop.
 - Required fix `4`: the commands-run and budget/limits notes below are stated against the same current branch-tip scope named in this packet.
-- Fixer verification on `2026-04-13`: reran the full required gate set in this lane worktree during this packet refresh. The reviewed implementation scope remains the same code-bearing lineage through `cea5da3599799e72b24ed5f3e88474f3e275846a`, with this fixer pass changing `THREAD_PACKET.md` only and confirming the reviewer-requested parser-surface drift rejection tests still pass in the live worktree.
-- Final reviewer-fix closure on `2026-04-13`: this refresh keeps the scope packet-only and preserves the explicit canonical demo-path mapping to `preview and apply or reject a patch`, with secondary support for `continue working`, so the handoff remains tightly bounded to CLI-contract determinism.
+- Fixer verification on `2026-04-16`: reran the full required gate set in this lane worktree during this closure pass. The reviewed implementation scope remains the same branch-tip command-contract lineage named above, with this final pass adding deterministic resolution helpers and focused regression coverage without widening the lane-owned runtime surface.
+- Final reviewer-fix closure on `2026-04-16`: this refresh preserves the explicit canonical demo-path mapping to `preview and apply or reject a patch`, with secondary support for `continue working`, and records the final command-resolution helper coverage used to keep that CLI surface deterministic.
 
 ## Reviewer-fix resubmission note
 - This packet no longer narrows review to `f8d860ed...` alone. It covers the full current branch-tip lineage: implementation through `cea5da3599799e72b24ed5f3e88474f3e275846a`, then packet-only docs refreshes through prior tip `0113bb75c4b22b80dfbaaf0850ea3205a2b6d104`, plus this current metadata-only packet refresh.
@@ -47,7 +47,7 @@
 - `8b52002c` completed the reviewer-fix series by rejecting parser-surface drift when validated CLI entrypoints no longer match the canonical contract.
 - `cea5da35` added invocation metadata to the command smoke contract in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`, so the CLI-first smoke route also exposes deterministic invocation planning for the canonical `patch-review` step.
 - Additional `docs(commands): ...` commits after `cea5da35` through `0113bb75` update `THREAD_PACKET.md` only and do not change the implementation files above.
-- This current fixer refresh also updates `THREAD_PACKET.md` only after rerunning the required handoff gates.
+- This current feature-fixer closure pass updates `src/qual/commands/catalog.py`, `src/qual/commands/__init__.py`, `tests/unit/test_commands_catalog.py`, and `THREAD_PACKET.md` after rerunning the required handoff gates.
 
 ## Scope goal
 - Harden the CLI command contract so command catalog, parser entrypoints, route ordering, and invocation planning stay deterministic and fail fast if the parser surface drifts from the catalog.
@@ -72,9 +72,10 @@
 ## Scope completed
 - Hardened `command_cli_contract()` in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py) so canonical CLI names must match `command_names()` and declared per-command CLI entrypoints must match the validated parser surface, with drift raising `ValueError`.
 - Expanded the command catalog contract in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py) to model explicit per-command CLI entrypoints, deterministic route tokens, invocation-plan metadata, parser-surface lookup helpers, and the MVP smoke contract from the same canonical catalog.
+- Added deterministic command-resolution helpers in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py) so CLI surface tokens resolve to canonical command metadata and primary invocation argv from the same validated route catalog.
 - Exported the expanded catalog contract surface from [src/qual/commands/__init__.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/__init__.py) so compatibility imports stay aligned with the branch-tip implementation.
 - Fixed bounded diff preview truncation in [src/qual/commands/diff_preview.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/diff_preview.py) so the `patch-review` step stays deterministic when CLI output must be truncated.
-- Added and retained focused regression coverage in [tests/unit/test_commands_catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/tests/unit/test_commands_catalog.py) for canonical-order alignment, alias-substitution and reorder parser-drift rejection, explicit CLI token handling, route-token determinism, invocation-plan consistency, parser-surface lookup helpers, MVP smoke-contract behavior, and deterministic smoke invocation metadata.
+- Added and retained focused regression coverage in [tests/unit/test_commands_catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/tests/unit/test_commands_catalog.py) for canonical-order alignment, alias-substitution and reorder parser-drift rejection, explicit CLI token handling, route-token determinism, invocation-plan consistency, parser-surface lookup helpers, deterministic command resolution, MVP smoke-contract behavior, and deterministic smoke invocation metadata.
 - Reissued the handoff packet so the review basis, files changed list, demo-path field, and AGENTS mapping now match the full branch-tip implementation on this branch.
 - Refreshed the handoff packet for final reviewer-fix closure without changing the implementation scope.
 
@@ -88,10 +89,10 @@
 - Approved shared-test exception for `tests/unit/test_commands_catalog.py`.
 
 ## Tasks completed (numbered)
-1. Locked the CLI contract to canonical command ordering and fail-fast parser-drift validation.
+1. Made the canonical demo-path step `preview and apply or reject a patch` more real by locking the `patch-review` CLI contract to canonical command ordering and fail-fast parser-drift validation.
 2. Stabilized per-command CLI token, route token, parser lookup, invocation-plan, and MVP smoke contracts directly from the command catalog.
-3. Fixed bounded diff preview truncation, added deterministic invocation metadata to the smoke contract, and exported the expanded command contract API from `src/qual/commands/__init__.py` so compatibility imports match the branch-tip implementation.
-4. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the deterministic contract, parser surface helpers, smoke route, route helpers, and smoke invocation metadata.
+3. Strengthened the same `preview and apply or reject a patch` step, with secondary support for `continue working`, by fixing bounded diff preview truncation, adding deterministic invocation metadata to the smoke contract, and exporting the expanded command contract API from `src/qual/commands/__init__.py` so compatibility imports match the branch-tip implementation.
+4. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the deterministic contract, parser surface helpers, deterministic command resolution, smoke route, route helpers, and smoke invocation metadata.
 
 ## Files changed
 ### Implementation files changed
@@ -104,11 +105,11 @@
 - `THREAD_PACKET.md`
 
 ## Commands run with results
-- Revalidated on `2026-04-13` in this feature-fixer closure pass during this packet refresh; the reviewed implementation scope remains the same code-bearing lineage through `cea5da3599799e72b24ed5f3e88474f3e275846a`.
+- Revalidated on `2026-04-16` in this feature-fixer closure pass; the reviewed implementation scope remains the same branch-tip command-contract lineage named above, with the additional deterministic command-resolution helper coverage in the current commit.
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
-- `./quality-test.sh`: PASS (`156` tests + smoke)
+- `./quality-test.sh`: PASS (`159` tests + smoke)
 - `./typecheck-test.sh`: PASS (`python3 -m compileall -q src`)
 - `make ci`: PASS
 

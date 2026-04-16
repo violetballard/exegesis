@@ -52,6 +52,10 @@ from src.qual.commands import (
     command_lookup_table,
     command_lookup_tokens,
     command_lookup_tokens_for,
+    command_resolve,
+    command_resolve_argv,
+    command_resolve_argv_for,
+    command_resolve_for,
     command_resolution_lookup_tokens,
     command_resolution_tokens,
     command_resolution_tokens_for,
@@ -273,6 +277,75 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(command_cli_shim_argv(["--project", "demo"]), ("--project", "demo"))
         self.assertEqual(command_cli_shim_argv(()), ())
+
+    def test_command_resolve_reports_deterministic_surface_metadata(self) -> None:
+        resolved = command_resolve("patch-review")
+        self.assertTrue(resolved.matched)
+        self.assertEqual(resolved.canonical_name, "diff-preview")
+        self.assertEqual(resolved.flow_step, "patch-review")
+        self.assertEqual(resolved.primary_cli_token, "diff-preview")
+        self.assertEqual(resolved.argv, ("diff-preview",))
+        self.assertEqual(resolved.cli_tokens, ("diff-preview", "diff"))
+        self.assertEqual(
+            resolved.lookup_tokens,
+            ("diff-preview", "diff", "diff_preview", "review-patch"),
+        )
+        self.assertEqual(
+            resolved.surface_tokens,
+            ("diff-preview", "diff", "review-patch", "patch-review"),
+        )
+        self.assertEqual(resolved.kind, "flow-step")
+
+        lookup_resolved = command_resolve("review-patch")
+        self.assertTrue(lookup_resolved.matched)
+        self.assertEqual(lookup_resolved.primary_cli_token, "diff-preview")
+        self.assertEqual(lookup_resolved.argv, ("diff-preview",))
+        self.assertEqual(lookup_resolved.kind, "lookup")
+
+    def test_command_resolve_argv_rewrites_to_primary_cli_tokens(self) -> None:
+        resolved = command_resolve_argv(("review-patch", "--format", "json"))
+        self.assertTrue(resolved.matched)
+        self.assertEqual(resolved.canonical_name, "diff-preview")
+        self.assertEqual(resolved.argv, ("diff-preview", "--format", "json"))
+        self.assertEqual(resolved.kind, "lookup")
+
+        flag = command_resolve_argv(("--project", "demo"))
+        self.assertFalse(flag.matched)
+        self.assertEqual(flag.kind, "flag")
+        self.assertEqual(flag.argv, ("--project", "demo"))
+
+        unknown = command_resolve_argv(("missing", "--format", "json"))
+        self.assertFalse(unknown.matched)
+        self.assertEqual(unknown.canonical_name, "missing")
+        self.assertEqual(unknown.kind, "unknown")
+        self.assertEqual(unknown.argv, ("missing", "--format", "json"))
+
+    def test_command_resolve_helpers_support_custom_specs(self) -> None:
+        specs = (
+            CommandSpec(
+                name="bootstrap",
+                aliases=("open",),
+                cli_tokens=("project-open", "bootstrap-run"),
+                flow_step="project-open",
+            ),
+            CommandSpec(
+                name="review",
+                aliases=("patch",),
+                cli_tokens=("review-patch",),
+                flow_step="patch-review",
+            ),
+        )
+
+        resolved = command_resolve_for(specs, "patch-review")
+        self.assertTrue(resolved.matched)
+        self.assertEqual(resolved.primary_cli_token, "review-patch")
+        self.assertEqual(resolved.argv, ("review-patch",))
+        self.assertEqual(resolved.kind, "flow-step")
+
+        argv_resolved = command_resolve_argv_for(specs, ("patch", "--format", "json"))
+        self.assertTrue(argv_resolved.matched)
+        self.assertEqual(argv_resolved.argv, ("review-patch", "--format", "json"))
+        self.assertEqual(argv_resolved.kind, "lookup")
 
     def test_command_cli_contract_supports_custom_specs(self) -> None:
         specs = (
