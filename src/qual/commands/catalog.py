@@ -2322,6 +2322,19 @@ def _resolved_smoke_argv_for(
     return command_smoke_entry_argv_for(specs, canonical_name)
 
 
+def _resolved_single_token_argv(
+    specs: tuple[CommandSpec, ...],
+    canonical_name: str,
+    fallback_argv: tuple[str, ...],
+) -> tuple[str, ...]:
+    if len(fallback_argv) > 1:
+        return fallback_argv
+    smoke_argv = _resolved_smoke_argv_for(specs, canonical_name)
+    if len(smoke_argv) > 1:
+        return smoke_argv
+    return fallback_argv
+
+
 @lru_cache(maxsize=None)
 def command_resolve_for(
     specs: tuple[CommandSpec, ...],
@@ -2468,7 +2481,11 @@ def command_resolve_argv_for(
         canonical_name=resolved.canonical_name,
         flow_step=resolved.flow_step,
         primary_cli_token=resolved.primary_cli_token,
-        argv=resolved.argv if len(raw_argv) == 1 else (resolved.primary_cli_token, *raw_argv[1:]),
+        argv=(
+            _resolved_single_token_argv(specs, resolved.canonical_name, resolved.argv)
+            if len(raw_argv) == 1
+            else (resolved.primary_cli_token, *raw_argv[1:])
+        ),
         smoke_argv=resolved.smoke_argv,
         cli_tokens=resolved.cli_tokens,
         lookup_tokens=resolved.lookup_tokens,
