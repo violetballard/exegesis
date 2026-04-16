@@ -30,6 +30,7 @@ STATE_FILE = REPO_ROOT / ".codex/packet_router/state.json"
 KICKOFF_DIR = REPO_ROOT / ".codex/kickoff_packets"
 FEATURE_ROOT = REPO_ROOT / ".codex/feature_runner"
 FEATURE_STATE_FILE = FEATURE_ROOT / "state.json"
+COORD_STATE_FILE = REPO_ROOT / ".codex/packet_coordinator/state.json"
 DEFAULT_LANES = [
     "feat-commands",
     "feat-context-storage",
@@ -62,6 +63,11 @@ def load_json(path: Path, default: Any) -> Any:
 def save_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2, sort_keys=True))
+
+
+def _current_resume_epoch() -> str:
+    state = load_json(COORD_STATE_FILE, {})
+    return str((state or {}).get("current_resume_epoch") or "").strip()
 
 
 def _enabled_lanes() -> List[str]:
@@ -305,6 +311,7 @@ def _set_lane_state(
     action: str = "",
     pid: int = 0,
 ) -> None:
+    current_epoch = _current_resume_epoch()
     with STATE_LOCK:
         current_state = load_json(FEATURE_STATE_FILE, {})
         if not isinstance(current_state, dict):
@@ -322,6 +329,7 @@ def _set_lane_state(
             "last_action": action or status,
             "error": error,
             "pid": pid,
+            "resume_epoch": current_epoch,
         }
         save_json(FEATURE_STATE_FILE, current_state)
 

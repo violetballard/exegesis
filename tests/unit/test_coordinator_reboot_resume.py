@@ -328,6 +328,107 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
             "feature_tool_loop_detected",
         )
 
+    def test_reconcile_router_state_prunes_missing_packet_jobs_and_expired_retries(self) -> None:
+        from codex_packet_handoff.tools import agents_coordinator as coordinator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            router_state = root / "router_state.json"
+            packets_root = root / "packets"
+            existing_lane = packets_root / "feat-engine-runs" / "outbox" / "integrator"
+            existing_lane.mkdir(parents=True, exist_ok=True)
+            (existing_lane / "R__APPROVED__keep.md").write_text("ok", encoding="utf-8")
+            router_state.write_text(
+                json.dumps(
+                    {
+                        "cloud_integrator_jobs": {
+                            "feat-engine-runs:R__APPROVED__keep.md": {
+                                "lane": "feat-engine-runs",
+                                "packet_name": "R__APPROVED__keep.md",
+                                "pid": 501,
+                                "resume_epoch": "epoch-2",
+                            },
+                            "feat-engine-runs:R__APPROVED__drop.md": {
+                                "lane": "feat-engine-runs",
+                                "packet_name": "R__APPROVED__drop.md",
+                                "pid": 0,
+                                "resume_epoch": "epoch-1",
+                            },
+                        },
+                        "cloud_integrator_retry_ts": {
+                            "feat-engine-runs:R__APPROVED__keep.md": 1_999_999_999,
+                            "feat-engine-runs:R__APPROVED__drop.md": 1_999_999_999,
+                        },
+                        "reviewer_fixer_retry_ts": {
+                            "feat-commands": 10.0,
+                        },
+                        "reviewer_quota_global_retry_ts": 10.0,
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with (
+                patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
+                patch.object(coordinator, "PACKETS_ROOT", packets_root),
+                patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 501),
+                patch.object(coordinator, "time") as time_mod,
+            ):
+                time_mod.time.return_value = 100.0
+                removed = coordinator._reconcile_router_state({"current_resume_epoch": "epoch-2"})
+
+            saved = json.loads(router_state.read_text())
+
+        self.assertIn("feat-engine-runs:R__APPROVED__drop.md", removed["cloud_integrator_jobs"])
+        self.assertIn("feat-engine-runs:R__APPROVED__drop.md", removed["cloud_integrator_retry_ts"])
+        self.assertIn("feat-commands", removed["reviewer_fixer_retry_ts"])
+        self.assertEqual(removed["reviewer_quota_global_retry_ts"], ["expired"])
+        self.assertIn("feat-engine-runs:R__APPROVED__keep.md", saved["cloud_integrator_jobs"])
+        self.assertNotIn("feat-engine-runs:R__APPROVED__drop.md", saved["cloud_integrator_jobs"])
+        self.assertEqual(saved["reviewer_fixer_retry_ts"], {})
+        self.assertEqual(saved["reviewer_quota_global_retry_ts"], 0)
+
+    def test_reconcile_duplicate_feature_exec_processes_keeps_current_lane_pid(self) -> None:
+        from codex_packet_handoff.tools import agents_coordinator as coordinator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            feature_state = root / "feature_runner_state.json"
+            feature_state.write_text(
+                json.dumps(
+                    {
+                        "lanes": {
+                            "feat-context-storage": {
+                                "status": "direct_exec_running",
+                                "pid": 1001,
+                            },
+                            "feat-a2ui-contract": {
+                                "status": "direct_exec_running",
+                                "pid": 2001,
+                            },
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with (
+                patch.object(coordinator, "FEATURE_RUNNER_STATE_FILE", feature_state),
+                patch.object(
+                    coordinator,
+                    "_manual_feature_exec_processes",
+                    return_value={
+                        "feat-context-storage": [1001, 1002],
+                        "feat-a2ui-contract": [2001],
+                    },
+                ),
+                patch.object(coordinator, "_terminate_pid") as terminate_mock,
+            ):
+                removed = coordinator._reconcile_duplicate_feature_exec_processes()
+
+        terminate_mock.assert_called_once_with(1002)
+        self.assertEqual(removed, {"feat-context-storage": [1002]})
+
 
 if __name__ == "__main__":
     unittest.main()

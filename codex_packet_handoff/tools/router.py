@@ -35,6 +35,7 @@ CONFIG_FILE = ROUTER_ROOT / "config.json"
 CURSOR_FILE = ROUTER_ROOT / "cursor.json"
 LEASE_FILE = ROUTER_ROOT / "lease.json"
 REPO_ROOT = Path(__file__).resolve().parents[2]
+COORD_STATE_FILE = REPO_ROOT / ".codex/packet_coordinator/state.json"
 LOCAL_CLI_WORKER = Path(__file__).resolve().with_name("local_cli_worker.py")
 LOCAL_JOB_ROOT = ROUTER_ROOT / "local_jobs"
 
@@ -138,6 +139,11 @@ def load_json(p: Path, default: Any) -> Any:
 def save_json(p: Path, data: Any) -> None:
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(data, indent=2))
+
+
+def _current_resume_epoch() -> str:
+    state = load_json(COORD_STATE_FILE, {})
+    return str((state or {}).get("current_resume_epoch") or "").strip()
 
 def acquire_lease(ttl: int = 20) -> bool:
     now = time.time()
@@ -904,6 +910,7 @@ def _spawn_detached_cli_job(
     local: bool,
 ) -> Dict[str, Any]:
     profile = _profile_for_role(cfg, role, local=local, lane=lane)
+    resume_epoch = _current_resume_epoch()
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     token = _safe_job_token(f"{lane}__{packet_name}")
     job_dir = LOCAL_JOB_ROOT / role
@@ -918,6 +925,7 @@ def _spawn_detached_cli_job(
         "env_overrides": {"CODEX_HOME": isolated_codex_env(repo_cwd)["CODEX_HOME"]} if local else {},
         "output_path": str(output_path),
         "result_path": str(result_path),
+        "resume_epoch": resume_epoch,
     }
     save_json(spec_path, spec)
     proc = subprocess.Popen(
@@ -936,6 +944,7 @@ def _spawn_detached_cli_job(
         "output_path": str(output_path),
         "result_path": str(result_path),
         "started_at": time.time(),
+        "resume_epoch": resume_epoch,
     }
 
 

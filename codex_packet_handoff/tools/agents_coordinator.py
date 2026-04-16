@@ -63,6 +63,7 @@ ROUTER_EXAMPLE_FILE = REPO_ROOT / ".codex/packet_router/example.json"
 ROUTER_STATE_FILE = REPO_ROOT / ".codex/packet_router/state.json"
 FEATURE_RUNNER_ROOT = REPO_ROOT / ".codex/feature_runner"
 FEATURE_RUNNER_STATE_FILE = FEATURE_RUNNER_ROOT / "state.json"
+PACKETS_ROOT = REPO_ROOT / ".codex/packets/lanes"
 FEATURE_RELAUNCH_COOLDOWN_SECONDS = 60
 FEATURE_LOOP_MIN_RUNTIME_SECONDS = 300.0
 FEATURE_LOOP_LOG_TAIL_BYTES = 32768
@@ -76,6 +77,15 @@ ROUTER_JOB_STATE_KEYS = (
     "local_integrator_jobs",
     "cloud_integrator_jobs",
 )
+ROUTER_RETRY_STATE_KEYS = (
+    "reviewer_fixer_retry_ts",
+    "fixer_quota_retry_ts",
+    "reviewer_quota_retry_ts",
+    "local_integrator_retry_ts",
+    "cloud_integrator_retry_ts",
+)
+FEATURE_LANE_RE = re.compile(r"feature lane agent for\s+`?([A-Za-z0-9._-]+)`?", re.IGNORECASE)
+CODEX_EXEC_RE = re.compile(r"\bcodex\b.*\bexec\b", re.IGNORECASE)
 MANAGED_WORKTREE_ROOT = Path.home() / ".codex/worktrees"
 WORKTREE_HEALTH_TIMEOUT_SECONDS = 15.0
 WORKTREE_REBUILD_TIMEOUT_SECONDS = 180.0
@@ -229,6 +239,84 @@ def _job_result_exists(job: Dict[str, object]) -> bool:
     return Path(result_path).exists()
 
 
+def _packet_exists(lane: str, packet_name: str) -> bool:
+    if not lane or not packet_name:
+        return False
+    lane_dir = PACKETS_ROOT / lane
+    candidates = (
+        lane_dir / "inbox/feature" / packet_name,
+        lane_dir / "inbox/reviewer" / packet_name,
+        lane_dir / "outbox/integrator" / packet_name,
+        lane_dir / "archive" / packet_name,
+        lane_dir / "archive/stale" / packet_name,
+    )
+    return any(path.exists() for path in candidates)
+
+
+def _current_resume_epoch(coordinator_state: Optional[Dict[str, object]] = None) -> str:
+    if isinstance(coordinator_state, dict):
+        token = str(coordinator_state.get("current_resume_epoch") or "").strip()
+        if token:
+            return token
+    state = load_json(STATE_FILE, {})
+    return str((state or {}).get("current_resume_epoch") or "").strip()
+
+
+def _manual_feature_exec_processes() -> Dict[str, List[int]]:
+    try:
+        proc = subprocess.run(
+            ["ps", "-axo", "pid=,command="],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=2.0,
+        )
+    except Exception:
+        return {}
+    if proc.returncode != 0:
+        return {}
+    out: Dict[str, List[int]] = {}
+    for line in (proc.stdout or "").splitlines():
+        row = line.strip()
+        if not row or not CODEX_EXEC_RE.search(row):
+            continue
+        parts = row.split(None, 1)
+        if len(parts) != 2 or not parts[0].isdigit():
+            continue
+        match = FEATURE_LANE_RE.search(parts[1])
+        if not match:
+            continue
+        lane = match.group(1)
+        out.setdefault(lane, []).append(int(parts[0]))
+    for lane, pids in out.items():
+        out[lane] = sorted(set(pids))
+    return out
+
+
+def _reconcile_duplicate_feature_exec_processes() -> Dict[str, List[int]]:
+    state = load_json(FEATURE_RUNNER_STATE_FILE, {})
+    lanes = state.get("lanes") if isinstance(state, dict) else {}
+    if not isinstance(lanes, dict):
+        return {}
+    live = _manual_feature_exec_processes()
+    removed: Dict[str, List[int]] = {}
+    for lane, lane_state in lanes.items():
+        if not isinstance(lane_state, dict):
+            continue
+        if str(lane_state.get("status") or "") != "direct_exec_running":
+            continue
+        keep_pid = int(lane_state.get("pid") or 0)
+        if keep_pid <= 0:
+            continue
+        lane_pids = [pid for pid in live.get(str(lane), []) if pid != keep_pid]
+        if not lane_pids:
+            continue
+        for pid in lane_pids:
+            _terminate_pid(pid)
+        removed[str(lane)] = sorted(lane_pids)
+    return removed
+
+
 def _parse_feature_runner_ts(raw: str) -> float:
     token = str(raw or "").strip()
     if not token:
@@ -338,11 +426,13 @@ def _reconcile_feature_runner_state() -> Dict[str, object]:
     return {"removed": sorted(set(removed)), "terminated": terminated}
 
 
-def _reconcile_router_state() -> Dict[str, List[str]]:
+def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = None) -> Dict[str, List[str]]:
     state = load_json(ROUTER_STATE_FILE, {})
     if not isinstance(state, dict):
         return {}
 
+    now = time.time()
+    current_epoch = _current_resume_epoch(coordinator_state)
     removed: Dict[str, List[str]] = {}
     changed = False
     for key in ROUTER_JOB_STATE_KEYS:
@@ -352,6 +442,17 @@ def _reconcile_router_state() -> Dict[str, List[str]]:
         stale: List[str] = []
         for job_name, job in list(jobs.items()):
             if not isinstance(job, dict):
+                jobs.pop(job_name, None)
+                stale.append(str(job_name))
+                continue
+            lane = str(job.get("lane") or str(job_name).split(":", 1)[0] or "")
+            packet_name = str(job.get("packet_name") or str(job_name).split(":", 1)[-1] or "")
+            if packet_name and lane and not _packet_exists(lane, packet_name):
+                jobs.pop(job_name, None)
+                stale.append(str(job_name))
+                continue
+            job_epoch = str(job.get("resume_epoch") or "")
+            if job_epoch and current_epoch and job_epoch != current_epoch and not _pid_alive(int(job.get("pid") or 0)):
                 jobs.pop(job_name, None)
                 stale.append(str(job_name))
                 continue
@@ -366,6 +467,46 @@ def _reconcile_router_state() -> Dict[str, List[str]]:
             removed[key] = sorted(stale)
             state[key] = jobs
             changed = True
+
+    for key in ROUTER_RETRY_STATE_KEYS:
+        retry_map = state.get(key)
+        if not isinstance(retry_map, dict):
+            continue
+        stale: List[str] = []
+        for retry_key, retry_at_raw in list(retry_map.items()):
+            try:
+                retry_at = float(retry_at_raw or 0)
+            except Exception:
+                retry_at = 0.0
+            retry_str = str(retry_key)
+            lane = ""
+            packet_name = ""
+            if ":" in retry_str:
+                lane, packet_name = retry_str.split(":", 1)
+            else:
+                lane = retry_str
+            if packet_name and lane and not _packet_exists(lane, packet_name):
+                retry_map.pop(retry_key, None)
+                stale.append(retry_str)
+                continue
+            if retry_at <= now:
+                retry_map.pop(retry_key, None)
+                stale.append(retry_str)
+        if stale:
+            removed[key] = sorted(stale)
+            state[key] = retry_map
+            changed = True
+
+    global_retry = float(state.get("reviewer_quota_global_retry_ts", 0) or 0)
+    if global_retry and global_retry <= now:
+        state["reviewer_quota_global_retry_ts"] = 0
+        removed["reviewer_quota_global_retry_ts"] = ["expired"]
+        changed = True
+    cloud_retry = float(state.get("cloud_retry_at", 0) or 0)
+    if cloud_retry and cloud_retry <= now and str(state.get("runtime_mode") or "") != "local_fallback":
+        state["cloud_retry_at"] = 0
+        removed["cloud_retry_at"] = ["expired"]
+        changed = True
 
     if changed:
         save_json(ROUTER_STATE_FILE, state)
@@ -392,7 +533,8 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
     feature_runner_reconcile = _reconcile_feature_runner_state()
     feature_runner_removed = list(feature_runner_reconcile.get("removed") or [])
     feature_runner_terminated = dict(feature_runner_reconcile.get("terminated") or {})
-    router_removed = _reconcile_router_state()
+    duplicate_feature_pids_removed = _reconcile_duplicate_feature_exec_processes()
+    router_removed = _reconcile_router_state(coordinator_state)
     worktree_reconcile = _reconcile_lane_worktrees()
     git_hygiene = run_hygiene(REPO_ROOT)
     git_hygiene_status = _update_git_hygiene_status(coordinator_state, git_hygiene)
@@ -419,6 +561,8 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
         print(f"[reconcile] terminated looping feature-runner for {lane}: {reason}")
     for key, names in sorted(router_removed.items()):
         print(f"[reconcile] pruned stale router state from {key}: {', '.join(names)}")
+    for lane, pids in sorted(duplicate_feature_pids_removed.items()):
+        print(f"[reconcile] terminated duplicate feature workers for {lane}: {', '.join(str(pid) for pid in pids)}")
     for repaired in worktree_reconcile["gitdir_repaired"]:
         print(f"[reconcile] restored shared gitdir for {repaired}")
     for backup in worktree_reconcile["gitdir_backups"]:
@@ -446,6 +590,7 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
         "feature_runner_removed": feature_runner_removed,
         "feature_runner_terminated": feature_runner_terminated,
         "router_removed": router_removed,
+        "duplicate_feature_pids_removed": duplicate_feature_pids_removed,
         "worktree_reconcile": worktree_reconcile,
         "git_hygiene": git_hygiene,
         "git_hygiene_status": git_hygiene_status,
@@ -1315,6 +1460,10 @@ def main() -> int:
         print(f"[coordinator] mode={mode_label}")
 
         coord_state = load_json(STATE_FILE, {})
+        previous_epoch = str(coord_state.get("current_resume_epoch") or "")
+        coord_state["current_resume_epoch"] = run_id
+        coord_state["previous_resume_epoch"] = previous_epoch
+        coord_state["resume_epoch_started_at"] = utc_now()
         coord_state["daemon_mode"] = args.daemon
         coord_state["last_cycle_at"] = utc_now()
         coord_state["last_cycle_activity"] = False
