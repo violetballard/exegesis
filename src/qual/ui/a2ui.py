@@ -317,6 +317,13 @@ def describe_terminal_artifact_contract_fingerprints() -> dict[str, str]:
     }
 
 
+def _build_terminal_artifact_cli_fallback_contract_fingerprints() -> dict[str, str]:
+    return {
+        "rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
+        "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
+    }
+
+
 def build_terminal_artifact_envelope(artifact: Any, *, kind: str) -> dict[str, Any]:
     """Build a canonical ``TerminalArtifact`` envelope for structured CLI payloads.
 
@@ -654,6 +661,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         },
         "terminal_fallback_contract": terminal_fallback_contract,
         "terminal_artifact_rendering_contract": rendering_contract,
+        "contract_fingerprints": _build_terminal_artifact_cli_fallback_contract_fingerprints(),
     }
 
 

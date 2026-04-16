@@ -469,6 +469,13 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["rendering_fingerprint"],
             terminal_artifact_rendering_contract_fingerprint(),
         )
+        self.assertEqual(
+            manifest["contract_fingerprints"],
+            {
+                "rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
+                "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
+            },
+        )
         self.assertEqual(manifest["kind_resolution"], manifest["rendering"]["kind_resolution"])
         self.assertEqual(manifest["fallback_recovery"], manifest["rendering"]["fallback_recovery"])
         self.assertEqual(manifest["terminal_fallback_contract"], describe_terminal_fallback_contract())
