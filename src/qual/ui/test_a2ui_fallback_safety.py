@@ -1167,6 +1167,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             render_terminal_artifact({"type": "GenericCard", "title": "Run Log", "blocks": [], "actions": []}, kind=1)
 
+    def test_terminal_artifact_prefers_typed_card_payloads_over_conflicting_non_card_hints(self) -> None:
+        artifact = {
+            "type": "GenericCard",
+            "title": " Run Log ",
+            "a2ui_version": 1,
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+            "actions": [],
+        }
+
+        action_text = render_terminal_artifact(artifact, kind="action")
+        selection_text = render_terminal_artifact(artifact, kind="selection")
+
+        self.assertIn("[GenericCard] Run Log", action_text)
+        self.assertIn("A2UI v1", action_text)
+        self.assertNotIn("[ActionRef]", action_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", action_text)
+
+        self.assertIn("[GenericCard] Run Log", selection_text)
+        self.assertIn("A2UI v1", selection_text)
+        self.assertNotIn("[SelectionRef]", selection_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
+
     def test_terminal_artifact_rejects_action_or_selection_payloads_when_card_kind_is_explicit(self) -> None:
         with self.assertRaises(ValueError):
             render_terminal_artifact(

@@ -1126,10 +1126,15 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
         requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
 
     artifact, envelope_kind = _unwrap_terminal_artifact_payload(artifact)
+    typed_kind = _infer_terminal_artifact_explicit_kind(artifact)
     if envelope_kind is not None:
         if requested_kind is not None and requested_kind != envelope_kind:
             raise ValueError("kind does not match TerminalArtifact envelope")
         kind = envelope_kind
+    elif typed_kind == "card":
+        # Preserve typed card payloads as cards even if a caller passes a
+        # conflicting action/selection hint.
+        kind = "card"
     elif requested_kind is not None:
         kind = requested_kind
 
@@ -1285,6 +1290,25 @@ def _infer_terminal_artifact_kind_from_mapping(artifact: Mapping[str, Any]) -> s
         return "action"
     if has_selection_hints and not has_action_hints:
         return "selection"
+    return None
+
+
+def _infer_terminal_artifact_explicit_kind(artifact: Any) -> str | None:
+    if isinstance(artifact, ActionRef):
+        return "action"
+    if isinstance(artifact, SelectionRef):
+        return "selection"
+    if isinstance(artifact, Mapping):
+        artifact_type = artifact.get("type")
+        if isinstance(artifact_type, str):
+            normalized_type = artifact_type.strip()
+            if normalized_type == "ActionRef":
+                return "action"
+            if normalized_type == "SelectionRef":
+                return "selection"
+            if normalized_type and normalized_type != _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+                return "card"
+        return _infer_terminal_artifact_kind_from_mapping(artifact)
     return None
 
 
