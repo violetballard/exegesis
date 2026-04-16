@@ -94,7 +94,7 @@
 
 - `Writing-centered workflow` because the patch-review step in the operator trust surface stays deterministic while the MVP loop still runs through the CLI.
 - `Canonical engine contract` because the active CLI compatibility surface for patch review remains stable and deterministic while Textual stays disabled.
-- `Auditable state and workflow` because parser/catalog drift in flow, surface, and shim contracts now fails loudly instead of silently mutating the operator-facing patch-review contract.
+- Scope tightening: this slice does not add persistence, audit hooks, or workflow artifacts; it is limited to CLI compatibility and deterministic command-contract validation for the patch-review step.
 
 ### Routing/provider impact note
 
