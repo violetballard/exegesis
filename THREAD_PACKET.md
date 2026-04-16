@@ -31,6 +31,11 @@
 - Fix 1: The handoff packet now states explicitly that this slice advances the canonical demo-path step `retrieve relevant material`.
 - Fix 2: The scope wording remains narrowed to the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the approved shared regression exception in `tests/unit/test_unified_retrieval.py`, rather than reading as broader PageIndex compatibility work.
 
+## Authoritative Re-review Note
+- This `THREAD_PACKET.md` refresh is the authoritative handoff packet for the reviewer-fix re-review pass in this worktree.
+- Re-review should evaluate the narrowed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, the shared/high-risk `4`-task cap, and the canonical demo-path step `retrieve relevant material` from this packet.
+- The runtime implementation scope remains unchanged; this fixer refresh is metadata-only packet clarification for re-review.
+
 ## AGENTS.md Handoff Packet
 - Risk reason: shared/high-risk work because this narrowed reviewed implementation includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 - Task budget: `4`
@@ -80,6 +85,11 @@
 ## Scope-check / ownership note
 - Shared-by-approval edits: `YES` (Approval reference: the lane `Approved exception note` recorded in `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` explicitly authorizes `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane as the sole shared-by-approval regression surface exercising the canonical retrieval contract.)
 - Integrator-locked edits: `NO`
+
+## Reviewer Reconciliation
+- This packet is the writable source of truth for re-review in this fixer environment and supersedes any stale risk classification in blocked `.codex` packet mirrors.
+- Treat this narrowed slice as shared/high-risk work under the `4`-task cap because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
+- Re-review should use the narrowed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the explicit canonical demo-path mapping above.
 
 ## Reviewer Fixer Note
 - Reviewer packet source of truth applied here: this metadata refresh keeps the narrowed reviewed implementation range at `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, explicitly records the shared-file approval reference, and calls out the fail-closed `fetch_excerpt` contract risk for re-review.
