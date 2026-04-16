@@ -2,9 +2,9 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Handoff type: `retrieval feature handoff for the FTS-first retrieval lane`
-- Packet HEAD role: `metadata-only reviewer-fix gate evidence refresh for 2026-04-16 rerun`
+- Packet HEAD role: `metadata-only reviewer-fix final validation refresh for 2026-04-16 rerun`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet refresh base commit before this rerun: `e4d7956110458f2d9e375d82c50e443b039a0571`
+- Packet refresh base commit before this rerun: `6649f317c40d7a93bdb7238ec805c180daf4a29b`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 ## Scope goal
@@ -23,7 +23,7 @@
 ## Reviewer-required fix
 - Reviewer packet fix addressed: `Resolve failing gate output and include passing results.`
 - Reviewer packet fix addressed: `Add an explicit canonical demo-path step and tighten the roadmap/vision mapping to that step-level rationale.`
-- Local reproduction note: no failing gate was reproducible on branch tip `e4d7956110458f2d9e375d82c50e443b039a0571` when rerun on `2026-04-16`.
+- Local reproduction note: no failing gate was reproducible on branch tip `6649f317c40d7a93bdb7238ec805c180daf4a29b` when rerun on `2026-04-16`.
 - Fixer action: reran the full required gate sweep and refreshed this handoff packet so the passing evidence is explicit for re-review.
 
 ## AGENTS.md handoff packet
@@ -45,9 +45,9 @@
 - `make scope-check`: PASS on `2026-04-16` (`[devex] scope-check: passed for branch 'codex/feat-retrieval-fts'`)
 - `./quality-format.sh --check`: PASS on `2026-04-16` (`[format] check passed`)
 - `./quality-lint.sh`: PASS on `2026-04-16` (`[lint] passed`)
-- `./quality-test.sh`: PASS on `2026-04-16` (`Ran 157 tests in 4.938s`, `OK`, `[test] passed`)
+- `./quality-test.sh`: PASS on `2026-04-16` (`Ran 157 tests in 4.964s`, `OK`, `[test] passed`)
 - `./typecheck-test.sh`: PASS on `2026-04-16` (`[typecheck] compiling Python sources in src/`)
-- `make ci`: PASS on `2026-04-16` (`Ran 157 tests in 4.904s`, `OK`, `[devex] CI entrypoint completed`)
+- `make ci`: PASS on `2026-04-16` (`Ran 157 tests in 4.917s`, `OK`, `[devex] CI entrypoint completed`)
 - Final fixer-pass note: the full required gate sweep was rerun on the lane branch and this metadata-only refresh commit records the passing evidence requested by review.
 
 ## Risks/blockers
