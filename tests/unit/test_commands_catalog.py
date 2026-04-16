@@ -711,6 +711,47 @@ class CommandCatalogTests(unittest.TestCase):
             command_cli_entry_argv_for(specs, ("context",)),
             ("context-basket", "list"),
         )
+        self.assertEqual(
+            command_cli_entry_argv_for(specs, ("--format", "json"), ("retrieval",)),
+            ("context-basket", "list", "--format", "json"),
+        )
+
+    def test_flag_only_default_route_preserves_required_terminal_defaults(self) -> None:
+        specs = (
+            CommandSpec(
+                name="terminal",
+                cli_tokens=("terminal",),
+                smoke_argv=(
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_synthesis_request",
+                    "--message",
+                    "Export handoff",
+                ),
+                flow_step="export-handoff",
+            ),
+        )
+
+        self.assertEqual(
+            command_cli_entry_argv_for(specs, ("--message", "Queued for export")),
+            (
+                "terminal",
+                "--operation-kind",
+                "terminal_synthesis_request",
+                "--message",
+                "Queued for export",
+            ),
+        )
+        self.assertEqual(
+            command_smoke_argv_for(specs, ("--message", "Queued for export")),
+            (
+                "terminal",
+                "--operation-kind",
+                "terminal_synthesis_request",
+                "--message",
+                "Queued for export",
+            ),
+        )
 
     def test_command_demo_and_mvp_cli_shim_helpers_alias_the_public_contract(self) -> None:
         self.assertEqual(command_demo_cli_shim_contract(), command_cli_shim_contract())

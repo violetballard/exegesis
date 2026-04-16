@@ -1297,9 +1297,13 @@ def command_cli_entry_argv_for(
     raw_argv = tuple(argv)
     route_tokens = command_flow_route_tokens(specs, flow_steps)
     default_token = route_tokens[0] if route_tokens else ""
+    smoke_plan = command_smoke_invocation_plan(specs, flow_steps)
+    default_argv = smoke_plan[0].argv if smoke_plan else ()
     if not raw_argv:
         return (default_token,) if default_token else ()
     if raw_argv[0].lstrip().startswith("-"):
+        if default_argv:
+            return _merge_shim_argv(default_argv, raw_argv)
         return (default_token, *raw_argv) if default_token else raw_argv
     normalized_argv = command_cli_shim_argv_for(specs, raw_argv, flow_steps)
     if len(raw_argv) != 1:
@@ -2355,7 +2359,7 @@ def command_smoke_argv_for(
     if not raw_argv:
         return default_argv
     if raw_argv[0].lstrip().startswith("-"):
-        return (*default_argv, *raw_argv) if default_argv else raw_argv
+        return _merge_shim_argv(default_argv, raw_argv) if default_argv else raw_argv
 
     resolved = command_resolve_for(specs, raw_argv[0], flow_steps)
     if not resolved.matched:
