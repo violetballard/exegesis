@@ -1203,12 +1203,16 @@ def command_cli_shim_argv_for(
         return ()
     if raw_argv[0].lstrip().startswith("-"):
         return raw_argv
+    invocation_lookup = dict(command_cli_shim_invocation_table(specs, flow_steps))
+    normalized_token = _normalize_token(raw_argv[0])
+    shim_argv = invocation_lookup.get(normalized_token)
     if len(raw_argv) == 1:
-        invocation_lookup = dict(command_cli_shim_invocation_table(specs, flow_steps))
-        normalized_token = _normalize_token(raw_argv[0])
-        shim_argv = invocation_lookup.get(normalized_token)
         if shim_argv is not None:
             return shim_argv
+    elif shim_argv is not None and len(shim_argv) > 1:
+        # Preserve alias-specific default routing while still allowing callers to
+        # append explicit parser flags for deterministic CLI smoke paths.
+        return (*shim_argv, *raw_argv[1:])
     primary_token = command_cli_shim_primary_token_for(specs, raw_argv[0], flow_steps)
     if not primary_token:
         return raw_argv
@@ -2487,11 +2491,7 @@ def command_resolve_argv_for(
         canonical_name=resolved.canonical_name,
         flow_step=resolved.flow_step,
         primary_cli_token=resolved.primary_cli_token,
-        argv=(
-            _resolved_single_token_argv(specs, resolved.canonical_name, resolved.argv)
-            if len(raw_argv) == 1
-            else (resolved.primary_cli_token, *raw_argv[1:])
-        ),
+        argv=command_cli_shim_argv_for(specs, raw_argv, flow_steps),
         smoke_argv=resolved.smoke_argv,
         cli_tokens=resolved.cli_tokens,
         lookup_tokens=resolved.lookup_tokens,
