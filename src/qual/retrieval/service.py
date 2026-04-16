@@ -205,6 +205,14 @@ def _normalize_query_intent_payload(value: object) -> str | None:
     return _normalized_profile_text(value)
 
 
+def _normalize_lookup_resolution_payload(value: object) -> str | None:
+    return _normalized_profile_text(value)
+
+
+def _normalize_lookup_confidentiality_profile_payload(value: object) -> str | None:
+    return _normalized_profile_text(value)
+
+
 def _normalize_doc_id_list_payload(value: object) -> list[str] | None:
     raw_items = _optional_list_like(value)
     if raw_items is None:
@@ -2184,9 +2192,18 @@ class RetrievalService:
         normalized = dict(excerpt)
         normalized["source_strategy"] = source_strategy
         normalized["retrieval_source_strategy"] = source_strategy
-        normalized["lookup_resolution"] = lookup_resolution
-        if lookup_confidentiality_profile is not None:
-            normalized["lookup_confidentiality_profile"] = lookup_confidentiality_profile
+        canonical_lookup_resolution = _normalize_lookup_resolution_payload(
+            normalized.get("lookup_resolution", provenance.get("lookup_resolution", lookup_resolution))
+        ) or lookup_resolution
+        normalized["lookup_resolution"] = canonical_lookup_resolution
+        canonical_lookup_confidentiality_profile = _normalize_lookup_confidentiality_profile_payload(
+            normalized.get(
+                "lookup_confidentiality_profile",
+                provenance.get("lookup_confidentiality_profile", lookup_confidentiality_profile),
+            )
+        )
+        if canonical_lookup_confidentiality_profile is not None:
+            normalized["lookup_confidentiality_profile"] = canonical_lookup_confidentiality_profile
         text_hash = provenance.get("hash") or provenance.get("excerpt_text_hash") or normalized.get("text_hash")
         if not isinstance(text_hash, str) or not text_hash:
             text_value = normalized.get("text")
@@ -2360,9 +2377,9 @@ class RetrievalService:
         normalized_provenance["deferred_strategy_ids"] = list(deferred_strategy_ids)
         normalized_provenance["strategies_used"] = list(strategies_used)
         normalized_provenance["retrieval_source_strategy"] = source_strategy
-        normalized_provenance["lookup_resolution"] = lookup_resolution
-        if lookup_confidentiality_profile is not None:
-            normalized_provenance["lookup_confidentiality_profile"] = lookup_confidentiality_profile
+        normalized_provenance["lookup_resolution"] = canonical_lookup_resolution
+        if canonical_lookup_confidentiality_profile is not None:
+            normalized_provenance["lookup_confidentiality_profile"] = canonical_lookup_confidentiality_profile
         matched_terms = _normalize_matched_terms(normalized_provenance.get("matched_terms"))
         if matched_terms is not None:
             normalized_provenance["matched_terms"] = matched_terms
@@ -2406,8 +2423,8 @@ class RetrievalService:
                 "doc_id": doc_id_value,
                 "excerpt_id": normalized.get("excerpt_id"),
                 "source_strategy": source_strategy,
-                "lookup_resolution": lookup_resolution,
-                "lookup_confidentiality_profile": lookup_confidentiality_profile,
+                "lookup_resolution": canonical_lookup_resolution,
+                "lookup_confidentiality_profile": canonical_lookup_confidentiality_profile,
                 "retrieval_backend": retrieval_backend,
                 "retrieval_mode": retrieval_mode,
                 "active_strategy_ids": active_strategy_ids,

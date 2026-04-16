@@ -1397,6 +1397,47 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["provenance"]["section_hint"], "discussion notes")
         self.assertEqual(normalized["provenance"]["section_hint_rank"], 1)
 
+    def test_normalize_excerpt_payload_canonicalizes_lookup_metadata_for_fingerprints(self) -> None:
+        compact = self.service._normalize_excerpt_payload(
+            {
+                "excerpt_id": "excerpt-sparse-lookup-1",
+                "doc_id": "doc-pdf-1",
+                "doc_type": "pdf",
+                "text": "Discussion theory evidence stays deterministic.",
+                "span": {"char_range": {"start": 7, "end": 38}},
+            },
+            source_strategy="fts",
+            lookup_resolution="fts",
+            lookup_confidentiality_profile="standard",
+        )
+        spaced = self.service._normalize_excerpt_payload(
+            {
+                "excerpt_id": "excerpt-sparse-lookup-1",
+                "doc_id": "doc-pdf-1",
+                "doc_type": "pdf",
+                "text": "Discussion theory evidence stays deterministic.",
+                "span": {"char_range": {"start": 7, "end": 38}},
+                "lookup_resolution": "  FTS  ",
+                "lookup_confidentiality_profile": "  StAnDaRd  ",
+                "provenance": {
+                    "lookup_resolution": "  FTS  ",
+                    "lookup_confidentiality_profile": "  StAnDaRd  ",
+                },
+            },
+            source_strategy="fts",
+            lookup_resolution="  FTS  ",
+            lookup_confidentiality_profile="  StAnDaRd  ",
+        )
+
+        self.assertEqual(compact["lookup_resolution"], "fts")
+        self.assertEqual(compact["lookup_confidentiality_profile"], "standard")
+        self.assertEqual(spaced["lookup_resolution"], "fts")
+        self.assertEqual(spaced["lookup_confidentiality_profile"], "standard")
+        self.assertEqual(spaced["provenance"]["lookup_resolution"], "fts")
+        self.assertEqual(spaced["provenance"]["lookup_confidentiality_profile"], "standard")
+        self.assertEqual(compact["lookup_fingerprint"], spaced["lookup_fingerprint"])
+        self.assertEqual(compact["excerpt_provenance_fingerprint"], spaced["excerpt_provenance_fingerprint"])
+
     def test_retrieve_fts_excerpt_records_lookup_fingerprint_in_audit(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
