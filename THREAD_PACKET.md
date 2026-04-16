@@ -19,6 +19,7 @@
 - Canonical demo-path step advanced: `retrieve relevant material`
 - This reviewed implementation range makes `retrieve relevant material` more real by keeping retrieval output deterministic and auditable while forcing excerpt lookup through the canonical FTS-only path.
 - Concretely, `src/qual/retrieval/service.py` now resolves `fetch_excerpt` through the canonical FTS-only lookup path, and the approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs fail closed with `KeyError`.
+- This explicit demo-path mapping is the required `AGENTS.md` handoff answer for the narrowed slice under review, not an inferred roadmap-only mapping.
 - This metadata-only fixer refresh exists to keep that canonical demo-path mapping explicit in the handoff packet for re-review.
 
 ## Reviewer Fix Addressed
@@ -28,8 +29,7 @@
 
 ## Reviewer-required fixes addressed
 - Fix 1: The handoff packet now states explicitly that this slice advances the canonical demo-path step `retrieve relevant material`.
-- Fix 2: The packet now names the exact approval reference for the shared regression coverage: the lane's `Approved exception note` in `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`, which authorizes `tests/unit/test_unified_retrieval.py` as the sole shared-by-approval regression surface for this lane.
-- Fix 3: The risks section now states the behavioral fail-closed contract directly and ties it to passing verification on the canonical FTS-only path.
+- Fix 2: The scope wording remains narrowed to the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the approved shared regression exception in `tests/unit/test_unified_retrieval.py`, rather than reading as broader PageIndex compatibility work.
 
 ## AGENTS.md Handoff Packet
 - Risk reason: shared/high-risk work because this narrowed reviewed implementation includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
@@ -95,4 +95,4 @@
 - This packet refresh exists specifically to satisfy the reviewer-required handoff correction for explicit canonical demo-path mapping.
 - Re-review should treat the canonical demo-path mapping above as the explicit `AGENTS.md` handoff answer for this narrowed retrieval slice.
 - Fixer refresh date: `2026-04-16`
-- Pre-fix packet trace anchor for this metadata-only fixer pass: `a6c62cdf722baf631533e89d5a3270c00c2d6c99`
+- Pre-fix packet trace anchor for this metadata-only fixer pass: `d4d9c03aefbf3d606a3d1d3d85ebda54c3d05a15`
