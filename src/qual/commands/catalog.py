@@ -10,6 +10,7 @@ class CommandSpec:
     name: str
     aliases: tuple[str, ...] = ()
     cli_tokens: tuple[str, ...] = ()
+    cli_exposed: bool = True
     smoke_argv: tuple[str, ...] = ()
     description: str = ""
     flow_step: str = "general"
@@ -264,6 +265,8 @@ def _validated_cli_entrypoints_for(
     seen_entrypoints: set[str] = set()
     validated_entrypoints: list[tuple[str, tuple[str, ...]]] = []
     for spec in specs:
+        if not spec.cli_exposed:
+            continue
         entrypoints = spec.cli_tokens or _lookup_tokens(spec)
         if not entrypoints:
             raise ValueError(f"Command {spec.name} must define at least one CLI entrypoint")
@@ -299,6 +302,8 @@ def _command_cli_tokens_by_name() -> dict[str, tuple[str, ...]]:
 
 
 def _declared_cli_entrypoints_for(spec: CommandSpec) -> tuple[str, ...]:
+    if not spec.cli_exposed:
+        return ()
     entrypoints = spec.cli_tokens or _lookup_tokens(spec)
     return tuple(_normalize_token(entrypoint) for entrypoint in entrypoints)
 
@@ -310,13 +315,14 @@ def _validate_command_cli_contract(
     validated_entrypoints: tuple[tuple[str, tuple[str, ...]], ...] | None = None,
 ) -> None:
     validate_command_catalog(specs)
-    expected_canonical_names = command_names(specs)
+    expected_canonical_names = tuple(name for name, _ in validated_entrypoints or ())
     if contract.canonical_names != expected_canonical_names:
         raise ValueError("Command CLI canonical names are inconsistent")
 
     expected_parser_surface = tuple(
         (spec.name, _declared_cli_entrypoints_for(spec))
         for spec in specs
+        if spec.cli_exposed
     )
     if validated_entrypoints is not None and validated_entrypoints != expected_parser_surface:
         raise ValueError("Command CLI parser surface is inconsistent")
@@ -505,6 +511,13 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
             if normalized_cli_token in seen_lookup_tokens and seen_lookup_tokens[normalized_cli_token] != spec.name:
                 raise ValueError(f"Duplicate command lookup token: {cli_token}")
             seen_lookup_tokens[normalized_cli_token] = spec.name
+
+        if not spec.cli_exposed:
+            if spec.cli_tokens:
+                raise ValueError(f"Command {spec.name} must not declare CLI entrypoints when cli_exposed is false")
+            if spec.smoke_argv:
+                raise ValueError(f"Command {spec.name} must not declare smoke argv when cli_exposed is false")
+            continue
 
         _smoke_argv_for_spec(spec)
 
@@ -750,7 +763,7 @@ def command_cli_primary_tokens(
 ) -> tuple[str, ...]:
     return tuple(
         command_primary_cli_token_for(specs, name)
-        for name in command_names(specs)
+        for name in command_cli_contract(specs).canonical_names
     )
 
 

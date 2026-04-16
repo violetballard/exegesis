@@ -25,13 +25,14 @@
 
 ## Reviewer Fix Closure
 
-- Parser-surface invariant: `command_cli_contract()` now validates both canonical command ordering and the exact declared per-command CLI parser surface, so alias substitution or token reordering raises `ValueError` instead of silently mutating the operator contract.
-- Regression coverage: `tests/unit/test_commands_catalog.py` includes focused rejection tests for alias substitution in the parser surface, parser-token reordering, and canonical-name drift, in addition to the deterministic contract-order assertions.
+- Parser-surface invariant: `command_cli_contract()` now preserves canonical ordering for the CLI-exposed command subset and validates the exact declared per-command CLI parser surface, so alias substitution or token reordering raises `ValueError` instead of silently mutating the operator contract.
+- Migration-safe catalog growth: command-catalog entries can now opt out of the CLI parser surface explicitly, so future non-CLI catalog commands do not break the live CLI contract.
+- Regression coverage: `tests/unit/test_commands_catalog.py` includes focused rejection tests for alias substitution in the parser surface and parser-token reordering, plus migration-safe coverage showing that an additional non-CLI catalog command does not break the CLI contract or its canonical CLI ordering.
 - Demo-path mapping: this packet explicitly names the canonical demo-path step advanced by the lane so the handoff satisfies the `AGENTS.md` narrowing rule instead of relying on reviewer inference.
 
 ## Scope Goal
 
-- Harden the CLI command contract so command catalog ordering, parser entrypoints, route ordering, and invocation planning stay deterministic and fail fast when the parser surface drifts from the catalog.
+- Harden the CLI command contract so CLI-exposed command ordering, parser entrypoints, route ordering, and invocation planning stay deterministic and fail fast when the parser surface drifts from the catalog.
 - Keep the CLI-first MVP loop stable while Textual remains disabled.
 
 ## Canonical Demo-Path Step Advanced
@@ -49,14 +50,14 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so canonical CLI names must match `command_names()`, and the declared parser surface must exactly match the catalog-backed CLI entrypoint layout or raise `ValueError`.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so CLI-exposed canonical names stay in catalog order, catalog-only commands can opt out of the parser surface, and the declared parser surface must exactly match the catalog-backed CLI entrypoint layout or raise `ValueError`.
 - Added parser-surface lookup helpers, deterministic route and invocation metadata, CLI shim contract helpers, and MVP smoke-contract metadata in `src/qual/commands/catalog.py`.
 - Classified legacy command aliases deterministically in `src/qual/commands/catalog.py` so raw CLI tokens preserve the intended `primary` vs `cli` vs `flow-step` vs `lookup` kind even when the user input differs only by case or underscore normalization.
 - Added runnable smoke argv metadata in `src/qual/commands/catalog.py` so the deterministic command contract covers the actual CLI invocation plan for the active smoke path.
 - Exported the expanded command-contract helpers from `src/qual/commands/__init__.py` so compatibility imports remain aligned with the branch-tip implementation.
 - Restored the public `canonical_command` wrapper export in `src/qual/commands/canonical.py` so compatibility imports keep resolving against the catalog-backed implementation.
 - Fixed bounded diff preview truncation in `src/qual/commands/diff_preview.py` so the `patch-review` path stays deterministic under output limits.
-- Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order validation, parser-surface alias substitution rejection, parser-token reordering rejection, shim argv helpers, deterministic resolution helpers, legacy-alias kind classification, route determinism, and smoke invocation metadata.
+- Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order validation, parser-surface alias substitution rejection, parser-token reordering rejection, migration-safe non-CLI catalog growth, shim argv helpers, deterministic resolution helpers, legacy-alias kind classification, route determinism, and smoke invocation metadata.
 - Refreshed this handoff packet so the review basis, files changed, and demo-path mapping match the actual current branch-tip implementation.
 
 ## Files Changed

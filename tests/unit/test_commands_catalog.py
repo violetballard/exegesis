@@ -216,8 +216,50 @@ class CommandCatalogTests(unittest.TestCase):
     def test_command_cli_contract_matches_the_catalog_order(self) -> None:
         contract = command_cli_contract()
         self.assertEqual(contract.tokens, command_cli_tokens())
-        self.assertEqual(contract.canonical_names, command_names())
+        self.assertEqual(contract.canonical_names, ("bootstrap", "diff-preview", "context-basket", "terminal"))
         self.assertEqual(contract.lookup_table, command_cli_lookup_table())
+
+    def test_command_cli_contract_preserves_cli_subset_order_without_requiring_full_catalog_equality(self) -> None:
+        specs = (
+            CommandSpec(
+                name="bootstrap",
+                aliases=("open",),
+                cli_tokens=("project-open", "bootstrap-run"),
+                flow_step="project-open",
+            ),
+            CommandSpec(
+                name="catalog-only",
+                aliases=("catalog",),
+                cli_exposed=False,
+                flow_step="internal-only",
+            ),
+            CommandSpec(
+                name="review",
+                aliases=("patch",),
+                cli_tokens=("review-patch", "diff"),
+                flow_step="patch-review",
+            ),
+        )
+
+        contract = command_cli_contract(specs)
+        self.assertEqual(
+            command_names(specs),
+            ("bootstrap", "catalog-only", "review"),
+        )
+        self.assertEqual(contract.canonical_names, ("bootstrap", "review"))
+        self.assertEqual(contract.tokens, ("project-open", "bootstrap-run", "review-patch", "diff"))
+        self.assertEqual(
+            contract.lookup_table,
+            (
+                ("project-open", "bootstrap"),
+                ("bootstrap-run", "bootstrap"),
+                ("review-patch", "review"),
+                ("diff", "review"),
+            ),
+        )
+        self.assertEqual(command_cli_tokens_for(specs, "catalog-only"), ())
+        self.assertEqual(command_primary_cli_token_for(specs, "catalog-only"), "")
+        self.assertEqual(command_cli_primary_tokens(specs), ("project-open", "review-patch"))
 
     def test_command_cli_shim_lookup_table_rewrites_surface_tokens_to_primary_entrypoints(self) -> None:
         self.assertEqual(
@@ -512,12 +554,6 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         ):
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
-                command_catalog.command_cli_contract()
-
-    def test_command_cli_contract_rejects_canonical_name_drift(self) -> None:
-        command_catalog.command_cli_contract.cache_clear()
-        with patch.object(command_catalog, "command_names", return_value=("bootstrap", "diff-preview")):
-            with self.assertRaisesRegex(ValueError, "Command CLI canonical names are inconsistent"):
                 command_catalog.command_cli_contract()
 
     def test_command_cli_lookup_table_resolves_through_the_catalog(self) -> None:
