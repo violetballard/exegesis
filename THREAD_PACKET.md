@@ -26,6 +26,7 @@
 3. The packet keeps scope tightened to this retrieval contract correction only and does not describe PageIndex or embeddings as required runtime paths.
 4. The reviewed implementation scope remains narrowed to the existing two-file slice and is not broadened back into cumulative branch work.
 5. This handoff packet treats the reviewer packet as the source-of-truth traceability anchor for the reviewed slice.
+6. This metadata refresh supersedes the earlier packet-only fix commit `f6c54946ae4021d3893e8fd25207a45aa6e03425` while preserving the same explicit canonical demo-path mapping required for re-review.
 
 ## AGENTS.md handoff packet
 - Risk reason: shared/high-risk work because the reviewed implementation range includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
@@ -72,4 +73,5 @@
 
 ## Packet mirror status
 - `THREAD_PACKET.md` is the source-of-truth packet for this fixer pass.
+- This refresh keeps the explicit canonical demo-path step on the authoritative packet surface even though the mirrored `.codex` packet files are not writable in this sandboxed worktree.
 - The mirrored `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` files were readable in this worktree but not writable under the current filesystem restrictions, so they were left unchanged.
