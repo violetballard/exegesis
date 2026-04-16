@@ -18,18 +18,18 @@
   - `82fb2cd0576d0ded9e0790908a266d9f3634d39f` (`docs(commands): tighten patch-review demo path mapping`) is the prior docs-only branch tip before this refresh and does not change the implementation scope.
   - `0113bb75c4b22b80dfbaaf0850ea3205a2b6d104` (`docs(commands): refresh reviewer fix packet tip`) remained packet-only and kept the review basis anchored to the full branch-tip implementation lineage.
 - This follow-up fixer refresh also updates `THREAD_PACKET.md` only after rerunning the full required gate set on `2026-04-16`; it does not change the implementation scope.
-- This final feature-fixer closure pass on `2026-04-16` adds deterministic command-resolution helpers in `src/qual/commands/catalog.py`, re-exports them from `src/qual/commands/__init__.py`, extends `tests/unit/test_commands_catalog.py`, and refreshes this packet after a green gate rerun.
+- This final feature-fixer closure pass on `2026-04-16` adds focused regression coverage for the existing deterministic command-resolution helpers in `tests/unit/test_commands_catalog.py` and refreshes this packet after a green gate rerun.
 
 ## Reviewer-required fixes closure
 - Required fix `1`: the packet is anchored to branch tip rather than `f8d860ed...` alone, and it lists the non-metadata implementation commits and implementation files changed after that earlier slice.
 - Required fix `2`: the stale claim that later commits were metadata-only has been removed; only the packet-only `docs(commands): ...` commits are treated as docs-only alignment commits.
 - Required fix `3`: the canonical demo-path step advanced is stated explicitly below and mapped to the Milestone 3 CLI-first loop.
 - Required fix `4`: the commands-run and budget/limits notes below are stated against the same current branch-tip scope named in this packet.
-- Fixer verification on `2026-04-16`: reran the full required gate set in this lane worktree during this closure pass. The reviewed implementation scope remains the same branch-tip command-contract lineage named above, with this final pass adding deterministic resolution helpers and focused regression coverage without widening the lane-owned runtime surface.
+- Fixer verification on `2026-04-16`: reran the full required gate set in this lane worktree during this closure pass. The reviewed implementation scope remains the same branch-tip command-contract lineage named above, with this final pass adding focused regression coverage for the existing deterministic resolution helpers without widening the lane-owned runtime surface.
 - Final reviewer-fix closure on `2026-04-16`: this refresh preserves the explicit canonical demo-path mapping to `preview and apply or reject a patch`, with secondary support for `continue working`, and records the final command-resolution helper coverage used to keep that CLI surface deterministic.
 
 ## Reviewer-fix resubmission note
-- This packet no longer narrows review to `f8d860ed...` alone. It covers the full current branch-tip lineage: implementation through `cea5da3599799e72b24ed5f3e88474f3e275846a`, then packet-only docs refreshes through prior tip `0113bb75c4b22b80dfbaaf0850ea3205a2b6d104`, plus this current metadata-only packet refresh.
+- This packet no longer narrows review to `f8d860ed...` alone. It covers the full current branch-tip lineage: implementation through `cea5da3599799e72b24ed5f3e88474f3e275846a`, then packet-only docs refreshes through prior tip `0113bb75c4b22b80dfbaaf0850ea3205a2b6d104`, plus this current reviewer-fix closure pass.
 - The implementation scope under review is the actual branch-tip runtime and test surface changed after `f8d860ed...`: `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, and `tests/unit/test_commands_catalog.py`.
 - The concrete blocker removed is silent drift in the CLI `patch-review` surface: without these follow-on validations and smoke-contract helpers, parser/catalog divergence can change the operator contract for `preview and apply or reject a patch` without a fast failure in smoke tests.
 - The focused regression additions include the concrete drift cases requested in review: alias-for-canonical substitution and CLI entrypoint reordering.
@@ -47,7 +47,7 @@
 - `8b52002c` completed the reviewer-fix series by rejecting parser-surface drift when validated CLI entrypoints no longer match the canonical contract.
 - `cea5da35` added invocation metadata to the command smoke contract in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`, so the CLI-first smoke route also exposes deterministic invocation planning for the canonical `patch-review` step.
 - Additional `docs(commands): ...` commits after `cea5da35` through `0113bb75` update `THREAD_PACKET.md` only and do not change the implementation files above.
-- This current feature-fixer closure pass updates `src/qual/commands/catalog.py`, `src/qual/commands/__init__.py`, `tests/unit/test_commands_catalog.py`, and `THREAD_PACKET.md` after rerunning the required handoff gates.
+- This current feature-fixer closure pass updates `tests/unit/test_commands_catalog.py` and `THREAD_PACKET.md` after rerunning the required handoff gates.
 
 ## Scope goal
 - Harden the CLI command contract so command catalog, parser entrypoints, route ordering, and invocation planning stay deterministic and fail fast if the parser surface drifts from the catalog.
