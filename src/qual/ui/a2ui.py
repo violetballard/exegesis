@@ -149,6 +149,10 @@ def describe_a2ui_contract() -> dict[str, Any]:
 
     manifest = _build_a2ui_contract_manifest()
     manifest["contract_fingerprint"] = a2ui_contract_fingerprint()
+    manifest["action_fingerprint"] = manifest["action"]["contract_fingerprint"]
+    manifest["selection_fingerprint"] = manifest["selection"]["contract_fingerprint"]
+    manifest["card_fingerprint"] = card_contract_fingerprint()
+    manifest["contract_fingerprints"] = _build_a2ui_contract_fingerprint_summary()
     return manifest
 
 
@@ -173,6 +177,12 @@ def describe_a2ui_contract_fingerprints(include_terminal_artifact: bool = False)
     }
     if include_terminal_artifact:
         fingerprints["terminal_artifact"] = manifest["terminal_artifact_fingerprint"]
+    return fingerprints
+
+
+def _build_a2ui_contract_fingerprint_summary() -> dict[str, str]:
+    fingerprints = describe_a2ui_contract_fingerprints(include_terminal_artifact=True)
+    fingerprints["action"] = action_contract_fingerprint()
     return fingerprints
 
 
@@ -1093,16 +1103,17 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
     without forcing heuristic kind detection.
     """
 
-    envelope = _extract_terminal_artifact_envelope(artifact)
-    if envelope is not None:
-        artifact, envelope_kind = envelope
-        if kind is None:
-            kind = envelope_kind
-        else:
-            normalized_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
-            if normalized_kind != envelope_kind:
-                raise ValueError("kind does not match TerminalArtifact envelope")
-            kind = normalized_kind
+    requested_kind = None
+    if kind is not None:
+        requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+
+    artifact, envelope_kind = _unwrap_terminal_artifact_payload(artifact)
+    if envelope_kind is not None:
+        if requested_kind is not None and requested_kind != envelope_kind:
+            raise ValueError("kind does not match TerminalArtifact envelope")
+        kind = envelope_kind
+    elif requested_kind is not None:
+        kind = requested_kind
 
     resolved_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
     if resolved_kind == "action":
@@ -1168,6 +1179,38 @@ def _extract_terminal_artifact_envelope(artifact: Any) -> tuple[Any, str] | None
     kind = artifact["kind"]
     normalized_kind = kind.strip().lower()
     payload = artifact["artifact"]
+    return payload, normalized_kind
+
+
+def _unwrap_terminal_artifact_payload(
+    artifact: Any,
+    *,
+    _seen_envelope_ids: set[int] | None = None,
+) -> tuple[Any, str | None]:
+    """Peel nested TerminalArtifact envelopes down to the concrete payload."""
+
+    if not isinstance(artifact, Mapping):
+        return artifact, None
+    artifact_type = artifact.get("type")
+    if not isinstance(artifact_type, str) or artifact_type.strip() != _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+        return artifact, None
+
+    if _seen_envelope_ids is None:
+        _seen_envelope_ids = set()
+    artifact_id = id(artifact)
+    if artifact_id in _seen_envelope_ids:
+        raise ValueError("TerminalArtifact envelope cycle detected")
+    _seen_envelope_ids.add(artifact_id)
+
+    payload = artifact.get("artifact")
+    if isinstance(payload, Mapping):
+        payload_type = payload.get("type")
+        if isinstance(payload_type, str) and payload_type.strip() == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+            return _unwrap_terminal_artifact_payload(payload, _seen_envelope_ids=_seen_envelope_ids)
+
+    validate_terminal_artifact_envelope(artifact)
+    kind = artifact["kind"]
+    normalized_kind = kind.strip().lower()
     return payload, normalized_kind
 
 

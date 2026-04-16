@@ -79,6 +79,16 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["action"], describe_action_contract())
         self.assertEqual(manifest["action"]["contract_fingerprint"], manifest["action"]["action_fingerprint"])
         self.assertEqual(len(manifest["action"]["contract_fingerprint"]), 64)
+        self.assertEqual(manifest["action_fingerprint"], action_contract_fingerprint())
+        self.assertEqual(manifest["selection_fingerprint"], selection_contract_fingerprint())
+        self.assertEqual(manifest["card_fingerprint"], card_contract_fingerprint())
+        self.assertEqual(manifest["contract_fingerprints"]["action"], action_contract_fingerprint())
+        self.assertEqual(manifest["contract_fingerprints"]["selection"], selection_contract_fingerprint())
+        self.assertEqual(manifest["contract_fingerprints"]["card_contract"], card_contract_fingerprint())
+        self.assertEqual(
+            manifest["contract_fingerprints"]["terminal_artifact"],
+            terminal_artifact_contract_fingerprint(),
+        )
         self.assertEqual(manifest["terminal_artifact"], describe_terminal_artifact_contract())
         self.assertEqual(manifest["schemas"]["terminal_artifact"], describe_terminal_artifact_contract())
         self.assertEqual(
@@ -1186,6 +1196,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 },
                 kind="selection",
             )
+
+    def test_terminal_artifact_unwraps_nested_envelopes_before_rendering(self) -> None:
+        nested_envelope = {
+            "type": "TerminalArtifact",
+            "kind": "card",
+            "artifact": build_terminal_artifact_envelope(
+                SelectionRef(
+                    id=" choice-1 ",
+                    label=" Choice ",
+                    payload={"nested": {"items": [1, 2]}},
+                    selected=True,
+                ),
+                kind="selection",
+            ),
+            "trace_id": "drop-me",
+        }
+
+        text = render_terminal_artifact(nested_envelope)
+
+        self.assertIn("[SelectionRef] Choice", text)
+        self.assertIn("Selection schema v1", text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
 
     def test_terminal_artifact_keeps_ambiguous_shared_key_mappings_as_cards(self) -> None:
         ambiguous = {
