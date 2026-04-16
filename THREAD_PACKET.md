@@ -41,6 +41,7 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
+- Final fixer-pass note: the full required gate sweep was rerun on the current reviewer-fix branch tip after the explicit canonical demo-path alignment note landed.
 
 ## Risks/blockers
 - Risks: high, because the narrowed reviewed range includes approved shared regression coverage.
