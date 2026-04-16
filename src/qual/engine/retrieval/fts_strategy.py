@@ -239,8 +239,27 @@ class FTSStrategy:
         return FTSStrategy._normalize_list_like(value)
 
     @staticmethod
+    def _normalize_ordered_text_items(value: object) -> list[str] | None:
+        if value is None:
+            return None
+        if isinstance(value, str):
+            items = [value]
+        else:
+            try:
+                items = [item for item in value if item is not None]  # type: ignore[arg-type]
+            except TypeError:
+                items = [value]
+
+        normalized: list[str] = []
+        for item in items:
+            text = FTSStrategy._normalize_raw_text(item)
+            if text is not None:
+                normalized.append(text)
+        return normalized
+
+    @staticmethod
     def _normalize_date_range(value: object) -> list[str] | None:
-        normalized = FTSStrategy._normalize_optional_list_like(value)
+        normalized = FTSStrategy._normalize_ordered_text_items(value)
         if normalized is None:
             return None
         if len(normalized) != 2:
