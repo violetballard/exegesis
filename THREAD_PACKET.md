@@ -67,6 +67,13 @@
 3. Published the public command exports and tightened diff-preview summary behavior so the existing CLI entrypoints stay stable and smoke-testable.
 4. Expanded the approved shared regression coverage and corrected the handoff packet so re-review targets the real implementation tip and exact merge scope.
 
+## Task-To-Demo-Path Mapping
+
+1. Task 1 advances `open project/document` by keeping the trusted CLI entry contract deterministic and by rejecting parser/catalog drift before the operator entry step can silently change.
+2. Task 2 advances `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch` by keeping the existing CLI compatibility wrappers and argv rewriting deterministic across the current engine-first loop.
+3. Task 3 advances `open project/document` and `preview and apply or reject a patch` by keeping the published command entrypoints stable and by preserving a smoke-testable diff preview contract for the existing CLI fallback.
+4. Task 4 advances `continue working without losing context` from an operator-contract perspective by keeping the reviewed command surface auditable, re-reviewable, and traceable to the real branch tip rather than an incorrect metadata-only slice.
+
 ## Kickoff Budget / Limits Compliance
 
 - High-risk shared-file handoff: this packet groups the branch-tip work into `4` meaningful tasks, which matches the high-risk task cap for the actual implementation scope under review.
