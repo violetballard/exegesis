@@ -893,9 +893,17 @@ def _feature_runner_state(lane: str, live_sessions: Dict[str, dict[str, str]]) -
         if status == "direct_exec_running":
             pid = int(thread_state.get("pid") or 0)
             if _pid_alive(pid):
+                runtime_mode = str(thread_state.get("mode") or "unknown")
+                profile = str(thread_state.get("profile") or "-")
+                if runtime_mode == "cloud_primary":
+                    summary = f"direct exec cloud session running pid={pid} profile={profile}"
+                elif runtime_mode == "local_fallback":
+                    summary = f"direct exec local fallback running pid={pid} profile={profile}"
+                else:
+                    summary = f"direct exec session running pid={pid} mode={runtime_mode} profile={profile}"
                 return {
                     "state": "direct_exec_running",
-                    "summary": f"direct exec fallback running pid={pid}",
+                    "summary": summary,
                     "log": log_name,
                     "age_s": None,
                 }

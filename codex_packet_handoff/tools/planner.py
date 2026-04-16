@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 try:
-    from packet_progress import infer_last_gate_results, infer_last_submitted_sha
+    from packet_progress import infer_last_changed_files, infer_last_gate_results, infer_last_submitted_sha
 except ImportError:  # pragma: no cover - package execution fallback
-    from .packet_progress import infer_last_gate_results, infer_last_submitted_sha
+    from .packet_progress import infer_last_changed_files, infer_last_gate_results, infer_last_submitted_sha
 
 try:
     from git_ops import require_git_output, run_git
@@ -239,15 +239,56 @@ def _parse_changed_files(out: str) -> List[str]:
     return [ln.strip() for ln in out.splitlines() if ln.strip()]
 
 
+def ref_exists(cwd: str, ref: str) -> bool:
+    result = run_git(["rev-parse", "--verify", "--quiet", ref], cwd=cwd, timeout=120)
+    return result.returncode == 0
+
+
+def resolve_branch_sha(repo_cwd: str, branch: str, *, fallback_cwd: Optional[str] = None) -> str:
+    branch_ref = branch if branch.startswith("refs/") else branch
+    result = run_git(["rev-parse", branch_ref], cwd=repo_cwd, timeout=120)
+    sha = result.stdout.strip()
+    if result.returncode == 0 and sha:
+        return sha
+    if fallback_cwd:
+        return git(["rev-parse", "HEAD"], cwd=fallback_cwd)
+    raise RuntimeError(result.stdout or f"unable to resolve branch ref: {branch_ref}")
+
+
+def _collect_commit_range_files(cwd: str, start_ref: str, head_ref: str) -> List[str]:
+    merge_base = require_git_output(["merge-base", start_ref, head_ref], cwd=cwd, timeout=CHANGED_FILES_DIFF_TIMEOUT).strip()
+    if not merge_base:
+        return []
+    revs_result = run_git(["rev-list", "--reverse", f"{merge_base}..{head_ref}"], cwd=cwd, timeout=CHANGED_FILES_DIFF_TIMEOUT)
+    if revs_result.returncode != 0:
+        raise RuntimeError(revs_result.stdout)
+    files: List[str] = []
+    seen: set[str] = set()
+    for rev in [ln.strip() for ln in revs_result.stdout.splitlines() if ln.strip()]:
+        diff_result = run_git(
+            ["diff-tree", "--no-commit-id", "--name-only", "-r", rev],
+            cwd=cwd,
+            timeout=CHANGED_FILES_FALLBACK_TIMEOUT,
+        )
+        if diff_result.returncode != 0:
+            raise RuntimeError(diff_result.stdout)
+        for path in _parse_changed_files(diff_result.stdout):
+            if path not in seen:
+                seen.add(path)
+                files.append(path)
+    return files
+
+
 def compute_changed_files(cwd: str, base_ref: str, *, head_ref: str = "HEAD") -> List[str]:
-    result = run_git(
-        ["diff", "--name-only", f"{base_ref}...{head_ref}"],
-        cwd=cwd,
-        timeout=CHANGED_FILES_DIFF_TIMEOUT,
-    )
-    files = _parse_changed_files(result.stdout)
-    if result.returncode == 0:
-        return files
+    try:
+        files = _collect_commit_range_files(cwd, base_ref, head_ref)
+        if files:
+            return files
+    except Exception as exc:
+        print(
+            f"[planner] changed-files commit-range fallback for {cwd} failed: {exc} "
+            f"(base_ref={base_ref}, head_ref={head_ref})"
+        )
     fallback_cmds = (
         ["diff-tree", "--no-commit-id", "--name-only", "-r", head_ref],
         ["show", "--pretty=", "--name-only", head_ref],
@@ -258,10 +299,10 @@ def compute_changed_files(cwd: str, base_ref: str, *, head_ref: str = "HEAD") ->
         if fallback_result.returncode == 0 and fallback_files:
             print(
                 f"[planner] changed-files fallback for {cwd}: "
-                f"{' '.join(cmd)} (base diff rc={result.returncode}, head_ref={head_ref})"
+                f"{' '.join(cmd)} (head_ref={head_ref})"
             )
             return fallback_files
-    raise RuntimeError(result.stdout)
+    raise RuntimeError(f"unable to determine changed files for {head_ref} vs {base_ref}")
 
 
 def run_scope_check(cwd: str, env: Optional[Dict[str, str]] = None) -> Tuple[int, str]:
@@ -319,9 +360,36 @@ def run_required_gate(cmd: str, cwd: str, env: Optional[Dict[str, str]] = None) 
 
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
+    def str_list(value: Any) -> List[str]:
+        if isinstance(value, list):
+            return [str(item).strip() for item in value if str(item).strip()]
+        if isinstance(value, str):
+            stripped = value.strip()
+            return [stripped] if stripped else []
+        if value is None:
+            return []
+        stripped = str(value).strip()
+        return [stripped] if stripped else []
     lines=[]
+    reviewed_commit = str(meta.get("reviewed_commit") or meta.get("reviewed_head_sha") or "").strip()
+    reviewed_range = str(meta.get("reviewed_commit_range") or meta.get("reviewed_range") or "").strip()
+    packet_refresh_role = str(meta.get("packet_head_role") or meta.get("packet_type") or "").strip()
+    metadata_only_note = str(meta.get("metadata_only_note") or "").strip()
     lines += ["# Feature → Review Packet",""]
-    lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
+    lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`"]
+    if reviewed_commit and reviewed_commit != sha:
+        lines += [f"- Commit: `{reviewed_commit}`", f"- Packet refresh commit: `{sha}`"]
+        if packet_refresh_role:
+            lines += [f"- Packet refresh role: `{packet_refresh_role}`"]
+        if reviewed_range:
+            lines += [f"- Reviewed implementation range: `{reviewed_range}`"]
+    else:
+        lines += [f"- Commit: `{sha}`"]
+        if packet_refresh_role:
+            lines += [f"- Packet role: `{packet_refresh_role}`"]
+    lines += [""]
+    if metadata_only_note:
+        lines += ["## Packet traceability note", f"- {metadata_only_note}", ""]
     lines += ["## Current program focus", f"- {ENGINE_MILESTONE_FOCUS}", ""]
     lines += ["## Current engine execution order"] + [f"- {line}" for line in engine_priority_lines()] + [""]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
@@ -335,9 +403,9 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     if do_not_spend_time_on:
         lines += ["## Do not spend time on"] + [f"- {item}" for item in do_not_spend_time_on] + [""]
     lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
-    scope_completed = meta.get("scope_completed")
-    if isinstance(scope_completed, list) and scope_completed:
-        lines += ["## Scope completed"] + [f"- {str(item).strip()}" for item in scope_completed if str(item).strip()] + [""]
+    scope_completed = str_list(meta.get("scope_completed"))
+    if scope_completed:
+        lines += ["## Scope completed"] + [f"- {item}" for item in scope_completed] + [""]
     if str(meta.get("kickoff_budget_note","")).strip():
         lines += ["## Kickoff budget/limits compliance", f"- {meta['kickoff_budget_note'].strip()}", ""]
     if str(meta.get("approved_exception_note","")).strip():
@@ -346,7 +414,15 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     tasks=list(meta.get("tasks_completed") or [])
     lines += [f"{i+1}. {str(t).strip()}" for i,t in enumerate(tasks)] if tasks else ["1. (missing)"]
     lines += ["","## Files changed"]
-    lines += [f"- `{f}`" for f in files] if files else ["- (none detected)"]
+    reviewed_files = str_list(meta.get("reviewed_files"))
+    metadata_only_files = str_list(meta.get("metadata_only_files"))
+    if reviewed_files or metadata_only_files:
+        if reviewed_files:
+            lines += ["### Reviewed implementation files"] + [f"- `{f}`" for f in reviewed_files]
+        if metadata_only_files:
+            lines += ["### Metadata-only handoff files"] + [f"- `{f}`" for f in metadata_only_files]
+    else:
+        lines += [f"- `{f}`" for f in files] if files else ["- (none detected)"]
     lines += ["","## Commands run and outcomes"]
     for cmd,rc in gate_results:
         lines.append(f"- `{cmd}`: {rcstr(rc)}")
@@ -414,10 +490,10 @@ def main()->None:
             print(f"[planner] {lane}: stale non-git worktree for {branch} at {lane_repo}; considering branch-ref fallback")
 
         try:
-            sha = git(["rev-parse", "HEAD" if active_repo else branch], cwd=active_repo or repo)
+            sha = resolve_branch_sha(repo, branch, fallback_cwd=active_repo)
         except Exception as e:
             where = active_repo or repo
-            print(f"[planner] {lane}: unable to resolve {'HEAD' if active_repo else branch} in {where}: {e}")
+            print(f"[planner] {lane}: unable to resolve {branch} in {where}: {e}")
             continue
         prev_lane_state = lane_state.get(lane) or {}
         last_submitted_sha = infer_last_submitted_sha(PACKETS_ROOT / lane, prev_lane_state)
@@ -439,25 +515,21 @@ def main()->None:
         if miss:
             print(f"[planner] {lane}: lane_meta missing: {miss} (using auto defaults)")
             meta = apply_meta_defaults(meta, miss, lane)
-        try:
-            files=compute_changed_files(
-                active_repo or repo,
-                base_ref,
-                head_ref="HEAD" if active_repo else branch,
-            )
-        except Exception as e:
-            print(f"[planner] {lane}: diff failed vs {base_ref}: {e}")
-            continue
         env=os.environ.copy()
         if bool(meta.get("shared_file_exception")):
             env["SCOPE_ALLOW_SHARED"]="1"
         if fast_reemit:
+            files = infer_last_changed_files(
+                PACKETS_ROOT / lane,
+                prev_lane_state,
+                sha=last_submitted_sha,
+            )
             carried = infer_last_gate_results(
                 PACKETS_ROOT / lane,
                 prev_lane_state,
                 sha=last_submitted_sha,
             )
-            if carried:
+            if carried and files:
                 if active_repo:
                     print(f"[planner] {lane}: fast re-emit from advanced HEAD after reviewer notes (reuse prior gate results)")
                 else:
@@ -467,9 +539,18 @@ def main()->None:
                     )
                 results = carried
             else:
-                print(f"[planner] {lane}: fast re-emit has no prior gate results; rerunning local gates")
+                print(f"[planner] {lane}: fast re-emit lacks reusable packet context; rerunning local gates")
                 fast_reemit = False
         if not fast_reemit:
+            try:
+                files=compute_changed_files(
+                    repo,
+                    base_ref,
+                    head_ref=branch,
+                )
+            except Exception as e:
+                print(f"[planner] {lane}: diff failed vs {base_ref}: {e}")
+                continue
             if not active_repo:
                 print(f"[planner] {lane}: no usable worktree for {branch}; cannot rerun local gates")
                 continue

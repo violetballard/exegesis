@@ -11,6 +11,9 @@ class LaunchdCtlTests(unittest.TestCase):
         self.assertEqual(payload["Label"], launchd_ctl.LABEL)
         self.assertEqual(payload["ProgramArguments"][0], "/bin/zsh")
         self.assertEqual(payload["ProgramArguments"][1], str(launchd_ctl.LAUNCHD_WRAPPER))
+        self.assertEqual(payload["WorkingDirectory"], str(launchd_ctl.LAUNCHD_RUNTIME_DIR))
+        self.assertEqual(payload["StandardOutPath"], str(launchd_ctl.LOG_FILE))
+        self.assertEqual(payload["StandardErrorPath"], str(launchd_ctl.ERR_FILE))
         self.assertTrue(payload["KeepAlive"])
         self.assertTrue(payload["RunAtLoad"])
 

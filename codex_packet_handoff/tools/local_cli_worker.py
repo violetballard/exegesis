@@ -52,6 +52,7 @@ def main() -> int:
             cwd=cwd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
+            stdin=subprocess.DEVNULL,
             text=True,
             timeout=timeout_seconds,
             env=env,

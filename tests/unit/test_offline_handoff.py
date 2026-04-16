@@ -128,6 +128,17 @@ class OfflineReviewerGuardTests(unittest.TestCase):
         self.assertEqual((rc, out), (0, "ok"))
         self.assertIs(run_mock.call_args.kwargs["stdin"], router.subprocess.DEVNULL)
 
+    def test_expired_explicit_quota_retry_distinguishes_past_from_future(self) -> None:
+        text = (
+            "ERROR: You've hit your usage limit. Visit https://chatgpt.com/codex/settings/usage "
+            "to purchase more credits or try again at Apr 16th, 2026 9:55 AM."
+        )
+
+        retry_at = router._parse_retry_epoch_from_quota_log(text)
+        self.assertIsNotNone(retry_at)
+        self.assertFalse(router._expired_explicit_quota_retry(text, now=float(retry_at) - 1))
+        self.assertTrue(router._expired_explicit_quota_retry(text, now=float(retry_at) + 1))
+
 
 class OfflineIntegratorGuardTests(unittest.TestCase):
     def setUp(self) -> None:

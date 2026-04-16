@@ -61,6 +61,34 @@ class DaemonMonitorTests(unittest.TestCase):
         self.assertEqual(state['state'], 'review_wait')
         self.assertIn('reviewer note present', state['summary'])
 
+    def test_feature_runner_state_labels_cloud_direct_exec_sessions(self) -> None:
+        with mock.patch.object(
+            daemon_monitor,
+            '_lane_counts_for',
+            return_value={'pending': 0, 'review': 0, 'approved': 0},
+        ), mock.patch.object(
+            daemon_monitor,
+            '_feature_thread_state',
+            return_value={
+                'feat-a2ui-contract': {
+                    'status': 'direct_exec_running',
+                    'pid': 12345,
+                    'mode': 'cloud_primary',
+                    'profile': 'worker_cloud',
+                    'log_path': '/tmp/feat-a2ui-contract.log',
+                }
+            },
+        ), mock.patch.object(
+            daemon_monitor,
+            '_pid_alive',
+            return_value=True,
+        ):
+            state = daemon_monitor._feature_runner_state('feat-a2ui-contract', {})
+
+        self.assertEqual(state['state'], 'direct_exec_running')
+        self.assertIn('cloud session', state['summary'])
+        self.assertIn('worker_cloud', state['summary'])
+
 
 if __name__ == '__main__':
     unittest.main()
