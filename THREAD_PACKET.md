@@ -26,6 +26,7 @@
 ## Reviewer Fix Addressed
 - Required fix satisfied: the handoff now states explicitly which canonical demo-path step this slice advances, instead of relying on roadmap and vision mapping alone.
 - Required fix satisfied: this packet states that the slice advances `retrieve relevant material` and explains that excerpt lookup now fails closed to the authoritative SQLite FTS path, preventing PageIndex from acting as a required runtime retrieval path in the MVP loop.
+- Final fixer refresh: this metadata-only pass preserves that explicit demo-path mapping as the authoritative re-review source in the writable packet.
 - Re-review should evaluate this narrowed slice as advancing `retrieve relevant material`.
 - Reviewer-required handoff correction satisfied here: this packet explicitly maps the slice to the canonical demo-path step `retrieve relevant material`.
 - This fixer commit is metadata-only and preserves the same reviewed implementation range for re-review.
@@ -99,6 +100,7 @@
 ## Reviewer Fixer Note
 - Reviewer packet source of truth applied here: this metadata refresh keeps the narrowed reviewed implementation range at `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, explicitly records the shared-file approval reference, and calls out the fail-closed `fetch_excerpt` contract risk for re-review.
 - This final fixer pass re-ran the required gate set on top of pre-fix packet trace anchor `ad09cc1aad6b330171eb38344e8c07aae605c2e5` and leaves the runtime retrieval implementation unchanged.
+- Final fixer verification reran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` successfully on pre-final metadata head `4ddabaceed89f7db4bd1d3eeaedc64462ce01d1a` before this traceability refresh commit.
 
 ## Regression coverage note
 - `tests/unit/test_unified_retrieval.py::test_fetch_excerpt_requires_an_fts_lookup_hit`
