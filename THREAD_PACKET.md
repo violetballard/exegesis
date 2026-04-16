@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Reviewed implementation head before final handoff refresh: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet refresh commit: `reported in final fixer handoff`
-- Packet refresh role: `reviewer-fix handoff metadata refresh`
+- Packet refresh role: `reviewer-fix handoff metadata refresh for explicit canonical demo-path mapping`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 ## Scope goal
@@ -20,6 +20,10 @@
 - This reviewed implementation range makes `retrieve relevant material` more real by keeping retrieval output deterministic and auditable while forcing excerpt lookup through the canonical FTS-only path.
 - Concretely, `src/qual/retrieval/service.py` now resolves `fetch_excerpt` through the canonical FTS-only lookup path, and the approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs fail closed with `KeyError`.
 - This metadata-only fixer refresh exists to keep that canonical demo-path mapping explicit in the handoff packet for re-review.
+
+## Reviewer Fix Addressed
+- Required fix satisfied: the handoff now states explicitly which canonical demo-path step this slice advances, instead of relying on roadmap and vision mapping alone.
+- Re-review should evaluate this narrowed slice as advancing `retrieve relevant material`.
 - Reviewer-required handoff correction satisfied here: this packet explicitly maps the slice to the canonical demo-path step `retrieve relevant material`.
 
 ## Reviewer-required fixes addressed
