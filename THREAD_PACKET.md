@@ -37,6 +37,7 @@
 
 - Explicit canonical demo-path step advanced: `open project/document`.
 - This change makes the `open project/document` step more real by keeping the operator-facing CLI command contract deterministic, preserving canonical command ordering, and rejecting parser/catalog drift before the entry command surface can silently change.
+- Wording anchor: this packet uses the exact canonical demo-path step text required by `AGENTS.md` and `ROADMAP.md`, rather than only broad Milestone 3 labels.
 - Secondary effect: the same deterministic contract helps the existing CLI fallback remain smoke-testable for downstream loop steps, including `preview/apply or reject a patch`, while Textual stays disabled.
 - Concrete blocker removed: Milestone 3 depends on a stable CLI-first command surface while the package/layout migration lands, and this slice removes the risk that parser entrypoints drift away from the catalog without failing fast at contract construction time.
 
@@ -112,7 +113,7 @@
 
 - `Milestone 3: Real workflow loop` - this change strengthens the requirement that the CLI can still execute the MVP loop while Textual remains disabled by keeping the command-catalog contract deterministic and drift-resistant for the current `open project/document` entry step.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
-- Plan-alignment note: this is a contract-hardening slice, not a UX expansion; it directly removes a concrete blocker on the canonical demo path by making the CLI entry-command surface auditable and deterministic for smoke tests during the engine-first loop.
+- Plan-alignment note: this is a contract-hardening slice, not a UX expansion; it directly removes a concrete blocker on the canonical demo path by making the `open project/document` CLI entry surface auditable and deterministic for smoke tests during the engine-first loop.
 
 ### Vision capability affected
 
