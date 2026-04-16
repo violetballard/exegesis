@@ -22,6 +22,7 @@ from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload
 from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_result
 from src.qual.engine.retrieval.payload import _build_retrieval_diagnostics_from_source_bundle
 from src.qual.engine.retrieval.payload import _build_retrieval_citation_bundle_from_payload
+from src.qual.engine.retrieval.payload import _build_retrieval_doc_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_excerpt_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_source_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_provenance_from_payload
@@ -1877,6 +1878,39 @@ class UnifiedRetrievalTests(unittest.TestCase):
         refreshed = _build_retrieval_citation_bundle_from_payload(payload)
         self.assertNotEqual(refreshed["doc_citations"][0]["doc_id"], "mutated-doc-id")
         self.assertNotEqual(refreshed["excerpt_citations"][0]["doc_id"], "mutated-doc-id")
+
+    def test_doc_and_excerpt_bundle_helpers_rebuild_citations_from_top_level_hits(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        payload = result.to_downstream_payload()
+        payload.pop("retrieval_provenance", None)
+        payload.pop("retrieval_citation_bundle", None)
+        payload.pop("retrieval_doc_bundle", None)
+        payload.pop("retrieval_excerpt_bundle", None)
+
+        rebuilt_doc_bundle = _build_retrieval_doc_bundle_from_payload(payload)
+        rebuilt_excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
+
+        self.assertEqual(rebuilt_doc_bundle["doc_citations"], result.citation_bundle()["doc_citations"])
+        self.assertEqual(rebuilt_excerpt_bundle["excerpt_citations"], result.citation_bundle()["excerpt_citations"])
+        rebuilt_doc_bundle["doc_citations"][0]["doc_id"] = "mutated-doc-id"
+        rebuilt_excerpt_bundle["excerpt_citations"][0]["excerpt_id"] = "mutated-excerpt-id"
+
+        refreshed_doc_bundle = _build_retrieval_doc_bundle_from_payload(payload)
+        refreshed_excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
+        self.assertNotEqual(refreshed_doc_bundle["doc_citations"][0]["doc_id"], "mutated-doc-id")
+        self.assertNotEqual(
+            refreshed_excerpt_bundle["excerpt_citations"][0]["excerpt_id"],
+            "mutated-excerpt-id",
+        )
 
     def test_engine_retrieval_package_exports_are_fts_only(self) -> None:
         self.assertEqual(
