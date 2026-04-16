@@ -4,13 +4,13 @@
 - Review target: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Implementation commits in scope:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` - `feat(commands): lock CLI contract to command catalog`
-- Packet refresh commit: pending current final handoff commit
-- Packet refresh role: `reviewer-fix finalization`
+- Packet refresh commit: `c2b22bf641f02555b6f7a2be5e0d7252edceac00`
+- Packet refresh role: `reviewer-fix packet alignment`
 
 ## Packet Traceability Note
 
 - This packet is intentionally scoped to the reviewed command-catalog implementation at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Later packet-refresh commits are metadata-only for re-review and do not broaden the implementation scope.
+- Later packet-finalization commits are metadata-only for re-review and do not broaden the implementation scope.
 
 ## Current Program Focus
 
