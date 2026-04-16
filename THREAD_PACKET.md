@@ -26,13 +26,14 @@
 ## Scope Goal
 
 - Harden the existing Milestone 3 CLI command contract for the current engine-first MVP loop so the command surface stays deterministic, smoke-testable, and aligned with the canonical command catalog.
-- Scope-tightening note: this packet is limited to command-surface determinism and parser/catalog drift detection for the existing CLI fallback while Textual remains disabled; it does not claim new CLI UX, new flags, or engine behavior changes.
+- Scope-tightening note: this packet is limited to deterministic canonical command ordering, parser/catalog drift detection, and the existing CLI compatibility helpers already present on this branch tip. It does not claim new commands, new flags, new aliases, broader CLI-surface expansion, or engine behavior changes.
 
 ## Canonical Demo-Path Mapping
 
-- Explicit canonical demo-path step advanced by this lane: `preview and apply or reject a patch`.
-- This change makes the CLI-first `preview and apply or reject a patch` step more real by hardening the existing patch-review command contract so parser/catalog drift fails fast and operator-facing entrypoints stay deterministic for the CLI fallback while Textual remains disabled.
-- Concrete blocker removed: the patch-review command surface now validates parser/catalog drift instead of silently accepting a mismatched parser/catalog shape, which keeps the existing CLI patch-review step deterministic enough for smoke checks while Textual remains disabled.
+- Explicit canonical demo-path step advanced by this lane: `open project/document`.
+- Operator-surface note: this change also strengthens stable command execution across the rest of the CLI-first loop while Textual remains disabled, but its most direct canonical demo-path contribution is the `open project/document` entry step.
+- This change makes the CLI-first `open project/document` step more real by keeping the operator-facing command contract deterministic, validating parser/catalog drift instead of silently accepting it, and preserving stable command resolution for the existing CLI fallback.
+- Concrete blocker removed: the command surface now rejects parser/catalog mismatches before they can silently change the operator entry contract, which keeps the existing CLI entry step deterministic enough for smoke checks while Textual remains disabled.
 
 ## Definition Of Done Alignment
 
