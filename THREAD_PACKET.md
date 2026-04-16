@@ -35,11 +35,11 @@
 
 ## Canonical Demo-Path Mapping
 
-- Explicit canonical demo-path step advanced: `open project/document`.
-- This change makes the `open project/document` step more real by keeping the operator-facing CLI command contract deterministic, preserving canonical command ordering, and rejecting parser/catalog drift before the entry command surface can silently change.
-- Wording anchor: this packet uses the exact canonical demo-path step text required by `AGENTS.md` and `ROADMAP.md`, rather than only broad Milestone 3 labels.
-- Secondary effect: the same deterministic contract helps the existing CLI fallback remain smoke-testable for downstream loop steps, including `preview/apply or reject a patch`, while Textual stays disabled.
-- Concrete blocker removed: Milestone 3 depends on a stable CLI-first command surface while the package/layout migration lands, and this slice removes the risk that parser entrypoints drift away from the catalog without failing fast at contract construction time.
+- Canonical demo-path step advanced: `open project/document`.
+- AGENTS alignment statement: this packet explicitly maps the work to the `open project/document` step of the canonical demo path so the handoff names the concrete step this slice makes more real.
+- Why this step is strengthened: the operator reaches that step through the CLI-first command surface today, so keeping `command_cli_contract()` deterministic, preserving canonical command ordering, and rejecting parser/catalog drift prevents the entry command surface from silently changing underneath the engine-first MVP loop.
+- Concrete blocker removed: Milestone 3 requires that the CLI can still execute the MVP loop while Textual remains disabled. Before this slice, parser entrypoints could drift from the catalog without the contract failing fast; this change turns that into an immediate contract error instead of a silent operator-surface regression.
+- Secondary effect only: the same deterministic contract keeps the existing CLI fallback smoke-testable for downstream demo-path steps, including `preview and apply or reject a patch`, but this handoff is anchored to `open project/document` as the primary justified step.
 
 ## Definition of Done for This Lane
 
@@ -111,14 +111,14 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` - this change strengthens the requirement that the CLI can still execute the MVP loop while Textual remains disabled by keeping the command-catalog contract deterministic and drift-resistant for the current `open project/document` entry step.
+- `Milestone 3: Real workflow loop` - this change strengthens the requirement that the CLI can still execute the MVP loop while Textual remains disabled by hardening the `open project/document` entry step against silent parser/catalog drift.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
-- Plan-alignment note: this is a contract-hardening slice, not a UX expansion; it directly removes a concrete blocker on the canonical demo path by making the `open project/document` CLI entry surface auditable and deterministic for smoke tests during the engine-first loop.
+- Plan-alignment note: this is a contract-hardening slice, not a UX expansion; it directly removes a concrete blocker on the canonical demo path because the CLI entry-command surface now fails fast if parser entrypoints stop matching the catalog order expected by the engine-first operator flow.
 
 ### Vision capability affected
 
-- `Canonical engine contract` - CLI compatibility remains stable while the command-catalog surface rejects parser drift before it can silently change the operator contract.
-- `Auditable state and workflow` - the command surface now fails loudly on catalog/parser drift, so operator-facing command behavior is explicit and traceable instead of silently diverging.
+- `Canonical engine contract` - the CLI-side `open project/document` entry contract now stays aligned with the canonical command catalog instead of silently diverging when parser entrypoints drift.
+- `Auditable state and workflow` - parser/catalog drift now fails loudly at contract construction time, making operator-facing command behavior explicit and traceable for the active MVP loop.
 
 ### Routing/provider impact note
 
