@@ -70,6 +70,7 @@
 
 ## Vision capability affected
 - `Retrieval-first context handling`
+- `Canonical engine contract`
 - `Auditable state and workflow`
 
 ## Routing/provider impact note
@@ -86,4 +87,5 @@
 ## Traceability note
 - This packet is regenerated because reviewer feedback correctly identified that branch tip `4a4c4fc2d7749405647490f0b0301b6330feee99` is real implementation work, not metadata-only refresh.
 - Re-review should anchor retrieval implementation scope to `378cf9a74a3658058079a32f186fcd254c4a4034..4a4c4fc2d7749405647490f0b0301b6330feee99`.
+- The tracked `.codex` mirror packet files are present in the reviewed range but are not writable in this sandboxed worktree; `THREAD_PACKET.md` is the authoritative packet refresh for this fixer pass.
 - The packet-only fixer commit created after this edit does not change runtime scope; the final HEAD SHA for that commit is reported in the fixer handoff.
