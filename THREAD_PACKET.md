@@ -34,7 +34,7 @@
 ## Scope Goal
 
 - Harden the existing Milestone 3 CLI command contract for the current engine-first MVP loop so the command surface stays deterministic, smoke-testable, and aligned with the canonical command catalog.
-- Scope-tightening note: this packet is limited to deterministic canonical command ordering, parser/catalog drift detection, parser-surface validation, and the existing CLI compatibility helpers already present on this branch tip. It does not claim new commands, new flags, new aliases, broader CLI-surface expansion, or engine behavior changes.
+- Scope-tightening note: this packet is limited to command-catalog contract validation, deterministic canonical command ordering, parser/catalog drift detection, parser-surface validation, and the existing CLI compatibility helpers already present on this branch tip because that removes drift risk from the current MVP CLI control surface. It does not claim new commands, new flags, new aliases, broader CLI-surface expansion, or engine behavior changes.
 
 ## Canonical Demo-Path Mapping
 
@@ -88,6 +88,7 @@
 ## Kickoff Budget / Limits Compliance
 
 - High-risk shared-file handoff: this packet groups the branch-tip work into `4` meaningful tasks, which matches the high-risk task cap for the actual implementation scope under review.
+- Concrete high-risk reason: the branch tip changes the public command contract and includes approved shared test-file edits, so the handoff is classified as high-risk even though the implementation stays narrow.
 - Current implementation scope remains within owned command paths plus the approved shared test files.
 - Files changed in implementation scope: `6`
 - Implementation review target range: `8c9e2290fefb92bb07ff99681421a666cbbe4e0f..177e04efcc51b2ee95015ce2096ff0be49caa820`
@@ -120,7 +121,7 @@
 ## Risks / Blockers
 
 - Residual risk: medium; this branch tip is larger than the original `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` catalog-only slice, so re-review should evaluate the full command-surface contract listed above.
-- Scope note: this is command-surface validation and compatibility work for the existing CLI loop, not a broader workflow-engine or audit-capability change.
+- Scope note: this is command-surface validation and compatibility work for the existing CLI loop, limited to removing drift risk from the MVP CLI control surface. It does not add new command behavior, broaden the parser surface, or expand beyond the engine-first demo path.
 - Blockers: none
 
 ## Required Handoff Fields
