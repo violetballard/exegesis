@@ -984,6 +984,22 @@ def command_cli_shim_argv_for(
     return (primary_token, *raw_argv[1:])
 
 
+def command_cli_entry_argv_for(
+    specs: tuple[CommandSpec, ...],
+    argv: tuple[str, ...] | list[str],
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    """Normalize argv to a parser-ready command entrypoint for CLI-first flows."""
+    raw_argv = tuple(argv)
+    route_tokens = command_flow_route_tokens(specs, flow_steps)
+    default_token = route_tokens[0] if route_tokens else ""
+    if not raw_argv:
+        return (default_token,) if default_token else ()
+    if raw_argv[0].lstrip().startswith("-"):
+        return (default_token, *raw_argv) if default_token else raw_argv
+    return command_cli_shim_argv_for(specs, raw_argv, flow_steps)
+
+
 @lru_cache(maxsize=None)
 def command_cli_shim_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -1828,6 +1844,13 @@ def command_cli_shim_argv(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[str, ...]:
     return command_cli_shim_argv_for(COMMAND_SPECS, argv, flow_steps)
+
+
+def command_cli_entry_argv(
+    argv: tuple[str, ...] | list[str],
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    return command_cli_entry_argv_for(COMMAND_SPECS, argv, flow_steps)
 
 
 @lru_cache(maxsize=None)

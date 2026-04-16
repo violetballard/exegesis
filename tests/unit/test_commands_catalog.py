@@ -23,6 +23,8 @@ from src.qual.commands import (
     command_cli_shim_primary_token_for,
     command_cli_shim_argv,
     command_cli_shim_argv_for,
+    command_cli_entry_argv,
+    command_cli_entry_argv_for,
     command_cli_surface_catalog,
     command_cli_surface_contract,
     command_cli_tokens,
@@ -278,6 +280,25 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_cli_shim_argv(["--project", "demo"]), ("--project", "demo"))
         self.assertEqual(command_cli_shim_argv(()), ())
 
+    def test_command_cli_entry_argv_normalizes_parser_ready_invocations(self) -> None:
+        self.assertEqual(command_cli_entry_argv(()), ("bootstrap",))
+        self.assertEqual(
+            command_cli_entry_argv(["--project", "demo"]),
+            ("bootstrap", "--project", "demo"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv(["open", "--project", "demo"]),
+            ("bootstrap", "--project", "demo"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv(("patch-review", "--original", "a", "--proposed", "b")),
+            ("diff-preview", "--original", "a", "--proposed", "b"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv(("missing", "--format", "json")),
+            ("missing", "--format", "json"),
+        )
+
     def test_command_resolve_reports_deterministic_surface_metadata(self) -> None:
         resolved = command_resolve("patch-review")
         self.assertTrue(resolved.matched)
@@ -427,6 +448,19 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_cli_shim_argv_for(specs, ("patch", "--format", "json"), ("project-open",)),
             ("patch", "--format", "json"),
+        )
+        self.assertEqual(command_cli_entry_argv_for(specs, ()), ("project-open",))
+        self.assertEqual(
+            command_cli_entry_argv_for(specs, ("--project", "demo")),
+            ("project-open", "--project", "demo"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv_for(specs, ("patch", "--format", "json")),
+            ("review-patch", "--format", "json"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv_for(specs, ("--format", "json"), ("patch-review", "project-open")),
+            ("review-patch", "--format", "json"),
         )
 
     def test_command_demo_and_mvp_cli_shim_helpers_alias_the_public_contract(self) -> None:
