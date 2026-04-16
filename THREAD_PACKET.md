@@ -2,15 +2,15 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh role: `reviewer-fix metadata refresh`
+- Reviewed implementation commit: `e724470e3d3305b7f7ec38f1e818602aa6d9485a`
+- Packet refresh role: `reviewer-fix scope/traceability refresh`
 
 ## Packet Traceability Note
 
-- Keep the approval basis pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- This packet refresh is metadata-only and exists to satisfy the reviewer's required fixes without changing the reviewed implementation scope.
-- Re-review basis: the packet now states the exact canonical demo-path step advanced and the concrete CLI contract blocker removed, matching the reviewer's numbered required fixes.
-- Preserve the approved shared-test exception note for `tests/unit/test_commands_catalog.py`.
+- The reviewed implementation scope is the real branch-tip command change at `e724470e3d3305b7f7ec38f1e818602aa6d9485a`.
+- That implementation commit is not metadata-only: it changes `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
+- This packet refresh commit is metadata-only and exists only to correct the review traceability, scope summary, and roadmap/vision mapping around that implementation commit.
+- The approved shared-test exception remains limited to `tests/unit/test_commands_catalog.py`.
 
 ## Current Program Focus
 
@@ -26,7 +26,7 @@
 
 ## Scope Goal
 
-- Harden the CLI command contract so `command_cli_contract()` stays deterministic, reuses the canonical command order, and rejects canonical CLI name/order drift between the parser lookup table and the command catalog.
+- Stabilize the canonical demo-path command shims so the exported demo-path contract reports each surface token's parser-ready invocation and validates that those shim invocations stay aligned with the smoke contract.
 
 ## Priority Outcomes
 
@@ -36,12 +36,10 @@
 
 ## Canonical Demo-Path Mapping
 
-- Canonical demo-path step advanced: `open project/document`.
-- Supporting CLI-fallback steps kept smoke-testable by the same contract hardening: `retrieve relevant material` and `preview and apply or reject a patch`.
-- AGENTS alignment statement: this packet explicitly maps the work to the `open project/document` step of the canonical demo path so the handoff names the concrete step this slice makes more real.
-- Why this step is strengthened: the operator reaches that step through the CLI-first command surface today, so keeping `command_cli_contract()` deterministic, preserving canonical command ordering, and rejecting canonical-name/order drift between the CLI lookup table and the command catalog prevents the entry command surface from silently changing underneath the engine-first MVP loop.
-- Concrete blocker removed: Milestone 3 requires that the CLI can still execute the MVP loop while Textual remains disabled. Before this slice, `command_cli_contract()` rebuilt canonical names from the parser lookup table without verifying they still matched `command_names()`, which could silently destabilize the `open project/document` operator path. This change turns that canonical-name/order mismatch into an immediate contract error instead of a silent operator-surface regression.
-- Secondary effect only: the same deterministic contract keeps the existing CLI fallback smoke-testable for downstream demo-path steps, including `preview and apply or reject a patch`, but this handoff is anchored to `open project/document` as the primary justified step.
+- Primary demo-path step strengthened: `preview and apply or reject a patch`.
+- Supporting CLI-fallback coverage kept explicit for adjacent steps: `open project/document`, `retrieve relevant material`, and `save and continue`.
+- AGENTS alignment statement: this slice makes the CLI-first demo path more real by exposing the exact parser-ready argv generated for each canonical surface token, including the patch-review and export-handoff shims that operators depend on while Textual remains disabled.
+- Concrete blocker removed: before this slice, `command_demo_path_contract()` described parser-ready smoke argv for each canonical step, but it did not expose or validate the per-surface shim invocations that map aliases like `patch-review`, `apply-patch`, and `reject-patch` back to the parser entrypoints. This change makes those shim rewrites explicit and testable instead of implicit.
 
 ## Definition of Done for This Lane
 
@@ -62,32 +60,32 @@
 
 ## High-Risk Rationale
 
-- This handoff uses the high-risk template because it tightens a public CLI command contract and includes the approved shared-test file `tests/unit/test_commands_catalog.py`.
-- Scope remains narrow: command-surface contract hardening only.
-- Non-goals confirmed: no new command behavior, no engine logic changes, and no routing/provider changes.
+- This handoff uses the high-risk template because it tightens the public CLI contract and includes the approved shared-test file `tests/unit/test_commands_catalog.py`.
+- Scope remains narrow: command-catalog demo-path shim metadata and validation only.
+- Non-goals confirmed: no engine logic changes, no routing/provider changes, and no broader CLI UX expansion.
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the canonical CLI name/order surface drifts from the command catalog.
-- Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-- Regenerated the handoff packet as a metadata-only refresh so the review scope stays pinned to the command-catalog implementation commit and includes the explicit demo-path mapping requested in review.
+- Extended `CommandDemoPathEntry` in `src/qual/commands/catalog.py` with `surface_invocations` so the canonical demo-path contract exposes the parser-ready argv produced for every surface token in each flow step.
+- Hardened `_validate_command_demo_path_contract()` so the demo-path contract now rejects drift between the advertised surface tokens and the exported shim invocation table.
+- Updated `command_demo_path_contract()` to collect the per-step shim invocations from `command_cli_shim_catalog()` and attach them to each demo-path entry.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` that verifies the parser-ready invocation map for patch-review and export-handoff aliases, including `diff`, `review-patch`, `apply-patch`, and `reject-patch`.
 
 ## Kickoff Budget / Limits Compliance
 
 - High-risk shared-file handoff: stayed within the 4-task cap, 30-minute budget, and the lane size limits.
-- The implementation slice stayed limited to one owned command file plus one focused non-owned test file, so the handoff remains narrow and reviewable.
+- The reviewed implementation slice stayed limited to one owned command file plus one focused non-owned test file.
 
 ## Approved Exception Note
 
-- Approved shared-test exception for `tests/unit/test_commands_catalog.py`. It is the only non-owned implementation path in this handoff.
+- Approved shared-test exception for `tests/unit/test_commands_catalog.py`. It is the only non-owned implementation path in the reviewed implementation commit.
 
 ## Tasks Completed
 
-1. Hardened `command_cli_contract()` to verify canonical-name/order consistency against `command_names()` and fail fast on canonical CLI contract drift.
-2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
-3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Refreshed the handoff packet so the review remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, includes the explicit `open project/document` demo-path mapping, and keeps the shared-test exception note intact.
+1. Added demo-path contract support for explicit surface-token invocation mappings.
+2. Validated that demo-path surface invocations stay aligned with the smoke contract surface.
+3. Added regression coverage for parser-ready patch-review and export-handoff shim invocations.
+4. Refreshed the handoff packet so the reviewed implementation commit, shared-test exception, and roadmap/vision mapping match the actual branch state.
 
 ## Files Changed
 
@@ -112,23 +110,21 @@
 ## Risks / Blockers
 
 - Risk: `LOW`
-- Residual risk rationale: this is a metadata-only packet refresh over an already-reviewed two-file contract-hardening diff with no routing/provider changes and no remaining known blockers after the required gate suite.
+- Residual risk rationale: the change is limited to command-contract metadata and tests, and the new assertions only tighten the deterministic shim surface already exercised by the existing command catalog.
 - Blockers: none
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` - this change strengthens the requirement that the CLI can still execute the MVP loop while Textual remains disabled by hardening the `open project/document` entry step against silent CLI lookup-table/catalog canonical-order drift.
+- `Milestone 3: Real workflow loop` - preserves a stable CLI-first MVP loop while Textual remains disabled by making the canonical demo-path shim surface explicit and verifiable.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
-- Plan-alignment note: this is a contract-hardening slice, not a UX expansion; it directly removes a concrete blocker on the canonical demo path because the CLI entry-command surface now fails fast if the CLI lookup table's canonical-name order stops matching the catalog order expected by the engine-first operator flow.
 
 ### Vision capability affected
 
-- `Canonical engine contract` - the CLI-side `open project/document` entry contract now stays aligned with the canonical command catalog instead of silently diverging when the CLI lookup table's canonical-name order drifts.
-- `Auditable state and workflow` - CLI lookup-table/catalog canonical-order drift now fails loudly at contract construction time, making operator-facing command behavior explicit and traceable for the active MVP loop.
-- Demo-path alignment note: this hardening primarily protects the `open project/document` entry step and secondarily preserves a stable, smoke-testable CLI fallback surface for `retrieve relevant material` and `preview and apply or reject a patch` while Textual remains disabled.
+- `Canonical engine contract` - the exported demo-path contract now includes the parser-ready shim invocations that keep the CLI compatibility surface explicit instead of implicit.
+- `Auditable state and workflow` - the command contract now fails loudly if the advertised demo-path surface tokens diverge from the shim invocation table used to drive the CLI-first path.
 
 ### Routing/provider impact note
 
-- None. This change only affects local command contract validation and focused command-catalog test coverage.
+- None. This change only affects local command-contract metadata and focused command-catalog test coverage.
