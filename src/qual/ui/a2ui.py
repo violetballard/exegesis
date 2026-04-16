@@ -551,6 +551,12 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
             ],
             "card_payloads_override_conflicting_action_or_selection_hints": True,
         },
+        "fallback_recovery": {
+            "malformed_card_envelopes": {
+                "action": "normalize_action_ref",
+                "selection": "normalize_selection_ref",
+            }
+        },
     }
 
 
@@ -1239,16 +1245,18 @@ def _resolve_terminal_artifact_render_target(
     elif requested_kind is not None:
         kind = requested_kind
     if allow_invalid_envelope_recovery and requested_kind is None and typed_kind is None and kind == "card":
+        # In fallback-only mode, malformed card envelopes may still carry a
+        # schema-valid action or selection payload. Recover those structured
+        # leaf artifacts before dropping back to a generic card render.
         try:
             normalize_action_ref(artifact)
         except Exception:
-            if envelope_kind_hint == "selection":
-                try:
-                    normalize_selection_ref(artifact)
-                except Exception:
-                    pass
-                else:
-                    kind = "selection"
+            try:
+                normalize_selection_ref(artifact)
+            except Exception:
+                pass
+            else:
+                kind = "selection"
         else:
             kind = "action"
 

@@ -276,6 +276,15 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             ],
         )
         self.assertTrue(manifest["kind_resolution"]["card_payloads_override_conflicting_action_or_selection_hints"])
+        self.assertEqual(
+            manifest["fallback_recovery"],
+            {
+                "malformed_card_envelopes": {
+                    "action": "normalize_action_ref",
+                    "selection": "normalize_selection_ref",
+                }
+            },
+        )
         self.assertEqual(manifest["terminal_fallback_contract"], describe_terminal_fallback_contract())
         self.assertEqual(
             manifest["terminal_fallback_fingerprint"],
@@ -595,6 +604,29 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertIn("[ActionRef] Export", text)
         self.assertIn("Action schema v1", text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+        self.assertNotIn("trace_id", text)
+
+    def test_shell_ui_recovers_selection_payload_from_invalid_terminal_artifacts(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            text = shell.render_artifact(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "card",
+                    "artifact": {
+                        "id": "choice-1",
+                        "label": "Choice",
+                        "payload": {"nested": {"items": [1, 2]}},
+                    },
+                    "trace_id": "drop-me",
+                }
+            )
+
+        self.assertIn("[SelectionRef] Choice", text)
+        self.assertIn("Selection schema v1", text)
+        self.assertNotIn("[UnknownCard] <invalid card>", text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
         self.assertNotIn("trace_id", text)
 
