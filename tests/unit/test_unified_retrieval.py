@@ -20,6 +20,7 @@ from src.qual.engine.retrieval import build_retrieval_source_bundle_from_result 
 from src.qual.engine.retrieval.payload import build_retrieval_citation_bundle_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_result
+from src.qual.engine.retrieval.payload import _build_retrieval_diagnostics_from_source_bundle
 from src.qual.engine.retrieval.payload import _build_retrieval_citation_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_excerpt_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_source_bundle_from_payload
@@ -1635,6 +1636,94 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(source_bundle["query"]["constraints"]["require_citations"], True)
         self.assertEqual(source_bundle["query"]["constraints"]["prefer_exact_matches"], False)
         self.assertEqual(source_bundle["query"]["constraints"]["section_hint"], "discussion")
+
+    def test_retrieval_payload_normalizers_canonicalize_reversed_query_date_ranges(self) -> None:
+        payload = {
+            "query": {
+                "query_text": "memo comparison",
+                "scope": "vault",
+                "intent": "compare",
+                "confidentiality_profile": "standard",
+                "constraints": {
+                    "date_range": ["2026-01-31", "2026-01-01"],
+                },
+            },
+            "retrieval_summary": {
+                "query_date_range": ["2026-01-31", "2026-01-01"],
+                "retrieval_backend": "sqlite_fts",
+                "retrieval_mode": "fts_first",
+                "active_strategy_ids": ["fts"],
+                "deferred_strategy_ids": ["pageindex", "embeddings"],
+            },
+            "retrieval_diagnostics": {
+                "date_range": ["2026-01-31", "2026-01-01"],
+                "retrieval_backend": "sqlite_fts",
+                "retrieval_mode": "fts_first",
+                "active_strategy_ids": ["fts"],
+                "deferred_strategy_ids": ["pageindex", "embeddings"],
+            },
+            "retrieval_provenance": {
+                "query_date_range": ["2026-01-31", "2026-01-01"],
+                "retrieval_backend": "sqlite_fts",
+                "retrieval_mode": "fts_first",
+                "active_strategy_ids": ["fts"],
+                "deferred_strategy_ids": ["pageindex", "embeddings"],
+            },
+            "retrieval_source_bundle": {
+                "query": {
+                    "query_text": "memo comparison",
+                    "scope": "vault",
+                    "intent": "compare",
+                    "confidentiality_profile": "standard",
+                    "constraints": {
+                        "date_range": ["2026-01-31", "2026-01-01"],
+                    },
+                },
+                "policy": {
+                    "retrieval_backend": "sqlite_fts",
+                    "retrieval_mode": "fts_first",
+                    "active_strategy_ids": ["fts"],
+                    "deferred_strategy_ids": ["pageindex", "embeddings"],
+                },
+                "retrieval_summary": {
+                    "query_date_range": ["2026-01-31", "2026-01-01"],
+                },
+                "retrieval_provenance": {
+                    "query_date_range": ["2026-01-31", "2026-01-01"],
+                },
+                "retrieval_doc_bundle": {
+                    "query_date_range": ["2026-01-31", "2026-01-01"],
+                },
+                "retrieval_excerpt_bundle": {
+                    "query_date_range": ["2026-01-31", "2026-01-01"],
+                },
+                "retrieval_citation_bundle": {
+                    "query_date_range": ["2026-01-31", "2026-01-01"],
+                },
+            },
+        }
+
+        source_bundle = _build_retrieval_source_bundle_from_payload(payload)
+        provenance = _build_retrieval_provenance_from_payload(payload)
+        diagnostics = _build_retrieval_diagnostics_from_source_bundle(source_bundle)
+
+        self.assertEqual(source_bundle["query"]["constraints"]["date_range"], ["2026-01-01", "2026-01-31"])
+        self.assertEqual(source_bundle["retrieval_summary"]["query_date_range"], ["2026-01-01", "2026-01-31"])
+        self.assertEqual(source_bundle["retrieval_provenance"]["query_date_range"], ["2026-01-01", "2026-01-31"])
+        self.assertEqual(
+            source_bundle["retrieval_citation_bundle"]["query_date_range"],
+            ["2026-01-01", "2026-01-31"],
+        )
+        self.assertEqual(
+            source_bundle["retrieval_doc_bundle"]["query_date_range"],
+            ["2026-01-01", "2026-01-31"],
+        )
+        self.assertEqual(
+            source_bundle["retrieval_excerpt_bundle"]["query_date_range"],
+            ["2026-01-01", "2026-01-31"],
+        )
+        self.assertEqual(provenance["query_date_range"], ["2026-01-01", "2026-01-31"])
+        self.assertEqual(diagnostics["date_range"], ["2026-01-01", "2026-01-31"])
 
     def test_retrieval_source_bundle_normalizer_backfills_sparse_top_level_hits(self) -> None:
         result = self.service.retrieve_auto(

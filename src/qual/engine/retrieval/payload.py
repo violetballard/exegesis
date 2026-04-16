@@ -252,7 +252,7 @@ def _normalize_policy_snapshot(policy: object) -> dict[str, object]:
 
 def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(citation_bundle)
-    normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
+    normalized["query_date_range"] = _normalize_query_date_range(normalized.get("query_date_range"))
     normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized.get("fts_shortlist_doc_ids"))
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
@@ -271,7 +271,7 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
 
 def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(doc_bundle)
-    normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
+    normalized["query_date_range"] = _normalize_query_date_range(normalized.get("query_date_range"))
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
     normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits"))
@@ -289,7 +289,7 @@ def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, o
 
 def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(excerpt_bundle)
-    normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
+    normalized["query_date_range"] = _normalize_query_date_range(normalized.get("query_date_range"))
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
     normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits"))
@@ -308,7 +308,7 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
 def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(summary)
     if "query_date_range" in normalized:
-        normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
+        normalized["query_date_range"] = _normalize_query_date_range(normalized.get("query_date_range"))
     normalized["doc_ids"] = _normalize_list_like(normalized.get("doc_ids"))
     normalized["doc_fingerprints"] = _normalize_list_like(normalized.get("doc_fingerprints"))
     normalized["doc_identity_fingerprints"] = _normalize_list_like(normalized.get("doc_identity_fingerprints"))
@@ -716,7 +716,7 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
             ),
         ),
     )
-    query_date_range = _normalize_optional_list_like(query_date_range)
+    query_date_range = _normalize_query_date_range(query_date_range)
     candidate_doc_count = provenance.get(
         "candidate_doc_count",
         summary.get(
@@ -954,7 +954,7 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
     if not isinstance(query_constraints, dict):
         query_constraints = {}
     citation_bundle = _build_retrieval_citation_bundle_from_payload(payload)
-    query_date_range = _normalize_optional_list_like(
+    query_date_range = _normalize_query_date_range(
         query_constraints.get(
             "date_range",
             provenance.get("query_date_range", summary.get("query_date_range", diagnostics.get("date_range"))),
@@ -1109,7 +1109,7 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
             query.get("confidentiality_profile"),
         )
     )
-    query_date_range = _normalize_optional_list_like(
+    query_date_range = _normalize_query_date_range(
         citation_bundle.get("query_date_range", query_constraints.get("date_range"))
     )
     max_results = query_constraints.get("max_results", citation_bundle.get("doc_count", 10))
@@ -1192,7 +1192,7 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     query_constraints = query.get("constraints", {})
     if not isinstance(query_constraints, dict):
         query_constraints = {}
-    query_date_range = _normalize_optional_list_like(normalized.get("query_date_range"))
+    query_date_range = _normalize_query_date_range(normalized.get("query_date_range"))
     if _is_missing_snapshot_value(normalized.get("query_fingerprint")):
         normalized["query_fingerprint"] = summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))
     if _is_missing_snapshot_value(normalized.get("query_scope")):
@@ -1214,7 +1214,7 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
             normalized.get("query_confidentiality_profile")
         )
     if "query_date_range" not in normalized or _is_missing_snapshot_value(query_date_range):
-        normalized["query_date_range"] = _normalize_optional_list_like(
+        normalized["query_date_range"] = _normalize_query_date_range(
             query_constraints.get("date_range", summary.get("query_date_range", diagnostics.get("date_range")))
         )
     else:
