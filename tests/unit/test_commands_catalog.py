@@ -99,6 +99,8 @@ from src.qual.commands import (
     command_demo_cli_route_catalog,
     command_demo_cli_route_contract,
     command_demo_cli_route_summary,
+    command_demo_path_contract,
+    command_demo_path_invocation_plan,
     command_demo_flow_surface_tokens,
     command_demo_smoke_argv,
     command_demo_smoke_contract,
@@ -110,6 +112,7 @@ from src.qual.commands import (
     command_mvp_cli_surface_contract,
     command_mvp_cli_route_catalog,
     command_mvp_cli_route_summary,
+    command_mvp_path_contract,
     command_spec,
     command_spec_for,
     command_specs,
@@ -1356,6 +1359,67 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_cli_entry_argv(("apply-patch",)),
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+
+    def test_command_demo_path_contract_exposes_parser_ready_surface_invocations(self) -> None:
+        contract = command_demo_path_contract()
+        self.assertEqual(contract, command_mvp_path_contract())
+        self.assertEqual(contract.invocation_plan, command_demo_path_invocation_plan())
+        self.assertEqual(
+            tuple((entry.flow_step, entry.name, entry.parser_argv) for entry in contract.entries),
+            (
+                ("project-open", "bootstrap", ("bootstrap", "--project", "demo")),
+                ("retrieval", "context-basket", ("context-basket", "list")),
+                ("patch-review", "diff-preview", ("diff-preview", "--original", "before", "--proposed", "after")),
+                (
+                    "export-handoff",
+                    "terminal",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+            ),
+        )
+        self.assertEqual(
+            contract.entries[2].surface_invocations,
+            (
+                ("diff-preview", ("diff-preview",)),
+                ("diff", ("diff-preview",)),
+                ("review-patch", ("diff-preview",)),
+                ("patch-review", ("diff-preview",)),
+            ),
+        )
+        self.assertEqual(
+            contract.entries[3].surface_invocations,
+            (
+                ("terminal", ("terminal",)),
+                (
+                    "export",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+                (
+                    "save-export",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+                (
+                    "persist",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "persist-continue",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "apply-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "reject-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
+                    "export-handoff",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+            ),
         )
 
     def test_custom_smoke_argv_preserves_flag_values(self) -> None:

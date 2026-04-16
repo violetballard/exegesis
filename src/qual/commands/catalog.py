@@ -80,6 +80,7 @@ class CommandDemoPathEntry:
     argv: tuple[str, ...] = ()
     lookup_tokens: tuple[str, ...] = ()
     surface_tokens: tuple[str, ...] = ()
+    surface_invocations: tuple[tuple[str, tuple[str, ...]], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -2044,6 +2045,10 @@ def _validate_command_demo_path_contract(
         entry.surface_tokens for entry in smoke_contract.entries
     ):
         raise ValueError("Command demo path surface tokens are inconsistent")
+    if tuple(tuple(token for token, _ in entry.surface_invocations) for entry in contract.entries) != tuple(
+        entry.surface_tokens for entry in smoke_contract.entries
+    ):
+        raise ValueError("Command demo path surface invocations are inconsistent")
     if contract.lookup_surface != smoke_contract.lookup_surface:
         raise ValueError("Command demo path lookup surface is inconsistent")
 
@@ -2202,6 +2207,14 @@ def command_demo_path_contract(
     smoke_contract = command_demo_smoke_contract(specs)
     route_invocation_plan = smoke_contract.invocation_plan
     parser_invocation_plan = smoke_contract.smoke_invocation_plan
+    shim_entries = command_cli_shim_catalog(specs, command_demo_flow_steps())
+    shim_invocations_by_step: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {}
+    for flow_step in smoke_contract.flow_steps:
+        shim_invocations_by_step[flow_step] = tuple(
+            (entry.token, entry.argv)
+            for entry in shim_entries
+            if entry.flow_step == flow_step
+        )
     entries = tuple(
         CommandDemoPathEntry(
             flow_step=entry.flow_step,
@@ -2213,6 +2226,7 @@ def command_demo_path_contract(
             description=entry.description,
             lookup_tokens=entry.lookup_tokens,
             surface_tokens=entry.surface_tokens,
+            surface_invocations=shim_invocations_by_step.get(entry.flow_step, ()),
         )
         for index, entry in enumerate(smoke_contract.entries)
     )
