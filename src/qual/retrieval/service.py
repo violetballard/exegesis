@@ -693,6 +693,10 @@ class RetrievalResult:
             "retrieval_provenance": copy.deepcopy(downstream_payload["retrieval_provenance"]),
             "retrieval_source_bundle": copy.deepcopy(downstream_payload["retrieval_source_bundle"]),
             "retrieval_evidence": copy.deepcopy(downstream_payload["retrieval_evidence"]),
+            # Promote the canonical basket-ready record to the top level so
+            # engine flows do not have to unpack the full downstream payload
+            # before pinning retrieved context into the basket.
+            "basket_promotion": copy.deepcopy(downstream_payload["basket_promotion"]),
         }
 
     def _query_snapshot(self) -> dict[str, object]:

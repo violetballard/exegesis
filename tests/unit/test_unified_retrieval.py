@@ -813,14 +813,17 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(bundle["retrieval_citation_bundle"], result.citation_bundle())
         self.assertEqual(bundle["retrieval_doc_bundle"], result.retrieval_doc_bundle())
         self.assertEqual(bundle["retrieval_excerpt_bundle"], result.retrieval_excerpt_bundle())
+        self.assertEqual(bundle["basket_promotion"], result.to_downstream_payload()["basket_promotion"])
         bundle["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
         bundle["retrieval_excerpt_bundle"]["excerpt_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
+        bundle["basket_promotion"]["doc_id"] = "mutated-doc-id"
         refreshed = engine_build_retrieval_context_bundle_from_result(_SourceBundleOnlySource(result.source_bundle()))
         self.assertNotIn("mutated-doc-id", refreshed["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"])
         self.assertNotEqual(
             refreshed["retrieval_excerpt_bundle"]["excerpt_hits"][0]["provenance"]["doc_id"],
             "mutated-doc-id",
         )
+        self.assertNotEqual(refreshed["basket_promotion"]["doc_id"], "mutated-doc-id")
 
     def test_retrieve_auto_source_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(
@@ -2670,6 +2673,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(bundle["retrieval_excerpt_bundle"], result.retrieval_excerpt_bundle())
         self.assertEqual(bundle["retrieval_provenance"], result.to_downstream_payload()["retrieval_provenance"])
         self.assertEqual(bundle["retrieval_source_bundle"], result.source_bundle())
+        self.assertEqual(bundle["basket_promotion"], result.to_downstream_payload()["basket_promotion"])
         bundle["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
         refreshed = engine_build_retrieval_context_bundle_from_result(result)
         self.assertNotIn("mutated-doc-id", refreshed["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"])
@@ -2682,6 +2686,9 @@ class UnifiedRetrievalTests(unittest.TestCase):
             refreshed["retrieval_excerpt_bundle"]["excerpt_hits"][0]["provenance"]["doc_id"],
             "mutated-doc-id",
         )
+        bundle["basket_promotion"]["doc_id"] = "mutated-doc-id"
+        refreshed = engine_build_retrieval_context_bundle_from_result(result)
+        self.assertNotEqual(refreshed["basket_promotion"]["doc_id"], "mutated-doc-id")
 
     def test_retrieval_context_bundle_helper_reads_generic_sources_once(self) -> None:
         result = self.service.retrieve_auto(

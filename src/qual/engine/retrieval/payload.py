@@ -1246,6 +1246,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
     retrieval_provenance = source_bundle.get("retrieval_provenance", {})
     if not isinstance(retrieval_provenance, dict):
         retrieval_provenance = _build_retrieval_provenance_from_payload(source_bundle)
+    basket_promotion = _build_basket_promotion_from_payload(source_bundle)
     return {
         # Source-bundle-only reconstruction keeps the top-level context auditless.
         "audit_ref": None,
@@ -1257,6 +1258,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "retrieval_provenance": copy.deepcopy(retrieval_provenance),
         "retrieval_source_bundle": copy.deepcopy(source_bundle),
         "retrieval_evidence": copy.deepcopy(source_bundle.get("retrieval_evidence", {})),
+        "basket_promotion": copy.deepcopy(basket_promotion),
     }
 
 
@@ -1405,6 +1407,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_provenance": _build_retrieval_provenance_from_payload(payload),
         "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
+        "basket_promotion": _build_basket_promotion_from_payload(payload),
     }
 
 
