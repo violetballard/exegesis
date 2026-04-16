@@ -124,6 +124,16 @@ class ShellUI:
         return None
 
     @staticmethod
+    def _infer_action_payload_kind(artifact: Any) -> str | None:
+        if not isinstance(artifact, Mapping):
+            return None
+        try:
+            normalize_action_ref(artifact)
+        except ValueError:
+            return None
+        return "action"
+
+    @staticmethod
     def _format_item_id(value: object) -> str:
         if value is None:
             return "<blank>"
@@ -254,6 +264,10 @@ class ShellUI:
             # Recover from a corrupted wrapper kind when the embedded payload is still typed.
             if payload_kind in {"action", "selection", "card"}:
                 return payload, payload_kind
+            if requested_kind is None:
+                inferred_action_kind = ShellUI._infer_action_payload_kind(payload)
+                if inferred_action_kind is not None:
+                    return payload, inferred_action_kind
             if fallback_kind in {"action", "selection"}:
                 if payload is not None:
                     return payload, fallback_kind
