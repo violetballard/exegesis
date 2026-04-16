@@ -28,8 +28,8 @@
 ## Canonical Demo-Path Step Advanced
 
 - Primary step advanced: `preview and apply or reject a patch`
-- Secondary step supported: `continue working`
-- Exact mapping: this lane hardens the `patch-review` command surface so parser/catalog drift cannot silently change the CLI operator contract used to preview and apply or reject a patch and then continue working through the same stable command surface.
+- Secondary step supported: `continue working without losing context`
+- Exact mapping: this lane hardens the `patch-review` command surface so parser/catalog drift cannot silently change the live CLI operator contract used to preview and apply or reject a patch and then continue working without losing context through the same stable command surface.
 
 ## Lane / Ownership
 
@@ -79,21 +79,20 @@
 
 ## Risks / Blockers
 
-- Risk: `MEDIUM`
-- Risk note: shared-file exposure is limited to the approved test exception `tests/unit/test_commands_catalog.py`.
+- Residual risk: low. The remaining exposure is limited to the approved shared-test exception `tests/unit/test_commands_catalog.py`; runtime behavior stays confined to lane-owned command code and is covered by the full required gate set.
 - Blockers: none
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` by preserving CLI compatibility while the package/layout migration lands.
-- `feat-commands` by keeping the CLI-first MVP operator surface deterministic and smoke-testable.
+- `Milestone 3: Real workflow loop` because deterministic command ordering and parser-drift rejection keep the live CLI `open/retrieve/basket/patch-review` operator loop stable while the package/layout migration lands.
+- `feat-commands` because this slice keeps the CLI-first MVP operator surface deterministic and smoke-testable for the active engine-first loop.
 
 ### Vision capability affected
 
-- `Canonical engine contract` by keeping the CLI command surface stable while Textual remains disabled.
-- `Auditable state and workflow` by rejecting parser/catalog drift instead of silently mutating the operator contract.
+- `Canonical engine contract` because the active CLI compatibility surface stays stable and deterministic while Textual remains disabled.
+- `Auditable state and workflow` because parser/catalog drift is rejected explicitly instead of silently mutating the operator contract that drives patch review and continued work.
 
 ### Routing/provider impact note
 
