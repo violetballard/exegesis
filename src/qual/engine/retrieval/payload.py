@@ -287,8 +287,8 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
     normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized.get("fts_shortlist_doc_ids"))
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
-    normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
-    normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
+    normalized["doc_citations"] = _normalize_doc_citations(normalized.get("doc_citations"))
+    normalized["excerpt_citations"] = _normalize_excerpt_citations(normalized.get("excerpt_citations"))
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -306,7 +306,7 @@ def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, o
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
     normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits"))
-    normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
+    normalized["doc_citations"] = _normalize_doc_citations(normalized.get("doc_citations"))
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -324,7 +324,7 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
     normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits"))
-    normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
+    normalized["excerpt_citations"] = _normalize_excerpt_citations(normalized.get("excerpt_citations"))
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -387,8 +387,8 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
     normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized.get("fts_shortlist_doc_ids"))
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
-    normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
-    normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
+    normalized["doc_citations"] = _normalize_doc_citations(normalized.get("doc_citations"))
+    normalized["excerpt_citations"] = _normalize_excerpt_citations(normalized.get("excerpt_citations"))
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -437,7 +437,7 @@ def _derive_doc_citations_from_hits(doc_hits: object) -> list[dict[str, object]]
         top_section_hint_rank = provenance.get("top_section_hint_rank")
         if isinstance(top_section_hint_rank, int):
             citation["top_section_hint_rank"] = top_section_hint_rank
-        derived.append(citation)
+        derived.append(_normalize_doc_citation(citation))
     return derived
 
 
@@ -475,8 +475,63 @@ def _derive_excerpt_citations_from_hits(excerpt_hits: object) -> list[dict[str, 
         section_hint_rank = provenance.get("section_hint_rank")
         if isinstance(section_hint_rank, int):
             citation["section_hint_rank"] = section_hint_rank
-        derived.append(citation)
+        derived.append(_normalize_excerpt_citation(citation))
     return derived
+
+
+def _normalize_doc_citations(value: object) -> list[dict[str, object]]:
+    normalized: list[dict[str, object]] = []
+    for item in _normalize_list_like(value):
+        if isinstance(item, dict):
+            normalized.append(_normalize_doc_citation(item))
+    return normalized
+
+
+def _normalize_excerpt_citations(value: object) -> list[dict[str, object]]:
+    normalized: list[dict[str, object]] = []
+    for item in _normalize_list_like(value):
+        if isinstance(item, dict):
+            normalized.append(_normalize_excerpt_citation(item))
+    return normalized
+
+
+def _normalize_doc_citation(citation: dict[str, object]) -> dict[str, object]:
+    normalized = copy.deepcopy(citation)
+    excerpt_ids = normalized.get("excerpt_ids")
+    if excerpt_ids is not None:
+        normalized["excerpt_ids"] = _normalize_text_list_like(excerpt_ids)
+    matched_terms = normalized.get("matched_terms")
+    if matched_terms is not None:
+        normalized["matched_terms"] = _normalize_text_list_like(matched_terms)
+    top_excerpt_span = _normalize_span_snapshot(normalized.get("top_excerpt_span"))
+    if top_excerpt_span is not None:
+        normalized["top_excerpt_span"] = copy.deepcopy(top_excerpt_span)
+    elif "top_excerpt_span" in normalized:
+        normalized["top_excerpt_span"] = None
+    section_hint = _normalize_optional_text(normalized.get("section_hint"))
+    if section_hint is not None:
+        normalized["section_hint"] = section_hint
+    elif "section_hint" in normalized:
+        normalized.pop("section_hint", None)
+    return normalized
+
+
+def _normalize_excerpt_citation(citation: dict[str, object]) -> dict[str, object]:
+    normalized = copy.deepcopy(citation)
+    matched_terms = normalized.get("matched_terms")
+    if matched_terms is not None:
+        normalized["matched_terms"] = _normalize_text_list_like(matched_terms)
+    span = _normalize_span_snapshot(normalized.get("span"))
+    if span is not None:
+        normalized["span"] = copy.deepcopy(span)
+    elif "span" in normalized:
+        normalized["span"] = None
+    section_hint = _normalize_optional_text(normalized.get("section_hint"))
+    if section_hint is not None:
+        normalized["section_hint"] = section_hint
+    elif "section_hint" in normalized:
+        normalized.pop("section_hint", None)
+    return normalized
 
 
 def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
@@ -1552,11 +1607,11 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     if "doc_citations" not in normalized or _is_missing_snapshot_value(normalized.get("doc_citations")):
         normalized["doc_citations"] = copy.deepcopy(doc_citations)
     else:
-        normalized["doc_citations"] = _normalize_list_like(normalized["doc_citations"])
+        normalized["doc_citations"] = _normalize_doc_citations(normalized["doc_citations"])
     if "excerpt_citations" not in normalized or _is_missing_snapshot_value(normalized.get("excerpt_citations")):
         normalized["excerpt_citations"] = copy.deepcopy(excerpt_citations)
     else:
-        normalized["excerpt_citations"] = _normalize_list_like(normalized["excerpt_citations"])
+        normalized["excerpt_citations"] = _normalize_excerpt_citations(normalized["excerpt_citations"])
     if doc_citations:
         first_doc_citation = doc_citations[0]
         if isinstance(first_doc_citation, dict):

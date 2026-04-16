@@ -3018,6 +3018,123 @@ class UnifiedRetrievalTests(unittest.TestCase):
             ["pageindex", "embeddings"],
         )
 
+    def test_retrieval_downstream_payload_helper_normalizes_nested_citation_fields(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        mutated_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        retrieval_citation_bundle = mutated_source_bundle.get("retrieval_citation_bundle")
+        self.assertIsInstance(retrieval_citation_bundle, dict)
+
+        doc_citations = retrieval_citation_bundle.get("doc_citations")
+        self.assertIsInstance(doc_citations, list)
+        self.assertTrue(doc_citations)
+        first_doc_citation = doc_citations[0]
+        self.assertIsInstance(first_doc_citation, dict)
+        first_doc_citation["excerpt_ids"] = (
+            first_doc_citation["excerpt_ids"][0],
+            "  ",
+            first_doc_citation["excerpt_ids"][0],
+        )
+        first_doc_citation["matched_terms"] = {
+            " memo ",
+            "comparison",
+            "memo",
+        }
+        first_doc_citation["top_excerpt_span"] = {"char_range": {"start": 25, "end": 5}}
+        first_doc_citation["section_hint"] = "  Findings  "
+
+        excerpt_citations = retrieval_citation_bundle.get("excerpt_citations")
+        self.assertIsInstance(excerpt_citations, list)
+        self.assertTrue(excerpt_citations)
+        first_excerpt_citation = excerpt_citations[0]
+        self.assertIsInstance(first_excerpt_citation, dict)
+        first_excerpt_citation["matched_terms"] = {
+            " coding ",
+            "comparison",
+            "coding",
+        }
+        first_excerpt_citation["span"] = {"char_range": {"start": 40, "end": 10}}
+        first_excerpt_citation["section_hint"] = "  Findings  "
+
+        retrieval_provenance = mutated_source_bundle.get("retrieval_provenance")
+        self.assertIsInstance(retrieval_provenance, dict)
+        provenance_doc_citations = retrieval_provenance.get("doc_citations")
+        self.assertIsInstance(provenance_doc_citations, list)
+        self.assertTrue(provenance_doc_citations)
+        first_provenance_doc_citation = provenance_doc_citations[0]
+        self.assertIsInstance(first_provenance_doc_citation, dict)
+        first_provenance_doc_citation["excerpt_ids"] = (
+            first_provenance_doc_citation["excerpt_ids"][0],
+            "  ",
+            first_provenance_doc_citation["excerpt_ids"][0],
+        )
+        first_provenance_doc_citation["matched_terms"] = {
+            " memo ",
+            "comparison",
+            "memo",
+        }
+        first_provenance_doc_citation["top_excerpt_span"] = {"char_range": {"start": 25, "end": 5}}
+        first_provenance_doc_citation["section_hint"] = "  Findings  "
+
+        provenance_excerpt_citations = retrieval_provenance.get("excerpt_citations")
+        self.assertIsInstance(provenance_excerpt_citations, list)
+        self.assertTrue(provenance_excerpt_citations)
+        first_provenance_excerpt_citation = provenance_excerpt_citations[0]
+        self.assertIsInstance(first_provenance_excerpt_citation, dict)
+        first_provenance_excerpt_citation["matched_terms"] = {
+            " coding ",
+            "comparison",
+            "coding",
+        }
+        first_provenance_excerpt_citation["span"] = {"char_range": {"start": 40, "end": 10}}
+        first_provenance_excerpt_citation["section_hint"] = "  Findings  "
+
+        payload = build_retrieval_downstream_payload_from_result(
+            _SourceBundleOnlySource(mutated_source_bundle)
+        )
+
+        expected_doc_excerpt_ids = [first_doc_citation["excerpt_ids"][0]]
+        expected_excerpt_matched_terms = ["coding", "comparison"]
+        expected_doc_span = {"char_range": {"start": 5, "end": 25}}
+        expected_excerpt_span = {"char_range": {"start": 10, "end": 40}}
+        expected_section_hint = "Findings"
+        doc_matched_terms = payload["retrieval_citation_bundle"]["doc_citations"][0]["matched_terms"]
+        self.assertIsInstance(doc_matched_terms, list)
+        self.assertEqual(len(doc_matched_terms), len(set(doc_matched_terms)))
+        self.assertEqual([term.strip() for term in doc_matched_terms], doc_matched_terms)
+
+        for field in (
+            payload["retrieval_citation_bundle"]["doc_citations"][0],
+            payload["retrieval_provenance"]["doc_citations"][0],
+        ):
+            self.assertEqual(field["excerpt_ids"], expected_doc_excerpt_ids)
+            self.assertEqual(field["matched_terms"], doc_matched_terms)
+            self.assertEqual(field["top_excerpt_span"], expected_doc_span)
+            self.assertEqual(field["section_hint"], expected_section_hint)
+
+        for field in (
+            payload["retrieval_citation_bundle"]["excerpt_citations"][0],
+            payload["retrieval_provenance"]["excerpt_citations"][0],
+        ):
+            self.assertEqual(field["matched_terms"], expected_excerpt_matched_terms)
+            self.assertEqual(field["span"], expected_excerpt_span)
+            self.assertEqual(field["section_hint"], expected_section_hint)
+
     def test_retrieval_downstream_payload_helper_backfills_basket_promotion_from_top_level_hits(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
