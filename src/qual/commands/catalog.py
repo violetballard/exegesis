@@ -916,7 +916,9 @@ def command_cli_flow_contract(
                 flow_step=_normalize_token(spec.flow_step),
             )
         )
-    return CommandCliFlowContract(entries=tuple(entries))
+    contract = CommandCliFlowContract(entries=tuple(entries))
+    _validate_command_cli_flow_contract(contract, specs)
+    return contract
 
 
 @lru_cache(maxsize=None)
@@ -953,7 +955,37 @@ def command_cli_surface_catalog(
 def command_cli_surface_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandCliSurfaceContract:
-    return CommandCliSurfaceContract(entries=command_cli_surface_catalog(specs))
+    contract = CommandCliSurfaceContract(entries=command_cli_surface_catalog(specs))
+    _validate_command_cli_surface_contract(contract, specs)
+    return contract
+
+
+def _validate_command_cli_flow_contract(
+    contract: CommandCliFlowContract,
+    specs: tuple[CommandSpec, ...],
+) -> None:
+    cli_contract = _command_cli_contract_for(specs)
+    expected_entries = tuple(
+        CommandCliFlowEntry(
+            token=token,
+            canonical_name=canonical_name,
+            flow_step=_normalize_token(spec.flow_step),
+        )
+        for token, canonical_name in cli_contract.lookup_table
+        for spec in (command_spec_for(specs, canonical_name),)
+        if spec is not None
+    )
+    if contract.entries != expected_entries:
+        raise ValueError("Command CLI flow entries are inconsistent")
+
+
+def _validate_command_cli_surface_contract(
+    contract: CommandCliSurfaceContract,
+    specs: tuple[CommandSpec, ...],
+) -> None:
+    expected_entries = command_cli_surface_catalog(specs)
+    if contract.entries != expected_entries:
+        raise ValueError("Command CLI surface entries are inconsistent")
 
 
 def _surface_token_kind(token: str, route_entry: CommandFlowRouteEntry) -> str:
@@ -1084,11 +1116,27 @@ def command_cli_shim_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> CommandCliShimContract:
-    return CommandCliShimContract(
+    contract = CommandCliShimContract(
         entries=command_cli_shim_catalog(specs, flow_steps),
         lookup_table=command_cli_shim_lookup_table(specs, flow_steps),
         invocation_table=command_cli_shim_invocation_table(specs, flow_steps),
     )
+    _validate_command_cli_shim_contract(contract, specs, flow_steps)
+    return contract
+
+
+def _validate_command_cli_shim_contract(
+    contract: CommandCliShimContract,
+    specs: tuple[CommandSpec, ...],
+    flow_steps: tuple[str, ...] | None,
+) -> None:
+    expected_entries = command_cli_shim_catalog(specs, flow_steps)
+    if contract.entries != expected_entries:
+        raise ValueError("Command CLI shim entries are inconsistent")
+    if contract.lookup_table != tuple((entry.token, entry.primary_cli_token) for entry in contract.entries):
+        raise ValueError("Command CLI shim lookup table is inconsistent")
+    if contract.invocation_table != tuple((entry.token, entry.argv) for entry in contract.entries):
+        raise ValueError("Command CLI shim invocation table is inconsistent")
 
 
 @lru_cache(maxsize=None)

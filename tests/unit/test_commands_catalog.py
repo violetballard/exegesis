@@ -309,6 +309,18 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(contract.lookup_table, command_cli_shim_lookup_table())
         self.assertEqual(contract.invocation_table, command_cli_shim_invocation_table())
 
+    def test_command_cli_shim_validator_rejects_inconsistent_lookup_table(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Command CLI shim lookup table is inconsistent"):
+            command_catalog._validate_command_cli_shim_contract(
+                command_catalog.CommandCliShimContract(
+                    entries=command_cli_shim_catalog(),
+                    lookup_table=(("bootstrap", "diff-preview"),),
+                    invocation_table=command_cli_shim_invocation_table(),
+                ),
+                command_specs(),
+                None,
+            )
+
     def test_command_cli_shim_helpers_rewrite_legacy_surface_tokens_to_primary_argv(self) -> None:
         self.assertEqual(command_cli_shim_primary_token("open"), "bootstrap")
         self.assertEqual(command_cli_shim_primary_token("project-open"), "bootstrap")
@@ -645,6 +657,21 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(contract, command_mvp_cli_flow_contract())
 
+    def test_command_cli_flow_validator_rejects_inconsistent_entries(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Command CLI flow entries are inconsistent"):
+            command_catalog._validate_command_cli_flow_contract(
+                CommandCliFlowContract(
+                    entries=(
+                        command_catalog.CommandCliFlowEntry(
+                            token="bootstrap",
+                            canonical_name="bootstrap",
+                            flow_step="patch-review",
+                        ),
+                    )
+                ),
+                command_specs(),
+            )
+
     def test_command_cli_flow_contract_supports_custom_specs(self) -> None:
         specs = (
             CommandSpec(
@@ -761,6 +788,24 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(contract.entries, command_cli_surface_catalog())
         self.assertEqual(contract, command_demo_cli_surface_contract())
         self.assertEqual(contract, command_mvp_cli_surface_contract())
+
+    def test_command_cli_surface_validator_rejects_inconsistent_entries(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Command CLI surface entries are inconsistent"):
+            command_catalog._validate_command_cli_surface_contract(
+                command_catalog.CommandCliSurfaceContract(
+                    entries=(
+                        command_catalog.CommandCliSurfaceEntry(
+                            token="bootstrap",
+                            canonical_name="bootstrap",
+                            flow_step="patch-review",
+                            aliases=("open",),
+                            lookup_tokens=("bootstrap", "open"),
+                            description="Run the project bootstrap flow.",
+                        ),
+                    )
+                ),
+                command_specs(),
+            )
 
     def test_command_cli_surface_catalog_includes_parser_only_cli_tokens(self) -> None:
         specs = (
