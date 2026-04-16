@@ -531,12 +531,14 @@ class RetrievalResult:
             citation_status=citation_status,
             retrieval_policy=retrieval_policy,
         )
+        basket_promotion = self._basket_promotion_snapshot()
         retrieval_source_bundle = self._retrieval_source_bundle_snapshot(
             query=query,
             retrieval_policy=retrieval_policy,
             citation_bundle=citation_bundle,
             citation_status=citation_status,
             retrieval_summary=retrieval_summary,
+            basket_promotion=basket_promotion,
         )
         return build_retrieval_downstream_payload(
             query=query,
@@ -556,6 +558,7 @@ class RetrievalResult:
             retrieval_manifest=dict(self.diagnostics["retrieval_manifest"]),
             retrieval_evidence=dict(self.evidence),
             retrieval_provenance=retrieval_provenance,
+            basket_promotion=basket_promotion,
             source_bundle_fingerprint=cast(str, retrieval_source_bundle["source_bundle_fingerprint"]),
             retrieval_source_bundle=retrieval_source_bundle,
         )
@@ -910,6 +913,58 @@ class RetrievalResult:
             "retrieval_evidence": copy.deepcopy(self.evidence),
         }
 
+    def _basket_promotion_snapshot(self) -> dict[str, object]:
+        primary_doc_hit = self.doc_hits[0] if self.doc_hits else None
+        primary_excerpt_hit = self.hits[0] if self.hits else None
+        primary_doc_provenance = primary_doc_hit.provenance if primary_doc_hit is not None else {}
+        primary_excerpt_provenance = primary_excerpt_hit.provenance if primary_excerpt_hit is not None else {}
+        promotion_source = "none"
+        if primary_excerpt_hit is not None:
+            promotion_source = "primary_ranked_excerpt"
+        elif primary_doc_hit is not None:
+            promotion_source = "primary_ranked_doc"
+        return {
+            "promotion_ready": primary_excerpt_hit is not None or primary_doc_hit is not None,
+            "promotion_source": promotion_source,
+            "citation_available": primary_excerpt_hit is not None,
+            "query_fingerprint": self.diagnostics["query_fingerprint"],
+            "result_fingerprint": self.result_fingerprint,
+            "doc_id": (
+                primary_excerpt_hit.doc_id
+                if primary_excerpt_hit is not None
+                else primary_doc_hit.doc_id if primary_doc_hit is not None else None
+            ),
+            "doc_fingerprint": primary_doc_provenance.get("doc_fingerprint")
+            or primary_excerpt_provenance.get("doc_fingerprint"),
+            "doc_identity_fingerprint": primary_doc_provenance.get("doc_identity_fingerprint")
+            or primary_excerpt_provenance.get("doc_identity_fingerprint"),
+            "source_hash": primary_excerpt_provenance.get("source_hash")
+            or primary_doc_provenance.get("source_hash"),
+            "title_hint": (
+                primary_excerpt_hit.title_hint
+                if primary_excerpt_hit is not None
+                else primary_doc_hit.title_hint if primary_doc_hit is not None else None
+            ),
+            "excerpt_id": primary_excerpt_hit.excerpt_id if primary_excerpt_hit is not None else None,
+            "excerpt_fingerprint": primary_excerpt_provenance.get("excerpt_fingerprint")
+            if primary_excerpt_hit is not None
+            else None,
+            "excerpt_text_hash": (
+                primary_excerpt_provenance.get("excerpt_text_hash") or primary_excerpt_provenance.get("hash")
+                if primary_excerpt_hit is not None
+                else None
+            ),
+            "excerpt_text": primary_excerpt_hit.excerpt_text if primary_excerpt_hit is not None else None,
+            "span": copy.deepcopy(primary_excerpt_hit.span) if primary_excerpt_hit is not None else None,
+            "source_strategy": (
+                primary_excerpt_hit.source_strategy
+                if primary_excerpt_hit is not None
+                else primary_doc_hit.source_strategy if primary_doc_hit is not None else None
+            ),
+            "retrieval_backend": self.diagnostics["retrieval_backend"],
+            "retrieval_mode": self.diagnostics["retrieval_mode"],
+        }
+
     def _retrieval_source_bundle_snapshot(
         self,
         *,
@@ -918,6 +973,7 @@ class RetrievalResult:
         citation_bundle: dict[str, object] | None = None,
         citation_status: dict[str, object] | None = None,
         retrieval_summary: dict[str, object] | None = None,
+        basket_promotion: dict[str, object] | None = None,
     ) -> dict[str, object]:
         query_snapshot = query if query is not None else self._query_snapshot()
         retrieval_policy_snapshot = retrieval_policy if retrieval_policy is not None else self._retrieval_policy_snapshot()
@@ -930,6 +986,9 @@ class RetrievalResult:
                 retrieval_policy=retrieval_policy_snapshot,
                 citation_status=citation_status_snapshot,
             )
+        )
+        basket_promotion_snapshot = (
+            basket_promotion if basket_promotion is not None else self._basket_promotion_snapshot()
         )
         source_bundle = {
             "result_fingerprint": self.result_fingerprint,
@@ -954,6 +1013,7 @@ class RetrievalResult:
                     retrieval_policy=retrieval_policy_snapshot,
                 )
             ),
+            "basket_promotion": copy.deepcopy(basket_promotion_snapshot),
         }
         # Fingerprint the source snapshot itself so copies can be verified deterministically.
         source_bundle["source_bundle_fingerprint"] = RetrievalService._stable_fingerprint(

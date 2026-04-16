@@ -450,6 +450,126 @@ def _derive_excerpt_citations_from_hits(excerpt_hits: object) -> list[dict[str, 
     return derived
 
 
+def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
+    if not isinstance(snapshot, dict):
+        return {}
+    normalized = copy.deepcopy(snapshot)
+    span = normalized.get("span")
+    if isinstance(span, dict):
+        normalized["span"] = copy.deepcopy(span)
+    elif "span" in normalized:
+        normalized["span"] = None
+    promotion_ready = _normalize_optional_bool(normalized.get("promotion_ready"))
+    if promotion_ready is not None:
+        normalized["promotion_ready"] = promotion_ready
+    citation_available = _normalize_optional_bool(normalized.get("citation_available"))
+    if citation_available is not None:
+        normalized["citation_available"] = citation_available
+    return normalized
+
+
+def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str, object]:
+    primary_snapshot = _normalize_basket_promotion_snapshot(payload.get("basket_promotion"))
+    doc_hits = _normalize_list_like(payload.get("doc_hits", []))
+    excerpt_hits = _normalize_list_like(payload.get("excerpt_hits", []))
+    first_doc_hit = doc_hits[0] if doc_hits and isinstance(doc_hits[0], dict) else {}
+    first_excerpt_hit = excerpt_hits[0] if excerpt_hits and isinstance(excerpt_hits[0], dict) else {}
+    first_doc_provenance = first_doc_hit.get("provenance", {}) if isinstance(first_doc_hit, dict) else {}
+    if not isinstance(first_doc_provenance, dict):
+        first_doc_provenance = {}
+    first_excerpt_provenance = (
+        first_excerpt_hit.get("provenance", {}) if isinstance(first_excerpt_hit, dict) else {}
+    )
+    if not isinstance(first_excerpt_provenance, dict):
+        first_excerpt_provenance = {}
+    promotion_source = "none"
+    if first_excerpt_hit:
+        promotion_source = "primary_ranked_excerpt"
+    elif first_doc_hit:
+        promotion_source = "primary_ranked_doc"
+    derived = {
+        "promotion_ready": bool(first_excerpt_hit or first_doc_hit),
+        "promotion_source": promotion_source,
+        "citation_available": bool(first_excerpt_hit),
+        "query_fingerprint": _first_text_value(
+            payload.get("query_fingerprint"),
+            payload.get("retrieval_provenance", {}).get("query_fingerprint")
+            if isinstance(payload.get("retrieval_provenance"), dict)
+            else None,
+            payload.get("retrieval_summary", {}).get("query_fingerprint")
+            if isinstance(payload.get("retrieval_summary"), dict)
+            else None,
+        ),
+        "result_fingerprint": _first_text_value(
+            payload.get("result_fingerprint"),
+            payload.get("retrieval_provenance", {}).get("result_fingerprint")
+            if isinstance(payload.get("retrieval_provenance"), dict)
+            else None,
+            payload.get("retrieval_summary", {}).get("result_fingerprint")
+            if isinstance(payload.get("retrieval_summary"), dict)
+            else None,
+        ),
+        "doc_id": _first_text_value(
+            first_excerpt_hit.get("doc_id") if isinstance(first_excerpt_hit, dict) else None,
+            first_doc_hit.get("doc_id") if isinstance(first_doc_hit, dict) else None,
+        ),
+        "doc_fingerprint": _first_text_value(
+            first_doc_provenance.get("doc_fingerprint"),
+            first_excerpt_provenance.get("doc_fingerprint"),
+        ),
+        "doc_identity_fingerprint": _first_text_value(
+            first_doc_provenance.get("doc_identity_fingerprint"),
+            first_excerpt_provenance.get("doc_identity_fingerprint"),
+        ),
+        "source_hash": _first_text_value(
+            first_excerpt_provenance.get("source_hash"),
+            first_doc_hit.get("source_hash") if isinstance(first_doc_hit, dict) else None,
+            first_doc_provenance.get("source_hash"),
+        ),
+        "title_hint": _first_text_value(
+            first_excerpt_hit.get("title_hint") if isinstance(first_excerpt_hit, dict) else None,
+            first_doc_hit.get("title_hint") if isinstance(first_doc_hit, dict) else None,
+        ),
+        "excerpt_id": _first_text_value(
+            first_excerpt_hit.get("excerpt_id") if isinstance(first_excerpt_hit, dict) else None,
+        ),
+        "excerpt_fingerprint": _first_text_value(first_excerpt_provenance.get("excerpt_fingerprint")),
+        "excerpt_text_hash": _first_text_value(
+            first_excerpt_provenance.get("excerpt_text_hash"),
+            first_excerpt_provenance.get("hash"),
+        ),
+        "excerpt_text": _first_text_value(
+            first_excerpt_hit.get("excerpt_text") if isinstance(first_excerpt_hit, dict) else None,
+        ),
+        "span": copy.deepcopy(first_excerpt_hit.get("span")) if isinstance(first_excerpt_hit, dict) else None,
+        "source_strategy": _first_text_value(
+            first_excerpt_hit.get("source_strategy") if isinstance(first_excerpt_hit, dict) else None,
+            first_doc_hit.get("source_strategy") if isinstance(first_doc_hit, dict) else None,
+            first_excerpt_provenance.get("source_strategy"),
+            first_doc_provenance.get("source_strategy"),
+        ),
+        "retrieval_backend": _first_text_value(
+            payload.get("retrieval_backend"),
+            first_excerpt_provenance.get("retrieval_backend"),
+            payload.get("retrieval_provenance", {}).get("retrieval_backend")
+            if isinstance(payload.get("retrieval_provenance"), dict)
+            else None,
+        ),
+        "retrieval_mode": _first_text_value(
+            payload.get("retrieval_mode"),
+            first_excerpt_provenance.get("retrieval_mode"),
+            payload.get("retrieval_provenance", {}).get("retrieval_mode")
+            if isinstance(payload.get("retrieval_provenance"), dict)
+            else None,
+        ),
+    }
+    if not primary_snapshot:
+        return _normalize_basket_promotion_snapshot(derived)
+    return _normalize_basket_promotion_snapshot(
+        _backfill_sparse_snapshot(primary_snapshot, derived)
+    )
+
+
 def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(source_bundle)
     if not isinstance(normalized, dict):
@@ -472,6 +592,7 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["retrieval_evidence"] = _normalize_retrieval_evidence_snapshot(
         normalized.get("retrieval_evidence", {})
     )
+    normalized["basket_promotion"] = _build_basket_promotion_from_payload(normalized)
     normalized["retrieval_citation_bundle"] = _build_retrieval_citation_bundle_from_payload(normalized)
     normalized["retrieval_doc_bundle"] = _build_retrieval_doc_bundle_from_payload(normalized)
     normalized["retrieval_excerpt_bundle"] = _build_retrieval_excerpt_bundle_from_payload(normalized)
@@ -888,6 +1009,7 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
+        "basket_promotion": copy.deepcopy(payload.get("basket_promotion", {})),
     })
 
 
@@ -1361,6 +1483,7 @@ class RetrievalDownstreamPayload:
     retrieval_manifest: dict[str, object]
     retrieval_evidence: dict[str, object]
     retrieval_provenance: dict[str, object]
+    basket_promotion: dict[str, object]
     source_bundle_fingerprint: str
     retrieval_source_bundle: dict[str, object]
 
@@ -1370,6 +1493,7 @@ class RetrievalDownstreamPayload:
         manifest = copy.deepcopy(self.retrieval_manifest)
         evidence = copy.deepcopy(self.retrieval_evidence)
         provenance = copy.deepcopy(self.retrieval_provenance)
+        basket_promotion = copy.deepcopy(self.basket_promotion)
         summary = copy.deepcopy(self.retrieval_summary)
         source_bundle = copy.deepcopy(self.retrieval_source_bundle)
         return {
@@ -1391,6 +1515,7 @@ class RetrievalDownstreamPayload:
             "retrieval_manifest": manifest,
             "retrieval_evidence": evidence,
             "retrieval_provenance": provenance,
+            "basket_promotion": basket_promotion,
             "source_bundle_fingerprint": self.source_bundle_fingerprint,
             "retrieval_source_bundle": source_bundle,
         }
@@ -1437,6 +1562,7 @@ def build_retrieval_downstream_payload(
     retrieval_manifest: dict[str, object],
     retrieval_evidence: dict[str, object],
     retrieval_provenance: dict[str, object],
+    basket_promotion: dict[str, object],
     source_bundle_fingerprint: str,
     retrieval_source_bundle: dict[str, object],
 ) -> dict[str, object]:
@@ -1458,6 +1584,7 @@ def build_retrieval_downstream_payload(
         retrieval_manifest=retrieval_manifest,
         retrieval_evidence=retrieval_evidence,
         retrieval_provenance=retrieval_provenance,
+        basket_promotion=basket_promotion,
         source_bundle_fingerprint=source_bundle_fingerprint,
         retrieval_source_bundle=retrieval_source_bundle,
     ).as_dict()
