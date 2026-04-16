@@ -21,6 +21,7 @@ from src.qual.ui.a2ui import (
     describe_selection_contract,
     describe_terminal_artifact_contract_fingerprints,
     describe_terminal_artifact_contract,
+    describe_terminal_artifact_rendering_contract,
     describe_terminal_fallback_contract,
     build_terminal_artifact_envelope,
     normalize_terminal_artifact_payload,
@@ -32,6 +33,7 @@ from src.qual.ui.a2ui import (
     SelectionRef,
     selection_contract_fingerprint,
     terminal_artifact_contract_fingerprint,
+    terminal_artifact_rendering_contract_fingerprint,
     terminal_fallback_contract_fingerprint,
     TERMINAL_ARTIFACT_SCHEMA_VERSION,
     validate_terminal_artifact_envelope,
@@ -92,8 +94,16 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["terminal_artifact"], describe_terminal_artifact_contract())
         self.assertEqual(manifest["schemas"]["terminal_artifact"], describe_terminal_artifact_contract())
         self.assertEqual(
+            manifest["schemas"]["terminal_artifact_rendering"],
+            describe_terminal_artifact_rendering_contract(),
+        )
+        self.assertEqual(
             manifest["terminal_artifact"]["contract_fingerprint"],
             manifest["schemas"]["terminal_artifact"]["contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["terminal_artifact"]["rendering"],
+            describe_terminal_artifact_rendering_contract(),
         )
         self.assertEqual(len(manifest["terminal_artifact"]["contract_fingerprint"]), 64)
 
@@ -148,6 +158,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_fallback_contract_fingerprint(),
         )
         self.assertEqual(
+            manifest["rendering"]["contract_fingerprint"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["rendering_contract"]["contract_fingerprint"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
             manifest["contract_fingerprints"],
             describe_terminal_artifact_contract_fingerprints(),
         )
@@ -158,6 +176,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "action_contract",
                 "selection_contract",
                 "terminal_fallback_contract",
+                "rendering_contract",
             },
         )
         self.assertEqual(manifest["contract_fingerprints"]["card_contract"], card_contract_fingerprint())
@@ -170,6 +189,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["contract_fingerprints"]["terminal_fallback_contract"],
             terminal_fallback_contract_fingerprint(),
         )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["rendering_contract"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
         self.assertEqual(manifest["contract_fingerprint"], terminal_artifact_contract_fingerprint())
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
@@ -178,6 +201,44 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(manifest["terminal_artifact_version"], manifest["terminal_artifact_schema_version"])
         self.assertEqual(manifest["terminal_artifact_version"], TERMINAL_ARTIFACT_SCHEMA_VERSION)
+
+    def test_terminal_artifact_rendering_contract_manifest_is_versioned_and_embedded_in_a2ui_contract(self) -> None:
+        manifest = describe_terminal_artifact_rendering_contract()
+        a2ui_manifest = describe_a2ui_contract()
+
+        self.assertEqual(manifest["contract_version"], 2)
+        self.assertEqual(manifest["a2ui_version"], 1)
+        self.assertEqual(manifest["terminal_artifact_schema_version"], TERMINAL_ARTIFACT_SCHEMA_VERSION)
+        self.assertEqual(manifest["type"], "TerminalArtifactRenderingContract")
+        self.assertEqual(manifest["supported_kinds"], ["card", "action", "selection"])
+        self.assertEqual(manifest["default_kind"], "card")
+        self.assertEqual(
+            manifest["renderer_entrypoints"],
+            {
+                "terminal_artifact": "render_terminal_artifact",
+                "card": "render_terminal_card",
+                "action": "render_terminal_action",
+                "selection": "render_terminal_selection",
+            },
+        )
+        self.assertEqual(manifest["fallback_renderer"], "ShellUI.render_artifact")
+        self.assertEqual(
+            manifest["kind_resolution"]["precedence"],
+            [
+                "validated envelope kind",
+                "typed payload kind",
+                "explicit caller kind hint",
+                "card default",
+            ],
+        )
+        self.assertTrue(manifest["kind_resolution"]["card_payloads_override_conflicting_action_or_selection_hints"])
+        self.assertEqual(
+            manifest["terminal_artifact_rendering_fingerprint"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(manifest["contract_fingerprint"], terminal_artifact_rendering_contract_fingerprint())
+        self.assertEqual(a2ui_manifest["schemas"]["terminal_artifact_rendering"], manifest)
+        self.assertEqual(a2ui_manifest["terminal_artifact"]["rendering"], manifest)
 
     def test_terminal_artifact_contract_manifest_includes_explicit_envelope_shape(self) -> None:
         manifest = describe_terminal_artifact_contract()
