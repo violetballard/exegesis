@@ -32,7 +32,7 @@
 
 - Explicit canonical demo-path step advanced by this lane: `preview and apply or reject a patch`.
 - This change makes the CLI-first `preview and apply or reject a patch` step more real by hardening the existing patch-review command contract so parser/catalog drift fails fast and operator-facing entrypoints stay deterministic for the CLI fallback while Textual remains disabled.
-- Concrete blocker removed: the patch-review command surface now validates parser/catalog drift and keeps patch-review entrypoints stable enough for deterministic CLI-first operator checks while Textual remains disabled.
+- Concrete blocker removed: the patch-review command surface now validates parser/catalog drift instead of silently accepting a mismatched parser/catalog shape, which keeps the existing CLI patch-review step deterministic enough for smoke checks while Textual remains disabled.
 
 ## Definition Of Done Alignment
 
@@ -52,7 +52,7 @@
 ## Scope Completed
 
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
-- Added deterministic parser-surface helpers for CLI shims, parser-ready argv rewriting, smoke invocations, trusted demo-path routing, and command resolution so the existing CLI-first MVP loop stays auditable and stable.
+- Added deterministic parser-surface helpers for CLI shims, parser-ready argv rewriting, smoke invocations, trusted demo-path routing, and command resolution so the existing CLI-first MVP loop stays stable and smoke-testable.
 - Exposed the public command exports needed for the command catalog, canonical wrapper, demo/MVP helper entrypoints, and smoke/resolution contracts from `src/qual/commands/__init__.py` and `src/qual/commands/canonical.py`.
 - Tightened `src/qual/commands/diff_preview.py` so summary-only output keeps a fingerprint tied to the reviewed diff and truncation remains bounded without corrupting the header-aware preview contract.
 - Expanded `tests/unit/test_commands_catalog.py` with focused regression coverage for canonical-order alignment, parser drift rejection, shim/surface contracts, smoke argv helpers, deterministic resolution, and demo/MVP path helpers.
@@ -100,6 +100,7 @@
 ## Risks / Blockers
 
 - Residual risk: medium; this branch tip is larger than the original `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` catalog-only slice, so re-review should evaluate the full command-surface contract listed above.
+- Scope note: this is command-surface validation and compatibility work for the existing CLI loop, not a broader workflow-engine or audit-capability change.
 - Blockers: none
 
 ## Required Handoff Fields
@@ -112,7 +113,6 @@
 ### Vision capability affected
 
 - `Canonical engine contract` because the CLI compatibility surface remains stable while Textual stays disabled.
-- `Auditable state and workflow` because the command surface now fails loudly on parser/catalog drift and exposes explicit smoke/resolution contracts instead of silently changing the operator contract.
 
 ### Routing/provider impact note
 
