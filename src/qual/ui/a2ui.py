@@ -153,6 +153,7 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["selection_fingerprint"] = manifest["selection"]["contract_fingerprint"]
     manifest["card_fingerprint"] = card_contract_fingerprint()
     manifest["contract_fingerprints"] = _build_a2ui_contract_fingerprint_summary()
+    manifest["terminal_artifact_rendering"] = manifest["schemas"]["terminal_artifact_rendering"]
     manifest["terminal_artifact_rendering_fingerprint"] = manifest["schemas"]["terminal_artifact_rendering"][
         "contract_fingerprint"
     ]
@@ -528,6 +529,8 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
             "selection": "render_terminal_selection",
         },
         "fallback_renderer": "ShellUI.render_artifact",
+        "terminal_fallback_contract": describe_terminal_fallback_contract(),
+        "terminal_fallback_fingerprint": terminal_fallback_contract_fingerprint(),
         "kind_resolution": {
             "precedence": [
                 "validated envelope kind",

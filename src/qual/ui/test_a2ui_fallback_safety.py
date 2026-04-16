@@ -258,11 +258,17 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             ],
         )
         self.assertTrue(manifest["kind_resolution"]["card_payloads_override_conflicting_action_or_selection_hints"])
+        self.assertEqual(manifest["terminal_fallback_contract"], describe_terminal_fallback_contract())
+        self.assertEqual(
+            manifest["terminal_fallback_fingerprint"],
+            terminal_fallback_contract_fingerprint(),
+        )
         self.assertEqual(
             manifest["terminal_artifact_rendering_fingerprint"],
             terminal_artifact_rendering_contract_fingerprint(),
         )
         self.assertEqual(manifest["contract_fingerprint"], terminal_artifact_rendering_contract_fingerprint())
+        self.assertEqual(a2ui_manifest["terminal_artifact_rendering"], manifest)
         self.assertEqual(a2ui_manifest["schemas"]["terminal_artifact_rendering"], manifest)
         self.assertEqual(a2ui_manifest["terminal_artifact"]["rendering"], manifest)
 
