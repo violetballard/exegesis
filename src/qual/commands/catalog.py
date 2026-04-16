@@ -75,6 +75,9 @@ class CommandDemoPathEntry:
     primary_cli_token: str
     smoke_argv: tuple[str, ...]
     description: str
+    argv: tuple[str, ...] = ()
+    lookup_tokens: tuple[str, ...] = ()
+    surface_tokens: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -82,6 +85,8 @@ class CommandDemoPathContract:
     flow_steps: tuple[str, ...]
     names: tuple[str, ...]
     entries: tuple[CommandDemoPathEntry, ...]
+    lookup_table: tuple[tuple[str, str], ...] = ()
+    lookup_surface: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -1817,6 +1822,36 @@ def _validate_command_smoke_contract(contract: CommandSmokeContract) -> None:
         raise ValueError("Command smoke lookup surface is inconsistent")
 
 
+def _validate_command_demo_path_contract(
+    contract: CommandDemoPathContract,
+    smoke_contract: CommandSmokeContract,
+) -> None:
+    if contract.flow_steps != smoke_contract.flow_steps:
+        raise ValueError("Command demo path flow steps are inconsistent")
+    if contract.names != smoke_contract.names:
+        raise ValueError("Command demo path names are inconsistent")
+    if tuple((entry.flow_step, entry.name) for entry in contract.entries) != contract.lookup_table:
+        raise ValueError("Command demo path lookup table is inconsistent")
+    if tuple(entry.argv for entry in contract.entries) != tuple(
+        entry.argv for entry in smoke_contract.invocation_plan
+    ):
+        raise ValueError("Command demo path invocation argv is inconsistent")
+    if tuple(entry.smoke_argv for entry in contract.entries) != tuple(
+        entry.smoke_argv for entry in smoke_contract.entries
+    ):
+        raise ValueError("Command demo path smoke argv is inconsistent")
+    if tuple(entry.lookup_tokens for entry in contract.entries) != tuple(
+        entry.lookup_tokens for entry in smoke_contract.entries
+    ):
+        raise ValueError("Command demo path lookup tokens are inconsistent")
+    if tuple(entry.surface_tokens for entry in contract.entries) != tuple(
+        entry.surface_tokens for entry in smoke_contract.entries
+    ):
+        raise ValueError("Command demo path surface tokens are inconsistent")
+    if contract.lookup_surface != smoke_contract.lookup_surface:
+        raise ValueError("Command demo path lookup surface is inconsistent")
+
+
 @lru_cache(maxsize=None)
 def command_flow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -1969,21 +2004,29 @@ def command_demo_path_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoPathContract:
     smoke_contract = command_demo_smoke_contract(specs)
+    invocation_plan = smoke_contract.invocation_plan
     entries = tuple(
         CommandDemoPathEntry(
             flow_step=entry.flow_step,
             name=entry.name,
             primary_cli_token=entry.primary_cli_token,
+            argv=invocation_plan[index].argv,
             smoke_argv=entry.smoke_argv,
             description=entry.description,
+            lookup_tokens=entry.lookup_tokens,
+            surface_tokens=entry.surface_tokens,
         )
-        for entry in smoke_contract.entries
+        for index, entry in enumerate(smoke_contract.entries)
     )
-    return CommandDemoPathContract(
+    contract = CommandDemoPathContract(
         flow_steps=smoke_contract.flow_steps,
         names=smoke_contract.names,
         entries=entries,
+        lookup_table=tuple((entry.flow_step, entry.name) for entry in entries),
+        lookup_surface=smoke_contract.lookup_surface,
     )
+    _validate_command_demo_path_contract(contract, smoke_contract)
+    return contract
 
 
 def command_demo_surface_contract(
