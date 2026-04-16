@@ -388,6 +388,29 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 }
             )
 
+    def test_terminal_card_renderer_recovers_valid_card_payloads_from_malformed_terminal_artifacts(
+        self,
+    ) -> None:
+        text = render_terminal_card(
+            {
+                "type": "TerminalArtifact",
+                "kind": "dialog",
+                "artifact": {
+                    "type": "GenericCard",
+                    "title": " Run Log ",
+                    "a2ui_version": 1,
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+                    "actions": [],
+                },
+                "trace_id": "drop-me",
+            }
+        )
+
+        self.assertIn("[GenericCard] Run Log", text)
+        self.assertIn("A2UI v1", text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+        self.assertNotIn("trace_id", text)
+
     def test_shell_ui_recovers_action_payload_from_invalid_terminal_artifacts(self) -> None:
         shell = ShellUI()
 

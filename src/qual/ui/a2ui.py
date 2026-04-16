@@ -974,6 +974,12 @@ def render_terminal_card(card: Any) -> str:
             try:
                 return render_terminal_artifact(normalized_card)
             except Exception:
+                recovered_card = _resolve_terminal_artifact_card_fallback(normalized_card)
+                if recovered_card is not None:
+                    try:
+                        return render_terminal_card(recovered_card)
+                    except Exception:
+                        pass
                 return _render_invalid_terminal_artifact(normalized_card)
         raw_title = _normalize_card_title(normalized_card)
         title = _render_terminal_inline_text(raw_title)
@@ -1134,6 +1140,40 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
 
 
 render_terminal_a2ui = render_terminal_artifact
+
+
+def _resolve_terminal_artifact_card_fallback(
+    artifact: Any,
+    *,
+    _seen_envelope_ids: set[int] | None = None,
+) -> dict[str, Any] | None:
+    if not isinstance(artifact, Mapping):
+        return None
+    artifact_type = artifact.get("type")
+    if not isinstance(artifact_type, str) or artifact_type.strip() != _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+        return None
+
+    if _seen_envelope_ids is None:
+        _seen_envelope_ids = set()
+    artifact_id = id(artifact)
+    if artifact_id in _seen_envelope_ids:
+        return None
+    _seen_envelope_ids.add(artifact_id)
+
+    payload = artifact.get("artifact")
+    if isinstance(payload, Mapping):
+        payload_type = payload.get("type")
+        if isinstance(payload_type, str) and payload_type.strip() == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+            recovered_card = _resolve_terminal_artifact_card_fallback(
+                payload,
+                _seen_envelope_ids=_seen_envelope_ids,
+            )
+            if recovered_card is not None:
+                return recovered_card
+        if _infer_terminal_artifact_kind_from_mapping(payload) in {"action", "selection"}:
+            return None
+        return dict(payload)
+    return None
 
 
 def _render_invalid_terminal_selection(selection: Any) -> str:
