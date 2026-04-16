@@ -52,6 +52,7 @@
 - `./typecheck-test.sh`: PASS on `2026-04-16` (`[typecheck] compiling Python sources in src/`)
 - `make ci`: PASS on `2026-04-16` (`Ran 157 tests in 4.917s`, `OK`, `[devex] CI entrypoint completed`)
 - Final fixer-pass note: the full required gate sweep was rerun on the lane branch after regenerating the handoff metadata around the actual reviewed implementation head.
+- Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are permission-locked in this worktree, so this fixer pass updates the canonical writable handoff file `THREAD_PACKET.md` and reports the restriction explicitly for re-review.
 
 ## Risks/blockers
 - Risks: high, because the narrowed reviewed range includes approved shared regression coverage.
