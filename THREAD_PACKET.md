@@ -64,16 +64,16 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
-- Kept the returned CLI contract aligned with canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it validates the declared parser surface at the entrypoint, token, and lookup-table levels and raises `ValueError` if aliases are substituted or reordered.
+- Kept the returned CLI contract aligned with canonical command order while deriving its parser surface directly from the declared per-command CLI entrypoints.
 - Updated `src/qual/commands/diff_preview.py` so summary-only fingerprint reporting hashes the reviewed diff payload, while non-summary output still fingerprints the emitted rendered diff.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` for command-order drift rejection and summary-only fingerprint correctness.
 - Regenerated the handoff packet so the review scope and handoff fields match the actual branch tip.
 
 ## Tasks Completed
 
-1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on parser drift.
-2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
+1. Hardened `command_cli_contract()` to verify the declared parser surface against the command catalog and fail fast on alias substitution, reordering, or other drift.
+2. Preserved canonical command ordering in the CLI contract while keeping the parser surface derived from the declared per-command CLI entrypoints.
 3. Fixed summary-only diff fingerprinting so the command still identifies the reviewed diff payload when the rendered output is collapsed.
 4. Added focused regression coverage for both the catalog contract and the diff-preview fingerprint contract.
 
