@@ -191,6 +191,35 @@ def _normalize_query_date_range_payload(value: object) -> list[str] | None:
     return list(_normalize_date_range((normalized[0], normalized[1])))
 
 
+def _normalize_query_scope_payload(value: object) -> str | None:
+    scope = _optional_text(value)
+    if scope is None:
+        return None
+    try:
+        return _normalize_scope(scope)
+    except ValueError:
+        return scope
+
+
+def _normalize_query_intent_payload(value: object) -> str | None:
+    return _normalized_profile_text(value)
+
+
+def _normalize_doc_id_list_payload(value: object) -> list[str] | None:
+    raw_items = _optional_list_like(value)
+    if raw_items is None:
+        return None
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for item in raw_items:
+        doc_id = _optional_text(item)
+        if doc_id is None or doc_id in seen:
+            continue
+        seen.add(doc_id)
+        normalized.append(doc_id)
+    return sorted(normalized)
+
+
 @dataclass(frozen=True)
 class RetrievalConstraints:
     max_results: int = 10
@@ -2302,12 +2331,23 @@ class RetrievalService:
         )
         if query_confidentiality_profile is not None:
             normalized_provenance["query_confidentiality_profile"] = query_confidentiality_profile
+        query_scope = _normalize_query_scope_payload(normalized_provenance.get("query_scope"))
+        if query_scope is not None:
+            normalized_provenance["query_scope"] = query_scope
+        query_intent = _normalize_query_intent_payload(normalized_provenance.get("query_intent"))
+        if query_intent is not None:
+            normalized_provenance["query_intent"] = query_intent
         section_hint = _normalized_text(normalized_provenance.get("section_hint"))
         if section_hint is not None:
             normalized_provenance["section_hint"] = section_hint
         candidate_doc_count = _optional_int(normalized_provenance.get("candidate_doc_count"))
         if candidate_doc_count is not None:
             normalized_provenance["candidate_doc_count"] = candidate_doc_count
+        fts_shortlist_doc_ids = _normalize_doc_id_list_payload(
+            normalized_provenance.get("fts_shortlist_doc_ids")
+        )
+        if fts_shortlist_doc_ids is not None:
+            normalized_provenance["fts_shortlist_doc_ids"] = fts_shortlist_doc_ids
         rank = _optional_int(normalized_provenance.get("rank"))
         if rank is not None:
             normalized_provenance["rank"] = rank
@@ -2343,6 +2383,7 @@ class RetrievalService:
             "query_confidentiality_profile",
             "query_date_range",
             "candidate_doc_count",
+            "fts_shortlist_doc_ids",
             "matched_terms",
             "match_count",
             "rank",
