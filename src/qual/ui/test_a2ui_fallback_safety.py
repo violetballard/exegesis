@@ -449,6 +449,30 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["fallback_renderer"], "ShellUI.render_artifact")
         self.assertEqual(manifest["supported_kinds"], ["card", "action", "selection"])
         self.assertEqual(manifest["default_kind"], "card")
+        self.assertEqual(manifest["envelope"]["type"], "TerminalArtifact")
+        self.assertEqual(manifest["envelope"]["contract_version"], 2)
+        self.assertEqual(manifest["envelope"]["a2ui_version"], 1)
+        self.assertEqual(
+            manifest["envelope"]["terminal_artifact_schema_version"],
+            TERMINAL_ARTIFACT_SCHEMA_VERSION,
+        )
+        self.assertEqual(manifest["envelope"]["required_fields"], ["kind", "artifact"])
+        self.assertEqual(manifest["envelope"]["optional_fields"], ["contract_version", "a2ui_version"])
+        self.assertEqual(manifest["envelope"]["kind_field"], "kind")
+        self.assertEqual(manifest["envelope"]["artifact_field"], "artifact")
+        self.assertEqual(manifest["envelope"]["supported_kinds"], ["card", "action", "selection"])
+        self.assertEqual(
+            manifest["kind_contracts"]["card"],
+            {"kind": "card", "contract_fingerprint": card_contract_fingerprint()},
+        )
+        self.assertEqual(
+            manifest["kind_contracts"]["action"],
+            {"kind": "action", "contract_fingerprint": action_contract_fingerprint()},
+        )
+        self.assertEqual(
+            manifest["kind_contracts"]["selection"],
+            {"kind": "selection", "contract_fingerprint": selection_contract_fingerprint()},
+        )
         self.assertEqual(
             manifest["renderer_entrypoints"],
             {

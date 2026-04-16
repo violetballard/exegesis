@@ -649,6 +649,21 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "fallback_renderer": "ShellUI.render_artifact",
         "supported_kinds": ["card", "action", "selection"],
         "default_kind": "card",
+        "envelope": _build_terminal_artifact_envelope_manifest(),
+        "kind_contracts": {
+            "card": {
+                "kind": "card",
+                "contract_fingerprint": card_contract_fingerprint(),
+            },
+            "action": {
+                "kind": "action",
+                "contract_fingerprint": action_contract_fingerprint(),
+            },
+            "selection": {
+                "kind": "selection",
+                "contract_fingerprint": selection_contract_fingerprint(),
+            },
+        },
         "renderer_entrypoints": copy.deepcopy(rendering_contract["renderer_entrypoints"]),
         "rendering": rendering_contract,
         "rendering_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
