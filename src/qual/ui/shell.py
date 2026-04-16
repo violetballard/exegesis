@@ -106,6 +106,10 @@ class ShellUI:
                 return "action"
             if normalized_type == "SelectionRef":
                 return "selection"
+            if normalized_type and normalized_type != "TerminalArtifact":
+                # Any other typed mapping should still render as a card even if
+                # the surrounding envelope metadata is broken.
+                return "card"
 
         has_required_fields = all(field in artifact for field in ("id", "label", "payload"))
         if not has_required_fields:
@@ -249,7 +253,7 @@ class ShellUI:
             validate_terminal_artifact_envelope(artifact)
         except Exception:
             # Recover from a corrupted wrapper kind when the embedded payload is still typed.
-            if payload_kind in {"action", "selection"}:
+            if payload_kind in {"action", "selection", "card"}:
                 return payload, payload_kind
             if fallback_kind in {"action", "selection"}:
                 if payload is not None:
