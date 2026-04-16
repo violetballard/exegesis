@@ -40,6 +40,7 @@
 - This `THREAD_PACKET.md` refresh is the authoritative handoff packet for the reviewer-fix re-review pass in this worktree.
 - Re-review should evaluate the narrowed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, the shared/high-risk `4`-task cap, and the canonical demo-path step `retrieve relevant material` from this packet.
 - The runtime implementation scope remains unchanged; this fixer refresh is metadata-only packet clarification for re-review.
+- The `.codex` packet mirrors remain read-only in this fixer sandbox, so this writable packet is the source of truth for the explicit `AGENTS.md` demo-path mapping required by the reviewer.
 
 ## AGENTS.md Handoff Packet
 - Risk reason: shared/high-risk work because this narrowed reviewed implementation includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
