@@ -17,6 +17,7 @@
 
 ## Canonical Demo-Path Step Advanced
 - Canonical demo-path step advanced: `retrieve relevant material`
+- Suggested reviewer wording satisfied: `Canonical demo-path step advanced: retrieve relevant material; excerpt lookup now fails closed to canonical FTS-backed excerpt IDs, keeping retrieval provenance deterministic for downstream basket/workflow use.`
 - This reviewed implementation range makes `retrieve relevant material` more real by keeping retrieval output deterministic and auditable while forcing excerpt lookup through the canonical FTS-only path.
 - Reviewer-required explicit handoff statement: this change advances the canonical demo-path step `retrieve relevant material` by making excerpt lookup fail closed to the authoritative SQLite FTS path instead of permitting PageIndex as a runtime-required excerpt source.
 - Concretely, `src/qual/retrieval/service.py` now resolves `fetch_excerpt` through the canonical FTS-only lookup path, and the approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs fail closed with `KeyError`.
