@@ -348,6 +348,8 @@ def _validate_command_cli_contract(
         for spec in specs
         if spec.cli_exposed
     )
+    # Compare the approved parser surface before derived projections so alias
+    # substitutions or token-order drift fail even when canonical names match.
     if validated_entrypoints is not None and validated_entrypoints != expected_parser_surface:
         raise ValueError("Command CLI parser surface is inconsistent")
 

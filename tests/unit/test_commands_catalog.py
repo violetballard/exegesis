@@ -583,7 +583,9 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_demo_cli_shim_catalog(), command_cli_shim_catalog())
         self.assertEqual(command_mvp_cli_shim_catalog(), command_demo_cli_shim_catalog())
 
-    def test_command_cli_contract_rejects_alias_substitution_in_parser_surface(self) -> None:
+    def test_command_cli_contract_rejects_alias_substitution_in_parser_surface_when_canonical_order_still_matches(
+        self,
+    ) -> None:
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
@@ -595,6 +597,10 @@ class CommandCatalogTests(unittest.TestCase):
                 ("terminal", ("terminal",)),
             ),
         ):
+            self.assertEqual(
+                tuple(name for name, _ in command_catalog._validated_cli_entrypoints_for()),
+                command_names(),
+            )
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
 

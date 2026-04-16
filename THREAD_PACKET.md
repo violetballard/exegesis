@@ -53,7 +53,7 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it validates the full approved parser surface, not just deduplicated canonical names, and now raises `ValueError` if canonical CLI tokens are dropped, aliases are substituted, or parser token order drifts from the catalog contract.
 - Added deterministic parser-surface helpers for CLI shims, parser-ready argv rewriting, smoke invocations, trusted demo-path routing, and command resolution so the existing CLI-first MVP loop stays stable and smoke-testable.
 - Exposed the public command exports needed for the command catalog, canonical wrapper, demo/MVP helper entrypoints, and smoke/resolution contracts from `src/qual/commands/__init__.py` and `src/qual/commands/canonical.py`.
 - Tightened `src/qual/commands/diff_preview.py` so summary-only output keeps a fingerprint tied to the reviewed diff and truncation remains bounded without corrupting the header-aware preview contract.
@@ -62,14 +62,14 @@
 
 ## Tasks Completed
 
-1. Hardened the command catalog and demo-path contracts so parser drift, canonical ordering, and trusted route metadata stay deterministic for the CLI-first MVP loop.
+1. Hardened the command catalog and demo-path contracts so parser drift, parser token order, canonical ordering, and trusted route metadata stay deterministic for the CLI-first MVP loop.
 2. Added parser-surface, shim argv, smoke argv, and deterministic command-resolution helpers needed by the compatibility surface.
 3. Published the public command exports and tightened diff-preview summary behavior so the existing CLI entrypoints stay stable and smoke-testable.
 4. Expanded the approved shared regression coverage and corrected the handoff packet so re-review targets the real implementation tip and exact merge scope.
 
 ## Task-To-Demo-Path Mapping
 
-1. Task 1 advances `open project/document` by keeping the trusted CLI entry contract deterministic and by rejecting parser/catalog drift before the operator entry step can silently change.
+1. Task 1 advances `open project/document` by keeping the trusted CLI entry contract deterministic and by rejecting parser/catalog drift, alias substitution, or parser token reordering before the operator entry step can silently change.
 2. Task 2 advances `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch` by keeping the existing CLI compatibility wrappers and argv rewriting deterministic across the current engine-first loop.
 3. Task 3 advances `open project/document` and `preview and apply or reject a patch` by keeping the published command entrypoints stable and by preserving a smoke-testable diff preview contract for the existing CLI fallback.
 4. Task 4 advances `continue working without losing context` from an operator-contract perspective by keeping the reviewed command surface auditable, re-reviewable, and traceable to the real branch tip rather than an incorrect metadata-only slice.
