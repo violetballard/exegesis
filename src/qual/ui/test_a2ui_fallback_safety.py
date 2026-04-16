@@ -103,6 +103,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_contract_fingerprint(),
         )
         self.assertEqual(manifest["terminal_artifact"], describe_terminal_artifact_contract())
+        self.assertEqual(manifest["schemas"]["selection"], describe_selection_contract())
         self.assertEqual(manifest["schemas"]["terminal_artifact"], describe_terminal_artifact_contract())
         self.assertEqual(
             manifest["schemas"]["terminal_artifact_rendering"],

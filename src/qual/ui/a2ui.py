@@ -641,6 +641,7 @@ def _build_card_fallback_manifest() -> dict[str, Any]:
 def _build_a2ui_schema_manifest() -> dict[str, Any]:
     return {
         "cards": _build_card_schema_manifest(),
+        "selection": describe_selection_contract(),
         "action": describe_action_contract(),
         "actions": [
             {
