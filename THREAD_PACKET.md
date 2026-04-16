@@ -19,6 +19,7 @@
 ## Canonical Demo-Path Step Advanced
 
 - Primary step advanced: `preview and apply or reject a patch`
+- Required explicit handoff mapping: this packet exists to state directly that the command-catalog slice strengthens the current CLI `patch-review` step of the canonical demo path.
 - Why this is first-order MVP work: the active CLI-first MVP still relies on the `diff-preview` command surface for the patch-review step, so deterministic catalog-backed ordering and fast drift rejection keep that operator contract stable while Textual remains disabled.
 - Scope control: this slice does not add new workflow behavior; it only hardens the existing CLI compatibility contract for the active patch-review step.
 
