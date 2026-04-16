@@ -23,6 +23,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_contract,
     describe_terminal_fallback_contract,
     build_terminal_artifact_envelope,
+    normalize_terminal_artifact_payload,
     engine_prepare_card,
     render_terminal_action,
     render_terminal_artifact,
@@ -196,7 +197,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(envelope["kind"], "action")
         self.assertEqual(envelope["contract_version"], 2)
         self.assertEqual(envelope["a2ui_version"], 1)
-        self.assertEqual(envelope["artifact"], action)
+        self.assertEqual(
+            envelope["artifact"],
+            normalize_terminal_artifact_payload(action, kind="action"),
+        )
         validate_terminal_artifact_envelope(envelope)
 
         text = render_terminal_artifact(envelope)
@@ -205,6 +209,68 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Action schema v1", text)
         self.assertIn("- confirm: {\"message\":\"Export now?\",\"title\":\"Approve\"}", text)
 
+    def test_terminal_artifact_payload_normalizer_returns_plain_dict_snapshots(self) -> None:
+        action_payload = normalize_terminal_artifact_payload(
+            ActionRef(
+                id=" export_document ",
+                label=" Export ",
+                payload={"format": "md"},
+                confirm={"title": " Approve ", "message": " Export now? "},
+                policy_sensitive=True,
+            ),
+            kind="action",
+        )
+        selection_payload = normalize_terminal_artifact_payload(
+            SelectionRef(
+                id=" choice-1 ",
+                label=" Choice ",
+                payload={"nested": {"items": [1, 2]}},
+                selected=True,
+            ),
+            kind="selection",
+        )
+        card_payload = normalize_terminal_artifact_payload(
+            {
+                "type": "GenericCard",
+                "title": " Run Log ",
+                "a2ui_version": 1,
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Original"}],
+                "actions": [],
+                "trace_id": "drop-me",
+            },
+            kind="card",
+        )
+
+        self.assertEqual(
+            action_payload,
+            {
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+                "confirm": {"title": "Approve", "message": "Export now?"},
+                "policy_sensitive": True,
+            },
+        )
+        self.assertEqual(
+            selection_payload,
+            {
+                "id": "choice-1",
+                "label": "Choice",
+                "payload": {"nested": {"items": [1, 2]}},
+                "selected": True,
+            },
+        )
+        self.assertEqual(
+            card_payload,
+            {
+                "type": "GenericCard",
+                "title": " Run Log ",
+                "a2ui_version": 1,
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Original"}],
+                "actions": [],
+            },
+        )
+
     def test_terminal_artifact_envelope_snapshots_source_payloads(self) -> None:
         card = {
             "type": "GenericCard",
@@ -212,12 +278,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             "a2ui_version": 1,
             "blocks": [{"type": "MarkdownBlock", "markdown": "Original"}],
             "actions": [],
+            "trace_id": "drop-me",
         }
 
         envelope = build_terminal_artifact_envelope(card, kind="card")
         card["title"] = "Changed"
         card["blocks"][0]["markdown"] = "Mutated"
 
+        self.assertNotIn("trace_id", envelope["artifact"])
         text = render_terminal_artifact(envelope)
 
         self.assertIn("[GenericCard] Run Log", text)
@@ -289,7 +357,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 }
             )
 
-    def test_shell_ui_falls_back_to_safe_card_rendering_for_invalid_terminal_artifacts(self) -> None:
+    def test_shell_ui_recovers_action_payload_from_invalid_terminal_artifacts(self) -> None:
         shell = ShellUI()
 
         text = shell.render_artifact(
@@ -305,10 +373,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             }
         )
 
-        self.assertIn("[TerminalArtifact] <invalid artifact>", text)
-        self.assertIn("TerminalArtifact schema v1", text)
-        self.assertIn('"trace_id":"drop-me"', text)
-        self.assertIn('"kind":"action"', text)
+        self.assertIn("[ActionRef] Export", text)
+        self.assertIn("Action schema v1", text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+        self.assertNotIn("trace_id", text)
 
     def test_shell_ui_recovers_matching_kinds_from_malformed_terminal_artifacts(self) -> None:
         shell = ShellUI()

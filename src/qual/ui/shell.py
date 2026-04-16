@@ -9,6 +9,8 @@ from src.qual.engine.service import EngineRuntime
 from .a2ui import (
     ActionRef,
     SelectionRef,
+    normalize_action_ref,
+    normalize_selection_ref,
     render_terminal_action,
     render_terminal_artifact,
     render_terminal_card,
@@ -254,6 +256,20 @@ class ShellUI:
                 return payload, payload_kind
             if envelope_kind in {"action", "selection"} and payload is not None and payload_kind == envelope_kind:
                 return payload, envelope_kind
+            if envelope_kind == "action" and payload is not None:
+                try:
+                    normalize_action_ref(payload)
+                except Exception:
+                    pass
+                else:
+                    return payload, "action"
+            if envelope_kind == "selection" and payload is not None:
+                try:
+                    normalize_selection_ref(payload)
+                except Exception:
+                    pass
+                else:
+                    return payload, "selection"
             if requested_kind == "card" and isinstance(payload, Mapping) and payload_kind is None:
                 # Keep explicit card hints usable even when the wrapper metadata is stale.
                 return payload, "card"

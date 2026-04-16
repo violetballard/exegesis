@@ -244,10 +244,12 @@ def build_terminal_artifact_envelope(artifact: Any, *, kind: str) -> dict[str, A
     artifacts now and future UI clients can consume the same payload shape
     later without guessing. The helper rejects mismatched kind/payload pairs
     so the engine cannot accidentally label an action as a card or vice versa.
+    TerminalArtifact payloads are normalized to plain dictionary snapshots so
+    the contract stays predictable even when callers pass dataclass instances.
     """
 
     normalized_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
-    artifact_snapshot = _copy_terminal_artifact_payload(artifact)
+    artifact_snapshot = normalize_terminal_artifact_payload(artifact, kind=normalized_kind)
     envelope = {
         "type": _TERMINAL_ARTIFACT_ENVELOPE_TYPE,
         "kind": normalized_kind,
@@ -257,6 +259,26 @@ def build_terminal_artifact_envelope(artifact: Any, *, kind: str) -> dict[str, A
     }
     validate_terminal_artifact_envelope(envelope)
     return envelope
+
+
+def normalize_terminal_artifact_payload(artifact: Any, *, kind: str | None = None) -> dict[str, Any]:
+    """Return the canonical payload snapshot for a structured terminal artifact.
+
+    Action and selection payloads are normalized through the public ref
+    validators before being converted to plain dictionaries. Card payloads are
+    copied as mappings so the envelope does not retain references to mutable
+    source objects.
+    """
+
+    normalized_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+    if normalized_kind == "action":
+        return _action_ref_to_dict(normalize_action_ref(artifact))
+    if normalized_kind == "selection":
+        return _selection_ref_to_dict(normalize_selection_ref(artifact))
+    if not isinstance(artifact, Mapping):
+        raise ValueError("TerminalArtifact card artifact must be a mapping")
+    card_snapshot = _canonicalize_card_top_level_fields(dict(artifact))
+    return _copy_terminal_artifact_payload(card_snapshot)
 
 
 def validate_terminal_artifact_envelope(envelope: Any) -> None:
