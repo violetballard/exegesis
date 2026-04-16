@@ -489,6 +489,7 @@ def _build_terminal_fallback_contract_manifest() -> dict[str, Any]:
 
 
 def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
+    rendering_contract = describe_terminal_artifact_rendering_contract()
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
@@ -498,7 +499,7 @@ def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
         "envelope": _build_terminal_artifact_envelope_manifest(),
         "supported_kinds": ["card", "action", "selection"],
         "default_kind": "card",
-        "rendering": describe_terminal_artifact_rendering_contract(),
+        "rendering": rendering_contract,
         "kind_contracts": {
             "card": {
                 "kind": "card",
@@ -521,6 +522,8 @@ def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
             "kind": "card",
             "contract_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
         },
+        "kind_resolution": copy.deepcopy(rendering_contract["kind_resolution"]),
+        "fallback_recovery": copy.deepcopy(rendering_contract["fallback_recovery"]),
         "contract_fingerprints": describe_terminal_artifact_contract_fingerprints(),
     }
 

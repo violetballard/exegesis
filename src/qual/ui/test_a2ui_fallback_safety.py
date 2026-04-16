@@ -240,6 +240,30 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["contract_fingerprint"], terminal_artifact_contract_fingerprint())
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
+    def test_terminal_artifact_contract_manifest_surfaces_rendering_recovery_aliases(self) -> None:
+        manifest = describe_terminal_artifact_contract()
+        rendering_manifest = describe_terminal_artifact_rendering_contract()
+        a2ui_manifest = describe_a2ui_contract()
+
+        self.assertEqual(manifest["kind_resolution"], rendering_manifest["kind_resolution"])
+        self.assertEqual(manifest["fallback_recovery"], rendering_manifest["fallback_recovery"])
+        self.assertEqual(
+            a2ui_manifest["terminal_artifact"]["kind_resolution"],
+            rendering_manifest["kind_resolution"],
+        )
+        self.assertEqual(
+            a2ui_manifest["terminal_artifact"]["fallback_recovery"],
+            rendering_manifest["fallback_recovery"],
+        )
+        self.assertEqual(
+            a2ui_manifest["schemas"]["terminal_artifact"]["kind_resolution"],
+            rendering_manifest["kind_resolution"],
+        )
+        self.assertEqual(
+            a2ui_manifest["schemas"]["terminal_artifact"]["fallback_recovery"],
+            rendering_manifest["fallback_recovery"],
+        )
+
     def test_terminal_artifact_contract_version_alias_matches_schema_version(self) -> None:
         manifest = describe_terminal_artifact_contract()
 
