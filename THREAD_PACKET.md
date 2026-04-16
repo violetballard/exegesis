@@ -1,18 +1,23 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Review target: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh commit: `fb6bf44449c4ad1ecb6b5fee6cd51abfe5d57283`
-- Packet refresh role: `metadata-only reviewer-fix finalization`
+- Review target: current branch tip
+- Implementation commits in scope:
+  - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` - `feat(commands): lock CLI contract to command catalog`
+  - `4c5bc5386b48bdf9429530d17b7353562592e7ff` - `Fix diff preview summary fingerprint contract`
+- Packet refresh commit: pending current handoff refresh
+- Packet refresh role: `reviewer-fix packet regeneration`
 
 ## Review Basis
 
-- This packet follows the reviewer packet exactly and keeps the approval basis limited to the reviewed implementation slice at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Later packet-refresh commits are treated as metadata-only for this handoff.
+- This packet is regenerated against the actual merge candidate on `codex/feat-commands`, not a single earlier implementation commit.
+- The branch includes two implementation slices in `src/qual/commands/**`:
+  - deterministic `command_cli_contract()` validation in the command catalog
+  - diff-preview fingerprint hardening so summary-only output still fingerprints the reviewed diff payload
 - Reviewer-required packet fixes addressed here:
-  - add the explicit canonical demo-path mapping required by `AGENTS.md`
-  - tighten the scope statement from generic CLI compatibility to the concrete operator-visible path it hardens
-  - keep the approval basis limited to the original reviewed implementation slice
+  - correct the traceability story so the handoff matches the real branch tip
+  - include the full implementation scope, files, tasks, and shared-file approvals
+  - state the exact canonical demo-path step this branch makes more real
 
 ## Current Program Focus
 
@@ -28,58 +33,62 @@
 
 ## Scope Goal
 
-- Harden the CLI command contract so `command_cli_contract()` stays deterministic, preserves canonical command order, and fails fast if the parser surface drifts from the catalog.
-- This slice specifically hardens the deterministic CLI contract for the current operator-visible path covering `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and `save/export handoff`.
+- Harden the CLI command surface so catalog-backed command routing stays deterministic and smoke-testable for the current engine-first MVP loop.
+- Keep diff-preview output auditable by ensuring summary-only fingerprint reporting still identifies the reviewed diff payload rather than the collapsed emitted text.
 
 ## Canonical Demo-Path Mapping
 
-- Explicit canonical demo-path steps advanced by this slice:
+- Explicit canonical demo-path step advanced by this branch: `preview and apply or reject a patch`.
+- Concrete blocker removed: the CLI-facing command contract now rejects parser/catalog drift, and the `diff-preview` summary-only surface now fingerprints the reviewed diff payload, so patch-review commands stay deterministic and auditable for the current operator path.
+- Secondary covered steps through the stable command surface:
   - `open project/document`
   - `retrieve relevant material`
-  - `preview and apply or reject a patch`
   - `save/export handoff`
-- Concrete MVP impact: the CLI-first operator surface for those steps remains deterministic because the parser-facing command catalog now stays aligned with the canonical command order and rejects silent parser/catalog drift.
-- Scope control: this slice does not add new workflow behavior; it only hardens the existing CLI compatibility contract used by the current engine-first MVP path.
 
 ## Definition Of Done Alignment
 
 - Core engine actions remain reachable through stable commands.
 - Command behavior remains deterministic and smoke-testable.
 - Compatibility with the canonical engine contract is preserved while UI lanes stay disabled.
-- Command handlers remain thin; this slice only tightens command-catalog contract validation.
+- Command handlers remain thin; both changes stay in command-surface validation or presentation integrity rather than embedded engine business logic.
 
 ## Lane / Ownership
 
-- Owned runtime path: `src/qual/commands/**`
-- Approved shared-test path: `tests/unit/test_commands_catalog.py`
+- Owned runtime paths: `src/qual/commands/**`
+- Approved shared-test paths:
+  - `tests/unit/test_commands_catalog.py`
+  - `tests/unit/test_diff_preview.py`
 - Shared/integrator-locked edits: `YES`
-- Shared edit is limited to `tests/unit/test_commands_catalog.py`, the approved `feat-commands` shared-test path.
+- Shared edits are limited to the approved `feat-commands` shared-test paths listed above.
 
 ## Scope Completed
 
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
-- Kept the returned CLI contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-- Refreshed the handoff packet so the review scope, canonical demo-path mapping, and approval basis match the reviewed implementation slice.
+- Kept the returned CLI contract aligned with canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
+- Updated `src/qual/commands/diff_preview.py` so summary-only fingerprint reporting hashes the reviewed diff payload, while non-summary output still fingerprints the emitted rendered diff.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` for command-order drift rejection and summary-only fingerprint correctness.
+- Regenerated the handoff packet so the review scope and handoff fields match the actual branch tip.
 
 ## Tasks Completed
 
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on parser drift.
 2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
-3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Regenerated the handoff packet so the branch metadata stays scoped to the reviewed command-catalog slice and names the exact canonical demo-path steps it advances.
+3. Fixed summary-only diff fingerprinting so the command still identifies the reviewed diff payload when the rendered output is collapsed.
+4. Added focused regression coverage for both the catalog contract and the diff-preview fingerprint contract.
 
 ## Kickoff Budget / Limits Compliance
 
-- High-risk/shared-file handoff: stayed within the `4`-task cap, `30m` budget, and lane size limits.
-- The implementation slice stayed limited to one owned command file plus one approved shared test file, so the handoff remains narrow and reviewable.
+- High-risk/shared-file handoff: stayed within the `4`-task cap, `30m` budget, and lane size limits for this reviewed slice.
+- Implementation remained confined to two owned command files plus two approved shared test files, keeping the branch narrow enough for review.
 
 ## Files Changed
 
-### Reviewed implementation files
+### Implementation files
 
 - `src/qual/commands/catalog.py`
+- `src/qual/commands/diff_preview.py`
 - `tests/unit/test_commands_catalog.py`
+- `tests/unit/test_diff_preview.py`
 
 ### Metadata-only handoff file
 
@@ -87,33 +96,33 @@
 
 ## Commands Run With Results
 
-- `make scope-check`: PASS
+- `make scope-check`: FAIL - rejected `tests/unit/test_diff_preview.py` as a disallowed shared-file change on `codex/feat-commands`.
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
-- `make ci`: PASS
+- `make ci`: FAIL - stops at the same `scope-check` rejection for `tests/unit/test_diff_preview.py`.
 
 ## Risks / Blockers
 
-- Residual risk: low. The change remains confined to command-catalog contract validation and focused regression coverage.
-- Blockers: none
+- Residual risk: low in the code paths touched; the branch remains confined to CLI command-surface determinism and diff-preview output integrity.
+- Blocker: `scripts/scope-check.sh` currently allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands` but not `tests/unit/test_diff_preview.py`, so `make scope-check` and `make ci` fail even though the handoff treats that test file as an approved shared path.
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` by preserving CLI compatibility for the current engine-first MVP loop.
-- `feat-commands` by keeping the command-catalog contract deterministic and migration-safe for the CLI-first operator path.
+- `Milestone 3: Real workflow loop` by preserving CLI compatibility while the package/layout migration lands.
+- `feat-commands` by keeping migration-safe command entrypoints deterministic and auditable for the engine-first MVP loop.
 
 ### Vision capability affected
 
 - `Canonical engine contract` because the CLI compatibility surface remains stable while Textual stays disabled.
-- `Auditable state and workflow` because parser/catalog drift now fails loudly instead of silently changing the operator-facing contract.
+- `Auditable state and workflow` because both parser/catalog drift and summary-only diff fingerprint reporting now fail or report in ways that keep the operator-facing contract explicit.
 
 ### Routing/provider impact note
 
-- None. This change only affects local command-contract validation and focused command-catalog test coverage.
+- None. This branch only affects local command-surface validation and diff-preview output integrity.
 
 ### Proposed README.md patch text
 
