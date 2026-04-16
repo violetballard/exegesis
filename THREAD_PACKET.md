@@ -26,7 +26,7 @@
 ## Lane / Ownership
 
 - Owned runtime path: `src/qual/commands/**`
-- Approved shared-test exception: `tests/unit/test_commands_catalog.py`
+- Concrete shared-test approval reference: `scripts/scope-check.sh` records `tests/unit/test_commands_catalog.py` as the approved shared test for `codex/feat-commands`.
 - No integrator-locked implementation files were edited.
 
 ## Scope Completed
@@ -53,7 +53,7 @@
 
 - High-risk/shared-file template applies because of the approved shared test edit in `tests/unit/test_commands_catalog.py`.
 - This handoff stays within the `4`-task cap for the implementation slice under review.
-- Runtime edits stay within lane-owned paths; the only non-owned implementation file is the approved shared test above.
+- Runtime edits stay within lane-owned paths; the only non-owned implementation file is the shared test explicitly allowed by `scripts/scope-check.sh`.
 
 ## Commands Run With Results
 
@@ -93,4 +93,4 @@
 ## Scope-Check / Ownership Note
 
 - Shared/integrator-locked edits: `YES`
-- Shared edit is limited to the approved test exception `tests/unit/test_commands_catalog.py`.
+- Shared edit is limited to `tests/unit/test_commands_catalog.py`, the exact `feat-commands` shared-test path recorded by `scripts/scope-check.sh`.
