@@ -14,10 +14,11 @@
 - `fetch_excerpt` fails closed on the canonical FTS-only path and no longer falls back to PageIndex-only excerpt payloads.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs now raise `KeyError`.
 - PageIndex and embeddings remain non-required compatibility paths in this reviewed slice and are not restored as required runtime retrieval backends.
+- This scope is explicitly limited to the canonical demo-path step `retrieve relevant material` and strengthens that engine-side retrieval path without expanding into alternate retrieval modes.
 
 ## Canonical Demo-Path Step Advanced
 - Canonical demo-path step advanced: `retrieve relevant material`
-- This reviewed implementation range makes `retrieve relevant material` more real by forcing excerpt lookup through the canonical FTS-only path and rejecting PageIndex-only excerpt IDs.
+- This reviewed implementation range makes `retrieve relevant material` more real by forcing excerpt lookup through the canonical FTS-only path and rejecting PageIndex-only excerpt IDs without expanding the lane into alternate retrieval modes.
 
 ## AGENTS.md Handoff Packet
 - Risk reason: shared/high-risk work because the reviewed implementation includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
