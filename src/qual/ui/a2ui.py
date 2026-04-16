@@ -153,6 +153,9 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["selection_fingerprint"] = manifest["selection"]["contract_fingerprint"]
     manifest["card_fingerprint"] = card_contract_fingerprint()
     manifest["contract_fingerprints"] = _build_a2ui_contract_fingerprint_summary()
+    manifest["terminal_artifact_rendering_fingerprint"] = manifest["schemas"]["terminal_artifact_rendering"][
+        "contract_fingerprint"
+    ]
     return manifest
 
 
@@ -183,6 +186,7 @@ def describe_a2ui_contract_fingerprints(include_terminal_artifact: bool = False)
 def _build_a2ui_contract_fingerprint_summary() -> dict[str, str]:
     fingerprints = describe_a2ui_contract_fingerprints(include_terminal_artifact=True)
     fingerprints["action"] = action_contract_fingerprint()
+    fingerprints["terminal_artifact_rendering"] = terminal_artifact_rendering_contract_fingerprint()
     return fingerprints
 
 
