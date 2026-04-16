@@ -2103,6 +2103,20 @@ def command_cli_entry_argv(
     return command_cli_entry_argv_for(COMMAND_SPECS, argv, flow_steps)
 
 
+def command_demo_cli_entry_argv(
+    argv: tuple[str, ...] | list[str],
+) -> tuple[str, ...]:
+    """Normalize argv against the canonical demo-path command surface."""
+    return command_cli_entry_argv_for(COMMAND_SPECS, argv, command_demo_flow_steps())
+
+
+def command_mvp_cli_entry_argv(
+    argv: tuple[str, ...] | list[str],
+) -> tuple[str, ...]:
+    """Normalize argv against the current MVP command surface."""
+    return command_demo_cli_entry_argv(argv)
+
+
 def command_smoke_argv_for(
     specs: tuple[CommandSpec, ...],
     argv: tuple[str, ...] | list[str],
@@ -2129,6 +2143,20 @@ def command_smoke_argv(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[str, ...]:
     return command_smoke_argv_for(COMMAND_SPECS, argv, flow_steps)
+
+
+def command_demo_smoke_argv(
+    argv: tuple[str, ...] | list[str],
+) -> tuple[str, ...]:
+    """Return a parser-smoke invocation for the canonical demo-path surface."""
+    return command_smoke_argv_for(COMMAND_SPECS, argv, command_demo_flow_steps())
+
+
+def command_mvp_smoke_argv(
+    argv: tuple[str, ...] | list[str],
+) -> tuple[str, ...]:
+    """Return a parser-smoke invocation for the current MVP surface."""
+    return command_demo_smoke_argv(argv)
 
 
 def _resolved_smoke_argv_for(
@@ -2207,6 +2235,16 @@ def command_resolve(
     flow_steps: tuple[str, ...] | None = None,
 ) -> ResolvedCommand:
     return command_resolve_for(COMMAND_SPECS, token, flow_steps)
+
+
+def command_demo_resolve(token: str) -> ResolvedCommand:
+    """Resolve a token against the canonical demo-path command surface."""
+    return command_resolve_for(COMMAND_SPECS, token, command_demo_flow_steps())
+
+
+def command_mvp_resolve(token: str) -> ResolvedCommand:
+    """Resolve a token against the current MVP command surface."""
+    return command_demo_resolve(token)
 
 
 def command_resolve_argv_for(
@@ -2289,3 +2327,17 @@ def command_resolve_argv(
     flow_steps: tuple[str, ...] | None = None,
 ) -> ResolvedCommand:
     return command_resolve_argv_for(COMMAND_SPECS, argv, flow_steps)
+
+
+def command_demo_resolve_argv(
+    argv: tuple[str, ...] | list[str],
+) -> ResolvedCommand:
+    """Resolve argv against the canonical demo-path command surface."""
+    return command_resolve_argv_for(COMMAND_SPECS, argv, command_demo_flow_steps())
+
+
+def command_mvp_resolve_argv(
+    argv: tuple[str, ...] | list[str],
+) -> ResolvedCommand:
+    """Resolve argv against the current MVP command surface."""
+    return command_demo_resolve_argv(argv)
