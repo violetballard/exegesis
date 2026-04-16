@@ -81,6 +81,9 @@
 - Shared-by-approval edits: `YES` (Approval reference: the lane `Approved exception note` recorded in `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` explicitly authorizes `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane as the sole shared-by-approval regression surface exercising the canonical retrieval contract.)
 - Integrator-locked edits: `NO`
 
+## Reviewer Fixer Note
+- Reviewer packet source of truth applied here: this metadata refresh keeps the narrowed reviewed implementation range at `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, explicitly records the shared-file approval reference, and calls out the fail-closed `fetch_excerpt` contract risk for re-review.
+
 ## Regression coverage note
 - `tests/unit/test_unified_retrieval.py::test_fetch_excerpt_requires_an_fts_lookup_hit`
 - `tests/unit/test_unified_retrieval.py::test_retrieval_service_rejects_pageindex_excerpt_payloads`
