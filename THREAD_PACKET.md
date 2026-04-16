@@ -37,6 +37,7 @@
 - Fix 3: The scope wording remains narrowed to the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the approved shared regression exception in `tests/unit/test_unified_retrieval.py`, rather than reading as broader PageIndex compatibility work.
 
 ## Authoritative Re-review Note
+- Fixer guardrail applied: the reviewer packet and this writable `THREAD_PACKET.md` are the source of truth for this pass because the lane-local `.codex` packet mirrors are non-essential and return `EPERM` on write in this worktree.
 - This `THREAD_PACKET.md` refresh is the authoritative handoff packet for the reviewer-fix re-review pass in this worktree.
 - Re-review should evaluate the narrowed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, the shared/high-risk `4`-task cap, and the canonical demo-path step `retrieve relevant material` from this packet.
 - The runtime implementation scope remains unchanged; this fixer refresh is metadata-only packet clarification for re-review.
@@ -115,7 +116,7 @@
 - The current branch tip reported in the final fixer handoff is a metadata-only packet refresh commit.
 - No post-reviewed commit changes executable code outside the retrieval lane.
 - This packet refresh exists specifically to satisfy the reviewer-required handoff correction for explicit canonical demo-path mapping.
-- This packet refresh also records that the `.codex` packet mirrors remained write-blocked with `EPERM` during the fixer pass, so `THREAD_PACKET.md` is the only updated handoff artifact in this worktree.
+- This packet refresh records that the lane-local `.codex` packet mirrors remained write-blocked with `EPERM` during the fixer pass, so this writable packet is the authoritative re-review artifact under the non-essential-path guardrail.
 - Re-review should treat the canonical demo-path mapping above as the explicit `AGENTS.md` handoff answer for this narrowed retrieval slice.
 - Fixer refresh date: `2026-04-16`
 - Pre-fix packet trace anchor for this metadata-only fixer pass: `ad09cc1aad6b330171eb38344e8c07aae605c2e5`
