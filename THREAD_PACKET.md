@@ -18,7 +18,7 @@
 - Re-review should stay narrowed to the existing two-file implementation slice: `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`.
 
 ## Canonical demo-path step advanced
-- `retrieve relevant material`: this reviewed slice explicitly advances that canonical demo-path step by forcing public excerpt lookup to resolve only through the deterministic SQLite FTS path before basket promotion.
+- `retrieve relevant material`: this reviewed slice explicitly advances that canonical demo-path step by forcing `fetch_excerpt` to resolve only through the deterministic SQLite FTS path and fail closed for PageIndex-only excerpt IDs before basket promotion.
 
 ## Reviewer-required fixes addressed
 1. The handoff is classified as shared/high-risk work because the reviewed implementation slice includes the approved shared regression file `tests/unit/test_unified_retrieval.py`, so the 4-task cap applies.
