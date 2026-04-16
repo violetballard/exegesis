@@ -14,6 +14,7 @@
   - `1c579bad8730c1e6a2fe31d8c1af63b7c230f748` `Add deterministic command shim argv helpers`
   - `87c41dfca9176387c07223a15ea08c5deea68578` `Add deterministic command resolution helpers`
   - `adffc42fe4a23e8196ce76a09f58fcf512dc3c4c` `fix(commands): close reviewer packet fixes`
+  - `d71711d733585988c4c670db103745b01ce79c37` `Add parser-ready command entrypoint argv helper`
 - Docs-only `docs(commands): ...` commits after those implementation commits update `THREAD_PACKET.md` only.
 - This fixer commit refreshes `THREAD_PACKET.md` after rerunning the full required gate set; it does not widen the implementation scope.
 
@@ -54,15 +55,14 @@
 ## Tasks Completed
 
 1. Locked the CLI `patch-review` contract to canonical command ordering and fail-fast parser validation.
-2. Stabilized CLI shim, route, parser lookup, and invocation metadata contracts from the canonical command catalog.
+2. Stabilized CLI shim, route, parser lookup, invocation metadata, and parser-ready argv normalization from the canonical command catalog.
 3. Kept the patch-preview path deterministic under truncation and compatibility-import usage.
 4. Added regression coverage for drift rejection and deterministic command-resolution behavior.
-5. Regenerated the handoff packet so the review basis matches the actual branch-tip implementation lineage.
 
 ## Kickoff Budget / Limits Compliance
 
 - High-risk/shared-file template applies because of the approved shared test edit in `tests/unit/test_commands_catalog.py`.
-- This handoff remains within the `4`-task cap for the implementation slice under review.
+- This handoff remains within the `4`-task cap for the implementation slice under review; the packet refresh is documentation only and is not counted as an implementation task.
 - Runtime edits stayed within lane-owned paths; the only non-owned implementation file is the approved shared test above.
 
 ## Commands Run With Results
