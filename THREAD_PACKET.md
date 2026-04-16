@@ -41,6 +41,7 @@
 - Operator-surface note: this change also strengthens stable command execution across the rest of the CLI-first loop while Textual remains disabled, but its most direct canonical demo-path contribution is the `open project/document` entry step.
 - This change makes the CLI-first `open project/document` step more real by keeping the operator-facing command contract deterministic, validating parser/catalog drift instead of silently accepting it, and preserving stable command resolution for the existing CLI fallback.
 - Concrete blocker removed: the command surface now rejects parser/catalog mismatches before they can silently change the operator entry contract, which keeps the existing CLI entry step deterministic enough for smoke checks while Textual remains disabled.
+- Milestone 3 scope-tightening note: this is a direct enabler for the CLI-first engine loop because the MVP cannot reliably enter the existing `open project/document` step if parser drift can silently rewrite the accepted command surface; it is not a general CLI cleanup, UX expansion, or new-command effort.
 
 ## Definition Of Done Alignment
 
