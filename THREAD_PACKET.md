@@ -32,14 +32,15 @@
 
 ## Scope Goal
 
-- Harden the CLI command contract so CLI-exposed command ordering, parser entrypoints, route ordering, and invocation planning stay deterministic and fail fast when the parser surface drifts from the catalog.
-- Keep the CLI-first MVP loop stable while Textual remains disabled.
+- Harden only the CLI command-contract layer for the live `patch-review` surface so CLI-exposed command ordering, parser entrypoints, route ordering, and invocation planning stay deterministic and fail fast when the parser surface drifts from the catalog.
+- This slice does not add or expand engine workflow behavior; it only tightens the existing CLI compatibility contract while Textual remains disabled.
 
 ## Canonical Demo-Path Step Advanced
 
 - Primary step advanced: `preview and apply or reject a patch`
 - Blocker removed on that step: deterministic command ordering and parser/catalog drift rejection keep the live `patch-review` CLI surface stable while Textual remains disabled, so the operator contract for previewing and applying or rejecting a patch cannot change silently.
-- Exact mapping: this lane hardens the `patch-review` command surface only; it does not claim a broader engine-stability improvement outside that live demo-path step.
+- Exact mapping: this lane hardens the `patch-review` command surface only.
+- Non-claim for scope control: this slice does not add new patch application behavior, retrieval behavior, document persistence behavior, or broader workflow-loop closure beyond that existing CLI contract surface.
 
 ## Lane / Ownership
 
@@ -49,8 +50,8 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so CLI-exposed canonical names stay in catalog order, catalog-only commands can opt out of the parser surface, and the declared parser surface must exactly match the catalog-backed CLI entrypoint layout or raise `ValueError`.
-- Added parser-surface lookup helpers, deterministic route and invocation metadata, CLI shim contract helpers, and MVP smoke-contract metadata in `src/qual/commands/catalog.py`.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the live `patch-review` CLI surface keeps canonical names in catalog order, catalog-only commands can opt out of the parser surface, and the declared parser surface must exactly match the catalog-backed CLI entrypoint layout or raise `ValueError`.
+- Added parser-surface lookup helpers, deterministic route and invocation metadata, CLI shim contract helpers, and MVP smoke-contract metadata in `src/qual/commands/catalog.py` only to make that existing command surface deterministic and smoke-testable.
 - Classified legacy command aliases deterministically in `src/qual/commands/catalog.py` so raw CLI tokens preserve the intended `primary` vs `cli` vs `flow-step` vs `lookup` kind even when the user input differs only by case or underscore normalization.
 - Added runnable smoke argv metadata in `src/qual/commands/catalog.py` so the deterministic command contract covers the actual CLI invocation plan for the active smoke path.
 - Exported the expanded command-contract helpers from `src/qual/commands/__init__.py` so compatibility imports remain aligned with the branch-tip implementation.
@@ -99,15 +100,16 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` because deterministic command ordering and parser-drift rejection keep the live CLI `patch-review` step stable while the package/layout migration lands.
-- `feat-commands` because this slice keeps the CLI-first MVP operator surface deterministic and smoke-testable for the active engine-first loop.
+- `Milestone 3: Real workflow loop` because deterministic command ordering and parser-drift rejection keep the existing CLI `patch-review` step stable while the package/layout migration lands.
+- `feat-commands` because this slice keeps the existing CLI-first `patch-review` operator surface deterministic and smoke-testable for the active engine-first loop.
 - Primary demo-path claim repeated for review clarity: this branch advances only the `preview and apply or reject a patch` step.
 - Concrete loop impact: the branch preserves a deterministic CLI contract for the live `patch-review` step inside the current engine-first demo path instead of allowing parser/catalog drift to change that operator surface silently.
+- Non-claim for roadmap scope: this packet does not claim broader workflow-loop closure or any new engine-side action beyond stabilizing that existing CLI command surface.
 
 ### Vision capability affected
 
-- `Canonical engine contract` because the active CLI compatibility surface stays stable and deterministic while Textual remains disabled.
-- `Auditable state and workflow` because parser/catalog drift is rejected explicitly instead of silently mutating the operator contract that drives patch review and continued work.
+- `Canonical engine contract` because the active CLI compatibility surface for `patch-review` stays stable and deterministic while Textual remains disabled.
+- `Auditable state and workflow` because parser/catalog drift is rejected explicitly instead of silently mutating the operator contract that drives the existing patch-review step.
 - Concrete contract impact: operators can rely on the same catalog-backed CLI surface for the `patch-review` step, which keeps that MVP contract explicit and reviewable.
 
 ### Routing/provider impact note
