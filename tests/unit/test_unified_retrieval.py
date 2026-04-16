@@ -1870,7 +1870,42 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         rebuilt = _build_retrieval_citation_bundle_from_payload(payload)
 
-        self.assertEqual(rebuilt["doc_citations"], result.citation_bundle()["doc_citations"])
+        self.assertEqual(
+            rebuilt["doc_citations"],
+            [
+                {
+                    "doc_id": item.doc_id,
+                    "doc_type": item.provenance["doc_type"],
+                    "source_hash": item.source_hash,
+                    "doc_fingerprint": item.provenance["doc_fingerprint"],
+                    "doc_identity_fingerprint": item.provenance["doc_identity_fingerprint"],
+                    "doc_rank": item.provenance["doc_rank"],
+                    "top_excerpt_id": item.top_excerpt_id,
+                    "top_excerpt_fingerprint": item.provenance["top_excerpt_fingerprint"],
+                    "top_excerpt_text_hash": item.provenance["top_excerpt_text_hash"],
+                    "top_excerpt_span": item.provenance["top_excerpt_span"],
+                    "top_excerpt_rank": item.provenance["top_excerpt_rank"],
+                    "top_fts_rank": item.provenance["top_fts_rank"],
+                    "excerpt_ids": item.provenance["excerpt_ids"],
+                    "excerpt_count": item.excerpt_count,
+                    "matched_terms": item.provenance["top_matched_terms"],
+                    "source_strategy": item.provenance["source_strategy"],
+                    "retrieval_backend": item.provenance["retrieval_backend"],
+                    "retrieval_mode": item.provenance["retrieval_mode"],
+                    **(
+                        {"section_hint": item.provenance["section_hint"]}
+                        if item.provenance.get("section_hint")
+                        else {}
+                    ),
+                    **(
+                        {"top_section_hint_rank": item.provenance["top_section_hint_rank"]}
+                        if isinstance(item.provenance.get("top_section_hint_rank"), int)
+                        else {}
+                    ),
+                }
+                for item in result.doc_hits
+            ],
+        )
         self.assertEqual(rebuilt["excerpt_citations"], result.citation_bundle()["excerpt_citations"])
         rebuilt["doc_citations"][0]["doc_id"] = "mutated-doc-id"
         rebuilt["excerpt_citations"][0]["doc_id"] = "mutated-doc-id"
@@ -1899,7 +1934,42 @@ class UnifiedRetrievalTests(unittest.TestCase):
         rebuilt_doc_bundle = _build_retrieval_doc_bundle_from_payload(payload)
         rebuilt_excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
 
-        self.assertEqual(rebuilt_doc_bundle["doc_citations"], result.citation_bundle()["doc_citations"])
+        self.assertEqual(
+            rebuilt_doc_bundle["doc_citations"],
+            [
+                {
+                    "doc_id": item.doc_id,
+                    "doc_type": item.provenance["doc_type"],
+                    "source_hash": item.source_hash,
+                    "doc_fingerprint": item.provenance["doc_fingerprint"],
+                    "doc_identity_fingerprint": item.provenance["doc_identity_fingerprint"],
+                    "doc_rank": item.provenance["doc_rank"],
+                    "top_excerpt_id": item.top_excerpt_id,
+                    "top_excerpt_fingerprint": item.provenance["top_excerpt_fingerprint"],
+                    "top_excerpt_text_hash": item.provenance["top_excerpt_text_hash"],
+                    "top_excerpt_span": item.provenance["top_excerpt_span"],
+                    "top_excerpt_rank": item.provenance["top_excerpt_rank"],
+                    "top_fts_rank": item.provenance["top_fts_rank"],
+                    "excerpt_ids": item.provenance["excerpt_ids"],
+                    "excerpt_count": item.excerpt_count,
+                    "matched_terms": item.provenance["top_matched_terms"],
+                    "source_strategy": item.provenance["source_strategy"],
+                    "retrieval_backend": item.provenance["retrieval_backend"],
+                    "retrieval_mode": item.provenance["retrieval_mode"],
+                    **(
+                        {"section_hint": item.provenance["section_hint"]}
+                        if item.provenance.get("section_hint")
+                        else {}
+                    ),
+                    **(
+                        {"top_section_hint_rank": item.provenance["top_section_hint_rank"]}
+                        if isinstance(item.provenance.get("top_section_hint_rank"), int)
+                        else {}
+                    ),
+                }
+                for item in result.doc_hits
+            ],
+        )
         self.assertEqual(rebuilt_excerpt_bundle["excerpt_citations"], result.citation_bundle()["excerpt_citations"])
         rebuilt_doc_bundle["doc_citations"][0]["doc_id"] = "mutated-doc-id"
         rebuilt_excerpt_bundle["excerpt_citations"][0]["excerpt_id"] = "mutated-excerpt-id"
@@ -3409,6 +3479,59 @@ class UnifiedRetrievalTests(unittest.TestCase):
             ],
         )
 
+    def test_retrieve_auto_citation_bundle_surfaces_rich_doc_provenance(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        citation_bundle = result.citation_bundle()
+        self.assertEqual(
+            citation_bundle["doc_citations"],
+            [
+                {
+                    "doc_id": item.doc_id,
+                    "doc_type": item.provenance["doc_type"],
+                    "source_hash": item.source_hash,
+                    "doc_fingerprint": item.provenance["doc_fingerprint"],
+                    "doc_identity_fingerprint": item.provenance["doc_identity_fingerprint"],
+                    "doc_rank": item.provenance["doc_rank"],
+                    "top_excerpt_id": item.top_excerpt_id,
+                    "top_excerpt_fingerprint": item.provenance["top_excerpt_fingerprint"],
+                    "top_excerpt_text_hash": item.provenance["top_excerpt_text_hash"],
+                    "top_excerpt_span": item.provenance["top_excerpt_span"],
+                    "top_excerpt_rank": item.provenance["top_excerpt_rank"],
+                    "top_fts_rank": item.provenance["top_fts_rank"],
+                    "excerpt_ids": item.provenance["excerpt_ids"],
+                    "excerpt_count": item.excerpt_count,
+                    "matched_terms": item.provenance["top_matched_terms"],
+                    "source_strategy": item.provenance["source_strategy"],
+                    "retrieval_backend": item.provenance["retrieval_backend"],
+                    "retrieval_mode": item.provenance["retrieval_mode"],
+                    **(
+                        {"section_hint": item.provenance["section_hint"]}
+                        if item.provenance.get("section_hint")
+                        else {}
+                    ),
+                    **(
+                        {"top_section_hint_rank": item.provenance["top_section_hint_rank"]}
+                        if isinstance(item.provenance.get("top_section_hint_rank"), int)
+                        else {}
+                    ),
+                }
+                for item in result.doc_hits
+            ],
+        )
+        self.assertEqual(
+            result.to_downstream_payload()["retrieval_provenance"]["doc_citations"],
+            citation_bundle["doc_citations"],
+        )
+
     def test_date_range_shortlist_keeps_late_qualifying_docs_in_fts_order(self) -> None:
         for index in range(120):
             self.service.add_or_update_document(
@@ -3474,6 +3597,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             [
                 {
                     "doc_id": item["doc_id"],
+                    "doc_type": item["provenance"]["doc_type"],
                     "source_hash": item["source_hash"],
                     "doc_fingerprint": item["provenance"]["doc_fingerprint"],
                     "doc_identity_fingerprint": item["provenance"]["doc_identity_fingerprint"],
@@ -3481,7 +3605,25 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "top_excerpt_id": item["top_excerpt_id"],
                     "top_excerpt_fingerprint": item["provenance"]["top_excerpt_fingerprint"],
                     "top_excerpt_text_hash": item["provenance"]["top_excerpt_text_hash"],
+                    "top_excerpt_span": item["provenance"]["top_excerpt_span"],
+                    "top_excerpt_rank": item["provenance"]["top_excerpt_rank"],
+                    "top_fts_rank": item["provenance"]["top_fts_rank"],
+                    "excerpt_ids": item["provenance"]["excerpt_ids"],
+                    "excerpt_count": item["excerpt_count"],
+                    "matched_terms": item["provenance"]["top_matched_terms"],
                     "source_strategy": item["provenance"]["source_strategy"],
+                    "retrieval_backend": item["provenance"]["retrieval_backend"],
+                    "retrieval_mode": item["provenance"]["retrieval_mode"],
+                    **(
+                        {"section_hint": item["provenance"]["section_hint"]}
+                        if item["provenance"].get("section_hint")
+                        else {}
+                    ),
+                    **(
+                        {"top_section_hint_rank": item["provenance"]["top_section_hint_rank"]}
+                        if isinstance(item["provenance"].get("top_section_hint_rank"), int)
+                        else {}
+                    ),
                 }
                 for item in payload["doc_hits"]
             ],

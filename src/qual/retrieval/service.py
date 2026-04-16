@@ -723,6 +723,7 @@ class RetrievalResult:
         for doc_hit in self.doc_hits:
             citation = {
                 "doc_id": doc_hit.doc_id,
+                "doc_type": doc_hit.provenance.get("doc_type"),
                 "source_hash": doc_hit.source_hash,
                 "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
                 "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
@@ -730,7 +731,15 @@ class RetrievalResult:
                 "top_excerpt_id": doc_hit.top_excerpt_id,
                 "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
                 "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
+                "top_excerpt_span": copy.deepcopy(doc_hit.provenance.get("top_excerpt_span")),
+                "top_excerpt_rank": doc_hit.provenance.get("top_excerpt_rank"),
+                "top_fts_rank": doc_hit.provenance.get("top_fts_rank"),
+                "excerpt_ids": copy.deepcopy(doc_hit.provenance.get("excerpt_ids")),
+                "excerpt_count": doc_hit.excerpt_count,
+                "matched_terms": copy.deepcopy(doc_hit.provenance.get("top_matched_terms")),
                 "source_strategy": doc_hit.provenance.get("source_strategy"),
+                "retrieval_backend": doc_hit.provenance.get("retrieval_backend"),
+                "retrieval_mode": doc_hit.provenance.get("retrieval_mode"),
             }
             section_hint = doc_hit.provenance.get("section_hint")
             if isinstance(section_hint, str) and section_hint:

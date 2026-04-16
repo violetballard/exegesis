@@ -413,6 +413,7 @@ def _derive_doc_citations_from_hits(doc_hits: object) -> list[dict[str, object]]
             provenance = {}
         citation = {
             "doc_id": item.get("doc_id"),
+            "doc_type": provenance.get("doc_type"),
             "source_hash": item.get("source_hash", provenance.get("source_hash")),
             "doc_fingerprint": provenance.get("doc_fingerprint"),
             "doc_identity_fingerprint": provenance.get("doc_identity_fingerprint"),
@@ -420,7 +421,15 @@ def _derive_doc_citations_from_hits(doc_hits: object) -> list[dict[str, object]]
             "top_excerpt_id": item.get("top_excerpt_id"),
             "top_excerpt_fingerprint": provenance.get("top_excerpt_fingerprint"),
             "top_excerpt_text_hash": provenance.get("top_excerpt_text_hash"),
+            "top_excerpt_span": copy.deepcopy(_normalize_span_snapshot(provenance.get("top_excerpt_span"))),
+            "top_excerpt_rank": provenance.get("top_excerpt_rank"),
+            "top_fts_rank": provenance.get("top_fts_rank"),
+            "excerpt_ids": copy.deepcopy(provenance.get("excerpt_ids")),
+            "excerpt_count": item.get("excerpt_count"),
+            "matched_terms": copy.deepcopy(provenance.get("top_matched_terms")),
             "source_strategy": provenance.get("source_strategy"),
+            "retrieval_backend": provenance.get("retrieval_backend"),
+            "retrieval_mode": provenance.get("retrieval_mode"),
         }
         section_hint = _normalize_optional_text(provenance.get("section_hint"))
         if section_hint is not None:
