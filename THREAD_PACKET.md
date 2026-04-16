@@ -37,6 +37,7 @@
 ## Canonical Demo-Path Mapping
 
 - Canonical demo-path step advanced: `open project/document`.
+- Supporting CLI-fallback steps kept smoke-testable by the same contract hardening: `retrieve relevant material` and `preview and apply or reject a patch`.
 - AGENTS alignment statement: this packet explicitly maps the work to the `open project/document` step of the canonical demo path so the handoff names the concrete step this slice makes more real.
 - Why this step is strengthened: the operator reaches that step through the CLI-first command surface today, so keeping `command_cli_contract()` deterministic, preserving canonical command ordering, and rejecting canonical-name/order drift between the CLI lookup table and the command catalog prevents the entry command surface from silently changing underneath the engine-first MVP loop.
 - Concrete blocker removed: Milestone 3 requires that the CLI can still execute the MVP loop while Textual remains disabled. Before this slice, `command_cli_contract()` rebuilt canonical names from the parser lookup table without verifying they still matched `command_names()`, which could silently destabilize the `open project/document` operator path. This change turns that canonical-name/order mismatch into an immediate contract error instead of a silent operator-surface regression.
@@ -126,6 +127,7 @@
 
 - `Canonical engine contract` - the CLI-side `open project/document` entry contract now stays aligned with the canonical command catalog instead of silently diverging when the CLI lookup table's canonical-name order drifts.
 - `Auditable state and workflow` - CLI lookup-table/catalog canonical-order drift now fails loudly at contract construction time, making operator-facing command behavior explicit and traceable for the active MVP loop.
+- Demo-path alignment note: this hardening primarily protects the `open project/document` entry step and secondarily preserves a stable, smoke-testable CLI fallback surface for `retrieve relevant material` and `preview and apply or reject a patch` while Textual remains disabled.
 
 ### Routing/provider impact note
 
