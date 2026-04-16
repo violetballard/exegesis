@@ -38,7 +38,7 @@ from src.qual.ui.a2ui import (
     render_terminal_card,
     render_terminal_selection,
     SelectionRef,
-    _resolve_terminal_artifact_render_target,
+    resolve_terminal_artifact_render_target,
     selection_contract_fingerprint,
     terminal_artifact_contract_fingerprint,
     terminal_artifact_cli_fallback_contract_fingerprint,
@@ -436,6 +436,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "selection": "render_terminal_selection",
             },
         )
+        self.assertEqual(manifest["render_target_resolver"], "resolve_terminal_artifact_render_target")
         self.assertEqual(manifest["fallback_renderer"], "ShellUI.render_artifact")
         self.assertEqual(
             manifest["kind_resolution"]["precedence"],
@@ -525,6 +526,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "selection": "render_terminal_selection",
             },
         )
+        self.assertEqual(manifest["render_target_resolver"], "resolve_terminal_artifact_render_target")
         self.assertEqual(
             manifest["kind_policy"],
             {
@@ -862,7 +864,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             },
         }
 
-        resolved_artifact, resolved_kind = _resolve_terminal_artifact_render_target(
+        resolved_artifact, resolved_kind = resolve_terminal_artifact_render_target(
             envelope,
             requested_kind=None,
         )

@@ -614,6 +614,7 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
             "action": "render_terminal_action",
             "selection": "render_terminal_selection",
         },
+        "render_target_resolver": "resolve_terminal_artifact_render_target",
         "fallback_renderer": "ShellUI.render_artifact",
         "terminal_fallback_contract": describe_terminal_fallback_contract(),
         "terminal_fallback_fingerprint": terminal_fallback_contract_fingerprint(),
@@ -646,6 +647,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
         "terminal_artifact_cli_fallback_schema_version": 1,
         "type": "TerminalArtifactCliFallbackContract",
+        "render_target_resolver": "resolve_terminal_artifact_render_target",
         "fallback_renderer": "ShellUI.render_artifact",
         "supported_kinds": ["card", "action", "selection"],
         "default_kind": "card",
@@ -1518,6 +1520,21 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
 
 
 render_terminal_a2ui = render_terminal_artifact
+
+
+def resolve_terminal_artifact_render_target(
+    artifact: Any,
+    *,
+    requested_kind: str | None = None,
+    allow_invalid_envelope_recovery: bool = False,
+) -> tuple[Any, str]:
+    """Resolve the concrete payload and render kind for a terminal artifact."""
+
+    return _resolve_terminal_artifact_render_target(
+        artifact,
+        requested_kind=requested_kind,
+        allow_invalid_envelope_recovery=allow_invalid_envelope_recovery,
+    )
 
 
 def _resolve_terminal_artifact_card_fallback(

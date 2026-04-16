@@ -11,7 +11,7 @@ from .a2ui import (
     SelectionRef,
     normalize_action_ref,
     normalize_selection_ref,
-    _resolve_terminal_artifact_render_target,
+    resolve_terminal_artifact_render_target,
     _is_malformed_terminal_artifact_envelope,
     _infer_terminal_artifact_explicit_kind,
     _recover_terminal_artifact_leaf_kind,
@@ -261,7 +261,7 @@ class ShellUI:
     ) -> tuple[Any, str | None]:
         fallback_kind = ShellUI._normalize_fallback_kind(kind)
         try:
-            return _resolve_terminal_artifact_render_target(
+            return resolve_terminal_artifact_render_target(
                 artifact,
                 requested_kind=fallback_kind,
                 allow_invalid_envelope_recovery=True,
