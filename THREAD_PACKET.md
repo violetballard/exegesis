@@ -26,12 +26,13 @@
 ## Scope Goal
 
 - Harden the existing Milestone 3 CLI command contract for the current engine-first MVP loop so the command surface stays deterministic, smoke-testable, and aligned with the canonical command catalog.
+- Scope-tightening note: this packet is limited to command-surface determinism and parser/catalog drift detection for the existing CLI fallback while Textual remains disabled; it does not claim new CLI UX, new flags, or engine behavior changes.
 
 ## Canonical Demo-Path Mapping
 
 - Explicit canonical demo-path step advanced by this lane: `preview and apply or reject a patch`.
-- This change makes the CLI-first `preview and apply or reject a patch` step more real by hardening the existing patch-review command contract so parser/catalog drift fails fast and operator-facing entrypoints stay deterministic while Textual remains disabled.
-- Concrete blocker removed: the patch-review command surface now validates parser/catalog drift, exposes deterministic smoke and resolution helpers, and keeps patch-review entrypoints stable enough for CLI-first operator checks while Textual remains disabled.
+- This change makes the CLI-first `preview and apply or reject a patch` step more real by hardening the existing patch-review command contract so parser/catalog drift fails fast and operator-facing entrypoints stay deterministic for the CLI fallback while Textual remains disabled.
+- Concrete blocker removed: the patch-review command surface now validates parser/catalog drift and keeps patch-review entrypoints stable enough for deterministic CLI-first operator checks while Textual remains disabled.
 
 ## Definition Of Done Alignment
 
