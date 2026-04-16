@@ -307,7 +307,37 @@ class ShellUI:
                     return fallback_artifact, inferred_kind
             return fallback_artifact, resolved_kind
         except Exception:
+            recovered = ShellUI._recover_terminal_artifact_envelope_fallback(artifact)
+            if recovered is not None:
+                return recovered
             inferred_kind = ShellUI._infer_fallback_kind(artifact)
             if inferred_kind is not None:
                 return artifact, inferred_kind
             return artifact, fallback_kind
+
+    @staticmethod
+    def _recover_terminal_artifact_envelope_fallback(artifact: Any) -> tuple[Any, str] | None:
+        if not isinstance(artifact, Mapping):
+            return None
+        artifact_type = artifact.get("type")
+        if not isinstance(artifact_type, str) or artifact_type.strip() != "TerminalArtifact":
+            return None
+
+        payload = artifact.get("artifact")
+        if payload is None:
+            return None
+
+        inferred_kind = ShellUI._infer_fallback_kind(payload)
+        if inferred_kind is not None:
+            return payload, inferred_kind
+
+        if isinstance(payload, Mapping):
+            nested_type = payload.get("type")
+            if isinstance(nested_type, str) and nested_type.strip() == "TerminalArtifact":
+                nested_payload = payload.get("artifact")
+                if nested_payload is not None:
+                    nested_kind = ShellUI._infer_fallback_kind(nested_payload)
+                    if nested_kind is not None:
+                        return nested_payload, nested_kind
+
+        return None

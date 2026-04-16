@@ -1669,6 +1669,37 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("<non-json:_OpaqueValue>", text)
         self.assertNotIn("resolver boom", text)
 
+    def test_shell_ui_recovers_leaf_payloads_from_terminal_envelopes_when_shared_resolver_raises(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        envelope = {
+            "type": "TerminalArtifact",
+            "kind": "dialog",
+            "artifact": {
+                "type": "SelectionRef",
+                "id": "choice-1",
+                "label": "Choice",
+                "payload": {"nested": {"items": [1, 2]}},
+                "selected": True,
+            },
+            "trace_id": "drop-me",
+        }
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            with patch(
+                "src.qual.ui.shell.resolve_terminal_artifact_render_target",
+                side_effect=RuntimeError("resolver boom"),
+            ):
+                with patch("src.qual.ui.shell.render_terminal_card", side_effect=RuntimeError("card boom")):
+                    text = shell.render_artifact(envelope)
+
+        self.assertIn("[SelectionRef] Choice", text)
+        self.assertIn("Selection schema v1", text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+        self.assertNotIn("resolver boom", text)
+        self.assertNotIn("card boom", text)
+
     def test_shell_ui_recovers_schema_valid_leaf_payloads_when_fallback_resolution_raises(self) -> None:
         shell = ShellUI()
 
