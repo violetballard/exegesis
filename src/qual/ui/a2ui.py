@@ -160,11 +160,17 @@ def describe_a2ui_contract() -> dict[str, Any]:
     return manifest
 
 
-def describe_a2ui_contract_fingerprints(include_terminal_artifact: bool = False) -> dict[str, str]:
+def describe_a2ui_contract_fingerprints(
+    include_terminal_artifact: bool = False,
+    include_action: bool = False,
+    include_terminal_artifact_rendering: bool = False,
+) -> dict[str, str]:
     """Return stable fingerprints for the contract sections and embedded contracts.
 
-    ``include_terminal_artifact`` opts into the terminal artifact dispatch fingerprint
-    without changing the legacy default key set used by existing callers.
+    The default key set stays lean for existing callers. Opt-in flags expose the
+    embedded dispatch fingerprints that the full manifest already surfaces so
+    lightweight callers can negotiate the same contract slice without pulling
+    the entire manifest.
     """
 
     manifest = _build_a2ui_contract_manifest()
@@ -179,16 +185,21 @@ def describe_a2ui_contract_fingerprints(include_terminal_artifact: bool = False)
         "card_contract": card_contract_fingerprint(),
         "terminal_fallback": terminal_fallback_contract_fingerprint(),
     }
+    if include_action:
+        fingerprints["action"] = action_contract_fingerprint()
     if include_terminal_artifact:
         fingerprints["terminal_artifact"] = manifest["terminal_artifact_fingerprint"]
+    if include_terminal_artifact_rendering:
+        fingerprints["terminal_artifact_rendering"] = terminal_artifact_rendering_contract_fingerprint()
     return fingerprints
 
 
 def _build_a2ui_contract_fingerprint_summary() -> dict[str, str]:
-    fingerprints = describe_a2ui_contract_fingerprints(include_terminal_artifact=True)
-    fingerprints["action"] = action_contract_fingerprint()
-    fingerprints["terminal_artifact_rendering"] = terminal_artifact_rendering_contract_fingerprint()
-    return fingerprints
+    return describe_a2ui_contract_fingerprints(
+        include_terminal_artifact=True,
+        include_action=True,
+        include_terminal_artifact_rendering=True,
+    )
 
 
 def describe_selection_contract() -> dict[str, Any]:

@@ -164,6 +164,22 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(len(fingerprints["terminal_artifact"]), 64)
         self.assertNotIn("terminal_artifact", describe_a2ui_contract_fingerprints())
 
+    def test_a2ui_contract_fingerprint_map_can_opt_into_embedded_dispatch_contracts(self) -> None:
+        fingerprints = describe_a2ui_contract_fingerprints(
+            include_action=True,
+            include_terminal_artifact=True,
+            include_terminal_artifact_rendering=True,
+        )
+
+        self.assertEqual(fingerprints["action"], action_contract_fingerprint())
+        self.assertEqual(
+            fingerprints["terminal_artifact_rendering"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(fingerprints, describe_a2ui_contract()["contract_fingerprints"])
+        self.assertNotIn("action", describe_a2ui_contract_fingerprints())
+        self.assertNotIn("terminal_artifact_rendering", describe_a2ui_contract_fingerprints())
+
     def test_terminal_artifact_contract_manifest_is_versioned_and_points_to_subcontracts(self) -> None:
         manifest = describe_terminal_artifact_contract()
 
