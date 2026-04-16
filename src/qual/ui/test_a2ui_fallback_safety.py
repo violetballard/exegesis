@@ -949,34 +949,42 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 }
             )
 
-    def test_terminal_artifact_renderer_rejects_invalid_envelopes(self) -> None:
-        with self.assertRaises(ValueError):
-            render_terminal_artifact(
-                {
-                    "type": "TerminalArtifact",
-                    "kind": "action",
-                    "artifact": {
-                        "id": "export_document",
-                        "label": "Export",
-                        "payload": {"format": "md"},
-                    },
-                    "trace_id": "drop-me",
-                }
-            )
+    def test_terminal_artifact_renderer_recovers_from_malformed_envelopes(self) -> None:
+        action_text = render_terminal_artifact(
+            {
+                "type": "TerminalArtifact",
+                "kind": "action",
+                "artifact": {
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                },
+                "trace_id": "drop-me",
+            }
+        )
 
-        with self.assertRaises(ValueError):
-            render_terminal_artifact(
-                {
-                    "type": "TerminalArtifact",
-                    "kind": "selection",
-                    "artifact": {
-                        "id": "choice-1",
-                        "label": "Choice",
-                        "payload": {"nested": {"items": [1, 2]}},
-                    },
-                    "contract_version": 999,
-                }
-            )
+        selection_text = render_terminal_artifact(
+            {
+                "type": "TerminalArtifact",
+                "kind": "selection",
+                "artifact": {
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                },
+                "contract_version": 999,
+            }
+        )
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", action_text)
+        self.assertNotIn("trace_id", action_text)
+
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
+        self.assertNotIn("contract_version", selection_text)
 
     def test_terminal_artifact_recovers_valid_payload_from_malformed_envelope_kind(self) -> None:
         text = render_terminal_artifact(
@@ -996,6 +1004,34 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[SelectionRef] Choice", text)
         self.assertIn("Selection schema v1", text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+
+    def test_terminal_artifact_recovers_card_payloads_from_malformed_envelopes_even_with_conflicting_hints(
+        self,
+    ) -> None:
+        envelope = {
+            "type": "TerminalArtifact",
+            "kind": "dialog",
+            "artifact": {
+                "type": "GenericCard",
+                "title": " Run Log ",
+                "a2ui_version": 1,
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+                "actions": [],
+            },
+            "trace_id": "drop-me",
+        }
+
+        for requested_kind in (None, "card", "action", "selection"):
+            with self.subTest(requested_kind=requested_kind):
+                if requested_kind is None:
+                    text = render_terminal_artifact(envelope)
+                else:
+                    text = render_terminal_artifact(envelope, kind=requested_kind)
+
+                self.assertIn("[GenericCard] Run Log", text)
+                self.assertIn("A2UI v1", text)
+                self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+                self.assertNotIn("trace_id", text)
 
     def test_terminal_artifact_render_target_resolver_matches_shell_fallback_for_malformed_envelopes(self) -> None:
         envelope = {
@@ -2373,7 +2409,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[SelectionRef] Choice", selection_text)
         self.assertIn("- selected: true", selection_text)
 
-    def test_terminal_artifact_envelope_renders_structured_payloads_and_rejects_conflicting_hints(self) -> None:
+    def test_terminal_artifact_envelope_recovers_structured_payloads_even_with_conflicting_hints(self) -> None:
         action_text = render_terminal_artifact(
             {
                 "type": "TerminalArtifact",
@@ -2414,20 +2450,23 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[SelectionRef] Choice", selection_text)
         self.assertIn("[GenericCard] Run Log", card_text)
 
-        with self.assertRaises(ValueError):
-            render_terminal_artifact(
-                {
-                    "type": "TerminalArtifact",
-                    "kind": "action",
-                    "artifact": {
-                        "type": "SelectionRef",
-                        "id": "choice-1",
-                        "label": "Choice",
-                        "payload": {"nested": {"items": [1, 2]}},
-                    },
+        recovered_text = render_terminal_artifact(
+            {
+                "type": "TerminalArtifact",
+                "kind": "action",
+                "artifact": {
+                    "type": "SelectionRef",
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
                 },
-                kind="selection",
-            )
+            },
+            kind="selection",
+        )
+
+        self.assertIn("[SelectionRef] Choice", recovered_text)
+        self.assertIn("Selection schema v1", recovered_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", recovered_text)
 
     def test_terminal_leaf_renderers_accept_matching_terminal_artifact_envelopes(self) -> None:
         action_envelope = build_terminal_artifact_envelope(
