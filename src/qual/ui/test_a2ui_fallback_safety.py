@@ -1304,6 +1304,36 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 kind="selection",
             )
 
+    def test_terminal_leaf_renderers_accept_matching_terminal_artifact_envelopes(self) -> None:
+        action_envelope = build_terminal_artifact_envelope(
+            ActionRef(
+                id=" export_document ",
+                label=" Export ",
+                payload={"format": "md"},
+            ),
+            kind="action",
+        )
+        selection_envelope = build_terminal_artifact_envelope(
+            SelectionRef(
+                id=" choice-1 ",
+                label=" Choice ",
+                payload={"nested": {"items": [1, 2]}},
+                selected=True,
+            ),
+            kind="selection",
+        )
+
+        action_text = render_terminal_action(action_envelope)
+        selection_text = render_terminal_selection(selection_envelope)
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", action_text)
+
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
+
     def test_terminal_card_renderer_accepts_terminal_artifact_envelopes_for_cli_fallback(self) -> None:
         action_envelope = build_terminal_artifact_envelope(
             ActionRef(

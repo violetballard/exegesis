@@ -1067,6 +1067,7 @@ def render_terminal_selection(selection: Any) -> str:
         selection = _selection_ref_to_dict(selection)
     elif isinstance(selection, Mapping):
         selection = _strip_terminal_type_hint(selection, expected_type="SelectionRef")
+        selection = _unwrap_terminal_artifact_leaf_payload(selection, expected_kind="selection")
 
     try:
         normalized = _normalize_selection(selection)
@@ -1091,6 +1092,7 @@ def render_terminal_action(action: Any) -> str:
         action = _action_ref_to_dict(action)
     elif isinstance(action, Mapping):
         action = _strip_terminal_type_hint(action, expected_type="ActionRef")
+        action = _unwrap_terminal_artifact_leaf_payload(action, expected_kind="action")
 
     try:
         normalized = normalize_action_ref(action)
@@ -1269,6 +1271,21 @@ def _unwrap_terminal_artifact_payload(
     kind = artifact["kind"]
     normalized_kind = kind.strip().lower()
     return payload, normalized_kind
+
+
+def _unwrap_terminal_artifact_leaf_payload(artifact: Any, *, expected_kind: str) -> Any:
+    if not isinstance(artifact, Mapping):
+        return artifact
+    artifact_type = artifact.get("type")
+    if not isinstance(artifact_type, str) or artifact_type.strip() != _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+        return artifact
+    try:
+        payload, envelope_kind = _unwrap_terminal_artifact_payload(artifact)
+    except ValueError:
+        return artifact
+    if envelope_kind == expected_kind:
+        return payload
+    return artifact
 
 
 def _infer_terminal_artifact_kind_from_mapping(artifact: Mapping[str, Any]) -> str | None:
