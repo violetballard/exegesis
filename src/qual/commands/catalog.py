@@ -206,6 +206,7 @@ class ResolvedCommand:
     flow_step: str
     primary_cli_token: str
     argv: tuple[str, ...]
+    smoke_argv: tuple[str, ...]
     cli_tokens: tuple[str, ...]
     lookup_tokens: tuple[str, ...]
     surface_tokens: tuple[str, ...]
@@ -2085,6 +2086,15 @@ def command_smoke_argv(
     return command_smoke_argv_for(COMMAND_SPECS, argv, flow_steps)
 
 
+def _resolved_smoke_argv_for(
+    specs: tuple[CommandSpec, ...],
+    canonical_name: str,
+) -> tuple[str, ...]:
+    if not canonical_name:
+        return ()
+    return command_smoke_entry_argv_for(specs, canonical_name)
+
+
 @lru_cache(maxsize=None)
 def command_resolve_for(
     specs: tuple[CommandSpec, ...],
@@ -2100,6 +2110,7 @@ def command_resolve_for(
             flow_step="",
             primary_cli_token="",
             argv=(),
+            smoke_argv=(),
             cli_tokens=(),
             lookup_tokens=(),
             surface_tokens=(),
@@ -2120,6 +2131,7 @@ def command_resolve_for(
             flow_step=route_entry.flow_step,
             primary_cli_token=route_entry.primary_cli_token,
             argv=(route_entry.primary_cli_token,),
+            smoke_argv=_resolved_smoke_argv_for(specs, route_entry.name),
             cli_tokens=route_entry.cli_tokens,
             lookup_tokens=route_entry.lookup_tokens,
             surface_tokens=route_entry.surface_tokens,
@@ -2135,6 +2147,7 @@ def command_resolve_for(
         flow_step="",
         primary_cli_token="",
         argv=(normalized_token,),
+        smoke_argv=(),
         cli_tokens=(),
         lookup_tokens=(),
         surface_tokens=(),
@@ -2165,6 +2178,7 @@ def command_resolve_argv_for(
             flow_step="",
             primary_cli_token="",
             argv=(),
+            smoke_argv=(),
             cli_tokens=(),
             lookup_tokens=(),
             surface_tokens=(),
@@ -2181,6 +2195,7 @@ def command_resolve_argv_for(
             flow_step="",
             primary_cli_token="",
             argv=raw_argv,
+            smoke_argv=(),
             cli_tokens=(),
             lookup_tokens=(),
             surface_tokens=(),
@@ -2198,6 +2213,7 @@ def command_resolve_argv_for(
             flow_step=resolved.flow_step,
             primary_cli_token=resolved.primary_cli_token,
             argv=raw_argv,
+            smoke_argv=resolved.smoke_argv,
             cli_tokens=resolved.cli_tokens,
             lookup_tokens=resolved.lookup_tokens,
             surface_tokens=resolved.surface_tokens,
@@ -2213,6 +2229,7 @@ def command_resolve_argv_for(
         flow_step=resolved.flow_step,
         primary_cli_token=resolved.primary_cli_token,
         argv=(resolved.primary_cli_token, *raw_argv[1:]),
+        smoke_argv=resolved.smoke_argv,
         cli_tokens=resolved.cli_tokens,
         lookup_tokens=resolved.lookup_tokens,
         surface_tokens=resolved.surface_tokens,
