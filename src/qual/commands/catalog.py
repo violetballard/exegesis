@@ -189,6 +189,22 @@ class CommandInvocationPlanContract:
     entries: tuple[CommandInvocationPlanEntry, ...]
 
 
+@dataclass(frozen=True)
+class ResolvedCommand:
+    token: str
+    normalized_token: str
+    canonical_name: str
+    flow_step: str
+    primary_cli_token: str
+    argv: tuple[str, ...]
+    cli_tokens: tuple[str, ...]
+    lookup_tokens: tuple[str, ...]
+    surface_tokens: tuple[str, ...]
+    description: str
+    kind: str
+    matched: bool
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -1812,3 +1828,147 @@ def command_cli_shim_argv(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[str, ...]:
     return command_cli_shim_argv_for(COMMAND_SPECS, argv, flow_steps)
+
+
+@lru_cache(maxsize=None)
+def command_resolve_for(
+    specs: tuple[CommandSpec, ...],
+    token: str,
+    flow_steps: tuple[str, ...] | None = None,
+) -> ResolvedCommand:
+    normalized_token = _normalize_token(token)
+    if not normalized_token:
+        return ResolvedCommand(
+            token=token,
+            normalized_token="",
+            canonical_name="",
+            flow_step="",
+            primary_cli_token="",
+            argv=(),
+            cli_tokens=(),
+            lookup_tokens=(),
+            surface_tokens=(),
+            description="",
+            kind="empty",
+            matched=False,
+        )
+
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
+    route_catalog = command_flow_route_catalog(flow_steps=ordered_flow_steps, specs=specs)
+    for route_entry in route_catalog:
+        if normalized_token not in route_entry.surface_tokens:
+            continue
+        return ResolvedCommand(
+            token=token,
+            normalized_token=normalized_token,
+            canonical_name=route_entry.name,
+            flow_step=route_entry.flow_step,
+            primary_cli_token=route_entry.primary_cli_token,
+            argv=(route_entry.primary_cli_token,),
+            cli_tokens=route_entry.cli_tokens,
+            lookup_tokens=route_entry.lookup_tokens,
+            surface_tokens=route_entry.surface_tokens,
+            description=route_entry.description,
+            kind=_surface_token_kind(normalized_token, route_entry),
+            matched=True,
+        )
+
+    return ResolvedCommand(
+        token=token,
+        normalized_token=normalized_token,
+        canonical_name=canonical_command_for(specs, normalized_token),
+        flow_step="",
+        primary_cli_token="",
+        argv=(normalized_token,),
+        cli_tokens=(),
+        lookup_tokens=(),
+        surface_tokens=(),
+        description="",
+        kind="unknown",
+        matched=False,
+    )
+
+
+def command_resolve(
+    token: str,
+    flow_steps: tuple[str, ...] | None = None,
+) -> ResolvedCommand:
+    return command_resolve_for(COMMAND_SPECS, token, flow_steps)
+
+
+def command_resolve_argv_for(
+    specs: tuple[CommandSpec, ...],
+    argv: tuple[str, ...] | list[str],
+    flow_steps: tuple[str, ...] | None = None,
+) -> ResolvedCommand:
+    raw_argv = tuple(argv)
+    if not raw_argv:
+        return ResolvedCommand(
+            token="",
+            normalized_token="",
+            canonical_name="",
+            flow_step="",
+            primary_cli_token="",
+            argv=(),
+            cli_tokens=(),
+            lookup_tokens=(),
+            surface_tokens=(),
+            description="",
+            kind="empty",
+            matched=False,
+        )
+    if raw_argv[0].lstrip().startswith("-"):
+        token = raw_argv[0]
+        return ResolvedCommand(
+            token=token,
+            normalized_token=_normalize_token(token),
+            canonical_name="",
+            flow_step="",
+            primary_cli_token="",
+            argv=raw_argv,
+            cli_tokens=(),
+            lookup_tokens=(),
+            surface_tokens=(),
+            description="",
+            kind="flag",
+            matched=False,
+        )
+
+    resolved = command_resolve_for(specs, raw_argv[0], flow_steps)
+    if not resolved.matched:
+        return ResolvedCommand(
+            token=resolved.token,
+            normalized_token=resolved.normalized_token,
+            canonical_name=resolved.canonical_name,
+            flow_step=resolved.flow_step,
+            primary_cli_token=resolved.primary_cli_token,
+            argv=raw_argv,
+            cli_tokens=resolved.cli_tokens,
+            lookup_tokens=resolved.lookup_tokens,
+            surface_tokens=resolved.surface_tokens,
+            description=resolved.description,
+            kind=resolved.kind,
+            matched=False,
+        )
+
+    return ResolvedCommand(
+        token=resolved.token,
+        normalized_token=resolved.normalized_token,
+        canonical_name=resolved.canonical_name,
+        flow_step=resolved.flow_step,
+        primary_cli_token=resolved.primary_cli_token,
+        argv=(resolved.primary_cli_token, *raw_argv[1:]),
+        cli_tokens=resolved.cli_tokens,
+        lookup_tokens=resolved.lookup_tokens,
+        surface_tokens=resolved.surface_tokens,
+        description=resolved.description,
+        kind=resolved.kind,
+        matched=True,
+    )
+
+
+def command_resolve_argv(
+    argv: tuple[str, ...] | list[str],
+    flow_steps: tuple[str, ...] | None = None,
+) -> ResolvedCommand:
+    return command_resolve_argv_for(COMMAND_SPECS, argv, flow_steps)
