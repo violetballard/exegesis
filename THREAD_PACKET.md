@@ -17,7 +17,7 @@
 - PageIndex and embeddings remain deferred compatibility identifiers, not required runtime retrieval paths for the MVP contract.
 
 ## Canonical Demo-Path Step Advanced
-- `retrieve relevant material`
+- Canonical demo-path step advanced: `retrieve relevant material`
 - `fetch_excerpt` now resolves only through the canonical FTS path, which makes the retrieval step more deterministic and auditable for downstream basket/workflow use.
 
 ## Reviewer-Required Fixes Addressed
