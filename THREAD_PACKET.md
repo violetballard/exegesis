@@ -20,6 +20,7 @@
 - This reviewed implementation range makes `retrieve relevant material` more real by keeping retrieval output deterministic and auditable while forcing excerpt lookup through the canonical FTS-only path.
 - Concretely, `src/qual/retrieval/service.py` now resolves `fetch_excerpt` through the canonical FTS-only lookup path, and the approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs fail closed with `KeyError`.
 - This metadata-only fixer refresh exists to keep that canonical demo-path mapping explicit in the handoff packet for re-review.
+- Reviewer-required handoff correction satisfied here: this packet explicitly maps the slice to the canonical demo-path step `retrieve relevant material`.
 
 ## Reviewer-required fixes addressed
 - Fix 1: The handoff packet now states explicitly that this slice advances the canonical demo-path step `retrieve relevant material`.
