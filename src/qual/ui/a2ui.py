@@ -640,6 +640,10 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "supported_kinds": ["card", "action", "selection"],
         "default_kind": "card",
         "renderer_entrypoints": copy.deepcopy(rendering_contract["renderer_entrypoints"]),
+        "rendering": rendering_contract,
+        "rendering_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
+        "kind_resolution": copy.deepcopy(rendering_contract["kind_resolution"]),
+        "fallback_recovery": copy.deepcopy(rendering_contract["fallback_recovery"]),
         "kind_policy": {
             "card": "defer to terminal artifact dispatch and keep card as the default recovery path",
             "action": "recover action payloads with render_terminal_action",

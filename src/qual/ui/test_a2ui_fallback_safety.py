@@ -441,11 +441,19 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "selection": "recover selection payloads with render_terminal_selection",
             },
         )
+        self.assertEqual(manifest["rendering"], describe_terminal_artifact_rendering_contract())
+        self.assertEqual(
+            manifest["rendering_fingerprint"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(manifest["kind_resolution"], manifest["rendering"]["kind_resolution"])
+        self.assertEqual(manifest["fallback_recovery"], manifest["rendering"]["fallback_recovery"])
         self.assertEqual(manifest["terminal_fallback_contract"], describe_terminal_fallback_contract())
         self.assertEqual(
             manifest["terminal_artifact_rendering_contract"],
             describe_terminal_artifact_rendering_contract(),
         )
+        self.assertEqual(manifest["terminal_artifact_rendering_contract"], manifest["rendering"])
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_fingerprint"],
             terminal_artifact_cli_fallback_contract_fingerprint(),
