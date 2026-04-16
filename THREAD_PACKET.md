@@ -24,11 +24,12 @@
 
 ## Scope Goal
 
-- Keep the CLI command surface deterministic, smoke-testable, and aligned with the canonical command catalog and trusted demo-path routing.
+- Harden the existing CLI-first Milestone 3 command surface so the current MVP loop stays deterministic, smoke-testable, and aligned with the canonical command catalog.
 
 ## Canonical Demo-Path Mapping
 
 - Explicit canonical demo-path step advanced by this lane: `preview and apply or reject a patch`.
+- This change strengthens the CLI-first execution of the `preview and apply or reject a patch` step in the canonical MVP loop by keeping the existing patch-review command contract deterministic and drift-resistant while Textual remains disabled.
 - Concrete blocker removed: the patch-review command surface now validates parser/catalog drift, exposes deterministic smoke and resolution helpers, and keeps patch-review entrypoints stable enough for CLI-first operator checks while Textual remains disabled.
 
 ## Definition Of Done Alignment
@@ -49,7 +50,7 @@
 ## Scope Completed
 
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
-- Added deterministic parser-surface helpers for CLI shims, parser-ready argv rewriting, smoke invocations, trusted demo-path routing, and command resolution so the CLI-first MVP loop stays auditable and stable.
+- Added deterministic parser-surface helpers for CLI shims, parser-ready argv rewriting, smoke invocations, trusted demo-path routing, and command resolution so the existing CLI-first MVP loop stays auditable and stable.
 - Exposed the public command exports needed for the command catalog, canonical wrapper, demo/MVP helper entrypoints, and smoke/resolution contracts from `src/qual/commands/__init__.py` and `src/qual/commands/canonical.py`.
 - Tightened `src/qual/commands/diff_preview.py` so summary-only output keeps a fingerprint tied to the reviewed diff and truncation remains bounded without corrupting the header-aware preview contract.
 - Expanded `tests/unit/test_commands_catalog.py` with focused regression coverage for canonical-order alignment, parser drift rejection, shim/surface contracts, smoke argv helpers, deterministic resolution, and demo/MVP path helpers.
@@ -104,7 +105,7 @@
 ### Roadmap item(s) affected
 
 - `Milestone 3: Real workflow loop` by preserving CLI compatibility while the package/layout migration lands.
-- `feat-commands` by keeping migration-safe command entrypoints deterministic, smoke-testable, and aligned with the engine-first MVP loop.
+- `feat-commands` by keeping the existing migration-safe CLI entrypoints deterministic, smoke-testable, and aligned with the engine-first MVP loop.
 
 ### Vision capability affected
 
