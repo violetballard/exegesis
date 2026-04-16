@@ -134,6 +134,15 @@ class ShellUI:
             return "action"
         if has_selection_hints and not has_action_hints:
             return "selection"
+
+        # Last-resort schema validation keeps raw leaf payloads recoverable if
+        # the broader envelope resolver fails unexpectedly.
+        inferred_action_kind = ShellUI._infer_action_payload_kind(artifact)
+        if inferred_action_kind is not None:
+            return inferred_action_kind
+        inferred_selection_kind = ShellUI._infer_selection_payload_kind(artifact)
+        if inferred_selection_kind is not None:
+            return inferred_selection_kind
         return None
 
     @staticmethod
@@ -145,6 +154,16 @@ class ShellUI:
         except ValueError:
             return None
         return "action"
+
+    @staticmethod
+    def _infer_selection_payload_kind(artifact: Any) -> str | None:
+        if not isinstance(artifact, Mapping):
+            return None
+        try:
+            normalize_selection_ref(artifact)
+        except ValueError:
+            return None
+        return "selection"
 
     @staticmethod
     def _format_item_id(value: object) -> str:
