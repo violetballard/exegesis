@@ -25,6 +25,7 @@ from src.qual.ui.a2ui import (
     describe_card_contract,
     describe_selection_contract,
     describe_terminal_artifact_cli_fallback_contract,
+    describe_terminal_artifact_kind_contracts,
     describe_terminal_artifact_contract_fingerprints,
     describe_terminal_artifact_contract,
     describe_terminal_artifact_rendering_contract,
@@ -42,6 +43,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_contract_fingerprint,
     terminal_artifact_cli_fallback_contract_fingerprint,
     terminal_artifact_rendering_contract_fingerprint,
+    terminal_artifact_kind_contracts_fingerprint,
     terminal_fallback_contract_fingerprint,
     TERMINAL_ARTIFACT_SCHEMA_VERSION,
     validate_terminal_artifact_envelope,
@@ -339,6 +341,29 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(manifest["contract_fingerprint"], terminal_artifact_contract_fingerprint())
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
+
+    def test_terminal_artifact_kind_contract_helper_is_shared_and_fingerprintable(self) -> None:
+        kind_contracts = describe_terminal_artifact_kind_contracts()
+        manifest = describe_terminal_artifact_contract()
+        fingerprints = describe_terminal_artifact_contract_fingerprints(include_kind_contracts=True)
+
+        self.assertEqual(kind_contracts, manifest["kind_contracts"])
+        self.assertEqual(set(kind_contracts), {"card", "action", "selection"})
+        self.assertEqual(kind_contracts["card"]["kind"], "card")
+        self.assertEqual(kind_contracts["action"]["kind"], "action")
+        self.assertEqual(kind_contracts["selection"]["kind"], "selection")
+        self.assertEqual(kind_contracts["card"]["contract_fingerprint"], card_contract_fingerprint())
+        self.assertEqual(kind_contracts["action"]["contract_fingerprint"], action_contract_fingerprint())
+        self.assertEqual(
+            kind_contracts["selection"]["contract_fingerprint"],
+            selection_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["kind_contracts"],
+            terminal_artifact_kind_contracts_fingerprint(),
+        )
+        self.assertEqual(len(fingerprints["kind_contracts"]), 64)
+        self.assertNotIn("kind_contracts", describe_terminal_artifact_contract_fingerprints())
 
     def test_terminal_artifact_contract_manifest_surfaces_rendering_recovery_aliases(self) -> None:
         manifest = describe_terminal_artifact_contract()

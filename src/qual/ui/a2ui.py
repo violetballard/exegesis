@@ -304,10 +304,18 @@ def describe_terminal_artifact_cli_fallback_contract() -> dict[str, Any]:
     return manifest
 
 
-def describe_terminal_artifact_contract_fingerprints() -> dict[str, str]:
+def describe_terminal_artifact_kind_contracts() -> dict[str, dict[str, str]]:
+    """Return the stable kind contract map shared by terminal artifact manifests."""
+
+    return _build_terminal_artifact_kind_contracts()
+
+
+def describe_terminal_artifact_contract_fingerprints(
+    include_kind_contracts: bool = False,
+) -> dict[str, str]:
     """Return stable fingerprints for the embedded terminal artifact subcontracts."""
 
-    return {
+    fingerprints = {
         "card_contract": card_contract_fingerprint(),
         "action_contract": action_contract_fingerprint(),
         "selection_contract": selection_contract_fingerprint(),
@@ -315,6 +323,9 @@ def describe_terminal_artifact_contract_fingerprints() -> dict[str, str]:
         "rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
         "cli_fallback_contract": terminal_artifact_cli_fallback_contract_fingerprint(),
     }
+    if include_kind_contracts:
+        fingerprints["kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
+    return fingerprints
 
 
 def _build_terminal_artifact_cli_fallback_contract_fingerprints() -> dict[str, str]:
@@ -694,6 +705,13 @@ def _build_terminal_artifact_kind_contracts() -> dict[str, dict[str, str]]:
             "contract_fingerprint": selection_contract_fingerprint(),
         },
     }
+
+
+def terminal_artifact_kind_contracts_fingerprint() -> str:
+    """Return a stable fingerprint for the shared terminal artifact kind contracts."""
+
+    manifest = describe_terminal_artifact_kind_contracts()
+    return _fingerprint_manifest_section(manifest)
 
 
 def _build_read_only_fallback_action_manifest() -> list[dict[str, Any]]:
