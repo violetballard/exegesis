@@ -111,6 +111,13 @@ class ShellUI:
                 # the surrounding envelope metadata is broken.
                 return "card"
 
+        if (not isinstance(artifact_type, str) or not artifact_type.strip()) and any(
+            field in artifact for field in ("blocks", "actions")
+        ):
+            # Untyped card-shaped payloads should stay on the card path even if
+            # they carry stray action/selection-style fields.
+            return "card"
+
         has_required_fields = all(field in artifact for field in ("id", "label", "payload"))
         if not has_required_fields:
             return None

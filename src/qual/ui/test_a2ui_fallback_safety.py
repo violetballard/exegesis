@@ -1366,6 +1366,36 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[SelectionRef]", selection_text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
 
+    def test_terminal_artifact_prefers_card_shape_over_conflicting_action_hints(self) -> None:
+        mixed_card = {
+            "title": " Run Log ",
+            "a2ui_version": 1,
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+            "actions": [],
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+            "confirm": {"title": "Approve", "message": "Proceed?"},
+        }
+
+        text = render_terminal_artifact(mixed_card)
+
+        self.assertIn("[<missing>] Run Log", text)
+        self.assertIn("A2UI v1", text)
+        self.assertIn("Hello", text)
+        self.assertNotIn("[ActionRef]", text)
+        self.assertNotIn("[SelectionRef]", text)
+
+        shell = ShellUI()
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            fallback_text = shell.render_artifact(mixed_card)
+
+        self.assertIn("[<missing>] Run Log", fallback_text)
+        self.assertIn("A2UI v1", fallback_text)
+        self.assertIn("Hello", fallback_text)
+        self.assertNotIn("[ActionRef]", fallback_text)
+        self.assertNotIn("[SelectionRef]", fallback_text)
+
     def test_terminal_artifact_rejects_action_or_selection_payloads_when_card_kind_is_explicit(self) -> None:
         with self.assertRaises(ValueError):
             render_terminal_artifact(

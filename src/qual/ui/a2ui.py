@@ -1469,6 +1469,15 @@ def _infer_terminal_artifact_kind_from_mapping(artifact: Mapping[str, Any]) -> s
             return "action"
         if normalized_type == "SelectionRef":
             return "selection"
+        if normalized_type and normalized_type != _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+            return "card"
+
+    if (not isinstance(artifact_type, str) or not artifact_type.strip()) and any(
+        field in artifact for field in ("blocks", "actions")
+    ):
+        # Untyped card-shaped payloads should stay on the card path even if
+        # they carry stray action/selection-style fields.
+        return "card"
 
     has_required_fields = all(field in artifact for field in ("id", "label", "payload"))
     if not has_required_fields:
