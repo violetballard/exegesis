@@ -1,15 +1,17 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Review target: `cb93dafa2c451893778b1c7f0c2e23f16090d8b5`
+- Implementation commit(s):
+  - `cb93dafa2c451893778b1c7f0c2e23f16090d8b5` (`feat(commands): harden demo path contract`)
+  - `621dc00a194f79ae52611d240a8521853cd374e2` (`fix(commands): reject parser surface drift`)
 - Prior command-catalog anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 
 ## Packet Traceability Note
 
-- This re-review packet is scoped to the current command-surface implementation at `cb93dafa2c451893778b1c7f0c2e23f16090d8b5`.
-- The earlier narrow packet that treated later commits as metadata-only was inaccurate: substantive command-surface changes landed after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, including trusted demo-path contract helpers and demo/MVP entrypoint wrappers.
-- Commits after `cb93dafa2c451893778b1c7f0c2e23f16090d8b5` in this handoff are docs-only packet refreshes and do not change the implementation scope described below.
-- This packet refresh explicitly satisfies the reviewer-requested `AGENTS.md` demo-path mapping requirement and keeps the fix scoped to packet metadata only.
+- This re-review packet is scoped to the full current command-surface implementation on the branch tip through `621dc00a194f79ae52611d240a8521853cd374e2`.
+- The earlier narrow packet that treated later commits as metadata-only was inaccurate: substantive command-surface changes landed after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, including trusted demo-path contract helpers, demo/MVP entrypoint wrappers, and the parser-surface drift rejection finalized in `621dc00a194f79ae52611d240a8521853cd374e2`.
+- The implementation under review is therefore the combined scope from `cb93dafa2c451893778b1c7f0c2e23f16090d8b5` through `621dc00a194f79ae52611d240a8521853cd374e2`, plus this packet refresh.
+- This packet refresh explicitly satisfies the reviewer-requested `AGENTS.md` demo-path mapping requirement and keeps the new fixer change scoped to handoff metadata only.
 
 ## Current Program Focus
 
@@ -26,7 +28,7 @@
 ## Scope Goal
 
 - Harden the existing Milestone 3 CLI command contract for the current engine-first MVP loop so the command surface stays deterministic, smoke-testable, and aligned with the canonical command catalog.
-- Scope-tightening note: this packet is limited to deterministic canonical command ordering, parser/catalog drift detection, and the existing CLI compatibility helpers already present on this branch tip. It does not claim new commands, new flags, new aliases, broader CLI-surface expansion, or engine behavior changes.
+- Scope-tightening note: this packet is limited to deterministic canonical command ordering, parser/catalog drift detection, parser-surface validation, and the existing CLI compatibility helpers already present on this branch tip. It does not claim new commands, new flags, new aliases, broader CLI-surface expansion, or engine behavior changes.
 
 ## Canonical Demo-Path Mapping
 
@@ -50,6 +52,7 @@
   - `tests/unit/test_diff_preview.py`
 - Shared/integrator-locked edits: `YES`
 - Shared edits are limited to the approved `feat-commands` shared-test paths listed above.
+- Approval basis: the reviewer packet for this branch explicitly includes `Approved exception note - Approved shared-test exception for tests/unit/test_commands_catalog.py`, and the branch-tip implementation kept shared edits confined to the approved command test files.
 
 ## Scope Completed
 
@@ -58,14 +61,15 @@
 - Exposed the public command exports needed for the command catalog, canonical wrapper, demo/MVP helper entrypoints, and smoke/resolution contracts from `src/qual/commands/__init__.py` and `src/qual/commands/canonical.py`.
 - Tightened `src/qual/commands/diff_preview.py` so summary-only output keeps a fingerprint tied to the reviewed diff and truncation remains bounded without corrupting the header-aware preview contract.
 - Expanded `tests/unit/test_commands_catalog.py` with focused regression coverage for canonical-order alignment, parser drift rejection, shim/surface contracts, smoke argv helpers, deterministic resolution, and demo/MVP path helpers.
-- Regenerated the handoff packet so re-review targets the real implementation tip instead of the earlier incorrect metadata-only framing.
+- Finalized parser-surface drift rejection in `621dc00a194f79ae52611d240a8521853cd374e2` so re-review targets the real branch-tip implementation instead of the earlier incorrect metadata-only framing.
+- Regenerated the handoff packet so re-review targets the real implementation tip and records the explicit demo-path mapping and shared-test approval basis requested by the reviewer.
 
 ## Tasks Completed
 
 1. Hardened the command catalog and demo-path contracts so parser drift, parser token order, canonical ordering, and trusted route metadata stay deterministic for the CLI-first MVP loop.
 2. Added parser-surface, shim argv, smoke argv, and deterministic command-resolution helpers needed by the compatibility surface.
 3. Published the public command exports and tightened diff-preview summary behavior so the existing CLI entrypoints stay stable and smoke-testable.
-4. Expanded the approved shared regression coverage and corrected the handoff packet so re-review targets the real implementation tip and exact merge scope.
+4. Finalized parser-surface drift rejection at the branch tip and corrected the handoff packet so re-review targets the real implementation tip and exact merge scope.
 
 ## Task-To-Demo-Path Mapping
 
@@ -79,6 +83,7 @@
 - High-risk shared-file handoff: this packet groups the branch-tip work into `4` meaningful tasks, which matches the high-risk task cap for the actual implementation scope under review.
 - Current implementation scope remains within owned command paths plus the approved shared test files.
 - Files changed in implementation scope: `6`
+- Implementation review target range: `cb93dafa2c451893778b1c7f0c2e23f16090d8b5..621dc00a194f79ae52611d240a8521853cd374e2`
 
 ## Files Changed
 
@@ -115,12 +120,12 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` by preserving CLI compatibility while the package/layout migration lands.
+- `Milestone 3: Real workflow loop` by making the CLI-first `open project/document` entry step deterministic while the package/layout migration lands.
 - `feat-commands` by keeping the existing migration-safe CLI entrypoints deterministic, smoke-testable, and aligned with the engine-first MVP loop.
 
 ### Vision capability affected
 
-- `Canonical engine contract` because the CLI compatibility surface remains stable while Textual stays disabled.
+- `Canonical engine contract` because the CLI compatibility surface for `open project/document` remains stable while Textual stays disabled.
 
 ### Routing/provider impact note
 
