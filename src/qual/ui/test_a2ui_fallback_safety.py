@@ -94,7 +94,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["action_fingerprint"], action_contract_fingerprint())
         self.assertEqual(manifest["selection_fingerprint"], selection_contract_fingerprint())
         self.assertEqual(manifest["card_fingerprint"], card_contract_fingerprint())
-        self.assertEqual(manifest["contract_fingerprints"]["action"], action_contract_fingerprint())
+        self.assertEqual(manifest["schemas"]["action"], describe_action_contract())
         self.assertEqual(manifest["contract_fingerprints"]["selection"], selection_contract_fingerprint())
         self.assertEqual(manifest["contract_fingerprints"]["card_contract"], card_contract_fingerprint())
         self.assertEqual(
