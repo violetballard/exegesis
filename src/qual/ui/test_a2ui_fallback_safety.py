@@ -561,6 +561,49 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Selection schema v1", selection_text)
         self.assertNotIn("[UnknownCard]", selection_text)
 
+    def test_shell_ui_prefers_typed_payload_kind_over_conflicting_hint_for_non_envelope_payloads(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            card_text = shell.render_artifact(
+                {
+                    "type": "GenericCard",
+                    "title": " Run Log ",
+                    "a2ui_version": 1,
+                    "blocks": [],
+                    "actions": [],
+                },
+                kind="action",
+            )
+            action_text = shell.render_artifact(
+                ActionRef(
+                    id=" export_document ",
+                    label=" Export ",
+                    payload={"format": "md"},
+                ),
+                kind="selection",
+            )
+            selection_text = shell.render_artifact(
+                SelectionRef(
+                    id=" choice-1 ",
+                    label=" Choice ",
+                    payload={"nested": {"items": [1, 2]}},
+                ),
+                kind="action",
+            )
+
+        self.assertIn("[GenericCard] Run Log", card_text)
+        self.assertIn("A2UI v1", card_text)
+        self.assertNotIn("[ActionRef]", card_text)
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[SelectionRef]", action_text)
+
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[ActionRef]", selection_text)
+
     def test_shell_ui_prefers_typed_payload_kind_over_conflicting_hint_during_fallback(self) -> None:
         shell = ShellUI()
 
@@ -584,6 +627,25 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Action schema v1", text)
         self.assertNotIn("[SelectionRef]", text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+
+    def test_validate_generic_card_requires_blocks_and_actions_fields(self) -> None:
+        with self.assertRaises(ValueError):
+            validate_generic_card(
+                {
+                    "type": "GenericCard",
+                    "title": "Patch",
+                    "actions": [],
+                }
+            )
+
+        with self.assertRaises(ValueError):
+            validate_generic_card(
+                {
+                    "type": "GenericCard",
+                    "title": "Patch",
+                    "blocks": [],
+                }
+            )
 
     def test_shell_ui_recovers_structured_kinds_from_raw_payloads_during_fallback(self) -> None:
         shell = ShellUI()

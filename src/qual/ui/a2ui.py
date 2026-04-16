@@ -811,16 +811,19 @@ def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) 
     subtitle = card.get("subtitle")
     if subtitle is not None and not isinstance(subtitle, str):
         raise ValueError("GenericCard subtitle must be a string when provided")
+    if "blocks" not in card:
+        raise ValueError("GenericCard blocks are required")
     blocks = card.get("blocks")
-    if blocks is not None:
-        if not isinstance(blocks, (list, tuple)):
-            raise ValueError("GenericCard blocks must be a list or tuple when provided")
-        for block in blocks:
-            validate_primitive_block(block)
-    actions = card.get("actions", [])
+    if not isinstance(blocks, (list, tuple)):
+        raise ValueError("GenericCard blocks must be a list or tuple")
+    for block in blocks:
+        validate_primitive_block(block)
+    if "actions" not in card:
+        raise ValueError("GenericCard actions are required")
+    actions = card.get("actions")
+    if not isinstance(actions, (list, tuple)):
+        raise ValueError("GenericCard actions must be a list or tuple")
     if strict_actions:
-        if not isinstance(actions, (list, tuple)):
-            raise ValueError("GenericCard actions must be a list or tuple")
         seen_actions: set[str] = set()
         for action in actions:
             normalized_action = _normalize_action(_action_ref_to_dict(action), supported_actions=_ALLOWED_ACTION_SET)

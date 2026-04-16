@@ -210,16 +210,15 @@ class ShellUI:
     ) -> tuple[Any, str | None]:
         fallback_kind = ShellUI._normalize_fallback_kind(kind)
         requested_kind = kind.strip().lower() if isinstance(kind, str) else None
+        inferred_kind = ShellUI._infer_fallback_kind(artifact)
         if not isinstance(artifact, Mapping):
-            if fallback_kind is None:
-                fallback_kind = ShellUI._infer_fallback_kind(artifact)
-            return artifact, fallback_kind
+            # Prefer the artifact's own typed shape over a conflicting hint so fallback stays authoritative.
+            return artifact, inferred_kind if inferred_kind is not None else fallback_kind
 
         artifact_type = artifact.get("type")
         if not isinstance(artifact_type, str) or artifact_type.strip() != "TerminalArtifact":
-            if fallback_kind is None:
-                fallback_kind = ShellUI._infer_fallback_kind(artifact)
-            return artifact, fallback_kind
+            # Prefer the artifact's own typed shape over a conflicting hint so fallback stays authoritative.
+            return artifact, inferred_kind if inferred_kind is not None else fallback_kind
 
         if _seen_terminal_artifact_ids is None:
             _seen_terminal_artifact_ids = set()
