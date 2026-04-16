@@ -38,9 +38,8 @@
 ## Canonical Demo-Path Step Advanced
 
 - Primary step advanced: `preview and apply or reject a patch`
-- Secondary step supported: `continue working without losing context`
-- Exact mapping: this lane hardens the `patch-review` command surface so parser/catalog drift cannot silently change the live CLI operator contract used to preview and apply or reject a patch and then continue working without losing context through the same stable command surface.
-- Operational narrowing: this packet claims only CLI contract support for the active operator loop, not a broad engine-stability improvement outside the live demo path.
+- Blocker removed on that step: deterministic command ordering and parser/catalog drift rejection keep the live `patch-review` CLI surface stable while Textual remains disabled, so the operator contract for previewing and applying or rejecting a patch cannot change silently.
+- Exact mapping: this lane hardens the `patch-review` command surface only; it does not claim a broader engine-stability improvement outside that live demo-path step.
 
 ## Lane / Ownership
 
@@ -100,7 +99,7 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` because deterministic command ordering and parser-drift rejection keep the live CLI `open/retrieve/basket/patch-review` operator loop stable while the package/layout migration lands.
+- `Milestone 3: Real workflow loop` because deterministic command ordering and parser-drift rejection keep the live CLI `patch-review` step stable while the package/layout migration lands.
 - `feat-commands` because this slice keeps the CLI-first MVP operator surface deterministic and smoke-testable for the active engine-first loop.
 - Concrete loop impact: the branch preserves a deterministic CLI contract for the live `patch-review` step inside the current engine-first demo path instead of allowing parser/catalog drift to change that operator surface silently.
 
@@ -108,7 +107,7 @@
 
 - `Canonical engine contract` because the active CLI compatibility surface stays stable and deterministic while Textual remains disabled.
 - `Auditable state and workflow` because parser/catalog drift is rejected explicitly instead of silently mutating the operator contract that drives patch review and continued work.
-- Concrete contract impact: operators can rely on the same catalog-backed CLI surface when entering the patch-review path and continuing work, which keeps the MVP contract explicit and reviewable.
+- Concrete contract impact: operators can rely on the same catalog-backed CLI surface for the `patch-review` step, which keeps that MVP contract explicit and reviewable.
 
 ### Routing/provider impact note
 
