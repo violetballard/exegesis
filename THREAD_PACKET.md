@@ -28,7 +28,8 @@
 
 ## Reviewer-required fixes addressed
 - Fix 1: The handoff packet now states explicitly that this slice advances the canonical demo-path step `retrieve relevant material`.
-- Fix 2: The packet remains narrowed to the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`; this metadata-only refresh does not change executable retrieval code.
+- Fix 2: The packet now names the exact approval reference for the shared regression coverage: the lane's `Approved exception note` in `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`, which authorizes `tests/unit/test_unified_retrieval.py` as the sole shared-by-approval regression surface for this lane.
+- Fix 3: The risks section now states the behavioral fail-closed contract directly and ties it to passing verification on the canonical FTS-only path.
 
 ## AGENTS.md Handoff Packet
 - Risk reason: shared/high-risk work because this narrowed reviewed implementation includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
@@ -60,6 +61,8 @@
 
 ## Risks / blockers
 - Risk: `HIGH`
+- Merge risk detail: callers that still pass PageIndex-only excerpt IDs into `fetch_excerpt` now fail closed with `KeyError` by design because excerpt lookup is restricted to the canonical FTS-only path.
+- Verification for canonical path: `tests/unit/test_unified_retrieval.py::test_retrieval_service_fetches_fts_excerpt_ids` and `tests/unit/test_unified_retrieval.py::test_retrieve_fts_excerpt_returns_canonical_fts_payload` continue to prove the engine-facing FTS excerpt path resolves valid excerpt IDs successfully.
 - Blockers: none
 
 ## Required handoff fields
@@ -75,7 +78,7 @@
 - None
 
 ## Scope-check / ownership note
-- Shared-by-approval edits: `YES` (Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract.)
+- Shared-by-approval edits: `YES` (Approval reference: the lane `Approved exception note` recorded in `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` explicitly authorizes `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane as the sole shared-by-approval regression surface exercising the canonical retrieval contract.)
 - Integrator-locked edits: `NO`
 
 ## Regression coverage note
