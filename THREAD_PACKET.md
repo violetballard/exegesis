@@ -28,6 +28,7 @@
 - Reviewer-required fixes before re-review are satisfied in this packet: the canonical demo-path step is named explicitly and the handoff states how this slice advances that step.
 - Required fix satisfied: the handoff now states explicitly which canonical demo-path step this slice advances, instead of relying on roadmap and vision mapping alone.
 - Required fix satisfied: this packet states that the slice advances `retrieve relevant material` and explains that excerpt lookup now fails closed to the authoritative SQLite FTS path, preventing PageIndex from acting as a required runtime retrieval path in the MVP loop.
+- Authoritative re-review line: `Canonical demo-path step advanced: retrieve relevant material; excerpt lookup now fails closed to canonical FTS-backed excerpt IDs, keeping retrieval provenance deterministic for downstream basket/workflow use.`
 - Final fixer refresh: this metadata-only pass preserves that explicit demo-path mapping as the authoritative re-review source in the writable packet.
 - Re-review should evaluate this narrowed slice as advancing `retrieve relevant material`.
 - Reviewer-required handoff correction satisfied here: this packet explicitly maps the slice to the canonical demo-path step `retrieve relevant material`.
