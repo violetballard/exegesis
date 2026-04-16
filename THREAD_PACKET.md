@@ -9,6 +9,7 @@
 - This re-review packet is scoped to the current command-surface implementation at `f85970321a39c5d2151a72143ce740fdfbfeb69f`.
 - The earlier narrow packet that treated later commits as metadata-only was inaccurate: substantive command-surface changes landed after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, including trusted demo-path contract helpers and demo/MVP entrypoint wrappers.
 - This packet refresh is docs-only and does not change the implementation scope described below.
+- This packet refresh explicitly satisfies the reviewer-requested `AGENTS.md` demo-path mapping requirement and keeps the fix scoped to packet metadata only.
 
 ## Current Program Focus
 
