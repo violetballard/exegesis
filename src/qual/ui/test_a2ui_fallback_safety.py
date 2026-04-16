@@ -840,6 +840,47 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
         self.assertNotIn("trace_id", text)
 
+    def test_shell_ui_recovers_schema_valid_leaf_payloads_from_card_envelopes_with_explicit_hints(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            action_text = shell.render_artifact(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "card",
+                    "artifact": {
+                        "id": "export_document",
+                        "label": "Export",
+                        "payload": {"format": "md"},
+                    },
+                    "trace_id": "drop-me",
+                },
+                kind="action",
+            )
+            selection_text = shell.render_artifact(
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "card",
+                    "artifact": {
+                        "id": "choice-1",
+                        "label": "Choice",
+                        "payload": {"nested": {"items": [1, 2]}},
+                    },
+                    "trace_id": "drop-me",
+                },
+                kind="selection",
+            )
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", action_text)
+        self.assertNotIn("trace_id", action_text)
+
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
+        self.assertNotIn("trace_id", selection_text)
+
     def test_shell_ui_preserves_authoritative_and_explicit_kinds_for_malformed_action_and_selection_payloads(
         self,
     ) -> None:

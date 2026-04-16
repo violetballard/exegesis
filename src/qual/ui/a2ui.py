@@ -1427,21 +1427,13 @@ def _resolve_terminal_artifact_render_target(
         kind = "card"
     elif requested_kind is not None:
         kind = requested_kind
-    if allow_invalid_envelope_recovery and requested_kind is None and typed_kind is None and kind == "card":
+    if allow_invalid_envelope_recovery and typed_kind is None and kind == "card" and requested_kind != "card":
         # In fallback-only mode, malformed card envelopes may still carry a
         # schema-valid action or selection payload. Recover those structured
         # leaf artifacts before dropping back to a generic card render.
-        try:
-            normalize_action_ref(artifact)
-        except Exception:
-            try:
-                normalize_selection_ref(artifact)
-            except Exception:
-                pass
-            else:
-                kind = "selection"
-        else:
-            kind = "action"
+        recovered_kind = _recover_terminal_artifact_leaf_kind(artifact)
+        if recovered_kind is not None:
+            kind = recovered_kind
 
     return artifact, _normalize_terminal_artifact_kind(artifact, kind=kind)
 
@@ -1732,6 +1724,20 @@ def _infer_terminal_artifact_explicit_kind(artifact: Any) -> str | None:
                 return "card"
         return _infer_terminal_artifact_kind_from_mapping(artifact)
     return None
+
+
+def _recover_terminal_artifact_leaf_kind(artifact: Any) -> str | None:
+    """Recover the most specific leaf kind from a schema-valid payload."""
+
+    try:
+        normalize_action_ref(artifact)
+    except Exception:
+        try:
+            normalize_selection_ref(artifact)
+        except Exception:
+            return None
+        return "selection"
+    return "action"
 
 
 def _strip_terminal_type_hint(artifact: Mapping[str, Any], *, expected_type: str) -> dict[str, Any]:
