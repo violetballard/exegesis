@@ -1600,6 +1600,42 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt_bundle["excerpt_hits"][0]["excerpt_id"], "excerpt-1")
         self.assertEqual(excerpt_bundle["excerpt_citations"][0]["excerpt_id"], "excerpt-1")
 
+    def test_retrieval_source_bundle_normalizer_canonicalizes_query_confidentiality_and_bool_constraints(self) -> None:
+        source_bundle = _build_retrieval_source_bundle_from_payload(
+            {
+                "retrieval_source_bundle": {
+                    "query": {
+                        "query_text": "  Memo   Comparison  ",
+                        "scope": "vault",
+                        "intent": "compare",
+                        "confidentiality_profile": "  StAnDaRd  ",
+                        "constraints": {
+                            "doc_types": ("Memo", "pdf"),
+                            "require_citations": "1",
+                            "prefer_exact_matches": " off ",
+                            "section_hint": "  discussion  ",
+                        },
+                    },
+                    "policy": {
+                        "retrieval_backend": "sqlite_fts",
+                        "retrieval_mode": "fts_first",
+                        "active_strategy_ids": ("fts",),
+                        "deferred_strategy_ids": ("pageindex", "embeddings"),
+                    },
+                    "retrieval_summary": {},
+                    "retrieval_manifest": {},
+                    "retrieval_evidence": {},
+                }
+            }
+        )
+
+        self.assertEqual(source_bundle["query"]["query_text"], "memo comparison")
+        self.assertEqual(source_bundle["query"]["confidentiality_profile"], "standard")
+        self.assertEqual(source_bundle["query"]["constraints"]["doc_types"], ["memo", "pdf"])
+        self.assertEqual(source_bundle["query"]["constraints"]["require_citations"], True)
+        self.assertEqual(source_bundle["query"]["constraints"]["prefer_exact_matches"], False)
+        self.assertEqual(source_bundle["query"]["constraints"]["section_hint"], "discussion")
+
     def test_retrieval_source_bundle_normalizer_backfills_sparse_top_level_hits(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

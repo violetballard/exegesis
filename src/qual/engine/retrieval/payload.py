@@ -70,6 +70,26 @@ def _normalize_optional_text(value: object) -> str | None:
     return None
 
 
+def _normalize_optional_bool(value: object) -> bool | None:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return None
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if value == 0:
+            return False
+        if value == 1:
+            return True
+        return None
+    if isinstance(value, str):
+        normalized = value.strip().casefold()
+        if normalized in {"true", "1", "yes", "on"}:
+            return True
+        if normalized in {"false", "0", "no", "off"}:
+            return False
+    return None
+
+
 def _normalize_text_list_like(value: object) -> list[str]:
     raw_items = _normalize_list_like(value)
     normalized: list[str] = []
@@ -198,6 +218,11 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
     normalized_query_text = _normalize_query_text(normalized.get("query_text"))
     if normalized_query_text is not None:
         normalized["query_text"] = normalized_query_text
+    confidentiality_profile = _normalize_query_confidentiality_profile(
+        normalized.get("confidentiality_profile")
+    )
+    if confidentiality_profile is not None:
+        normalized["confidentiality_profile"] = confidentiality_profile
     constraints = normalized.get("constraints", {})
     if not isinstance(constraints, dict):
         constraints = {}
@@ -206,6 +231,12 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
     constraints["doc_types"] = _normalize_query_doc_types(constraints.get("doc_types"))
     constraints["date_range"] = _normalize_query_date_range(constraints.get("date_range"))
     constraints["section_hint"] = _normalize_optional_text(constraints.get("section_hint"))
+    require_citations = _normalize_optional_bool(constraints.get("require_citations"))
+    if require_citations is not None:
+        constraints["require_citations"] = require_citations
+    prefer_exact_matches = _normalize_optional_bool(constraints.get("prefer_exact_matches"))
+    if prefer_exact_matches is not None:
+        constraints["prefer_exact_matches"] = prefer_exact_matches
     normalized["constraints"] = constraints
     return normalized
 
