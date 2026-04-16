@@ -1267,6 +1267,31 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[SelectionRef] Choice", shell.render_artifact(selection))
         self.assertIn("[GenericCard] Run Log", shell.render_artifact(card))
 
+    def test_terminal_card_renderer_rejects_explicit_action_and_selection_payloads(self) -> None:
+        action = {
+            "type": "ActionRef",
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+        selection = {
+            "type": "SelectionRef",
+            "id": "choice-1",
+            "label": "Choice",
+            "payload": {"nested": {"items": [1, 2]}},
+        }
+
+        action_text = render_terminal_card(action)
+        selection_text = render_terminal_card(selection)
+
+        self.assertIn("[UnknownCard] <invalid card>", action_text)
+        self.assertIn("Action policy: copy_to_clipboard_only", action_text)
+        self.assertNotIn("[ActionRef] <untitled>", action_text)
+
+        self.assertIn("[UnknownCard] <invalid card>", selection_text)
+        self.assertIn("Action policy: copy_to_clipboard_only", selection_text)
+        self.assertNotIn("[SelectionRef] <untitled>", selection_text)
+
     def test_shell_ui_recovers_action_and_selection_payloads_from_malformed_terminal_artifacts(self) -> None:
         shell = ShellUI()
 

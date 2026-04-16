@@ -1091,6 +1091,10 @@ def render_terminal_card(card: Any) -> str:
                     except Exception:
                         pass
                 return _render_invalid_terminal_artifact(normalized_card)
+        # Keep the card leaf renderer card-only so explicit action/selection
+        # payloads do not masquerade as cards when a caller bypasses dispatch.
+        if _infer_terminal_artifact_kind_from_mapping(normalized_card) in {"action", "selection"}:
+            return _render_invalid_terminal_card(normalized_card)
         raw_title = _normalize_card_title(normalized_card)
         title = _render_terminal_inline_text(raw_title)
         rendered_card_type = _render_terminal_inline_text(card_type)
