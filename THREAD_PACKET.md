@@ -27,6 +27,10 @@
 
 - Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog.
 
+## High-Risk Rationale
+
+- This handoff uses the high-risk/shared-file path because it tightens a public CLI command contract and includes one approved shared test file, `tests/unit/test_commands_catalog.py`, outside the lane-owned `src/qual/commands/**` paths.
+
 ## Priority Outcomes
 
 1. Keep command behavior deterministic and easy to smoke-test.
@@ -57,6 +61,12 @@
 ## Lane / Owned Paths
 
 - `src/qual/commands/**`
+
+## High-Risk Rationale
+
+- This handoff uses the high-risk template because it tightens a public CLI command contract and includes the approved shared-test file `tests/unit/test_commands_catalog.py`.
+- Scope remains narrow: command-surface contract hardening only.
+- Non-goals confirmed: no new command behavior, no engine logic changes, and no routing/provider changes.
 
 ## Scope Completed
 
