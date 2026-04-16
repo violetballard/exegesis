@@ -208,6 +208,12 @@ def fetch_fts_excerpt(*args, **kwargs):
     return _fetch_fts_excerpt(*args, **kwargs)
 
 
+def fetch_excerpt(*args, **kwargs):
+    from src.qual.retrieval import fetch_excerpt as _fetch_excerpt
+
+    return _fetch_excerpt(*args, **kwargs)
+
+
 def retrieve_auto_excerpt(*args, **kwargs):
     from src.qual.retrieval import retrieve_auto_excerpt as _retrieve_auto_excerpt
 

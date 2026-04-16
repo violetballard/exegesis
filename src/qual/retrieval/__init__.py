@@ -280,6 +280,24 @@ def fetch_fts_excerpt(
     )
 
 
+def fetch_excerpt(
+    service: RetrievalService,
+    *,
+    excerpt_id: str,
+    confidentiality_profile: str = "confidential",
+) -> dict[str, object]:
+    """Return an excerpt payload via the canonical FTS-only lookup path.
+
+    This keeps the generic excerpt lookup surface importable while the MVP lane
+    remains FTS-first underneath.
+    """
+
+    return service.fetch_excerpt(
+        excerpt_id,
+        confidentiality_profile=confidentiality_profile,
+    )
+
+
 def retrieve_auto_excerpt(
     service: RetrievalService,
     *,
@@ -487,6 +505,7 @@ __all__ = [
     "retrieve_fts_doc_bundle",
     "retrieve_fts_excerpt_bundle",
     "retrieve_fts_excerpt",
+    "fetch_excerpt",
     "fetch_fts_excerpt",
     "retrieve_fts_citation_bundle",
     "retrieve_auto_excerpt",
