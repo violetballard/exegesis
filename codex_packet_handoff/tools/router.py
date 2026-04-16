@@ -395,6 +395,38 @@ def _extract_reviewer_verdict(text: str) -> Optional[str]:
     return None
 
 
+def _last_verdict_line_index(text: str) -> Optional[int]:
+    lines = (text or "").splitlines()
+    last_idx: Optional[int] = None
+    for idx, raw in enumerate(lines):
+        line = raw.strip()
+        if not line:
+            continue
+        if VERDICT_INLINE_RE.match(line):
+            last_idx = idx
+            continue
+        if "verdict" not in line.lower():
+            continue
+        for nxt in lines[idx + 1 : idx + 4]:
+            nxt_line = nxt.strip()
+            if not nxt_line:
+                continue
+            if VERDICT_ONLY_RE.match(nxt_line):
+                last_idx = idx
+            break
+    return last_idx
+
+
+def _extract_final_verdict_packet(text: str) -> str:
+    raw = (text or "").strip()
+    if not raw:
+        return ""
+    start = _last_verdict_line_index(raw)
+    if start is None or start <= 0:
+        return raw
+    return "\n".join(raw.splitlines()[start:]).strip()
+
+
 def parse_verdict(text: str) -> str:
     verdict = _extract_reviewer_verdict(text)
     if verdict:
@@ -656,10 +688,11 @@ def reviewer_prompt(pkt: str) -> str:
     )
 
 def integrator_prompt(approved: str) -> str:
+    packet = _extract_final_verdict_packet(approved)
     return (
         "You are the INTEGRATOR. You may write to the workspace.\n"
         "Consume this APPROVED packet, perform merge order + post-merge checks, report blockers.\n\n"
-        f"{approved}\n"
+        f"{packet}\n"
     )
 
 

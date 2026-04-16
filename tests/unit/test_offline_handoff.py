@@ -300,6 +300,59 @@ class LocalFallbackDetachedJobTests(unittest.TestCase):
         self.assertEqual(len(new_state["local_integrator_jobs"]), 1)
         archive_mock.assert_not_called()
 
+    def test_process_integrator_backlog_sanitizes_transcript_wrapped_approval_packet(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            lane_dir = Path(tmp)
+            pkt = lane_dir / "outbox" / "integrator" / "R__APPROVED__codex-feat-commands__abc1234__20260328T000000Z.md"
+            pkt.parent.mkdir(parents=True, exist_ok=True)
+            pkt.write_text(
+                "\n".join(
+                    [
+                        "Reading additional input from stdin...",
+                        "tests/fixtures/offline_handoff/integrator_bad_missing_required_parameter.txt",
+                        "",
+                        "## Verdict",
+                        "`APPROVED`",
+                        "",
+                        "## Findings (highest severity first)",
+                        "- None.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            cfg = SimpleNamespace(
+                lanes={"feat-commands": {}},
+                max_packets_per_run=1,
+                integrator_timeout=30,
+                prefer_cli_integrator=True,
+            )
+            state = {"runtime_mode": "local_fallback"}
+            queued_job = {"packet_name": pkt.name, "pid": 456, "result_path": str(lane_dir / "integrator.result.json")}
+
+            with (
+                patch.object(router, "ensure_lane_dirs", return_value=lane_dir),
+                patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
+                patch.object(router, "_runtime_mode", return_value="local_fallback"),
+                patch.object(router, "_spawn_detached_cli_job", return_value=queued_job) as spawn_mock,
+                patch.object(router, "archive") as archive_mock,
+            ):
+                processed, new_state, _integrator_tid = router.process_integrator_backlog(
+                    SimpleNamespace(),
+                    cfg,
+                    state,
+                    "/repo",
+                    "",
+                )
+
+        self.assertEqual(processed, 0)
+        self.assertEqual(len(new_state["local_integrator_jobs"]), 1)
+        archive_mock.assert_not_called()
+        prompt = spawn_mock.call_args.kwargs["prompt"]
+        self.assertIn("## Verdict\n`APPROVED`", prompt)
+        self.assertNotIn("Reading additional input from stdin", prompt)
+        self.assertNotIn("integrator_bad_missing_required_parameter.txt", prompt)
+
     def test_process_integrator_backlog_queues_detached_cloud_integrator_job(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             lane_dir = Path(tmp)
