@@ -567,20 +567,7 @@ def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
         "supported_kinds": ["card", "action", "selection"],
         "default_kind": "card",
         "rendering": rendering_contract,
-        "kind_contracts": {
-            "card": {
-                "kind": "card",
-                "contract_fingerprint": card_contract_fingerprint(),
-            },
-            "action": {
-                "kind": "action",
-                "contract_fingerprint": action_contract_fingerprint(),
-            },
-            "selection": {
-                "kind": "selection",
-                "contract_fingerprint": selection_contract_fingerprint(),
-            },
-        },
+        "kind_contracts": _build_terminal_artifact_kind_contracts(),
         "terminal_fallback_contract": {
             "kind": "card",
             "contract_fingerprint": terminal_fallback_contract_fingerprint(),
@@ -608,6 +595,8 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
         "type": "TerminalArtifactRenderingContract",
         "supported_kinds": ["card", "action", "selection"],
         "default_kind": "card",
+        "envelope": _build_terminal_artifact_envelope_manifest(),
+        "kind_contracts": _build_terminal_artifact_kind_contracts(),
         "renderer_entrypoints": {
             "terminal_artifact": "render_terminal_artifact",
             "card": "render_terminal_card",
@@ -650,20 +639,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "supported_kinds": ["card", "action", "selection"],
         "default_kind": "card",
         "envelope": _build_terminal_artifact_envelope_manifest(),
-        "kind_contracts": {
-            "card": {
-                "kind": "card",
-                "contract_fingerprint": card_contract_fingerprint(),
-            },
-            "action": {
-                "kind": "action",
-                "contract_fingerprint": action_contract_fingerprint(),
-            },
-            "selection": {
-                "kind": "selection",
-                "contract_fingerprint": selection_contract_fingerprint(),
-            },
-        },
+        "kind_contracts": _build_terminal_artifact_kind_contracts(),
         "renderer_entrypoints": copy.deepcopy(rendering_contract["renderer_entrypoints"]),
         "rendering": rendering_contract,
         "rendering_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
@@ -700,6 +676,23 @@ def _build_terminal_artifact_leaf_recovery_manifest() -> dict[str, Any]:
             "action": "normalize_action_ref",
             "selection": "normalize_selection_ref",
         }
+    }
+
+
+def _build_terminal_artifact_kind_contracts() -> dict[str, dict[str, str]]:
+    return {
+        "card": {
+            "kind": "card",
+            "contract_fingerprint": card_contract_fingerprint(),
+        },
+        "action": {
+            "kind": "action",
+            "contract_fingerprint": action_contract_fingerprint(),
+        },
+        "selection": {
+            "kind": "selection",
+            "contract_fingerprint": selection_contract_fingerprint(),
+        },
     }
 
 
