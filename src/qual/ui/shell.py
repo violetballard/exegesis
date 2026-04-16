@@ -239,7 +239,7 @@ class ShellUI:
         if not isinstance(kind, str):
             return None
         normalized_kind = kind.strip().lower()
-        if normalized_kind in {"action", "selection"}:
+        if normalized_kind in {"card", "action", "selection"}:
             return normalized_kind
         return None
 
