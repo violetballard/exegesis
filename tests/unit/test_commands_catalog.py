@@ -324,6 +324,9 @@ class CommandCatalogTests(unittest.TestCase):
 
     def test_command_cli_entry_argv_normalizes_parser_ready_invocations(self) -> None:
         self.assertEqual(command_cli_entry_argv(()), ("bootstrap",))
+        self.assertEqual(command_cli_entry_argv(["context-basket"]), ("context-basket", "list"))
+        self.assertEqual(command_cli_entry_argv(["retrieve"]), ("context-basket", "list"))
+        self.assertEqual(command_cli_entry_argv(["retrieval"]), ("context-basket", "list"))
         self.assertEqual(
             command_cli_entry_argv(["--project", "demo"]),
             ("bootstrap", "--project", "demo"),
@@ -512,12 +515,42 @@ class CommandCatalogTests(unittest.TestCase):
             ("project-open", "--project", "demo"),
         )
         self.assertEqual(
+            command_cli_entry_argv_for(specs, ("review-patch",)),
+            ("review-patch",),
+        )
+        self.assertEqual(
             command_cli_entry_argv_for(specs, ("patch", "--format", "json")),
             ("review-patch", "--format", "json"),
         )
         self.assertEqual(
             command_cli_entry_argv_for(specs, ("--format", "json"), ("patch-review", "project-open")),
             ("review-patch", "--format", "json"),
+        )
+
+    def test_command_cli_entry_argv_prefers_smoke_defaults_for_parser_required_subcommands(self) -> None:
+        specs = (
+            CommandSpec(
+                name="bootstrap",
+                aliases=("open",),
+                cli_tokens=("project-open",),
+                flow_step="project-open",
+            ),
+            CommandSpec(
+                name="retrieve",
+                aliases=("context",),
+                cli_tokens=("context-basket",),
+                smoke_argv=("context-basket", "list"),
+                flow_step="retrieval",
+            ),
+        )
+
+        self.assertEqual(
+            command_cli_entry_argv_for(specs, ("context-basket",)),
+            ("context-basket", "list"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv_for(specs, ("context",)),
+            ("context-basket", "list"),
         )
 
     def test_command_demo_and_mvp_cli_shim_helpers_alias_the_public_contract(self) -> None:

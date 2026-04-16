@@ -1053,7 +1053,18 @@ def command_cli_entry_argv_for(
         return (default_token,) if default_token else ()
     if raw_argv[0].lstrip().startswith("-"):
         return (default_token, *raw_argv) if default_token else raw_argv
-    return command_cli_shim_argv_for(specs, raw_argv, flow_steps)
+    normalized_argv = command_cli_shim_argv_for(specs, raw_argv, flow_steps)
+    if len(raw_argv) != 1:
+        return normalized_argv
+
+    resolved = command_resolve_for(specs, raw_argv[0], flow_steps)
+    if not resolved.matched:
+        return normalized_argv
+
+    smoke_argv = command_smoke_entry_argv_for(specs, resolved.canonical_name)
+    if len(smoke_argv) > 1:
+        return smoke_argv
+    return normalized_argv
 
 
 @lru_cache(maxsize=None)
