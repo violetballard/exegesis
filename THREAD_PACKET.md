@@ -13,7 +13,7 @@
 - Cumulative retrieval handoff for `d7fd5d200358287fa42a18d39e2b277463b9b69f..58d645da3b690f4c7e653cecb3b98f7d8036de11`: SQLite FTS remains authoritative, canonical retrieval helpers are exposed through both retrieval facades, retrieval payload/provenance/evidence snapshots are deterministic for downstream engine flows, sparse source/context/doc/excerpt bundles rehydrate deterministically, and excerpt lookup now fails closed on the canonical FTS-only path when given PageIndex-only IDs. PageIndex and embeddings remain compatibility-only deferred strategies rather than required MVP paths.
 
 ## Canonical demo-path step advanced
-- `retrieve relevant material`: retrieval hits, excerpt lookup payloads, and downstream evidence/provenance bundles now stay deterministic and auditable on the canonical FTS-first path.
+- `retrieve relevant material`: this handoff explicitly advances that canonical demo-path step by enforcing FTS-only excerpt resolution with deterministic provenance on the canonical retrieval surface. Retrieval hits, excerpt lookup payloads, and downstream evidence/provenance bundles now stay deterministic and auditable on the FTS-first path.
 
 ## AGENTS.md handoff packet
 - Risk reason: shared/high-risk work because the reviewed implementation range includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
