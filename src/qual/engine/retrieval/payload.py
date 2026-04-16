@@ -470,8 +470,28 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
 
 def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str, object]:
     primary_snapshot = _normalize_basket_promotion_snapshot(payload.get("basket_promotion"))
-    doc_hits = _normalize_list_like(payload.get("doc_hits", []))
-    excerpt_hits = _normalize_list_like(payload.get("excerpt_hits", []))
+    retrieval_doc_bundle = payload.get("retrieval_doc_bundle", {})
+    retrieval_excerpt_bundle = payload.get("retrieval_excerpt_bundle", {})
+    retrieval_citation_bundle = payload.get("retrieval_citation_bundle", {})
+    retrieval_provenance = payload.get("retrieval_provenance", {})
+    retrieval_summary = payload.get("retrieval_summary", {})
+    if not isinstance(retrieval_doc_bundle, dict):
+        retrieval_doc_bundle = {}
+    if not isinstance(retrieval_excerpt_bundle, dict):
+        retrieval_excerpt_bundle = {}
+    if not isinstance(retrieval_citation_bundle, dict):
+        retrieval_citation_bundle = {}
+    if not isinstance(retrieval_provenance, dict):
+        retrieval_provenance = {}
+    if not isinstance(retrieval_summary, dict):
+        retrieval_summary = {}
+
+    doc_hits = _normalize_list_like(
+        payload.get("doc_hits", retrieval_doc_bundle.get("doc_hits", []))
+    )
+    excerpt_hits = _normalize_list_like(
+        payload.get("excerpt_hits", retrieval_excerpt_bundle.get("excerpt_hits", []))
+    )
     first_doc_hit = doc_hits[0] if doc_hits and isinstance(doc_hits[0], dict) else {}
     first_excerpt_hit = excerpt_hits[0] if excerpt_hits and isinstance(excerpt_hits[0], dict) else {}
     first_doc_provenance = first_doc_hit.get("provenance", {}) if isinstance(first_doc_hit, dict) else {}
@@ -482,54 +502,80 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
     )
     if not isinstance(first_excerpt_provenance, dict):
         first_excerpt_provenance = {}
+    first_doc_citation = {}
+    doc_citations = _normalize_list_like(
+        retrieval_citation_bundle.get(
+            "doc_citations",
+            retrieval_provenance.get("doc_citations", []),
+        )
+    )
+    if doc_citations and isinstance(doc_citations[0], dict):
+        first_doc_citation = doc_citations[0]
+    first_excerpt_citation = {}
+    excerpt_citations = _normalize_list_like(
+        retrieval_citation_bundle.get(
+            "excerpt_citations",
+            retrieval_provenance.get("excerpt_citations", []),
+        )
+    )
+    if excerpt_citations and isinstance(excerpt_citations[0], dict):
+        first_excerpt_citation = excerpt_citations[0]
     promotion_source = "none"
     if first_excerpt_hit:
         promotion_source = "primary_ranked_excerpt"
     elif first_doc_hit:
         promotion_source = "primary_ranked_doc"
+    elif first_excerpt_citation:
+        promotion_source = "primary_ranked_excerpt"
+    elif first_doc_citation:
+        promotion_source = "primary_ranked_doc"
     derived = {
-        "promotion_ready": bool(first_excerpt_hit or first_doc_hit),
+        "promotion_ready": bool(first_excerpt_hit or first_doc_hit or first_excerpt_citation or first_doc_citation),
         "promotion_source": promotion_source,
-        "citation_available": bool(first_excerpt_hit),
+        "citation_available": bool(first_excerpt_hit or first_excerpt_citation),
         "query_fingerprint": _first_text_value(
             payload.get("query_fingerprint"),
-            payload.get("retrieval_provenance", {}).get("query_fingerprint")
-            if isinstance(payload.get("retrieval_provenance"), dict)
-            else None,
-            payload.get("retrieval_summary", {}).get("query_fingerprint")
-            if isinstance(payload.get("retrieval_summary"), dict)
-            else None,
+            retrieval_provenance.get("query_fingerprint"),
+            retrieval_summary.get("query_fingerprint"),
         ),
         "result_fingerprint": _first_text_value(
             payload.get("result_fingerprint"),
-            payload.get("retrieval_provenance", {}).get("result_fingerprint")
-            if isinstance(payload.get("retrieval_provenance"), dict)
-            else None,
-            payload.get("retrieval_summary", {}).get("result_fingerprint")
-            if isinstance(payload.get("retrieval_summary"), dict)
-            else None,
+            retrieval_provenance.get("result_fingerprint"),
+            retrieval_summary.get("result_fingerprint"),
         ),
         "doc_id": _first_text_value(
             first_excerpt_hit.get("doc_id") if isinstance(first_excerpt_hit, dict) else None,
             first_doc_hit.get("doc_id") if isinstance(first_doc_hit, dict) else None,
+            first_excerpt_citation.get("doc_id"),
+            first_doc_citation.get("doc_id"),
+            retrieval_provenance.get("primary_doc_id"),
+            retrieval_summary.get("primary_doc_id"),
         ),
         "doc_fingerprint": _first_text_value(
             first_doc_hit.get("doc_fingerprint") if isinstance(first_doc_hit, dict) else None,
             first_excerpt_hit.get("doc_fingerprint") if isinstance(first_excerpt_hit, dict) else None,
             first_doc_provenance.get("doc_fingerprint"),
             first_excerpt_provenance.get("doc_fingerprint"),
+            first_doc_citation.get("doc_fingerprint"),
+            retrieval_provenance.get("primary_doc_fingerprint"),
+            retrieval_summary.get("primary_doc_fingerprint"),
         ),
         "doc_identity_fingerprint": _first_text_value(
             first_doc_hit.get("doc_identity_fingerprint") if isinstance(first_doc_hit, dict) else None,
             first_excerpt_hit.get("doc_identity_fingerprint") if isinstance(first_excerpt_hit, dict) else None,
             first_doc_provenance.get("doc_identity_fingerprint"),
             first_excerpt_provenance.get("doc_identity_fingerprint"),
+            first_doc_citation.get("doc_identity_fingerprint"),
+            retrieval_provenance.get("primary_doc_identity_fingerprint"),
+            retrieval_summary.get("primary_doc_identity_fingerprint"),
         ),
         "source_hash": _first_text_value(
             first_excerpt_hit.get("source_hash") if isinstance(first_excerpt_hit, dict) else None,
             first_excerpt_provenance.get("source_hash"),
             first_doc_hit.get("source_hash") if isinstance(first_doc_hit, dict) else None,
             first_doc_provenance.get("source_hash"),
+            first_excerpt_citation.get("source_hash"),
+            first_doc_citation.get("source_hash"),
         ),
         "title_hint": _first_text_value(
             first_excerpt_hit.get("title_hint") if isinstance(first_excerpt_hit, dict) else None,
@@ -537,15 +583,24 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
         ),
         "excerpt_id": _first_text_value(
             first_excerpt_hit.get("excerpt_id") if isinstance(first_excerpt_hit, dict) else None,
+            first_excerpt_citation.get("excerpt_id"),
+            retrieval_provenance.get("primary_excerpt_id"),
+            retrieval_summary.get("primary_excerpt_id"),
         ),
         "excerpt_fingerprint": _first_text_value(
             first_excerpt_hit.get("excerpt_fingerprint") if isinstance(first_excerpt_hit, dict) else None,
             first_excerpt_provenance.get("excerpt_fingerprint"),
+            first_excerpt_citation.get("excerpt_fingerprint"),
+            retrieval_provenance.get("primary_excerpt_fingerprint"),
+            retrieval_summary.get("primary_excerpt_fingerprint"),
         ),
         "excerpt_text_hash": _first_text_value(
             first_excerpt_hit.get("excerpt_text_hash") if isinstance(first_excerpt_hit, dict) else None,
             first_excerpt_provenance.get("excerpt_text_hash"),
             first_excerpt_provenance.get("hash"),
+            first_excerpt_citation.get("excerpt_text_hash"),
+            retrieval_provenance.get("primary_excerpt_text_hash"),
+            retrieval_summary.get("primary_excerpt_text_hash"),
         ),
         "excerpt_text": _first_text_value(
             first_excerpt_hit.get("excerpt_text") if isinstance(first_excerpt_hit, dict) else None,
@@ -554,6 +609,7 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
             _first_dict_value(
                 first_excerpt_hit.get("span") if isinstance(first_excerpt_hit, dict) else None,
                 first_excerpt_provenance.get("span"),
+                first_excerpt_citation.get("span"),
             )
         ),
         "source_strategy": _first_text_value(
@@ -561,20 +617,20 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
             first_doc_hit.get("source_strategy") if isinstance(first_doc_hit, dict) else None,
             first_excerpt_provenance.get("source_strategy"),
             first_doc_provenance.get("source_strategy"),
+            first_excerpt_citation.get("source_strategy"),
+            first_doc_citation.get("source_strategy"),
         ),
         "retrieval_backend": _first_text_value(
             payload.get("retrieval_backend"),
             first_excerpt_provenance.get("retrieval_backend"),
-            payload.get("retrieval_provenance", {}).get("retrieval_backend")
-            if isinstance(payload.get("retrieval_provenance"), dict)
-            else None,
+            first_excerpt_citation.get("retrieval_backend"),
+            retrieval_provenance.get("retrieval_backend"),
         ),
         "retrieval_mode": _first_text_value(
             payload.get("retrieval_mode"),
             first_excerpt_provenance.get("retrieval_mode"),
-            payload.get("retrieval_provenance", {}).get("retrieval_mode")
-            if isinstance(payload.get("retrieval_provenance"), dict)
-            else None,
+            first_excerpt_citation.get("retrieval_mode"),
+            retrieval_provenance.get("retrieval_mode"),
         ),
     }
     if not primary_snapshot:
