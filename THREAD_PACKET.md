@@ -1,92 +1,92 @@
-# Thread Handoff Packet
+# Feature -> Review Packet
 
-- Branch name: `codex/feat-commands`
-- Review target: current branch tip on `codex/feat-commands`
+- Lane: `feat-commands`
+- Branch: `codex/feat-commands`
+- Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Packet refresh commit: `HEAD`
+- Packet refresh role: `reviewer-fix packet alignment`
 
-## Review Basis
+## Packet traceability note
 
-- This packet is anchored to the actual current branch-tip implementation lineage on `codex/feat-commands`, including this packet refresh commit.
-- The latest docs-only alignment commit is the branch tip that carries this refreshed packet; implementation scope remains the non-doc command/test commits listed below.
-- Current implementation proposed for review is the branch tip on `codex/feat-commands`; reviewers should use this packet plus the listed in-scope implementation commits below rather than the earlier narrowed packet.
-- This packet supersedes the earlier narrowed re-review request that asked reviewers to inspect only `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; that narrowed basis was incomplete and should not be used for re-review.
-- It does not treat all commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as metadata-only.
-- Non-doc implementation commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` that remain in scope for review:
-  - `1abb3bc162bc6e718db82ff79beb8cfadda47d90` `fix(commands): validate CLI parser surface`
-  - `26658f395761421f90e4b843e50883787e60b1d0` `Add command CLI shim contract`
-  - `8b52002c3f963820bb1b3efe7698c7f97c952ae5` `fix(commands): reject parser surface drift`
-  - `cea5da3599799e72b24ed5f3e88474f3e275846a` `Add invocation metadata to command smoke contract`
-  - `1c579bad8730c1e6a2fe31d8c1af63b7c230f748` `Add deterministic command shim argv helpers`
-  - `87c41dfca9176387c07223a15ea08c5deea68578` `Add deterministic command resolution helpers`
-  - `adffc42fe4a23e8196ce76a09f58fcf512dc3c4c` `fix(commands): close reviewer packet fixes`
-  - `d71711d733585988c4c670db103745b01ce79c37` `Add parser-ready command entrypoint argv helper`
-  - `2edf67f71042b6156a9e845dcd87b0b5362468a1` `feat(commands): classify legacy aliases correctly`
-  - `f3e88eb90a1116054bac208067568d3c7fbed927` `Add runnable smoke argv for commands`
-  - `923e61c123b2b1cb2d67a9a952c3e4672d79d4d4` `Fix canonical command wrapper export`
-- Docs-only `docs(commands): ...` commits after those implementation commits update `THREAD_PACKET.md` only.
-- This packet refresh commit updates `THREAD_PACKET.md` only after rerunning the full required gate set; it does not widen the implementation scope beyond the implementation commits listed above, and it exists specifically to keep the review basis aligned with the real branch tip after the reviewer-required parser-surface fixes landed.
+- The current branch tip is a packet-only refresh for reviewer-required handoff alignment.
+- Review the command-catalog implementation at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and treat this packet refresh as metadata-only.
+- This refresh does not widen scope beyond the implementation files and behavior already claimed for that commit.
 
-## Reviewer Fix Closure
+## Current program focus
 
-- Parser-surface invariant: `command_cli_contract()` now preserves canonical ordering for the CLI-exposed command subset and validates the exact declared per-command CLI parser surface, so alias substitution or token reordering raises `ValueError` instead of silently mutating the operator contract.
-- Migration-safe catalog growth: command-catalog entries can now opt out of the CLI parser surface explicitly, so future non-CLI catalog commands do not break the live CLI contract.
-- Regression coverage: `tests/unit/test_commands_catalog.py` includes focused rejection tests for alias substitution in the parser surface and parser-token reordering, plus migration-safe coverage showing that an additional non-CLI catalog command does not break the CLI contract or its canonical CLI ordering.
-- Demo-path mapping: this packet explicitly names the canonical demo-path step advanced by the lane so the handoff satisfies the `AGENTS.md` narrowing rule instead of relying on reviewer inference.
+- Close the engine-side Milestone 3 workflow loop before activating any Textual UI lanes.
 
-## Scope Goal
+## Current engine execution order
 
-- Harden only the CLI command-contract layer for the live `patch-review` surface so CLI-exposed command ordering, parser entrypoints, route ordering, and invocation planning stay deterministic and fail fast when the parser surface drifts from the catalog.
-- Exact canonical demo-path step advanced by this slice: `preview and apply or reject a patch`.
-- Concrete blocker removed for the CLI-first MVP loop: the live `diff-preview` / `patch-review` command contract can no longer drift silently from the catalog through alias substitution, token reordering, or parser-surface mismatch.
-- This slice does not add or expand engine workflow behavior; it only tightens the existing CLI compatibility contract while Textual remains disabled.
+- 1. `feat-context-storage` - Persistence floor for document, basket, vault, and session state.
+- 2. `feat-commands` - Stable command surface for the CLI-first MVP loop.
+- 3. `feat-retrieval-fts` - Authoritative FTS-first retrieval for engine runs.
+- 4. `feat-engine-runs` - Close the plan, revise, patch, and apply loop in the engine.
+- 5. `feat-a2ui-contract` - Support the engine loop with stable shared contracts, not UI ambition.
 
-## Canonical Demo-Path Step Advanced
+## Scope goal
 
-- Primary step advanced: `preview and apply or reject a patch`
-- Blocker removed on that step: deterministic command ordering and parser/catalog drift rejection keep the live `patch-review` CLI surface stable while Textual remains disabled, so the operator contract for previewing and applying or rejecting a patch cannot change silently.
-- Exact mapping: this lane hardens the `patch-review` command surface only.
-- Non-claim for scope control: this slice does not add new patch application behavior, retrieval behavior, document persistence behavior, or broader workflow-loop closure beyond that existing CLI contract surface.
+- Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog.
+- Canonical demo-path step advanced: `preview and apply or reject a patch`.
+- Why this is first-order MVP work: it keeps the live `diff-preview` / `patch-review` command surface deterministic and smoke-testable while the CLI remains the active operator surface.
 
-## Lane / Ownership
+## Priority outcomes
 
-- Owned runtime path: `src/qual/commands/**`
-- Approved non-owned shared-test exception: `tests/unit/test_commands_catalog.py`
-- No integrator-locked implementation files were edited.
+1. Keep command behavior deterministic and easy to smoke-test.
+2. Prefer thin command entrypoints over embedded business logic.
+3. Preserve compatibility with the canonical engine contract while UI lanes stay disabled.
 
-## Scope Completed
+## Definition of done for this lane
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the live `patch-review` CLI surface keeps canonical names in catalog order, catalog-only commands can opt out of the parser surface, and the declared parser surface must exactly match the catalog-backed CLI entrypoint layout or raise `ValueError`.
-- Added parser-surface lookup helpers, deterministic route and invocation metadata, CLI shim contract helpers, and MVP smoke-contract metadata in `src/qual/commands/catalog.py` only to make that existing command surface deterministic and smoke-testable.
-- Classified legacy command aliases deterministically in `src/qual/commands/catalog.py` so raw CLI tokens preserve the intended `primary` vs `cli` vs `flow-step` vs `lookup` kind even when the user input differs only by case or underscore normalization.
-- Added runnable smoke argv metadata in `src/qual/commands/catalog.py` so the deterministic command contract covers the actual CLI invocation plan for the active smoke path.
-- Exported the expanded command-contract helpers from `src/qual/commands/__init__.py` so compatibility imports remain aligned with the branch-tip implementation.
-- Restored the public `canonical_command` wrapper export in `src/qual/commands/canonical.py` so compatibility imports keep resolving against the catalog-backed implementation.
-- Fixed bounded diff preview truncation in `src/qual/commands/diff_preview.py` so the `patch-review` path stays deterministic under output limits.
-- Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order validation, parser-surface alias substitution rejection, parser-token reordering rejection, migration-safe non-CLI catalog growth, shim argv helpers, deterministic resolution helpers, legacy-alias kind classification, route determinism, and smoke invocation metadata.
-- Refreshed this handoff packet so the review basis, files changed, and demo-path mapping match the actual current branch-tip implementation.
+- Core engine actions are reachable through stable commands.
+- Command behavior is deterministic and smoke-testable.
+- Compatibility shims keep old command surfaces working where required.
+- Command handlers stay thin and delegate real behavior to engine code.
 
-## Files Changed
+## Do not spend time on
 
+- Fancy CLI UX that does not support the MVP loop.
+- New command flags that do not help open, retrieve, basket, revise, patch, or save.
+- Embedding engine behavior directly in command handlers.
+
+## Lane/owned paths
+
+- `src/qual/commands/**`
+
+## Scope completed
+
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
+- Preserved the canonical `patch-review` command ordering in the CLI contract by returning the validated canonical names tuple directly.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
+- This slice makes the canonical demo-path step `preview and apply or reject a patch` more real by preventing silent drift in the live `diff-preview` CLI contract.
+- Reissued the handoff packet as a command-catalog-only slice so the review scope matches the claimed implementation files, demo-path mapping, and approval basis.
+
+## Kickoff budget/limits compliance
+
+- High-risk shared-file handoff: stayed within the 4-task cap, 30-minute budget, and the lane size limits.
+- The implementation slice stayed limited to one owned command file plus one focused non-owned test file, so the handoff remains narrow and reviewable.
+
+## Approved exception note
+
+- Approved shared-test exception for `tests/unit/test_commands_catalog.py`. It is the only non-owned implementation path in this handoff.
+
+## Tasks completed (numbered)
+
+1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on parser drift for the `preview and apply or reject a patch` CLI step.
+2. Preserved canonical command ordering in the CLI contract for the live `patch-review` surface by returning the validated canonical tuple directly.
+3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection on that same `patch-review` command surface.
+4. Regenerated the handoff packet so the branch metadata stays scoped to the command-catalog slice and explicitly maps the work to `preview and apply or reject a patch`.
+
+## Files changed
+
+### Reviewed implementation files
 - `src/qual/commands/catalog.py`
-- `src/qual/commands/__init__.py`
-- `src/qual/commands/canonical.py`
-- `src/qual/commands/diff_preview.py`
 - `tests/unit/test_commands_catalog.py`
+
+### Metadata-only handoff files
 - `THREAD_PACKET.md`
 
-## Tasks Completed
-
-1. Locked the CLI `patch-review` contract to canonical command ordering and fail-fast parser validation.
-2. Stabilized CLI shim, route, parser lookup, invocation metadata, and parser-ready argv normalization from the canonical command catalog.
-3. Preserved deterministic legacy-alias classification and patch-preview behavior under normalized CLI input and truncation.
-4. Added regression coverage for drift rejection, alias classification, and deterministic command-resolution behavior.
-
-## Kickoff Budget / Limits Compliance
-
-- High-risk/shared-file template applies because of the approved shared test edit in `tests/unit/test_commands_catalog.py`.
-- This handoff remains within the `4`-task cap for the implementation slice under review; the packet refresh is documentation only and is not counted as an implementation task.
-- Runtime edits stayed within lane-owned paths; the only non-owned implementation file is the approved shared test above.
-
-## Commands Run With Results
+## Commands run and outcomes
 
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
@@ -95,37 +95,27 @@
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 
-## Risks / Blockers
+## Risks / blockers
 
-- Residual risk: no material runtime risk remains after the passing gate set. The only remaining exposure is the approved shared-test exception `tests/unit/test_commands_catalog.py`; runtime behavior stays confined to lane-owned command code.
+- Risk: `HIGH`
 - Blockers: none
 
-## Required Handoff Fields
+## Required handoff fields
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` because deterministic command ordering and parser-drift rejection keep the existing CLI `patch-review` step stable while the package/layout migration lands.
-- `feat-commands` because this slice keeps the existing CLI-first `patch-review` operator surface deterministic and smoke-testable for the active engine-first loop.
-- Primary demo-path claim repeated for review clarity: this branch advances only the `preview and apply or reject a patch` step.
-- Concrete loop impact: this makes the `preview and apply or reject a patch` step more real by ensuring the `diff-preview` command contract cannot silently drift from the catalog.
-- Non-claim for roadmap scope: this packet does not claim broader workflow-loop closure or any new engine-side action beyond stabilizing that existing CLI command surface.
+- Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands by keeping the command-catalog contract deterministic and drift-resistant.
+- feat-commands - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ### Vision capability affected
 
-- `Canonical engine contract` because the active CLI compatibility surface for the live `patch-review` commands stays stable and deterministic while Textual remains disabled.
-- `Auditable state and workflow` because parser/catalog drift is rejected explicitly instead of silently mutating the operator contract that drives the existing patch-review step.
-- Concrete contract impact: operators can rely on the same catalog-backed CLI surface for the `patch-review` step, which keeps that MVP contract explicit and reviewable.
+- Canonical engine contract - CLI compatibility remains stable while the command-catalog surface rejects parser drift before it can silently change the operator contract.
+- Auditable state and workflow - the command surface now fails loudly on catalog/parser drift, making the operator-facing contract explicit and traceable.
 
 ### Routing/provider impact note
 
-- None. This lane only changes local command-catalog and CLI-contract behavior.
+- None. This change only affects local command contract validation and focused command-catalog test coverage.
 
-### Proposed README.md patch text
-
-- None.
-
-## Scope-Check / Ownership Note
+## Scope-check / ownership note
 
 - Shared/integrator-locked edits: `YES`
-- Shared edit is limited to the approved test exception `tests/unit/test_commands_catalog.py`.
-- No edits were made to `src/main.py`, `src/qual/cli.py`, `src/qual/app.py`, or any provider/routing/config files.
