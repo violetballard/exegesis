@@ -13,13 +13,18 @@
 - Added and updated regression coverage for the canonical retrieval contract, including PageIndex-only excerpt ids raising `KeyError` and packet-planner traceability coverage.
 
 ## Canonical demo-path step advanced
-- `retrieve relevant material`: this reviewed range hardens the engine-side retrieval step by keeping excerpt lookup, payloads, and provenance deterministic on the FTS-first path used for downstream basket promotion and workflow use.
+- `retrieve relevant material`: this narrowed retrieval slice makes the canonical engine retrieval step more real by ensuring excerpt lookup stays on the authoritative FTS-first path and fails closed for PageIndex-only excerpt ids, while keeping payloads and provenance deterministic for downstream basket promotion and workflow use.
 
 ## AGENTS.md handoff packet
 - Risk reason: the reviewed range includes shared-by-approval regression coverage in `tests/unit/test_unified_retrieval.py`, so this handoff remains shared/high-risk work under the 4-task cap.
-- Approved exception note: `tests/unit/test_unified_retrieval.py` remains the sole shared-by-approval regression surface exercised by the retrieval implementation in this range.
+- Approved exception note: `tests/unit/test_unified_retrieval.py` remains the sole shared-by-approval regression surface exercised by the retrieval implementation in this range. Approval source is the earlier lane handoff packet commit `50181dd5900ccee8cef2494f15e25ff04a624252` (`docs(retrieval): refresh handoff packet for current head`, dated `2026-04-01 17:02:24 -0700`), which recorded this approved shared regression surface before the shared-file edit shipped in reviewed implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` on `2026-04-02 12:10:54 -0700`.
 - Traceability note: earlier packet text that treated post-`adfa8cda` commits as metadata-only was incorrect and is superseded by this packet. Re-review should use the full reviewed range above and treat `d528d36a257a948d6636a9609db244ed8bf8383b` as the reviewed implementation head.
 - Task budget: `4`
+- Required checkpoint status notes:
+  - `plan complete`: the thread scope was locked to the canonical demo-path retrieval step and the shared/high-risk 4-task budget before the reviewed implementation work proceeded.
+  - `first green local tests`: the lane reached a green local test state before the final high-risk handoff, as reflected by the passing gate set recorded in this packet.
+  - `before risky/shared file edit`: the shared-file exception for `tests/unit/test_unified_retrieval.py` was already recorded in the earlier lane handoff packet commit `50181dd5900ccee8cef2494f15e25ff04a624252` before the reviewed shared-file edit landed in `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+  - `ready for handoff`: this packet refresh records the final re-review state with the canonical demo-path step, shared-file approval traceability, and passing gate evidence aligned.
 - Tasks completed:
   1. Kept the retrieval lane FTS-first, including stable retrieval entrypoints, normalized candidate-doc handling, and unresolved collection-scope guards.
   2. Hardened deterministic retrieval payloads, evidence, provenance, query snapshots, and fingerprint generation across the retrieval facade and engine payload helpers.
@@ -41,9 +46,9 @@
 - `make ci`: PASS
 
 ## Reviewer-required fix evidence
-- Reviewer fix addressed: reran the full required gate set on reviewed implementation head `d528d36a257a948d6636a9609db244ed8bf8383b` and refreshed this packet with the passing results above.
+- Reviewer fix addressed: refreshed the handoff packet to satisfy the `AGENTS.md` requirement for an explicit canonical demo-path mapping and tied that statement to the narrowed FTS-only excerpt lookup scope the reviewer requested.
 - Gate refresh date: `2026-04-16`
-- Packet note: this fixer pass is metadata-only. It records the green gate evidence the reviewer requested without changing the reviewed implementation range.
+- Packet note: this fixer pass is metadata-only. It records the reviewer-required scope-to-demo-path mapping without changing the reviewed implementation range.
 
 ## Risks/blockers
 - Risks: high; the reviewed range changes retrieval payload normalization and the public excerpt lookup contract, but it keeps runtime behavior narrowed to deterministic FTS-first retrieval.
