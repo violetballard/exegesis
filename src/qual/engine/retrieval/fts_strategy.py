@@ -201,7 +201,7 @@ class FTSStrategy:
         text = FTSStrategy._normalize_text(value)
         if text is None:
             return None
-        return " ".join(text.split())
+        return " ".join(text.casefold().split())
 
     @staticmethod
     def _normalize_scope(value: object) -> str | None:
