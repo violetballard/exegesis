@@ -2771,6 +2771,74 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         self.assertEqual(provenance, result.retrieval_provenance_bundle())
 
+    def test_retrieval_provenance_helper_backfills_primary_fingerprints_from_citations(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        retrieval_provenance = sparse_source_bundle.get("retrieval_provenance")
+        self.assertIsInstance(retrieval_provenance, dict)
+        self.assertEqual(
+            retrieval_provenance.get("primary_doc_id"),
+            result.retrieval_provenance_bundle()["primary_doc_id"],
+        )
+        self.assertEqual(
+            retrieval_provenance.get("primary_excerpt_id"),
+            result.retrieval_provenance_bundle()["primary_excerpt_id"],
+        )
+        retrieval_provenance["primary_doc_fingerprint"] = None
+        retrieval_provenance["primary_doc_identity_fingerprint"] = None
+        retrieval_provenance["primary_excerpt_fingerprint"] = None
+        retrieval_provenance["primary_excerpt_provenance_fingerprint"] = None
+        retrieval_provenance["primary_excerpt_text_hash"] = None
+
+        provenance = build_retrieval_provenance_from_result(
+            _SourceBundleOnlySource(sparse_source_bundle)
+        )
+
+        self.assertEqual(
+            provenance["primary_doc_id"],
+            result.retrieval_provenance_bundle()["primary_doc_id"],
+        )
+        self.assertEqual(
+            provenance["primary_excerpt_id"],
+            result.retrieval_provenance_bundle()["primary_excerpt_id"],
+        )
+        self.assertEqual(
+            provenance["primary_doc_fingerprint"],
+            result.retrieval_provenance_bundle()["primary_doc_fingerprint"],
+        )
+        self.assertEqual(
+            provenance["primary_doc_identity_fingerprint"],
+            result.retrieval_provenance_bundle()["primary_doc_identity_fingerprint"],
+        )
+        self.assertEqual(
+            provenance["primary_excerpt_fingerprint"],
+            result.retrieval_provenance_bundle()["primary_excerpt_fingerprint"],
+        )
+        self.assertEqual(
+            provenance["primary_excerpt_provenance_fingerprint"],
+            result.retrieval_provenance_bundle()["primary_excerpt_provenance_fingerprint"],
+        )
+        self.assertEqual(
+            provenance["primary_excerpt_text_hash"],
+            result.retrieval_provenance_bundle()["primary_excerpt_text_hash"],
+        )
+
     def test_retrieval_downstream_payload_helper_backfills_sparse_context_bundle_fields(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
