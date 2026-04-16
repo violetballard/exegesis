@@ -275,6 +275,7 @@ def normalize_terminal_artifact_payload(artifact: Any, *, kind: str | None = Non
         return _action_ref_to_dict(normalize_action_ref(artifact))
     if normalized_kind == "selection":
         return _selection_ref_to_dict(normalize_selection_ref(artifact))
+    _validate_terminal_artifact_card_payload(artifact)
     if not isinstance(artifact, Mapping):
         raise ValueError("TerminalArtifact card artifact must be a mapping")
     card_snapshot = _canonicalize_card_top_level_fields(dict(artifact))
@@ -381,6 +382,12 @@ def _validate_terminal_artifact_payload_kind(artifact: Any, kind: str) -> None:
             raise ValueError("TerminalArtifact selection artifact is invalid") from exc
         return
     raise ValueError("TerminalArtifact kind must be one of: card, action, selection")
+
+
+def _validate_terminal_artifact_card_payload(artifact: Any) -> None:
+    inferred_kind = _normalize_terminal_artifact_kind(artifact, kind=None)
+    if inferred_kind in {"action", "selection"}:
+        raise ValueError("TerminalArtifact card artifact must not use action or selection payload shape")
 
 
 def _build_selection_contract_manifest() -> dict[str, Any]:
@@ -1102,6 +1109,7 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
         return render_terminal_action(artifact)
     if resolved_kind == "selection":
         return render_terminal_selection(artifact)
+    _validate_terminal_artifact_card_payload(artifact)
     return render_terminal_card(artifact)
 
 

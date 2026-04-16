@@ -271,6 +271,27 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             },
         )
 
+    def test_terminal_artifact_payload_normalizer_rejects_action_or_selection_payloads_when_card_kind_is_explicit(self) -> None:
+        with self.assertRaises(ValueError):
+            normalize_terminal_artifact_payload(
+                ActionRef(
+                    id=" export_document ",
+                    label=" Export ",
+                    payload={"format": "md"},
+                ),
+                kind="card",
+            )
+
+        with self.assertRaises(ValueError):
+            normalize_terminal_artifact_payload(
+                SelectionRef(
+                    id=" choice-1 ",
+                    label=" Choice ",
+                    payload={"nested": {"items": [1, 2]}},
+                ),
+                kind="card",
+            )
+
     def test_terminal_artifact_envelope_snapshots_source_payloads(self) -> None:
         card = {
             "type": "GenericCard",
@@ -481,6 +502,31 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Action schema v1", text)
         self.assertNotIn("[SelectionRef]", text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+
+    def test_shell_ui_recovers_action_and_selection_payloads_from_conflicting_card_hints(self) -> None:
+        shell = ShellUI()
+
+        action_text = shell.render_artifact(
+            {"type": "ActionRef", "id": "export_document", "label": "Export", "payload": {"format": "md"}},
+            kind="card",
+        )
+        selection_text = shell.render_artifact(
+            {
+                "type": "SelectionRef",
+                "id": "choice-1",
+                "label": "Choice",
+                "payload": {"nested": {"items": [1, 2]}},
+            },
+            kind="card",
+        )
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[UnknownCard]", action_text)
+
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[UnknownCard]", selection_text)
 
     def test_shell_ui_prefers_typed_payload_kind_over_conflicting_hint_during_fallback(self) -> None:
         shell = ShellUI()
@@ -1001,6 +1047,24 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             render_terminal_artifact({"type": "GenericCard", "title": "Run Log", "blocks": [], "actions": []}, kind="dialog")
         with self.assertRaises(ValueError):
             render_terminal_artifact({"type": "GenericCard", "title": "Run Log", "blocks": [], "actions": []}, kind=1)
+
+    def test_terminal_artifact_rejects_action_or_selection_payloads_when_card_kind_is_explicit(self) -> None:
+        with self.assertRaises(ValueError):
+            render_terminal_artifact(
+                {"type": "ActionRef", "id": "export_document", "label": "Export", "payload": {"format": "md"}},
+                kind="card",
+            )
+
+        with self.assertRaises(ValueError):
+            render_terminal_artifact(
+                {
+                    "type": "SelectionRef",
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                },
+                kind="card",
+            )
 
     def test_terminal_artifact_infers_typed_action_and_selection_mappings(self) -> None:
         action_text = render_terminal_artifact(
