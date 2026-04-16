@@ -148,6 +148,10 @@ class CommandCatalogTests(unittest.TestCase):
             "retrieve": "context-basket",
             "export": "terminal",
             "save-export": "terminal",
+            "persist": "terminal",
+            "persist-continue": "terminal",
+            "apply-patch": "terminal",
+            "reject-patch": "terminal",
         }
         for alias, expected in cases.items():
             with self.subTest(alias=alias):
@@ -222,6 +226,51 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(contract.canonical_names, ("bootstrap", "diff-preview", "context-basket", "terminal"))
         self.assertEqual(contract.lookup_table, command_cli_lookup_table())
 
+    def test_command_cli_contract_rejects_missing_canonical_primary_token(self) -> None:
+        command_catalog.command_cli_contract.cache_clear()
+        with patch.object(
+            command_catalog,
+            "_validated_cli_entrypoints_for",
+            return_value=(
+                ("bootstrap", ("bootstrap",)),
+                ("diff-preview", ("diff",)),
+                ("context-basket", ("context-basket",)),
+                ("terminal", ("terminal",)),
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                command_catalog.command_cli_contract(command_specs())
+
+    def test_command_cli_contract_rejects_alias_substitution_ahead_of_canonical_token(self) -> None:
+        command_catalog.command_cli_contract.cache_clear()
+        with patch.object(
+            command_catalog,
+            "_validated_cli_entrypoints_for",
+            return_value=(
+                ("bootstrap", ("bootstrap",)),
+                ("diff-preview", ("diff", "diff-preview")),
+                ("context-basket", ("context-basket",)),
+                ("terminal", ("terminal",)),
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                command_catalog.command_cli_contract(command_specs())
+
+    def test_command_cli_contract_rejects_primary_token_order_drift(self) -> None:
+        command_catalog.command_cli_contract.cache_clear()
+        with patch.object(
+            command_catalog,
+            "_validated_cli_entrypoints_for",
+            return_value=(
+                ("bootstrap", ("bootstrap",)),
+                ("diff-preview", ("diff-preview", "diff")),
+                ("context-basket", ("terminal",)),
+                ("terminal", ("context-basket",)),
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                command_catalog.command_cli_contract(command_specs())
+
     def test_command_cli_contract_preserves_cli_subset_order_without_requiring_full_catalog_equality(self) -> None:
         specs = (
             CommandSpec(
@@ -285,12 +334,27 @@ class CommandCatalogTests(unittest.TestCase):
                 ("terminal", "terminal"),
                 ("export", "terminal"),
                 ("save-export", "terminal"),
+                ("persist", "terminal"),
+                ("persist-continue", "terminal"),
+                ("apply-patch", "terminal"),
+                ("reject-patch", "terminal"),
                 ("export-handoff", "terminal"),
             ),
         )
+        shim_invocations = dict(command_cli_shim_invocation_table())
+        self.assertEqual(shim_invocations["bootstrap"], ("bootstrap",))
+        self.assertEqual(shim_invocations["export"], ("terminal",))
         self.assertEqual(
-            command_cli_shim_invocation_table(),
-            tuple((token, (primary,)) for token, primary in command_cli_shim_lookup_table()),
+            shim_invocations["persist"],
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+        self.assertEqual(
+            shim_invocations["apply-patch"],
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(
+            shim_invocations["reject-patch"],
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
         )
 
     def test_command_cli_shim_catalog_marks_surface_token_kinds(self) -> None:
@@ -302,6 +366,14 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(shim_by_token["diff"].kind, "cli")
         self.assertEqual(shim_by_token["patch-review"].kind, "flow-step")
         self.assertEqual(shim_by_token["export-handoff"].argv, ("terminal",))
+        self.assertEqual(
+            shim_by_token["persist"].argv,
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+        self.assertEqual(
+            shim_by_token["apply-patch"].argv,
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
 
     def test_command_cli_shim_contract_matches_catalog_helpers(self) -> None:
         contract = command_cli_shim_contract()
@@ -325,6 +397,7 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_cli_shim_primary_token("open"), "bootstrap")
         self.assertEqual(command_cli_shim_primary_token("project-open"), "bootstrap")
         self.assertEqual(command_cli_shim_primary_token("patch-review"), "diff-preview")
+        self.assertEqual(command_cli_shim_primary_token("persist"), "terminal")
         self.assertEqual(command_cli_shim_primary_token("missing"), "")
         self.assertEqual(
             command_cli_shim_argv(["open", "--project", "demo"]),
@@ -333,6 +406,14 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_cli_shim_argv(("patch-review", "--original", "a", "--proposed", "b")),
             ("diff-preview", "--original", "a", "--proposed", "b"),
+        )
+        self.assertEqual(
+            command_cli_shim_argv(("persist",)),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+        self.assertEqual(
+            command_cli_shim_argv(("apply-patch",)),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
         )
         self.assertEqual(command_cli_shim_argv(["--project", "demo"]), ("--project", "demo"))
         self.assertEqual(command_cli_shim_argv(()), ())
@@ -350,6 +431,18 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_cli_entry_argv(["export"]),
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv(["persist"]),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv(["apply-patch"]),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv(["reject-patch"]),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
         )
         self.assertEqual(
             command_cli_entry_argv(["--project", "demo"]),
@@ -402,6 +495,17 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(primary.primary_cli_token, "diff-preview")
         self.assertEqual(primary.kind, "primary")
 
+        persist = command_resolve("persist")
+        self.assertTrue(persist.matched)
+        self.assertEqual(persist.canonical_name, "terminal")
+        self.assertEqual(persist.flow_step, "export-handoff")
+        self.assertEqual(persist.primary_cli_token, "terminal")
+        self.assertEqual(
+            persist.argv,
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+        self.assertEqual(persist.kind, "lookup")
+
     def test_command_resolve_argv_rewrites_to_primary_cli_tokens(self) -> None:
         resolved = command_resolve_argv(("review-patch", "--format", "json"))
         self.assertTrue(resolved.matched)
@@ -424,6 +528,14 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertTrue(normalized_lookup.matched)
         self.assertEqual(normalized_lookup.argv, ("diff-preview", "--format", "json"))
         self.assertEqual(normalized_lookup.kind, "lookup")
+
+        persist = command_resolve_argv(("persist",))
+        self.assertTrue(persist.matched)
+        self.assertEqual(
+            persist.argv,
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+        self.assertEqual(persist.kind, "lookup")
 
     def test_command_resolve_helpers_support_custom_specs(self) -> None:
         specs = (
@@ -781,8 +893,23 @@ class CommandCatalogTests(unittest.TestCase):
                     "terminal",
                     "terminal",
                     "export-handoff",
-                    ("export", "save-export"),
-                    ("terminal", "export", "save-export"),
+                    (
+                        "export",
+                        "save-export",
+                        "persist",
+                        "persist-continue",
+                        "apply-patch",
+                        "reject-patch",
+                    ),
+                    (
+                        "terminal",
+                        "export",
+                        "save-export",
+                        "persist",
+                        "persist-continue",
+                        "apply-patch",
+                        "reject-patch",
+                    ),
                 ),
             ),
         )
@@ -967,7 +1094,18 @@ class CommandCatalogTests(unittest.TestCase):
                     "context-basket",
                     ("context-basket", "context", "basket", "retrieval", "retrieve"),
                 ),
-                ("terminal", ("terminal", "export", "save-export")),
+                (
+                    "terminal",
+                    (
+                        "terminal",
+                        "export",
+                        "save-export",
+                        "persist",
+                        "persist-continue",
+                        "apply-patch",
+                        "reject-patch",
+                    ),
+                ),
             ),
         )
         self.assertEqual(
@@ -996,6 +1134,10 @@ class CommandCatalogTests(unittest.TestCase):
                 "terminal",
                 "export",
                 "save-export",
+                "persist",
+                "persist-continue",
+                "apply-patch",
+                "reject-patch",
             ),
         )
 
@@ -1063,6 +1205,10 @@ class CommandCatalogTests(unittest.TestCase):
                 ("terminal", "terminal"),
                 ("export", "terminal"),
                 ("save-export", "terminal"),
+                ("persist", "terminal"),
+                ("persist-continue", "terminal"),
+                ("apply-patch", "terminal"),
+                ("reject-patch", "terminal"),
             ),
         )
 
@@ -1115,7 +1261,18 @@ class CommandCatalogTests(unittest.TestCase):
             command_smoke_entry_argv("diff-preview"),
             ("diff-preview", "--original", "before", "--proposed", "after"),
         )
-        self.assertEqual(command_smoke_argv(("export",)), ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"))
+        self.assertEqual(
+            command_smoke_argv(("export",)),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv(("persist",)),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv(("apply-patch",)),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
 
     def test_custom_smoke_argv_preserves_flag_values(self) -> None:
         specs = (
@@ -1502,6 +1659,10 @@ class CommandCatalogTests(unittest.TestCase):
                 ("terminal", "terminal"),
                 ("export", "terminal"),
                 ("save-export", "terminal"),
+                ("persist", "terminal"),
+                ("persist-continue", "terminal"),
+                ("apply-patch", "terminal"),
+                ("reject-patch", "terminal"),
                 ("export-handoff", "terminal"),
             ),
         )
@@ -1533,7 +1694,16 @@ class CommandCatalogTests(unittest.TestCase):
                 ("bootstrap", "open", "project-open", "project", "bootstrap-run"),
                 ("context-basket", "context", "basket", "retrieval", "retrieve"),
                 ("diff-preview", "diff", "review-patch", "patch-review"),
-                ("terminal", "export", "save-export", "export-handoff"),
+                (
+                    "terminal",
+                    "export",
+                    "save-export",
+                    "persist",
+                    "persist-continue",
+                    "apply-patch",
+                    "reject-patch",
+                    "export-handoff",
+                ),
             ),
         )
         self.assertEqual(command_demo_flow_surface_tokens(), command_mvp_flow_surface_tokens())
@@ -1558,6 +1728,10 @@ class CommandCatalogTests(unittest.TestCase):
                 ("terminal", "terminal"),
                 ("export", "terminal"),
                 ("save-export", "terminal"),
+                ("persist", "terminal"),
+                ("persist-continue", "terminal"),
+                ("apply-patch", "terminal"),
+                ("reject-patch", "terminal"),
             ),
         )
         self.assertEqual(
@@ -1592,7 +1766,15 @@ class CommandCatalogTests(unittest.TestCase):
                 ("bootstrap", "open", "project-open", "project", "bootstrap-run"),
                 ("context-basket", "context", "basket", "retrieval", "retrieve"),
                 ("diff-preview", "diff", "diff_preview", "review-patch"),
-                ("terminal", "export", "save-export"),
+                (
+                    "terminal",
+                    "export",
+                    "save-export",
+                    "persist",
+                    "persist-continue",
+                    "apply-patch",
+                    "reject-patch",
+                ),
             ),
         )
 
@@ -1654,6 +1836,10 @@ class CommandCatalogTests(unittest.TestCase):
                 ("terminal", "terminal"),
                 ("export", "terminal"),
                 ("save-export", "terminal"),
+                ("persist", "terminal"),
+                ("persist-continue", "terminal"),
+                ("apply-patch", "terminal"),
+                ("reject-patch", "terminal"),
                 ("export-handoff", "terminal"),
             ),
         )

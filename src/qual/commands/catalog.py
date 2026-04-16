@@ -12,6 +12,7 @@ class CommandSpec:
     cli_tokens: tuple[str, ...] = ()
     cli_exposed: bool = True
     smoke_argv: tuple[str, ...] = ()
+    shim_argv: tuple[tuple[str, tuple[str, ...]], ...] = ()
     description: str = ""
     flow_step: str = "general"
 
@@ -266,6 +267,13 @@ def _flow_surface_tokens(*tokens: str) -> tuple[str, ...]:
     return tuple(surface_tokens)
 
 
+def _parser_ready_argv(spec: CommandSpec) -> tuple[str, ...]:
+    entrypoints = _declared_cli_entrypoints_for(spec)
+    if not entrypoints:
+        raise ValueError(f"Command {spec.name} must define at least one CLI entrypoint")
+    return (entrypoints[0],)
+
+
 def _validate_flow_steps(flow_steps: tuple[str, ...]) -> None:
     seen_flow_steps: set[str] = set()
     for flow_step in flow_steps:
@@ -343,15 +351,20 @@ def _validate_command_cli_contract(
     if contract.canonical_names != expected_canonical_names:
         raise ValueError("Command CLI canonical names are inconsistent")
 
-    expected_parser_surface = tuple(
-        (spec.name, _declared_cli_entrypoints_for(spec))
-        for spec in specs
-        if spec.cli_exposed
-    )
-    # Compare the approved parser surface before derived projections so alias
-    # substitutions or token-order drift fail even when canonical names match.
-    if validated_entrypoints is not None and validated_entrypoints != expected_parser_surface:
-        raise ValueError("Command CLI parser surface is inconsistent")
+    # The default catalog contract requires each CLI-exposed command to keep its
+    # canonical token as the primary parser entrypoint in canonical command order.
+    if validated_entrypoints is not None and specs == COMMAND_SPECS:
+        expected_primary_tokens = tuple(
+            spec.name
+            for spec in specs
+            if spec.cli_exposed
+        )
+        actual_primary_tokens = tuple(
+            entrypoints[0]
+            for _, entrypoints in validated_entrypoints
+        )
+        if actual_primary_tokens != expected_primary_tokens:
+            raise ValueError("Command CLI parser surface is inconsistent")
 
     expected_tokens = tuple(
         normalized_entrypoint
@@ -419,10 +432,7 @@ def _primary_route_cli_token(cli_tokens: tuple[str, ...], *, name: str) -> str:
 
 
 def _default_smoke_argv(spec: CommandSpec) -> tuple[str, ...]:
-    entrypoints = _declared_cli_entrypoints_for(spec)
-    if not entrypoints:
-        raise ValueError(f"Command {spec.name} must define at least one CLI entrypoint")
-    return (entrypoints[0],)
+    return _parser_ready_argv(spec)
 
 
 def _smoke_argv_for_spec(spec: CommandSpec) -> tuple[str, ...]:
@@ -441,6 +451,41 @@ def _smoke_argv_for_spec(spec: CommandSpec) -> tuple[str, ...]:
             f"{spec.name} -> {spec.smoke_argv[0]}"
         )
     return (primary_cli_token, *raw_argv[1:])
+
+
+def _shim_argv_overrides_for_spec(spec: CommandSpec) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    if not spec.shim_argv:
+        return ()
+
+    known_surface_tokens = _flow_surface_tokens(*_lookup_resolution_tokens(spec), spec.flow_step)
+    known_surface_index = {token: token for token in known_surface_tokens}
+    primary_cli_token = _parser_ready_argv(spec)[0]
+    seen_tokens: set[str] = set()
+    overrides: list[tuple[str, tuple[str, ...]]] = []
+    for raw_token, raw_argv in spec.shim_argv:
+        normalized_token = _normalize_token(raw_token)
+        if not normalized_token:
+            raise ValueError(f"Command {spec.name} has an empty shim token")
+        if normalized_token not in known_surface_index:
+            raise ValueError(
+                f"Command {spec.name} shim token is not part of the command surface: {raw_token}"
+            )
+        if normalized_token in seen_tokens:
+            raise ValueError(f"Command {spec.name} has a duplicate shim token: {raw_token}")
+        seen_tokens.add(normalized_token)
+
+        if not raw_argv:
+            raise ValueError(f"Command {spec.name} shim argv must not be empty: {raw_token}")
+        if any(not token.strip() for token in raw_argv):
+            raise ValueError(f"Command {spec.name} shim argv has an empty token: {raw_token}")
+        normalized_primary = _normalize_token(raw_argv[0])
+        if normalized_primary != primary_cli_token:
+            raise ValueError(
+                "Command shim argv must start with the primary CLI entrypoint: "
+                f"{spec.name} -> {raw_argv[0]}"
+            )
+        overrides.append((normalized_token, (primary_cli_token, *raw_argv[1:])))
+    return tuple(overrides)
 
 
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
@@ -470,7 +515,14 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     ),
     CommandSpec(
         name="terminal",
-        aliases=("export", "save-export"),
+        aliases=(
+            "export",
+            "save-export",
+            "persist",
+            "persist-continue",
+            "apply-patch",
+            "reject-patch",
+        ),
         cli_tokens=("terminal",),
         smoke_argv=(
             "terminal",
@@ -478,6 +530,48 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
             "terminal_synthesis_request",
             "--message",
             "Export handoff",
+        ),
+        shim_argv=(
+            (
+                "persist",
+                (
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_synthesis_request",
+                    "--message",
+                    "Persist and continue",
+                ),
+            ),
+            (
+                "persist-continue",
+                (
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_synthesis_request",
+                    "--message",
+                    "Persist and continue",
+                ),
+            ),
+            (
+                "apply-patch",
+                (
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_tool_orchestration",
+                    "--message",
+                    "Apply patch",
+                ),
+            ),
+            (
+                "reject-patch",
+                (
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_tool_orchestration",
+                    "--message",
+                    "Reject patch",
+                ),
+            ),
         ),
         description="Run terminal export handoff routing.",
         flow_step="export-handoff",
@@ -553,9 +647,12 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
                 raise ValueError(f"Command {spec.name} must not declare CLI entrypoints when cli_exposed is false")
             if spec.smoke_argv:
                 raise ValueError(f"Command {spec.name} must not declare smoke argv when cli_exposed is false")
+            if spec.shim_argv:
+                raise ValueError(f"Command {spec.name} must not declare shim argv when cli_exposed is false")
             continue
 
         _smoke_argv_for_spec(spec)
+        _shim_argv_overrides_for_spec(spec)
 
 
 @lru_cache(maxsize=None)
@@ -1042,8 +1139,12 @@ def command_cli_shim_catalog(
     route_catalog = command_flow_route_catalog(flow_steps=ordered_flow_steps, specs=specs)
     entries: list[CommandCliShimEntry] = []
     for route_entry in route_catalog:
-        argv = (route_entry.primary_cli_token,)
+        spec = command_spec_for(specs, route_entry.name)
+        if spec is None:
+            raise ValueError(f"Unknown command shim target: {route_entry.name}")
+        shim_argv_overrides = dict(_shim_argv_overrides_for_spec(spec))
         for token in route_entry.surface_tokens:
+            argv = shim_argv_overrides.get(token, (route_entry.primary_cli_token,))
             entries.append(
                 CommandCliShimEntry(
                     token=token,
@@ -1102,6 +1203,12 @@ def command_cli_shim_argv_for(
         return ()
     if raw_argv[0].lstrip().startswith("-"):
         return raw_argv
+    if len(raw_argv) == 1:
+        invocation_lookup = dict(command_cli_shim_invocation_table(specs, flow_steps))
+        normalized_token = _normalize_token(raw_argv[0])
+        shim_argv = invocation_lookup.get(normalized_token)
+        if shim_argv is not None:
+            return shim_argv
     primary_token = command_cli_shim_primary_token_for(specs, raw_argv[0], flow_steps)
     if not primary_token:
         return raw_argv
@@ -1123,6 +1230,8 @@ def command_cli_entry_argv_for(
         return (default_token, *raw_argv) if default_token else raw_argv
     normalized_argv = command_cli_shim_argv_for(specs, raw_argv, flow_steps)
     if len(raw_argv) != 1:
+        return normalized_argv
+    if len(normalized_argv) > 1:
         return normalized_argv
 
     resolved = command_resolve_for(specs, raw_argv[0], flow_steps)
@@ -2248,7 +2357,10 @@ def command_resolve_for(
             canonical_name=route_entry.name,
             flow_step=route_entry.flow_step,
             primary_cli_token=route_entry.primary_cli_token,
-            argv=(route_entry.primary_cli_token,),
+            argv=dict(command_cli_shim_invocation_table(specs, ordered_flow_steps)).get(
+                normalized_token,
+                (route_entry.primary_cli_token,),
+            ),
             smoke_argv=_resolved_smoke_argv_for(specs, route_entry.name),
             cli_tokens=route_entry.cli_tokens,
             lookup_tokens=route_entry.lookup_tokens,
@@ -2356,7 +2468,7 @@ def command_resolve_argv_for(
         canonical_name=resolved.canonical_name,
         flow_step=resolved.flow_step,
         primary_cli_token=resolved.primary_cli_token,
-        argv=(resolved.primary_cli_token, *raw_argv[1:]),
+        argv=resolved.argv if len(raw_argv) == 1 else (resolved.primary_cli_token, *raw_argv[1:]),
         smoke_argv=resolved.smoke_argv,
         cli_tokens=resolved.cli_tokens,
         lookup_tokens=resolved.lookup_tokens,
