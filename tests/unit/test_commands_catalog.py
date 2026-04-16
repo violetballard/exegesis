@@ -112,7 +112,10 @@ from src.qual.commands import (
     command_spec,
     command_spec_for,
     command_specs,
+    command_smoke_argv_for,
+    command_smoke_entry_argv,
     command_smoke_contract,
+    command_smoke_argv,
     command_tokens,
     command_flow_tokens,
     command_mvp_smoke_contract,
@@ -324,9 +327,18 @@ class CommandCatalogTests(unittest.TestCase):
 
     def test_command_cli_entry_argv_normalizes_parser_ready_invocations(self) -> None:
         self.assertEqual(command_cli_entry_argv(()), ("bootstrap",))
+        self.assertEqual(command_cli_entry_argv(["bootstrap"]), ("bootstrap", "--project", "demo"))
         self.assertEqual(command_cli_entry_argv(["context-basket"]), ("context-basket", "list"))
         self.assertEqual(command_cli_entry_argv(["retrieve"]), ("context-basket", "list"))
         self.assertEqual(command_cli_entry_argv(["retrieval"]), ("context-basket", "list"))
+        self.assertEqual(
+            command_cli_entry_argv(["patch-review"]),
+            ("diff-preview", "--original", "before", "--proposed", "after"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv(["export"]),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
         self.assertEqual(
             command_cli_entry_argv(["--project", "demo"]),
             ("bootstrap", "--project", "demo"),
@@ -1021,6 +1033,19 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(contract.flow_steps, command_mvp_flow_steps())
         self.assertEqual(contract.names, command_mvp_flow_names())
         self.assertEqual(
+            tuple((entry.flow_step, entry.name, entry.smoke_argv) for entry in contract.entries),
+            (
+                ("project-open", "bootstrap", ("bootstrap", "--project", "demo")),
+                ("retrieval", "context-basket", ("context-basket", "list")),
+                ("patch-review", "diff-preview", ("diff-preview", "--original", "before", "--proposed", "after")),
+                (
+                    "export-handoff",
+                    "terminal",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+            ),
+        )
+        self.assertEqual(
             tuple((entry.flow_step, entry.name, entry.argv) for entry in contract.invocation_plan),
             (
                 ("project-open", "bootstrap", ("bootstrap",)),
@@ -1032,6 +1057,33 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(contract.invocation_plan, command_flow_invocation_plan())
         self.assertEqual(contract.route_summary, command_flow_route_summary())
         self.assertEqual(contract.lookup_surface, command_flow_lookup_surface())
+
+    def test_command_smoke_helpers_expand_to_parser_ready_argv(self) -> None:
+        self.assertEqual(command_smoke_entry_argv("bootstrap"), ("bootstrap", "--project", "demo"))
+        self.assertEqual(
+            command_smoke_entry_argv("diff-preview"),
+            ("diff-preview", "--original", "before", "--proposed", "after"),
+        )
+        self.assertEqual(command_smoke_argv(("export",)), ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"))
+
+    def test_custom_smoke_argv_preserves_flag_values(self) -> None:
+        specs = (
+            CommandSpec(
+                name="terminal",
+                cli_tokens=("terminal",),
+                smoke_argv=("terminal", "--message", "Export Handoff"),
+                flow_step="export-handoff",
+            ),
+        )
+
+        self.assertEqual(
+            command_cli_entry_argv_for(specs, ("terminal",)),
+            ("terminal", "--message", "Export Handoff"),
+        )
+        self.assertEqual(
+            command_smoke_argv_for(specs, ("terminal",), ("export-handoff",)),
+            ("terminal", "--message", "Export Handoff"),
+        )
 
     def test_command_flow_helpers_default_to_the_demo_route(self) -> None:
         self.assertEqual(command_flow_manifest(), command_mvp_flow_manifest())

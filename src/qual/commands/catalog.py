@@ -405,17 +405,18 @@ def _smoke_argv_for_spec(spec: CommandSpec) -> tuple[str, ...]:
     if not spec.smoke_argv:
         return _default_smoke_argv(spec)
 
-    normalized_argv = tuple(_normalize_token(token) for token in spec.smoke_argv)
-    if any(not token for token in normalized_argv):
+    raw_argv = tuple(spec.smoke_argv)
+    if any(not token.strip() for token in raw_argv):
         raise ValueError(f"Command {spec.name} has an empty smoke argv token")
 
     primary_cli_token = _default_smoke_argv(spec)[0]
-    if normalized_argv[0] != primary_cli_token:
+    normalized_primary = _normalize_token(raw_argv[0])
+    if normalized_primary != primary_cli_token:
         raise ValueError(
             "Command smoke argv must start with the primary CLI entrypoint: "
             f"{spec.name} -> {spec.smoke_argv[0]}"
         )
-    return normalized_argv
+    return (primary_cli_token, *raw_argv[1:])
 
 
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
@@ -423,6 +424,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         name="bootstrap",
         aliases=("open", "project-open", "project", "bootstrap-run"),
         cli_tokens=("bootstrap",),
+        smoke_argv=("bootstrap", "--project", "demo"),
         description="Run the project bootstrap flow.",
         flow_step="project-open",
     ),
@@ -430,6 +432,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         name="diff-preview",
         aliases=("diff", "diff_preview", "review-patch"),
         cli_tokens=("diff-preview", "diff"),
+        smoke_argv=("diff-preview", "--original", "before", "--proposed", "after"),
         description="Preview unified diff output.",
         flow_step="patch-review",
     ),
@@ -445,6 +448,13 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         name="terminal",
         aliases=("export", "save-export"),
         cli_tokens=("terminal",),
+        smoke_argv=(
+            "terminal",
+            "--operation-kind",
+            "terminal_synthesis_request",
+            "--message",
+            "Export handoff",
+        ),
         description="Run terminal export handoff routing.",
         flow_step="export-handoff",
     ),
