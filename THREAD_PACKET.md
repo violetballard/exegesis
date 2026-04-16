@@ -15,6 +15,7 @@
 
 ## Canonical demo-path step advanced
 - `retrieve relevant material`: this handoff explicitly advances that canonical demo-path step by enforcing FTS-only excerpt resolution with deterministic provenance on the canonical retrieval surface. Retrieval hits, excerpt lookup payloads, and downstream evidence/provenance bundles now stay deterministic and auditable on the FTS-first path.
+- Specific contract tightening: `fetch_excerpt` now fails closed to the FTS-backed canonical retrieval surface, so `PageIndex` is not promoted as a required runtime path for the MVP retrieval contract.
 
 ## AGENTS.md handoff packet
 - Risk reason: shared/high-risk work because the reviewed implementation range includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
