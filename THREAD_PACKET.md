@@ -76,7 +76,8 @@
 - None
 
 ## Scope-Check / Ownership Note
-- Shared/integrator-locked edits: `YES`
+- Shared-by-approval edits: `YES`
+- Integrator-locked edits: `NO`
 - The only reviewed non-owned file in the delivered implementation range is the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 
 ## Traceability Note
