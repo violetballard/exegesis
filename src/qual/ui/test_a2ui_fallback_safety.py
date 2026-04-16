@@ -1338,6 +1338,29 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[SelectionRef] Choice", selection_text)
         self.assertIn("Selection schema v1", selection_text)
 
+    def test_terminal_artifact_prefers_typed_action_and_selection_mappings_over_conflicting_non_card_hints(self) -> None:
+        action_text = render_terminal_artifact(
+            {"type": "ActionRef", "id": "export_document", "label": "Export", "payload": {"format": "md"}},
+            kind="selection",
+        )
+        selection_text = render_terminal_artifact(
+            {
+                "type": "SelectionRef",
+                "id": "choice-1",
+                "label": "Choice",
+                "payload": {"nested": {"items": [1, 2]}},
+            },
+            kind="action",
+        )
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[SelectionRef]", action_text)
+
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[ActionRef]", selection_text)
+
     def test_terminal_artifact_infers_action_and_selection_hints_without_type_markers(self) -> None:
         action_text = render_terminal_artifact(
             {

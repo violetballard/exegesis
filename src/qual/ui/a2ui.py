@@ -1190,6 +1190,10 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
         if requested_kind is not None and requested_kind != envelope_kind:
             raise ValueError("kind does not match TerminalArtifact envelope")
         kind = envelope_kind
+    elif typed_kind in {"action", "selection"}:
+        if requested_kind == "card":
+            _validate_terminal_artifact_card_payload(artifact)
+        kind = typed_kind
     elif typed_kind == "card":
         # Preserve typed card payloads as cards even if a caller passes a
         # conflicting action/selection hint.
