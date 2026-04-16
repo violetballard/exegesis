@@ -958,16 +958,25 @@ def execute_action_with_policy_gate(
 
 
 def render_terminal_card(card: Any) -> str:
+    """Render a card payload, or unwrap a valid TerminalArtifact envelope.
+
+    The shared CLI still calls this helper directly, so valid envelopes are
+    accepted here as a compatibility bridge to the generic artifact renderer.
+    """
+
     normalized_card = _coerce_terminal_card(card)
     if normalized_card is None:
         return _render_invalid_terminal_card(card)
 
     try:
-        raw_title = _normalize_card_title(normalized_card)
-        title = _render_terminal_inline_text(raw_title)
         card_type = _normalize_card_type(normalized_card)
         if card_type == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
-            return _render_invalid_terminal_artifact(normalized_card)
+            try:
+                return render_terminal_artifact(normalized_card)
+            except Exception:
+                return _render_invalid_terminal_artifact(normalized_card)
+        raw_title = _normalize_card_title(normalized_card)
+        title = _render_terminal_inline_text(raw_title)
         rendered_card_type = _render_terminal_inline_text(card_type)
         actions = normalized_card.get("actions")
         subtitle = normalized_card.get("subtitle")

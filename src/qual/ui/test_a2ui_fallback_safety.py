@@ -1197,6 +1197,50 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 kind="selection",
             )
 
+    def test_terminal_card_renderer_accepts_terminal_artifact_envelopes_for_cli_fallback(self) -> None:
+        action_envelope = build_terminal_artifact_envelope(
+            ActionRef(
+                id=" export_document ",
+                label=" Export ",
+                payload={"format": "md"},
+            ),
+            kind="action",
+        )
+        selection_envelope = build_terminal_artifact_envelope(
+            SelectionRef(
+                id=" choice-1 ",
+                label=" Choice ",
+                payload={"nested": {"items": [1, 2]}},
+            ),
+            kind="selection",
+        )
+        card_envelope = build_terminal_artifact_envelope(
+            {
+                "type": "GenericCard",
+                "title": " Run Log ",
+                "a2ui_version": 1,
+                "blocks": [],
+                "actions": [],
+            },
+            kind="card",
+        )
+
+        action_text = render_terminal_card(action_envelope)
+        selection_text = render_terminal_card(selection_envelope)
+        card_text = render_terminal_card(card_envelope)
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", action_text)
+
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
+
+        self.assertIn("[GenericCard] Run Log", card_text)
+        self.assertIn("A2UI v1", card_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", card_text)
+
     def test_terminal_artifact_unwraps_nested_envelopes_before_rendering(self) -> None:
         nested_envelope = {
             "type": "TerminalArtifact",
