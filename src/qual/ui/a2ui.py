@@ -1184,7 +1184,24 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
     if kind is not None:
         requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
 
-    artifact, envelope_kind = _unwrap_terminal_artifact_payload(artifact)
+    envelope_kind_hint = None
+    if isinstance(artifact, Mapping):
+        artifact_type = artifact.get("type")
+        if isinstance(artifact_type, str) and artifact_type.strip() == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+            envelope_kind_hint = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
+
+    try:
+        artifact, envelope_kind = _unwrap_terminal_artifact_payload(artifact)
+    except ValueError:
+        if envelope_kind_hint is not None:
+            raise
+        recovered = _recover_terminal_artifact_payload_from_invalid_envelope(
+            artifact,
+            requested_kind=requested_kind,
+        )
+        if recovered is None:
+            raise
+        artifact, envelope_kind = recovered
     typed_kind = _infer_terminal_artifact_explicit_kind(artifact)
     if envelope_kind is not None:
         if requested_kind is not None and requested_kind != envelope_kind:
@@ -1335,6 +1352,83 @@ def _unwrap_terminal_artifact_payload(
     kind = artifact["kind"]
     normalized_kind = kind.strip().lower()
     return payload, normalized_kind
+
+
+def _recover_terminal_artifact_payload_from_invalid_envelope(
+    artifact: Any,
+    *,
+    requested_kind: str | None,
+    _seen_envelope_ids: set[int] | None = None,
+) -> tuple[Any, str] | None:
+    """Recover a render target from an otherwise-shaped TerminalArtifact envelope."""
+
+    if not isinstance(artifact, Mapping):
+        return None
+    artifact_type = artifact.get("type")
+    if not isinstance(artifact_type, str) or artifact_type.strip() != _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+        return None
+    extra_keys = set(artifact) - {"type", "kind", "artifact", "contract_version", "a2ui_version"}
+    if extra_keys:
+        return None
+    contract_version = artifact.get("contract_version")
+    if contract_version is not None and (
+        type(contract_version) is not int or contract_version != A2UI_CONTRACT_VERSION
+    ):
+        return None
+    a2ui_version = artifact.get("a2ui_version")
+    if a2ui_version is not None and (type(a2ui_version) is not int or a2ui_version != A2UI_VERSION):
+        return None
+    if "artifact" not in artifact or artifact.get("artifact") is None:
+        return None
+
+    if _seen_envelope_ids is None:
+        _seen_envelope_ids = set()
+    artifact_id = id(artifact)
+    if artifact_id in _seen_envelope_ids:
+        return None
+    _seen_envelope_ids.add(artifact_id)
+
+    payload = artifact.get("artifact")
+    if isinstance(payload, Mapping):
+        payload_type = payload.get("type")
+        if isinstance(payload_type, str) and payload_type.strip() == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+            recovered = _recover_terminal_artifact_payload_from_invalid_envelope(
+                payload,
+                requested_kind=requested_kind,
+                _seen_envelope_ids=_seen_envelope_ids,
+            )
+            if recovered is not None:
+                return recovered
+
+    payload_kind = _infer_terminal_artifact_explicit_kind(payload)
+    if payload_kind is not None:
+        return payload, payload_kind
+    if requested_kind == "action":
+        try:
+            normalize_action_ref(payload)
+        except Exception:
+            pass
+        else:
+            return payload, "action"
+    if requested_kind == "selection":
+        try:
+            normalize_selection_ref(payload)
+        except Exception:
+            pass
+        else:
+            return payload, "selection"
+    if isinstance(payload, Mapping) or _coerce_terminal_card(payload) is not None:
+        return payload, "card"
+    return None
+
+
+def _normalize_terminal_artifact_envelope_kind(kind: Any) -> str | None:
+    if not isinstance(kind, str):
+        return None
+    normalized_kind = kind.strip().lower()
+    if normalized_kind in {"card", "action", "selection"}:
+        return normalized_kind
+    return None
 
 
 def _unwrap_terminal_artifact_leaf_payload(artifact: Any, *, expected_kind: str) -> Any:

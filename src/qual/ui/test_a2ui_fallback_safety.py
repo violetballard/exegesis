@@ -475,6 +475,25 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 }
             )
 
+    def test_terminal_artifact_recovers_valid_payload_from_malformed_envelope_kind(self) -> None:
+        text = render_terminal_artifact(
+            {
+                "type": "TerminalArtifact",
+                "kind": "dialog",
+                "artifact": {
+                    "type": "SelectionRef",
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                    "selected": True,
+                },
+            }
+        )
+
+        self.assertIn("[SelectionRef] Choice", text)
+        self.assertIn("Selection schema v1", text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+
     def test_terminal_card_renderer_recovers_valid_card_payloads_from_malformed_terminal_artifacts(
         self,
     ) -> None:
