@@ -49,6 +49,7 @@
 - Reviewer fix addressed: refreshed the handoff packet to satisfy the `AGENTS.md` requirement for an explicit canonical demo-path mapping and tied that statement to the narrowed FTS-only excerpt lookup scope the reviewer requested.
 - Gate refresh date: `2026-04-16`
 - Packet note: this fixer pass is metadata-only. It records the reviewer-required scope-to-demo-path mapping without changing the reviewed implementation range.
+- Re-review focus: verify the handoff now states explicitly that this slice advances the canonical `retrieve relevant material` demo-path step.
 
 ## Risks/blockers
 - Risks: high; the reviewed range changes retrieval payload normalization and the public excerpt lookup contract, but it keeps runtime behavior narrowed to deterministic FTS-first retrieval.
