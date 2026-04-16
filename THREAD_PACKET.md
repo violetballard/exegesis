@@ -21,6 +21,10 @@
 - Concretely, `src/qual/retrieval/service.py` now resolves `fetch_excerpt` through the canonical FTS-only lookup path, and the approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs fail closed with `KeyError`.
 - This metadata-only fixer refresh exists to keep that canonical demo-path mapping explicit in the handoff packet for re-review.
 
+## Reviewer-required fixes addressed
+- Fix 1: The handoff packet now states explicitly that this slice advances the canonical demo-path step `retrieve relevant material`.
+- Fix 2: The packet remains narrowed to the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`; this metadata-only refresh does not change executable retrieval code.
+
 ## AGENTS.md Handoff Packet
 - Risk reason: shared/high-risk work because this narrowed reviewed implementation includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 - Task budget: `4`
@@ -78,3 +82,4 @@
 - The current branch tip reported in the final fixer handoff is a metadata-only packet refresh commit.
 - No post-reviewed commit changes executable code outside the retrieval lane.
 - This packet refresh exists specifically to satisfy the reviewer-required handoff correction for explicit canonical demo-path mapping.
+- Re-review should treat the canonical demo-path mapping above as the explicit `AGENTS.md` handoff answer for this narrowed retrieval slice.
