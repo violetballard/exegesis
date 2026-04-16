@@ -1,10 +1,12 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-commands`
+- Review target: current branch tip on `codex/feat-commands`
 
 ## Review Basis
 
 - This packet is anchored to the actual current branch-tip implementation lineage on `codex/feat-commands`, including this packet refresh commit.
+- The latest docs-only alignment commit is the branch tip that carries this refreshed packet; implementation scope remains the non-doc command/test commits listed below.
 - Current implementation proposed for review is the branch tip on `codex/feat-commands`; reviewers should use this packet plus the listed in-scope implementation commits below rather than the earlier narrowed packet.
 - This packet supersedes the earlier narrowed re-review request that asked reviewers to inspect only `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; that narrowed basis was incomplete and should not be used for re-review.
 - It does not treat all commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as metadata-only.
