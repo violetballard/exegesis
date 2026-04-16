@@ -11,6 +11,12 @@
 - This packet refresh commit is metadata-only and exists to align review traceability, scope wording, and handoff fields to that real implementation tip.
 - Reviewer-required packet fix addressed here: the handoff now names the exact canonical demo-path step it advances and explains the concrete blocker removed for that step.
 
+## Reviewer Fixes Addressed
+
+- Required fix 1: `command_cli_contract()` now rejects parser-surface drift, not just canonical-name drift, by validating declared CLI entrypoints and their order against the catalog-backed parser surface.
+- Required fix 2: `tests/unit/test_commands_catalog.py` now covers parser-surface drift that preserves canonical coverage, including alias substitution and token reordering failure cases.
+- Required fix 3: this packet explicitly maps the work to the canonical demo-path step `preview and apply or reject a patch` and names the concrete blocker removed for that step.
+
 ## Scope Goal
 
 - Harden the CLI command contract so the parser-facing command surfaces remain deterministic, preserve canonical catalog order, and fail fast when derived CLI contracts drift from the catalog-backed source of truth.
