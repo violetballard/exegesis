@@ -170,6 +170,10 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_rendering_fingerprint"] = manifest["schemas"]["terminal_artifact_rendering"][
         "contract_fingerprint"
     ]
+    manifest["terminal_artifact_cli_fallback"] = manifest["schemas"]["terminal_artifact_cli_fallback"]
+    manifest["terminal_artifact_cli_fallback_fingerprint"] = manifest["terminal_artifact_cli_fallback"][
+        "contract_fingerprint"
+    ]
     return manifest
 
 
@@ -282,6 +286,16 @@ def describe_terminal_artifact_rendering_contract() -> dict[str, Any]:
     manifest = _build_terminal_artifact_rendering_contract_manifest()
     fingerprint = terminal_artifact_rendering_contract_fingerprint()
     manifest["terminal_artifact_rendering_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
+    return manifest
+
+
+def describe_terminal_artifact_cli_fallback_contract() -> dict[str, Any]:
+    """Return the stable CLI fallback wrapper contract manifest."""
+
+    manifest = _build_terminal_artifact_cli_fallback_contract_manifest()
+    fingerprint = terminal_artifact_cli_fallback_contract_fingerprint()
+    manifest["terminal_artifact_cli_fallback_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     return manifest
 
@@ -530,6 +544,7 @@ def _build_terminal_fallback_contract_manifest() -> dict[str, Any]:
 
 def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
     rendering_contract = describe_terminal_artifact_rendering_contract()
+    cli_fallback_contract = describe_terminal_artifact_cli_fallback_contract()
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
@@ -558,6 +573,7 @@ def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
             "kind": "card",
             "contract_fingerprint": terminal_fallback_contract_fingerprint(),
         },
+        "cli_fallback": cli_fallback_contract,
         "rendering_contract": {
             "kind": "card",
             "contract_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
@@ -600,6 +616,29 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
                 "selection": "normalize_selection_ref",
             }
         },
+    }
+
+
+def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
+    rendering_contract = describe_terminal_artifact_rendering_contract()
+    terminal_fallback_contract = describe_terminal_fallback_contract()
+    return {
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
+        "terminal_artifact_cli_fallback_schema_version": 1,
+        "type": "TerminalArtifactCliFallbackContract",
+        "fallback_renderer": "ShellUI.render_artifact",
+        "supported_kinds": ["card", "action", "selection"],
+        "default_kind": "card",
+        "renderer_entrypoints": copy.deepcopy(rendering_contract["renderer_entrypoints"]),
+        "kind_policy": {
+            "card": "defer to terminal artifact dispatch and keep card as the default recovery path",
+            "action": "recover action payloads with render_terminal_action",
+            "selection": "recover selection payloads with render_terminal_selection",
+        },
+        "terminal_fallback_contract": terminal_fallback_contract,
+        "terminal_artifact_rendering_contract": rendering_contract,
     }
 
 
@@ -705,6 +744,7 @@ def _build_a2ui_schema_manifest() -> dict[str, Any]:
         "terminal_fallback": describe_terminal_fallback_contract(),
         "terminal_artifact": describe_terminal_artifact_contract(),
         "terminal_artifact_rendering": describe_terminal_artifact_rendering_contract(),
+        "terminal_artifact_cli_fallback": describe_terminal_artifact_cli_fallback_contract(),
     }
 
 
@@ -797,6 +837,13 @@ def terminal_artifact_rendering_contract_fingerprint() -> str:
     """Return a stable fingerprint for the terminal artifact rendering manifest."""
 
     manifest = _build_terminal_artifact_rendering_contract_manifest()
+    return _fingerprint_manifest_section(manifest)
+
+
+def terminal_artifact_cli_fallback_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the terminal artifact CLI fallback manifest."""
+
+    manifest = _build_terminal_artifact_cli_fallback_contract_manifest()
     return _fingerprint_manifest_section(manifest)
 
 
