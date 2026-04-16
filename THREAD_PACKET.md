@@ -18,6 +18,7 @@
 - Reviewer-required alignment note: this metadata-only fixer pass keeps the handoff explicit about the canonical demo-path step required by `AGENTS.md`.
 - `retrieve relevant material`: this handoff explicitly advances that canonical demo-path step because `fetch_excerpt` now fails closed to the canonical FTS-backed lookup path instead of falling back to PageIndex. Retrieval hits, excerpt lookup payloads, and downstream evidence/provenance bundles now stay deterministic and auditable on the FTS-first path.
 - Specific contract tightening: `fetch_excerpt` now fails closed to the FTS-backed canonical retrieval surface, so `PageIndex` is not promoted as a required runtime path for the MVP retrieval contract.
+- Pre-basket rationale: this is MVP retrieval work rather than general cleanup because the stricter FTS-only excerpt contract preserves the structured and auditable retrieval surface needed before the engine can `promote or gather context into the basket`.
 
 ## Reviewer-required fix
 - Reviewer packet fix addressed: `Resolve failing gate output and include passing results.`
@@ -54,10 +55,12 @@
 
 ## Roadmap item(s) affected
 - `ROADMAP.md`: `Milestone 3: Real workflow loop`
+- Step-level alignment: `retrieve relevant material` is the canonical demo-path step this narrowed retrieval slice advances by keeping excerpt lookup on the authoritative FTS-backed path before basket promotion.
 
 ## Vision capability affected
 - `PRODUCT_VISION.md`: `2. Retrieval-first context handling`
 - `PRODUCT_VISION.md`: `6. Auditable state and workflow`
+- Step-level alignment: deterministic excerpt lookup, provenance, and evidence output stay stable on the FTS-first path used before `promote or gather context into the basket`.
 
 ## Routing/provider impact note
 - None
