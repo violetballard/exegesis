@@ -1273,6 +1273,17 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(canonical["text_hash"], result.hits[0].provenance["excerpt_text_hash"])
         self.assertEqual(canonical["excerpt_text_hash"], result.hits[0].provenance["excerpt_text_hash"])
         self.assertEqual(canonical["lookup_fingerprint"], canonical["provenance"]["lookup_fingerprint"])
+        self.assertEqual(canonical["basket_promotion"]["promotion_source"], "lookup_excerpt")
+        self.assertTrue(canonical["basket_promotion"]["promotion_ready"])
+        self.assertTrue(canonical["basket_promotion"]["citation_available"])
+        self.assertEqual(canonical["basket_promotion"]["lookup_fingerprint"], canonical["lookup_fingerprint"])
+        self.assertEqual(canonical["basket_promotion"]["doc_id"], canonical["doc_id"])
+        self.assertEqual(canonical["basket_promotion"]["excerpt_id"], canonical["excerpt_id"])
+        self.assertEqual(
+            canonical["basket_promotion"]["excerpt_provenance_fingerprint"],
+            canonical["excerpt_provenance_fingerprint"],
+        )
+        self.assertEqual(canonical["basket_promotion"]["span"], canonical["span"])
 
     def test_retrieve_auto_excerpt_routes_to_canonical_fts_lookup(self) -> None:
         result = self.service.retrieve_auto(
@@ -1350,6 +1361,16 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["rank"], 1)
         self.assertEqual(normalized["fts_rank"], -0.25)
         self.assertTrue(normalized["doc_fingerprint"])
+        self.assertEqual(normalized["basket_promotion"]["promotion_source"], "lookup_excerpt")
+        self.assertTrue(normalized["basket_promotion"]["promotion_ready"])
+        self.assertTrue(normalized["basket_promotion"]["citation_available"])
+        self.assertEqual(normalized["basket_promotion"]["doc_id"], "doc-pdf-1")
+        self.assertEqual(normalized["basket_promotion"]["excerpt_id"], "excerpt-sparse-1")
+        self.assertEqual(normalized["basket_promotion"]["span"], {"char_range": {"start": 5, "end": 21}})
+        self.assertEqual(
+            normalized["basket_promotion"]["excerpt_provenance_fingerprint"],
+            normalized["excerpt_provenance_fingerprint"],
+        )
         self.assertEqual(normalized["doc_fingerprint"], normalized["provenance"]["doc_fingerprint"])
         self.assertEqual(normalized["provenance"]["excerpt_id"], "excerpt-sparse-1")
         self.assertEqual(normalized["provenance"]["doc_id"], "doc-pdf-1")

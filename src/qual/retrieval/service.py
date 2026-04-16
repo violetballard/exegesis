@@ -2624,8 +2624,53 @@ class RetrievalService:
             value = normalized_provenance.get(key)
             if value is not None:
                 normalized[key] = copy.deepcopy(value)
+        normalized["basket_promotion"] = self._build_excerpt_lookup_basket_promotion(
+            excerpt=normalized,
+            provenance=normalized_provenance,
+            lookup_fingerprint=lookup_fingerprint,
+        )
         normalized["provenance"] = normalized_provenance
         return normalized
+
+    def _build_excerpt_lookup_basket_promotion(
+        self,
+        *,
+        excerpt: dict[str, object],
+        provenance: dict[str, object],
+        lookup_fingerprint: str,
+    ) -> dict[str, object]:
+        return {
+            "promotion_ready": True,
+            "promotion_source": "lookup_excerpt",
+            "citation_available": True,
+            "query_fingerprint": _optional_text(provenance.get("query_fingerprint")),
+            "result_fingerprint": None,
+            "lookup_fingerprint": lookup_fingerprint,
+            "doc_id": _optional_text(excerpt.get("doc_id")) or _optional_text(provenance.get("doc_id")),
+            "doc_type": _optional_text(excerpt.get("doc_type")) or _optional_text(provenance.get("doc_type")),
+            "doc_fingerprint": _optional_text(excerpt.get("doc_fingerprint"))
+            or _optional_text(provenance.get("doc_fingerprint")),
+            "doc_identity_fingerprint": _optional_text(excerpt.get("doc_identity_fingerprint"))
+            or _optional_text(provenance.get("doc_identity_fingerprint")),
+            "source_hash": _optional_text(excerpt.get("source_hash")) or _optional_text(provenance.get("source_hash")),
+            "title_hint": _optional_text(excerpt.get("title_hint")),
+            "excerpt_id": _optional_text(excerpt.get("excerpt_id")) or _optional_text(provenance.get("excerpt_id")),
+            "excerpt_fingerprint": _optional_text(excerpt.get("excerpt_fingerprint"))
+            or _optional_text(provenance.get("excerpt_fingerprint")),
+            "excerpt_provenance_fingerprint": _optional_text(excerpt.get("excerpt_provenance_fingerprint"))
+            or _optional_text(provenance.get("excerpt_provenance_fingerprint")),
+            "excerpt_text_hash": _optional_text(excerpt.get("excerpt_text_hash"))
+            or _optional_text(provenance.get("excerpt_text_hash"))
+            or _optional_text(provenance.get("hash")),
+            "excerpt_text": _optional_text(excerpt.get("text")),
+            "span": copy.deepcopy(RetrievalService._canonicalize_span(excerpt.get("span"))),
+            "source_strategy": _optional_text(excerpt.get("source_strategy"))
+            or _optional_text(provenance.get("source_strategy")),
+            "retrieval_backend": _optional_text(excerpt.get("retrieval_backend"))
+            or _optional_text(provenance.get("retrieval_backend")),
+            "retrieval_mode": _optional_text(excerpt.get("retrieval_mode"))
+            or _optional_text(provenance.get("retrieval_mode")),
+        }
 
     @staticmethod
     def _build_doc_identity_fingerprint(
