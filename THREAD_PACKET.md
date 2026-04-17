@@ -196,9 +196,10 @@
 
 ## Scope-check / Ownership Note
 
-- Shared-by-approval edits: `YES` via the approved shared test
+- Shared-by-approval edits: `YES` via the approved shared test path
   `tests/unit/test_commands_catalog.py`.
 - Integrator-locked edits: `NO`.
 - Ownership detail: runtime edits stay in lane-owned `src/qual/commands/**`,
-  and the only non-owned implementation path is the approved shared test
-  `tests/unit/test_commands_catalog.py`.
+  and this fixer refresh changes only handoff metadata in `THREAD_PACKET.md`;
+  it does not add any new non-owned implementation edits beyond the approved
+  shared test path above.
