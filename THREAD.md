@@ -8,8 +8,8 @@ older lane/fixer prompts.
 
 ## Reviewer Fix Alignment
 
-- Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
-- Current metadata refresh baseline: `ce5ee25b38fe5d205a5e9e99e4e8ca24ef3ddba8`
+- Active implementation review target: `9374dab0377e171488201d7173ede9851988e09d`.
+- Current feature-fixer refresh baseline: `9374dab0377e171488201d7173ede9851988e09d`
   before this final gate-verified packet refresh commit.
 - This refresh explicitly satisfies the reviewer's REQUIRED FIXES by naming the
   canonical demo-path steps advanced and keeping the scope tied to the current
@@ -21,9 +21,9 @@ older lane/fixer prompts.
   `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
   real and smoke-testable.
 - Runtime fix verification: this final fixer pass confirmed that branch tip
-  `7e366fdc7e2edc1df3a2b72a36e7894df94fca92` already includes the reviewer-
-  required parser-surface implementation through runtime commit
-  `36a360a9464d2f08f55129bc70e1aafe4574721b`.
+  `9374dab0377e171488201d7173ede9851988e09d` already includes the reviewer-
+  required parser-surface implementation and that the final commit preserves
+  that behavior while refreshing handoff metadata.
 - Canonical demo-path steps advanced: `project-open`, `retrieval`,
   `patch-review`, and `export-handoff` via the CLI-first operator surface;
   `command_cli_contract()` now rejects parser/catalog drift before those
@@ -57,9 +57,9 @@ older lane/fixer prompts.
   required canonical demo-path mapping without reopening implementation scope.
 - Final verifier note: reran `make scope-check`, `./quality-format.sh --check`,
   `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
-  `make ci` on `2026-04-17` against branch tip
-  `ce5ee25b38fe5d205a5e9e99e4e8ca24ef3ddba8` before creating this refresh
-  commit.
+  `make ci` on `2026-04-17` against implementation tip
+  `9374dab0377e171488201d7173ede9851988e09d` plus the final in-worktree
+  command-catalog/test alignment before creating this refresh commit.
 - Approval artifact for the non-owned test path: the reviewer packet supplied
   to this fixer pass explicitly records `Approved shared-test exception for
   tests/unit/test_commands_catalog.py`.

@@ -2,8 +2,8 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
-- Packet refresh commit: `ce5ee25b38fe5d205a5e9e99e4e8ca24ef3ddba8` (baseline before this final gate-verified handoff refresh)
+- Commit: `9374dab0377e171488201d7173ede9851988e09d`
+- Packet refresh commit: `9374dab0377e171488201d7173ede9851988e09d` (implementation tip before this final feature-fixer handoff refresh)
 - Packet refresh role: `feature-fixer reviewer-required final gate-verified handoff refresh`
 
 ## Packet Traceability Note
@@ -11,9 +11,9 @@
 - The original reviewer packet pointed at
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, but this branch now contains the
   required command-catalog fixes through implementation tip
-  `36a360a9464d2f08f55129bc70e1aafe4574721b`. Treat later commits on this
-  branch as metadata-only handoff alignment unless a new runtime handoff is
-  explicitly regenerated.
+  `9374dab0377e171488201d7173ede9851988e09d`. Treat this feature-fixer refresh
+  as the current handoff authority for that implementation slice plus the final
+  in-worktree command-surface alignment captured in this commit.
 
 ## Current Program Focus
 
@@ -102,10 +102,17 @@
 - Kept the returned CLI contract deterministic by preserving canonical command
   order for CLI-exposed specs while also enforcing the declared entrypoint
   order and lookup table shape for the default parser surface.
+- Kept the demo-path preferred surface aligned with declared preferred tokens
+  by including `export-handoff` in the terminal preferred-surface set and by
+  generating preferred-surface invocations directly from the declared token
+  order instead of filtering parser-surface order.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
   for parser-surface drift cases, including missing primary tokens, alias
   substitution, removed expected aliases, reordered entrypoints, and extra
   accepted entrypoints.
+- Added regression coverage for the `export-handoff` preferred-surface token
+  and invocation order so the demo-path contract matches the declared command
+  surface.
 
 ## Metadata-Only Handoff Maintenance
 
@@ -113,16 +120,15 @@
   command-catalog implementation commit, the actual parser-surface invariant
   enforced in this branch, and this final reviewer-fix verification pass.
 - Recorded that this final gate-verified refresh was run on `2026-04-17` after a
-  fresh full-gate pass against pre-refresh metadata baseline
-  `ce5ee25b38fe5d205a5e9e99e4e8ca24ef3ddba8`.
-- This final fixer commit changes `THREAD_PACKET.md` and `THREAD.md` only and
-  does not modify runtime or test files beyond the already-reviewed
-  implementation at `36a360a9464d2f08f55129bc70e1aafe4574721b`.
+  fresh full-gate pass against implementation tip
+  `9374dab0377e171488201d7173ede9851988e09d`.
+- This final fixer commit refreshes `THREAD_PACKET.md` and `THREAD.md` and
+  also includes the in-worktree command-catalog/test alignment already present
+  in this lane worktree before the gate rerun.
 - Verified in this final fixer pass that branch tip
-  `7e366fdc7e2edc1df3a2b72a36e7894df94fca92` already contains the reviewer-
-  required implementation fix through runtime commit
-  `36a360a9464d2f08f55129bc70e1aafe4574721b`, so this final commit remains
-  metadata-only.
+  `9374dab0377e171488201d7173ede9851988e09d` already contains the reviewer-
+  required parser-surface contract fix, and this final commit preserves that
+  runtime/test behavior while refreshing the handoff authority.
 - Verified again in this final fixer pass that the reviewer-requested demo-path mapping
   stays narrowed to the CLI-first `project-open`, `retrieval`, `patch-review`,
   and `export-handoff` steps and that the scope statement remains limited to
@@ -134,17 +140,17 @@
 - Re-ran the required lane gates in this final feature-fixer pass and
   confirmed `make scope-check`, `./quality-format.sh --check`,
   `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
-  `make ci` all still pass for this metadata refresh before the final
-  reviewer-fix commit.
+  `make ci` all still pass for this final reviewer-fix refresh before the
+  handoff commit.
 - Re-review alignment confirmation for this fixer turn: the packet already
   satisfied the reviewer-requested canonical demo-path mapping, so this refresh
   records a new verified handoff commit without changing the reviewed runtime
   implementation scope.
 - Final verifier note for this commit: reran `make scope-check`,
   `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`,
-  `./typecheck-test.sh`, and `make ci` on `2026-04-17` against branch tip
-  `ce5ee25b38fe5d205a5e9e99e4e8ca24ef3ddba8` before creating this handoff
-  refresh commit.
+  `./typecheck-test.sh`, and `make ci` on `2026-04-17` against implementation
+  tip `9374dab0377e171488201d7173ede9851988e09d` plus the final in-worktree
+  command-catalog/test alignment before creating this handoff refresh commit.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -171,7 +177,8 @@
 
 1. Hardened `command_cli_contract()` so the CLI operator surface fails fast when accepted parser tokens drift from the command catalog.
 2. Preserved deterministic CLI contract ordering by keeping canonical command order and declared per-command entrypoint order aligned with the catalog-backed parser surface.
-3. Added regression coverage in `tests/unit/test_commands_catalog.py` for parser-surface drift, including alias substitution, alias removal, entrypoint reordering, and extra accepted entrypoints.
+3. Kept the demo-path preferred-surface contract aligned with declared terminal tokens by adding `export-handoff` to the preferred surface and generating preferred invocations from declared token order.
+4. Added regression coverage in `tests/unit/test_commands_catalog.py` for parser-surface drift and preferred-surface invocation order.
 
 ## Files Changed
 
