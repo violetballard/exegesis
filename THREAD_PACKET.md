@@ -42,7 +42,7 @@
 
 ## Packet Traceability Note
 
-- This reviewer-fix refresh is anchored to pre-commit branch tip `bc662b7f64a0421ca973da2d5e35e89a02c71d3e`.
+- This reviewer-fix refresh is anchored to pre-commit branch tip `55740f8874ec0ba959752554fadc5463788f5f81`.
 - Reviewed implementation commit in scope:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` - lock `command_cli_contract()` to canonical catalog ordering and reject parser/catalog drift.
 - Later packet-refresh commits are treated as metadata-only unless this handoff is regenerated again.
@@ -60,7 +60,7 @@
 - Reverified the reviewer-fix branch tip in this lane worktree on `2026-04-17`.
 - Confirmed the refreshed packet now satisfies the reviewer’s three required metadata fixes: explicit demo-path mapping, narrower slice wording, and regenerated handoff structure.
 - Re-ran the required local gates on the current branch tip so the refreshed packet carries fresh passing evidence for re-review.
-- This commit is a metadata-only verification refresh after prior packet commit `bc662b7f64a0421ca973da2d5e35e89a02c71d3e`.
+- This commit is a metadata-only verification refresh after prior packet commit `55740f8874ec0ba959752554fadc5463788f5f81`.
 
 ## Re-Review Gate Evidence
 
@@ -72,7 +72,7 @@
   - `./quality-test.sh`: `PASS` (`198` tests, `OK`)
   - `./typecheck-test.sh`: `PASS` (`python3 -m compileall -q src`)
   - `make ci`: `PASS`
-- Verification anchor for this rerun: pre-commit branch tip `bc662b7f64a0421ca973da2d5e35e89a02c71d3e`.
+- Verification anchor for this rerun: pre-commit branch tip `55740f8874ec0ba959752554fadc5463788f5f81`.
 
 ## Current Program Focus
 
