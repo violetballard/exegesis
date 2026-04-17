@@ -14,6 +14,7 @@
 - The reviewed implementation commit removes the PageIndex fallback from `fetch_excerpt`, so the public excerpt lookup surface now resolves through the canonical FTS-only path.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs fail closed with `KeyError`.
 - PageIndex and embeddings remain compatibility-only paths in this slice and are not restored as required runtime retrieval backends.
+- Ownership clarification for re-review: this narrowed slice includes the approved shared regression edit `tests/unit/test_unified_retrieval.py` and no integrator-locked file edits.
 
 ## Canonical Demo-Path Step Advanced
 - Canonical demo-path step advanced: `retrieve relevant material`
