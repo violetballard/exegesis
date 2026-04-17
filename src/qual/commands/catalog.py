@@ -2636,6 +2636,30 @@ def command_mvp_cli_entry_argv(
     return command_demo_cli_entry_argv(argv)
 
 
+def command_demo_cli_shim_primary_token(token: str) -> str:
+    """Resolve a demo-path surface token to its primary CLI entrypoint."""
+    return command_cli_shim_primary_token_for(COMMAND_SPECS, token, command_demo_flow_steps())
+
+
+def command_mvp_cli_shim_primary_token(token: str) -> str:
+    """Resolve an MVP surface token to its primary CLI entrypoint."""
+    return command_demo_cli_shim_primary_token(token)
+
+
+def command_demo_cli_shim_argv(
+    argv: tuple[str, ...] | list[str],
+) -> tuple[str, ...]:
+    """Rewrite demo-path surface argv to the parser-facing command surface."""
+    return command_cli_shim_argv_for(COMMAND_SPECS, argv, command_demo_flow_steps())
+
+
+def command_mvp_cli_shim_argv(
+    argv: tuple[str, ...] | list[str],
+) -> tuple[str, ...]:
+    """Rewrite MVP surface argv to the parser-facing command surface."""
+    return command_demo_cli_shim_argv(argv)
+
+
 def command_smoke_argv_for(
     specs: tuple[CommandSpec, ...],
     argv: tuple[str, ...] | list[str],
