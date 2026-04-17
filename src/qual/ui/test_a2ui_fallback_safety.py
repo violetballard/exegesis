@@ -3203,7 +3203,19 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_render_target_contract_fingerprint(),
         )
         self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_target"],
+            terminal_artifact_cli_fallback_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_target_fingerprint"],
+            terminal_artifact_cli_fallback_target_contract_fingerprint(),
+        )
+        self.assertEqual(
             fingerprints["terminal_artifact_cli_fallback_target_contract"],
+            terminal_artifact_cli_fallback_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprint"],
             terminal_artifact_cli_fallback_target_contract_fingerprint(),
         )
         self.assertNotIn("terminal_artifact_cli_fallback_route", default_fingerprints)
