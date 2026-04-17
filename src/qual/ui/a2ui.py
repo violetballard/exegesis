@@ -2787,6 +2787,7 @@ def _resolve_terminal_artifact_card_fallback(
 
 
 def _render_invalid_terminal_selection(selection: Any) -> str:
+    selection = _prepare_terminal_artifact_invalid_preview(selection, expected_kind="selection")
     lines = [
         "[SelectionRef] <invalid selection>",
         f"Selection schema v{SELECTION_SCHEMA_VERSION}",
@@ -2796,16 +2797,41 @@ def _render_invalid_terminal_selection(selection: Any) -> str:
 
 
 def _render_invalid_terminal_action(action: Any) -> str:
-    if isinstance(action, ActionRef):
-        action = _action_ref_to_dict(action)
-    elif isinstance(action, Mapping):
-        action = dict(action)
+    action = _prepare_terminal_artifact_invalid_preview(action, expected_kind="action")
     lines = [
         "[ActionRef] <invalid action>",
         f"Action schema v{A2UI_ACTION_SCHEMA_VERSION}",
         f"- raw: {_render_payload_preview(action, max_payload_bytes=256)}",
     ]
     return "\n".join(lines)
+
+
+def _prepare_terminal_artifact_invalid_preview(artifact: Any, *, expected_kind: str) -> Any:
+    """Return a preview-safe snapshot for invalid leaf renders.
+
+    Invalid action and selection renders should avoid echoing recoverable
+    terminal-envelope wrappers so the raw preview stays focused on the leaf
+    payload that actually failed validation.
+    """
+
+    if isinstance(artifact, ActionRef):
+        artifact = _action_ref_to_dict(artifact)
+    elif isinstance(artifact, SelectionRef):
+        artifact = _selection_ref_to_dict(artifact)
+    if not isinstance(artifact, Mapping):
+        return artifact
+
+    expected_type = "ActionRef" if expected_kind == "action" else "SelectionRef"
+    artifact = _strip_terminal_type_hint(artifact, expected_type=expected_type)
+    recovered = _recover_terminal_artifact_payload_from_invalid_envelope(
+        artifact,
+        requested_kind=expected_kind,
+        allow_invalid_metadata=True,
+    )
+    if recovered is not None:
+        artifact, _ = recovered
+        return artifact
+    return artifact
 
 
 def _normalize_terminal_artifact_kind(artifact: Any, *, kind: str | None) -> str:

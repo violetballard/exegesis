@@ -4422,6 +4422,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Action schema v1", invalid)
         self.assertIn('"icon":"sparkle"', invalid)
 
+    def test_terminal_renderer_invalid_action_preview_strips_malformed_terminal_envelope_metadata(
+        self,
+    ) -> None:
+        invalid = render_terminal_action(
+            {
+                "type": "TerminalArtifact",
+                "kind": "dialog",
+                "artifact": {
+                    "id": "launch_missiles",
+                    "label": "Run",
+                    "payload": {"operation": "x"},
+                },
+                "trace_id": "drop-me",
+            }
+        )
+
+        self.assertIn("[ActionRef] <invalid action>", invalid)
+        self.assertIn("Action schema v1", invalid)
+        self.assertIn('"id":"launch_missiles"', invalid)
+        self.assertNotIn("TerminalArtifact", invalid)
+        self.assertNotIn("trace_id", invalid)
+
     def test_terminal_artifact_dispatches_structured_payloads_and_shell_forwards(self) -> None:
         action = ActionRef(
             id=" export_document ",
@@ -5499,6 +5521,26 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[SelectionRef] <invalid selection>", text)
         self.assertIn("Selection schema v1", text)
         self.assertIn('- raw: {"id":" choice-1 ","label":123,"payload":{"secret":"safe"},"selected":"yes"}', text)
+
+    def test_invalid_selection_renderer_strips_malformed_terminal_envelope_metadata(self) -> None:
+        text = render_terminal_selection(
+            {
+                "type": "TerminalArtifact",
+                "kind": "dialog",
+                "artifact": {
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                },
+                "trace_id": "drop-me",
+            }
+        )
+
+        self.assertIn("[SelectionRef] <invalid selection>", text)
+        self.assertIn("Selection schema v1", text)
+        self.assertIn('"id":"choice-1"', text)
+        self.assertNotIn("TerminalArtifact", text)
+        self.assertNotIn("trace_id", text)
 
     def test_terminal_renderer_skips_non_scalar_key_value_entries(self) -> None:
         text = render_terminal_card(
