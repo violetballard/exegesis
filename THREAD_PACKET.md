@@ -22,6 +22,7 @@
 
 - `retrieve relevant material`
 - This branch state makes that step more real by ensuring excerpt lookup resolves only through the authoritative FTS-backed path and by keeping the retrieval contract deterministic and auditable for downstream engine flows.
+- This line satisfies the `AGENTS.md` handoff requirement to name the canonical demo-path step advanced by the reviewed slice, rather than relying on roadmap and vision mapping alone.
 - This packet does not claim to advance `promote or gather context into the basket`; it stays scoped to the retrieval contract itself.
 
 ## Tasks completed
