@@ -154,7 +154,10 @@
 
 ## Risks / Blockers
 
-- Risk: `HIGH`
+- Risk: `LOW`
+- Risk justification: narrow command-catalog contract hardening in one owned
+  file plus one approved shared test, with no routing/provider changes and all
+  required gates passing in this fixer pass.
 - Blockers: none
 
 ## Required Handoff Fields

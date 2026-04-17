@@ -20,6 +20,9 @@ older lane/fixer prompts.
 - Product Vision scope: this reviewer-fix refresh only supports the canonical
   engine contract requirement for CLI compatibility and does not claim workflow,
   persistence, or auditability changes.
+- Merge risk: `LOW` because this remains a narrow command-catalog contract
+  change in one owned file plus one approved shared test, with no
+  routing/provider changes.
 - Final gate refresh: `make scope-check`, `./quality-format.sh --check`,
   `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
   `make ci` all passed again in this feature-fixer pass at branch tip
