@@ -2499,6 +2499,40 @@ def command_resolution_lookup_tokens(name: str) -> tuple[str, ...]:
     return command_resolution_tokens_for(COMMAND_SPECS, name)
 
 
+@lru_cache(maxsize=None)
+def command_surface_tokens_for(
+    specs: tuple[CommandSpec, ...],
+    name: str,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    validate_command_catalog(specs)
+    spec = command_spec_for(specs, name)
+    if spec is None:
+        return ()
+
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
+    route_entry = next(
+        (
+            entry
+            for entry in command_flow_route_catalog(specs=specs, flow_steps=ordered_flow_steps)
+            if entry.name == spec.name
+        ),
+        None,
+    )
+    if route_entry is not None:
+        return route_entry.surface_tokens
+    if flow_steps is not None:
+        return ()
+    return _flow_surface_tokens(*_lookup_resolution_tokens(spec), spec.flow_step)
+
+
+def command_surface_tokens(
+    name: str,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    return command_surface_tokens_for(COMMAND_SPECS, name, flow_steps)
+
+
 def command_spec(name: str) -> CommandSpec | None:
     return command_spec_for(COMMAND_SPECS, name)
 
