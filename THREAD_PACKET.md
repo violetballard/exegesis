@@ -7,6 +7,7 @@
 
 - Runtime implementation commit(s): `76d066f50d0c00f87e66fe7d33a1d6d3c594c3f5` and `b929fe6c7a1159c7882acedd247aca31a93cd123`.
 - Handoff text is runtime-only. No packet-planner or tooling files are claimed as feature scope in this handoff.
+- Explicit approval note: this packet may reference `THREAD_PACKET.md` as metadata-only handoff support, but it does not include `codex_packet_handoff/tools/planner.py` or `tests/unit/test_packet_planner.py` as feature scope.
 
 ## Scope completed
 
