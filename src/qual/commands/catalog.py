@@ -2444,7 +2444,7 @@ def command_demo_path_contract(
         parser_ready_invocations_by_step[flow_step] = tuple(
             (
                 entry.token,
-                command_cli_entry_argv_for(specs, (entry.token,), command_demo_flow_steps()),
+                command_smoke_argv_for(specs, (entry.token,), command_demo_flow_steps()),
             )
             for entry in shim_entries
             if entry.flow_step == flow_step
@@ -2453,7 +2453,7 @@ def command_demo_path_contract(
         parser_surface_invocations_by_step[flow_step] = tuple(
             (
                 cli_token,
-                command_cli_entry_argv_for(specs, (cli_token,), command_demo_flow_steps()),
+                command_smoke_argv_for(specs, (cli_token,), command_demo_flow_steps()),
             )
             for cli_token in route_entry.cli_tokens
         )

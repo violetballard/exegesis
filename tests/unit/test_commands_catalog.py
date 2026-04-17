@@ -1789,13 +1789,13 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             contract.entries[0].surface_invocations,
             (
-                ("bootstrap", ("bootstrap",)),
-                ("open", ("bootstrap",)),
-                ("project-open", ("bootstrap",)),
-                ("project", ("bootstrap",)),
-                ("bootstrap-run", ("bootstrap",)),
-                ("document-open", ("bootstrap",)),
-                ("open-document", ("bootstrap",)),
+                ("bootstrap", ("bootstrap", "--project", "demo")),
+                ("open", ("bootstrap", "--project", "demo")),
+                ("project-open", ("bootstrap", "--project", "demo")),
+                ("project", ("bootstrap", "--project", "demo")),
+                ("bootstrap-run", ("bootstrap", "--project", "demo")),
+                ("document-open", ("bootstrap", "--project", "demo")),
+                ("open-document", ("bootstrap", "--project", "demo")),
             ),
         )
         self.assertEqual(
@@ -1811,10 +1811,10 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             contract.entries[2].surface_invocations,
             (
-                ("diff-preview", ("diff-preview",)),
-                ("diff", ("diff-preview",)),
-                ("review-patch", ("diff-preview",)),
-                ("patch-review", ("diff-preview",)),
+                ("diff-preview", ("diff-preview", "--original", "before", "--proposed", "after")),
+                ("diff", ("diff-preview", "--original", "before", "--proposed", "after")),
+                ("review-patch", ("diff-preview", "--original", "before", "--proposed", "after")),
+                ("patch-review", ("diff-preview", "--original", "before", "--proposed", "after")),
             ),
         )
         self.assertEqual(
@@ -1918,6 +1918,26 @@ class CommandCatalogTests(unittest.TestCase):
                         "terminal_synthesis_request",
                         "--message",
                         "Export handoff",
+                    ),
+                ),
+            ),
+        )
+        self.assertEqual(
+            tuple(entry.parser_surface_invocations for entry in contract.entries),
+            (
+                (("bootstrap", ("bootstrap", "--project", "demo")),),
+                (("context-basket", ("context-basket", "list")),),
+                (("diff-preview", ("diff-preview", "--original", "before", "--proposed", "after")), ("diff", ("diff-preview", "--original", "before", "--proposed", "after"))),
+                (
+                    (
+                        "terminal",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Export handoff",
+                        ),
                     ),
                 ),
             ),
