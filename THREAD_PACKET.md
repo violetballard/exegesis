@@ -17,6 +17,7 @@
 
 ## Canonical Demo-Path Step Advanced
 - Canonical demo-path step advanced: `retrieve relevant material`
+- Reviewer-required canonical mapping: this slice makes `retrieve relevant material` more real by ensuring excerpt lookup stays on the canonical FTS-only retrieval path and fails closed for PageIndex-only IDs.
 - Suggested reviewer wording satisfied: `Canonical demo-path step advanced: retrieve relevant material; excerpt lookup now fails closed to canonical FTS-backed excerpt IDs, keeping retrieval provenance deterministic for downstream basket/workflow use.`
 - This reviewed implementation range makes `retrieve relevant material` more real by keeping retrieval output deterministic and auditable while forcing excerpt lookup through the canonical FTS-only path.
 - Reviewer-required explicit handoff statement: this change advances the canonical demo-path step `retrieve relevant material` by making excerpt lookup fail closed to the authoritative SQLite FTS path instead of permitting PageIndex as a runtime-required excerpt source.
@@ -93,13 +94,16 @@
 - None
 
 ## Scope-check / ownership note
+- Reviewer-required ownership distinction: this slice uses the approved shared regression surface `tests/unit/test_unified_retrieval.py` and does not edit any integrator-locked files.
 - Shared-by-approval edits: `YES` (Approval reference: the lane `Approved exception note` recorded in `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` explicitly authorizes `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane as the sole shared-by-approval regression surface exercising the canonical retrieval contract.)
 - Integrator-locked edits: `NO`
+- Reviewer-required ownership clarification: this narrowed slice includes the approved shared edit to `tests/unit/test_unified_retrieval.py` and no integrator-locked file edits.
 
 ## Reviewer Reconciliation
 - This packet is the writable source of truth for re-review in this fixer environment and supersedes any stale risk classification in blocked `.codex` packet mirrors.
 - Blocked mirror detail: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` return `EPERM` on write in this sandbox, so this packet carries the authoritative reviewer-fix reconciliation for this pass.
 - Mirror staleness note: those blocked `.codex` packet mirrors still reflect the older broader reviewed range metadata and should not be treated as the re-review source for this pass.
+- Mirror write-block note: the reviewer-required canonical demo-path mapping and the shared-versus-integrator-locked ownership correction are therefore authoritative in this writable packet for the current re-review.
 - Reviewer-required demo-path mapping is authoritative here: this narrowed reviewed implementation range advances `retrieve relevant material` by forcing excerpt lookup through the canonical SQLite FTS path and making non-FTS excerpt IDs fail closed.
 - Treat this narrowed slice as shared/high-risk work under the `4`-task cap because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 - Re-review should use the narrowed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the explicit canonical demo-path mapping above.
