@@ -259,6 +259,35 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["terminal_artifact"]["terminal_artifact_cli_fallback_fingerprint"],
             terminal_artifact_cli_fallback_contract_fingerprint(),
         )
+        self.assertEqual(manifest["terminal_artifact_contract"], describe_terminal_artifact_contract())
+        self.assertEqual(
+            manifest["terminal_artifact_contract_fingerprint"],
+            terminal_artifact_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_render_target_contract"],
+            describe_terminal_artifact_render_target_contract(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_render_target_contract_fingerprint"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_rendering_contract"],
+            describe_terminal_artifact_rendering_contract(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_rendering_contract_fingerprint"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_contract"],
+            describe_terminal_artifact_cli_fallback_contract(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_contract_fingerprint"],
+            terminal_artifact_cli_fallback_contract_fingerprint(),
+        )
         self.assertEqual(
             manifest["contract_fingerprints"]["capabilities"],
             a2ui_capabilities_contract_fingerprint(),
@@ -755,6 +784,9 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
     def test_terminal_artifact_cli_fallback_contract_fingerprints_are_public_and_canonical(self) -> None:
         manifest = describe_terminal_artifact_cli_fallback_contract()
         fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints()
+        fingerprints_with_self = describe_terminal_artifact_cli_fallback_contract_fingerprints(
+            include_terminal_artifact_cli_fallback=True
+        )
 
         self.assertEqual(fingerprints, manifest["contract_fingerprints"])
         self.assertEqual(
@@ -773,8 +805,21 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             fingerprints["terminal_fallback_contract"],
             terminal_fallback_contract_fingerprint(),
         )
+        self.assertNotIn("terminal_artifact_cli_fallback", fingerprints)
+        self.assertEqual(
+            fingerprints_with_self["terminal_artifact_cli_fallback"],
+            terminal_artifact_cli_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints_with_self,
+            {
+                **fingerprints,
+                "terminal_artifact_cli_fallback": terminal_artifact_cli_fallback_contract_fingerprint(),
+            },
+        )
         for fingerprint in fingerprints.values():
             self.assertEqual(len(fingerprint), 64)
+        self.assertEqual(len(fingerprints_with_self["terminal_artifact_cli_fallback"]), 64)
 
     def test_raw_leaf_card_default_helper_only_preserves_untyped_leaf_payloads(self) -> None:
         self.assertTrue(

@@ -180,6 +180,16 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_cli_fallback_fingerprint"] = manifest["terminal_artifact_cli_fallback"][
         "contract_fingerprint"
     ]
+    manifest["terminal_artifact_contract"] = manifest["schemas"]["terminal_artifact"]
+    manifest["terminal_artifact_contract_fingerprint"] = manifest["terminal_artifact_fingerprint"]
+    manifest["terminal_artifact_render_target_contract"] = manifest["schemas"]["terminal_artifact_render_target"]
+    manifest["terminal_artifact_render_target_contract_fingerprint"] = manifest["terminal_artifact_render_target_fingerprint"]
+    manifest["terminal_artifact_rendering_contract"] = manifest["schemas"]["terminal_artifact_rendering"]
+    manifest["terminal_artifact_rendering_contract_fingerprint"] = manifest["terminal_artifact_rendering_fingerprint"]
+    manifest["terminal_artifact_cli_fallback_contract"] = manifest["schemas"]["terminal_artifact_cli_fallback"]
+    manifest["terminal_artifact_cli_fallback_contract_fingerprint"] = manifest[
+        "terminal_artifact_cli_fallback_fingerprint"
+    ]
     manifest["contract_fingerprints"] = _build_a2ui_contract_fingerprint_summary()
     return manifest
 
@@ -359,19 +369,33 @@ def describe_terminal_artifact_contract_fingerprints(
     return fingerprints
 
 
-def describe_terminal_artifact_cli_fallback_contract_fingerprints() -> dict[str, str]:
-    """Return stable fingerprints for the CLI fallback wrapper contract sections."""
+def describe_terminal_artifact_cli_fallback_contract_fingerprints(
+    include_terminal_artifact_cli_fallback: bool = False,
+) -> dict[str, str]:
+    """Return stable fingerprints for the CLI fallback wrapper contract sections.
 
-    return _build_terminal_artifact_cli_fallback_contract_fingerprints()
+    Pass ``include_terminal_artifact_cli_fallback=True`` to include the wrapper
+    contract fingerprint itself alongside the nested section fingerprints.
+    """
+
+    return _build_terminal_artifact_cli_fallback_contract_fingerprints(
+        include_terminal_artifact_cli_fallback=include_terminal_artifact_cli_fallback,
+    )
 
 
-def _build_terminal_artifact_cli_fallback_contract_fingerprints() -> dict[str, str]:
-    return {
+def _build_terminal_artifact_cli_fallback_contract_fingerprints(
+    *,
+    include_terminal_artifact_cli_fallback: bool = False,
+) -> dict[str, str]:
+    fingerprints = {
         "kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
         "render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
         "rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
         "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
     }
+    if include_terminal_artifact_cli_fallback:
+        fingerprints["terminal_artifact_cli_fallback"] = terminal_artifact_cli_fallback_contract_fingerprint()
+    return fingerprints
 
 
 def build_terminal_artifact_envelope(artifact: Any, *, kind: str) -> dict[str, Any]:
