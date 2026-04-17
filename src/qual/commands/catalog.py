@@ -12,6 +12,7 @@ class CommandSpec:
     cli_tokens: tuple[str, ...] = ()
     cli_exposed: bool = True
     smoke_argv: tuple[str, ...] = ()
+    surface_argv: tuple[str, ...] = ()
     shim_argv: tuple[tuple[str, tuple[str, ...]], ...] = ()
     shim_pinned_options: tuple[tuple[str, tuple[str, ...]], ...] = ()
     description: str = ""
@@ -457,6 +458,24 @@ def _smoke_argv_for_spec(spec: CommandSpec) -> tuple[str, ...]:
     return (primary_cli_token, *raw_argv[1:])
 
 
+def _surface_argv_for_spec(spec: CommandSpec) -> tuple[str, ...]:
+    if not spec.surface_argv:
+        return _default_smoke_argv(spec)
+
+    raw_argv = tuple(spec.surface_argv)
+    if any(not token.strip() for token in raw_argv):
+        raise ValueError(f"Command {spec.name} has an empty surface argv token")
+
+    primary_cli_token = _default_smoke_argv(spec)[0]
+    normalized_primary = _normalize_token(raw_argv[0])
+    if normalized_primary != primary_cli_token:
+        raise ValueError(
+            "Command surface argv must start with the primary CLI entrypoint: "
+            f"{spec.name} -> {spec.surface_argv[0]}"
+        )
+    return (primary_cli_token, *raw_argv[1:])
+
+
 def _shim_argv_overrides_for_spec(spec: CommandSpec) -> tuple[tuple[str, tuple[str, ...]], ...]:
     if not spec.shim_argv:
         return ()
@@ -668,6 +687,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         aliases=("context", "basket", "retrieval", "retrieve"),
         cli_tokens=("context-basket",),
         smoke_argv=("context-basket", "list"),
+        surface_argv=("context-basket", "list"),
         description="Manage retrieval context basket items.",
         flow_step="retrieval",
     ),
@@ -844,6 +864,8 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
                 raise ValueError(f"Command {spec.name} must not declare CLI entrypoints when cli_exposed is false")
             if spec.smoke_argv:
                 raise ValueError(f"Command {spec.name} must not declare smoke argv when cli_exposed is false")
+            if spec.surface_argv:
+                raise ValueError(f"Command {spec.name} must not declare surface argv when cli_exposed is false")
             if spec.shim_argv:
                 raise ValueError(f"Command {spec.name} must not declare shim argv when cli_exposed is false")
             if spec.shim_pinned_options:
@@ -853,6 +875,7 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
             continue
 
         _smoke_argv_for_spec(spec)
+        _surface_argv_for_spec(spec)
         _shim_argv_overrides_for_spec(spec)
         _shim_pinned_options_for_spec(spec)
 
@@ -1345,8 +1368,9 @@ def command_cli_shim_catalog(
         if spec is None:
             raise ValueError(f"Unknown command shim target: {route_entry.name}")
         shim_argv_overrides = dict(_shim_argv_overrides_for_spec(spec))
+        default_surface_argv = _surface_argv_for_spec(spec)
         for token in route_entry.surface_tokens:
-            argv = shim_argv_overrides.get(token, (route_entry.primary_cli_token,))
+            argv = shim_argv_overrides.get(token, default_surface_argv)
             entries.append(
                 CommandCliShimEntry(
                     token=token,
