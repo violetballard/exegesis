@@ -2215,6 +2215,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             fingerprints["raw_leaf_card_default_contract"],
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         )
+        self.assertEqual(
+            manifest["raw_leaf_card_default_policy_contract_fingerprint"],
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_raw_leaf_card_default_policy_fingerprint"],
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint"],
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["raw_leaf_card_default_policy_contract_fingerprints"],
+            describe_terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints"],
+            describe_terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints(
+                include_terminal_artifact_raw_leaf_card_default_policy=True,
+            ),
+        )
         self.assertNotIn("terminal_artifact_cli_fallback", fingerprints)
         self.assertEqual(
             fingerprints_with_self["terminal_artifact_cli_fallback"],
@@ -2248,6 +2270,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints_with_self["terminal_artifact_kind_contracts"],
             terminal_artifact_kind_contracts_fingerprint(),
+        )
+        self.assertIsNot(
+            manifest["raw_leaf_card_default_policy_contract"],
+            manifest["terminal_artifact_raw_leaf_card_default_policy_contract"],
+        )
+        self.assertIsNot(
+            manifest["raw_leaf_card_default_policy_contract_fingerprints"],
+            manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints"],
         )
         for fingerprint in fingerprints.values():
             self.assertEqual(len(fingerprint), 64)

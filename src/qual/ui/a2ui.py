@@ -1316,6 +1316,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
     terminal_fallback_contract = describe_terminal_fallback_contract()
     terminal_artifact_cli_fallback_target_contract = describe_terminal_artifact_cli_fallback_target_contract()
     raw_leaf_card_default_contract = describe_terminal_artifact_raw_leaf_card_default_contract()
+    raw_leaf_card_default_policy_contract = describe_terminal_artifact_raw_leaf_card_default_policy_contract()
     kind_contracts = _build_terminal_artifact_kind_contracts()
     terminal_artifact_kind_contracts = _snapshot_contract_section(kind_contracts)
     renderer_entrypoints = copy.deepcopy(rendering_contract["renderer_entrypoints"])
@@ -1365,10 +1366,25 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "raw_leaf_card_default_policy": copy.deepcopy(
             terminal_artifact_cli_fallback_target_contract["raw_leaf_card_default_policy"]
         ),
+        "raw_leaf_card_default_policy_contract": raw_leaf_card_default_policy_contract,
         "terminal_artifact_raw_leaf_card_default_policy_contract": _snapshot_contract_section(
-            describe_terminal_artifact_raw_leaf_card_default_policy_contract()
+            raw_leaf_card_default_policy_contract
         ),
-        "terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint": terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        "raw_leaf_card_default_policy_contract_fingerprint": raw_leaf_card_default_policy_contract[
+            "contract_fingerprint"
+        ],
+        "raw_leaf_card_default_policy_contract_fingerprints": describe_terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints(),
+        "terminal_artifact_raw_leaf_card_default_policy_fingerprint": raw_leaf_card_default_policy_contract[
+            "contract_fingerprint"
+        ],
+        "terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint": raw_leaf_card_default_policy_contract[
+            "contract_fingerprint"
+        ],
+        "terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints": _snapshot_contract_section(
+            describe_terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints(
+                include_terminal_artifact_raw_leaf_card_default_policy=True,
+            )
+        ),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
         "kind_resolution_fingerprint": render_target_contract["kind_resolution_fingerprint"],
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
