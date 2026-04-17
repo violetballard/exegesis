@@ -12,15 +12,14 @@
 
 ## Scope completed
 
-- The reviewed implementation range keeps SQLite FTS authoritative for this MVP lane and preserves PageIndex plus embeddings as deferred compatibility paths rather than required runtime paths.
-- The excerpt lookup surface stays on the canonical FTS-only path, so PageIndex-only excerpt IDs fail closed instead of promoting a non-canonical runtime fallback.
-- Retrieval payloads, provenance snapshots, citation bundles, source-bundle reconstruction, and basket-promotion fields are normalized so downstream engine flows receive deterministic canonical payloads.
-- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves the FTS-only excerpt contract, source-bundle context reconstruction, citation normalization, and basket-promotion normalization behavior.
+- The reviewed implementation range keeps SQLite FTS authoritative for this MVP lane and keeps excerpt lookup on the canonical FTS-only path, so PageIndex-only excerpt IDs fail closed instead of promoting a non-canonical runtime fallback.
+- Retrieval payloads, provenance snapshots, citation bundles, source-bundle reconstruction, and basket-promotion fields remain deterministic so downstream engine flows receive stable canonical retrieval output.
+- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves the FTS-only excerpt contract and the deterministic payload and provenance behavior used by downstream retrieval flows.
 
 ## Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This reviewed slice makes that step more real by keeping excerpt lookup fail-closed to the authoritative FTS path and by preserving deterministic retrieval payloads before downstream basket promotion.
+- This reviewed slice makes that step more real by ensuring excerpt lookup resolves only through the authoritative FTS-backed path and fails closed for PageIndex-only excerpt IDs, while preserving deterministic retrieval payloads before downstream basket promotion.
 - The immediate downstream step it supports is `promote or gather context into the basket`, but this packet remains scoped to the retrieval step itself.
 
 ## Tasks completed
