@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
 - Packet refresh commit: `9aca0235cd53fbbbc0dacf9712010739ae9b4a87`
-- Packet refresh role: `reviewer-fix plan-alignment refresh`
+- Packet refresh role: `reviewer-fix final gate refresh`
 
 ## Packet Traceability Note
 
@@ -91,6 +91,8 @@
 - Refreshed the handoff packet so the review scope points at the current
   command-catalog implementation commit and the actual parser-surface invariant
   enforced in this branch.
+- Re-ran the required lane gates after the reviewer-fix packet alignment and
+  confirmed they still pass at the current branch tip.
 
 ## Kickoff Budget / Limits Compliance
 

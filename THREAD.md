@@ -17,6 +17,9 @@ older lane/fixer prompts.
 - Product Vision scope: this reviewer-fix refresh only supports the canonical
   engine contract requirement for CLI compatibility and does not claim workflow,
   persistence, or auditability changes.
+- Final gate refresh: `make scope-check`, `./quality-format.sh --check`,
+  `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
+  `make ci` all passed again at the current branch tip.
 - Approval artifact for the non-owned test path: the reviewer packet supplied
   to this fixer pass explicitly records `Approved shared-test exception for
   tests/unit/test_commands_catalog.py`.
