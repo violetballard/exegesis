@@ -52,7 +52,6 @@
 - `retrieve relevant material`
 - This narrowed reviewed slice makes the canonical `retrieve relevant material` step more real by forcing excerpt lookup through the FTS-backed retrieval contract and failing closed instead of falling back to PageIndex-only excerpt ids.
 - The same FTS-only lookup contract remains suitable for later basket/context promotion flows without widening the MVP retrieval path.
-- This metadata-only packet refresh preserves that explicit demo-path mapping for re-review at the current branch tip.
 - This fixer pass records that explicit demo-path mapping in the tracked handoff packet so re-review can verify AGENTS alignment directly from the handoff.
 
 ### Routing/provider impact note
