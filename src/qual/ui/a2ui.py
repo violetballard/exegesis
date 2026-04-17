@@ -448,6 +448,7 @@ def describe_terminal_artifact_render_target_contract_fingerprints(
         include_terminal_artifact_render_target=include_terminal_artifact_render_target,
     )
     if include_contract_aliases:
+        fingerprints["terminal_artifact_kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
         fingerprints["terminal_artifact_render_target_contract"] = (
             terminal_artifact_render_target_contract_fingerprint()
         )
@@ -488,6 +489,7 @@ def describe_terminal_artifact_rendering_contract_fingerprints(
         include_terminal_artifact_rendering=include_terminal_artifact_rendering,
     )
     if include_contract_aliases:
+        fingerprints["terminal_artifact_kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
         fingerprints["terminal_artifact_render_target_contract"] = (
             terminal_artifact_render_target_contract_fingerprint()
         )
@@ -934,6 +936,8 @@ def _build_terminal_artifact_contract_manifest(*, include_contract_fingerprints:
 def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
     render_target_contract = describe_terminal_artifact_render_target_contract()
     raw_leaf_card_default_contract = describe_terminal_artifact_raw_leaf_card_default_contract()
+    kind_contracts = _build_terminal_artifact_kind_contracts()
+    terminal_artifact_kind_contracts = _snapshot_contract_section(kind_contracts)
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
@@ -944,9 +948,11 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
         "supported_kinds": ["card", "action", "selection"],
         "default_kind": "card",
         "envelope": _build_terminal_artifact_envelope_manifest(),
-        "kind_contracts": _build_terminal_artifact_kind_contracts(),
+        "kind_contracts": kind_contracts,
+        "terminal_artifact_kind_contracts": terminal_artifact_kind_contracts,
         "render_target_contract": render_target_contract,
         "terminal_artifact_render_target_contract": _snapshot_contract_section(render_target_contract),
+        "terminal_artifact_kind_contracts_fingerprint": terminal_artifact_kind_contracts_fingerprint(),
         "renderer_entrypoints": {
             "terminal_artifact": "render_terminal_artifact",
             "card": "render_terminal_card",
@@ -1114,6 +1120,8 @@ def _build_terminal_artifact_kind_contracts() -> dict[str, dict[str, str]]:
 
 def _build_terminal_artifact_render_target_contract_manifest() -> dict[str, Any]:
     raw_leaf_card_default_contract = describe_terminal_artifact_raw_leaf_card_default_contract()
+    kind_contracts = _build_terminal_artifact_kind_contracts()
+    terminal_artifact_kind_contracts = _snapshot_contract_section(kind_contracts)
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
@@ -1125,7 +1133,9 @@ def _build_terminal_artifact_render_target_contract_manifest() -> dict[str, Any]
         "supported_kinds": ["card", "action", "selection"],
         "default_kind": "card",
         "envelope": _build_terminal_artifact_envelope_manifest(),
-        "kind_contracts": _build_terminal_artifact_kind_contracts(),
+        "kind_contracts": kind_contracts,
+        "terminal_artifact_kind_contracts": terminal_artifact_kind_contracts,
+        "terminal_artifact_kind_contracts_fingerprint": terminal_artifact_kind_contracts_fingerprint(),
         "raw_leaf_card_default": _build_terminal_artifact_raw_leaf_card_default_manifest(),
         "raw_leaf_card_default_contract": raw_leaf_card_default_contract,
         "terminal_artifact_raw_leaf_card_default_contract": _snapshot_contract_section(

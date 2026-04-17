@@ -740,6 +740,16 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["terminal_artifact_kind_contracts_fingerprint"],
             terminal_artifact_kind_contracts_fingerprint(),
         )
+        self.assertEqual(render_target_manifest["terminal_artifact_kind_contracts"], kind_contracts)
+        self.assertEqual(
+            render_target_manifest["terminal_artifact_kind_contracts_fingerprint"],
+            terminal_artifact_kind_contracts_fingerprint(),
+        )
+        self.assertEqual(rendering_manifest["terminal_artifact_kind_contracts"], kind_contracts)
+        self.assertEqual(
+            rendering_manifest["terminal_artifact_kind_contracts_fingerprint"],
+            terminal_artifact_kind_contracts_fingerprint(),
+        )
         self.assertEqual(
             a2ui_manifest["terminal_artifact"]["kind_resolution"],
             rendering_manifest["kind_resolution"],
@@ -1025,6 +1035,11 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["terminal_artifact_rendering_fingerprint"],
             terminal_artifact_rendering_contract_fingerprint(),
         )
+        self.assertEqual(manifest["terminal_artifact_kind_contracts"], describe_terminal_artifact_kind_contracts())
+        self.assertEqual(
+            manifest["terminal_artifact_kind_contracts_fingerprint"],
+            terminal_artifact_kind_contracts_fingerprint(),
+        )
         self.assertEqual(
             manifest["contract_fingerprints"],
             describe_terminal_artifact_rendering_contract_fingerprints(),
@@ -1077,6 +1092,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             fingerprints_with_self,
             {
                 **fingerprints,
+                "terminal_artifact_kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
                 "terminal_artifact_rendering": terminal_artifact_rendering_contract_fingerprint(),
                 "terminal_artifact_render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
                 "terminal_artifact_rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
@@ -1499,6 +1515,11 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "raw_leaf_card_default_contract": terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
             },
         )
+        self.assertEqual(manifest["terminal_artifact_kind_contracts"], describe_terminal_artifact_kind_contracts())
+        self.assertEqual(
+            manifest["terminal_artifact_kind_contracts_fingerprint"],
+            terminal_artifact_kind_contracts_fingerprint(),
+        )
         self.assertEqual(
             manifest["terminal_artifact_render_target_fingerprint"],
             terminal_artifact_render_target_contract_fingerprint(),
@@ -1547,6 +1568,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             fingerprints_with_self,
             {
                 **fingerprints,
+                "terminal_artifact_kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
                 "terminal_artifact_render_target": terminal_artifact_render_target_contract_fingerprint(),
                 "terminal_artifact_render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
                 "terminal_artifact_raw_leaf_card_default_contract": (
