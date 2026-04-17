@@ -676,6 +676,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         aliases=("open", "project-open", "project", "bootstrap-run"),
         cli_tokens=("bootstrap",),
         smoke_argv=("bootstrap", "--project", "demo"),
+        surface_argv=("bootstrap",),
         description="Run the project bootstrap flow.",
         flow_step="project-open",
     ),
@@ -684,6 +685,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         aliases=("diff", "diff_preview", "review-patch"),
         cli_tokens=("diff-preview", "diff"),
         smoke_argv=("diff-preview", "--original", "before", "--proposed", "after"),
+        surface_argv=("diff-preview",),
         description="Preview unified diff output.",
         flow_step="patch-review",
     ),
@@ -716,6 +718,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
             "--message",
             "Export handoff",
         ),
+        surface_argv=("terminal",),
         shim_argv=(
             (
                 "export",
@@ -1507,10 +1510,12 @@ def command_cli_entry_argv_for(
         if not resolved.matched:
             return normalized_argv
         return _resolved_parser_ready_argv(specs, resolved, raw_argv[1:])
-    if len(normalized_argv) > 1:
-        return normalized_argv
 
     if not resolved.matched:
+        return normalized_argv
+
+    spec = command_spec_for(specs, resolved.canonical_name)
+    if spec is not None and spec.surface_argv:
         return normalized_argv
 
     smoke_argv = command_smoke_entry_argv_for(specs, resolved.canonical_name)

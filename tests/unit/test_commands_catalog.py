@@ -503,13 +503,13 @@ class CommandCatalogTests(unittest.TestCase):
 
     def test_command_cli_entry_argv_normalizes_parser_ready_invocations(self) -> None:
         self.assertEqual(command_cli_entry_argv(()), ("bootstrap",))
-        self.assertEqual(command_cli_entry_argv(["bootstrap"]), ("bootstrap", "--project", "demo"))
+        self.assertEqual(command_cli_entry_argv(["bootstrap"]), ("bootstrap",))
         self.assertEqual(command_cli_entry_argv(["context-basket"]), ("context-basket", "list"))
         self.assertEqual(command_cli_entry_argv(["retrieve"]), ("context-basket", "list"))
         self.assertEqual(command_cli_entry_argv(["retrieval"]), ("context-basket", "list"))
         self.assertEqual(
             command_cli_entry_argv(["patch-review"]),
-            ("diff-preview", "--original", "before", "--proposed", "after"),
+            ("diff-preview",),
         )
         self.assertEqual(
             command_cli_entry_argv(["export"]),
@@ -1611,11 +1611,11 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             contract.entries[0].surface_invocations,
             (
-                ("bootstrap", ("bootstrap", "--project", "demo")),
-                ("open", ("bootstrap", "--project", "demo")),
-                ("project-open", ("bootstrap", "--project", "demo")),
-                ("project", ("bootstrap", "--project", "demo")),
-                ("bootstrap-run", ("bootstrap", "--project", "demo")),
+                ("bootstrap", ("bootstrap",)),
+                ("open", ("bootstrap",)),
+                ("project-open", ("bootstrap",)),
+                ("project", ("bootstrap",)),
+                ("bootstrap-run", ("bootstrap",)),
             ),
         )
         self.assertEqual(
@@ -1631,25 +1631,16 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             contract.entries[2].surface_invocations,
             (
-                ("diff-preview", ("diff-preview", "--original", "before", "--proposed", "after")),
-                ("diff", ("diff-preview", "--original", "before", "--proposed", "after")),
-                ("review-patch", ("diff-preview", "--original", "before", "--proposed", "after")),
-                ("patch-review", ("diff-preview", "--original", "before", "--proposed", "after")),
+                ("diff-preview", ("diff-preview",)),
+                ("diff", ("diff-preview",)),
+                ("review-patch", ("diff-preview",)),
+                ("patch-review", ("diff-preview",)),
             ),
         )
         self.assertEqual(
             contract.entries[3].surface_invocations,
             (
-                (
-                    "terminal",
-                    (
-                        "terminal",
-                        "--operation-kind",
-                        "terminal_synthesis_request",
-                        "--message",
-                        "Export handoff",
-                    ),
-                ),
+                ("terminal", ("terminal",)),
                 (
                     "export",
                     (
@@ -1748,13 +1739,14 @@ class CommandCatalogTests(unittest.TestCase):
                 name="terminal",
                 cli_tokens=("terminal",),
                 smoke_argv=("terminal", "--message", "Export Handoff"),
+                surface_argv=("terminal",),
                 flow_step="export-handoff",
             ),
         )
 
         self.assertEqual(
             command_cli_entry_argv_for(specs, ("terminal",)),
-            ("terminal", "--message", "Export Handoff"),
+            ("terminal",),
         )
         self.assertEqual(
             command_smoke_argv_for(specs, ("terminal",), ("export-handoff",)),
