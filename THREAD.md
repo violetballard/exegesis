@@ -11,6 +11,9 @@ older lane/fixer prompts.
 - Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
 - Current metadata refresh baseline: `92c70939eefa5411bd3a683b091f9610ab06d124`
   before this final verification-only packet refresh commit.
+- This refresh explicitly satisfies the reviewer's REQUIRED FIXES by naming the
+  canonical demo-path steps advanced and keeping the scope tied to the current
+  Milestone 3 engine-first CLI loop only.
 - Runtime fix verification: this final fixer pass confirmed that branch tip
   `92c70939eefa5411bd3a683b091f9610ab06d124` already includes the reviewer-
   required parser-surface implementation through runtime commit
@@ -19,6 +22,8 @@ older lane/fixer prompts.
   `patch-review`, and `export-handoff` via the CLI-first operator surface;
   `command_cli_contract()` now rejects parser/catalog drift before those
   accepted CLI entrypoints can silently change.
+- Explicit AGENTS.md handoff field: this compatibility pointer records exactly
+  which canonical demo-path steps the slice advances before handoff.
 - AGENTS.md canonical demo-path statement: this work makes the CLI-first
   `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
   real by locking the accepted parser surface to the command catalog that

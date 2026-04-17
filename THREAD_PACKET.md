@@ -3,8 +3,8 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
-- Packet refresh commit: `92c70939eefa5411bd3a683b091f9610ab06d124` (pre-final-review metadata baseline)
-- Packet refresh role: `feature-fixer final verification refresh`
+- Packet refresh commit: `92c70939eefa5411bd3a683b091f9610ab06d124` (baseline before this reviewer-fix refresh)
+- Packet refresh role: `feature-fixer reviewer-required demo-path alignment refresh`
 
 ## Packet Traceability Note
 
@@ -36,6 +36,8 @@
 
 ## Canonical Demo-Path Step Advanced
 
+- Explicit AGENTS.md handoff field: this packet states exactly which canonical
+  demo-path steps this slice advances before handoff.
 - `project-open`: this slice keeps the `bootstrap` CLI entrypoint callable and
   smoke-testable while Textual remains disabled.
 - `retrieval`: this slice keeps the `context-basket` CLI entrypoint pinned to
@@ -116,6 +118,10 @@
   stays narrowed to the CLI-first `project-open`, `retrieval`, `patch-review`,
   and `export-handoff` steps and that the scope statement remains limited to
   command-catalog contract hardening only.
+- Recorded in this refresh that the reviewer's REQUIRED FIXES are satisfied by
+  an explicit `Canonical Demo-Path Step Advanced` section plus a Milestone 3
+  scope boundary that stays tied to the engine-first CLI loop rather than
+  broader command-surface or UX work.
 - Re-ran the required lane gates in this final feature-fixer pass and
   confirmed they still pass for this metadata refresh before the final
   reviewer-fix commit.
@@ -203,6 +209,12 @@
   auditability, or additional product-vision capability changes. It is limited
   to deterministic CLI compatibility for the active engine-first operator
   surface while Textual remains disabled.
+
+### Explicit canonical demo-path step advanced
+
+- Required by `AGENTS.md`: this handoff explicitly advances the CLI-first
+  `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps by
+  keeping their accepted command entrypoints deterministic and smoke-testable.
 
 ### Routing/provider impact note
 
