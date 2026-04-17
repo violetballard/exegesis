@@ -358,6 +358,9 @@ def describe_a2ui_contract(
         manifest["terminal_artifact_cli_fallback_route_contract_fingerprints"] = _snapshot_contract_section(
             route_contract["contract_fingerprints"]
         )
+        manifest["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"] = route_contract[
+            "contract_fingerprints_fingerprint"
+        ]
     manifest["contract_fingerprints"] = _build_a2ui_contract_fingerprint_summary(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
@@ -1007,6 +1010,9 @@ def describe_terminal_artifact_cli_fallback_route_contract() -> dict[str, Any]:
     fingerprint = terminal_artifact_cli_fallback_route_contract_fingerprint()
     manifest["terminal_artifact_cli_fallback_route_fingerprint"] = fingerprint
     manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"] = fingerprint
+    manifest["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"] = manifest[
+        "contract_fingerprints_fingerprint"
+    ]
     manifest["contract_fingerprint"] = fingerprint
     return manifest
 
@@ -1123,6 +1129,9 @@ def describe_terminal_artifact_contract_fingerprints(
         fingerprints["terminal_artifact_cli_fallback_route"] = (
             terminal_artifact_cli_fallback_route_contract_fingerprint()
         )
+        fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"] = (
+            _fingerprint_manifest_section(_build_terminal_artifact_cli_fallback_route_contract_fingerprints())
+        )
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
@@ -1179,11 +1188,15 @@ def describe_terminal_artifact_contract_fingerprints(
                     "terminal_artifact_cli_fallback_route",
                     terminal_artifact_cli_fallback_route_contract_fingerprint(),
                 ),
-                (
-                    "terminal_artifact_cli_fallback_route_contract",
-                    terminal_artifact_cli_fallback_route_contract_fingerprint(),
-                ),
-            )
+            (
+                "terminal_artifact_cli_fallback_route_contract",
+                terminal_artifact_cli_fallback_route_contract_fingerprint(),
+            ),
+            (
+                "terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint",
+                _fingerprint_manifest_section(_build_terminal_artifact_cli_fallback_route_contract_fingerprints()),
+            ),
+        )
     return fingerprints
 
 
@@ -1855,6 +1868,9 @@ def _build_terminal_artifact_contract_manifest(
         manifest["terminal_artifact_cli_fallback_route_contract_fingerprints"] = _snapshot_contract_section(
             route_contract["contract_fingerprints"]
         )
+        manifest["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"] = route_contract[
+            "contract_fingerprints_fingerprint"
+        ]
     if include_contract_fingerprints:
         manifest["contract_fingerprints"] = describe_terminal_artifact_contract_fingerprints(
             include_terminal_artifact=True,
@@ -2146,6 +2162,7 @@ def _build_terminal_artifact_cli_fallback_route_contract_manifest() -> dict[str,
     shell_refinement_policy = _build_terminal_artifact_cli_fallback_shell_refinement_policy_manifest()
     resolver_failure_policy = _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()
     contract_fingerprints = _build_terminal_artifact_cli_fallback_route_contract_fingerprints()
+    contract_fingerprints_fingerprint = _fingerprint_manifest_section(contract_fingerprints)
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
@@ -2192,10 +2209,11 @@ def _build_terminal_artifact_cli_fallback_route_contract_manifest() -> dict[str,
         "resolver_failure_policy": resolver_failure_policy,
         "resolver_failure_policy_fingerprint": _fingerprint_manifest_section(resolver_failure_policy),
         "contract_fingerprints": contract_fingerprints,
-        "contract_fingerprints_fingerprint": _fingerprint_manifest_section(contract_fingerprints),
+        "contract_fingerprints_fingerprint": contract_fingerprints_fingerprint,
         "terminal_artifact_cli_fallback_route_contract_fingerprints": _snapshot_contract_section(
             contract_fingerprints
         ),
+        "terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint": contract_fingerprints_fingerprint,
     }
 
 
