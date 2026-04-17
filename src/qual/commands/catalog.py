@@ -2842,6 +2842,20 @@ def command_mvp_loop_lookup_table(
     return command_demo_loop_lookup_table(specs)
 
 
+def command_demo_loop_surface_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Flatten the canonical review/apply-or-reject/persist/export loop to parser-ready argv."""
+    return tuple((entry.token, entry.argv) for entry in command_demo_loop_contract(specs).entries)
+
+
+def command_mvp_loop_surface_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Flatten the current MVP review/apply-or-reject/persist/export loop to parser-ready argv."""
+    return command_demo_loop_surface_invocation_table(specs)
+
+
 def command_demo_surface_invocation_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
