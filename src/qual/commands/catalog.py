@@ -718,7 +718,13 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
             "--message",
             "Export handoff",
         ),
-        surface_argv=("terminal",),
+        surface_argv=(
+            "terminal",
+            "--operation-kind",
+            "terminal_synthesis_request",
+            "--message",
+            "Export handoff",
+        ),
         shim_argv=(
             (
                 "export",

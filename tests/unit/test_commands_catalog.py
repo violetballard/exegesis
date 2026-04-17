@@ -461,6 +461,10 @@ class CommandCatalogTests(unittest.TestCase):
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
         )
         self.assertEqual(
+            command_cli_shim_argv(("terminal",)),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
+        self.assertEqual(
             command_cli_shim_argv(("apply-patch",)),
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
         )
@@ -507,6 +511,10 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_cli_entry_argv(["context-basket"]), ("context-basket", "list"))
         self.assertEqual(command_cli_entry_argv(["retrieve"]), ("context-basket", "list"))
         self.assertEqual(command_cli_entry_argv(["retrieval"]), ("context-basket", "list"))
+        self.assertEqual(
+            command_cli_entry_argv(["terminal"]),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
         self.assertEqual(
             command_cli_entry_argv(["patch-review"]),
             ("diff-preview",),
@@ -1640,7 +1648,16 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             contract.entries[3].surface_invocations,
             (
-                ("terminal", ("terminal",)),
+                (
+                    "terminal",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Export handoff",
+                    ),
+                ),
                 (
                     "export",
                     (
