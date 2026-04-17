@@ -1,7 +1,7 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Current branch head before this fixer commit: `2927b494e6dbef6dbdef708b9cb9953ca9be8110`
+- Current branch head before this fixer commit: `926e36c9281b4b60cdf9fe4165ca825fd9a42daa`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet refresh role: `metadata-only reviewer-fix finalization`
@@ -23,7 +23,7 @@
 - AGENTS mapping: this narrowed slice directly advances the canonical `retrieve relevant material` step by forcing excerpt lookup through the FTS-backed contract and failing closed on non-FTS excerpt ids.
 - Basket-promotion rationale: because only FTS-backed excerpt ids can be re-fetched, downstream basket promotion and later revise/apply steps receive deterministic, auditable excerpt payloads instead of silently accepting PageIndex-only fallback data.
 - Reviewer-fix note: this packet remains intentionally narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and does not broaden scope beyond the FTS-only excerpt lookup contract and its regression coverage.
-- Source-of-truth note: this `THREAD_PACKET.md` handoff is the re-review packet for this fixer pass on top of `2927b494e6dbef6dbdef708b9cb9953ca9be8110`; `.codex` packet mirrors in this worktree are filesystem-protected and are not required to evaluate the narrowed retrieval scope.
+- Source-of-truth note: this `THREAD_PACKET.md` handoff is the re-review packet for this fixer pass on top of `926e36c9281b4b60cdf9fe4165ca825fd9a42daa`; `.codex` packet mirrors in this worktree are filesystem-protected and are not required to evaluate the narrowed retrieval scope.
 
 ## Required reviewer fixes addressed
 
