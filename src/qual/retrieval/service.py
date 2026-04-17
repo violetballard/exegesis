@@ -2693,12 +2693,10 @@ class RetrievalService:
             normalized["doc_identity_fingerprint"] = doc_identity_fingerprint
 
         canonical_span = RetrievalService._canonicalize_span(normalized.get("span"))
-        if canonical_span is None and isinstance(normalized.get("span"), dict):
-            canonical_span = dict(normalized["span"])
-        if canonical_span is None and isinstance(provenance.get("span"), dict):
-            canonical_span = RetrievalService._canonicalize_span(provenance["span"])
-            if canonical_span is None:
-                canonical_span = dict(provenance["span"])
+        if canonical_span is None:
+            canonical_span = RetrievalService._canonicalize_span(provenance.get("span"))
+        # Fail closed on malformed span payloads so lookup provenance and basket
+        # promotion fingerprints stay deterministic across sparse rehydration.
         if canonical_span is not None:
             normalized["span"] = canonical_span
         retrieval_policy = self._retrieval_policy.as_snapshot()
