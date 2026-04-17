@@ -121,8 +121,13 @@
 ## Approved Exception Note
 
 - Approved shared-test exception for `tests/unit/test_commands_catalog.py`.
-- Approval basis: the reviewer packet supplied to this fixer pass is the
-  source of truth for that one non-owned test path.
+- Approval provenance: the user-supplied reviewer packet for this fixer pass
+  is the governing source of truth, and its enclosed feature handoff records
+  an approved shared-test exception for
+  `tests/unit/test_commands_catalog.py`.
+- Approval basis: this metadata-only reissue preserves that previously
+  approved shared-test path and does not add any new non-owned implementation
+  edits.
 
 ## Tasks Completed
 
@@ -194,6 +199,7 @@
   `tests/unit/test_commands_catalog.py`.
 - Integrator-locked edits: `NO`.
 - Ownership detail: runtime edits stay in lane-owned `src/qual/commands/**`,
-  and this fixer refresh changes only handoff metadata in `THREAD_PACKET.md`;
-  it does not add any new non-owned implementation edits beyond the approved
-  shared test path above.
+  the only non-owned implementation path in the reviewed delta is the
+  approved shared test `tests/unit/test_commands_catalog.py`, and this fixer
+  refresh changes only handoff metadata in `THREAD_PACKET.md`; it does not
+  add any new non-owned implementation edits beyond that approved path.

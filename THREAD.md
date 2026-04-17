@@ -26,6 +26,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
     AGENTS-required step statement
   - stating the concrete blocker removed: parser/catalog drift or older
     demo-path verbs silently changing the CLI contract surface
+  - recording approval provenance for the shared-by-approval edit to
+    `tests/unit/test_commands_catalog.py` from the governing reviewer packet
   - separating shared-by-approval edits from integrator-locked edits in the
     ownership note
   - keeping scope limited to Milestone 3 CLI compatibility work and the
