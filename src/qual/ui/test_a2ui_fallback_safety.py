@@ -2488,6 +2488,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
                 "raw_leaf_card_default_contract": terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
                 "raw_leaf_card_default_policy_contract": terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+                "shell_refinement_policy": _fingerprint_manifest_section(manifest["shell_refinement_policy"]),
+                "resolver_failure_policy": _fingerprint_manifest_section(manifest["resolver_failure_policy"]),
             },
         )
         self.assertEqual(

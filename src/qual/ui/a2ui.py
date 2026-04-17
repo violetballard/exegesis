@@ -3334,9 +3334,13 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
             return _render_invalid_terminal_card(artifact)
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
     allow_invalid_envelope_recovery = malformed_envelope
-    if requested_kind == "card" and malformed_envelope:
-        payload = artifact.get("artifact") if isinstance(artifact, Mapping) else None
-        if not _should_preserve_raw_leaf_card_default(payload):
+    if requested_kind == "card" and malformed_envelope and isinstance(artifact, Mapping):
+        payload = artifact.get("artifact")
+        envelope_kind = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
+        if _should_preserve_raw_leaf_card_default(payload):
+            if envelope_kind == "card":
+                return _render_invalid_terminal_card(artifact)
+        else:
             payload_kind = _infer_terminal_artifact_explicit_kind(payload)
             if payload_kind not in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
                 payload_kind = _recover_terminal_artifact_leaf_kind(payload)
@@ -3389,9 +3393,13 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
             return _render_invalid_terminal_card(artifact)
 
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
-    if requested_kind == "card" and malformed_envelope:
-        payload = artifact.get("artifact") if isinstance(artifact, Mapping) else None
-        if not _should_preserve_raw_leaf_card_default(payload):
+    if requested_kind == "card" and malformed_envelope and isinstance(artifact, Mapping):
+        payload = artifact.get("artifact")
+        envelope_kind = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
+        if _should_preserve_raw_leaf_card_default(payload):
+            if envelope_kind == "card":
+                return _render_invalid_terminal_card(artifact)
+        else:
             payload_kind = _infer_terminal_artifact_explicit_kind(payload)
             if payload_kind not in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
                 payload_kind = _recover_terminal_artifact_leaf_kind(payload)
@@ -3841,6 +3849,43 @@ def _is_malformed_terminal_artifact_envelope(artifact: Any) -> bool:
     except ValueError:
         return True
     return False
+
+
+def _is_valid_terminal_artifact_envelope_metadata(artifact: Any) -> bool:
+    if not isinstance(artifact, Mapping):
+        return False
+    extra_keys = set(artifact) - {
+        "type",
+        "kind",
+        "artifact",
+        "contract_version",
+        "a2ui_version",
+    }
+    if extra_keys:
+        return False
+    artifact_type = artifact.get("type")
+    if not isinstance(artifact_type, str) or artifact_type.strip() != _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+        return False
+    if "kind" not in artifact:
+        return False
+    kind = artifact.get("kind")
+    if not isinstance(kind, str):
+        return False
+    if kind.strip().lower() not in _TERMINAL_ARTIFACT_SUPPORTED_KIND_SET:
+        return False
+    if "artifact" not in artifact or artifact.get("artifact") is None:
+        return False
+    contract_version = artifact.get("contract_version")
+    if contract_version is not None and (
+        type(contract_version) is not int or contract_version != A2UI_CONTRACT_VERSION
+    ):
+        return False
+    a2ui_version = artifact.get("a2ui_version")
+    if a2ui_version is not None and type(a2ui_version) is not int:
+        return False
+    if a2ui_version is not None and a2ui_version != A2UI_VERSION:
+        return False
+    return True
 
 
 def _is_malformed_terminal_artifact_raw_leaf_card_default_envelope(artifact: Any) -> bool:

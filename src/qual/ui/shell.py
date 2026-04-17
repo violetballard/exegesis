@@ -21,6 +21,10 @@ from .a2ui import (
     _render_invalid_terminal_action,
     _render_invalid_terminal_card,
     _render_invalid_terminal_selection,
+    _is_malformed_terminal_artifact_envelope,
+    _normalize_terminal_artifact_envelope_kind,
+    _infer_terminal_artifact_explicit_kind,
+    _recover_terminal_artifact_leaf_kind,
 )
 
 
@@ -29,6 +33,18 @@ class ShellUI:
 
     def render_artifact(self, artifact: Any, *, kind: str | None = None) -> str:
         normalized_kind = self._normalize_fallback_kind(kind)
+        if normalized_kind == "card" and isinstance(artifact, Mapping) and _is_malformed_terminal_artifact_envelope(artifact):
+            payload = artifact.get("artifact")
+            envelope_kind = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
+            if _should_preserve_raw_leaf_card_default(payload):
+                if envelope_kind == "card":
+                    return _render_invalid_terminal_card(artifact)
+            else:
+                payload_kind = _infer_terminal_artifact_explicit_kind(payload)
+                if payload_kind not in {"action", "selection"}:
+                    payload_kind = _recover_terminal_artifact_leaf_kind(payload)
+                if payload_kind in {"action", "selection"}:
+                    return _render_invalid_terminal_card(artifact)
         resolved_fallback: tuple[Any, str | None] | None = None
         if normalized_kind == "card":
             try:
