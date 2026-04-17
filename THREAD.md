@@ -21,8 +21,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   slice.
 - Reviewer-required fix satisfied on this branch by:
   - explicit canonical demo-path step mapping in `THREAD_PACKET.md`
-  - a concrete tie-back to the Milestone 3 requirement that the CLI must keep
-    the MVP loop executable while Textual remains disabled
+  - a reviewer-requested tie-back to the Milestone 3 requirement that the CLI
+    must keep the MVP loop executable while Textual remains disabled
 - Feature-fixer validation on `2026-04-17`: the required local gates were
   rerun and passed on this metadata-refresh branch tip:
   - `make scope-check`
