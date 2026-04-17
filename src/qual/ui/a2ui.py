@@ -18,6 +18,7 @@ TERMINAL_FALLBACK_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_RENDER_TARGET_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION = 1
+TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_SCHEMA_VERSION = 1
@@ -251,6 +252,9 @@ def describe_a2ui_contract(
     renderer_entrypoints = _snapshot_contract_section(manifest["schemas"]["terminal_artifact"]["renderer_entrypoints"])
     manifest["renderer_entrypoints"] = renderer_entrypoints
     manifest["renderer_entrypoints_fingerprint"] = _fingerprint_manifest_section(renderer_entrypoints)
+    renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
+    manifest["renderer_entrypoints_contract"] = _snapshot_contract_section(renderer_entrypoints_contract)
+    manifest["renderer_entrypoints_contract_fingerprint"] = renderer_entrypoints_contract["contract_fingerprint"]
     terminal_artifact_cli_fallback = _snapshot_contract_section(
         manifest["schemas"]["terminal_artifact_cli_fallback"]
     )
@@ -295,6 +299,9 @@ def describe_a2ui_contract(
     renderer_entrypoints = _snapshot_contract_section(terminal_artifact_contract["renderer_entrypoints"])
     manifest["renderer_entrypoints"] = renderer_entrypoints
     manifest["renderer_entrypoints_fingerprint"] = _fingerprint_manifest_section(renderer_entrypoints)
+    renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
+    manifest["renderer_entrypoints_contract"] = _snapshot_contract_section(renderer_entrypoints_contract)
+    manifest["renderer_entrypoints_contract_fingerprint"] = renderer_entrypoints_contract["contract_fingerprint"]
     manifest["terminal_artifact_render_target_contract"] = _snapshot_contract_section(
         terminal_artifact_render_target
     )
@@ -503,6 +510,10 @@ def describe_a2ui_contract_fingerprints(
             ("terminal_artifact_rendering", terminal_artifact_rendering_contract_fingerprint()),
             ("terminal_artifact_cli_fallback", terminal_artifact_cli_fallback_contract_fingerprint()),
             (
+                "renderer_entrypoints_contract",
+                terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+            ),
+            (
                 "terminal_artifact_cli_fallback_target",
                 terminal_artifact_cli_fallback_target_contract_fingerprint(),
             ),
@@ -584,6 +595,9 @@ def _build_a2ui_schema_versions_manifest(
         "terminal_fallback_schema_version": TERMINAL_FALLBACK_SCHEMA_VERSION,
         "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
         "terminal_artifact_render_target_schema_version": TERMINAL_ARTIFACT_RENDER_TARGET_SCHEMA_VERSION,
+        "terminal_artifact_renderer_entrypoints_schema_version": (
+            TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION
+        ),
         "terminal_artifact_rendering_schema_version": TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION,
         "terminal_artifact_cli_fallback_schema_version": TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
         "terminal_artifact_cli_fallback_target_schema_version": TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_SCHEMA_VERSION,
@@ -770,6 +784,9 @@ def describe_terminal_artifact_contract(
     )
     manifest["renderer_entrypoints"] = renderer_entrypoints
     manifest["renderer_entrypoints_fingerprint"] = _fingerprint_manifest_section(renderer_entrypoints)
+    renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
+    manifest["renderer_entrypoints_contract"] = _snapshot_contract_section(renderer_entrypoints_contract)
+    manifest["renderer_entrypoints_contract_fingerprint"] = renderer_entrypoints_contract["contract_fingerprint"]
     if include_terminal_artifact_cli_fallback_route and "terminal_artifact_cli_fallback_route" in manifest:
         terminal_artifact_cli_fallback_route = _snapshot_contract_section(
             manifest["terminal_artifact_cli_fallback_route"]
@@ -908,6 +925,9 @@ def describe_terminal_artifact_rendering_contract() -> dict[str, Any]:
         terminal_artifact_render_target_contract_fingerprint()
     )
     manifest["renderer_entrypoints_fingerprint"] = _fingerprint_manifest_section(manifest["renderer_entrypoints"])
+    renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
+    manifest["renderer_entrypoints_contract"] = _snapshot_contract_section(renderer_entrypoints_contract)
+    manifest["renderer_entrypoints_contract_fingerprint"] = renderer_entrypoints_contract["contract_fingerprint"]
     manifest["raw_leaf_card_default_contract_fingerprint"] = manifest["raw_leaf_card_default_contract"][
         "contract_fingerprint"
     ]
@@ -923,6 +943,17 @@ def describe_terminal_artifact_rendering_contract() -> dict[str, Any]:
     manifest["terminal_fallback_contract_fingerprint"] = manifest["terminal_fallback_contract"][
         "contract_fingerprint"
     ]
+    return manifest
+
+
+def describe_terminal_artifact_renderer_entrypoints_contract() -> dict[str, Any]:
+    """Return the stable terminal artifact renderer-entrypoints contract manifest."""
+
+    manifest = _build_terminal_artifact_renderer_entrypoints_contract_manifest()
+    fingerprint = terminal_artifact_renderer_entrypoints_contract_fingerprint()
+    manifest["renderer_entrypoints_contract"] = _snapshot_contract_section(manifest["renderer_entrypoints"])
+    manifest["renderer_entrypoints_contract_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
     return manifest
 
 
@@ -952,6 +983,10 @@ def describe_terminal_artifact_rendering_contract_fingerprints(
             ),
             ("terminal_artifact_render_target", terminal_artifact_render_target_contract_fingerprint()),
             ("terminal_artifact_rendering_contract", terminal_artifact_rendering_contract_fingerprint()),
+            (
+                "renderer_entrypoints_contract",
+                terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+            ),
             (
                 "terminal_artifact_raw_leaf_card_default",
                 terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
@@ -1007,6 +1042,9 @@ def describe_terminal_artifact_cli_fallback_contract(
         terminal_artifact_render_target_contract_fingerprint()
     )
     manifest["renderer_entrypoints_fingerprint"] = _fingerprint_manifest_section(manifest["renderer_entrypoints"])
+    renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
+    manifest["renderer_entrypoints_contract"] = _snapshot_contract_section(renderer_entrypoints_contract)
+    manifest["renderer_entrypoints_contract_fingerprint"] = renderer_entrypoints_contract["contract_fingerprint"]
     manifest["terminal_fallback_contract_fingerprint"] = manifest["terminal_fallback_contract"][
         "contract_fingerprint"
     ]
@@ -1036,6 +1074,9 @@ def describe_terminal_artifact_cli_fallback_target_contract(
     manifest["renderer_entrypoints_fingerprint"] = _fingerprint_manifest_section(
         manifest["renderer_entrypoints"]
     )
+    renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
+    manifest["renderer_entrypoints_contract"] = _snapshot_contract_section(renderer_entrypoints_contract)
+    manifest["renderer_entrypoints_contract_fingerprint"] = renderer_entrypoints_contract["contract_fingerprint"]
     return manifest
 
 
@@ -1086,6 +1127,10 @@ def describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
             (
                 "terminal_artifact_cli_fallback_target_contract",
                 terminal_artifact_cli_fallback_target_contract_fingerprint(),
+            ),
+            (
+                "renderer_entrypoints_contract",
+                terminal_artifact_renderer_entrypoints_contract_fingerprint(),
             ),
             (
                 "terminal_artifact_raw_leaf_card_default",
@@ -1193,6 +1238,10 @@ def describe_terminal_artifact_contract_fingerprints(
             (
                 "terminal_artifact_cli_fallback_contract",
                 terminal_artifact_cli_fallback_contract_fingerprint(),
+            ),
+            (
+                "renderer_entrypoints_contract",
+                terminal_artifact_renderer_entrypoints_contract_fingerprint(),
             ),
             (
                 "terminal_artifact_cli_fallback_target",
@@ -1307,6 +1356,10 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
             (
                 "terminal_artifact_cli_fallback_contract",
                 terminal_artifact_cli_fallback_contract_fingerprint(),
+            ),
+            (
+                "renderer_entrypoints_contract",
+                terminal_artifact_renderer_entrypoints_contract_fingerprint(),
             ),
             (
                 "terminal_artifact_cli_fallback_target",
@@ -1505,6 +1558,24 @@ def _build_terminal_artifact_renderer_entrypoints() -> dict[str, str]:
     """Return the canonical renderer-entrypoint map shared by A2UI manifests."""
 
     return {entrypoint: renderer for entrypoint, renderer in _TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS}
+
+
+def _build_terminal_artifact_renderer_entrypoints_contract_manifest() -> dict[str, Any]:
+    renderer_entrypoints = _build_terminal_artifact_renderer_entrypoints()
+    renderer_entrypoints_fingerprint = _fingerprint_manifest_section(renderer_entrypoints)
+    return {
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
+        "terminal_artifact_renderer_entrypoints_schema_version": TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
+        "terminal_artifact_renderer_entrypoints_version": TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
+        "type": "TerminalArtifactRendererEntrypointsContract",
+        "renderer_entrypoints": renderer_entrypoints,
+        "renderer_entrypoints_fingerprint": renderer_entrypoints_fingerprint,
+        "contract_fingerprints": {
+            "renderer_entrypoints": renderer_entrypoints_fingerprint,
+        },
+    }
 
 
 def _build_terminal_artifact_cli_fallback_route_contract_fingerprints() -> dict[str, str]:
@@ -2677,6 +2748,13 @@ def terminal_artifact_rendering_contract_fingerprint() -> str:
     """Return a stable fingerprint for the terminal artifact rendering manifest."""
 
     manifest = _build_terminal_artifact_rendering_contract_manifest()
+    return _fingerprint_manifest_section(manifest)
+
+
+def terminal_artifact_renderer_entrypoints_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the terminal artifact renderer-entrypoints manifest."""
+
+    manifest = _build_terminal_artifact_renderer_entrypoints_contract_manifest()
     return _fingerprint_manifest_section(manifest)
 
 

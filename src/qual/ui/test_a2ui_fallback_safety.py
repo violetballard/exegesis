@@ -48,6 +48,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_fallback_recovery_contract,
     describe_terminal_artifact_render_target_contract,
     describe_terminal_artifact_render_target_contract_fingerprints,
+    describe_terminal_artifact_renderer_entrypoints_contract,
     describe_terminal_artifact_rendering_contract,
     describe_terminal_artifact_rendering_contract_fingerprints,
     describe_terminal_fallback_contract,
@@ -77,6 +78,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_raw_leaf_card_default_contract_fingerprint,
     terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint,
     terminal_artifact_render_target_contract_fingerprint,
+    terminal_artifact_renderer_entrypoints_contract_fingerprint,
     _build_terminal_artifact_renderer_entrypoints,
     terminal_artifact_kind_resolution_fingerprint,
     terminal_artifact_fallback_recovery_fingerprint,
@@ -85,6 +87,7 @@ from src.qual.ui.a2ui import (
     terminal_fallback_contract_fingerprint,
     TERMINAL_ARTIFACT_SCHEMA_VERSION,
     TERMINAL_ARTIFACT_RENDER_TARGET_SCHEMA_VERSION,
+    TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
     TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION,
     TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
     TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_SCHEMA_VERSION,
@@ -160,6 +163,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIs(public_ui.ALLOWED_ACTION_IDS, ALLOWED_ACTION_IDS)
         self.assertIs(public_ui.REQUIRED_PRIMITIVE_BLOCKS, REQUIRED_PRIMITIVE_BLOCKS)
         self.assertIs(public_ui.PolicyGate, PolicyGate)
+        self.assertEqual(
+            public_ui.TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
+            TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
+        )
+        self.assertIs(
+            public_ui.describe_terminal_artifact_renderer_entrypoints_contract,
+            describe_terminal_artifact_renderer_entrypoints_contract,
+        )
+        self.assertIs(
+            public_ui.terminal_artifact_renderer_entrypoints_contract_fingerprint,
+            terminal_artifact_renderer_entrypoints_contract_fingerprint,
+        )
         self.assertIs(
             public_ui.terminal_artifact_cli_fallback_route_contract_fingerprint,
             terminal_artifact_cli_fallback_route_contract_fingerprint,
@@ -404,6 +419,73 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
+    def test_terminal_artifact_renderer_entrypoints_contract_is_versioned_and_embedded_in_a2ui_contract(
+        self,
+    ) -> None:
+        manifest = describe_terminal_artifact_renderer_entrypoints_contract()
+        rendering_manifest = describe_terminal_artifact_rendering_contract()
+        cli_manifest = describe_terminal_artifact_cli_fallback_contract()
+        terminal_artifact_manifest = describe_terminal_artifact_contract()
+        a2ui_manifest = describe_a2ui_contract()
+        rendering_fingerprints = describe_terminal_artifact_rendering_contract_fingerprints(
+            include_contract_aliases=True,
+        )
+        cli_fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints(
+            include_contract_aliases=True,
+        )
+        a2ui_fingerprints = describe_a2ui_contract_fingerprints(include_contract_aliases=True)
+        fingerprint = terminal_artifact_renderer_entrypoints_contract_fingerprint()
+        renderer_entrypoints = _build_terminal_artifact_renderer_entrypoints()
+
+        self.assertEqual(manifest["contract_version"], 2)
+        self.assertEqual(manifest["a2ui_version"], 1)
+        self.assertEqual(manifest["terminal_artifact_schema_version"], TERMINAL_ARTIFACT_SCHEMA_VERSION)
+        self.assertEqual(
+            manifest["terminal_artifact_renderer_entrypoints_schema_version"],
+            TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_renderer_entrypoints_version"],
+            TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
+        )
+        self.assertEqual(manifest["type"], "TerminalArtifactRendererEntrypointsContract")
+        self.assertEqual(manifest["renderer_entrypoints"], renderer_entrypoints)
+        self.assertEqual(manifest["renderer_entrypoints_contract"], renderer_entrypoints)
+        self.assertEqual(
+            manifest["renderer_entrypoints_fingerprint"],
+            _fingerprint_manifest_section(manifest["renderer_entrypoints"]),
+        )
+        self.assertEqual(manifest["renderer_entrypoints_contract_fingerprint"], fingerprint)
+        self.assertEqual(manifest["contract_fingerprint"], fingerprint)
+        self.assertEqual(
+            manifest["contract_fingerprints"],
+            {"renderer_entrypoints": manifest["renderer_entrypoints_fingerprint"]},
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["renderer_entrypoints"],
+            manifest["renderer_entrypoints_fingerprint"],
+        )
+        self.assertEqual(rendering_manifest["renderer_entrypoints_contract"], manifest)
+        self.assertEqual(rendering_manifest["renderer_entrypoints_contract_fingerprint"], fingerprint)
+        self.assertEqual(cli_manifest["renderer_entrypoints_contract"], manifest)
+        self.assertEqual(cli_manifest["renderer_entrypoints_contract_fingerprint"], fingerprint)
+        self.assertEqual(terminal_artifact_manifest["renderer_entrypoints_contract"], manifest)
+        self.assertEqual(
+            terminal_artifact_manifest["renderer_entrypoints_contract_fingerprint"],
+            fingerprint,
+        )
+        self.assertEqual(a2ui_manifest["renderer_entrypoints_contract"], manifest)
+        self.assertEqual(a2ui_manifest["renderer_entrypoints_contract_fingerprint"], fingerprint)
+        self.assertEqual(rendering_fingerprints["renderer_entrypoints_contract"], fingerprint)
+        self.assertEqual(
+            rendering_fingerprints["renderer_entrypoints_contract_fingerprint"],
+            fingerprint,
+        )
+        self.assertEqual(cli_fingerprints["renderer_entrypoints_contract"], fingerprint)
+        self.assertEqual(cli_fingerprints["renderer_entrypoints_contract_fingerprint"], fingerprint)
+        self.assertEqual(a2ui_fingerprints["renderer_entrypoints_contract"], fingerprint)
+        self.assertEqual(a2ui_fingerprints["renderer_entrypoints_contract_fingerprint"], fingerprint)
+
     def test_terminal_artifact_cli_fallback_target_contract_can_opt_into_route_contract(self) -> None:
         manifest = describe_terminal_artifact_cli_fallback_target_contract(
             include_terminal_artifact_cli_fallback_route=True,
@@ -626,6 +708,9 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "terminal_fallback_schema_version": 1,
                 "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
                 "terminal_artifact_render_target_schema_version": TERMINAL_ARTIFACT_RENDER_TARGET_SCHEMA_VERSION,
+                "terminal_artifact_renderer_entrypoints_schema_version": (
+                    TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION
+                ),
                 "terminal_artifact_rendering_schema_version": TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION,
                 "terminal_artifact_cli_fallback_schema_version": TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
                 "terminal_artifact_cli_fallback_target_schema_version": TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_SCHEMA_VERSION,
