@@ -2895,13 +2895,30 @@ def command_resolve_argv_for(
             matched=False,
         )
 
+    resolved_argv = command_cli_shim_argv_for(specs, raw_argv, flow_steps)
+    spec = command_spec_for(specs, resolved.canonical_name)
+    if (
+        len(raw_argv) > 1
+        and resolved.kind == "primary"
+        and spec is not None
+        and spec.shim_argv
+        and len(resolved.smoke_argv) > 1
+    ):
+        # Keep direct canonical invocations aligned with alias-backed parser defaults
+        # when the command surface uses shimmed demo-path routes.
+        resolved_argv = _merge_shim_argv(
+            resolved.smoke_argv,
+            raw_argv[1:],
+            pinned_options=_shim_pinned_options_lookup(specs).get(resolved.normalized_token, frozenset()),
+        )
+
     return ResolvedCommand(
         token=resolved.token,
         normalized_token=resolved.normalized_token,
         canonical_name=resolved.canonical_name,
         flow_step=resolved.flow_step,
         primary_cli_token=resolved.primary_cli_token,
-        argv=command_cli_shim_argv_for(specs, raw_argv, flow_steps),
+        argv=resolved_argv,
         smoke_argv=resolved.smoke_argv,
         cli_tokens=resolved.cli_tokens,
         lookup_tokens=resolved.lookup_tokens,
