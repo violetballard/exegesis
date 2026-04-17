@@ -261,6 +261,9 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_cli_fallback_contract_fingerprint"] = manifest[
         "terminal_artifact_cli_fallback_fingerprint"
     ]
+    manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"] = _snapshot_contract_section(
+        terminal_artifact_contract["terminal_artifact_cli_fallback_target_contract_fingerprints"]
+    )
     manifest["contract_fingerprints"] = _build_a2ui_contract_fingerprint_summary()
     return manifest
 
@@ -1095,6 +1098,9 @@ def _build_terminal_artifact_contract_manifest(*, include_contract_fingerprints:
         "terminal_artifact_cli_fallback_target_contract_fingerprint": cli_fallback_target_contract[
             "contract_fingerprint"
         ],
+        "terminal_artifact_cli_fallback_target_contract_fingerprints": _snapshot_contract_section(
+            cli_fallback_target_contract["contract_fingerprints"]
+        ),
         "terminal_artifact_render_target_fingerprint": terminal_artifact_render_target_contract_fingerprint(),
         "terminal_artifact_rendering_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
         "raw_leaf_card_default_contract_fingerprint": raw_leaf_card_default_contract["contract_fingerprint"],
@@ -1202,6 +1208,9 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "terminal_artifact_cli_fallback_target_contract_fingerprint": terminal_artifact_cli_fallback_target_contract[
             "contract_fingerprint"
         ],
+        "terminal_artifact_cli_fallback_target_contract_fingerprints": _snapshot_contract_section(
+            terminal_artifact_cli_fallback_target_contract["contract_fingerprints"]
+        ),
         "raw_leaf_card_default": _build_terminal_artifact_raw_leaf_card_default_manifest(),
         "raw_leaf_card_default_contract": raw_leaf_card_default_contract,
         "terminal_artifact_raw_leaf_card_default_contract": _snapshot_contract_section(
@@ -1247,6 +1256,7 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest() -> dict[str
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
         "raw_leaf_card_default_contract": raw_leaf_card_default_contract,
         "raw_leaf_card_default_contract_fingerprint": raw_leaf_card_default_contract["contract_fingerprint"],
+        "terminal_artifact_cli_fallback_target_contract_fingerprints": describe_terminal_artifact_cli_fallback_target_contract_fingerprints(),
         "contract_fingerprints": describe_terminal_artifact_cli_fallback_target_contract_fingerprints(),
     }
 

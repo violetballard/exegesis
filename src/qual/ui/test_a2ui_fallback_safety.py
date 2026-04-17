@@ -251,6 +251,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         )
         self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            describe_terminal_artifact_cli_fallback_target_contract_fingerprints(),
+        )
+        self.assertEqual(
             manifest["contract_fingerprint"],
             terminal_artifact_cli_fallback_target_contract_fingerprint(),
         )
@@ -451,6 +455,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 manifest["schemas"]["terminal_artifact_cli_fallback"],
             ),
             (
+                "terminal_artifact_cli_fallback_target_contract_fingerprints",
+                manifest["terminal_artifact"]["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            ),
+            (
                 "terminal_artifact_raw_leaf_card_default",
                 manifest["terminal_artifact"]["raw_leaf_card_default_contract"],
             ),
@@ -541,6 +549,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["terminal_artifact"]["terminal_artifact_cli_fallback_target_contract_fingerprint"],
             terminal_artifact_cli_fallback_target_contract_fingerprint(),
         )
+        self.assertEqual(
+            manifest["terminal_artifact"]["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            describe_terminal_artifact_cli_fallback_target_contract_fingerprints(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            describe_terminal_artifact_cli_fallback_target_contract_fingerprints(),
+        )
         self.assertEqual(manifest["terminal_artifact_contract"], describe_terminal_artifact_contract())
         self.assertEqual(
             manifest["terminal_artifact_contract_fingerprint"],
@@ -582,6 +598,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_target_contract_fingerprint"],
             terminal_artifact_cli_fallback_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            describe_terminal_artifact_cli_fallback_target_contract_fingerprints(),
         )
         self.assertEqual(
             manifest["schemas"]["terminal_artifact_cli_fallback_target"],
@@ -874,6 +894,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["terminal_artifact_render_target_fingerprint"],
             terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            cli_fallback_target_manifest["contract_fingerprints"],
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback"]["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            cli_fallback_target_manifest["contract_fingerprints"],
         )
         self.assertEqual(
             manifest["raw_leaf_card_default_contract_fingerprint"],
