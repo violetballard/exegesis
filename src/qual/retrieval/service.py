@@ -101,6 +101,16 @@ def _normalize_source_strategy(value: object) -> Literal["fts"]:
     return _FTS_SOURCE_STRATEGY
 
 
+def _resolve_title_hint_confidentiality_profile(*values: object) -> str:
+    for value in values:
+        normalized = _normalized_profile_text(value)
+        if normalized in _SUPPORTED_CONFIDENTIALITY_PROFILES:
+            return normalized
+    # Fail closed so sparse excerpt rehydration never leaks a raw title hint
+    # when the original lookup confidentiality profile is absent.
+    return "confidential"
+
+
 def _optional_int(value: object) -> int | None:
     if value is None or isinstance(value, bool):
         return None
@@ -2666,8 +2676,21 @@ class RetrievalService:
         title_hint = _normalized_text(normalized.get("title_hint"))
         if title_hint is None:
             title_hint = _normalized_text(provenance.get("title_hint"))
+        if title_hint is None:
+            doc_meta_title_hint = _normalized_text(doc_meta.get("title_hint"))
+            if doc_meta_title_hint is not None:
+                title_hint = self._safe_title_hint(
+                    doc_meta_title_hint,
+                    confidentiality_profile=_resolve_title_hint_confidentiality_profile(
+                        canonical_lookup_confidentiality_profile,
+                        normalized.get("query_confidentiality_profile"),
+                        provenance.get("query_confidentiality_profile"),
+                    ),
+                )
         if title_hint is not None:
             normalized["title_hint"] = title_hint
+            if _normalized_text(provenance.get("title_hint")) is None:
+                provenance = {**provenance, "title_hint": title_hint}
         elif "title_hint" in normalized:
             normalized["title_hint"] = None
 
