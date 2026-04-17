@@ -118,6 +118,25 @@ class CommandDemoLoopContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoCompatibilityEntry:
+    token: str
+    canonical_token: str
+    canonical_name: str
+    flow_step: str
+    argv: tuple[str, ...]
+    description: str
+    kind: str
+
+
+@dataclass(frozen=True)
+class CommandDemoCompatibilityContract:
+    tokens: tuple[str, ...]
+    entries: tuple[CommandDemoCompatibilityEntry, ...]
+    lookup_table: tuple[tuple[str, str], ...] = ()
+    invocation_table: tuple[tuple[str, tuple[str, ...]], ...] = ()
+
+
+@dataclass(frozen=True)
 class CommandFlowSequence:
     flow_steps: tuple[str, ...]
     names: tuple[str, ...]
@@ -2799,6 +2818,19 @@ def _validate_command_demo_loop_contract(contract: CommandDemoLoopContract) -> N
         raise ValueError("Command demo loop lookup table is inconsistent")
 
 
+def _validate_command_demo_compatibility_contract(contract: CommandDemoCompatibilityContract) -> None:
+    if contract.tokens != tuple(entry.token for entry in contract.entries):
+        raise ValueError("Command demo compatibility tokens are inconsistent")
+    if contract.lookup_table != tuple((entry.token, entry.canonical_name) for entry in contract.entries):
+        raise ValueError("Command demo compatibility lookup table is inconsistent")
+    if contract.invocation_table != tuple((entry.token, entry.argv) for entry in contract.entries):
+        raise ValueError("Command demo compatibility invocation table is inconsistent")
+    if any(entry.kind != "compatibility" for entry in contract.entries):
+        raise ValueError("Command demo compatibility kinds are inconsistent")
+    if any(entry.token == entry.canonical_token for entry in contract.entries):
+        raise ValueError("Command demo compatibility canonical tokens must differ from compatibility tokens")
+
+
 @lru_cache(maxsize=None)
 def command_demo_loop_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -2842,10 +2874,58 @@ def command_mvp_loop_contract(
     return command_demo_loop_contract(specs)
 
 
+@lru_cache(maxsize=None)
+def command_demo_compatibility_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoCompatibilityContract:
+    ordered_flow_steps = command_demo_flow_steps() if specs is COMMAND_SPECS else command_flow_steps(specs)
+    entries: list[CommandDemoCompatibilityEntry] = []
+    for token, canonical_token in _COMMAND_DEMO_COMPATIBILITY_TOKENS.items():
+        resolved = _resolve_demo_loop_token(specs, canonical_token, ordered_flow_steps=ordered_flow_steps)
+        entries.append(
+            CommandDemoCompatibilityEntry(
+                token=token,
+                canonical_token=canonical_token,
+                canonical_name=resolved.canonical_name,
+                flow_step=resolved.flow_step,
+                argv=resolved.argv,
+                description=_demo_loop_description_for(canonical_token, resolved),
+                kind="compatibility",
+            )
+        )
+    contract = CommandDemoCompatibilityContract(
+        tokens=tuple(entry.token for entry in entries),
+        entries=tuple(entries),
+        lookup_table=tuple((entry.token, entry.canonical_name) for entry in entries),
+        invocation_table=tuple((entry.token, entry.argv) for entry in entries),
+    )
+    _validate_command_demo_compatibility_contract(contract)
+    return contract
+
+
+@lru_cache(maxsize=None)
+def command_mvp_compatibility_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoCompatibilityContract:
+    return command_demo_compatibility_contract(specs)
+
+
 def command_demo_loop_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandDemoLoopEntry, ...]:
     return command_demo_loop_contract(specs).entries
+
+
+def command_demo_compatibility_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandDemoCompatibilityEntry, ...]:
+    return command_demo_compatibility_contract(specs).entries
+
+
+def command_mvp_compatibility_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandDemoCompatibilityEntry, ...]:
+    return command_demo_compatibility_catalog(specs)
 
 
 def command_mvp_loop_catalog(
@@ -2858,6 +2938,18 @@ def command_demo_loop_tokens(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[str, ...]:
     return command_demo_loop_contract(specs).tokens
+
+
+def command_demo_compatibility_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return command_demo_compatibility_contract(specs).tokens
+
+
+def command_mvp_compatibility_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return command_demo_compatibility_tokens(specs)
 
 
 def command_mvp_loop_tokens(
@@ -2884,6 +2976,18 @@ def command_demo_loop_lookup_table(
     return command_demo_loop_contract(specs).lookup_table
 
 
+def command_demo_compatibility_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_compatibility_contract(specs).lookup_table
+
+
+def command_mvp_compatibility_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_compatibility_lookup_table(specs)
+
+
 def command_mvp_loop_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
@@ -2895,6 +2999,20 @@ def command_demo_loop_surface_invocation_table(
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     """Flatten the canonical review/apply-or-reject/persist/export loop to parser-ready argv."""
     return tuple((entry.token, entry.argv) for entry in command_demo_loop_contract(specs).entries)
+
+
+def command_demo_compatibility_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Flatten legacy demo-loop verbs into parser-ready argv for smoke checks."""
+    return command_demo_compatibility_contract(specs).invocation_table
+
+
+def command_mvp_compatibility_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Flatten current MVP legacy demo-loop verbs into parser-ready argv for smoke checks."""
+    return command_demo_compatibility_invocation_table(specs)
 
 
 def command_mvp_loop_surface_invocation_table(

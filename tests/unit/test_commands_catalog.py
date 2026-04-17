@@ -108,6 +108,11 @@ from src.qual.commands import (
     command_demo_flow_surface_tokens,
     command_demo_smoke_argv,
     command_demo_smoke_contract,
+    command_demo_compatibility_contract,
+    command_demo_compatibility_catalog,
+    command_demo_compatibility_tokens,
+    command_demo_compatibility_lookup_table,
+    command_demo_compatibility_invocation_table,
     command_demo_loop_contract,
     command_demo_loop_catalog,
     command_demo_loop_invocation_plan,
@@ -135,6 +140,11 @@ from src.qual.commands import (
     command_tokens,
     command_flow_tokens,
     command_mvp_smoke_contract,
+    command_mvp_compatibility_contract,
+    command_mvp_compatibility_catalog,
+    command_mvp_compatibility_tokens,
+    command_mvp_compatibility_lookup_table,
+    command_mvp_compatibility_invocation_table,
     command_mvp_loop_contract,
     command_mvp_loop_catalog,
     command_mvp_loop_invocation_plan,
@@ -2204,6 +2214,228 @@ class CommandCatalogTests(unittest.TestCase):
                 ("reject-patch", "terminal"),
                 ("persist", "terminal"),
                 ("export-handoff", "terminal"),
+            ),
+        )
+
+    def test_command_demo_compatibility_contract_exposes_legacy_demo_verbs(self) -> None:
+        contract = command_demo_compatibility_contract()
+        self.assertEqual(contract, command_mvp_compatibility_contract())
+        self.assertEqual(contract.entries, command_demo_compatibility_catalog())
+        self.assertEqual(command_mvp_compatibility_catalog(), command_demo_compatibility_catalog())
+        self.assertEqual(contract.lookup_table, command_demo_compatibility_lookup_table())
+        self.assertEqual(command_mvp_compatibility_lookup_table(), command_demo_compatibility_lookup_table())
+        self.assertEqual(command_mvp_compatibility_tokens(), command_demo_compatibility_tokens())
+        self.assertEqual(
+            contract.tokens,
+            ("open-project", "review", "preview-patch", "save", "continue", "apply", "reject"),
+        )
+        self.assertEqual(
+            tuple(
+                (entry.token, entry.canonical_token, entry.canonical_name, entry.flow_step, entry.kind, entry.argv)
+                for entry in contract.entries
+            ),
+            (
+                (
+                    "open-project",
+                    "project-open",
+                    "bootstrap",
+                    "project-open",
+                    "compatibility",
+                    ("bootstrap", "--project", "demo"),
+                ),
+                (
+                    "review",
+                    "patch-review",
+                    "diff-preview",
+                    "patch-review",
+                    "compatibility",
+                    ("diff-preview", "--original", "before", "--proposed", "after"),
+                ),
+                (
+                    "preview-patch",
+                    "patch-review",
+                    "diff-preview",
+                    "patch-review",
+                    "compatibility",
+                    ("diff-preview", "--original", "before", "--proposed", "after"),
+                ),
+                (
+                    "save",
+                    "persist",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "continue",
+                    "persist",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "apply",
+                    "apply-patch",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "reject",
+                    "reject-patch",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+            ),
+        )
+        self.assertEqual(
+            command_demo_compatibility_invocation_table(),
+            (
+                ("open-project", ("bootstrap", "--project", "demo")),
+                ("review", ("diff-preview", "--original", "before", "--proposed", "after")),
+                ("preview-patch", ("diff-preview", "--original", "before", "--proposed", "after")),
+                (
+                    "save",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "continue",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "apply",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "reject",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+            ),
+        )
+
+    def test_command_demo_compatibility_contract_tracks_custom_specs(self) -> None:
+        specs = (
+            CommandSpec(
+                name="bootstrap",
+                aliases=("open",),
+                cli_tokens=("bootstrap-run",),
+                smoke_argv=("bootstrap-run", "--project", "demo"),
+                flow_step="project-open",
+            ),
+            CommandSpec(
+                name="context-basket",
+                aliases=("retrieve",),
+                cli_tokens=("context-basket",),
+                smoke_argv=("context-basket", "list"),
+                flow_step="retrieval",
+            ),
+            CommandSpec(
+                name="diff-preview",
+                aliases=("review-patch",),
+                cli_tokens=("review-diff",),
+                smoke_argv=("review-diff", "--original", "before", "--proposed", "after"),
+                flow_step="patch-review",
+            ),
+            CommandSpec(
+                name="terminal",
+                aliases=("save-export", "persist-continue", "patch-apply", "patch-reject"),
+                cli_tokens=("terminal",),
+                smoke_argv=(
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_synthesis_request",
+                    "--message",
+                    "Export handoff",
+                ),
+                surface_argv=(
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_synthesis_request",
+                    "--message",
+                    "Export handoff",
+                ),
+                shim_argv=(
+                    (
+                        "save-export",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Export handoff",
+                        ),
+                    ),
+                    (
+                        "persist-continue",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Persist and continue",
+                        ),
+                    ),
+                    (
+                        "patch-apply",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_tool_orchestration",
+                            "--message",
+                            "Apply patch",
+                        ),
+                    ),
+                    (
+                        "patch-reject",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_tool_orchestration",
+                            "--message",
+                            "Reject patch",
+                        ),
+                    ),
+                ),
+                shim_pinned_options=(
+                    ("save-export", ("--operation-kind",)),
+                    ("persist-continue", ("--operation-kind",)),
+                    ("patch-apply", ("--operation-kind",)),
+                    ("patch-reject", ("--operation-kind",)),
+                ),
+                flow_step="export-handoff",
+            ),
+        )
+
+        contract = command_demo_compatibility_contract(specs)
+
+        self.assertEqual(contract.tokens, command_demo_compatibility_tokens())
+        self.assertEqual(
+            contract.invocation_table,
+            (
+                ("open-project", ("bootstrap-run", "--project", "demo")),
+                ("review", ("review-diff", "--original", "before", "--proposed", "after")),
+                ("preview-patch", ("review-diff", "--original", "before", "--proposed", "after")),
+                (
+                    "save",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "continue",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "apply",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "reject",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
             ),
         )
 
