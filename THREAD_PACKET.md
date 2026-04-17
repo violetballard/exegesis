@@ -107,6 +107,7 @@
 ## Verification Note
 
 - Re-verified on the current `codex/feat-commands` branch tip that the reviewer-required fixes are present in the implementation: `command_cli_contract()` now rejects full parser-surface drift for the default catalog, and `tests/unit/test_commands_catalog.py` covers alias-substitution and extra-entrypoint drift where canonical command order alone would still match.
+- This handoff refresh is tied to a full gate rerun on branch tip `codex/feat-commands`, including the explicit shared-file invocation `SCOPE_ALLOW_SHARED=1 make scope-check`, so the reviewer can verify the approved test-file exception against the exact command reported in this packet.
 
 ## Risks / Blockers
 
