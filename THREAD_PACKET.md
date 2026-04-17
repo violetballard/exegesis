@@ -26,7 +26,7 @@
 
 ### Checkpoint Status
 
-- `plan complete`: refreshed the operative handoff packet again for this fixer pass from pre-fix branch tip `3427962ade792c7dd5bff0ac41a58b14cbf3c136` while preserving the narrowed implementation slice and explicit AGENTS demo-path statement.
+- `plan complete`: refreshed the operative handoff packet again for this fixer pass from pre-fix branch tip `8b219039ab16d934eb41b96d5143504e203f644e` while preserving the narrowed implementation slice and explicit AGENTS demo-path statement.
 - `first green tests`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on this fixer pass.
 - `before risky/shared file edit`: no new shared code edit was needed; the only shared implementation file in the reviewed range remains the approved regression surface `tests/unit/test_unified_retrieval.py`.
 - `ready for handoff`: the operative handoff packet carries the narrowed scope and canonical demo-path statement required for re-review.
