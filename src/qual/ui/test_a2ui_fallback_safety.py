@@ -857,6 +857,23 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(render_terminal_cli_fallback(envelope), render_terminal_artifact(envelope))
 
+    def test_terminal_artifact_cli_fallback_entrypoint_survives_generic_renderer_failure(self) -> None:
+        envelope = build_terminal_artifact_envelope(
+            ActionRef(
+                id=" export_document ",
+                label=" Export ",
+                payload={"format": "md"},
+            ),
+            kind="action",
+        )
+
+        with patch("src.qual.ui.a2ui.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            text = render_terminal_cli_fallback(envelope)
+
+        self.assertIn("[ActionRef] Export", text)
+        self.assertIn("Action schema v1", text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+
     def test_terminal_artifact_cli_fallback_contract_fingerprints_are_public_and_canonical(self) -> None:
         manifest = describe_terminal_artifact_cli_fallback_contract()
         fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints()

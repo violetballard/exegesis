@@ -1769,9 +1769,33 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
 
 
 def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> str:
-    """Render a structured A2UI artifact through the explicit CLI fallback entrypoint."""
+    """Render a structured A2UI artifact through the explicit CLI fallback entrypoint.
 
-    return render_terminal_artifact(artifact, kind=kind)
+    The CLI fallback path stays independent from the generic artifact renderer
+    so terminal recovery can still work if the main dispatch path is broken.
+    """
+
+    requested_kind = None
+    if kind is not None:
+        requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+    malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
+    allow_invalid_envelope_recovery = malformed_envelope
+    if requested_kind == "card" and malformed_envelope:
+        payload = artifact.get("artifact") if isinstance(artifact, Mapping) else None
+        payload_kind = _infer_terminal_artifact_explicit_kind(payload)
+        if payload_kind not in {"action", "selection"}:
+            payload_kind = _recover_terminal_artifact_leaf_kind(payload)
+        if payload_kind in {"action", "selection"}:
+            return _render_invalid_terminal_card(artifact)
+    try:
+        artifact, resolved_kind = _resolve_terminal_artifact_render_target(
+            artifact,
+            requested_kind=requested_kind,
+            allow_invalid_envelope_recovery=allow_invalid_envelope_recovery,
+        )
+    except Exception:
+        return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
+    return _render_terminal_artifact_resolved(artifact, resolved_kind, requested_kind=requested_kind)
 
 
 render_terminal_a2ui = render_terminal_artifact
@@ -1790,6 +1814,58 @@ def resolve_terminal_artifact_render_target(
         requested_kind=requested_kind,
         allow_invalid_envelope_recovery=allow_invalid_envelope_recovery,
     )
+
+
+def _render_terminal_artifact_resolved(
+    artifact: Any,
+    resolved_kind: str,
+    *,
+    requested_kind: str | None = None,
+) -> str:
+    if resolved_kind == "action":
+        try:
+            return render_terminal_action(artifact)
+        except Exception:
+            return _render_invalid_terminal_action(artifact)
+    if resolved_kind == "selection":
+        try:
+            return render_terminal_selection(artifact)
+        except Exception:
+            return _render_invalid_terminal_selection(artifact)
+    if requested_kind != "card":
+        _validate_terminal_artifact_card_payload(artifact)
+    try:
+        return render_terminal_card(artifact)
+    except Exception:
+        return _render_invalid_terminal_card(artifact)
+
+
+def _render_terminal_artifact_cli_fallback_failure(
+    artifact: Any,
+    *,
+    requested_kind: str | None,
+) -> str:
+    fallback_kind = requested_kind
+    if fallback_kind is None:
+        fallback_kind = _infer_terminal_artifact_explicit_kind(artifact)
+    if fallback_kind is None and isinstance(artifact, Mapping):
+        fallback_kind = _infer_terminal_artifact_partial_leaf_kind(artifact)
+    if fallback_kind == "action":
+        try:
+            return render_terminal_action(artifact)
+        except Exception:
+            return _render_invalid_terminal_action(artifact)
+    if fallback_kind == "selection":
+        try:
+            return render_terminal_selection(artifact)
+        except Exception:
+            return _render_invalid_terminal_selection(artifact)
+    try:
+        if fallback_kind != "card":
+            _validate_terminal_artifact_card_payload(artifact)
+        return render_terminal_card(artifact)
+    except Exception:
+        return _render_invalid_terminal_card(artifact)
 
 
 def _resolve_terminal_artifact_card_fallback(
