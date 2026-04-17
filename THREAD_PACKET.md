@@ -42,7 +42,7 @@
 
 - `retrieve relevant material`
 
-This change advances the canonical demo-path step `retrieve relevant material` by making excerpt lookup fail closed to the authoritative SQLite FTS path before downstream basket-promotion and workflow use, without reintroducing PageIndex or embeddings as required runtime paths.
+This change advances the canonical demo-path step `retrieve relevant material` by making excerpt lookup fail closed to the authoritative SQLite FTS path, without reintroducing PageIndex or embeddings as required runtime paths.
 
 ## Required Reviewer Fixes Addressed
 
