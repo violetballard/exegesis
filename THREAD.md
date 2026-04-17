@@ -18,6 +18,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   a dedicated metadata-only re-review commit at the current tip.
 - The roadmap and vision impact text is tightened to the command-surface
   determinism and smoke-testability slice of the CLI compatibility layer.
+- The packet now limits its implementation claim to canonical-name alignment
+  and order preservation, matching the reviewed code and tests exactly.
 - No additional implementation files are added to the reviewer scope beyond
   `src/qual/commands/catalog.py` and
   `tests/unit/test_commands_catalog.py`.
