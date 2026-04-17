@@ -48,6 +48,19 @@
   this mapping stays concrete against the roadmap requirement that the CLI
   must still execute the MVP loop while Textual remains disabled.
 
+## Reviewer Fix Checklist
+
+1. Demo-path mapping fix:
+   this packet now names the exact canonical demo-path step advanced as
+   `open project/document`.
+2. Per-task mapping fix:
+   the completed-task list and the `Task-to-step mapping` block both tie the
+   recorded work back to that same `open project/document` step.
+3. Scope-tightening fix:
+   this slice only hardens deterministic behavior for existing MVP command
+   entrypoints and does not add new commands, new CLI UX, or non-loop
+   functionality.
+
 ## Feature-Fixer Validation
 
 - Revalidated against the reviewer packet dated `2026-04-17`.
@@ -298,10 +311,9 @@
    canonical-order alignment and drift rejection so the current CLI entry
    step fails loudly instead of drifting silently.
 4. Regenerated the handoff packet so the re-review reflects the current
-   branch-tip implementation and test evidence without expanding scope beyond
-   existing command entrypoints.
-5. Restated the handoff in the exact canonical demo-path wording
-   `open project/document` so AGENTS compliance is explicit at re-review time.
+   branch-tip implementation and test evidence, names the exact canonical
+   demo-path step `open project/document`, and confirms the slice only
+   hardens existing command entrypoints without expanding scope.
 
 ## Files Changed
 
@@ -338,6 +350,12 @@
 - This command-catalog hardening keeps that CLI entry step deterministic and
   rejects catalog/parser drift before the active CLI MVP loop can change
   silently while Textual remains disabled.
+- Per-task mapping:
+  task 1 hardens the `bootstrap` contract for `open project/document`,
+  task 2 preserves that step's canonical ordering in the returned contract,
+  task 3 proves that same step rejects parser drift under regression
+  coverage, and task 4 refreshes the packet so this mapping is explicit for
+  AGENTS compliance.
 - Reviewer-fix refresh note: this field is included explicitly so re-review
   does not have to infer the demo-path step from broader milestone language.
 
