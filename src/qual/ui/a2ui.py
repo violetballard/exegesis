@@ -1102,9 +1102,10 @@ def normalize_terminal_artifact_payload(artifact: Any, *, kind: str | None = Non
     when they arrive from the renderer path, and that hint is stripped before
     validation so the stored envelope stays on the canonical leaf shape. Card
     payloads are copied as mappings or dataclass snapshots so the envelope does
-    not retain references to mutable source objects. Unordered set-like values
-    are converted to sorted lists so the snapshot stays deterministic and
-    JSON-safe.
+    not retain references to mutable source objects. Card action lists are
+    canonicalized into a deterministic order so equivalent payloads produce the
+    same envelope snapshot. Unordered set-like values are converted to sorted
+    lists so the snapshot stays deterministic and JSON-safe.
     """
 
     normalized_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
@@ -1123,7 +1124,8 @@ def normalize_terminal_artifact_payload(artifact: Any, *, kind: str | None = Non
     if _should_preserve_raw_leaf_card_default(card_snapshot):
         return _copy_terminal_artifact_payload(card_snapshot)
     card_snapshot = _canonicalize_card_top_level_fields(card_snapshot)
-    return _copy_terminal_artifact_payload(card_snapshot)
+    card_snapshot = _copy_terminal_artifact_payload(card_snapshot)
+    return _canonicalize_terminal_artifact_card_actions(card_snapshot)
 
 
 def validate_terminal_artifact_envelope(envelope: Any) -> None:
@@ -3865,6 +3867,33 @@ def _canonical_json(payload: dict[str, Any]) -> str:
 def _canonicalize_card_top_level_fields(card: dict[str, Any]) -> dict[str, Any]:
     allowed_keys = ("type", "title", "subtitle", "a2ui_version", "debug", "blocks", "actions")
     return {key: card[key] for key in allowed_keys if key in card}
+
+
+def _canonicalize_terminal_artifact_card_actions(card: dict[str, Any]) -> dict[str, Any]:
+    actions = card.get("actions")
+    if not isinstance(actions, list):
+        return card
+
+    canonical_actions: list[Any] = []
+    seen: set[str] = set()
+    for action in actions:
+        snapshot = _snapshot_terminal_artifact_value(action)
+        action_key = _canonical_terminal_artifact_action_key(snapshot)
+        if action_key in seen:
+            continue
+        seen.add(action_key)
+        canonical_actions.append(snapshot)
+
+    return {
+        **card,
+        "actions": sorted(canonical_actions, key=_canonical_terminal_artifact_action_key),
+    }
+
+
+def _canonical_terminal_artifact_action_key(action: Any) -> str:
+    if isinstance(action, Mapping):
+        return _canonical_json(action)
+    return _canonical_json({"type": type(action).__name__, "value": action})
 
 
 def _render_payload_preview(

@@ -3122,7 +3122,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             [action["id"] for action in normalized["actions"]],
-            ["copy_to_clipboard", "apply_patch"],
+            ["apply_patch", "copy_to_clipboard"],
         )
         self.assertEqual(normalized["debug"]["tags"], ["beta", "alpha"])
         self.assertEqual(envelope["artifact"], normalized)
