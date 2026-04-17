@@ -2,6 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `reviewer-required fix finalization`
+- Re-review source of truth: `THREAD_PACKET.md` is the operative handoff packet for this fixer pass because the `.codex` sidecar metadata files are not writable in this worktree.
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
@@ -46,6 +47,8 @@ Canonical demo-path step advanced: `retrieve relevant material`, by making excer
 
 This change advances the canonical demo-path step `retrieve relevant material` by making excerpt retrieval fail closed to the authoritative SQLite FTS path before downstream basket-promotion and workflow use, without reintroducing PageIndex or embeddings as required runtime paths.
 
+This explicit AGENTS mapping is the reviewer-required handoff correction for re-review: the narrowed implementation range strengthens the `retrieve relevant material` step of the canonical engine demo path and does not expand scope beyond that retrieval contract fix.
+
 ## Fixer Pass Traceability
 
 - Fixer pass date: `2026-04-17`
@@ -54,6 +57,7 @@ This change advances the canonical demo-path step `retrieve relevant material` b
 - This metadata-only refresh preserves the reviewed implementation head, aligns the operative reviewed implementation range to the reviewer packet above, and keeps the handoff packet explicitly mapped to the canonical demo-path step `retrieve relevant material`.
 - This operative packet is the writable checked-in source of truth for the reviewer-required high-risk budget story and canonical demo-path mapping in this fixer pass.
 - `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are sandbox read-only in this worktree during the fixer pass, so they could not be refreshed here.
+- Re-review should treat this `THREAD_PACKET.md` entry as the authoritative handoff packet for the required-fix pass, including the explicit canonical demo-path step mapping and the narrowed reviewed implementation range above.
 
 ## Required Reviewer Fixes Addressed
 
