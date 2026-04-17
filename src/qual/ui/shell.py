@@ -29,8 +29,13 @@ class ShellUI:
 
     def render_artifact(self, artifact: Any, *, kind: str | None = None) -> str:
         normalized_kind = self._normalize_fallback_kind(kind)
-        if normalized_kind == "card" and self._contains_action_or_selection_payload(artifact):
-            # An explicit card hint should never render an action/selection leaf as a card.
+        if (
+            normalized_kind == "card"
+            and self._contains_action_or_selection_payload(artifact)
+            and not _should_preserve_raw_leaf_card_default(artifact)
+        ):
+            # Explicit card hints should still reject action/selection leaves,
+            # but preserve the direct raw-leaf card default path.
             return _render_invalid_terminal_card(artifact)
         fallback_artifact: Any = artifact
         fallback_kind: str | None
