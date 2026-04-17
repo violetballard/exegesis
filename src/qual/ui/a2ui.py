@@ -359,6 +359,12 @@ def describe_terminal_artifact_contract_fingerprints(
     return fingerprints
 
 
+def describe_terminal_artifact_cli_fallback_contract_fingerprints() -> dict[str, str]:
+    """Return stable fingerprints for the CLI fallback wrapper contract sections."""
+
+    return _build_terminal_artifact_cli_fallback_contract_fingerprints()
+
+
 def _build_terminal_artifact_cli_fallback_contract_fingerprints() -> dict[str, str]:
     return {
         "render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
@@ -704,7 +710,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         },
         "terminal_fallback_contract": terminal_fallback_contract,
         "terminal_artifact_rendering_contract": rendering_contract,
-        "contract_fingerprints": _build_terminal_artifact_cli_fallback_contract_fingerprints(),
+        "contract_fingerprints": describe_terminal_artifact_cli_fallback_contract_fingerprints(),
     }
 
 

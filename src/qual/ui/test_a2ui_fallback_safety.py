@@ -25,6 +25,7 @@ from src.qual.ui.a2ui import (
     describe_card_contract,
     describe_selection_contract,
     describe_terminal_artifact_cli_fallback_contract,
+    describe_terminal_artifact_cli_fallback_contract_fingerprints,
     describe_terminal_artifact_kind_contracts,
     describe_terminal_artifact_contract_fingerprints,
     describe_terminal_artifact_contract,
@@ -748,6 +749,26 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             describe_terminal_artifact_render_target_contract(),
         )
         self.assertEqual(a2ui_manifest["schemas"]["terminal_artifact_cli_fallback"], manifest)
+
+    def test_terminal_artifact_cli_fallback_contract_fingerprints_are_public_and_canonical(self) -> None:
+        manifest = describe_terminal_artifact_cli_fallback_contract()
+        fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints()
+
+        self.assertEqual(fingerprints, manifest["contract_fingerprints"])
+        self.assertEqual(
+            fingerprints["render_target_contract"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["rendering_contract"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_fallback_contract"],
+            terminal_fallback_contract_fingerprint(),
+        )
+        for fingerprint in fingerprints.values():
+            self.assertEqual(len(fingerprint), 64)
 
     def test_raw_leaf_card_default_helper_only_preserves_untyped_leaf_payloads(self) -> None:
         self.assertTrue(
