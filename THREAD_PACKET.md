@@ -14,7 +14,7 @@
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
+- Scope goal: Harden the canonical FTS-only excerpt lookup contract for the engine retrieval step and keep this packet explicitly tied to the demo-path step `retrieve relevant material`.
 - Risk reason: the reviewed implementation range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 
 ### Budget
@@ -58,7 +58,7 @@ This reviewed range makes `retrieve relevant material` more real by removing the
 ## Required reviewer fixes addressed
 
 1. Added an explicit AGENTS plan-alignment statement naming the canonical demo-path step this work advances: `retrieve relevant material`.
-2. Tied that statement to the narrowed diff by stating that removing the `fetch_excerpt` PageIndex fallback makes the canonical retrieval path strictly FTS-first, deterministic, and auditable.
+2. Tied that statement to the narrowed diff by stating that removing the `fetch_excerpt` PageIndex fallback makes the canonical retrieval path strictly FTS-first, deterministic, and auditable on the canonical excerpt lookup surface.
 3. Kept the packet scope narrowed to the reviewer-specified implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 4. Kept the scope statement explicit that PageIndex and embeddings are compatibility-only and are not reintroduced as required runtime retrieval paths.
 
