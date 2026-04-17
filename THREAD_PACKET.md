@@ -67,10 +67,11 @@
   parser surface drifts from the catalog.
 - Concrete blocker removal for the canonical demo path: while the CLI remains
   the active operator surface, the engine-first MVP loop cannot be considered
-  reliable if `open`, `retrieve`, or `patch-review` entrypoints can silently
-  drift away from the declared command catalog. This slice removes that
-  blocker by making parser/catalog drift fail immediately instead of changing
-  the operator contract unnoticed.
+  reliable if the canonical command order for the `open`, `retrieve`, and
+  `patch-review` operator path can drift away from the declared command
+  catalog without failing. This slice removes that blocker by making
+  canonical-name drift fail immediately instead of changing the contract
+  unnoticed.
 
 ## Canonical Demo-Path Step Advanced
 
@@ -90,7 +91,7 @@
   `context-basket` protects the `retrieve relevant material` entrypoint, and
   `diff-preview` protects the `preview and apply or reject a patch`
   entrypoint.
-- Concrete blocker removed: parser/catalog drift can no longer silently
+- Concrete blocker removed: canonical-name drift can no longer silently
   reorder or desynchronize those operator-facing CLI entrypoints from the
   canonical command catalog.
 - Re-review scope note: this packet refresh exists to make that demo-path-step
@@ -131,14 +132,13 @@
 ## Scope Completed
 
 - Hardened the default `command_cli_contract()` validation in
-  `src/qual/commands/catalog.py` so it rejects parser-surface drift against the
-  declared command catalog, not just canonical-name mismatch.
-- Kept the returned CLI contract aligned with canonical command ordering while
-  also rejecting alias substitution, reordered accepted entrypoints, removed
-  primary tokens, and extra accepted entrypoints in the default parser surface.
+  `src/qual/commands/catalog.py` so it compares the CLI contract's canonical
+  names to `command_names()` and fails fast when they diverge.
+- Kept the returned CLI contract aligned with canonical command ordering by
+  returning the validated `command_names()` tuple instead of rebuilding a
+  separate list from the CLI lookup table.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
-  for parser-surface drift cases that preserve canonical command order but must
-  still fail fast.
+  for canonical-order alignment and drift rejection in the CLI contract.
 - Reissued the handoff packet as a command-catalog-only slice so the review
   scope matches the claimed implementation files and approval basis.
 
@@ -156,13 +156,11 @@
 ## Tasks Completed
 
 1. Hardened `command_cli_contract()` to verify canonical-name consistency
-   and reject default parser-surface drift against the declared command
-   catalog.
-2. Preserved canonical command ordering in the CLI contract while rejecting
-   alias substitution, primary-token loss, entrypoint reordering, and extra
-   accepted entrypoints.
+   against the declared command catalog.
+2. Preserved canonical command ordering in the CLI contract by reusing the
+   validated canonical names tuple.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for
-   parser-surface drift that still preserves canonical command order.
+   canonical-order alignment and drift rejection.
 4. Regenerated the handoff packet so the branch metadata stays scoped to the
    command-catalog slice and uses the current roadmap and vision labels.
 
@@ -207,10 +205,10 @@
 ### Vision capability affected
 
 - Canonical engine contract - CLI compatibility remains stable while the
-  command-catalog surface rejects parser-surface drift before it can silently
+  command-catalog surface rejects canonical-name drift before it can silently
   change the operator contract for the active engine-first MVP loop.
 - Auditable state and workflow - the command surface now fails loudly on
-  catalog/parser drift, making the operator-facing contract explicit and
+  canonical command drift, making the operator-facing contract explicit and
   traceable while the CLI remains the active surface.
 
 ### Routing/provider impact note

@@ -37,12 +37,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Concrete blocker-removal statement for AGENTS alignment: while the CLI is
   still the active operator surface, the engine-first MVP loop cannot stay
   dependable if the `bootstrap`, `context-basket`, and `diff-preview`
-  entrypoints can drift away from the declared catalog without failing fast.
-  This handoff now states that blocker explicitly.
+  entrypoints can drift away from the declared canonical command order
+  without failing fast. This handoff now states that blocker explicitly.
 - Canonical demo-path step impact: this slice makes the CLI `open
   project/document`, `retrieve relevant material`, and `preview and apply or
   reject a patch` steps, and the ongoing CLI operator path that must remain
   executable while Textual stays disabled, more reliable by keeping the
   `bootstrap`, `context-basket`, and `diff-preview` entrypoints aligned with
-  the canonical command catalog and rejecting parser/catalog drift before it
+  the canonical command catalog and rejecting canonical-name drift before it
   can silently change the operator-facing contract.
