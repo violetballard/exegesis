@@ -1208,9 +1208,14 @@ class RetrievalResult:
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
             "doc_ids": [doc_hit.doc_id for doc_hit in self.doc_hits],
+            # Mirror the ranked retrieval order under explicit keys so basket
+            # promotion and later workflow stages do not need to infer that
+            # ordering from the generic doc/excerpt ID lists.
+            "retrieved_doc_ids": [doc_hit.doc_id for doc_hit in self.doc_hits],
             "doc_fingerprints": doc_fingerprints,
             "doc_identity_fingerprints": doc_identity_fingerprints,
             "excerpt_ids": [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None],
+            "retrieved_excerpt_ids": [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None],
             "excerpt_fingerprints": excerpt_fingerprints,
             "excerpt_text_hashes": excerpt_text_hashes,
             "top_excerpt_ids": [doc_hit.top_excerpt_id for doc_hit in self.doc_hits],
