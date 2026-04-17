@@ -626,6 +626,26 @@ def _merge_shim_argv(
     return (*merged, *filtered_explicit_args)
 
 
+def _shim_pinned_options_lookup(
+    specs: tuple[CommandSpec, ...],
+) -> dict[str, frozenset[str]]:
+    return {
+        shim_token: frozenset(option_names)
+        for spec in specs
+        for shim_token, option_names in _shim_pinned_options_for_spec(spec)
+    }
+
+
+def _default_route_pinned_options(
+    specs: tuple[CommandSpec, ...],
+    flow_steps: tuple[str, ...] | None = None,
+) -> frozenset[str]:
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
+    if not ordered_flow_steps:
+        return frozenset()
+    return _shim_pinned_options_lookup(specs).get(_normalize_token(ordered_flow_steps[0]), frozenset())
+
+
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         name="bootstrap",
@@ -1386,11 +1406,7 @@ def command_cli_shim_argv_for(
     if raw_argv[0].lstrip().startswith("-"):
         return raw_argv
     invocation_lookup = dict(command_cli_shim_invocation_table(specs, flow_steps))
-    pinned_options_lookup = {
-        shim_token: frozenset(option_names)
-        for spec in specs
-        for shim_token, option_names in _shim_pinned_options_for_spec(spec)
-    }
+    pinned_options_lookup = _shim_pinned_options_lookup(specs)
     normalized_token = _normalize_token(raw_argv[0])
     shim_argv = invocation_lookup.get(normalized_token)
     if len(raw_argv) == 1:
@@ -1425,7 +1441,11 @@ def command_cli_entry_argv_for(
         return (default_token,) if default_token else ()
     if raw_argv[0].lstrip().startswith("-"):
         if default_argv:
-            return _merge_shim_argv(default_argv, raw_argv)
+            return _merge_shim_argv(
+                default_argv,
+                raw_argv,
+                pinned_options=_default_route_pinned_options(specs, flow_steps),
+            )
         return (default_token, *raw_argv) if default_token else raw_argv
     normalized_argv = command_cli_shim_argv_for(specs, raw_argv, flow_steps)
     if len(raw_argv) != 1:
@@ -2517,7 +2537,15 @@ def command_smoke_argv_for(
     if not raw_argv:
         return default_argv
     if raw_argv[0].lstrip().startswith("-"):
-        return _merge_shim_argv(default_argv, raw_argv) if default_argv else raw_argv
+        return (
+            _merge_shim_argv(
+                default_argv,
+                raw_argv,
+                pinned_options=_default_route_pinned_options(specs, flow_steps),
+            )
+            if default_argv
+            else raw_argv
+        )
 
     resolved = command_resolve_for(specs, raw_argv[0], flow_steps)
     if not resolved.matched:
