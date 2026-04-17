@@ -1628,6 +1628,33 @@ def _backfill_downstream_payload_from_context_bundle(
     )
 
 
+def _build_retrieval_downstream_payload_from_context_bundle(
+    context_bundle: dict[str, object],
+) -> dict[str, object]:
+    """Return the canonical downstream payload from a context-bundle snapshot."""
+
+    payload = {
+        "audit_ref": context_bundle.get("audit_ref"),
+        "result_fingerprint": context_bundle.get("result_fingerprint"),
+        "query_fingerprint": context_bundle.get("query_fingerprint"),
+        "source_bundle_fingerprint": context_bundle.get("source_bundle_fingerprint"),
+        "query": copy.deepcopy(context_bundle.get("query", {})),
+        "policy": copy.deepcopy(context_bundle.get("policy", {})),
+        "retrieval_backend": context_bundle.get("retrieval_backend"),
+        "retrieval_mode": context_bundle.get("retrieval_mode"),
+        "citation_status": copy.deepcopy(context_bundle.get("citation_status", {})),
+        "retrieval_summary": copy.deepcopy(context_bundle.get("retrieval_summary", {})),
+        "retrieval_citation_bundle": copy.deepcopy(context_bundle.get("retrieval_citation_bundle", {})),
+        "retrieval_doc_bundle": copy.deepcopy(context_bundle.get("retrieval_doc_bundle", {})),
+        "retrieval_excerpt_bundle": copy.deepcopy(context_bundle.get("retrieval_excerpt_bundle", {})),
+        "retrieval_provenance": copy.deepcopy(context_bundle.get("retrieval_provenance", {})),
+        "retrieval_source_bundle": copy.deepcopy(context_bundle.get("retrieval_source_bundle", {})),
+        "retrieval_evidence": copy.deepcopy(context_bundle.get("retrieval_evidence", {})),
+        "basket_promotion": copy.deepcopy(context_bundle.get("basket_promotion", {})),
+    }
+    return _backfill_downstream_payload_from_context_bundle(payload, context_bundle)
+
+
 def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, object]) -> dict[str, object]:
     """Return the deterministic retrieval context bundle from a source-bundle snapshot."""
 
@@ -2427,6 +2454,7 @@ def build_retrieval_downstream_payload_from_result(
             source_bundle = context_bundle.get("retrieval_source_bundle")
             if isinstance(source_bundle, dict):
                 return _build_retrieval_downstream_payload_from_source_bundle(source_bundle)
+            return _build_retrieval_downstream_payload_from_context_bundle(context_bundle)
     source_bundle = _build_retrieval_source_bundle_from_result_source(result)
     if source_bundle is not None:
         return _build_retrieval_downstream_payload_from_source_bundle(source_bundle)
@@ -2571,6 +2599,9 @@ def build_retrieval_context_bundle_from_result(
             source_bundle = context_bundle.get("retrieval_source_bundle")
             if isinstance(source_bundle, dict):
                 return _build_retrieval_context_bundle_from_source_bundle(copy.deepcopy(source_bundle))
+            return _build_retrieval_context_bundle_from_payload(
+                _build_retrieval_downstream_payload_from_context_bundle(context_bundle)
+            )
         return copy.deepcopy(context_bundle)
     source_bundle = _build_retrieval_source_bundle_from_result_source(result)
     if source_bundle is not None:
