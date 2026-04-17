@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (reviewed implementation slice)
-- Packet refresh role: `feature-fixer final reviewer-required gate rerun refresh`
+- Packet refresh role: `feature-fixer final reviewer-required validation rerun refresh`
 - Packet refresh date: `2026-04-17`
 
 ## Packet Traceability Note
@@ -29,12 +29,14 @@
   branch tip and keeps the scope pinned to `src/qual/commands/catalog.py`
   plus `tests/unit/test_commands_catalog.py`.
 - Reviewer required-fix implementation status:
-  `command_cli_contract()` now checks that the CLI parser surface resolves to
-  the same canonical command order returned by `command_names()` and raises
-  `ValueError` if that contract drifts.
+  `command_cli_contract()` now validates the declared CLI parser surface for
+  each canonical command, preserves canonical command order from
+  `command_names()`, and raises `ValueError` if canonical entrypoints are
+  dropped, substituted, reordered, or expanded unexpectedly.
 - Reviewer required-fix test status:
-  focused unit coverage proves canonical-order alignment and rejection of a
-  catalog/parser drift mismatch for the CLI contract.
+  focused unit coverage proves canonical-order alignment and rejects
+  alias-only substitution, missing-primary-token drift, reordered parser
+  surfaces, and unexpected parser-surface expansion for the CLI contract.
 - Milestone 3 tie-back:
   this mapping stays concrete against the roadmap requirement that the CLI
   must still execute the MVP loop while Textual remains disabled.
@@ -220,13 +222,15 @@
 ## Scope Completed
 
 - Hardened the default `command_cli_contract()` validation in
-  `src/qual/commands/catalog.py` so it validates the canonical command order
-  derived from the CLI parser surface against `command_names()` and fails fast
-  when they diverge.
+  `src/qual/commands/catalog.py` so it validates the full declared parser
+  surface for each canonical command against the command catalog and fails
+  fast when canonical entrypoints are dropped, substituted, reordered, or
+  expanded unexpectedly.
 - Kept the returned CLI contract aligned with canonical command ordering by
   reusing the validated canonical names tuple returned by `command_names()`.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
-  for canonical-order alignment and drift rejection in the CLI contract.
+  for canonical-order alignment and parser-surface completeness in the CLI
+  contract, including alias-only substitution and missing-primary-token drift.
 - Reissued the handoff packet so the re-review points at the current
   branch-tip implementation and the actual focused regression evidence.
 
