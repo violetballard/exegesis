@@ -10,11 +10,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   later lane work already present on `codex/feat-commands`.
 - Review the command-catalog implementation at
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Later commits in this lane should be treated as metadata-only handoff
-  refreshes for this re-review unless a new feature packet is explicitly
-  generated.
-- This refresh corrects handoff metadata only and does not broaden the
-  reviewed implementation scope beyond that command-catalog slice.
+- For this re-review, use the reviewer packet as the scope source of truth and
+  keep the reviewed implementation pinned to that command-catalog slice unless
+  a new feature packet is explicitly generated.
+- This refresh corrects handoff metadata only and does not expand the
+  requested re-review scope beyond that command-catalog slice.
 - This re-review refresh is specifically for the reviewer-requested packet fix:
   state explicitly which canonical demo-path step the work makes more real,
   while keeping the implementation review pinned to the same command-catalog

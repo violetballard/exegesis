@@ -11,10 +11,11 @@
   later lane work already present on `codex/feat-commands`.
 - Review the command-catalog implementation at
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Treat later commits in this lane as metadata-only handoff refreshes for this
-  re-review unless a new feature packet is explicitly generated.
-- This packet refresh corrects the handoff metadata only; it does not broaden
-  the reviewed implementation scope beyond the command-catalog slice above.
+- For this re-review, use the reviewer packet as the scope source of truth and
+  keep the reviewed implementation pinned to that command-catalog slice unless
+  a new feature packet is explicitly generated.
+- This packet refresh corrects the handoff metadata only; it does not expand
+  the requested re-review scope beyond the command-catalog slice above.
 
 ## Reviewer-Required Fix Verification
 
