@@ -1091,6 +1091,24 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
+            ("terminal_fallback", terminal_fallback_contract_fingerprint()),
+            ("terminal_fallback_contract", terminal_fallback_contract_fingerprint()),
+            (
+                "raw_leaf_card_default",
+                terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+            ),
+            (
+                "raw_leaf_card_default_contract",
+                terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+            ),
+            (
+                "raw_leaf_card_default_policy",
+                terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+            ),
+            (
+                "raw_leaf_card_default_policy_contract",
+                terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+            ),
             ("terminal_artifact_kind_contracts", terminal_artifact_kind_contracts_fingerprint()),
             ("terminal_artifact_cli_fallback", terminal_artifact_cli_fallback_contract_fingerprint()),
             ("terminal_artifact_rendering", terminal_artifact_rendering_contract_fingerprint()),
@@ -1163,6 +1181,24 @@ def describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
+            ("terminal_fallback", terminal_fallback_contract_fingerprint()),
+            ("terminal_fallback_contract", terminal_fallback_contract_fingerprint()),
+            (
+                "raw_leaf_card_default",
+                terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+            ),
+            (
+                "raw_leaf_card_default_contract",
+                terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+            ),
+            (
+                "raw_leaf_card_default_policy",
+                terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+            ),
+            (
+                "raw_leaf_card_default_policy_contract",
+                terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+            ),
             (
                 "terminal_artifact_cli_fallback_route",
                 terminal_artifact_cli_fallback_route_contract_fingerprint(),
