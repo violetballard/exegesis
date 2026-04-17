@@ -2,18 +2,23 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `19ab31af48134d155c1eb782bd0ba95a5c25a268`
+- Commit: `3a407703933a0d127c78864e3ec91458aad50b20`
 - Packet refresh role: `feature-fixer reviewer-required handoff refresh`
 
 ## Packet Traceability Note
 
-- Review the command-catalog implementation at
-  `19ab31af48134d155c1eb782bd0ba95a5c25a268`.
-- This refresh is metadata-only and exists to satisfy the reviewer's required
-  handoff fixes without changing the reviewed runtime implementation slice.
-- Final feature-fixer refresh on `2026-04-17`: this post-review metadata
-  update records that reviewer required fixes `1` and `2` are closed in the
-  handoff itself and that a fresh full-gate pass was rerun before this commit.
+- Review the true branch-tip implementation at
+  `3a407703933a0d127c78864e3ec91458aad50b20`.
+- The reviewed runtime commit set for this handoff is:
+  - `19ab31af48134d155c1eb782bd0ba95a5c25a268`
+    (`feat(commands): expose demo loop contract helpers`)
+  - `3a407703933a0d127c78864e3ec91458aad50b20`
+    (`feat(commands): add demo-path compatibility shims`)
+- This packet refresh is metadata-only and exists to satisfy the reviewer's
+  required handoff fixes without changing the reviewed runtime implementation
+  slice.
+- Full required gates were rerun against the current branch tip after this
+  packet refresh.
 
 ## Current Program Focus
 
@@ -30,27 +35,26 @@
 
 ## Scope Goal
 
-- Harden the CLI command contract so `command_cli_contract()` stays
-  deterministic, uses the canonical command order, and fails fast if the
-  parser surface drifts from the catalog-backed command specs.
+- Keep the Milestone 3 CLI command surface deterministic and migration-safe by
+  exposing canonical demo-loop helpers and parser-ready compatibility shims for
+  the current engine-first MVP flow.
 
 ## Canonical Demo-Path Step Advanced
 
-- Required by `AGENTS.md`: this handoff explicitly states which canonical
-  demo-path step the change makes more real.
-- This slice strengthens the CLI-first operator surface for the current MVP
-  loop, specifically the `project-open`, `retrieval`, `patch-review`, and
-  `export-handoff` steps while Textual remains disabled.
-- Concrete blocker removed: parser/catalog drift could silently reorder,
-  replace, or drop accepted CLI entrypoints for those steps; the contract now
-  fails fast instead.
+- This slice makes the CLI-first `project-open`, `retrieval`,
+  `patch-review`, `apply-patch`, `reject-patch`, `persist`, and
+  `export-handoff` steps more real while Textual remains disabled.
+- Concrete blocker removed: older demo-path verbs such as `open-project`,
+  `review`, `save`, `apply`, and `reject` now normalize to the canonical
+  parser-facing command surface instead of depending on callers to know the
+  internal command tokens.
 
 ## Scope Boundary
 
-- This slice is command-catalog contract hardening only.
-- It does not add new commands, new flags, handler logic, or alternate
-  workflow paths.
-- It preserves the existing MVP command surface rather than expanding it.
+- This slice stays in `feat-commands` Milestone 3 CLI compatibility work.
+- It adds command-catalog helpers and compatibility shims only.
+- It does not add new engine business logic, new provider behavior, or new UI
+  work.
 
 ## Priority Outcomes
 
@@ -77,22 +81,22 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it
-  compares CLI canonical names against `command_names()` and raises
-  `ValueError` if the parser surface drifts from the catalog.
-- Kept the returned CLI contract aligned with the canonical command order by
-  returning the validated canonical names tuple directly.
+- Exposed canonical demo-loop helpers in `src/qual/commands/catalog.py` so the
+  MVP loop now has catalog, token, lookup-table, and invocation-plan accessors.
+- Added demo-path compatibility-token normalization for older surface verbs so
+  `command_demo_*` and `command_mvp_*` helpers resolve parser-ready argv
+  through the canonical command catalog.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
-  for canonical-order alignment and drift rejection.
-- Refreshed the handoff packet so the reviewer-required demo-path mapping and
-  contract-only scope boundary are explicit in the handoff itself.
+  for the demo-loop helpers and compatibility-shim behavior.
+- Refreshed the handoff packet so the reviewed commit set, files changed, gate
+  evidence, and explicit demo-path mapping match the actual branch history.
 
 ## Kickoff Budget / Limits Compliance
 
 - High-risk shared-file handoff: stayed within the 4-task cap, 30-minute
   budget, and the lane size limits.
-- The implementation slice stayed limited to one lane-owned command file plus
-  one approved shared test file, so the handoff remains narrow and reviewable.
+- The runtime slice remains limited to one lane-owned command file plus one
+  approved shared test file.
 
 ## Approved Exception Note
 
@@ -102,14 +106,14 @@
 
 ## Tasks Completed
 
-1. Hardened `command_cli_contract()` to verify canonical-name consistency
-   against `command_names()` and fail fast on parser drift.
-2. Preserved canonical command ordering in the CLI contract by returning the
-   validated canonical tuple directly.
-3. Added regression coverage in `tests/unit/test_commands_catalog.py` for
-   canonical-order alignment and drift rejection.
-4. Updated the handoff packet so it explicitly names the canonical demo-path
-   steps advanced and keeps the scope statement limited to contract hardening.
+1. Added canonical demo-loop helper accessors for the Milestone 3 CLI command
+   surface.
+2. Added compatibility-token normalization so older demo-path verbs map to the
+   canonical parser-facing command surface.
+3. Added focused regression coverage for the demo-loop helpers and compatibility
+   shims in `tests/unit/test_commands_catalog.py`.
+4. Regenerated the handoff packet so it truthfully reports the reviewed commit
+   set, scope, files changed, and gate evidence.
 
 ## Files Changed
 
@@ -125,12 +129,12 @@
 
 ## Commands Run and Outcomes
 
-- `make scope-check`: PASS
-- `./quality-format.sh --check`: PASS
-- `./quality-lint.sh`: PASS
-- `./quality-test.sh`: PASS
-- `./typecheck-test.sh`: PASS
-- `make ci`: PASS
+- `make scope-check`: PASS on current branch tip after packet refresh
+- `./quality-format.sh --check`: PASS on current branch tip after packet refresh
+- `./quality-lint.sh`: PASS on current branch tip after packet refresh
+- `./quality-test.sh`: PASS on current branch tip after packet refresh
+- `./typecheck-test.sh`: PASS on current branch tip after packet refresh
+- `make ci`: PASS on current branch tip after packet refresh
 
 ## Risks / Blockers
 
@@ -149,19 +153,16 @@
 ### Vision capability affected
 
 - Canonical engine contract - CLI compatibility remains stable while the
-  command-catalog surface rejects parser drift before it can silently change
-  the current operator contract.
-
-### Explicit canonical demo-path step advanced
-
-- The CLI-first `project-open`, `retrieval`, `patch-review`, and
-  `export-handoff` steps are now more deterministic and smoke-testable because
-  parser/catalog drift fails fast.
+  command catalog exposes canonical demo-loop helpers and normalizes older
+  surface verbs to the parser-facing contract.
+- Auditable state and workflow - the operator-facing command surface is more
+  explicit and smoke-testable because demo-path entry normalization is tracked
+  through catalog helpers instead of ad hoc token handling.
 
 ### Routing/provider impact note
 
-- None. This change only affects local command contract validation and focused
-  command-catalog test coverage.
+- None. This change only affects local command-catalog helpers, parser-surface
+  normalization, and focused command-catalog test coverage.
 
 ## Scope-check / Ownership Note
 
