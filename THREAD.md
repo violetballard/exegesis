@@ -8,7 +8,7 @@ older lane/fixer prompts.
 
 ## Reviewer Fix Alignment
 
-- Active implementation review target: `c99d67784cad542251317b5fd910837ff904d295`.
+- Active runtime implementation review target: `c99d67784cad542251317b5fd910837ff904d295`.
 - Exact canonical demo-path step advanced: `open project/document`.
 - Primary branch-tip step: `open project/document`. The active runtime change
   keeps `document-open` and `open-document` normalized onto the canonical
@@ -33,6 +33,7 @@ older lane/fixer prompts.
   `open project/document` command surface explicit, keeping document-open
   aliases on the bootstrap route, and failing fast when parser/catalog
   ordering drifts instead of silently changing that operator-facing path.
-- Gate rerun note: the final feature-fixer verification was run against branch
-  tip `c99d67784cad542251317b5fd910837ff904d295`; see `THREAD_PACKET.md`
-  for the full required gate list and outcomes.
+- Gate rerun note: the final feature-fixer verification was rerun on
+  `2026-04-16` against the branch carrying
+  `c99d67784cad542251317b5fd910837ff904d295`; see `THREAD_PACKET.md` for the
+  full required gate list and outcomes.
