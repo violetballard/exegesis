@@ -115,6 +115,9 @@
 - Recorded that this final verified refresh was run on `2026-04-17` after a
   fresh full-gate pass against pre-refresh metadata baseline
   `b533eba949d16746829d42f655a0b1e085f59d30`.
+- This final fixer commit changes `THREAD_PACKET.md` only and does not modify
+  runtime or test files beyond the already-reviewed implementation at
+  `36a360a9464d2f08f55129bc70e1aafe4574721b`.
 - Verified in this final fixer pass that branch tip
   `b533eba949d16746829d42f655a0b1e085f59d30` already contains the reviewer-
   required implementation fix through runtime commit
@@ -129,7 +132,9 @@
   scope boundary that stays tied to the engine-first CLI loop rather than
   broader command-surface or UX work.
 - Re-ran the required lane gates in this final feature-fixer pass and
-  confirmed they still pass for this metadata refresh before the final
+  confirmed `make scope-check`, `./quality-format.sh --check`,
+  `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
+  `make ci` all still pass for this metadata refresh before the final
   reviewer-fix commit.
 
 ## Kickoff Budget / Limits Compliance
