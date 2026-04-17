@@ -659,6 +659,7 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertIn("[SelectionRef] Choice", text)
         self.assertIn("Selection schema v1", text)
+        self.assertIn("A2UI v1", text)
         self.assertIn("- id: choice-1", text)
         self.assertIn("- selected: true", text)
         self.assertIn("- disabled: false", text)

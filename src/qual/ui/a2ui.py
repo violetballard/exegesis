@@ -2901,6 +2901,7 @@ def render_terminal_selection(selection: Any) -> str:
     lines = [
         f"[SelectionRef] {_render_terminal_inline_text(normalized['label'])}",
         f"Selection schema v{SELECTION_SCHEMA_VERSION}",
+        f"A2UI v{A2UI_VERSION}",
         f"- id: {_render_terminal_inline_text(normalized['id'])}",
         f"- selected: {'true' if bool(normalized.get('selected', False)) else 'false'}",
         f"- disabled: {'true' if bool(normalized.get('disabled', False)) else 'false'}",
@@ -2926,6 +2927,7 @@ def render_terminal_action(action: Any) -> str:
     lines = [
         f"[ActionRef] {_render_terminal_inline_text(normalized.label)}",
         f"Action schema v{A2UI_ACTION_SCHEMA_VERSION}",
+        f"A2UI v{A2UI_VERSION}",
         f"- id: {_render_terminal_inline_text(normalized.id)}",
         f"- payload: {_render_payload_preview(normalized.payload, max_payload_bytes=256)}",
     ]
@@ -3339,6 +3341,7 @@ def _render_invalid_terminal_selection(selection: Any) -> str:
     lines = [
         "[SelectionRef] <invalid selection>",
         f"Selection schema v{SELECTION_SCHEMA_VERSION}",
+        f"A2UI v{A2UI_VERSION}",
         f"- raw: {_render_payload_preview(selection, max_payload_bytes=256)}",
     ]
     return "\n".join(lines)
@@ -3349,6 +3352,7 @@ def _render_invalid_terminal_action(action: Any) -> str:
     lines = [
         "[ActionRef] <invalid action>",
         f"Action schema v{A2UI_ACTION_SCHEMA_VERSION}",
+        f"A2UI v{A2UI_VERSION}",
         f"- raw: {_render_payload_preview(action, max_payload_bytes=256)}",
     ]
     return "\n".join(lines)

@@ -2603,6 +2603,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertIn("[SelectionRef] Choice", selection_text)
         self.assertIn("Selection schema v1", selection_text)
+        self.assertIn("A2UI v1", selection_text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
 
     def test_terminal_artifact_cli_fallback_entrypoint_preserves_raw_leaf_card_default_when_resolver_fails(
@@ -5115,6 +5116,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertIn("[ActionRef] Export", text)
         self.assertIn("Action schema v1", text)
+        self.assertIn("A2UI v1", text)
         self.assertIn("- id: export_document", text)
         self.assertIn('- payload: {"format":"md"}', text)
         self.assertIn('- confirm: {"message":"Export now?","title":"Approve"}', text)
@@ -5131,6 +5133,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertIn("[ActionRef] <invalid action>", invalid)
         self.assertIn("Action schema v1", invalid)
+        self.assertIn("A2UI v1", invalid)
         self.assertIn('"icon":"sparkle"', invalid)
 
     def test_terminal_renderer_invalid_action_preview_strips_malformed_terminal_envelope_metadata(
