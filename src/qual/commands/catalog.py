@@ -1673,12 +1673,17 @@ def command_cli_entry_argv_for(
                 pinned_options=_default_route_pinned_options(specs, ordered_flow_steps),
             )
         return (default_token, *raw_argv) if default_token else raw_argv
-    normalized_argv = command_cli_shim_argv_for(specs, raw_argv, ordered_flow_steps)
-    resolved = command_resolve_for(specs, raw_argv[0], ordered_flow_steps)
-    if len(raw_argv) != 1:
+    compatibility_argv = (
+        _normalize_demo_compatibility_argv(raw_argv)
+        if _uses_demo_compatibility_flow(ordered_flow_steps)
+        else raw_argv
+    )
+    normalized_argv = command_cli_shim_argv_for(specs, compatibility_argv, ordered_flow_steps)
+    resolved = command_resolve_for(specs, compatibility_argv[0], ordered_flow_steps)
+    if len(compatibility_argv) != 1:
         if not resolved.matched:
             return normalized_argv
-        return _resolved_parser_ready_argv(specs, resolved, raw_argv[1:])
+        return _resolved_parser_ready_argv(specs, resolved, compatibility_argv[1:])
 
     if not resolved.matched:
         return normalized_argv
@@ -2813,6 +2818,10 @@ def _normalize_demo_compatibility_argv(argv: tuple[str, ...] | list[str]) -> tup
     if raw_argv[0].lstrip().startswith("-"):
         return raw_argv
     return (_normalize_demo_compatibility_token(raw_argv[0]), *raw_argv[1:])
+
+
+def _uses_demo_compatibility_flow(flow_steps: tuple[str, ...]) -> bool:
+    return _normalize_flow_steps(flow_steps) == command_demo_flow_steps()
 
 
 def _resolve_demo_loop_token(
