@@ -22,6 +22,7 @@
 
 - `retrieve relevant material`
 - This branch state makes that step more real by ensuring excerpt lookup resolves only through the authoritative FTS-backed path and by keeping the retrieval contract deterministic and auditable for downstream engine flows.
+- Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed unless the excerpt exists on the canonical FTS path.
 - This line satisfies the `AGENTS.md` handoff requirement to name the canonical demo-path step advanced by the reviewed slice, rather than relying on roadmap and vision mapping alone.
 - This packet does not claim to advance `promote or gather context into the basket`; it stays scoped to the retrieval contract itself.
 
@@ -82,6 +83,7 @@
 
 - `retrieve relevant material`
 - This branch state makes that step more real by ensuring excerpt lookup only succeeds for authoritative FTS-derived excerpt IDs on the canonical retrieval surface and by preserving a deterministic, auditable FTS-first retrieval contract.
+- Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed unless the excerpt exists on the canonical FTS path.
 - This packet remains scoped to the retrieval step itself and does not claim basket-promotion changes.
 
 ### Routing/provider impact note
