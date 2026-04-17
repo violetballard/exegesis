@@ -1529,6 +1529,39 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["provenance"]["section_hint"], "discussion notes")
         self.assertEqual(normalized["provenance"]["section_hint_rank"], 1)
 
+    def test_normalize_excerpt_payload_backfills_canonical_query_snapshot(self) -> None:
+        normalized = self.service._normalize_excerpt_payload(
+            {
+                "excerpt_id": "excerpt-sparse-query-1",
+                "doc_id": "doc-pdf-1",
+                "doc_type": "pdf",
+                "text": "Discussion theory evidence stays deterministic.",
+                "query_text": "  Discussion   Theory  ",
+                "provenance": {
+                    "query_scope": "  DOC:doc-pdf-1  ",
+                    "query_intent": "  OuTlInE_SuPpOrT  ",
+                    "query_confidentiality_profile": "  StAnDaRd  ",
+                    "query_date_range": ("2026-02-28", "2026-02-01"),
+                    "section_hint": "  discussion   notes  ",
+                },
+            },
+            source_strategy="fts",
+            lookup_resolution="fts",
+        )
+
+        expected_query = {
+            "query_text": "discussion theory",
+            "scope": "doc:doc-pdf-1",
+            "intent": "outline_support",
+            "confidentiality_profile": "standard",
+            "constraints": {
+                "date_range": ["2026-02-01", "2026-02-28"],
+                "section_hint": "discussion notes",
+            },
+        }
+        self.assertEqual(normalized["query"], expected_query)
+        self.assertEqual(normalized["provenance"]["query"], expected_query)
+
     def test_normalize_excerpt_payload_canonicalizes_lookup_metadata_for_fingerprints(self) -> None:
         compact = self.service._normalize_excerpt_payload(
             {

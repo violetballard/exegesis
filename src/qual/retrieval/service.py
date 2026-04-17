@@ -238,6 +238,13 @@ def _normalize_query_intent_payload(value: object) -> str | None:
     return _normalized_profile_text(value)
 
 
+def _normalize_query_text_payload(value: object) -> str | None:
+    text = _optional_text(value)
+    if text is None:
+        return None
+    return RetrievalService._normalized_query_text(text)
+
+
 def _normalize_lookup_resolution_payload(value: object) -> str | None:
     return _normalized_profile_text(value)
 
@@ -2881,6 +2888,13 @@ class RetrievalService:
         )
         if retrieved_excerpt_ids is not None:
             normalized_provenance["retrieved_excerpt_ids"] = retrieved_excerpt_ids
+        query_snapshot = self._build_excerpt_query_snapshot(
+            excerpt=normalized,
+            provenance=normalized_provenance,
+        )
+        if query_snapshot is not None:
+            normalized["query"] = copy.deepcopy(query_snapshot)
+            normalized_provenance["query"] = copy.deepcopy(query_snapshot)
         lookup_fingerprint = RetrievalService._stable_fingerprint(
             {
                 "doc_id": doc_id_value,
@@ -2954,6 +2968,53 @@ class RetrievalService:
         )
         normalized["provenance"] = normalized_provenance
         return normalized
+
+    def _build_excerpt_query_snapshot(
+        self,
+        *,
+        excerpt: dict[str, object],
+        provenance: dict[str, object],
+    ) -> dict[str, object] | None:
+        query_text = _normalize_query_text_payload(
+            excerpt.get("query_text", provenance.get("query_text"))
+        )
+        query_scope = _normalize_query_scope_payload(
+            excerpt.get("query_scope", provenance.get("query_scope"))
+        )
+        query_intent = _normalize_query_intent_payload(
+            excerpt.get("query_intent", provenance.get("query_intent"))
+        )
+        query_confidentiality_profile = _normalized_profile_text(
+            excerpt.get(
+                "query_confidentiality_profile",
+                provenance.get("query_confidentiality_profile"),
+            )
+        )
+        query_date_range = _normalize_query_date_range_payload(
+            excerpt.get("query_date_range", provenance.get("query_date_range"))
+        )
+        section_hint = _normalized_text(
+            excerpt.get("section_hint", provenance.get("section_hint"))
+        )
+        query_constraints: dict[str, object] = {}
+        if query_date_range is not None:
+            query_constraints["date_range"] = query_date_range
+        if section_hint is not None:
+            query_constraints["section_hint"] = section_hint
+        query_snapshot: dict[str, object] = {}
+        if query_text is not None:
+            query_snapshot["query_text"] = query_text
+        if query_scope is not None:
+            query_snapshot["scope"] = query_scope
+        if query_intent is not None:
+            query_snapshot["intent"] = query_intent
+        if query_confidentiality_profile is not None:
+            query_snapshot["confidentiality_profile"] = query_confidentiality_profile
+        if query_constraints:
+            query_snapshot["constraints"] = query_constraints
+        if not query_snapshot:
+            return None
+        return query_snapshot
 
     def _build_excerpt_lookup_basket_promotion(
         self,
