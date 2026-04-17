@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh commit: `PENDING`
+- Packet refresh commit: `see final HEAD SHA from feature-fixer delivery`
 - Packet refresh role: `feature-fixer required-fixes packet-tightening v2`
 
 ## Packet Traceability Note
