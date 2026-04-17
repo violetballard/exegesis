@@ -192,7 +192,9 @@
 
 ## Scope-check / Ownership Note
 
-- Shared/integrator-locked edits: `YES` via one approved shared test only.
+- Shared-by-approval edits: `YES` via the approved shared test
+  `tests/unit/test_commands_catalog.py`.
+- Integrator-locked edits: `NO`.
 - Ownership detail: runtime edits stay in lane-owned `src/qual/commands/**`,
   and the only non-owned implementation path is the approved shared test
   `tests/unit/test_commands_catalog.py`.
