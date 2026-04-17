@@ -1106,6 +1106,7 @@ class RetrievalResult:
             "retrieval_policy": retrieval_policy,
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
+            "strategies_used": list(self.diagnostics["strategies_used"]),
         }
 
     def _retrieval_source_bundle_snapshot(
