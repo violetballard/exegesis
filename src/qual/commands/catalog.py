@@ -2749,6 +2749,24 @@ def _resolved_parser_ready_argv(
     )
 
 
+def _prefer_primary_smoke_argv(
+    spec: CommandSpec | None,
+    *,
+    normalized_token: str,
+    resolved_argv: tuple[str, ...],
+    smoke_argv: tuple[str, ...],
+) -> tuple[str, ...]:
+    if spec is None or not spec.shim_argv:
+        return resolved_argv
+    if normalized_token != _parser_ready_argv(spec)[0]:
+        return resolved_argv
+    if len(resolved_argv) != 1 or len(smoke_argv) <= 1:
+        return resolved_argv
+    # Keep shim-backed canonical commands deterministic when the primary token
+    # would otherwise resolve to a generic parser entrypoint with missing defaults.
+    return smoke_argv
+
+
 @lru_cache(maxsize=None)
 def command_resolve_for(
     specs: tuple[CommandSpec, ...],
@@ -2783,6 +2801,18 @@ def command_resolve_for(
             normalized_token,
             (route_entry.primary_cli_token,),
         )
+        spec = command_spec_for(specs, route_entry.name)
+        smoke_argv = _resolved_single_token_argv(
+            specs,
+            route_entry.name,
+            resolved_argv,
+        )
+        resolved_argv = _prefer_primary_smoke_argv(
+            spec,
+            normalized_token=normalized_token,
+            resolved_argv=resolved_argv,
+            smoke_argv=smoke_argv,
+        )
         return ResolvedCommand(
             token=token,
             normalized_token=normalized_token,
@@ -2790,11 +2820,7 @@ def command_resolve_for(
             flow_step=route_entry.flow_step,
             primary_cli_token=route_entry.primary_cli_token,
             argv=resolved_argv,
-            smoke_argv=_resolved_single_token_argv(
-                specs,
-                route_entry.name,
-                resolved_argv,
-            ),
+            smoke_argv=smoke_argv,
             cli_tokens=route_entry.cli_tokens,
             lookup_tokens=route_entry.lookup_tokens,
             surface_tokens=route_entry.surface_tokens,
@@ -2897,6 +2923,13 @@ def command_resolve_argv_for(
 
     resolved_argv = command_cli_shim_argv_for(specs, raw_argv, flow_steps)
     spec = command_spec_for(specs, resolved.canonical_name)
+    if len(raw_argv) == 1:
+        resolved_argv = _prefer_primary_smoke_argv(
+            spec,
+            normalized_token=resolved.normalized_token,
+            resolved_argv=resolved_argv,
+            smoke_argv=resolved.smoke_argv,
+        )
     if (
         len(raw_argv) > 1
         and resolved.kind == "primary"
