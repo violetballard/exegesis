@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh commit: `pending metadata-only feature-fixer refresh on codex/feat-commands`
-- Packet refresh role: `feature-fixer required-fixes packet-tightening v3`
+- Packet refresh role: `feature-fixer required-fixes packet-tightening v4`
 
 ## Packet Traceability Note
 
@@ -26,20 +26,18 @@
 
 ## Scope Goal
 
-- Strengthen the CLI-first operator surface for the already-exposed `bootstrap` entrypoint so the current `open project/document` demo-path step keeps a canonical, deterministic, drift-resistant compatibility surface while Textual remains disabled. This slice adds no new workflow actions, no new command coverage, and no new engine behavior.
+- Strengthen the CLI-first operator surface for the already-exposed `bootstrap` entrypoint so the current `open project/document` demo-path step keeps a canonical, deterministic, drift-resistant compatibility surface while Textual remains disabled. This slice adds no new workflow actions, no new command coverage, and no new engine behavior beyond command-catalog contract hardening.
 
 ## Canonical Demo-Path Step Advanced
 
 - Exact step advanced: `open project/document`.
 - AGENTS alignment: this slice strengthens the CLI-first operator surface that supports the engine-side demo path while Textual remains disabled.
 - Why this step: `bootstrap` is the current CLI entrypoint for that step, and this slice makes it more real by strengthening the CLI-first operator surface and preventing silent parser/catalog drift from changing the operator-facing command contract.
-- Adjacent protected steps, not newly expanded scope: the same contract guard also keeps the declared CLI surface deterministic for `context-basket`, `diff-preview`, and `terminal`, which are the current parser-facing entrypoints for `retrieve relevant material`, `preview and apply or reject a patch`, and export/handoff continuity in the CLI-first loop.
-- Scope boundary: this is contract-hardening only. It does not add new workflow actions, new command coverage, retrieval behavior, patch behavior, save behavior, or any new engine business logic.
+- Scope boundary: this is contract-hardening only for the existing command catalog. It does not add new workflow actions, new command coverage, retrieval behavior, patch behavior, save behavior, or any new engine business logic.
 
 ## Ready for Handoff
 
 - This work now makes `open project/document` more real in the Milestone 3 engine-first demo loop because the `bootstrap` CLI entrypoint stays locked to the canonical catalog order and now fails fast if the parser surface drifts.
-- The same deterministic contract guard now also protects the adjacent parser-facing CLI steps already present in the loop: `retrieve relevant material` through `context-basket`, `preview and apply or reject a patch` through `diff-preview`, and CLI export/handoff continuity through `terminal`.
 - Pre-handoff alignment statement: this is a compatibility-contract guard for the active CLI-first MVP path, not standalone infra cleanup.
 
 ## Priority Outcomes
@@ -70,7 +68,6 @@
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares the CLI parser surface against `command_names()` and raises `ValueError` when the exposed command surface drifts from the declared catalog. This removes a silent-contract-drift blocker from the `open project/document` demo-path step.
 - Kept the returned CLI contract aligned with canonical command order by returning the validated canonical tuple instead of rebuilding a separate order from parser tokens. This removes parser-order ambiguity from the `open project/document` demo-path step.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and parser/catalog drift rejection. This removes a smoke-test coverage gap around the `open project/document` demo-path step.
-- The same contract-hardening also protects the already-exposed CLI commands for the adjacent loop steps `retrieve relevant material`, `preview and apply or reject a patch`, and export/handoff continuity, without adding any new command behavior.
 - Reissued the handoff packet as a narrow command-catalog slice so the claimed roadmap and vision impact matches the actual implementation.
 
 ## Kickoff Budget / Limits Compliance
@@ -102,6 +99,7 @@
 
 ## Commands Run and Outcomes
 
+- Revalidation note: reran the required lane gates on the current reviewer-fix branch tip after packet tightening; all remained green.
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
@@ -111,7 +109,7 @@
 
 ## Risks / Blockers
 
-- Residual risk: low. This slice only hardens command-catalog validation and packet metadata; the remaining merge risk is limited to future intentional parser/catalog changes needing matching catalog and test updates so the new drift guard does not fail by surprise.
+- Residual risk: low. This slice only hardens command-catalog validation and packet metadata; the only meaningful remaining failure mode is a future intentional CLI parser change landing without matching catalog and test updates, which would now fail fast instead of silently changing the operator contract. Merge risk remains low because no runtime behavior or command handlers changed.
 - Blockers: none
 
 ## Required Handoff Fields
