@@ -1616,6 +1616,11 @@ def _build_terminal_artifact_kind_resolution_manifest() -> dict[str, Any]:
             "card default",
         ],
         "card_payloads_override_conflicting_action_or_selection_hints": True,
+        "caller_kind_hint_policy": {
+            "invalid_kind_treated_as_absent": True,
+            "typed_payload_kind_is_authoritative": True,
+            "explicit_card_kind_blocks_leaf_recovery": True,
+        },
         "partial_leaf_recovery": {
             "required_fields": ["id", "payload"],
             "action_hints": ["confirm", "policy_sensitive"],

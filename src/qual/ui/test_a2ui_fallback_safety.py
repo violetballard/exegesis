@@ -327,6 +327,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_fallback_recovery_fingerprint(),
         )
         self.assertEqual(
+            manifest["kind_resolution"]["caller_kind_hint_policy"],
+            {
+                "invalid_kind_treated_as_absent": True,
+                "typed_payload_kind_is_authoritative": True,
+                "explicit_card_kind_blocks_leaf_recovery": True,
+            },
+        )
+        self.assertEqual(
             manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"],
             describe_terminal_artifact_cli_fallback_target_contract_fingerprints(),
         )
@@ -1700,6 +1708,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertTrue(manifest["kind_resolution"]["card_payloads_override_conflicting_action_or_selection_hints"])
         self.assertEqual(
+            manifest["kind_resolution"]["caller_kind_hint_policy"],
+            {
+                "invalid_kind_treated_as_absent": True,
+                "typed_payload_kind_is_authoritative": True,
+                "explicit_card_kind_blocks_leaf_recovery": True,
+            },
+        )
+        self.assertEqual(
             manifest["kind_resolution"]["partial_leaf_recovery"],
             {
                 "required_fields": ["id", "payload"],
@@ -1923,6 +1939,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             ],
         )
         self.assertTrue(kind_resolution["card_payloads_override_conflicting_action_or_selection_hints"])
+        self.assertEqual(
+            kind_resolution["caller_kind_hint_policy"],
+            {
+                "invalid_kind_treated_as_absent": True,
+                "typed_payload_kind_is_authoritative": True,
+                "explicit_card_kind_blocks_leaf_recovery": True,
+            },
+        )
         self.assertEqual(kind_resolution["partial_leaf_recovery"], render_target_manifest["kind_resolution"]["partial_leaf_recovery"])
         self.assertEqual(fallback_recovery_snapshot, render_target_manifest["fallback_recovery"])
         self.assertEqual(fallback_recovery_snapshot, terminal_artifact_manifest["fallback_recovery"])
