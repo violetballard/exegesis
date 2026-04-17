@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
-- Packet refresh commit: `5938f4f8b7a40f5290da53dea65845ee725c269e` (baseline before this reviewer-fix refresh)
+- Packet refresh commit: `1f6ba5e5fc326511d0eb94f0bf91564ba1a785ac` (baseline before this final reviewer-fix refresh)
 - Packet refresh role: `feature-fixer reviewer-required final packet verification refresh`
 
 ## Packet Traceability Note
@@ -38,6 +38,9 @@
 
 - Explicit AGENTS.md handoff field: this packet states exactly which canonical
   demo-path steps this slice advances before handoff.
+- This work explicitly advances the canonical demo path by making the CLI-first
+  `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
+  real and smoke-testable.
 - `project-open`: this slice keeps the `bootstrap` CLI entrypoint callable and
   smoke-testable while Textual remains disabled.
 - `retrieval`: this slice keeps the `context-basket` CLI entrypoint pinned to
@@ -110,7 +113,7 @@
   command-catalog implementation commit, the actual parser-surface invariant
   enforced in this branch, and this final reviewer-fix verification pass.
 - Verified in this final fixer pass that branch tip
-  `5938f4f8b7a40f5290da53dea65845ee725c269e` already contains the reviewer-
+  `1f6ba5e5fc326511d0eb94f0bf91564ba1a785ac` already contains the reviewer-
   required implementation fix through runtime commit
   `36a360a9464d2f08f55129bc70e1aafe4574721b`, so this final commit remains
   metadata-only.
