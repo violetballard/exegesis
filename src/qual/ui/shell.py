@@ -122,14 +122,16 @@ class ShellUI:
         return [item_ids]
 
     @staticmethod
-    def _snapshot_item_sort_key(value: object) -> tuple[str, str]:
+    def _snapshot_item_sort_key(value: object) -> tuple[str, str, str]:
         # Use the full normalized value so distinct items do not collapse
-        # when their truncated preview strings happen to match.
+        # when their truncated preview strings happen to match. Opaque object
+        # reprs reuse a redacted preview token, so keep the escaped repr as a
+        # hidden tie-breaker for deterministic set ordering.
         baseline = " ".join(str(value).split())
         escaped = ShellUI._escape_control_chars(baseline)
         if not isinstance(value, str) and ShellUI._looks_like_opaque_object_repr(escaped):
-            return (type(value).__name__, ShellUI._format_item_id(value))
-        return (type(value).__name__, escaped)
+            return (type(value).__name__, ShellUI._format_item_id(value), escaped)
+        return (type(value).__name__, escaped, "")
 
     @staticmethod
     def _infer_fallback_kind(artifact: Any) -> str | None:

@@ -4578,10 +4578,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("object at 0x", text)
 
     def test_shell_ui_snapshot_sort_key_reuses_stable_opaque_preview_tokens(self) -> None:
-        type_name, preview_token = ShellUI._snapshot_item_sort_key(_OpaqueValue())
+        first_type_name, first_preview_token, first_tiebreaker = ShellUI._snapshot_item_sort_key(
+            _OpaqueValue()
+        )
+        second_type_name, second_preview_token, second_tiebreaker = ShellUI._snapshot_item_sort_key(
+            _OpaqueValue()
+        )
 
-        self.assertEqual(type_name, "_OpaqueValue")
-        self.assertEqual(preview_token, "<non-json:_OpaqueValue>")
+        self.assertEqual(first_type_name, "_OpaqueValue")
+        self.assertEqual(second_type_name, "_OpaqueValue")
+        self.assertEqual(first_preview_token, "<non-json:_OpaqueValue>")
+        self.assertEqual(second_preview_token, "<non-json:_OpaqueValue>")
+        self.assertNotEqual(first_tiebreaker, second_tiebreaker)
 
     def test_shell_ui_quotes_ambiguous_preview_tokens_and_keeps_set_order(self) -> None:
         runtime = SimpleNamespace(
