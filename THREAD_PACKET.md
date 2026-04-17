@@ -3,15 +3,15 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `1bf99c36f9a8759c043b314b6b9d84b534048334`
-- Packet refresh role: `feature-fixer required-fixes verification refresh`
+- Packet refresh role: `feature-fixer required-fixes packet alignment refresh`
 
 ## Packet Traceability Note
 
 - The implementation commit above refers to the current runtime fix commit for this lane, which carries the reviewer-required command-surface hardening and the current default `demo` / `mvp` command-flow contract on branch tip.
 - This packet refresh keeps the handoff wording aligned with the current implementation and records a fresh required-fixes verification rerun for the reviewer-fix branch tip.
 - Final verification refresh: re-ran the required gate suite on April 16, 2026 (America/Los_Angeles) after confirming the reviewer-required demo-path alignment is still present on this branch tip.
-- Feature-fixer verification refresh: re-ran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on April 16, 2026 (America/Los_Angeles) to attach a fresh required-fixes verification commit to the reviewer-required packet alignment.
-- Reviewer-fix follow-up scope: this refresh keeps the packet aligned with the actual branch tip, where the default `demo` / `mvp` command-flow helpers still cover `project-open`, `retrieval`, `patch-review`, and `export-handoff`, and where the reviewer-required fix is the explicit demo-path mapping in the handoff itself.
+- Feature-fixer packet refresh: this follow-up exists to make the blocker removal explicit in the handoff itself, so re-review does not have to infer how the command-catalog hardening advances the live MVP loop.
+- Reviewer-fix follow-up scope: this refresh keeps the packet aligned with the actual branch tip, where the default `demo` / `mvp` command-flow helpers still cover `project-open`, `retrieval`, `patch-review`, and `export-handoff`, and where the reviewer-required fix is the explicit demo-path mapping plus the concrete blocker-removal statement in the handoff itself.
 
 ## Current Program Focus
 
@@ -42,6 +42,7 @@
 - Exact re-review claim: this slice hardens the deterministic CLI contract around the `bootstrap` entrypoint that fronts the current `open project/document` step, and it does not claim broader workflow completion outside that command-contract surface.
 - Why this exact step: `bootstrap` is the command-backed entrypoint for `open project/document`, and this change keeps that operator-facing surface canonical, drift-resistant, and smoke-testable while Textual remains disabled.
 - AGENTS alignment statement: this slice makes `open project/document` more real by keeping the fallback CLI entrypoint explicit, canonically ordered, and safe from silent parser/catalog drift.
+- Concrete blocker removed: before this hardening, parser/catalog drift could silently change which canonical command surface backed `bootstrap`; after this hardening, that drift fails fast instead of weakening the operator-facing `open project/document` step.
 - Scope-tightening note: this is command-contract hardening only. It does not claim broader retrieval behavior, patch workflow behavior, audit behavior, or UI capability expansion.
 - Reviewer fix note: this section exists specifically to satisfy the requested re-review correction to name the exact canonical demo-path step advanced by the handoff.
 
@@ -120,7 +121,7 @@
 - Re-verified on the current `codex/feat-commands` branch tip that the reviewer-required fixes are present in the implementation: `command_cli_contract()` now rejects default-catalog parser-surface drift, and `tests/unit/test_commands_catalog.py` covers missing-primary-token, alias-substitution, extra-entrypoint, and primary-token-order drift where canonical command order alone would still be insufficient.
 - Re-verified that the packet’s roadmap and vision mapping now stays anchored to the `bootstrap` entrypoint and the `open project/document` demo-path step instead of making broader workflow claims.
 - This handoff refresh records both gate contexts explicitly: the reviewed implementation slice used `SCOPE_ALLOW_SHARED=1 make scope-check` and `SCOPE_ALLOW_SHARED=1 make ci` because it includes the approved shared test `tests/unit/test_commands_catalog.py`, while this metadata-only reviewer-fix follow-up commit also passes the standard `make scope-check` and `make ci` reruns on branch tip without broadening implementation scope.
-- Feature-fixer note: this refresh exists only to record the fresh required-fixes gate rerun on branch tip and produce the requested new commit on top of the already-applied reviewer-required fixes.
+- Feature-fixer note: this refresh exists only to record the fresh required-fixes gate rerun on branch tip and make the reviewer-requested blocker-removal statement explicit on top of the already-applied reviewer-required fixes.
 
 ## Risks / Blockers
 
