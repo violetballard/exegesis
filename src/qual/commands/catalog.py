@@ -3213,6 +3213,29 @@ def command_mvp_workflow_contract(
     return command_demo_workflow_contract(specs)
 
 
+def command_demo_workflow_entry_for(
+    specs: tuple[CommandSpec, ...],
+    token: str,
+) -> CommandDemoWorkflowEntry | None:
+    normalized_token = _normalize_token(token)
+    if not normalized_token:
+        return None
+    workflow_entries = {entry.token: entry for entry in command_demo_workflow_contract(specs).entries}
+    if normalized_token in workflow_entries:
+        return workflow_entries[normalized_token]
+    canonical_token = _command_demo_transition_token_lookup(specs).get(normalized_token)
+    if canonical_token is None:
+        return None
+    return workflow_entries.get(canonical_token)
+
+
+def command_mvp_workflow_entry_for(
+    specs: tuple[CommandSpec, ...],
+    token: str,
+) -> CommandDemoWorkflowEntry | None:
+    return command_demo_workflow_entry_for(specs, token)
+
+
 @lru_cache(maxsize=None)
 def command_demo_next_action_contract(
     source_token: str,
@@ -3300,6 +3323,14 @@ def command_mvp_workflow_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandDemoWorkflowEntry, ...]:
     return command_demo_workflow_catalog(specs)
+
+
+def command_demo_workflow_entry(token: str) -> CommandDemoWorkflowEntry | None:
+    return command_demo_workflow_entry_for(COMMAND_SPECS, token)
+
+
+def command_mvp_workflow_entry(token: str) -> CommandDemoWorkflowEntry | None:
+    return command_demo_workflow_entry(token)
 
 
 def command_demo_next_action_catalog(
