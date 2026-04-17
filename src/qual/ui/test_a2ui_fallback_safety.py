@@ -1507,7 +1507,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[SelectionRef]", text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
 
-    def test_shell_ui_recovers_action_and_selection_payloads_from_conflicting_card_hints(self) -> None:
+    def test_shell_ui_rejects_action_and_selection_payloads_under_conflicting_card_hints(self) -> None:
         shell = ShellUI()
 
         action_text = shell.render_artifact(
@@ -1524,13 +1524,15 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             kind="card",
         )
 
-        self.assertIn("[ActionRef] Export", action_text)
-        self.assertIn("Action schema v1", action_text)
-        self.assertNotIn("[UnknownCard]", action_text)
+        self.assertIn("[UnknownCard] <invalid card>", action_text)
+        self.assertIn("Action policy: copy_to_clipboard_only", action_text)
+        self.assertNotIn("[ActionRef]", action_text)
+        self.assertNotIn("[SelectionRef]", action_text)
 
-        self.assertIn("[SelectionRef] Choice", selection_text)
-        self.assertIn("Selection schema v1", selection_text)
-        self.assertNotIn("[UnknownCard]", selection_text)
+        self.assertIn("[UnknownCard] <invalid card>", selection_text)
+        self.assertIn("Action policy: copy_to_clipboard_only", selection_text)
+        self.assertNotIn("[ActionRef]", selection_text)
+        self.assertNotIn("[SelectionRef]", selection_text)
 
     def test_shell_ui_prefers_typed_payload_kind_over_conflicting_hint_for_non_envelope_payloads(self) -> None:
         shell = ShellUI()
@@ -2253,9 +2255,53 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 kind="card",
             )
 
-        self.assertIn("[<missing>] <untitled>", text)
+        self.assertIn("[UnknownCard] <invalid card>", text)
+        self.assertIn("Action policy: copy_to_clipboard_only", text)
         self.assertNotIn("[SelectionRef]", text)
         self.assertNotIn("[ActionRef]", text)
+
+    def test_shell_ui_preserves_card_kind_hint_for_action_and_selection_envelopes_during_fallback(self) -> None:
+        shell = ShellUI()
+        direct_action_envelope = build_terminal_artifact_envelope(
+            ActionRef(
+                id=" export_document ",
+                label=" Export ",
+                payload={"format": "md"},
+            ),
+            kind="action",
+        )
+        direct_selection_envelope = build_terminal_artifact_envelope(
+            SelectionRef(
+                id=" choice-1 ",
+                label=" Choice ",
+                payload={"nested": {"items": [1, 2]}},
+            ),
+            kind="selection",
+        )
+        nested_action_envelope = {
+            "type": "TerminalArtifact",
+            "kind": "card",
+            "artifact": direct_action_envelope,
+        }
+        nested_selection_envelope = {
+            "type": "TerminalArtifact",
+            "kind": "card",
+            "artifact": direct_selection_envelope,
+        }
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            for case_name, artifact in (
+                ("direct action envelope", direct_action_envelope),
+                ("direct selection envelope", direct_selection_envelope),
+                ("nested action envelope", nested_action_envelope),
+                ("nested selection envelope", nested_selection_envelope),
+            ):
+                with self.subTest(case=case_name):
+                    text = shell.render_artifact(artifact, kind="card")
+                    self.assertIn("[UnknownCard] <invalid card>", text)
+                    self.assertNotIn("[ActionRef]", text)
+                    self.assertNotIn("[SelectionRef]", text)
+                    self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
 
     def test_terminal_artifact_renderer_and_shell_fallback_preserve_card_hints_for_malformed_envelopes(
         self,

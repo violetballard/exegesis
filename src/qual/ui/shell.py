@@ -12,9 +12,6 @@ from .a2ui import (
     normalize_action_ref,
     normalize_selection_ref,
     resolve_terminal_artifact_render_target,
-    _is_malformed_terminal_artifact_envelope,
-    _infer_terminal_artifact_explicit_kind,
-    _recover_terminal_artifact_leaf_kind,
     render_terminal_action,
     render_terminal_artifact,
     render_terminal_card,
@@ -33,13 +30,9 @@ class ShellUI:
             return render_terminal_artifact(artifact, kind=kind)
         except Exception:
             # Keep the CLI usable even if the structured artifact renderer fails unexpectedly.
-            if self._normalize_fallback_kind(kind) == "card" and _is_malformed_terminal_artifact_envelope(artifact):
-                payload = artifact.get("artifact") if isinstance(artifact, Mapping) else None
-                payload_kind = _infer_terminal_artifact_explicit_kind(payload)
-                if payload_kind not in {"action", "selection"}:
-                    payload_kind = _recover_terminal_artifact_leaf_kind(payload)
-                if payload_kind in {"action", "selection"}:
-                    return _render_invalid_terminal_card(artifact)
+            if self._normalize_fallback_kind(kind) == "card" and self._contains_action_or_selection_payload(artifact):
+                # An explicit card hint should never render an action/selection leaf as a card.
+                return _render_invalid_terminal_card(artifact)
             try:
                 fallback_artifact, fallback_kind = self._resolve_fallback_artifact(artifact, kind=kind)
             except Exception:
@@ -205,6 +198,39 @@ class ShellUI:
         if has_selection_hints and not has_action_hints:
             return "selection"
         return None
+
+    @staticmethod
+    def _contains_action_or_selection_payload(
+        artifact: Any,
+        *,
+        _seen_envelope_ids: set[int] | None = None,
+    ) -> bool:
+        if isinstance(artifact, (ActionRef, SelectionRef)):
+            return True
+        if not isinstance(artifact, Mapping):
+            return False
+
+        artifact_type = artifact.get("type")
+        if isinstance(artifact_type, str) and artifact_type.strip() == "TerminalArtifact":
+            if _seen_envelope_ids is None:
+                _seen_envelope_ids = set()
+            artifact_id = id(artifact)
+            if artifact_id in _seen_envelope_ids:
+                return False
+            _seen_envelope_ids.add(artifact_id)
+            payload = artifact.get("artifact")
+            if payload is None:
+                return False
+            return ShellUI._contains_action_or_selection_payload(
+                payload,
+                _seen_envelope_ids=_seen_envelope_ids,
+            )
+
+        if ShellUI._infer_action_payload_kind(artifact) is not None:
+            return True
+        if ShellUI._infer_selection_payload_kind(artifact) is not None:
+            return True
+        return ShellUI._infer_partial_leaf_fallback_kind(artifact) is not None
 
     @staticmethod
     def _format_item_id(value: object) -> str:
