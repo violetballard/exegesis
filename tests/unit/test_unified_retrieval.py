@@ -3238,8 +3238,23 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "comparison",
             "memo",
         }
+        first_doc_citation["doc_id"] = "  doc-pdf-1  "
+        first_doc_citation["doc_type"] = "  PDF  "
+        first_doc_citation["source_hash"] = f"  {first_doc_citation['source_hash']}  "
+        first_doc_citation["doc_rank"] = f"  {first_doc_citation['doc_rank']}  "
+        first_doc_citation["top_excerpt_id"] = f"  {first_doc_citation['top_excerpt_id']}  "
+        first_doc_citation["top_excerpt_fingerprint"] = f"  {first_doc_citation['top_excerpt_fingerprint']}  "
+        first_doc_citation["top_excerpt_text_hash"] = f"  {first_doc_citation['top_excerpt_text_hash']}  "
         first_doc_citation["top_excerpt_span"] = {"char_range": {"start": 25, "end": 5}}
+        first_doc_citation["top_excerpt_rank"] = f"  {first_doc_citation['top_excerpt_rank']}  "
+        first_doc_citation["top_fts_rank"] = f"  {first_doc_citation['top_fts_rank']}  "
+        first_doc_citation["excerpt_count"] = f"  {first_doc_citation['excerpt_count']}  "
+        first_doc_citation["source_strategy"] = "  FTS  "
+        first_doc_citation["retrieval_backend"] = "  SQLITE_FTS  "
+        first_doc_citation["retrieval_mode"] = "  FTS_FIRST  "
         first_doc_citation["section_hint"] = "  Findings  "
+        if "top_section_hint_rank" in first_doc_citation:
+            first_doc_citation["top_section_hint_rank"] = f"  {first_doc_citation['top_section_hint_rank']}  "
 
         excerpt_citations = retrieval_citation_bundle.get("excerpt_citations")
         self.assertIsInstance(excerpt_citations, list)
@@ -3251,8 +3266,25 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "comparison",
             "coding",
         }
+        first_excerpt_citation["doc_id"] = "  doc-pdf-1  "
+        first_excerpt_citation["excerpt_id"] = f"  {first_excerpt_citation['excerpt_id']}  "
+        first_excerpt_citation["doc_type"] = "  PDF  "
+        first_excerpt_citation["source_hash"] = f"  {first_excerpt_citation['source_hash']}  "
+        first_excerpt_citation["excerpt_fingerprint"] = f"  {first_excerpt_citation['excerpt_fingerprint']}  "
+        first_excerpt_citation["excerpt_provenance_fingerprint"] = (
+            f"  {first_excerpt_citation['excerpt_provenance_fingerprint']}  "
+        )
+        first_excerpt_citation["excerpt_text_hash"] = f"  {first_excerpt_citation['excerpt_text_hash']}  "
         first_excerpt_citation["span"] = {"char_range": {"start": 40, "end": 10}}
+        first_excerpt_citation["rank"] = f"  {first_excerpt_citation['rank']}  "
+        first_excerpt_citation["match_count"] = f"  {first_excerpt_citation['match_count']}  "
+        first_excerpt_citation["fts_rank"] = f"  {first_excerpt_citation['fts_rank']}  "
+        first_excerpt_citation["source_strategy"] = "  FTS  "
+        first_excerpt_citation["retrieval_backend"] = "  SQLITE_FTS  "
+        first_excerpt_citation["retrieval_mode"] = "  FTS_FIRST  "
         first_excerpt_citation["section_hint"] = "  Findings  "
+        if "section_hint_rank" in first_excerpt_citation:
+            first_excerpt_citation["section_hint_rank"] = f"  {first_excerpt_citation['section_hint_rank']}  "
 
         retrieval_provenance = mutated_source_bundle.get("retrieval_provenance")
         self.assertIsInstance(retrieval_provenance, dict)
@@ -3271,8 +3303,29 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "comparison",
             "memo",
         }
+        first_provenance_doc_citation["doc_id"] = "  doc-pdf-1  "
+        first_provenance_doc_citation["doc_type"] = "  PDF  "
+        first_provenance_doc_citation["source_hash"] = f"  {first_provenance_doc_citation['source_hash']}  "
+        first_provenance_doc_citation["doc_rank"] = f"  {first_provenance_doc_citation['doc_rank']}  "
+        first_provenance_doc_citation["top_excerpt_id"] = f"  {first_provenance_doc_citation['top_excerpt_id']}  "
+        first_provenance_doc_citation["top_excerpt_fingerprint"] = (
+            f"  {first_provenance_doc_citation['top_excerpt_fingerprint']}  "
+        )
+        first_provenance_doc_citation["top_excerpt_text_hash"] = (
+            f"  {first_provenance_doc_citation['top_excerpt_text_hash']}  "
+        )
         first_provenance_doc_citation["top_excerpt_span"] = {"char_range": {"start": 25, "end": 5}}
+        first_provenance_doc_citation["top_excerpt_rank"] = f"  {first_provenance_doc_citation['top_excerpt_rank']}  "
+        first_provenance_doc_citation["top_fts_rank"] = f"  {first_provenance_doc_citation['top_fts_rank']}  "
+        first_provenance_doc_citation["excerpt_count"] = f"  {first_provenance_doc_citation['excerpt_count']}  "
+        first_provenance_doc_citation["source_strategy"] = "  FTS  "
+        first_provenance_doc_citation["retrieval_backend"] = "  SQLITE_FTS  "
+        first_provenance_doc_citation["retrieval_mode"] = "  FTS_FIRST  "
         first_provenance_doc_citation["section_hint"] = "  Findings  "
+        if "top_section_hint_rank" in first_provenance_doc_citation:
+            first_provenance_doc_citation["top_section_hint_rank"] = (
+                f"  {first_provenance_doc_citation['top_section_hint_rank']}  "
+            )
 
         provenance_excerpt_citations = retrieval_provenance.get("excerpt_citations")
         self.assertIsInstance(provenance_excerpt_citations, list)
@@ -3284,8 +3337,37 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "comparison",
             "coding",
         }
+        first_provenance_excerpt_citation["doc_id"] = "  doc-pdf-1  "
+        first_provenance_excerpt_citation["excerpt_id"] = (
+            f"  {first_provenance_excerpt_citation['excerpt_id']}  "
+        )
+        first_provenance_excerpt_citation["doc_type"] = "  PDF  "
+        first_provenance_excerpt_citation["source_hash"] = (
+            f"  {first_provenance_excerpt_citation['source_hash']}  "
+        )
+        first_provenance_excerpt_citation["excerpt_fingerprint"] = (
+            f"  {first_provenance_excerpt_citation['excerpt_fingerprint']}  "
+        )
+        first_provenance_excerpt_citation["excerpt_provenance_fingerprint"] = (
+            f"  {first_provenance_excerpt_citation['excerpt_provenance_fingerprint']}  "
+        )
+        first_provenance_excerpt_citation["excerpt_text_hash"] = (
+            f"  {first_provenance_excerpt_citation['excerpt_text_hash']}  "
+        )
         first_provenance_excerpt_citation["span"] = {"char_range": {"start": 40, "end": 10}}
+        first_provenance_excerpt_citation["rank"] = f"  {first_provenance_excerpt_citation['rank']}  "
+        first_provenance_excerpt_citation["match_count"] = (
+            f"  {first_provenance_excerpt_citation['match_count']}  "
+        )
+        first_provenance_excerpt_citation["fts_rank"] = f"  {first_provenance_excerpt_citation['fts_rank']}  "
+        first_provenance_excerpt_citation["source_strategy"] = "  FTS  "
+        first_provenance_excerpt_citation["retrieval_backend"] = "  SQLITE_FTS  "
+        first_provenance_excerpt_citation["retrieval_mode"] = "  FTS_FIRST  "
         first_provenance_excerpt_citation["section_hint"] = "  Findings  "
+        if "section_hint_rank" in first_provenance_excerpt_citation:
+            first_provenance_excerpt_citation["section_hint_rank"] = (
+                f"  {first_provenance_excerpt_citation['section_hint_rank']}  "
+            )
 
         payload = build_retrieval_downstream_payload_from_result(
             _SourceBundleOnlySource(mutated_source_bundle)
@@ -3296,6 +3378,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         expected_doc_span = {"char_range": {"start": 5, "end": 25}}
         expected_excerpt_span = {"char_range": {"start": 10, "end": 40}}
         expected_section_hint = "Findings"
+        expected_doc_id = "doc-pdf-1"
+        expected_doc_type = "PDF"
         doc_matched_terms = payload["retrieval_citation_bundle"]["doc_citations"][0]["matched_terms"]
         self.assertIsInstance(doc_matched_terms, list)
         self.assertEqual(len(doc_matched_terms), len(set(doc_matched_terms)))
@@ -3305,18 +3389,69 @@ class UnifiedRetrievalTests(unittest.TestCase):
             payload["retrieval_citation_bundle"]["doc_citations"][0],
             payload["retrieval_provenance"]["doc_citations"][0],
         ):
+            self.assertEqual(field["doc_id"], expected_doc_id)
+            self.assertEqual(field["doc_type"], expected_doc_type)
+            self.assertEqual(field["source_hash"], result.evidence["doc_citations"][0]["source_hash"])
             self.assertEqual(field["excerpt_ids"], expected_doc_excerpt_ids)
             self.assertEqual(field["matched_terms"], doc_matched_terms)
+            self.assertEqual(field["doc_rank"], result.evidence["doc_citations"][0]["doc_rank"])
+            self.assertEqual(field["top_excerpt_id"], result.evidence["doc_citations"][0]["top_excerpt_id"])
+            self.assertEqual(
+                field["top_excerpt_fingerprint"],
+                result.evidence["doc_citations"][0]["top_excerpt_fingerprint"],
+            )
+            self.assertEqual(
+                field["top_excerpt_text_hash"],
+                result.evidence["doc_citations"][0]["top_excerpt_text_hash"],
+            )
             self.assertEqual(field["top_excerpt_span"], expected_doc_span)
+            self.assertEqual(field["top_excerpt_rank"], result.evidence["doc_citations"][0]["top_excerpt_rank"])
+            self.assertEqual(field["top_fts_rank"], result.evidence["doc_citations"][0]["top_fts_rank"])
+            self.assertEqual(field["excerpt_count"], result.evidence["doc_citations"][0]["excerpt_count"])
+            self.assertEqual(field["source_strategy"], "fts")
+            self.assertEqual(field["retrieval_backend"], "sqlite_fts")
+            self.assertEqual(field["retrieval_mode"], "fts_first")
             self.assertEqual(field["section_hint"], expected_section_hint)
+            if "top_section_hint_rank" in result.evidence["doc_citations"][0]:
+                self.assertEqual(
+                    field["top_section_hint_rank"],
+                    result.evidence["doc_citations"][0]["top_section_hint_rank"],
+                )
 
         for field in (
             payload["retrieval_citation_bundle"]["excerpt_citations"][0],
             payload["retrieval_provenance"]["excerpt_citations"][0],
         ):
+            self.assertEqual(field["doc_id"], expected_doc_id)
+            self.assertEqual(field["excerpt_id"], result.evidence["excerpt_citations"][0]["excerpt_id"])
+            self.assertEqual(field["doc_type"], expected_doc_type)
+            self.assertEqual(field["source_hash"], result.evidence["excerpt_citations"][0]["source_hash"])
+            self.assertEqual(
+                field["excerpt_fingerprint"],
+                result.evidence["excerpt_citations"][0]["excerpt_fingerprint"],
+            )
+            self.assertEqual(
+                field["excerpt_provenance_fingerprint"],
+                result.evidence["excerpt_citations"][0]["excerpt_provenance_fingerprint"],
+            )
+            self.assertEqual(
+                field["excerpt_text_hash"],
+                result.evidence["excerpt_citations"][0]["excerpt_text_hash"],
+            )
             self.assertEqual(field["matched_terms"], expected_excerpt_matched_terms)
             self.assertEqual(field["span"], expected_excerpt_span)
+            self.assertEqual(field["rank"], result.evidence["excerpt_citations"][0]["rank"])
+            self.assertEqual(field["match_count"], result.evidence["excerpt_citations"][0]["match_count"])
+            self.assertEqual(field["fts_rank"], result.evidence["excerpt_citations"][0]["fts_rank"])
+            self.assertEqual(field["source_strategy"], "fts")
+            self.assertEqual(field["retrieval_backend"], "sqlite_fts")
+            self.assertEqual(field["retrieval_mode"], "fts_first")
             self.assertEqual(field["section_hint"], expected_section_hint)
+            if "section_hint_rank" in result.evidence["excerpt_citations"][0]:
+                self.assertEqual(
+                    field["section_hint_rank"],
+                    result.evidence["excerpt_citations"][0]["section_hint_rank"],
+                )
 
     def test_retrieval_downstream_payload_helper_backfills_basket_promotion_from_top_level_hits(self) -> None:
         result = self.service.retrieve_auto(

@@ -558,12 +558,48 @@ def _normalize_excerpt_citations(value: object) -> list[dict[str, object]]:
 
 def _normalize_doc_citation(citation: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(citation)
+    for field_name in (
+        "doc_id",
+        "doc_type",
+        "source_hash",
+        "doc_fingerprint",
+        "doc_identity_fingerprint",
+        "top_excerpt_id",
+        "top_excerpt_fingerprint",
+        "top_excerpt_text_hash",
+    ):
+        field_value = _normalize_optional_text(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+        elif field_name in normalized:
+            normalized[field_name] = None
     excerpt_ids = normalized.get("excerpt_ids")
     if excerpt_ids is not None:
         normalized["excerpt_ids"] = _normalize_text_list_like(excerpt_ids)
     matched_terms = normalized.get("matched_terms")
     if matched_terms is not None:
         normalized["matched_terms"] = _normalize_text_list_like(matched_terms)
+    for field_name in ("doc_rank", "top_excerpt_rank", "excerpt_count", "top_section_hint_rank"):
+        field_value = _normalize_optional_int(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+        elif field_name in normalized:
+            normalized[field_name] = None
+    top_fts_rank = normalized.get("top_fts_rank")
+    if isinstance(top_fts_rank, str) and top_fts_rank.strip().isdigit():
+        normalized["top_fts_rank"] = int(top_fts_rank.strip())
+    else:
+        normalized_top_fts_rank = _normalize_optional_float(top_fts_rank)
+        if normalized_top_fts_rank is not None:
+            normalized["top_fts_rank"] = normalized_top_fts_rank
+        elif "top_fts_rank" in normalized:
+            normalized["top_fts_rank"] = None
+    for field_name in ("source_strategy", "retrieval_backend", "retrieval_mode"):
+        field_value = _normalize_optional_casefold_text(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+        elif field_name in normalized:
+            normalized[field_name] = None
     top_excerpt_span = _normalize_span_snapshot(normalized.get("top_excerpt_span"))
     if top_excerpt_span is not None:
         normalized["top_excerpt_span"] = copy.deepcopy(top_excerpt_span)
@@ -579,9 +615,44 @@ def _normalize_doc_citation(citation: dict[str, object]) -> dict[str, object]:
 
 def _normalize_excerpt_citation(citation: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(citation)
+    for field_name in (
+        "doc_id",
+        "excerpt_id",
+        "doc_type",
+        "source_hash",
+        "excerpt_fingerprint",
+        "excerpt_provenance_fingerprint",
+        "excerpt_text_hash",
+    ):
+        field_value = _normalize_optional_text(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+        elif field_name in normalized:
+            normalized[field_name] = None
     matched_terms = normalized.get("matched_terms")
     if matched_terms is not None:
         normalized["matched_terms"] = _normalize_text_list_like(matched_terms)
+    for field_name in ("rank", "match_count", "section_hint_rank"):
+        field_value = _normalize_optional_int(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+        elif field_name in normalized:
+            normalized[field_name] = None
+    fts_rank = normalized.get("fts_rank")
+    if isinstance(fts_rank, str) and fts_rank.strip().isdigit():
+        normalized["fts_rank"] = int(fts_rank.strip())
+    else:
+        normalized_fts_rank = _normalize_optional_float(fts_rank)
+        if normalized_fts_rank is not None:
+            normalized["fts_rank"] = normalized_fts_rank
+        elif "fts_rank" in normalized:
+            normalized["fts_rank"] = None
+    for field_name in ("source_strategy", "retrieval_backend", "retrieval_mode"):
+        field_value = _normalize_optional_casefold_text(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+        elif field_name in normalized:
+            normalized[field_name] = None
     span = _normalize_span_snapshot(normalized.get("span"))
     if span is not None:
         normalized["span"] = copy.deepcopy(span)
