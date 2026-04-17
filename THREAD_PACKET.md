@@ -91,12 +91,17 @@
 
 ## Commands Run and Outcomes
 
+- `python -m unittest tests.unit.test_commands_catalog`: PASS
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
+
+## Verification Note
+
+- Re-verified on the current `codex/feat-commands` branch tip that the reviewer-required fixes are present in the implementation: `command_cli_contract()` now rejects full parser-surface drift for the default catalog, and `tests/unit/test_commands_catalog.py` covers alias-substitution and extra-entrypoint drift where canonical command order alone would still match.
 
 ## Risks / Blockers
 
