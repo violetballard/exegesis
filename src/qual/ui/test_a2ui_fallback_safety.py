@@ -933,6 +933,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("capabilities_contract", fingerprints)
         self.assertEqual(fingerprints_with_aliases["capabilities_contract"], a2ui_capabilities_contract_fingerprint())
         self.assertEqual(fingerprints_with_aliases["card_contract_fingerprint"], card_contract_fingerprint())
+        self.assertNotIn("card_contract_fingerprint_fingerprint", fingerprints_with_aliases)
         self.assertEqual(fingerprints_with_aliases["action_contract"], action_contract_fingerprint())
         self.assertEqual(fingerprints_with_aliases["selection_contract"], selection_contract_fingerprint())
         self.assertEqual(fingerprints_with_aliases["terminal_fallback_contract"], terminal_fallback_contract_fingerprint())

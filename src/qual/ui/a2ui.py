@@ -172,7 +172,8 @@ def _add_contract_alias_fingerprints(
 
     for alias, fingerprint in alias_fingerprints:
         fingerprints[alias] = fingerprint
-        fingerprints[f"{alias}_fingerprint"] = fingerprint
+        fingerprint_alias = alias if alias.endswith("_fingerprint") else f"{alias}_fingerprint"
+        fingerprints[fingerprint_alias] = fingerprint
 
 
 def describe_a2ui_contract() -> dict[str, Any]:
