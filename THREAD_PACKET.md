@@ -40,7 +40,7 @@
 
 ## Canonical Demo-Path Step Advanced
 
-- `retrieve relevant material`
+- Canonical demo-path step advanced: `retrieve relevant material`
 
 This change advances the canonical demo-path step `retrieve relevant material`; `fetch_excerpt` now fails closed to the canonical FTS-only excerpt store, keeping downstream excerpt provenance deterministic and auditable.
 This keeps SQLite FTS authoritative without reintroducing PageIndex or embeddings as required runtime paths.
