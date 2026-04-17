@@ -329,6 +329,20 @@ def describe_terminal_artifact_rendering_contract() -> dict[str, Any]:
     return manifest
 
 
+def describe_terminal_artifact_rendering_contract_fingerprints(
+    include_terminal_artifact_rendering: bool = False,
+) -> dict[str, str]:
+    """Return stable fingerprints for the rendering-contract sections.
+
+    Pass ``include_terminal_artifact_rendering=True`` to include the wrapper
+    contract fingerprint itself alongside the nested section fingerprints.
+    """
+
+    return _build_terminal_artifact_rendering_contract_fingerprints(
+        include_terminal_artifact_rendering=include_terminal_artifact_rendering,
+    )
+
+
 def describe_terminal_artifact_cli_fallback_contract() -> dict[str, Any]:
     """Return the stable CLI fallback wrapper contract manifest."""
 
@@ -381,6 +395,20 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
     return _build_terminal_artifact_cli_fallback_contract_fingerprints(
         include_terminal_artifact_cli_fallback=include_terminal_artifact_cli_fallback,
     )
+
+
+def _build_terminal_artifact_rendering_contract_fingerprints(
+    *,
+    include_terminal_artifact_rendering: bool = False,
+) -> dict[str, str]:
+    fingerprints = {
+        "kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
+        "render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
+        "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
+    }
+    if include_terminal_artifact_rendering:
+        fingerprints["terminal_artifact_rendering"] = terminal_artifact_rendering_contract_fingerprint()
+    return fingerprints
 
 
 def _build_terminal_artifact_cli_fallback_contract_fingerprints(
@@ -700,6 +728,7 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
         "terminal_fallback_fingerprint": terminal_fallback_contract_fingerprint(),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
+        "contract_fingerprints": describe_terminal_artifact_rendering_contract_fingerprints(),
     }
 
 
