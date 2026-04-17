@@ -175,6 +175,9 @@
   by keeping the accepted command surface deterministic while Textual remains
   disabled, so catalog/parser drift cannot silently change how operators enter
   the MVP loop.
+- Stable CLI compatibility surface tie-back: this is contract hardening for
+  the active CLI entrypoint layer only, so the operator-facing command surface
+  stays migration-safe without expanding into new command behavior.
 - Reviewer-required roadmap tie-back: this directly supports the Milestone 3
   exit criterion that `CLI can still execute the MVP loop while Textual remains
   disabled` by keeping the command catalog aligned with the accepted CLI
@@ -187,6 +190,9 @@
 
 - This slice stays in `feat-commands` Milestone 3 CLI compatibility contract
   hardening work.
+- It is specifically limited to the stable CLI compatibility surface for the
+  command catalog and does not broaden the lane beyond deterministic contract
+  validation.
 - It only hardens command-catalog contract validation and focused regression
   coverage.
 - It is not a broader workflow-surface expansion and it is not a UI-surface
