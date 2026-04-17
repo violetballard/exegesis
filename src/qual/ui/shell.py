@@ -451,9 +451,25 @@ class ShellUI:
         if payload is None:
             return None
 
-        if ShellUI._normalize_fallback_kind(artifact.get("kind")) is None and _should_preserve_raw_leaf_card_default(
-            payload
-        ):
+        envelope_kind = ShellUI._normalize_fallback_kind(artifact.get("kind"))
+        if isinstance(payload, Mapping):
+            nested_type = payload.get("type")
+            if isinstance(nested_type, str) and nested_type.strip() == "TerminalArtifact":
+                # Keep peeling nested envelopes until we reach the concrete
+                # leaf payload. Nested structured artifacts should never be
+                # flattened back to the raw-leaf card default just because
+                # an intermediate wrapper happened to use kind="card".
+                recovered = ShellUI._recover_terminal_artifact_envelope_fallback(
+                    payload,
+                    _seen_envelope_ids=_seen_envelope_ids,
+                )
+                if recovered is not None:
+                    return recovered
+
+        if envelope_kind in {"action", "selection"}:
+            return payload, envelope_kind
+
+        if envelope_kind is None and _should_preserve_raw_leaf_card_default(payload):
             # When the envelope kind is unusable, keep ambiguous raw leaves on
             # the card path rather than guessing a structured leaf kind.
             return payload, "card"
@@ -461,15 +477,5 @@ class ShellUI:
         inferred_kind = ShellUI._infer_fallback_kind(payload)
         if inferred_kind is not None:
             return payload, inferred_kind
-
-        if isinstance(payload, Mapping):
-            nested_type = payload.get("type")
-            if isinstance(nested_type, str) and nested_type.strip() == "TerminalArtifact":
-                recovered = ShellUI._recover_terminal_artifact_envelope_fallback(
-                    payload,
-                    _seen_envelope_ids=_seen_envelope_ids,
-                )
-                if recovered is not None:
-                    return recovered
 
         return None
