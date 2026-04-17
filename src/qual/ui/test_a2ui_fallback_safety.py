@@ -85,6 +85,7 @@ from src.qual.ui.a2ui import (
     TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
     TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_SCHEMA_VERSION,
     TERMINAL_ARTIFACT_RAW_LEAF_CARD_DEFAULT_SCHEMA_VERSION,
+    _build_a2ui_schema_versions_manifest,
     studio_materialize_card,
     validate_terminal_artifact_envelope,
     validate_generic_card,
@@ -578,6 +579,35 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["selection_contract_fingerprint"], selection_contract_fingerprint())
         self.assertEqual(manifest["selection_fingerprint"], selection_contract_fingerprint())
         self.assertEqual(manifest["card_fingerprint"], card_contract_fingerprint())
+        self.assertEqual(
+            manifest["schema_versions"],
+            {
+                "contract_version": 2,
+                "a2ui_version": 1,
+                "type": "A2UISchemaVersions",
+                "capabilities_schema_version": A2UI_CAPABILITIES_SCHEMA_VERSION,
+                "selection_schema_version": SELECTION_SCHEMA_VERSION,
+                "action_schema_version": A2UI_ACTION_SCHEMA_VERSION,
+                "card_contract_version": CARD_CONTRACT_VERSION,
+                "terminal_fallback_schema_version": 1,
+                "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
+                "terminal_artifact_render_target_schema_version": TERMINAL_ARTIFACT_RENDER_TARGET_SCHEMA_VERSION,
+                "terminal_artifact_rendering_schema_version": TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION,
+                "terminal_artifact_cli_fallback_schema_version": TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
+                "terminal_artifact_cli_fallback_target_schema_version": TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_SCHEMA_VERSION,
+                "terminal_artifact_raw_leaf_card_default_schema_version": TERMINAL_ARTIFACT_RAW_LEAF_CARD_DEFAULT_SCHEMA_VERSION,
+            },
+        )
+        self.assertEqual(manifest["schema_versions"]["contract_version"], 2)
+        self.assertEqual(manifest["schema_versions"]["a2ui_version"], 1)
+        self.assertEqual(
+            manifest["schema_versions_contract"],
+            manifest["schema_versions"],
+        )
+        self.assertEqual(
+            manifest["schema_versions_contract_fingerprint"],
+            manifest["schema_versions_fingerprint"],
+        )
         self.assertEqual(manifest["schemas"]["capabilities"], describe_a2ui_capabilities_contract())
         self.assertEqual(manifest["schemas"]["action"], describe_action_contract())
         self.assertEqual(manifest["contract_fingerprints"]["capabilities"], a2ui_capabilities_contract_fingerprint())
@@ -701,6 +731,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
     def test_a2ui_contract_manifest_alias_sections_are_snapshot_isolated(self) -> None:
         manifest = describe_a2ui_contract()
+        schema_versions_source = _build_a2ui_schema_versions_manifest()
 
         cases = [
             ("capabilities", manifest["schemas"]["capabilities"]),
@@ -708,6 +739,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             ("card_contract", manifest["schemas"]["card_contract"]),
             ("action", manifest["schemas"]["action"]),
             ("selection", manifest["schemas"]["selection"]),
+            ("schema_versions", schema_versions_source),
+            ("schema_versions_contract", schema_versions_source),
             ("terminal_fallback", manifest["schemas"]["terminal_fallback"]),
             ("terminal_artifact", manifest["schemas"]["terminal_artifact"]),
             (
@@ -758,6 +791,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIsNot(manifest["action"], manifest["action_contract"])
         self.assertIsNot(manifest["selection"], manifest["selection_contract"])
         self.assertIsNot(manifest["capabilities"], manifest["capabilities_contract"])
+        self.assertIsNot(manifest["schema_versions"], manifest["schema_versions_contract"])
         self.assertIsNot(manifest["terminal_fallback"], manifest["terminal_fallback_contract"])
         self.assertIsNot(manifest["terminal_artifact"], manifest["terminal_artifact_contract"])
         self.assertIsNot(

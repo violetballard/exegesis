@@ -211,6 +211,15 @@ def describe_a2ui_contract(
     manifest["selection_contract"] = _snapshot_contract_section(selection_contract)
     manifest["selection_contract_fingerprint"] = manifest["selection_fingerprint"]
     manifest["card_fingerprint"] = card_contract_fingerprint()
+    schema_versions = _snapshot_contract_section(
+        _build_a2ui_schema_versions_manifest(
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        )
+    )
+    manifest["schema_versions"] = schema_versions
+    manifest["schema_versions_contract"] = _snapshot_contract_section(schema_versions)
+    manifest["schema_versions_fingerprint"] = _fingerprint_manifest_section(schema_versions)
+    manifest["schema_versions_contract_fingerprint"] = manifest["schema_versions_fingerprint"]
     terminal_artifact_rendering = _snapshot_contract_section(
         manifest["schemas"]["terminal_artifact_rendering"]
     )
@@ -521,6 +530,33 @@ def _build_a2ui_contract_fingerprint_summary(
         include_terminal_artifact_cli_fallback_target=True,
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
+
+
+def _build_a2ui_schema_versions_manifest(
+    *,
+    include_terminal_artifact_cli_fallback_route: bool = False,
+) -> dict[str, Any]:
+    manifest = {
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "type": "A2UISchemaVersions",
+        "capabilities_schema_version": A2UI_CAPABILITIES_SCHEMA_VERSION,
+        "selection_schema_version": SELECTION_SCHEMA_VERSION,
+        "action_schema_version": A2UI_ACTION_SCHEMA_VERSION,
+        "card_contract_version": CARD_CONTRACT_VERSION,
+        "terminal_fallback_schema_version": TERMINAL_FALLBACK_SCHEMA_VERSION,
+        "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
+        "terminal_artifact_render_target_schema_version": TERMINAL_ARTIFACT_RENDER_TARGET_SCHEMA_VERSION,
+        "terminal_artifact_rendering_schema_version": TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION,
+        "terminal_artifact_cli_fallback_schema_version": TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
+        "terminal_artifact_cli_fallback_target_schema_version": TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_SCHEMA_VERSION,
+        "terminal_artifact_raw_leaf_card_default_schema_version": TERMINAL_ARTIFACT_RAW_LEAF_CARD_DEFAULT_SCHEMA_VERSION,
+    }
+    if include_terminal_artifact_cli_fallback_route:
+        manifest["terminal_artifact_cli_fallback_route_schema_version"] = (
+            TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_SCHEMA_VERSION
+        )
+    return manifest
 
 
 def describe_a2ui_dispatch_contract_fingerprints() -> dict[str, str]:
