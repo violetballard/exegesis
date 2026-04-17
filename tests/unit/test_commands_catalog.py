@@ -673,6 +673,10 @@ class CommandCatalogTests(unittest.TestCase):
             command_cli_entry_argv(("missing", "--format", "json")),
             ("missing", "--format", "json"),
         )
+        self.assertEqual(
+            command_cli_entry_argv(("terminal", "--operation-kind", "terminal_tool_orchestration")),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Export handoff"),
+        )
 
     def test_command_resolve_reports_deterministic_surface_metadata(self) -> None:
         resolved = command_resolve("patch-review")
@@ -767,6 +771,14 @@ class CommandCatalogTests(unittest.TestCase):
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
         )
         self.assertEqual(persist.kind, "lookup")
+
+        terminal = command_resolve_argv(("terminal", "--operation-kind", "terminal_tool_orchestration"))
+        self.assertTrue(terminal.matched)
+        self.assertEqual(
+            terminal.argv,
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Export handoff"),
+        )
+        self.assertEqual(terminal.kind, "primary")
 
     def test_document_open_aliases_resolve_to_bootstrap_parser_entrypoint(self) -> None:
         for token in ("document-open", "open-document"):
@@ -1733,6 +1745,10 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_smoke_argv_for(command_specs(), ("export", "--message=Queued for export"), ("export-handoff",)),
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message=Queued for export"),
+        )
+        self.assertEqual(
+            command_smoke_argv(("terminal", "--operation-kind", "terminal_tool_orchestration")),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Export handoff"),
         )
         self.assertEqual(
             command_cli_entry_argv(("persist",)),

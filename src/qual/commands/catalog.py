@@ -567,25 +567,12 @@ def _normalize_explicit_shim_args(explicit_args: tuple[str, ...]) -> tuple[str, 
     if not explicit_args:
         return ()
 
-    segments: list[tuple[str, ...]] = []
-    last_option_segment_index: dict[str, int] = {}
-    index = 0
-    while index < len(explicit_args):
-        token = explicit_args[index]
-        if not token.startswith("-"):
-            segments.append((token,))
-            index += 1
-            continue
-
-        option_name, _, _ = token.partition("=")
-        if index + 1 < len(explicit_args) and not explicit_args[index + 1].startswith("-") and "=" not in token:
-            segment = (token, explicit_args[index + 1])
-            index += 2
-        else:
-            segment = (token,)
-            index += 1
-        last_option_segment_index[option_name or token] = len(segments)
-        segments.append(segment)
+    segments = _argv_segments(explicit_args)
+    last_option_segment_index: dict[str, int] = {
+        segment[0].partition("=")[0] or segment[0]: segment_index
+        for segment_index, segment in enumerate(segments)
+        if segment[0].startswith("-")
+    }
 
     normalized: list[str] = []
     for segment_index, segment in enumerate(segments):
@@ -598,6 +585,24 @@ def _normalize_explicit_shim_args(explicit_args: tuple[str, ...]) -> tuple[str, 
     return tuple(normalized)
 
 
+def _argv_segments(argv: tuple[str, ...]) -> tuple[tuple[str, ...], ...]:
+    segments: list[tuple[str, ...]] = []
+    index = 0
+    while index < len(argv):
+        token = argv[index]
+        if token.startswith("-"):
+            if index + 1 < len(argv) and not argv[index + 1].startswith("-") and "=" not in token:
+                segments.append((token, argv[index + 1]))
+                index += 2
+                continue
+            segments.append((token,))
+            index += 1
+            continue
+        segments.append((token,))
+        index += 1
+    return tuple(segments)
+
+
 def _merge_shim_argv(
     shim_argv: tuple[str, ...],
     explicit_args: tuple[str, ...],
@@ -608,38 +613,35 @@ def _merge_shim_argv(
     if len(shim_argv) <= 1 or not normalized_explicit_args:
         return (*shim_argv, *normalized_explicit_args)
 
-    overridden_options = _shim_option_names(normalized_explicit_args)
-    merged: list[str] = [shim_argv[0]]
-    index = 1
-    while index < len(shim_argv):
-        token = shim_argv[index]
-        if token.startswith("-") and token not in pinned_options and token in overridden_options:
-            if index + 1 < len(shim_argv) and not shim_argv[index + 1].startswith("-"):
-                index += 2
-                continue
-            index += 1
+    explicit_segments = _argv_segments(normalized_explicit_args)
+    explicit_option_segments: dict[str, tuple[str, ...]] = {}
+    explicit_tail_segments: list[tuple[str, ...]] = []
+    for segment in explicit_segments:
+        head = segment[0]
+        if not head.startswith("-"):
+            explicit_tail_segments.append(segment)
             continue
-        merged.append(token)
-        index += 1
-    if not pinned_options:
-        return (*merged, *normalized_explicit_args)
+        option_name = head.partition("=")[0] or head
+        if option_name in pinned_options:
+            continue
+        explicit_option_segments[option_name] = segment
 
-    filtered_explicit_args: list[str] = []
-    index = 0
-    while index < len(normalized_explicit_args):
-        token = normalized_explicit_args[index]
-        option_name = token.partition("=")[0] if token.startswith("-") else ""
-        if option_name and option_name in pinned_options:
-            if "=" not in token and index + 1 < len(normalized_explicit_args):
-                next_token = normalized_explicit_args[index + 1]
-                if not next_token.startswith("-"):
-                    index += 2
-                    continue
-            index += 1
+    merged_segments: list[tuple[str, ...]] = [(shim_argv[0],)]
+    for segment in _argv_segments(shim_argv[1:]):
+        head = segment[0]
+        if not head.startswith("-"):
+            merged_segments.append(segment)
             continue
-        filtered_explicit_args.append(token)
-        index += 1
-    return (*merged, *filtered_explicit_args)
+        option_name = head.partition("=")[0] or head
+        override = explicit_option_segments.pop(option_name, None)
+        if override is not None:
+            merged_segments.append(override)
+            continue
+        merged_segments.append(segment)
+
+    merged_segments.extend(explicit_option_segments.values())
+    merged_segments.extend(explicit_tail_segments)
+    return tuple(token for segment in merged_segments for token in segment)
 
 
 def _shim_pinned_options_lookup(
