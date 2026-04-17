@@ -28,7 +28,7 @@
 - `plan complete`: aligned the operative handoff packet to the reviewer packet's exact reviewed implementation range and explicit demo-path mapping.
 - `first green tests`: all required gates passed on this fixer pass.
 - `before risky/shared file edit`: the only shared implementation file in scope remains the approved regression surface `tests/unit/test_unified_retrieval.py`.
-- `ready for handoff`: the operative packet now matches the exact reviewed implementation slice and required AGENTS mapping.
+- `ready for handoff`: the operative packet now matches the reviewer-specified implementation range and required AGENTS mapping.
 
 ## Scope completed
 
@@ -52,12 +52,12 @@ This change advances the canonical demo-path step `retrieve relevant material` b
 - Reviewer packet source-of-truth anchor before this fixer commit: reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - This metadata-only refresh preserves the reviewed implementation head, aligns the operative reviewed implementation range to the reviewer packet above, and adds the explicit AGENTS demo-path statement required for re-review.
 - Operative re-review artifact in this lane worktree: `THREAD_PACKET.md` is the source of truth for the narrowed reviewed range and canonical demo-path mapping on this fixer pass.
-- Hidden packet artifacts under `.codex/` are present for reference in this worktree but are filesystem read-only here, so `THREAD_PACKET.md` is the operative corrected handoff artifact for re-review.
+- Hidden packet artifacts under `.codex/` are present for reference in this worktree but remain unchanged here because the lane sandbox denies writes to those paths, so `THREAD_PACKET.md` is the operative corrected handoff artifact for re-review.
 
 ## Operative Packet Authority
 
 - `THREAD_PACKET.md` is the authoritative re-review packet for this fixer pass.
-- The lane worktree allows updating this handoff packet but denies writes to `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`.
+- The lane worktree allows updating this handoff packet but denies writes to `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`, so those reference artifacts may still show older metadata.
 - Re-review should use this packet's reviewed implementation range, narrowed scope summary, and canonical demo-path statement as the operative reviewer-fix artifact.
 
 ## Operative Packet Note
@@ -84,6 +84,7 @@ This change advances the canonical demo-path step `retrieve relevant material` b
   - `tests/unit/test_unified_retrieval.py`
 - Packet refresh files:
   - `THREAD_PACKET.md`
+- Reference-only packet artifacts left unchanged by sandbox:
   - `.codex/kickoff_packets/feat-retrieval-fts.md`
   - `.codex/lane_meta/feat-retrieval-fts.json`
 
