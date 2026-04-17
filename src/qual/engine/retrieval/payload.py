@@ -1584,6 +1584,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
     """Return the deterministic retrieval context bundle from a source-bundle snapshot."""
 
     source_bundle = _normalize_retrieval_source_bundle_snapshot(source_bundle)
+    downstream_payload = _build_retrieval_downstream_payload_from_source_bundle(copy.deepcopy(source_bundle))
     retrieval_citation_bundle = _build_retrieval_citation_bundle_from_payload(source_bundle)
     retrieval_doc_bundle = source_bundle.get("retrieval_doc_bundle", {})
     if not isinstance(retrieval_doc_bundle, dict):
@@ -1611,7 +1612,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "retrieval_mode": source_bundle.get("retrieval_mode"),
         "citation_status": citation_status,
         "retrieval_summary": retrieval_summary,
-        "retrieval_downstream_payload": copy.deepcopy(source_bundle),
+        "retrieval_downstream_payload": downstream_payload,
         "retrieval_citation_bundle": copy.deepcopy(retrieval_citation_bundle),
         "retrieval_doc_bundle": copy.deepcopy(retrieval_doc_bundle),
         "retrieval_excerpt_bundle": copy.deepcopy(retrieval_excerpt_bundle),

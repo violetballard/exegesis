@@ -828,9 +828,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         source_bundle = result.source_bundle()
         bundle = engine_build_retrieval_context_bundle_from_result(_SourceBundleOnlySource(source_bundle))
+        expected_payload = build_retrieval_downstream_payload_from_result(_SourceBundleOnlySource(source_bundle))
         self.assertIsNone(bundle["audit_ref"])
         self.assertEqual(bundle["result_fingerprint"], result.result_fingerprint)
-        self.assertEqual(bundle["retrieval_downstream_payload"], source_bundle)
+        self.assertEqual(bundle["retrieval_downstream_payload"], expected_payload)
+        self.assertEqual(bundle["retrieval_downstream_payload"]["retrieval_source_bundle"], source_bundle)
         self.assertEqual(bundle["retrieval_source_bundle"], source_bundle)
         self.assertEqual(bundle["retrieval_citation_bundle"], result.citation_bundle())
         self.assertEqual(bundle["retrieval_doc_bundle"], result.retrieval_doc_bundle())
