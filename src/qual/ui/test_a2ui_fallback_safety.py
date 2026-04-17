@@ -3530,6 +3530,16 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "render_startup": "ShellUI.render_startup",
             },
         )
+        self.assertIsNot(manifest["entrypoints_contract"], manifest["entrypoints"])
+        self.assertEqual(manifest["entrypoints_contract"], manifest["entrypoints"])
+        self.assertEqual(
+            manifest["entrypoints_fingerprint"],
+            _fingerprint_manifest_section(manifest["entrypoints"]),
+        )
+        self.assertEqual(
+            manifest["entrypoints_contract_fingerprint"],
+            _fingerprint_manifest_section(manifest["entrypoints"]),
+        )
         self.assertEqual(
             manifest["startup_fields"],
             ["project", "vault", "locked", "context_items", "context_preview"],
@@ -3685,6 +3695,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["contract_fingerprints_fingerprint"],
             _fingerprint_manifest_section(fingerprints),
+        )
+        self.assertEqual(
+            fingerprints["entrypoints"],
+            _fingerprint_manifest_section(manifest["entrypoints"]),
+        )
+        self.assertEqual(
+            fingerprints["entrypoints_contract"],
+            _fingerprint_manifest_section(manifest["entrypoints"]),
         )
         self.assertEqual(
             manifest["startup_fields_fingerprint"],

@@ -48,8 +48,16 @@ SHELL_UI_STARTUP_FIELDS: tuple[str, ...] = (
     "context_items",
     "context_preview",
 )
+SHELL_UI_ENTRYPOINTS: tuple[tuple[str, str], ...] = (
+    ("render_artifact", "ShellUI.render_artifact"),
+    ("render_startup", "ShellUI.render_startup"),
+)
 SHELL_UI_STARTUP_PREVIEW_LIMIT = 3
 SHELL_UI_STARTUP_EMPTY_PREVIEW = "<empty>"
+
+
+def _build_shell_ui_entrypoints() -> dict[str, str]:
+    return {entrypoint: renderer for entrypoint, renderer in SHELL_UI_ENTRYPOINTS}
 
 
 class ShellUI:
@@ -521,16 +529,17 @@ def _build_shell_ui_contract_manifest(
     terminal_artifact_cli_fallback_target_contract = describe_terminal_artifact_cli_fallback_target_contract(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
+    entrypoints = _build_shell_ui_entrypoints()
     manifest = {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
         "shell_ui_schema_version": SHELL_UI_CONTRACT_VERSION,
         "shell_ui_version": SHELL_UI_CONTRACT_VERSION,
         "type": "ShellUIContract",
-        "entrypoints": {
-            "render_artifact": "ShellUI.render_artifact",
-            "render_startup": "ShellUI.render_startup",
-        },
+        "entrypoints": entrypoints,
+        "entrypoints_fingerprint": _fingerprint_manifest_section(entrypoints),
+        "entrypoints_contract": dict(entrypoints),
+        "entrypoints_contract_fingerprint": _fingerprint_manifest_section(entrypoints),
         "startup_fields": list(SHELL_UI_STARTUP_FIELDS),
         "startup_preview": {
             "empty_value": SHELL_UI_STARTUP_EMPTY_PREVIEW,
@@ -584,6 +593,7 @@ def describe_shell_ui_contract_fingerprints(
 ) -> dict[str, str]:
     """Return stable fingerprints for the shell UI contract sections."""
 
+    entrypoints = _build_shell_ui_entrypoints()
     startup_fields = list(SHELL_UI_STARTUP_FIELDS)
     startup_preview = {
         "empty_value": SHELL_UI_STARTUP_EMPTY_PREVIEW,
@@ -608,6 +618,8 @@ def describe_shell_ui_contract_fingerprints(
         terminal_artifact_renderer_entrypoints_contract_fingerprint()
     )
     fingerprints = {
+        "entrypoints": _fingerprint_manifest_section(entrypoints),
+        "entrypoints_contract": _fingerprint_manifest_section(entrypoints),
         "startup_fields": _fingerprint_manifest_section(startup_fields),
         "startup_fields_contract": _fingerprint_manifest_section(startup_fields),
         "startup_preview": _fingerprint_manifest_section(startup_preview),
