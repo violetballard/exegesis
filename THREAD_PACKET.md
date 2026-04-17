@@ -20,6 +20,7 @@
 
 - `retrieve relevant material`
 - This reviewed slice makes that step more real by keeping the excerpt lookup contract deterministic, auditable, and FTS-only before downstream basket promotion.
+- The immediate downstream step it supports is `promote or gather context into the basket`, but this packet remains scoped to the retrieval step itself.
 
 ## Tasks completed
 
