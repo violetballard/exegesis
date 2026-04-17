@@ -243,14 +243,18 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprint"] = manifest[
         "terminal_artifact_raw_leaf_card_default_fingerprint"
     ]
-    terminal_artifact_raw_leaf_card_default_policy_contract = _snapshot_contract_section(
-        terminal_artifact_contract["terminal_artifact_raw_leaf_card_default_policy_contract"]
+    terminal_artifact_raw_leaf_card_default_policy = _snapshot_contract_section(
+        terminal_artifact_contract["terminal_artifact_raw_leaf_card_default_policy"]
+    )
+    manifest["terminal_artifact_raw_leaf_card_default_policy"] = terminal_artifact_raw_leaf_card_default_policy
+    manifest["terminal_artifact_raw_leaf_card_default_policy_fingerprint"] = (
+        terminal_artifact_raw_leaf_card_default_policy["contract_fingerprint"]
     )
     manifest["terminal_artifact_raw_leaf_card_default_policy_contract"] = (
-        terminal_artifact_raw_leaf_card_default_policy_contract
+        terminal_artifact_raw_leaf_card_default_policy
     )
     manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint"] = (
-        terminal_artifact_raw_leaf_card_default_policy_contract["contract_fingerprint"]
+        manifest["terminal_artifact_raw_leaf_card_default_policy_fingerprint"]
     )
     terminal_artifact_envelope = _snapshot_contract_section(terminal_artifact_contract["terminal_artifact_envelope_contract"])
     manifest["terminal_artifact_envelope"] = terminal_artifact_envelope
@@ -507,6 +511,13 @@ def describe_terminal_artifact_contract() -> dict[str, Any]:
     manifest["raw_leaf_card_default_contract_fingerprint"] = manifest["raw_leaf_card_default_contract"][
         "contract_fingerprint"
     ]
+    terminal_artifact_raw_leaf_card_default_policy = _snapshot_contract_section(
+        manifest["terminal_artifact_raw_leaf_card_default_policy_contract"]
+    )
+    manifest["terminal_artifact_raw_leaf_card_default_policy"] = terminal_artifact_raw_leaf_card_default_policy
+    manifest["terminal_artifact_raw_leaf_card_default_policy_fingerprint"] = (
+        terminal_artifact_raw_leaf_card_default_policy["contract_fingerprint"]
+    )
     terminal_artifact_envelope = _snapshot_contract_section(manifest["envelope"])
     manifest["terminal_artifact_envelope"] = terminal_artifact_envelope
     manifest["terminal_artifact_envelope_contract"] = terminal_artifact_envelope
@@ -728,6 +739,12 @@ def describe_terminal_artifact_contract_fingerprints(
         )
         fingerprints["terminal_artifact_raw_leaf_card_default_contract"] = (
             terminal_artifact_raw_leaf_card_default_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_raw_leaf_card_default_policy"] = (
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_raw_leaf_card_default_policy_contract"] = (
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint()
         )
     return fingerprints
 

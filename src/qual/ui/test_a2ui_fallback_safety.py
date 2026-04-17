@@ -630,6 +630,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
     def test_a2ui_contract_manifest_exposes_raw_leaf_card_default_aliases(self) -> None:
         manifest = describe_a2ui_contract()
         raw_leaf_contract = describe_terminal_artifact_raw_leaf_card_default_contract()
+        raw_leaf_policy_contract = describe_terminal_artifact_raw_leaf_card_default_policy_contract()
 
         self.assertEqual(manifest["terminal_artifact_raw_leaf_card_default"], raw_leaf_contract)
         self.assertEqual(manifest["terminal_artifact_raw_leaf_card_default_contract"], raw_leaf_contract)
@@ -642,6 +643,30 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         )
         self.assertEqual(manifest["terminal_artifact"]["raw_leaf_card_default_contract"], raw_leaf_contract)
+        self.assertEqual(
+            manifest["terminal_artifact_raw_leaf_card_default_policy"],
+            raw_leaf_policy_contract,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_raw_leaf_card_default_policy_contract"],
+            raw_leaf_policy_contract,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_raw_leaf_card_default_policy_fingerprint"],
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact"]["terminal_artifact_raw_leaf_card_default_policy"],
+            raw_leaf_policy_contract,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact"]["terminal_artifact_raw_leaf_card_default_policy_contract"],
+            raw_leaf_policy_contract,
+        )
+        self.assertIsNot(
+            manifest["terminal_artifact_raw_leaf_card_default_policy"],
+            manifest["terminal_artifact"]["terminal_artifact_raw_leaf_card_default_policy"],
+        )
 
     def test_a2ui_contract_manifest_exposes_terminal_artifact_envelope_aliases(self) -> None:
         manifest = describe_a2ui_contract()
@@ -1085,6 +1110,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             fingerprints["terminal_artifact_raw_leaf_card_default_contract"],
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         )
+        self.assertEqual(
+            fingerprints["terminal_artifact_raw_leaf_card_default_policy"],
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_raw_leaf_card_default_policy_contract"],
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        )
 
     def test_terminal_artifact_contract_manifest_surfaces_rendering_recovery_aliases(self) -> None:
         manifest = describe_terminal_artifact_contract()
@@ -1121,6 +1154,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["terminal_fallback_contract_fingerprint"],
             terminal_fallback_contract_fingerprint(),
         )
+        self.assertEqual(
+            manifest["terminal_artifact_raw_leaf_card_default_policy"],
+            describe_terminal_artifact_raw_leaf_card_default_policy_contract(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_raw_leaf_card_default_policy_contract"],
+            describe_terminal_artifact_raw_leaf_card_default_policy_contract(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_raw_leaf_card_default_policy_fingerprint"],
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        )
         self.assertEqual(render_target_manifest["terminal_artifact_kind_contracts"], kind_contracts)
         self.assertEqual(
             render_target_manifest["terminal_artifact_kind_contracts_fingerprint"],
@@ -1138,6 +1183,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             a2ui_manifest["terminal_artifact"]["fallback_recovery"],
             rendering_manifest["fallback_recovery"],
+        )
+        self.assertEqual(
+            a2ui_manifest["terminal_artifact_raw_leaf_card_default_policy"],
+            manifest["terminal_artifact_raw_leaf_card_default_policy"],
+        )
+        self.assertEqual(
+            a2ui_manifest["terminal_artifact_raw_leaf_card_default_policy_contract"],
+            manifest["terminal_artifact_raw_leaf_card_default_policy"],
+        )
+        self.assertEqual(
+            a2ui_manifest["terminal_artifact_raw_leaf_card_default_policy_fingerprint"],
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
         )
         self.assertEqual(a2ui_manifest["terminal_artifact_kind_contracts"], kind_contracts)
         self.assertEqual(
