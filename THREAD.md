@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Reviewer Fix Alignment
 
-- This packet refresh is for the current `codex/feat-commands` branch tip.
+- This packet refresh is for the active `codex/feat-commands` branch state.
 - Review the command-catalog implementation in
   `src/qual/commands/catalog.py` together with the focused shared-test
   coverage in `tests/unit/test_commands_catalog.py`.
@@ -15,6 +15,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   a new feature packet is explicitly generated.
 - This refresh corrects handoff metadata only and does not expand the
   requested re-review scope beyond that command-catalog slice.
+- The reviewed implementation remains pinned to
+  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; later metadata-only refreshes
+  do not expand scope.
 - This metadata-only refresh fully accounts for both `THREAD_PACKET.md` and
   `THREAD.md` in the handoff `Files Changed` traceability.
 - This is a Milestone 3 CLI compatibility contract hardening refresh for

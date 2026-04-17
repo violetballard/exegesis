@@ -2,12 +2,12 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `d38078e4ccc4ba33f7acacf9eee38443d40842a4`
+- Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (reviewed implementation slice)
 - Packet refresh role: `feature-fixer reviewer-required re-review refresh`
 
 ## Packet Traceability Note
 
-- This packet refresh is for the current `codex/feat-commands` branch tip.
+- This packet refresh is for the active `codex/feat-commands` branch state.
 - The relevant implementation remains the command-catalog slice in
   `src/qual/commands/catalog.py` plus the focused shared-test coverage in
   `tests/unit/test_commands_catalog.py`.
@@ -16,6 +16,9 @@
   a new feature packet is explicitly generated.
 - This refresh corrects the handoff so it matches the branch-tip
   implementation and tests that now satisfy the reviewer-required fixes.
+- The reviewed implementation commit remains pinned to
+  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; later metadata-only packet
+  refreshes do not broaden the implementation scope under review.
 
 ## Reviewer-Required Fix Verification
 
