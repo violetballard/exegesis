@@ -9,6 +9,7 @@ older lane/fixer prompts.
 ## Reviewer Fix Alignment
 
 - Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
+- Current metadata refresh baseline: `9aca0235cd53fbbbc0dacf9712010739ae9b4a87`.
 - Canonical demo-path step advanced: `open project/document` via the CLI-first
   operator surface; `command_cli_contract()` now rejects parser/catalog drift
   before the accepted command entrypoints can silently change.

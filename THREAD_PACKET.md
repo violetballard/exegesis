@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
-- Packet refresh commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
+- Packet refresh commit: `9aca0235cd53fbbbc0dacf9712010739ae9b4a87`
 - Packet refresh role: `reviewer-fix plan-alignment refresh`
 
 ## Packet Traceability Note
