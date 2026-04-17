@@ -9,18 +9,16 @@ older lane/fixer prompts.
 ## Reviewer Fix Alignment
 
 - Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
-- AGENTS.md canonical demo-path step advanced: `open project/document ->
-  retrieve relevant material -> preview and apply or reject a patch -> save and
-  continue working without losing context`, with this lane covering the CLI
-  route slice for `open project/document -> retrieve relevant material ->
-  preview and apply or reject a patch -> export handoff`.
+- AGENTS.md canonical demo-path mapping for this slice: the CLI operator
+  surface that keeps the canonical engine loop callable and smoke-testable
+  while Textual remains disabled.
 - Concrete blocker removed: `command_cli_contract()` now rejects parser /
   catalog drift before the canonical command surface can silently change,
-  preventing the CLI-first operator loop from drifting out of sync with the
-  current Milestone 3 engine path while Textual remains disabled.
+  preventing the CLI operator surface from becoming nondeterministic during the
+  current Milestone 3 engine-first loop.
 - Why this is in-scope now: the CLI is still the active operator surface, so a
   deterministic parser contract is a direct stability requirement for the
-  current engine-first demo path rather than follow-on UX work.
+  current engine-first loop rather than follow-on UX work.
 - Product Vision scope: this reviewer-fix refresh only supports the canonical
   engine contract requirement for CLI compatibility and does not claim workflow,
   persistence, or auditability changes.

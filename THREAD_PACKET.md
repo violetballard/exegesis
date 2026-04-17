@@ -38,22 +38,16 @@
 
 ## Canonical Demo-Path Step Advanced
 
-- AGENTS.md canonical demo-path step advanced: `open project/document ->
-  retrieve relevant material -> preview and apply or reject a patch -> save and
-  continue working without losing context`, specifically the CLI-first command
-  route slice that covers `open project/document -> retrieve relevant material
-  -> preview and apply or reject a patch -> export handoff`.
-- Concrete blocker removed on that step: the CLI-first operator path now
-  rejects parser / catalog drift before accepted command entrypoints can
-  silently reorder, substitute aliases, drop expected tokens, or add extra
-  entrypoints that would desynchronize that route slice of the engine-first MVP
-  loop while Textual remains disabled.
-- Why this is not second-order work: Milestone 3 currently depends on the CLI
-  remaining the active operator surface. If the parser surface drifts silently,
-  the engine-first demo path can stop being reliably smoke-testable even when
-  engine behavior is unchanged, which makes this command-catalog guardrail a
-  direct stability requirement for the current loop rather than speculative UX
-  work.
+- AGENTS.md canonical demo-path mapping for this slice: the CLI operator
+  surface that keeps the canonical engine loop callable and smoke-testable
+  while Textual remains disabled.
+- Concrete blocker removed on that step: `command_cli_contract()` now rejects
+  parser / catalog drift before accepted command entrypoints can silently
+  reorder, substitute aliases, drop expected tokens, or add extra entrypoints,
+  which would otherwise make the CLI operator surface nondeterministic.
+- Why this is not second-order work: Milestone 3 still uses the CLI as the
+  active operator surface, so keeping that surface deterministic is a direct
+  requirement for exercising the current engine-first loop.
 - Scope boundary: this remains command-catalog contract hardening only. It does
   not add new commands, new flags, handler logic, or alternate workflow paths.
 
@@ -122,9 +116,9 @@
 
 ## Tasks Completed
 
-1. Hardened `command_cli_contract()` so the CLI route slice for `open project/document -> retrieve relevant material -> preview and apply or reject a patch -> export handoff` fails fast when accepted parser tokens drift from the command catalog.
-2. Preserved deterministic CLI contract ordering for that same CLI-first demo-path slice by keeping canonical command order and declared per-command entrypoint order aligned with the catalog-backed parser surface.
-3. Added regression coverage in `tests/unit/test_commands_catalog.py` for parser-surface drift on that CLI-first demo-path slice, including alias substitution, alias removal, entrypoint reordering, and extra accepted entrypoints.
+1. Hardened `command_cli_contract()` so the CLI operator surface fails fast when accepted parser tokens drift from the command catalog.
+2. Preserved deterministic CLI contract ordering by keeping canonical command order and declared per-command entrypoint order aligned with the catalog-backed parser surface.
+3. Added regression coverage in `tests/unit/test_commands_catalog.py` for parser-surface drift, including alias substitution, alias removal, entrypoint reordering, and extra accepted entrypoints.
 
 ## Files Changed
 
