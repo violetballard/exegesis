@@ -367,6 +367,7 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints() -> dict[str,
 
 def _build_terminal_artifact_cli_fallback_contract_fingerprints() -> dict[str, str]:
     return {
+        "kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
         "render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
         "rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
         "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
