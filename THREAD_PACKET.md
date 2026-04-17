@@ -93,7 +93,10 @@
   for parser-surface drift cases, including missing primary tokens, alias
   substitution, removed expected aliases, reordered entrypoints, and extra
   accepted entrypoints.
-- Reissued the handoff packet so the review scope points at the current
+
+## Metadata-Only Handoff Maintenance
+
+- Refreshed the handoff packet so the review scope points at the current
   command-catalog implementation commit and the actual parser-surface invariant
   enforced in this branch.
 
@@ -119,11 +122,9 @@
 
 ## Tasks Completed
 
-1. Hardened `command_cli_contract()` to validate the full parser surface against declared CLI entrypoints and fail fast when accepted tokens drift from the command catalog.
-2. Preserved deterministic CLI contract ordering for both canonical command names and per-command entrypoint order in the default parser surface.
-3. Added regression coverage in `tests/unit/test_commands_catalog.py` for parser-surface drift, including alias substitution, alias removal, entrypoint reordering, and extra accepted entrypoints.
-4. Regenerated the handoff packet so the branch metadata points at the current implementation commit and explicitly states the canonical demo-path step advanced.
-5. Tightened the handoff justification so the reviewer-visible packet names the concrete CLI-loop failure mode this guardrail prevents and why that keeps the current Milestone 3 path real.
+1. Hardened `command_cli_contract()` so the CLI route slice for `open project/document -> retrieve relevant material -> preview and apply or reject a patch -> export handoff` fails fast when accepted parser tokens drift from the command catalog.
+2. Preserved deterministic CLI contract ordering for that same CLI-first demo-path slice by keeping canonical command order and declared per-command entrypoint order aligned with the catalog-backed parser surface.
+3. Added regression coverage in `tests/unit/test_commands_catalog.py` for parser-surface drift on that CLI-first demo-path slice, including alias substitution, alias removal, entrypoint reordering, and extra accepted entrypoints.
 
 ## Files Changed
 
