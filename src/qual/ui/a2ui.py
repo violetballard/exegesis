@@ -227,6 +227,9 @@ def describe_a2ui_contract(
     manifest["selection_fingerprint"] = selection_contract["contract_fingerprint"]
     manifest["selection_contract"] = _snapshot_contract_section(selection_contract)
     manifest["selection_contract_fingerprint"] = manifest["selection_fingerprint"]
+    terminal_artifact_contract = _snapshot_contract_section(manifest["terminal_artifact"])
+    manifest["terminal_artifact_contract"] = _snapshot_contract_section(terminal_artifact_contract)
+    manifest["terminal_artifact_contract_fingerprint"] = terminal_artifact_contract["contract_fingerprint"]
     manifest["card_fingerprint"] = card_contract_fingerprint()
     schema_versions = _snapshot_contract_section(
         _build_a2ui_schema_versions_manifest(
