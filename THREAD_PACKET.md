@@ -44,6 +44,7 @@
 - Canonical demo-path step advanced: `retrieve relevant material`
 
 This handoff explicitly advances the canonical demo-path step `retrieve relevant material`. It does so by keeping retrieval FTS-first, preserving deterministic and auditable retrieval payloads, and requiring public excerpt lookup to resolve through the canonical FTS-backed path rather than a PageIndex fallback path.
+Each completed task below maps directly to that same step so the handoff reads as canonical-path work, not general retrieval cleanup.
 
 ## Budget Reconciliation
 
