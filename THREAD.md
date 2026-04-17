@@ -23,6 +23,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   state explicitly which canonical demo-path step the work makes more real,
   while keeping the implementation review pinned to the same command-catalog
   slice.
+- Slice-level approval basis only: the reviewed change hardens
+  `command_cli_contract()` ordering and drift validation for the active CLI
+  `open`, `retrieve`, and `patch-review` path; it does not newly claim that
+  broader lane-level command coverage was delivered by this slice.
 - Reviewer-required fix satisfied on this branch by:
   - explicit canonical demo-path step mapping in `THREAD_PACKET.md`
   - a reviewer-requested tie-back to the Milestone 3 requirement that the CLI

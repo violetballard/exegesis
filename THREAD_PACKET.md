@@ -119,12 +119,17 @@
 2. Prefer thin command entrypoints over embedded business logic.
 3. Preserve compatibility with the canonical engine contract while UI lanes stay disabled.
 
-## Definition of Done for This Lane
+## Definition of Done for This Slice
 
-- Core engine actions are reachable through stable commands.
-- Command behavior is deterministic and smoke-testable.
-- Compatibility shims keep old command surfaces working where required.
-- Command handlers stay thin and delegate real behavior to engine code.
+- `command_cli_contract()` rejects canonical-name drift instead of silently
+  accepting a parser/catalog mismatch.
+- The returned CLI contract preserves the canonical command order declared by
+  `command_names()`.
+- Focused regression coverage proves both canonical-order alignment and
+  drift rejection for this command-catalog slice.
+- This handoff claims only command-catalog contract hardening for the active
+  CLI `open`, `retrieve`, and `patch-review` path; it does not claim broader
+  command-surface coverage beyond `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 
 ## Do Not Spend Time On
 
