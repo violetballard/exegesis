@@ -1624,6 +1624,7 @@ class RetrievalService:
             legacy_blob_path = self._root / _DOC_BLOBS / f"{raw_doc_id}.enc"
             legacy_blob_path.unlink(missing_ok=True)
             meta.pop(raw_doc_id, None)
+        self._prune_excerpt_contexts_for_doc_ids((raw_doc_id, normalized_doc_id))
         meta[normalized_doc_id] = {
             "doc_id": normalized_doc_id,
             "doc_type": normalized_doc_type,
@@ -2954,6 +2955,24 @@ class RetrievalService:
             if current_source_hash and current_source_hash != stored_source_hash:
                 return None
         return copy.deepcopy(context)
+
+    def _prune_excerpt_contexts_for_doc_ids(self, doc_ids: tuple[str, ...]) -> None:
+        normalized_doc_ids = {
+            normalized_doc_id
+            for doc_id in doc_ids
+            if (normalized_doc_id := _optional_text(doc_id)) is not None
+        }
+        if not normalized_doc_ids:
+            return
+        context_by_excerpt = self._load_excerpt_context_map()
+        kept_contexts = {
+            excerpt_id: context
+            for excerpt_id, context in context_by_excerpt.items()
+            if _optional_text(context.get("doc_id")) not in normalized_doc_ids
+        }
+        if len(kept_contexts) == len(context_by_excerpt):
+            return
+        self._write_encrypted_json(self._root / _EXCERPT_CONTEXT_FILE, kept_contexts)
 
     def _build_fts_provenance(
         self,

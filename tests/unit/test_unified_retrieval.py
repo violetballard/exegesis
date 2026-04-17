@@ -1460,6 +1460,74 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["basket_promotion"]["retrieved_doc_ids"], ["doc-stale-context"])
         self.assertEqual(excerpt["basket_promotion"]["retrieved_excerpt_ids"], [excerpt_id])
 
+    def test_add_or_update_document_prunes_stale_excerpt_contexts_for_reindexed_doc(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+        before = self.service._load_excerpt_context_map()
+        self.assertIn(excerpt_id, before)
+
+        self.service.add_or_update_document(
+            doc_id="doc-memo-1",
+            doc_type="memo",
+            title_hint="Memo Alpha Revised",
+            text="Memo about coding frame, basket promotion, and comparison notes.",
+        )
+
+        after = self.service._load_excerpt_context_map()
+        self.assertNotIn(excerpt_id, after)
+        self.assertFalse(
+            any(context.get("doc_id") == "doc-memo-1" for context in after.values()),
+        )
+
+    def test_add_or_update_document_keeps_other_doc_excerpt_contexts(self) -> None:
+        memo_result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+        pdf_result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="theory implications",
+                scope="doc:doc-pdf-1",
+                intent="lookup",
+                constraints=RetrievalConstraints(max_results=3),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        memo_excerpt_id = memo_result.hits[0].excerpt_id
+        pdf_excerpt_id = pdf_result.hits[0].excerpt_id
+        self.assertIsNotNone(memo_excerpt_id)
+        self.assertIsNotNone(pdf_excerpt_id)
+        before = self.service._load_excerpt_context_map()
+        self.assertIn(memo_excerpt_id, before)
+        self.assertIn(pdf_excerpt_id, before)
+
+        self.service.add_or_update_document(
+            doc_id="doc-memo-1",
+            doc_type="memo",
+            title_hint="Memo Alpha Revised",
+            text="Memo about coding frame, basket promotion, and comparison notes.",
+        )
+
+        after = self.service._load_excerpt_context_map()
+        self.assertNotIn(memo_excerpt_id, after)
+        self.assertIn(pdf_excerpt_id, after)
+        self.assertEqual(after[pdf_excerpt_id]["doc_id"], "doc-pdf-1")
+
     def test_retrieve_auto_excerpt_routes_to_canonical_fts_lookup(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
