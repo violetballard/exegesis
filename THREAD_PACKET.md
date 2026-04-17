@@ -8,7 +8,7 @@
 
 ## Scope goal
 
-- Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
+- Tighten the narrowed FTS-first excerpt lookup contract so only FTS-backed excerpt ids resolve through the public retrieval surface.
 
 ## Budget classification
 
@@ -63,13 +63,13 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` by keeping retrieval/search FTS-first and structured for the engine loop.
-- `feat-retrieval-fts` by preserving the authoritative FTS-first retrieval path feeding the engine loop.
+- `Milestone 3: Real workflow loop` by keeping excerpt lookup on the FTS-first retrieval contract used by the engine loop.
+- `feat-retrieval-fts` by preserving the authoritative FTS-first retrieval path at the public excerpt lookup surface.
 
 ### Vision capability affected
 
-- `Retrieval-first context handling`
-- `Auditable state and workflow`
+- `Retrieval-first context handling` through an FTS-only excerpt lookup contract at the public retrieval surface.
+- `Auditable state and workflow` by failing closed instead of silently accepting PageIndex-only excerpt payloads.
 
 ### Canonical demo-path step advanced
 
