@@ -60,6 +60,10 @@
    this slice only hardens deterministic behavior for existing MVP command
    entrypoints and does not add new commands, new CLI UX, or non-loop
    functionality.
+4. Final fixer-pass verification:
+   after the checklist refresh, the required gate sequence was rerun on the
+   current branch tip so this packet records a post-fix validation pass rather
+   than only the earlier same-day rerun.
 4. Re-review readability fix:
    these three reviewer-required fixes are restated here in reviewer order so
    approval does not depend on cross-referencing multiple later sections.
