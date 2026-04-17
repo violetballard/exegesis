@@ -35,6 +35,7 @@
 - This narrowed slice only hardens the FTS-first excerpt lookup contract on the canonical engine retrieval surface.
 - The reviewed implementation commit removes the PageIndex fallback from `fetch_excerpt` in `src/qual/retrieval/service.py`.
 - The reviewed implementation commit adds approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
+- PageIndex and embeddings remain non-required compatibility paths in this slice; the MVP contract no longer frames them as runtime fallback paths for excerpt lookup.
 - This handoff does not claim basket promotion, workflow actions, embeddings work, or any broader alternate retrieval-path expansion.
 
 ## Canonical Demo-Path Step Advanced
@@ -43,7 +44,7 @@
 
 Canonical demo-path step advanced: `retrieve relevant material`, by making excerpt lookup deterministically FTS-only and auditable on the canonical engine retrieval surface.
 
-This change advances the canonical demo-path step `retrieve relevant material` by making excerpt retrieval fail closed to the authoritative SQLite FTS path before downstream basket-promotion and workflow use.
+This change advances the canonical demo-path step `retrieve relevant material` by making excerpt retrieval fail closed to the authoritative SQLite FTS path before downstream basket-promotion and workflow use, without reintroducing PageIndex or embeddings as required runtime paths.
 
 ## Fixer Pass Traceability
 
