@@ -38,10 +38,11 @@
 
 ## Canonical Demo-Path Step Advanced
 
-- `open project/document` via the CLI-first operator surface: this slice keeps
-  the canonical engine loop callable and smoke-testable while Textual remains
-  disabled by making `command_cli_contract()` reject parser/catalog drift
-  before accepted command entrypoints can silently change.
+- `open project/document` and `preview and apply or reject a patch` via the
+  CLI-first operator surface: this slice keeps those canonical engine-loop
+  entrypoints callable and smoke-testable while Textual remains disabled by
+  making `command_cli_contract()` reject parser/catalog drift before accepted
+  command entrypoints can silently change.
 
 ## Scope Boundary
 
@@ -158,9 +159,10 @@
 - Canonical engine contract - CLI compatibility remains stable while the
   command-catalog surface rejects parser drift before it can silently change
   the CLI operator contract for the current engine-first MVP loop.
-- Scope limit note: this slice does not claim workflow, persisted-state, or
-  auditability changes. It is limited to deterministic CLI compatibility for
-  the active engine-first operator surface while Textual remains disabled.
+- Scope limit note: this slice does not claim workflow, persisted-state,
+  auditability, or additional product-vision capability changes. It is limited
+  to deterministic CLI compatibility for the active engine-first operator
+  surface while Textual remains disabled.
 
 ### Routing/provider impact note
 
