@@ -37,9 +37,9 @@
 ## Canonical Demo-Path Mapping
 
 - Explicit AGENTS demo-path step advanced: `preview and apply or reject a patch`.
-- Supporting CLI-fallback coverage kept explicit for adjacent steps on the same operator path: `open project/document`, `retrieve relevant material`, and `save and continue`.
-- AGENTS alignment statement: this slice makes the canonical demo path more real by exposing the exact parser-ready argv generated for each canonical surface token, including the patch-review and export-handoff shims that operators depend on while Textual remains disabled.
-- Concrete blocker removed: before this slice, `command_demo_path_contract()` described parser-ready smoke argv for each canonical step, but it did not expose or validate the per-surface shim invocations that map aliases like `patch-review`, `apply-patch`, and `reject-patch` back to the parser entrypoints. This change makes those shim rewrites explicit and testable instead of implicit.
+- Supporting CLI-fallback context on the same operator path: the exported contract continues to expose the parser-ready shims that keep adjacent `open project/document`, `retrieve relevant material`, and `save and continue` smoke commands deterministic while Textual remains disabled.
+- AGENTS alignment statement: this slice makes `preview and apply or reject a patch` more real by exposing and validating the exact parser-ready shim invocations for that step's CLI surface tokens, so the CLI-first smoke path fails fast if the advertised patch-review surface drifts from the parser entrypoints.
+- Concrete blocker removed: before this slice, `command_demo_path_contract()` described parser-ready smoke argv for each canonical step, but it did not expose or validate the per-surface shim invocations that map aliases like `patch-review`, `apply-patch`, and `reject-patch` back to the parser entrypoints. This change makes that patch-review shim surface explicit and testable instead of implicit.
 
 ## Definition of Done for This Lane
 
@@ -69,7 +69,7 @@
 - Extended `CommandDemoPathEntry` in `src/qual/commands/catalog.py` with `surface_invocations` so the canonical demo-path contract exposes the parser-ready argv produced for every surface token in each flow step.
 - Hardened `_validate_command_demo_path_contract()` so the demo-path contract now rejects drift between the advertised surface tokens and the exported shim invocation table.
 - Updated `command_demo_path_contract()` to collect the per-step shim invocations from `command_cli_shim_catalog()` and attach them to each demo-path entry.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` that verifies the parser-ready invocation map for patch-review and export-handoff aliases, including `diff`, `review-patch`, `apply-patch`, and `reject-patch`.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` that verifies the parser-ready invocation map for the patch-review step and its adjacent CLI-fallback export handoff, including `diff`, `review-patch`, `apply-patch`, and `reject-patch`.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -123,8 +123,7 @@
 
 ### Vision capability affected
 
-- `Canonical engine contract` - the exported demo-path contract now includes the parser-ready shim invocations for `preview and apply or reject a patch`, keeping that CLI compatibility surface explicit instead of implicit.
-- `Auditable state and workflow` - the command contract now fails loudly if the advertised demo-path surface tokens for that operator path diverge from the shim invocation table used to drive the CLI-first flow.
+- `Canonical engine contract` - the exported demo-path contract now includes the parser-ready shim invocations for `preview and apply or reject a patch`, keeping that CLI compatibility surface explicit instead of implicit while Textual remains disabled.
 
 ### Routing/provider impact note
 
