@@ -136,9 +136,11 @@ def _normalize_date_range(value: tuple[str, str]) -> tuple[str, str]:
 
     start_date = _parse_date_value(start_raw)
     end_date = _parse_date_value(end_raw)
+    normalized_start = start_date.isoformat() if start_date is not None else start_raw
+    normalized_end = end_date.isoformat() if end_date is not None else end_raw
     if start_date is not None and end_date is not None and start_date > end_date:
-        return (end_raw, start_raw)
-    return (start_raw, end_raw)
+        return (normalized_end, normalized_start)
+    return (normalized_start, normalized_end)
 
 
 def _normalize_scope(value: object) -> str:

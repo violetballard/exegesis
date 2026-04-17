@@ -328,6 +328,42 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(mixed_case.query.scope, "doc:doc-pdf-1")
         self.assertEqual(mixed_case.to_downstream_payload()["query"]["scope"], "doc:doc-pdf-1")
 
+    def test_retrieve_auto_normalizes_datetime_date_ranges_to_calendar_dates(self) -> None:
+        canonical = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="outline_support",
+                constraints=RetrievalConstraints(
+                    max_results=6,
+                    date_range=("2026-01-01", "2026-01-31"),
+                    section_hint="discussion",
+                ),
+                confidentiality_profile="confidential",
+            )
+        )
+        dated_time_values = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="outline_support",
+                constraints=RetrievalConstraints(
+                    max_results=6,
+                    date_range=("2026-01-01T14:30:00+00:00", "2026-01-31T00:15:00+00:00"),
+                    section_hint="discussion",
+                ),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        self.assertEqual(canonical.diagnostics["query_fingerprint"], dated_time_values.diagnostics["query_fingerprint"])
+        self.assertEqual(canonical.result_fingerprint, dated_time_values.result_fingerprint)
+        self.assertEqual(dated_time_values.query.constraints.date_range, ("2026-01-01", "2026-01-31"))
+        self.assertEqual(
+            dated_time_values.to_downstream_payload()["query"]["constraints"]["date_range"],
+            ["2026-01-01", "2026-01-31"],
+        )
+
     def test_retrieve_auto_reports_stable_fts_shortlist_doc_ids(self) -> None:
         query = RetrievalQuery(
             query_text="theory implications",
