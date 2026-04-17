@@ -59,7 +59,6 @@
 
 - `retrieve relevant material`
 - This narrowed slice makes the canonical `retrieve relevant material` step more real by forcing excerpt lookup through the FTS-backed contract and failing closed instead of accepting PageIndex-only excerpt ids.
-- The same deterministic excerpt contract remains suitable for later basket promotion without widening the MVP retrieval path.
 
 ### Routing/provider impact note
 
