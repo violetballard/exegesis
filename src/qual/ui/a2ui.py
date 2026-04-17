@@ -751,6 +751,8 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
     render_target_contract = describe_terminal_artifact_render_target_contract()
     rendering_contract = describe_terminal_artifact_rendering_contract()
     terminal_fallback_contract = describe_terminal_fallback_contract()
+    renderer_entrypoints = copy.deepcopy(rendering_contract["renderer_entrypoints"])
+    renderer_entrypoints["cli_fallback"] = "render_terminal_cli_fallback"
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
@@ -765,7 +767,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "envelope": _build_terminal_artifact_envelope_manifest(),
         "kind_contracts": _build_terminal_artifact_kind_contracts(),
         "render_target_contract": render_target_contract,
-        "renderer_entrypoints": copy.deepcopy(rendering_contract["renderer_entrypoints"]),
+        "renderer_entrypoints": renderer_entrypoints,
         "rendering": rendering_contract,
         "terminal_artifact_rendering": rendering_contract,
         "rendering_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
@@ -1743,6 +1745,12 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
     if requested_kind != "card":
         _validate_terminal_artifact_card_payload(artifact)
     return render_terminal_card(artifact)
+
+
+def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> str:
+    """Render a structured A2UI artifact through the explicit CLI fallback entrypoint."""
+
+    return render_terminal_artifact(artifact, kind=kind)
 
 
 render_terminal_a2ui = render_terminal_artifact

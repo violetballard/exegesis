@@ -39,6 +39,7 @@ from src.qual.ui.a2ui import (
     engine_prepare_card,
     render_terminal_action,
     render_terminal_artifact,
+    render_terminal_cli_fallback,
     render_terminal_card,
     render_terminal_selection,
     _render_payload_preview,
@@ -737,6 +738,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["renderer_entrypoints"],
             {
                 "terminal_artifact": "render_terminal_artifact",
+                "cli_fallback": "render_terminal_cli_fallback",
                 "card": "render_terminal_card",
                 "action": "render_terminal_action",
                 "selection": "render_terminal_selection",
@@ -822,6 +824,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             describe_terminal_artifact_render_target_contract(),
         )
         self.assertEqual(a2ui_manifest["schemas"]["terminal_artifact_cli_fallback"], manifest)
+
+    def test_terminal_artifact_cli_fallback_entrypoint_matches_generic_renderer(self) -> None:
+        envelope = build_terminal_artifact_envelope(
+            ActionRef(
+                id=" export_document ",
+                label=" Export ",
+                payload={"format": "md"},
+            ),
+            kind="action",
+        )
+
+        self.assertEqual(render_terminal_cli_fallback(envelope), render_terminal_artifact(envelope))
 
     def test_terminal_artifact_cli_fallback_contract_fingerprints_are_public_and_canonical(self) -> None:
         manifest = describe_terminal_artifact_cli_fallback_contract()
