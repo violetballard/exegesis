@@ -2,15 +2,15 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `6eafb0daef3f501ac5f59ac285d0d364f6b5b48e`
+- Commit: `1c066dc878a098c9c8f8ba395023baef05f80c8a`
 - Packet refresh commit: `this metadata-only feature-fixer refresh commit on codex/feat-commands`
 - Packet refresh role: `feature-fixer required-fixes packet retargeting`
 
 ## Packet Traceability Note
 
-- Earlier packet revisions incorrectly anchored review scope to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` even though later branch commits changed implementation files.
-- The actual implementation review target is the current pre-refresh branch tip `6eafb0daef3f501ac5f59ac285d0d364f6b5b48e`.
-- This follow-up refresh is metadata only. It does not change the reviewed implementation; it corrects packet traceability so the handoff matches the real branch state and review scope.
+- Earlier packet revisions incorrectly anchored review scope to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and later to `6eafb0daef3f501ac5f59ac285d0d364f6b5b48e` even though the branch tip continued moving.
+- The actual implementation review target is the current pre-refresh branch tip `1c066dc878a098c9c8f8ba395023baef05f80c8a`.
+- This follow-up refresh is metadata only. It does not change the reviewed implementation; it retargets the handoff packet so the documented review scope matches the real branch state.
 
 ## Current Program Focus
 
@@ -77,6 +77,7 @@
 
 - Expanded the command catalog in `src/qual/commands/catalog.py` to expose deterministic CLI contracts, route contracts, shim contracts, smoke/demo invocation plans, and resolution helpers for the canonical demo-path command surface.
 - Added parser-ready compatibility alias handling for retrieval, patch, persist, and export/terminal flows so surface tokens normalize back to stable CLI entrypoints without silently changing pinned terminal operation kinds.
+- Added separate parser-native demo invocation entries for the canonical route tokens so the packeted command surface distinguishes parser entrypoints from broader shim aliases without changing command behavior.
 - Updated the public command exports and focused diff-preview compatibility hooks in `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, and `src/qual/commands/diff_preview.py` so the broader command-surface helpers stay reachable and smoke-testable.
 - Added comprehensive regression coverage in `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`, then refreshed the handoff packet so the claimed scope, reviewed files, and demo-path alignment match the actual implementation tip.
 
@@ -95,7 +96,7 @@
 
 1. `open project/document`: locked the parser-facing command contract and demo-path command ordering to deterministic catalog data, including fail-fast drift detection and explicit primary entrypoints for the bootstrap route.
 2. `retrieve relevant material`: made retrieval-facing command shims parser-ready so demo/mvp route helpers, surface tokens, and resolution helpers keep the retrieval step aligned with the canonical command catalog.
-3. `preview and apply or reject a patch` and `save and continue`: normalized terminal/export/persist/apply/reject compatibility aliases into stable parser-ready argv while preserving pinned terminal operation kinds for demo-path routing.
+3. `preview and apply or reject a patch` and `save and continue`: normalized terminal/export/persist/apply/reject compatibility aliases into stable parser-ready argv, then separated parser-native demo invocations from broader shim aliases while preserving pinned terminal operation kinds for demo-path routing.
 4. `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and `save and continue`: added focused regression coverage for the expanded command-surface helpers and refreshed the handoff packet so review scope and demo-path alignment are truthful.
 
 ## Files Changed

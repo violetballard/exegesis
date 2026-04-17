@@ -12,9 +12,9 @@ older lane/fixer prompts.
   `retrieve relevant material`, `preview and apply or reject a patch`, and
   `save and continue`.
 - Why these steps: the reviewed command-surface work now keeps parser tokens,
-  shim aliases, smoke/demo invocation plans, and terminal/export compatibility
-  routing aligned with the canonical catalog instead of relying on implicit
-  behavior.
+  parser-native demo invocations, shim aliases, smoke/demo invocation plans,
+  and terminal/export compatibility routing aligned with the canonical catalog
+  instead of relying on implicit behavior.
 - Scope boundary: this slice stays in CLI compatibility and command-surface
   routing. It does not add new engine business logic, add new command behavior,
   or widen the MVP loop.
