@@ -48,14 +48,14 @@ def _normalize_list_like(value: object) -> list[object]:
     if isinstance(value, list):
         return copy.deepcopy(value)
     if isinstance(value, tuple):
-        return list(value)
+        return [copy.deepcopy(item) for item in value]
     if isinstance(value, (set, frozenset)):
         return _normalize_unordered_iterable(value)
     if isinstance(value, Iterable) and not isinstance(value, (str, bytes, bytearray, Mapping)):
         return [copy.deepcopy(item) for item in value]
     if value is None:
         return []
-    return [value]
+    return [copy.deepcopy(value)]
 
 
 def _normalize_optional_list_like(value: object) -> list[object] | None:
