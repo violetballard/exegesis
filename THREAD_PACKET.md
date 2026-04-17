@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `reviewer-required fix finalization`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca^..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 ## Scope goal
 
@@ -25,7 +25,7 @@
 
 ### Checkpoint Status
 
-- `plan complete`: narrowed the operative handoff packet to the single reviewed implementation commit and explicit demo-path mapping.
+- `plan complete`: aligned the operative handoff packet to the reviewer packet's exact reviewed implementation range and explicit demo-path mapping.
 - `first green tests`: all required gates passed on this fixer pass.
 - `before risky/shared file edit`: the only shared implementation file in scope remains the approved regression surface `tests/unit/test_unified_retrieval.py`.
 - `ready for handoff`: the operative packet now matches the exact reviewed implementation slice and required AGENTS mapping.
@@ -49,8 +49,8 @@ This change advances the canonical demo-path step `retrieve relevant material` b
 
 - Fixer pass date: `2026-04-17`
 - Pre-fix packet branch tip: `37690f6d63ee0418953d27a0e853e7dadb83610f`
-- Reviewer packet source-of-truth anchor before this fixer commit: reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, reviewed implementation range `adfa8cdadd43747ffbcb612e4151e262b13e52ca^..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-- This metadata-only refresh preserves the reviewed implementation head and narrows the operative reviewed implementation range to the single commit above while adding the explicit AGENTS demo-path statement required for re-review.
+- Reviewer packet source-of-truth anchor before this fixer commit: reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- This metadata-only refresh preserves the reviewed implementation head, aligns the operative reviewed implementation range to the reviewer packet above, and adds the explicit AGENTS demo-path statement required for re-review.
 - Operative re-review artifact in this lane worktree: `THREAD_PACKET.md` is the source of truth for the narrowed reviewed range and canonical demo-path mapping on this fixer pass.
 - Hidden packet artifacts under `.codex/` are present for reference in this worktree but are filesystem read-only here, so `THREAD_PACKET.md` is the operative corrected handoff artifact for re-review.
 
@@ -68,7 +68,7 @@ This change advances the canonical demo-path step `retrieve relevant material` b
 
 ## Required Reviewer Fixes Addressed
 
-1. Set the reviewed implementation scope to the single implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca^..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+1. Set the reviewed implementation scope to the reviewer packet's narrowed range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 2. Added an explicit handoff statement that this change advances the canonical demo-path step `retrieve relevant material`.
 3. Kept the narrowed scope wording limited to the FTS-only excerpt lookup change and its approved shared regression coverage.
 
