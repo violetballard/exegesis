@@ -56,8 +56,8 @@
   parser-facing command surface instead of depending on callers to know the
   internal command tokens.
 - Demo-path impact: operator-facing demo-loop commands are more reliable and
-  smoke-testable because catalog/parser drift is rejected before those CLI
-  steps can silently diverge.
+  smoke-testable because parser/catalog drift is rejected before those CLI
+  steps can silently reorder or desynchronize from the catalog.
 
 ## Scope Boundary
 
