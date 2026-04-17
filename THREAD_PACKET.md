@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `6eafb0daef3f501ac5f59ac285d0d364f6b5b48e`
-- Packet refresh commit: `pending metadata-only feature-fixer refresh on codex/feat-commands after reviewer required fixes`
+- Packet refresh commit: `this metadata-only feature-fixer refresh commit on codex/feat-commands`
 - Packet refresh role: `feature-fixer required-fixes packet retargeting`
 
 ## Packet Traceability Note
@@ -114,7 +114,7 @@
 
 ## Commands Run and Outcomes
 
-- Revalidation note: reran the required lane gates on the current reviewer-fix branch tip after packet retargeting; all remained green.
+- Revalidation note: reran the required lane gates during this metadata-only feature-fixer refresh; all remained green.
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
