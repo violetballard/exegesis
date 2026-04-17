@@ -1033,6 +1033,30 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(render_terminal_cli_fallback(envelope), render_terminal_artifact(envelope))
 
+    def test_terminal_artifact_cli_fallback_entrypoint_ignores_invalid_kind_hints(self) -> None:
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+        action_envelope = build_terminal_artifact_envelope(
+            ActionRef(
+                id=" export_document ",
+                label=" Export ",
+                payload={"format": "md"},
+            ),
+            kind="action",
+        )
+
+        self.assertEqual(
+            render_terminal_cli_fallback(raw_leaf, kind="dialog"),
+            render_terminal_cli_fallback(raw_leaf),
+        )
+        self.assertEqual(
+            render_terminal_cli_fallback(action_envelope, kind="dialog"),
+            render_terminal_cli_fallback(action_envelope),
+        )
+
     def test_terminal_artifact_renderers_preserve_raw_leaf_card_default_without_shared_resolver(self) -> None:
         raw_leaf = {
             "id": "export_document",

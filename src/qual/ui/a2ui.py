@@ -1903,11 +1903,16 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
 
     The CLI fallback path stays independent from the generic artifact renderer
     so terminal recovery can still work if the main dispatch path is broken.
+    Invalid kind hints are treated as absent so the fallback entrypoint stays
+    resilient when upstream callers drift.
     """
 
     requested_kind = None
     if kind is not None:
-        requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+        try:
+            requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+        except ValueError:
+            requested_kind = None
     if requested_kind is None and _should_preserve_raw_leaf_card_default(artifact):
         try:
             return render_terminal_card(artifact)
