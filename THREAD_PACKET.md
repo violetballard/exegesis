@@ -6,7 +6,7 @@
 ## Traceability
 
 - Runtime implementation commit(s): `76d066f50d0c00f87e66fe7d33a1d6d3c594c3f5` and `b929fe6c7a1159c7882acedd247aca31a93cd123`.
-- Metadata-only resubmission support: this packet rewrite only. No packet-planner or tooling files are claimed as feature scope in this handoff.
+- Handoff text is runtime-only. No packet-planner or tooling files are claimed as feature scope in this handoff.
 
 ## Scope completed
 
@@ -18,7 +18,6 @@
 
 - `src/qual/ui/a2ui.py`
 - `tests/unit/test_a2ui_contract.py` (approved shared regression coverage)
-- `THREAD_PACKET.md`
 
 ## Plan Alignment
 
@@ -33,7 +32,7 @@
 
 1. Updated `src/qual/ui/a2ui.py` to sort filtered actions by canonical JSON before terminal rendering, preserving deterministic CLI fallback output.
 2. Kept contract coverage in `tests/unit/test_a2ui_contract.py` for canonical ordering behavior.
-3. Rewrote the handoff packet so it no longer claims packet-planner or tooling work as feature scope, separates runtime and metadata-only traceability, and names the canonical demo-path step this change advances.
+3. Kept the handoff packet runtime-only so packet-planner or tooling follow-up is not claimed as feature scope.
 
 ## Required Handoff Fields
 
