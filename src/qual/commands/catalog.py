@@ -601,11 +601,29 @@ def _shim_option_names(argv: tuple[str, ...]) -> set[str]:
     return option_names
 
 
-def _normalize_explicit_shim_args(explicit_args: tuple[str, ...]) -> tuple[str, ...]:
+def _looks_like_known_option_token(token: str, known_option_names: frozenset[str]) -> bool:
+    if token == "--":
+        return True
+    if not token.startswith("-"):
+        return False
+    option_name, _, _ = token.partition("=")
+    return (option_name or token) in known_option_names
+
+
+def _normalize_explicit_shim_args(
+    explicit_args: tuple[str, ...],
+    *,
+    option_names_with_values: frozenset[str] = frozenset(),
+    known_option_names: frozenset[str] = frozenset(),
+) -> tuple[str, ...]:
     if not explicit_args:
         return ()
 
-    segments = _argv_segments(explicit_args)
+    segments = _argv_segments(
+        explicit_args,
+        option_names_with_values=option_names_with_values,
+        known_option_names=known_option_names,
+    )
     last_option_segment_index: dict[str, int] = {
         segment[0].partition("=")[0] or segment[0]: segment_index
         for segment_index, segment in enumerate(segments)
@@ -623,16 +641,27 @@ def _normalize_explicit_shim_args(explicit_args: tuple[str, ...]) -> tuple[str, 
     return tuple(normalized)
 
 
-def _argv_segments(argv: tuple[str, ...]) -> tuple[tuple[str, ...], ...]:
+def _argv_segments(
+    argv: tuple[str, ...],
+    *,
+    option_names_with_values: frozenset[str] = frozenset(),
+    known_option_names: frozenset[str] = frozenset(),
+) -> tuple[tuple[str, ...], ...]:
     segments: list[tuple[str, ...]] = []
     index = 0
     while index < len(argv):
         token = argv[index]
         if token.startswith("-"):
-            if index + 1 < len(argv) and not argv[index + 1].startswith("-") and "=" not in token:
-                segments.append((token, argv[index + 1]))
-                index += 2
-                continue
+            option_name, _, _ = token.partition("=")
+            if index + 1 < len(argv) and "=" not in token:
+                next_token = argv[index + 1]
+                if not next_token.startswith("-") or (
+                    (option_name or token) in option_names_with_values
+                    and not _looks_like_known_option_token(next_token, known_option_names)
+                ):
+                    segments.append((token, next_token))
+                    index += 2
+                    continue
             segments.append((token,))
             index += 1
             continue
@@ -641,17 +670,43 @@ def _argv_segments(argv: tuple[str, ...]) -> tuple[tuple[str, ...], ...]:
     return tuple(segments)
 
 
+def _shim_option_names_with_values(argv: tuple[str, ...]) -> frozenset[str]:
+    option_names: set[str] = set()
+    for segment in _argv_segments(argv):
+        head = segment[0]
+        if not head.startswith("-") or len(segment) != 2:
+            continue
+        option_name, _, _ = head.partition("=")
+        option_names.add(option_name or head)
+    return frozenset(option_names)
+
+
+def _shim_known_option_names(argv: tuple[str, ...]) -> frozenset[str]:
+    option_names = _shim_option_names(argv)
+    return frozenset(option_names | _shim_option_names_with_values(argv))
+
+
 def _merge_shim_argv(
     shim_argv: tuple[str, ...],
     explicit_args: tuple[str, ...],
     *,
     pinned_options: frozenset[str] = frozenset(),
 ) -> tuple[str, ...]:
-    normalized_explicit_args = _normalize_explicit_shim_args(explicit_args)
+    shim_option_names_with_values = _shim_option_names_with_values(shim_argv[1:])
+    shim_known_option_names = _shim_known_option_names(shim_argv[1:])
+    normalized_explicit_args = _normalize_explicit_shim_args(
+        explicit_args,
+        option_names_with_values=shim_option_names_with_values,
+        known_option_names=shim_known_option_names,
+    )
     if len(shim_argv) <= 1 or not normalized_explicit_args:
         return (*shim_argv, *normalized_explicit_args)
 
-    explicit_segments = _argv_segments(normalized_explicit_args)
+    explicit_segments = _argv_segments(
+        normalized_explicit_args,
+        option_names_with_values=shim_option_names_with_values,
+        known_option_names=shim_known_option_names,
+    )
     explicit_option_segments: dict[str, tuple[str, ...]] = {}
     explicit_tail_segments: list[tuple[str, ...]] = []
     for segment in explicit_segments:
@@ -665,7 +720,11 @@ def _merge_shim_argv(
         explicit_option_segments[option_name] = segment
 
     merged_segments: list[tuple[str, ...]] = [(shim_argv[0],)]
-    for segment in _argv_segments(shim_argv[1:]):
+    for segment in _argv_segments(
+        shim_argv[1:],
+        option_names_with_values=shim_option_names_with_values,
+        known_option_names=shim_known_option_names,
+    ):
         head = segment[0]
         if not head.startswith("-"):
             merged_segments.append(segment)
