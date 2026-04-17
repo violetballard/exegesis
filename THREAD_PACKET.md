@@ -49,6 +49,12 @@
   - `7991f9b7227646da8922964106315a0c9afe7382` - normalize demo command compatibility variants.
 - Reviewer-fix scope in this refresh: keep the high-risk handoff structure explicit, preserve the concrete demo-path mapping, and narrow the claims to existing MVP-loop command-contract hardening only.
 
+## Reviewer Required Fixes Satisfied
+
+1. Added the explicit canonical demo-path mapping for this slice: it strengthens the `open project/document` step by keeping the CLI entry contract deterministic while Textual remains disabled.
+2. Tightened the product-vision mapping so the handoff claims `Canonical engine contract` only, without claiming `Auditable state and workflow`.
+3. Kept the packet scope language narrow to command-catalog determinism, compatibility-token normalization, and parser-drift rejection already present on this branch.
+
 ## Current Program Focus
 
 - Close the engine-side Milestone 3 workflow loop before activating any Textual UI lanes.
