@@ -57,10 +57,10 @@
 
 ## Reviewer Required Fixes Satisfied
 
-1. Retargeted the packet to the real branch tip instead of claiming later code commits were metadata-only.
-2. Updated the scope and in-scope file list so the handoff matches the reviewed command implementation now present on `codex/feat-commands`.
+1. Retargeted the packet to the real pre-refresh implementation tip instead of claiming later code commits were metadata-only.
+2. Updated the scope and in-scope file list so the handoff matches the reviewed command implementation present at `423adf3c0b23ac152844bbe3b74577cd3afb318b`.
 3. Added the explicit `AGENTS.md` demo-path mapping by naming the exact canonical step this work makes more real and why it removes a concrete blocker there.
-4. Re-ran the required gate suite on the current branch tip and recorded fresh passing evidence for re-review on `2026-04-17`.
+4. Re-ran the required gate suite against implementation tip `423adf3c0b23ac152844bbe3b74577cd3afb318b` and recorded fresh passing evidence for re-review on `2026-04-17`.
 
 ## Current Program Focus
 
@@ -110,7 +110,7 @@
 
 ### Tasks Completed (Numbered)
 
-1. Retargeted the handoff packet traceability to current branch tip `423adf3c0b23ac152844bbe3b74577cd3afb318b`.
+1. Retargeted the handoff packet traceability to implementation tip `423adf3c0b23ac152844bbe3b74577cd3afb318b`, the latest non-metadata command-surface commit before this packet refresh.
 2. Added the explicit canonical demo-path mapping: this branch-tip command-surface work strengthens `open project/document`.
 3. Updated `Scope completed`, `Files changed`, and ownership notes so they match the real command implementation now in scope for re-review.
 4. Re-ran the required local gates on the current branch tip and recorded outcomes for this fixer pass.
@@ -133,8 +133,8 @@
 - `make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
-- `./quality-test.sh`: `PASS`
-- `./typecheck-test.sh`: `PASS`
+- `./quality-test.sh`: `PASS` (`200` tests, `OK`)
+- `./typecheck-test.sh`: `PASS` (`python3 -m compileall -q src`)
 - `make ci`: `PASS`
 - Verification date: `2026-04-17`
 

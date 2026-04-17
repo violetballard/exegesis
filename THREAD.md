@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Reviewer Fix Alignment
 
-- `THREAD_PACKET.md` now targets the real current branch tip `423adf3c0b23ac152844bbe3b74577cd3afb318b`.
+- `THREAD_PACKET.md` now targets implementation tip `423adf3c0b23ac152844bbe3b74577cd3afb318b`, the latest non-metadata command-surface commit before this packet refresh.
 - The packet no longer claims later code commits were metadata-only; branch-tip command files and focused shared tests are explicitly in scope for re-review.
 - The packet names the concrete canonical demo-path step advanced: `open project/document`.
 - The packet scope is narrowed to branch-tip command-surface hardening only, not broader engine behavior or UI work.
