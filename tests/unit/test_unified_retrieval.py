@@ -1488,6 +1488,24 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["title_hint"], "Interview Packet")
         self.assertEqual(normalized["basket_promotion"]["title_hint"], "Interview Packet")
 
+    def test_normalize_excerpt_payload_sanitizes_sparse_title_hint_for_confidential_lookups(self) -> None:
+        normalized = self.service._normalize_excerpt_payload(
+            {
+                "excerpt_id": "excerpt-sparse-title-confidential-1",
+                "doc_id": "doc-pdf-1",
+                "doc_type": "pdf",
+                "text": "Methods section with recruitment constraints.",
+                "title_hint": "  Interview Packet  ",
+            },
+            source_strategy="fts",
+            lookup_resolution="fts",
+            lookup_confidentiality_profile="confidential",
+        )
+
+        self.assertEqual(normalized["title_hint"], "doc:cd87a85d3c")
+        self.assertEqual(normalized["provenance"]["title_hint"], "doc:cd87a85d3c")
+        self.assertEqual(normalized["basket_promotion"]["title_hint"], "doc:cd87a85d3c")
+
     def test_normalize_excerpt_payload_canonicalizes_sparse_query_metadata_types(self) -> None:
         normalized = self.service._normalize_excerpt_payload(
             {

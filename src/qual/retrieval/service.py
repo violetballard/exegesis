@@ -73,6 +73,13 @@ def _normalized_profile_text(value: object) -> str | None:
     return text.casefold()
 
 
+def _looks_like_redacted_title_hint(value: object) -> bool:
+    text = _optional_text(value)
+    if text is None:
+        return False
+    return bool(re.fullmatch(r"doc:[0-9a-f]{10}", text))
+
+
 def _normalize_doc_id(value: object) -> str:
     doc_id = _optional_text(value)
     if doc_id is None:
@@ -2673,19 +2680,37 @@ class RetrievalService:
         else:
             doc_type = None
 
+        title_hint_confidentiality_profile = _resolve_title_hint_confidentiality_profile(
+            canonical_lookup_confidentiality_profile,
+            normalized.get("query_confidentiality_profile"),
+            provenance.get("query_confidentiality_profile"),
+        )
+        explicit_title_hint_confidentiality_profile = (
+            canonical_lookup_confidentiality_profile
+            or _normalized_profile_text(normalized.get("query_confidentiality_profile"))
+            or _normalized_profile_text(provenance.get("query_confidentiality_profile"))
+        )
         title_hint = _normalized_text(normalized.get("title_hint"))
         if title_hint is None:
             title_hint = _normalized_text(provenance.get("title_hint"))
-        if title_hint is None:
+        if title_hint is not None:
+            if (
+                explicit_title_hint_confidentiality_profile is not None
+                and not (
+                    explicit_title_hint_confidentiality_profile == "confidential"
+                    and _looks_like_redacted_title_hint(title_hint)
+                )
+            ):
+                title_hint = self._safe_title_hint(
+                    title_hint,
+                    confidentiality_profile=explicit_title_hint_confidentiality_profile,
+                )
+        else:
             doc_meta_title_hint = _normalized_text(doc_meta.get("title_hint"))
             if doc_meta_title_hint is not None:
                 title_hint = self._safe_title_hint(
                     doc_meta_title_hint,
-                    confidentiality_profile=_resolve_title_hint_confidentiality_profile(
-                        canonical_lookup_confidentiality_profile,
-                        normalized.get("query_confidentiality_profile"),
-                        provenance.get("query_confidentiality_profile"),
-                    ),
+                    confidentiality_profile=title_hint_confidentiality_profile,
                 )
         if title_hint is not None:
             normalized["title_hint"] = title_hint
