@@ -2,13 +2,13 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `5fb0987e61321af1f10054771d075440bb86a203`
-- Packet refresh role: `reviewer-required demo-path mapping refresh`
+- Commit: `4318eb83c89b9e7292a40d303154d1b7257e525a`
+- Packet refresh role: `reviewer-required scope and demo-path clarification`
 
 ## Packet Traceability Note
 
-- The implementation commit above applies the reviewer-required parser-surface fixes.
-- The current branch tip is a docs-only handoff refresh that keeps this packet aligned with that reviewed implementation unless this handoff is regenerated.
+- The implementation commit above is the reviewed command-surface hardening commit that satisfies the reviewer-required runtime behavior.
+- This packet refresh keeps the handoff wording aligned with the current implementation and the reviewer-requested scope clarification.
 
 ## Current Program Focus
 
@@ -24,7 +24,7 @@
 
 ## Scope Goal
 
-- Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog.
+- Harden the CLI command contract so `command_cli_contract()` stays deterministic, preserves the canonical command order for exposed commands, and fails fast when the default parser surface drifts from the declared command catalog.
 
 ## Priority Outcomes
 
@@ -59,9 +59,9 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the default catalog validates the full parser surface against the declared command entrypoints and raises `ValueError` when accepted CLI tokens drift from the catalog, which keeps the CLI fallback trustworthy for the `continue working without losing context` step of the canonical MVP loop.
-- Kept the returned contract aligned with the canonical command order while treating parser-surface drift as a contract error instead of silently accepting alias substitutions or extra entrypoints, which keeps the `continue working without losing context` operator surface deterministic instead of silently changing underneath the user.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment, alias-substitution rejection, and extra accepted-entrypoint drift rejection, which makes the `continue working without losing context` CLI contract smoke-testable and explicit.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the default catalog validates its declared CLI entrypoints against the canonical command list and raises `ValueError` when the exposed parser surface drifts, which keeps the CLI fallback trustworthy for the `continue working without losing context` step of the canonical MVP loop.
+- Kept the returned contract aligned with the canonical command order for CLI-exposed commands while treating alias substitution, missing canonical primary tokens, extra accepted entrypoints, and primary-token order drift as contract errors instead of silently accepting them, which keeps the `continue working without losing context` operator surface deterministic instead of silently changing underneath the user.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment, missing canonical primary-token rejection, alias-substitution rejection, extra accepted-entrypoint drift rejection, and primary-token order drift rejection, which makes the `continue working without losing context` CLI contract smoke-testable and explicit.
 - Reissued the handoff packet as a command-catalog-only slice so the review scope matches the claimed implementation files and approval basis.
 
 ## Kickoff Budget / Limits Compliance
@@ -76,9 +76,9 @@
 
 1. Hardened `command_cli_contract()` to verify the full default parser surface against the catalog and fail fast on alias substitution or extra-entrypoint drift.
    Demo-path step: `continue working without losing context`, because the CLI fallback must reject silent parser drift before an operator keeps using the next command in the loop.
-2. Preserved canonical command ordering in the CLI contract while keeping parser-surface validation explicit.
+2. Preserved canonical command ordering in the CLI contract for CLI-exposed commands while keeping parser-surface validation explicit.
    Demo-path step: `continue working without losing context`, because the active CLI surface must stay deterministic from run to run while the operator continues the workflow.
-3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment plus alias-substitution and extra accepted-entrypoint parser-surface drift rejection.
+3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment plus missing-primary-token, alias-substitution, extra accepted-entrypoint, and primary-token-order parser-surface drift rejection.
    Demo-path step: `continue working without losing context`, because the smoke tests now prove the CLI contract used for continued work remains explicit and stable.
 4. Regenerated the handoff packet so the branch metadata stays scoped to the command-catalog slice and uses the current roadmap and vision labels.
    Demo-path step: `continue working without losing context`, because the handoff now states exactly which canonical loop step this narrow contract-hardening slice protects.
@@ -97,7 +97,7 @@
 ## Commands Run and Outcomes
 
 - `python -m unittest tests.unit.test_commands_catalog`: PASS
-- `SCOPE_ALLOW_SHARED=1 make scope-check`: PASS
+- `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
@@ -106,8 +106,8 @@
 
 ## Verification Note
 
-- Re-verified on the current `codex/feat-commands` branch tip that the reviewer-required fixes are present in the implementation: `command_cli_contract()` now rejects full parser-surface drift for the default catalog, and `tests/unit/test_commands_catalog.py` covers alias-substitution and extra-entrypoint drift where canonical command order alone would still match.
-- This handoff refresh is tied to a full gate rerun on branch tip `codex/feat-commands`, including the explicit shared-file invocation `SCOPE_ALLOW_SHARED=1 make scope-check`, so the reviewer can verify the approved test-file exception against the exact command reported in this packet.
+- Re-verified on the current `codex/feat-commands` branch tip that the reviewer-required fixes are present in the implementation: `command_cli_contract()` now rejects default-catalog parser-surface drift, and `tests/unit/test_commands_catalog.py` covers missing-primary-token, alias-substitution, extra-entrypoint, and primary-token-order drift where canonical command order alone would still be insufficient.
+- This handoff refresh is tied to a full gate rerun on branch tip `codex/feat-commands`, using the standard `make scope-check` invocation because this follow-up commit only adjusts packet metadata and does not expand the reviewed implementation scope beyond the already-approved shared test exception.
 
 ## Risks / Blockers
 
@@ -133,6 +133,6 @@
 
 - Shared/integrator-locked edits: `YES`
 - Ownership detail: lane-owned runtime edits stay in `src/qual/commands/**`, and the only non-owned implementation path is the approved shared test `tests/unit/test_commands_catalog.py`.
-- Exact approved scope-check invocation: `SCOPE_ALLOW_SHARED=1 make scope-check`
+- Exact scope-check invocation for this reviewer-fix follow-up: `make scope-check`
 - Approval basis: `THREAD_OWNERSHIP.md` lists `tests/unit/test_commands_catalog.py` as shared-by-approval for `codex/feat-commands*`, and the handoff keeps that exception limited to this one test file.
 - Scope-tightening confirmation: no additional shared or integrator-locked implementation files are part of this reviewed slice.
