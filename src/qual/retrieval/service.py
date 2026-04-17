@@ -2551,6 +2551,10 @@ class RetrievalService:
         normalized["retrieval_backend"] = retrieval_backend
         normalized["retrieval_mode"] = retrieval_mode
         normalized["retrieval_policy"] = copy.deepcopy(retrieval_policy)
+        # Keep excerpt lookup payloads aligned with the canonical engine
+        # retrieval surface so downstream promotion/revise flows do not need a
+        # separate lookup-only policy field branch.
+        normalized["policy"] = copy.deepcopy(retrieval_policy)
         normalized["active_strategy_ids"] = list(active_strategy_ids)
         normalized["deferred_strategy_ids"] = list(deferred_strategy_ids)
         normalized["strategies_used"] = list(strategies_used)
@@ -2637,6 +2641,7 @@ class RetrievalService:
         normalized_provenance["retrieval_backend"] = retrieval_backend
         normalized_provenance["retrieval_mode"] = retrieval_mode
         normalized_provenance["retrieval_policy"] = copy.deepcopy(retrieval_policy)
+        normalized_provenance["policy"] = copy.deepcopy(retrieval_policy)
         normalized_provenance["active_strategy_ids"] = list(active_strategy_ids)
         normalized_provenance["deferred_strategy_ids"] = list(deferred_strategy_ids)
         normalized_provenance["strategies_used"] = list(strategies_used)
