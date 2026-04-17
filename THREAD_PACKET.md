@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `5fb0987e61321af1f10054771d075440bb86a203`
-- Packet refresh role: `docs-only handoff alignment`
+- Packet refresh role: `reviewer-required demo-path mapping refresh`
 
 ## Packet Traceability Note
 
@@ -38,6 +38,7 @@
 - Why this exact step: this change does not add a new workflow action; it hardens the stable CLI operator surface that lets the current MVP loop continue safely after commands are wired, by making command dispatch deterministic and drift-failing instead of silently diverging from the catalog.
 - AGENTS alignment statement: this slice makes `continue working` more real by ensuring the command-catalog contract stays explicit, ordered, and smoke-testable, so the CLI fallback surface remains dependable while Textual stays disabled.
 - Scope-tightening note: this is command-contract hardening for the CLI-first MVP loop only. It does not claim broader workflow, retrieval, audit, or UI capability expansion.
+- Reviewer fix note: this section exists specifically to satisfy the requested re-review correction to name the canonical demo-path step advanced by the handoff.
 
 ## Definition of Done for This Lane
 
