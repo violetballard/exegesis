@@ -7,6 +7,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Reviewer Fix Alignment
 
 - `THREAD_PACKET.md` targets pre-refresh branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05` and preserves implementation scope at `423adf3c0b23ac152844bbe3b74577cd3afb318b`.
+- This fixer pass republishes that corrected packet as a metadata-only required-fix resubmission commit after rerunning the full gate suite from pre-refresh branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05`.
 - The packet no longer claims later code commits were metadata-only; branch-tip command files and focused shared tests are explicitly in scope for re-review.
 - The packet names the concrete canonical demo-path step advanced: `open project/document`.
 - The packet scope is narrowed to branch-tip command-surface hardening only, not broader engine behavior or UI work.

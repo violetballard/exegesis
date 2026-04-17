@@ -61,12 +61,13 @@
 1. Retargeted the packet to the real pre-refresh implementation tip instead of claiming later code commits were metadata-only.
 2. Updated the scope and in-scope file list so the handoff matches the reviewed command implementation present at `423adf3c0b23ac152844bbe3b74577cd3afb318b` and the pre-refresh branch-tip metadata state at `82cca047f62ff80db73ee76ef1c47767f5061c05`.
 3. Added the explicit `AGENTS.md` demo-path mapping by naming the exact canonical step this work makes more real and why it removes a concrete blocker there.
-4. Re-ran the required gate suite from pre-refresh branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05` and recorded fresh passing evidence for re-review on `2026-04-17`.
+4. Reissued the corrected handoff as a new metadata-only required-fix resubmission commit instead of leaving the reviewer fixes attached only to the prior branch tip.
+5. Re-ran the required gate suite from pre-refresh branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05` and recorded fresh passing evidence for re-review on `2026-04-17`.
 
 ## Fixer Verification Refresh
 
 - Re-ran the full required gate suite on `2026-04-17` against pre-refresh branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05`.
-- This metadata-only refresh records that fresh verification pass so the handoff packet matches the latest fixer run.
+- This metadata-only refresh records that fresh verification pass so the handoff packet matches the latest fixer run and this required-fix resubmission commit.
 - Final fixer consistency check: this pass verified that every traceability and verification-anchor reference in the packet now consistently points at pre-refresh branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05`, with no stale fallback to the earlier `80c9e22d...` packet state.
 
 ## Current Program Focus
@@ -120,7 +121,8 @@
 1. Retargeted the handoff packet traceability to pre-refresh branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05` while preserving implementation scope at `423adf3c0b23ac152844bbe3b74577cd3afb318b`.
 2. Added the explicit canonical demo-path mapping: this branch-tip command-surface work strengthens `open project/document`.
 3. Updated `Scope completed`, `Files changed`, and ownership notes so they match the real command implementation now in scope for re-review.
-4. Re-ran the required local gates on the current branch tip and recorded outcomes for this fixer pass.
+4. Reissued the corrected packet as a metadata-only required-fix resubmission commit.
+5. Re-ran the required local gates on the current branch tip and recorded outcomes for this fixer pass.
 
 ### Files Changed
 
