@@ -231,6 +231,13 @@ def _normalize_lookup_resolution_payload(value: object) -> str | None:
     return _normalized_profile_text(value)
 
 
+def _normalize_lookup_resolution(value: object) -> Literal["fts"]:
+    lookup_resolution = _normalize_lookup_resolution_payload(value)
+    if lookup_resolution != _FTS_SOURCE_STRATEGY:
+        raise ValueError("lookup_resolution must be fts for the FTS-first retrieval lane")
+    return _FTS_SOURCE_STRATEGY
+
+
 def _normalize_lookup_confidentiality_profile_payload(value: object) -> str | None:
     return _normalized_profile_text(value)
 
@@ -2412,9 +2419,9 @@ class RetrievalService:
         normalized = dict(excerpt)
         normalized["source_strategy"] = source_strategy
         normalized["retrieval_source_strategy"] = source_strategy
-        canonical_lookup_resolution = _normalize_lookup_resolution_payload(
+        canonical_lookup_resolution = _normalize_lookup_resolution(
             normalized.get("lookup_resolution", provenance.get("lookup_resolution", lookup_resolution))
-        ) or lookup_resolution
+        )
         normalized["lookup_resolution"] = canonical_lookup_resolution
         canonical_lookup_confidentiality_profile = _normalize_lookup_confidentiality_profile_payload(
             normalized.get(
