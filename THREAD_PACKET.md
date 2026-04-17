@@ -100,9 +100,12 @@
 
 ## Scope Boundary
 
-- This slice stays in `feat-commands` Milestone 3 CLI compatibility work.
+- This slice stays in `feat-commands` Milestone 3 CLI compatibility contract
+  hardening work.
 - It only hardens command-catalog contract validation and focused regression
   coverage.
+- It is not a broader workflow-surface expansion and it is not a UI-surface
+  change.
 - It does not add new engine business logic, new command flags, or new UI
   behavior.
 
