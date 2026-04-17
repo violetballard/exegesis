@@ -848,6 +848,7 @@ def _normalize_excerpt_hits(value: object) -> list[dict[str, object]]:
 
 def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(doc_bundle)
+    normalized["query"] = _normalize_query_snapshot(normalized.get("query", {}))
     normalized["query_date_range"] = _normalize_query_date_range(normalized.get("query_date_range"))
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
@@ -856,6 +857,11 @@ def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, o
     normalized["basket_promotion"] = _normalize_basket_promotion_snapshot(normalized.get("basket_promotion"))
     if isinstance(normalized["basket_promotion"], dict):
         normalized["basket_promotion"].pop("source_bundle_fingerprint", None)
+    policy = normalized.get("policy")
+    if isinstance(policy, dict):
+        normalized["policy"] = _normalize_policy_snapshot(policy)
+    elif "policy" in normalized:
+        normalized["policy"] = {}
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -869,6 +875,7 @@ def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, o
 
 def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(excerpt_bundle)
+    normalized["query"] = _normalize_query_snapshot(normalized.get("query", {}))
     normalized["query_date_range"] = _normalize_query_date_range(normalized.get("query_date_range"))
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
@@ -877,6 +884,11 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
     normalized["basket_promotion"] = _normalize_basket_promotion_snapshot(normalized.get("basket_promotion"))
     if isinstance(normalized["basket_promotion"], dict):
         normalized["basket_promotion"].pop("source_bundle_fingerprint", None)
+    policy = normalized.get("policy")
+    if isinstance(policy, dict):
+        normalized["policy"] = _normalize_policy_snapshot(policy)
+    elif "policy" in normalized:
+        normalized["policy"] = {}
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -2302,6 +2314,13 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
         diagnostics = {}
     query = payload.get("query", {})
     if not isinstance(query, dict):
+        query = _first_dict_value(
+            doc_bundle.get("query"),
+            excerpt_bundle.get("query"),
+            provenance.get("query"),
+            summary.get("query"),
+        )
+    if not isinstance(query, dict):
         query = {}
     query_constraints = query.get("constraints", {})
     if not isinstance(query_constraints, dict):
@@ -2319,6 +2338,7 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
             "query_fingerprint",
             provenance.get("query_fingerprint", summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))),
         ),
+        "query": _normalize_query_snapshot(query),
         "query_scope": _normalize_query_scope(
             query.get(
                 "scope",
@@ -2346,6 +2366,15 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
         "query_date_range": query_date_range,
         "retrieval_backend": payload.get("retrieval_backend", summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))),
         "retrieval_mode": payload.get("retrieval_mode", summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))),
+        "policy": _normalize_policy_snapshot(
+            payload.get(
+                "policy",
+                payload.get(
+                    "retrieval_policy",
+                    summary.get("policy", summary.get("retrieval_policy", diagnostics.get("policy", diagnostics.get("retrieval_policy", {})))),
+                ),
+            )
+        ),
         "retrieval_policy": _normalize_policy_snapshot(
             payload.get("retrieval_policy", payload.get("policy", summary.get("retrieval_policy", diagnostics.get("retrieval_policy", {}))))
         ),
