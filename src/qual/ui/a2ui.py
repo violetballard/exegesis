@@ -923,6 +923,9 @@ def _build_terminal_artifact_contract_manifest(*, include_contract_fingerprints:
             "contract_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
         },
         "terminal_artifact_cli_fallback_fingerprint": terminal_artifact_cli_fallback_contract_fingerprint(),
+        "terminal_artifact_render_target_contract_fingerprint": terminal_artifact_render_target_contract_fingerprint(),
+        "terminal_artifact_rendering_contract_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
+        "terminal_fallback_contract_fingerprint": terminal_fallback_contract_fingerprint(),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
     }
@@ -1021,6 +1024,9 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
             "selection": "recover selection payloads with render_terminal_selection",
         },
         "terminal_fallback_contract": terminal_fallback_contract,
+        "terminal_artifact_render_target_contract_fingerprint": terminal_artifact_render_target_contract_fingerprint(),
+        "terminal_artifact_rendering_contract_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
+        "terminal_fallback_contract_fingerprint": terminal_fallback_contract_fingerprint(),
         "contract_fingerprints": describe_terminal_artifact_cli_fallback_contract_fingerprints(),
     }
 

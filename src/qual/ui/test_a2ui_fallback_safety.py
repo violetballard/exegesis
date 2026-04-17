@@ -740,6 +740,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["terminal_artifact_kind_contracts_fingerprint"],
             terminal_artifact_kind_contracts_fingerprint(),
         )
+        self.assertEqual(
+            manifest["terminal_artifact_render_target_contract_fingerprint"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_rendering_contract_fingerprint"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_fallback_contract_fingerprint"],
+            terminal_fallback_contract_fingerprint(),
+        )
         self.assertEqual(render_target_manifest["terminal_artifact_kind_contracts"], kind_contracts)
         self.assertEqual(
             render_target_manifest["terminal_artifact_kind_contracts_fingerprint"],
@@ -1212,6 +1224,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["rendering_fingerprint"],
             terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_render_target_contract_fingerprint"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_rendering_contract_fingerprint"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_fallback_contract_fingerprint"],
+            terminal_fallback_contract_fingerprint(),
         )
         self.assertEqual(
             manifest["contract_fingerprints"],
@@ -3387,8 +3411,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 kind="card",
             )
 
-        self.assertIn("[UnknownCard] <invalid card>", text)
-        self.assertIn("Action policy: copy_to_clipboard_only", text)
+        self.assertIn("[<missing>] <untitled>", text)
+        self.assertNotIn("[UnknownCard] <invalid card>", text)
         self.assertNotIn("[SelectionRef]", text)
         self.assertNotIn("[ActionRef]", text)
 
