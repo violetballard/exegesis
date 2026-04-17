@@ -697,6 +697,10 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
     if "strategies_used" in normalized:
         normalized["strategies_used"] = _normalize_text_list_like(normalized.get("strategies_used"))
+    if "retrieved_doc_ids" in normalized:
+        normalized["retrieved_doc_ids"] = _normalize_text_list_like(normalized.get("retrieved_doc_ids"))
+    if "retrieved_excerpt_ids" in normalized:
+        normalized["retrieved_excerpt_ids"] = _normalize_text_list_like(normalized.get("retrieved_excerpt_ids"))
     doc_type = _normalize_optional_text(normalized.get("doc_type"))
     if doc_type is not None:
         normalized["doc_type"] = doc_type
@@ -1105,6 +1109,22 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
                     "deferred_strategy_ids",
                     retrieval_summary.get("deferred_strategy_ids", retrieval_policy.get("deferred_strategy_ids", [])),
                 ),
+            )
+        ),
+        "retrieved_doc_ids": _normalize_text_list_like(
+            _first_non_none_value(
+                payload.get("retrieved_doc_ids"),
+                retrieval_summary.get("doc_ids"),
+                [item.get("doc_id") for item in doc_citations if isinstance(item, dict)],
+                [item.get("doc_id") for item in doc_hits if isinstance(item, dict)],
+            )
+        ),
+        "retrieved_excerpt_ids": _normalize_text_list_like(
+            _first_non_none_value(
+                payload.get("retrieved_excerpt_ids"),
+                retrieval_summary.get("excerpt_ids"),
+                [item.get("excerpt_id") for item in excerpt_citations if isinstance(item, dict)],
+                [item.get("excerpt_id") for item in excerpt_hits if isinstance(item, dict)],
             )
         ),
     }

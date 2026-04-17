@@ -1116,6 +1116,11 @@ class RetrievalResult:
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             "strategies_used": list(self.diagnostics["strategies_used"]),
+            # Keep the ranked retrieval ids next to the primary promotion record
+            # so basket/context consumers can preserve the authoritative FTS
+            # ordering without unpacking the larger retrieval summary payload.
+            "retrieved_doc_ids": [doc_hit.doc_id for doc_hit in self.doc_hits],
+            "retrieved_excerpt_ids": [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None],
         }
 
     def _retrieval_source_bundle_snapshot(
@@ -2884,6 +2889,20 @@ class RetrievalService:
                     or active_strategy_ids
                 )
             ),
+            "retrieved_doc_ids": [
+                doc_id
+                for doc_id in (
+                    _optional_text(excerpt.get("doc_id")) or _optional_text(provenance.get("doc_id")),
+                )
+                if doc_id is not None
+            ],
+            "retrieved_excerpt_ids": [
+                excerpt_value
+                for excerpt_value in (
+                    _optional_text(excerpt.get("excerpt_id")) or _optional_text(provenance.get("excerpt_id")),
+                )
+                if excerpt_value is not None
+            ],
         }
 
     @staticmethod
