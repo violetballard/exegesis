@@ -872,7 +872,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
             ("reject-patch", ("--operation-kind",)),
             ("patch-reject", ("--operation-kind",)),
         ),
-        preferred_surface_tokens=("export", "persist", "apply-patch", "reject-patch"),
+        preferred_surface_tokens=("export-handoff", "export", "persist", "apply-patch", "reject-patch"),
         description="Run terminal export handoff routing.",
         flow_step="export-handoff",
     ),
@@ -2563,9 +2563,11 @@ def command_demo_path_contract(
             preferred_surface_tokens=_preferred_surface_tokens_for_name(specs, entry.name),
             surface_invocations=parser_ready_invocations_by_step.get(entry.flow_step, ()),
             preferred_surface_invocations=tuple(
-                invocation
-                for invocation in parser_ready_invocations_by_step.get(entry.flow_step, ())
-                if invocation[0] in _preferred_surface_tokens_for_name(specs, entry.name)
+                (
+                    token,
+                    command_smoke_argv_for(specs, (token,), command_demo_flow_steps()),
+                )
+                for token in _preferred_surface_tokens_for_name(specs, entry.name)
             ),
             parser_surface_invocations=parser_surface_invocations_by_step.get(entry.flow_step, ()),
         )

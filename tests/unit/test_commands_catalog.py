@@ -1969,6 +1969,10 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
         self.assertEqual(
+            contract.entries[3].preferred_surface_tokens,
+            ("export-handoff", "export", "persist", "apply-patch", "reject-patch"),
+        )
+        self.assertEqual(
             tuple(entry.preferred_surface_invocations for entry in contract.entries),
             (
                 (("project-open", ("bootstrap", "--project", "demo")),),
@@ -1980,6 +1984,16 @@ class CommandCatalogTests(unittest.TestCase):
                     ),
                 ),
                 (
+                    (
+                        "export-handoff",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Export handoff",
+                        ),
+                    ),
                     (
                         "export",
                         (
@@ -2049,6 +2063,16 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", ("bootstrap", "--project", "demo")),
                 ("retrieval", ("context-basket", "list")),
                 ("patch-review", ("diff-preview", "--original", "before", "--proposed", "after")),
+                (
+                    "export-handoff",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Export handoff",
+                    ),
+                ),
                 (
                     "export",
                     (
@@ -2129,7 +2153,7 @@ class CommandCatalogTests(unittest.TestCase):
             contract.entries[3],
             preferred_surface_invocations=(
                 (
-                    "export",
+                    "export-handoff",
                     (
                         "terminal",
                         "--operation-kind",
