@@ -53,11 +53,10 @@ This narrowed reviewed slice makes `retrieve relevant material` more real by mak
 
 ## Required Reviewer Fixes Addressed
 
-1. Reclassified the handoff as shared/high-risk work instead of low-risk work.
-2. Removed the stale claim that PageIndex remains a runtime fallback behind the canonical retrieval package.
-3. Stated the canonical demo-path step in narrowed terms that match the reviewed implementation slice and the reviewer-recommended wording.
-4. Tightened that demo-path statement to the Milestone 3 contract by stating that `fetch_excerpt` now enforces FTS-only excerpt resolution and non-FTS excerpt IDs fail closed with `KeyError`.
-5. Kept the packet scope aligned to the reviewed implementation head and range above.
+1. Reissued the operative handoff packet using the high-risk kickoff framing because this slice includes approved shared-file work.
+2. Made the packet classification, budget, approved shared-test exception, and reviewed range agree on shared/high-risk work over `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+3. Added an explicit canonical demo-path sentence stating that this change advances `retrieve relevant material`.
+4. Reissued the packet without widening implementation scope.
 
 ## Tasks completed
 
@@ -110,4 +109,4 @@ This narrowed reviewed slice makes `retrieve relevant material` more real by mak
 
 - Shared/integrator-locked edits: `YES`
 - Approved shared exception: `tests/unit/test_unified_retrieval.py` is the sole shared-by-approval file in the reviewed implementation range.
-- Worktree constraint: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are present but not writable in this lane worktree, so `THREAD_PACKET.md` is the operative corrected handoff artifact for this fixer commit.
+- Worktree constraint: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are readable in this lane worktree but not writable under current filesystem permissions, so `THREAD_PACKET.md` is the operative corrected handoff artifact for this fixer commit.
