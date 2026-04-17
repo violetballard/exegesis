@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `reviewer-required fix finalization`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet refresh commit before this fixer commit: `a5b9d337fab5a19275910625b7cc4d092bddff20`
+- Packet refresh commit before this fixer commit: `9347b964cd39433c748ed8534a9c4d26bbdb7d24`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 ## Scope goal
@@ -26,8 +26,8 @@
 
 ### Checkpoint Status
 
-- `plan complete`: narrowed all reviewer-facing metadata to the same implementation slice and added the explicit AGENTS demo-path statement.
-- `first green tests`: all required gates were re-run on the lane branch for this fixer pass.
+- `plan complete`: refreshed the operative handoff packet again for this fixer pass while preserving the narrowed implementation slice and explicit AGENTS demo-path statement.
+- `first green tests`: all required gates passed again on the lane branch for this fixer pass.
 - `before risky/shared file edit`: no new shared code edit was needed; the only shared implementation file in the reviewed range remains the approved regression surface `tests/unit/test_unified_retrieval.py`.
 - `ready for handoff`: the operative handoff packet carries the narrowed scope and canonical demo-path statement required for re-review.
 
@@ -73,14 +73,12 @@ This reviewed range makes `retrieve relevant material` more real by removing the
   - `tests/unit/test_unified_retrieval.py`
 - Packet refresh files:
   - `THREAD_PACKET.md`
-  - `.codex/kickoff_packets/feat-retrieval-fts.md`
-  - `.codex/lane_meta/feat-retrieval-fts.json`
 
 ## Packet mirror note
 
-- `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json` are aligned in this fixer pass.
-- `THREAD_PACKET.md` remains the operative handoff packet for re-review and carries the reviewer-required shared/high-risk classification plus the explicit canonical demo-path step advanced by the narrowed retrieval slice.
-- Re-review should use the narrowed reviewed implementation range and canonical demo-path statement consistently across all three packet files.
+- `THREAD_PACKET.md` is the operative handoff packet for this fixer pass.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are present but filesystem-protected in this worktree, so this pass leaves them unchanged.
+- Re-review should use `THREAD_PACKET.md` as the source of truth for the narrowed reviewed implementation range and the canonical demo-path statement.
 
 ## Commands run with results
 
