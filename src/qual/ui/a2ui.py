@@ -882,6 +882,7 @@ def describe_terminal_artifact_rendering_contract() -> dict[str, Any]:
     manifest["terminal_artifact_render_target_contract_fingerprint"] = (
         terminal_artifact_render_target_contract_fingerprint()
     )
+    manifest["renderer_entrypoints_fingerprint"] = _fingerprint_manifest_section(manifest["renderer_entrypoints"])
     manifest["raw_leaf_card_default_contract_fingerprint"] = manifest["raw_leaf_card_default_contract"][
         "contract_fingerprint"
     ]
@@ -980,6 +981,7 @@ def describe_terminal_artifact_cli_fallback_contract(
     manifest["terminal_artifact_render_target_contract_fingerprint"] = (
         terminal_artifact_render_target_contract_fingerprint()
     )
+    manifest["renderer_entrypoints_fingerprint"] = _fingerprint_manifest_section(manifest["renderer_entrypoints"])
     manifest["terminal_fallback_contract_fingerprint"] = manifest["terminal_fallback_contract"][
         "contract_fingerprint"
     ]
@@ -1006,6 +1008,9 @@ def describe_terminal_artifact_cli_fallback_target_contract(
     manifest["contract_fingerprints"] = describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
+    manifest["renderer_entrypoints_fingerprint"] = _fingerprint_manifest_section(
+        manifest["renderer_entrypoints"]
+    )
     return manifest
 
 
@@ -1019,6 +1024,8 @@ def describe_terminal_artifact_cli_fallback_route_contract() -> dict[str, Any]:
     manifest["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"] = manifest[
         "contract_fingerprints_fingerprint"
     ]
+    manifest["route_precedence_fingerprint"] = _fingerprint_manifest_section(manifest["route_precedence"])
+    manifest["leaf_renderers_fingerprint"] = _fingerprint_manifest_section(manifest["leaf_renderers"])
     manifest["contract_fingerprint"] = fingerprint
     return manifest
 
