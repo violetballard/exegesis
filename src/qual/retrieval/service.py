@@ -254,7 +254,9 @@ def _normalize_doc_id_list_payload(value: object) -> list[str] | None:
             continue
         seen.add(doc_id)
         normalized.append(doc_id)
-    return sorted(normalized)
+    # Preserve the FTS shortlist order so excerpt lookups and basket promotion
+    # keep the same auditable candidate ordering as the canonical retrieval run.
+    return normalized
 
 
 @dataclass(frozen=True)
