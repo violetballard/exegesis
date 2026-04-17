@@ -22,7 +22,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - naming the true reviewed branch tip and baseline commit range
   - tying the files-changed list to the actual implementation delta
   - tying gate evidence to the current branch tip
-  - naming the canonical demo-path steps advanced using `AGENTS.md` wording
+  - naming the canonical demo-path steps advanced with an explicit
+    AGENTS-required step statement
+  - separating shared-by-approval edits from integrator-locked edits
   - keeping scope limited to Milestone 3 CLI compatibility work
 - Canonical demo-path step impact: this slice makes `open project/document`,
   `retrieve relevant material`, `preview and apply or reject a patch`, and

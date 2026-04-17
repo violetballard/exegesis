@@ -47,6 +47,10 @@
 
 ## Canonical Demo-Path Step Advanced
 
+- AGENTS-required explicit step statement: this change makes the canonical
+  demo-path steps `open project/document`, `retrieve relevant material`,
+  `preview and apply or reject a patch`, and `continue working without losing
+  context` more real for the CLI-first MVP loop.
 - This slice makes the canonical demo path more real for `open
   project/document`, `retrieve relevant material`, `preview and apply or reject
   a patch`, and `continue working without losing context`.
