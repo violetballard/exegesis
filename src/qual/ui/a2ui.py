@@ -1088,8 +1088,11 @@ def validate_capabilities(capabilities: A2UICapabilities) -> None:
         seen_actions.add(canonical_action_id)
 
 
-def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
+def engine_prepare_card(card: Any, capabilities: A2UICapabilities) -> dict[str, Any]:
     validate_capabilities(capabilities)
+    coerced_card = _coerce_card_payload(card)
+    if coerced_card is not None:
+        card = coerced_card
     card_type = _normalize_card_type(card)
     if card_type == GENERIC_CARD_TYPE:
         return _materialize_generic_card(card, capabilities)
@@ -1132,7 +1135,10 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
     return fallback_card
 
 
-def validate_unknown_card(card: dict[str, Any]) -> None:
+def validate_unknown_card(card: Any) -> None:
+    coerced_card = _coerce_card_payload(card)
+    if coerced_card is not None:
+        card = coerced_card
     _validate_fallback_card(
         card,
         expected_type=UNKNOWN_CARD_TYPE,
@@ -1140,8 +1146,11 @@ def validate_unknown_card(card: dict[str, Any]) -> None:
     )
 
 
-def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
+def studio_materialize_card(card: Any, capabilities: A2UICapabilities) -> dict[str, Any]:
     validate_capabilities(capabilities)
+    coerced_card = _coerce_card_payload(card)
+    if coerced_card is not None:
+        card = coerced_card
     card_type = _normalize_card_type(card)
     if card_type == GENERIC_CARD_TYPE:
         return _materialize_generic_card(card, capabilities)
@@ -1159,11 +1168,14 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
 
 
 def build_unknown_card(
-    raw_card: dict[str, Any],
+    raw_card: Any,
     *,
     max_payload_bytes: int | None = DEFAULT_UNKNOWN_CARD_PREVIEW_BYTES,
     supported_actions: tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
+    coerced_card = _coerce_card_payload(raw_card)
+    if coerced_card is not None:
+        raw_card = coerced_card
     type_name = _normalize_card_type(raw_card)
     effective_max_payload_bytes = _normalize_preview_budget(max_payload_bytes)
     blocks = _extract_safe_primitive_blocks(raw_card, allow_code_block=False)
@@ -1187,7 +1199,10 @@ def build_unknown_card(
     return card
 
 
-def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
+def validate_generic_card(card: Any, *, strict_actions: bool = True) -> None:
+    coerced_card = _coerce_card_payload(card)
+    if coerced_card is not None:
+        card = coerced_card
     if card.get("type") != GENERIC_CARD_TYPE:
         raise ValueError("Card type must be GenericCard")
     version = card.get("a2ui_version")
@@ -3159,6 +3174,33 @@ def _render_terminal_block(block: Any) -> list[str]:
 
 def _render_terminal_invalid_primitive_block(block_type: str, field_name: str) -> list[str]:
     return [f"[{block_type}: invalid {field_name}]"]
+
+
+def _coerce_card_payload(card: Any) -> dict[str, Any] | None:
+    if isinstance(card, dict):
+        return card
+    if isinstance(card, Mapping):
+        try:
+            return dict(card)
+        except Exception:
+            return None
+    if is_dataclass(card) and not isinstance(card, type):
+        try:
+            snapshot = _snapshot_terminal_artifact_value(card)
+        except Exception:
+            return None
+        if isinstance(snapshot, Mapping):
+            return dict(snapshot)
+        return None
+    if not any(hasattr(card, attr) for attr in ("type", "title", "subtitle", "blocks", "actions", "debug", "a2ui_version")):
+        return None
+    try:
+        snapshot = dict(vars(card))
+    except Exception:
+        return None
+    if isinstance(snapshot, Mapping):
+        return dict(snapshot)
+    return None
 
 
 def _coerce_terminal_card(card: Any) -> dict[str, Any] | None:

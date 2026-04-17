@@ -54,6 +54,7 @@ from src.qual.ui.a2ui import (
     TERMINAL_ARTIFACT_RENDER_TARGET_SCHEMA_VERSION,
     TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION,
     TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
+    studio_materialize_card,
     validate_terminal_artifact_envelope,
     validate_generic_card,
 )
@@ -3121,6 +3122,46 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         text = render_terminal_card(raw_card)
         self.assertIn("- Apply (apply_patch)", text)
         self.assertNotIn("Actions: none available", text)
+
+    def test_card_materializers_accept_structured_dataclass_payloads(self) -> None:
+        caps = _capabilities()
+        structured_generic = _StructuredCard(
+            type="GenericCard",
+            title=" Run Log ",
+            a2ui_version=1,
+            blocks=[{"type": "MarkdownBlock", "markdown": "Kept"}],
+            actions=[
+                ActionRef(
+                    id=" copy_to_clipboard ",
+                    label=" Copy ",
+                    payload={"text": "safe"},
+                ),
+            ],
+        )
+        structured_unknown = _StructuredCard(
+            type="FutureCard",
+            title="Future",
+            a2ui_version=1,
+            blocks=[{"type": "MarkdownBlock", "markdown": "Recovered"}],
+            actions=[],
+        )
+
+        prepared = engine_prepare_card(structured_generic, caps)
+        materialized = studio_materialize_card(structured_unknown, caps)
+        direct_unknown = build_unknown_card(structured_unknown, supported_actions=("copy_to_clipboard",))
+
+        self.assertEqual(prepared["type"], "GenericCard")
+        self.assertEqual(prepared["title"], "Run Log")
+        self.assertEqual(
+            prepared["actions"],
+            [{"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "safe"}}],
+        )
+        self.assertEqual(materialized["type"], "UnknownCard")
+        self.assertEqual(materialized["title"], "Unsupported card type: FutureCard")
+        self.assertEqual(materialized["actions"][0]["id"], "copy_to_clipboard")
+        self.assertEqual(direct_unknown["type"], "UnknownCard")
+        self.assertEqual(direct_unknown["title"], "Unsupported card type: FutureCard")
+        self.assertEqual(direct_unknown["actions"][0]["id"], "copy_to_clipboard")
 
     def test_validate_generic_card_accepts_actionref_instances_and_rejects_duplicates(self) -> None:
         validate_generic_card(
