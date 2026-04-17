@@ -3,16 +3,18 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh commit: `metadata-only reviewer-fix finalization`
-- Packet refresh role: `feature-fixer handoff alignment for reviewer required fixes`
+- Packet refresh commit: `metadata-only verified reviewer-fix gate rerun`
+- Packet refresh role: `feature-fixer verification refresh after reviewer required fixes`
 
 ## Packet Traceability Note
 
 - The command-catalog implementation under review remains
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- The reviewer-required parser-surface validation and token-drift regression
+  coverage are already present on this branch.
 - This packet refresh is metadata-only. It does not change the reviewed
-  implementation; it tightens the handoff text to satisfy the reviewer's
-  required packet fixes.
+  implementation; it records the latest fixer verification pass and required
+  gate rerun.
 
 ## Current Program Focus
 
@@ -78,6 +80,8 @@
   for canonical-order alignment and drift rejection.
 - Refreshed the handoff packet so it explicitly names the canonical
   `open project/document` demo-path step advanced by this CLI-contract slice.
+- Re-ran the required scope, quality, typecheck, and CI gates after the
+  reviewer-fix branch state was verified.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -96,6 +100,7 @@
 2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
 4. Regenerated the handoff packet so it explicitly states the exact canonical demo-path step advanced: `open project/document`.
+5. Re-ran the full required gate sequence on the verified reviewer-fix branch state and refreshed the handoff metadata with that result.
 
 ## Files Changed
 
@@ -117,6 +122,7 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
+- Verification timestamp: `2026-04-17T05:09:11Z`
 
 ## Risks / Blockers
 
