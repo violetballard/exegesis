@@ -8,7 +8,7 @@ older lane/fixer prompts.
 
 ## Reviewer Fix Alignment
 
-- Active implementation review target: `8333cbed4288faef14592230bd551cd26574e23a`.
+- Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
 - AGENTS.md canonical demo-path step advanced: `open project/document ->
   retrieve relevant material -> preview and apply or reject a patch -> save and
   continue working without losing context`, with this lane covering the CLI

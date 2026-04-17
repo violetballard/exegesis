@@ -2,19 +2,19 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `8333cbed4288faef14592230bd551cd26574e23a`
-- Packet refresh commit: `296b5fccc4746ab512b1155a08173b6335550dc9`
+- Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
+- Packet refresh commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
 - Packet refresh role: `reviewer-fix plan-alignment refresh`
 
 ## Packet Traceability Note
 
 - The original reviewer packet pointed at
-  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, but this branch now contains
-  later command-catalog fixes that tighten parser-surface validation and demo
-  path command resolution through implementation commit
-  `8333cbed4288faef14592230bd551cd26574e23a`. Treat
-  `296b5fccc4746ab512b1155a08173b6335550dc9` and any later packet-only commits
-  as handoff alignment unless a new runtime handoff is explicitly regenerated.
+  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, but this branch now contains the
+  required command-catalog fixes for parser-surface drift rejection and the
+  later demo-surface follow-up through branch tip
+  `36a360a9464d2f08f55129bc70e1aafe4574721b`. Treat later packet-only commits
+  after that implementation tip as handoff alignment unless a new runtime
+  handoff is explicitly regenerated.
 
 ## Current Program Focus
 
