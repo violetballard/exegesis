@@ -47,6 +47,7 @@ from src.qual.ui.a2ui import (
     _render_payload_preview,
     SelectionRef,
     _should_preserve_raw_leaf_card_default,
+    resolve_terminal_artifact_cli_fallback_target,
     resolve_terminal_artifact_render_target,
     selection_contract_fingerprint,
     terminal_artifact_contract_fingerprint,
@@ -1405,6 +1406,40 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             render_terminal_cli_fallback(action_envelope, kind="dialog"),
             render_terminal_cli_fallback(action_envelope),
+        )
+
+    def test_terminal_artifact_cli_fallback_entrypoint_preserves_invalid_card_hints_for_malformed_envelopes(
+        self,
+    ) -> None:
+        envelope = {
+            "type": "TerminalArtifact",
+            "kind": "card",
+            "artifact": {
+                "type": "ActionRef",
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+            },
+        }
+
+        text = render_terminal_cli_fallback(envelope, kind="card")
+
+        self.assertIn("[UnknownCard] <invalid card>", text)
+        self.assertIn("Fallback: unknown card", text)
+        self.assertNotIn("[ActionRef]", text)
+        self.assertNotIn("[SelectionRef]", text)
+
+    def test_terminal_artifact_cli_fallback_target_resolver_preserves_raw_leaf_card_default(self) -> None:
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        self.assertEqual(resolve_terminal_artifact_cli_fallback_target(raw_leaf), (raw_leaf, "card"))
+        self.assertEqual(
+            resolve_terminal_artifact_cli_fallback_target(raw_leaf, kind="dialog"),
+            (raw_leaf, "card"),
         )
 
     def test_terminal_artifact_renderers_preserve_raw_leaf_card_default_without_shared_resolver(self) -> None:
@@ -2877,6 +2912,26 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(text, "cli-fallback")
         cli_fallback.assert_called_once_with(raw_leaf, kind="card")
 
+    def test_shell_ui_uses_shared_cli_fallback_target_resolver_for_explicit_card_hints(self) -> None:
+        shell = ShellUI()
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            with patch(
+                "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
+                return_value=(raw_leaf, "card"),
+            ) as resolver:
+                with patch("src.qual.ui.shell.render_terminal_cli_fallback", return_value="cli-fallback") as cli_fallback:
+                    text = shell.render_artifact(raw_leaf, kind="card")
+
+        self.assertEqual(text, "cli-fallback")
+        resolver.assert_called_once_with(raw_leaf, kind="card")
+        cli_fallback.assert_called_once_with(raw_leaf, kind="card")
+
     def test_terminal_renderer_includes_safe_raw_preview_for_invalid_cards(self) -> None:
         text = render_terminal_card(_OpaqueValue())
 
@@ -2932,7 +2987,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
             with patch(
-                "src.qual.ui.shell.resolve_terminal_artifact_render_target",
+                "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
                 side_effect=RuntimeError("resolver boom"),
             ):
                 with patch("src.qual.ui.shell.render_terminal_card", side_effect=RuntimeError("card boom")):
@@ -3168,7 +3223,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
 
         with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
-            with patch("src.qual.ui.shell.resolve_terminal_artifact_render_target", side_effect=RuntimeError("boom")):
+            with patch("src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target", side_effect=RuntimeError("boom")):
                 action_text = shell.render_artifact(action_wrapper)
                 selection_text = shell.render_artifact(selection_wrapper)
 

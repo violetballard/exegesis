@@ -2058,13 +2058,7 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
             requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
         except ValueError:
             requested_kind = None
-    if requested_kind is None and _should_preserve_raw_leaf_card_default(artifact):
-        try:
-            return render_terminal_card(artifact)
-        except Exception:
-            return _render_invalid_terminal_card(artifact)
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
-    allow_invalid_envelope_recovery = malformed_envelope
     if requested_kind == "card" and malformed_envelope:
         payload = artifact.get("artifact") if isinstance(artifact, Mapping) else None
         payload_kind = _infer_terminal_artifact_explicit_kind(payload)
@@ -2072,15 +2066,18 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
             payload_kind = _recover_terminal_artifact_leaf_kind(payload)
         if payload_kind in {"action", "selection"}:
             return _render_invalid_terminal_card(artifact)
+    fallback_artifact, fallback_kind = resolve_terminal_artifact_cli_fallback_target(
+        artifact,
+        kind=kind,
+    )
     try:
-        artifact, resolved_kind = _resolve_terminal_artifact_render_target(
-            artifact,
+        return _render_terminal_artifact_resolved(
+            fallback_artifact,
+            fallback_kind,
             requested_kind=requested_kind,
-            allow_invalid_envelope_recovery=allow_invalid_envelope_recovery,
         )
     except Exception:
         return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
-    return _render_terminal_artifact_resolved(artifact, resolved_kind, requested_kind=requested_kind)
 
 
 render_terminal_a2ui = render_terminal_artifact
@@ -2099,6 +2096,44 @@ def resolve_terminal_artifact_render_target(
         requested_kind=requested_kind,
         allow_invalid_envelope_recovery=allow_invalid_envelope_recovery,
     )
+
+
+def resolve_terminal_artifact_cli_fallback_target(
+    artifact: Any,
+    *,
+    kind: str | None = None,
+) -> tuple[Any, str]:
+    """Resolve the payload and render kind for the explicit CLI fallback path.
+
+    Raw leaf card defaults stay on the card path when no valid kind hint is
+    present, so the shell and CLI fallback can share the same target-selection
+    contract without duplicating heuristics.
+    """
+
+    requested_kind = None
+    if kind is not None:
+        try:
+            requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+        except ValueError:
+            requested_kind = None
+    if requested_kind is None and _should_preserve_raw_leaf_card_default(artifact):
+        return artifact, "card"
+
+    try:
+        return _resolve_terminal_artifact_render_target(
+            artifact,
+            requested_kind=requested_kind,
+            allow_invalid_envelope_recovery=True,
+        )
+    except Exception:
+        fallback_kind = requested_kind
+        if fallback_kind is None:
+            fallback_kind = _infer_terminal_artifact_explicit_kind(artifact)
+        if fallback_kind is None and isinstance(artifact, Mapping):
+            fallback_kind = _infer_terminal_artifact_partial_leaf_kind(artifact)
+        if fallback_kind is None:
+            fallback_kind = "card"
+        return artifact, fallback_kind
 
 
 def _render_terminal_artifact_resolved(

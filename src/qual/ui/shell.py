@@ -12,7 +12,7 @@ from .a2ui import (
     normalize_action_ref,
     normalize_selection_ref,
     _should_preserve_raw_leaf_card_default,
-    resolve_terminal_artifact_render_target,
+    resolve_terminal_artifact_cli_fallback_target,
     render_terminal_action,
     render_terminal_artifact,
     render_terminal_cli_fallback,
@@ -350,24 +350,7 @@ class ShellUI:
     ) -> tuple[Any, str | None]:
         fallback_kind = ShellUI._normalize_fallback_kind(kind)
         try:
-            fallback_artifact, resolved_kind = resolve_terminal_artifact_render_target(
-                artifact,
-                requested_kind=fallback_kind,
-                allow_invalid_envelope_recovery=True,
-            )
-            if fallback_kind is None and _should_preserve_raw_leaf_card_default(artifact):
-                # Keep untyped leaf payloads on the card path even when the
-                # shared resolver can infer action/selection semantics.
-                return artifact, "card"
-            if fallback_kind is None and resolved_kind == "card":
-                # Prefer full schema recovery first, then recover partial leaf
-                # hints so leaf payloads do not get trapped in the card path.
-                inferred_kind = ShellUI._infer_fallback_kind(fallback_artifact)
-                if inferred_kind is None:
-                    inferred_kind = ShellUI._infer_partial_leaf_fallback_kind(fallback_artifact)
-                if inferred_kind is not None:
-                    return fallback_artifact, inferred_kind
-            return fallback_artifact, resolved_kind
+            return resolve_terminal_artifact_cli_fallback_target(artifact, kind=kind)
         except Exception:
             recovered = ShellUI._recover_terminal_artifact_envelope_fallback(artifact)
             if recovered is not None:
