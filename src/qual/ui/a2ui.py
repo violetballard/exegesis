@@ -317,6 +317,21 @@ def describe_terminal_artifact_render_target_contract() -> dict[str, Any]:
     return manifest
 
 
+def describe_terminal_artifact_render_target_contract_fingerprints(
+    include_terminal_artifact_render_target: bool = False,
+) -> dict[str, str]:
+    """Return stable fingerprints for the render-target contract sections.
+
+    Pass ``include_terminal_artifact_render_target=True`` to include the
+    wrapper contract fingerprint itself alongside the nested section
+    fingerprints.
+    """
+
+    return _build_terminal_artifact_render_target_contract_fingerprints(
+        include_terminal_artifact_render_target=include_terminal_artifact_render_target,
+    )
+
+
 def describe_terminal_artifact_rendering_contract() -> dict[str, Any]:
     """Return the stable terminal artifact rendering contract manifest."""
 
@@ -860,10 +875,20 @@ def _build_terminal_artifact_render_target_contract_manifest() -> dict[str, Any]
         "kind_contracts": _build_terminal_artifact_kind_contracts(),
         "kind_resolution": _build_terminal_artifact_kind_resolution_manifest(),
         "fallback_recovery": _build_terminal_artifact_fallback_recovery_manifest(),
-        "contract_fingerprints": {
-            "kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
-        },
+        "contract_fingerprints": describe_terminal_artifact_render_target_contract_fingerprints(),
     }
+
+
+def _build_terminal_artifact_render_target_contract_fingerprints(
+    *,
+    include_terminal_artifact_render_target: bool = False,
+) -> dict[str, str]:
+    fingerprints = {
+        "kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
+    }
+    if include_terminal_artifact_render_target:
+        fingerprints["terminal_artifact_render_target"] = terminal_artifact_render_target_contract_fingerprint()
+    return fingerprints
 
 
 def terminal_artifact_kind_contracts_fingerprint() -> str:

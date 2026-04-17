@@ -30,6 +30,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_contract_fingerprints,
     describe_terminal_artifact_contract,
     describe_terminal_artifact_render_target_contract,
+    describe_terminal_artifact_render_target_contract_fingerprints,
     describe_terminal_artifact_rendering_contract,
     describe_terminal_artifact_rendering_contract_fingerprints,
     describe_terminal_fallback_contract,
@@ -952,6 +953,33 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(a2ui_manifest["terminal_artifact_render_target"], manifest)
         self.assertEqual(a2ui_manifest["terminal_artifact"]["render_target_contract"], manifest)
         self.assertEqual(a2ui_manifest["schemas"]["terminal_artifact_render_target"], manifest)
+
+    def test_terminal_artifact_render_target_contract_fingerprints_are_public_and_canonical(self) -> None:
+        manifest = describe_terminal_artifact_render_target_contract()
+        fingerprints = describe_terminal_artifact_render_target_contract_fingerprints()
+        fingerprints_with_self = describe_terminal_artifact_render_target_contract_fingerprints(
+            include_terminal_artifact_render_target=True,
+        )
+
+        self.assertEqual(fingerprints, manifest["contract_fingerprints"])
+        self.assertEqual(
+            fingerprints["kind_contracts"],
+            terminal_artifact_kind_contracts_fingerprint(),
+        )
+        self.assertEqual(len(fingerprints["kind_contracts"]), 64)
+        self.assertNotIn("terminal_artifact_render_target", fingerprints)
+        self.assertEqual(
+            fingerprints_with_self["terminal_artifact_render_target"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints_with_self,
+            {
+                **fingerprints,
+                "terminal_artifact_render_target": terminal_artifact_render_target_contract_fingerprint(),
+            },
+        )
+        self.assertEqual(len(fingerprints_with_self["terminal_artifact_render_target"]), 64)
 
     def test_terminal_artifact_envelope_builder_creates_canonical_payloads(self) -> None:
         action = ActionRef(
