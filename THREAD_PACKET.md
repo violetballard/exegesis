@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh commit: `HEAD (feature-fixer gate rerun metadata refresh)`
+- Packet refresh commit: `dacefccda807f203b30d0172ea27f67695827b94`
 - Packet refresh role: `feature-fixer reviewer-fix gate rerun metadata refresh`
 
 ## Packet Traceability Note
