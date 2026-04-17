@@ -571,6 +571,12 @@ def _build_shell_ui_contract_manifest(
         manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"] = manifest[
             "terminal_artifact_cli_fallback_route_fingerprint"
         ]
+        manifest["terminal_artifact_cli_fallback_route_contract_fingerprints"] = dict(
+            terminal_artifact_cli_fallback_route_contract["contract_fingerprints"]
+        )
+        manifest["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"] = (
+            terminal_artifact_cli_fallback_route_contract["contract_fingerprints_fingerprint"]
+        )
     return manifest
 
 
@@ -607,11 +613,15 @@ def describe_shell_ui_contract_fingerprints(
         terminal_artifact_cli_fallback_route_contract_fingerprint_value = (
             terminal_artifact_cli_fallback_route_contract_fingerprint()
         )
+        terminal_artifact_cli_fallback_route_contract = describe_terminal_artifact_cli_fallback_route_contract()
         fingerprints["terminal_artifact_cli_fallback_route"] = (
             terminal_artifact_cli_fallback_route_contract_fingerprint_value
         )
         fingerprints["terminal_artifact_cli_fallback_route_contract"] = (
             terminal_artifact_cli_fallback_route_contract_fingerprint_value
+        )
+        fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"] = (
+            terminal_artifact_cli_fallback_route_contract["contract_fingerprints_fingerprint"]
         )
     return fingerprints
 
