@@ -100,6 +100,7 @@
 ## Traceability note
 
 - The prior packet refresh already narrowed the canonical demo-path wording to `retrieve relevant material`; this fixer pass refreshes the handoff so it points at the actual current branch tip.
+- Current reviewer-fix refresh anchor for this pass: `6a911ab14054a3a976ed55a2072a432aa7174bf2`.
 - Re-review should anchor to the branch-tip range `378cf9a74a3658058079a32f186fcd254c4a4034..16403079b72893e52c0d756060ddf50c1386af39`.
 - Treat `16403079b72893e52c0d756060ddf50c1386af39` as the reviewed runtime implementation head in the pre-fix branch state.
 - Use the final HEAD SHA reported with this fixer handoff for the post-fix branch tip.
