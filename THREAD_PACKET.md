@@ -36,7 +36,7 @@
 - The reviewed implementation commit removes the PageIndex fallback from `fetch_excerpt` in `src/qual/retrieval/service.py`.
 - The reviewed implementation commit adds approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
 - PageIndex and embeddings remain non-required compatibility paths in this slice; the MVP contract no longer frames them as runtime fallback paths for excerpt lookup.
-- This handoff does not claim basket promotion, workflow actions, embeddings work, or broader engine-loop progress beyond the retrieval step.
+- This handoff does not claim basket promotion, workflow actions, embeddings work, or broader engine-loop progress beyond the retrieval step, and it should be reviewed only as a packet alignment fix for that narrowed slice.
 
 ## Canonical Demo-Path Step Advanced
 
