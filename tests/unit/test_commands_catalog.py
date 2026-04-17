@@ -3146,7 +3146,7 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(
             workflow_by_token["apply-patch"].preferred_surface_tokens,
-            ("apply-patch", "reject-patch", "persist", "export-handoff", "export"),
+            ("apply-patch",),
         )
         self.assertEqual(
             workflow_by_token["persist"].compatibility_tokens,
@@ -3338,7 +3338,7 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(workflow_by_token["export-handoff"].compatibility_tokens, ("handoff", "queue-export"))
         self.assertEqual(
             workflow_by_token["apply-patch"].preferred_surface_tokens,
-            ("apply-patch", "persist", "export-handoff"),
+            ("apply-patch",),
         )
 
     def test_command_demo_next_action_contract_bundles_trusted_follow_up_actions(self) -> None:
@@ -3371,7 +3371,7 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             tuple(entry.preferred_surface_tokens for entry in contract.entries),
             (
-                ("apply-patch", "reject-patch", "persist", "export-handoff", "export"),
+                ("apply-patch",),
                 ("reject-patch",),
             ),
         )
@@ -3499,7 +3499,7 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             tuple(entry.preferred_surface_tokens for entry in contract.entries),
             (
-                ("apply-patch", "persist-continue", "export-handoff"),
+                ("apply-patch",),
                 ("reject-patch",),
             ),
         )

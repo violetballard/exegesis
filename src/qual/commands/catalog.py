@@ -617,8 +617,6 @@ def _preferred_surface_tokens_for_workflow_token(
 ) -> tuple[str, ...]:
     preferred_tokens = _preferred_surface_tokens_for_name(specs, name)
     normalized_token = _normalize_token(token)
-    if preferred_tokens and normalized_token == preferred_tokens[0]:
-        return preferred_tokens
     if normalized_token in preferred_tokens:
         return (normalized_token,)
     return (normalized_token,)
