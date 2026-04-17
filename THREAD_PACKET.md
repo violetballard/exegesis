@@ -1,10 +1,10 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet refresh role: `reviewer-fix branch-tip resubmission`
-- Current branch head before this fixer commit: `e7958b4656b045844262c3547cae0011446faef1`
+- Packet refresh role: `reviewer-fix canonical-step narrowing`
+- Current branch head before this fixer commit: `ec028af33381f142f87464297fd3ef3feedd2851`
 - Reviewed runtime implementation head in that branch state: `e7958b4656b045844262c3547cae0011446faef1`
-- Re-review branch-tip range before this fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..e7958b4656b045844262c3547cae0011446faef1`
+- Re-review branch-tip range before this fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..ec028af33381f142f87464297fd3ef3feedd2851`
 
 ## Scope goal
 
@@ -92,7 +92,7 @@
 
 ## Traceability note
 
-- The prior packet was stale because it stopped at `adfa8cdadd43747ffbcb612e4151e262b13e52ca` even though later runtime commits `c073ad1ffeba08fdc6930b34495d5f8abadf9f16` and `e7958b4656b045844262c3547cae0011446faef1` changed retrieval payload handling on the branch tip.
-- Re-review should anchor to the branch-tip range `378cf9a74a3658058079a32f186fcd254c4a4034..e7958b4656b045844262c3547cae0011446faef1`.
-- Treat `c073ad1ffeba08fdc6930b34495d5f8abadf9f16` and `e7958b4656b045844262c3547cae0011446faef1` as reviewed runtime implementation, not as metadata-only packet refreshes.
+- The prior packet refresh already added the explicit canonical demo-path field, but this fixer pass narrows the handoff wording so it only claims progress on `retrieve relevant material`.
+- Re-review should anchor to the branch-tip range `378cf9a74a3658058079a32f186fcd254c4a4034..ec028af33381f142f87464297fd3ef3feedd2851`.
+- Treat `c073ad1ffeba08fdc6930b34495d5f8abadf9f16` and `e7958b4656b045844262c3547cae0011446faef1` as reviewed runtime implementation; `ec028af33381f142f87464297fd3ef3feedd2851` is the prior metadata-only packet refresh immediately before this fixer commit.
 - Use the final HEAD SHA reported with this fixer handoff for the post-fix branch tip.
