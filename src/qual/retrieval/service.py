@@ -260,12 +260,15 @@ def _normalize_strategy_id_list_payload(value: object) -> list[str]:
     raw_items = _optional_list_like(value)
     if raw_items is None:
         return []
-    normalized: set[str] = set()
+    normalized: list[str] = []
+    seen: set[str] = set()
     for item in raw_items:
         strategy_id = _normalized_profile_text(item)
-        if strategy_id is not None:
-            normalized.add(strategy_id)
-    return sorted(normalized)
+        if strategy_id is None or strategy_id in seen:
+            continue
+        seen.add(strategy_id)
+        normalized.append(strategy_id)
+    return normalized
 
 
 def _normalize_retrieval_policy_snapshot_payload(value: object) -> dict[str, object]:
@@ -326,6 +329,160 @@ def _normalize_query_doc_types_payload(value: object) -> list[str] | None:
         seen.add(doc_type)
         normalized.append(doc_type)
     return sorted(normalized)
+
+
+def _normalize_hit_shared_provenance_payload(provenance: object) -> dict[str, object]:
+    if not isinstance(provenance, dict):
+        return {}
+    normalized = copy.deepcopy(provenance)
+    query_fingerprint = _optional_text(normalized.get("query_fingerprint"))
+    if query_fingerprint is not None:
+        normalized["query_fingerprint"] = query_fingerprint
+    query_scope = _normalize_query_scope_payload(normalized.get("query_scope"))
+    if query_scope is not None:
+        normalized["query_scope"] = query_scope
+    query_intent = _normalize_query_intent_payload(normalized.get("query_intent"))
+    if query_intent is not None:
+        normalized["query_intent"] = query_intent
+    query_confidentiality_profile = _normalized_profile_text(
+        normalized.get("query_confidentiality_profile")
+    )
+    if query_confidentiality_profile is not None:
+        normalized["query_confidentiality_profile"] = query_confidentiality_profile
+    query_date_range = _normalize_query_date_range_payload(normalized.get("query_date_range"))
+    if query_date_range is not None:
+        normalized["query_date_range"] = query_date_range
+    candidate_doc_count = _optional_int(normalized.get("candidate_doc_count"))
+    if candidate_doc_count is not None:
+        normalized["candidate_doc_count"] = candidate_doc_count
+    fts_shortlist_doc_ids = _normalize_doc_id_list_payload(normalized.get("fts_shortlist_doc_ids"))
+    if fts_shortlist_doc_ids is not None:
+        normalized["fts_shortlist_doc_ids"] = fts_shortlist_doc_ids
+    retrieval_backend = _normalized_profile_text(normalized.get("retrieval_backend"))
+    if retrieval_backend is not None:
+        normalized["retrieval_backend"] = retrieval_backend
+    retrieval_mode = _normalized_profile_text(normalized.get("retrieval_mode"))
+    if retrieval_mode is not None:
+        normalized["retrieval_mode"] = retrieval_mode
+    retrieval_policy = _normalize_retrieval_policy_snapshot_payload(normalized.get("retrieval_policy"))
+    if retrieval_policy:
+        normalized["retrieval_policy"] = retrieval_policy
+        normalized["policy"] = copy.deepcopy(retrieval_policy)
+    normalized["active_strategy_ids"] = _normalize_strategy_id_list_payload(
+        normalized.get("active_strategy_ids")
+    )
+    normalized["deferred_strategy_ids"] = _normalize_strategy_id_list_payload(
+        normalized.get("deferred_strategy_ids")
+    )
+    normalized["strategies_used"] = _normalize_strategy_id_list_payload(
+        normalized.get("strategies_used")
+    )
+    retrieved_doc_ids = _normalize_doc_id_list_payload(normalized.get("retrieved_doc_ids"))
+    if retrieved_doc_ids is not None:
+        normalized["retrieved_doc_ids"] = retrieved_doc_ids
+    retrieved_excerpt_ids = _normalize_doc_id_list_payload(normalized.get("retrieved_excerpt_ids"))
+    if retrieved_excerpt_ids is not None:
+        normalized["retrieved_excerpt_ids"] = retrieved_excerpt_ids
+    return normalized
+
+
+def _normalize_excerpt_hit_provenance_payload(provenance: object) -> dict[str, object]:
+    normalized = _normalize_hit_shared_provenance_payload(provenance)
+    for field_name in (
+        "doc_id",
+        "excerpt_id",
+        "source_hash",
+        "doc_type",
+        "doc_fingerprint",
+        "doc_identity_fingerprint",
+        "excerpt_fingerprint",
+        "excerpt_provenance_fingerprint",
+    ):
+        field_value = _optional_text(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+    excerpt_text_hash = _optional_text(
+        normalized.get("excerpt_text_hash") or normalized.get("hash")
+    )
+    if excerpt_text_hash is not None:
+        normalized["excerpt_text_hash"] = excerpt_text_hash
+        normalized["hash"] = excerpt_text_hash
+    matched_terms = _normalize_matched_terms(normalized.get("matched_terms"))
+    if matched_terms is not None:
+        normalized["matched_terms"] = matched_terms
+        normalized["match_count"] = len(matched_terms)
+    match_count = _optional_int(normalized.get("match_count"))
+    if match_count is not None:
+        normalized["match_count"] = match_count
+    rank = _optional_int(normalized.get("rank"))
+    if rank is not None:
+        normalized["rank"] = rank
+    fts_rank = _optional_float(normalized.get("fts_rank"))
+    if fts_rank is not None:
+        normalized["fts_rank"] = fts_rank
+    section_hint = _normalized_query_hint_text(normalized.get("section_hint"))
+    if section_hint is not None:
+        normalized["section_hint"] = section_hint
+    section_hint_rank = _optional_int(normalized.get("section_hint_rank"))
+    if section_hint_rank is not None:
+        normalized["section_hint_rank"] = section_hint_rank
+    source_strategy = _normalized_profile_text(
+        normalized.get("source_strategy") or normalized.get("retrieval_source_strategy")
+    )
+    if source_strategy is not None:
+        normalized["source_strategy"] = source_strategy
+        normalized["retrieval_source_strategy"] = source_strategy
+    return normalized
+
+
+def _normalize_doc_hit_provenance_payload(provenance: object) -> dict[str, object]:
+    normalized = _normalize_hit_shared_provenance_payload(provenance)
+    for field_name in (
+        "doc_id",
+        "doc_type",
+        "doc_fingerprint",
+        "doc_identity_fingerprint",
+        "top_excerpt_id",
+        "top_excerpt_fingerprint",
+        "top_excerpt_provenance_fingerprint",
+        "top_excerpt_text_hash",
+    ):
+        field_value = _optional_text(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+    doc_rank = _optional_int(normalized.get("doc_rank"))
+    if doc_rank is not None:
+        normalized["doc_rank"] = doc_rank
+    top_excerpt_rank = _optional_int(normalized.get("top_excerpt_rank"))
+    if top_excerpt_rank is not None:
+        normalized["top_excerpt_rank"] = top_excerpt_rank
+    top_fts_rank = _optional_float(normalized.get("top_fts_rank"))
+    if top_fts_rank is not None:
+        normalized["top_fts_rank"] = top_fts_rank
+    top_excerpt_span = RetrievalService._canonicalize_span(normalized.get("top_excerpt_span"))
+    if top_excerpt_span is not None:
+        normalized["top_excerpt_span"] = top_excerpt_span
+    excerpt_ids = _normalize_doc_id_list_payload(normalized.get("excerpt_ids"))
+    if excerpt_ids is not None:
+        normalized["excerpt_ids"] = excerpt_ids
+    top_matched_terms = _normalize_matched_terms(
+        normalized.get("top_matched_terms") or normalized.get("matched_terms")
+    )
+    if top_matched_terms is not None:
+        normalized["top_matched_terms"] = top_matched_terms
+    section_hint = _normalized_query_hint_text(normalized.get("section_hint"))
+    if section_hint is not None:
+        normalized["section_hint"] = section_hint
+    top_section_hint_rank = _optional_int(normalized.get("top_section_hint_rank"))
+    if top_section_hint_rank is not None:
+        normalized["top_section_hint_rank"] = top_section_hint_rank
+    source_strategy = _normalized_profile_text(
+        normalized.get("source_strategy") or normalized.get("retrieval_source_strategy")
+    )
+    if source_strategy is not None:
+        normalized["source_strategy"] = source_strategy
+        normalized["retrieval_source_strategy"] = source_strategy
+    return normalized
 
 
 def _normalize_lookup_resolution_payload(value: object) -> str | None:
@@ -438,7 +595,9 @@ class RetrievalHit:
         # result by holding on to caller-owned dict/list instances.
         object.__setattr__(self, "span", copy.deepcopy(self.span))
         object.__setattr__(self, "node_path", copy.deepcopy(self.node_path))
-        object.__setattr__(self, "provenance", copy.deepcopy(self.provenance))
+        # Normalize loose dict-shaped provenance so compatibility shims and any
+        # hit rehydration still emit the canonical deterministic FTS contract.
+        object.__setattr__(self, "provenance", _normalize_excerpt_hit_provenance_payload(self.provenance))
 
     def as_dict(self) -> dict[str, object]:
         payload = {
@@ -565,7 +724,7 @@ class RetrievalDocHit:
     def __post_init__(self) -> None:
         if self.source_strategy != _FTS_SOURCE_STRATEGY:
             raise ValueError("source_strategy must be fts for the FTS-first retrieval lane")
-        object.__setattr__(self, "provenance", copy.deepcopy(self.provenance))
+        object.__setattr__(self, "provenance", _normalize_doc_hit_provenance_payload(self.provenance))
 
     def as_dict(self) -> dict[str, object]:
         payload = {
