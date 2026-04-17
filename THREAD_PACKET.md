@@ -38,18 +38,15 @@
 
 ## Canonical Demo-Path Step Advanced
 
-- AGENTS.md canonical demo-path mapping for this slice: the CLI operator
-  surface that keeps the canonical engine loop callable and smoke-testable
-  while Textual remains disabled.
-- Concrete blocker removed on that step: `command_cli_contract()` now rejects
-  parser / catalog drift before accepted command entrypoints can silently
-  reorder, substitute aliases, drop expected tokens, or add extra entrypoints,
-  which would otherwise make the CLI operator surface nondeterministic.
-- Why this is not second-order work: Milestone 3 still uses the CLI as the
-  active operator surface, so keeping that surface deterministic is a direct
-  requirement for exercising the current engine-first loop.
-- Scope boundary: this remains command-catalog contract hardening only. It does
-  not add new commands, new flags, handler logic, or alternate workflow paths.
+- `open project/document` via the CLI-first operator surface: this slice keeps
+  the canonical engine loop callable and smoke-testable while Textual remains
+  disabled by making `command_cli_contract()` reject parser/catalog drift
+  before accepted command entrypoints can silently change.
+
+## Scope Boundary
+
+- This remains command-catalog contract hardening only. It does not add new
+  commands, new flags, handler logic, or alternate workflow paths.
 
 ## Priority Outcomes
 
