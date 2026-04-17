@@ -1829,8 +1829,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             },
         }
 
-        rendered_text = render_terminal_cli_fallback(envelope)
+        rendered_text = render_terminal_artifact(envelope)
+        cli_fallback_text = render_terminal_cli_fallback(envelope)
 
+        self.assertEqual(rendered_text, cli_fallback_text)
         self.assertIn("[<missing>] <untitled>", rendered_text)
         self.assertNotIn("[ActionRef]", rendered_text)
         self.assertNotIn("[SelectionRef]", rendered_text)

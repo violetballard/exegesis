@@ -2214,12 +2214,13 @@ def _resolve_terminal_artifact_render_target(
     elif requested_kind is not None:
         kind = requested_kind
     if allow_invalid_envelope_recovery and typed_kind is None and kind == "card" and requested_kind != "card":
-        # In fallback-only mode, malformed card envelopes may still carry a
-        # schema-valid action or selection payload. Recover those structured
-        # leaf artifacts before dropping back to a generic card render.
-        recovered_kind = _recover_terminal_artifact_leaf_kind(artifact)
-        if recovered_kind is not None:
-            kind = recovered_kind
+        if not _should_preserve_raw_leaf_card_default(artifact):
+            # Only promote structured leaf payloads during malformed-envelope
+            # recovery. Ambiguous raw-leaf cards should remain cards so the
+            # generic renderer stays aligned with the explicit CLI fallback.
+            recovered_kind = _recover_terminal_artifact_leaf_kind(artifact)
+            if recovered_kind is not None:
+                kind = recovered_kind
 
     resolved_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
     if requested_kind is None and resolved_kind == "card" and not envelope_validated:
@@ -2230,6 +2231,8 @@ def _resolve_terminal_artifact_render_target(
         if recovered_partial_kind is not None:
             resolved_kind = recovered_partial_kind
     if allow_invalid_envelope_recovery and requested_kind is None and resolved_kind == "card":
+        if _should_preserve_raw_leaf_card_default(artifact):
+            return artifact, "card"
         # In fallback-only mode, malformed card envelopes may still carry a
         # schema-valid action or selection payload. Recover those structured
         # leaf artifacts before dropping back to a generic card render.
