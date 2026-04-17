@@ -1517,6 +1517,12 @@ class RetrievalService:
             confidentiality_profile=normalized_confidentiality_profile,
         )
         if fts_excerpt is None:
+            self._record_excerpt_lookup_failure_audit(
+                excerpt_id=normalized_excerpt_id,
+                lookup_entrypoint=lookup_entrypoint,
+                lookup_resolution="fts",
+                lookup_confidentiality_profile=normalized_confidentiality_profile,
+            )
             raise KeyError(f"unknown excerpt_id: {normalized_excerpt_id}")
         self._record_excerpt_lookup_audit(
             fts_excerpt,
@@ -1583,6 +1589,48 @@ class RetrievalService:
                 "retrieved_excerpt_ids": copy.deepcopy(excerpt.get("retrieved_excerpt_ids")),
                 "basket_promotion": copy.deepcopy(basket_promotion),
                 "span": copy.deepcopy(span),
+            },
+        )
+
+    def _record_excerpt_lookup_failure_audit(
+        self,
+        *,
+        excerpt_id: str,
+        lookup_entrypoint: str,
+        lookup_resolution: str,
+        lookup_confidentiality_profile: str,
+    ) -> None:
+        """Record a deterministic audit trail for failed FTS-only excerpt lookups."""
+
+        retrieval_policy = self._retrieval_policy.as_snapshot()
+        active_strategy_ids = copy.deepcopy(retrieval_policy["active_strategy_ids"])
+        deferred_strategy_ids = copy.deepcopy(retrieval_policy["deferred_strategy_ids"])
+        attempt_fingerprint = RetrievalService._stable_fingerprint(
+            {
+                "excerpt_id": excerpt_id,
+                "lookup_entrypoint": lookup_entrypoint,
+                "lookup_resolution": lookup_resolution,
+                "lookup_confidentiality_profile": lookup_confidentiality_profile,
+                "retrieval_backend": retrieval_policy["retrieval_backend"],
+                "retrieval_mode": retrieval_policy["retrieval_mode"],
+                "active_strategy_ids": active_strategy_ids,
+                "deferred_strategy_ids": deferred_strategy_ids,
+            }
+        )
+        self._audit.record(
+            name="excerpt_lookup_failed",
+            metadata={
+                "excerpt_id": excerpt_id,
+                "lookup_entrypoint": lookup_entrypoint,
+                "lookup_resolution": lookup_resolution,
+                "lookup_confidentiality_profile": lookup_confidentiality_profile,
+                "retrieval_backend": retrieval_policy["retrieval_backend"],
+                "retrieval_mode": retrieval_policy["retrieval_mode"],
+                "retrieval_policy": retrieval_policy,
+                "active_strategy_ids": active_strategy_ids,
+                "deferred_strategy_ids": deferred_strategy_ids,
+                "lookup_attempt_fingerprint": attempt_fingerprint,
+                "failure_reason": "unknown_excerpt_id",
             },
         )
 
