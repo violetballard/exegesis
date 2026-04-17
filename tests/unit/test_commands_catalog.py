@@ -102,6 +102,7 @@ from src.qual.commands import (
     command_demo_cli_route_summary,
     command_demo_path_contract,
     command_demo_path_invocation_plan,
+    command_demo_preferred_surface_invocation_table,
     command_demo_resolve,
     command_demo_resolve_argv,
     command_demo_flow_surface_tokens,
@@ -116,6 +117,7 @@ from src.qual.commands import (
     command_mvp_cli_route_catalog,
     command_mvp_cli_route_summary,
     command_mvp_path_contract,
+    command_mvp_preferred_surface_invocation_table,
     command_mvp_resolve,
     command_mvp_resolve_argv,
     command_spec,
@@ -1839,6 +1841,7 @@ class CommandCatalogTests(unittest.TestCase):
                 ("open-document", ("bootstrap", "--project", "demo")),
             ),
         )
+        self.assertEqual(contract.entries[0].preferred_surface_tokens, ("project-open",))
         self.assertEqual(
             contract.entries[1].surface_invocations,
             (
@@ -1849,6 +1852,7 @@ class CommandCatalogTests(unittest.TestCase):
                 ("retrieve", ("context-basket", "list")),
             ),
         )
+        self.assertEqual(contract.entries[1].preferred_surface_tokens, ("retrieval",))
         self.assertEqual(
             contract.entries[2].surface_invocations,
             (
@@ -1858,6 +1862,7 @@ class CommandCatalogTests(unittest.TestCase):
                 ("patch-review", ("diff-preview", "--original", "before", "--proposed", "after")),
             ),
         )
+        self.assertEqual(contract.entries[2].preferred_surface_tokens, ("patch-review",))
         self.assertEqual(
             contract.entries[3].surface_invocations,
             (
@@ -1964,6 +1969,61 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
         self.assertEqual(
+            tuple(entry.preferred_surface_invocations for entry in contract.entries),
+            (
+                (("project-open", ("bootstrap", "--project", "demo")),),
+                (("retrieval", ("context-basket", "list")),),
+                (
+                    (
+                        "patch-review",
+                        ("diff-preview", "--original", "before", "--proposed", "after"),
+                    ),
+                ),
+                (
+                    (
+                        "export",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Export handoff",
+                        ),
+                    ),
+                    (
+                        "persist",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Persist and continue",
+                        ),
+                    ),
+                    (
+                        "apply-patch",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_tool_orchestration",
+                            "--message",
+                            "Apply patch",
+                        ),
+                    ),
+                    (
+                        "reject-patch",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_tool_orchestration",
+                            "--message",
+                            "Reject patch",
+                        ),
+                    ),
+                ),
+            ),
+        )
+        self.assertEqual(
             tuple(entry.parser_surface_invocations for entry in contract.entries),
             (
                 (("bootstrap", ("bootstrap", "--project", "demo")),),
@@ -1982,6 +2042,58 @@ class CommandCatalogTests(unittest.TestCase):
                     ),
                 ),
             ),
+        )
+        self.assertEqual(
+            command_demo_preferred_surface_invocation_table(),
+            (
+                ("project-open", ("bootstrap", "--project", "demo")),
+                ("retrieval", ("context-basket", "list")),
+                ("patch-review", ("diff-preview", "--original", "before", "--proposed", "after")),
+                (
+                    "export",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Export handoff",
+                    ),
+                ),
+                (
+                    "persist",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Persist and continue",
+                    ),
+                ),
+                (
+                    "apply-patch",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_tool_orchestration",
+                        "--message",
+                        "Apply patch",
+                    ),
+                ),
+                (
+                    "reject-patch",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_tool_orchestration",
+                        "--message",
+                        "Reject patch",
+                    ),
+                ),
+            ),
+        )
+        self.assertEqual(
+            command_mvp_preferred_surface_invocation_table(),
+            command_demo_preferred_surface_invocation_table(),
         )
 
     def test_command_demo_path_validator_rejects_surface_invocation_argv_drift(self) -> None:
@@ -2005,6 +2117,35 @@ class CommandCatalogTests(unittest.TestCase):
         broken_contract = replace(contract, entries=(*contract.entries[:3], broken_entry))
 
         with self.assertRaisesRegex(ValueError, "Command demo path surface invocation argv is inconsistent"):
+            command_catalog._validate_command_demo_path_contract(
+                broken_contract,
+                command_demo_smoke_contract(),
+                specs=command_specs(),
+            )
+
+    def test_command_demo_path_validator_rejects_preferred_surface_invocation_argv_drift(self) -> None:
+        contract = command_demo_path_contract()
+        broken_entry = replace(
+            contract.entries[3],
+            preferred_surface_invocations=(
+                (
+                    "export",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Persist and continue",
+                    ),
+                ),
+                *contract.entries[3].preferred_surface_invocations[1:],
+            ),
+        )
+        broken_contract = replace(contract, entries=(*contract.entries[:3], broken_entry))
+
+        with self.assertRaisesRegex(
+            ValueError, "Command demo path preferred surface invocation argv is inconsistent"
+        ):
             command_catalog._validate_command_demo_path_contract(
                 broken_contract,
                 command_demo_smoke_contract(),

@@ -15,6 +15,7 @@ class CommandSpec:
     surface_argv: tuple[str, ...] = ()
     shim_argv: tuple[tuple[str, tuple[str, ...]], ...] = ()
     shim_pinned_options: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    preferred_surface_tokens: tuple[str, ...] = ()
     description: str = ""
     flow_step: str = "general"
 
@@ -82,7 +83,9 @@ class CommandDemoPathEntry:
     argv: tuple[str, ...] = ()
     lookup_tokens: tuple[str, ...] = ()
     surface_tokens: tuple[str, ...] = ()
+    preferred_surface_tokens: tuple[str, ...] = ()
     surface_invocations: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    preferred_surface_invocations: tuple[tuple[str, tuple[str, ...]], ...] = ()
     parser_surface_invocations: tuple[tuple[str, tuple[str, ...]], ...] = ()
 
 
@@ -473,6 +476,41 @@ def _surface_argv_for_spec(spec: CommandSpec) -> tuple[str, ...]:
     return (primary_cli_token, *raw_argv[1:])
 
 
+def _preferred_surface_tokens_for_spec(spec: CommandSpec) -> tuple[str, ...]:
+    if not spec.preferred_surface_tokens:
+        return (_normalize_token(spec.flow_step),)
+
+    known_surface_tokens = _flow_surface_tokens(*_lookup_resolution_tokens(spec), spec.flow_step)
+    known_surface_index = {token: token for token in known_surface_tokens}
+    seen_tokens: set[str] = set()
+    preferred_tokens: list[str] = []
+    for raw_token in spec.preferred_surface_tokens:
+        normalized_token = _normalize_token(raw_token)
+        if not normalized_token:
+            raise ValueError(f"Command {spec.name} has an empty preferred surface token")
+        if normalized_token not in known_surface_index:
+            raise ValueError(
+                f"Command {spec.name} preferred surface token is not part of the command surface: {raw_token}"
+            )
+        if normalized_token in seen_tokens:
+            raise ValueError(
+                f"Command {spec.name} has a duplicate preferred surface token: {raw_token}"
+            )
+        seen_tokens.add(normalized_token)
+        preferred_tokens.append(normalized_token)
+    return tuple(preferred_tokens)
+
+
+def _preferred_surface_tokens_for_name(
+    specs: tuple[CommandSpec, ...],
+    name: str,
+) -> tuple[str, ...]:
+    spec = command_spec_for(specs, name)
+    if spec is None:
+        raise ValueError(f"Unknown command preferred surface target: {name}")
+    return _preferred_surface_tokens_for_spec(spec)
+
+
 def _shim_argv_overrides_for_spec(spec: CommandSpec) -> tuple[tuple[str, tuple[str, ...]], ...]:
     if not spec.shim_argv:
         return ()
@@ -680,6 +718,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         cli_tokens=("bootstrap",),
         smoke_argv=("bootstrap", "--project", "demo"),
         surface_argv=("bootstrap",),
+        preferred_surface_tokens=("project-open",),
         description="Run the project bootstrap flow.",
         flow_step="project-open",
     ),
@@ -689,6 +728,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         cli_tokens=("diff-preview", "diff"),
         smoke_argv=("diff-preview", "--original", "before", "--proposed", "after"),
         surface_argv=("diff-preview",),
+        preferred_surface_tokens=("patch-review",),
         description="Preview unified diff output.",
         flow_step="patch-review",
     ),
@@ -698,6 +738,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         cli_tokens=("context-basket",),
         smoke_argv=("context-basket", "list"),
         surface_argv=("context-basket", "list"),
+        preferred_surface_tokens=("retrieval",),
         description="Manage retrieval context basket items.",
         flow_step="retrieval",
     ),
@@ -831,6 +872,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
             ("reject-patch", ("--operation-kind",)),
             ("patch-reject", ("--operation-kind",)),
         ),
+        preferred_surface_tokens=("export", "persist", "apply-patch", "reject-patch"),
         description="Run terminal export handoff routing.",
         flow_step="export-handoff",
     ),
@@ -919,6 +961,7 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
         _surface_argv_for_spec(spec)
         _shim_argv_overrides_for_spec(spec)
         _shim_pinned_options_for_spec(spec)
+        _preferred_surface_tokens_for_spec(spec)
 
 
 @lru_cache(maxsize=None)
@@ -2271,10 +2314,18 @@ def _validate_command_demo_path_contract(
         entry.surface_tokens for entry in smoke_contract.entries
     ):
         raise ValueError("Command demo path surface tokens are inconsistent")
+    if tuple(entry.preferred_surface_tokens for entry in contract.entries) != tuple(
+        _preferred_surface_tokens_for_name(specs, entry.name) for entry in smoke_contract.entries
+    ):
+        raise ValueError("Command demo path preferred surface tokens are inconsistent")
     if tuple(tuple(token for token, _ in entry.surface_invocations) for entry in contract.entries) != tuple(
         entry.surface_tokens for entry in smoke_contract.entries
     ):
         raise ValueError("Command demo path surface invocations are inconsistent")
+    if tuple(tuple(token for token, _ in entry.preferred_surface_invocations) for entry in contract.entries) != tuple(
+        entry.preferred_surface_tokens for entry in contract.entries
+    ):
+        raise ValueError("Command demo path preferred surface invocations are inconsistent")
     if tuple(tuple(token for token, _ in entry.parser_surface_invocations) for entry in contract.entries) != tuple(
         entry.cli_tokens for entry in smoke_contract.entries
     ):
@@ -2291,6 +2342,21 @@ def _validate_command_demo_path_contract(
     )
     if tuple(entry.surface_invocations for entry in contract.entries) != expected_surface_invocations:
         raise ValueError("Command demo path surface invocation argv is inconsistent")
+    expected_preferred_surface_invocations = tuple(
+        tuple(
+            (
+                token,
+                command_smoke_argv_for(specs, (token,), contract.flow_steps),
+            )
+            for token in entry.preferred_surface_tokens
+        )
+        for entry in contract.entries
+    )
+    if (
+        tuple(entry.preferred_surface_invocations for entry in contract.entries)
+        != expected_preferred_surface_invocations
+    ):
+        raise ValueError("Command demo path preferred surface invocation argv is inconsistent")
     expected_parser_surface_invocations = tuple(
         tuple(
             (
@@ -2494,7 +2560,13 @@ def command_demo_path_contract(
             description=entry.description,
             lookup_tokens=entry.lookup_tokens,
             surface_tokens=entry.surface_tokens,
+            preferred_surface_tokens=_preferred_surface_tokens_for_name(specs, entry.name),
             surface_invocations=parser_ready_invocations_by_step.get(entry.flow_step, ()),
+            preferred_surface_invocations=tuple(
+                invocation
+                for invocation in parser_ready_invocations_by_step.get(entry.flow_step, ())
+                if invocation[0] in _preferred_surface_tokens_for_name(specs, entry.name)
+            ),
             parser_surface_invocations=parser_surface_invocations_by_step.get(entry.flow_step, ()),
         )
         for index, entry in enumerate(smoke_contract.entries)
@@ -2566,11 +2638,29 @@ def command_demo_surface_invocation_table(
     )
 
 
+def command_demo_preferred_surface_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Flatten the preferred demo-path verbs into parser-ready invocations."""
+    return tuple(
+        invocation
+        for entry in command_demo_path_contract(specs).entries
+        for invocation in entry.preferred_surface_invocations
+    )
+
+
 def command_mvp_surface_invocation_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     """Flatten the current MVP command surface into parser-ready invocations."""
     return command_demo_surface_invocation_table(specs)
+
+
+def command_mvp_preferred_surface_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Flatten the current MVP preferred verbs into parser-ready invocations."""
+    return command_demo_preferred_surface_invocation_table(specs)
 
 
 def command_mvp_flow_lookup_surface(
