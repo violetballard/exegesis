@@ -49,7 +49,7 @@
 ## Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This reviewed range makes `retrieve relevant material` more real by keeping excerpt lookup on the canonical FTS-first path and by making PageIndex-only excerpt ids fail closed instead of silently falling back.
+- This reviewed range makes `retrieve relevant material` more real by making excerpt lookup fail closed on the FTS-first engine path, so downstream basket and workflow consumers only receive canonical FTS-backed excerpt payloads.
 - This uses the exact MVP-path language from `AGENTS.md` and `ROADMAP.md`, per the reviewer-required handoff fix.
 - This packet does not claim completion of basket promotion, workflow actions, or alternate retrieval paths beyond that FTS-first retrieval step.
 
