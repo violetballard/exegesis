@@ -2423,11 +2423,18 @@ class RetrievalService:
         )
         if canonical_lookup_confidentiality_profile is not None:
             normalized["lookup_confidentiality_profile"] = canonical_lookup_confidentiality_profile
+        excerpt_text = _optional_text(normalized.get("text")) or _optional_text(normalized.get("excerpt_text"))
+        if excerpt_text is not None:
+            # Keep lookup payloads aligned with excerpt-hit payload naming so
+            # basket promotion and downstream consumers can reuse one text field.
+            normalized["text"] = excerpt_text
+            normalized["excerpt_text"] = excerpt_text
+        elif "excerpt_text" in normalized:
+            normalized["excerpt_text"] = None
         text_hash = provenance.get("hash") or provenance.get("excerpt_text_hash") or normalized.get("text_hash")
         if not isinstance(text_hash, str) or not text_hash:
-            text_value = normalized.get("text")
-            if isinstance(text_value, str) and text_value:
-                text_hash = hashlib.sha256(text_value.encode("utf-8")).hexdigest()
+            if excerpt_text is not None:
+                text_hash = hashlib.sha256(excerpt_text.encode("utf-8")).hexdigest()
         normalized["text_hash"] = text_hash
         doc_id_value = normalized.get("doc_id")
         if (not isinstance(doc_id_value, str) or not doc_id_value) and isinstance(provenance.get("doc_id"), str):
@@ -2669,6 +2676,12 @@ class RetrievalService:
             normalized_provenance.get("matched_terms")
         ) is None:
             normalized_provenance["matched_terms"] = top_level_matched_terms
+        top_level_match_count = _optional_int(normalized.get("match_count"))
+        if (
+            top_level_match_count is not None
+            and _optional_int(normalized_provenance.get("match_count")) is None
+        ):
+            normalized_provenance["match_count"] = top_level_match_count
         top_level_rank = _optional_int(normalized.get("rank"))
         if top_level_rank is not None and _optional_int(normalized_provenance.get("rank")) is None:
             normalized_provenance["rank"] = top_level_rank
@@ -2836,7 +2849,7 @@ class RetrievalService:
             "excerpt_text_hash": _optional_text(excerpt.get("excerpt_text_hash"))
             or _optional_text(provenance.get("excerpt_text_hash"))
             or _optional_text(provenance.get("hash")),
-            "excerpt_text": _optional_text(excerpt.get("text")),
+            "excerpt_text": _optional_text(excerpt.get("excerpt_text")) or _optional_text(excerpt.get("text")),
             "span": copy.deepcopy(RetrievalService._canonicalize_span(excerpt.get("span"))),
             "source_strategy": _optional_text(excerpt.get("source_strategy"))
             or _optional_text(provenance.get("source_strategy")),
