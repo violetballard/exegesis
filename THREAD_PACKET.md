@@ -42,7 +42,8 @@
 
 - `retrieve relevant material`
 
-This change advances the canonical demo-path step `retrieve relevant material` by making excerpt lookup fail closed to the authoritative SQLite FTS path, without reintroducing PageIndex or embeddings as required runtime paths.
+This change advances the canonical demo-path step `retrieve relevant material`; `fetch_excerpt` now fails closed to the canonical FTS-only excerpt store, keeping downstream excerpt provenance deterministic and auditable.
+This keeps SQLite FTS authoritative without reintroducing PageIndex or embeddings as required runtime paths.
 This mapping is intentionally scope-tight to the reviewed slice only: deterministic, auditable FTS-only excerpt lookup on the canonical retrieval surface, not broader workflow or basket claims.
 This packet states that mapping explicitly to satisfy the `AGENTS.md` handoff requirement for active-lane demo-path alignment.
 It tightens the canonical engine retrieval contract by requiring FTS-backed excerpt lookup and keeping PageIndex out of the MVP runtime path.
