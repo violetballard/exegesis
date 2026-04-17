@@ -180,6 +180,10 @@
 ## Canonical Demo-Path Step Advanced
 
 - Step advanced: `open project/document`.
+- Exact canonical wording source: this packet uses the same
+  `open project/document` wording that appears in the AGENTS and ROADMAP
+  canonical demo path so the Milestone 3 mapping is explicit rather than
+  inferred.
 - Concrete tie-back: this change makes that CLI-first demo-path step more real
   by keeping the accepted command surface deterministic while Textual remains
   disabled, so catalog/parser drift cannot silently change how operators enter
@@ -296,6 +300,8 @@
 4. Regenerated the handoff packet so the re-review reflects the current
    branch-tip implementation and test evidence without expanding scope beyond
    existing command entrypoints.
+5. Restated the handoff in the exact canonical demo-path wording
+   `open project/document` so AGENTS compliance is explicit at re-review time.
 
 ## Files Changed
 

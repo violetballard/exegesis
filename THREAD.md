@@ -32,6 +32,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   `open project/document`, limits the vision mapping to the demonstrated CLI
   contract scope, and records the concrete shared-file approval basis required
   by the reviewer.
+- `THREAD_PACKET.md` now repeats that mapping in the exact canonical
+  `open project/document` wording from the demo-path docs so re-review does
+  not have to translate broader CLI-contract language into AGENTS compliance.
 - `THREAD_PACKET.md` now also ties each completed task directly to the
   `open project/document` step and restates that the slice hardens existing
   command entrypoints only, without broadening the command surface.
