@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
-- Packet refresh commit: `b533eba949d16746829d42f655a0b1e085f59d30` (baseline before this final verified handoff refresh)
+- Packet refresh commit: `7e366fdc7e2edc1df3a2b72a36e7894df94fca92` (baseline before this final verified handoff refresh)
 - Packet refresh role: `feature-fixer reviewer-required verified handoff refresh`
 
 ## Packet Traceability Note
@@ -114,12 +114,12 @@
   enforced in this branch, and this final reviewer-fix verification pass.
 - Recorded that this final verified refresh was run on `2026-04-17` after a
   fresh full-gate pass against pre-refresh metadata baseline
-  `b533eba949d16746829d42f655a0b1e085f59d30`.
-- This final fixer commit changes `THREAD_PACKET.md` only and does not modify
-  runtime or test files beyond the already-reviewed implementation at
-  `36a360a9464d2f08f55129bc70e1aafe4574721b`.
+  `7e366fdc7e2edc1df3a2b72a36e7894df94fca92`.
+- This final fixer commit changes `THREAD_PACKET.md` and `THREAD.md` only and
+  does not modify runtime or test files beyond the already-reviewed
+  implementation at `36a360a9464d2f08f55129bc70e1aafe4574721b`.
 - Verified in this final fixer pass that branch tip
-  `b533eba949d16746829d42f655a0b1e085f59d30` already contains the reviewer-
+  `7e366fdc7e2edc1df3a2b72a36e7894df94fca92` already contains the reviewer-
   required implementation fix through runtime commit
   `36a360a9464d2f08f55129bc70e1aafe4574721b`, so this final commit remains
   metadata-only.
