@@ -2,8 +2,8 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `da34f00c9a8885d32c09a36dec4bcb26f4566768`
-- Packet refresh commit: `e4a2016bdd79d51458e4ae27a799662caa9d6482` (previous metadata refresh baseline before this final feature-fixer handoff refresh)
+- Commit: `19ab31af48134d155c1eb782bd0ba95a5c25a268`
+- Packet refresh commit: `e4a2016bdd79d51458e4ae27a799662caa9d6482` (metadata refresh baseline before this final feature-fixer handoff refresh)
 - Packet refresh role: `feature-fixer reviewer-required follow-up gate-verified handoff refresh`
 
 ## Packet Traceability Note
@@ -11,7 +11,7 @@
 - The original reviewer packet pointed at
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, but this branch now contains the
   required command-catalog fixes through implementation tip
-  `da34f00c9a8885d32c09a36dec4bcb26f4566768`. Treat this feature-fixer refresh
+  `19ab31af48134d155c1eb782bd0ba95a5c25a268`. Treat this feature-fixer refresh
   as the current handoff authority for that implementation slice plus the final
   in-worktree command-surface alignment captured in this commit.
 - Follow-up reviewer-fix metadata refresh on `2026-04-17`: this handoff reasserts
@@ -124,12 +124,13 @@
   enforced in this branch, and this final reviewer-fix verification pass.
 - Recorded that this follow-up gate-verified refresh was run on `2026-04-17` after a
   fresh full-gate pass against implementation tip
-  `da34f00c9a8885d32c09a36dec4bcb26f4566768`.
+  `19ab31af48134d155c1eb782bd0ba95a5c25a268` with metadata refresh baseline
+  `e4a2016bdd79d51458e4ae27a799662caa9d6482`.
 - This follow-up fixer commit refreshes `THREAD_PACKET.md` and `THREAD.md` and
   also includes the in-worktree command-catalog/test alignment already present
   in this lane worktree before the gate rerun.
 - Verified in this final fixer pass that branch tip
-  `da34f00c9a8885d32c09a36dec4bcb26f4566768` already contains the reviewer-
+  `19ab31af48134d155c1eb782bd0ba95a5c25a268` already contains the reviewer-
   required parser-surface contract fix, and this final commit preserves that
   runtime/test behavior while refreshing the handoff authority.
 - Verified again in this final fixer pass that the reviewer-requested demo-path mapping
@@ -152,14 +153,15 @@
 - Final verifier note for this commit: reran `make scope-check`,
   `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`,
   `./typecheck-test.sh`, and `make ci` on `2026-04-17` against implementation
-  tip `da34f00c9a8885d32c09a36dec4bcb26f4566768` plus the final in-worktree
-  command-catalog/test alignment before creating this handoff refresh commit.
+  tip `19ab31af48134d155c1eb782bd0ba95a5c25a268` plus metadata refresh baseline
+  `e4a2016bdd79d51458e4ae27a799662caa9d6482` before creating this handoff
+  refresh commit.
 
 ## Kickoff Budget / Limits Compliance
 
 - Shared-test-exception handoff: stayed within the 4-task cap, 30-minute
   budget, and the lane size limits.
-- The implementation slice stayed limited to one lane-owned command file plus
+- The implementation slice stayed limited to two lane-owned command files plus
   one approved shared test file, so the handoff remains narrow and reviewable
   rather than a broader shared/runtime change.
 
@@ -187,6 +189,7 @@
 
 ### Reviewed implementation files
 
+- `src/qual/commands/__init__.py`
 - `src/qual/commands/catalog.py`
 - `tests/unit/test_commands_catalog.py`
 
@@ -208,7 +211,7 @@
 
 - Risk: `LOW`
 - Risk justification: narrow lane-owned command-catalog contract hardening in
-  `src/qual/commands/catalog.py` plus one approved shared test
+  `src/qual/commands/__init__.py` and `src/qual/commands/catalog.py` plus one approved shared test
   (`tests/unit/test_commands_catalog.py`), with no routing/provider changes
   and all required gates passing in this fixer pass.
 - Blockers: none

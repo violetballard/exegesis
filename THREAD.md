@@ -8,8 +8,8 @@ older lane/fixer prompts.
 
 ## Reviewer Fix Alignment
 
-- Active implementation review target: `da34f00c9a8885d32c09a36dec4bcb26f4566768`.
-- Current feature-fixer refresh baseline: `da34f00c9a8885d32c09a36dec4bcb26f4566768`
+- Active implementation review target: `19ab31af48134d155c1eb782bd0ba95a5c25a268`.
+- Current feature-fixer refresh baseline: `e4a2016bdd79d51458e4ae27a799662caa9d6482`
   before this final gate-verified packet refresh commit.
 - Follow-up reviewer-fix metadata refresh on `2026-04-17`: this compatibility
   pointer reasserts the AGENTS-required canonical demo-path mapping and keeps
@@ -24,7 +24,7 @@ older lane/fixer prompts.
   `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
   real and smoke-testable.
 - Runtime fix verification: this final fixer pass confirmed that branch tip
-  `da34f00c9a8885d32c09a36dec4bcb26f4566768` already includes the reviewer-
+  `19ab31af48134d155c1eb782bd0ba95a5c25a268` already includes the reviewer-
   required parser-surface implementation and that the final commit preserves
   that behavior while refreshing handoff metadata.
 - Canonical demo-path steps advanced: `project-open`, `retrieval`,
@@ -61,8 +61,9 @@ older lane/fixer prompts.
 - Final verifier note: reran `make scope-check`, `./quality-format.sh --check`,
   `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
   `make ci` on `2026-04-17` against implementation tip
-  `da34f00c9a8885d32c09a36dec4bcb26f4566768` plus the final in-worktree
-  command-catalog/test alignment before creating this refresh commit.
+  `19ab31af48134d155c1eb782bd0ba95a5c25a268` plus metadata refresh baseline
+  `e4a2016bdd79d51458e4ae27a799662caa9d6482` before creating this refresh
+  commit.
 - Approval artifact for the non-owned test path: the reviewer packet supplied
   to this fixer pass explicitly records `Approved shared-test exception for
   tests/unit/test_commands_catalog.py`.
