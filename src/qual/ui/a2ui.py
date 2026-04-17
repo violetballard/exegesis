@@ -895,6 +895,7 @@ def _build_terminal_artifact_render_target_contract_manifest() -> dict[str, Any]
         "default_kind": "card",
         "envelope": _build_terminal_artifact_envelope_manifest(),
         "kind_contracts": _build_terminal_artifact_kind_contracts(),
+        "raw_leaf_card_default": _build_terminal_artifact_raw_leaf_card_default_manifest(),
         "kind_resolution": _build_terminal_artifact_kind_resolution_manifest(),
         "fallback_recovery": _build_terminal_artifact_fallback_recovery_manifest(),
         "contract_fingerprints": describe_terminal_artifact_render_target_contract_fingerprints(),

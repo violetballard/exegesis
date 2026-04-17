@@ -986,6 +986,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["render_target_resolver"], "resolve_terminal_artifact_render_target")
         self.assertEqual(manifest["supported_kinds"], ["card", "action", "selection"])
         self.assertEqual(manifest["default_kind"], "card")
+        self.assertEqual(manifest["raw_leaf_card_default"], _RAW_LEAF_CARD_DEFAULT_MANIFEST)
         self.assertEqual(manifest["envelope"], describe_terminal_artifact_contract()["envelope"])
         self.assertEqual(manifest["kind_contracts"], describe_terminal_artifact_kind_contracts())
         self.assertEqual(manifest["kind_resolution"], rendering_manifest["kind_resolution"])
