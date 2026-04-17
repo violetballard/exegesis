@@ -93,6 +93,7 @@ from src.qual.commands import (
     command_demo_flow_route_summary,
     command_demo_flow_route_tokens,
     command_demo_cli_flow_contract,
+    command_demo_cli_entry_argv,
     command_demo_cli_shim_catalog,
     command_demo_cli_shim_contract,
     command_demo_cli_surface_catalog,
@@ -122,6 +123,7 @@ from src.qual.commands import (
     command_primary_cli_token_for,
     command_mvp_cli_shim_catalog,
     command_mvp_cli_shim_contract,
+    command_mvp_cli_entry_argv,
     command_mvp_cli_surface_catalog,
     command_mvp_cli_surface_contract,
     command_mvp_cli_route_catalog,
@@ -906,6 +908,24 @@ class CommandCatalogTests(unittest.TestCase):
 
         self.assertEqual(command_mvp_resolve("save"), save)
         self.assertEqual(command_mvp_resolve_argv(("apply", "--message", "Now")), apply)
+
+    def test_command_demo_cli_entry_helpers_keep_demo_smoke_defaults_for_single_token_verbs(self) -> None:
+        self.assertEqual(
+            command_demo_cli_entry_argv(("project-open",)),
+            ("bootstrap", "--project", "demo"),
+        )
+        self.assertEqual(
+            command_demo_cli_entry_argv(("review",)),
+            ("diff-preview", "--original", "before", "--proposed", "after"),
+        )
+        self.assertEqual(
+            command_demo_cli_entry_argv(("save",)),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+        self.assertEqual(
+            command_mvp_cli_entry_argv(("apply",)),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
 
     def test_command_resolve_helpers_support_custom_specs(self) -> None:
         specs = (

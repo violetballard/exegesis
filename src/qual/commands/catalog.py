@@ -3321,11 +3321,8 @@ def command_demo_cli_entry_argv(
     argv: tuple[str, ...] | list[str],
 ) -> tuple[str, ...]:
     """Normalize argv against the canonical demo-path command surface."""
-    return command_cli_entry_argv_for(
-        COMMAND_SPECS,
-        _normalize_demo_compatibility_argv(argv),
-        command_demo_flow_steps(),
-    )
+    resolved = command_demo_resolve_argv(argv)
+    return resolved.argv
 
 
 def command_mvp_cli_entry_argv(
