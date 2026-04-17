@@ -42,6 +42,8 @@
 ## Scope-Tightening Note
 
 - This is not general CLI cleanup. It removes concrete CLI-contract blockers from the canonical demo path by making the command surface explicit, smoke-testable, and stable across parser tokens, route tokens, and compatibility aliases.
+- This is a contract-only `feat-commands` slice for Milestone 3 CLI compatibility while Textual remains disabled.
+- It does not add new command behavior or widen the MVP loop; it hardens the existing command surface so silent parser/catalog drift cannot change the operator-facing demo path unnoticed.
 
 ## Ready for Handoff
 
@@ -131,12 +133,12 @@
 
 ### Roadmap item(s) affected
 
-- Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands by keeping the canonical demo-path command surface deterministic, parser-ready, and smoke-testable.
+- Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands so the CLI can still execute the MVP loop while Textual remains disabled.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop, including bootstrap, retrieval, diff-preview, and terminal/export compatibility routing.
 
 ### Vision capability affected
 
-- Canonical engine contract - CLI compatibility remains stable because parser drift, route drift, and shim drift now fail fast instead of silently changing the operator-facing command surface.
+- Canonical engine contract - CLI compatibility remains stable because parser drift, route drift, and shim drift now fail fast instead of silently changing the operator-facing command surface for the canonical demo path.
 - Auditable state and workflow - the command catalog now makes the active demo-path routing and terminal handoff aliases explicit enough to smoke-test and trace.
 
 ### Routing/provider impact note

@@ -16,7 +16,8 @@ older lane/fixer prompts.
   routing aligned with the canonical catalog instead of relying on implicit
   behavior.
 - Scope boundary: this slice stays in CLI compatibility and command-surface
-  routing. It does not add new engine business logic.
+  routing. It does not add new engine business logic, add new command behavior,
+  or widen the MVP loop.
 
 ## Scope Tightening
 
@@ -24,5 +25,5 @@ older lane/fixer prompts.
   engine-first MVP command path across bootstrap, retrieval, diff preview, and
   terminal/export routing.
 - Vision impact: keep the canonical engine contract stable by making the active
-  command surface explicit, parser-ready, and fail-fast when catalog routing
-  drifts.
+  command surface explicit, parser-ready, and fail-fast when parser/catalog
+  routing drifts instead of silently changing the operator-facing demo path.
