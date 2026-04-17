@@ -20,6 +20,7 @@
 
 - `retrieve relevant material`
 - This branch-tip work makes the retrieval step more real by ensuring the canonical engine-facing retrieval payloads stay deterministic and auditable as soon as FTS results are produced, which is the contract downstream basket and workflow steps depend on.
+- Reviewer-fix note: this reviewed slice specifically strengthens `retrieve relevant material` by keeping excerpt lookup deterministic and FTS-only on the canonical engine path.
 
 ## AGENTS.md handoff packet
 
