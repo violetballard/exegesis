@@ -661,6 +661,15 @@ def _default_route_pinned_options(
     return _shim_pinned_options_lookup(specs).get(_normalize_token(ordered_flow_steps[0]), frozenset())
 
 
+def _resolve_parser_surface_flow_steps(
+    specs: tuple[CommandSpec, ...],
+    flow_steps: tuple[str, ...] | None,
+) -> tuple[str, ...]:
+    if flow_steps is not None:
+        return flow_steps
+    return command_flow_steps(specs)
+
+
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         name="bootstrap",
@@ -794,7 +803,6 @@ DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",
     "patch-review",
-    "export-handoff",
 )
 MVP_COMMAND_FLOW_STEPS: tuple[str, ...] = DEMO_COMMAND_FLOW_STEPS
 
@@ -1356,7 +1364,7 @@ def command_cli_shim_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[CommandCliShimEntry, ...]:
-    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
+    ordered_flow_steps = _resolve_parser_surface_flow_steps(specs, flow_steps)
     route_catalog = command_flow_route_catalog(flow_steps=ordered_flow_steps, specs=specs)
     entries: list[CommandCliShimEntry] = []
     for route_entry in route_catalog:
@@ -1453,9 +1461,10 @@ def command_cli_entry_argv_for(
 ) -> tuple[str, ...]:
     """Normalize argv to a parser-ready command entrypoint for CLI-first flows."""
     raw_argv = tuple(argv)
-    route_tokens = command_flow_route_tokens(specs, flow_steps)
+    ordered_flow_steps = _resolve_parser_surface_flow_steps(specs, flow_steps)
+    route_tokens = command_flow_route_tokens(specs, ordered_flow_steps)
     default_token = route_tokens[0] if route_tokens else ""
-    smoke_plan = command_smoke_invocation_plan(specs, flow_steps)
+    smoke_plan = command_smoke_invocation_plan(specs, ordered_flow_steps)
     default_argv = smoke_plan[0].argv if smoke_plan else ()
     if not raw_argv:
         return (default_token,) if default_token else ()
@@ -1464,11 +1473,11 @@ def command_cli_entry_argv_for(
             return _merge_shim_argv(
                 default_argv,
                 raw_argv,
-                pinned_options=_default_route_pinned_options(specs, flow_steps),
+                pinned_options=_default_route_pinned_options(specs, ordered_flow_steps),
             )
         return (default_token, *raw_argv) if default_token else raw_argv
-    normalized_argv = command_cli_shim_argv_for(specs, raw_argv, flow_steps)
-    resolved = command_resolve_for(specs, raw_argv[0], flow_steps)
+    normalized_argv = command_cli_shim_argv_for(specs, raw_argv, ordered_flow_steps)
+    resolved = command_resolve_for(specs, raw_argv[0], ordered_flow_steps)
     if len(raw_argv) != 1:
         if not resolved.matched:
             return normalized_argv
@@ -1939,25 +1948,37 @@ def command_mvp_flow_contract(
 def command_mvp_cli_flow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandCliFlowContract:
-    return command_cli_flow_contract(specs)
+    return command_demo_cli_flow_contract(specs)
 
 
 def command_demo_cli_flow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandCliFlowContract:
-    return command_cli_flow_contract(specs)
+    allowed_flow_steps = frozenset(command_demo_flow_steps())
+    return CommandCliFlowContract(
+        entries=tuple(
+            entry
+            for entry in command_cli_flow_contract(specs).entries
+            if entry.flow_step in allowed_flow_steps
+        )
+    )
 
 
 def command_demo_cli_surface_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandCliSurfaceEntry, ...]:
-    return command_cli_surface_catalog(specs)
+    allowed_flow_steps = frozenset(command_demo_flow_steps())
+    return tuple(
+        entry
+        for entry in command_cli_surface_catalog(specs)
+        if entry.flow_step in allowed_flow_steps
+    )
 
 
 def command_demo_cli_surface_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandCliSurfaceContract:
-    return command_cli_surface_contract(specs)
+    return CommandCliSurfaceContract(entries=command_demo_cli_surface_catalog(specs))
 
 
 def command_demo_cli_shim_catalog(
@@ -2591,7 +2612,8 @@ def command_smoke_argv_for(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[str, ...]:
     raw_argv = tuple(argv)
-    smoke_plan = command_smoke_invocation_plan(specs, flow_steps)
+    ordered_flow_steps = _resolve_parser_surface_flow_steps(specs, flow_steps)
+    smoke_plan = command_smoke_invocation_plan(specs, ordered_flow_steps)
     default_argv = smoke_plan[0].argv if smoke_plan else ()
     if not raw_argv:
         return default_argv
@@ -2600,13 +2622,13 @@ def command_smoke_argv_for(
             _merge_shim_argv(
                 default_argv,
                 raw_argv,
-                pinned_options=_default_route_pinned_options(specs, flow_steps),
+                pinned_options=_default_route_pinned_options(specs, ordered_flow_steps),
             )
             if default_argv
             else raw_argv
         )
 
-    resolved = command_resolve_for(specs, raw_argv[0], flow_steps)
+    resolved = command_resolve_for(specs, raw_argv[0], ordered_flow_steps)
     if not resolved.matched:
         return raw_argv
     return _resolved_parser_ready_argv(specs, resolved, raw_argv[1:])
@@ -2697,7 +2719,7 @@ def command_resolve_for(
             matched=False,
         )
 
-    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
+    ordered_flow_steps = _resolve_parser_surface_flow_steps(specs, flow_steps)
     route_catalog = command_flow_route_catalog(flow_steps=ordered_flow_steps, specs=specs)
     shim_invocations = dict(command_cli_shim_invocation_table(specs, ordered_flow_steps))
     for route_entry in route_catalog:
