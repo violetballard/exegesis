@@ -28,6 +28,7 @@ PROPOSED_LABEL_ENV = "QUAL_DIFF_PROPOSED_LABEL"
 OUTPUT_FORMAT_ENV = "QUAL_DIFF_OUTPUT_FORMAT"
 INCLUDE_FINGERPRINT_ENV = "QUAL_DIFF_INCLUDE_FINGERPRINT"
 MAX_FILE_LABEL_CHARS = 120
+MAX_TRUNCATION_MARKER_CHARS = 120
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 COMMAND_NAME = "diff-preview"
 
@@ -117,6 +118,13 @@ def _resolve_file_label(env_name: str, default: str) -> str:
     if not label:
         return default
     return label
+
+
+def _sanitize_inline_env_text(value: str, *, max_chars: int) -> str:
+    sanitized = _strip_ansi(value)
+    sanitized = re.sub(r"[\x00-\x1f\x7f]+", " ", sanitized)
+    sanitized = " ".join(sanitized.split())
+    return sanitized[:max_chars].rstrip()
 
 
 def _apply_file_labels(diff: str) -> tuple[str, bool]:
@@ -344,8 +352,10 @@ def _truncation_strategy() -> str:
 
 def _truncation_marker(omitted: int) -> str:
     custom = os.getenv(TRUNCATION_MARKER_ENV)
-    if custom is not None and custom.strip():
-        return custom.strip()
+    if custom is not None:
+        marker = _sanitize_inline_env_text(custom, max_chars=MAX_TRUNCATION_MARKER_CHARS)
+        if marker:
+            return marker
     return f"... diff truncated ({omitted} characters omitted) ..."
 
 
