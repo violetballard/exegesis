@@ -2733,9 +2733,35 @@ _COMMAND_DEMO_LOOP_FALLBACK_TOKENS: dict[str, tuple[str, ...]] = {
     "export-handoff": ("export", "save-export", "terminal"),
 }
 
+_COMMAND_DEMO_COMPATIBILITY_TOKENS: dict[str, str] = {
+    "open-project": "project-open",
+    "review": "patch-review",
+    "preview-patch": "patch-review",
+    "save": "persist",
+    "continue": "persist",
+    "apply": "apply-patch",
+    "reject": "reject-patch",
+}
+
 
 def _demo_loop_description_for(token: str, resolved: ResolvedCommand) -> str:
     return _COMMAND_DEMO_LOOP_DESCRIPTIONS.get(token, resolved.description)
+
+
+def _normalize_demo_compatibility_token(token: str) -> str:
+    normalized_token = _normalize_token(token)
+    if not normalized_token:
+        return token
+    return _COMMAND_DEMO_COMPATIBILITY_TOKENS.get(normalized_token, normalized_token)
+
+
+def _normalize_demo_compatibility_argv(argv: tuple[str, ...] | list[str]) -> tuple[str, ...]:
+    raw_argv = tuple(argv)
+    if not raw_argv:
+        return ()
+    if raw_argv[0].lstrip().startswith("-"):
+        return raw_argv
+    return (_normalize_demo_compatibility_token(raw_argv[0]), *raw_argv[1:])
 
 
 def _resolve_demo_loop_token(
@@ -3039,7 +3065,11 @@ def command_demo_cli_entry_argv(
     argv: tuple[str, ...] | list[str],
 ) -> tuple[str, ...]:
     """Normalize argv against the canonical demo-path command surface."""
-    return command_cli_entry_argv_for(COMMAND_SPECS, argv, command_demo_flow_steps())
+    return command_cli_entry_argv_for(
+        COMMAND_SPECS,
+        _normalize_demo_compatibility_argv(argv),
+        command_demo_flow_steps(),
+    )
 
 
 def command_mvp_cli_entry_argv(
@@ -3051,7 +3081,11 @@ def command_mvp_cli_entry_argv(
 
 def command_demo_cli_shim_primary_token(token: str) -> str:
     """Resolve a demo-path surface token to its primary CLI entrypoint."""
-    return command_cli_shim_primary_token_for(COMMAND_SPECS, token, command_demo_flow_steps())
+    return command_cli_shim_primary_token_for(
+        COMMAND_SPECS,
+        _normalize_demo_compatibility_token(token),
+        command_demo_flow_steps(),
+    )
 
 
 def command_mvp_cli_shim_primary_token(token: str) -> str:
@@ -3063,7 +3097,11 @@ def command_demo_cli_shim_argv(
     argv: tuple[str, ...] | list[str],
 ) -> tuple[str, ...]:
     """Rewrite demo-path surface argv to the parser-facing command surface."""
-    return command_cli_shim_argv_for(COMMAND_SPECS, argv, command_demo_flow_steps())
+    return command_cli_shim_argv_for(
+        COMMAND_SPECS,
+        _normalize_demo_compatibility_argv(argv),
+        command_demo_flow_steps(),
+    )
 
 
 def command_mvp_cli_shim_argv(
@@ -3112,7 +3150,11 @@ def command_demo_smoke_argv(
     argv: tuple[str, ...] | list[str],
 ) -> tuple[str, ...]:
     """Return a parser-smoke invocation for the canonical demo-path surface."""
-    return command_smoke_argv_for(COMMAND_SPECS, argv, command_demo_flow_steps())
+    return command_smoke_argv_for(
+        COMMAND_SPECS,
+        _normalize_demo_compatibility_argv(argv),
+        command_demo_flow_steps(),
+    )
 
 
 def command_mvp_smoke_argv(
@@ -3304,10 +3346,11 @@ def _prefer_demo_flow_smoke_resolution(
 
 def command_demo_resolve(token: str) -> ResolvedCommand:
     """Resolve a token against the canonical demo-path command surface."""
+    normalized_token = _normalize_demo_compatibility_token(token)
     return _prefer_demo_flow_smoke_resolution(
-        command_resolve_for(COMMAND_SPECS, token, command_demo_flow_steps()),
+        command_resolve_for(COMMAND_SPECS, normalized_token, command_demo_flow_steps()),
         specs=COMMAND_SPECS,
-        raw_argv=(token,),
+        raw_argv=(normalized_token,),
     )
 
 
@@ -3426,7 +3469,7 @@ def command_demo_resolve_argv(
     argv: tuple[str, ...] | list[str],
 ) -> ResolvedCommand:
     """Resolve argv against the canonical demo-path command surface."""
-    raw_argv = tuple(argv)
+    raw_argv = _normalize_demo_compatibility_argv(argv)
     return _prefer_demo_flow_smoke_resolution(
         command_resolve_argv_for(COMMAND_SPECS, raw_argv, command_demo_flow_steps()),
         specs=COMMAND_SPECS,
