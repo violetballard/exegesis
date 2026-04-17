@@ -3788,6 +3788,64 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.to_downstream_payload()["basket_promotion"]["retrieval_mode"],
         )
 
+    def test_retrieval_downstream_payload_helper_backfills_basket_primary_anchors_from_provenance(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        sparse_source_bundle["doc_hits"] = []
+        sparse_source_bundle["excerpt_hits"] = []
+
+        retrieval_doc_bundle = sparse_source_bundle.get("retrieval_doc_bundle")
+        self.assertIsInstance(retrieval_doc_bundle, dict)
+        retrieval_doc_bundle["doc_hits"] = []
+
+        retrieval_excerpt_bundle = sparse_source_bundle.get("retrieval_excerpt_bundle")
+        self.assertIsInstance(retrieval_excerpt_bundle, dict)
+        retrieval_excerpt_bundle["excerpt_hits"] = []
+
+        retrieval_citation_bundle = sparse_source_bundle.get("retrieval_citation_bundle")
+        self.assertIsInstance(retrieval_citation_bundle, dict)
+        retrieval_citation_bundle["doc_citations"] = []
+        retrieval_citation_bundle["excerpt_citations"] = []
+
+        basket_promotion = sparse_source_bundle.get("basket_promotion")
+        self.assertIsInstance(basket_promotion, dict)
+        basket_promotion["doc_type"] = None
+        basket_promotion["source_hash"] = None
+        basket_promotion["span"] = None
+
+        payload = build_retrieval_downstream_payload_from_result(
+            _SourceBundleOnlySource(sparse_source_bundle)
+        )
+
+        self.assertEqual(
+            payload["basket_promotion"]["doc_type"],
+            result.to_downstream_payload()["basket_promotion"]["doc_type"],
+        )
+        self.assertEqual(
+            payload["basket_promotion"]["source_hash"],
+            result.to_downstream_payload()["basket_promotion"]["source_hash"],
+        )
+        self.assertEqual(
+            payload["basket_promotion"]["span"],
+            result.to_downstream_payload()["basket_promotion"]["span"],
+        )
+
     def test_retrieval_downstream_payload_helper_normalizes_basket_promotion_contract_fields(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

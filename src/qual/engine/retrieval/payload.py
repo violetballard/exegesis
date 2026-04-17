@@ -1018,6 +1018,7 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
             first_doc_provenance.get("doc_type"),
             first_excerpt_citation.get("doc_type"),
             first_doc_citation.get("doc_type"),
+            retrieval_provenance.get("primary_doc_type"),
         ),
         "doc_fingerprint": _first_text_value(
             first_doc_hit.get("doc_fingerprint") if isinstance(first_doc_hit, dict) else None,
@@ -1044,6 +1045,7 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
             first_doc_provenance.get("source_hash"),
             first_excerpt_citation.get("source_hash"),
             first_doc_citation.get("source_hash"),
+            retrieval_provenance.get("primary_source_hash"),
         ),
         "title_hint": _first_text_value(
             first_excerpt_hit.get("title_hint") if isinstance(first_excerpt_hit, dict) else None,
@@ -1100,6 +1102,7 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
                 first_doc_hit.get("top_excerpt_span") if isinstance(first_doc_hit, dict) else None,
                 first_doc_provenance.get("top_excerpt_span"),
                 first_doc_citation.get("top_excerpt_span"),
+                retrieval_provenance.get("primary_excerpt_span"),
             )
         ),
         "source_strategy": _first_text_value(
