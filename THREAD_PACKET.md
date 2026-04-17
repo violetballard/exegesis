@@ -1,12 +1,13 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Current branch head before this fixer commit: `439328242b6f834f5a76ff234a8c41ff8f5f5c1a`
+- Current branch head before this fixer commit: `d21c14df7d8b7ca375309b6c6e883a392b700a9b`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet refresh role: `reviewer-required fix narrowing`
 - Packet-only commits after reviewed head:
   - `439328242b6f834f5a76ff234a8c41ff8f5f5c1a`
+  - `d21c14df7d8b7ca375309b6c6e883a392b700a9b`
 
 ## Scope goal
 
