@@ -71,8 +71,10 @@
 
 - AGENTS-required explicit step statement: this change makes the canonical
   CLI demo-path steps `open project/document`, `retrieve relevant material`,
-  and `preview and apply or reject a patch` more reliable by keeping the
-  parser-facing command surface deterministic and drift-resistant.
+  and `preview and apply or reject a patch` more reliable, and it directly
+  protects the ongoing CLI operator path that must remain executable while
+  Textual stays disabled, by keeping the parser-facing command surface
+  deterministic and drift-resistant.
 - Concrete step protection:
   `bootstrap` protects the `open project/document` entrypoint,
   `context-basket` protects the `retrieve relevant material` entrypoint, and
@@ -182,19 +184,21 @@
 ### Roadmap item(s) affected
 
 - Milestone 3: Real workflow loop - preserve CLI compatibility while the
-  package/layout migration lands by keeping the command-catalog contract
-  deterministic and drift-resistant.
+  package/layout migration lands, and keep the engine-first MVP loop
+  executable while Textual stays disabled, by keeping the command-catalog
+  contract deterministic and drift-resistant.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the
-  engine-first MVP loop.
+  engine-first MVP loop, specifically the operator-facing `open`,
+  `retrieve`, and `patch-review` command path.
 
 ### Vision capability affected
 
 - Canonical engine contract - CLI compatibility remains stable while the
   command-catalog surface rejects parser-surface drift before it can silently
-  change the operator contract.
+  change the operator contract for the active engine-first MVP loop.
 - Auditable state and workflow - the command surface now fails loudly on
   catalog/parser drift, making the operator-facing contract explicit and
-  traceable.
+  traceable while the CLI remains the active surface.
 
 ### Routing/provider impact note
 

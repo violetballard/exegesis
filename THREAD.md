@@ -34,7 +34,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   and tests already satisfy the reviewer-required fixes on this branch.
 - Canonical demo-path step impact: this slice makes the CLI `open
   project/document`, `retrieve relevant material`, and `preview and apply or
-  reject a patch` steps more reliable by keeping the `bootstrap`,
-  `context-basket`, and `diff-preview` entrypoints aligned with the canonical
-  command catalog and rejecting parser/catalog drift before it can silently
-  change the operator-facing contract.
+  reject a patch` steps, and the ongoing CLI operator path that must remain
+  executable while Textual stays disabled, more reliable by keeping the
+  `bootstrap`, `context-basket`, and `diff-preview` entrypoints aligned with
+  the canonical command catalog and rejecting parser/catalog drift before it
+  can silently change the operator-facing contract.
