@@ -3,10 +3,12 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `35d77e99bca54d97e51a6a4b98abdb389156799e`
-- Packet refresh role: `feature-fixer required-fixes reviewer-alignment refresh v7`
+- Packet refresh role: `feature-fixer required-fixes reviewer-alignment refresh v8`
 
 ## Packet Traceability Note
 
+- Feature-fixer reviewer-alignment refresh v8: recorded this metadata-only fixer pass on April 16, 2026 so the branch tip carries a fresh commit that explicitly preserves the reviewer-required `open project/document` demo-path mapping for re-review.
+- Feature-fixer reviewer-alignment refresh v8 gates: re-ran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on April 16, 2026 after the packet-only refresh, and all required gates passed on branch tip.
 - The implementation commit above refers to the current runtime fix commit for this lane, which carries the reviewer-required command-surface hardening and the current default `demo` / `mvp` command-flow contract on branch tip.
 - This packet refresh keeps the handoff wording aligned with the current implementation and records a fresh required-fixes verification rerun for the reviewer-fix branch tip.
 - Feature-fixer reviewer-alignment refresh v7: tightened the top-level scope statement itself so the packet now anchors the claimed outcome to the `bootstrap`-backed `open project/document` step, instead of relying on downstream sections to narrow the claim.
