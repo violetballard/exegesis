@@ -31,14 +31,19 @@ class ShellUI:
         try:
             return render_terminal_artifact(artifact, kind=kind)
         except Exception:
-            if self._normalize_fallback_kind(kind) == "card" and self._contains_action_or_selection_payload(artifact):
+            normalized_kind = self._normalize_fallback_kind(kind)
+            if (
+                normalized_kind == "card"
+                and self._contains_action_or_selection_payload(artifact)
+            ):
                 # An explicit card hint should never render an action/selection leaf as a card.
                 return _render_invalid_terminal_card(artifact)
             fallback_artifact: Any
             fallback_kind: str | None
-            if kind is None and _should_preserve_raw_leaf_card_default(artifact):
-                # Raw leaves should stay on the card path, but still flow through
-                # the explicit CLI fallback entrypoint.
+            if normalized_kind is None and _should_preserve_raw_leaf_card_default(artifact):
+                # Raw leaves should stay on the card path when no valid leaf
+                # hint was provided, but still flow through the explicit CLI
+                # fallback entrypoint.
                 fallback_artifact = artifact
                 fallback_kind = "card"
             else:
