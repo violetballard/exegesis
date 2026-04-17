@@ -68,6 +68,19 @@ class ShellUI:
             return render_terminal_cli_fallback(fallback_artifact, kind=fallback_kind)
         except Exception:
             pass
+        specific_rendered: str | None = None
+        if fallback_kind == "action":
+            try:
+                specific_rendered = render_terminal_action(fallback_artifact)
+            except Exception:
+                pass
+        elif fallback_kind == "selection":
+            try:
+                specific_rendered = render_terminal_selection(fallback_artifact)
+            except Exception:
+                pass
+        if specific_rendered is not None:
+            return specific_rendered
         try:
             return render_terminal_artifact(artifact, kind=kind)
         except Exception:

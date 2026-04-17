@@ -3638,6 +3638,48 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(text, "cli-fallback")
         cli_fallback.assert_called_once_with(raw_leaf, kind="card")
 
+    def test_shell_ui_prefers_specific_leaf_fallbacks_over_generic_artifact_retry(self) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                {
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                },
+                "[ActionRef] Export",
+                "render_terminal_action",
+            ),
+            (
+                "selection",
+                {
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                },
+                "[SelectionRef] Choice",
+                "render_terminal_selection",
+            ),
+        ]
+
+        for fallback_kind, artifact, expected_prefix, renderer_name in cases:
+            with self.subTest(kind=fallback_kind):
+                with patch("src.qual.ui.shell.render_terminal_cli_fallback", side_effect=RuntimeError("boom")):
+                    with patch(
+                        "src.qual.ui.shell.render_terminal_artifact",
+                        return_value="generic-fallback",
+                    ) as generic_renderer:
+                        with patch(
+                            f"src.qual.ui.shell.{renderer_name}",
+                            return_value=expected_prefix,
+                        ) as specific_renderer:
+                            text = shell.render_artifact(artifact, kind=fallback_kind)
+
+                self.assertEqual(text, expected_prefix)
+                specific_renderer.assert_called_once_with(artifact)
+                generic_renderer.assert_not_called()
+
     def test_shell_ui_keeps_ambiguous_raw_leaf_payloads_on_card_default_for_malformed_envelopes_when_shared_resolver_raises(
         self,
     ) -> None:
