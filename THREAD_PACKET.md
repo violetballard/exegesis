@@ -3,8 +3,8 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f7689ab0f91a0426b4ae0aeaf8bb5c2d09d4d44d`
-- Packet refresh commit: `HEAD (feature-fixer reviewer-required-fix refresh)`
-- Packet refresh role: `feature-fixer reviewer-required-fix implementation + handoff refresh`
+- Packet refresh commit: `HEAD (feature-fixer reviewer-required-fix re-review refresh)`
+- Packet refresh role: `feature-fixer reviewer-required-fix re-review handoff refresh`
 
 ## Packet Traceability Note
 
@@ -24,7 +24,7 @@
 - The branch-tip validation evidence now covers the compatibility-variant
   normalization and the workflow preferred-surface-token fix through the
   required local gate rerun.
-- Latest packet refresh prepared at: `2026-04-17T14:56:00Z`
+- Latest packet refresh prepared at: `2026-04-17T15:01:14Z`
 
 ## Current Program Focus
 
@@ -79,6 +79,10 @@
 - Scope-tightening note: this remains command-surface hardening for the
   existing MVP-loop entrypoints only; it does not add new workflow behavior or
   expand beyond the current CLI compatibility layer.
+- Reviewer-fix closure note: this packet now answers both required fixes from
+  the reviewer by naming the exact canonical demo-path step advanced and by
+  framing the change strictly as CLI-first MVP-loop contract hardening while
+  Textual remains disabled.
 
 ## Scope Completed
 
@@ -188,7 +192,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Re-verification point: `2026-04-17T14:56:00Z` at the current branch tip
+- Re-verification point: `2026-04-17T15:01:14Z` at the current branch tip
 
 ## Risks / Blockers
 
