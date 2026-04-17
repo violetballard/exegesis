@@ -118,6 +118,24 @@ class CommandDemoLoopContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoTransitionEntry:
+    source_token: str
+    target_token: str
+    canonical_name: str
+    flow_step: str
+    argv: tuple[str, ...]
+    description: str
+
+
+@dataclass(frozen=True)
+class CommandDemoTransitionContract:
+    entries: tuple[CommandDemoTransitionEntry, ...]
+    lookup_table: tuple[tuple[tuple[str, str], str], ...] = ()
+    invocation_table: tuple[tuple[tuple[str, str], tuple[str, ...]], ...] = ()
+    targets_by_source: tuple[tuple[str, tuple[str, ...]], ...] = ()
+
+
+@dataclass(frozen=True)
 class CommandDemoCompatibilityEntry:
     token: str
     canonical_token: str
@@ -2752,6 +2770,15 @@ _COMMAND_DEMO_LOOP_FALLBACK_TOKENS: dict[str, tuple[str, ...]] = {
     "export-handoff": ("export", "save-export", "terminal"),
 }
 
+_COMMAND_DEMO_TRANSITIONS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("project-open", ("retrieval",)),
+    ("retrieval", ("patch-review",)),
+    ("patch-review", ("apply-patch", "reject-patch")),
+    ("apply-patch", ("persist",)),
+    ("reject-patch", ("persist",)),
+    ("persist", ("export-handoff",)),
+)
+
 _COMMAND_DEMO_COMPATIBILITY_TOKENS: dict[str, str] = {
     "open-project": "project-open",
     "review": "patch-review",
@@ -2818,6 +2845,23 @@ def _validate_command_demo_loop_contract(contract: CommandDemoLoopContract) -> N
         raise ValueError("Command demo loop lookup table is inconsistent")
 
 
+def _validate_command_demo_transition_contract(contract: CommandDemoTransitionContract) -> None:
+    if contract.lookup_table != tuple(
+        ((entry.source_token, entry.target_token), entry.canonical_name) for entry in contract.entries
+    ):
+        raise ValueError("Command demo transition lookup table is inconsistent")
+    if contract.invocation_table != tuple(
+        ((entry.source_token, entry.target_token), entry.argv) for entry in contract.entries
+    ):
+        raise ValueError("Command demo transition invocation table is inconsistent")
+    expected_targets_by_source: list[tuple[str, tuple[str, ...]]] = []
+    for source_token, _ in _COMMAND_DEMO_TRANSITIONS:
+        targets = tuple(entry.target_token for entry in contract.entries if entry.source_token == source_token)
+        expected_targets_by_source.append((source_token, targets))
+    if contract.targets_by_source != tuple(expected_targets_by_source):
+        raise ValueError("Command demo transition targets are inconsistent")
+
+
 def _validate_command_demo_compatibility_contract(contract: CommandDemoCompatibilityContract) -> None:
     if contract.tokens != tuple(entry.token for entry in contract.entries):
         raise ValueError("Command demo compatibility tokens are inconsistent")
@@ -2875,6 +2919,52 @@ def command_mvp_loop_contract(
 
 
 @lru_cache(maxsize=None)
+def command_demo_transition_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoTransitionContract:
+    loop_entries = {entry.token: entry for entry in command_demo_loop_contract(specs).entries}
+    entries: list[CommandDemoTransitionEntry] = []
+    for source_token, target_tokens in _COMMAND_DEMO_TRANSITIONS:
+        for target_token in target_tokens:
+            entry = loop_entries[target_token]
+            entries.append(
+                CommandDemoTransitionEntry(
+                    source_token=source_token,
+                    target_token=target_token,
+                    canonical_name=entry.canonical_name,
+                    flow_step=entry.flow_step,
+                    argv=entry.argv,
+                    description=entry.description,
+                )
+            )
+    contract = CommandDemoTransitionContract(
+        entries=tuple(entries),
+        lookup_table=tuple(
+            ((entry.source_token, entry.target_token), entry.canonical_name) for entry in entries
+        ),
+        invocation_table=tuple(
+            ((entry.source_token, entry.target_token), entry.argv) for entry in entries
+        ),
+        targets_by_source=tuple(
+            (
+                source_token,
+                tuple(entry.target_token for entry in entries if entry.source_token == source_token),
+            )
+            for source_token, _ in _COMMAND_DEMO_TRANSITIONS
+        ),
+    )
+    _validate_command_demo_transition_contract(contract)
+    return contract
+
+
+@lru_cache(maxsize=None)
+def command_mvp_transition_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoTransitionContract:
+    return command_demo_transition_contract(specs)
+
+
+@lru_cache(maxsize=None)
 def command_demo_compatibility_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoCompatibilityContract:
@@ -2916,6 +3006,12 @@ def command_demo_loop_catalog(
     return command_demo_loop_contract(specs).entries
 
 
+def command_demo_transition_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandDemoTransitionEntry, ...]:
+    return command_demo_transition_contract(specs).entries
+
+
 def command_demo_compatibility_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandDemoCompatibilityEntry, ...]:
@@ -2932,6 +3028,12 @@ def command_mvp_loop_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandDemoLoopEntry, ...]:
     return command_demo_loop_catalog(specs)
+
+
+def command_mvp_transition_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandDemoTransitionEntry, ...]:
+    return command_demo_transition_catalog(specs)
 
 
 def command_demo_loop_tokens(
@@ -2968,6 +3070,42 @@ def command_mvp_loop_invocation_plan(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandInvocationPlanEntry, ...]:
     return command_demo_loop_invocation_plan(specs)
+
+
+def command_demo_transition_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[tuple[str, str], str], ...]:
+    return command_demo_transition_contract(specs).lookup_table
+
+
+def command_mvp_transition_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[tuple[str, str], str], ...]:
+    return command_demo_transition_lookup_table(specs)
+
+
+def command_demo_transition_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[tuple[str, str], tuple[str, ...]], ...]:
+    return command_demo_transition_contract(specs).invocation_table
+
+
+def command_mvp_transition_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[tuple[str, str], tuple[str, ...]], ...]:
+    return command_demo_transition_invocation_table(specs)
+
+
+def command_demo_transition_targets_by_source(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_transition_contract(specs).targets_by_source
+
+
+def command_mvp_transition_targets_by_source(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_transition_targets_by_source(specs)
 
 
 def command_demo_loop_lookup_table(
