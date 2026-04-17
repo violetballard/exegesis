@@ -1475,6 +1475,10 @@ class RetrievalService:
         candidate_doc_ids = self._candidate_docs_from_scope(query.scope, fallback=fts_shortlist)
         if date_range is not None:
             candidate_doc_ids = self._filter_candidate_doc_ids_by_date_range(candidate_doc_ids, date_range)
+        # Preserve the effective ordered candidate doc set even for doc-scoped
+        # queries so downstream basket promotion and provenance snapshots can
+        # audit the exact doc shortlist that fed the canonical FTS run.
+        shortlist_doc_ids = candidate_doc_ids if self._is_doc_scoped(query.scope) else fts_shortlist
         effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
         if candidate_doc_ids or date_range is None:
             fts_run = self._fts.retrieve(query, candidate_doc_ids=candidate_doc_ids)
@@ -1487,7 +1491,7 @@ class RetrievalService:
             query_fingerprint=query_fingerprint,
             retrieval_policy=retrieval_policy,
             candidate_doc_count=effective_candidate_doc_count,
-            fts_shortlist_doc_ids=fts_shortlist,
+            fts_shortlist_doc_ids=shortlist_doc_ids,
         )
         citation_status = {
             "required": query.constraints.require_citations,
@@ -1511,7 +1515,7 @@ class RetrievalService:
             query_fingerprint=query_fingerprint,
             retrieval_policy=retrieval_policy,
             candidate_doc_count=effective_candidate_doc_count,
-            fts_shortlist_doc_ids=fts_shortlist,
+            fts_shortlist_doc_ids=shortlist_doc_ids,
         )
         result_fingerprint = self._build_result_fingerprint(
             query_fingerprint=query_fingerprint,
@@ -1533,8 +1537,8 @@ class RetrievalService:
             "fts_shortlist_limit": fts_shortlist_limit,
             "fts_candidate_scan_limit": fts_candidate_scan_limit,
             "candidate_doc_count": effective_candidate_doc_count,
-            "fts_shortlist_count": len(fts_shortlist),
-            "fts_shortlist_doc_ids": list(fts_shortlist),
+            "fts_shortlist_count": len(shortlist_doc_ids),
+            "fts_shortlist_doc_ids": list(shortlist_doc_ids),
             "strategies_used": list(retrieval_policy["active_strategy_ids"]),
             "elapsed_ms_by_strategy": {fts_run.strategy_id: fts_run.elapsed_ms},
             # Cache use is an internal optimization detail; keep the public
