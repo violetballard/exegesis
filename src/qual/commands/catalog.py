@@ -356,19 +356,15 @@ def _validate_command_cli_contract(
     if contract.canonical_names != expected_canonical_names:
         raise ValueError("Command CLI canonical names are inconsistent")
 
-    # The default catalog contract requires each CLI-exposed command to keep its
-    # canonical token as the primary parser entrypoint in canonical command order.
+    # The default catalog contract requires the full parser surface to stay aligned
+    # with the declared command catalog, not just the canonical-name projection.
     if validated_entrypoints is not None and specs == COMMAND_SPECS:
-        expected_primary_tokens = tuple(
-            spec.name
+        expected_parser_surface = tuple(
+            (spec.name, _declared_cli_entrypoints_for(spec))
             for spec in specs
             if spec.cli_exposed
         )
-        actual_primary_tokens = tuple(
-            entrypoints[0]
-            for _, entrypoints in validated_entrypoints
-        )
-        if actual_primary_tokens != expected_primary_tokens:
+        if validated_entrypoints != expected_parser_surface:
             raise ValueError("Command CLI parser surface is inconsistent")
 
     expected_tokens = tuple(

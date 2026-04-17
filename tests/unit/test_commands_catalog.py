@@ -824,6 +824,27 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches(
+        self,
+    ) -> None:
+        command_catalog.command_cli_contract.cache_clear()
+        with patch.object(
+            command_catalog,
+            "_validated_cli_entrypoints_for",
+            return_value=(
+                ("bootstrap", ("bootstrap", "project-open")),
+                ("diff-preview", ("diff-preview", "diff", "review-patch")),
+                ("context-basket", ("context-basket", "context", "basket")),
+                ("terminal", ("terminal",)),
+            ),
+        ):
+            self.assertEqual(
+                tuple(name for name, _ in command_catalog._validated_cli_entrypoints_for()),
+                command_names(),
+            )
+            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                command_catalog.command_cli_contract()
+
     def test_command_cli_lookup_table_resolves_through_the_catalog(self) -> None:
         self.assertEqual(
             command_cli_lookup_table(),
