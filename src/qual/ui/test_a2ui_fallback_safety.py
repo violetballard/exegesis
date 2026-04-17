@@ -4958,6 +4958,66 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(text, "cli-fallback")
         cli_fallback.assert_called_once_with(raw_leaf, kind="card")
 
+    def test_terminal_artifact_cli_fallback_recovers_leaf_kind_when_shared_resolver_underflows_to_card(
+        self,
+    ) -> None:
+        cases = [
+            (
+                "action",
+                {
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                    "confirm": {"title": "Approve", "message": "Proceed?"},
+                },
+                "[ActionRef] Export",
+                "Action schema v1",
+            ),
+            (
+                "selection",
+                {
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                    "selected": True,
+                },
+                "[SelectionRef] Choice",
+                "Selection schema v1",
+            ),
+        ]
+
+        for case_name, artifact, expected_prefix, expected_schema in cases:
+            with self.subTest(case=case_name):
+                with patch(
+                    "src.qual.ui.a2ui.resolve_terminal_artifact_cli_fallback_target",
+                    return_value=(artifact, "card"),
+                ):
+                    text = render_terminal_cli_fallback(artifact)
+
+                self.assertIn(expected_prefix, text)
+                self.assertIn(expected_schema, text)
+                self.assertNotIn("[UnknownCard] <invalid card>", text)
+
+    def test_terminal_artifact_cli_fallback_keeps_raw_leaf_card_default_when_shared_resolver_underflows_to_card(
+        self,
+    ) -> None:
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        with patch(
+            "src.qual.ui.a2ui.resolve_terminal_artifact_cli_fallback_target",
+            return_value=(raw_leaf, "card"),
+        ):
+            text = render_terminal_cli_fallback(raw_leaf)
+
+        self.assertIn("[<missing>] <untitled>", text)
+        self.assertIn("- label: Export", text)
+        self.assertNotIn("[ActionRef]", text)
+        self.assertNotIn("[SelectionRef]", text)
+
     def test_shell_ui_recovers_leaf_kind_when_shared_resolver_underflows_to_card_and_cli_fallback_fails(
         self,
     ) -> None:

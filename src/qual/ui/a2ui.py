@@ -748,6 +748,18 @@ def describe_terminal_artifact_render_target_contract_fingerprints(
                 "terminal_artifact_raw_leaf_card_default_policy_contract",
                 terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
             ),
+            ("terminal_fallback_contract", terminal_fallback_contract_fingerprint()),
+            ("raw_leaf_card_default_contract", terminal_artifact_raw_leaf_card_default_contract_fingerprint()),
+            (
+                "raw_leaf_card_default_policy_contract",
+                terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+            ),
+            ("terminal_fallback_fingerprint", terminal_fallback_contract_fingerprint()),
+            ("raw_leaf_card_default_fingerprint", terminal_artifact_raw_leaf_card_default_contract_fingerprint()),
+            (
+                "raw_leaf_card_default_policy_fingerprint",
+                terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+            ),
         )
     return fingerprints
 
@@ -848,6 +860,18 @@ def describe_terminal_artifact_rendering_contract_fingerprints(
             ),
             (
                 "terminal_artifact_raw_leaf_card_default_policy_contract",
+                terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+            ),
+            ("terminal_fallback_contract", terminal_fallback_contract_fingerprint()),
+            ("raw_leaf_card_default_contract", terminal_artifact_raw_leaf_card_default_contract_fingerprint()),
+            (
+                "raw_leaf_card_default_policy_contract",
+                terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+            ),
+            ("terminal_fallback_fingerprint", terminal_fallback_contract_fingerprint()),
+            ("raw_leaf_card_default_fingerprint", terminal_artifact_raw_leaf_card_default_contract_fingerprint()),
+            (
+                "raw_leaf_card_default_policy_fingerprint",
                 terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
             ),
         )
@@ -3197,6 +3221,11 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
                 return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
     else:
         fallback_artifact, fallback_kind = fallback_target
+        fallback_artifact, fallback_kind = _refine_terminal_artifact_cli_fallback_target(
+            fallback_artifact,
+            fallback_kind,
+            requested_kind=requested_kind,
+        )
     try:
         return _render_terminal_artifact_resolved(
             fallback_artifact,
@@ -3355,6 +3384,33 @@ def _render_terminal_artifact_cli_fallback_failure(
         return render_terminal_card(artifact)
     except Exception:
         return _render_invalid_terminal_card(artifact)
+
+
+def _refine_terminal_artifact_cli_fallback_target(
+    artifact: Any,
+    resolved_kind: str | None,
+    *,
+    requested_kind: str | None,
+) -> tuple[Any, str | None]:
+    """Recover a specific leaf kind when CLI fallback underflows to a card.
+
+    The explicit CLI fallback entrypoint should mirror the shell path closely:
+    if a shared resolver returns ``card`` for a payload that is still
+    recognizably an action or selection, recover that leaf kind before the
+    generic card renderer runs. Raw leaf card defaults remain on the card path.
+    """
+
+    if resolved_kind != "card" or requested_kind == "card":
+        return artifact, resolved_kind
+    if _should_preserve_raw_leaf_card_default(artifact):
+        return artifact, "card"
+    inferred_kind = _infer_terminal_artifact_explicit_kind(artifact)
+    if inferred_kind in {"action", "selection"}:
+        return artifact, inferred_kind
+    partial_kind = _infer_terminal_artifact_partial_leaf_kind(artifact)
+    if partial_kind in {"action", "selection"}:
+        return artifact, partial_kind
+    return artifact, resolved_kind
 
 
 def _resolve_terminal_artifact_card_fallback(
