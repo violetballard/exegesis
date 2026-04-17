@@ -363,6 +363,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_fallback_recovery_fingerprint(),
         )
         self.assertEqual(
+            manifest["shell_refinement_policy"],
+            {
+                "preserve_raw_leaf_card_default": True,
+                "invalid_kind_treated_as_absent": True,
+                "refine_card_underflow": True,
+            },
+        )
+        self.assertEqual(
             manifest["kind_resolution"]["caller_kind_hint_policy"],
             {
                 "invalid_kind_treated_as_absent": True,

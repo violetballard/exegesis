@@ -2020,6 +2020,11 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
         "kind_resolution_fingerprint": render_target_contract["kind_resolution_fingerprint"],
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
         "fallback_recovery_fingerprint": render_target_contract["fallback_recovery_fingerprint"],
+        "shell_refinement_policy": {
+            "preserve_raw_leaf_card_default": True,
+            "invalid_kind_treated_as_absent": True,
+            "refine_card_underflow": True,
+        },
         "terminal_fallback_contract": _snapshot_contract_section(terminal_fallback_contract),
         "terminal_fallback_fingerprint": terminal_fallback_contract["contract_fingerprint"],
         "terminal_fallback_contract_fingerprint": terminal_fallback_contract["contract_fingerprint"],
