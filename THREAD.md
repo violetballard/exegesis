@@ -10,7 +10,11 @@ older lane/fixer prompts.
 
 - Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
 - Current metadata refresh baseline: `ba3daa1fca9b6fa8a44c52cde00249f1d908c25f`
-  before this final packet-only refresh commit.
+  before this final verification-only packet refresh commit.
+- Runtime fix verification: this final fixer pass confirmed that branch tip
+  `ba3daa1fca9b6fa8a44c52cde00249f1d908c25f` already includes the reviewer-
+  required parser-surface implementation through runtime commit
+  `36a360a9464d2f08f55129bc70e1aafe4574721b`.
 - Canonical demo-path steps advanced: `project-open`, `retrieval`,
   `patch-review`, and `export-handoff` via the CLI-first operator surface;
   `command_cli_contract()` now rejects parser/catalog drift before those

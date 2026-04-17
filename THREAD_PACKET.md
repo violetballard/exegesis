@@ -3,8 +3,8 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
-- Packet refresh commit: `ba3daa1fca9b6fa8a44c52cde00249f1d908c25f` (pre-final reviewer-fix refresh baseline)
-- Packet refresh role: `feature-fixer final handoff refresh`
+- Packet refresh commit: `ba3daa1fca9b6fa8a44c52cde00249f1d908c25f` (pre-verification metadata baseline)
+- Packet refresh role: `feature-fixer final verification refresh`
 
 ## Packet Traceability Note
 
@@ -107,6 +107,11 @@
 - Refreshed the handoff packet so the review scope points at the current
   command-catalog implementation commit and the actual parser-surface invariant
   enforced in this branch.
+- Verified in this final fixer pass that branch tip
+  `ba3daa1fca9b6fa8a44c52cde00249f1d908c25f` already contains the reviewer-
+  required implementation fix through runtime commit
+  `36a360a9464d2f08f55129bc70e1aafe4574721b`, so this final commit remains
+  metadata-only.
 - Verified again in this final fixer pass that the reviewer-requested demo-path mapping
   stays narrowed to the CLI-first `project-open`, `retrieval`, `patch-review`,
   and `export-handoff` steps and that the scope statement remains limited to
