@@ -46,16 +46,17 @@ This reviewed range makes `retrieve relevant material` more real by keeping exce
 ## Fixer Pass Traceability
 
 - Fixer pass date: `2026-04-17`
-- Pre-fix packet branch tip for this commit: `a8fa8be6a74f47d612464d0554f1fe1fa96e89f7`
+- Pre-fix packet branch tip for this commit: `8b219039ab16d934eb41b96d5143504e203f644e`
+- Reviewer packet source-of-truth anchor before this fixer commit: packet refresh commit `8b219039ab16d934eb41b96d5143504e203f644e`, packet refresh role `metadata-only reviewer-fix finalization`, reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - This metadata-only refresh preserves the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` while carrying the reviewer-required canonical demo-path mapping for re-review.
-- Reviewer-facing source of truth for this fixer pass: use this `THREAD_PACKET.md` instead of the stale `.codex` packet mirrors, because those mirrors are not writable in this lane worktree and therefore cannot be regenerated here.
 
 ## Required Reviewer Fixes Addressed
 
 1. Reclassified the handoff as shared/high-risk work instead of low-risk work.
 2. Removed the stale claim that PageIndex remains a runtime fallback behind the canonical retrieval package.
 3. Stated the canonical demo-path step in narrowed terms that match the reviewed implementation slice.
-4. Kept the packet scope aligned to the reviewed implementation head and range above.
+4. Tightened that demo-path statement to the Milestone 3 contract by stating that `fetch_excerpt` now enforces FTS-only excerpt resolution and non-FTS excerpt IDs fail closed with `KeyError`.
+5. Kept the packet scope aligned to the reviewed implementation head and range above.
 
 ## Tasks completed
 
