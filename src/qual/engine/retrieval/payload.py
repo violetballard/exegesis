@@ -1362,10 +1362,21 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
     if not isinstance(retrieval_provenance, dict):
         retrieval_provenance = _build_retrieval_provenance_from_payload(source_bundle)
     basket_promotion = _build_basket_promotion_from_payload(source_bundle)
+    query = copy.deepcopy(source_bundle.get("query", {}))
+    policy = copy.deepcopy(source_bundle.get("policy", {}))
+    citation_status = copy.deepcopy(source_bundle.get("citation_status", {}))
+    retrieval_summary = copy.deepcopy(source_bundle.get("retrieval_summary", {}))
     return {
         # Source-bundle-only reconstruction keeps the top-level context auditless.
         "audit_ref": None,
         "result_fingerprint": source_bundle.get("result_fingerprint"),
+        "query_fingerprint": source_bundle.get("query_fingerprint"),
+        "query": query,
+        "policy": policy,
+        "retrieval_backend": source_bundle.get("retrieval_backend"),
+        "retrieval_mode": source_bundle.get("retrieval_mode"),
+        "citation_status": citation_status,
+        "retrieval_summary": retrieval_summary,
         "retrieval_downstream_payload": copy.deepcopy(source_bundle),
         "retrieval_citation_bundle": copy.deepcopy(retrieval_citation_bundle),
         "retrieval_doc_bundle": copy.deepcopy(retrieval_doc_bundle),
@@ -1512,14 +1523,27 @@ def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> 
 def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
     """Return the deterministic retrieval context bundle from a downstream payload snapshot."""
 
+    retrieval_provenance = _build_retrieval_provenance_from_payload(payload)
+    retrieval_summary = _normalize_retrieval_summary_snapshot(payload.get("retrieval_summary", {}))
     return {
         "audit_ref": payload.get("audit_ref"),
         "result_fingerprint": payload.get("result_fingerprint"),
+        "query_fingerprint": _first_text_value(
+            payload.get("query_fingerprint"),
+            retrieval_provenance.get("query_fingerprint"),
+            retrieval_summary.get("query_fingerprint"),
+        ),
+        "query": copy.deepcopy(payload.get("query", {})),
+        "policy": copy.deepcopy(payload.get("policy", {})),
+        "retrieval_backend": payload.get("retrieval_backend"),
+        "retrieval_mode": payload.get("retrieval_mode"),
+        "citation_status": copy.deepcopy(payload.get("citation_status", {})),
+        "retrieval_summary": retrieval_summary,
         "retrieval_downstream_payload": copy.deepcopy(payload),
         "retrieval_citation_bundle": _build_retrieval_citation_bundle_from_payload(payload),
         "retrieval_doc_bundle": _build_retrieval_doc_bundle_from_payload(payload),
         "retrieval_excerpt_bundle": _build_retrieval_excerpt_bundle_from_payload(payload),
-        "retrieval_provenance": _build_retrieval_provenance_from_payload(payload),
+        "retrieval_provenance": retrieval_provenance,
         "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "basket_promotion": _build_basket_promotion_from_payload(payload),
