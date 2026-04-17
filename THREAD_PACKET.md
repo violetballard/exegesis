@@ -2,14 +2,14 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `1bf99c36f9a8759c043b314b6b9d84b534048334`
-- Packet refresh role: `feature-fixer required-fixes packet alignment refresh`
+- Commit: `3e97d729b07a4cdcd71324ae4f6eb3ad534043ea`
+- Packet refresh role: `feature-fixer required-fixes packet alignment refresh v2`
 
 ## Packet Traceability Note
 
 - The implementation commit above refers to the current runtime fix commit for this lane, which carries the reviewer-required command-surface hardening and the current default `demo` / `mvp` command-flow contract on branch tip.
 - This packet refresh keeps the handoff wording aligned with the current implementation and records a fresh required-fixes verification rerun for the reviewer-fix branch tip.
-- Final verification refresh: re-ran the required gate suite on April 16, 2026 (America/Los_Angeles) after confirming the reviewer-required demo-path alignment is still present on this branch tip.
+- Final verification refresh: re-ran the required gate suite on April 16, 2026 (America/Los_Angeles) after confirming the reviewer-required demo-path alignment remains explicit in this branch-tip handoff.
 - Feature-fixer packet refresh: this follow-up exists to make the blocker removal explicit in the handoff itself, so re-review does not have to infer how the command-catalog hardening advances the live MVP loop.
 - Reviewer-fix follow-up scope: this refresh keeps the packet aligned with the actual branch tip, where the default `demo` / `mvp` command-flow helpers still cover `project-open`, `retrieval`, `patch-review`, and `export-handoff`, and where the reviewer-required fix is the explicit demo-path mapping plus the concrete blocker-removal statement in the handoff itself.
 
