@@ -18,6 +18,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - This pointer refresh records the final same-day feature-fixer verification
   for the reviewed branch-tip implementation so the handoff packet carries
   fresh gate evidence for the reviewer-required demo-path mapping fix.
+- This latest metadata-only refresh also serves as the new branch-tip commit
+  for the fixer rerun, without changing the reviewed implementation scope.
 - `THREAD_PACKET.md` now also states the stricter parser-surface guarantee:
   canonical CLI entrypoints cannot be dropped, substituted, reordered, or
   expanded unexpectedly without failing the contract.

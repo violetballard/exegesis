@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `05c0b20ff5e83e02d3ebadabbe39815d0afc0520` (reviewed implementation slice on the pre-refresh branch tip)
-- Packet refresh role: `feature-fixer final gate-rerun handoff refresh`
+- Packet refresh role: `feature-fixer post-review handoff refresh`
 - Packet refresh date: `2026-04-17`
 
 ## Packet Traceability Note
@@ -40,6 +40,10 @@
   focused unit coverage proves canonical-order alignment and rejects
   alias-only substitution, missing-primary-token drift, reordered parser
   surfaces, and unexpected parser-surface expansion for the CLI contract.
+- Reviewer required-fix packet status:
+  this handoff now states the canonical demo-path step explicitly so AGENTS
+  compliance does not depend on inferring that mapping from broader milestone
+  language.
 - Milestone 3 tie-back:
   this mapping stays concrete against the roadmap requirement that the CLI
   must still execute the MVP loop while Textual remains disabled.
@@ -86,6 +90,10 @@
   this metadata-only refresh is the last feature-fixer pass for the current
   branch tip and exists to pair a fresh packet commit with a fresh full-gate
   rerun before re-review.
+- Current fixer-pass traceability:
+  this packet refresh is the new branch-tip metadata commit for the reviewer
+  packet above, with no implementation changes beyond the already-reviewed
+  command-catalog slice.
 
 ## Current Program Focus
 
