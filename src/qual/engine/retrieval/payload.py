@@ -925,6 +925,20 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
         promotion_source = "primary_ranked_excerpt"
     elif first_doc_citation:
         promotion_source = "primary_ranked_doc"
+    lookup_resolution = _first_text_value(
+        payload.get("lookup_resolution"),
+        first_excerpt_hit.get("lookup_resolution") if isinstance(first_excerpt_hit, dict) else None,
+        first_excerpt_provenance.get("lookup_resolution"),
+        retrieval_provenance.get("lookup_resolution"),
+    )
+    lookup_confidentiality_profile = _normalize_query_confidentiality_profile(
+        _first_text_value(
+            payload.get("lookup_confidentiality_profile"),
+            first_excerpt_hit.get("lookup_confidentiality_profile") if isinstance(first_excerpt_hit, dict) else None,
+            first_excerpt_provenance.get("lookup_confidentiality_profile"),
+            retrieval_provenance.get("lookup_confidentiality_profile"),
+        )
+    )
     derived = {
         "promotion_ready": bool(first_excerpt_hit or first_doc_hit or first_excerpt_citation or first_doc_citation),
         "promotion_source": promotion_source,
@@ -1182,6 +1196,14 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
                 ),
             )
         ),
+        "strategies_used": _normalize_text_list_like(
+            _first_non_none_value(
+                payload.get("strategies_used"),
+                retrieval_provenance.get("strategies_used"),
+                retrieval_summary.get("strategies_used"),
+                retrieval_policy.get("active_strategy_ids", []),
+            )
+        ),
         "retrieved_doc_ids": _normalize_text_list_like(
             _first_non_none_value(
                 payload.get("retrieved_doc_ids"),
@@ -1199,6 +1221,10 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
             )
         ),
     }
+    if lookup_resolution is not None:
+        derived["lookup_resolution"] = lookup_resolution
+    if lookup_confidentiality_profile is not None:
+        derived["lookup_confidentiality_profile"] = lookup_confidentiality_profile
     if not primary_snapshot:
         return _normalize_basket_promotion_snapshot(derived)
     return _normalize_basket_promotion_snapshot(
