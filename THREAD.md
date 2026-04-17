@@ -6,11 +6,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Reviewer Fix Alignment
 
-- `THREAD_PACKET.md` now uses the explicit `AGENTS.md` high-risk handoff structure.
+- `THREAD_PACKET.md` now targets the real current branch tip `423adf3c0b23ac152844bbe3b74577cd3afb318b`.
+- The packet no longer claims later code commits were metadata-only; branch-tip command files and focused shared tests are explicitly in scope for re-review.
 - The packet names the concrete canonical demo-path step advanced: `open project/document`.
-- The packet scope is narrowed to the reviewed `command_cli_contract()` command-catalog hardening slice only, not command-surface expansion or new CLI UX.
-- The roadmap and product-vision mapping are narrowed to the `open project/document` CLI entry contract only.
-- The current fixer pass reran the full required gate suite on `2026-04-17` and recorded fresh passing evidence on the current branch tip.
-- This compatibility pointer now tracks the fresh metadata-only verification refresh anchored to pre-commit tip `55740f8874ec0ba959752554fadc5463788f5f81`.
-- The required gate suite remains recorded in `THREAD_PACKET.md`, including the passing rerun evidence for re-review anchored to the branch tip immediately before this docs refresh.
-- Reviewer-required re-review evidence now explicitly records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` as passing on `2026-04-17`.
+- The packet scope is narrowed to branch-tip command-surface hardening only, not broader engine behavior or UI work.
+- The roadmap and product-vision mapping stay limited to CLI compatibility and canonical engine contract stability for the MVP loop.
+- The current fixer pass reran the full required gate suite on `2026-04-17` and records those outcomes in `THREAD_PACKET.md`.
