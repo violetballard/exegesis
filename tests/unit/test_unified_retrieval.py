@@ -3389,6 +3389,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         basket_promotion["excerpt_id"] = None
         basket_promotion["excerpt_fingerprint"] = None
         basket_promotion["excerpt_text_hash"] = None
+        basket_promotion["title_hint"] = None
+        basket_promotion["excerpt_text"] = None
         basket_promotion["span"] = None
 
         payload = build_retrieval_downstream_payload_from_result(

@@ -679,12 +679,12 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
         )
     )
 
-    doc_hits = _normalize_list_like(
-        payload.get("doc_hits", retrieval_doc_bundle.get("doc_hits", []))
-    )
-    excerpt_hits = _normalize_list_like(
-        payload.get("excerpt_hits", retrieval_excerpt_bundle.get("excerpt_hits", []))
-    )
+    doc_hits = _normalize_list_like(payload.get("doc_hits", []))
+    if not doc_hits:
+        doc_hits = _normalize_list_like(retrieval_doc_bundle.get("doc_hits", []))
+    excerpt_hits = _normalize_list_like(payload.get("excerpt_hits", []))
+    if not excerpt_hits:
+        excerpt_hits = _normalize_list_like(retrieval_excerpt_bundle.get("excerpt_hits", []))
     first_doc_hit = doc_hits[0] if doc_hits and isinstance(doc_hits[0], dict) else {}
     first_excerpt_hit = excerpt_hits[0] if excerpt_hits and isinstance(excerpt_hits[0], dict) else {}
     first_doc_provenance = first_doc_hit.get("provenance", {}) if isinstance(first_doc_hit, dict) else {}
