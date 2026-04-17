@@ -52,18 +52,17 @@
 ## Reviewer Required Fixes Satisfied
 
 1. Added the explicit canonical demo-path mapping for this slice: it strengthens the `open project/document` step by keeping the CLI entry contract deterministic while Textual remains disabled.
-2. Tightened the product-vision mapping so the handoff claims `Canonical engine contract` only, without claiming `Auditable state and workflow`.
-3. Kept the packet scope language narrow to command-catalog determinism, compatibility-token normalization, and parser-drift rejection already present on this branch.
+2. Tightened the scope wording so this packet describes a narrow command-catalog contract-hardening slice, not broader completion of the whole `feat-commands` lane.
+3. Regenerated the handoff packet with the required `AGENTS.md` plan-alignment statements and without claiming unrelated gate-failure remediation.
 
 ## Fixer Verification Refresh
 
 - Reverified the reviewer-fix branch tip in this lane worktree on `2026-04-17`.
-- Confirmed the required fix packet remains aligned with the current branch tip after a full local gate rerun.
-- Did not reproduce any failing gate output on the current branch tip; the reviewer-required fix in this pass is the refreshed passing evidence below.
+- Confirmed the refreshed packet now satisfies the reviewer’s three required metadata fixes: explicit demo-path mapping, narrower slice wording, and regenerated handoff structure.
+- Re-ran the required local gates on the current branch tip so the refreshed packet carries fresh passing evidence for re-review.
 
 ## Re-Review Gate Evidence
 
-- Review status addressed: reviewer-required fix `1. Resolve failing gate output and include passing results.`
 - Re-review date: `2026-04-17`
 - Passing gate rerun recorded for the current branch tip before this metadata-only commit:
   - `make scope-check`: `PASS`
@@ -101,7 +100,7 @@
 - Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
 - Tightened demo workflow preferred command resolution and normalized demo compatibility variants in `src/qual/commands/catalog.py` so the command surface stays deterministic at the current branch tip.
 - Added and retained focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection at the command-catalog boundary.
-- Refreshed the handoff packet and thread pointer so re-review evaluates the true branch-tip command-surface slice with the required AGENTS structure.
+- Refreshed the handoff packet and thread pointer so re-review evaluates the true branch-tip command-catalog hardening slice with the required AGENTS structure.
 
 ## Kickoff Budget / Limits Compliance
 
