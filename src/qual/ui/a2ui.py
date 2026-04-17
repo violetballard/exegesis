@@ -3373,12 +3373,7 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
     resilient when upstream callers drift.
     """
 
-    requested_kind = None
-    if kind is not None:
-        try:
-            requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
-        except ValueError:
-            requested_kind = None
+    requested_kind = _normalize_terminal_artifact_kind_hint(kind)
     if requested_kind == "card" and _contains_action_or_selection_payload(artifact) and not _should_preserve_raw_leaf_card_default(artifact):
         return _render_invalid_terminal_card(artifact)
     fallback_target: tuple[Any, str] | None = None
@@ -3473,12 +3468,7 @@ def resolve_terminal_artifact_cli_fallback_target(
     before falling back to the card default.
     """
 
-    requested_kind = None
-    if kind is not None:
-        try:
-            requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
-        except ValueError:
-            requested_kind = None
+    requested_kind = _normalize_terminal_artifact_kind_hint(kind)
     if requested_kind is None and _should_preserve_raw_leaf_card_default(artifact):
         return artifact, "card"
     if requested_kind is None and isinstance(artifact, Mapping):
@@ -3705,6 +3695,17 @@ def _prepare_terminal_artifact_invalid_preview(artifact: Any, *, expected_kind: 
     return artifact
 
 
+def _normalize_terminal_artifact_kind_hint(kind: Any) -> str | None:
+    """Return the canonical terminal-artifact kind hint, if any."""
+
+    if not isinstance(kind, str):
+        return None
+    normalized_kind = kind.strip().lower()
+    if normalized_kind in _TERMINAL_ARTIFACT_SUPPORTED_KIND_SET:
+        return normalized_kind
+    return None
+
+
 def _normalize_terminal_artifact_kind(artifact: Any, *, kind: str | None) -> str:
     if kind is None:
         if isinstance(artifact, ActionRef):
@@ -3717,11 +3718,9 @@ def _normalize_terminal_artifact_kind(artifact: Any, *, kind: str | None) -> str
                 return inferred_kind
         return "card"
 
-    if not isinstance(kind, str):
+    normalized_kind = _normalize_terminal_artifact_kind_hint(kind)
+    if normalized_kind is None:
         raise ValueError("kind must be a string")
-    normalized_kind = kind.strip().lower()
-    if normalized_kind not in _TERMINAL_ARTIFACT_SUPPORTED_KIND_SET:
-        raise ValueError("kind must be one of: card, action, selection")
     return normalized_kind
 
 

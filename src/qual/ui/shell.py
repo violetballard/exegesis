@@ -11,6 +11,7 @@ from .a2ui import (
     SelectionRef,
     normalize_action_ref,
     normalize_selection_ref,
+    _normalize_terminal_artifact_kind_hint,
     _should_preserve_raw_leaf_card_default,
     resolve_terminal_artifact_cli_fallback_target,
     render_terminal_action,
@@ -378,13 +379,8 @@ class ShellUI:
         return value.startswith("<") and value.endswith(">") and " object at 0x" in value
 
     @staticmethod
-    def _normalize_fallback_kind(kind: str | None) -> str | None:
-        if not isinstance(kind, str):
-            return None
-        normalized_kind = kind.strip().lower()
-        if normalized_kind in {"card", "action", "selection"}:
-            return normalized_kind
-        return None
+    def _normalize_fallback_kind(kind: Any) -> str | None:
+        return _normalize_terminal_artifact_kind_hint(kind)
 
     @staticmethod
     def _resolve_fallback_artifact(

@@ -2619,6 +2619,17 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             render_terminal_cli_fallback(action_envelope),
         )
 
+    def test_terminal_artifact_cli_fallback_entrypoint_treats_non_string_kind_hints_as_absent(self) -> None:
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+        shell = ShellUI()
+
+        self.assertEqual(render_terminal_cli_fallback(raw_leaf, kind=123), render_terminal_cli_fallback(raw_leaf))
+        self.assertEqual(shell.render_artifact(raw_leaf, kind=123), shell.render_artifact(raw_leaf))
+
     def test_terminal_artifact_cli_fallback_entrypoint_preserves_invalid_card_hints_for_malformed_envelopes(
         self,
     ) -> None:
