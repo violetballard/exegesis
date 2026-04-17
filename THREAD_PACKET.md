@@ -51,7 +51,8 @@ This change advances the canonical demo-path step `retrieve relevant material` b
 - Pre-fix packet branch tip: `37690f6d63ee0418953d27a0e853e7dadb83610f`
 - Reviewer packet source-of-truth anchor before this fixer commit: reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - This metadata-only refresh preserves the reviewed implementation head, aligns the operative reviewed implementation range to the reviewer packet above, and keeps the handoff packet explicitly mapped to the canonical demo-path step `retrieve relevant material`.
-- The checked-in retrieval kickoff packet and lane metadata already classify the slice as shared/high-risk work under the approved `tests/unit/test_unified_retrieval.py` exception; this operative packet re-emits the same budget story for re-review.
+- This operative packet is the writable checked-in source of truth for the reviewer-required high-risk budget story and canonical demo-path mapping in this fixer pass.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are sandbox read-only in this worktree during the fixer pass, so they could not be refreshed here.
 
 ## Required Reviewer Fixes Addressed
 
