@@ -1297,6 +1297,29 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             self.assertEqual(fallback_artifact, resolved_artifact)
             self.assertEqual(fallback_kind, resolved_kind)
 
+    def test_shell_ui_keeps_ambiguous_raw_leaf_payloads_on_card_default_during_fallback(self) -> None:
+        shell = ShellUI()
+        raw_action = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+        raw_selection = {
+            "id": "choice-1",
+            "label": "Choice",
+            "payload": {"nested": {"items": [1, 2]}},
+        }
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            action_text = shell.render_artifact(raw_action)
+            selection_text = shell.render_artifact(raw_selection)
+
+        for text in (action_text, selection_text):
+            self.assertIn("[<missing>] <untitled>", text)
+            self.assertNotIn("[ActionRef]", text)
+            self.assertNotIn("[SelectionRef]", text)
+            self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
+
     def test_terminal_card_renderer_recovers_valid_card_payloads_from_malformed_terminal_artifacts(
         self,
     ) -> None:
@@ -1866,7 +1889,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("resolver boom", text)
         self.assertNotIn("card boom", text)
 
-    def test_shell_ui_recovers_schema_valid_leaf_payloads_when_fallback_resolution_raises(self) -> None:
+    def test_shell_ui_keeps_schema_valid_leaf_payloads_on_card_default_when_fallback_resolution_raises(self) -> None:
         shell = ShellUI()
 
         with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
@@ -1886,13 +1909,15 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                     }
                 )
 
-        self.assertIn("[ActionRef] Export", action_text)
-        self.assertIn("Action schema v1", action_text)
-        self.assertNotIn("[UnknownCard] <invalid card>", action_text)
+        self.assertIn("[<missing>] <untitled>", action_text)
+        self.assertNotIn("[ActionRef]", action_text)
+        self.assertNotIn("[SelectionRef]", action_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", action_text)
 
-        self.assertIn("[SelectionRef] Choice", selection_text)
-        self.assertIn("Selection schema v1", selection_text)
-        self.assertNotIn("[UnknownCard] <invalid card>", selection_text)
+        self.assertIn("[<missing>] <untitled>", selection_text)
+        self.assertNotIn("[ActionRef]", selection_text)
+        self.assertNotIn("[SelectionRef]", selection_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
 
     def test_shell_ui_prefers_partial_leaf_hints_over_generic_card_fallbacks(self) -> None:
         shell = ShellUI()
@@ -1921,7 +1946,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Selection schema v1", selection_text)
         self.assertNotIn("[UnknownCard] <invalid card>", selection_text)
 
-    def test_shell_ui_recovers_schema_valid_leaf_payloads_when_resolver_returns_card(self) -> None:
+    def test_shell_ui_keeps_schema_valid_leaf_payloads_on_card_default_when_resolver_returns_card(self) -> None:
         shell = ShellUI()
 
         with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
@@ -1940,15 +1965,15 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 }
             )
 
-        self.assertIn("[ActionRef] Export", action_text)
-        self.assertIn("Action schema v1", action_text)
-        self.assertNotIn("[<missing>] <untitled>", action_text)
-        self.assertNotIn("[UnknownCard] <invalid card>", action_text)
+        self.assertIn("[<missing>] <untitled>", action_text)
+        self.assertNotIn("[ActionRef]", action_text)
+        self.assertNotIn("[SelectionRef]", action_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", action_text)
 
-        self.assertIn("[SelectionRef] Choice", selection_text)
-        self.assertIn("Selection schema v1", selection_text)
-        self.assertNotIn("[<missing>] <untitled>", selection_text)
-        self.assertNotIn("[UnknownCard] <invalid card>", selection_text)
+        self.assertIn("[<missing>] <untitled>", selection_text)
+        self.assertNotIn("[ActionRef]", selection_text)
+        self.assertNotIn("[SelectionRef]", selection_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
 
     def test_shell_ui_unwraps_malformed_terminal_envelopes_for_explicit_kinds(self) -> None:
         shell = ShellUI()

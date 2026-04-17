@@ -33,27 +33,34 @@ class ShellUI:
             if self._normalize_fallback_kind(kind) == "card" and self._contains_action_or_selection_payload(artifact):
                 # An explicit card hint should never render an action/selection leaf as a card.
                 return _render_invalid_terminal_card(artifact)
+        try:
+            fallback_artifact, fallback_kind = self._resolve_fallback_artifact(artifact, kind=kind)
+        except Exception:
+            fallback_artifact = artifact
+            fallback_kind = self._normalize_fallback_kind(kind)
+            if fallback_kind is None:
+                fallback_kind = self._infer_fallback_kind(artifact)
+        if (
+            kind is None
+            and fallback_kind in {"action", "selection"}
+            and self._should_preserve_card_default_for_raw_leaf(artifact)
+        ):
+            fallback_artifact = artifact
+            fallback_kind = "card"
+        if fallback_kind == "action":
             try:
-                fallback_artifact, fallback_kind = self._resolve_fallback_artifact(artifact, kind=kind)
+                return render_terminal_action(fallback_artifact)
             except Exception:
-                fallback_artifact = artifact
-                fallback_kind = self._normalize_fallback_kind(kind)
-                if fallback_kind is None:
-                    fallback_kind = self._infer_fallback_kind(artifact)
-            if fallback_kind == "action":
-                try:
-                    return render_terminal_action(fallback_artifact)
-                except Exception:
-                    return _render_invalid_terminal_action(fallback_artifact)
-            if fallback_kind == "selection":
-                try:
-                    return render_terminal_selection(fallback_artifact)
-                except Exception:
-                    return _render_invalid_terminal_selection(fallback_artifact)
+                return _render_invalid_terminal_action(fallback_artifact)
+        if fallback_kind == "selection":
             try:
-                return render_terminal_card(fallback_artifact)
+                return render_terminal_selection(fallback_artifact)
             except Exception:
-                return _render_invalid_terminal_card(fallback_artifact)
+                return _render_invalid_terminal_selection(fallback_artifact)
+        try:
+            return render_terminal_card(fallback_artifact)
+        except Exception:
+            return _render_invalid_terminal_card(fallback_artifact)
 
     def render_startup(self, runtime: EngineRuntime) -> str:
         item_ids = self._snapshot_item_ids(runtime.basket.item_ids)
@@ -340,6 +347,31 @@ class ShellUI:
             if inferred_kind is not None:
                 return artifact, inferred_kind
             return artifact, fallback_kind
+
+    @staticmethod
+    def _should_preserve_card_default_for_raw_leaf(artifact: Any) -> bool:
+        """Return ``True`` when a plain leaf-shaped mapping should stay a card.
+
+        The internal fallback resolver can recover schema-valid raw action and
+        selection mappings, but the user-facing shell should keep ambiguous
+        untyped leaves on the same card-default path that the primary renderer
+        uses. Typed refs, envelopes, and hint-bearing payloads are excluded so
+        structured artifacts still recover as structured leaves.
+        """
+
+        if isinstance(artifact, (ActionRef, SelectionRef)):
+            return False
+        if not isinstance(artifact, Mapping):
+            return False
+
+        artifact_type = artifact.get("type")
+        if isinstance(artifact_type, str) and artifact_type.strip():
+            return False
+        if any(field in artifact for field in ("confirm", "selected", "disabled")):
+            return False
+        if any(field in artifact for field in ("blocks", "actions")):
+            return False
+        return all(field in artifact for field in ("id", "label", "payload"))
 
     @staticmethod
     def _recover_terminal_artifact_envelope_fallback(
