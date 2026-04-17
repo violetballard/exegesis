@@ -30,6 +30,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_cli_fallback_contract_fingerprints,
     describe_terminal_artifact_cli_fallback_target_contract,
     describe_terminal_artifact_cli_fallback_target_contract_fingerprints,
+    describe_terminal_artifact_cli_fallback_route_contract,
     describe_terminal_artifact_kind_contracts,
     describe_terminal_artifact_contract_fingerprints,
     describe_terminal_artifact_contract,
@@ -65,6 +66,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_envelope_contract_fingerprint,
     terminal_artifact_cli_fallback_contract_fingerprint,
     terminal_artifact_cli_fallback_target_contract_fingerprint,
+    terminal_artifact_cli_fallback_route_contract_fingerprint,
     terminal_artifact_raw_leaf_card_default_contract_fingerprint,
     terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint,
     terminal_artifact_render_target_contract_fingerprint,
@@ -2662,6 +2664,78 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             fingerprints_with_self["terminal_artifact_raw_leaf_card_default_contract"],
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         )
+
+    def test_terminal_artifact_cli_fallback_route_contract_is_opt_in_and_fingerprintable(self) -> None:
+        from src.qual.ui import (
+            describe_terminal_artifact_cli_fallback_route_contract as exported_route_contract,
+            terminal_artifact_cli_fallback_route_contract_fingerprint as exported_route_fingerprint,
+        )
+
+        manifest = describe_terminal_artifact_cli_fallback_contract()
+        route_manifest = describe_terminal_artifact_cli_fallback_route_contract()
+        routed_manifest = describe_terminal_artifact_cli_fallback_contract(
+            include_terminal_artifact_cli_fallback_route=True,
+        )
+        fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints(
+            include_terminal_artifact_cli_fallback_route=True,
+            include_contract_aliases=True,
+        )
+
+        self.assertIs(exported_route_contract, describe_terminal_artifact_cli_fallback_route_contract)
+        self.assertIs(exported_route_fingerprint, terminal_artifact_cli_fallback_route_contract_fingerprint)
+        self.assertNotIn("terminal_artifact_cli_fallback_route_contract", manifest)
+        self.assertEqual(route_manifest["contract_version"], 2)
+        self.assertEqual(route_manifest["a2ui_version"], 1)
+        self.assertEqual(route_manifest["terminal_artifact_cli_fallback_route_schema_version"], 1)
+        self.assertEqual(route_manifest["type"], "TerminalArtifactCliFallbackRouteContract")
+        self.assertEqual(
+            route_manifest["route_precedence"],
+            [
+                "shared_target_resolver",
+                "shell_refinement",
+                "render_terminal_action",
+                "render_terminal_selection",
+                "render_terminal_card",
+            ],
+        )
+        self.assertEqual(
+            route_manifest["leaf_renderers"],
+            {
+                "card": "render_terminal_card",
+                "action": "render_terminal_action",
+                "selection": "render_terminal_selection",
+            },
+        )
+        self.assertEqual(
+            route_manifest["shell_refinement_policy"],
+            {
+                "preserve_raw_leaf_card_default": True,
+                "invalid_kind_treated_as_absent": True,
+                "refine_card_underflow": True,
+            },
+        )
+        self.assertEqual(
+            route_manifest["contract_fingerprints"]["terminal_artifact_cli_fallback_target_contract"],
+            terminal_artifact_cli_fallback_target_contract_fingerprint(),
+        )
+        self.assertEqual(routed_manifest["terminal_artifact_cli_fallback_route_contract"], route_manifest)
+        self.assertEqual(
+            routed_manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"],
+            route_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            routed_manifest["terminal_artifact_cli_fallback_route_contract_fingerprints"],
+            route_manifest["contract_fingerprints"],
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route_contract"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(len(route_manifest["contract_fingerprint"]), 64)
 
     def test_raw_leaf_card_default_helper_only_preserves_untyped_leaf_payloads(self) -> None:
         self.assertTrue(
