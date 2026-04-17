@@ -10,20 +10,23 @@ older lane/fixer prompts.
 
 - Exact canonical demo-path steps advanced: `open project/document`,
   `retrieve relevant material`, and `preview and apply or reject a patch`.
-- Concrete blocker removed: parser entrypoints and catalog ordering can no
+- Primary branch-tip step: `open project/document`. The active runtime change
+  keeps `document-open` and `open-document` normalized onto the canonical
+  `bootstrap` parser entrypoint instead of creating a divergent document-open
+  surface.
+- Supporting contract guard: parser entrypoints and catalog ordering can no
   longer drift silently away from the operator contract for those steps;
   `command_cli_contract()` now fails fast when the parser and catalog diverge.
-- Why these steps: the reviewed command-catalog work keeps the existing parser
-  surface aligned with canonical command names and order instead of relying on
-  implicit ordering assumptions.
-- Scope boundary: this slice stays in CLI compatibility and command-catalog
-  validation. It does not add new commands, new flags, handler logic, or a
-  wider MVP loop.
+- Scope boundary: this slice stays in CLI compatibility, command-catalog
+  validation, alias normalization, and focused regression coverage. It does not
+  add new commands, new flags, handler logic, or a wider MVP loop.
 
 ## Scope Tightening
 
 - Roadmap impact: preserve deterministic CLI compatibility for the current
-  engine-first MVP command path across bootstrap, retrieval, and diff preview.
+  engine-first MVP command path across bootstrap, retrieval, and diff preview,
+  including document-open compatibility aliases routing through bootstrap.
 - Vision impact: keep the canonical engine contract stable by making the active
-  command surface explicit and fail-fast when parser/catalog ordering drifts
-  instead of silently changing the operator-facing demo path.
+  command surface explicit, keeping document-open aliases on the bootstrap
+  route, and failing fast when parser/catalog ordering drifts instead of
+  silently changing the operator-facing demo path.

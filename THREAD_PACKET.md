@@ -2,15 +2,15 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh commit: `this metadata-only feature-fixer refresh commit on codex/feat-commands`
-- Packet refresh role: `feature-fixer required-fixes packet retargeting`
+- Commit: `fb8f9515f7c4156c3a9038e85d1c0f7c73757658`
+- Packet refresh commit: `this feature-fixer implementation-and-packet refresh commit on codex/feat-commands`
+- Packet refresh role: `feature-fixer required-fixes coverage and packet retargeting`
 
 ## Packet Traceability Note
 
-- The implementation review target remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Later packet-refresh commits on this branch are metadata only unless a new implementation packet is explicitly regenerated.
-- This follow-up refresh is metadata only. It does not change the reviewed implementation; it tightens the handoff text so the reviewer-required demo-path mapping and scope boundary are explicit for the command-catalog slice.
+- The active review target is the actual branch-tip implementation rooted at `fb8f9515f7c4156c3a9038e85d1c0f7c73757658`, which adds normalized `document-open` / `open-document` bootstrap compatibility in `src/qual/commands/catalog.py`.
+- This follow-up fixer commit keeps that runtime behavior in scope, adds focused regression coverage for it in `tests/unit/test_commands_catalog.py`, and retargets the handoff text so the review basis matches the real branch tip.
+- No docs-only traceability claim is being made for `fb8f9515f7c4156c3a9038e85d1c0f7c73757658`; it is implementation scope.
 
 ## Current Program Focus
 
@@ -26,7 +26,7 @@
 
 ## Scope Goal
 
-- Harden the existing CLI command contract for the engine-first MVP loop so `command_cli_contract()` stays deterministic, preserves canonical command order, and fails fast if the parser surface drifts from the catalog while Textual remains disabled.
+- Keep the CLI-first MVP command surface deterministic and migration-safe by preserving canonical parser/catalog alignment while normalizing document-open bootstrap aliases back onto the existing `bootstrap` entrypoint.
 
 ## Canonical Demo-Path Step Advanced
 
@@ -34,19 +34,22 @@
   - `open project/document`
   - `retrieve relevant material`
   - `preview and apply or reject a patch`
-- AGENTS alignment: this slice makes those existing CLI demo-path steps more reliable by keeping the parser-facing command list locked to the canonical catalog order instead of allowing silent drift.
-- Concrete blocker removed: before this change, parser entrypoints could diverge from the catalog and still produce a plausible-looking CLI contract. This change removes that blocker by requiring the parser-derived canonical names to match `command_names()` exactly and by failing fast when they do not.
-- Scope boundary: this slice is limited to command-catalog contract validation and its focused regression coverage. It does not add new commands, add new flags, widen the MVP loop, or embed engine behavior in handlers.
+- Primary step advanced by the branch-tip alias work: `open project/document`.
+- Supporting contract steps kept deterministic by the existing command-catalog checks: `retrieve relevant material` and `preview and apply or reject a patch`.
+- Concrete blockers removed:
+  - `document-open` / `open-document` now resolve back onto the canonical `bootstrap` parser entrypoint instead of drifting into an unrecognized or divergent document-open surface.
+  - Parser-facing canonical command order and accepted CLI entrypoints remain locked to the declared catalog so parser/catalog drift fails fast instead of silently changing the operator contract.
+- Scope boundary: this slice stays in command-catalog compatibility, resolution, and regression coverage. It does not add new commands, add new flags, widen the MVP loop, or embed engine behavior in handlers.
 
 ## Scope-Tightening Note
 
-- This is not general CLI cleanup. It is a narrow command-catalog hardening change for the existing MVP command loop.
-- This is a contract-only `feat-commands` slice for Milestone 3 CLI compatibility while Textual remains disabled.
-- It does not add new commands, flags, or handler logic. It only makes the existing command contract deterministic and drift-resistant.
+- This is not general CLI cleanup. It is a narrow CLI compatibility and command-catalog hardening slice for the existing MVP command loop.
+- This remains Milestone 3 CLI compatibility work while Textual stays disabled.
+- It does not add new commands, new handler logic, or new workflow steps. It only preserves and normalizes the existing operator-facing command surface.
 
 ## Ready for Handoff
 
-- This work now makes the canonical Milestone 3 CLI path more real because the catalog rejects parser drift before it can silently alter the operator-facing command route for open, retrieval, and patch-review steps.
+- This work now makes the canonical Milestone 3 CLI path more real because the active `open project/document` command aliases normalize back to the canonical bootstrap route, while the parser-facing command contract still rejects catalog drift before it can silently alter retrieval or patch-review routing.
 - Pre-handoff alignment statement: this is CLI compatibility and demo-path contract work for the active MVP loop, not standalone infra cleanup.
 
 ## Priority Outcomes
@@ -74,10 +77,10 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares parser-derived canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
-- Preserved canonical command ordering in the returned CLI contract by reusing the validated canonical tuple instead of rebuilding a divergent list.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-- Refreshed the handoff packet so the claimed review scope, demo-path mapping, and scope boundary match this command-catalog-only slice.
+- Normalized `document-open` and `open-document` back onto the canonical `bootstrap` command path in `src/qual/commands/catalog.py` so document-open compatibility stays routed through the existing project-open parser entrypoint.
+- Kept the parser-facing CLI contract deterministic by validating declared entrypoints and canonical names against the command catalog instead of allowing silent parser/catalog drift.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the document-open alias normalization and the stricter CLI contract drift checks.
+- Retargeted the handoff packet so the claimed review scope, demo-path mapping, and traceability note match the actual branch tip.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -90,10 +93,10 @@
 
 ## Tasks Completed
 
-1. `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch`: locked the parser-facing CLI contract to deterministic catalog data so those existing steps keep the canonical command order instead of drifting silently.
-2. Hardened `command_cli_contract()` to fail fast when parser-derived canonical names diverge from `command_names()`.
-3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Refreshed the handoff packet so the review scope explicitly stays limited to command-catalog determinism and does not claim new commands, flags, or handler logic.
+1. `open project/document`: normalized `document-open` and `open-document` so those document-open compatibility aliases resolve through the canonical `bootstrap` entrypoint instead of creating a divergent command surface.
+2. `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch`: kept the parser-facing CLI contract deterministic by validating declared entrypoints and canonical command ordering against the catalog.
+3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for alias normalization and CLI contract drift rejection at the actual branch tip.
+4. Refreshed the handoff packet and compatibility summary so the review scope explicitly matches the real implementation under review.
 
 ## Files Changed
 
@@ -102,14 +105,13 @@
 - `src/qual/commands/catalog.py`
 - `tests/unit/test_commands_catalog.py`
 
-### Metadata-only handoff files
+### Handoff alignment files
 
 - `THREAD.md`
 - `THREAD_PACKET.md`
 
 ## Commands Run and Outcomes
 
-- Revalidation note: reran the required lane gates during this metadata-only feature-fixer refresh; all remained green.
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
@@ -119,7 +121,7 @@
 
 ## Risks / Blockers
 
-- Residual risk: low. Future intentional CLI parser changes still need matching catalog and regression-test updates or `command_cli_contract()` will fail fast by design.
+- Residual risk: low. Future intentional CLI parser or alias changes still need matching catalog and regression-test updates or the contract checks will fail fast by design.
 - Blockers: none
 
 ## Required Handoff Fields
@@ -127,16 +129,16 @@
 ### Roadmap item(s) affected
 
 - Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands by keeping the existing CLI route for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` deterministic while Textual remains disabled.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints for the current engine-first MVP loop, specifically by preventing parser/catalog drift in the existing bootstrap, retrieval/context, and diff-preview command surface.
+- `feat-commands` - CLI compatibility and migration-safe entrypoints for the current engine-first MVP loop, specifically by preventing parser/catalog drift and by keeping document-open compatibility aliases routed through the canonical bootstrap command surface.
 
 ### Vision capability affected
 
-- Canonical engine contract - the operator-facing CLI contract for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` now fails fast when parser drift would otherwise silently change the command surface.
-- Auditable state and workflow - the catalog/parser consistency check makes that existing CLI contract explicit and traceable instead of depending on implicit ordering assumptions.
+- Canonical engine contract - the operator-facing CLI contract for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` now keeps document-open compatibility aliases on the canonical bootstrap route and fails fast when parser drift would otherwise silently change the command surface.
+- Auditable state and workflow - catalog/parser consistency and deterministic alias normalization make the active CLI contract explicit and traceable instead of depending on implicit ordering or untracked alias behavior.
 
 ### Routing/provider impact note
 
-- None. This branch only affects local command-catalog validation and focused regression coverage.
+- None. This branch only affects local command-catalog validation, alias normalization, and focused regression coverage.
 
 ## Scope-check / Ownership Note
 
