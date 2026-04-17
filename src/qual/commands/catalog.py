@@ -100,6 +100,24 @@ class CommandDemoPathContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoLoopEntry:
+    token: str
+    canonical_name: str
+    flow_step: str
+    argv: tuple[str, ...]
+    description: str
+    kind: str
+
+
+@dataclass(frozen=True)
+class CommandDemoLoopContract:
+    tokens: tuple[str, ...]
+    entries: tuple[CommandDemoLoopEntry, ...]
+    invocation_plan: tuple[CommandInvocationPlanEntry, ...] = ()
+    lookup_table: tuple[tuple[str, str], ...] = ()
+
+
+@dataclass(frozen=True)
 class CommandFlowSequence:
     flow_steps: tuple[str, ...]
     names: tuple[str, ...]
@@ -2686,6 +2704,118 @@ def command_mvp_path_invocation_plan(
 ) -> tuple[CommandInvocationPlanEntry, ...]:
     """Return parser-ready argv for the current MVP command sequence."""
     return command_demo_path_invocation_plan(specs)
+
+
+_COMMAND_DEMO_LOOP_TOKENS = (
+    "project-open",
+    "retrieval",
+    "patch-review",
+    "apply-patch",
+    "reject-patch",
+    "persist",
+    "export-handoff",
+)
+
+_COMMAND_DEMO_LOOP_DESCRIPTIONS = {
+    "apply-patch": "Apply the reviewed patch through the terminal orchestration bridge.",
+    "reject-patch": "Reject the reviewed patch through the terminal orchestration bridge.",
+    "persist": "Persist current work and continue the CLI-first MVP loop.",
+    "export-handoff": "Prepare the reviewed result for export handoff.",
+}
+
+
+def _demo_loop_description_for(token: str, resolved: ResolvedCommand) -> str:
+    return _COMMAND_DEMO_LOOP_DESCRIPTIONS.get(token, resolved.description)
+
+
+def _validate_command_demo_loop_contract(contract: CommandDemoLoopContract) -> None:
+    if contract.tokens != tuple(entry.token for entry in contract.entries):
+        raise ValueError("Command demo loop tokens are inconsistent")
+    if contract.invocation_plan != tuple(
+        CommandInvocationPlanEntry(
+            flow_step=entry.flow_step,
+            name=entry.canonical_name,
+            argv=entry.argv,
+            description=entry.description,
+        )
+        for entry in contract.entries
+    ):
+        raise ValueError("Command demo loop invocation plan is inconsistent")
+    if contract.lookup_table != tuple((entry.token, entry.canonical_name) for entry in contract.entries):
+        raise ValueError("Command demo loop lookup table is inconsistent")
+
+
+@lru_cache(maxsize=None)
+def command_demo_loop_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoLoopContract:
+    ordered_flow_steps = command_demo_flow_steps() if specs is COMMAND_SPECS else command_flow_steps(specs)
+    entries: list[CommandDemoLoopEntry] = []
+    for token in _COMMAND_DEMO_LOOP_TOKENS:
+        resolved = _prefer_demo_flow_smoke_resolution(
+            command_resolve_for(specs, token, ordered_flow_steps),
+            specs=specs,
+            raw_argv=(token,),
+        )
+        if not resolved.matched:
+            raise ValueError(f"Command demo loop token is unresolved: {token}")
+        entries.append(
+            CommandDemoLoopEntry(
+                token=token,
+                canonical_name=resolved.canonical_name,
+                flow_step=resolved.flow_step,
+                argv=resolved.argv,
+                description=_demo_loop_description_for(token, resolved),
+                kind=resolved.kind,
+            )
+        )
+    contract = CommandDemoLoopContract(
+        tokens=tuple(entry.token for entry in entries),
+        entries=tuple(entries),
+        invocation_plan=tuple(
+            CommandInvocationPlanEntry(
+                flow_step=entry.flow_step,
+                name=entry.canonical_name,
+                argv=entry.argv,
+                description=entry.description,
+            )
+            for entry in entries
+        ),
+        lookup_table=tuple((entry.token, entry.canonical_name) for entry in entries),
+    )
+    _validate_command_demo_loop_contract(contract)
+    return contract
+
+
+@lru_cache(maxsize=None)
+def command_mvp_loop_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoLoopContract:
+    return command_demo_loop_contract(specs)
+
+
+def command_demo_loop_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return command_demo_loop_contract(specs).tokens
+
+
+def command_mvp_loop_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return command_demo_loop_tokens(specs)
+
+
+def command_demo_loop_invocation_plan(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandInvocationPlanEntry, ...]:
+    return command_demo_loop_contract(specs).invocation_plan
+
+
+def command_mvp_loop_invocation_plan(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandInvocationPlanEntry, ...]:
+    return command_demo_loop_invocation_plan(specs)
 
 
 def command_demo_surface_invocation_table(
