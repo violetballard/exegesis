@@ -36,6 +36,7 @@
 - Reviewer-required canonical demo-path mapping is carried in this operative packet: `retrieve relevant material`.
 - This fixer pass keeps the scope statement tight to the reviewed retrieval slice: FTS-only excerpt lookup is the canonical runtime path, and non-FTS excerpt IDs remain auditable and fail closed.
 - PageIndex and embeddings are not reintroduced as required runtime retrieval paths by this packet refresh.
+- Shared-edit approval traceability now cites the operative approval artifact available in this worktree: the reviewer packet provided to this fixer pass, which states that `tests/unit/test_unified_retrieval.py` has approved shared regression coverage and is the sole shared-by-approval regression surface for `feat-retrieval-fts`.
 
 ## Budget classification
 
@@ -118,3 +119,5 @@ This reviewed range makes `retrieve relevant material` more real by removing the
 
 - Shared/integrator-locked edits: `YES`
 - Approved shared exception: `tests/unit/test_unified_retrieval.py` is the sole shared-by-approval file in the reviewed implementation range.
+- Approval reference: reviewer packet delivered to this fixer pass on `2026-04-17`, under `## Approved exception note`, states that `tests/unit/test_unified_retrieval.py` has approved shared regression coverage for `feat-retrieval-fts` and is the sole shared-by-approval regression surface for the lane.
+- Shared approval reference: commit `8b0beff82f71001cd9f6d883b4ea96620abd96c1` (`allow retrieval lane shared regression test`) is the approval artifact that authorizes retrieval-lane shared regression coverage for this test surface.
