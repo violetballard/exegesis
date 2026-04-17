@@ -570,11 +570,17 @@ def describe_terminal_artifact_raw_leaf_card_default_contract_fingerprints(
     )
 
 
-def describe_terminal_artifact_contract() -> dict[str, Any]:
+def describe_terminal_artifact_contract(
+    include_terminal_artifact_cli_fallback_route: bool = False,
+) -> dict[str, Any]:
     """Return the stable terminal artifact dispatch contract manifest."""
 
-    manifest = _build_terminal_artifact_contract_manifest()
-    fingerprint = terminal_artifact_contract_fingerprint()
+    manifest = _build_terminal_artifact_contract_manifest(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
+    fingerprint = terminal_artifact_contract_fingerprint(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
     manifest["terminal_artifact_fingerprint"] = fingerprint
     manifest["terminal_artifact_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
@@ -599,6 +605,23 @@ def describe_terminal_artifact_contract() -> dict[str, Any]:
     manifest["terminal_artifact_envelope_contract_fingerprint"] = manifest["terminal_artifact_envelope_fingerprint"]
     manifest["terminal_artifact_kind_contracts"] = _snapshot_contract_section(manifest["kind_contracts"])
     manifest["terminal_artifact_kind_contracts_fingerprint"] = terminal_artifact_kind_contracts_fingerprint()
+    if include_terminal_artifact_cli_fallback_route and "terminal_artifact_cli_fallback_route" in manifest:
+        terminal_artifact_cli_fallback_route = _snapshot_contract_section(
+            manifest["terminal_artifact_cli_fallback_route"]
+        )
+        manifest["terminal_artifact_cli_fallback_route"] = terminal_artifact_cli_fallback_route
+        manifest["terminal_artifact_cli_fallback_route_contract"] = _snapshot_contract_section(
+            terminal_artifact_cli_fallback_route
+        )
+        manifest["terminal_artifact_cli_fallback_route_fingerprint"] = terminal_artifact_cli_fallback_route[
+            "contract_fingerprint"
+        ]
+        manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"] = manifest[
+            "terminal_artifact_cli_fallback_route_fingerprint"
+        ]
+        manifest["terminal_artifact_cli_fallback_route_contract_fingerprints"] = _snapshot_contract_section(
+            terminal_artifact_cli_fallback_route["contract_fingerprints"]
+        )
     return manifest
 
 
@@ -889,12 +912,16 @@ def describe_terminal_artifact_kind_contracts() -> dict[str, dict[str, str]]:
 def describe_terminal_artifact_contract_fingerprints(
     include_terminal_artifact: bool = False,
     include_kind_contracts: bool = False,
+    include_terminal_artifact_cli_fallback_route: bool = False,
     include_contract_aliases: bool = False,
 ) -> dict[str, str]:
     """Return stable fingerprints for the terminal artifact contract and subcontracts.
 
     Pass ``include_contract_aliases=True`` to include alias keys that mirror
-    the manifest field names.
+    the manifest field names. Pass
+    ``include_terminal_artifact_cli_fallback_route=True`` to include the CLI
+    fallback route contract fingerprint itself alongside the terminal artifact
+    dispatch contract fingerprints.
     """
 
     fingerprints = {
@@ -908,14 +935,25 @@ def describe_terminal_artifact_contract_fingerprints(
         "raw_leaf_card_default_contract": terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
     }
     if include_terminal_artifact:
-        fingerprints["terminal_artifact"] = terminal_artifact_contract_fingerprint()
+        fingerprints["terminal_artifact"] = terminal_artifact_contract_fingerprint(
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        )
     if include_kind_contracts:
         fingerprints["kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
+    if include_terminal_artifact_cli_fallback_route:
+        fingerprints["terminal_artifact_cli_fallback_route"] = (
+            terminal_artifact_cli_fallback_route_contract_fingerprint()
+        )
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
             ("terminal_artifact_kind_contracts", terminal_artifact_kind_contracts_fingerprint()),
-            ("terminal_artifact_contract", terminal_artifact_contract_fingerprint()),
+            (
+                "terminal_artifact_contract",
+                terminal_artifact_contract_fingerprint(
+                    include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+                ),
+            ),
             ("terminal_artifact_envelope", terminal_artifact_envelope_contract_fingerprint()),
             ("terminal_artifact_envelope_contract", terminal_artifact_envelope_contract_fingerprint()),
             ("terminal_artifact_render_target", terminal_artifact_render_target_contract_fingerprint()),
@@ -952,6 +990,18 @@ def describe_terminal_artifact_contract_fingerprints(
                 terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
             ),
         )
+        if include_terminal_artifact_cli_fallback_route:
+            _add_contract_alias_fingerprints(
+                fingerprints,
+                (
+                    "terminal_artifact_cli_fallback_route",
+                    terminal_artifact_cli_fallback_route_contract_fingerprint(),
+                ),
+                (
+                    "terminal_artifact_cli_fallback_route_contract",
+                    terminal_artifact_cli_fallback_route_contract_fingerprint(),
+                ),
+            )
     return fingerprints
 
 
@@ -1377,7 +1427,11 @@ def _build_terminal_fallback_contract_manifest() -> dict[str, Any]:
     }
 
 
-def _build_terminal_artifact_contract_manifest(*, include_contract_fingerprints: bool = True) -> dict[str, Any]:
+def _build_terminal_artifact_contract_manifest(
+    *,
+    include_contract_fingerprints: bool = True,
+    include_terminal_artifact_cli_fallback_route: bool = False,
+) -> dict[str, Any]:
     render_target_contract = describe_terminal_artifact_render_target_contract()
     rendering_contract = describe_terminal_artifact_rendering_contract()
     cli_fallback_contract = describe_terminal_artifact_cli_fallback_contract()
@@ -1448,9 +1502,19 @@ def _build_terminal_artifact_contract_manifest(*, include_contract_fingerprints:
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
         "fallback_recovery_fingerprint": render_target_contract["fallback_recovery_fingerprint"],
     }
+    if include_terminal_artifact_cli_fallback_route:
+        route_contract = describe_terminal_artifact_cli_fallback_route_contract()
+        manifest["terminal_artifact_cli_fallback_route"] = route_contract
+        manifest["terminal_artifact_cli_fallback_route_contract"] = _snapshot_contract_section(route_contract)
+        manifest["terminal_artifact_cli_fallback_route_fingerprint"] = route_contract["contract_fingerprint"]
+        manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"] = route_contract["contract_fingerprint"]
+        manifest["terminal_artifact_cli_fallback_route_contract_fingerprints"] = _snapshot_contract_section(
+            route_contract["contract_fingerprints"]
+        )
     if include_contract_fingerprints:
         manifest["contract_fingerprints"] = describe_terminal_artifact_contract_fingerprints(
-            include_terminal_artifact=True
+            include_terminal_artifact=True,
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         )
     return manifest
 
@@ -2141,10 +2205,15 @@ def terminal_fallback_contract_fingerprint() -> str:
     return _fingerprint_manifest_section(manifest)
 
 
-def terminal_artifact_contract_fingerprint() -> str:
+def terminal_artifact_contract_fingerprint(
+    include_terminal_artifact_cli_fallback_route: bool = False,
+) -> str:
     """Return a stable fingerprint for the terminal artifact dispatch manifest."""
 
-    manifest = _build_terminal_artifact_contract_manifest(include_contract_fingerprints=False)
+    manifest = _build_terminal_artifact_contract_manifest(
+        include_contract_fingerprints=False,
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
     return _fingerprint_manifest_section(manifest)
 
 

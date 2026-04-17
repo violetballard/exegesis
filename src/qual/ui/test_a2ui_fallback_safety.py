@@ -1298,6 +1298,51 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(len(fingerprints["terminal_artifact"]), 64)
         self.assertNotIn("terminal_artifact", describe_terminal_artifact_contract_fingerprints())
 
+    def test_terminal_artifact_contract_manifest_can_opt_into_cli_fallback_route_contract(self) -> None:
+        default_manifest = describe_terminal_artifact_contract()
+        manifest = describe_terminal_artifact_contract(include_terminal_artifact_cli_fallback_route=True)
+        route_manifest = describe_terminal_artifact_cli_fallback_route_contract()
+        fingerprints = describe_terminal_artifact_contract_fingerprints(
+            include_terminal_artifact=True,
+            include_terminal_artifact_cli_fallback_route=True,
+            include_contract_aliases=True,
+        )
+
+        self.assertNotIn("terminal_artifact_cli_fallback_route", default_manifest)
+        self.assertEqual(manifest["terminal_artifact_cli_fallback_route"], route_manifest)
+        self.assertEqual(manifest["terminal_artifact_cli_fallback_route_contract"], route_manifest)
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprints"],
+            route_manifest["contract_fingerprints"],
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"],
+            describe_terminal_artifact_contract_fingerprints(
+                include_terminal_artifact=True,
+                include_terminal_artifact_cli_fallback_route=True,
+            ),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact"],
+            terminal_artifact_contract_fingerprint(include_terminal_artifact_cli_fallback_route=True),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route_contract"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+
     def test_terminal_artifact_contract_fingerprint_map_can_opt_into_alias_contracts(self) -> None:
         fingerprints = describe_terminal_artifact_contract_fingerprints(include_contract_aliases=True)
 
