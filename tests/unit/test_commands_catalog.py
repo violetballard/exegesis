@@ -108,6 +108,11 @@ from src.qual.commands import (
     command_demo_flow_surface_tokens,
     command_demo_smoke_argv,
     command_demo_smoke_contract,
+    command_demo_loop_contract,
+    command_demo_loop_catalog,
+    command_demo_loop_invocation_plan,
+    command_demo_loop_lookup_table,
+    command_demo_loop_tokens,
     command_names,
     command_primary_cli_token_for,
     command_mvp_cli_shim_catalog,
@@ -130,6 +135,11 @@ from src.qual.commands import (
     command_tokens,
     command_flow_tokens,
     command_mvp_smoke_contract,
+    command_mvp_loop_contract,
+    command_mvp_loop_catalog,
+    command_mvp_loop_invocation_plan,
+    command_mvp_loop_lookup_table,
+    command_mvp_loop_tokens,
     validate_command_catalog,
 )
 
@@ -2118,6 +2128,83 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_mvp_preferred_surface_invocation_table(),
             command_demo_preferred_surface_invocation_table(),
+        )
+
+    def test_command_demo_loop_contract_exposes_the_canonical_milestone_three_verbs(self) -> None:
+        contract = command_demo_loop_contract()
+        self.assertEqual(contract, command_mvp_loop_contract())
+        self.assertEqual(contract.entries, command_demo_loop_catalog())
+        self.assertEqual(command_mvp_loop_catalog(), command_demo_loop_catalog())
+        self.assertEqual(contract.lookup_table, command_demo_loop_lookup_table())
+        self.assertEqual(command_mvp_loop_lookup_table(), command_demo_loop_lookup_table())
+        self.assertEqual(contract.invocation_plan, command_demo_loop_invocation_plan())
+        self.assertEqual(command_mvp_loop_invocation_plan(), command_demo_loop_invocation_plan())
+        self.assertEqual(command_mvp_loop_tokens(), command_demo_loop_tokens())
+        self.assertEqual(
+            contract.tokens,
+            (
+                "project-open",
+                "retrieval",
+                "patch-review",
+                "apply-patch",
+                "reject-patch",
+                "persist",
+                "export-handoff",
+            ),
+        )
+        self.assertEqual(
+            tuple((entry.token, entry.canonical_name, entry.flow_step, entry.kind, entry.argv) for entry in contract.entries),
+            (
+                ("project-open", "bootstrap", "project-open", "flow-step", ("bootstrap", "--project", "demo")),
+                ("retrieval", "context-basket", "retrieval", "flow-step", ("context-basket", "list")),
+                (
+                    "patch-review",
+                    "diff-preview",
+                    "patch-review",
+                    "flow-step",
+                    ("diff-preview", "--original", "before", "--proposed", "after"),
+                ),
+                (
+                    "apply-patch",
+                    "terminal",
+                    "export-handoff",
+                    "lookup",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "reject-patch",
+                    "terminal",
+                    "export-handoff",
+                    "lookup",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
+                    "persist",
+                    "terminal",
+                    "export-handoff",
+                    "lookup",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "export-handoff",
+                    "terminal",
+                    "export-handoff",
+                    "flow-step",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+            ),
+        )
+        self.assertEqual(
+            command_demo_loop_lookup_table(),
+            (
+                ("project-open", "bootstrap"),
+                ("retrieval", "context-basket"),
+                ("patch-review", "diff-preview"),
+                ("apply-patch", "terminal"),
+                ("reject-patch", "terminal"),
+                ("persist", "terminal"),
+                ("export-handoff", "terminal"),
+            ),
         )
 
     def test_command_demo_path_validator_rejects_surface_invocation_argv_drift(self) -> None:

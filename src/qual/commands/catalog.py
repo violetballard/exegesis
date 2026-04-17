@@ -2794,6 +2794,18 @@ def command_mvp_loop_contract(
     return command_demo_loop_contract(specs)
 
 
+def command_demo_loop_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandDemoLoopEntry, ...]:
+    return command_demo_loop_contract(specs).entries
+
+
+def command_mvp_loop_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandDemoLoopEntry, ...]:
+    return command_demo_loop_catalog(specs)
+
+
 def command_demo_loop_tokens(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[str, ...]:
@@ -2816,6 +2828,18 @@ def command_mvp_loop_invocation_plan(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandInvocationPlanEntry, ...]:
     return command_demo_loop_invocation_plan(specs)
+
+
+def command_demo_loop_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_loop_contract(specs).lookup_table
+
+
+def command_mvp_loop_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_loop_lookup_table(specs)
 
 
 def command_demo_surface_invocation_table(
