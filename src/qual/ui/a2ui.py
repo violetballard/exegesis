@@ -1131,6 +1131,19 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
     return fingerprints
 
 
+def describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
+    include_terminal_artifact_cli_fallback_route: bool = False,
+) -> dict[str, str]:
+    """Return stable fingerprints for the CLI fallback route contract sections."""
+
+    fingerprints = _build_terminal_artifact_cli_fallback_route_contract_fingerprints()
+    if include_terminal_artifact_cli_fallback_route:
+        fingerprints["terminal_artifact_cli_fallback_route"] = (
+            terminal_artifact_cli_fallback_route_contract_fingerprint()
+        )
+    return fingerprints
+
+
 def _build_terminal_artifact_rendering_contract_fingerprints(
     *,
     include_terminal_artifact_rendering: bool = False,
