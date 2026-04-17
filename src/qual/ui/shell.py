@@ -11,6 +11,7 @@ from .a2ui import (
     SelectionRef,
     normalize_action_ref,
     normalize_selection_ref,
+    _should_preserve_raw_leaf_card_default,
     resolve_terminal_artifact_render_target,
     render_terminal_action,
     render_terminal_artifact,
@@ -30,6 +31,12 @@ class ShellUI:
             return render_terminal_artifact(artifact, kind=kind)
         except Exception:
             # Keep the CLI usable even if the structured artifact renderer fails unexpectedly.
+            if kind is None and _should_preserve_raw_leaf_card_default(artifact):
+                # Raw leaves should stay on the card path even when shared recovery fails.
+                try:
+                    return render_terminal_card(artifact)
+                except Exception:
+                    return _render_invalid_terminal_card(artifact)
             if self._normalize_fallback_kind(kind) == "card" and self._contains_action_or_selection_payload(artifact):
                 # An explicit card hint should never render an action/selection leaf as a card.
                 return _render_invalid_terminal_card(artifact)
@@ -43,7 +50,7 @@ class ShellUI:
         if (
             kind is None
             and fallback_kind in {"action", "selection"}
-            and self._should_preserve_card_default_for_raw_leaf(artifact)
+            and _should_preserve_raw_leaf_card_default(artifact)
         ):
             fallback_artifact = artifact
             fallback_kind = "card"
@@ -347,31 +354,6 @@ class ShellUI:
             if inferred_kind is not None:
                 return artifact, inferred_kind
             return artifact, fallback_kind
-
-    @staticmethod
-    def _should_preserve_card_default_for_raw_leaf(artifact: Any) -> bool:
-        """Return ``True`` when a plain leaf-shaped mapping should stay a card.
-
-        The internal fallback resolver can recover schema-valid raw action and
-        selection mappings, but the user-facing shell should keep ambiguous
-        untyped leaves on the same card-default path that the primary renderer
-        uses. Typed refs, envelopes, and hint-bearing payloads are excluded so
-        structured artifacts still recover as structured leaves.
-        """
-
-        if isinstance(artifact, (ActionRef, SelectionRef)):
-            return False
-        if not isinstance(artifact, Mapping):
-            return False
-
-        artifact_type = artifact.get("type")
-        if isinstance(artifact_type, str) and artifact_type.strip():
-            return False
-        if any(field in artifact for field in ("confirm", "selected", "disabled")):
-            return False
-        if any(field in artifact for field in ("blocks", "actions")):
-            return False
-        return all(field in artifact for field in ("id", "label", "payload"))
 
     @staticmethod
     def _recover_terminal_artifact_envelope_fallback(

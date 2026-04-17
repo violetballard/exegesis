@@ -39,6 +39,7 @@ from src.qual.ui.a2ui import (
     render_terminal_card,
     render_terminal_selection,
     SelectionRef,
+    _should_preserve_raw_leaf_card_default,
     resolve_terminal_artifact_render_target,
     selection_contract_fingerprint,
     terminal_artifact_contract_fingerprint,
@@ -89,6 +90,13 @@ def _capabilities() -> A2UICapabilities:
         max_payload_bytes=1_000_000,
         supports_streaming=True,
     )
+
+
+_RAW_LEAF_CARD_DEFAULT_MANIFEST = {
+    "preserve_when_kind_is_unset": True,
+    "required_fields": ["id", "label", "payload"],
+    "excluded_fields": ["type", "blocks", "actions", "confirm", "selected", "disabled"],
+}
 
 
 class A2UIFallbackSafetyTests(unittest.TestCase):
@@ -530,6 +538,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(manifest["render_target_resolver"], "resolve_terminal_artifact_render_target")
         self.assertEqual(manifest["fallback_renderer"], "ShellUI.render_artifact")
+        self.assertEqual(manifest["raw_leaf_card_default"], _RAW_LEAF_CARD_DEFAULT_MANIFEST)
         self.assertEqual(
             manifest["terminal_artifact_render_target_fingerprint"],
             terminal_artifact_render_target_contract_fingerprint(),
@@ -610,6 +619,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["terminal_artifact_cli_fallback_schema_version"], 1)
         self.assertEqual(manifest["type"], "TerminalArtifactCliFallbackContract")
         self.assertEqual(manifest["fallback_renderer"], "ShellUI.render_artifact")
+        self.assertEqual(manifest["raw_leaf_card_default"], _RAW_LEAF_CARD_DEFAULT_MANIFEST)
         self.assertEqual(manifest["supported_kinds"], ["card", "action", "selection"])
         self.assertEqual(manifest["default_kind"], "card")
         self.assertEqual(manifest["envelope"]["type"], "TerminalArtifact")
@@ -646,6 +656,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             },
         )
         self.assertEqual(manifest["render_target_resolver"], "resolve_terminal_artifact_render_target")
+        self.assertEqual(manifest["raw_leaf_card_default"], _RAW_LEAF_CARD_DEFAULT_MANIFEST)
         self.assertEqual(
             manifest["kind_policy"],
             {
@@ -724,6 +735,33 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(a2ui_manifest["schemas"]["terminal_artifact_cli_fallback"], manifest)
 
+    def test_raw_leaf_card_default_helper_only_preserves_untyped_leaf_payloads(self) -> None:
+        self.assertTrue(
+            _should_preserve_raw_leaf_card_default(
+                {"id": "export_document", "label": "Export", "payload": {"format": "md"}}
+            )
+        )
+        self.assertFalse(
+            _should_preserve_raw_leaf_card_default(
+                ActionRef(id="export_document", label="Export", payload={"format": "md"})
+            )
+        )
+        self.assertFalse(
+            _should_preserve_raw_leaf_card_default(
+                SelectionRef(id="choice-1", label="Choice", payload={"nested": {"items": [1, 2]}})
+            )
+        )
+        self.assertFalse(
+            _should_preserve_raw_leaf_card_default(
+                {
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                    "selected": True,
+                }
+            )
+        )
+
     def test_terminal_artifact_contract_manifest_includes_explicit_envelope_shape(self) -> None:
         manifest = describe_terminal_artifact_contract()
 
@@ -736,6 +774,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["envelope"]["kind_field"], "kind")
         self.assertEqual(manifest["envelope"]["artifact_field"], "artifact")
         self.assertEqual(manifest["envelope"]["supported_kinds"], ["card", "action", "selection"])
+        self.assertEqual(manifest["raw_leaf_card_default"], _RAW_LEAF_CARD_DEFAULT_MANIFEST)
 
     def test_terminal_artifact_render_target_contract_manifest_is_versioned_and_embedded_in_a2ui_contract(self) -> None:
         manifest = describe_terminal_artifact_render_target_contract()

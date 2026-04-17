@@ -613,6 +613,7 @@ def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
         "rendering": rendering_contract,
         "terminal_artifact_rendering": rendering_contract,
         "kind_contracts": _build_terminal_artifact_kind_contracts(),
+        "raw_leaf_card_default": _build_terminal_artifact_raw_leaf_card_default_manifest(),
         "terminal_fallback_contract": {
             "kind": "card",
             "contract_fingerprint": terminal_fallback_contract_fingerprint(),
@@ -656,6 +657,7 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
         },
         "render_target_resolver": "resolve_terminal_artifact_render_target",
         "fallback_renderer": "ShellUI.render_artifact",
+        "raw_leaf_card_default": _build_terminal_artifact_raw_leaf_card_default_manifest(),
         "terminal_fallback_contract": describe_terminal_fallback_contract(),
         "terminal_fallback_fingerprint": terminal_fallback_contract_fingerprint(),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
@@ -685,6 +687,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "rendering": rendering_contract,
         "terminal_artifact_rendering": rendering_contract,
         "rendering_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
+        "raw_leaf_card_default": _build_terminal_artifact_raw_leaf_card_default_manifest(),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
         "kind_policy": {
@@ -747,6 +750,14 @@ def _build_terminal_artifact_leaf_recovery_manifest() -> dict[str, Any]:
             "action": "normalize_action_ref",
             "selection": "normalize_selection_ref",
         }
+    }
+
+
+def _build_terminal_artifact_raw_leaf_card_default_manifest() -> dict[str, Any]:
+    return {
+        "preserve_when_kind_is_unset": True,
+        "required_fields": ["id", "label", "payload"],
+        "excluded_fields": ["type", "blocks", "actions", "confirm", "selected", "disabled"],
     }
 
 
@@ -1961,6 +1972,24 @@ def _infer_terminal_artifact_partial_leaf_kind(artifact: Any) -> str | None:
     if has_selection_hints and not has_action_hints:
         return "selection"
     return None
+
+
+def _should_preserve_raw_leaf_card_default(artifact: Any) -> bool:
+    """Return True when an untyped raw leaf should stay on the card path."""
+
+    if isinstance(artifact, (ActionRef, SelectionRef)):
+        return False
+    if not isinstance(artifact, Mapping):
+        return False
+
+    artifact_type = artifact.get("type")
+    if isinstance(artifact_type, str) and artifact_type.strip():
+        return False
+    if any(field in artifact for field in ("confirm", "selected", "disabled")):
+        return False
+    if any(field in artifact for field in ("blocks", "actions")):
+        return False
+    return all(field in artifact for field in ("id", "label", "payload"))
 
 
 def _strip_terminal_type_hint(artifact: Mapping[str, Any], *, expected_type: str) -> dict[str, Any]:
