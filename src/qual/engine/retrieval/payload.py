@@ -725,7 +725,7 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
     if matched_terms is not None:
         normalized["matched_terms"] = _normalize_text_list_like(matched_terms)
     elif "matched_terms" in normalized:
-        normalized["matched_terms"] = []
+        normalized["matched_terms"] = None
     section_hint = _normalize_optional_text(normalized.get("section_hint"))
     if section_hint is not None:
         normalized["section_hint"] = section_hint
