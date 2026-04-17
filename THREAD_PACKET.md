@@ -80,7 +80,7 @@
   protects the ongoing CLI operator path that must remain executable while
   Textual stays disabled, by keeping the parser-facing command surface
   deterministic and drift-resistant.
-- Roadmap-level statement:
+- Reviewer-required roadmap tie-back:
   this directly supports the Milestone 3 exit criterion that `CLI can still
   execute the MVP loop while Textual remains disabled` by keeping the command
   catalog aligned with the accepted CLI entrypoints for those operator-facing
