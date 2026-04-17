@@ -424,6 +424,21 @@ class RetrievalHit:
         retrieval_policy = self.provenance.get("retrieval_policy")
         if isinstance(retrieval_policy, dict):
             payload["retrieval_policy"] = copy.deepcopy(retrieval_policy)
+        active_strategy_ids = _optional_list_like(self.provenance.get("active_strategy_ids"))
+        if active_strategy_ids is not None:
+            payload["active_strategy_ids"] = active_strategy_ids
+        deferred_strategy_ids = _optional_list_like(self.provenance.get("deferred_strategy_ids"))
+        if deferred_strategy_ids is not None:
+            payload["deferred_strategy_ids"] = deferred_strategy_ids
+        strategies_used = _optional_list_like(self.provenance.get("strategies_used"))
+        if strategies_used is not None:
+            payload["strategies_used"] = strategies_used
+        retrieved_doc_ids = _optional_list_like(self.provenance.get("retrieved_doc_ids"))
+        if retrieved_doc_ids is not None:
+            payload["retrieved_doc_ids"] = retrieved_doc_ids
+        retrieved_excerpt_ids = _optional_list_like(self.provenance.get("retrieved_excerpt_ids"))
+        if retrieved_excerpt_ids is not None:
+            payload["retrieved_excerpt_ids"] = retrieved_excerpt_ids
         return payload
 
 
@@ -527,6 +542,21 @@ class RetrievalDocHit:
         retrieval_policy = self.provenance.get("retrieval_policy")
         if isinstance(retrieval_policy, dict):
             payload["retrieval_policy"] = copy.deepcopy(retrieval_policy)
+        active_strategy_ids = _optional_list_like(self.provenance.get("active_strategy_ids"))
+        if active_strategy_ids is not None:
+            payload["active_strategy_ids"] = active_strategy_ids
+        deferred_strategy_ids = _optional_list_like(self.provenance.get("deferred_strategy_ids"))
+        if deferred_strategy_ids is not None:
+            payload["deferred_strategy_ids"] = deferred_strategy_ids
+        strategies_used = _optional_list_like(self.provenance.get("strategies_used"))
+        if strategies_used is not None:
+            payload["strategies_used"] = strategies_used
+        retrieved_doc_ids = _optional_list_like(self.provenance.get("retrieved_doc_ids"))
+        if retrieved_doc_ids is not None:
+            payload["retrieved_doc_ids"] = retrieved_doc_ids
+        retrieved_excerpt_ids = _optional_list_like(self.provenance.get("retrieved_excerpt_ids"))
+        if retrieved_excerpt_ids is not None:
+            payload["retrieved_excerpt_ids"] = retrieved_excerpt_ids
         return payload
 
 
@@ -1493,6 +1523,23 @@ class RetrievalService:
             candidate_doc_count=effective_candidate_doc_count,
             fts_shortlist_doc_ids=shortlist_doc_ids,
         )
+        retrieved_doc_ids = [doc_hit.doc_id for doc_hit in doc_hits]
+        retrieved_excerpt_ids = [hit.excerpt_id for hit in merged_hits if hit.excerpt_id is not None]
+        active_strategy_ids = list(cast(list[str], retrieval_policy["active_strategy_ids"]))
+        deferred_strategy_ids = list(cast(list[str], retrieval_policy["deferred_strategy_ids"]))
+        strategies_used = list(active_strategy_ids)
+        for hit in merged_hits:
+            hit.provenance["active_strategy_ids"] = list(active_strategy_ids)
+            hit.provenance["deferred_strategy_ids"] = list(deferred_strategy_ids)
+            hit.provenance["strategies_used"] = list(strategies_used)
+            hit.provenance["retrieved_doc_ids"] = list(retrieved_doc_ids)
+            hit.provenance["retrieved_excerpt_ids"] = list(retrieved_excerpt_ids)
+        for doc_hit in doc_hits:
+            doc_hit.provenance["active_strategy_ids"] = list(active_strategy_ids)
+            doc_hit.provenance["deferred_strategy_ids"] = list(deferred_strategy_ids)
+            doc_hit.provenance["strategies_used"] = list(strategies_used)
+            doc_hit.provenance["retrieved_doc_ids"] = list(retrieved_doc_ids)
+            doc_hit.provenance["retrieved_excerpt_ids"] = list(retrieved_excerpt_ids)
         citation_status = {
             "required": query.constraints.require_citations,
             "available": bool(merged_hits),
