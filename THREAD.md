@@ -11,15 +11,15 @@ older lane/fixer prompts.
 - Active implementation review target: `da34f00c9a8885d32c09a36dec4bcb26f4566768`.
 - Current feature-fixer refresh baseline: `da34f00c9a8885d32c09a36dec4bcb26f4566768`
   before this final gate-verified packet refresh commit.
-- Final reviewer-fix metadata refresh on `2026-04-17`: this compatibility
+- Follow-up reviewer-fix metadata refresh on `2026-04-17`: this compatibility
   pointer reasserts the AGENTS-required canonical demo-path mapping and keeps
   the claimed scope narrowed to Milestone 3 CLI-contract hardening only.
 - This refresh explicitly satisfies the reviewer's REQUIRED FIXES by naming the
   canonical demo-path steps advanced and keeping the scope tied to the current
   Milestone 3 engine-first CLI loop only.
-- This final gate-verified refresh was run on `2026-04-17` after a fresh full-gate
+- This follow-up gate-verified refresh was run on `2026-04-17` after a fresh full-gate
   pass against pre-refresh metadata baseline
-  `ce5ee25b38fe5d205a5e9e99e4e8ca24ef3ddba8`.
+  `e4a2016bdd79d51458e4ae27a799662caa9d6482`.
 - This work explicitly advances the canonical demo path by making the CLI-first
   `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
   real and smoke-testable.

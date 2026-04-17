@@ -3,8 +3,8 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `da34f00c9a8885d32c09a36dec4bcb26f4566768`
-- Packet refresh commit: `da34f00c9a8885d32c09a36dec4bcb26f4566768` (implementation tip before this final feature-fixer handoff refresh)
-- Packet refresh role: `feature-fixer reviewer-required final gate-verified handoff refresh`
+- Packet refresh commit: `e4a2016bdd79d51458e4ae27a799662caa9d6482` (previous metadata refresh baseline before this final feature-fixer handoff refresh)
+- Packet refresh role: `feature-fixer reviewer-required follow-up gate-verified handoff refresh`
 
 ## Packet Traceability Note
 
@@ -14,7 +14,7 @@
   `da34f00c9a8885d32c09a36dec4bcb26f4566768`. Treat this feature-fixer refresh
   as the current handoff authority for that implementation slice plus the final
   in-worktree command-surface alignment captured in this commit.
-- Final reviewer-fix metadata refresh on `2026-04-17`: this handoff reasserts
+- Follow-up reviewer-fix metadata refresh on `2026-04-17`: this handoff reasserts
   the AGENTS-required canonical demo-path mapping requested by review and keeps
   the claimed scope narrowed to Milestone 3 CLI-contract hardening only.
 
@@ -122,10 +122,10 @@
 - Refreshed the handoff packet so the review scope points at the current
   command-catalog implementation commit, the actual parser-surface invariant
   enforced in this branch, and this final reviewer-fix verification pass.
-- Recorded that this final gate-verified refresh was run on `2026-04-17` after a
+- Recorded that this follow-up gate-verified refresh was run on `2026-04-17` after a
   fresh full-gate pass against implementation tip
   `da34f00c9a8885d32c09a36dec4bcb26f4566768`.
-- This final fixer commit refreshes `THREAD_PACKET.md` and `THREAD.md` and
+- This follow-up fixer commit refreshes `THREAD_PACKET.md` and `THREAD.md` and
   also includes the in-worktree command-catalog/test alignment already present
   in this lane worktree before the gate rerun.
 - Verified in this final fixer pass that branch tip
