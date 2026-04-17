@@ -41,6 +41,8 @@
 
 - `retrieve relevant material`
 
+Canonical demo-path step advanced: `retrieve relevant material`, by making excerpt lookup deterministically FTS-only and auditable on the canonical engine retrieval surface.
+
 This change advances the canonical demo-path step `retrieve relevant material` by making excerpt retrieval fail closed to the authoritative SQLite FTS path before downstream basket-promotion and workflow use.
 
 ## Fixer Pass Traceability
