@@ -15,6 +15,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   generated.
 - This refresh corrects handoff metadata only and does not broaden the
   reviewed implementation scope beyond that command-catalog slice.
+- This re-review refresh is specifically for the reviewer-requested packet fix:
+  state explicitly which canonical demo-path step the work makes more real,
+  while keeping the implementation review pinned to the same command-catalog
+  slice.
 - Reviewer-required fixes are satisfied on this branch by:
   - implementation-level parser-surface validation in
     `src/qual/commands/catalog.py`

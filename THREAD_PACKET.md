@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh role: `feature-fixer reviewer-required final refresh`
+- Packet refresh role: `feature-fixer reviewer-required re-review refresh`
 
 ## Packet Traceability Note
 
@@ -18,6 +18,11 @@
 
 ## Reviewer-Required Fix Verification
 
+- Reviewer required-fix scope:
+  this re-review refresh is limited to the handoff metadata fix requested in
+  the reviewer packet, and it keeps the reviewed implementation scope pinned
+  to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` without any feature-scope
+  expansion.
 - Required fix 1 satisfied in implementation:
   `src/qual/commands/catalog.py` now validates the full default parser surface
   against the declared command catalog, so alias substitution, removed primary
@@ -89,6 +94,9 @@
 - Concrete blocker removed: parser/catalog drift can no longer silently
   reorder or desynchronize those operator-facing CLI entrypoints from the
   canonical command catalog.
+- Re-review scope note: this packet refresh exists to make that demo-path-step
+  mapping explicit for AGENTS compliance; it does not claim any broader
+  implementation change beyond the command-catalog slice already under review.
 
 ## Scope Boundary
 
