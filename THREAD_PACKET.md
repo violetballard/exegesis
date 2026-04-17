@@ -7,7 +7,8 @@
 
 ## Packet Traceability Note
 
-- The current branch tip is a metadata-only fixer refresh.
+- The current branch tip is a metadata-only fixer refresh commit on top of
+  later lane work already present on `codex/feat-commands`.
 - Review the command-catalog implementation at
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Treat later commits in this lane as metadata-only handoff refreshes for this
@@ -30,6 +31,8 @@
 - Revalidated against the reviewer packet dated `2026-04-17`.
 - Confirmed the reviewed implementation scope remains pinned to
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Confirmed this metadata-only fixer refresh does not change implementation
+  files and only refreshes the handoff contract for re-review.
 - Re-ran the required local gates on this metadata-refresh branch tip:
   - `make scope-check`: PASS
   - `./quality-format.sh --check`: PASS

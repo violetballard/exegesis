@@ -6,7 +6,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Reviewer Fix Alignment
 
-- The current branch tip is a metadata-only fixer refresh.
+- The current branch tip is a metadata-only fixer refresh commit on top of
+  later lane work already present on `codex/feat-commands`.
 - Review the command-catalog implementation at
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Later commits in this lane should be treated as metadata-only handoff
@@ -26,6 +27,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `./quality-test.sh`
   - `./typecheck-test.sh`
   - `make ci`
+- This metadata-only fixer refresh does not change implementation files; it
+  only refreshes the handoff contract for re-review.
 - Canonical demo-path step impact: this slice makes the CLI `open
   project/document`, `retrieve relevant material`, and `preview and apply or
   reject a patch` steps more reliable by rejecting parser/catalog drift before
