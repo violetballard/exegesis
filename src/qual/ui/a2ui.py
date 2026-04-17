@@ -2301,6 +2301,9 @@ def _build_terminal_artifact_cli_fallback_route_contract_manifest() -> dict[str,
         "terminal_artifact_cli_fallback_target_contract_fingerprints": _snapshot_contract_section(
             terminal_artifact_cli_fallback_target_contract["contract_fingerprints"]
         ),
+        "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint": terminal_artifact_cli_fallback_target_contract[
+            "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"
+        ],
         "terminal_fallback_contract": terminal_fallback_contract,
         "terminal_fallback_contract_fingerprint": terminal_fallback_contract["contract_fingerprint"],
         "raw_leaf_card_default_policy": copy.deepcopy(_build_terminal_artifact_raw_leaf_card_default_policy_manifest()),
