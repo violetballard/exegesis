@@ -1878,6 +1878,7 @@ def _build_terminal_artifact_cli_fallback_route_contract_manifest() -> dict[str,
     raw_leaf_card_default_policy_contract = describe_terminal_artifact_raw_leaf_card_default_policy_contract()
     kind_resolution = copy.deepcopy(render_target_contract["kind_resolution"])
     fallback_recovery = copy.deepcopy(render_target_contract["fallback_recovery"])
+    contract_fingerprints = _build_terminal_artifact_cli_fallback_route_contract_fingerprints()
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
@@ -1930,9 +1931,10 @@ def _build_terminal_artifact_cli_fallback_route_contract_manifest() -> dict[str,
                 "selection": "render_terminal_selection",
             },
         },
-        "contract_fingerprints": _build_terminal_artifact_cli_fallback_route_contract_fingerprints(),
+        "contract_fingerprints": contract_fingerprints,
+        "contract_fingerprints_fingerprint": _fingerprint_manifest_section(contract_fingerprints),
         "terminal_artifact_cli_fallback_route_contract_fingerprints": _snapshot_contract_section(
-            _build_terminal_artifact_cli_fallback_route_contract_fingerprints()
+            contract_fingerprints
         ),
     }
 
