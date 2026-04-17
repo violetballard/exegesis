@@ -2,8 +2,8 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `current branch tip for this regenerated re-review packet`
-- Packet refresh role: `feature-fixer branch-tip reviewer-required validation rerun refresh`
+- Commit: `05c0b20ff5e83e02d3ebadabbe39815d0afc0520` (reviewed implementation slice on the pre-refresh branch tip)
+- Packet refresh role: `feature-fixer final branch-tip verification refresh`
 - Packet refresh date: `2026-04-17`
 
 ## Packet Traceability Note
@@ -17,11 +17,13 @@
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice because the required fixes
   landed after that commit.
 - This refresh records the final feature-fixer verification pass so the
-  handoff matches the branch-tip implementation and tests that satisfy the
-  reviewer-required fixes.
+  handoff matches the reviewed branch-tip implementation and tests that
+  satisfy the reviewer-required fixes.
 - This regenerated packet supersedes the older `f8d860ed...` implementation
   pin for re-review while keeping scope limited to the same command-catalog
   code path plus the approved shared test.
+- This packet refresh itself is metadata-only and does not broaden the
+  reviewed implementation beyond commit `05c0b20ff5e83e02d3ebadabbe39815d0afc0520`.
 
 ## Reviewer-Required Fix Verification
 
@@ -68,8 +70,9 @@
   this refresh records the clean post-fix validation state without broadening
   the reviewed implementation scope.
 - Final gate-rerun record:
-  this packet refresh now captures the clean post-fix rerun on the current
-  branch tip immediately before commit creation on `2026-04-17`.
+  this packet refresh now captures the clean post-fix rerun on reviewed
+  implementation commit `05c0b20ff5e83e02d3ebadabbe39815d0afc0520`
+  immediately before this metadata-only refresh on `2026-04-17`.
 - Final gate-rerun detail:
   repeated `python -m unittest tests.unit.test_commands_catalog -q`,
   `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`,
@@ -208,8 +211,8 @@
   drift rejection for this command-catalog slice.
 - This handoff claims only command-catalog contract hardening for the active
   CLI `open`, `retrieve`, and `patch-review` path; it does not claim broader
-  command-surface coverage beyond the current branch-tip command-catalog fix
-  series captured by this regenerated packet.
+  command-surface coverage beyond the reviewed implementation commit
+  `05c0b20ff5e83e02d3ebadabbe39815d0afc0520` and this metadata-only refresh.
 
 ## Do Not Spend Time On
 

@@ -7,6 +7,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Reviewer Fix Alignment
 
 - This refresh is metadata-only for the active `codex/feat-commands` branch state.
+- The reviewed implementation slice remains pinned to
+  `05c0b20ff5e83e02d3ebadabbe39815d0afc0520` until a broader feature packet is generated.
 - Revalidated on `2026-04-17` with passing `make scope-check`,
   `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`,
   `./typecheck-test.sh`, and `make ci`.
@@ -14,8 +16,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   `python -m unittest tests.unit.test_commands_catalog -q` and confirmed the
   focused parser-surface drift coverage is still green on the handoff commit path.
 - This pointer refresh records the final same-day feature-fixer verification
-  on the current branch tip so the handoff packet carries fresh gate evidence
-  for the reviewer-required demo-path mapping fix.
+  for the reviewed branch-tip implementation so the handoff packet carries
+  fresh gate evidence for the reviewer-required demo-path mapping fix.
 - `THREAD_PACKET.md` now also states the stricter parser-surface guarantee:
   canonical CLI entrypoints cannot be dropped, substituted, reordered, or
   expanded unexpectedly without failing the contract.
