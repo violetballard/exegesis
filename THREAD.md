@@ -11,7 +11,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - `THREAD_PACKET.md` now states, in one line, that this change makes the
   `open project/document` step more real by keeping the CLI command contract
   deterministic and drift-resistant.
-- The required gate suite was rerun at `2026-04-17T14:11:35Z` on the current
+- The required gate suite was rerun at `2026-04-17T14:17:16Z` on the current
   branch tip, and
   `THREAD_PACKET.md` records those verified pass results for re-review.
 - This pointer was refreshed again for the current fixer rerun so the lane has

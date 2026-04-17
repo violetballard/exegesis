@@ -3,8 +3,8 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh commit: `dacefccda807f203b30d0172ea27f67695827b94`
-- Packet refresh role: `feature-fixer reviewer-fix gate rerun metadata refresh`
+- Packet refresh commit: `HEAD (feature-fixer required-fix metadata refresh)`
+- Packet refresh role: `feature-fixer reviewer-required-fix metadata refresh`
 
 ## Packet Traceability Note
 
@@ -13,7 +13,7 @@
 - Later packet-refresh commits are metadata-only for re-review and do not expand
   the reviewed implementation surface.
 - Re-review should keep the approval basis on the command-catalog slice below.
-- Latest metadata refresh prepared at: `2026-04-17T14:14:32Z`
+- Latest metadata refresh prepared at: `2026-04-17T14:17:16Z`
 
 ## Current Program Focus
 
@@ -95,7 +95,7 @@
    implementation slice and explicitly names the CLI-facing canonical
    demo-path steps and blocker removed.
 5. Re-ran the required local gates at the current branch tip and refreshed this
-   packet for re-review with the current fixer metadata timestamp.
+   packet for re-review with the current required-fix metadata timestamp.
 
 ## Files Changed
 
@@ -117,7 +117,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Re-verification point: `2026-04-17T14:14:32Z` at the current branch tip
+- Re-verification point: `2026-04-17T14:17:16Z` at the current branch tip
 
 ## Risks / Blockers
 
