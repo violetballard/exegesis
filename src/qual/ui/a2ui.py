@@ -1492,6 +1492,9 @@ def _build_terminal_artifact_cli_fallback_contract_fingerprints(
     fingerprints = {
         "allowed_actions": _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS)),
         "kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
+        "terminal_artifact_cli_fallback_entrypoint": _fingerprint_manifest_section(
+            "render_terminal_cli_fallback"
+        ),
         "render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
         "rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
         "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
@@ -2075,6 +2078,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest(
         "fallback_target_resolver": "resolve_terminal_artifact_cli_fallback_target",
         "render_target_resolver": "resolve_terminal_artifact_render_target",
         "fallback_renderer": "ShellUI.render_artifact",
+        "terminal_artifact_cli_fallback_entrypoint": "render_terminal_cli_fallback",
         "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
         "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
         "allowed_actions": sorted(ALLOWED_ACTION_IDS),
@@ -2134,6 +2138,9 @@ def _build_terminal_artifact_cli_fallback_contract_manifest(
             describe_terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints(
                 include_terminal_artifact_raw_leaf_card_default_policy=True,
             )
+        ),
+        "terminal_artifact_cli_fallback_entrypoint_fingerprint": _fingerprint_manifest_section(
+            "render_terminal_cli_fallback"
         ),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
         "kind_resolution_fingerprint": render_target_contract["kind_resolution_fingerprint"],

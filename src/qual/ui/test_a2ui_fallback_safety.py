@@ -2453,6 +2453,11 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["type"], "TerminalArtifactCliFallbackContract")
         self.assertEqual(manifest["fallback_target_resolver"], "resolve_terminal_artifact_cli_fallback_target")
         self.assertEqual(manifest["fallback_renderer"], "ShellUI.render_artifact")
+        self.assertEqual(manifest["terminal_artifact_cli_fallback_entrypoint"], "render_terminal_cli_fallback")
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_fingerprint"],
+            _fingerprint_manifest_section(manifest["terminal_artifact_cli_fallback_entrypoint"]),
+        )
         self.assertEqual(manifest["raw_leaf_card_default"], _RAW_LEAF_CARD_DEFAULT_MANIFEST)
         self.assertEqual(manifest["allowed_actions"], sorted(ALLOWED_ACTION_IDS))
         self.assertEqual(
@@ -2629,6 +2634,9 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             {
                 "allowed_actions": _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS)),
                 "kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
+                "terminal_artifact_cli_fallback_entrypoint": _fingerprint_manifest_section(
+                    "render_terminal_cli_fallback"
+                ),
                 "render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
                 "rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
                 "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
