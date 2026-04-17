@@ -39,10 +39,15 @@
 - `open project/document` via the CLI-first operator surface: this slice keeps
   the bootstrap entrypoint callable and smoke-testable while Textual remains
   disabled.
+- AGENTS.md canonical-path statement: this work makes the `open
+  project/document` step more real by locking the accepted bootstrap parser
+  surface to the command catalog that defines the CLI-first MVP contract.
 - Concrete blocker removed: before this contract hardening, parser/catalog
   drift could silently reorder, replace, or drop accepted CLI entrypoints for
-  the `bootstrap` surface; `command_cli_contract()` now rejects that drift
-  before the MVP operator contract can change unnoticed.
+  the `bootstrap` surface, which would break or destabilize the first step of
+  the engine-side demo loop without a fast failure; `command_cli_contract()`
+  now rejects that drift before the MVP operator contract can change
+  unnoticed.
 
 ## Scope Boundary
 
@@ -158,15 +163,20 @@
 
 - Milestone 3: Real workflow loop - preserve CLI compatibility while the
   package/layout migration lands by keeping the command-catalog contract
-  deterministic and drift-resistant.
+  deterministic and drift-resistant at the `open project/document` entrypoint
+  that starts the CLI-first MVP loop.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the
-  engine-first MVP loop.
+  engine-first MVP loop. This slice is a concrete unblocker, not second-order
+  cleanup, because the loop cannot start reliably if the accepted `bootstrap`
+  parser surface can drift without the contract failing.
 
 ### Vision capability affected
 
 - Canonical engine contract - CLI compatibility remains stable while the
   command-catalog surface rejects parser drift before it can silently change
-  the CLI operator contract for the current engine-first MVP loop.
+  the CLI operator contract for the current engine-first MVP loop. That keeps
+  the operator-facing `open project/document` contract deterministic enough to
+  smoke-test and rely on while Textual stays disabled.
 - Scope limit note: this slice does not claim workflow, persisted-state,
   auditability, or additional product-vision capability changes. It is limited
   to deterministic CLI compatibility for the active engine-first operator

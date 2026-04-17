@@ -15,7 +15,8 @@ older lane/fixer prompts.
   before the accepted bootstrap entrypoint can silently change.
 - Concrete blocker removed: parser/catalog drift could previously reorder,
   replace, or remove accepted CLI entrypoints for the `bootstrap` MVP surface
-  without failing the contract.
+  without failing the contract, which would destabilize the first step of the
+  engine-side demo loop.
 - Product Vision scope: this reviewer-fix refresh only supports the canonical
   engine contract requirement for CLI compatibility and does not claim workflow,
   persistence, or auditability changes.
