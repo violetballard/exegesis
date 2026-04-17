@@ -49,13 +49,15 @@
 
 - `retrieve relevant material`
 - This reviewed range makes `retrieve relevant material` more real by keeping excerpt lookup on the canonical FTS-first path and by making PageIndex-only excerpt ids fail closed instead of silently falling back.
+- This uses the exact MVP-path language from `AGENTS.md` and `ROADMAP.md`, per the reviewer-required handoff fix.
 - This packet does not claim completion of basket promotion, workflow actions, or alternate retrieval paths beyond that FTS-first retrieval step.
 
 ## Required reviewer fixes addressed
 
 1. Added an explicit AGENTS plan-alignment statement that this lane advances the canonical demo-path step `retrieve relevant material`.
 2. Tied that statement to the exact narrowed slice: removing the `fetch_excerpt` PageIndex fallback so excerpt lookup now fails closed on the canonical FTS-first retrieval path.
-3. Tightened the packet scope to the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and to the two changed implementation files only.
+3. Stated that mapping using the exact MVP-path wording from `AGENTS.md` and `ROADMAP.md`, as requested by the reviewer.
+4. Tightened the packet scope to the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and to the two changed implementation files only.
 
 ## Tasks completed
 
