@@ -2796,6 +2796,21 @@ class RetrievalService:
                 "source_strategy": source_strategy,
                 "lookup_resolution": canonical_lookup_resolution,
                 "lookup_confidentiality_profile": canonical_lookup_confidentiality_profile,
+                # Include the canonical retrieval query context when it is
+                # present so excerpt promotion/audit records stay unique across
+                # materially different retrieval runs that land on the same
+                # excerpt id.
+                "query_fingerprint": normalized_provenance.get("query_fingerprint"),
+                "query_scope": normalized_provenance.get("query_scope"),
+                "query_intent": normalized_provenance.get("query_intent"),
+                "query_confidentiality_profile": normalized_provenance.get(
+                    "query_confidentiality_profile"
+                ),
+                "query_date_range": normalized_provenance.get("query_date_range"),
+                "candidate_doc_count": normalized_provenance.get("candidate_doc_count"),
+                "fts_shortlist_doc_ids": normalized_provenance.get("fts_shortlist_doc_ids"),
+                "retrieved_doc_ids": normalized_provenance.get("retrieved_doc_ids"),
+                "retrieved_excerpt_ids": normalized_provenance.get("retrieved_excerpt_ids"),
                 "retrieval_backend": retrieval_backend,
                 "retrieval_mode": retrieval_mode,
                 "active_strategy_ids": active_strategy_ids,
