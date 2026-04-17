@@ -3,8 +3,8 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh commit: `current feature-fixer metadata refresh commit`
-- Packet refresh role: `feature-fixer required-fixes packet-tightening v2`
+- Packet refresh commit: `feature-fixer metadata refresh commit after REQUIRED FIXES`
+- Packet refresh role: `feature-fixer required-fixes packet-tightening v3`
 
 ## Packet Traceability Note
 
@@ -31,6 +31,7 @@
 ## Canonical Demo-Path Step Advanced
 
 - Exact step advanced: `open project/document`.
+- AGENTS alignment: this slice strengthens the CLI-first operator surface that supports the engine-side demo path while Textual remains disabled.
 - Why this step: `bootstrap` is the current CLI entrypoint for that step, and this slice makes it more real by preventing silent parser/catalog drift from changing the operator-facing command contract.
 - Scope boundary: this is contract-hardening only. It does not add new workflow actions, new command coverage, retrieval behavior, patch behavior, save behavior, or any new engine business logic.
 
