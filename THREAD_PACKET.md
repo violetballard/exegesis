@@ -125,9 +125,12 @@
   is the governing source of truth, and its enclosed feature handoff records
   an approved shared-test exception for
   `tests/unit/test_commands_catalog.py`.
-- Approval basis: this metadata-only reissue preserves that previously
-  approved shared-test path and does not add any new non-owned implementation
-  edits.
+- Approval basis: `THREAD_OWNERSHIP.md` marks
+  `tests/unit/test_commands_catalog.py` as `Shared by approval only` for the
+  `codex/feat-commands*` lane, and `scripts/scope-check.sh` explicitly allows
+  that path for `codex/feat-commands*`.
+- This metadata-only reissue preserves that previously approved shared-test
+  path and does not add any new non-owned implementation edits.
 
 ## Tasks Completed
 
@@ -182,15 +185,21 @@
 ### Roadmap item(s) affected
 
 - Milestone 3: Real workflow loop - preserve CLI compatibility while the
-  package/layout migration lands.
+  package/layout migration lands so the engine-first demo path can still
+  execute `open project/document`, `retrieve relevant material`, `preview and
+  apply or reject a patch`, and continue through the current CLI surface.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the
-  engine-first MVP loop.
+  engine-first MVP loop, specifically the canonical CLI-first demo path while
+  Textual remains disabled.
 
 ### Vision capability affected
 
 - Canonical engine contract - CLI compatibility remains stable while the
   command catalog exposes canonical demo-loop helpers and normalizes older
   surface verbs to the parser-facing contract.
+- Writing-centered workflow - the CLI operator path for opening work,
+  retrieving context, reviewing patches, and continuing the session remains
+  deterministic and smoke-testable during the Milestone 3 migration.
 
 ### Routing/provider impact note
 
@@ -207,3 +216,7 @@
   approved shared test `tests/unit/test_commands_catalog.py`, and this fixer
   refresh changes only handoff metadata in `THREAD_PACKET.md`; it does not
   add any new non-owned implementation edits beyond that approved path.
+- Concrete approval citation: `THREAD_OWNERSHIP.md` lists
+  `tests/unit/test_commands_catalog.py` under `Shared by approval only` for
+  `codex/feat-commands*`, and `scripts/scope-check.sh` contains the matching
+  lane-specific allowance for that shared test path.

@@ -29,6 +29,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
     surface
   - recording approval provenance for the shared-by-approval edit to
     `tests/unit/test_commands_catalog.py` from the governing reviewer packet
+  - citing `THREAD_OWNERSHIP.md` and `scripts/scope-check.sh` as the concrete
+    shared-test approval basis for that path
   - separating shared-by-approval edits from integrator-locked edits in the
     ownership note
   - keeping scope limited to Milestone 3 CLI compatibility work and the
