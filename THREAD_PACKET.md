@@ -183,6 +183,14 @@
   by keeping the accepted command surface deterministic while Textual remains
   disabled, so catalog/parser drift cannot silently change how operators enter
   the MVP loop.
+- Task-to-step mapping:
+  task 1 hardens the existing `bootstrap` command entrypoint contract for the
+  `open project/document` step,
+  task 2 preserves that step's canonical ordering in the returned CLI
+  contract,
+  task 3 proves the same step rejects parser drift under regression coverage,
+  and task 4 refreshes the handoff so that Milestone 3 CLI compatibility
+  mapping is explicit instead of inferred.
 - Stable CLI compatibility surface tie-back: this is contract hardening for
   the active CLI entrypoint layer only, so the operator-facing command surface
   stays migration-safe without expanding into new command behavior.
@@ -201,6 +209,9 @@
 - It is specifically limited to the stable CLI compatibility surface for the
   command catalog and does not broaden the lane beyond deterministic contract
   validation.
+- Existing-entrypoint-only note: this slice hardens deterministic reachability
+  for already-declared CLI entrypoints only and does not add new commands,
+  aliases, flags, or operator flows.
 - It only hardens command-catalog contract validation and focused regression
   coverage.
 - It is not a broader workflow-surface expansion and it is not a UI-surface
@@ -273,13 +284,17 @@
 ## Tasks Completed
 
 1. Hardened `command_cli_contract()` to verify canonical-name consistency
-   and parser-surface token alignment against the declared command catalog.
+   and parser-surface token alignment against the declared command catalog for
+   the existing CLI `open project/document` entrypoint step.
 2. Preserved canonical command ordering in the CLI contract by reusing the
-   validated canonical names tuple.
+   validated canonical names tuple so the same CLI entry step stays
+   deterministic.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for
-   canonical-order alignment and drift rejection.
+   canonical-order alignment and drift rejection so the current CLI entry
+   step fails loudly instead of drifting silently.
 4. Regenerated the handoff packet so the re-review reflects the current
-   branch-tip implementation and test evidence without expanding scope.
+   branch-tip implementation and test evidence without expanding scope beyond
+   existing command entrypoints.
 
 ## Files Changed
 

@@ -32,6 +32,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   `open project/document`, limits the vision mapping to the demonstrated CLI
   contract scope, and records the concrete shared-file approval basis required
   by the reviewer.
+- `THREAD_PACKET.md` now also ties each completed task directly to the
+  `open project/document` step and restates that the slice hardens existing
+  command entrypoints only, without broadening the command surface.
 - This final fixer refresh also records the approval provenance explicitly:
   the user-supplied `2026-04-17` reviewer packet for this run is the source of
   truth for the approved shared-test exception on
