@@ -1484,6 +1484,8 @@ class RetrievalService:
                 "query_date_range": copy.deepcopy(excerpt.get("query_date_range")),
                 "candidate_doc_count": excerpt.get("candidate_doc_count"),
                 "fts_shortlist_doc_ids": copy.deepcopy(excerpt.get("fts_shortlist_doc_ids")),
+                "retrieved_doc_ids": copy.deepcopy(excerpt.get("retrieved_doc_ids")),
+                "retrieved_excerpt_ids": copy.deepcopy(excerpt.get("retrieved_excerpt_ids")),
                 "basket_promotion": copy.deepcopy(basket_promotion),
                 "span": copy.deepcopy(span),
             },

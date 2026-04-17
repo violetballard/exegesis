@@ -1583,6 +1583,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         self.assertEqual(event["metadata"]["result_fingerprint"], excerpt["result_fingerprint"])
         self.assertEqual(event["metadata"]["excerpt_text_hash"], excerpt["excerpt_text_hash"])
+        self.assertEqual(event["metadata"]["retrieved_doc_ids"], excerpt["retrieved_doc_ids"])
+        self.assertEqual(event["metadata"]["retrieved_excerpt_ids"], excerpt["retrieved_excerpt_ids"])
         self.assertEqual(event["metadata"]["basket_promotion"], excerpt["basket_promotion"])
         self.assertIsNone(event["metadata"]["query_fingerprint"])
         self.assertIsNone(event["metadata"]["query_scope"])
@@ -1590,6 +1592,28 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertIsNone(event["metadata"]["query_confidentiality_profile"])
         self.assertIsNone(event["metadata"]["candidate_doc_count"])
         self.assertIsNone(event["metadata"]["fts_shortlist_doc_ids"])
+
+    def test_normalize_excerpt_payload_backfills_retrieved_ids_for_promotion_and_audit(self) -> None:
+        normalized = self.service._normalize_excerpt_payload(
+            {
+                "excerpt_id": "excerpt-sparse-lookup-ids-1",
+                "doc_id": "doc-pdf-1",
+                "doc_type": "pdf",
+                "text": "Stable lookup evidence for basket promotion.",
+            },
+            source_strategy="fts",
+            lookup_resolution="fts",
+        )
+
+        self.assertEqual(normalized["retrieved_doc_ids"], ["doc-pdf-1"])
+        self.assertEqual(normalized["retrieved_excerpt_ids"], ["excerpt-sparse-lookup-ids-1"])
+        self.assertEqual(normalized["provenance"]["retrieved_doc_ids"], ["doc-pdf-1"])
+        self.assertEqual(normalized["provenance"]["retrieved_excerpt_ids"], ["excerpt-sparse-lookup-ids-1"])
+        self.assertEqual(normalized["basket_promotion"]["retrieved_doc_ids"], ["doc-pdf-1"])
+        self.assertEqual(
+            normalized["basket_promotion"]["retrieved_excerpt_ids"],
+            ["excerpt-sparse-lookup-ids-1"],
+        )
 
     def test_retrieve_fts_excerpt_honors_confidentiality_profile_for_title_hint(self) -> None:
         result = self.service.retrieve_auto(
