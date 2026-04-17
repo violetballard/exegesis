@@ -2171,9 +2171,11 @@ def _resolve_terminal_artifact_render_target(
 
     envelope_kind_hint = None
     envelope_validated = False
+    saw_terminal_artifact_envelope = False
     if isinstance(artifact, Mapping):
         artifact_type = artifact.get("type")
         if isinstance(artifact_type, str) and artifact_type.strip() == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+            saw_terminal_artifact_envelope = True
             envelope_kind_hint = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
             envelope_validated = True
 
@@ -2231,14 +2233,25 @@ def _resolve_terminal_artifact_render_target(
         if recovered_partial_kind is not None:
             resolved_kind = recovered_partial_kind
     if allow_invalid_envelope_recovery and requested_kind is None and resolved_kind == "card":
-        if _should_preserve_raw_leaf_card_default(artifact):
-            return artifact, "card"
-        # In fallback-only mode, malformed card envelopes may still carry a
-        # schema-valid action or selection payload. Recover those structured
-        # leaf artifacts before dropping back to a generic card render.
-        recovered_leaf_kind = _recover_terminal_artifact_leaf_kind(artifact)
-        if recovered_leaf_kind is not None:
-            resolved_kind = recovered_leaf_kind
+        if saw_terminal_artifact_envelope:
+            if envelope_kind_hint is None:
+                # Malformed envelopes with an unusable kind stay on the card
+                # path so explicit kind errors do not get reinterpreted as a
+                # structured leaf recovery.
+                return artifact, "card"
+            # Card envelopes with invalid metadata may still wrap a concrete
+            # action or selection leaf, so recover the leaf kind before
+            # falling back to the generic card render.
+            recovered_leaf_kind = _recover_terminal_artifact_leaf_kind(artifact)
+            if recovered_leaf_kind is not None:
+                resolved_kind = recovered_leaf_kind
+        else:
+            # Raw leaf payloads can still be recovered in fallback mode when
+            # the resolver is called directly, but the shell keeps the
+            # explicit raw-leaf card-default shortcut before this entrypoint.
+            recovered_leaf_kind = _recover_terminal_artifact_leaf_kind(artifact)
+            if recovered_leaf_kind is not None:
+                resolved_kind = recovered_leaf_kind
     return artifact, resolved_kind
 
 
