@@ -2723,9 +2723,37 @@ _COMMAND_DEMO_LOOP_DESCRIPTIONS = {
     "export-handoff": "Prepare the reviewed result for export handoff.",
 }
 
+_COMMAND_DEMO_LOOP_FALLBACK_TOKENS: dict[str, tuple[str, ...]] = {
+    "project-open": ("open", "document-open", "open-document", "project", "bootstrap-run"),
+    "retrieval": ("retrieve", "context", "basket", "context-basket"),
+    "patch-review": ("review-patch", "diff-preview", "diff", "diff_preview"),
+    "apply-patch": ("patch-apply",),
+    "reject-patch": ("patch-reject",),
+    "persist": ("persist-continue",),
+    "export-handoff": ("export", "save-export", "terminal"),
+}
+
 
 def _demo_loop_description_for(token: str, resolved: ResolvedCommand) -> str:
     return _COMMAND_DEMO_LOOP_DESCRIPTIONS.get(token, resolved.description)
+
+
+def _resolve_demo_loop_token(
+    specs: tuple[CommandSpec, ...],
+    token: str,
+    *,
+    ordered_flow_steps: tuple[str, ...],
+) -> ResolvedCommand:
+    candidates = (token, *_COMMAND_DEMO_LOOP_FALLBACK_TOKENS.get(token, ()))
+    for candidate in candidates:
+        resolved = _prefer_demo_flow_smoke_resolution(
+            command_resolve_for(specs, candidate, ordered_flow_steps),
+            specs=specs,
+            raw_argv=(candidate,),
+        )
+        if resolved.matched:
+            return resolved
+    raise ValueError(f"Command demo loop token is unresolved: {token}")
 
 
 def _validate_command_demo_loop_contract(contract: CommandDemoLoopContract) -> None:
@@ -2752,13 +2780,7 @@ def command_demo_loop_contract(
     ordered_flow_steps = command_demo_flow_steps() if specs is COMMAND_SPECS else command_flow_steps(specs)
     entries: list[CommandDemoLoopEntry] = []
     for token in _COMMAND_DEMO_LOOP_TOKENS:
-        resolved = _prefer_demo_flow_smoke_resolution(
-            command_resolve_for(specs, token, ordered_flow_steps),
-            specs=specs,
-            raw_argv=(token,),
-        )
-        if not resolved.matched:
-            raise ValueError(f"Command demo loop token is unresolved: {token}")
+        resolved = _resolve_demo_loop_token(specs, token, ordered_flow_steps=ordered_flow_steps)
         entries.append(
             CommandDemoLoopEntry(
                 token=token,

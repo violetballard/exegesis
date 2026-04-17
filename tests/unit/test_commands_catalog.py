@@ -2207,6 +2207,127 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
 
+    def test_command_demo_loop_contract_falls_back_to_legacy_surface_tokens_for_custom_specs(self) -> None:
+        specs = (
+            CommandSpec(
+                name="bootstrap",
+                aliases=("open",),
+                cli_tokens=("bootstrap-run",),
+                smoke_argv=("bootstrap-run", "--project", "demo"),
+                flow_step="project-open",
+            ),
+            CommandSpec(
+                name="context-basket",
+                aliases=("retrieve",),
+                cli_tokens=("context-basket",),
+                smoke_argv=("context-basket", "list"),
+                flow_step="retrieval",
+            ),
+            CommandSpec(
+                name="diff-preview",
+                aliases=("review-patch",),
+                cli_tokens=("review-diff",),
+                smoke_argv=("review-diff", "--original", "before", "--proposed", "after"),
+                flow_step="patch-review",
+            ),
+            CommandSpec(
+                name="terminal",
+                aliases=("save-export", "persist-continue", "patch-apply", "patch-reject"),
+                cli_tokens=("terminal",),
+                smoke_argv=(
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_synthesis_request",
+                    "--message",
+                    "Export handoff",
+                ),
+                surface_argv=(
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_synthesis_request",
+                    "--message",
+                    "Export handoff",
+                ),
+                shim_argv=(
+                    (
+                        "save-export",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Export handoff",
+                        ),
+                    ),
+                    (
+                        "persist-continue",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Persist and continue",
+                        ),
+                    ),
+                    (
+                        "patch-apply",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_tool_orchestration",
+                            "--message",
+                            "Apply patch",
+                        ),
+                    ),
+                    (
+                        "patch-reject",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_tool_orchestration",
+                            "--message",
+                            "Reject patch",
+                        ),
+                    ),
+                ),
+                shim_pinned_options=(
+                    ("save-export", ("--operation-kind",)),
+                    ("persist-continue", ("--operation-kind",)),
+                    ("patch-apply", ("--operation-kind",)),
+                    ("patch-reject", ("--operation-kind",)),
+                ),
+                flow_step="export-handoff",
+            ),
+        )
+
+        contract = command_demo_loop_contract(specs)
+
+        self.assertEqual(contract.tokens, command_demo_loop_tokens())
+        self.assertEqual(
+            tuple((entry.token, entry.argv) for entry in contract.entries),
+            (
+                ("project-open", ("bootstrap-run", "--project", "demo")),
+                ("retrieval", ("context-basket", "list")),
+                ("patch-review", ("review-diff", "--original", "before", "--proposed", "after")),
+                (
+                    "apply-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "reject-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
+                    "persist",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "export-handoff",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+            ),
+        )
+
     def test_command_demo_path_validator_rejects_surface_invocation_argv_drift(self) -> None:
         contract = command_demo_path_contract()
         broken_entry = replace(
