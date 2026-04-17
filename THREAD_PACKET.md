@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
-- Packet refresh commit: `db752f9937b99170855f948f3079431253a96713`
+- Packet refresh commit: `3e1010e15cfac657b02c0b6aef250892985ffb2f`
 - Packet refresh role: `feature-fixer gate refresh verified`
 
 ## Packet Traceability Note
@@ -112,7 +112,7 @@
   and `export-handoff` steps and that the scope statement remains limited to
   command-catalog contract hardening only.
 - Re-ran the required lane gates in this feature-fixer pass and confirmed they
-  still pass at the current branch tip `db752f9937b99170855f948f3079431253a96713`.
+  still pass for this metadata refresh before the final reviewer-fix commit.
 
 ## Kickoff Budget / Limits Compliance
 

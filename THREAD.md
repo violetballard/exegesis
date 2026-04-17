@@ -9,7 +9,7 @@ older lane/fixer prompts.
 ## Reviewer Fix Alignment
 
 - Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
-- Current metadata refresh baseline: `db752f9937b99170855f948f3079431253a96713`.
+- Current metadata refresh baseline: `3e1010e15cfac657b02c0b6aef250892985ffb2f`.
 - Canonical demo-path steps advanced: `project-open`, `retrieval`,
   `patch-review`, and `export-handoff` via the CLI-first operator surface;
   `command_cli_contract()` now rejects parser/catalog drift before those
@@ -26,8 +26,8 @@ older lane/fixer prompts.
   routing/provider changes.
 - Final gate refresh: `make scope-check`, `./quality-format.sh --check`,
   `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
-  `make ci` all passed again in this feature-fixer pass at branch tip
-  `db752f9937b99170855f948f3079431253a96713`.
+  `make ci` all passed again in this feature-fixer pass before the final
+  reviewer-fix commit.
 - Fixer verification: this pass re-checked that the reviewer-required mapping
   stays narrowed to the CLI-first `project-open`, `retrieval`,
   `patch-review`, and `export-handoff` steps and that the packet scope remains
