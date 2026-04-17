@@ -13,7 +13,7 @@
 - Later packet-refresh commits are metadata-only for re-review and do not expand
   the reviewed implementation surface.
 - Re-review should keep the approval basis on the command-catalog slice below.
-- Latest metadata refresh prepared at: `2026-04-17T14:11:35Z`
+- Latest metadata refresh prepared at: `2026-04-17T14:14:32Z`
 
 ## Current Program Focus
 
@@ -36,18 +36,23 @@
 
 ## Canonical Demo-Path Step Advanced
 
-- This change makes the `open project/document` portion of the canonical demo
-  path more real by keeping the CLI command contract deterministic,
-  smoke-testable, and drift-resistant for the existing `bootstrap` entrypoint
-  while Textual remains disabled.
+- This change hardens the CLI-facing portions of the canonical demo path while
+  Textual remains disabled:
+  `open project/document` via `bootstrap`,
+  `retrieve relevant material` and `promote or gather context into the basket`
+  via `context-basket`,
+  `preview and apply or reject a patch` via `diff-preview`,
+  and `continue working` / handoff persistence through `terminal`.
 - Concrete blocker removed: the CLI parser surface can no longer silently drift
   away from the command catalog's canonical ordering and still present a
-  seemingly valid contract; `command_cli_contract()` now raises immediately
-  when the CLI lookup table yields canonical command names that no longer match
-  `command_names()`, instead of silently returning a reordered or truncated
-  contract to the CLI compatibility layer.
-- Reviewer-fix note: this sentence is the explicit AGENTS plan-alignment
-  statement required for re-review.
+  seemingly valid contract to those MVP-loop entrypoints;
+  `command_cli_contract()` now raises immediately when the CLI lookup table
+  yields canonical command names that no longer match `command_names()`,
+  instead of silently returning a reordered or truncated contract to the CLI
+  compatibility layer.
+- Scope-tightening note: this is command-surface hardening for the existing
+  MVP-loop entrypoints only; it does not claim new workflow behavior beyond
+  keeping the current CLI contract deterministic and smoke-testable.
 
 ## Scope Completed
 
@@ -61,7 +66,8 @@
   for canonical-order alignment and canonical-name drift rejection.
 - Refreshed the handoff packet so the review scope stays anchored to
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and explicitly states the
-  canonical demo-path step, blocker removed, and verified gate rerun status.
+  CLI-facing canonical demo-path steps, blocker removed, and verified gate
+  rerun status.
 - Refreshed this packet again for the current fixer rerun so the branch tip has
   a dedicated metadata-only re-review commit without changing the reviewed
   implementation files.
@@ -86,8 +92,8 @@
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for
    canonical-order alignment and canonical-name drift rejection.
 4. Regenerated the handoff packet so the review scope matches the reviewed
-   implementation slice and explicitly names the canonical demo-path step and
-   blocker removed.
+   implementation slice and explicitly names the CLI-facing canonical
+   demo-path steps and blocker removed.
 5. Re-ran the required local gates at the current branch tip and refreshed this
    packet for re-review with the current fixer metadata timestamp.
 
@@ -111,7 +117,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Re-verification point: `2026-04-17T14:11:35Z` at the current branch tip
+- Re-verification point: `2026-04-17T14:14:32Z` at the current branch tip
 
 ## Risks / Blockers
 
@@ -130,8 +136,9 @@
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the
   engine-first MVP loop.
 - Scope-tightening note: this packet only claims command-surface determinism for
-  the current CLI compatibility layer for the `open project/document` demo-path
-  step, not a broader workflow capability change.
+  the current CLI compatibility layer covering `bootstrap`,
+  `context-basket`, `diff-preview`, and `terminal` in the active MVP loop, not
+  a broader workflow capability change.
 
 ### Vision capability affected
 
