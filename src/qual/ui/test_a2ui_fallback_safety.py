@@ -543,6 +543,51 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 self.assertIsNot(manifest[key], source)
                 self.assertEqual(manifest[key], source)
 
+    def test_a2ui_contract_alias_sections_do_not_share_mutable_state(self) -> None:
+        manifest = describe_a2ui_contract()
+        terminal_artifact_manifest = describe_terminal_artifact_contract()
+
+        self.assertIsNot(manifest["action"], manifest["action_contract"])
+        self.assertIsNot(manifest["selection"], manifest["selection_contract"])
+        self.assertIsNot(manifest["terminal_fallback"], manifest["terminal_fallback_contract"])
+        self.assertIsNot(manifest["terminal_artifact"], manifest["terminal_artifact_contract"])
+        self.assertIsNot(
+            manifest["terminal_artifact_cli_fallback_target"],
+            manifest["terminal_artifact_cli_fallback_target_contract"],
+        )
+        self.assertIsNot(
+            manifest["terminal_artifact_render_target"],
+            manifest["terminal_artifact_render_target_contract"],
+        )
+        self.assertIsNot(
+            manifest["terminal_artifact_envelope"],
+            manifest["terminal_artifact_envelope_contract"],
+        )
+        self.assertIsNot(
+            manifest["terminal_artifact_raw_leaf_card_default"],
+            manifest["terminal_artifact_raw_leaf_card_default_contract"],
+        )
+        self.assertIsNot(
+            manifest["terminal_artifact_raw_leaf_card_default_policy"],
+            manifest["terminal_artifact_raw_leaf_card_default_policy_contract"],
+        )
+        self.assertIsNot(
+            terminal_artifact_manifest["rendering"],
+            terminal_artifact_manifest["terminal_artifact_rendering"],
+        )
+        self.assertIsNot(
+            terminal_artifact_manifest["cli_fallback"],
+            terminal_artifact_manifest["terminal_artifact_cli_fallback"],
+        )
+        self.assertIsNot(
+            terminal_artifact_manifest["cli_fallback_contract"],
+            terminal_artifact_manifest["terminal_artifact_cli_fallback_contract"],
+        )
+        self.assertIsNot(
+            terminal_artifact_manifest["render_target_contract"],
+            terminal_artifact_manifest["terminal_artifact_render_target_contract"],
+        )
+
     def test_a2ui_contract_manifest_exposes_terminal_fallback_and_artifact_fingerprints(self) -> None:
         manifest = describe_a2ui_contract()
         cli_fallback_target_manifest = describe_terminal_artifact_cli_fallback_target_contract()

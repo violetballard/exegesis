@@ -182,12 +182,12 @@ def describe_a2ui_contract() -> dict[str, Any]:
     action_contract = _snapshot_contract_section(manifest["schemas"]["action"])
     manifest["action"] = action_contract
     manifest["action_fingerprint"] = action_contract["contract_fingerprint"]
-    manifest["action_contract"] = action_contract
+    manifest["action_contract"] = _snapshot_contract_section(action_contract)
     manifest["action_contract_fingerprint"] = manifest["action_fingerprint"]
     selection_contract = _snapshot_contract_section(manifest["schemas"]["selection"])
     manifest["selection"] = selection_contract
     manifest["selection_fingerprint"] = selection_contract["contract_fingerprint"]
-    manifest["selection_contract"] = selection_contract
+    manifest["selection_contract"] = _snapshot_contract_section(selection_contract)
     manifest["selection_contract_fingerprint"] = manifest["selection_fingerprint"]
     manifest["card_fingerprint"] = card_contract_fingerprint()
     terminal_artifact_rendering = _snapshot_contract_section(
@@ -216,18 +216,22 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_cli_fallback_target_fingerprint"] = terminal_artifact_cli_fallback_target[
         "contract_fingerprint"
     ]
-    manifest["terminal_artifact_cli_fallback_target_contract"] = terminal_artifact_cli_fallback_target
+    manifest["terminal_artifact_cli_fallback_target_contract"] = _snapshot_contract_section(
+        terminal_artifact_cli_fallback_target
+    )
     manifest["terminal_artifact_cli_fallback_target_contract_fingerprint"] = manifest[
         "terminal_artifact_cli_fallback_target_fingerprint"
     ]
     terminal_artifact_contract = _snapshot_contract_section(manifest["schemas"]["terminal_artifact"])
     manifest["terminal_artifact"] = terminal_artifact_contract
-    manifest["terminal_artifact_contract"] = terminal_artifact_contract
+    manifest["terminal_artifact_contract"] = _snapshot_contract_section(terminal_artifact_contract)
     manifest["terminal_artifact_contract_fingerprint"] = manifest["terminal_artifact_fingerprint"]
-    manifest["terminal_artifact_render_target_contract"] = terminal_artifact_render_target
+    manifest["terminal_artifact_render_target_contract"] = _snapshot_contract_section(
+        terminal_artifact_render_target
+    )
     manifest["terminal_artifact_render_target_contract_fingerprint"] = manifest["terminal_artifact_render_target_fingerprint"]
     manifest["terminal_fallback"] = _snapshot_contract_section(manifest["terminal_fallback"])
-    manifest["terminal_fallback_contract"] = manifest["terminal_fallback"]
+    manifest["terminal_fallback_contract"] = _snapshot_contract_section(manifest["terminal_fallback"])
     manifest["terminal_fallback_contract_fingerprint"] = manifest["terminal_fallback_fingerprint"]
     terminal_artifact_raw_leaf_card_default = _snapshot_contract_section(
         terminal_artifact_contract["raw_leaf_card_default_contract"]
@@ -239,7 +243,9 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprints"] = _snapshot_contract_section(
         terminal_artifact_contract["raw_leaf_card_default_contract_fingerprints"]
     )
-    manifest["terminal_artifact_raw_leaf_card_default_contract"] = terminal_artifact_raw_leaf_card_default
+    manifest["terminal_artifact_raw_leaf_card_default_contract"] = _snapshot_contract_section(
+        terminal_artifact_raw_leaf_card_default
+    )
     manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprint"] = manifest[
         "terminal_artifact_raw_leaf_card_default_fingerprint"
     ]
@@ -250,7 +256,7 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_raw_leaf_card_default_policy_fingerprint"] = (
         terminal_artifact_raw_leaf_card_default_policy["contract_fingerprint"]
     )
-    manifest["terminal_artifact_raw_leaf_card_default_policy_contract"] = (
+    manifest["terminal_artifact_raw_leaf_card_default_policy_contract"] = _snapshot_contract_section(
         terminal_artifact_raw_leaf_card_default_policy
     )
     manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint"] = (
@@ -258,19 +264,21 @@ def describe_a2ui_contract() -> dict[str, Any]:
     )
     terminal_artifact_envelope = _snapshot_contract_section(terminal_artifact_contract["terminal_artifact_envelope_contract"])
     manifest["terminal_artifact_envelope"] = terminal_artifact_envelope
-    manifest["terminal_artifact_envelope_contract"] = terminal_artifact_envelope
+    manifest["terminal_artifact_envelope_contract"] = _snapshot_contract_section(terminal_artifact_envelope)
     manifest["terminal_artifact_envelope_fingerprint"] = terminal_artifact_envelope["contract_fingerprint"]
     manifest["terminal_artifact_envelope_contract_fingerprint"] = manifest["terminal_artifact_envelope_fingerprint"]
     terminal_artifact_kind_contracts = _snapshot_contract_section(
         terminal_artifact_contract["terminal_artifact_kind_contracts"]
     )
-    manifest["terminal_artifact_kind_contracts"] = terminal_artifact_kind_contracts
+    manifest["terminal_artifact_kind_contracts"] = _snapshot_contract_section(terminal_artifact_kind_contracts)
     manifest["terminal_artifact_kind_contracts_fingerprint"] = terminal_artifact_contract[
         "terminal_artifact_kind_contracts_fingerprint"
     ]
-    manifest["terminal_artifact_rendering_contract"] = terminal_artifact_rendering
+    manifest["terminal_artifact_rendering_contract"] = _snapshot_contract_section(terminal_artifact_rendering)
     manifest["terminal_artifact_rendering_contract_fingerprint"] = manifest["terminal_artifact_rendering_fingerprint"]
-    manifest["terminal_artifact_cli_fallback_contract"] = terminal_artifact_cli_fallback
+    manifest["terminal_artifact_cli_fallback_contract"] = _snapshot_contract_section(
+        terminal_artifact_cli_fallback
+    )
     manifest["terminal_artifact_cli_fallback_contract_fingerprint"] = manifest[
         "terminal_artifact_cli_fallback_fingerprint"
     ]
@@ -519,7 +527,9 @@ def describe_terminal_artifact_contract() -> dict[str, Any]:
     manifest["terminal_artifact_fingerprint"] = fingerprint
     manifest["terminal_artifact_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
-    manifest["terminal_artifact_render_target"] = manifest["render_target_contract"]
+    manifest["terminal_artifact_render_target"] = _snapshot_contract_section(
+        manifest["render_target_contract"]
+    )
     manifest["terminal_artifact_render_target_fingerprint"] = terminal_artifact_render_target_contract_fingerprint()
     manifest["raw_leaf_card_default_contract_fingerprint"] = manifest["raw_leaf_card_default_contract"][
         "contract_fingerprint"
@@ -533,10 +543,10 @@ def describe_terminal_artifact_contract() -> dict[str, Any]:
     )
     terminal_artifact_envelope = _snapshot_contract_section(manifest["envelope"])
     manifest["terminal_artifact_envelope"] = terminal_artifact_envelope
-    manifest["terminal_artifact_envelope_contract"] = terminal_artifact_envelope
+    manifest["terminal_artifact_envelope_contract"] = _snapshot_contract_section(terminal_artifact_envelope)
     manifest["terminal_artifact_envelope_fingerprint"] = terminal_artifact_envelope["contract_fingerprint"]
     manifest["terminal_artifact_envelope_contract_fingerprint"] = manifest["terminal_artifact_envelope_fingerprint"]
-    manifest["terminal_artifact_kind_contracts"] = manifest["kind_contracts"]
+    manifest["terminal_artifact_kind_contracts"] = _snapshot_contract_section(manifest["kind_contracts"])
     manifest["terminal_artifact_kind_contracts_fingerprint"] = terminal_artifact_kind_contracts_fingerprint()
     return manifest
 
@@ -1183,7 +1193,7 @@ def _build_terminal_artifact_contract_manifest(*, include_contract_fingerprints:
         "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
         "render_target_contract": render_target_contract,
         "rendering": rendering_contract,
-        "terminal_artifact_rendering": rendering_contract,
+        "terminal_artifact_rendering": _snapshot_contract_section(rendering_contract),
         "terminal_artifact_render_target_contract": _snapshot_contract_section(render_target_contract),
         "terminal_artifact_rendering_contract": _snapshot_contract_section(rendering_contract),
         "kind_contracts": _build_terminal_artifact_kind_contracts(),
@@ -1206,8 +1216,8 @@ def _build_terminal_artifact_contract_manifest(*, include_contract_fingerprints:
         },
         "terminal_fallback_fingerprint": terminal_fallback_contract_fingerprint(),
         "cli_fallback": cli_fallback_contract,
-        "terminal_artifact_cli_fallback": cli_fallback_contract,
-        "cli_fallback_contract": cli_fallback_contract,
+        "terminal_artifact_cli_fallback": _snapshot_contract_section(cli_fallback_contract),
+        "cli_fallback_contract": _snapshot_contract_section(cli_fallback_contract),
         "terminal_artifact_cli_fallback_contract": _snapshot_contract_section(cli_fallback_contract),
         "terminal_artifact_cli_fallback_target": cli_fallback_target_contract,
         "terminal_artifact_cli_fallback_target_contract": _snapshot_contract_section(cli_fallback_target_contract),
@@ -1327,7 +1337,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "terminal_artifact_render_target_contract": _snapshot_contract_section(render_target_contract),
         "renderer_entrypoints": renderer_entrypoints,
         "rendering": rendering_contract,
-        "terminal_artifact_rendering": rendering_contract,
+        "terminal_artifact_rendering": _snapshot_contract_section(rendering_contract),
         "terminal_artifact_rendering_contract": _snapshot_contract_section(rendering_contract),
         "rendering_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
         "terminal_artifact_cli_fallback_target": terminal_artifact_cli_fallback_target_contract,
