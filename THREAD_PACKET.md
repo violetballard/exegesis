@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `05c0b20ff5e83e02d3ebadabbe39815d0afc0520` (reviewed implementation slice on the pre-refresh branch tip)
-- Packet refresh role: `feature-fixer final branch-tip verification refresh`
+- Packet refresh role: `feature-fixer final gate-rerun handoff refresh`
 - Packet refresh date: `2026-04-17`
 
 ## Packet Traceability Note
@@ -82,6 +82,10 @@
   this packet refresh is metadata-only and records that the current branch tip
   already contains the reviewer-required command-catalog contract fix plus the
   parser-surface drift regression coverage.
+- Final handoff refresh note:
+  this metadata-only refresh is the last feature-fixer pass for the current
+  branch tip and exists to pair a fresh packet commit with a fresh full-gate
+  rerun before re-review.
 
 ## Current Program Focus
 
