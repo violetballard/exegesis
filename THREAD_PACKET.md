@@ -1,7 +1,7 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Current branch head before this fixer commit: `778eb5db8d5623d58a12051794ef720cb23ebd3a`
+- Current branch head before this fixer commit: `9e5345ee9b094f78a3d2fb2f9fdbd291d1bc496f`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
@@ -59,6 +59,7 @@
 
 - `retrieve relevant material`
 - Explicit AGENTS mapping: this narrowed slice makes the canonical `retrieve relevant material` step more real by forcing excerpt lookup through the FTS-backed contract and failing closed instead of accepting PageIndex-only excerpt ids.
+- Re-review anchor: keep the reviewed implementation scope narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`; this metadata-only fixer commit does not broaden that slice.
 
 ### Routing/provider impact note
 
