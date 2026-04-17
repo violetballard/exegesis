@@ -143,6 +143,8 @@ class CommandCatalogTests(unittest.TestCase):
             "project-open": "bootstrap",
             "project": "bootstrap",
             "bootstrap-run": "bootstrap",
+            "document-open": "bootstrap",
+            "open-document": "bootstrap",
             "diff": "diff-preview",
             "diff_preview": "diff-preview",
             "review-patch": "diff-preview",
@@ -173,17 +175,26 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(spec.name, "bootstrap")
         self.assertEqual(
             command_aliases("project-open"),
-            ("open", "project-open", "project", "bootstrap-run"),
+            ("open", "project-open", "project", "bootstrap-run", "document-open", "open-document"),
         )
         self.assertEqual(
             command_lookup_tokens("project-open"),
-            ("bootstrap", "open", "project-open", "project", "bootstrap-run"),
+            ("bootstrap", "open", "project-open", "project", "bootstrap-run", "document-open", "open-document"),
         )
         self.assertEqual(command_aliases("missing"), ())
         self.assertEqual(command_lookup_tokens("missing"), ())
         self.assertEqual(
             command_resolution_lookup_tokens("project-open"),
-            ("bootstrap", "open", "project-open", "project", "bootstrap-run", "bootstrap"),
+            (
+                "bootstrap",
+                "open",
+                "project-open",
+                "project",
+                "bootstrap-run",
+                "document-open",
+                "open-document",
+                "bootstrap",
+            ),
         )
         self.assertEqual(command_resolution_lookup_tokens("missing"), ())
 
@@ -343,6 +354,8 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap"),
                 ("project", "bootstrap"),
                 ("bootstrap-run", "bootstrap"),
+                ("document-open", "bootstrap"),
+                ("open-document", "bootstrap"),
                 ("diff-preview", "diff-preview"),
                 ("diff", "diff-preview"),
                 ("review-patch", "diff-preview"),
@@ -397,6 +410,8 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(shim_by_token["bootstrap"].kind, "primary")
         self.assertEqual(shim_by_token["open"].kind, "lookup")
         self.assertEqual(shim_by_token["project-open"].kind, "flow-step")
+        self.assertEqual(shim_by_token["document-open"].kind, "lookup")
+        self.assertEqual(shim_by_token["open-document"].kind, "lookup")
         self.assertEqual(shim_by_token["diff"].kind, "cli")
         self.assertEqual(shim_by_token["patch-review"].kind, "flow-step")
         self.assertEqual(
@@ -443,6 +458,8 @@ class CommandCatalogTests(unittest.TestCase):
     def test_command_cli_shim_helpers_rewrite_legacy_surface_tokens_to_primary_argv(self) -> None:
         self.assertEqual(command_cli_shim_primary_token("open"), "bootstrap")
         self.assertEqual(command_cli_shim_primary_token("project-open"), "bootstrap")
+        self.assertEqual(command_cli_shim_primary_token("document-open"), "bootstrap")
+        self.assertEqual(command_cli_shim_primary_token("open-document"), "bootstrap")
         self.assertEqual(command_cli_shim_primary_token("patch-review"), "diff-preview")
         self.assertEqual(command_cli_shim_primary_token("persist"), "terminal")
         self.assertEqual(command_cli_shim_primary_token("patch-apply"), "terminal")
@@ -450,6 +467,14 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_cli_shim_primary_token("missing"), "")
         self.assertEqual(
             command_cli_shim_argv(["open", "--project", "demo"]),
+            ("bootstrap", "--project", "demo"),
+        )
+        self.assertEqual(
+            command_cli_shim_argv(("document-open", "--project", "demo")),
+            ("bootstrap", "--project", "demo"),
+        )
+        self.assertEqual(
+            command_cli_shim_argv(("open-document", "--project", "demo")),
             ("bootstrap", "--project", "demo"),
         )
         self.assertEqual(
@@ -552,6 +577,14 @@ class CommandCatalogTests(unittest.TestCase):
             ("bootstrap", "--project", "demo"),
         )
         self.assertEqual(
+            command_cli_entry_argv(("document-open", "--project", "demo")),
+            ("bootstrap", "--project", "demo"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv(("open-document", "--project", "demo")),
+            ("bootstrap", "--project", "demo"),
+        )
+        self.assertEqual(
             command_cli_entry_argv(("patch-review", "--original", "a", "--proposed", "b")),
             ("diff-preview", "--original", "a", "--proposed", "b"),
         )
@@ -605,6 +638,15 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(normalized_lookup.primary_cli_token, "diff-preview")
         self.assertEqual(normalized_lookup.kind, "lookup")
 
+        document_open = command_resolve("document-open")
+        self.assertTrue(document_open.matched)
+        self.assertEqual(document_open.primary_cli_token, "bootstrap")
+        self.assertEqual(document_open.kind, "lookup")
+        self.assertEqual(
+            document_open.surface_tokens,
+            ("bootstrap", "open", "project-open", "project", "bootstrap-run", "document-open", "open-document"),
+        )
+
         primary = command_resolve("DIFF-PREVIEW")
         self.assertTrue(primary.matched)
         self.assertEqual(primary.primary_cli_token, "diff-preview")
@@ -648,6 +690,11 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(normalized_lookup.argv, ("diff-preview", "--format", "json"))
         self.assertEqual(normalized_lookup.kind, "lookup")
 
+        document_open = command_resolve_argv(("document-open", "--project", "demo"))
+        self.assertTrue(document_open.matched)
+        self.assertEqual(document_open.argv, ("bootstrap", "--project", "demo"))
+        self.assertEqual(document_open.kind, "lookup")
+
         persist = command_resolve_argv(("persist",))
         self.assertTrue(persist.matched)
         self.assertEqual(
@@ -655,6 +702,29 @@ class CommandCatalogTests(unittest.TestCase):
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
         )
         self.assertEqual(persist.kind, "lookup")
+
+    def test_document_open_aliases_resolve_to_bootstrap_parser_entrypoint(self) -> None:
+        for token in ("document-open", "open-document"):
+            with self.subTest(token=token):
+                resolved = command_resolve(token)
+                self.assertTrue(resolved.matched)
+                self.assertEqual(resolved.canonical_name, "bootstrap")
+                self.assertEqual(resolved.flow_step, "project-open")
+                self.assertEqual(resolved.primary_cli_token, "bootstrap")
+                self.assertEqual(resolved.argv, ("bootstrap",))
+                self.assertEqual(resolved.smoke_argv, ("bootstrap", "--project", "demo"))
+                self.assertEqual(resolved.kind, "lookup")
+
+                argv_resolved = command_resolve_argv((token, "--project", "demo"))
+                self.assertTrue(argv_resolved.matched)
+                self.assertEqual(argv_resolved.argv, ("bootstrap", "--project", "demo"))
+                self.assertEqual(argv_resolved.kind, "lookup")
+
+                self.assertEqual(command_cli_entry_argv((token,)), ("bootstrap",))
+                self.assertEqual(
+                    command_cli_entry_argv((token, "--project", "demo")),
+                    ("bootstrap", "--project", "demo"),
+                )
 
     def test_command_resolve_helpers_support_custom_specs(self) -> None:
         specs = (
@@ -858,6 +928,8 @@ class CommandCatalogTests(unittest.TestCase):
                 "project-open",
                 "project",
                 "bootstrap-run",
+                "document-open",
+                "open-document",
                 "context-basket",
                 "context",
                 "basket",
@@ -890,6 +962,8 @@ class CommandCatalogTests(unittest.TestCase):
                 "project-open",
                 "project",
                 "bootstrap-run",
+                "document-open",
+                "open-document",
                 "diff-preview",
                 "diff",
                 "review-patch",
@@ -1118,8 +1192,16 @@ class CommandCatalogTests(unittest.TestCase):
                     "bootstrap",
                     "bootstrap",
                     "project-open",
-                    ("open", "project-open", "project", "bootstrap-run"),
-                    ("bootstrap", "open", "project-open", "project", "bootstrap-run"),
+                    ("open", "project-open", "project", "bootstrap-run", "document-open", "open-document"),
+                    (
+                        "bootstrap",
+                        "open",
+                        "project-open",
+                        "project",
+                        "bootstrap-run",
+                        "document-open",
+                        "open-document",
+                    ),
                 ),
                 (
                     "diff-preview",
@@ -1351,7 +1433,10 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             tuple((entry.name, entry.lookup_tokens) for entry in manifest),
             (
-                ("bootstrap", ("bootstrap", "open", "project-open", "project", "bootstrap-run")),
+                (
+                    "bootstrap",
+                    ("bootstrap", "open", "project-open", "project", "bootstrap-run", "document-open", "open-document"),
+                ),
                 ("diff-preview", ("diff-preview", "diff", "diff_preview", "review-patch")),
                 (
                     "context-basket",
@@ -1387,6 +1472,8 @@ class CommandCatalogTests(unittest.TestCase):
                 "project-open",
                 "project",
                 "bootstrap-run",
+                "document-open",
+                "open-document",
                 "diff-preview",
                 "diff",
                 "diff_preview",
@@ -1461,6 +1548,8 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap"),
                 ("project", "bootstrap"),
                 ("bootstrap-run", "bootstrap"),
+                ("document-open", "bootstrap"),
+                ("open-document", "bootstrap"),
                 ("diff-preview", "diff-preview"),
                 ("diff", "diff-preview"),
                 ("review-patch", "diff-preview"),
@@ -1624,6 +1713,8 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", ("bootstrap",)),
                 ("project", ("bootstrap",)),
                 ("bootstrap-run", ("bootstrap",)),
+                ("document-open", ("bootstrap",)),
+                ("open-document", ("bootstrap",)),
             ),
         )
         self.assertEqual(
@@ -2124,6 +2215,8 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap"),
                 ("project", "bootstrap"),
                 ("bootstrap-run", "bootstrap"),
+                ("document-open", "bootstrap"),
+                ("open-document", "bootstrap"),
                 ("context-basket", "context-basket"),
                 ("context", "context-basket"),
                 ("basket", "context-basket"),
@@ -2170,7 +2263,7 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_mvp_flow_surface_tokens(),
             (
-                ("bootstrap", "open", "project-open", "project", "bootstrap-run"),
+                ("bootstrap", "open", "project-open", "project", "bootstrap-run", "document-open", "open-document"),
                 ("context-basket", "context", "basket", "retrieval", "retrieve"),
                 ("diff-preview", "diff", "review-patch", "patch-review"),
                 (
@@ -2198,6 +2291,8 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap"),
                 ("project", "bootstrap"),
                 ("bootstrap-run", "bootstrap"),
+                ("document-open", "bootstrap"),
+                ("open-document", "bootstrap"),
                 ("context-basket", "context-basket"),
                 ("context", "context-basket"),
                 ("basket", "context-basket"),
@@ -2246,7 +2341,7 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             tuple(entry.lookup_tokens for entry in flow),
             (
-                ("bootstrap", "open", "project-open", "project", "bootstrap-run"),
+                ("bootstrap", "open", "project-open", "project", "bootstrap-run", "document-open", "open-document"),
                 ("context-basket", "context", "basket", "retrieval", "retrieve"),
                 ("diff-preview", "diff", "diff_preview", "review-patch"),
                 (
@@ -2309,6 +2404,8 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap"),
                 ("project", "bootstrap"),
                 ("bootstrap-run", "bootstrap"),
+                ("document-open", "bootstrap"),
+                ("open-document", "bootstrap"),
                 ("context-basket", "context-basket"),
                 ("context", "context-basket"),
                 ("basket", "context-basket"),
