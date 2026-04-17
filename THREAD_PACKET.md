@@ -61,7 +61,7 @@
 
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the default catalog validates the full parser surface against the declared command entrypoints and raises `ValueError` when accepted CLI tokens drift from the catalog, which keeps the CLI fallback trustworthy for the `continue working without losing context` step of the canonical MVP loop.
 - Kept the returned contract aligned with the canonical command order while treating parser-surface drift as a contract error instead of silently accepting alias substitutions or extra entrypoints, which keeps the `continue working without losing context` operator surface deterministic instead of silently changing underneath the user.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment, alias-substitution rejection, and extra accepted-entrypoint drift rejection, which makes the `continue working without losing context` CLI contract smoke-testable and auditable.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment, alias-substitution rejection, and extra accepted-entrypoint drift rejection, which makes the `continue working without losing context` CLI contract smoke-testable and explicit.
 - Reissued the handoff packet as a command-catalog-only slice so the review scope matches the claimed implementation files and approval basis.
 
 ## Kickoff Budget / Limits Compliance
@@ -124,7 +124,6 @@
 ### Vision capability affected
 
 - Canonical engine contract - CLI compatibility remains stable while the command-catalog surface rejects parser drift before it can silently change the operator contract that the user relies on to continue working without losing context.
-- Auditable state and workflow - the command surface now fails loudly on catalog/parser drift, making the operator-facing contract explicit and traceable at the exact point where a continued workflow session would otherwise become ambiguous.
 
 ### Routing/provider impact note
 
