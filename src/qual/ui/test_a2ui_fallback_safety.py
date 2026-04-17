@@ -49,6 +49,8 @@ from src.qual.ui.a2ui import (
     terminal_fallback_contract_fingerprint,
     TERMINAL_ARTIFACT_SCHEMA_VERSION,
     TERMINAL_ARTIFACT_RENDER_TARGET_SCHEMA_VERSION,
+    TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION,
+    TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
     validate_terminal_artifact_envelope,
     validate_generic_card,
 )
@@ -559,6 +561,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_fallback_contract_fingerprint(),
         )
         self.assertEqual(
+            manifest["terminal_artifact_rendering_schema_version"],
+            TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_rendering_version"],
+            TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION,
+        )
+        self.assertEqual(
             manifest["terminal_artifact_rendering_fingerprint"],
             terminal_artifact_rendering_contract_fingerprint(),
         )
@@ -628,6 +638,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(manifest["render_target_contract"], describe_terminal_artifact_render_target_contract())
         self.assertEqual(manifest["rendering"], describe_terminal_artifact_rendering_contract())
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_schema_version"],
+            TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_version"],
+            TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
+        )
         self.assertEqual(
             manifest["rendering_fingerprint"],
             terminal_artifact_rendering_contract_fingerprint(),

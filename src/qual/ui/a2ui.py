@@ -17,6 +17,8 @@ CARD_CONTRACT_VERSION = 1
 TERMINAL_FALLBACK_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_RENDER_TARGET_SCHEMA_VERSION = 1
+TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION = 1
+TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION = 1
 _TERMINAL_ARTIFACT_ENVELOPE_TYPE = "TerminalArtifact"
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
@@ -633,6 +635,8 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
         "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
+        "terminal_artifact_rendering_schema_version": TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION,
+        "terminal_artifact_rendering_version": TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION,
         "type": "TerminalArtifactRenderingContract",
         "supported_kinds": ["card", "action", "selection"],
         "default_kind": "card",
@@ -662,7 +666,8 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
         "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
-        "terminal_artifact_cli_fallback_schema_version": 1,
+        "terminal_artifact_cli_fallback_schema_version": TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
+        "terminal_artifact_cli_fallback_version": TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
         "type": "TerminalArtifactCliFallbackContract",
         "render_target_resolver": "resolve_terminal_artifact_render_target",
         "fallback_renderer": "ShellUI.render_artifact",
