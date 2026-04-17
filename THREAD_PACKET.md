@@ -34,11 +34,11 @@
 
 ## Canonical Demo-Path Mapping
 
-- Single canonical demo-path step advanced: `continue working without losing context`.
-- Why this exact step: this change does not add a new workflow action; it hardens the stable CLI operator surface that lets the current MVP loop continue safely after commands are wired, by making command dispatch deterministic and drift-failing instead of silently diverging from the catalog.
-- AGENTS alignment statement: this slice makes `continue working without losing context` more real by ensuring the command-catalog contract stays explicit, ordered, and smoke-testable, so the CLI fallback surface remains dependable while Textual stays disabled.
-- Scope-tightening note: this is command-contract hardening for the CLI-first MVP loop only. It does not claim broader workflow, retrieval, audit, or UI capability expansion.
-- Reviewer fix note: this section exists specifically to satisfy the requested re-review correction to name the canonical demo-path step advanced by the handoff.
+- Canonical demo-path steps advanced: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`.
+- Why these exact steps: the reviewed catalog covers the CLI entrypoints that currently front those steps (`bootstrap`, `context-basket`, and `diff-preview`), and this change only hardens the contract for invoking those commands deterministically and rejecting parser/catalog drift before the operator hits them.
+- AGENTS alignment statement: this slice makes those three CLI-first demo-path steps more real by keeping the fallback command surface explicit, canonically ordered, and smoke-testable while Textual remains disabled.
+- Scope-tightening note: this is command-contract hardening for the existing CLI entrypoints only. It does not claim broader workflow execution, retrieval behavior, audit behavior, or UI capability expansion.
+- Reviewer fix note: this section exists specifically to satisfy the requested re-review correction to name the exact canonical demo-path steps advanced by the handoff.
 
 ## Definition of Done for This Lane
 
@@ -59,9 +59,9 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the default catalog validates its declared CLI entrypoints against the canonical command list and raises `ValueError` when the exposed parser surface drifts, which keeps the CLI fallback trustworthy for the `continue working without losing context` step of the canonical MVP loop.
-- Kept the returned contract aligned with the canonical command order for CLI-exposed commands while treating alias substitution, missing canonical primary tokens, extra accepted entrypoints, and primary-token order drift as contract errors instead of silently accepting them, which keeps the `continue working without losing context` operator surface deterministic instead of silently changing underneath the user.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment, missing canonical primary-token rejection, alias-substitution rejection, extra accepted-entrypoint drift rejection, and primary-token order drift rejection, which makes the `continue working without losing context` CLI contract smoke-testable and explicit.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the default catalog validates its declared CLI entrypoints against the canonical command list and raises `ValueError` when the exposed parser surface drifts, which keeps the CLI fallback trustworthy for the `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch` steps of the canonical MVP loop.
+- Kept the returned contract aligned with the canonical command order for CLI-exposed commands while treating alias substitution, missing canonical primary tokens, extra accepted entrypoints, and primary-token order drift as contract errors instead of silently accepting them, which keeps those operator-facing demo-path steps deterministic instead of silently changing underneath the user.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment, missing canonical primary-token rejection, alias-substitution rejection, extra accepted-entrypoint drift rejection, and primary-token order drift rejection, which makes the CLI contract for those demo-path steps smoke-testable and explicit.
 - Reissued the handoff packet as a command-catalog-only slice so the review scope matches the claimed implementation files and approval basis.
 
 ## Kickoff Budget / Limits Compliance
@@ -75,13 +75,13 @@
 ## Tasks Completed
 
 1. Hardened `command_cli_contract()` to verify the full default parser surface against the catalog and fail fast on alias substitution or extra-entrypoint drift.
-   Demo-path step: `continue working without losing context`, because the CLI fallback must reject silent parser drift before an operator keeps using the next command in the loop.
+   Demo-path steps: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`, because the CLI fallback must reject silent parser drift before an operator invokes those entrypoints in the loop.
 2. Preserved canonical command ordering in the CLI contract for CLI-exposed commands while keeping parser-surface validation explicit.
-   Demo-path step: `continue working without losing context`, because the active CLI surface must stay deterministic from run to run while the operator continues the workflow.
+   Demo-path steps: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`, because the active CLI surface must stay deterministic from run to run at each of those entrypoints.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment plus missing-primary-token, alias-substitution, extra accepted-entrypoint, and primary-token-order parser-surface drift rejection.
-   Demo-path step: `continue working without losing context`, because the smoke tests now prove the CLI contract used for continued work remains explicit and stable.
+   Demo-path steps: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`, because the smoke tests now prove the CLI contract for those entrypoints remains explicit and stable.
 4. Regenerated the handoff packet so the branch metadata stays scoped to the command-catalog slice and uses the current roadmap and vision labels.
-   Demo-path step: `continue working without losing context`, because the handoff now states exactly which canonical loop step this narrow contract-hardening slice protects.
+   Demo-path steps: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`, because the handoff now states exactly which existing command-backed loop steps this narrow contract-hardening slice protects.
 
 ## Files Changed
 
@@ -118,12 +118,12 @@
 
 ### Roadmap item(s) affected
 
-- Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands by keeping the command-catalog contract deterministic and drift-resistant, which removes a concrete blocker from the `continue working without losing context` demo-path step: the operator-facing CLI surface can no longer silently drift underneath a live workflow.
+- Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands by keeping the command-catalog contract deterministic and drift-resistant, which removes a concrete blocker from the `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch` demo-path steps: the operator-facing CLI surface can no longer silently drift underneath those live workflow entrypoints.
 - feat-commands - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop, specifically the stable CLI fallback needed to keep the current demo path usable after each command invocation.
 
 ### Vision capability affected
 
-- Canonical engine contract - CLI compatibility remains stable while the command-catalog surface rejects parser drift before it can silently change the operator contract that the user relies on to continue working without losing context.
+- Canonical engine contract - CLI compatibility remains stable while the command-catalog surface rejects parser drift before it can silently change the operator contract that the user relies on for `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`.
 
 ### Routing/provider impact note
 
