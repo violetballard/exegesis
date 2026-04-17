@@ -328,6 +328,19 @@ def describe_a2ui_contract(
     manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"] = _snapshot_contract_section(
         terminal_artifact_contract["terminal_artifact_cli_fallback_target_contract_fingerprints"]
     )
+    # Surface the route at the A2UI contract boundary so engine/CLI callers
+    # can negotiate fallback behavior without drilling into the nested
+    # terminal_artifact contract.
+    route_contract = describe_terminal_artifact_cli_fallback_route_contract()
+    manifest["terminal_artifact_cli_fallback_route"] = _snapshot_contract_section(route_contract)
+    manifest["terminal_artifact_cli_fallback_route_contract"] = _snapshot_contract_section(route_contract)
+    manifest["terminal_artifact_cli_fallback_route_fingerprint"] = route_contract["contract_fingerprint"]
+    manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"] = manifest[
+        "terminal_artifact_cli_fallback_route_fingerprint"
+    ]
+    manifest["terminal_artifact_cli_fallback_route_contract_fingerprints"] = _snapshot_contract_section(
+        route_contract["contract_fingerprints"]
+    )
     manifest["contract_fingerprints"] = _build_a2ui_contract_fingerprint_summary(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
