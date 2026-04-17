@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `reviewer-required fix finalization`
-- Re-review source of truth: `THREAD_PACKET.md` is the operative handoff packet for this fixer pass because the `.codex` sidecar metadata files are not writable in this worktree.
+- Re-review source of truth: `THREAD_PACKET.md` is the operative handoff packet for this fixer pass because the `.codex` sidecar metadata files are not writable in this worktree and remain non-authoritative for this re-review.
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
@@ -50,6 +50,8 @@ This packet now satisfies the AGENTS handoff requirement to state explicitly whi
 This change advances the canonical demo-path step `retrieve relevant material` by making excerpt retrieval fail closed to the authoritative SQLite FTS path before downstream basket-promotion and workflow use, without reintroducing PageIndex or embeddings as required runtime paths.
 
 This explicit AGENTS mapping is the reviewer-required handoff correction for re-review: the narrowed implementation range strengthens the `retrieve relevant material` step of the canonical engine demo path and does not expand scope beyond that retrieval contract fix.
+
+For re-review, treat any stale `.codex` sidecar packet text as informational only; this checked-in packet is the sole authoritative handoff artifact for the required-fix pass because it is the only writable packet surface in this lane worktree.
 
 ## Fixer Pass Traceability
 
