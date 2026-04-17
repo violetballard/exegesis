@@ -6,6 +6,7 @@ import json
 import re
 import sqlite3
 import uuid
+from collections.abc import Iterable, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
@@ -175,8 +176,16 @@ def _optional_list_like(value: object) -> list[object] | None:
     if isinstance(value, list):
         return copy.deepcopy(value)
     if isinstance(value, tuple):
-        return list(value)
-    return [value]
+        return [copy.deepcopy(item) for item in value]
+    if isinstance(value, (set, frozenset)):
+        return sorted((copy.deepcopy(item) for item in value), key=_stable_sort_key)
+    if isinstance(value, Iterable) and not isinstance(value, (str, bytes, bytearray, Mapping)):
+        return [copy.deepcopy(item) for item in value]
+    return [copy.deepcopy(value)]
+
+
+def _stable_sort_key(value: object) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
 def _normalize_supported_value(value: object, *, field_name: str, allowed: set[str]) -> str:
