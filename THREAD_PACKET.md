@@ -152,7 +152,8 @@
 ### Risks / Blockers
 
 - Risk: `LOW`
-- Remaining risk: normal merge sequencing only for a narrow command-surface lane.
+- Remaining risk: the only realistic merge risk is overlap in the approved shared tests `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` if another lane lands nearby command-surface assertions first.
+- Contract risk: future parser/catalog drift should now fail fast in the command catalog tests instead of silently changing the CLI operator surface.
 - Blockers: none
 
 ## Required Handoff Fields
