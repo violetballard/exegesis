@@ -283,6 +283,18 @@ def describe_a2ui_contract_fingerprints(
     if include_contract_aliases:
         fingerprints["action_contract"] = action_contract_fingerprint()
         fingerprints["selection_contract"] = selection_contract_fingerprint()
+        fingerprints["terminal_fallback_contract"] = terminal_fallback_contract_fingerprint()
+        fingerprints["terminal_artifact_contract"] = terminal_artifact_contract_fingerprint()
+        fingerprints["terminal_artifact_render_target_contract"] = (
+            terminal_artifact_render_target_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_rendering_contract"] = terminal_artifact_rendering_contract_fingerprint()
+        fingerprints["terminal_artifact_cli_fallback_contract"] = (
+            terminal_artifact_cli_fallback_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_raw_leaf_card_default_contract"] = (
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint()
+        )
     return fingerprints
 
 

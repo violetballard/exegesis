@@ -370,6 +370,24 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(len(fingerprints["actions"]), 64)
         self.assertEqual(fingerprints_with_aliases["action_contract"], action_contract_fingerprint())
         self.assertEqual(fingerprints_with_aliases["selection_contract"], selection_contract_fingerprint())
+        self.assertEqual(fingerprints_with_aliases["terminal_fallback_contract"], terminal_fallback_contract_fingerprint())
+        self.assertEqual(fingerprints_with_aliases["terminal_artifact_contract"], terminal_artifact_contract_fingerprint())
+        self.assertEqual(
+            fingerprints_with_aliases["terminal_artifact_render_target_contract"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints_with_aliases["terminal_artifact_rendering_contract"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints_with_aliases["terminal_artifact_cli_fallback_contract"],
+            terminal_artifact_cli_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints_with_aliases["terminal_artifact_raw_leaf_card_default_contract"],
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+        )
         self.assertNotIn("action_contract", fingerprints)
         self.assertNotIn("selection_contract", fingerprints)
 
@@ -408,7 +426,19 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(fingerprints["action_contract"], action_contract_fingerprint())
         self.assertEqual(fingerprints["selection_contract"], selection_contract_fingerprint())
         self.assertEqual(
+            fingerprints["terminal_fallback_contract"],
+            terminal_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_contract"],
+            terminal_artifact_contract_fingerprint(),
+        )
+        self.assertEqual(
             fingerprints["terminal_artifact_render_target"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_render_target_contract"],
             terminal_artifact_render_target_contract_fingerprint(),
         )
         self.assertEqual(
@@ -416,8 +446,20 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_rendering_contract_fingerprint(),
         )
         self.assertEqual(
+            fingerprints["terminal_artifact_rendering_contract"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
             fingerprints["terminal_artifact_cli_fallback"],
             terminal_artifact_cli_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_contract"],
+            terminal_artifact_cli_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_raw_leaf_card_default_contract"],
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         )
         self.assertEqual(fingerprints["capabilities"], a2ui_capabilities_contract_fingerprint())
         self.assertEqual(
@@ -431,6 +473,15 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("terminal_artifact_render_target", describe_a2ui_contract_fingerprints())
         self.assertNotIn("terminal_artifact_rendering", describe_a2ui_contract_fingerprints())
         self.assertNotIn("terminal_artifact_cli_fallback", describe_a2ui_contract_fingerprints())
+        self.assertNotIn("terminal_fallback_contract", describe_a2ui_contract_fingerprints())
+        self.assertNotIn("terminal_artifact_contract", describe_a2ui_contract_fingerprints())
+        self.assertNotIn("terminal_artifact_render_target_contract", describe_a2ui_contract_fingerprints())
+        self.assertNotIn("terminal_artifact_rendering_contract", describe_a2ui_contract_fingerprints())
+        self.assertNotIn("terminal_artifact_cli_fallback_contract", describe_a2ui_contract_fingerprints())
+        self.assertNotIn(
+            "terminal_artifact_raw_leaf_card_default_contract",
+            describe_a2ui_contract_fingerprints(),
+        )
 
     def test_terminal_artifact_contract_manifest_is_versioned_and_points_to_subcontracts(self) -> None:
         manifest = describe_terminal_artifact_contract()
