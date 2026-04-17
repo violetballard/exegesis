@@ -3611,7 +3611,7 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
                 return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
     else:
         fallback_artifact, fallback_kind = fallback_target
-        fallback_artifact, fallback_kind = _refine_terminal_artifact_cli_fallback_target(
+        fallback_artifact, fallback_kind = refine_terminal_artifact_cli_fallback_target(
             fallback_artifact,
             fallback_kind,
             requested_kind=requested_kind,
@@ -3796,6 +3796,26 @@ def _refine_terminal_artifact_cli_fallback_target(
     if partial_kind in {"action", "selection"}:
         return artifact, partial_kind
     return artifact, resolved_kind
+
+
+def refine_terminal_artifact_cli_fallback_target(
+    artifact: Any,
+    resolved_kind: str | None,
+    *,
+    requested_kind: str | None,
+) -> tuple[Any, str | None]:
+    """Public wrapper for the CLI fallback target refinement policy.
+
+    The shell and explicit CLI fallback entrypoints share this helper so they
+    recover the same leaf kinds when the shared resolver underflows to a
+    generic card.
+    """
+
+    return _refine_terminal_artifact_cli_fallback_target(
+        artifact,
+        resolved_kind,
+        requested_kind=requested_kind,
+    )
 
 
 def _resolve_terminal_artifact_card_fallback(

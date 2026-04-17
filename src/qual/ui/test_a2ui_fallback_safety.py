@@ -62,6 +62,7 @@ from src.qual.ui.a2ui import (
     render_terminal_cli_fallback,
     render_terminal_card,
     render_terminal_selection,
+    refine_terminal_artifact_cli_fallback_target,
     _render_payload_preview,
     SelectionRef,
     _should_preserve_raw_leaf_card_default,
@@ -188,6 +189,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIs(
             public_ui.terminal_artifact_cli_fallback_route_contract_fingerprint,
             terminal_artifact_cli_fallback_route_contract_fingerprint,
+        )
+        self.assertIs(
+            public_ui.refine_terminal_artifact_cli_fallback_target,
+            refine_terminal_artifact_cli_fallback_target,
         )
         self.assertEqual(
             public_ui.TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_SCHEMA_VERSION,
@@ -5933,6 +5938,47 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 self.assertIn(expected_prefix, text)
                 self.assertIn(expected_schema, text)
                 self.assertNotIn("[UnknownCard] <invalid card>", text)
+
+    def test_public_cli_fallback_target_refinement_helper_recovers_leaf_kinds(self) -> None:
+        cases = [
+            (
+                "action",
+                {
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                    "confirm": {"title": "Approve", "message": "Proceed?"},
+                },
+                "action",
+                "[ActionRef] Export",
+            ),
+            (
+                "selection",
+                {
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                    "selected": True,
+                },
+                "selection",
+                "[SelectionRef] Choice",
+            ),
+        ]
+
+        for case_name, artifact, requested_kind, expected_prefix in cases:
+            with self.subTest(case=case_name):
+                refined_artifact, refined_kind = refine_terminal_artifact_cli_fallback_target(
+                    artifact,
+                    "card",
+                    requested_kind=requested_kind,
+                )
+
+                self.assertIs(refined_artifact, artifact)
+                self.assertEqual(refined_kind, requested_kind)
+                self.assertIn(
+                    expected_prefix,
+                    render_terminal_cli_fallback(refined_artifact, kind=refined_kind),
+                )
 
     def test_terminal_artifact_cli_fallback_keeps_raw_leaf_card_default_when_shared_resolver_underflows_to_card(
         self,

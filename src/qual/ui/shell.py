@@ -24,6 +24,7 @@ from .a2ui import (
     _fingerprint_manifest_section,
     _normalize_terminal_artifact_kind_hint,
     _should_preserve_raw_leaf_card_default,
+    refine_terminal_artifact_cli_fallback_target,
     resolve_terminal_artifact_cli_fallback_target,
     render_terminal_action,
     render_terminal_artifact,
@@ -429,60 +430,34 @@ class ShellUI:
         requested_kind = ShellUI._normalize_fallback_kind(kind)
         try:
             fallback_artifact, fallback_kind = resolve_terminal_artifact_cli_fallback_target(artifact, kind=kind)
-            if requested_kind != "card" and fallback_kind == "card":
-                fallback_artifact, fallback_kind = ShellUI._refine_fallback_artifact(
-                    fallback_artifact,
-                    fallback_kind,
-                    requested_kind=requested_kind,
-                )
+            fallback_artifact, fallback_kind = refine_terminal_artifact_cli_fallback_target(
+                fallback_artifact,
+                fallback_kind,
+                requested_kind=requested_kind,
+            )
             return fallback_artifact, fallback_kind
         except Exception:
             recovered = ShellUI._recover_terminal_artifact_envelope_fallback(artifact)
             if recovered is not None:
-                return recovered
+                return refine_terminal_artifact_cli_fallback_target(
+                    recovered[0],
+                    recovered[1],
+                    requested_kind=requested_kind,
+                )
             if _should_preserve_raw_leaf_card_default(artifact):
                 return artifact, "card"
             inferred_kind = ShellUI._infer_fallback_kind(artifact)
             if inferred_kind is not None:
-                return artifact, inferred_kind
+                return refine_terminal_artifact_cli_fallback_target(
+                    artifact,
+                    inferred_kind,
+                    requested_kind=requested_kind,
+                )
             # Keep the shell fallback path deterministic: if we could not
             # recover a specific kind, fall back to the default card view.
             return artifact, requested_kind or "card"
 
     @staticmethod
-    def _refine_fallback_artifact(
-        artifact: Any,
-        resolved_kind: str | None,
-        *,
-        requested_kind: str | None,
-    ) -> tuple[Any, str | None]:
-        """Restore a leaf-specific fallback when the shared resolver underflows to card.
-
-        The shell keeps explicit ``kind="card"`` requests authoritative, but if the
-        shared CLI fallback target resolver under-reports a recoverable action or
-        selection leaf, the shell can still route the demo loop to the specific
-        leaf renderer before the generic card retry runs.
-        """
-
-        if resolved_kind != "card" or requested_kind == "card":
-            return artifact, resolved_kind
-
-        if isinstance(artifact, Mapping):
-            artifact_type = artifact.get("type")
-            if isinstance(artifact_type, str) and artifact_type.strip() == "TerminalArtifact":
-                recovered = ShellUI._recover_terminal_artifact_envelope_fallback(artifact)
-                if recovered is not None:
-                    return recovered
-
-        if _should_preserve_raw_leaf_card_default(artifact):
-            return artifact, "card"
-
-        inferred_kind = ShellUI._infer_fallback_kind(artifact)
-        if inferred_kind in {"action", "selection"}:
-            return artifact, inferred_kind
-
-        return artifact, resolved_kind
-
     @staticmethod
     def _recover_terminal_artifact_envelope_fallback(
         artifact: Any,
