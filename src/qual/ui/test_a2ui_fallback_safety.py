@@ -973,6 +973,17 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["capabilities_contract_fingerprint"], a2ui_capabilities_contract_fingerprint())
         self.assertEqual(manifest["capabilities"]["contract_fingerprint"], manifest["capabilities_contract_fingerprint"])
 
+    def test_a2ui_contract_manifest_exposes_top_level_contract_alias(self) -> None:
+        manifest = describe_a2ui_contract()
+
+        self.assertIsNot(manifest["a2ui_contract"], manifest)
+        self.assertEqual(manifest["a2ui_contract"]["contract_fingerprint"], manifest["contract_fingerprint"])
+        self.assertEqual(manifest["a2ui_contract_fingerprint"], manifest["contract_fingerprint"])
+        self.assertEqual(manifest["a2ui_contract"]["contract_fingerprints"], manifest["contract_fingerprints"])
+        self.assertIsNot(manifest["a2ui_contract"]["contract_fingerprints"], manifest["contract_fingerprints"])
+        self.assertEqual(manifest["a2ui_contract"]["capabilities"], manifest["capabilities"])
+        self.assertIsNot(manifest["a2ui_contract"]["capabilities"], manifest["capabilities"])
+
     def test_a2ui_contract_manifest_alias_sections_are_snapshot_isolated(self) -> None:
         manifest = describe_a2ui_contract()
         schema_versions_source = _build_a2ui_schema_versions_manifest()
@@ -1402,9 +1413,15 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(fingerprints["capabilities"], a2ui_capabilities_contract_fingerprint())
         self.assertEqual(len(fingerprints["actions"]), 64)
         self.assertNotIn("capabilities_contract", fingerprints)
+        self.assertNotIn("a2ui_contract", fingerprints)
         self.assertEqual(fingerprints_with_aliases["capabilities_contract"], a2ui_capabilities_contract_fingerprint())
         self.assertEqual(
             fingerprints_with_aliases["contract_fingerprint"],
+            manifest["contract_fingerprint"],
+        )
+        self.assertEqual(fingerprints_with_aliases["a2ui_contract"], manifest["contract_fingerprint"])
+        self.assertEqual(
+            fingerprints_with_aliases["a2ui_contract_fingerprint"],
             manifest["contract_fingerprint"],
         )
         self.assertEqual(fingerprints_with_aliases["card_fingerprint"], card_contract_fingerprint())

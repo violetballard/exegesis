@@ -394,6 +394,8 @@ def describe_a2ui_contract(
     manifest["contract_fingerprints"] = _build_a2ui_contract_fingerprint_summary(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
+    manifest["a2ui_contract"] = _snapshot_contract_section(manifest)
+    manifest["a2ui_contract_fingerprint"] = manifest["contract_fingerprint"]
     return manifest
 
 
@@ -501,6 +503,7 @@ def describe_a2ui_contract_fingerprints(
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
+            ("a2ui_contract", _fingerprint_manifest_section(manifest)),
             ("contract_fingerprint", _fingerprint_manifest_section(manifest)),
             ("capabilities_contract", a2ui_capabilities_contract_fingerprint()),
             ("card_fingerprint", card_contract_fingerprint()),
