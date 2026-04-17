@@ -120,6 +120,12 @@
 - Before broadening scope beyond command-catalog validation and the approved
   shared test.
 
+### Stop Triggers
+
+- unresolved test/lint/typecheck after 2 attempts
+- unresolved `make scope-check`
+- budget/size/time limit hit
+
 ### Checkpoint Cadence
 
 - Plan complete: recorded by this high-risk kickoff section and the
@@ -285,6 +291,10 @@
 
 - None. This change only affects local command contract validation and focused
   command-catalog test coverage.
+
+### Proposed README.md patch text
+
+- None.
 
 ## Scope-check / Ownership Note
 
