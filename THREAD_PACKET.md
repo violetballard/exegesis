@@ -1,17 +1,22 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Current branch head before this fixer commit: `7a5249a76698fd7865c3168176235d321d857c22`
+- Current branch head before this fixer commit: `0118722a6a9d591eae03073c1a438c4e9caf6d4c`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet refresh role: `reviewer-required fix narrowing`
 - Packet-only commits after reviewed head:
-  - `439328242b6f834f5a76ff234a8c41ff8f5f5c1a`
-  - `d21c14df7d8b7ca375309b6c6e883a392b700a9b`
+  - `0118722a6a9d591eae03073c1a438c4e9caf6d4c`
 
 ## Scope goal
 
 - Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output on the canonical retrieval surface.
+
+## Packet artifact note
+
+- `THREAD_PACKET.md` is the writable handoff artifact in this lane worktree for this fixer pass.
+- The mirrored `.codex` packet files are present but read-only here, so their stale copies could not be updated from this worktree.
+- This packet carries the reviewer-required high-risk framing and canonical demo-path statement for re-review.
 
 ## Thread Kickoff (High-Risk)
 
