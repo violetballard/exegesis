@@ -10,7 +10,6 @@ from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions
 from src.qual.docindex.service import DocIndexQueryConstraints
 from src.qual.docindex.service import DocIndexService
-from src.qual.engine.tools.excerpt_tools import fetch_excerpt as engine_tool_fetch_excerpt
 import src.qual.engine.retrieval as engine_retrieval
 from src.qual.engine.retrieval import build_retrieval_citation_bundle_from_result as engine_build_retrieval_citation_bundle_from_result
 from src.qual.engine.retrieval import build_retrieval_doc_bundle_from_result as engine_build_retrieval_doc_bundle_from_result
@@ -1213,28 +1212,6 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
             self.service.fetch_excerpt(str(excerpt_id))
-
-    def test_engine_helper_fetch_excerpt_requires_an_fts_lookup_hit(self) -> None:
-        docindex_service = DocIndexService(self.root, audit_log=self.audit)
-        doc_id = "doc-pageindex-only-helper"
-        source = (
-            "# Methods\n"
-            "Sampling details and recruitment constraints.\n"
-            "# Findings\n"
-            "Theme synthesis and implications for theory.\n"
-        ).encode("utf-8")
-        docindex_service.build(doc_id, source, DocIndexBuildOptions())
-        query = docindex_service.query(
-            doc_id,
-            source,
-            "findings synthesis",
-            DocIndexQueryConstraints(max_results=1),
-            options=DocIndexBuildOptions(),
-        )
-        excerpt_id = query.hits[0]["excerpt_ids"][0]  # type: ignore[index]
-
-        with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
-            engine_tool_fetch_excerpt(self.service, excerpt_id=str(excerpt_id))
 
     def test_retrieve_fts_excerpt_returns_canonical_fts_payload(self) -> None:
         result = self.service.retrieve_auto(

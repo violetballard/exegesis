@@ -1,44 +1,65 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet refresh role: `reviewer-fix handoff metadata refresh`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Packet refresh role: `feature-fixer reviewer handoff regeneration`
+- Pre-fixer implementation trace anchor: `d264cf25c9101798ea784b3b38bf516a89c5890a`
+- Reviewed implementation range for re-review: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..(final fixer HEAD SHA reported with this handoff)`
 
 ## Scope goal
 
-- Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
+- Keep FTS-first retrieval authoritative while carrying deterministic provenance, retrieval policy, and basket-promotion evidence through the canonical downstream payload surfaces used by the engine loop.
 
 ## Scope completed
 
-- SQLite FTS remains the authoritative MVP retrieval path in this narrowed reviewed implementation range.
-- The reviewed implementation commit removes the PageIndex fallback from `fetch_excerpt`, so the public excerpt lookup surface now resolves through the canonical FTS-only path.
-- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs fail closed with `KeyError`.
-- PageIndex and embeddings remain compatibility-only paths in this slice and are not restored as required runtime retrieval backends.
+- The branch tip now preserves deterministic retrieval evidence across the FTS-first retrieval surfaces in `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`, including doc-scope provenance tightening, excerpt lookup fingerprinting, basket-promotion backfill, retrieval-policy propagation, and normalized retrieval-evidence date ranges.
+- `fetch_excerpt` remains FTS-only; PageIndex and embeddings stay deferred compatibility identifiers rather than required runtime paths.
+- This fixer pass removes the out-of-lane `src/qual/engine/tools/excerpt_tools.py` retrieval change and the shared regression that depended on it, so the branch no longer asks the reviewer to accept that ownership violation.
 
-## Canonical demo-path step advanced
+## Canonical Demo-Path Step Advanced
 
-- `retrieve relevant material`
-- This slice advances `retrieve relevant material` by ensuring excerpt lookup only resolves through the authoritative SQLite FTS path and rejects PageIndex-only excerpt IDs, keeping retrieval provenance deterministic for downstream basket and workflow use.
+- `promote or gather context into the basket`
+- The true branch-tip work is no longer just an excerpt lookup slice. It advances basket gathering/promotion by preserving retrieval policy, provenance, and normalized evidence fields when FTS results are promoted into downstream payloads, which keeps the Milestone 3 engine loop auditable after retrieval results move into basket-facing workflow state.
 
 ## AGENTS.md handoff packet
 
-- Risk reason: shared/high-risk work because this narrowed reviewed implementation includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
+- Risk reason: shared/high-risk work because the cumulative branch-tip slice still edits the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 - Task budget: `4`
 - Time budget: `30m`
 - Size limits: `<=8 files`, `<=300 net LOC`
 - Max fix attempts per failing gate: `2`
+- Budget status:
+  - Task cap met at `4` grouped tasks.
+  - Size cap exceeded on the true implementation slice: `9` implementation files changed with `4558` insertions and `437` deletions.
+  - Including packet metadata, the full branch-tip delta for this re-review is `12` files changed with `4794` insertions and `515` deletions.
 - Tasks completed:
-  1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
-  2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
+  1. Hardened FTS-first retrieval metadata in the canonical owned surfaces, including doc-scope provenance, excerpt lookup fingerprints, confidentiality-aware excerpt lookup metadata, and deterministic hit/provenance snapshots.
+  2. Stabilized downstream retrieval payload backfill so basket-promotion, citation, source-bundle, and evidence payloads keep canonical FTS policy/provenance fields instead of degrading on sparse inputs.
+  3. Normalized query, scope, constraint, strategy-id, and date-range handling for cache keys and payload snapshots so equivalent retrieval inputs produce deterministic downstream evidence.
+  4. Kept shared regression coverage in `tests/unit/test_unified_retrieval.py` aligned with the canonical retrieval contract, and removed the extra out-of-lane `excerpt_tools` regression/assertion in this fixer pass.
 
 ## Files changed
 
+### Implementation files
+
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/embeddings_strategy.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/interface.py`
+- `src/qual/engine/retrieval/pageindex_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
+
+### Packet / handoff files
+
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
+
+### Out-of-lane cleanup in this fixer pass
+
+- `src/qual/engine/tools/excerpt_tools.py` was restored to its pre-lane behavior and is no longer part of the reviewed retrieval implementation surface.
 
 ## Commands run with results
 
@@ -52,7 +73,7 @@
 ## Risks / blockers
 
 - Risk: `HIGH`
-- Merge risk detail: callers that still pass PageIndex-only excerpt IDs into `fetch_excerpt` now fail closed with `KeyError` by design because excerpt lookup is restricted to the canonical FTS-only path.
+- Merge risk detail: the branch is still a shared/high-risk retrieval slice and remains over the AGENTS size cap even after removing the out-of-lane helper edit, because the canonical retrieval payload and regression surfaces changed substantially before this fixer pass.
 - Blockers: none
 
 ## Required handoff fields
@@ -60,7 +81,7 @@
 ### Roadmap item(s) affected
 
 - `Milestone 3: Real workflow loop`
-- `feat-retrieval-fts - authoritative FTS-first retrieval feeding the engine loop`
+- `feat-retrieval-fts - retrieval/search`
 
 ### Vision capability affected
 
@@ -75,11 +96,10 @@
 
 - Shared-by-approval edits: `YES`
 - Approved shared regression surface: `tests/unit/test_unified_retrieval.py`
+- Out-of-lane edit removed in fixer pass: `src/qual/engine/tools/excerpt_tools.py`
 - Integrator-locked edits: `NO`
 
 ## Traceability note
 
-- Reviewer-required alignment note: this packet is the writable handoff source in this worktree for the final fixer pass. The `.codex` packet mirrors are filesystem-blocked here, so the canonical demo-path mapping and tightened scope wording are recorded in this packet and in the commit that carries it.
-
-- Later metadata-only packet refresh commits may advance the branch head, but they do not change the reviewed implementation range unless the packet is explicitly regenerated.
-- Reviewer-fix rerun date: `2026-04-16`; this metadata-only fixer pass revalidated the narrowed packet against the required gate set without changing runtime retrieval code.
+- This packet replaces the stale narrowed handoff that incorrectly described the branch tip as metadata-only after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- Because this packet is itself part of the fixer commit, it records the pre-fixer trace anchor `d264cf25c9101798ea784b3b38bf516a89c5890a`; use the final HEAD SHA reported with this fixer handoff as the actual branch tip for re-review.
