@@ -161,6 +161,14 @@ def _normalize_scope(value: object) -> str:
     return scope
 
 
+def _reject_deferred_scope(scope: str) -> str:
+    if scope.startswith("section:"):
+        raise ValueError("section scope is unsupported until FTS fallback can resolve section targets")
+    if scope.startswith("collection:"):
+        raise ValueError("collection scope is unsupported until the FTS lane can resolve collection targets")
+    return scope
+
+
 def _optional_list_like(value: object) -> list[object] | None:
     if value is None:
         return None
@@ -276,7 +284,7 @@ class RetrievalQuery:
         if normalized_query_text is None:
             raise ValueError("query_text is required")
         object.__setattr__(self, "query_text", normalized_query_text)
-        object.__setattr__(self, "scope", _normalize_scope(self.scope))
+        object.__setattr__(self, "scope", _reject_deferred_scope(_normalize_scope(self.scope)))
         object.__setattr__(
             self,
             "intent",
@@ -2967,11 +2975,8 @@ class RetrievalService:
             raise ValueError("query_text must contain at least one searchable term")
         if query.constraints.max_results < 1:
             raise ValueError("max_results must be greater than zero")
-        if query.scope.startswith("section:"):
-            raise ValueError("section scope is unsupported until FTS fallback can resolve section targets")
-        if query.scope.startswith("collection:"):
-            raise ValueError("collection scope is unsupported until the FTS lane can resolve collection targets")
-        if query.scope not in {"vault"} and not any(query.scope.startswith(prefix) for prefix in ("collection:", "doc:")):
+        _reject_deferred_scope(query.scope)
+        if query.scope != "vault" and not any(query.scope.startswith(prefix) for prefix in ("collection:", "doc:")):
             raise ValueError("unsupported scope")
         if query.intent not in _SUPPORTED_RETRIEVAL_INTENTS:
             raise ValueError(f"unsupported intent: {query.intent}")
