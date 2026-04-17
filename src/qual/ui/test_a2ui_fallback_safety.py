@@ -945,19 +945,27 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             "terminal_artifact_raw_leaf_card_default_contract",
             describe_a2ui_contract_fingerprints(),
         )
+        self.assertNotIn(
+            "terminal_artifact_raw_leaf_card_default_policy",
+            describe_a2ui_contract_fingerprints(),
+        )
 
     def test_a2ui_contract_fingerprint_map_can_opt_into_raw_leaf_card_default_dispatch(self) -> None:
-        manifest = describe_a2ui_contract()
         fingerprints = describe_a2ui_contract_fingerprints(
             include_terminal_artifact_raw_leaf_card_default=True,
+            include_terminal_artifact_raw_leaf_card_default_policy=True,
         )
 
         self.assertEqual(
             fingerprints["terminal_artifact_raw_leaf_card_default"],
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         )
+        self.assertEqual(
+            fingerprints["terminal_artifact_raw_leaf_card_default_policy"],
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        )
         self.assertNotIn("terminal_artifact_raw_leaf_card_default", describe_a2ui_contract_fingerprints())
-        self.assertNotIn("terminal_artifact_raw_leaf_card_default", manifest["contract_fingerprints"])
+        self.assertNotIn("terminal_artifact_raw_leaf_card_default_policy", describe_a2ui_contract_fingerprints())
 
     def test_terminal_artifact_contract_manifest_is_versioned_and_points_to_subcontracts(self) -> None:
         manifest = describe_terminal_artifact_contract()

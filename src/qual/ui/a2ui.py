@@ -316,15 +316,16 @@ def describe_a2ui_contract_fingerprints(
     include_terminal_artifact_cli_fallback: bool = False,
     include_terminal_artifact_cli_fallback_target: bool = False,
     include_terminal_artifact_raw_leaf_card_default: bool = False,
+    include_terminal_artifact_raw_leaf_card_default_policy: bool = False,
     include_contract_aliases: bool = False,
 ) -> dict[str, str]:
     """Return stable fingerprints for the contract sections and embedded contracts.
 
     The default key set stays lean for existing callers. Opt-in flags expose the
     embedded dispatch fingerprints, including the raw-leaf card-default
-    recovery contract, and contract aliases that the full manifest already
-    surfaces so lightweight callers can negotiate the same contract slice
-    without pulling the entire manifest.
+    recovery contract and its policy contract, plus contract aliases that the
+    full manifest already surfaces so lightweight callers can negotiate the
+    same contract slice without pulling the entire manifest.
     """
 
     manifest = _build_a2ui_contract_manifest()
@@ -357,6 +358,10 @@ def describe_a2ui_contract_fingerprints(
     if include_terminal_artifact_raw_leaf_card_default:
         fingerprints["terminal_artifact_raw_leaf_card_default"] = (
             terminal_artifact_raw_leaf_card_default_contract_fingerprint()
+        )
+    if include_terminal_artifact_raw_leaf_card_default_policy:
+        fingerprints["terminal_artifact_raw_leaf_card_default_policy"] = (
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint()
         )
     if include_contract_aliases:
         fingerprints["action_contract"] = action_contract_fingerprint()
