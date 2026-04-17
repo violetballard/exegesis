@@ -818,6 +818,7 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
             "card": "render_terminal_card",
             "action": "render_terminal_action",
             "selection": "render_terminal_selection",
+            "cli_fallback": "render_terminal_cli_fallback",
         },
         "render_target_resolver": "resolve_terminal_artifact_render_target",
         "fallback_renderer": "ShellUI.render_artifact",

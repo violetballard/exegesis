@@ -712,6 +712,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["renderer_entrypoints"],
             {
                 "terminal_artifact": "render_terminal_artifact",
+                "cli_fallback": "render_terminal_cli_fallback",
                 "card": "render_terminal_card",
                 "action": "render_terminal_action",
                 "selection": "render_terminal_selection",
