@@ -26,13 +26,13 @@
 
 ## Scope Goal
 
-- Harden the deterministic CLI contract for the already-exposed `bootstrap` entrypoint so the current `open project/document` demo-path step keeps a canonical, drift-resistant compatibility surface while Textual remains disabled. This slice adds no new workflow actions, no new command coverage, and no new engine behavior.
+- Strengthen the CLI-first operator surface for the already-exposed `bootstrap` entrypoint so the current `open project/document` demo-path step keeps a canonical, deterministic, drift-resistant compatibility surface while Textual remains disabled. This slice adds no new workflow actions, no new command coverage, and no new engine behavior.
 
 ## Canonical Demo-Path Step Advanced
 
 - Exact step advanced: `open project/document`.
 - AGENTS alignment: this slice strengthens the CLI-first operator surface that supports the engine-side demo path while Textual remains disabled.
-- Why this step: `bootstrap` is the current CLI entrypoint for that step, and this slice makes it more real by preventing silent parser/catalog drift from changing the operator-facing command contract.
+- Why this step: `bootstrap` is the current CLI entrypoint for that step, and this slice makes it more real by strengthening the CLI-first operator surface and preventing silent parser/catalog drift from changing the operator-facing command contract.
 - Scope boundary: this is contract-hardening only. It does not add new workflow actions, new command coverage, retrieval behavior, patch behavior, save behavior, or any new engine business logic.
 
 ## Priority Outcomes
