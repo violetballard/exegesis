@@ -1,10 +1,10 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet refresh role: `reviewer-fix canonical-step narrowing`
-- Current branch head before this fixer commit: `ec028af33381f142f87464297fd3ef3feedd2851`
+- Packet refresh role: `reviewer-fix current-tip traceability refresh`
+- Current branch head before this fixer commit: `85d61f4510633e1d4bc74998fcf93308382b6e9c`
 - Reviewed runtime implementation head in that branch state: `e7958b4656b045844262c3547cae0011446faef1`
-- Re-review branch-tip range before this fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..ec028af33381f142f87464297fd3ef3feedd2851`
+- Re-review branch-tip range before this fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..85d61f4510633e1d4bc74998fcf93308382b6e9c`
 
 ## Scope goal
 
@@ -96,7 +96,7 @@
 
 ## Traceability note
 
-- The prior packet refresh already added the explicit canonical demo-path field, but this fixer pass narrows the handoff wording so it only claims progress on `retrieve relevant material`.
-- Re-review should anchor to the branch-tip range `378cf9a74a3658058079a32f186fcd254c4a4034..ec028af33381f142f87464297fd3ef3feedd2851`.
-- Treat `c073ad1ffeba08fdc6930b34495d5f8abadf9f16` and `e7958b4656b045844262c3547cae0011446faef1` as reviewed runtime implementation; `ec028af33381f142f87464297fd3ef3feedd2851` is the prior metadata-only packet refresh immediately before this fixer commit.
+- The prior packet refresh already narrowed the canonical demo-path wording to `retrieve relevant material`; this fixer pass refreshes the handoff so it points at the actual current branch tip.
+- Re-review should anchor to the branch-tip range `378cf9a74a3658058079a32f186fcd254c4a4034..85d61f4510633e1d4bc74998fcf93308382b6e9c`.
+- Treat `c073ad1ffeba08fdc6930b34495d5f8abadf9f16` and `e7958b4656b045844262c3547cae0011446faef1` as reviewed runtime implementation; `85d61f4510633e1d4bc74998fcf93308382b6e9c` is the prior metadata-only packet refresh immediately before this fixer commit.
 - Use the final HEAD SHA reported with this fixer handoff for the post-fix branch tip.
