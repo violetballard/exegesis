@@ -576,6 +576,7 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
         include_terminal_artifact_cli_fallback=include_terminal_artifact_cli_fallback,
     )
     if include_contract_aliases:
+        fingerprints["terminal_artifact_kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
         fingerprints["terminal_artifact_render_target_contract"] = (
             terminal_artifact_render_target_contract_fingerprint()
         )
@@ -974,6 +975,8 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
     rendering_contract = describe_terminal_artifact_rendering_contract()
     terminal_fallback_contract = describe_terminal_fallback_contract()
     raw_leaf_card_default_contract = describe_terminal_artifact_raw_leaf_card_default_contract()
+    kind_contracts = _build_terminal_artifact_kind_contracts()
+    terminal_artifact_kind_contracts = _snapshot_contract_section(kind_contracts)
     renderer_entrypoints = copy.deepcopy(rendering_contract["renderer_entrypoints"])
     renderer_entrypoints["cli_fallback"] = "render_terminal_cli_fallback"
     return {
@@ -988,7 +991,9 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "supported_kinds": ["card", "action", "selection"],
         "default_kind": "card",
         "envelope": _build_terminal_artifact_envelope_manifest(),
-        "kind_contracts": _build_terminal_artifact_kind_contracts(),
+        "kind_contracts": kind_contracts,
+        "terminal_artifact_kind_contracts": terminal_artifact_kind_contracts,
+        "terminal_artifact_kind_contracts_fingerprint": terminal_artifact_kind_contracts_fingerprint(),
         "render_target_contract": render_target_contract,
         "terminal_artifact_render_target_contract": _snapshot_contract_section(render_target_contract),
         "renderer_entrypoints": renderer_entrypoints,
