@@ -3,8 +3,8 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
-- Packet refresh commit: `9a208110d3d3fb740659b00daa9f04eb783f07e2`
-- Packet refresh role: `reviewer-fix scope tightening verified`
+- Packet refresh commit: `db752f9937b99170855f948f3079431253a96713`
+- Packet refresh role: `feature-fixer gate refresh verified`
 
 ## Packet Traceability Note
 
@@ -102,8 +102,8 @@
 - Verified in this fixer pass that the reviewer-requested demo-path mapping
   stays narrowed to the CLI-first `open project/document` step and that the
   scope statement remains limited to command-catalog contract hardening only.
-- Re-ran the required lane gates after the reviewer-fix packet alignment and
-  confirmed they still pass at the current branch tip.
+- Re-ran the required lane gates in this feature-fixer pass and confirmed they
+  still pass at the current branch tip `db752f9937b99170855f948f3079431253a96713`.
 
 ## Kickoff Budget / Limits Compliance
 

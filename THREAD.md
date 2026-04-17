@@ -9,7 +9,7 @@ older lane/fixer prompts.
 ## Reviewer Fix Alignment
 
 - Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
-- Current metadata refresh baseline: `9a208110d3d3fb740659b00daa9f04eb783f07e2`.
+- Current metadata refresh baseline: `db752f9937b99170855f948f3079431253a96713`.
 - Canonical demo-path step advanced: `open project/document` via the CLI-first
   operator surface; `command_cli_contract()` now rejects parser/catalog drift
   before the accepted bootstrap entrypoint can silently change.
@@ -22,7 +22,8 @@ older lane/fixer prompts.
   persistence, or auditability changes.
 - Final gate refresh: `make scope-check`, `./quality-format.sh --check`,
   `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
-  `make ci` all passed again at the current branch tip.
+  `make ci` all passed again in this feature-fixer pass at branch tip
+  `db752f9937b99170855f948f3079431253a96713`.
 - Fixer verification: this pass re-checked that the reviewer-required mapping
   stays narrowed to the CLI-first `open project/document` step and that the
   packet scope remains command-catalog contract hardening only.
