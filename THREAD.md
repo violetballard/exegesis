@@ -17,8 +17,9 @@ older lane/fixer prompts.
 - Approval artifact for the non-owned test path: the reviewer packet supplied
   to this fixer pass explicitly records `Approved shared-test exception for
   tests/unit/test_commands_catalog.py`.
-- Approval basis: `THREAD_OWNERSHIP.md` marks that test as `shared by approval
-  only` for `codex/feat-commands*`, and no other non-owned implementation path
-  is claimed.
+- Approval basis: `scripts/scope-check.sh` is the active branch enforcement in
+  this worktree, and its `codex/feat-commands*` allowlist explicitly permits
+  `tests/unit/test_commands_catalog.py` as the one approved shared test path.
+  No other non-owned implementation path is claimed.
 - Scope boundary: this metadata refresh stays scoped to the command-catalog
   slice plus that one approved shared-test exception.

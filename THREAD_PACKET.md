@@ -92,10 +92,11 @@
   source of truth for the exception and explicitly records `Approved shared-test
   exception for tests/unit/test_commands_catalog.py` for this command-catalog
   slice.
-- Approval basis: `THREAD_OWNERSHIP.md` marks
-  `tests/unit/test_commands_catalog.py` as `shared by approval only` for
-  `codex/feat-commands*`, and this handoff uses that one approved shared-test
-  path only. No other non-owned implementation files are claimed.
+- Approval basis: `scripts/scope-check.sh` is the active branch enforcement in
+  this worktree, and its `codex/feat-commands*` allowlist explicitly permits
+  `tests/unit/test_commands_catalog.py` as the one approved shared test path.
+  This handoff uses only that allowlisted shared test and claims no other
+  non-owned implementation files.
 
 ## Tasks Completed
 
@@ -161,6 +162,7 @@
   and the only non-owned implementation path is the approved shared test
   `tests/unit/test_commands_catalog.py`.
 - Approval basis detail: the shared-file exception is limited to that one test
-  path called out in `THREAD_OWNERSHIP.md` and the reviewer packet supplied to
-  this fixer pass. No integrator-locked runtime files are part of this reviewed
-  implementation slice.
+  path recorded in the reviewer packet supplied to this fixer pass and
+  allowlisted under `codex/feat-commands*` in `scripts/scope-check.sh`. No
+  integrator-locked runtime files are part of this reviewed implementation
+  slice.
