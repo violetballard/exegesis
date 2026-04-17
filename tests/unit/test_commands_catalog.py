@@ -815,6 +815,14 @@ class CommandCatalogTests(unittest.TestCase):
                 "diff",
                 "review-patch",
                 "patch-review",
+                "terminal",
+                "export",
+                "save-export",
+                "persist",
+                "persist-continue",
+                "apply-patch",
+                "reject-patch",
+                "export-handoff",
             ),
         )
         self.assertEqual(command_mvp_cli_shim_contract(), command_demo_cli_shim_contract())
@@ -954,6 +962,7 @@ class CommandCatalogTests(unittest.TestCase):
                 ("diff-preview", "diff-preview", "patch-review"),
                 ("diff", "diff-preview", "patch-review"),
                 ("context-basket", "context-basket", "retrieval"),
+                ("terminal", "terminal", "export-handoff"),
             ),
         )
 
@@ -1103,7 +1112,7 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(
             tuple(entry.token for entry in command_demo_cli_surface_catalog()),
-            ("bootstrap", "diff-preview", "diff", "context-basket"),
+            ("bootstrap", "diff-preview", "diff", "context-basket", "terminal"),
         )
         self.assertEqual(command_demo_cli_surface_catalog(), command_mvp_cli_surface_catalog())
 
@@ -1112,7 +1121,7 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(contract.entries, command_cli_surface_catalog())
         self.assertEqual(
             tuple(entry.token for entry in command_demo_cli_surface_contract().entries),
-            ("bootstrap", "diff-preview", "diff", "context-basket"),
+            ("bootstrap", "diff-preview", "diff", "context-basket", "terminal"),
         )
         self.assertEqual(command_demo_cli_surface_contract(), command_mvp_cli_surface_contract())
 
@@ -1177,6 +1186,7 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap", ("bootstrap",)),
                 ("retrieval", "context-basket", ("context-basket",)),
                 ("patch-review", "diff-preview", ("diff-preview", "diff")),
+                ("export-handoff", "terminal", ("terminal",)),
             ),
         )
         self.assertEqual(command_cli_route_summary(), command_surface_contract().route_summary)
@@ -1189,6 +1199,7 @@ class CommandCatalogTests(unittest.TestCase):
                 ("context-basket", "context-basket"),
                 ("diff-preview", "diff-preview"),
                 ("diff", "diff-preview"),
+                ("terminal", "terminal"),
             ),
         )
         self.assertEqual(
@@ -1198,6 +1209,7 @@ class CommandCatalogTests(unittest.TestCase):
                 ("context-basket", "retrieval"),
                 ("diff-preview", "patch-review"),
                 ("diff", "patch-review"),
+                ("terminal", "export-handoff"),
             ),
         )
 
@@ -1214,6 +1226,7 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap", ("bootstrap",)),
                 ("retrieval", "context-basket", ("context-basket",)),
                 ("patch-review", "diff-preview", ("diff-preview", "diff")),
+                ("export-handoff", "terminal", ("terminal",)),
             ),
         )
         self.assertEqual(contract.route_catalog, surface_contract.route_catalog)
@@ -1425,6 +1438,17 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap", ("bootstrap", "--project", "demo")),
                 ("retrieval", "context-basket", ("context-basket", "list")),
                 ("patch-review", "diff-preview", ("diff-preview", "--original", "before", "--proposed", "after")),
+                (
+                    "export-handoff",
+                    "terminal",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Export handoff",
+                    ),
+                ),
             ),
         )
         self.assertEqual(
@@ -1433,6 +1457,7 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap", ("bootstrap",)),
                 ("retrieval", "context-basket", ("context-basket",)),
                 ("patch-review", "diff-preview", ("diff-preview",)),
+                ("export-handoff", "terminal", ("terminal",)),
             ),
         )
         self.assertEqual(contract.invocation_plan, command_flow_invocation_plan())
@@ -1496,6 +1521,17 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap", ("bootstrap", "--project", "demo")),
                 ("retrieval", "context-basket", ("context-basket", "list")),
                 ("patch-review", "diff-preview", ("diff-preview", "--original", "before", "--proposed", "after")),
+                (
+                    "export-handoff",
+                    "terminal",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Export handoff",
+                    ),
+                ),
             ),
         )
         self.assertEqual(
@@ -1525,6 +1561,91 @@ class CommandCatalogTests(unittest.TestCase):
                 ("diff", ("diff-preview", "--original", "before", "--proposed", "after")),
                 ("review-patch", ("diff-preview", "--original", "before", "--proposed", "after")),
                 ("patch-review", ("diff-preview", "--original", "before", "--proposed", "after")),
+            ),
+        )
+        self.assertEqual(
+            contract.entries[3].surface_invocations,
+            (
+                (
+                    "terminal",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Export handoff",
+                    ),
+                ),
+                (
+                    "export",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Export handoff",
+                    ),
+                ),
+                (
+                    "save-export",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Export handoff",
+                    ),
+                ),
+                (
+                    "persist",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Persist and continue",
+                    ),
+                ),
+                (
+                    "persist-continue",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Persist and continue",
+                    ),
+                ),
+                (
+                    "apply-patch",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_tool_orchestration",
+                        "--message",
+                        "Apply patch",
+                    ),
+                ),
+                (
+                    "reject-patch",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_tool_orchestration",
+                        "--message",
+                        "Reject patch",
+                    ),
+                ),
+                (
+                    "export-handoff",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Export handoff",
+                    ),
+                ),
             ),
         )
     def test_custom_smoke_argv_preserves_flag_values(self) -> None:
@@ -1563,6 +1684,7 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap", ("bootstrap",)),
                 ("retrieval", "context-basket", ("context-basket",)),
                 ("patch-review", "diff-preview", ("diff-preview", "diff")),
+                ("export-handoff", "terminal", ("terminal",)),
             ),
         )
         self.assertEqual(command_flow_route_summary(), command_cli_route_summary())
@@ -1577,6 +1699,7 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap", ("bootstrap",)),
                 ("retrieval", "context-basket", ("context-basket",)),
                 ("patch-review", "diff-preview", ("diff-preview",)),
+                ("export-handoff", "terminal", ("terminal",)),
             ),
         )
         self.assertEqual(command_flow_invocation_plan(), command_demo_flow_invocation_plan())
@@ -1597,6 +1720,7 @@ class CommandCatalogTests(unittest.TestCase):
             CommandSpec(name="context-basket", cli_tokens=("retrieve",), flow_step="retrieval"),
             CommandSpec(name="diff-preview", cli_tokens=("review-patch", "diff"), flow_step="patch-review"),
             CommandSpec(name="bootstrap", cli_tokens=("bootstrap-run", "project-open"), flow_step="project-open"),
+            CommandSpec(name="terminal", cli_tokens=("terminal",), flow_step="export-handoff"),
         )
 
         self.assertEqual(
@@ -1605,6 +1729,7 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap", ("bootstrap-run",)),
                 ("retrieval", "context-basket", ("retrieve",)),
                 ("patch-review", "diff-preview", ("review-patch",)),
+                ("export-handoff", "terminal", ("terminal",)),
             ),
         )
 
@@ -1781,12 +1906,14 @@ class CommandCatalogTests(unittest.TestCase):
             CommandSpec(name="context-basket", cli_tokens=("retrieve",), flow_step="retrieval"),
             CommandSpec(name="diff-preview", cli_tokens=("review-patch",), flow_step="patch-review"),
             CommandSpec(name="bootstrap", cli_tokens=("bootstrap-run",), flow_step="project-open"),
+            CommandSpec(name="terminal", cli_tokens=("terminal",), flow_step="export-handoff"),
         )
 
         expected_summary = (
             ("project-open", "bootstrap", ("bootstrap-run",)),
             ("retrieval", "context-basket", ("retrieve",)),
             ("patch-review", "diff-preview", ("review-patch",)),
+            ("export-handoff", "terminal", ("terminal",)),
         )
 
         self.assertEqual(command_demo_cli_route_summary(specs), expected_summary)
@@ -1807,14 +1934,16 @@ class CommandCatalogTests(unittest.TestCase):
             CommandSpec(name="context-basket", cli_tokens=("retrieve",), flow_step="retrieval"),
             CommandSpec(name="diff-preview", cli_tokens=("review-patch",), flow_step="patch-review"),
             CommandSpec(name="bootstrap", cli_tokens=("bootstrap-run",), flow_step="project-open"),
+            CommandSpec(name="terminal", cli_tokens=("terminal",), flow_step="export-handoff"),
         )
 
         expected_summary = (
             ("project-open", "bootstrap", ("bootstrap-run",)),
             ("retrieval", "context-basket", ("retrieve",)),
             ("patch-review", "diff-preview", ("review-patch",)),
+            ("export-handoff", "terminal", ("terminal",)),
         )
-        expected_route_tokens = ("bootstrap-run", "retrieve", "review-patch")
+        expected_route_tokens = ("bootstrap-run", "retrieve", "review-patch", "terminal")
 
         self.assertEqual(
             tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in command_demo_flow_route_catalog(specs)),
@@ -1901,6 +2030,14 @@ class CommandCatalogTests(unittest.TestCase):
                 ("diff", "diff-preview"),
                 ("review-patch", "diff-preview"),
                 ("patch-review", "diff-preview"),
+                ("terminal", "terminal"),
+                ("export", "terminal"),
+                ("save-export", "terminal"),
+                ("persist", "terminal"),
+                ("persist-continue", "terminal"),
+                ("apply-patch", "terminal"),
+                ("reject-patch", "terminal"),
+                ("export-handoff", "terminal"),
             ),
         )
 
@@ -1912,6 +2049,7 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap", ("bootstrap",)),
                 ("retrieval", "context-basket", ("context-basket",)),
                 ("patch-review", "diff-preview", ("diff-preview", "diff")),
+                ("export-handoff", "terminal", ("terminal",)),
             ),
         )
         self.assertEqual(command_surface_contract().route_catalog, route_catalog)
@@ -1930,6 +2068,16 @@ class CommandCatalogTests(unittest.TestCase):
                 ("bootstrap", "open", "project-open", "project", "bootstrap-run"),
                 ("context-basket", "context", "basket", "retrieval", "retrieve"),
                 ("diff-preview", "diff", "review-patch", "patch-review"),
+                (
+                    "terminal",
+                    "export",
+                    "save-export",
+                    "persist",
+                    "persist-continue",
+                    "apply-patch",
+                    "reject-patch",
+                    "export-handoff",
+                ),
             ),
         )
         self.assertEqual(command_demo_flow_surface_tokens(), command_mvp_flow_surface_tokens())
@@ -1951,6 +2099,13 @@ class CommandCatalogTests(unittest.TestCase):
                 ("diff-preview", "diff-preview"),
                 ("diff", "diff-preview"),
                 ("review-patch", "diff-preview"),
+                ("terminal", "terminal"),
+                ("export", "terminal"),
+                ("save-export", "terminal"),
+                ("persist", "terminal"),
+                ("persist-continue", "terminal"),
+                ("apply-patch", "terminal"),
+                ("reject-patch", "terminal"),
             ),
         )
         self.assertEqual(
@@ -1976,6 +2131,7 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap"),
                 ("retrieval", "context-basket"),
                 ("patch-review", "diff-preview"),
+                ("export-handoff", "terminal"),
             ),
         )
         self.assertEqual(
@@ -1984,6 +2140,15 @@ class CommandCatalogTests(unittest.TestCase):
                 ("bootstrap", "open", "project-open", "project", "bootstrap-run"),
                 ("context-basket", "context", "basket", "retrieval", "retrieve"),
                 ("diff-preview", "diff", "diff_preview", "review-patch"),
+                (
+                    "terminal",
+                    "export",
+                    "save-export",
+                    "persist",
+                    "persist-continue",
+                    "apply-patch",
+                    "reject-patch",
+                ),
             ),
         )
 
@@ -1994,6 +2159,7 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-open", "bootstrap"),
                 ("retrieval", "context-basket"),
                 ("patch-review", "diff-preview"),
+                ("export-handoff", "terminal"),
             ),
         )
 
@@ -2041,6 +2207,14 @@ class CommandCatalogTests(unittest.TestCase):
                 ("diff", "diff-preview"),
                 ("review-patch", "diff-preview"),
                 ("patch-review", "diff-preview"),
+                ("terminal", "terminal"),
+                ("export", "terminal"),
+                ("save-export", "terminal"),
+                ("persist", "terminal"),
+                ("persist-continue", "terminal"),
+                ("apply-patch", "terminal"),
+                ("reject-patch", "terminal"),
+                ("export-handoff", "terminal"),
             ),
         )
         self.assertEqual(
@@ -2073,21 +2247,21 @@ class CommandCatalogTests(unittest.TestCase):
         manifest = command_mvp_flow_manifest()
         self.assertEqual(
             tuple(entry.flow_step for entry in manifest),
-            ("project-open", "retrieval", "patch-review"),
+            ("project-open", "retrieval", "patch-review", "export-handoff"),
         )
         self.assertEqual(
             tuple(entry.name for entry in manifest),
-            ("bootstrap", "context-basket", "diff-preview"),
+            ("bootstrap", "context-basket", "diff-preview", "terminal"),
         )
 
     def test_mvp_flow_helpers_expose_the_expected_sequence(self) -> None:
         self.assertEqual(
             command_mvp_flow_steps(),
-            ("project-open", "retrieval", "patch-review"),
+            ("project-open", "retrieval", "patch-review", "export-handoff"),
         )
         self.assertEqual(
             command_mvp_flow_names(),
-            ("bootstrap", "context-basket", "diff-preview"),
+            ("bootstrap", "context-basket", "diff-preview", "terminal"),
         )
         self.assertEqual(
             tuple(entry.name for entry in command_mvp_flow()),
@@ -2138,7 +2312,7 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(
             tuple(entry.flow_step for entry in command_mvp_flow_catalog(specs)),
-            ("project-open", "retrieval", "patch-review"),
+            ("project-open", "retrieval", "patch-review", "export-handoff"),
         )
 
     def test_validate_command_catalog_rejects_ambiguous_definitions(self) -> None:
