@@ -219,7 +219,12 @@ class FTSStrategy:
         prefix, separator, remainder = raw_text.partition(":")
         normalized_prefix = prefix.strip().casefold()
         if separator and normalized_prefix in {"doc", "collection", "section"}:
-            return f"{normalized_prefix}:{remainder.strip()}"
+            normalized_remainder = remainder.strip()
+            if not normalized_remainder:
+                # Keep malformed scoped values distinct in the cache key instead
+                # of collapsing them to synthetic keys like ``doc:``.
+                return raw_text
+            return f"{normalized_prefix}:{normalized_remainder}"
         return raw_text
 
     @staticmethod
