@@ -2633,10 +2633,21 @@ class RetrievalService:
                 "doc_identity_fingerprint": doc_identity_fingerprint,
             }
         )
+        result_fingerprint = RetrievalService._build_excerpt_lookup_result_fingerprint(
+            lookup_fingerprint=lookup_fingerprint,
+            retrieval_policy=retrieval_policy,
+            doc_fingerprint=doc_fingerprint,
+            excerpt_fingerprint=excerpt_fingerprint,
+            excerpt_provenance_fingerprint=excerpt_provenance_fingerprint,
+            excerpt_text_hash=text_hash,
+        )
+        normalized["result_fingerprint"] = result_fingerprint
         normalized["lookup_fingerprint"] = lookup_fingerprint
+        normalized_provenance["result_fingerprint"] = result_fingerprint
         normalized_provenance["lookup_fingerprint"] = lookup_fingerprint
         normalized["excerpt_text_hash"] = text_hash
         for key in (
+            "result_fingerprint",
             "query_fingerprint",
             "query_scope",
             "query_intent",
@@ -2675,7 +2686,9 @@ class RetrievalService:
             "promotion_source": "lookup_excerpt",
             "citation_available": True,
             "query_fingerprint": _optional_text(provenance.get("query_fingerprint")),
-            "result_fingerprint": None,
+            "result_fingerprint": _optional_text(excerpt.get("result_fingerprint"))
+            or _optional_text(provenance.get("result_fingerprint"))
+            or lookup_fingerprint,
             "lookup_fingerprint": lookup_fingerprint,
             "doc_id": _optional_text(excerpt.get("doc_id")) or _optional_text(provenance.get("doc_id")),
             "doc_type": _optional_text(excerpt.get("doc_type")) or _optional_text(provenance.get("doc_type")),
@@ -2805,6 +2818,27 @@ class RetrievalService:
             "doc_identity_fingerprint": doc_identity_fingerprint,
         }
         return RetrievalService._stable_fingerprint(payload)
+
+    @staticmethod
+    def _build_excerpt_lookup_result_fingerprint(
+        *,
+        lookup_fingerprint: str,
+        retrieval_policy: dict[str, object],
+        doc_fingerprint: str | None,
+        excerpt_fingerprint: str,
+        excerpt_provenance_fingerprint: str,
+        excerpt_text_hash: str,
+    ) -> str:
+        return RetrievalService._stable_fingerprint(
+            {
+                "lookup_fingerprint": lookup_fingerprint,
+                "retrieval_policy": retrieval_policy,
+                "doc_fingerprint": doc_fingerprint,
+                "excerpt_fingerprint": excerpt_fingerprint,
+                "excerpt_provenance_fingerprint": excerpt_provenance_fingerprint,
+                "excerpt_text_hash": excerpt_text_hash,
+            }
+        )
 
     @staticmethod
     def _query_fingerprint(query: RetrievalQuery) -> str:
