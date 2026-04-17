@@ -1583,18 +1583,22 @@ class RetrievalService:
                 lookup_confidentiality_profile=normalized_confidentiality_profile,
             )
             raise KeyError(f"unknown excerpt_id: {normalized_excerpt_id}")
-        self._record_excerpt_lookup_audit(
-            fts_excerpt,
-            lookup_entrypoint=lookup_entrypoint,
-            lookup_resolution="fts",
-            lookup_confidentiality_profile=normalized_confidentiality_profile,
-        )
-        return self._normalize_excerpt_payload(
+        normalized_excerpt = self._normalize_excerpt_payload(
             fts_excerpt,
             source_strategy="fts",
             lookup_resolution="fts",
             lookup_confidentiality_profile=normalized_confidentiality_profile,
         )
+        # Audit the canonical excerpt payload rather than the sparse raw FTS row
+        # so basket promotion and provenance metadata stay aligned with the
+        # engine-facing payload returned to downstream callers.
+        self._record_excerpt_lookup_audit(
+            normalized_excerpt,
+            lookup_entrypoint=lookup_entrypoint,
+            lookup_resolution="fts",
+            lookup_confidentiality_profile=normalized_confidentiality_profile,
+        )
+        return normalized_excerpt
 
     def _record_excerpt_lookup_audit(
         self,
