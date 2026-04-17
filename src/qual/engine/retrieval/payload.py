@@ -1171,6 +1171,11 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
     if not isinstance(snapshot, dict):
         return {}
     normalized = copy.deepcopy(snapshot)
+    query_text = _normalize_query_text(normalized.get("query_text"))
+    if query_text is not None:
+        normalized["query_text"] = query_text
+    elif "query_text" in normalized:
+        normalized["query_text"] = None
     for field_name in (
         "query_fingerprint",
         "result_fingerprint",
@@ -1351,6 +1356,9 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
         retrieval_summary = {}
     if not isinstance(retrieval_source_bundle, dict):
         retrieval_source_bundle = {}
+    query_payload = payload.get("query", retrieval_source_bundle.get("query", {}))
+    if not isinstance(query_payload, dict):
+        query_payload = {}
     retrieval_policy = _normalize_policy_snapshot(
         payload.get(
             "policy",
@@ -1425,6 +1433,12 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
         # citations, so treat either citation path as basket-promotion ready.
         "citation_available": bool(
             first_excerpt_hit or first_doc_hit or first_excerpt_citation or first_doc_citation
+        ),
+        "query_text": _normalize_query_text(
+            _first_text_value(
+                payload.get("query_text"),
+                query_payload.get("query_text"),
+            )
         ),
         "query_fingerprint": _first_text_value(
             payload.get("query_fingerprint"),

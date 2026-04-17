@@ -1338,6 +1338,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(canonical["query"]["scope"], "vault")
         self.assertEqual(canonical["query"]["intent"], "compare")
         self.assertEqual(canonical["query"]["confidentiality_profile"], "confidential")
+        self.assertEqual(canonical["basket_promotion"]["query_text"], "memo coding comparison")
         self.assertEqual(canonical["query_fingerprint"], result.diagnostics["query_fingerprint"])
         self.assertEqual(canonical["query_scope"], "vault")
         self.assertEqual(canonical["query_intent"], "compare")
@@ -1402,6 +1403,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             excerpt["retrieved_excerpt_ids"],
             [hit.excerpt_id for hit in result.hits if hit.excerpt_id is not None],
         )
+        self.assertEqual(excerpt["basket_promotion"]["query_text"], "memo coding comparison")
         self.assertEqual(excerpt["basket_promotion"]["query_fingerprint"], result.diagnostics["query_fingerprint"])
         self.assertEqual(excerpt["basket_promotion"]["query_scope"], "vault")
         self.assertEqual(excerpt["basket_promotion"]["query_intent"], "compare")
@@ -1541,6 +1543,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["basket_promotion"]["promotion_source"], "lookup_excerpt")
         self.assertTrue(normalized["basket_promotion"]["promotion_ready"])
         self.assertTrue(normalized["basket_promotion"]["citation_available"])
+        self.assertIsNone(normalized["basket_promotion"]["query_text"])
         self.assertEqual(normalized["basket_promotion"]["query_scope"], "vault")
         self.assertEqual(normalized["basket_promotion"]["query_intent"], "lookup")
         self.assertEqual(normalized["basket_promotion"]["lookup_resolution"], "fts")
@@ -3516,6 +3519,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
 
         promotion = result.to_downstream_payload()["basket_promotion"]
+        self.assertEqual(promotion["query_text"], "memo coding comparison")
         self.assertEqual(promotion["query_fingerprint"], result.diagnostics["query_fingerprint"])
         self.assertEqual(promotion["query_scope"], "vault")
         self.assertEqual(promotion["query_intent"], "compare")
@@ -3538,6 +3542,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         sparse_source_bundle = result.source_bundle()
         basket_promotion = sparse_source_bundle.get("basket_promotion")
         self.assertIsInstance(basket_promotion, dict)
+        basket_promotion["query_text"] = None
         basket_promotion["query_scope"] = None
         basket_promotion["query_intent"] = None
         basket_promotion["query_confidentiality_profile"] = None
@@ -3552,6 +3557,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 return self._payload
 
         payload = build_retrieval_downstream_payload_from_result(_SourceBundleOnlySource(sparse_source_bundle))
+        self.assertEqual(payload["basket_promotion"]["query_text"], "memo coding comparison")
         self.assertEqual(payload["basket_promotion"]["query_scope"], "vault")
         self.assertEqual(payload["basket_promotion"]["query_intent"], "compare")
         self.assertEqual(payload["basket_promotion"]["query_confidentiality_profile"], "confidential")

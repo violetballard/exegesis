@@ -1398,6 +1398,9 @@ class RetrievalResult:
             # Doc-ranked promotions still carry stable doc citations, so
             # basket/context consumers should treat them as auditable too.
             "citation_available": primary_excerpt_hit is not None or primary_doc_hit is not None,
+            # Keep the normalized query text inline so basket promotion can be
+            # replayed without unpacking the larger retrieval query payload.
+            "query_text": RetrievalService._normalized_query_text(self.query.query_text),
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.diagnostics["query_scope"],
             "query_intent": self.diagnostics["query_intent"],
@@ -3713,6 +3716,9 @@ class RetrievalService:
             "promotion_ready": True,
             "promotion_source": "lookup_excerpt",
             "citation_available": True,
+            "query_text": _normalize_query_text_payload(
+                excerpt.get("query_text") or provenance.get("query_text")
+            ),
             "query_fingerprint": _optional_text(provenance.get("query_fingerprint")),
             "query_scope": _normalize_query_scope_payload(provenance.get("query_scope")),
             "query_intent": _normalize_query_intent_payload(provenance.get("query_intent")),
