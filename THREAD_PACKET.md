@@ -24,6 +24,10 @@
   the reviewer packet, and it keeps the reviewed implementation scope pinned
   to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` without any feature-scope
   expansion.
+- Reviewer required-fix traceability:
+  the metadata-only handoff refresh now fully accounts for both
+  `THREAD_PACKET.md` and `THREAD.md`, so the packet `Files Changed` section
+  matches the metadata-only refresh files on this branch tip.
 - Reviewer required-fix satisfied in handoff metadata:
   this packet now states exactly which canonical demo-path steps the reviewed
   command-catalog slice makes more reliable.

@@ -15,6 +15,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   a new feature packet is explicitly generated.
 - This refresh corrects handoff metadata only and does not expand the
   requested re-review scope beyond that command-catalog slice.
+- This metadata-only refresh fully accounts for both `THREAD_PACKET.md` and
+  `THREAD.md` in the handoff `Files Changed` traceability.
 - This is a Milestone 3 CLI compatibility contract hardening refresh for
   `feat-commands`, not a broader workflow-surface or UI-surface change.
 - This re-review refresh is specifically for the reviewer-requested packet fix:
