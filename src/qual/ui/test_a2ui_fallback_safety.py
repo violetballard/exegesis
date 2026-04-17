@@ -372,6 +372,39 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
+    def test_terminal_artifact_cli_fallback_target_contract_can_opt_into_route_contract(self) -> None:
+        manifest = describe_terminal_artifact_cli_fallback_target_contract(
+            include_terminal_artifact_cli_fallback_route=True,
+        )
+        route_manifest = describe_terminal_artifact_cli_fallback_route_contract()
+
+        self.assertEqual(manifest["terminal_artifact_cli_fallback_route"], route_manifest)
+        self.assertEqual(manifest["terminal_artifact_cli_fallback_route_contract"], route_manifest)
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprints"],
+            route_manifest["contract_fingerprints"],
+        )
+        self.assertEqual(
+            manifest["contract_fingerprint"],
+            terminal_artifact_cli_fallback_target_contract_fingerprint(
+                include_terminal_artifact_cli_fallback_route=True,
+            ),
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"],
+            describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
+                include_terminal_artifact_cli_fallback_route=True,
+            ),
+        )
+
     def test_terminal_artifact_cli_fallback_route_contract_exposes_allowed_actions(self) -> None:
         manifest = describe_terminal_artifact_cli_fallback_route_contract()
 
