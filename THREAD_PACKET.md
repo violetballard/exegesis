@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `edff6d8f18ea4b8a24c87bbb062226d5fe6b1961`
+- Commit: `f7689ab0f91a0426b4ae0aeaf8bb5c2d09d4d44d`
 - Packet refresh commit: `HEAD (feature-fixer reviewer-required-fix refresh)`
 - Packet refresh role: `feature-fixer reviewer-required-fix implementation + handoff refresh`
 
@@ -18,9 +18,12 @@
     them from `src/qual/commands/__init__.py`.
   - `edff6d8f18ea4b8a24c87bbb062226d5fe6b1961` - normalize additional demo
     compatibility variants onto canonical loop tokens for transition helpers.
-- This packet refresh adds one focused regression test for the compatibility
-  variant normalization so the branch tip has explicit validation evidence for
-  the latest implementation change.
+  - `f7689ab0f91a0426b4ae0aeaf8bb5c2d09d4d44d` - tighten workflow preferred
+    surface-token resolution so the lead workflow token preserves the intended
+    terminal route sequence while later tokens stay specific.
+- The branch-tip validation evidence now covers the compatibility-variant
+  normalization and the workflow preferred-surface-token fix through the
+  required local gate rerun.
 - Latest packet refresh prepared at: `2026-04-17T14:53:53Z`
 
 ## Current Program Focus
@@ -69,6 +72,10 @@
     and `queue-handoff` onto the canonical loop tokens, keeping alternate
     operator verbs on the same trusted MVP path rather than falling off the
     route lookup surface.
+  - Workflow contracts now preserve the intended preferred surface-token
+    sequence for the lead terminal workflow token, so the command surface keeps
+    the expected `apply -> reject -> persist -> export` routing order instead
+    of collapsing that path to a singleton token.
 - Scope-tightening note: this remains command-surface hardening for the
   existing MVP-loop entrypoints only; it does not add new workflow behavior or
   expand beyond the current CLI compatibility layer.
@@ -88,10 +95,14 @@
 - Normalized additional demo compatibility variants in
   `src/qual/commands/catalog.py` so transition helpers resolve alternate verbs
   onto the canonical loop tokens for the trusted MVP path.
+- Tightened workflow preferred surface-token resolution in
+  `src/qual/commands/catalog.py` so lead workflow tokens keep the intended
+  preferred route sequence while later tokens remain token-specific.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
   for canonical-order alignment, canonical-name drift rejection, workflow
-  compatibility invocation-table accessors, and demo compatibility variant
-  normalization.
+  compatibility invocation-table accessors, and branch-tip transition helper
+  behavior; the current gate rerun also exercises the committed workflow
+  preferred-token fix at the true implementation tip.
 - Refreshed the handoff packet and thread pointer so re-review is anchored to
   the true branch-tip implementation surface and the current gate rerun.
 
@@ -136,13 +147,20 @@
    Concrete blocker removed: alternate operator verbs such as
    `open-workspace` and `resume-work` now land on the trusted canonical entry
    tokens instead of falling off the supported command route.
-5. Added focused regression coverage for the branch-tip command-surface
-   contracts, including the compatibility variant normalization.
+5. Tightened workflow preferred surface-token resolution so the lead terminal
+   workflow token preserves the intended route sequence.
    Demo-path step advanced: `open project/document`.
-   Concrete blocker removed: the current CLI entry contract now has regression
-   checks that catch parser-surface drift before it can break the MVP loop's
-   operator entrypoint.
-6. Refreshed the handoff packet and thread pointer so re-review tracks the true
+   Concrete blocker removed: the workflow contract now keeps the expected
+   `apply -> reject -> persist -> export` preferred route on the terminal
+   entrypoint instead of collapsing the lead token to a singleton surface.
+6. Added focused regression coverage for the branch-tip command-surface
+   contracts and reran the full local gate suite at the true branch tip.
+   Demo-path step advanced: `open project/document`.
+   Concrete blocker removed: the current CLI entry contract and workflow
+   surface now have verified local validation at the true implementation tip,
+   which catches parser-surface and preferred-route drift before it can break
+   the MVP loop's operator entrypoint.
+7. Refreshed the handoff packet and thread pointer so re-review tracks the true
    implementation scope and current gate rerun.
    Demo-path step advanced: `open project/document`.
    Concrete blocker removed: re-review now evaluates the actual branch-tip CLI

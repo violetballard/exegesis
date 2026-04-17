@@ -9,8 +9,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - This refresh now points re-review at the true implementation tip, including
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`,
   `801532e089c1b123bb586c18ac1f874141ebfdd1`, and
-  `edff6d8f18ea4b8a24c87bbb062226d5fe6b1961`, instead of treating later code
-  commits as metadata-only.
+  `edff6d8f18ea4b8a24c87bbb062226d5fe6b1961`, plus the current workflow-token
+  fix commit `f7689ab0f91a0426b4ae0aeaf8bb5c2d09d4d44d`, instead of treating
+  later code commits as metadata-only.
 - `THREAD_PACKET.md` now names the concrete canonical demo-path steps advanced:
   `open project/document -> retrieve relevant material -> preview and apply or
   reject a patch -> continue working`.
