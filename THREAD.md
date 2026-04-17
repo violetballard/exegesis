@@ -8,32 +8,12 @@ older lane/fixer prompts.
 
 ## Reviewer Fix Alignment
 
-- Active runtime implementation review target: `c99d67784cad542251317b5fd910837ff904d295`.
+- Active implementation review target: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Exact canonical demo-path step advanced: `open project/document`.
-- Primary branch-tip step: `open project/document`. The active runtime change
-  keeps `document-open` and `open-document` normalized onto the canonical
-  `bootstrap` parser entrypoint instead of creating a divergent document-open
-  surface.
-- Contract guard for that same step: parser entrypoints and catalog ordering
-  can no longer drift silently away from the active open-command operator
-  contract; `command_cli_contract()` now fails fast when the parser surface and
-  catalog diverge through added, removed, reordered, or substituted accepted
-  entrypoints.
-- Scope boundary: this slice stays in CLI compatibility, command-catalog
-  validation, alias normalization, and focused regression coverage for the
-  existing open-command surface. It does not add new commands, new flags,
-  handler logic, or a wider MVP loop.
-
-## Scope Tightening
-
-- Roadmap impact: preserve deterministic CLI compatibility for the current
-  engine-first MVP `open project/document` path, including document-open
-  compatibility aliases routing through bootstrap.
-- Vision impact: keep the canonical engine contract stable by making the active
-  `open project/document` command surface explicit, keeping document-open
-  aliases on the bootstrap route, and failing fast when parser/catalog
-  ordering drifts instead of silently changing that operator-facing path.
-- Gate rerun note: the final feature-fixer verification was rerun on
-  `2026-04-16` against the branch carrying
-  `c99d67784cad542251317b5fd910837ff904d295`; see `THREAD_PACKET.md` for the
-  full required gate list and outcomes.
+- Concrete Milestone 3 mapping: deterministic `command_cli_contract()`
+  validation makes the active CLI `open project/document` surface more real by
+  failing fast when parser entrypoints drift from the declared command catalog
+  while the CLI remains the operator surface.
+- Scope boundary: this metadata refresh stays scoped to the command-catalog
+  slice reviewed at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus the approved
+  shared-test exception in `tests/unit/test_commands_catalog.py`.
