@@ -433,6 +433,8 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
     normalized = copy.deepcopy(summary)
     if "query_date_range" in normalized:
         normalized["query_date_range"] = _normalize_query_date_range(normalized.get("query_date_range"))
+    if "primary_title_hint" in normalized:
+        normalized["primary_title_hint"] = _normalize_optional_text(normalized.get("primary_title_hint"))
     normalized["doc_ids"] = _normalize_list_like(normalized.get("doc_ids"))
     normalized["doc_fingerprints"] = _normalize_list_like(normalized.get("doc_fingerprints"))
     normalized["doc_identity_fingerprints"] = _normalize_list_like(normalized.get("doc_identity_fingerprints"))
@@ -1060,6 +1062,8 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
         "title_hint": _first_text_value(
             first_excerpt_hit.get("title_hint") if isinstance(first_excerpt_hit, dict) else None,
             first_doc_hit.get("title_hint") if isinstance(first_doc_hit, dict) else None,
+            retrieval_provenance.get("primary_title_hint"),
+            retrieval_summary.get("primary_title_hint"),
         ),
         "excerpt_id": _first_text_value(
             first_excerpt_hit.get("excerpt_id") if isinstance(first_excerpt_hit, dict) else None,
@@ -2220,6 +2224,10 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["primary_doc_id"] = summary.get("primary_doc_id")
     else:
         normalized["primary_doc_id"] = _normalize_optional_text(normalized.get("primary_doc_id"))
+    if _is_missing_snapshot_value(normalized.get("primary_title_hint")):
+        normalized["primary_title_hint"] = summary.get("primary_title_hint")
+    else:
+        normalized["primary_title_hint"] = _normalize_optional_text(normalized.get("primary_title_hint"))
     if _is_missing_snapshot_value(normalized.get("primary_doc_type")):
         normalized["primary_doc_type"] = None
     else:
@@ -2390,6 +2398,8 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["primary_doc_type"] = normalized["basket_promotion"].get("doc_type")
     if _is_missing_snapshot_value(normalized.get("primary_doc_id")):
         normalized["primary_doc_id"] = normalized["basket_promotion"].get("doc_id")
+    if _is_missing_snapshot_value(normalized.get("primary_title_hint")):
+        normalized["primary_title_hint"] = normalized["basket_promotion"].get("title_hint")
     if _is_missing_snapshot_value(normalized.get("primary_source_hash")):
         normalized["primary_source_hash"] = normalized["basket_promotion"].get("source_hash")
     if _is_missing_snapshot_value(normalized.get("primary_doc_fingerprint")):

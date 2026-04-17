@@ -1036,6 +1036,11 @@ class RetrievalResult:
             "top_excerpt_text_hashes": top_excerpt_text_hashes,
             "primary_doc_id": self.doc_hits[0].doc_id if self.doc_hits else None,
             "primary_excerpt_id": self.hits[0].excerpt_id if self.hits else None,
+            "primary_title_hint": (
+                self.hits[0].title_hint
+                if self.hits
+                else self.doc_hits[0].title_hint if self.doc_hits else None
+            ),
             "primary_doc_fingerprint": self.doc_hits[0].provenance.get("doc_fingerprint") if self.doc_hits else None,
             "primary_doc_identity_fingerprint": self.doc_hits[0].provenance.get("doc_identity_fingerprint")
             if self.doc_hits
@@ -1097,6 +1102,11 @@ class RetrievalResult:
             "primary_doc_type": (
                 primary_doc_provenance.get("doc_type")
                 or primary_excerpt_provenance.get("doc_type")
+            ),
+            "primary_title_hint": (
+                primary_excerpt_hit.title_hint
+                if primary_excerpt_hit is not None
+                else primary_doc_hit.title_hint if primary_doc_hit is not None else None
             ),
             "primary_source_hash": (
                 primary_excerpt_provenance.get("source_hash")

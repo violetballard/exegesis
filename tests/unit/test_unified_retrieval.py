@@ -692,6 +692,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_evidence"]["citation_status"], payload["retrieval_summary"]["citation_status"])
         self.assertEqual(payload["retrieval_evidence"]["doc_count"], len(result.doc_hits))
         self.assertEqual(payload["retrieval_evidence"]["excerpt_count"], len(result.hits))
+        self.assertEqual(payload["retrieval_summary"]["primary_title_hint"], result.hits[0].title_hint)
+        self.assertEqual(payload["retrieval_provenance"]["primary_title_hint"], result.hits[0].title_hint)
         self.assertEqual(payload["retrieval_citation_bundle"]["doc_citations"][0]["source_hash"], result.doc_hits[0].source_hash)
         self.assertEqual(payload["retrieval_doc_bundle"], result.retrieval_doc_bundle())
         self.assertEqual(
@@ -3805,6 +3807,49 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             payload["basket_promotion"]["retrieval_mode"],
             result.to_downstream_payload()["basket_promotion"]["retrieval_mode"],
+        )
+
+    def test_retrieval_downstream_payload_helper_backfills_basket_title_hint_from_summary_metadata(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        sparse_source_bundle["doc_hits"] = []
+        sparse_source_bundle["excerpt_hits"] = []
+
+        retrieval_doc_bundle = sparse_source_bundle.get("retrieval_doc_bundle")
+        self.assertIsInstance(retrieval_doc_bundle, dict)
+        retrieval_doc_bundle["doc_hits"] = []
+
+        retrieval_excerpt_bundle = sparse_source_bundle.get("retrieval_excerpt_bundle")
+        self.assertIsInstance(retrieval_excerpt_bundle, dict)
+        retrieval_excerpt_bundle["excerpt_hits"] = []
+
+        basket_promotion = sparse_source_bundle.get("basket_promotion")
+        self.assertIsInstance(basket_promotion, dict)
+        basket_promotion["title_hint"] = None
+
+        payload = build_retrieval_downstream_payload_from_result(
+            _SourceBundleOnlySource(sparse_source_bundle)
+        )
+
+        self.assertEqual(
+            payload["basket_promotion"]["title_hint"],
+            result.to_downstream_payload()["basket_promotion"]["title_hint"],
         )
 
     def test_retrieval_downstream_payload_helper_backfills_basket_primary_anchors_from_provenance(self) -> None:
