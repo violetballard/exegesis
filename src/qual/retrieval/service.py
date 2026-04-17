@@ -249,6 +249,30 @@ def _normalize_matched_terms(value: object) -> list[str] | None:
     return normalized
 
 
+def _normalize_strategy_id_list_payload(value: object) -> list[str]:
+    raw_items = _optional_list_like(value)
+    if raw_items is None:
+        return []
+    normalized: set[str] = set()
+    for item in raw_items:
+        strategy_id = _normalized_profile_text(item)
+        if strategy_id is not None:
+            normalized.add(strategy_id)
+    return sorted(normalized)
+
+
+def _normalize_retrieval_policy_snapshot_payload(value: object) -> dict[str, object]:
+    if not isinstance(value, dict):
+        return {}
+    normalized = {
+        "retrieval_backend": _normalized_profile_text(value.get("retrieval_backend")),
+        "retrieval_mode": _normalized_profile_text(value.get("retrieval_mode")),
+        "active_strategy_ids": _normalize_strategy_id_list_payload(value.get("active_strategy_ids")),
+        "deferred_strategy_ids": _normalize_strategy_id_list_payload(value.get("deferred_strategy_ids")),
+    }
+    return {key: field_value for key, field_value in normalized.items() if field_value is not None}
+
+
 def _normalize_query_date_range_payload(value: object) -> list[str] | None:
     raw_items = _optional_list_like(value)
     if raw_items is None:
@@ -3269,11 +3293,13 @@ class RetrievalService:
         provenance: dict[str, object],
         lookup_fingerprint: str,
     ) -> dict[str, object]:
-        retrieval_policy = copy.deepcopy(excerpt.get("retrieval_policy", self._retrieval_policy.as_snapshot()))
-        active_strategy_ids = copy.deepcopy(
+        retrieval_policy = _normalize_retrieval_policy_snapshot_payload(
+            copy.deepcopy(excerpt.get("retrieval_policy", self._retrieval_policy.as_snapshot()))
+        )
+        active_strategy_ids = _normalize_strategy_id_list_payload(
             excerpt.get("active_strategy_ids", retrieval_policy.get("active_strategy_ids", []))
         )
-        deferred_strategy_ids = copy.deepcopy(
+        deferred_strategy_ids = _normalize_strategy_id_list_payload(
             excerpt.get("deferred_strategy_ids", retrieval_policy.get("deferred_strategy_ids", []))
         )
         promotion = {
@@ -3318,24 +3344,27 @@ class RetrievalService:
             or _optional_text(provenance.get("hash")),
             "excerpt_text": _optional_text(excerpt.get("excerpt_text")) or _optional_text(excerpt.get("text")),
             "span": copy.deepcopy(RetrievalService._canonicalize_span(excerpt.get("span"))),
-            "source_strategy": _optional_text(excerpt.get("source_strategy"))
-            or _optional_text(provenance.get("source_strategy")),
-            "matched_terms": copy.deepcopy(provenance.get("matched_terms")),
+            "source_strategy": _normalize_source_strategy(
+                excerpt.get("source_strategy") or provenance.get("source_strategy") or _FTS_SOURCE_STRATEGY
+            ),
+            "matched_terms": copy.deepcopy(_normalize_matched_terms(provenance.get("matched_terms"))),
             "match_count": provenance.get("match_count"),
             "rank": provenance.get("rank"),
             "fts_rank": provenance.get("fts_rank"),
             "doc_rank": provenance.get("doc_rank"),
             "section_hint": _optional_text(provenance.get("section_hint")),
             "section_hint_rank": provenance.get("section_hint_rank"),
-            "retrieval_backend": _optional_text(excerpt.get("retrieval_backend"))
-            or _optional_text(provenance.get("retrieval_backend")),
-            "retrieval_mode": _optional_text(excerpt.get("retrieval_mode"))
-            or _optional_text(provenance.get("retrieval_mode")),
+            "retrieval_backend": _normalized_profile_text(
+                excerpt.get("retrieval_backend") or provenance.get("retrieval_backend")
+            ),
+            "retrieval_mode": _normalized_profile_text(
+                excerpt.get("retrieval_mode") or provenance.get("retrieval_mode")
+            ),
             "retrieval_policy": retrieval_policy,
             "active_strategy_ids": active_strategy_ids,
             "deferred_strategy_ids": deferred_strategy_ids,
             "strategies_used": copy.deepcopy(
-                _normalize_matched_terms(
+                _normalize_strategy_id_list_payload(
                     excerpt.get("strategies_used")
                     or provenance.get("strategies_used")
                     or active_strategy_ids
