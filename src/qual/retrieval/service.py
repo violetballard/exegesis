@@ -1370,8 +1370,9 @@ class RetrievalService:
     ) -> dict[str, object]:
         """Return an excerpt payload using the FTS-first auto lookup path."""
 
-        return self.retrieve_fts_excerpt(
+        return self._lookup_fts_excerpt(
             excerpt_id,
+            lookup_entrypoint="retrieve_auto_excerpt",
             confidentiality_profile=confidentiality_profile,
         )
 
