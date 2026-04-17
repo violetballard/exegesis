@@ -1706,6 +1706,30 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["query"], expected_query)
         self.assertEqual(normalized["provenance"]["query"], expected_query)
 
+    def test_normalize_excerpt_payload_casefolds_section_hint_in_query_context(self) -> None:
+        normalized = self.service._normalize_excerpt_payload(
+            {
+                "excerpt_id": "excerpt-sparse-query-casefold-1",
+                "doc_id": "doc-pdf-1",
+                "doc_type": "pdf",
+                "text": "Discussion theory evidence stays deterministic.",
+                "section_hint": "  Discussion   Notes  ",
+                "provenance": {
+                    "query_text": "Discussion theory",
+                    "query_scope": "vault",
+                    "query_intent": "compare",
+                    "query_confidentiality_profile": "standard",
+                },
+            },
+            source_strategy="fts",
+            lookup_resolution="fts",
+        )
+
+        self.assertEqual(normalized["section_hint"], "discussion notes")
+        self.assertEqual(normalized["provenance"]["section_hint"], "discussion notes")
+        self.assertEqual(normalized["query"]["constraints"]["section_hint"], "discussion notes")
+        self.assertEqual(normalized["basket_promotion"]["section_hint"], "discussion notes")
+
     def test_normalize_excerpt_payload_canonicalizes_lookup_metadata_for_fingerprints(self) -> None:
         compact = self.service._normalize_excerpt_payload(
             {

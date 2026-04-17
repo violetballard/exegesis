@@ -3355,10 +3355,10 @@ class RetrievalService:
         top_level_fts_rank = _optional_float(normalized.get("fts_rank"))
         if top_level_fts_rank is not None and _optional_float(normalized_provenance.get("fts_rank")) is None:
             normalized_provenance["fts_rank"] = top_level_fts_rank
-        top_level_section_hint = _normalized_text(normalized.get("section_hint"))
+        top_level_section_hint = _normalized_query_hint_text(normalized.get("section_hint"))
         if (
             top_level_section_hint is not None
-            and _normalized_text(normalized_provenance.get("section_hint")) is None
+            and _normalized_query_hint_text(normalized_provenance.get("section_hint")) is None
         ):
             normalized_provenance["section_hint"] = top_level_section_hint
         top_level_section_hint_rank = _optional_int(normalized.get("section_hint_rank"))
@@ -3385,7 +3385,7 @@ class RetrievalService:
         query_intent = _normalize_query_intent_payload(normalized_provenance.get("query_intent"))
         if query_intent is not None:
             normalized_provenance["query_intent"] = query_intent
-        section_hint = _normalized_text(normalized_provenance.get("section_hint"))
+        section_hint = _normalized_query_hint_text(normalized_provenance.get("section_hint"))
         if section_hint is not None:
             normalized_provenance["section_hint"] = section_hint
         candidate_doc_count = _optional_int(normalized_provenance.get("candidate_doc_count"))
@@ -3463,8 +3463,8 @@ class RetrievalService:
                 if query_date_range is not None:
                     normalized["query_date_range"] = query_date_range
                     normalized_provenance["query_date_range"] = query_date_range
-            if _normalized_text(normalized_provenance.get("section_hint")) is None:
-                section_hint = _normalized_text(query_constraints.get("section_hint"))
+            if _normalized_query_hint_text(normalized_provenance.get("section_hint")) is None:
+                section_hint = _normalized_query_hint_text(query_constraints.get("section_hint"))
                 if section_hint is not None:
                     normalized["section_hint"] = section_hint
                     normalized_provenance["section_hint"] = section_hint
@@ -3590,7 +3590,7 @@ class RetrievalService:
                 provenance.get("query_date_range", query_constraints_payload.get("date_range")),
             )
         )
-        section_hint = _normalized_text(
+        section_hint = _normalized_query_hint_text(
             excerpt.get(
                 "section_hint",
                 provenance.get("section_hint", query_constraints_payload.get("section_hint")),
