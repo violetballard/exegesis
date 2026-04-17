@@ -1084,6 +1084,9 @@ def _build_terminal_artifact_contract_manifest(*, include_contract_fingerprints:
             raw_leaf_card_default_contract
         ),
         "raw_leaf_card_default_contract_fingerprints": describe_terminal_artifact_raw_leaf_card_default_contract_fingerprints(),
+        "raw_leaf_card_default_policy": copy.deepcopy(
+            cli_fallback_target_contract["raw_leaf_card_default_policy"]
+        ),
         "terminal_fallback_contract": {
             "kind": "card",
             "contract_fingerprint": terminal_fallback_contract_fingerprint(),
@@ -1218,6 +1221,9 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
             raw_leaf_card_default_contract
         ),
         "raw_leaf_card_default_contract_fingerprints": describe_terminal_artifact_raw_leaf_card_default_contract_fingerprints(),
+        "raw_leaf_card_default_policy": copy.deepcopy(
+            terminal_artifact_cli_fallback_target_contract["raw_leaf_card_default_policy"]
+        ),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
         "kind_policy": {
@@ -1253,6 +1259,7 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest() -> dict[str
             "action": ["confirm", "policy_sensitive"],
             "selection": ["selected", "disabled"],
         },
+        "raw_leaf_card_default_policy": _build_terminal_artifact_raw_leaf_card_default_policy_manifest(),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
         "raw_leaf_card_default_contract": raw_leaf_card_default_contract,
@@ -1319,6 +1326,14 @@ def _build_terminal_artifact_raw_leaf_card_default_manifest() -> dict[str, Any]:
         "preserve_when_kind_is_unset": True,
         "required_fields": ["id", "label", "payload"],
         "excluded_fields": ["type", "blocks", "actions", "confirm", "policy_sensitive", "selected", "disabled"],
+    }
+
+
+def _build_terminal_artifact_raw_leaf_card_default_policy_manifest() -> dict[str, Any]:
+    return {
+        "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
+        "preserve_when_kind_is_unset": True,
+        "invalid_kind_treated_as_absent": True,
     }
 
 

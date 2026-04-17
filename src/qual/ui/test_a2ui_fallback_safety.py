@@ -1564,6 +1564,26 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "selection": "recover selection payloads with render_terminal_selection",
             },
         )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_target"]["raw_leaf_card_default_policy"],
+            {
+                "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
+                "preserve_when_kind_is_unset": True,
+                "invalid_kind_treated_as_absent": True,
+            },
+        )
+        self.assertEqual(
+            cli_fallback_target_manifest["raw_leaf_card_default_policy"],
+            manifest["terminal_artifact_cli_fallback_target"]["raw_leaf_card_default_policy"],
+        )
+        self.assertEqual(
+            manifest["raw_leaf_card_default_policy"],
+            manifest["terminal_artifact_cli_fallback_target"]["raw_leaf_card_default_policy"],
+        )
+        self.assertEqual(
+            a2ui_manifest["terminal_artifact"]["raw_leaf_card_default_policy"],
+            manifest["raw_leaf_card_default_policy"],
+        )
         self.assertEqual(manifest["render_target_contract"], describe_terminal_artifact_render_target_contract())
         self.assertEqual(
             manifest["terminal_artifact_render_target_contract"],
