@@ -6443,6 +6443,54 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("Debug:", text)
         self.assertIn("- Open (open_section)", text)
 
+    def test_terminal_renderer_keeps_action_order_deterministic_across_input_variants(self) -> None:
+        card_variants = [
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "safe"}],
+                "actions": [
+                    {
+                        "id": "export_document",
+                        "label": "Export",
+                        "payload": {"format": "md"},
+                    },
+                    {
+                        "id": "copy_to_clipboard",
+                        "label": "Copy JSON",
+                        "payload": {"text": "safe"},
+                    },
+                ],
+            },
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "safe"}],
+                "actions": [
+                    {
+                        "id": "copy_to_clipboard",
+                        "label": "Copy JSON",
+                        "payload": {"text": "safe"},
+                    },
+                    {
+                        "id": "export_document",
+                        "label": "Export",
+                        "payload": {"format": "md"},
+                    },
+                ],
+            },
+        ]
+
+        rendered = [render_terminal_card(card) for card in card_variants]
+
+        self.assertEqual(rendered[0], rendered[1])
+        self.assertIn("- Copy JSON (copy_to_clipboard)", rendered[0])
+        self.assertIn("- Export (export_document)", rendered[0])
+        self.assertLess(
+            rendered[0].index("- Copy JSON (copy_to_clipboard)"),
+            rendered[0].index("- Export (export_document)"),
+        )
+
     def test_terminal_renderer_infers_generic_fallback_when_actions_are_missing(self) -> None:
         text = render_terminal_card(
             {

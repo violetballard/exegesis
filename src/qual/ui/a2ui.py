@@ -4527,7 +4527,6 @@ def _canonical_json_sort_key(value: Any) -> str:
 
 def _render_terminal_actions(actions: Any, *, supported_actions: set[str]) -> list[str]:
     normalized_actions = _canonicalize_supported_action_list(actions, supported_actions=supported_actions)
-    normalized_actions = sorted(normalized_actions, key=_canonical_json)
 
     identity_counts: dict[str, int] = {}
     for action in normalized_actions:
@@ -4946,6 +4945,14 @@ def _canonicalize_supported_action_list(
     *,
     supported_actions: set[str],
 ) -> list[dict[str, Any]]:
+    """Return a deterministic, deduplicated action snapshot for rendering.
+
+    The terminal fallback path consumes this helper directly, so the
+    canonical order needs to be stable even when callers supply list or tuple
+    inputs in different orders. Sorting here keeps the helper itself
+    contract-safe instead of relying on downstream renderers to normalize it.
+    """
+
     if not isinstance(actions, (list, tuple)):
         return []
 
@@ -4961,7 +4968,7 @@ def _canonicalize_supported_action_list(
             continue
         seen.add(action_key)
         filtered.append(normalized)
-    return filtered
+    return sorted(filtered, key=_canonical_json)
 
 
 def _validate_supported_string_sequence(values: Any, *, field_name: str) -> tuple[str, ...]:
