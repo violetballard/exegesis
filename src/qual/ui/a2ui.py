@@ -2564,8 +2564,19 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
         )
     except Exception:
         # Keep the explicit CLI fallback path usable even if the shared
-        # resolver breaks, especially for raw leaf card defaults.
-        return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
+        # resolver breaks by retrying the local target resolver before giving
+        # up. This preserves action/selection recovery for demo flows.
+        if _should_preserve_raw_leaf_card_default(artifact):
+            fallback_artifact, fallback_kind = artifact, "card"
+        else:
+            try:
+                fallback_artifact, fallback_kind = _resolve_terminal_artifact_render_target(
+                    artifact,
+                    requested_kind=requested_kind,
+                    allow_invalid_envelope_recovery=True,
+                )
+            except Exception:
+                return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
     try:
         return _render_terminal_artifact_resolved(
             fallback_artifact,

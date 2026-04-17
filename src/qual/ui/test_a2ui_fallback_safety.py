@@ -2116,6 +2116,41 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Action schema v1", text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
 
+    def test_terminal_artifact_cli_fallback_entrypoint_recovers_leaf_payloads_when_shared_resolver_fails(
+        self,
+    ) -> None:
+        action_envelope = build_terminal_artifact_envelope(
+            ActionRef(
+                id=" export_document ",
+                label=" Export ",
+                payload={"format": "md"},
+            ),
+            kind="action",
+        )
+        selection_envelope = build_terminal_artifact_envelope(
+            SelectionRef(
+                id=" choice-1 ",
+                label=" Choice ",
+                payload={"nested": {"items": [1, 2]}},
+            ),
+            kind="selection",
+        )
+
+        with patch(
+            "src.qual.ui.a2ui.resolve_terminal_artifact_cli_fallback_target",
+            side_effect=RuntimeError("boom"),
+        ):
+            action_text = render_terminal_cli_fallback(action_envelope)
+            selection_text = render_terminal_cli_fallback(selection_envelope)
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", action_text)
+
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
+
     def test_terminal_artifact_cli_fallback_entrypoint_preserves_raw_leaf_card_default_when_resolver_fails(
         self,
     ) -> None:
