@@ -322,6 +322,9 @@ def describe_a2ui_contract(
             include_terminal_artifact_raw_leaf_card_default_policy=True,
         )
     )
+    manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints_fingerprint"] = (
+        _fingerprint_manifest_section(manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints"])
+    )
     terminal_artifact_envelope = _snapshot_contract_section(terminal_artifact_contract["terminal_artifact_envelope_contract"])
     manifest["terminal_artifact_envelope"] = terminal_artifact_envelope
     manifest["terminal_artifact_envelope_contract"] = _snapshot_contract_section(terminal_artifact_envelope)
@@ -344,6 +347,9 @@ def describe_a2ui_contract(
     ]
     manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"] = _snapshot_contract_section(
         terminal_artifact_contract["terminal_artifact_cli_fallback_target_contract_fingerprints"]
+    )
+    manifest["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"] = (
+        _fingerprint_manifest_section(manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"])
     )
     if include_terminal_artifact_cli_fallback_route:
         # Keep the route contract opt-in so the default A2UI manifest stays

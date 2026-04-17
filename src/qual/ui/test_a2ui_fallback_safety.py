@@ -3505,6 +3505,16 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             a2ui_manifest["terminal_artifact"]["terminal_artifact_render_target_contract"],
             manifest,
         )
+        self.assertEqual(
+            a2ui_manifest["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"],
+            _fingerprint_manifest_section(a2ui_manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"]),
+        )
+        self.assertEqual(
+            a2ui_manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints_fingerprint"],
+            _fingerprint_manifest_section(
+                a2ui_manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints"],
+            ),
+        )
         self.assertEqual(a2ui_manifest["schemas"]["terminal_artifact_render_target"], manifest)
 
     def test_terminal_artifact_render_target_contract_fingerprints_are_public_and_canonical(self) -> None:
