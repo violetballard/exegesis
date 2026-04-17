@@ -2898,6 +2898,39 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(len(fingerprints_with_self["terminal_artifact_cli_fallback_route"]), 64)
 
+    def test_terminal_artifact_cli_fallback_route_contract_fingerprints_can_opt_into_aliases(self) -> None:
+        fingerprints = describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
+            include_contract_aliases=True,
+        )
+        default_fingerprints = describe_terminal_artifact_cli_fallback_route_contract_fingerprints()
+
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route_contract"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["render_target_contract"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_target_contract"],
+            terminal_artifact_cli_fallback_target_contract_fingerprint(),
+        )
+        self.assertNotIn("terminal_artifact_cli_fallback_route", default_fingerprints)
+        self.assertNotIn("terminal_artifact_cli_fallback_route_contract", default_fingerprints)
+
     def test_raw_leaf_card_default_helper_only_preserves_untyped_leaf_payloads(self) -> None:
         self.assertTrue(
             _should_preserve_raw_leaf_card_default(

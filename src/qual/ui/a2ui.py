@@ -1133,13 +1133,31 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
 
 def describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
     include_terminal_artifact_cli_fallback_route: bool = False,
+    include_contract_aliases: bool = False,
 ) -> dict[str, str]:
-    """Return stable fingerprints for the CLI fallback route contract sections."""
+    """Return stable fingerprints for the CLI fallback route contract sections.
+
+    Pass ``include_terminal_artifact_cli_fallback_route=True`` to include the
+    route contract fingerprint itself. Pass ``include_contract_aliases=True``
+    to include alias keys that mirror the manifest field names.
+    """
 
     fingerprints = _build_terminal_artifact_cli_fallback_route_contract_fingerprints()
     if include_terminal_artifact_cli_fallback_route:
         fingerprints["terminal_artifact_cli_fallback_route"] = (
             terminal_artifact_cli_fallback_route_contract_fingerprint()
+        )
+    if include_contract_aliases:
+        _add_contract_alias_fingerprints(
+            fingerprints,
+            (
+                "terminal_artifact_cli_fallback_route",
+                terminal_artifact_cli_fallback_route_contract_fingerprint(),
+            ),
+            (
+                "terminal_artifact_cli_fallback_route_contract",
+                terminal_artifact_cli_fallback_route_contract_fingerprint(),
+            ),
         )
     return fingerprints
 
