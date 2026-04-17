@@ -467,7 +467,6 @@ class ShellUI:
             return artifact, requested_kind or "card"
 
     @staticmethod
-    @staticmethod
     def _recover_terminal_artifact_envelope_fallback(
         artifact: Any,
         *,
@@ -531,6 +530,7 @@ def _build_shell_ui_contract_manifest(
     terminal_artifact_cli_fallback_target_contract = describe_terminal_artifact_cli_fallback_target_contract(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
+    terminal_artifact_cli_fallback_route_contract = describe_terminal_artifact_cli_fallback_route_contract()
     entrypoints = _build_shell_ui_entrypoints()
     startup_fields = list(SHELL_UI_STARTUP_FIELDS)
     startup_preview = {
@@ -572,6 +572,14 @@ def _build_shell_ui_contract_manifest(
         ],
         "terminal_artifact_cli_fallback_route_fingerprint": terminal_artifact_cli_fallback_route_contract_fingerprint_value,
         "terminal_artifact_cli_fallback_route_contract_fingerprint": terminal_artifact_cli_fallback_route_contract_fingerprint_value,
+        "terminal_artifact_cli_fallback_route": terminal_artifact_cli_fallback_route_contract,
+        "terminal_artifact_cli_fallback_route_contract": terminal_artifact_cli_fallback_route_contract,
+        "terminal_artifact_cli_fallback_route_contract_fingerprints": dict(
+            terminal_artifact_cli_fallback_route_contract["contract_fingerprints"]
+        ),
+        "terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint": (
+            terminal_artifact_cli_fallback_route_contract["contract_fingerprints_fingerprint"]
+        ),
         "terminal_artifact_cli_fallback_target_contract_fingerprints": dict(
             terminal_artifact_cli_fallback_target_contract["contract_fingerprints"]
         ),
@@ -628,6 +636,7 @@ def describe_shell_ui_contract_fingerprints(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         )
     )
+    terminal_artifact_cli_fallback_route_contract = describe_terminal_artifact_cli_fallback_route_contract()
     terminal_artifact_cli_fallback_route_contract_fingerprint_value = (
         terminal_artifact_cli_fallback_route_contract_fingerprint()
     )
@@ -659,6 +668,9 @@ def describe_shell_ui_contract_fingerprints(
         "terminal_artifact_cli_fallback_route": terminal_artifact_cli_fallback_route_contract_fingerprint_value,
         "terminal_artifact_cli_fallback_route_contract": (
             terminal_artifact_cli_fallback_route_contract_fingerprint_value
+        ),
+        "terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint": (
+            terminal_artifact_cli_fallback_route_contract["contract_fingerprints_fingerprint"]
         ),
         "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint": (
             terminal_artifact_cli_fallback_target_contract["contract_fingerprints_fingerprint"]
