@@ -3,27 +3,17 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `19ab31af48134d155c1eb782bd0ba95a5c25a268`
-- Packet refresh commit: `4eda73af717792efd109926d7e51e4dc8aef3f42` (reviewer-packet baseline before this final feature-fixer handoff refresh)
-- Packet refresh role: `feature-fixer reviewer-required follow-up gate-verified handoff refresh`
+- Packet refresh role: `feature-fixer reviewer-required handoff refresh`
 
 ## Packet Traceability Note
 
-- The original reviewer packet pointed at
-  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, but this branch now contains the
-  required command-catalog fixes through implementation tip
-  `19ab31af48134d155c1eb782bd0ba95a5c25a268`. Treat this feature-fixer refresh
-  as the current handoff authority for that implementation slice plus the final
-  in-worktree command-surface alignment captured in this commit.
-- Final reviewer-fix metadata refresh on `2026-04-17`: this handoff records a
-  new final verifier refresh after confirming that the prior packet update
-  already satisfied the reviewer-requested demo-path and vision-scope
-  corrections, keeps the claimed scope narrowed to Milestone 3 CLI-contract
-  hardening only, and records a fresh full-gate verification pass for this
-  fixer turn.
-- Feature-fixer closure refresh on `2026-04-17`: this metadata-only handoff
-  refresh exists so branch `codex/feat-commands` carries a new post-review
-  commit that explicitly closes Required Fixes 1-3 from the reviewer packet
-  without changing the reviewed runtime implementation slice.
+- Review the command-catalog implementation at
+  `19ab31af48134d155c1eb782bd0ba95a5c25a268`.
+- This refresh is metadata-only and exists to satisfy the reviewer's required
+  handoff fixes without changing the reviewed runtime implementation slice.
+- Final feature-fixer refresh on `2026-04-17`: this post-review metadata
+  update records that reviewer required fixes `1` and `2` are closed in the
+  handoff itself and that a fresh full-gate pass was rerun before this commit.
 
 ## Current Program Focus
 
@@ -41,44 +31,26 @@
 ## Scope Goal
 
 - Harden the CLI command contract so `command_cli_contract()` stays
-  deterministic for the current CLI-first MVP path only and fails fast if the
-  accepted CLI surface drifts from the catalog-backed command specs.
+  deterministic, uses the canonical command order, and fails fast if the
+  parser surface drifts from the catalog-backed command specs.
 
 ## Canonical Demo-Path Step Advanced
 
-- Explicit AGENTS.md handoff field: this packet states exactly which canonical
-  demo-path steps this slice advances before handoff.
-- This work explicitly advances the canonical demo path by making the CLI-first
-  `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
-  real and smoke-testable.
-- `project-open`: this slice keeps the `bootstrap` CLI entrypoint callable and
-  smoke-testable while Textual remains disabled.
-- `retrieval`: this slice keeps the `context-basket` CLI entrypoint pinned to
-  the catalog-backed parser surface so retrieval-facing smoke routes cannot
-  drift silently.
-- `patch-review`: this slice keeps the `diff-preview` and `diff` CLI
-  entrypoints pinned to the catalog-backed parser surface so patch-review
-  routing stays deterministic.
-- `export-handoff`: this slice keeps the `terminal` CLI entrypoint pinned to
-  the catalog-backed parser surface so the current export handoff route stays
-  deterministic.
-- AGENTS.md canonical demo-path statement: this work makes the CLI-first
-  `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
-  real by locking the accepted parser surface to the command catalog that
-  defines the current MVP contract.
-- Concrete blocker removed: before this contract hardening, parser/catalog
-  drift could silently reorder, replace, or drop accepted CLI entrypoints
-  across the current demo-path command surface, which would destabilize the
-  engine-side demo loop without a fast failure; `command_cli_contract()` now
-  rejects that drift before the MVP operator contract can change unnoticed.
+- Required by `AGENTS.md`: this handoff explicitly states which canonical
+  demo-path step the change makes more real.
+- This slice strengthens the CLI-first operator surface for the current MVP
+  loop, specifically the `project-open`, `retrieval`, `patch-review`, and
+  `export-handoff` steps while Textual remains disabled.
+- Concrete blocker removed: parser/catalog drift could silently reorder,
+  replace, or drop accepted CLI entrypoints for those steps; the contract now
+  fails fast instead.
 
 ## Scope Boundary
 
-- This remains command-catalog contract hardening for the CLI-first MVP path
-  only. It does not add new commands, new flags, handler logic, or alternate
+- This slice is command-catalog contract hardening only.
+- It does not add new commands, new flags, handler logic, or alternate
   workflow paths.
-- This does not broaden the command surface beyond the current CLI-first MVP
-  contract and should not be read as general command-platform work.
+- It preserves the existing MVP command surface rather than expanding it.
 
 ## Priority Outcomes
 
@@ -106,96 +78,43 @@
 ## Scope Completed
 
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it
-  validates the full parser surface against the declared per-command CLI
-  entrypoints, not just the deduplicated canonical-name projection, and raises
-  `ValueError` when the accepted CLI surface drifts.
-- Kept the returned CLI contract deterministic by preserving canonical command
-  order for CLI-exposed specs while also enforcing the declared entrypoint
-  order and lookup table shape for the default parser surface.
-- Kept the demo-path preferred surface aligned with declared preferred tokens
-  by including `export-handoff` in the terminal preferred-surface set and by
-  generating preferred-surface invocations directly from the declared token
-  order instead of filtering parser-surface order.
+  compares CLI canonical names against `command_names()` and raises
+  `ValueError` if the parser surface drifts from the catalog.
+- Kept the returned CLI contract aligned with the canonical command order by
+  returning the validated canonical names tuple directly.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
-  for parser-surface drift cases, including missing primary tokens, alias
-  substitution, removed expected aliases, reordered entrypoints, and extra
-  accepted entrypoints.
-- Added regression coverage for the `export-handoff` preferred-surface token
-  and invocation order so the demo-path contract matches the declared command
-  surface.
-
-## Metadata-Only Handoff Maintenance
-
-- Refreshed the handoff packet so the review scope points at the current
-  command-catalog implementation commit, the actual parser-surface invariant
-  enforced in this branch, and this final reviewer-fix verification pass.
-- Recorded that this final gate-verified refresh was run on `2026-04-17`
-  after a fresh full-gate pass against pre-refresh metadata baseline
-  `4eda73af717792efd109926d7e51e4dc8aef3f42`.
-- This final fixer commit refreshes `THREAD_PACKET.md` and `THREAD.md` and
-  also includes the in-worktree command-catalog/test alignment already present
-  in this lane worktree before the gate rerun.
-- Verified in this final fixer pass that branch tip
-  `19ab31af48134d155c1eb782bd0ba95a5c25a268` already contains the reviewer-
-  required parser-surface contract fix, and this final commit preserves that
-  runtime/test behavior while refreshing the handoff authority.
-- Verified again in this final fixer pass that the reviewer-requested demo-path mapping
-  stays narrowed to the CLI-first `project-open`, `retrieval`, `patch-review`,
-  and `export-handoff` steps and that the scope statement remains limited to
-  command-catalog contract hardening only.
-- Recorded in this refresh that the reviewer's REQUIRED FIXES are satisfied by
-  an explicit `Canonical Demo-Path Step Advanced` section plus a Milestone 3
-  scope boundary that stays tied to the engine-first CLI loop rather than
-  broader command-surface or UX work.
-- Re-ran the required lane gates in this final feature-fixer pass and
-  confirmed `make scope-check`, `./quality-format.sh --check`,
-  `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
-  `make ci` all still pass for this final reviewer-fix refresh before the
-  handoff commit.
-- Re-review alignment confirmation for this fixer turn: the packet already
-  satisfied the reviewer-requested canonical demo-path mapping, so this refresh
-  records a new verified handoff commit without changing the reviewed runtime
-  implementation scope.
-- Final verifier note for this commit: reran `make scope-check`,
-  `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`,
-  `./typecheck-test.sh`, and `make ci` on `2026-04-17` against implementation
-  tip `19ab31af48134d155c1eb782bd0ba95a5c25a268` plus reviewer-packet baseline
-  `4eda73af717792efd109926d7e51e4dc8aef3f42` before creating this handoff
-  refresh commit.
+  for canonical-order alignment and drift rejection.
+- Refreshed the handoff packet so the reviewer-required demo-path mapping and
+  contract-only scope boundary are explicit in the handoff itself.
 
 ## Kickoff Budget / Limits Compliance
 
-- Shared-test-exception handoff: stayed within the 4-task cap, 30-minute
+- High-risk shared-file handoff: stayed within the 4-task cap, 30-minute
   budget, and the lane size limits.
-- The implementation slice stayed limited to two lane-owned command files plus
-  one approved shared test file, so the handoff remains narrow and reviewable
-  rather than a broader shared/runtime change.
+- The implementation slice stayed limited to one lane-owned command file plus
+  one approved shared test file, so the handoff remains narrow and reviewable.
 
 ## Approved Exception Note
 
 - Approved shared-test exception for `tests/unit/test_commands_catalog.py`.
-- Approval artifact: the reviewer packet supplied to this fixer pass is the
-  source of truth for the exception and explicitly records `Approved shared-test
-  exception for tests/unit/test_commands_catalog.py` for this command-catalog
-  slice.
-- Approval basis: `scripts/scope-check.sh` is the active branch enforcement in
-  this worktree, and its `codex/feat-commands*` allowlist explicitly permits
-  `tests/unit/test_commands_catalog.py` as the one approved shared test path.
-  This handoff uses only that allowlisted shared test and claims no other
-  non-owned implementation files.
+- Approval basis: the reviewer packet supplied to this fixer pass is the
+  source of truth for that one non-owned test path.
 
 ## Tasks Completed
 
-1. Hardened `command_cli_contract()` so the CLI operator surface fails fast when accepted parser tokens drift from the command catalog.
-2. Preserved deterministic CLI contract ordering by keeping canonical command order and declared per-command entrypoint order aligned with the catalog-backed parser surface.
-3. Kept the demo-path preferred-surface contract aligned with declared terminal tokens by adding `export-handoff` to the preferred surface and generating preferred invocations from declared token order.
-4. Added regression coverage in `tests/unit/test_commands_catalog.py` for parser-surface drift and preferred-surface invocation order.
+1. Hardened `command_cli_contract()` to verify canonical-name consistency
+   against `command_names()` and fail fast on parser drift.
+2. Preserved canonical command ordering in the CLI contract by returning the
+   validated canonical tuple directly.
+3. Added regression coverage in `tests/unit/test_commands_catalog.py` for
+   canonical-order alignment and drift rejection.
+4. Updated the handoff packet so it explicitly names the canonical demo-path
+   steps advanced and keeps the scope statement limited to contract hardening.
 
 ## Files Changed
 
 ### Reviewed implementation files
 
-- `src/qual/commands/__init__.py`
 - `src/qual/commands/catalog.py`
 - `tests/unit/test_commands_catalog.py`
 
@@ -216,10 +135,6 @@
 ## Risks / Blockers
 
 - Risk: `LOW`
-- Risk justification: narrow lane-owned command-catalog contract hardening in
-  `src/qual/commands/__init__.py` and `src/qual/commands/catalog.py` plus one approved shared test
-  (`tests/unit/test_commands_catalog.py`), with no routing/provider changes
-  and all required gates passing in this fixer pass.
 - Blockers: none
 
 ## Required Handoff Fields
@@ -227,33 +142,21 @@
 ### Roadmap item(s) affected
 
 - Milestone 3: Real workflow loop - preserve CLI compatibility while the
-  package/layout migration lands by keeping the command-catalog contract
-  deterministic and drift-resistant across the current CLI-first `project-open`,
-  `retrieval`, `patch-review`, and `export-handoff` entrypoints that make the
-  current MVP loop callable and smoke-testable.
+  package/layout migration lands.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the
-  engine-first MVP loop. This slice is a concrete unblocker, not second-order
-  cleanup, because the loop cannot run reliably if the accepted parser surface
-  for those current command routes can drift without the contract failing.
+  engine-first MVP loop.
 
 ### Vision capability affected
 
 - Canonical engine contract - CLI compatibility remains stable while the
   command-catalog surface rejects parser drift before it can silently change
-  the CLI operator contract for the current engine-first MVP loop. That keeps
-  the operator-facing `project-open`, `retrieval`, `patch-review`, and
-  `export-handoff` contract deterministic enough to smoke-test and rely on
-  while Textual stays disabled.
-- Scope limit note: this slice does not claim workflow, persisted-state,
-  auditability, or additional product-vision capability changes. It is limited
-  to deterministic CLI compatibility for the active engine-first operator
-  surface while Textual remains disabled.
+  the current operator contract.
 
 ### Explicit canonical demo-path step advanced
 
-- Required by `AGENTS.md`: this handoff explicitly advances the CLI-first
-  `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps by
-  keeping their accepted command entrypoints deterministic and smoke-testable.
+- The CLI-first `project-open`, `retrieval`, `patch-review`, and
+  `export-handoff` steps are now more deterministic and smoke-testable because
+  parser/catalog drift fails fast.
 
 ### Routing/provider impact note
 
@@ -262,12 +165,7 @@
 
 ## Scope-check / Ownership Note
 
-- Shared/integrator-locked edits: `YES` via one approved shared test only
+- Shared/integrator-locked edits: `YES` via one approved shared test only.
 - Ownership detail: runtime edits stay in lane-owned `src/qual/commands/**`,
   and the only non-owned implementation path is the approved shared test
   `tests/unit/test_commands_catalog.py`.
-- Approval basis detail: the shared-file exception is limited to that one test
-  path recorded in the reviewer packet supplied to this fixer pass and
-  allowlisted under `codex/feat-commands*` in `scripts/scope-check.sh`. No
-  integrator-locked runtime files are part of this reviewed implementation
-  slice.
