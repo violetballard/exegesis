@@ -106,6 +106,8 @@
 ## Commands Run and Outcomes
 
 - `python -m unittest tests.unit.test_commands_catalog`: PASS
+- `SCOPE_ALLOW_SHARED=1 make scope-check`: PASS for the reviewed implementation slice that includes the approved shared test `tests/unit/test_commands_catalog.py`.
+- `SCOPE_ALLOW_SHARED=1 make ci`: PASS for the reviewed implementation slice that includes the approved shared test `tests/unit/test_commands_catalog.py`.
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
@@ -117,7 +119,7 @@
 
 - Re-verified on the current `codex/feat-commands` branch tip that the reviewer-required fixes are present in the implementation: `command_cli_contract()` now rejects default-catalog parser-surface drift, and `tests/unit/test_commands_catalog.py` covers missing-primary-token, alias-substitution, extra-entrypoint, and primary-token-order drift where canonical command order alone would still be insufficient.
 - Re-verified that the default `demo` / `mvp` command-flow helpers on the current branch tip still include `export-handoff`, and that the packet now maps that `terminal` compatibility surface to the loop's `save and continue` step instead of claiming it was removed.
-- This handoff refresh is tied to a fresh full gate rerun on the current packet-refresh branch tip, using the standard `make scope-check` invocation because this follow-up commit only adjusts packet metadata and does not expand the reviewed implementation scope beyond the already-approved shared test exception.
+- This handoff refresh records both gate contexts explicitly: the reviewed implementation slice used `SCOPE_ALLOW_SHARED=1 make scope-check` and `SCOPE_ALLOW_SHARED=1 make ci` because it includes the approved shared test `tests/unit/test_commands_catalog.py`, while this metadata-only reviewer-fix follow-up commit also passes the standard `make scope-check` and `make ci` reruns on branch tip without broadening implementation scope.
 - Feature-fixer note: this refresh exists only to record the final gate rerun and produce the requested new commit on top of the already-applied reviewer-required fixes.
 
 ## Risks / Blockers
@@ -144,6 +146,7 @@
 
 - Shared/integrator-locked edits: `YES`
 - Ownership detail: lane-owned runtime edits stay in `src/qual/commands/**`, and the only non-owned implementation path is the approved shared test `tests/unit/test_commands_catalog.py`.
-- Exact scope-check invocation for this reviewer-fix follow-up: `make scope-check`
+- Exact shared-scope invocations for the reviewed implementation slice: `SCOPE_ALLOW_SHARED=1 make scope-check` and `SCOPE_ALLOW_SHARED=1 make ci`.
+- Exact scope-check invocation for this metadata-only reviewer-fix follow-up commit: `make scope-check`
 - Approval basis: `THREAD_OWNERSHIP.md` lists `tests/unit/test_commands_catalog.py` as shared-by-approval for `codex/feat-commands*`, and the handoff keeps that exception limited to this one test file.
 - Scope-tightening confirmation: no additional shared or integrator-locked implementation files are part of this reviewed slice.
