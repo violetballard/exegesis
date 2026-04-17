@@ -119,6 +119,10 @@ from src.qual.commands import (
     command_demo_loop_invocation_plan,
     command_demo_loop_lookup_table,
     command_demo_loop_tokens,
+    command_demo_transition_targets,
+    command_demo_transition_targets_for,
+    command_demo_transition_argv,
+    command_demo_transition_argv_for,
     command_names,
     command_primary_cli_token_for,
     command_mvp_cli_shim_catalog,
@@ -152,6 +156,10 @@ from src.qual.commands import (
     command_mvp_loop_invocation_plan,
     command_mvp_loop_lookup_table,
     command_mvp_loop_tokens,
+    command_mvp_transition_targets,
+    command_mvp_transition_targets_for,
+    command_mvp_transition_argv,
+    command_mvp_transition_argv_for,
     validate_command_catalog,
 )
 
@@ -2757,6 +2765,142 @@ class CommandCatalogTests(unittest.TestCase):
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
                 ),
             ),
+        )
+
+    def test_command_demo_transition_helpers_normalize_demo_and_compatibility_tokens(self) -> None:
+        self.assertEqual(command_demo_transition_targets("project-open"), ("retrieval",))
+        self.assertEqual(command_demo_transition_targets("review"), ("apply-patch", "reject-patch"))
+        self.assertEqual(command_demo_transition_targets("apply"), ("persist",))
+        self.assertEqual(command_demo_transition_targets("terminal"), ())
+        self.assertEqual(command_demo_transition_targets("missing"), ())
+        self.assertEqual(command_mvp_transition_targets("review"), command_demo_transition_targets("review"))
+
+        self.assertEqual(
+            command_demo_transition_argv("review", "apply"),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(
+            command_demo_transition_argv("patch-review", "decline"),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+        )
+        self.assertEqual(
+            command_demo_transition_argv("save", "export"),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
+        self.assertEqual(command_demo_transition_argv("project-open", "export-handoff"), ())
+        self.assertEqual(command_demo_transition_argv("missing", "apply"), ())
+        self.assertEqual(
+            command_mvp_transition_argv("review", "apply"),
+            command_demo_transition_argv("review", "apply"),
+        )
+
+    def test_command_demo_transition_helpers_track_custom_specs(self) -> None:
+        specs = (
+            CommandSpec(
+                name="bootstrap",
+                aliases=("open",),
+                cli_tokens=("bootstrap-run",),
+                smoke_argv=("bootstrap-run", "--project", "demo"),
+                flow_step="project-open",
+            ),
+            CommandSpec(
+                name="context-basket",
+                aliases=("retrieve",),
+                cli_tokens=("context-basket",),
+                smoke_argv=("context-basket", "list"),
+                flow_step="retrieval",
+            ),
+            CommandSpec(
+                name="diff-preview",
+                aliases=("review-patch",),
+                cli_tokens=("review-diff",),
+                smoke_argv=("review-diff", "--original", "before", "--proposed", "after"),
+                flow_step="patch-review",
+            ),
+            CommandSpec(
+                name="terminal",
+                aliases=("save-export", "persist-continue", "patch-apply", "patch-reject"),
+                cli_tokens=("terminal",),
+                smoke_argv=(
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_synthesis_request",
+                    "--message",
+                    "Export handoff",
+                ),
+                surface_argv=(
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_synthesis_request",
+                    "--message",
+                    "Export handoff",
+                ),
+                shim_argv=(
+                    (
+                        "save-export",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Export handoff",
+                        ),
+                    ),
+                    (
+                        "persist-continue",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Persist and continue",
+                        ),
+                    ),
+                    (
+                        "patch-apply",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_tool_orchestration",
+                            "--message",
+                            "Apply patch",
+                        ),
+                    ),
+                    (
+                        "patch-reject",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_tool_orchestration",
+                            "--message",
+                            "Reject patch",
+                        ),
+                    ),
+                ),
+                shim_pinned_options=(
+                    ("save-export", ("--operation-kind",)),
+                    ("persist-continue", ("--operation-kind",)),
+                    ("patch-apply", ("--operation-kind",)),
+                    ("patch-reject", ("--operation-kind",)),
+                ),
+                flow_step="export-handoff",
+            ),
+        )
+
+        self.assertEqual(command_demo_transition_targets_for(specs, "bootstrap-run"), ("retrieval",))
+        self.assertEqual(command_demo_transition_targets_for(specs, "review"), ("apply-patch", "reject-patch"))
+        self.assertEqual(
+            command_demo_transition_argv_for(specs, "review-diff", "accept"),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(
+            command_demo_transition_argv_for(specs, "resume", "save-export"),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
+        self.assertEqual(command_mvp_transition_targets_for(specs, "review"), ("apply-patch", "reject-patch"))
+        self.assertEqual(
+            command_mvp_transition_argv_for(specs, "review", "apply"),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
         )
 
     def test_command_demo_path_validator_rejects_surface_invocation_argv_drift(self) -> None:

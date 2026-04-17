@@ -3113,6 +3113,93 @@ def command_mvp_transition_targets_by_source(
     return command_demo_transition_targets_by_source(specs)
 
 
+@lru_cache(maxsize=None)
+def _command_demo_transition_token_lookup(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> dict[str, str]:
+    lookup: dict[str, str] = {}
+    for entry in command_demo_loop_contract(specs).entries:
+        normalized_entry_token = _normalize_token(entry.token)
+        if normalized_entry_token:
+            lookup[normalized_entry_token] = entry.token
+        normalized_primary_cli_token = _normalize_token(entry.argv[0]) if entry.argv else ""
+        if normalized_primary_cli_token and entry.kind != "lookup":
+            lookup.setdefault(normalized_primary_cli_token, entry.token)
+
+    for canonical_token, fallback_tokens in _COMMAND_DEMO_LOOP_FALLBACK_TOKENS.items():
+        for fallback_token in fallback_tokens:
+            normalized_fallback_token = _normalize_token(fallback_token)
+            if normalized_fallback_token:
+                lookup.setdefault(normalized_fallback_token, canonical_token)
+
+    for entry in command_demo_compatibility_contract(specs).entries:
+        normalized_compatibility_token = _normalize_token(entry.token)
+        if normalized_compatibility_token:
+            lookup[normalized_compatibility_token] = entry.canonical_token
+
+    return lookup
+
+
+def command_demo_transition_targets_for(
+    specs: tuple[CommandSpec, ...],
+    source_token: str,
+) -> tuple[str, ...]:
+    normalized_source_token = _normalize_token(source_token)
+    if not normalized_source_token:
+        return ()
+    canonical_source_token = _command_demo_transition_token_lookup(specs).get(normalized_source_token)
+    if canonical_source_token is None:
+        return ()
+    return dict(command_demo_transition_targets_by_source(specs)).get(canonical_source_token, ())
+
+
+def command_mvp_transition_targets_for(
+    specs: tuple[CommandSpec, ...],
+    source_token: str,
+) -> tuple[str, ...]:
+    return command_demo_transition_targets_for(specs, source_token)
+
+
+def command_demo_transition_argv_for(
+    specs: tuple[CommandSpec, ...],
+    source_token: str,
+    target_token: str,
+) -> tuple[str, ...]:
+    token_lookup = _command_demo_transition_token_lookup(specs)
+    canonical_source_token = token_lookup.get(_normalize_token(source_token))
+    canonical_target_token = token_lookup.get(_normalize_token(target_token))
+    if canonical_source_token is None or canonical_target_token is None:
+        return ()
+    return dict(command_demo_transition_invocation_table(specs)).get(
+        (canonical_source_token, canonical_target_token),
+        (),
+    )
+
+
+def command_mvp_transition_argv_for(
+    specs: tuple[CommandSpec, ...],
+    source_token: str,
+    target_token: str,
+) -> tuple[str, ...]:
+    return command_demo_transition_argv_for(specs, source_token, target_token)
+
+
+def command_demo_transition_targets(source_token: str) -> tuple[str, ...]:
+    return command_demo_transition_targets_for(COMMAND_SPECS, source_token)
+
+
+def command_mvp_transition_targets(source_token: str) -> tuple[str, ...]:
+    return command_demo_transition_targets(source_token)
+
+
+def command_demo_transition_argv(source_token: str, target_token: str) -> tuple[str, ...]:
+    return command_demo_transition_argv_for(COMMAND_SPECS, source_token, target_token)
+
+
+def command_mvp_transition_argv(source_token: str, target_token: str) -> tuple[str, ...]:
+    return command_demo_transition_argv(source_token, target_token)
+
+
 def command_demo_loop_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
