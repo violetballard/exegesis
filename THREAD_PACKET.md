@@ -287,6 +287,8 @@
 - This command-catalog hardening keeps those operator-facing entrypoints
   deterministic and rejects parser-surface drift before the active CLI MVP
   loop can change silently while Textual remains disabled.
+- Reviewer-fix refresh note: this field is included explicitly so re-review
+  does not have to infer the demo-path step from broader milestone language.
 
 ### Roadmap item(s) affected
 

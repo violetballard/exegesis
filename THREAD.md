@@ -15,4 +15,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   the reviewer-required demo-path mapping fix.
 - Review the command-catalog implementation in `src/qual/commands/catalog.py` together with the focused shared-test coverage in `tests/unit/test_commands_catalog.py`.
 - The reviewed implementation remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; later packet refreshes do not broaden that scope.
-- `THREAD_PACKET.md` now carries the completed high-risk kickoff fields, an explicit handoff field naming the canonical demo-path step advanced, and the concrete shared-file approval basis required by the reviewer.
+- `THREAD_PACKET.md` now carries the completed high-risk kickoff fields, an explicit handoff field naming the canonical demo-path step advanced without inference, and the concrete shared-file approval basis required by the reviewer.
