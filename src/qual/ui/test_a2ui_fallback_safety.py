@@ -3613,25 +3613,50 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["startup_fields"],
             ["project", "vault", "locked", "context_items", "context_preview"],
         )
+
+    def test_shell_ui_contract_snapshot_isolation_keeps_embedded_copy_stable(self) -> None:
+        manifest = describe_shell_ui_contract()
+        embedded = manifest["shell_ui_contract"]
+        target_contract = describe_terminal_artifact_cli_fallback_target_contract()
+        route_fingerprint = terminal_artifact_cli_fallback_route_contract_fingerprint()
+
+        manifest["entrypoints"]["render_artifact"] = "mutated"
+        manifest["startup_preview"]["limit"] = 99
+
+        self.assertEqual(
+            embedded["entrypoints"],
+            {
+                "render_artifact": "ShellUI.render_artifact",
+                "render_startup": "ShellUI.render_startup",
+            },
+        )
+        self.assertEqual(
+            embedded["startup_preview"],
+            {
+                "empty_value": "<empty>",
+                "limit": SHELL_UI_STARTUP_PREVIEW_LIMIT,
+                "source_field": "basket.item_ids",
+            },
+        )
+        self.assertEqual(manifest["startup_preview"]["limit"], 99)
         self.assertIsNot(manifest["startup_fields_contract"], manifest["startup_fields"])
         self.assertEqual(manifest["startup_fields_contract"], manifest["startup_fields"])
         self.assertEqual(
             manifest["startup_fields_contract_fingerprint"],
             _fingerprint_manifest_section(manifest["startup_fields"]),
         )
+        self.assertIsNot(manifest["startup_preview_contract"], manifest["startup_preview"])
         self.assertEqual(
-            manifest["startup_preview"],
+            manifest["startup_preview_contract"],
             {
                 "empty_value": "<empty>",
-                "limit": 3,
+                "limit": SHELL_UI_STARTUP_PREVIEW_LIMIT,
                 "source_field": "basket.item_ids",
             },
         )
-        self.assertIsNot(manifest["startup_preview_contract"], manifest["startup_preview"])
-        self.assertEqual(manifest["startup_preview_contract"], manifest["startup_preview"])
         self.assertEqual(
             manifest["startup_preview_contract_fingerprint"],
-            _fingerprint_manifest_section(manifest["startup_preview"]),
+            _fingerprint_manifest_section(embedded["startup_preview"]),
         )
         self.assertEqual(manifest["terminal_artifact_cli_fallback_entrypoint"], "render_terminal_cli_fallback")
         self.assertEqual(

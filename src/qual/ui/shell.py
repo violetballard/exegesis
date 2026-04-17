@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 from collections.abc import Iterable, Mapping, Set
 from typing import Any
@@ -703,7 +704,9 @@ def describe_shell_ui_contract(
     )
     manifest["contract_fingerprints"] = dict(contract_fingerprints)
     manifest["contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(contract_fingerprints)
-    manifest["shell_ui_contract"] = dict(manifest)
+    # Snapshot the manifest deeply so embedded contract views do not alias the
+    # live manifest's nested entrypoint and preview structures.
+    manifest["shell_ui_contract"] = copy.deepcopy(manifest)
     manifest["shell_ui_contract_fingerprint"] = fingerprint
     manifest["startup_fields_fingerprint"] = contract_fingerprints["startup_fields"]
     manifest["startup_preview_fingerprint"] = contract_fingerprints["startup_preview"]
