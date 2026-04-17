@@ -16,6 +16,10 @@
 - PageIndex and embeddings remain compatibility-only paths in this slice and are not restored as required runtime retrieval backends.
 - Ownership clarification for re-review: this narrowed slice includes the approved shared regression edit `tests/unit/test_unified_retrieval.py` and no integrator-locked file edits.
 
+## Reviewer-required canonical demo-path mapping
+- Canonical demo-path step advanced: `retrieve relevant material`
+- This reviewed slice makes `retrieve relevant material` more real by forcing excerpt lookup through the canonical SQLite FTS path and failing closed for PageIndex-only excerpt IDs, keeping retrieval provenance deterministic for downstream basket/workflow use.
+
 ## Canonical Demo-Path Step Advanced
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Reviewer-required canonical mapping: this slice makes `retrieve relevant material` more real by ensuring excerpt lookup stays on the canonical FTS-only retrieval path and fails closed for PageIndex-only IDs.
