@@ -61,6 +61,7 @@ For re-review, treat any stale `.codex` sidecar packet text as informational onl
 - This metadata-only refresh preserves the reviewed implementation head, aligns the operative reviewed implementation range to the reviewer packet above, and keeps the handoff packet explicitly mapped to the canonical demo-path step `retrieve relevant material`.
 - This operative packet is the writable checked-in source of truth for the reviewer-required high-risk budget story and canonical demo-path mapping in this fixer pass.
 - `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain unchanged in this worktree because filesystem permissions prevent updating them during the fixer pass; `THREAD_PACKET.md` is the operative handoff source of truth for the reviewer-required range and canonical demo-path mapping.
+- Any conflicting low-risk or implicit demo-path wording in those stale `.codex` sidecars is superseded by this packet for re-review; the authoritative budget story for this pass is shared/high-risk work under the 4-task cap.
 - Re-review should treat this `THREAD_PACKET.md` entry as the authoritative handoff packet for the required-fix pass, including the explicit canonical demo-path step mapping and the narrowed reviewed implementation range above.
 
 ## Required Reviewer Fixes Addressed
@@ -68,6 +69,7 @@ For re-review, treat any stale `.codex` sidecar packet text as informational onl
 1. Set the reviewed implementation scope to the reviewer packet's narrowed range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 2. Added an explicit handoff statement that this change advances the canonical demo-path step `retrieve relevant material`.
 3. Kept the narrowed scope wording limited to the FTS-only excerpt lookup change and its approved shared regression coverage.
+4. Declared the authoritative risk/budget framing for re-review as shared/high-risk work under the 4-task cap, since the `.codex` sidecars are not writable in this worktree.
 
 ## Tasks completed
 
