@@ -108,6 +108,7 @@ from .shell import (
     SHELL_UI_CONTRACT_VERSION,
     ShellUI,
     describe_shell_ui_contract,
+    describe_shell_ui_contract_fingerprints,
     shell_ui_contract_fingerprint,
 )
 
@@ -179,6 +180,7 @@ __all__ = [
     "describe_terminal_artifact_contract_fingerprints",
     "describe_terminal_fallback_contract",
     "describe_shell_ui_contract",
+    "describe_shell_ui_contract_fingerprints",
     "build_terminal_artifact_envelope",
     "normalize_capabilities",
     "normalize_terminal_artifact_payload",

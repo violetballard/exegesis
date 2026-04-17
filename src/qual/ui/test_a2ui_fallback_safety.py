@@ -100,8 +100,11 @@ from src.qual.ui.a2ui import (
 )
 from src.qual.ui.shell import (
     SHELL_UI_CONTRACT_VERSION,
+    SHELL_UI_STARTUP_EMPTY_PREVIEW,
+    SHELL_UI_STARTUP_PREVIEW_LIMIT,
     ShellUI,
     describe_shell_ui_contract,
+    describe_shell_ui_contract_fingerprints,
     shell_ui_contract_fingerprint,
 )
 
@@ -3419,6 +3422,79 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_renderer_entrypoints_contract_fingerprint(),
         )
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
+
+    def test_shell_ui_contract_fingerprints_are_public_and_canonical(self) -> None:
+        from src.qual.ui import (
+            describe_shell_ui_contract_fingerprints as exported_shell_ui_contract_fingerprints,
+        )
+
+        manifest = describe_shell_ui_contract()
+        fingerprints = describe_shell_ui_contract_fingerprints()
+
+        self.assertIs(
+            exported_shell_ui_contract_fingerprints,
+            describe_shell_ui_contract_fingerprints,
+        )
+        self.assertEqual(manifest["contract_fingerprints"], fingerprints)
+        self.assertEqual(
+            manifest["contract_fingerprints_fingerprint"],
+            _fingerprint_manifest_section(fingerprints),
+        )
+        self.assertEqual(
+            manifest["startup_fields_fingerprint"],
+            _fingerprint_manifest_section(manifest["startup_fields"]),
+        )
+        self.assertEqual(
+            manifest["startup_preview_fingerprint"],
+            _fingerprint_manifest_section(manifest["startup_preview"]),
+        )
+        self.assertEqual(
+            fingerprints["startup_fields"],
+            _fingerprint_manifest_section(manifest["startup_fields"]),
+        )
+        self.assertEqual(
+            fingerprints["startup_fields_contract"],
+            fingerprints["startup_fields"],
+        )
+        self.assertEqual(
+            fingerprints["startup_preview"],
+            _fingerprint_manifest_section(manifest["startup_preview"]),
+        )
+        self.assertEqual(
+            fingerprints["startup_preview_contract"],
+            fingerprints["startup_preview"],
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback"],
+            terminal_artifact_cli_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_renderer_entrypoints"],
+            terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+        )
+        self.assertEqual(len(manifest["contract_fingerprints_fingerprint"]), 64)
+
+    def test_shell_ui_render_startup_uses_contract_preview_constants(self) -> None:
+        runtime = SimpleNamespace(
+            vault=SimpleNamespace(project_name="Demo", root_dir="/tmp/demo", is_locked=False),
+            basket=SimpleNamespace(item_ids=["alpha", "beta", "gamma"]),
+        )
+        empty_runtime = SimpleNamespace(
+            vault=SimpleNamespace(project_name="Demo", root_dir="/tmp/demo", is_locked=False),
+            basket=SimpleNamespace(item_ids=[]),
+        )
+
+        with patch("src.qual.ui.shell.SHELL_UI_STARTUP_PREVIEW_LIMIT", 2), patch(
+            "src.qual.ui.shell.SHELL_UI_STARTUP_EMPTY_PREVIEW",
+            "<none>",
+        ):
+            text = ShellUI().render_startup(runtime)
+            empty_text = ShellUI().render_startup(empty_runtime)
+
+        self.assertEqual(SHELL_UI_STARTUP_PREVIEW_LIMIT, 3)
+        self.assertEqual(SHELL_UI_STARTUP_EMPTY_PREVIEW, "<empty>")
+        self.assertIn("- context_preview: alpha, beta, +1 more item", text)
+        self.assertIn("- context_preview: <none>", empty_text)
 
     def test_terminal_artifact_cli_fallback_route_contract_fingerprints_are_public_and_canonical(self) -> None:
         from src.qual.ui import (

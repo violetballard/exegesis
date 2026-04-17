@@ -141,14 +141,16 @@ class ShellUI:
     def render_startup(self, runtime: EngineRuntime) -> str:
         item_ids = self._snapshot_item_ids(runtime.basket.item_ids)
         if item_ids:
-            preview_items = [self._format_item_id(value) for value in item_ids[:3]]
+            preview_items = [
+                self._format_item_id(value) for value in item_ids[:SHELL_UI_STARTUP_PREVIEW_LIMIT]
+            ]
             preview = ", ".join(preview_items)
-            if len(item_ids) > 3:
-                remaining = len(item_ids) - 3
+            if len(item_ids) > SHELL_UI_STARTUP_PREVIEW_LIMIT:
+                remaining = len(item_ids) - SHELL_UI_STARTUP_PREVIEW_LIMIT
                 label = "item" if remaining == 1 else "items"
                 preview = f"{preview}, +{remaining} more {label}"
         else:
-            preview = "<empty>"
+            preview = SHELL_UI_STARTUP_EMPTY_PREVIEW
         return (
             "Qual Workstation bootstrap is running\n"
             f"- project: {self._render_startup_value(runtime.vault.project_name)}\n"
@@ -556,10 +558,45 @@ def _build_shell_ui_contract_manifest() -> dict[str, Any]:
     }
 
 
+def describe_shell_ui_contract_fingerprints() -> dict[str, str]:
+    """Return stable fingerprints for the shell UI contract sections."""
+
+    startup_fields = list(SHELL_UI_STARTUP_FIELDS)
+    startup_preview = {
+        "empty_value": SHELL_UI_STARTUP_EMPTY_PREVIEW,
+        "limit": SHELL_UI_STARTUP_PREVIEW_LIMIT,
+        "source_field": "basket.item_ids",
+    }
+    terminal_artifact_cli_fallback_contract_fingerprint_value = (
+        terminal_artifact_cli_fallback_contract_fingerprint()
+    )
+    terminal_artifact_renderer_entrypoints_contract_fingerprint_value = (
+        terminal_artifact_renderer_entrypoints_contract_fingerprint()
+    )
+    fingerprints = {
+        "startup_fields": _fingerprint_manifest_section(startup_fields),
+        "startup_fields_contract": _fingerprint_manifest_section(startup_fields),
+        "startup_preview": _fingerprint_manifest_section(startup_preview),
+        "startup_preview_contract": _fingerprint_manifest_section(startup_preview),
+        "terminal_artifact_cli_fallback": terminal_artifact_cli_fallback_contract_fingerprint_value,
+        "terminal_artifact_cli_fallback_contract": terminal_artifact_cli_fallback_contract_fingerprint_value,
+        "terminal_artifact_renderer_entrypoints": terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
+        "terminal_artifact_renderer_entrypoints_contract": (
+            terminal_artifact_renderer_entrypoints_contract_fingerprint_value
+        ),
+    }
+    return fingerprints
+
+
 def describe_shell_ui_contract() -> dict[str, Any]:
     """Return the stable shell UI contract manifest."""
 
     manifest = _build_shell_ui_contract_manifest()
+    contract_fingerprints = describe_shell_ui_contract_fingerprints()
+    manifest["contract_fingerprints"] = dict(contract_fingerprints)
+    manifest["contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(contract_fingerprints)
+    manifest["startup_fields_fingerprint"] = contract_fingerprints["startup_fields"]
+    manifest["startup_preview_fingerprint"] = contract_fingerprints["startup_preview"]
     fingerprint = shell_ui_contract_fingerprint()
     manifest["shell_ui_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
