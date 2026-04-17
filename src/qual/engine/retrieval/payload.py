@@ -393,12 +393,342 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
     return normalized
 
 
+def _normalize_hit_shared_provenance_snapshot(provenance: object) -> dict[str, object]:
+    if not isinstance(provenance, dict):
+        return {}
+    normalized = copy.deepcopy(provenance)
+    query_fingerprint = _normalize_optional_text(normalized.get("query_fingerprint"))
+    if query_fingerprint is not None:
+        normalized["query_fingerprint"] = query_fingerprint
+    query_scope = _normalize_query_scope(normalized.get("query_scope"))
+    if query_scope is not None:
+        normalized["query_scope"] = query_scope
+    query_intent = _normalize_query_intent(normalized.get("query_intent"))
+    if query_intent is not None:
+        normalized["query_intent"] = query_intent
+    query_confidentiality_profile = _normalize_query_confidentiality_profile(
+        normalized.get("query_confidentiality_profile")
+    )
+    if query_confidentiality_profile is not None:
+        normalized["query_confidentiality_profile"] = query_confidentiality_profile
+    query_date_range = _normalize_query_date_range(normalized.get("query_date_range"))
+    if query_date_range is not None:
+        normalized["query_date_range"] = query_date_range
+    candidate_doc_count = _normalize_optional_int(normalized.get("candidate_doc_count"))
+    if candidate_doc_count is not None:
+        normalized["candidate_doc_count"] = candidate_doc_count
+    for field_name in (
+        "fts_shortlist_doc_ids",
+        "active_strategy_ids",
+        "deferred_strategy_ids",
+        "strategies_used",
+        "retrieved_doc_ids",
+        "retrieved_excerpt_ids",
+    ):
+        if field_name in normalized:
+            normalized[field_name] = _normalize_text_list_like(normalized.get(field_name))
+    retrieval_backend = _normalize_optional_casefold_text(normalized.get("retrieval_backend"))
+    if retrieval_backend is not None:
+        normalized["retrieval_backend"] = retrieval_backend
+    retrieval_mode = _normalize_optional_casefold_text(normalized.get("retrieval_mode"))
+    if retrieval_mode is not None:
+        normalized["retrieval_mode"] = retrieval_mode
+    retrieval_policy = normalized.get("retrieval_policy", normalized.get("policy"))
+    if isinstance(retrieval_policy, dict):
+        normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+        normalized["policy"] = copy.deepcopy(normalized["retrieval_policy"])
+    return normalized
+
+
+def _normalize_excerpt_hit_provenance_snapshot(provenance: object) -> dict[str, object]:
+    normalized = _normalize_hit_shared_provenance_snapshot(provenance)
+    for field_name in (
+        "doc_id",
+        "excerpt_id",
+        "source_hash",
+        "doc_type",
+        "doc_fingerprint",
+        "doc_identity_fingerprint",
+        "excerpt_fingerprint",
+        "excerpt_provenance_fingerprint",
+    ):
+        field_value = _normalize_optional_text(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+    excerpt_text_hash = _normalize_optional_text(
+        normalized.get("excerpt_text_hash") or normalized.get("hash")
+    )
+    if excerpt_text_hash is not None:
+        normalized["excerpt_text_hash"] = excerpt_text_hash
+        normalized["hash"] = excerpt_text_hash
+    matched_terms = normalized.get("matched_terms")
+    if matched_terms is not None:
+        normalized["matched_terms"] = _normalize_text_list_like(matched_terms)
+    for field_name in ("match_count", "rank", "section_hint_rank"):
+        field_value = _normalize_optional_int(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+    fts_rank = normalized.get("fts_rank")
+    if isinstance(fts_rank, str) and fts_rank.strip().isdigit():
+        normalized["fts_rank"] = int(fts_rank.strip())
+    else:
+        normalized_fts_rank = _normalize_optional_float(fts_rank)
+        if normalized_fts_rank is not None:
+            normalized["fts_rank"] = normalized_fts_rank
+    span = _normalize_span_snapshot(normalized.get("span"))
+    if span is not None:
+        normalized["span"] = span
+    section_hint = _normalize_optional_text(normalized.get("section_hint"))
+    if section_hint is not None:
+        normalized["section_hint"] = section_hint
+    source_strategy = _normalize_optional_casefold_text(
+        normalized.get("source_strategy") or normalized.get("retrieval_source_strategy")
+    )
+    if source_strategy is not None:
+        normalized["source_strategy"] = source_strategy
+        normalized["retrieval_source_strategy"] = source_strategy
+    return normalized
+
+
+def _normalize_doc_hit_provenance_snapshot(provenance: object) -> dict[str, object]:
+    normalized = _normalize_hit_shared_provenance_snapshot(provenance)
+    for field_name in (
+        "doc_id",
+        "doc_type",
+        "doc_fingerprint",
+        "doc_identity_fingerprint",
+        "top_excerpt_id",
+        "top_excerpt_fingerprint",
+        "top_excerpt_provenance_fingerprint",
+        "top_excerpt_text_hash",
+    ):
+        field_value = _normalize_optional_text(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+    for field_name in ("doc_rank", "top_excerpt_rank", "top_section_hint_rank"):
+        field_value = _normalize_optional_int(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+    top_fts_rank = normalized.get("top_fts_rank")
+    if isinstance(top_fts_rank, str) and top_fts_rank.strip().isdigit():
+        normalized["top_fts_rank"] = int(top_fts_rank.strip())
+    else:
+        normalized_top_fts_rank = _normalize_optional_float(top_fts_rank)
+        if normalized_top_fts_rank is not None:
+            normalized["top_fts_rank"] = normalized_top_fts_rank
+    top_excerpt_span = _normalize_span_snapshot(normalized.get("top_excerpt_span"))
+    if top_excerpt_span is not None:
+        normalized["top_excerpt_span"] = top_excerpt_span
+    excerpt_ids = normalized.get("excerpt_ids")
+    if excerpt_ids is not None:
+        normalized["excerpt_ids"] = _normalize_text_list_like(excerpt_ids)
+    top_matched_terms = normalized.get("top_matched_terms", normalized.get("matched_terms"))
+    if top_matched_terms is not None:
+        normalized["top_matched_terms"] = _normalize_text_list_like(top_matched_terms)
+    section_hint = _normalize_optional_text(normalized.get("section_hint"))
+    if section_hint is not None:
+        normalized["section_hint"] = section_hint
+    source_strategy = _normalize_optional_casefold_text(
+        normalized.get("source_strategy") or normalized.get("retrieval_source_strategy")
+    )
+    if source_strategy is not None:
+        normalized["source_strategy"] = source_strategy
+        normalized["retrieval_source_strategy"] = source_strategy
+    return normalized
+
+
+def _normalize_excerpt_hit_snapshot(hit: object) -> dict[str, object] | None:
+    if not isinstance(hit, dict):
+        return None
+    normalized = copy.deepcopy(hit)
+    for field_name in (
+        "doc_id",
+        "excerpt_id",
+        "excerpt_text",
+        "title_hint",
+        "rationale",
+        "query_fingerprint",
+        "source_hash",
+        "doc_type",
+        "doc_fingerprint",
+        "doc_identity_fingerprint",
+        "excerpt_fingerprint",
+        "excerpt_provenance_fingerprint",
+        "excerpt_text_hash",
+    ):
+        field_value = _normalize_optional_text(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+    query_scope = _normalize_query_scope(normalized.get("query_scope"))
+    if query_scope is not None:
+        normalized["query_scope"] = query_scope
+    query_intent = _normalize_query_intent(normalized.get("query_intent"))
+    if query_intent is not None:
+        normalized["query_intent"] = query_intent
+    query_confidentiality_profile = _normalize_query_confidentiality_profile(
+        normalized.get("query_confidentiality_profile")
+    )
+    if query_confidentiality_profile is not None:
+        normalized["query_confidentiality_profile"] = query_confidentiality_profile
+    query_date_range = _normalize_query_date_range(normalized.get("query_date_range"))
+    if query_date_range is not None:
+        normalized["query_date_range"] = query_date_range
+    span = _normalize_span_snapshot(normalized.get("span"))
+    if span is not None:
+        normalized["span"] = span
+    for field_name in ("rank", "match_count", "candidate_doc_count", "section_hint_rank"):
+        field_value = _normalize_optional_int(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+    score = _normalize_optional_float(normalized.get("score"))
+    if score is not None:
+        normalized["score"] = score
+    fts_rank = normalized.get("fts_rank")
+    if isinstance(fts_rank, str) and fts_rank.strip().isdigit():
+        normalized["fts_rank"] = int(fts_rank.strip())
+    else:
+        normalized_fts_rank = _normalize_optional_float(fts_rank)
+        if normalized_fts_rank is not None:
+            normalized["fts_rank"] = normalized_fts_rank
+    source_strategy = _normalize_optional_casefold_text(
+        normalized.get("source_strategy") or normalized.get("retrieval_source_strategy")
+    )
+    if source_strategy is not None:
+        normalized["source_strategy"] = source_strategy
+        normalized["retrieval_source_strategy"] = source_strategy
+    matched_terms = normalized.get("matched_terms")
+    if matched_terms is not None:
+        normalized["matched_terms"] = _normalize_text_list_like(matched_terms)
+    section_hint = _normalize_optional_text(normalized.get("section_hint"))
+    if section_hint is not None:
+        normalized["section_hint"] = section_hint
+    retrieval_policy = normalized.get("retrieval_policy", normalized.get("policy"))
+    if isinstance(retrieval_policy, dict):
+        normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    for field_name in (
+        "active_strategy_ids",
+        "deferred_strategy_ids",
+        "strategies_used",
+        "retrieved_doc_ids",
+        "retrieved_excerpt_ids",
+    ):
+        if field_name in normalized:
+            normalized[field_name] = _normalize_text_list_like(normalized.get(field_name))
+    provenance = normalized.get("provenance")
+    if isinstance(provenance, dict):
+        normalized["provenance"] = _normalize_excerpt_hit_provenance_snapshot(provenance)
+    return normalized
+
+
+def _normalize_doc_hit_snapshot(hit: object) -> dict[str, object] | None:
+    if not isinstance(hit, dict):
+        return None
+    normalized = copy.deepcopy(hit)
+    for field_name in (
+        "doc_id",
+        "title_hint",
+        "source_hash",
+        "top_excerpt_id",
+        "query_fingerprint",
+        "doc_type",
+        "doc_fingerprint",
+        "doc_identity_fingerprint",
+        "top_excerpt_fingerprint",
+        "top_excerpt_provenance_fingerprint",
+        "top_excerpt_text_hash",
+    ):
+        field_value = _normalize_optional_text(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+    query_scope = _normalize_query_scope(normalized.get("query_scope"))
+    if query_scope is not None:
+        normalized["query_scope"] = query_scope
+    query_intent = _normalize_query_intent(normalized.get("query_intent"))
+    if query_intent is not None:
+        normalized["query_intent"] = query_intent
+    query_confidentiality_profile = _normalize_query_confidentiality_profile(
+        normalized.get("query_confidentiality_profile")
+    )
+    if query_confidentiality_profile is not None:
+        normalized["query_confidentiality_profile"] = query_confidentiality_profile
+    query_date_range = _normalize_query_date_range(normalized.get("query_date_range"))
+    if query_date_range is not None:
+        normalized["query_date_range"] = query_date_range
+    top_excerpt_span = _normalize_span_snapshot(normalized.get("top_excerpt_span"))
+    if top_excerpt_span is not None:
+        normalized["top_excerpt_span"] = top_excerpt_span
+    for field_name in ("excerpt_count", "candidate_doc_count", "doc_rank", "top_excerpt_rank", "top_section_hint_rank"):
+        field_value = _normalize_optional_int(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+    top_score = _normalize_optional_float(normalized.get("top_score"))
+    if top_score is not None:
+        normalized["top_score"] = top_score
+    top_fts_rank = normalized.get("top_fts_rank")
+    if isinstance(top_fts_rank, str) and top_fts_rank.strip().isdigit():
+        normalized["top_fts_rank"] = int(top_fts_rank.strip())
+    else:
+        normalized_top_fts_rank = _normalize_optional_float(top_fts_rank)
+        if normalized_top_fts_rank is not None:
+            normalized["top_fts_rank"] = normalized_top_fts_rank
+    source_strategy = _normalize_optional_casefold_text(
+        normalized.get("source_strategy") or normalized.get("retrieval_source_strategy")
+    )
+    if source_strategy is not None:
+        normalized["source_strategy"] = source_strategy
+        normalized["retrieval_source_strategy"] = source_strategy
+    excerpt_ids = normalized.get("excerpt_ids")
+    if excerpt_ids is not None:
+        normalized["excerpt_ids"] = _normalize_text_list_like(excerpt_ids)
+    matched_terms = normalized.get("matched_terms", normalized.get("top_matched_terms"))
+    if matched_terms is not None:
+        normalized["matched_terms"] = _normalize_text_list_like(matched_terms)
+        normalized["top_matched_terms"] = copy.deepcopy(normalized["matched_terms"])
+    section_hint = _normalize_optional_text(normalized.get("section_hint"))
+    if section_hint is not None:
+        normalized["section_hint"] = section_hint
+    retrieval_policy = normalized.get("retrieval_policy", normalized.get("policy"))
+    if isinstance(retrieval_policy, dict):
+        normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    for field_name in (
+        "active_strategy_ids",
+        "deferred_strategy_ids",
+        "strategies_used",
+        "retrieved_doc_ids",
+        "retrieved_excerpt_ids",
+    ):
+        if field_name in normalized:
+            normalized[field_name] = _normalize_text_list_like(normalized.get(field_name))
+    provenance = normalized.get("provenance")
+    if isinstance(provenance, dict):
+        normalized["provenance"] = _normalize_doc_hit_provenance_snapshot(provenance)
+    return normalized
+
+
+def _normalize_doc_hits(value: object) -> list[dict[str, object]]:
+    normalized: list[dict[str, object]] = []
+    for item in _normalize_list_like(value):
+        snapshot = _normalize_doc_hit_snapshot(item)
+        if snapshot is not None:
+            normalized.append(snapshot)
+    return normalized
+
+
+def _normalize_excerpt_hits(value: object) -> list[dict[str, object]]:
+    normalized: list[dict[str, object]] = []
+    for item in _normalize_list_like(value):
+        snapshot = _normalize_excerpt_hit_snapshot(item)
+        if snapshot is not None:
+            normalized.append(snapshot)
+    return normalized
+
+
 def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(doc_bundle)
     normalized["query_date_range"] = _normalize_query_date_range(normalized.get("query_date_range"))
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
-    normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits"))
+    normalized["doc_hits"] = _normalize_doc_hits(normalized.get("doc_hits"))
     normalized["doc_citations"] = _normalize_doc_citations(normalized.get("doc_citations"))
     normalized["basket_promotion"] = _normalize_basket_promotion_snapshot(normalized.get("basket_promotion"))
     if isinstance(normalized["basket_promotion"], dict):
@@ -419,7 +749,7 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
     normalized["query_date_range"] = _normalize_query_date_range(normalized.get("query_date_range"))
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
-    normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits"))
+    normalized["excerpt_hits"] = _normalize_excerpt_hits(normalized.get("excerpt_hits"))
     normalized["excerpt_citations"] = _normalize_excerpt_citations(normalized.get("excerpt_citations"))
     normalized["basket_promotion"] = _normalize_basket_promotion_snapshot(normalized.get("basket_promotion"))
     if isinstance(normalized["basket_promotion"], dict):
@@ -506,9 +836,7 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
 
 def _derive_doc_citations_from_hits(doc_hits: object) -> list[dict[str, object]]:
     derived: list[dict[str, object]] = []
-    for item in _normalize_list_like(doc_hits):
-        if not isinstance(item, dict):
-            continue
+    for item in _normalize_doc_hits(doc_hits):
         provenance = item.get("provenance")
         if not isinstance(provenance, dict):
             provenance = {}
@@ -544,9 +872,7 @@ def _derive_doc_citations_from_hits(doc_hits: object) -> list[dict[str, object]]
 
 def _derive_excerpt_citations_from_hits(excerpt_hits: object) -> list[dict[str, object]]:
     derived: list[dict[str, object]] = []
-    for item in _normalize_list_like(excerpt_hits):
-        if not isinstance(item, dict):
-            continue
+    for item in _normalize_excerpt_hits(excerpt_hits):
         excerpt_id = item.get("excerpt_id")
         if excerpt_id is None:
             continue
@@ -900,12 +1226,12 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
         )
     )
 
-    doc_hits = _normalize_list_like(payload.get("doc_hits", []))
+    doc_hits = _normalize_doc_hits(payload.get("doc_hits", []))
     if not doc_hits:
-        doc_hits = _normalize_list_like(retrieval_doc_bundle.get("doc_hits", []))
-    excerpt_hits = _normalize_list_like(payload.get("excerpt_hits", []))
+        doc_hits = _normalize_doc_hits(retrieval_doc_bundle.get("doc_hits", []))
+    excerpt_hits = _normalize_excerpt_hits(payload.get("excerpt_hits", []))
     if not excerpt_hits:
-        excerpt_hits = _normalize_list_like(retrieval_excerpt_bundle.get("excerpt_hits", []))
+        excerpt_hits = _normalize_excerpt_hits(retrieval_excerpt_bundle.get("excerpt_hits", []))
     first_doc_hit = doc_hits[0] if doc_hits and isinstance(doc_hits[0], dict) else {}
     first_excerpt_hit = excerpt_hits[0] if excerpt_hits and isinstance(excerpt_hits[0], dict) else {}
     first_doc_provenance = first_doc_hit.get("provenance", {}) if isinstance(first_doc_hit, dict) else {}
@@ -1282,8 +1608,8 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["retrieval_doc_bundle"] = _build_retrieval_doc_bundle_from_payload(normalized)
     normalized["retrieval_excerpt_bundle"] = _build_retrieval_excerpt_bundle_from_payload(normalized)
     normalized["retrieval_provenance"] = _build_retrieval_provenance_from_payload(normalized)
-    normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits", []))
-    normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits", []))
+    normalized["doc_hits"] = _normalize_doc_hits(normalized.get("doc_hits", []))
+    normalized["excerpt_hits"] = _normalize_excerpt_hits(normalized.get("excerpt_hits", []))
     retrieval_doc_bundle = normalized.get("retrieval_doc_bundle", {})
     if not isinstance(retrieval_doc_bundle, dict):
         retrieval_doc_bundle = {}
@@ -1291,9 +1617,9 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     if not isinstance(retrieval_excerpt_bundle, dict):
         retrieval_excerpt_bundle = {}
     if not normalized["doc_hits"]:
-        normalized["doc_hits"] = _normalize_list_like(retrieval_doc_bundle.get("doc_hits", []))
+        normalized["doc_hits"] = _normalize_doc_hits(retrieval_doc_bundle.get("doc_hits", []))
     if not normalized["excerpt_hits"]:
-        normalized["excerpt_hits"] = _normalize_list_like(retrieval_excerpt_bundle.get("excerpt_hits", []))
+        normalized["excerpt_hits"] = _normalize_excerpt_hits(retrieval_excerpt_bundle.get("excerpt_hits", []))
     retrieval_summary = normalized.get("retrieval_summary", {})
     if not isinstance(retrieval_summary, dict):
         retrieval_summary = {}
@@ -1727,8 +2053,8 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_summary": copy.deepcopy(payload.get("retrieval_summary", {})),
         "retrieval_doc_bundle": copy.deepcopy(retrieval_doc_bundle),
         "retrieval_excerpt_bundle": copy.deepcopy(retrieval_excerpt_bundle),
-        "doc_hits": copy.deepcopy(payload.get("doc_hits", [])),
-        "excerpt_hits": copy.deepcopy(payload.get("excerpt_hits", [])),
+        "doc_hits": _normalize_doc_hits(payload.get("doc_hits", [])),
+        "excerpt_hits": _normalize_excerpt_hits(payload.get("excerpt_hits", [])),
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
