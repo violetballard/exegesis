@@ -36,9 +36,9 @@
 
 ## Canonical Demo-Path Mapping
 
-- Primary demo-path step strengthened: `preview and apply or reject a patch`.
-- Supporting CLI-fallback coverage kept explicit for adjacent steps: `open project/document`, `retrieve relevant material`, and `save and continue`.
-- AGENTS alignment statement: this slice makes the CLI-first demo path more real by exposing the exact parser-ready argv generated for each canonical surface token, including the patch-review and export-handoff shims that operators depend on while Textual remains disabled.
+- Explicit AGENTS demo-path step advanced: `preview and apply or reject a patch`.
+- Supporting CLI-fallback coverage kept explicit for adjacent steps on the same operator path: `open project/document`, `retrieve relevant material`, and `save and continue`.
+- AGENTS alignment statement: this slice makes the canonical demo path more real by exposing the exact parser-ready argv generated for each canonical surface token, including the patch-review and export-handoff shims that operators depend on while Textual remains disabled.
 - Concrete blocker removed: before this slice, `command_demo_path_contract()` described parser-ready smoke argv for each canonical step, but it did not expose or validate the per-surface shim invocations that map aliases like `patch-review`, `apply-patch`, and `reject-patch` back to the parser entrypoints. This change makes those shim rewrites explicit and testable instead of implicit.
 
 ## Definition of Done for This Lane
@@ -118,13 +118,13 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` - preserves a stable CLI-first MVP loop while Textual remains disabled by making the canonical demo-path shim surface explicit and verifiable.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
+- `Milestone 3: Real workflow loop` - strengthens the canonical demo-path step `preview and apply or reject a patch` by making its CLI shim surface explicit and verifiable while Textual remains disabled.
+- `feat-commands` - keeps the migration-safe CLI entrypoints for that demo-path step deterministic and smoke-testable inside the engine-first MVP loop.
 
 ### Vision capability affected
 
-- `Canonical engine contract` - the exported demo-path contract now includes the parser-ready shim invocations that keep the CLI compatibility surface explicit instead of implicit.
-- `Auditable state and workflow` - the command contract now fails loudly if the advertised demo-path surface tokens diverge from the shim invocation table used to drive the CLI-first path.
+- `Canonical engine contract` - the exported demo-path contract now includes the parser-ready shim invocations for `preview and apply or reject a patch`, keeping that CLI compatibility surface explicit instead of implicit.
+- `Auditable state and workflow` - the command contract now fails loudly if the advertised demo-path surface tokens for that operator path diverge from the shim invocation table used to drive the CLI-first flow.
 
 ### Routing/provider impact note
 
