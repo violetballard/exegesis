@@ -379,11 +379,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             manifest["contract_fingerprints"],
-            describe_terminal_artifact_contract_fingerprints(),
+            describe_terminal_artifact_contract_fingerprints(include_terminal_artifact=True),
         )
         self.assertEqual(
             set(manifest["contract_fingerprints"]),
             {
+                "terminal_artifact",
                 "card_contract",
                 "action_contract",
                 "selection_contract",
@@ -392,6 +393,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "rendering_contract",
                 "cli_fallback_contract",
             },
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["terminal_artifact"],
+            terminal_artifact_contract_fingerprint(),
         )
         self.assertEqual(manifest["contract_fingerprints"]["card_contract"], card_contract_fingerprint())
         self.assertEqual(manifest["contract_fingerprints"]["action_contract"], action_contract_fingerprint())
@@ -443,7 +448,15 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             fingerprints["render_target_contract"],
             terminal_artifact_render_target_contract_fingerprint(),
         )
+        self.assertNotIn("terminal_artifact", describe_terminal_artifact_contract_fingerprints())
         self.assertNotIn("kind_contracts", describe_terminal_artifact_contract_fingerprints())
+
+    def test_terminal_artifact_contract_fingerprint_map_can_opt_into_self_fingerprint(self) -> None:
+        fingerprints = describe_terminal_artifact_contract_fingerprints(include_terminal_artifact=True)
+
+        self.assertEqual(fingerprints["terminal_artifact"], terminal_artifact_contract_fingerprint())
+        self.assertEqual(len(fingerprints["terminal_artifact"]), 64)
+        self.assertNotIn("terminal_artifact", describe_terminal_artifact_contract_fingerprints())
 
     def test_terminal_artifact_contract_manifest_surfaces_rendering_recovery_aliases(self) -> None:
         manifest = describe_terminal_artifact_contract()

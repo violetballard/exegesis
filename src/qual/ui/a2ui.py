@@ -338,9 +338,10 @@ def describe_terminal_artifact_kind_contracts() -> dict[str, dict[str, str]]:
 
 
 def describe_terminal_artifact_contract_fingerprints(
+    include_terminal_artifact: bool = False,
     include_kind_contracts: bool = False,
 ) -> dict[str, str]:
-    """Return stable fingerprints for the embedded terminal artifact subcontracts."""
+    """Return stable fingerprints for the terminal artifact contract and subcontracts."""
 
     fingerprints = {
         "card_contract": card_contract_fingerprint(),
@@ -351,6 +352,8 @@ def describe_terminal_artifact_contract_fingerprints(
         "rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
         "cli_fallback_contract": terminal_artifact_cli_fallback_contract_fingerprint(),
     }
+    if include_terminal_artifact:
+        fingerprints["terminal_artifact"] = terminal_artifact_contract_fingerprint()
     if include_kind_contracts:
         fingerprints["kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
     return fingerprints
@@ -596,11 +599,11 @@ def _build_terminal_fallback_contract_manifest() -> dict[str, Any]:
     }
 
 
-def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
+def _build_terminal_artifact_contract_manifest(*, include_contract_fingerprints: bool = True) -> dict[str, Any]:
     render_target_contract = describe_terminal_artifact_render_target_contract()
     rendering_contract = describe_terminal_artifact_rendering_contract()
     cli_fallback_contract = describe_terminal_artifact_cli_fallback_contract()
-    return {
+    manifest = {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
         "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
@@ -631,8 +634,12 @@ def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
         "terminal_artifact_cli_fallback_fingerprint": terminal_artifact_cli_fallback_contract_fingerprint(),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
-        "contract_fingerprints": describe_terminal_artifact_contract_fingerprints(),
     }
+    if include_contract_fingerprints:
+        manifest["contract_fingerprints"] = describe_terminal_artifact_contract_fingerprints(
+            include_terminal_artifact=True
+        )
+    return manifest
 
 
 def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
@@ -980,7 +987,7 @@ def terminal_fallback_contract_fingerprint() -> str:
 def terminal_artifact_contract_fingerprint() -> str:
     """Return a stable fingerprint for the terminal artifact dispatch manifest."""
 
-    manifest = _build_terminal_artifact_contract_manifest()
+    manifest = _build_terminal_artifact_contract_manifest(include_contract_fingerprints=False)
     return _fingerprint_manifest_section(manifest)
 
 
