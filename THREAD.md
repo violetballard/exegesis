@@ -20,5 +20,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   canonical CLI entrypoints cannot be dropped, substituted, reordered, or
   expanded unexpectedly without failing the contract.
 - Review the command-catalog implementation in `src/qual/commands/catalog.py` together with the focused shared-test coverage in `tests/unit/test_commands_catalog.py`.
-- The reviewed implementation remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; later packet refreshes do not broaden that scope.
+- This regenerated handoff supersedes the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+  implementation pin for re-review; review the current branch tip while
+  keeping scope limited to the same command-catalog slice plus the approved
+  shared test.
 - `THREAD_PACKET.md` now carries the completed high-risk kickoff fields, an explicit handoff field naming the canonical demo-path step advanced without inference, and the concrete shared-file approval basis required by the reviewer.

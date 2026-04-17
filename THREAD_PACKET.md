@@ -2,8 +2,8 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (reviewed implementation slice)
-- Packet refresh role: `feature-fixer final reviewer-required validation rerun refresh`
+- Commit: `current branch tip for this regenerated re-review packet`
+- Packet refresh role: `feature-fixer branch-tip reviewer-required validation rerun refresh`
 - Packet refresh date: `2026-04-17`
 
 ## Packet Traceability Note
@@ -12,15 +12,16 @@
 - The relevant implementation remains the command-catalog slice in
   `src/qual/commands/catalog.py` plus the focused shared-test coverage in
   `tests/unit/test_commands_catalog.py`.
-- For this re-review, use the reviewer packet as the scope source of truth and
-  keep the reviewed implementation pinned to that command-catalog slice unless
-  a new feature packet is explicitly generated.
+- For this re-review, use the reviewer packet as the scope source of truth,
+  but review the current branch tip rather than the older
+  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice because the required fixes
+  landed after that commit.
 - This refresh records the final feature-fixer verification pass so the
   handoff matches the branch-tip implementation and tests that satisfy the
   reviewer-required fixes.
-- The reviewed implementation commit remains pinned to
-  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; later metadata-only packet
-  refreshes do not broaden the implementation scope under review.
+- This regenerated packet supersedes the older `f8d860ed...` implementation
+  pin for re-review while keeping scope limited to the same command-catalog
+  code path plus the approved shared test.
 
 ## Reviewer-Required Fix Verification
 
@@ -207,7 +208,8 @@
   drift rejection for this command-catalog slice.
 - This handoff claims only command-catalog contract hardening for the active
   CLI `open`, `retrieve`, and `patch-review` path; it does not claim broader
-  command-surface coverage beyond `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+  command-surface coverage beyond the current branch-tip command-catalog fix
+  series captured by this regenerated packet.
 
 ## Do Not Spend Time On
 
