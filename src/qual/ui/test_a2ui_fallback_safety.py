@@ -1212,6 +1212,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["kind_contracts"]["selection"]["contract_fingerprint"],
             describe_selection_contract()["contract_fingerprint"],
         )
+        self.assertEqual(manifest["card_contract"], manifest["kind_contracts"]["card"])
+        self.assertEqual(manifest["action_contract"], manifest["kind_contracts"]["action"])
+        self.assertEqual(manifest["selection_contract"], manifest["kind_contracts"]["selection"])
+        self.assertEqual(manifest["card_contract_fingerprint"], card_contract_fingerprint())
+        self.assertEqual(manifest["action_contract_fingerprint"], action_contract_fingerprint())
+        self.assertEqual(manifest["selection_contract_fingerprint"], selection_contract_fingerprint())
         self.assertEqual(
             manifest["terminal_artifact_render_target_contract"],
             describe_terminal_artifact_render_target_contract(),
@@ -1443,6 +1449,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
     def test_terminal_artifact_contract_fingerprint_map_can_opt_into_alias_contracts(self) -> None:
         fingerprints = describe_terminal_artifact_contract_fingerprints(include_contract_aliases=True)
 
+        self.assertEqual(
+            fingerprints["card_contract_fingerprint"],
+            card_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["action_contract_fingerprint"],
+            action_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["selection_contract_fingerprint"],
+            selection_contract_fingerprint(),
+        )
         self.assertEqual(
             fingerprints["terminal_artifact_kind_contracts"],
             terminal_artifact_kind_contracts_fingerprint(),

@@ -655,6 +655,15 @@ def describe_terminal_artifact_contract(
     manifest["terminal_artifact_envelope_contract_fingerprint"] = manifest["terminal_artifact_envelope_fingerprint"]
     manifest["terminal_artifact_kind_contracts"] = _snapshot_contract_section(manifest["kind_contracts"])
     manifest["terminal_artifact_kind_contracts_fingerprint"] = terminal_artifact_kind_contracts_fingerprint()
+    card_contract = _snapshot_contract_section(manifest["kind_contracts"]["card"])
+    action_contract = _snapshot_contract_section(manifest["kind_contracts"]["action"])
+    selection_contract = _snapshot_contract_section(manifest["kind_contracts"]["selection"])
+    manifest["card_contract"] = card_contract
+    manifest["action_contract"] = action_contract
+    manifest["selection_contract"] = selection_contract
+    manifest["card_contract_fingerprint"] = card_contract["contract_fingerprint"]
+    manifest["action_contract_fingerprint"] = action_contract["contract_fingerprint"]
+    manifest["selection_contract_fingerprint"] = selection_contract["contract_fingerprint"]
     if include_terminal_artifact_cli_fallback_route and "terminal_artifact_cli_fallback_route" in manifest:
         terminal_artifact_cli_fallback_route = _snapshot_contract_section(
             manifest["terminal_artifact_cli_fallback_route"]
@@ -997,6 +1006,9 @@ def describe_terminal_artifact_contract_fingerprints(
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
+            ("card_contract_fingerprint", card_contract_fingerprint()),
+            ("action_contract_fingerprint", action_contract_fingerprint()),
+            ("selection_contract_fingerprint", selection_contract_fingerprint()),
             ("terminal_artifact_kind_contracts", terminal_artifact_kind_contracts_fingerprint()),
             (
                 "terminal_artifact_contract",
