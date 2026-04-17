@@ -175,6 +175,7 @@ class CommandDemoWorkflowContract:
     invocation_table: tuple[tuple[str, tuple[str, ...]], ...] = ()
     transition_targets: tuple[tuple[str, tuple[str, ...]], ...] = ()
     compatibility_lookup_table: tuple[tuple[str, str], ...] = ()
+    compatibility_invocation_table: tuple[tuple[str, tuple[str, ...]], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -2937,6 +2938,13 @@ def _validate_command_demo_workflow_contract(contract: CommandDemoWorkflowContra
     )
     if contract.compatibility_lookup_table != expected_compatibility_lookup:
         raise ValueError("Command demo workflow compatibility lookup table is inconsistent")
+    expected_compatibility_invocations = tuple(
+        (compatibility_token, entry.argv)
+        for entry in contract.entries
+        for compatibility_token in entry.compatibility_tokens
+    )
+    if contract.compatibility_invocation_table != expected_compatibility_invocations:
+        raise ValueError("Command demo workflow compatibility invocation table is inconsistent")
     for entry in contract.entries:
         if not entry.argv:
             raise ValueError(f"Command demo workflow entry is missing argv: {entry.token}")
@@ -3109,6 +3117,11 @@ def command_demo_workflow_contract(
         transition_targets=tuple((entry.token, entry.next_tokens) for entry in entries),
         compatibility_lookup_table=tuple(
             (compatibility_token, entry.canonical_name)
+            for entry in entries
+            for compatibility_token in entry.compatibility_tokens
+        ),
+        compatibility_invocation_table=tuple(
+            (compatibility_token, entry.argv)
             for entry in entries
             for compatibility_token in entry.compatibility_tokens
         ),
@@ -3403,6 +3416,20 @@ def command_mvp_workflow_compatibility_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_workflow_compatibility_lookup_table(specs)
+
+
+def command_demo_workflow_compatibility_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Flatten demo-workflow compatibility verbs into parser-ready argv."""
+    return command_demo_workflow_contract(specs).compatibility_invocation_table
+
+
+def command_mvp_workflow_compatibility_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Flatten current MVP compatibility verbs into parser-ready argv."""
+    return command_demo_workflow_compatibility_invocation_table(specs)
 
 
 def command_demo_loop_lookup_table(
