@@ -2,15 +2,14 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Reviewed implementation commit: `b644f9ce04a7037ce96f3fe3790f338f03940520`
-- Packet refresh role: `reviewer-fix scope/traceability refresh`
+- Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Packet refresh commit: `ecf45f5d5cf510a331a81b12ea1118883fa9b07d`
+- Packet refresh role: `reviewer-fix finalization`
 
 ## Packet Traceability Note
 
-- The reviewed implementation scope remains the real command change at `b644f9ce04a7037ce96f3fe3790f338f03940520`.
-- That implementation commit is not metadata-only: it captures the parser-ready retrieval shim hardening layered on top of the earlier command-shim contract work in this branch.
-- The current branch tip is a metadata-only packet refresh that exists only to correct the review traceability, parser-surface scope statement, and roadmap/vision mapping around that reviewed implementation tip.
-- The approved shared-test exception remains limited to `tests/unit/test_commands_catalog.py`, the exact `feat-commands` shared-test path recorded in `scripts/scope-check.sh`.
+- The current branch tip is a docs-only packet refresh.
+- Review the command-catalog implementation at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and treat later packet-refresh commits as metadata-only unless this handoff is regenerated.
 
 ## Current Program Focus
 
@@ -26,7 +25,7 @@
 
 ## Scope Goal
 
-- Stabilize the canonical demo-path retrieval CLI shims so retrieval aliases export parser-ready argv and the declared parser surface stays deterministic under the smoke contract.
+- Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog.
 
 ## Priority Outcomes
 
@@ -36,11 +35,10 @@
 
 ## Canonical Demo-Path Mapping
 
-- Single canonical demo-path step advanced: `retrieve relevant material`.
-- Why this exact step: the reviewed implementation only tightens the retrieval shim/export contract and the command-catalog parser-surface validation around parser-ready retrieval invocations; it does not claim new behavior for `open project/document`, `preview and apply or reject a patch`, or `save and continue`.
-- AGENTS alignment statement: this slice makes `retrieve relevant material` more real by exporting parser-ready retrieval shim argv for surface tokens like `retrieval` and `retrieve`, then validating both those shim invocations and the declared parser entrypoint mapping so the retrieval CLI fallback cannot silently drift.
-- Concrete blocker removed for that step: before this slice, retrieval aliases could be advertised without exporting the parser-ready `context-basket list` invocation they actually need, and parser-surface drift checks were too weak to describe that exact contract. The reviewed implementation makes the retrieval parser entrypoint explicit, smoke-testable, and drift-resistant.
-- Why this is not second-order work: the current MVP loop depends on a stable CLI fallback while Textual remains disabled, and `retrieve relevant material` is one of the canonical demo-path steps. Tightening the exported shim contract for that exact step removes a concrete smoke-test blind spot instead of broadening the command surface.
+- Single canonical demo-path step advanced: `continue working`.
+- Why this exact step: this change does not add a new workflow action; it hardens the stable CLI operator surface that lets the current MVP loop continue safely after commands are wired, by making command dispatch deterministic and drift-failing instead of silently diverging from the catalog.
+- AGENTS alignment statement: this slice makes `continue working` more real by ensuring the command-catalog contract stays explicit, ordered, and smoke-testable, so the CLI fallback surface remains dependable while Textual stays disabled.
+- Scope-tightening note: this is command-contract hardening for the CLI-first MVP loop only. It does not claim broader workflow, retrieval, audit, or UI capability expansion.
 
 ## Definition of Done for This Lane
 
@@ -59,37 +57,27 @@
 
 - `src/qual/commands/**`
 
-## High-Risk Rationale
-
-- This handoff uses the high-risk template because it tightens the public CLI contract and includes `tests/unit/test_commands_catalog.py`, the shared test explicitly approved for `codex/feat-commands` in `scripts/scope-check.sh`.
-- Scope remains narrow: command-catalog demo-path shim metadata and validation only.
-- Non-goals confirmed: no engine logic changes, no routing/provider changes, and no broader CLI UX expansion.
-
 ## Scope Completed
 
-- Extended `CommandDemoPathEntry` in `src/qual/commands/catalog.py` with `surface_invocations` so the canonical demo-path contract exposes the parser-ready argv produced for every surface token in each flow step.
-- Hardened `_validate_command_demo_path_contract()` so the demo-path contract rejects drift between the advertised surface tokens and the exported shim invocation table.
-- Hardened `command_cli_contract()` so it validates the declared CLI entrypoint mapping and rejects parser-surface drift instead of checking only canonical command-order alignment.
-- Added per-command `surface_argv` and taught `command_cli_shim_catalog()` to export parser-ready default argv, so retrieval aliases now map to `context-basket list` instead of a bare `context-basket` token.
-- Pinned terminal shim `--operation-kind` defaults and normalized repeated explicit shim options so compatibility shims for `persist`, `apply-patch`, and `reject-patch` stay deterministic while the retrieval step remains parser-ready.
-- Expanded regression coverage in `tests/unit/test_commands_catalog.py` for parser-surface drift rejection, retrieval shim argv, terminal shim pinning, duplicate option normalization, and demo-path surface invocation export.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
+- Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
+- Reissued the handoff packet as a command-catalog-only slice so the review scope matches the claimed implementation files and approval basis.
 
 ## Kickoff Budget / Limits Compliance
 
-- High-risk shared-file handoff: stayed within the 4-task cap, 30-minute budget, and the lane size limits.
-- The reviewed implementation slice stayed limited to one owned command file plus one focused non-owned test file.
+- High-risk shared-file handoff: stayed within the 4-task cap, 30-minute budget, and the lane size limits. The implementation slice stayed limited to one owned command file plus one focused non-owned test file, so the handoff remains narrow and reviewable.
 
 ## Approved Exception Note
 
-- Approved shared-test exception for `tests/unit/test_commands_catalog.py`; approval source: `scripts/scope-check.sh` records that exact file as the allowed shared test for `codex/feat-commands`.
-- It is the only non-owned implementation path in the reviewed implementation commit.
+- Approved shared-test exception for `tests/unit/test_commands_catalog.py`. It is the only non-owned implementation path in this handoff.
 
 ## Tasks Completed
 
-1. Added demo-path contract support for explicit surface-token invocation mappings and drift validation.
-2. Hardened the command catalog so declared CLI entrypoints reject parser-surface drift instead of relying on canonical-name order alone.
-3. Made retrieval aliases export parser-ready `context-basket list` argv and pinned terminal shim operation kinds so adjacent compatibility shims stay deterministic.
-4. Refreshed the handoff packet so the reviewed implementation commit, demo-path scope, and traceable shared-test approval reference match the actual branch state.
+1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on parser drift.
+2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
+3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
+4. Regenerated the handoff packet so the branch metadata stays scoped to the command-catalog slice and uses the current roadmap and vision labels.
 
 ## Files Changed
 
@@ -113,22 +101,25 @@
 
 ## Risks / Blockers
 
-- Risk: `LOW`
-- Residual risk rationale: the change is limited to command-contract metadata and tests, and the new assertions only tighten the deterministic parser/shim surface already exercised by the existing command catalog.
+- Risk: `HIGH`
 - Blockers: none
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` - strengthens the canonical demo-path step `retrieve relevant material` by making its retrieval CLI shim surface parser-ready and verifiable while Textual remains disabled.
-- `feat-commands` - keeps the migration-safe CLI entrypoints for that retrieval step deterministic and smoke-testable inside the engine-first MVP loop.
+- Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands by keeping the command-catalog contract deterministic and drift-resistant.
+- feat-commands - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ### Vision capability affected
 
-- `Canonical engine contract` - the exported demo-path contract now includes the parser-ready retrieval shim invocations for `retrieve relevant material`, keeping that CLI compatibility surface explicit instead of implicit while Textual remains disabled.
-- `Retrieval-first context handling` - retrieval aliases now normalize to the parser-ready `context-basket list` entrypoint instead of a bare command token, keeping the FTS-first context surface deterministic and auditable for CLI smoke paths.
+- Canonical engine contract - CLI compatibility remains stable while the command-catalog surface rejects parser drift before it can silently change the operator contract.
+- Auditable state and workflow - the command surface now fails loudly on catalog/parser drift, making the operator-facing contract explicit and traceable.
 
 ### Routing/provider impact note
 
-- None. This change only affects local command-contract metadata and focused command-catalog test coverage.
+- None. This change only affects local command contract validation and focused command-catalog test coverage.
+
+## Scope-check / Ownership Note
+
+- Shared/integrator-locked edits: `YES`
