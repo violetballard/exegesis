@@ -42,7 +42,7 @@
 
 ## Packet Traceability Note
 
-- This re-review packet is anchored to pre-refresh branch tip `1737fbc0ba5b453f81ca532df682d695ec15ef1f` immediately before this metadata refresh commit.
+- This re-review packet is anchored to pre-refresh branch tip `222022ec2d1f26c85c2e72a629bd61180947f163` immediately before this metadata refresh commit.
 - The latest non-metadata command-surface implementation tip in scope remains `423adf3c0b23ac152844bbe3b74577cd3afb318b`.
 - The earlier commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` remains part of the reviewed history, but it is no longer treated as the sole implementation slice.
 - Code changes after `f8d860e` are in scope for this re-review. The current reviewed implementation range includes:
@@ -59,17 +59,19 @@
 ## Reviewer Required Fixes Satisfied
 
 1. Retargeted the packet to the real pre-refresh implementation tip instead of claiming later code commits were metadata-only.
-2. Updated the scope and in-scope file list so the handoff matches the reviewed command implementation present at `423adf3c0b23ac152844bbe3b74577cd3afb318b` and the pre-refresh branch-tip metadata state at `1737fbc0ba5b453f81ca532df682d695ec15ef1f`.
+2. Updated the scope and in-scope file list so the handoff matches the reviewed command implementation present at `423adf3c0b23ac152844bbe3b74577cd3afb318b` and the pre-refresh branch-tip metadata state at `222022ec2d1f26c85c2e72a629bd61180947f163`.
 3. Added the explicit `AGENTS.md` demo-path mapping by naming the exact canonical step this work makes more real and why it removes a concrete blocker there.
 4. Reissued the corrected handoff as a final metadata-only required-fix resubmission commit instead of leaving the reviewer fixes attached only to the prior branch tip.
-5. Re-ran the required gate suite from pre-refresh branch tip `1737fbc0ba5b453f81ca532df682d695ec15ef1f` and recorded fresh passing evidence for re-review on `2026-04-17`.
+5. Re-ran the required gate suite from pre-refresh branch tip `222022ec2d1f26c85c2e72a629bd61180947f163` and recorded fresh passing evidence for re-review on `2026-04-17`.
+6. Recorded that this resubmission directly addresses the reviewer packet's `CHANGES_REQUESTED` note about the missing canonical demo-path handoff field.
 
 ## Fixer Verification Refresh
 
-- Re-ran the full required gate suite on `2026-04-17` against pre-refresh branch tip `1737fbc0ba5b453f81ca532df682d695ec15ef1f`.
+- Re-ran the full required gate suite on `2026-04-17` against pre-refresh branch tip `222022ec2d1f26c85c2e72a629bd61180947f163`.
 - This metadata-only refresh records that fresh verification pass so the handoff packet matches the latest fixer run and this required-fix resubmission commit.
 - This follow-up confirmation pass preserves the same reviewed implementation scope and records that no additional command-surface code changes were needed to satisfy the reviewer packet.
-- Final fixer consistency check: this pass verified that every traceability and verification-anchor reference in the packet now consistently points at pre-refresh branch tip `1737fbc0ba5b453f81ca532df682d695ec15ef1f`, with no stale fallback to the earlier `80c9e22d...` packet state.
+- Final fixer consistency check: this pass verified that every traceability and verification-anchor reference in the packet now consistently points at pre-refresh branch tip `222022ec2d1f26c85c2e72a629bd61180947f163`, with no stale fallback to the earlier `80c9e22d...` packet state.
+- Reviewer-response note: this packet keeps the canonical demo-path field explicit in `## Canonical Demo-Path Step Advanced`, which is the only required fix called out in the reviewer packet.
 
 ## Current Program Focus
 
@@ -85,6 +87,7 @@
 
 ## Canonical Demo-Path Step Advanced
 
+- This work makes the canonical demo-path step `open project/document` more real by keeping the CLI command surface deterministic, canonical, and drift-failing while Textual remains disabled.
 - Primary step advanced: `open project/document`.
 - Why this step: `feat-commands` owns the CLI operator surface that starts the current MVP loop, and the reviewed branch-tip command work keeps those entrypoints deterministic, canonical, and smoke-testable before the operator can reliably start `open project/document`.
 - Concrete blocker removed:
@@ -119,11 +122,12 @@
 
 ### Tasks Completed (Numbered)
 
-1. Retargeted the handoff packet traceability to pre-refresh branch tip `1737fbc0ba5b453f81ca532df682d695ec15ef1f` while preserving implementation scope at `423adf3c0b23ac152844bbe3b74577cd3afb318b`.
+1. Retargeted the handoff packet traceability to pre-refresh branch tip `222022ec2d1f26c85c2e72a629bd61180947f163` while preserving implementation scope at `423adf3c0b23ac152844bbe3b74577cd3afb318b`.
 2. Added the explicit canonical demo-path mapping: this branch-tip command-surface work strengthens `open project/document`.
 3. Updated `Scope completed`, `Files changed`, and ownership notes so they match the real command implementation now in scope for re-review.
 4. Reissued the corrected packet as a final metadata-only required-fix resubmission commit.
 5. Re-ran the required local gates on the current branch tip and recorded outcomes for this fixer pass.
+6. Recorded that this resubmission directly satisfies the reviewer packet's request for an explicit canonical demo-path handoff statement.
 
 ### Files Changed
 
@@ -147,7 +151,7 @@
 - `./typecheck-test.sh`: `PASS` (`python3 -m compileall -q src`)
 - `make ci`: `PASS`
 - Verification date: `2026-04-17`
-- Verification anchor: pre-commit branch tip `1737fbc0ba5b453f81ca532df682d695ec15ef1f`
+- Verification anchor: pre-commit branch tip `222022ec2d1f26c85c2e72a629bd61180947f163`
 
 ### Risks / Blockers
 
