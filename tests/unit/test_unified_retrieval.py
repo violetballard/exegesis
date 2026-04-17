@@ -1334,6 +1334,79 @@ class UnifiedRetrievalTests(unittest.TestCase):
             canonical["excerpt_provenance_fingerprint"],
         )
         self.assertEqual(canonical["basket_promotion"]["span"], canonical["span"])
+        self.assertEqual(canonical["query"]["query_text"], "memo coding comparison")
+        self.assertEqual(canonical["query"]["scope"], "vault")
+        self.assertEqual(canonical["query"]["intent"], "compare")
+        self.assertEqual(canonical["query"]["confidentiality_profile"], "confidential")
+        self.assertEqual(canonical["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(canonical["query_scope"], "vault")
+        self.assertEqual(canonical["query_intent"], "compare")
+        self.assertEqual(canonical["query_confidentiality_profile"], "confidential")
+        self.assertEqual(canonical["candidate_doc_count"], result.diagnostics["candidate_doc_count"])
+        self.assertEqual(canonical["fts_shortlist_doc_ids"], result.diagnostics["fts_shortlist_doc_ids"])
+        self.assertEqual(canonical["retrieved_doc_ids"], [doc_hit.doc_id for doc_hit in result.doc_hits])
+        self.assertEqual(
+            canonical["retrieved_excerpt_ids"],
+            [hit.excerpt_id for hit in result.hits if hit.excerpt_id is not None],
+        )
+        self.assertEqual(canonical["basket_promotion"]["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(canonical["basket_promotion"]["query_scope"], "vault")
+        self.assertEqual(canonical["basket_promotion"]["query_intent"], "compare")
+        self.assertEqual(canonical["basket_promotion"]["query_confidentiality_profile"], "confidential")
+
+    def test_retrieve_fts_excerpt_rehydrates_saved_query_context_across_service_instances(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(
+                    max_results=4,
+                    doc_types=("memo",),
+                    require_citations=True,
+                    section_hint="coding",
+                    prefer_exact_matches=True,
+                ),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+
+        fresh_service = RetrievalService(self.root, audit_log=self.audit)
+        excerpt = fresh_service.retrieve_fts_excerpt(excerpt_id or "")
+
+        self.assertEqual(excerpt["query"]["query_text"], "memo coding comparison")
+        self.assertEqual(excerpt["query"]["scope"], "vault")
+        self.assertEqual(excerpt["query"]["intent"], "compare")
+        self.assertEqual(
+            excerpt["query"]["constraints"],
+            {
+                "max_results": 4,
+                "doc_types": ["memo"],
+                "require_citations": True,
+                "section_hint": "coding",
+                "prefer_exact_matches": True,
+            },
+        )
+        self.assertEqual(excerpt["query"]["confidentiality_profile"], "confidential")
+        self.assertEqual(excerpt["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(excerpt["query_scope"], "vault")
+        self.assertEqual(excerpt["query_intent"], "compare")
+        self.assertEqual(excerpt["query_confidentiality_profile"], "confidential")
+        self.assertEqual(excerpt["candidate_doc_count"], result.diagnostics["candidate_doc_count"])
+        self.assertEqual(excerpt["fts_shortlist_doc_ids"], result.diagnostics["fts_shortlist_doc_ids"])
+        self.assertEqual(excerpt["retrieved_doc_ids"], [doc_hit.doc_id for doc_hit in result.doc_hits])
+        self.assertEqual(
+            excerpt["retrieved_excerpt_ids"],
+            [hit.excerpt_id for hit in result.hits if hit.excerpt_id is not None],
+        )
+        self.assertEqual(excerpt["basket_promotion"]["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(excerpt["basket_promotion"]["query_scope"], "vault")
+        self.assertEqual(excerpt["basket_promotion"]["query_intent"], "compare")
+        self.assertEqual(excerpt["basket_promotion"]["query_confidentiality_profile"], "confidential")
+        self.assertEqual(excerpt["basket_promotion"]["section_hint"], "coding")
 
     def test_retrieve_auto_excerpt_routes_to_canonical_fts_lookup(self) -> None:
         result = self.service.retrieve_auto(
@@ -1676,12 +1749,15 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(event["metadata"]["retrieved_doc_ids"], excerpt["retrieved_doc_ids"])
         self.assertEqual(event["metadata"]["retrieved_excerpt_ids"], excerpt["retrieved_excerpt_ids"])
         self.assertEqual(event["metadata"]["basket_promotion"], excerpt["basket_promotion"])
-        self.assertIsNone(event["metadata"]["query_fingerprint"])
-        self.assertIsNone(event["metadata"]["query_scope"])
-        self.assertIsNone(event["metadata"]["query_intent"])
-        self.assertIsNone(event["metadata"]["query_confidentiality_profile"])
-        self.assertIsNone(event["metadata"]["candidate_doc_count"])
-        self.assertIsNone(event["metadata"]["fts_shortlist_doc_ids"])
+        self.assertEqual(event["metadata"]["query_fingerprint"], excerpt["query_fingerprint"])
+        self.assertEqual(event["metadata"]["query_scope"], excerpt["query_scope"])
+        self.assertEqual(event["metadata"]["query_intent"], excerpt["query_intent"])
+        self.assertEqual(
+            event["metadata"]["query_confidentiality_profile"],
+            excerpt["query_confidentiality_profile"],
+        )
+        self.assertEqual(event["metadata"]["candidate_doc_count"], excerpt["candidate_doc_count"])
+        self.assertEqual(event["metadata"]["fts_shortlist_doc_ids"], excerpt["fts_shortlist_doc_ids"])
 
     def test_normalize_excerpt_payload_backfills_retrieved_ids_for_promotion_and_audit(self) -> None:
         normalized = self.service._normalize_excerpt_payload(

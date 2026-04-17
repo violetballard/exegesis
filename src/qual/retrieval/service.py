@@ -29,6 +29,7 @@ from src.qual.metrics.crypto import decrypt_bytes, encrypt_bytes
 _RETRIEVAL_DIR = ".retrieval"
 _KEY_FILE = "retrieval_v1.key"
 _DOC_META_FILE = "doc_meta_v1.enc.json"
+_EXCERPT_CONTEXT_FILE = "excerpt_context_v1.enc.json"
 _FTS_DB_FILE = "fts_index_v1.enc.sqlite3"
 _DOC_BLOBS = "doc_blobs"
 _FTS_SEGMENT_CHARS = 400
@@ -1572,6 +1573,23 @@ class RetrievalService:
         self._fts = FTSStrategy(self._run_fts_hits)
         self._retrieval_policy = FTS_FIRST_POLICY
 
+    @staticmethod
+    def _build_query_snapshot(query: RetrievalQuery) -> dict[str, object]:
+        return {
+            "query_text": RetrievalService._normalized_query_text(query.query_text),
+            "scope": query.scope,
+            "intent": query.intent,
+            "constraints": {
+                "max_results": query.constraints.max_results,
+                "doc_types": list(query.constraints.doc_types),
+                "date_range": list(query.constraints.date_range) if query.constraints.date_range is not None else None,
+                "require_citations": query.constraints.require_citations,
+                "section_hint": query.constraints.section_hint,
+                "prefer_exact_matches": query.constraints.prefer_exact_matches,
+            },
+            "confidentiality_profile": query.confidentiality_profile,
+        }
+
     def add_or_update_document(
         self,
         *,
@@ -2049,7 +2067,7 @@ class RetrievalService:
                 "result_fingerprint": result_fingerprint,
             },
         )
-        return RetrievalResult(
+        result = RetrievalResult(
             query=query,
             doc_hits=doc_hits,
             hits=merged_hits,
@@ -2058,6 +2076,16 @@ class RetrievalService:
             audit_ref=audit.event_id,
             result_fingerprint=result_fingerprint,
         )
+        self._remember_excerpt_contexts(
+            query=query,
+            hits=merged_hits,
+            query_fingerprint=query_fingerprint,
+            candidate_doc_count=effective_candidate_doc_count,
+            fts_shortlist_doc_ids=shortlist_doc_ids,
+            retrieved_doc_ids=retrieved_doc_ids,
+            retrieved_excerpt_ids=retrieved_excerpt_ids,
+        )
+        return result
 
     def fetch_excerpt(
         self,
@@ -2794,6 +2822,37 @@ class RetrievalService:
             text = str(row["text"])
             text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
             doc_id = str(row["doc_id"])
+            excerpt_context = self._load_excerpt_context(excerpt_id, doc_id=doc_id)
+            provenance = self._build_fts_provenance(
+                doc_id=doc_id,
+                excerpt_id=excerpt_id,
+                char_start=int(row["char_start"]),
+                char_end=int(row["char_end"]),
+                text=text,
+            )
+            query_snapshot = None
+            if excerpt_context is not None:
+                query_snapshot = copy.deepcopy(excerpt_context.get("query"))
+                for key in (
+                    "query_fingerprint",
+                    "query_scope",
+                    "query_intent",
+                    "query_confidentiality_profile",
+                    "query_date_range",
+                    "candidate_doc_count",
+                    "fts_shortlist_doc_ids",
+                    "retrieved_doc_ids",
+                    "retrieved_excerpt_ids",
+                    "matched_terms",
+                    "match_count",
+                    "rank",
+                    "fts_rank",
+                    "section_hint",
+                    "section_hint_rank",
+                ):
+                    value = excerpt_context.get(key)
+                    if value is not None:
+                        provenance[key] = copy.deepcopy(value)
             return self._normalize_excerpt_payload(
                 {
                     "excerpt_id": excerpt_id,
@@ -2808,19 +2867,74 @@ class RetrievalService:
                     "span": {"char_range": {"start": int(row["char_start"]), "end": int(row["char_end"])}},
                     "text": text,
                     "text_hash": text_hash,
-                    "provenance": self._build_fts_provenance(
-                        doc_id=doc_id,
-                        excerpt_id=excerpt_id,
-                        char_start=int(row["char_start"]),
-                        char_end=int(row["char_end"]),
-                        text=text,
-                    ),
+                    "query": query_snapshot,
+                    "provenance": provenance,
                 },
                 source_strategy="fts",
                 lookup_resolution="fts",
                 lookup_confidentiality_profile=confidentiality_profile,
             )
         return None
+
+    def _remember_excerpt_contexts(
+        self,
+        *,
+        query: RetrievalQuery,
+        hits: list[RetrievalHit],
+        query_fingerprint: str,
+        candidate_doc_count: int,
+        fts_shortlist_doc_ids: tuple[str, ...],
+        retrieved_doc_ids: list[str],
+        retrieved_excerpt_ids: list[str],
+    ) -> None:
+        if not hits:
+            return
+        context_by_excerpt = self._load_excerpt_context_map()
+        query_snapshot = self._build_query_snapshot(query)
+        query_date_range = list(query.constraints.date_range) if query.constraints.date_range is not None else None
+        for hit in hits:
+            if hit.excerpt_id is None:
+                continue
+            context_by_excerpt[hit.excerpt_id] = {
+                "doc_id": hit.doc_id,
+                "query": copy.deepcopy(query_snapshot),
+                "query_fingerprint": query_fingerprint,
+                "query_scope": query.scope,
+                "query_intent": query.intent,
+                "query_confidentiality_profile": query.confidentiality_profile,
+                "query_date_range": copy.deepcopy(query_date_range),
+                "candidate_doc_count": candidate_doc_count,
+                "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
+                "retrieved_doc_ids": list(retrieved_doc_ids),
+                "retrieved_excerpt_ids": list(retrieved_excerpt_ids),
+                "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms")),
+                "match_count": hit.provenance.get("match_count"),
+                "rank": hit.provenance.get("rank"),
+                "fts_rank": hit.provenance.get("fts_rank"),
+                "section_hint": query.constraints.section_hint,
+                "section_hint_rank": hit.provenance.get("section_hint_rank"),
+            }
+        self._write_encrypted_json(self._root / _EXCERPT_CONTEXT_FILE, context_by_excerpt)
+
+    def _load_excerpt_context_map(self) -> dict[str, dict[str, object]]:
+        payload = self._read_encrypted_json(self._root / _EXCERPT_CONTEXT_FILE, default={})
+        if not isinstance(payload, dict):
+            return {}
+        normalized: dict[str, dict[str, object]] = {}
+        for excerpt_id, context in payload.items():
+            if not isinstance(excerpt_id, str) or not isinstance(context, dict):
+                continue
+            normalized[excerpt_id] = copy.deepcopy(context)
+        return normalized
+
+    def _load_excerpt_context(self, excerpt_id: str, *, doc_id: str) -> dict[str, object] | None:
+        context = self._load_excerpt_context_map().get(excerpt_id)
+        if not isinstance(context, dict):
+            return None
+        stored_doc_id = _optional_text(context.get("doc_id"))
+        if stored_doc_id is not None and stored_doc_id != doc_id:
+            return None
+        return copy.deepcopy(context)
 
     def _build_fts_provenance(
         self,
