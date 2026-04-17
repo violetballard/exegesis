@@ -72,6 +72,13 @@ def _normalize_optional_text(value: object) -> str | None:
     return None
 
 
+def _normalize_optional_casefold_text(value: object) -> str | None:
+    text = _normalize_optional_text(value)
+    if text is None:
+        return None
+    return text.casefold()
+
+
 def _normalize_span_snapshot(value: object) -> dict[str, object] | None:
     if not isinstance(value, dict):
         return None
@@ -117,6 +124,15 @@ def _normalize_optional_int(value: object) -> int | None:
         return None
     try:
         return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _normalize_optional_float(value: object) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return float(value)
     except (TypeError, ValueError):
         return None
 
@@ -634,6 +650,26 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
         normalized["lookup_resolution"] = lookup_resolution.casefold()
     elif "lookup_resolution" in normalized:
         normalized["lookup_resolution"] = None
+    promotion_source = _normalize_optional_casefold_text(normalized.get("promotion_source"))
+    if promotion_source is not None:
+        normalized["promotion_source"] = promotion_source
+    elif "promotion_source" in normalized:
+        normalized["promotion_source"] = None
+    source_strategy = _normalize_optional_casefold_text(normalized.get("source_strategy"))
+    if source_strategy is not None:
+        normalized["source_strategy"] = source_strategy
+    elif "source_strategy" in normalized:
+        normalized["source_strategy"] = None
+    retrieval_backend = _normalize_optional_casefold_text(normalized.get("retrieval_backend"))
+    if retrieval_backend is not None:
+        normalized["retrieval_backend"] = retrieval_backend
+    elif "retrieval_backend" in normalized:
+        normalized["retrieval_backend"] = None
+    retrieval_mode = _normalize_optional_casefold_text(normalized.get("retrieval_mode"))
+    if retrieval_mode is not None:
+        normalized["retrieval_mode"] = retrieval_mode
+    elif "retrieval_mode" in normalized:
+        normalized["retrieval_mode"] = None
     lookup_confidentiality_profile = _normalize_query_confidentiality_profile(
         normalized.get("lookup_confidentiality_profile")
     )
@@ -663,6 +699,15 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
             normalized[field_name] = field_value
         elif field_name in normalized:
             normalized[field_name] = None
+    fts_rank = _normalize_optional_int(normalized.get("fts_rank"))
+    if fts_rank is not None and str(normalized.get("fts_rank")).strip().isdigit():
+        normalized["fts_rank"] = fts_rank
+    else:
+        normalized_fts_rank = _normalize_optional_float(normalized.get("fts_rank"))
+        if normalized_fts_rank is not None:
+            normalized["fts_rank"] = normalized_fts_rank
+        elif "fts_rank" in normalized:
+            normalized["fts_rank"] = None
     return normalized
 
 
