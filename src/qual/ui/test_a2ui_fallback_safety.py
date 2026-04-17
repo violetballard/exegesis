@@ -3572,6 +3572,53 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[ActionRef]", selection_text)
         self.assertNotIn("[SelectionRef]", selection_text)
 
+    def test_terminal_artifact_cli_fallback_entrypoint_rejects_conflicting_card_hints_for_authoritative_envelopes(
+        self,
+    ) -> None:
+        action_envelope = build_terminal_artifact_envelope(
+            ActionRef(
+                id=" export_document ",
+                label=" Export ",
+                payload={"format": "md"},
+            ),
+            kind="action",
+        )
+        selection_envelope = build_terminal_artifact_envelope(
+            SelectionRef(
+                id=" choice-1 ",
+                label=" Choice ",
+                payload={"nested": {"items": [1, 2]}},
+            ),
+            kind="selection",
+        )
+        raw_leaf_envelope = {
+            "type": "TerminalArtifact",
+            "kind": "card",
+            "artifact": {
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+                "trace_id": "drop-me",
+            },
+        }
+
+        for case_name, artifact in (
+            ("action envelope", action_envelope),
+            ("selection envelope", selection_envelope),
+        ):
+            with self.subTest(case=case_name):
+                text = render_terminal_cli_fallback(artifact, kind="card")
+                self.assertIn("[UnknownCard] <invalid card>", text)
+                self.assertIn("- raw:", text)
+                self.assertNotIn("[ActionRef]", text)
+                self.assertNotIn("[SelectionRef]", text)
+
+        raw_leaf_text = render_terminal_cli_fallback(raw_leaf_envelope, kind="card")
+        self.assertIn("[<missing>] <untitled>", raw_leaf_text)
+        self.assertNotIn("[UnknownCard] <invalid card>", raw_leaf_text)
+        self.assertNotIn("[ActionRef]", raw_leaf_text)
+        self.assertNotIn("[SelectionRef]", raw_leaf_text)
+
     def test_shell_ui_prefers_typed_payload_kind_over_conflicting_hint_for_non_envelope_payloads(self) -> None:
         shell = ShellUI()
 

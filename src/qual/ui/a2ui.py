@@ -2577,6 +2577,21 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
             requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
         except ValueError:
             requested_kind = None
+    fallback_target: tuple[Any, str] | None = None
+    try:
+        fallback_target = resolve_terminal_artifact_cli_fallback_target(
+            artifact,
+            kind=kind,
+        )
+    except Exception:
+        # Keep the explicit CLI fallback path usable even if the shared
+        # resolver breaks by retrying the local target resolver before giving
+        # up. This preserves action/selection recovery for demo flows.
+        fallback_target = None
+    else:
+        if requested_kind == "card" and fallback_target[1] in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+            return _render_invalid_terminal_card(artifact)
+
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
     if requested_kind == "card" and malformed_envelope:
         payload = artifact.get("artifact") if isinstance(artifact, Mapping) else None
@@ -2585,12 +2600,7 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
             payload_kind = _recover_terminal_artifact_leaf_kind(payload)
         if payload_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
             return _render_invalid_terminal_card(artifact)
-    try:
-        fallback_artifact, fallback_kind = resolve_terminal_artifact_cli_fallback_target(
-            artifact,
-            kind=kind,
-        )
-    except Exception:
+    if fallback_target is None:
         # Keep the explicit CLI fallback path usable even if the shared
         # resolver breaks by retrying the local target resolver before giving
         # up. This preserves action/selection recovery for demo flows.
@@ -2605,6 +2615,8 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
                 )
             except Exception:
                 return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
+    else:
+        fallback_artifact, fallback_kind = fallback_target
     try:
         return _render_terminal_artifact_resolved(
             fallback_artifact,
