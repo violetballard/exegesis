@@ -8,16 +8,21 @@ older lane/fixer prompts.
 
 ## Reviewer Fix Alignment
 
-- Exact canonical demo-path step advanced: `open project/document`.
-- Why this step: the existing `bootstrap` CLI entrypoint backs that step, and
-  the reviewed command-catalog hardening makes it more real by rejecting silent
-  parser/catalog drift.
-- Scope boundary: this slice is contract-hardening only. It does not add new
-  workflow actions, new command coverage, or new engine behavior.
+- Exact canonical demo-path steps advanced: `open project/document`,
+  `retrieve relevant material`, `preview and apply or reject a patch`, and
+  `save and continue`.
+- Why these steps: the reviewed command-surface work now keeps parser tokens,
+  shim aliases, smoke/demo invocation plans, and terminal/export compatibility
+  routing aligned with the canonical catalog instead of relying on implicit
+  behavior.
+- Scope boundary: this slice stays in CLI compatibility and command-surface
+  routing. It does not add new engine business logic.
 
 ## Scope Tightening
 
-- Roadmap impact: preserve deterministic CLI compatibility for the already
-  exposed `bootstrap` entrypoint used by `open project/document`.
-- Vision impact: keep the canonical engine contract stable by failing fast if
-  the parser surface drifts from the declared command catalog.
+- Roadmap impact: preserve deterministic CLI compatibility for the current
+  engine-first MVP command path across bootstrap, retrieval, diff preview, and
+  terminal/export routing.
+- Vision impact: keep the canonical engine contract stable by making the active
+  command surface explicit, parser-ready, and fail-fast when catalog routing
+  drifts.
