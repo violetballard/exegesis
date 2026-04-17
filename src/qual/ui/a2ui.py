@@ -1284,6 +1284,10 @@ def describe_terminal_artifact_contract_fingerprints(
                 terminal_artifact_cli_fallback_target_contract_fingerprint(),
             ),
             (
+                "terminal_artifact_cli_fallback_target_contract_fingerprints",
+                terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint(),
+            ),
+            (
                 "terminal_artifact_raw_leaf_card_default",
                 terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
             ),
@@ -1310,6 +1314,10 @@ def describe_terminal_artifact_contract_fingerprints(
             (
                 "terminal_artifact_cli_fallback_route_contract",
                 terminal_artifact_cli_fallback_route_contract_fingerprint(),
+            ),
+            (
+                "terminal_artifact_cli_fallback_route_contract_fingerprints",
+                terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
             ),
         )
     return fingerprints

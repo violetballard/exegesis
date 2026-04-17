@@ -1399,6 +1399,22 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             fingerprints_with_aliases["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"],
             route_manifest["contract_fingerprints_fingerprint"],
         )
+        self.assertEqual(
+            fingerprints_with_aliases["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            describe_terminal_artifact_cli_fallback_target_contract_fingerprints(),
+        )
+        self.assertEqual(
+            fingerprints_with_aliases["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"],
+            _fingerprint_manifest_section(describe_terminal_artifact_cli_fallback_target_contract_fingerprints()),
+        )
+        self.assertEqual(
+            fingerprints_with_aliases["terminal_artifact_cli_fallback_route_contract_fingerprints"],
+            terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints_with_aliases["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
+        )
 
     def test_a2ui_contract_fingerprint_map_matches_section_contracts(self) -> None:
         manifest = describe_a2ui_contract()
