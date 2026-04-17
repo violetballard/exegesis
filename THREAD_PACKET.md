@@ -42,7 +42,7 @@
 
 ## Packet Traceability Note
 
-- This fixer refresh is anchored to pre-fix branch tip `05b5d5e9ea5ebe9140e969b6035c7daf3f14c40e`.
+- This fixer refresh is anchored to pre-commit branch tip `bc662b7f64a0421ca973da2d5e35e89a02c71d3e`.
 - Implementation commits in scope:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` - lock `command_cli_contract()` to canonical catalog ordering.
   - `802b61876fff8125fb7f2af16e2f951219eee546` - tighten demo workflow preferred commands.
@@ -73,7 +73,7 @@
   - `./quality-test.sh`: `PASS` (`198` tests, `OK`)
   - `./typecheck-test.sh`: `PASS` (`python3 -m compileall -q src`)
   - `make ci`: `PASS`
-- Verification anchor for this rerun: pre-commit branch tip `05b5d5e9ea5ebe9140e969b6035c7daf3f14c40e`.
+- Verification anchor for this rerun: pre-commit branch tip `bc662b7f64a0421ca973da2d5e35e89a02c71d3e`.
 
 ## Current Program Focus
 
