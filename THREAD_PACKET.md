@@ -178,6 +178,7 @@
 
 ## Commands Run and Outcomes
 
+- `SCOPE_ALLOW_SHARED=1 make scope-check`: PASS
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
@@ -222,3 +223,10 @@
 - Integrator-locked edits: `NO`.
 - Ownership detail: the only non-owned implementation path in this slice is
   the approved shared test `tests/unit/test_commands_catalog.py`.
+- Approval basis: `THREAD_OWNERSHIP.md` marks
+  `tests/unit/test_commands_catalog.py` as `feat-commands` shared-by-approval,
+  and `scripts/scope-check.sh` permits that path for `codex/feat-commands*`
+  when `SCOPE_ALLOW_SHARED=1` is set.
+- Approval-bearing gate evidence: `SCOPE_ALLOW_SHARED=1 make scope-check`
+  passed for this re-review refresh so the shared-test exception is recorded
+  explicitly in the handoff instead of being implied by the plain gate list.

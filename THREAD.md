@@ -25,6 +25,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
     must keep the MVP loop executable while Textual remains disabled
 - Feature-fixer validation on `2026-04-17`: the required local gates were
   rerun and passed on this metadata-refresh branch tip:
+  - `SCOPE_ALLOW_SHARED=1 make scope-check`
   - `make scope-check`
   - `./quality-format.sh --check`
   - `./quality-lint.sh`
@@ -34,6 +35,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - This metadata-only fixer refresh does not change implementation files; it
   only refreshes the handoff contract for re-review after confirming the code
   and tests already satisfy the reviewer-required fixes on this branch.
+- Shared-test approval audit trail: the reviewed implementation slice includes
+  `tests/unit/test_commands_catalog.py`, which is a `feat-commands`
+  shared-by-approval path, so this refresh now records the explicit
+  approval-bearing scope gate invocation `SCOPE_ALLOW_SHARED=1 make
+  scope-check` alongside the plain required gates.
 - Concrete blocker-removal statement for AGENTS alignment: while the CLI is
   still the active operator surface, the engine-first MVP loop cannot stay
   dependable if the `bootstrap`, `context-basket`, and `diff-preview`
