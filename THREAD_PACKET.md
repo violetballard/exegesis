@@ -47,6 +47,7 @@
 - Reviewer-fix note: this packet remains intentionally narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and does not broaden scope beyond the FTS-only excerpt lookup contract and its regression coverage.
 - Source-of-truth note: this `THREAD_PACKET.md` handoff is the re-review packet for this fixer pass on top of `b3554ecae4c443d6a5a03d8a797fb350f5479043`; `.codex` packet mirrors in this worktree are not required to evaluate the narrowed retrieval scope.
 - Mirror-sync note: the operative handoff remains `THREAD_PACKET.md`; this fixer commit carries the reviewer-required AGENTS mapping and the updated pre-fix branch anchor in the operative packet itself.
+- Mirror-write note: `.codex` packet mirrors were permission-blocked in this fixer environment, so the reviewed handoff source of truth for this pass remains this tracked packet file.
 
 ## Required reviewer fixes addressed
 
