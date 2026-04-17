@@ -32,10 +32,10 @@
 
 ## Scope completed
 
-- SQLite FTS remains the authoritative MVP retrieval path on the canonical excerpt lookup surface.
+- This narrowed slice only hardens the FTS-first excerpt lookup contract on the canonical engine retrieval surface.
 - The reviewed implementation commit removes the PageIndex fallback from `fetch_excerpt` in `src/qual/retrieval/service.py`.
 - The reviewed implementation commit adds approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
-- No broader retrieval payload, provenance, or alternate-strategy work is claimed in this narrowed handoff.
+- This handoff does not claim basket promotion, workflow actions, embeddings work, or any broader alternate retrieval-path expansion.
 
 ## Canonical Demo-Path Step Advanced
 
@@ -50,7 +50,8 @@ This change advances the canonical demo-path step `retrieve relevant material` b
 - Fixer pass date: `2026-04-17`
 - Pre-fix packet branch tip: `37690f6d63ee0418953d27a0e853e7dadb83610f`
 - Reviewer packet source-of-truth anchor before this fixer commit: reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-- This metadata-only refresh preserves the reviewed implementation head, aligns the operative reviewed implementation range to the reviewer packet above, and adds the explicit AGENTS demo-path statement required for re-review.
+- This metadata-only refresh preserves the reviewed implementation head, aligns the operative reviewed implementation range to the reviewer packet above, and keeps the handoff packet explicitly mapped to the canonical demo-path step `retrieve relevant material`.
+- The checked-in retrieval kickoff packet and lane metadata already classify the slice as shared/high-risk work under the approved `tests/unit/test_unified_retrieval.py` exception; this operative packet re-emits the same budget story for re-review.
 
 ## Required Reviewer Fixes Addressed
 
