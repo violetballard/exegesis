@@ -2,19 +2,16 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh commit: `metadata-only reviewer-fix gate rerun refresh after 2026-04-17T05:16:17Z verification`
-- Packet refresh role: `feature-fixer verification refresh after reviewer required fixes`
+- Commit: `4d451643`
+- Packet refresh commit: `metadata-only handoff refresh after 2026-04-17T05:17:00Z verification`
+- Packet refresh role: `feature-lane handoff refresh for current branch HEAD`
 
 ## Packet Traceability Note
 
-- The command-catalog implementation under review remains
-  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- The reviewer-required parser-surface validation and token-drift regression
-  coverage are already present on this branch.
-- This packet refresh is metadata-only. It does not change the reviewed
-  implementation; it records the latest fixer verification pass and required
-  gate rerun.
+- The command-catalog implementation under review is `4d451643`.
+- This packet refresh records the latest required gate rerun for the current
+  branch head and aligns the handoff fields to the terminal argv
+  normalization change now on the branch.
 
 ## Current Program Focus
 
@@ -31,20 +28,20 @@
 
 ## Scope Goal
 
-- Harden the CLI command contract so `command_cli_contract()` stays
-  deterministic, uses the canonical command order, and fails fast if the parser
-  surface drifts from the catalog.
+- Keep the terminal-side command surface deterministic for the Milestone 3 demo
+  loop by preserving parser-ready argv ordering when callers override default
+  terminal operation options.
 
 ## Canonical Demo-Path Step Advanced
 
-- Exact canonical demo-path step advanced: `open project/document`.
-- Concrete blocker removed: while the CLI remains the active operator surface
-  in Milestone 3, `command_cli_contract()` now rejects parser/catalog drift
-  instead of allowing the active `open project/document` command surface to
-  change silently.
-- Scope boundary: this slice remains command-catalog hardening for the existing
-  CLI contract. It does not add new commands, new flags, handler logic, or
-  alternate workflow paths.
+- Exact canonical demo-path step advanced: `persist and continue / export handoff`.
+- Concrete blocker removed: the canonical `terminal` route and its shims now
+  keep `--operation-kind` in a stable parser-ready slot when callers override
+  defaults, so the persist/export handoff path normalizes to one deterministic
+  argv shape instead of reordering options.
+- Scope boundary: this slice remains command-catalog normalization work for the
+  existing CLI contract. It does not add new commands, new flags, handler
+  logic, or alternate workflow paths.
 
 ## Priority Outcomes
 
@@ -71,21 +68,22 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it
-  compares CLI canonical names against `command_names()` and raises
-  `ValueError` if the parser surface drifts from the catalog.
-- Kept the returned contract aligned with the canonical command order by
-  reusing the canonical names tuple instead of rebuilding a divergent list.
+- Refactored command shim argv handling in `src/qual/commands/catalog.py` to
+  segment explicit args and replace overridden options in-place instead of
+  dropping the original slot and appending the override later.
+- Preserved positional tail args while still deduplicating repeated explicit
+  options down to the last occurrence.
+- Kept pinned shim options authoritative for alias-backed commands while making
+  the raw `terminal` command normalize to a stable parser-ready option order.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
-  for canonical-order alignment and drift rejection.
-- Refreshed the handoff packet so it explicitly names the canonical
-  `open project/document` demo-path step advanced by this CLI-contract slice.
-- Re-ran the required scope, quality, typecheck, and CI gates after the
-  reviewer-fix branch state was verified.
+  for `command_cli_entry_argv()`, `command_resolve_argv()`, and
+  `command_smoke_argv()` on the raw `terminal` route.
+- Refreshed the handoff packet for the current branch head after the full
+  required gate sequence passed.
 
 ## Kickoff Budget / Limits Compliance
 
-- High-risk shared-file handoff: stayed within the 4-task cap, 30-minute
+- Low-risk lane-owned implementation stayed within the 8-task cap, 45-minute
   budget, and the lane size limits.
 - The implementation slice stayed limited to one owned command file plus one
   focused non-owned test file, so the handoff remains narrow and reviewable.
@@ -96,11 +94,11 @@
 
 ## Tasks Completed
 
-1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on parser drift.
-2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
-3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Regenerated the handoff packet so it explicitly states the exact canonical demo-path step advanced: `open project/document`.
-5. Re-ran the full required gate sequence on the verified reviewer-fix branch state and refreshed the handoff metadata with that result.
+1. Refactored shim argv parsing so explicit command options are segmented and deduplicated deterministically.
+2. Changed shim argv merging to replace overridden options in their original template slots instead of appending them at the end.
+3. Preserved positional tail args and pinned-option behavior across alias-backed command shims.
+4. Added regression coverage for raw `terminal` argv normalization in parser-entry, resolve, and smoke helpers.
+5. Refreshed the handoff packet for the current branch head after rerunning the required gates.
 
 ## Files Changed
 
@@ -122,33 +120,30 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Verification timestamp: `2026-04-17T05:16:17Z`
+- Verification timestamp: `2026-04-17T05:17:00Z`
 
 ## Risks / Blockers
 
-- Risk: low. Future intentional CLI parser changes still need matching catalog
-  and test updates or the contract check will fail fast by design.
+- Risk: low. Future command-template changes still need matching regression
+  coverage where option-order stability matters for parser-facing smoke paths.
 - Blockers: none
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- Milestone 3: Real workflow loop - preserve CLI compatibility while the
-  package/layout migration lands by keeping the command-catalog contract
-  deterministic and drift-resistant for the active `open project/document`
-  operator path while Textual remains disabled.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints for the
-  engine-first MVP loop.
+- Milestone 3: Product readiness / lock user-facing output contracts by keeping
+  the CLI command surface deterministic for parser-facing terminal routes.
+- `feat-commands` - stable CLI-first MVP loop for patch review, apply/reject,
+  and export handoff flows.
 
 ### Vision capability affected
 
-- Canonical engine contract - CLI compatibility remains stable for
-  `open project/document` while the command-catalog surface rejects parser
-  drift before it can silently change the operator contract.
-- Auditable state and workflow - the command surface now fails loudly on
-  catalog/parser drift, making the operator-facing contract explicit and
-  traceable.
+- Operator-first control surface - CLI parser-facing commands stay stable and
+  smoke-testable for the persist/export handoff path.
+- Agent-to-UI protocol (`A2UI`) with CLI fallback - stable command argv shapes
+  keep the CLI fallback surface predictable for future shared contract
+  consumers.
 
 ### Routing/provider impact note
 

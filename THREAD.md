@@ -8,14 +8,14 @@ older lane/fixer prompts.
 
 ## Reviewer Fix Alignment
 
-- Active implementation review target: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Active implementation review target: `4d451643`.
 - Verified fixer pass head before this metadata refresh: `35e37849`.
-- Exact canonical demo-path step advanced: `open project/document`.
-- Concrete Milestone 3 mapping: deterministic `command_cli_contract()`
-  validation makes the active CLI `open project/document` surface more real by
-  failing fast when parser entrypoints drift from the declared command catalog
-  while the CLI remains the operator surface.
+- Exact canonical demo-path step advanced: `persist and continue / export handoff`.
+- Concrete Milestone 3 mapping: deterministic terminal argv normalization now
+  keeps the active CLI `persist`, `apply-patch`, `reject-patch`, and raw
+  `terminal` routes aligned to a stable parser-ready order even when callers
+  override default options.
 - Scope boundary: this metadata refresh stays scoped to the command-catalog
-  slice reviewed at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus the approved
+  slice reviewed at `4d451643` plus the approved
   shared-test exception in `tests/unit/test_commands_catalog.py`.
-- Verification timestamp: `2026-04-17T05:16:17Z`.
+- Verification timestamp: `2026-04-17T05:17:00Z`.
