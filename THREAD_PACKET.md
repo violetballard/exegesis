@@ -79,5 +79,7 @@
 
 ## Traceability note
 
+- Reviewer-required alignment note: this packet is the writable handoff source in this worktree for the final fixer pass. The `.codex` packet mirrors are filesystem-blocked here, so the canonical demo-path mapping and tightened scope wording are recorded in this packet and in the commit that carries it.
+
 - Later metadata-only packet refresh commits may advance the branch head, but they do not change the reviewed implementation range unless the packet is explicitly regenerated.
 - Reviewer-fix rerun date: `2026-04-16`; this metadata-only fixer pass revalidated the narrowed packet against the required gate set without changing runtime retrieval code.
