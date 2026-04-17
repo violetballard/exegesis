@@ -1002,6 +1002,37 @@ class RetrievalResult:
                 if primary_excerpt_hit is not None
                 else primary_doc_hit.source_strategy if primary_doc_hit is not None else None
             ),
+            "matched_terms": copy.deepcopy(
+                primary_excerpt_provenance.get("matched_terms")
+                if primary_excerpt_hit is not None
+                else primary_doc_provenance.get("top_matched_terms")
+            ),
+            "match_count": (
+                primary_excerpt_provenance.get("match_count")
+                if primary_excerpt_hit is not None
+                else primary_doc_provenance.get("top_match_count")
+            ),
+            "rank": (
+                primary_excerpt_provenance.get("rank")
+                if primary_excerpt_hit is not None
+                else primary_doc_provenance.get("top_excerpt_rank")
+            ),
+            "fts_rank": (
+                primary_excerpt_provenance.get("fts_rank")
+                if primary_excerpt_hit is not None
+                else primary_doc_provenance.get("top_fts_rank")
+            ),
+            "doc_rank": primary_doc_provenance.get("doc_rank"),
+            "section_hint": (
+                primary_excerpt_provenance.get("section_hint")
+                if primary_excerpt_hit is not None
+                else primary_doc_provenance.get("section_hint")
+            ),
+            "section_hint_rank": (
+                primary_excerpt_provenance.get("section_hint_rank")
+                if primary_excerpt_hit is not None
+                else primary_doc_provenance.get("top_section_hint_rank")
+            ),
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
         }
@@ -2666,6 +2697,13 @@ class RetrievalService:
             "span": copy.deepcopy(RetrievalService._canonicalize_span(excerpt.get("span"))),
             "source_strategy": _optional_text(excerpt.get("source_strategy"))
             or _optional_text(provenance.get("source_strategy")),
+            "matched_terms": copy.deepcopy(provenance.get("matched_terms")),
+            "match_count": provenance.get("match_count"),
+            "rank": provenance.get("rank"),
+            "fts_rank": provenance.get("fts_rank"),
+            "doc_rank": provenance.get("doc_rank"),
+            "section_hint": _optional_text(provenance.get("section_hint")),
+            "section_hint_rank": provenance.get("section_hint_rank"),
             "retrieval_backend": _optional_text(excerpt.get("retrieval_backend"))
             or _optional_text(provenance.get("retrieval_backend")),
             "retrieval_mode": _optional_text(excerpt.get("retrieval_mode"))

@@ -112,6 +112,15 @@ def _normalize_optional_bool(value: object) -> bool | None:
     return None
 
 
+def _normalize_optional_int(value: object) -> int | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _normalize_text_list_like(value: object) -> list[str]:
     raw_items = _normalize_list_like(value)
     normalized: list[str] = []
@@ -186,6 +195,13 @@ def _first_text_value(*values: object) -> str | None:
         text = _normalize_optional_text(value)
         if text is not None:
             return text
+    return None
+
+
+def _first_non_none_value(*values: object) -> object | None:
+    for value in values:
+        if value is not None:
+            return copy.deepcopy(value)
     return None
 
 
@@ -548,12 +564,28 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
         normalized["span"] = copy.deepcopy(span)
     elif "span" in normalized:
         normalized["span"] = None
+    matched_terms = normalized.get("matched_terms")
+    if matched_terms is not None:
+        normalized["matched_terms"] = _normalize_text_list_like(matched_terms)
+    elif "matched_terms" in normalized:
+        normalized["matched_terms"] = []
+    section_hint = _normalize_optional_text(normalized.get("section_hint"))
+    if section_hint is not None:
+        normalized["section_hint"] = section_hint
+    elif "section_hint" in normalized:
+        normalized["section_hint"] = None
     promotion_ready = _normalize_optional_bool(normalized.get("promotion_ready"))
     if promotion_ready is not None:
         normalized["promotion_ready"] = promotion_ready
     citation_available = _normalize_optional_bool(normalized.get("citation_available"))
     if citation_available is not None:
         normalized["citation_available"] = citation_available
+    for field_name in ("match_count", "rank", "doc_rank", "section_hint_rank"):
+        field_value = _normalize_optional_int(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+        elif field_name in normalized:
+            normalized[field_name] = None
     return normalized
 
 
@@ -723,6 +755,53 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
             first_doc_provenance.get("source_strategy"),
             first_excerpt_citation.get("source_strategy"),
             first_doc_citation.get("source_strategy"),
+        ),
+        "matched_terms": copy.deepcopy(
+            first_excerpt_hit.get("matched_terms") if isinstance(first_excerpt_hit, dict) else None
+        )
+        or copy.deepcopy(first_excerpt_provenance.get("matched_terms"))
+        or copy.deepcopy(first_excerpt_citation.get("matched_terms"))
+        or copy.deepcopy(first_doc_provenance.get("top_matched_terms"))
+        or copy.deepcopy(first_doc_citation.get("matched_terms")),
+        "match_count": _first_non_none_value(
+            first_excerpt_hit.get("match_count") if isinstance(first_excerpt_hit, dict) else None,
+            first_excerpt_provenance.get("match_count"),
+            first_excerpt_citation.get("match_count"),
+            first_doc_provenance.get("top_match_count"),
+            first_doc_citation.get("top_match_count"),
+        ),
+        "rank": _first_non_none_value(
+            first_excerpt_hit.get("rank") if isinstance(first_excerpt_hit, dict) else None,
+            first_excerpt_provenance.get("rank"),
+            first_excerpt_citation.get("rank"),
+            first_doc_provenance.get("top_excerpt_rank"),
+            first_doc_citation.get("top_excerpt_rank"),
+        ),
+        "fts_rank": _first_non_none_value(
+            first_excerpt_hit.get("fts_rank") if isinstance(first_excerpt_hit, dict) else None,
+            first_excerpt_provenance.get("fts_rank"),
+            first_excerpt_citation.get("fts_rank"),
+            first_doc_provenance.get("top_fts_rank"),
+            first_doc_citation.get("top_fts_rank"),
+        ),
+        "doc_rank": _first_non_none_value(
+            first_doc_hit.get("doc_rank") if isinstance(first_doc_hit, dict) else None,
+            first_doc_provenance.get("doc_rank"),
+            first_doc_citation.get("doc_rank"),
+        ),
+        "section_hint": _first_text_value(
+            first_excerpt_hit.get("section_hint") if isinstance(first_excerpt_hit, dict) else None,
+            first_excerpt_provenance.get("section_hint"),
+            first_excerpt_citation.get("section_hint"),
+            first_doc_provenance.get("section_hint"),
+            first_doc_citation.get("section_hint"),
+        ),
+        "section_hint_rank": _first_non_none_value(
+            first_excerpt_hit.get("section_hint_rank") if isinstance(first_excerpt_hit, dict) else None,
+            first_excerpt_provenance.get("section_hint_rank"),
+            first_excerpt_citation.get("section_hint_rank"),
+            first_doc_provenance.get("top_section_hint_rank"),
+            first_doc_citation.get("top_section_hint_rank"),
         ),
         "retrieval_backend": _first_text_value(
             payload.get("retrieval_backend"),
