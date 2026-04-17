@@ -704,7 +704,9 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
             "persist",
             "persist-continue",
             "apply-patch",
+            "patch-apply",
             "reject-patch",
+            "patch-reject",
         ),
         cli_tokens=("terminal",),
         smoke_argv=(
@@ -776,7 +778,27 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
                 ),
             ),
             (
+                "patch-apply",
+                (
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_tool_orchestration",
+                    "--message",
+                    "Apply patch",
+                ),
+            ),
+            (
                 "reject-patch",
+                (
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_tool_orchestration",
+                    "--message",
+                    "Reject patch",
+                ),
+            ),
+            (
+                "patch-reject",
                 (
                     "terminal",
                     "--operation-kind",
@@ -793,7 +815,9 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
             ("persist", ("--operation-kind",)),
             ("persist-continue", ("--operation-kind",)),
             ("apply-patch", ("--operation-kind",)),
+            ("patch-apply", ("--operation-kind",)),
             ("reject-patch", ("--operation-kind",)),
+            ("patch-reject", ("--operation-kind",)),
         ),
         description="Run terminal export handoff routing.",
         flow_step="export-handoff",

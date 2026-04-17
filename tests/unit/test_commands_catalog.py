@@ -155,7 +155,9 @@ class CommandCatalogTests(unittest.TestCase):
             "persist": "terminal",
             "persist-continue": "terminal",
             "apply-patch": "terminal",
+            "patch-apply": "terminal",
             "reject-patch": "terminal",
+            "patch-reject": "terminal",
         }
         for alias, expected in cases.items():
             with self.subTest(alias=alias):
@@ -356,7 +358,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("persist", "terminal"),
                 ("persist-continue", "terminal"),
                 ("apply-patch", "terminal"),
+                ("patch-apply", "terminal"),
                 ("reject-patch", "terminal"),
+                ("patch-reject", "terminal"),
                 ("export-handoff", "terminal"),
             ),
         )
@@ -375,7 +379,15 @@ class CommandCatalogTests(unittest.TestCase):
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
         )
         self.assertEqual(
+            shim_invocations["patch-apply"],
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(
             shim_invocations["reject-patch"],
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+        )
+        self.assertEqual(
+            shim_invocations["patch-reject"],
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
         )
 
@@ -398,6 +410,16 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             shim_by_token["apply-patch"].argv,
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(shim_by_token["patch-apply"].kind, "lookup")
+        self.assertEqual(
+            shim_by_token["patch-apply"].argv,
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(shim_by_token["patch-reject"].kind, "lookup")
+        self.assertEqual(
+            shim_by_token["patch-reject"].argv,
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
         )
 
     def test_command_cli_shim_contract_matches_catalog_helpers(self) -> None:
@@ -423,6 +445,8 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_cli_shim_primary_token("project-open"), "bootstrap")
         self.assertEqual(command_cli_shim_primary_token("patch-review"), "diff-preview")
         self.assertEqual(command_cli_shim_primary_token("persist"), "terminal")
+        self.assertEqual(command_cli_shim_primary_token("patch-apply"), "terminal")
+        self.assertEqual(command_cli_shim_primary_token("patch-reject"), "terminal")
         self.assertEqual(command_cli_shim_primary_token("missing"), "")
         self.assertEqual(
             command_cli_shim_argv(["open", "--project", "demo"]),
@@ -441,6 +465,10 @@ class CommandCatalogTests(unittest.TestCase):
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
         )
         self.assertEqual(
+            command_cli_shim_argv(("patch-apply",)),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(
             command_cli_shim_argv(("export", "--message", "Custom handoff")),
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Custom handoff"),
         )
@@ -455,6 +483,10 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_cli_shim_argv(("apply-patch", "--operation-kind=terminal_synthesis_request")),
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(
+            command_cli_shim_argv(("patch-reject", "--operation-kind=terminal_synthesis_request")),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
         )
         self.assertEqual(
             command_cli_shim_argv(
@@ -492,7 +524,15 @@ class CommandCatalogTests(unittest.TestCase):
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
         )
         self.assertEqual(
+            command_cli_entry_argv(["patch-apply"]),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(
             command_cli_entry_argv(["reject-patch"]),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv(["patch-reject"]),
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
         )
         self.assertEqual(
@@ -518,6 +558,10 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_cli_entry_argv(("apply-patch", "--operation-kind", "terminal_synthesis_request")),
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv(("patch-reject", "--operation-kind", "terminal_synthesis_request")),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
         )
         self.assertEqual(
             command_cli_entry_argv(("missing", "--format", "json")),
@@ -821,7 +865,9 @@ class CommandCatalogTests(unittest.TestCase):
                 "persist",
                 "persist-continue",
                 "apply-patch",
+                "patch-apply",
                 "reject-patch",
+                "patch-reject",
                 "export-handoff",
             ),
         )
@@ -851,7 +897,9 @@ class CommandCatalogTests(unittest.TestCase):
                 "persist",
                 "persist-continue",
                 "apply-patch",
+                "patch-apply",
                 "reject-patch",
+                "patch-reject",
                 "export-handoff",
             ),
         )
@@ -1096,7 +1144,9 @@ class CommandCatalogTests(unittest.TestCase):
                         "persist",
                         "persist-continue",
                         "apply-patch",
+                        "patch-apply",
                         "reject-patch",
+                        "patch-reject",
                     ),
                     (
                         "terminal",
@@ -1105,7 +1155,9 @@ class CommandCatalogTests(unittest.TestCase):
                         "persist",
                         "persist-continue",
                         "apply-patch",
+                        "patch-apply",
                         "reject-patch",
+                        "patch-reject",
                     ),
                 ),
             ),
@@ -1306,7 +1358,9 @@ class CommandCatalogTests(unittest.TestCase):
                         "persist",
                         "persist-continue",
                         "apply-patch",
+                        "patch-apply",
                         "reject-patch",
+                        "patch-reject",
                     ),
                 ),
             ),
@@ -1340,7 +1394,9 @@ class CommandCatalogTests(unittest.TestCase):
                 "persist",
                 "persist-continue",
                 "apply-patch",
+                "patch-apply",
                 "reject-patch",
+                "patch-reject",
             ),
         )
 
@@ -1411,7 +1467,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("persist", "terminal"),
                 ("persist-continue", "terminal"),
                 ("apply-patch", "terminal"),
+                ("patch-apply", "terminal"),
                 ("reject-patch", "terminal"),
+                ("patch-reject", "terminal"),
             ),
         )
 
@@ -1483,7 +1541,15 @@ class CommandCatalogTests(unittest.TestCase):
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
         )
         self.assertEqual(
+            command_smoke_argv_for(command_specs(), ("patch-apply",), ("export-handoff",)),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(
             command_smoke_argv_for(command_specs(), ("reject-patch",), ("export-handoff",)),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+        )
+        self.assertEqual(
+            command_smoke_argv_for(command_specs(), ("patch-reject",), ("export-handoff",)),
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
         )
         self.assertEqual(
@@ -1499,6 +1565,10 @@ class CommandCatalogTests(unittest.TestCase):
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
         )
         self.assertEqual(
+            command_smoke_argv_for(command_specs(), ("patch-reject", "--operation-kind", "terminal_synthesis_request"), ("export-handoff",)),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+        )
+        self.assertEqual(
             command_smoke_argv_for(command_specs(), ("export", "--message=Queued for export"), ("export-handoff",)),
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message=Queued for export"),
         )
@@ -1509,6 +1579,10 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_cli_entry_argv(("apply-patch",)),
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv(("patch-reject",)),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
         )
 
     def test_command_demo_path_contract_exposes_parser_ready_surface_invocations(self) -> None:
@@ -1627,7 +1701,27 @@ class CommandCatalogTests(unittest.TestCase):
                     ),
                 ),
                 (
+                    "patch-apply",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_tool_orchestration",
+                        "--message",
+                        "Apply patch",
+                    ),
+                ),
+                (
                     "reject-patch",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_tool_orchestration",
+                        "--message",
+                        "Reject patch",
+                    ),
+                ),
+                (
+                    "patch-reject",
                     (
                         "terminal",
                         "--operation-kind",
@@ -2036,7 +2130,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("persist", "terminal"),
                 ("persist-continue", "terminal"),
                 ("apply-patch", "terminal"),
+                ("patch-apply", "terminal"),
                 ("reject-patch", "terminal"),
+                ("patch-reject", "terminal"),
                 ("export-handoff", "terminal"),
             ),
         )
@@ -2075,7 +2171,9 @@ class CommandCatalogTests(unittest.TestCase):
                     "persist",
                     "persist-continue",
                     "apply-patch",
+                    "patch-apply",
                     "reject-patch",
+                    "patch-reject",
                     "export-handoff",
                 ),
             ),
@@ -2105,7 +2203,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("persist", "terminal"),
                 ("persist-continue", "terminal"),
                 ("apply-patch", "terminal"),
+                ("patch-apply", "terminal"),
                 ("reject-patch", "terminal"),
+                ("patch-reject", "terminal"),
             ),
         )
         self.assertEqual(
@@ -2147,7 +2247,9 @@ class CommandCatalogTests(unittest.TestCase):
                     "persist",
                     "persist-continue",
                     "apply-patch",
+                    "patch-apply",
                     "reject-patch",
+                    "patch-reject",
                 ),
             ),
         )
@@ -2213,7 +2315,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("persist", "terminal"),
                 ("persist-continue", "terminal"),
                 ("apply-patch", "terminal"),
+                ("patch-apply", "terminal"),
                 ("reject-patch", "terminal"),
+                ("patch-reject", "terminal"),
                 ("export-handoff", "terminal"),
             ),
         )
