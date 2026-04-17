@@ -3504,6 +3504,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
     def test_shell_ui_contract_is_versioned_and_fingerprintable(self) -> None:
         manifest = describe_shell_ui_contract()
         target_contract = describe_terminal_artifact_cli_fallback_target_contract()
+        route_fingerprint = terminal_artifact_cli_fallback_route_contract_fingerprint()
 
         self.assertEqual(manifest["contract_version"], 2)
         self.assertEqual(manifest["a2ui_version"], 1)
@@ -3540,6 +3541,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_target_contract_fingerprint"],
             terminal_artifact_cli_fallback_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_fingerprint"],
+            route_fingerprint,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"],
+            route_fingerprint,
         )
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"],
@@ -3698,6 +3707,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints["terminal_artifact_cli_fallback_target_contract"],
             terminal_artifact_cli_fallback_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route_contract"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
         )
         self.assertEqual(
             fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"],

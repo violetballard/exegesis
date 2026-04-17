@@ -540,6 +540,9 @@ def _build_shell_ui_contract_manifest(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,
 ) -> dict[str, Any]:
+    terminal_artifact_cli_fallback_route_contract_fingerprint_value = (
+        terminal_artifact_cli_fallback_route_contract_fingerprint()
+    )
     terminal_artifact_cli_fallback_target_contract = describe_terminal_artifact_cli_fallback_target_contract(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
@@ -567,6 +570,8 @@ def _build_shell_ui_contract_manifest(
         "terminal_artifact_cli_fallback_target_contract_fingerprint": terminal_artifact_cli_fallback_target_contract[
             "contract_fingerprint"
         ],
+        "terminal_artifact_cli_fallback_route_fingerprint": terminal_artifact_cli_fallback_route_contract_fingerprint_value,
+        "terminal_artifact_cli_fallback_route_contract_fingerprint": terminal_artifact_cli_fallback_route_contract_fingerprint_value,
         "terminal_artifact_cli_fallback_target_contract_fingerprints": dict(
             terminal_artifact_cli_fallback_target_contract["contract_fingerprints"]
         ),
@@ -621,6 +626,9 @@ def describe_shell_ui_contract_fingerprints(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         )
     )
+    terminal_artifact_cli_fallback_route_contract_fingerprint_value = (
+        terminal_artifact_cli_fallback_route_contract_fingerprint()
+    )
     terminal_artifact_renderer_entrypoints_contract_fingerprint_value = (
         terminal_artifact_renderer_entrypoints_contract_fingerprint()
     )
@@ -632,6 +640,10 @@ def describe_shell_ui_contract_fingerprints(
         "terminal_artifact_cli_fallback_target": terminal_artifact_cli_fallback_target_contract_fingerprint_value,
         "terminal_artifact_cli_fallback_target_contract": (
             terminal_artifact_cli_fallback_target_contract_fingerprint_value
+        ),
+        "terminal_artifact_cli_fallback_route": terminal_artifact_cli_fallback_route_contract_fingerprint_value,
+        "terminal_artifact_cli_fallback_route_contract": (
+            terminal_artifact_cli_fallback_route_contract_fingerprint_value
         ),
         "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint": (
             terminal_artifact_cli_fallback_target_contract["contract_fingerprints_fingerprint"]
