@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `reviewer-required metadata-only fixer pass`
-- Current packet-refresh branch head before this fixer commit: `69dd2bc3ddc7c3c3e58d8162be7d75281d612408`
+- Current packet-refresh branch head before this fixer commit: `a348c5f73f9c34b26e3758637491c0a0c772c4f9`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
