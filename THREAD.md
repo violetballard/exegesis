@@ -11,17 +11,18 @@ older lane/fixer prompts.
 - Active implementation review target: `19ab31af48134d155c1eb782bd0ba95a5c25a268`.
 - Current feature-fixer refresh baseline: `0c8292168fd2e782f5447cd86e412be71db0cc79`
   before this final gate-verified packet refresh commit.
-- Follow-up reviewer-fix metadata refresh on `2026-04-17`: this compatibility
+- Final reviewer-fix metadata refresh on `2026-04-17`: this compatibility
   pointer records a new final verifier refresh after confirming that the prior
   packet update already satisfied the reviewer-requested demo-path and
-  vision-scope corrections, and keeps the claimed scope narrowed to Milestone
-  3 CLI-contract hardening only.
+  vision-scope corrections, keeps the claimed scope narrowed to Milestone 3
+  CLI-contract hardening only, and records a fresh full-gate verification pass
+  for this fixer turn.
 - This refresh explicitly satisfies the reviewer's REQUIRED FIXES by naming the
   canonical demo-path steps advanced and keeping the scope tied to the current
   Milestone 3 engine-first CLI loop only.
-- This follow-up gate-verified refresh was run on `2026-04-17` after a fresh full-gate
+- This final gate-verified refresh was run on `2026-04-17` after a fresh full-gate
   pass against pre-refresh metadata baseline
-  `e4a2016bdd79d51458e4ae27a799662caa9d6482`.
+  `0c8292168fd2e782f5447cd86e412be71db0cc79`.
 - This work explicitly advances the canonical demo path by making the CLI-first
   `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
   real and smoke-testable.
@@ -62,10 +63,10 @@ older lane/fixer prompts.
   required canonical demo-path mapping without reopening implementation scope.
 - Final verifier note: reran `make scope-check`, `./quality-format.sh --check`,
   `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
-  `make ci` on `2026-04-17` against implementation tip
-  `19ab31af48134d155c1eb782bd0ba95a5c25a268` plus metadata refresh baseline
-  `e4a2016bdd79d51458e4ae27a799662caa9d6482` before creating this refresh
-  commit.
+  `make ci` on `2026-04-17` against branch tip
+  `0c8292168fd2e782f5447cd86e412be71db0cc79`, which already included
+  implementation tip `19ab31af48134d155c1eb782bd0ba95a5c25a268`, before
+  creating this refresh commit.
 - Approval artifact for the non-owned test path: the reviewer packet supplied
   to this fixer pass explicitly records `Approved shared-test exception for
   tests/unit/test_commands_catalog.py`.
