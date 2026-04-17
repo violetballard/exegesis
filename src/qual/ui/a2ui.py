@@ -1041,6 +1041,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "terminal_artifact_cli_fallback_schema_version": TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
         "terminal_artifact_cli_fallback_version": TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
         "type": "TerminalArtifactCliFallbackContract",
+        "fallback_target_resolver": "resolve_terminal_artifact_cli_fallback_target",
         "render_target_resolver": "resolve_terminal_artifact_render_target",
         "fallback_renderer": "ShellUI.render_artifact",
         "supported_kinds": ["card", "action", "selection"],
