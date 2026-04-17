@@ -41,7 +41,8 @@
 
 - `retrieve relevant material`
 
-This reviewed range makes `retrieve relevant material` more real by keeping excerpt lookup deterministic and auditable on the canonical FTS-first path.
+Canonical demo-path step advanced: `retrieve relevant material`.
+This narrowed reviewed slice makes `retrieve relevant material` more real by making excerpt retrieval fail closed to the authoritative SQLite FTS path, strengthening the retrieval surface used before basket promotion in the engine-side workflow loop.
 
 ## Fixer Pass Traceability
 
@@ -54,7 +55,7 @@ This reviewed range makes `retrieve relevant material` more real by keeping exce
 
 1. Reclassified the handoff as shared/high-risk work instead of low-risk work.
 2. Removed the stale claim that PageIndex remains a runtime fallback behind the canonical retrieval package.
-3. Stated the canonical demo-path step in narrowed terms that match the reviewed implementation slice.
+3. Stated the canonical demo-path step in narrowed terms that match the reviewed implementation slice and the reviewer-recommended wording.
 4. Tightened that demo-path statement to the Milestone 3 contract by stating that `fetch_excerpt` now enforces FTS-only excerpt resolution and non-FTS excerpt IDs fail closed with `KeyError`.
 5. Kept the packet scope aligned to the reviewed implementation head and range above.
 
