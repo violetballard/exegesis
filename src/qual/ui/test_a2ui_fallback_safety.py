@@ -273,6 +273,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "terminal_artifact_kind_contracts",
                 manifest["terminal_artifact"]["terminal_artifact_kind_contracts"],
             ),
+            (
+                "terminal_artifact_raw_leaf_card_default_contract_fingerprints",
+                manifest["terminal_artifact"]["raw_leaf_card_default_contract_fingerprints"],
+            ),
         ]
 
         for key, source in cases:

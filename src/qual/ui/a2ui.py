@@ -220,9 +220,9 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_raw_leaf_card_default_fingerprint"] = terminal_artifact_raw_leaf_card_default[
         "contract_fingerprint"
     ]
-    manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprints"] = terminal_artifact_contract[
-        "raw_leaf_card_default_contract_fingerprints"
-    ]
+    manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprints"] = _snapshot_contract_section(
+        terminal_artifact_contract["raw_leaf_card_default_contract_fingerprints"]
+    )
     manifest["terminal_artifact_raw_leaf_card_default_contract"] = terminal_artifact_raw_leaf_card_default
     manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprint"] = manifest[
         "terminal_artifact_raw_leaf_card_default_fingerprint"
