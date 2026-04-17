@@ -1467,8 +1467,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
             self.assertEqual(resolved_kind, expected_kind)
             self.assertEqual(resolved_artifact, artifact)
-            self.assertEqual(fallback_artifact, resolved_artifact)
-            self.assertEqual(fallback_kind, resolved_kind)
+            self.assertEqual(fallback_artifact, artifact)
+            self.assertEqual(fallback_kind, "card")
 
     def test_shell_ui_keeps_ambiguous_raw_leaf_payloads_on_card_default_during_fallback(self) -> None:
         shell = ShellUI()

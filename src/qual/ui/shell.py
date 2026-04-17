@@ -337,6 +337,10 @@ class ShellUI:
                 requested_kind=fallback_kind,
                 allow_invalid_envelope_recovery=True,
             )
+            if fallback_kind is None and _should_preserve_raw_leaf_card_default(artifact):
+                # Keep untyped leaf payloads on the card path even when the
+                # shared resolver can infer action/selection semantics.
+                return artifact, "card"
             if fallback_kind is None and resolved_kind == "card":
                 # Prefer full schema recovery first, then recover partial leaf
                 # hints so leaf payloads do not get trapped in the card path.
