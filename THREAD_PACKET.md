@@ -97,7 +97,7 @@
 ## Commands Run and Outcomes
 
 - `python -m unittest tests.unit.test_commands_catalog`: PASS
-- `make scope-check`: PASS
+- `SCOPE_ALLOW_SHARED=1 make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
@@ -132,3 +132,7 @@
 ## Scope-check / Ownership Note
 
 - Shared/integrator-locked edits: `YES`
+- Ownership detail: lane-owned runtime edits stay in `src/qual/commands/**`, and the only non-owned implementation path is the approved shared test `tests/unit/test_commands_catalog.py`.
+- Exact approved scope-check invocation: `SCOPE_ALLOW_SHARED=1 make scope-check`
+- Approval basis: `THREAD_OWNERSHIP.md` lists `tests/unit/test_commands_catalog.py` as shared-by-approval for `codex/feat-commands*`, and the handoff keeps that exception limited to this one test file.
+- Scope-tightening confirmation: no additional shared or integrator-locked implementation files are part of this reviewed slice.
