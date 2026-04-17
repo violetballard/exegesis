@@ -74,6 +74,15 @@ def _normalize_optional_bool(value: object, *, default: bool) -> bool:
     return bool(value)
 
 
+def _normalize_required_text(value: object, *, field_name: str, casefold: bool = False) -> str:
+    text = str(value).strip()
+    if not text:
+        raise ValueError(f"{field_name} must be a non-empty string")
+    if casefold:
+        return text.casefold()
+    return text
+
+
 def build_retrieval_query(
     *,
     query_text: str,
@@ -109,6 +118,13 @@ def build_retrieval_query(
     else:
         raise TypeError("constraints must be a mapping or RetrievalConstraints")
 
+    normalized_query_text = _normalize_required_text(query_text, field_name="query_text")
+    normalized_intent = _normalize_required_text(intent, field_name="intent", casefold=True)
+    normalized_confidentiality_profile = _normalize_required_text(
+        confidentiality_profile,
+        field_name="confidentiality_profile",
+        casefold=True,
+    )
     doc_types = _normalize_constraint_values(payload.get("doc_types"), field_name="doc_types")
     date_range = payload.get("date_range")
     if isinstance(date_range, str):
@@ -116,9 +132,9 @@ def build_retrieval_query(
     if date_range is not None:
         date_range = _normalize_constraint_values(date_range, field_name="date_range")
     return RetrievalQuery(
-        query_text=query_text,
+        query_text=normalized_query_text,
         scope=scope,
-        intent=intent,  # type: ignore[arg-type]
+        intent=normalized_intent,  # type: ignore[arg-type]
         constraints=RetrievalConstraints(
             max_results=_normalize_optional_int(payload.get("max_results"), default=10),
             doc_types=doc_types,
@@ -133,7 +149,7 @@ def build_retrieval_query(
                 default=False,
             ),
         ),
-        confidentiality_profile=confidentiality_profile,  # type: ignore[arg-type]
+        confidentiality_profile=normalized_confidentiality_profile,  # type: ignore[arg-type]
     )
 
 ACTIVE_STRATEGY_IDS = _active_strategy_ids()

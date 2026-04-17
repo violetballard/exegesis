@@ -2587,6 +2587,44 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(engine_query.scope, "doc:doc-memo-1")
         self.assertEqual(package_query.scope, "vault")
 
+    def test_retrieval_query_constructor_normalizes_intent_and_confidentiality_profile(self) -> None:
+        engine_query = engine_retrieval.build_retrieval_query(
+            query_text="memo comparison",
+            scope="vault",
+            intent="  Compare  ",
+            constraints={"max_results": 4},
+            confidentiality_profile="  STANDARD  ",
+        )
+        package_query = package_retrieval.build_retrieval_query(
+            query_text="memo comparison",
+            scope="vault",
+            intent="  Compare  ",
+            constraints={"max_results": 4},
+            confidentiality_profile="  STANDARD  ",
+        )
+
+        self.assertEqual(engine_query, package_query)
+        self.assertEqual(engine_query.intent, "compare")
+        self.assertEqual(engine_query.confidentiality_profile, "standard")
+
+    def test_retrieval_query_constructor_rejects_blank_intent_and_confidentiality_profile(self) -> None:
+        with self.assertRaisesRegex(ValueError, "intent must be a non-empty string"):
+            engine_retrieval.build_retrieval_query(
+                query_text="memo comparison",
+                scope="vault",
+                intent="   ",
+                constraints={"max_results": 4},
+                confidentiality_profile="standard",
+            )
+        with self.assertRaisesRegex(ValueError, "confidentiality_profile must be a non-empty string"):
+            package_retrieval.build_retrieval_query(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints={"max_results": 4},
+                confidentiality_profile="   ",
+            )
+
     def test_retrieval_query_constructor_accepts_constraints_dataclass(self) -> None:
         constraints = RetrievalConstraints(
             max_results=7,
