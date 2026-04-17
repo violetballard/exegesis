@@ -1468,12 +1468,14 @@ def command_cli_entry_argv_for(
             )
         return (default_token, *raw_argv) if default_token else raw_argv
     normalized_argv = command_cli_shim_argv_for(specs, raw_argv, flow_steps)
+    resolved = command_resolve_for(specs, raw_argv[0], flow_steps)
     if len(raw_argv) != 1:
-        return normalized_argv
+        if not resolved.matched:
+            return normalized_argv
+        return _resolved_parser_ready_argv(specs, resolved, raw_argv[1:])
     if len(normalized_argv) > 1:
         return normalized_argv
 
-    resolved = command_resolve_for(specs, raw_argv[0], flow_steps)
     if not resolved.matched:
         return normalized_argv
 
@@ -2604,9 +2606,7 @@ def command_smoke_argv_for(
     resolved = command_resolve_for(specs, raw_argv[0], flow_steps)
     if not resolved.matched:
         return raw_argv
-    if len(raw_argv) == 1:
-        return resolved.smoke_argv
-    return command_cli_shim_argv_for(specs, raw_argv, flow_steps)
+    return _resolved_parser_ready_argv(specs, resolved, raw_argv[1:])
 
 
 def command_smoke_argv(
@@ -2650,6 +2650,24 @@ def _resolved_single_token_argv(
     if len(smoke_argv) > 1:
         return smoke_argv
     return fallback_argv
+
+
+def _resolved_parser_ready_argv(
+    specs: tuple[CommandSpec, ...],
+    resolved: ResolvedCommand,
+    explicit_args: tuple[str, ...],
+) -> tuple[str, ...]:
+    if not resolved.matched:
+        return explicit_args
+    if not explicit_args:
+        return resolved.smoke_argv or resolved.argv
+    if len(resolved.smoke_argv) <= 1:
+        return command_cli_shim_argv_for(specs, (resolved.token, *explicit_args), (resolved.flow_step,))
+    return _merge_shim_argv(
+        resolved.smoke_argv,
+        explicit_args,
+        pinned_options=_shim_pinned_options_lookup(specs).get(resolved.normalized_token, frozenset()),
+    )
 
 
 @lru_cache(maxsize=None)
