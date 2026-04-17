@@ -1088,11 +1088,17 @@ def describe_terminal_artifact_cli_fallback_route_contract() -> dict[str, Any]:
     fingerprint = terminal_artifact_cli_fallback_route_contract_fingerprint()
     manifest["terminal_artifact_cli_fallback_route_fingerprint"] = fingerprint
     manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"] = fingerprint
+    manifest["route_precedence_contract_fingerprint"] = _fingerprint_manifest_section(
+        manifest["route_precedence"]
+    )
+    manifest["leaf_renderers_contract_fingerprint"] = _fingerprint_manifest_section(manifest["leaf_renderers"])
     manifest["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"] = manifest[
         "contract_fingerprints_fingerprint"
     ]
-    manifest["route_precedence_fingerprint"] = _fingerprint_manifest_section(manifest["route_precedence"])
-    manifest["leaf_renderers_fingerprint"] = _fingerprint_manifest_section(manifest["leaf_renderers"])
+    manifest["route_precedence_fingerprint"] = manifest["route_precedence_contract_fingerprint"]
+    manifest["leaf_renderers_fingerprint"] = manifest["leaf_renderers_contract_fingerprint"]
+    manifest["route_precedence_contract"] = _snapshot_contract_section(manifest["route_precedence"])
+    manifest["leaf_renderers_contract"] = _snapshot_contract_section(manifest["leaf_renderers"])
     manifest["contract_fingerprint"] = fingerprint
     return manifest
 
@@ -1419,6 +1425,9 @@ def describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
         fingerprints["terminal_artifact_cli_fallback_route"] = (
             terminal_artifact_cli_fallback_route_contract_fingerprint()
         )
+        fingerprints["terminal_artifact_cli_fallback_route_contract"] = (
+            terminal_artifact_cli_fallback_route_contract_fingerprint()
+        )
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
@@ -1431,6 +1440,26 @@ def describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
             (
                 "resolver_failure_policy",
                 _fingerprint_manifest_section(_build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()),
+            ),
+            (
+                "route_precedence",
+                _fingerprint_manifest_section(list(_TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE)),
+            ),
+            (
+                "route_precedence_contract",
+                _fingerprint_manifest_section(list(_TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE)),
+            ),
+            (
+                "leaf_renderers",
+                _fingerprint_manifest_section(
+                    _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()["leaf_renderers"]
+                ),
+            ),
+            (
+                "leaf_renderers_contract",
+                _fingerprint_manifest_section(
+                    _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()["leaf_renderers"]
+                ),
             ),
             (
                 "terminal_artifact_cli_fallback_target",
@@ -1598,6 +1627,10 @@ def _build_terminal_artifact_cli_fallback_route_contract_fingerprints() -> dict[
         ),
         "resolver_failure_policy": _fingerprint_manifest_section(
             _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()
+        ),
+        "route_precedence": _fingerprint_manifest_section(list(_TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE)),
+        "leaf_renderers": _fingerprint_manifest_section(
+            _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()["leaf_renderers"]
         ),
     }
 

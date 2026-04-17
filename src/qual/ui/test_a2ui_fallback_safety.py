@@ -545,7 +545,104 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         manifest = describe_terminal_artifact_cli_fallback_route_contract()
 
         self.assertEqual(manifest["allowed_actions"], sorted(ALLOWED_ACTION_IDS))
-        self.assertEqual(manifest["terminal_artifact_cli_fallback_route_fingerprint"], terminal_artifact_cli_fallback_route_contract_fingerprint())
+        self.assertEqual(
+            manifest["route_precedence"],
+            [
+                "shared_target_resolver",
+                "shell_refinement",
+                "render_terminal_action",
+                "render_terminal_selection",
+                "render_terminal_card",
+            ],
+        )
+        self.assertEqual(manifest["route_precedence_contract"], manifest["route_precedence"])
+        self.assertEqual(
+            manifest["route_precedence_contract_fingerprint"],
+            _fingerprint_manifest_section(manifest["route_precedence"]),
+        )
+        self.assertEqual(
+            manifest["leaf_renderers_contract"],
+            {
+                "card": "render_terminal_card",
+                "action": "render_terminal_action",
+                "selection": "render_terminal_selection",
+            },
+        )
+        self.assertEqual(
+            manifest["leaf_renderers_contract_fingerprint"],
+            _fingerprint_manifest_section(manifest["leaf_renderers"]),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["route_precedence"],
+            _fingerprint_manifest_section(manifest["route_precedence"]),
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["leaf_renderers"],
+            _fingerprint_manifest_section(manifest["leaf_renderers"]),
+        )
+
+    def test_terminal_artifact_cli_fallback_route_contract_fingerprints_expose_route_sections(self) -> None:
+        fingerprints = describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
+            include_terminal_artifact_cli_fallback_route=True,
+            include_contract_aliases=True,
+        )
+
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route_contract"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["route_precedence"],
+            _fingerprint_manifest_section([
+                "shared_target_resolver",
+                "shell_refinement",
+                "render_terminal_action",
+                "render_terminal_selection",
+                "render_terminal_card",
+            ]),
+        )
+        self.assertEqual(
+            fingerprints["route_precedence_contract"],
+            _fingerprint_manifest_section([
+                "shared_target_resolver",
+                "shell_refinement",
+                "render_terminal_action",
+                "render_terminal_selection",
+                "render_terminal_card",
+            ]),
+        )
+        self.assertEqual(
+            fingerprints["leaf_renderers"],
+            _fingerprint_manifest_section(
+                {
+                    "card": "render_terminal_card",
+                    "action": "render_terminal_action",
+                    "selection": "render_terminal_selection",
+                }
+            ),
+        )
+        self.assertEqual(
+            fingerprints["leaf_renderers_contract"],
+            _fingerprint_manifest_section(
+                {
+                    "card": "render_terminal_card",
+                    "action": "render_terminal_action",
+                    "selection": "render_terminal_selection",
+                }
+            ),
+        )
 
     def test_terminal_artifact_cli_fallback_target_contract_fingerprints_are_public_and_canonical(
         self,
