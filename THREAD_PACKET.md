@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh commit: `feature-fixer metadata refresh commit after REQUIRED FIXES`
+- Packet refresh commit: `pending metadata-only feature-fixer refresh on codex/feat-commands`
 - Packet refresh role: `feature-fixer required-fixes packet-tightening v3`
 
 ## Packet Traceability Note
@@ -34,6 +34,11 @@
 - AGENTS alignment: this slice strengthens the CLI-first operator surface that supports the engine-side demo path while Textual remains disabled.
 - Why this step: `bootstrap` is the current CLI entrypoint for that step, and this slice makes it more real by strengthening the CLI-first operator surface and preventing silent parser/catalog drift from changing the operator-facing command contract.
 - Scope boundary: this is contract-hardening only. It does not add new workflow actions, new command coverage, retrieval behavior, patch behavior, save behavior, or any new engine business logic.
+
+## Ready for Handoff
+
+- This work now makes `open project/document` more real in the Milestone 3 engine-first demo loop because the `bootstrap` CLI entrypoint stays locked to the canonical catalog order and now fails fast if the parser surface drifts.
+- Pre-handoff alignment statement: this is a compatibility-contract guard for the active CLI-first MVP path, not standalone infra cleanup.
 
 ## Priority Outcomes
 
