@@ -9,6 +9,7 @@
 
 - The implementation commit above refers to the runtime fix commit that carries the reviewer-required command-surface hardening plus the demo-path contract narrowing for this lane.
 - This packet refresh keeps the handoff wording aligned with the current implementation and records the final required gate rerun for the reviewer-fix branch tip.
+- Final verification refresh: re-ran the required gate suite on April 16, 2026 (America/Los_Angeles) after confirming the reviewer-required demo-path alignment is still present on this branch tip.
 - Reviewer-fix follow-up scope: the branch tip now narrows the default `demo` / `mvp` command-flow helpers to the documented Milestone 3 steps (`project-open`, `retrieval`, `patch-review`) while leaving `terminal` available in the broader parser surface for non-demo command resolution and compatibility shims.
 
 ## Current Program Focus
