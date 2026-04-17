@@ -1,8 +1,8 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `reviewer-required metadata-only fixer pass`
-- Current packet-refresh branch head before this fixer commit: `cf866ba3aa490e90eb6bf9754451780dd271a329`
+- Packet role: `reviewer-required gate revalidation pass`
+- Current packet-refresh branch head before this fixer commit: `5adbeb7b939ce3159d8e51e0b4e59fa0ae83dc6e`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
@@ -67,6 +67,11 @@ This handoff explicitly advances the canonical demo-path step `retrieve relevant
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
+
+## Reviewer fix closure
+
+1. Re-ran the required local gates on branch head `5adbeb7b939ce3159d8e51e0b4e59fa0ae83dc6e`.
+2. Confirmed all required gate outputs are passing on this branch head and recorded them in this packet for re-review.
 
 ## Risks / blockers
 
