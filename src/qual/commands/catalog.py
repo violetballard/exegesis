@@ -591,6 +591,20 @@ def _preferred_surface_tokens_for_name(
     return _preferred_surface_tokens_for_spec(spec)
 
 
+def _preferred_surface_tokens_for_workflow_token(
+    specs: tuple[CommandSpec, ...],
+    name: str,
+    token: str,
+) -> tuple[str, ...]:
+    preferred_tokens = _preferred_surface_tokens_for_name(specs, name)
+    normalized_token = _normalize_token(token)
+    if preferred_tokens and normalized_token == preferred_tokens[0]:
+        return preferred_tokens
+    if normalized_token in preferred_tokens:
+        return (normalized_token,)
+    return (normalized_token,)
+
+
 def _shim_argv_overrides_for_spec(spec: CommandSpec) -> tuple[tuple[str, tuple[str, ...]], ...]:
     if not spec.shim_argv:
         return ()
@@ -3107,12 +3121,8 @@ def command_demo_workflow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoWorkflowContract:
     loop_contract = command_demo_loop_contract(specs)
-    path_contract = command_demo_path_contract(specs)
     transition_contract = command_demo_transition_contract(specs)
     compatibility_contract = command_demo_compatibility_contract(specs)
-    preferred_surface_tokens_by_flow_step = {
-        entry.flow_step: entry.preferred_surface_tokens for entry in path_contract.entries
-    }
     transition_targets_by_token = dict(transition_contract.targets_by_source)
     compatibility_tokens_by_canonical_token: dict[str, list[str]] = {}
     for entry in compatibility_contract.entries:
@@ -3127,14 +3137,18 @@ def command_demo_workflow_contract(
             description=entry.description,
             next_tokens=transition_targets_by_token.get(entry.token, ()),
             compatibility_tokens=tuple(compatibility_tokens_by_canonical_token.get(entry.token, ())),
-            preferred_surface_tokens=preferred_surface_tokens_by_flow_step.get(entry.flow_step, (entry.token,)),
+            preferred_surface_tokens=_preferred_surface_tokens_for_workflow_token(
+                specs,
+                entry.canonical_name,
+                entry.token,
+            ),
         )
         for entry in loop_contract.entries
     )
     contract = CommandDemoWorkflowContract(
         tokens=tuple(entry.token for entry in entries),
         entries=entries,
-        flow_steps=path_contract.flow_steps,
+        flow_steps=command_demo_path_contract(specs).flow_steps,
         lookup_table=tuple((entry.token, entry.canonical_name) for entry in entries),
         invocation_table=tuple((entry.token, entry.argv) for entry in entries),
         transition_targets=tuple((entry.token, entry.next_tokens) for entry in entries),
