@@ -1790,6 +1790,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             },
         )
         self.assertEqual(
+            manifest["resolver_failure_policy"],
+            {
+                "retry_resolver": "resolve_terminal_artifact_render_target",
+                "raw_leaf_card_default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
+                "leaf_renderers": {
+                    "card": "render_terminal_card",
+                    "action": "render_terminal_action",
+                    "selection": "render_terminal_selection",
+                },
+            },
+        )
+        self.assertEqual(
             manifest["terminal_artifact_cli_fallback_target"]["raw_leaf_card_default_policy"],
             {
                 "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
@@ -1824,6 +1836,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             a2ui_manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint"],
             terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        )
+        self.assertEqual(
+            a2ui_manifest["terminal_artifact"]["resolver_failure_policy"],
+            manifest["resolver_failure_policy"],
         )
         self.assertEqual(manifest["render_target_contract"], describe_terminal_artifact_render_target_contract())
         self.assertEqual(

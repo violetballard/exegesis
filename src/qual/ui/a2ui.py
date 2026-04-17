@@ -1206,6 +1206,9 @@ def _build_terminal_artifact_contract_manifest(*, include_contract_fingerprints:
         "raw_leaf_card_default_policy": copy.deepcopy(
             cli_fallback_target_contract["raw_leaf_card_default_policy"]
         ),
+        "resolver_failure_policy": copy.deepcopy(
+            cli_fallback_contract["resolver_failure_policy"]
+        ),
         "terminal_artifact_raw_leaf_card_default_policy_contract": _snapshot_contract_section(
             describe_terminal_artifact_raw_leaf_card_default_policy_contract()
         ),
@@ -1374,6 +1377,15 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
             "card": "defer to terminal artifact dispatch and keep card as the default recovery path",
             "action": "recover action payloads with render_terminal_action",
             "selection": "recover selection payloads with render_terminal_selection",
+        },
+        "resolver_failure_policy": {
+            "retry_resolver": "resolve_terminal_artifact_render_target",
+            "raw_leaf_card_default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
+            "leaf_renderers": {
+                "card": "render_terminal_card",
+                "action": "render_terminal_action",
+                "selection": "render_terminal_selection",
+            },
         },
         "terminal_fallback_contract": terminal_fallback_contract,
         "terminal_artifact_render_target_contract_fingerprint": terminal_artifact_render_target_contract_fingerprint(),
