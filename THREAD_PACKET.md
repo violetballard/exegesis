@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `3e97d729b07a4cdcd71324ae4f6eb3ad534043ea`
-- Packet refresh role: `feature-fixer required-fixes packet alignment refresh v2`
+- Packet refresh role: `feature-fixer required-fixes packet alignment refresh v3`
 
 ## Packet Traceability Note
 
@@ -13,6 +13,7 @@
 - Feature-fixer rerun refresh: revalidated the explicit `open project/document` demo-path mapping on April 16, 2026 at 19:53:58 PDT before rerunning the required gate suite for this handoff.
 - Feature-fixer packet refresh: this follow-up exists to make the blocker removal explicit in the handoff itself, so re-review does not have to infer how the command-catalog hardening advances the live MVP loop.
 - Reviewer-fix follow-up scope: this refresh keeps the packet aligned with the actual branch tip, where the default `demo` / `mvp` command-flow helpers still cover `project-open`, `retrieval`, `patch-review`, and `export-handoff`, and where the reviewer-required fix is the explicit demo-path mapping plus the concrete blocker-removal statement in the handoff itself.
+- Commit traceability note: this `v3` refresh exists only to attach a fresh fixer commit and gate rerun to the already-applied reviewer-required packet alignment.
 
 ## Current Program Focus
 
