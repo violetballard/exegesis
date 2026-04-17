@@ -69,7 +69,9 @@ This reviewed range makes `retrieve relevant material` more real by removing the
 
 ## Packet mirror note
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are present in this worktree but not writable in the lane sandbox, so this fixer pass updates the operative handoff packet `THREAD_PACKET.md` and reports the final branch tip separately.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain read-only in this lane sandbox.
+- `THREAD_PACKET.md` is the operative handoff packet for this fixer pass and carries the reviewer-required shared/high-risk classification plus the explicit canonical demo-path step advanced by the narrowed retrieval slice.
+- Re-review should use this packet as the source of truth for plan alignment and budget classification on the current branch tip.
 
 ## Commands run with results
 
