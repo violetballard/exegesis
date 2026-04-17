@@ -49,6 +49,7 @@
 
 ### Canonical demo-path step advanced
 
+- Canonical demo-path step advanced: `retrieve relevant material`.
 - `retrieve relevant material`
 - This narrowed reviewed slice makes the canonical `retrieve relevant material` step more real by forcing excerpt lookup through the FTS-backed retrieval contract and failing closed instead of falling back to PageIndex-only excerpt ids.
 - The same FTS-only lookup contract remains suitable for later basket/context promotion flows without widening the MVP retrieval path.
