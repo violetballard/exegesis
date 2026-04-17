@@ -24,19 +24,12 @@
   the reviewer packet, and it keeps the reviewed implementation scope pinned
   to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` without any feature-scope
   expansion.
-- Required fix 1 satisfied in implementation:
-  `src/qual/commands/catalog.py` now validates the full default parser surface
-  against the declared command catalog, so alias substitution, removed primary
-  tokens, reordered accepted entrypoints, and extra accepted entrypoints all
-  raise `ValueError("Command CLI parser surface is inconsistent")` instead of
-  silently drifting while canonical command order still appears stable.
-- Required fix 2 satisfied in regression coverage:
-  `tests/unit/test_commands_catalog.py` now includes parser-surface drift
-  regressions that mutate the accepted CLI entrypoints while preserving
-  canonical command order, and asserts that the contract rejects that drift.
-- Required fix 3 satisfied in handoff metadata:
-  this packet explicitly states which canonical demo-path steps the change
-  advances for the CLI-first MVP loop.
+- Reviewer required-fix satisfied in handoff metadata:
+  this packet now states exactly which canonical demo-path steps the reviewed
+  command-catalog slice makes more reliable.
+- Milestone 3 tie-back:
+  this mapping is stated concretely against the roadmap requirement that the
+  CLI must still execute the MVP loop while Textual remains disabled.
 
 ## Feature-Fixer Validation
 
@@ -87,6 +80,11 @@
   protects the ongoing CLI operator path that must remain executable while
   Textual stays disabled, by keeping the parser-facing command surface
   deterministic and drift-resistant.
+- Roadmap-level statement:
+  this directly supports the Milestone 3 exit criterion that `CLI can still
+  execute the MVP loop while Textual remains disabled` by keeping the command
+  catalog aligned with the accepted CLI entrypoints for those operator-facing
+  steps.
 - Concrete step protection:
   `bootstrap` protects the `open project/document` entrypoint,
   `context-basket` protects the `retrieve relevant material` entrypoint, and
