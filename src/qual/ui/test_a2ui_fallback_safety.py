@@ -3544,6 +3544,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["startup_fields"],
             ["project", "vault", "locked", "context_items", "context_preview"],
         )
+        self.assertIsNot(manifest["startup_fields_contract"], manifest["startup_fields"])
+        self.assertEqual(manifest["startup_fields_contract"], manifest["startup_fields"])
+        self.assertEqual(
+            manifest["startup_fields_contract_fingerprint"],
+            _fingerprint_manifest_section(manifest["startup_fields"]),
+        )
         self.assertEqual(
             manifest["startup_preview"],
             {
@@ -3551,6 +3557,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "limit": 3,
                 "source_field": "basket.item_ids",
             },
+        )
+        self.assertIsNot(manifest["startup_preview_contract"], manifest["startup_preview"])
+        self.assertEqual(manifest["startup_preview_contract"], manifest["startup_preview"])
+        self.assertEqual(
+            manifest["startup_preview_contract_fingerprint"],
+            _fingerprint_manifest_section(manifest["startup_preview"]),
         )
         self.assertEqual(manifest["terminal_artifact_cli_fallback_target"], target_contract)
         self.assertEqual(manifest["terminal_artifact_cli_fallback_target_contract"], target_contract)

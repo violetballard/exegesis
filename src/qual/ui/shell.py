@@ -530,6 +530,12 @@ def _build_shell_ui_contract_manifest(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
     entrypoints = _build_shell_ui_entrypoints()
+    startup_fields = list(SHELL_UI_STARTUP_FIELDS)
+    startup_preview = {
+        "empty_value": SHELL_UI_STARTUP_EMPTY_PREVIEW,
+        "limit": SHELL_UI_STARTUP_PREVIEW_LIMIT,
+        "source_field": "basket.item_ids",
+    }
     manifest = {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
@@ -540,12 +546,12 @@ def _build_shell_ui_contract_manifest(
         "entrypoints_fingerprint": _fingerprint_manifest_section(entrypoints),
         "entrypoints_contract": dict(entrypoints),
         "entrypoints_contract_fingerprint": _fingerprint_manifest_section(entrypoints),
-        "startup_fields": list(SHELL_UI_STARTUP_FIELDS),
-        "startup_preview": {
-            "empty_value": SHELL_UI_STARTUP_EMPTY_PREVIEW,
-            "limit": SHELL_UI_STARTUP_PREVIEW_LIMIT,
-            "source_field": "basket.item_ids",
-        },
+        "startup_fields": startup_fields,
+        "startup_fields_contract": list(startup_fields),
+        "startup_fields_contract_fingerprint": _fingerprint_manifest_section(startup_fields),
+        "startup_preview": startup_preview,
+        "startup_preview_contract": dict(startup_preview),
+        "startup_preview_contract_fingerprint": _fingerprint_manifest_section(startup_preview),
         "terminal_artifact_cli_fallback_target": terminal_artifact_cli_fallback_target_contract,
         "terminal_artifact_cli_fallback_target_fingerprint": terminal_artifact_cli_fallback_target_contract[
             "contract_fingerprint"
