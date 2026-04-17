@@ -165,6 +165,8 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["contract_fingerprint"] = a2ui_contract_fingerprint()
     manifest["capabilities"] = manifest["schemas"]["capabilities"]
     manifest["capabilities_fingerprint"] = manifest["capabilities"]["contract_fingerprint"]
+    manifest["card_contract"] = manifest["schemas"]["card_contract"]
+    manifest["card_contract_fingerprint"] = manifest["card_contract"]["contract_fingerprint"]
     manifest["action_fingerprint"] = manifest["action"]["contract_fingerprint"]
     manifest["selection_fingerprint"] = manifest["selection"]["contract_fingerprint"]
     manifest["card_fingerprint"] = card_contract_fingerprint()
@@ -535,6 +537,7 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
         "capabilities": describe_a2ui_capabilities_contract(),
+        "card_contract": describe_card_contract(),
         "terminal_fallback": describe_terminal_fallback_contract(),
         "terminal_artifact": describe_terminal_artifact_contract(),
         "terminal_fallback_fingerprint": terminal_fallback_contract_fingerprint(),
@@ -973,6 +976,7 @@ def _build_card_fallback_manifest() -> dict[str, Any]:
 def _build_a2ui_schema_manifest() -> dict[str, Any]:
     return {
         "capabilities": describe_a2ui_capabilities_contract(),
+        "card_contract": describe_card_contract(),
         "cards": _build_card_schema_manifest(),
         "selection": describe_selection_contract(),
         "action": describe_action_contract(),
