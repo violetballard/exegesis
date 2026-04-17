@@ -2499,6 +2499,9 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         retrieval_summary.get("retrieval_mode"),
         retrieval_provenance.get("retrieval_mode"),
     )
+    policy_snapshot = _normalize_policy_snapshot(
+        payload.get("policy", payload.get("retrieval_policy", source_policy))
+    )
     return {
         "audit_ref": payload.get("audit_ref"),
         "result_fingerprint": payload.get("result_fingerprint"),
@@ -2512,7 +2515,8 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
             retrieval_source_bundle.get("source_bundle_fingerprint"),
         ),
         "query": _normalize_query_snapshot(payload.get("query", source_query)),
-        "policy": _normalize_policy_snapshot(payload.get("policy", payload.get("retrieval_policy", source_policy))),
+        "policy": copy.deepcopy(policy_snapshot),
+        "retrieval_policy": copy.deepcopy(policy_snapshot),
         "retrieval_backend": retrieval_backend,
         "retrieval_mode": retrieval_mode,
         "citation_status": copy.deepcopy(payload.get("citation_status", source_citation_status)),

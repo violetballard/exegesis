@@ -1049,6 +1049,7 @@ class RetrievalResult:
             "source_bundle_fingerprint": source_bundle_fingerprint,
             "query": copy.deepcopy(downstream_payload["query"]),
             "policy": copy.deepcopy(downstream_payload["policy"]),
+            "retrieval_policy": copy.deepcopy(downstream_payload["retrieval_policy"]),
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
             "citation_status": copy.deepcopy(downstream_payload["citation_status"]),
