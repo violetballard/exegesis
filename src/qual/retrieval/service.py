@@ -119,6 +119,26 @@ def _optional_float(value: object) -> float | None:
         return None
 
 
+def _optional_bool(value: object) -> bool | None:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return None
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if value == 0:
+            return False
+        if value == 1:
+            return True
+        return None
+    if isinstance(value, str):
+        normalized = value.strip().casefold()
+        if normalized in {"true", "1", "yes", "on"}:
+            return True
+        if normalized in {"false", "0", "no", "off"}:
+            return False
+    return None
+
+
 def _parse_date_value(value: str) -> date | None:
     try:
         return datetime.fromisoformat(value).date()
@@ -243,6 +263,21 @@ def _normalize_query_text_payload(value: object) -> str | None:
     if text is None:
         return None
     return RetrievalService._normalized_query_text(text)
+
+
+def _normalize_query_doc_types_payload(value: object) -> list[str] | None:
+    raw_items = _optional_list_like(value)
+    if raw_items is None:
+        return None
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for item in raw_items:
+        doc_type = _normalized_profile_text(item)
+        if doc_type is None or doc_type in seen:
+            continue
+        seen.add(doc_type)
+        normalized.append(doc_type)
+    return sorted(normalized)
 
 
 def _normalize_lookup_resolution_payload(value: object) -> str | None:
@@ -2975,32 +3010,58 @@ class RetrievalService:
         excerpt: dict[str, object],
         provenance: dict[str, object],
     ) -> dict[str, object] | None:
+        query_payload = excerpt.get("query")
+        if not isinstance(query_payload, dict):
+            query_payload = provenance.get("query")
+        if not isinstance(query_payload, dict):
+            query_payload = {}
+        query_constraints_payload = query_payload.get("constraints")
+        if not isinstance(query_constraints_payload, dict):
+            query_constraints_payload = {}
         query_text = _normalize_query_text_payload(
-            excerpt.get("query_text", provenance.get("query_text"))
+            excerpt.get("query_text", provenance.get("query_text", query_payload.get("query_text")))
         )
         query_scope = _normalize_query_scope_payload(
-            excerpt.get("query_scope", provenance.get("query_scope"))
+            excerpt.get("query_scope", provenance.get("query_scope", query_payload.get("scope")))
         )
         query_intent = _normalize_query_intent_payload(
-            excerpt.get("query_intent", provenance.get("query_intent"))
+            excerpt.get("query_intent", provenance.get("query_intent", query_payload.get("intent")))
         )
         query_confidentiality_profile = _normalized_profile_text(
             excerpt.get(
                 "query_confidentiality_profile",
-                provenance.get("query_confidentiality_profile"),
+                provenance.get("query_confidentiality_profile", query_payload.get("confidentiality_profile")),
             )
         )
         query_date_range = _normalize_query_date_range_payload(
-            excerpt.get("query_date_range", provenance.get("query_date_range"))
+            excerpt.get(
+                "query_date_range",
+                provenance.get("query_date_range", query_constraints_payload.get("date_range")),
+            )
         )
         section_hint = _normalized_text(
-            excerpt.get("section_hint", provenance.get("section_hint"))
+            excerpt.get(
+                "section_hint",
+                provenance.get("section_hint", query_constraints_payload.get("section_hint")),
+            )
         )
+        max_results = _optional_int(query_constraints_payload.get("max_results"))
+        doc_types = _normalize_query_doc_types_payload(query_constraints_payload.get("doc_types"))
+        require_citations = _optional_bool(query_constraints_payload.get("require_citations"))
+        prefer_exact_matches = _optional_bool(query_constraints_payload.get("prefer_exact_matches"))
         query_constraints: dict[str, object] = {}
+        if max_results is not None:
+            query_constraints["max_results"] = max_results
+        if doc_types is not None:
+            query_constraints["doc_types"] = doc_types
         if query_date_range is not None:
             query_constraints["date_range"] = query_date_range
+        if require_citations is not None:
+            query_constraints["require_citations"] = require_citations
         if section_hint is not None:
             query_constraints["section_hint"] = section_hint
+        if prefer_exact_matches is not None:
+            query_constraints["prefer_exact_matches"] = prefer_exact_matches
         query_snapshot: dict[str, object] = {}
         if query_text is not None:
             query_snapshot["query_text"] = query_text
