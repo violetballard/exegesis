@@ -2612,11 +2612,21 @@ class RetrievalService:
         return max(0, int(rows[0]["row_count"]))
 
     @staticmethod
-    def _hit_sort_key(hit: RetrievalHit) -> tuple[float, str, str, int, int, str]:
+    def _hit_sort_key(hit: RetrievalHit) -> tuple[int, float, float, str, str, int, int, str]:
         char_range = hit.span.get("char_range", {}) if isinstance(hit.span, dict) else {}
         if not isinstance(char_range, dict):
             char_range = {}
+        rank = hit.provenance.get("rank")
+        canonical_rank = rank if isinstance(rank, int) and rank > 0 else 2**31 - 1
+        fts_rank = hit.provenance.get("fts_rank")
+        canonical_fts_rank = (
+            float(fts_rank)
+            if isinstance(fts_rank, (int, float)) and not isinstance(fts_rank, bool)
+            else float("inf")
+        )
         return (
+            canonical_rank,
+            canonical_fts_rank,
             -hit.score,
             hit.source_strategy,
             hit.doc_id,
