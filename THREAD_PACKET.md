@@ -1,10 +1,10 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet refresh role: `reviewer-fix current-tip traceability refresh`
-- Current branch head before this fixer commit: `16403079b72893e52c0d756060ddf50c1386af39`
-- Reviewed runtime implementation head in that branch state: `16403079b72893e52c0d756060ddf50c1386af39`
-- Re-review branch-tip range before this fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..16403079b72893e52c0d756060ddf50c1386af39`
+- Packet refresh role: `reviewer-fix canonical-step + narrowed-range refresh`
+- Current branch head before this fixer commit: `2828006c429bb7b6980ff854a48ef1dee1b61645`
+- Reviewed runtime implementation head in that branch state: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Re-review implementation range before this fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 ## Scope goal
 
@@ -12,7 +12,7 @@
 
 ## Scope completed
 
-- The reviewed branch state keeps SQLite FTS authoritative for this MVP lane.
+- The reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` keeps SQLite FTS authoritative for this MVP lane.
 - The excerpt lookup surface stays on the canonical FTS-only path, so PageIndex is not part of the MVP excerpt lookup contract for this lane and PageIndex-only excerpt IDs fail closed instead of promoting a non-canonical runtime fallback.
 - Excerpt lookup payloads now carry the canonical retrieval policy snapshot at both the top level and inside provenance so downstream engine flows read one stable FTS-first contract.
 - Ranked retrieval doc/excerpt ids are preserved in deterministic retrieval metadata so downstream engine consumers can rely on authoritative FTS ordering.
@@ -21,7 +21,7 @@
 ## Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This branch state makes that step more real by ensuring excerpt lookup resolves only through the authoritative FTS-backed path and by keeping the retrieval contract deterministic and auditable for downstream engine flows.
+- This reviewed implementation range makes that step more real by ensuring excerpt lookup resolves only through the authoritative FTS-backed path and by keeping the retrieval contract deterministic and auditable for downstream engine flows.
 - Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed unless the excerpt exists on the canonical FTS path.
 - This line satisfies the `AGENTS.md` handoff requirement to name the canonical demo-path step advanced by the reviewed slice, rather than relying on roadmap and vision mapping alone.
 - This packet does not claim to advance `promote or gather context into the basket`; it stays scoped to the retrieval contract itself.
@@ -35,7 +35,7 @@
 
 ## Files changed
 
-### Reviewed implementation files in the branch-tip range
+### Reviewed implementation files in the narrowed implementation range
 
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/embeddings_strategy.py`
@@ -49,8 +49,6 @@
 
 ### Packet / handoff files
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
 
 ## Commands run with results
@@ -71,8 +69,8 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` because this branch state keeps the engine retrieval path FTS-first, deterministic, and auditable.
-- `feat-retrieval-fts - retrieval/search` because this branch state preserves the lane's authoritative retrieval contract.
+- `Milestone 3: Real workflow loop` because this reviewed implementation range keeps the engine retrieval path FTS-first, deterministic, and auditable.
+- `feat-retrieval-fts - retrieval/search` because this reviewed implementation range preserves the lane's authoritative retrieval contract.
 
 ### Vision capability affected
 
@@ -82,7 +80,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This branch state makes that step more real by ensuring excerpt lookup only succeeds for authoritative FTS-derived excerpt IDs on the canonical retrieval surface and by preserving a deterministic, auditable FTS-first retrieval contract.
+- This reviewed implementation range makes that step more real by ensuring excerpt lookup only succeeds for authoritative FTS-derived excerpt IDs on the canonical retrieval surface and by preserving a deterministic, auditable FTS-first retrieval contract.
 - Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed unless the excerpt exists on the canonical FTS path.
 - This packet remains scoped to the retrieval step itself and does not claim basket-promotion changes.
 
@@ -99,8 +97,8 @@
 
 ## Traceability note
 
-- The prior packet refresh already narrowed the canonical demo-path wording to `retrieve relevant material`; this fixer pass refreshes the handoff so it points at the actual current branch tip.
-- Current reviewer-fix refresh anchor for this pass: `6a911ab14054a3a976ed55a2072a432aa7174bf2`.
-- Re-review should anchor to the branch-tip range `378cf9a74a3658058079a32f186fcd254c4a4034..16403079b72893e52c0d756060ddf50c1386af39`.
-- Treat `16403079b72893e52c0d756060ddf50c1386af39` as the reviewed runtime implementation head in the pre-fix branch state.
+- This fixer pass applies the reviewer-required packet correction directly in the writable handoff packet: it names the canonical demo-path step explicitly and narrows re-review back to the reviewer-approved implementation range.
+- Current reviewer-fix refresh anchor for this pass: `2828006c429bb7b6980ff854a48ef1dee1b61645`.
+- Re-review should anchor to the implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- Treat `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the reviewed runtime implementation head in the pre-fix branch state.
 - Use the final HEAD SHA reported with this fixer handoff for the post-fix branch tip.
