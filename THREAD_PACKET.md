@@ -3,8 +3,8 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh commit: `pending metadata-only feature-fixer refresh on codex/feat-commands`
-- Packet refresh role: `feature-fixer required-fixes packet-tightening v4`
+- Packet refresh commit: `pending metadata-only feature-fixer refresh on codex/feat-commands after reviewer required fixes`
+- Packet refresh role: `feature-fixer required-fixes packet-tightening v5`
 
 ## Packet Traceability Note
 
@@ -34,6 +34,10 @@
 - AGENTS alignment: this slice strengthens the CLI-first operator surface that supports the engine-side demo path while Textual remains disabled.
 - Why this step: `bootstrap` is the current CLI entrypoint for that step, and this slice makes it more real by strengthening the CLI-first operator surface and preventing silent parser/catalog drift from changing the operator-facing command contract.
 - Scope boundary: this is contract-hardening only for the existing command catalog. It does not add new workflow actions, new command coverage, retrieval behavior, patch behavior, save behavior, or any new engine business logic.
+
+## Scope-Tightening Note
+
+- This is not general CLI cleanup. It removes one concrete blocker from the `open project/document` step by ensuring the existing `bootstrap` operator entrypoint cannot silently drift away from the canonical catalog contract while the CLI remains the active MVP surface.
 
 ## Ready for Handoff
 
