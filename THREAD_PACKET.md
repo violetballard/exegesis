@@ -51,6 +51,12 @@ This narrowed reviewed slice makes `retrieve relevant material` more real by mak
 - Reviewer packet source-of-truth anchor before this fixer commit: packet refresh commit `8b219039ab16d934eb41b96d5143504e203f644e`, packet refresh role `metadata-only reviewer-fix finalization`, reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - This metadata-only refresh preserves the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` while carrying the reviewer-required canonical demo-path mapping for re-review.
 
+## Metadata Write Constraint
+
+- Reviewer packet source of truth: this `THREAD_PACKET.md` handoff is the operative corrected packet for re-review in the lane worktree.
+- Hidden metadata note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain readable reference artifacts in this worktree, but the current filesystem sandbox denies writes to those hidden packet paths.
+- Re-review instruction: evaluate the reviewer-required budget classification, approved shared-test exception, reviewed implementation range, and canonical demo-path mapping from this packet plus the reviewer packet above, without widening implementation scope.
+
 ## Required Reviewer Fixes Addressed
 
 1. Reissued the operative handoff packet using the high-risk kickoff framing because this slice includes approved shared-file work.
