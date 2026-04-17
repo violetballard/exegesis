@@ -187,6 +187,18 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_contract_fingerprint"] = manifest["terminal_artifact_fingerprint"]
     manifest["terminal_artifact_render_target_contract"] = manifest["schemas"]["terminal_artifact_render_target"]
     manifest["terminal_artifact_render_target_contract_fingerprint"] = manifest["terminal_artifact_render_target_fingerprint"]
+    manifest["terminal_artifact_raw_leaf_card_default"] = manifest["terminal_artifact"][
+        "raw_leaf_card_default_contract"
+    ]
+    manifest["terminal_artifact_raw_leaf_card_default_fingerprint"] = manifest["terminal_artifact"][
+        "raw_leaf_card_default_contract_fingerprint"
+    ]
+    manifest["terminal_artifact_raw_leaf_card_default_contract"] = manifest[
+        "terminal_artifact_raw_leaf_card_default"
+    ]
+    manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprint"] = manifest[
+        "terminal_artifact_raw_leaf_card_default_fingerprint"
+    ]
     manifest["terminal_artifact_kind_contracts"] = manifest["terminal_artifact"]["terminal_artifact_kind_contracts"]
     manifest["terminal_artifact_kind_contracts_fingerprint"] = manifest["terminal_artifact"][
         "terminal_artifact_kind_contracts_fingerprint"
@@ -1805,6 +1817,11 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
     requested_kind = None
     if kind is not None:
         requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+    if requested_kind is None and _should_preserve_raw_leaf_card_default(artifact):
+        try:
+            return render_terminal_card(artifact)
+        except Exception:
+            return _render_invalid_terminal_card(artifact)
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
     allow_invalid_envelope_recovery = malformed_envelope
     if requested_kind == "card" and malformed_envelope:
@@ -1838,6 +1855,11 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
     requested_kind = None
     if kind is not None:
         requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+    if requested_kind is None and _should_preserve_raw_leaf_card_default(artifact):
+        try:
+            return render_terminal_card(artifact)
+        except Exception:
+            return _render_invalid_terminal_card(artifact)
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
     allow_invalid_envelope_recovery = malformed_envelope
     if requested_kind == "card" and malformed_envelope:

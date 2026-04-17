@@ -320,6 +320,22 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_render_target_contract_fingerprint(),
         )
 
+    def test_a2ui_contract_manifest_exposes_raw_leaf_card_default_aliases(self) -> None:
+        manifest = describe_a2ui_contract()
+        raw_leaf_contract = describe_terminal_artifact_raw_leaf_card_default_contract()
+
+        self.assertEqual(manifest["terminal_artifact_raw_leaf_card_default"], raw_leaf_contract)
+        self.assertEqual(manifest["terminal_artifact_raw_leaf_card_default_contract"], raw_leaf_contract)
+        self.assertEqual(
+            manifest["terminal_artifact_raw_leaf_card_default_fingerprint"],
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprint"],
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+        )
+        self.assertEqual(manifest["terminal_artifact"]["raw_leaf_card_default_contract"], raw_leaf_contract)
+
     def test_a2ui_contract_fingerprint_map_matches_section_contracts(self) -> None:
         manifest = describe_a2ui_contract()
         fingerprints = describe_a2ui_contract_fingerprints()
@@ -969,6 +985,25 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
 
         self.assertEqual(render_terminal_cli_fallback(envelope), render_terminal_artifact(envelope))
+
+    def test_terminal_artifact_renderers_preserve_raw_leaf_card_default_without_shared_resolver(self) -> None:
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        with patch(
+            "src.qual.ui.a2ui.resolve_terminal_artifact_render_target",
+            side_effect=AssertionError("resolver should not be used"),
+        ):
+            rendered_text = render_terminal_artifact(raw_leaf)
+            cli_fallback_text = render_terminal_cli_fallback(raw_leaf)
+
+        self.assertEqual(rendered_text, cli_fallback_text)
+        self.assertIn("[<missing>] <untitled>", rendered_text)
+        self.assertNotIn("[ActionRef]", rendered_text)
+        self.assertNotIn("[SelectionRef]", rendered_text)
 
     def test_terminal_artifact_cli_fallback_entrypoint_survives_generic_renderer_failure(self) -> None:
         envelope = build_terminal_artifact_envelope(
