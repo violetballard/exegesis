@@ -1845,6 +1845,12 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized["fts_shortlist_doc_ids"])
     if _is_missing_snapshot_value(normalized.get("primary_doc_id")):
         normalized["primary_doc_id"] = summary.get("primary_doc_id")
+    if _is_missing_snapshot_value(normalized.get("primary_doc_type")):
+        normalized["primary_doc_type"] = None
+    else:
+        normalized["primary_doc_type"] = _normalize_optional_text(normalized.get("primary_doc_type"))
+    if _is_missing_snapshot_value(normalized.get("primary_source_hash")):
+        normalized["primary_source_hash"] = None
     if _is_missing_snapshot_value(normalized.get("primary_doc_fingerprint")):
         normalized["primary_doc_fingerprint"] = summary.get("primary_doc_fingerprint")
     if _is_missing_snapshot_value(normalized.get("primary_doc_identity_fingerprint")):
@@ -1857,6 +1863,12 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["primary_excerpt_provenance_fingerprint"] = summary.get("primary_excerpt_provenance_fingerprint")
     if _is_missing_snapshot_value(normalized.get("primary_excerpt_text_hash")):
         normalized["primary_excerpt_text_hash"] = summary.get("primary_excerpt_text_hash")
+    if "primary_excerpt_span" not in normalized or _is_missing_snapshot_value(normalized.get("primary_excerpt_span")):
+        normalized["primary_excerpt_span"] = None
+    else:
+        normalized["primary_excerpt_span"] = copy.deepcopy(
+            _normalize_span_snapshot(normalized.get("primary_excerpt_span"))
+        )
     if _is_missing_snapshot_value(normalized.get("doc_hits_fingerprint")):
         normalized["doc_hits_fingerprint"] = summary.get(
             "doc_hits_fingerprint",
@@ -1900,11 +1912,19 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["excerpt_citations"] = copy.deepcopy(excerpt_citations)
     else:
         normalized["excerpt_citations"] = _normalize_excerpt_citations(normalized["excerpt_citations"])
+    normalized["basket_promotion"] = _backfill_sparse_snapshot(
+        _normalize_basket_promotion_snapshot(normalized.get("basket_promotion")),
+        _build_basket_promotion_from_payload(payload),
+    )
     if doc_citations:
         first_doc_citation = doc_citations[0]
         if isinstance(first_doc_citation, dict):
             if _is_missing_snapshot_value(normalized.get("primary_doc_id")):
                 normalized["primary_doc_id"] = first_doc_citation.get("doc_id")
+            if _is_missing_snapshot_value(normalized.get("primary_doc_type")):
+                normalized["primary_doc_type"] = first_doc_citation.get("doc_type")
+            if _is_missing_snapshot_value(normalized.get("primary_source_hash")):
+                normalized["primary_source_hash"] = first_doc_citation.get("source_hash")
             if _is_missing_snapshot_value(normalized.get("primary_doc_fingerprint")):
                 normalized["primary_doc_fingerprint"] = first_doc_citation.get("doc_fingerprint")
             if _is_missing_snapshot_value(normalized.get("primary_doc_identity_fingerprint")):
@@ -1912,6 +1932,10 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     if excerpt_citations:
         first_excerpt_citation = excerpt_citations[0]
         if isinstance(first_excerpt_citation, dict):
+            if _is_missing_snapshot_value(normalized.get("primary_doc_type")):
+                normalized["primary_doc_type"] = first_excerpt_citation.get("doc_type")
+            if _is_missing_snapshot_value(normalized.get("primary_source_hash")):
+                normalized["primary_source_hash"] = first_excerpt_citation.get("source_hash")
             if _is_missing_snapshot_value(normalized.get("primary_excerpt_id")):
                 normalized["primary_excerpt_id"] = first_excerpt_citation.get("excerpt_id")
             if _is_missing_snapshot_value(normalized.get("primary_excerpt_fingerprint")):
@@ -1922,6 +1946,20 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
                 )
             if _is_missing_snapshot_value(normalized.get("primary_excerpt_text_hash")):
                 normalized["primary_excerpt_text_hash"] = first_excerpt_citation.get("excerpt_text_hash")
+            if _is_missing_snapshot_value(normalized.get("primary_excerpt_span")):
+                normalized["primary_excerpt_span"] = copy.deepcopy(
+                    _normalize_span_snapshot(first_excerpt_citation.get("span"))
+                )
+    if _is_missing_snapshot_value(normalized.get("primary_doc_type")):
+        normalized["primary_doc_type"] = normalized["basket_promotion"].get("doc_type")
+    if _is_missing_snapshot_value(normalized.get("primary_source_hash")):
+        normalized["primary_source_hash"] = normalized["basket_promotion"].get("source_hash")
+    if _is_missing_snapshot_value(normalized.get("primary_excerpt_span")):
+        normalized["primary_excerpt_span"] = copy.deepcopy(normalized["basket_promotion"].get("span"))
+    else:
+        normalized["primary_excerpt_span"] = copy.deepcopy(
+            _normalize_span_snapshot(normalized.get("primary_excerpt_span"))
+        )
     return normalized
 
 

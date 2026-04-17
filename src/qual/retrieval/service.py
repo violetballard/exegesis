@@ -656,11 +656,13 @@ class RetrievalResult:
 
         citation_bundle = self.citation_bundle()
         citation_status = dict(citation_bundle["citation_status"])
+        basket_promotion = self._basket_promotion_snapshot()
         return copy.deepcopy(
             self._retrieval_provenance_snapshot(
                 citation_bundle=citation_bundle,
                 citation_status=citation_status,
                 retrieval_policy=self._retrieval_policy_snapshot(),
+                basket_promotion=basket_promotion,
             )
         )
 
@@ -896,9 +898,17 @@ class RetrievalResult:
         citation_bundle: dict[str, object],
         citation_status: dict[str, object],
         retrieval_policy: dict[str, object],
+        basket_promotion: dict[str, object] | None = None,
     ) -> dict[str, object]:
         primary_doc_hit = self.doc_hits[0] if self.doc_hits else None
         primary_excerpt_hit = self.hits[0] if self.hits else None
+        primary_doc_provenance = primary_doc_hit.provenance if primary_doc_hit is not None else {}
+        primary_excerpt_provenance = primary_excerpt_hit.provenance if primary_excerpt_hit is not None else {}
+        basket_promotion_snapshot = (
+            copy.deepcopy(basket_promotion)
+            if basket_promotion is not None
+            else self._basket_promotion_snapshot()
+        )
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
@@ -920,10 +930,20 @@ class RetrievalResult:
             "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
             "fts_shortlist_doc_ids": list(self.diagnostics.get("fts_shortlist_doc_ids", [])),
             "primary_doc_id": primary_doc_hit.doc_id if primary_doc_hit is not None else None,
-            "primary_doc_fingerprint": primary_doc_hit.provenance.get("doc_fingerprint") if primary_doc_hit is not None else None,
-            "primary_doc_identity_fingerprint": primary_doc_hit.provenance.get("doc_identity_fingerprint")
+            "primary_doc_type": (
+                primary_doc_provenance.get("doc_type")
+                or primary_excerpt_provenance.get("doc_type")
+            ),
+            "primary_source_hash": (
+                primary_excerpt_provenance.get("source_hash")
+                or primary_doc_provenance.get("source_hash")
+            ),
+            "primary_doc_fingerprint": primary_doc_provenance.get("doc_fingerprint")
             if primary_doc_hit is not None
-            else None,
+            else primary_excerpt_provenance.get("doc_fingerprint"),
+            "primary_doc_identity_fingerprint": primary_doc_provenance.get("doc_identity_fingerprint")
+            if primary_doc_hit is not None
+            else primary_excerpt_provenance.get("doc_identity_fingerprint"),
             "primary_excerpt_id": primary_excerpt_hit.excerpt_id if primary_excerpt_hit is not None else None,
             "primary_excerpt_fingerprint": primary_excerpt_hit.provenance.get("excerpt_fingerprint")
             if primary_excerpt_hit is not None
@@ -938,11 +958,17 @@ class RetrievalResult:
                 if primary_excerpt_hit is not None
                 else None
             ),
+            "primary_excerpt_span": (
+                copy.deepcopy(primary_excerpt_provenance.get("span"))
+                if primary_excerpt_hit is not None
+                else None
+            ),
             "citation_status": citation_status,
             "doc_count": citation_bundle["doc_count"],
             "excerpt_count": citation_bundle["excerpt_count"],
             "doc_citations": citation_bundle["doc_citations"],
             "excerpt_citations": citation_bundle["excerpt_citations"],
+            "basket_promotion": basket_promotion_snapshot,
         }
 
     def _retrieval_bundle_context_snapshot(self) -> dict[str, object]:
@@ -960,6 +986,7 @@ class RetrievalResult:
             citation_bundle=citation_bundle,
             citation_status=citation_status,
             retrieval_policy=retrieval_policy,
+            basket_promotion=self._basket_promotion_snapshot(),
         )
         return {
             "result_fingerprint": self.result_fingerprint,
@@ -1127,6 +1154,7 @@ class RetrievalResult:
                     citation_bundle=citation_bundle_snapshot,
                     citation_status=citation_status_snapshot,
                     retrieval_policy=retrieval_policy_snapshot,
+                    basket_promotion=basket_promotion_snapshot,
                 )
             ),
             "basket_promotion": copy.deepcopy(basket_promotion_snapshot),
