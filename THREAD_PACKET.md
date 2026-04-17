@@ -54,6 +54,7 @@
 
 - `retrieve relevant material`
 - This reviewed range makes `retrieve relevant material` more real by keeping retrieval FTS-first, structured, and auditable enough for downstream basket promotion and later workflow use.
+- This packet does not claim completion of basket promotion, workflow actions, or alternate retrieval paths beyond that FTS-first retrieval step.
 
 ## Required reviewer fixes addressed
 
