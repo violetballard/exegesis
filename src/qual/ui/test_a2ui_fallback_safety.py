@@ -233,6 +233,11 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(manifest["capabilities_fingerprint"], a2ui_capabilities_contract_fingerprint())
         self.assertEqual(manifest["terminal_fallback_fingerprint"], terminal_fallback_contract_fingerprint())
+        self.assertEqual(manifest["terminal_fallback_contract"], manifest["terminal_fallback"])
+        self.assertEqual(
+            manifest["terminal_fallback_contract_fingerprint"],
+            manifest["terminal_fallback_fingerprint"],
+        )
         self.assertEqual(manifest["terminal_artifact_fingerprint"], terminal_artifact_contract_fingerprint())
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_fingerprint"],

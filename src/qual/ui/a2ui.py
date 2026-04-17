@@ -187,6 +187,8 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_contract_fingerprint"] = manifest["terminal_artifact_fingerprint"]
     manifest["terminal_artifact_render_target_contract"] = manifest["schemas"]["terminal_artifact_render_target"]
     manifest["terminal_artifact_render_target_contract_fingerprint"] = manifest["terminal_artifact_render_target_fingerprint"]
+    manifest["terminal_fallback_contract"] = manifest["terminal_fallback"]
+    manifest["terminal_fallback_contract_fingerprint"] = manifest["terminal_fallback_fingerprint"]
     manifest["terminal_artifact_raw_leaf_card_default"] = manifest["terminal_artifact"][
         "raw_leaf_card_default_contract"
     ]
