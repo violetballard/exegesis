@@ -83,7 +83,7 @@ This change advances the canonical demo-path step `retrieve relevant material` b
 
 ## Risks / blockers
 
-- Risk: `HIGH`
+- Risk: `MEDIUM`
 - Blockers: none
 
 ## Required handoff fields
