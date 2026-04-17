@@ -64,7 +64,7 @@
 ## Canonical Demo-Path Step Advanced
 
 - Primary step advanced: `open project/document`.
-- Why this step: `feat-commands` owns the CLI operator surface that starts the current MVP loop, so deterministic canonical command ordering and compatibility-token normalization directly harden the entry contract the operator hits first.
+- Why this step: `feat-commands` owns the CLI operator surface that starts the current MVP loop, so deterministic canonical command ordering and compatibility-token normalization directly harden the first operator action in the canonical demo path: opening a project or document through the stable CLI entry contract.
 - Concrete contract improvement:
   - `command_cli_contract()` now fails fast if the parser surface drifts from `command_names()`.
   - Canonical command ordering is returned directly from the catalog instead of being rebuilt from lookup order.
@@ -127,7 +127,7 @@
 
 ### Roadmap item(s) affected
 
-- Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands.
+- Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands, specifically at the `open project/document` entry step of the engine-first MVP demo path.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop, specifically the `open project/document` entry step.
 
 ### Vision capability affected
