@@ -232,6 +232,16 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["type"], "TerminalArtifactCliFallbackTargetContract")
         self.assertEqual(manifest["fallback_target_resolver"], "resolve_terminal_artifact_cli_fallback_target")
         self.assertEqual(manifest["fallback_renderer"], "ShellUI.render_artifact")
+        self.assertEqual(
+            manifest["renderer_entrypoints"],
+            {
+                "terminal_artifact": "render_terminal_artifact",
+                "cli_fallback": "render_terminal_cli_fallback",
+                "card": "render_terminal_card",
+                "action": "render_terminal_action",
+                "selection": "render_terminal_selection",
+            },
+        )
         self.assertEqual(manifest["supported_kinds"], list(TERMINAL_ARTIFACT_SUPPORTED_KINDS))
         self.assertEqual(manifest["default_kind"], TERMINAL_ARTIFACT_DEFAULT_KIND)
         self.assertTrue(manifest["preserve_raw_leaf_card_default"])

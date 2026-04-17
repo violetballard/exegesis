@@ -1346,6 +1346,13 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest() -> dict[str
         "fallback_renderer": "ShellUI.render_artifact",
         "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
         "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
+        "renderer_entrypoints": {
+            "terminal_artifact": "render_terminal_artifact",
+            "cli_fallback": "render_terminal_cli_fallback",
+            "card": "render_terminal_card",
+            "action": "render_terminal_action",
+            "selection": "render_terminal_selection",
+        },
         "preserve_raw_leaf_card_default": True,
         "raw_leaf_required_fields": ["id", "label", "payload"],
         "raw_leaf_hint_fields": {
