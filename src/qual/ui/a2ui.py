@@ -1562,6 +1562,12 @@ def _resolve_terminal_artifact_render_target(
         recovered_partial_kind = _infer_terminal_artifact_partial_leaf_kind(artifact)
         if recovered_partial_kind is not None:
             resolved_kind = recovered_partial_kind
+        else:
+            # Fall back to full schema validation when partial hints are absent
+            # but the payload still cleanly validates as a leaf artifact.
+            recovered_leaf_kind = _recover_terminal_artifact_leaf_kind(artifact)
+            if recovered_leaf_kind is not None:
+                resolved_kind = recovered_leaf_kind
     return artifact, resolved_kind
 
 
