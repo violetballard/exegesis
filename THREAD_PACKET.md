@@ -21,6 +21,7 @@
 - The reviewed implementation removes the PageIndex fallback from `fetch_excerpt`, so excerpt lookup now fails closed on the canonical FTS-only path.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs now raise `KeyError`.
 - AGENTS mapping: this narrowed slice directly advances the canonical `retrieve relevant material` step by forcing excerpt lookup through the FTS-backed contract and failing closed on non-FTS excerpt ids.
+- Basket-promotion rationale: because only FTS-backed excerpt ids can be re-fetched, downstream basket promotion and later revise/apply steps receive deterministic, auditable excerpt payloads instead of silently accepting PageIndex-only fallback data.
 - Reviewer-fix note: this packet remains intentionally narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and does not broaden scope beyond the FTS-only excerpt lookup contract and its regression coverage.
 - Source-of-truth note: this `THREAD_PACKET.md` handoff is the re-review packet for this fixer pass on top of `2927b494e6dbef6dbdef708b9cb9953ca9be8110`; `.codex` packet mirrors in this worktree are filesystem-protected and are not required to evaluate the narrowed retrieval scope.
 
@@ -74,6 +75,7 @@
 
 - `retrieve relevant material`
 - Explicit AGENTS mapping: this narrowed slice makes the canonical `retrieve relevant material` step more real by forcing excerpt lookup through the FTS-backed contract and failing closed instead of accepting PageIndex-only excerpt ids.
+- Explicit downstream effect: the stricter FTS-only excerpt contract keeps the excerpt payload that basket promotion consumes deterministic and auditable before later revise/apply workflow steps.
 - Reviewer source-of-truth note: this handoff follows the reviewer packet's narrowed excerpt-only range and should be re-reviewed against that exact slice rather than the broader branch-level retrieval history.
 - Re-review anchor: keep the reviewed implementation scope narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`; this metadata-only fixer commit does not broaden that slice.
 
