@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
 - Packet refresh commit: `9a208110d3d3fb740659b00daa9f04eb783f07e2`
-- Packet refresh role: `reviewer-fix scope tightening`
+- Packet refresh role: `reviewer-fix scope tightening verified`
 
 ## Packet Traceability Note
 
@@ -94,6 +94,9 @@
 - Refreshed the handoff packet so the review scope points at the current
   command-catalog implementation commit and the actual parser-surface invariant
   enforced in this branch.
+- Verified in this fixer pass that the reviewer-requested demo-path mapping
+  stays narrowed to the CLI-first `open project/document` step and that the
+  scope statement remains limited to command-catalog contract hardening only.
 - Re-ran the required lane gates after the reviewer-fix packet alignment and
   confirmed they still pass at the current branch tip.
 

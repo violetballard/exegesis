@@ -22,6 +22,9 @@ older lane/fixer prompts.
 - Final gate refresh: `make scope-check`, `./quality-format.sh --check`,
   `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
   `make ci` all passed again at the current branch tip.
+- Fixer verification: this pass re-checked that the reviewer-required mapping
+  stays narrowed to the CLI-first `open project/document` step and that the
+  packet scope remains command-catalog contract hardening only.
 - Approval artifact for the non-owned test path: the reviewer packet supplied
   to this fixer pass explicitly records `Approved shared-test exception for
   tests/unit/test_commands_catalog.py`.
