@@ -928,7 +928,11 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
     derived = {
         "promotion_ready": bool(first_excerpt_hit or first_doc_hit or first_excerpt_citation or first_doc_citation),
         "promotion_source": promotion_source,
-        "citation_available": bool(first_excerpt_hit or first_excerpt_citation),
+        # Rehydrated payloads can be doc-only while still exposing stable doc
+        # citations, so treat either citation path as basket-promotion ready.
+        "citation_available": bool(
+            first_excerpt_hit or first_doc_hit or first_excerpt_citation or first_doc_citation
+        ),
         "query_fingerprint": _first_text_value(
             payload.get("query_fingerprint"),
             retrieval_provenance.get("query_fingerprint"),

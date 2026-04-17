@@ -1120,7 +1120,9 @@ class RetrievalResult:
         promotion = {
             "promotion_ready": primary_excerpt_hit is not None or primary_doc_hit is not None,
             "promotion_source": promotion_source,
-            "citation_available": primary_excerpt_hit is not None,
+            # Doc-ranked promotions still carry stable doc citations, so
+            # basket/context consumers should treat them as auditable too.
+            "citation_available": primary_excerpt_hit is not None or primary_doc_hit is not None,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.diagnostics["query_scope"],
             "query_intent": self.diagnostics["query_intent"],
