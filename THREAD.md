@@ -30,3 +30,6 @@ older lane/fixer prompts.
   command surface explicit, keeping document-open aliases on the bootstrap
   route, and failing fast when parser/catalog ordering drifts instead of
   silently changing the operator-facing demo path.
+- Gate rerun note: the final feature-fixer verification was run against actual
+  branch tip `c71150bcbfd20219a1beaab7b090ac2a4b40d8d3`; see `THREAD_PACKET.md`
+  for the full required gate list and outcomes.

@@ -112,6 +112,7 @@
 
 ## Commands Run and Outcomes
 
+- Verified on actual branch tip `c71150bcbfd20219a1beaab7b090ac2a4b40d8d3` during the final feature-fixer pass.
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
