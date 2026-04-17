@@ -59,6 +59,7 @@
 
 - Reverified the reviewer-fix branch tip in this lane worktree on `2026-04-17`.
 - Confirmed the required fix packet remains aligned with the current branch tip after a full local gate rerun.
+- Did not reproduce any failing gate output on the current branch tip; the reviewer-required fix in this pass is the refreshed passing evidence below.
 
 ## Current Program Focus
 
@@ -124,8 +125,8 @@
 - `make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
-- `./quality-test.sh`: `PASS`
-- `./typecheck-test.sh`: `PASS`
+- `./quality-test.sh`: `PASS` (`198` tests, `OK`)
+- `./typecheck-test.sh`: `PASS` (`python3 -m compileall -q src`)
 - `make ci`: `PASS`
 
 ### Risks / Blockers
