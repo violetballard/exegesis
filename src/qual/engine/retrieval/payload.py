@@ -400,6 +400,9 @@ def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, o
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
     normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits"))
     normalized["doc_citations"] = _normalize_doc_citations(normalized.get("doc_citations"))
+    normalized["basket_promotion"] = _normalize_basket_promotion_snapshot(normalized.get("basket_promotion"))
+    if isinstance(normalized["basket_promotion"], dict):
+        normalized["basket_promotion"].pop("source_bundle_fingerprint", None)
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -418,6 +421,9 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
     normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits"))
     normalized["excerpt_citations"] = _normalize_excerpt_citations(normalized.get("excerpt_citations"))
+    normalized["basket_promotion"] = _normalize_basket_promotion_snapshot(normalized.get("basket_promotion"))
+    if isinstance(normalized["basket_promotion"], dict):
+        normalized["basket_promotion"].pop("source_bundle_fingerprint", None)
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -1931,6 +1937,7 @@ def _build_retrieval_doc_bundle_from_payload(payload: dict[str, object]) -> dict
         "doc_count": len(doc_hits),
         "doc_hits": doc_hits,
         "doc_citations": doc_citations,
+        "basket_promotion": _build_basket_promotion_from_payload(payload),
     })
 
 
@@ -1962,6 +1969,7 @@ def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> 
         "excerpt_count": len(excerpt_hits) if excerpt_hits else len(excerpt_citations),
         "excerpt_hits": excerpt_hits,
         "excerpt_citations": excerpt_citations,
+        "basket_promotion": _build_basket_promotion_from_payload(payload),
     })
 
 

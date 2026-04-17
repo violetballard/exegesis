@@ -839,6 +839,7 @@ class RetrievalResult:
             "doc_count": len(self.doc_hits),
             "doc_hits": [doc_hit.as_dict() for doc_hit in self.doc_hits],
             "doc_citations": self._doc_citation_snapshots(),
+            "basket_promotion": copy.deepcopy(bundle_context["basket_promotion"]),
         }
 
     def retrieval_excerpt_bundle(self) -> dict[str, object]:
@@ -851,6 +852,7 @@ class RetrievalResult:
             "excerpt_count": len(self.hits),
             "excerpt_hits": [hit.as_dict() for hit in self.hits],
             "excerpt_citations": self._excerpt_citation_snapshots(),
+            "basket_promotion": copy.deepcopy(bundle_context["basket_promotion"]),
         }
 
     def retrieval_context_bundle(self) -> dict[str, object]:
@@ -1158,11 +1160,12 @@ class RetrievalResult:
         citation_bundle = self.citation_bundle()
         citation_status = dict(citation_bundle["citation_status"])
         retrieval_policy = self._retrieval_policy_snapshot()
+        basket_promotion = self._basket_promotion_snapshot()
         retrieval_provenance = self._retrieval_provenance_snapshot(
             citation_bundle=citation_bundle,
             citation_status=citation_status,
             retrieval_policy=retrieval_policy,
-            basket_promotion=self._basket_promotion_snapshot(),
+            basket_promotion=basket_promotion,
         )
         return {
             "result_fingerprint": self.result_fingerprint,
@@ -1183,6 +1186,10 @@ class RetrievalResult:
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_provenance": copy.deepcopy(retrieval_provenance),
             "retrieval_evidence": copy.deepcopy(self.evidence),
+            # Keep the basket-ready promotion record next to the narrower
+            # doc/excerpt bundles so basket/context consumers do not need the
+            # larger downstream payload to pin retrieved material.
+            "basket_promotion": copy.deepcopy(basket_promotion),
         }
 
     def _basket_promotion_snapshot(self) -> dict[str, object]:
