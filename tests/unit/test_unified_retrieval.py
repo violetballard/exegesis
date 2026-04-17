@@ -1821,6 +1821,13 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "retrieval_citation_bundle": {
                     "query_date_range": ["2026-01-31", "2026-01-01"],
                 },
+                "retrieval_evidence": {
+                    "query_date_range": ["2026-01-31", "2026-01-01"],
+                    "retrieval_backend": "sqlite_fts",
+                    "retrieval_mode": "fts_first",
+                    "active_strategy_ids": ["fts"],
+                    "deferred_strategy_ids": ["pageindex", "embeddings"],
+                },
             },
         }
 
@@ -1841,6 +1848,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(
             source_bundle["retrieval_excerpt_bundle"]["query_date_range"],
+            ["2026-01-01", "2026-01-31"],
+        )
+        self.assertEqual(
+            source_bundle["retrieval_evidence"]["query_date_range"],
             ["2026-01-01", "2026-01-31"],
         )
         self.assertEqual(provenance["query_date_range"], ["2026-01-01", "2026-01-31"])
