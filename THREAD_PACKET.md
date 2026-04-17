@@ -2,14 +2,14 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Reviewed implementation commit: `e724470e3d3305b7f7ec38f1e818602aa6d9485a`
-- Packet refresh role: `reviewer-fix scope/traceability refresh`
+- Reviewed implementation commit: `b644f9ce04a7037ce96f3fe3790f338f03940520`
+- Packet refresh role: `reviewer-fix finalization`
 
 ## Packet Traceability Note
 
-- The reviewed implementation scope is the real branch-tip command change at `e724470e3d3305b7f7ec38f1e818602aa6d9485a`.
-- That implementation commit is not metadata-only: it changes `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
-- This packet refresh commit is metadata-only and exists only to correct the review traceability, scope summary, and roadmap/vision mapping around that implementation commit.
+- The reviewed implementation scope is the real branch-tip command change at `b644f9ce04a7037ce96f3fe3790f338f03940520`.
+- That implementation commit is not metadata-only: it is the current branch tip and captures the parser-ready retrieval shim hardening layered on top of the earlier command-shim contract work in this branch.
+- This packet refresh commit is metadata-only and exists only to correct the review traceability, scope summary, and roadmap/vision mapping around the actual reviewed implementation tip.
 - The approved shared-test exception remains limited to `tests/unit/test_commands_catalog.py`, the exact `feat-commands` shared-test path recorded in `scripts/scope-check.sh`.
 
 ## Current Program Focus
@@ -26,7 +26,7 @@
 
 ## Scope Goal
 
-- Stabilize the canonical demo-path command shims so the exported demo-path contract reports each surface token's parser-ready invocation and validates that those shim invocations stay aligned with the smoke contract.
+- Stabilize the canonical demo-path CLI shims so retrieval aliases and adjacent compatibility shims export parser-ready argv and stay deterministic under the smoke contract.
 
 ## Priority Outcomes
 
@@ -36,10 +36,11 @@
 
 ## Canonical Demo-Path Mapping
 
-- Explicit AGENTS demo-path step advanced: `preview and apply or reject a patch`.
-- Supporting CLI-fallback context on the same operator path: the exported contract continues to expose the parser-ready shims that keep adjacent `open project/document`, `retrieve relevant material`, and `save and continue` smoke commands deterministic while Textual remains disabled.
-- AGENTS alignment statement: this slice makes `preview and apply or reject a patch` more real by exposing and validating the exact parser-ready shim invocations for that step's CLI surface tokens, so the CLI-first smoke path fails fast if the advertised patch-review surface drifts from the parser entrypoints.
-- Concrete blocker removed: before this slice, `command_demo_path_contract()` described parser-ready smoke argv for each canonical step, but it did not expose or validate the per-surface shim invocations that map aliases like `patch-review`, `apply-patch`, and `reject-patch` back to the parser entrypoints. This change makes that patch-review shim surface explicit and testable instead of implicit.
+- Single canonical demo-path step advanced: `retrieve relevant material`.
+- Why this exact step: the reviewed implementation only tightens the retrieval shim/export contract and tests around parser-ready retrieval invocations; it does not claim new behavior for `open project/document`, `preview and apply or reject a patch`, or `save and continue`.
+- AGENTS alignment statement: this slice makes `retrieve relevant material` more real by exporting parser-ready retrieval shim argv for surface tokens like `retrieval` and `retrieve`, then validating that those shim invocations stay aligned with the demo-path contract instead of silently collapsing to a bare primary token.
+- Concrete blocker removed for that step: before this slice, the shim catalog defaulted unoverridden surface tokens to only the primary CLI token, so retrieval aliases could be advertised without exporting the parser-ready `context-basket list` invocation they actually need. That left the retrieval step's CLI fallback surface partially implicit. This change makes the retrieval parser entrypoint explicit, smoke-testable, and drift-resistant.
+- Why this is not second-order work: the current MVP loop depends on a stable CLI fallback while Textual remains disabled, and `retrieve relevant material` is one of the canonical demo-path steps. Tightening the exported shim contract for that exact step removes a concrete smoke-test blind spot instead of broadening the command surface.
 
 ## Definition of Done for This Lane
 
@@ -67,9 +68,10 @@
 ## Scope Completed
 
 - Extended `CommandDemoPathEntry` in `src/qual/commands/catalog.py` with `surface_invocations` so the canonical demo-path contract exposes the parser-ready argv produced for every surface token in each flow step.
-- Hardened `_validate_command_demo_path_contract()` so the demo-path contract now rejects drift between the advertised surface tokens and the exported shim invocation table.
-- Updated `command_demo_path_contract()` to collect the per-step shim invocations from `command_cli_shim_catalog()` and attach them to each demo-path entry.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` that verifies the parser-ready invocation map for the patch-review step and its adjacent CLI-fallback export handoff, including `diff`, `review-patch`, `apply-patch`, and `reject-patch`.
+- Hardened `_validate_command_demo_path_contract()` so the demo-path contract rejects drift between the advertised surface tokens and the exported shim invocation table.
+- Added per-command `surface_argv` and taught `command_cli_shim_catalog()` to export parser-ready default argv, so retrieval aliases now map to `context-basket list` instead of a bare `context-basket` token.
+- Pinned terminal shim `--operation-kind` defaults and normalized repeated explicit shim options so compatibility shims for `persist`, `apply-patch`, and `reject-patch` stay deterministic while the retrieval step remains parser-ready.
+- Expanded regression coverage in `tests/unit/test_commands_catalog.py` for retrieval shim argv, terminal shim pinning, duplicate option normalization, and demo-path surface invocation export.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -85,8 +87,9 @@
 
 1. Added demo-path contract support for explicit surface-token invocation mappings.
 2. Validated that demo-path surface invocations stay aligned with the smoke contract surface.
-3. Added regression coverage for parser-ready patch-review and export-handoff shim invocations.
-4. Refreshed the handoff packet so the reviewed implementation commit, roadmap/vision mapping, and traceable shared-test approval reference match the actual branch state.
+3. Made retrieval aliases export parser-ready `context-basket list` argv and pinned terminal shim operation kinds so adjacent compatibility shims stay deterministic.
+4. Expanded regression coverage for retrieval and terminal shim normalization behavior.
+5. Refreshed the handoff packet so the reviewed implementation commit, roadmap/vision mapping, and traceable shared-test approval reference match the actual branch state.
 
 ## Files Changed
 
@@ -118,12 +121,13 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` - strengthens the canonical demo-path step `preview and apply or reject a patch` by making its CLI shim surface explicit and verifiable while Textual remains disabled.
-- `feat-commands` - keeps the migration-safe CLI entrypoints for that demo-path step deterministic and smoke-testable inside the engine-first MVP loop.
+- `Milestone 3: Real workflow loop` - strengthens the canonical demo-path step `retrieve relevant material` by making its retrieval CLI shim surface parser-ready and verifiable while Textual remains disabled.
+- `feat-commands` - keeps the migration-safe CLI entrypoints for that retrieval step deterministic and smoke-testable inside the engine-first MVP loop.
 
 ### Vision capability affected
 
-- `Canonical engine contract` - the exported demo-path contract now includes the parser-ready shim invocations for `preview and apply or reject a patch`, keeping that CLI compatibility surface explicit instead of implicit while Textual remains disabled.
+- `Canonical engine contract` - the exported demo-path contract now includes the parser-ready retrieval shim invocations for `retrieve relevant material`, keeping that CLI compatibility surface explicit instead of implicit while Textual remains disabled.
+- `Retrieval-first context handling` - retrieval aliases now normalize to the parser-ready `context-basket list` entrypoint instead of a bare command token, keeping the FTS-first context surface deterministic and auditable for CLI smoke paths.
 
 ### Routing/provider impact note
 
