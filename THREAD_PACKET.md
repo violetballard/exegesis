@@ -157,10 +157,9 @@
 - Canonical engine contract - CLI compatibility remains stable while the
   command-catalog surface rejects parser drift before it can silently change
   the CLI operator contract for the current engine-first MVP loop.
-- No additional Product Vision capability is claimed for this slice. The
-  reviewed implementation is limited to deterministic CLI compatibility for the
-  active engine-first operator surface and does not change workflow behavior,
-  persisted state, or auditability.
+- Scope limit note: this slice does not claim workflow, persisted-state, or
+  auditability changes. It is limited to deterministic CLI compatibility for
+  the active engine-first operator surface while Textual remains disabled.
 
 ### Routing/provider impact note
 
