@@ -42,7 +42,7 @@
 
 ## Packet Traceability Note
 
-- This fixer refresh is anchored to branch tip `35af142f58990ba07ee792ae309dafa393fd5692`.
+- This fixer refresh is anchored to pre-fix branch tip `72c9180992b2c45c7776dfc2155ecfecb39c9bfe`.
 - Implementation commits in scope:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` - lock `command_cli_contract()` to canonical catalog ordering.
   - `802b61876fff8125fb7f2af16e2f951219eee546` - tighten demo workflow preferred commands.
@@ -128,11 +128,11 @@
 ### Roadmap item(s) affected
 
 - Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
+- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop, specifically the `open project/document` entry step.
 
 ### Vision capability affected
 
-- Canonical engine contract - the CLI compatibility surface stays stable and smoke-testable while Textual remains disabled.
+- Canonical engine contract - the CLI compatibility surface for `open project/document` stays stable and smoke-testable while Textual remains disabled.
 
 ### Routing/provider impact note
 
