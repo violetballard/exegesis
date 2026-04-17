@@ -22,6 +22,7 @@
 
 - `retrieve relevant material`
 - This branch state makes that step more real by ensuring excerpt lookup resolves only through the authoritative FTS-backed path and by keeping the retrieval contract deterministic and auditable for downstream engine flows.
+- This packet does not claim to advance `promote or gather context into the basket`; it stays scoped to the retrieval contract itself.
 
 ## Tasks completed
 
@@ -46,6 +47,8 @@
 
 ### Packet / handoff files
 
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
 
 ## Commands run with results
@@ -78,6 +81,7 @@
 
 - `retrieve relevant material`
 - This branch state makes that step more real by ensuring excerpt lookup only succeeds through the authoritative FTS-backed path and by preserving a deterministic, auditable FTS-first retrieval contract.
+- This packet remains scoped to the retrieval step itself and does not claim basket-promotion changes.
 
 ### Routing/provider impact note
 
