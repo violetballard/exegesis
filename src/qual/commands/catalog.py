@@ -13,6 +13,7 @@ class CommandSpec:
     cli_exposed: bool = True
     smoke_argv: tuple[str, ...] = ()
     shim_argv: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    shim_pinned_options: tuple[tuple[str, tuple[str, ...]], ...] = ()
     description: str = ""
     flow_step: str = "general"
 
@@ -491,6 +492,44 @@ def _shim_argv_overrides_for_spec(spec: CommandSpec) -> tuple[tuple[str, tuple[s
     return tuple(overrides)
 
 
+def _shim_pinned_options_for_spec(spec: CommandSpec) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    if not spec.shim_pinned_options:
+        return ()
+
+    known_surface_tokens = _flow_surface_tokens(*_lookup_resolution_tokens(spec), spec.flow_step)
+    known_surface_index = {token: token for token in known_surface_tokens}
+    seen_tokens: set[str] = set()
+    pinned_options: list[tuple[str, tuple[str, ...]]] = []
+    for raw_token, raw_option_names in spec.shim_pinned_options:
+        normalized_token = _normalize_token(raw_token)
+        if not normalized_token:
+            raise ValueError(f"Command {spec.name} has an empty pinned shim token")
+        if normalized_token not in known_surface_index:
+            raise ValueError(
+                f"Command {spec.name} pinned shim token is not part of the command surface: {raw_token}"
+            )
+        if normalized_token in seen_tokens:
+            raise ValueError(f"Command {spec.name} has a duplicate pinned shim token: {raw_token}")
+        seen_tokens.add(normalized_token)
+
+        normalized_option_names: list[str] = []
+        seen_option_names: set[str] = set()
+        for raw_option_name in raw_option_names:
+            option_name = raw_option_name.strip()
+            if not option_name.startswith("-"):
+                raise ValueError(
+                    f"Command {spec.name} pinned shim option must be an option token: {raw_option_name}"
+                )
+            if option_name in seen_option_names:
+                raise ValueError(
+                    f"Command {spec.name} has a duplicate pinned shim option: {raw_option_name}"
+                )
+            seen_option_names.add(option_name)
+            normalized_option_names.append(option_name)
+        pinned_options.append((normalized_token, tuple(normalized_option_names)))
+    return tuple(pinned_options)
+
+
 def _shim_option_names(argv: tuple[str, ...]) -> set[str]:
     option_names: set[str] = set()
     index = 0
@@ -546,6 +585,8 @@ def _normalize_explicit_shim_args(explicit_args: tuple[str, ...]) -> tuple[str, 
 def _merge_shim_argv(
     shim_argv: tuple[str, ...],
     explicit_args: tuple[str, ...],
+    *,
+    pinned_options: frozenset[str] = frozenset(),
 ) -> tuple[str, ...]:
     normalized_explicit_args = _normalize_explicit_shim_args(explicit_args)
     if len(shim_argv) <= 1 or not normalized_explicit_args:
@@ -556,7 +597,7 @@ def _merge_shim_argv(
     index = 1
     while index < len(shim_argv):
         token = shim_argv[index]
-        if token.startswith("-") and token in overridden_options:
+        if token.startswith("-") and token not in pinned_options and token in overridden_options:
             if index + 1 < len(shim_argv) and not shim_argv[index + 1].startswith("-"):
                 index += 2
                 continue
@@ -564,7 +605,25 @@ def _merge_shim_argv(
             continue
         merged.append(token)
         index += 1
-    return (*merged, *normalized_explicit_args)
+    if not pinned_options:
+        return (*merged, *normalized_explicit_args)
+
+    filtered_explicit_args: list[str] = []
+    index = 0
+    while index < len(normalized_explicit_args):
+        token = normalized_explicit_args[index]
+        option_name = token.partition("=")[0] if token.startswith("-") else ""
+        if option_name and option_name in pinned_options:
+            if "=" not in token and index + 1 < len(normalized_explicit_args):
+                next_token = normalized_explicit_args[index + 1]
+                if not next_token.startswith("-"):
+                    index += 2
+                    continue
+            index += 1
+            continue
+        filtered_explicit_args.append(token)
+        index += 1
+    return (*merged, *filtered_explicit_args)
 
 
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
@@ -682,6 +741,15 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
                 ),
             ),
         ),
+        shim_pinned_options=(
+            ("export", ("--operation-kind",)),
+            ("save-export", ("--operation-kind",)),
+            ("export-handoff", ("--operation-kind",)),
+            ("persist", ("--operation-kind",)),
+            ("persist-continue", ("--operation-kind",)),
+            ("apply-patch", ("--operation-kind",)),
+            ("reject-patch", ("--operation-kind",)),
+        ),
         description="Run terminal export handoff routing.",
         flow_step="export-handoff",
     ),
@@ -758,10 +826,15 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
                 raise ValueError(f"Command {spec.name} must not declare smoke argv when cli_exposed is false")
             if spec.shim_argv:
                 raise ValueError(f"Command {spec.name} must not declare shim argv when cli_exposed is false")
+            if spec.shim_pinned_options:
+                raise ValueError(
+                    f"Command {spec.name} must not declare pinned shim options when cli_exposed is false"
+                )
             continue
 
         _smoke_argv_for_spec(spec)
         _shim_argv_overrides_for_spec(spec)
+        _shim_pinned_options_for_spec(spec)
 
 
 @lru_cache(maxsize=None)
@@ -1313,6 +1386,11 @@ def command_cli_shim_argv_for(
     if raw_argv[0].lstrip().startswith("-"):
         return raw_argv
     invocation_lookup = dict(command_cli_shim_invocation_table(specs, flow_steps))
+    pinned_options_lookup = {
+        shim_token: frozenset(option_names)
+        for spec in specs
+        for shim_token, option_names in _shim_pinned_options_for_spec(spec)
+    }
     normalized_token = _normalize_token(raw_argv[0])
     shim_argv = invocation_lookup.get(normalized_token)
     if len(raw_argv) == 1:
@@ -1321,7 +1399,11 @@ def command_cli_shim_argv_for(
     elif shim_argv is not None and len(shim_argv) > 1:
         # Preserve alias-specific default routing while still allowing callers to
         # append explicit parser flags for deterministic CLI smoke paths.
-        return _merge_shim_argv(shim_argv, raw_argv[1:])
+        return _merge_shim_argv(
+            shim_argv,
+            raw_argv[1:],
+            pinned_options=pinned_options_lookup.get(normalized_token, frozenset()),
+        )
     primary_token = command_cli_shim_primary_token_for(specs, raw_argv[0], flow_steps)
     if not primary_token:
         return raw_argv
