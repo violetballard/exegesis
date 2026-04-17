@@ -971,6 +971,12 @@ class RetrievalResult:
             "promotion_source": promotion_source,
             "citation_available": primary_excerpt_hit is not None,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
+            "query_scope": self.diagnostics["query_scope"],
+            "query_intent": self.diagnostics["query_intent"],
+            "query_confidentiality_profile": self.diagnostics["query_confidentiality_profile"],
+            "query_date_range": copy.deepcopy(self.diagnostics["date_range"]),
+            "candidate_doc_count": self.diagnostics["candidate_doc_count"],
+            "fts_shortlist_doc_ids": copy.deepcopy(self.diagnostics["fts_shortlist_doc_ids"]),
             "result_fingerprint": self.result_fingerprint,
             "doc_id": (
                 primary_excerpt_hit.doc_id
@@ -2717,6 +2723,14 @@ class RetrievalService:
             "promotion_source": "lookup_excerpt",
             "citation_available": True,
             "query_fingerprint": _optional_text(provenance.get("query_fingerprint")),
+            "query_scope": _normalize_query_scope_payload(provenance.get("query_scope")),
+            "query_intent": _normalize_query_intent_payload(provenance.get("query_intent")),
+            "query_confidentiality_profile": _normalized_profile_text(
+                provenance.get("query_confidentiality_profile")
+            ),
+            "query_date_range": _normalize_query_date_range_payload(provenance.get("query_date_range")),
+            "candidate_doc_count": _optional_int(provenance.get("candidate_doc_count")),
+            "fts_shortlist_doc_ids": _normalize_doc_id_list_payload(provenance.get("fts_shortlist_doc_ids")),
             "result_fingerprint": _optional_text(excerpt.get("result_fingerprint"))
             or _optional_text(provenance.get("result_fingerprint"))
             or lookup_fingerprint,

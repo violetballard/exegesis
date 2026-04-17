@@ -1371,6 +1371,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["basket_promotion"]["promotion_source"], "lookup_excerpt")
         self.assertTrue(normalized["basket_promotion"]["promotion_ready"])
         self.assertTrue(normalized["basket_promotion"]["citation_available"])
+        self.assertEqual(normalized["basket_promotion"]["query_scope"], "vault")
+        self.assertEqual(normalized["basket_promotion"]["query_intent"], "lookup")
+        self.assertEqual(normalized["basket_promotion"]["query_date_range"], ["2026-01-01", "2026-01-31"])
+        self.assertEqual(normalized["basket_promotion"]["candidate_doc_count"], 2)
         self.assertEqual(normalized["basket_promotion"]["result_fingerprint"], normalized["result_fingerprint"])
         self.assertEqual(normalized["basket_promotion"]["doc_id"], "doc-pdf-1")
         self.assertEqual(normalized["basket_promotion"]["excerpt_id"], "excerpt-sparse-1")
@@ -1447,6 +1451,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["fts_rank"], -0.75)
         self.assertEqual(normalized["section_hint"], "discussion notes")
         self.assertEqual(normalized["section_hint_rank"], 1)
+        self.assertEqual(normalized["basket_promotion"]["query_confidentiality_profile"], "standard")
+        self.assertEqual(normalized["basket_promotion"]["candidate_doc_count"], 3)
+        self.assertEqual(normalized["basket_promotion"]["section_hint"], "discussion notes")
+        self.assertEqual(normalized["basket_promotion"]["section_hint_rank"], 1)
         self.assertEqual(normalized["provenance"]["query_confidentiality_profile"], "standard")
         self.assertEqual(normalized["provenance"]["candidate_doc_count"], 3)
         self.assertEqual(normalized["provenance"]["rank"], 4)
@@ -3091,6 +3099,60 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
 
         self.assertEqual(payload["basket_promotion"], result.to_downstream_payload()["basket_promotion"])
+
+    def test_basket_promotion_snapshot_carries_query_context_for_promotion(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        promotion = result.to_downstream_payload()["basket_promotion"]
+        self.assertEqual(promotion["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(promotion["query_scope"], "vault")
+        self.assertEqual(promotion["query_intent"], "compare")
+        self.assertEqual(promotion["query_confidentiality_profile"], "confidential")
+        self.assertIsNone(promotion["query_date_range"])
+        self.assertEqual(promotion["candidate_doc_count"], result.diagnostics["candidate_doc_count"])
+        self.assertEqual(promotion["fts_shortlist_doc_ids"], result.diagnostics["fts_shortlist_doc_ids"])
+
+    def test_basket_promotion_backfill_uses_retrieval_query_context(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        sparse_source_bundle = result.source_bundle()
+        basket_promotion = sparse_source_bundle.get("basket_promotion")
+        self.assertIsInstance(basket_promotion, dict)
+        basket_promotion["query_scope"] = None
+        basket_promotion["query_intent"] = None
+        basket_promotion["query_confidentiality_profile"] = None
+        basket_promotion["candidate_doc_count"] = None
+        basket_promotion["fts_shortlist_doc_ids"] = []
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        payload = build_retrieval_downstream_payload_from_result(_SourceBundleOnlySource(sparse_source_bundle))
+        self.assertEqual(payload["basket_promotion"]["query_scope"], "vault")
+        self.assertEqual(payload["basket_promotion"]["query_intent"], "compare")
+        self.assertEqual(payload["basket_promotion"]["query_confidentiality_profile"], "confidential")
+        self.assertEqual(payload["basket_promotion"]["candidate_doc_count"], result.diagnostics["candidate_doc_count"])
+        self.assertEqual(payload["basket_promotion"]["fts_shortlist_doc_ids"], result.diagnostics["fts_shortlist_doc_ids"])
 
     def test_retrieval_downstream_payload_helper_normalizes_evidence_strategy_ids_from_source_bundle(self) -> None:
         result = self.service.retrieve_auto(

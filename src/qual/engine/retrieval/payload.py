@@ -581,13 +581,40 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
         normalized["section_hint"] = section_hint
     elif "section_hint" in normalized:
         normalized["section_hint"] = None
+    query_scope = _normalize_optional_text(normalized.get("query_scope"))
+    if query_scope is not None:
+        normalized["query_scope"] = query_scope
+    elif "query_scope" in normalized:
+        normalized["query_scope"] = None
+    query_intent = _normalize_optional_text(normalized.get("query_intent"))
+    if query_intent is not None:
+        normalized["query_intent"] = query_intent
+    elif "query_intent" in normalized:
+        normalized["query_intent"] = None
+    query_confidentiality_profile = _normalize_query_confidentiality_profile(
+        normalized.get("query_confidentiality_profile")
+    )
+    if query_confidentiality_profile is not None:
+        normalized["query_confidentiality_profile"] = query_confidentiality_profile
+    elif "query_confidentiality_profile" in normalized:
+        normalized["query_confidentiality_profile"] = None
+    query_date_range = _normalize_query_date_range(normalized.get("query_date_range"))
+    if query_date_range is not None:
+        normalized["query_date_range"] = query_date_range
+    elif "query_date_range" in normalized:
+        normalized["query_date_range"] = None
+    fts_shortlist_doc_ids = _normalize_optional_list_like(normalized.get("fts_shortlist_doc_ids"))
+    if fts_shortlist_doc_ids is not None:
+        normalized["fts_shortlist_doc_ids"] = _normalize_text_list_like(fts_shortlist_doc_ids)
+    elif "fts_shortlist_doc_ids" in normalized:
+        normalized["fts_shortlist_doc_ids"] = []
     promotion_ready = _normalize_optional_bool(normalized.get("promotion_ready"))
     if promotion_ready is not None:
         normalized["promotion_ready"] = promotion_ready
     citation_available = _normalize_optional_bool(normalized.get("citation_available"))
     if citation_available is not None:
         normalized["citation_available"] = citation_available
-    for field_name in ("match_count", "rank", "doc_rank", "section_hint_rank"):
+    for field_name in ("candidate_doc_count", "match_count", "rank", "doc_rank", "section_hint_rank"):
         field_value = _normalize_optional_int(normalized.get(field_name))
         if field_value is not None:
             normalized[field_name] = field_value
@@ -674,6 +701,48 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
             payload.get("query_fingerprint"),
             retrieval_provenance.get("query_fingerprint"),
             retrieval_summary.get("query_fingerprint"),
+        ),
+        "query_scope": _first_text_value(
+            payload.get("query_scope"),
+            retrieval_provenance.get("query_scope"),
+            retrieval_summary.get("query_scope"),
+            retrieval_citation_bundle.get("query_scope"),
+        ),
+        "query_intent": _first_text_value(
+            payload.get("query_intent"),
+            retrieval_provenance.get("query_intent"),
+            retrieval_summary.get("query_intent"),
+            retrieval_citation_bundle.get("query_intent"),
+        ),
+        "query_confidentiality_profile": _normalize_query_confidentiality_profile(
+            _first_text_value(
+                payload.get("query_confidentiality_profile"),
+                retrieval_provenance.get("query_confidentiality_profile"),
+                retrieval_summary.get("query_confidentiality_profile"),
+                retrieval_citation_bundle.get("query_confidentiality_profile"),
+            )
+        ),
+        "query_date_range": _normalize_query_date_range(
+            _first_non_none_value(
+                payload.get("query_date_range"),
+                retrieval_provenance.get("query_date_range"),
+                retrieval_summary.get("query_date_range"),
+                retrieval_citation_bundle.get("query_date_range"),
+            )
+        ),
+        "candidate_doc_count": _first_non_none_value(
+            payload.get("candidate_doc_count"),
+            retrieval_provenance.get("candidate_doc_count"),
+            retrieval_summary.get("candidate_doc_count"),
+            retrieval_citation_bundle.get("candidate_doc_count"),
+        ),
+        "fts_shortlist_doc_ids": _normalize_text_list_like(
+            _first_non_none_value(
+                payload.get("fts_shortlist_doc_ids"),
+                retrieval_provenance.get("fts_shortlist_doc_ids"),
+                retrieval_summary.get("fts_shortlist_doc_ids"),
+                retrieval_citation_bundle.get("fts_shortlist_doc_ids"),
+            )
         ),
         "result_fingerprint": _first_text_value(
             payload.get("result_fingerprint"),
