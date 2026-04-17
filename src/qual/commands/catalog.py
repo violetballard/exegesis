@@ -2832,6 +2832,26 @@ _COMMAND_DEMO_COMPATIBILITY_TOKENS: dict[str, str] = {
     "queue-export": "export-handoff",
 }
 
+_COMMAND_DEMO_COMPATIBILITY_VARIANTS: dict[str, str] = {
+    "project-bootstrap": "project-open",
+    "bootstrap-project": "project-open",
+    "open-workspace": "project-open",
+    "retrieve-context": "retrieval",
+    "gather-context": "retrieval",
+    "load-context": "retrieval",
+    "review-diff": "patch-review",
+    "preview-diff": "patch-review",
+    "approve-patch": "apply-patch",
+    "accept-patch": "apply-patch",
+    "decline-patch": "reject-patch",
+    "discard-patch": "reject-patch",
+    "save-work": "persist",
+    "continue-work": "persist",
+    "resume-work": "persist",
+    "handoff-export": "export-handoff",
+    "queue-handoff": "export-handoff",
+}
+
 
 def _demo_loop_description_for(token: str, resolved: ResolvedCommand) -> str:
     return _COMMAND_DEMO_LOOP_DESCRIPTIONS.get(token, resolved.description)
@@ -2841,6 +2861,9 @@ def _normalize_demo_compatibility_token(token: str) -> str:
     normalized_token = _normalize_token(token)
     if not normalized_token:
         return token
+    variant_token = _COMMAND_DEMO_COMPATIBILITY_VARIANTS.get(normalized_token)
+    if variant_token is not None:
+        return variant_token
     return _COMMAND_DEMO_COMPATIBILITY_TOKENS.get(normalized_token, normalized_token)
 
 
@@ -3306,6 +3329,10 @@ def _command_demo_transition_token_lookup(
         normalized_compatibility_token = _normalize_token(entry.token)
         if normalized_compatibility_token:
             lookup[normalized_compatibility_token] = entry.canonical_token
+    for variant_token, canonical_token in _COMMAND_DEMO_COMPATIBILITY_VARIANTS.items():
+        normalized_variant_token = _normalize_token(variant_token)
+        if normalized_variant_token:
+            lookup.setdefault(normalized_variant_token, canonical_token)
 
     return lookup
 
