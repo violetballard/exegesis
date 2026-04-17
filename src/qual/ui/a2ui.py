@@ -523,6 +523,20 @@ def _build_a2ui_contract_fingerprint_summary(
     )
 
 
+def describe_a2ui_dispatch_contract_fingerprints() -> dict[str, str]:
+    """Return the full route-aware A2UI dispatch fingerprint summary."""
+
+    return describe_a2ui_contract_fingerprints(
+        include_action=True,
+        include_terminal_artifact=True,
+        include_terminal_artifact_render_target=True,
+        include_terminal_artifact_rendering=True,
+        include_terminal_artifact_cli_fallback=True,
+        include_terminal_artifact_cli_fallback_target=True,
+        include_terminal_artifact_cli_fallback_route=True,
+    )
+
+
 def describe_selection_contract() -> dict[str, Any]:
     """Return the stable, versioned SelectionRef contract manifest."""
 

@@ -22,6 +22,7 @@ from src.qual.ui.a2ui import (
     build_unknown_card,
     describe_a2ui_contract,
     describe_a2ui_contract_fingerprints,
+    describe_a2ui_dispatch_contract_fingerprints,
     describe_a2ui_capabilities_contract,
     describe_action_contract,
     describe_card_contract,
@@ -1246,6 +1247,20 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn(
             "terminal_artifact_raw_leaf_card_default_policy",
             describe_a2ui_contract_fingerprints(),
+        )
+
+    def test_a2ui_dispatch_contract_fingerprints_are_full_surface_and_route_aware(self) -> None:
+        fingerprints = describe_a2ui_dispatch_contract_fingerprints()
+        manifest = describe_a2ui_contract(include_terminal_artifact_cli_fallback_route=True)
+
+        self.assertEqual(fingerprints, manifest["contract_fingerprints"])
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact"],
+            terminal_artifact_contract_fingerprint(include_terminal_artifact_cli_fallback_route=True),
         )
 
     def test_a2ui_contract_fingerprint_map_can_opt_into_raw_leaf_card_default_dispatch(self) -> None:
