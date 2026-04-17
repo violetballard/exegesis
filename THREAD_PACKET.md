@@ -3,13 +3,14 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `58b74ba1f29717f4e450357c1c1d0787d5284ff9`
-- Packet refresh role: `reviewer-required demo-path alignment, gate rerun, and finalization`
+- Packet refresh role: `feature-fixer final reviewer-fix verification and gate rerun`
 
 ## Packet Traceability Note
 
 - The implementation commit above refers to the runtime fix commit that carries the reviewer-required command-surface hardening plus the demo-path contract narrowing for this lane.
 - This packet refresh keeps the handoff wording aligned with the current implementation and records the final required gate rerun for the reviewer-fix branch tip.
 - Final verification refresh: re-ran the required gate suite on April 16, 2026 (America/Los_Angeles) after confirming the reviewer-required demo-path alignment is still present on this branch tip.
+- Feature-fixer verification refresh: re-ran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on April 16, 2026 (America/Los_Angeles) to attach a fresh fixer commit to the reviewer-required packet alignment.
 - Reviewer-fix follow-up scope: the branch tip now narrows the default `demo` / `mvp` command-flow helpers to the documented Milestone 3 steps (`project-open`, `retrieval`, `patch-review`) while leaving `terminal` available in the broader parser surface for non-demo command resolution and compatibility shims.
 
 ## Current Program Focus
@@ -118,6 +119,7 @@
 - Re-verified on the current `codex/feat-commands` branch tip that the reviewer-required fixes are present in the implementation: `command_cli_contract()` now rejects default-catalog parser-surface drift, and `tests/unit/test_commands_catalog.py` covers missing-primary-token, alias-substitution, extra-entrypoint, and primary-token-order drift where canonical command order alone would still be insufficient.
 - Re-verified that the default `demo` / `mvp` command-flow helpers no longer include `export-handoff`, while the broader parser-surface helpers still expose `terminal` and its compatibility shims for non-demo command resolution.
 - This handoff refresh is tied to a fresh full gate rerun on the current packet-refresh branch tip, using the standard `make scope-check` invocation because this follow-up commit only adjusts packet metadata and does not expand the reviewed implementation scope beyond the already-approved shared test exception.
+- Feature-fixer note: this refresh exists only to record the final gate rerun and produce the requested new commit on top of the already-applied reviewer-required fixes.
 
 ## Risks / Blockers
 
