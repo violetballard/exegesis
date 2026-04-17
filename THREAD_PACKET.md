@@ -20,12 +20,10 @@
 - Required fix 1 satisfied: this packet explicitly states which canonical
   demo-path steps this command-catalog change makes more real for the
   CLI-first MVP loop.
-- Required fix 2 satisfied: the `Files changed` section now includes both
-  metadata-only handoff files touched by the refresh flow,
-  `THREAD_PACKET.md` and `THREAD.md`.
-- Required fix 3 satisfied: the approval basis stays scoped to the reviewed
-  implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and the
-  narrow command-catalog work only.
+- Required fix 2 satisfied: the scope statement stays narrow and keeps this
+  refresh limited to the reviewed implementation commit
+  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and the command-catalog contract
+  hardening slice only.
 
 ## Current Program Focus
 
