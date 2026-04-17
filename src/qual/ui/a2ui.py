@@ -337,6 +337,7 @@ def describe_selection_contract() -> dict[str, Any]:
     manifest = _build_selection_contract_manifest()
     fingerprint = selection_contract_fingerprint()
     manifest["selection_fingerprint"] = fingerprint
+    manifest["selection_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     return manifest
 
@@ -347,6 +348,7 @@ def describe_action_contract() -> dict[str, Any]:
     manifest = _build_action_contract_manifest()
     fingerprint = action_contract_fingerprint()
     manifest["action_fingerprint"] = fingerprint
+    manifest["action_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     return manifest
 
@@ -357,6 +359,7 @@ def describe_card_contract() -> dict[str, Any]:
     manifest = _build_card_contract_manifest()
     fingerprint = card_contract_fingerprint()
     manifest["card_fingerprint"] = fingerprint
+    manifest["card_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     return manifest
 
@@ -377,6 +380,7 @@ def describe_terminal_fallback_contract() -> dict[str, Any]:
     manifest = _build_terminal_fallback_contract_manifest()
     fingerprint = terminal_fallback_contract_fingerprint()
     manifest["terminal_fallback_fingerprint"] = fingerprint
+    manifest["terminal_fallback_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     return manifest
 
@@ -387,6 +391,7 @@ def describe_terminal_artifact_raw_leaf_card_default_contract() -> dict[str, Any
     manifest = _build_terminal_artifact_raw_leaf_card_default_contract_manifest()
     fingerprint = terminal_artifact_raw_leaf_card_default_contract_fingerprint()
     manifest["raw_leaf_card_default_fingerprint"] = fingerprint
+    manifest["raw_leaf_card_default_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     manifest["raw_leaf_card_default_contract_fingerprints"] = describe_terminal_artifact_raw_leaf_card_default_contract_fingerprints()
     return manifest
@@ -408,6 +413,7 @@ def describe_terminal_artifact_contract() -> dict[str, Any]:
     manifest = _build_terminal_artifact_contract_manifest()
     fingerprint = terminal_artifact_contract_fingerprint()
     manifest["terminal_artifact_fingerprint"] = fingerprint
+    manifest["terminal_artifact_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     manifest["terminal_artifact_render_target"] = manifest["render_target_contract"]
     manifest["terminal_artifact_render_target_fingerprint"] = terminal_artifact_render_target_contract_fingerprint()
@@ -425,6 +431,7 @@ def describe_terminal_artifact_render_target_contract() -> dict[str, Any]:
     manifest = _build_terminal_artifact_render_target_contract_manifest()
     fingerprint = terminal_artifact_render_target_contract_fingerprint()
     manifest["terminal_artifact_render_target_fingerprint"] = fingerprint
+    manifest["terminal_artifact_render_target_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     manifest["raw_leaf_card_default_contract_fingerprint"] = manifest["raw_leaf_card_default_contract"][
         "contract_fingerprint"
@@ -464,6 +471,7 @@ def describe_terminal_artifact_rendering_contract() -> dict[str, Any]:
     manifest = _build_terminal_artifact_rendering_contract_manifest()
     fingerprint = terminal_artifact_rendering_contract_fingerprint()
     manifest["terminal_artifact_rendering_fingerprint"] = fingerprint
+    manifest["terminal_artifact_rendering_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     manifest["terminal_artifact_render_target"] = manifest["render_target_contract"]
     manifest["terminal_artifact_render_target_fingerprint"] = terminal_artifact_render_target_contract_fingerprint()
@@ -506,6 +514,7 @@ def describe_terminal_artifact_cli_fallback_contract() -> dict[str, Any]:
     manifest = _build_terminal_artifact_cli_fallback_contract_manifest()
     fingerprint = terminal_artifact_cli_fallback_contract_fingerprint()
     manifest["terminal_artifact_cli_fallback_fingerprint"] = fingerprint
+    manifest["terminal_artifact_cli_fallback_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     manifest["terminal_artifact_render_target"] = manifest["render_target_contract"]
     manifest["terminal_artifact_render_target_fingerprint"] = terminal_artifact_render_target_contract_fingerprint()

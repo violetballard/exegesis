@@ -119,6 +119,7 @@ _RAW_LEAF_CARD_DEFAULT_CONTRACT_MANIFEST = {
     "preserve_when_kind_is_unset": True,
     "required_fields": ["id", "label", "payload"],
     "excluded_fields": ["type", "blocks", "actions", "confirm", "policy_sensitive", "selected", "disabled"],
+    "raw_leaf_card_default_contract_fingerprint": terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
     "raw_leaf_card_default_contract_fingerprints": {
         "raw_leaf_card_default_contract": terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
     },
@@ -130,9 +131,76 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         manifest = describe_selection_contract()
 
         self.assertEqual(manifest["contract_fingerprint"], manifest["selection_fingerprint"])
+        self.assertEqual(
+            manifest["selection_contract_fingerprint"],
+            manifest["selection_fingerprint"],
+        )
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
         self.assertEqual(manifest["selection_schema_version"], SELECTION_SCHEMA_VERSION)
         self.assertEqual(manifest["selection_version"], SELECTION_SCHEMA_VERSION)
+
+    def test_standalone_contract_manifests_expose_contract_fingerprint_aliases(self) -> None:
+        cases = [
+            (
+                "action",
+                describe_action_contract(),
+                "action_contract_fingerprint",
+                action_contract_fingerprint(),
+            ),
+            (
+                "card",
+                describe_card_contract(),
+                "card_contract_fingerprint",
+                card_contract_fingerprint(),
+            ),
+            (
+                "selection",
+                describe_selection_contract(),
+                "selection_contract_fingerprint",
+                selection_contract_fingerprint(),
+            ),
+            (
+                "terminal_fallback",
+                describe_terminal_fallback_contract(),
+                "terminal_fallback_contract_fingerprint",
+                terminal_fallback_contract_fingerprint(),
+            ),
+            (
+                "terminal_artifact",
+                describe_terminal_artifact_contract(),
+                "terminal_artifact_contract_fingerprint",
+                terminal_artifact_contract_fingerprint(),
+            ),
+            (
+                "terminal_artifact_render_target",
+                describe_terminal_artifact_render_target_contract(),
+                "terminal_artifact_render_target_contract_fingerprint",
+                terminal_artifact_render_target_contract_fingerprint(),
+            ),
+            (
+                "terminal_artifact_rendering",
+                describe_terminal_artifact_rendering_contract(),
+                "terminal_artifact_rendering_contract_fingerprint",
+                terminal_artifact_rendering_contract_fingerprint(),
+            ),
+            (
+                "terminal_artifact_cli_fallback",
+                describe_terminal_artifact_cli_fallback_contract(),
+                "terminal_artifact_cli_fallback_contract_fingerprint",
+                terminal_artifact_cli_fallback_contract_fingerprint(),
+            ),
+            (
+                "terminal_artifact_raw_leaf_card_default",
+                describe_terminal_artifact_raw_leaf_card_default_contract(),
+                "raw_leaf_card_default_contract_fingerprint",
+                terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+            ),
+        ]
+
+        for section_name, manifest, alias_key, expected_fingerprint in cases:
+            with self.subTest(section=section_name):
+                self.assertEqual(manifest["contract_fingerprint"], expected_fingerprint)
+                self.assertEqual(manifest[alias_key], expected_fingerprint)
 
     def test_a2ui_contract_manifest_exposes_action_contract_alias(self) -> None:
         manifest = describe_a2ui_contract()
