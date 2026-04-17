@@ -19,6 +19,10 @@ older lane/fixer prompts.
   `patch-review`, and `export-handoff` via the CLI-first operator surface;
   `command_cli_contract()` now rejects parser/catalog drift before those
   accepted CLI entrypoints can silently change.
+- AGENTS.md canonical demo-path statement: this work makes the CLI-first
+  `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
+  real by locking the accepted parser surface to the command catalog that
+  defines the current MVP contract.
 - Concrete blocker removed: parser/catalog drift could previously reorder,
   replace, or remove accepted CLI entrypoints across the current MVP command
   surface without failing the contract, which would destabilize the engine-side
@@ -26,9 +30,9 @@ older lane/fixer prompts.
 - Product Vision scope: this reviewer-fix refresh only supports the canonical
   engine contract requirement for CLI compatibility and does not claim workflow,
   persistence, or auditability changes.
-- Merge risk: `LOW` because this remains a narrow command-catalog contract
-  change in one owned file plus one approved shared test, with no
-  routing/provider changes.
+- Merge risk: `LOW` because this remains a narrow lane-owned command-catalog
+  change plus one approved shared test, not a broader shared/runtime change,
+  and there are no routing/provider changes.
 - Final gate refresh in this fixer pass: `make scope-check`, `./quality-format.sh --check`,
   `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
   `make ci` all passed again in this feature-fixer pass before the final

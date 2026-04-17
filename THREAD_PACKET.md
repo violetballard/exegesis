@@ -47,7 +47,7 @@
 - `export-handoff`: this slice keeps the `terminal` CLI entrypoint pinned to
   the catalog-backed parser surface so the current export handoff route stays
   deterministic.
-- AGENTS.md canonical-path statement: this work makes the CLI-first
+- AGENTS.md canonical demo-path statement: this work makes the CLI-first
   `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
   real by locking the accepted parser surface to the command catalog that
   defines the current MVP contract.
@@ -122,10 +122,11 @@
 
 ## Kickoff Budget / Limits Compliance
 
-- High-risk shared-file handoff: stayed within the 4-task cap, 30-minute
+- Shared-test-exception handoff: stayed within the 4-task cap, 30-minute
   budget, and the lane size limits.
-- The implementation slice stayed limited to one owned command file plus one
-  focused non-owned test file, so the handoff remains narrow and reviewable.
+- The implementation slice stayed limited to one lane-owned command file plus
+  one approved shared test file, so the handoff remains narrow and reviewable
+  rather than a broader shared/runtime change.
 
 ## Approved Exception Note
 
@@ -170,9 +171,10 @@
 ## Risks / Blockers
 
 - Risk: `LOW`
-- Risk justification: narrow command-catalog contract hardening in one owned
-  file plus one approved shared test, with no routing/provider changes and all
-  required gates passing in this fixer pass.
+- Risk justification: narrow lane-owned command-catalog contract hardening in
+  `src/qual/commands/catalog.py` plus one approved shared test
+  (`tests/unit/test_commands_catalog.py`), with no routing/provider changes
+  and all required gates passing in this fixer pass.
 - Blockers: none
 
 ## Required Handoff Fields
@@ -209,7 +211,7 @@
 
 ## Scope-check / Ownership Note
 
-- Shared/integrator-locked edits: `YES`
+- Shared/integrator-locked edits: `YES` via one approved shared test only
 - Ownership detail: runtime edits stay in lane-owned `src/qual/commands/**`,
   and the only non-owned implementation path is the approved shared test
   `tests/unit/test_commands_catalog.py`.
