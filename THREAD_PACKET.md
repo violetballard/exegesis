@@ -2,13 +2,14 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `3e97d729b07a4cdcd71324ae4f6eb3ad534043ea`
-- Packet refresh role: `feature-fixer required-fixes verification refresh v4`
+- Commit: `35d77e99bca54d97e51a6a4b98abdb389156799e`
+- Packet refresh role: `feature-fixer required-fixes verification refresh v5`
 
 ## Packet Traceability Note
 
 - The implementation commit above refers to the current runtime fix commit for this lane, which carries the reviewer-required command-surface hardening and the current default `demo` / `mvp` command-flow contract on branch tip.
 - This packet refresh keeps the handoff wording aligned with the current implementation and records a fresh required-fixes verification rerun for the reviewer-fix branch tip.
+- Feature-fixer verification refresh v5: re-ran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on April 16, 2026 at 20:17:59 PDT, and confirmed the current branch-tip implementation commit remains `35d77e99bca54d97e51a6a4b98abdb389156799e`.
 - Final verification refresh: re-ran the required gate suite on April 16, 2026 (America/Los_Angeles) after confirming the reviewer-required demo-path alignment remains explicit in this branch-tip handoff.
 - Feature-fixer verification refresh v4: re-ran the full required gate suite on April 16, 2026 at 20:00:25 PDT and confirmed the branch tip already contains the reviewer-required parser-surface drift guard, alias-only drift coverage, and explicit `open project/document` demo-path mapping.
 - Feature-fixer rerun refresh: revalidated the explicit `open project/document` demo-path mapping on April 16, 2026 at 19:53:58 PDT before rerunning the required gate suite for this handoff.
