@@ -97,7 +97,7 @@ def _capabilities() -> A2UICapabilities:
 _RAW_LEAF_CARD_DEFAULT_MANIFEST = {
     "preserve_when_kind_is_unset": True,
     "required_fields": ["id", "label", "payload"],
-    "excluded_fields": ["type", "blocks", "actions", "confirm", "selected", "disabled"],
+    "excluded_fields": ["type", "blocks", "actions", "confirm", "policy_sensitive", "selected", "disabled"],
 }
 
 
@@ -793,6 +793,16 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                     "label": "Choice",
                     "payload": {"nested": {"items": [1, 2]}},
                     "selected": True,
+                }
+            )
+        )
+        self.assertFalse(
+            _should_preserve_raw_leaf_card_default(
+                {
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                    "policy_sensitive": True,
                 }
             )
         )
@@ -2486,6 +2496,23 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[SelectionRef] Choice", selection_text)
         self.assertNotIn("[GenericCard]", action_text)
         self.assertNotIn("[GenericCard]", selection_text)
+
+    def test_shell_ui_keeps_policy_sensitive_raw_leaf_payloads_on_the_action_path_during_fallback(self) -> None:
+        shell = ShellUI()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            text = shell.render_artifact(
+                {
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                    "policy_sensitive": True,
+                }
+            )
+
+        self.assertIn("[ActionRef] Export", text)
+        self.assertIn("- policy_sensitive: true", text)
+        self.assertNotIn("[GenericCard]", text)
 
     def test_shell_ui_preserves_explicit_card_kind_hints_during_fallback(self) -> None:
         shell = ShellUI()

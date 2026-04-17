@@ -770,7 +770,7 @@ def _build_terminal_artifact_raw_leaf_card_default_manifest() -> dict[str, Any]:
     return {
         "preserve_when_kind_is_unset": True,
         "required_fields": ["id", "label", "payload"],
-        "excluded_fields": ["type", "blocks", "actions", "confirm", "selected", "disabled"],
+        "excluded_fields": ["type", "blocks", "actions", "confirm", "policy_sensitive", "selected", "disabled"],
     }
 
 
@@ -1998,7 +1998,7 @@ def _should_preserve_raw_leaf_card_default(artifact: Any) -> bool:
     artifact_type = artifact.get("type")
     if isinstance(artifact_type, str) and artifact_type.strip():
         return False
-    if any(field in artifact for field in ("confirm", "selected", "disabled")):
+    if any(field in artifact for field in ("confirm", "policy_sensitive", "selected", "disabled")):
         return False
     if any(field in artifact for field in ("blocks", "actions")):
         return False
