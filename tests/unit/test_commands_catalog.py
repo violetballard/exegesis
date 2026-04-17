@@ -102,6 +102,8 @@ from src.qual.commands import (
     command_demo_cli_route_summary,
     command_demo_path_contract,
     command_demo_path_invocation_plan,
+    command_demo_resolve,
+    command_demo_resolve_argv,
     command_demo_flow_surface_tokens,
     command_demo_smoke_argv,
     command_demo_smoke_contract,
@@ -114,6 +116,8 @@ from src.qual.commands import (
     command_mvp_cli_route_catalog,
     command_mvp_cli_route_summary,
     command_mvp_path_contract,
+    command_mvp_resolve,
+    command_mvp_resolve_argv,
     command_spec,
     command_spec_for,
     command_specs,
@@ -803,6 +807,42 @@ class CommandCatalogTests(unittest.TestCase):
                     command_cli_entry_argv((token, "--project", "demo")),
                     ("bootstrap", "--project", "demo"),
                 )
+
+    def test_command_demo_resolve_helpers_preserve_parser_ready_smoke_defaults(self) -> None:
+        resolved = command_demo_resolve("patch-review")
+        self.assertTrue(resolved.matched)
+        self.assertEqual(
+            resolved.argv,
+            ("diff-preview", "--original", "before", "--proposed", "after"),
+        )
+        self.assertEqual(resolved.kind, "flow-step")
+
+        patch_review = command_demo_resolve_argv(("patch-review", "--format=json"))
+        self.assertTrue(patch_review.matched)
+        self.assertEqual(
+            patch_review.argv,
+            ("diff-preview", "--original", "before", "--proposed", "after", "--format=json"),
+        )
+        self.assertEqual(patch_review.smoke_argv, ("diff-preview", "--original", "before", "--proposed", "after"))
+
+        project_open = command_demo_resolve_argv(("project-open", "--project", "workspace"))
+        self.assertTrue(project_open.matched)
+        self.assertEqual(project_open.argv, ("bootstrap", "--project", "workspace"))
+        self.assertEqual(project_open.smoke_argv, ("bootstrap", "--project", "demo"))
+
+        export_handoff = command_demo_resolve_argv(("export-handoff", "--message", "Queued for export"))
+        self.assertTrue(export_handoff.matched)
+        self.assertEqual(
+            export_handoff.argv,
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Queued for export"),
+        )
+        self.assertEqual(
+            export_handoff.smoke_argv,
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
+
+        self.assertEqual(command_mvp_resolve("patch-review"), resolved)
+        self.assertEqual(command_mvp_resolve_argv(("patch-review", "--format=json")), patch_review)
 
     def test_command_resolve_helpers_support_custom_specs(self) -> None:
         specs = (

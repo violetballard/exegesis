@@ -2910,19 +2910,29 @@ def command_resolve(
 def _prefer_demo_flow_smoke_resolution(
     resolved: ResolvedCommand,
     *,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     raw_argv: tuple[str, ...] = (),
 ) -> ResolvedCommand:
     if not resolved.matched or not raw_argv:
         return resolved
-    if len(raw_argv) != 1 or resolved.kind != "flow-step" or len(resolved.smoke_argv) <= 1:
+    if resolved.kind != "flow-step" or len(resolved.smoke_argv) <= 1:
         return resolved
+    explicit_args = raw_argv[1:]
+    if explicit_args:
+        parser_ready_argv = _merge_shim_argv(
+            resolved.smoke_argv,
+            explicit_args,
+            pinned_options=_shim_pinned_options_lookup(specs).get(resolved.normalized_token, frozenset()),
+        )
+    else:
+        parser_ready_argv = resolved.smoke_argv
     return ResolvedCommand(
         token=resolved.token,
         normalized_token=resolved.normalized_token,
         canonical_name=resolved.canonical_name,
         flow_step=resolved.flow_step,
         primary_cli_token=resolved.primary_cli_token,
-        argv=resolved.smoke_argv,
+        argv=parser_ready_argv,
         smoke_argv=resolved.smoke_argv,
         cli_tokens=resolved.cli_tokens,
         lookup_tokens=resolved.lookup_tokens,
@@ -2937,6 +2947,7 @@ def command_demo_resolve(token: str) -> ResolvedCommand:
     """Resolve a token against the canonical demo-path command surface."""
     return _prefer_demo_flow_smoke_resolution(
         command_resolve_for(COMMAND_SPECS, token, command_demo_flow_steps()),
+        specs=COMMAND_SPECS,
         raw_argv=(token,),
     )
 
@@ -3059,6 +3070,7 @@ def command_demo_resolve_argv(
     raw_argv = tuple(argv)
     return _prefer_demo_flow_smoke_resolution(
         command_resolve_argv_for(COMMAND_SPECS, raw_argv, command_demo_flow_steps()),
+        specs=COMMAND_SPECS,
         raw_argv=raw_argv,
     )
 
