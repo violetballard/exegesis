@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh commit: `see final HEAD SHA from feature-fixer delivery`
+- Packet refresh commit: `current feature-fixer metadata refresh commit`
 - Packet refresh role: `feature-fixer required-fixes packet-tightening v2`
 
 ## Packet Traceability Note
@@ -102,7 +102,7 @@
 
 ## Risks / Blockers
 
-- Risk: `MEDIUM`
+- Residual risk: low. This slice only hardens command-catalog validation and packet metadata; the remaining merge risk is limited to future intentional parser/catalog changes needing matching catalog and test updates so the new drift guard does not fail by surprise.
 - Blockers: none
 
 ## Required Handoff Fields
