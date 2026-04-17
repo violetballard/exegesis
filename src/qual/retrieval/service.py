@@ -2571,6 +2571,8 @@ class RetrievalService:
             doc_type = None
 
         title_hint = _normalized_text(normalized.get("title_hint"))
+        if title_hint is None:
+            title_hint = _normalized_text(provenance.get("title_hint"))
         if title_hint is not None:
             normalized["title_hint"] = title_hint
         elif "title_hint" in normalized:

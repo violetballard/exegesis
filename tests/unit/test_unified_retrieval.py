@@ -1430,6 +1430,27 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["lookup_fingerprint"], normalized["provenance"]["lookup_fingerprint"])
         self.assertTrue(normalized["provenance"]["doc_identity_fingerprint"])
 
+    def test_normalize_excerpt_payload_backfills_title_hint_from_provenance(self) -> None:
+        normalized = self.service._normalize_excerpt_payload(
+            {
+                "excerpt_id": "excerpt-sparse-title-1",
+                "doc_id": "doc-pdf-1",
+                "doc_type": "pdf",
+                "text": "Methods section with recruitment constraints.",
+                "provenance": {
+                    "title_hint": "  Interview Packet  ",
+                    "query_fingerprint": "query-fingerprint-1",
+                    "query_scope": "vault",
+                    "query_intent": "lookup",
+                },
+            },
+            source_strategy="fts",
+            lookup_resolution="fts",
+        )
+
+        self.assertEqual(normalized["title_hint"], "Interview Packet")
+        self.assertEqual(normalized["basket_promotion"]["title_hint"], "Interview Packet")
+
     def test_normalize_excerpt_payload_canonicalizes_sparse_query_metadata_types(self) -> None:
         normalized = self.service._normalize_excerpt_payload(
             {
