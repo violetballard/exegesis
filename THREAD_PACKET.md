@@ -48,6 +48,7 @@ This reviewed range makes `retrieve relevant material` more real by keeping exce
 - Fixer pass date: `2026-04-17`
 - Pre-fix packet branch tip for this commit: `a8fa8be6a74f47d612464d0554f1fe1fa96e89f7`
 - This metadata-only refresh preserves the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` while carrying the reviewer-required canonical demo-path mapping for re-review.
+- Reviewer-facing source of truth for this fixer pass: use this `THREAD_PACKET.md` instead of the stale `.codex` packet mirrors, because those mirrors are not writable in this lane worktree and therefore cannot be regenerated here.
 
 ## Required Reviewer Fixes Addressed
 
