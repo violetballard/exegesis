@@ -2666,7 +2666,9 @@ def resolve_terminal_artifact_cli_fallback_target(
 
     Raw leaf card defaults stay on the card path when no valid kind hint is
     present, so the shell and CLI fallback can share the same target-selection
-    contract without duplicating heuristics.
+    contract without duplicating heuristics. If the shared render-target
+    resolver fails on a malformed envelope, recover a nested leaf payload
+    before falling back to the card default.
     """
 
     requested_kind = None
@@ -2694,6 +2696,32 @@ def resolve_terminal_artifact_cli_fallback_target(
             allow_invalid_envelope_recovery=True,
         )
     except Exception:
+        if requested_kind is None and isinstance(artifact, Mapping):
+            artifact_type = artifact.get("type")
+            if isinstance(artifact_type, str) and artifact_type.strip() == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+                recovered = _recover_terminal_artifact_payload_from_invalid_envelope(
+                    artifact,
+                    requested_kind=requested_kind,
+                    envelope_kind_hint=_normalize_terminal_artifact_envelope_kind(artifact.get("kind")),
+                    allow_invalid_metadata=True,
+                )
+                if recovered is not None:
+                    recovered_artifact, recovered_kind = recovered
+                    while recovered_kind == "card" and isinstance(recovered_artifact, Mapping):
+                        nested_recovered = _recover_terminal_artifact_payload_from_invalid_envelope(
+                            recovered_artifact,
+                            requested_kind=None,
+                            envelope_kind_hint=_normalize_terminal_artifact_envelope_kind(
+                                recovered_artifact.get("kind")
+                            ),
+                            allow_invalid_metadata=True,
+                        )
+                        if nested_recovered is None:
+                            break
+                        if nested_recovered == (recovered_artifact, recovered_kind):
+                            break
+                        recovered_artifact, recovered_kind = nested_recovered
+                    return recovered_artifact, recovered_kind
         fallback_kind = requested_kind
         if fallback_kind is None:
             fallback_kind = _infer_terminal_artifact_explicit_kind(artifact)

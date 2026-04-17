@@ -2083,6 +2083,52 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             (envelope["artifact"], "card"),
         )
 
+    def test_terminal_artifact_cli_fallback_target_resolver_recovers_nested_leaf_payloads_when_shared_resolver_fails(
+        self,
+    ) -> None:
+        action_envelope = {
+            "type": "TerminalArtifact",
+            "kind": "dialog",
+            "artifact": {
+                "type": "TerminalArtifact",
+                "kind": "dialog",
+                "artifact": {
+                    "type": "ActionRef",
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                },
+                "trace_id": "inner",
+            },
+            "trace_id": "outer",
+        }
+        selection_envelope = {
+            "type": "TerminalArtifact",
+            "kind": "dialog",
+            "artifact": {
+                "type": "TerminalArtifact",
+                "kind": "dialog",
+                "artifact": {
+                    "type": "SelectionRef",
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                    "selected": True,
+                },
+                "trace_id": "inner",
+            },
+            "trace_id": "outer",
+        }
+
+        with patch("src.qual.ui.a2ui._resolve_terminal_artifact_render_target", side_effect=RuntimeError("boom")):
+            action_target = resolve_terminal_artifact_cli_fallback_target(action_envelope)
+            selection_target = resolve_terminal_artifact_cli_fallback_target(selection_envelope)
+
+        self.assertEqual(action_target[1], "action")
+        self.assertEqual(selection_target[1], "selection")
+        self.assertEqual(action_target[0], action_envelope["artifact"]["artifact"])
+        self.assertEqual(selection_target[0], selection_envelope["artifact"]["artifact"])
+
     def test_terminal_artifact_renderers_preserve_raw_leaf_card_default_without_shared_resolver(self) -> None:
         raw_leaf = {
             "id": "export_document",
