@@ -5386,6 +5386,27 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                     self.assertNotIn("[SelectionRef]", text)
                     self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
 
+    def test_shell_ui_preserves_card_kind_hint_for_nested_card_envelopes_with_raw_leaf_defaults(self) -> None:
+        shell = ShellUI()
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+        nested_card_envelope = {
+            "type": "TerminalArtifact",
+            "kind": "card",
+            "artifact": build_terminal_artifact_envelope(raw_leaf, kind="card"),
+        }
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            text = shell.render_artifact(nested_card_envelope, kind="card")
+
+        self.assertEqual(text, render_terminal_cli_fallback(nested_card_envelope, kind="card"))
+        self.assertIn("[<missing>] <untitled>", text)
+        self.assertIn("- label: Export", text)
+        self.assertNotIn("[UnknownCard] <invalid card>", text)
+
     def test_terminal_artifact_renderer_and_shell_fallback_preserve_card_hints_for_malformed_envelopes(
         self,
     ) -> None:
