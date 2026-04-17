@@ -1925,6 +1925,57 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
         self.assertNotIn("trace_id", selection_text)
 
+    def test_shell_ui_recovers_deeply_nested_terminal_envelopes_during_fallback(self) -> None:
+        shell = ShellUI()
+
+        def wrap(payload: object) -> dict[str, object]:
+            return {
+                "type": "TerminalArtifact",
+                "kind": "card",
+                "artifact": payload,
+                "trace_id": "drop-me",
+            }
+
+        action_wrapper = wrap(
+            wrap(
+                build_terminal_artifact_envelope(
+                    ActionRef(
+                        id=" export_document ",
+                        label=" Export ",
+                        payload={"format": "md"},
+                    ),
+                    kind="action",
+                )
+            )
+        )
+        selection_wrapper = wrap(
+            wrap(
+                build_terminal_artifact_envelope(
+                    SelectionRef(
+                        id=" choice-1 ",
+                        label=" Choice ",
+                        payload={"nested": {"items": [1, 2]}},
+                    ),
+                    kind="selection",
+                )
+            )
+        )
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            with patch("src.qual.ui.shell.resolve_terminal_artifact_render_target", side_effect=RuntimeError("boom")):
+                action_text = shell.render_artifact(action_wrapper)
+                selection_text = shell.render_artifact(selection_wrapper)
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", action_text)
+        self.assertNotIn("trace_id", action_text)
+
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
+        self.assertNotIn("trace_id", selection_text)
+
     def test_card_contract_manifest_is_versioned_and_aligns_with_a2ui_schema(self) -> None:
         manifest = describe_card_contract()
         a2ui_manifest = describe_a2ui_contract()

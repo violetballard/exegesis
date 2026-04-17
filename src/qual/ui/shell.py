@@ -316,12 +316,23 @@ class ShellUI:
             return artifact, fallback_kind
 
     @staticmethod
-    def _recover_terminal_artifact_envelope_fallback(artifact: Any) -> tuple[Any, str] | None:
+    def _recover_terminal_artifact_envelope_fallback(
+        artifact: Any,
+        *,
+        _seen_envelope_ids: set[int] | None = None,
+    ) -> tuple[Any, str] | None:
         if not isinstance(artifact, Mapping):
             return None
         artifact_type = artifact.get("type")
         if not isinstance(artifact_type, str) or artifact_type.strip() != "TerminalArtifact":
             return None
+
+        if _seen_envelope_ids is None:
+            _seen_envelope_ids = set()
+        artifact_id = id(artifact)
+        if artifact_id in _seen_envelope_ids:
+            return None
+        _seen_envelope_ids.add(artifact_id)
 
         payload = artifact.get("artifact")
         if payload is None:
@@ -334,10 +345,11 @@ class ShellUI:
         if isinstance(payload, Mapping):
             nested_type = payload.get("type")
             if isinstance(nested_type, str) and nested_type.strip() == "TerminalArtifact":
-                nested_payload = payload.get("artifact")
-                if nested_payload is not None:
-                    nested_kind = ShellUI._infer_fallback_kind(nested_payload)
-                    if nested_kind is not None:
-                        return nested_payload, nested_kind
+                recovered = ShellUI._recover_terminal_artifact_envelope_fallback(
+                    payload,
+                    _seen_envelope_ids=_seen_envelope_ids,
+                )
+                if recovered is not None:
+                    return recovered
 
         return None
