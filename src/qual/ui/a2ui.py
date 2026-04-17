@@ -3334,15 +3334,14 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
             return _render_invalid_terminal_card(artifact)
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
     allow_invalid_envelope_recovery = malformed_envelope
-    if requested_kind == "card" and _is_malformed_terminal_artifact_raw_leaf_card_default_envelope(artifact):
-        return _render_invalid_terminal_card(artifact)
     if requested_kind == "card" and malformed_envelope:
         payload = artifact.get("artifact") if isinstance(artifact, Mapping) else None
-        payload_kind = _infer_terminal_artifact_explicit_kind(payload)
-        if payload_kind not in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
-            payload_kind = _recover_terminal_artifact_leaf_kind(payload)
-        if payload_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
-            return _render_invalid_terminal_card(artifact)
+        if not _should_preserve_raw_leaf_card_default(payload):
+            payload_kind = _infer_terminal_artifact_explicit_kind(payload)
+            if payload_kind not in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+                payload_kind = _recover_terminal_artifact_leaf_kind(payload)
+            if payload_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+                return _render_invalid_terminal_card(artifact)
     artifact, resolved_kind = _resolve_terminal_artifact_render_target(
         artifact,
         requested_kind=requested_kind,
@@ -3374,8 +3373,6 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
             requested_kind = None
     if requested_kind == "card" and _contains_action_or_selection_payload(artifact) and not _should_preserve_raw_leaf_card_default(artifact):
         return _render_invalid_terminal_card(artifact)
-    if requested_kind == "card" and _is_malformed_terminal_artifact_raw_leaf_card_default_envelope(artifact):
-        return _render_invalid_terminal_card(artifact)
     fallback_target: tuple[Any, str] | None = None
     try:
         fallback_target = resolve_terminal_artifact_cli_fallback_target(
@@ -3394,11 +3391,12 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
     if requested_kind == "card" and malformed_envelope:
         payload = artifact.get("artifact") if isinstance(artifact, Mapping) else None
-        payload_kind = _infer_terminal_artifact_explicit_kind(payload)
-        if payload_kind not in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
-            payload_kind = _recover_terminal_artifact_leaf_kind(payload)
-        if payload_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
-            return _render_invalid_terminal_card(artifact)
+        if not _should_preserve_raw_leaf_card_default(payload):
+            payload_kind = _infer_terminal_artifact_explicit_kind(payload)
+            if payload_kind not in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+                payload_kind = _recover_terminal_artifact_leaf_kind(payload)
+            if payload_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+                return _render_invalid_terminal_card(artifact)
     if fallback_target is None:
         # Keep the explicit CLI fallback path usable even if the shared
         # resolver breaks by retrying the local target resolver before giving

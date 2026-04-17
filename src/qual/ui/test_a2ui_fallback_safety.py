@@ -2747,6 +2747,32 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[SelectionRef]", rendered_text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", rendered_text)
 
+    def test_terminal_artifact_renderers_preserve_raw_leaf_card_default_for_explicit_card_hints(
+        self,
+    ) -> None:
+        envelope = {
+            "type": "TerminalArtifact",
+            "kind": "dialog",
+            "artifact": {
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+            },
+            "trace_id": "drop-me",
+        }
+
+        rendered_text = render_terminal_artifact(envelope, kind="card")
+        cli_fallback_text = render_terminal_cli_fallback(envelope, kind="card")
+        shell_text = ShellUI().render_artifact(envelope, kind="card")
+
+        self.assertEqual(rendered_text, cli_fallback_text)
+        self.assertEqual(shell_text, cli_fallback_text)
+        self.assertIn("[<missing>] <untitled>", rendered_text)
+        self.assertIn("- label: Export", rendered_text)
+        self.assertNotIn("[UnknownCard] <invalid card>", rendered_text)
+        self.assertNotIn("[ActionRef]", rendered_text)
+        self.assertNotIn("[SelectionRef]", rendered_text)
+
     def test_terminal_artifact_cli_fallback_entrypoint_survives_generic_renderer_failure(self) -> None:
         envelope = build_terminal_artifact_envelope(
             ActionRef(
