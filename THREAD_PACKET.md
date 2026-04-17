@@ -91,6 +91,10 @@
 ## Approved Exception Note
 
 - Approved shared-test exception for `tests/unit/test_commands_catalog.py`.
+- Approval trace: carried forward from the prior feature packet and reviewer
+  packet for this lane, which explicitly states `Approved shared-test
+  exception for tests/unit/test_commands_catalog.py` for the command-catalog
+  slice under review.
 
 ## Tasks Completed
 
@@ -155,4 +159,7 @@
 - Shared/integrator-locked edits: `YES`
 - Ownership detail: runtime edits stay in lane-owned `src/qual/commands/**`,
   and the only non-owned implementation path is the approved shared test
+  `tests/unit/test_commands_catalog.py`.
+- Shared-file approval source: the review packet supplied to this fixer pass is
+  the source of truth and records the approved shared-test exception for
   `tests/unit/test_commands_catalog.py`.
