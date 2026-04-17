@@ -1793,6 +1793,7 @@ def _build_a2ui_capabilities_contract_manifest() -> dict[str, Any]:
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
+        "schema_version": A2UI_CAPABILITIES_SCHEMA_VERSION,
         "capabilities_schema_version": A2UI_CAPABILITIES_SCHEMA_VERSION,
         "capabilities_version": A2UI_CAPABILITIES_SCHEMA_VERSION,
         "type": "A2UICapabilities",
@@ -1846,6 +1847,7 @@ def _build_selection_contract_manifest() -> dict[str, Any]:
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
+        "schema_version": SELECTION_SCHEMA_VERSION,
         "selection_schema_version": SELECTION_SCHEMA_VERSION,
         "selection_version": SELECTION_SCHEMA_VERSION,
         "type": "SelectionRef",
@@ -1865,6 +1867,7 @@ def _build_action_contract_manifest() -> dict[str, Any]:
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
+        "schema_version": A2UI_ACTION_SCHEMA_VERSION,
         "action_schema_version": A2UI_ACTION_SCHEMA_VERSION,
         "action_version": A2UI_ACTION_SCHEMA_VERSION,
         "type": "ActionRef",
@@ -1879,6 +1882,7 @@ def _build_card_contract_manifest() -> dict[str, Any]:
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
+        "schema_version": CARD_CONTRACT_VERSION,
         "card_contract_version": CARD_CONTRACT_VERSION,
         "card_version": CARD_CONTRACT_VERSION,
         "type": "CardContract",
@@ -1891,6 +1895,7 @@ def _build_terminal_fallback_contract_manifest() -> dict[str, Any]:
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
+        "schema_version": TERMINAL_FALLBACK_SCHEMA_VERSION,
         "terminal_fallback_schema_version": TERMINAL_FALLBACK_SCHEMA_VERSION,
         "terminal_fallback_version": TERMINAL_FALLBACK_SCHEMA_VERSION,
         "type": "TerminalFallbackContract",
@@ -4281,14 +4286,14 @@ def _filter_supported_actions(actions: Any, *, supported_actions: set[str]) -> l
             normalized = _normalize_action(action, supported_actions=supported_actions)
         except ValueError:
             continue
-        action_key = _canonical_json(normalized)
+        action_key = _canonical_action_snapshot_key(normalized)
         if action_key in seen:
             continue
         seen.add(action_key)
         filtered.append(normalized)
     # Keep tuple-shaped or reordered action containers deterministic once
     # they are materialized back into the canonical list form.
-    return sorted(filtered, key=_canonical_json)
+    return sorted(filtered, key=_canonical_action_snapshot_key)
 
 
 def _validate_canonical_read_only_fallback_actions(
@@ -4724,7 +4729,7 @@ def _canonicalize_terminal_artifact_card_actions(card: dict[str, Any]) -> dict[s
     seen: set[str] = set()
     for action in actions:
         snapshot = _snapshot_terminal_artifact_value(action)
-        action_key = _canonical_terminal_artifact_action_key(snapshot)
+        action_key = _canonical_action_snapshot_key(snapshot)
         if action_key in seen:
             continue
         seen.add(action_key)
@@ -4732,11 +4737,11 @@ def _canonicalize_terminal_artifact_card_actions(card: dict[str, Any]) -> dict[s
 
     return {
         **card,
-        "actions": sorted(canonical_actions, key=_canonical_terminal_artifact_action_key),
+        "actions": sorted(canonical_actions, key=_canonical_action_snapshot_key),
     }
 
 
-def _canonical_terminal_artifact_action_key(action: Any) -> str:
+def _canonical_action_snapshot_key(action: Any) -> str:
     if isinstance(action, Mapping):
         return _canonical_json(action)
     return _canonical_json({"type": type(action).__name__, "value": action})
@@ -5278,12 +5283,12 @@ def _canonicalize_supported_action_list(
             normalized = _normalize_action(action, supported_actions=supported_actions)
         except ValueError:
             continue
-        action_key = _canonical_json(normalized)
+        action_key = _canonical_action_snapshot_key(normalized)
         if action_key in seen:
             continue
         seen.add(action_key)
         filtered.append(normalized)
-    return sorted(filtered, key=_canonical_json)
+    return sorted(filtered, key=_canonical_action_snapshot_key)
 
 
 def _validate_supported_string_sequence(values: Any, *, field_name: str) -> tuple[str, ...]:
