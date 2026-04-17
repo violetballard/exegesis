@@ -3704,6 +3704,36 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(provenance["retrieval_backend"], "sqlite_fts")
         self.assertEqual(provenance["retrieval_mode"], "fts_first")
 
+    def test_retrieval_summary_surfaces_query_context_and_shortlist(self) -> None:
+        updated_at = self.service._load_doc_meta()["doc-pdf-1"]["updated_at"]
+        self.assertIsInstance(updated_at, str)
+        query_day = str(updated_at)[:10]
+
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="theory implications",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(
+                    max_results=4,
+                    date_range=(query_day, query_day),
+                ),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        summary = result.to_downstream_payload()["retrieval_summary"]
+        self.assertEqual(summary["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(summary["query_scope"], "vault")
+        self.assertEqual(summary["query_intent"], "compare")
+        self.assertEqual(summary["query_confidentiality_profile"], "confidential")
+        self.assertEqual(summary["query_date_range"], [query_day, query_day])
+        self.assertEqual(summary["candidate_doc_count"], result.diagnostics["candidate_doc_count"])
+        self.assertEqual(summary["fts_shortlist_doc_ids"], result.diagnostics["fts_shortlist_doc_ids"])
+        self.assertEqual(summary["fts_shortlist_count"], len(result.diagnostics["fts_shortlist_doc_ids"]))
+        self.assertEqual(summary["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(summary["retrieval_mode"], "fts_first")
+
     def test_retrieval_evidence_surfaces_query_context_and_shortlist(self) -> None:
         updated_at = self.service._load_doc_meta()["doc-pdf-1"]["updated_at"]
         self.assertIsInstance(updated_at, str)
