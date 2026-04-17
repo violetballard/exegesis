@@ -1494,6 +1494,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_rendering_contract_fingerprint(),
         )
         self.assertEqual(
+            fingerprints["renderer_entrypoints"],
+            terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+        )
+        self.assertEqual(
             fingerprints["terminal_artifact_cli_fallback"],
             terminal_artifact_cli_fallback_contract_fingerprint(),
         )
@@ -1525,6 +1529,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("terminal_artifact_render_target", describe_a2ui_contract_fingerprints())
         self.assertNotIn("terminal_artifact_rendering", describe_a2ui_contract_fingerprints())
         self.assertNotIn("terminal_artifact_cli_fallback", describe_a2ui_contract_fingerprints())
+        self.assertNotIn("renderer_entrypoints", describe_a2ui_contract_fingerprints())
         self.assertNotIn("terminal_fallback_contract", describe_a2ui_contract_fingerprints())
         self.assertNotIn("terminal_artifact_contract", describe_a2ui_contract_fingerprints())
         self.assertNotIn("terminal_artifact_kind_contracts", describe_a2ui_contract_fingerprints())
