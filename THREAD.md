@@ -6,10 +6,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Reviewer Fix Alignment
 
-- This packet refresh commit is a metadata-only fixer refresh on top of later
-  lane work already present on `codex/feat-commands`.
-- Review the command-catalog implementation at
-  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- This packet refresh is for the current `codex/feat-commands` branch tip.
+- Review the command-catalog implementation in
+  `src/qual/commands/catalog.py` together with the focused shared-test
+  coverage in `tests/unit/test_commands_catalog.py`.
 - For this re-review, use the reviewer packet as the scope source of truth and
   keep the reviewed implementation pinned to that command-catalog slice unless
   a new feature packet is explicitly generated.
@@ -40,9 +40,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `./quality-test.sh`
   - `./typecheck-test.sh`
   - `make ci`
-- This metadata-only fixer refresh does not change implementation files; it
-  only refreshes the handoff contract for re-review after confirming the code
-  and tests already satisfy the reviewer-required fixes on this branch.
+- This fixer refresh keeps the implementation scope narrow while making the
+  handoff accurately describe the code and tests that now satisfy the
+  reviewer-required fixes on this branch.
 - Shared-test approval audit trail: the reviewed implementation slice includes
   `tests/unit/test_commands_catalog.py`, which is a `feat-commands`
   shared-by-approval path, so this refresh now records the explicit

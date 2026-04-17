@@ -2,48 +2,50 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Commit: `d38078e4ccc4ba33f7acacf9eee38443d40842a4`
 - Packet refresh role: `feature-fixer reviewer-required re-review refresh`
 
 ## Packet Traceability Note
 
-- This packet refresh commit is a metadata-only fixer refresh on top of later
-  lane work already present on `codex/feat-commands`.
-- Review the command-catalog implementation at
-  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- This packet refresh is for the current `codex/feat-commands` branch tip.
+- The relevant implementation remains the command-catalog slice in
+  `src/qual/commands/catalog.py` plus the focused shared-test coverage in
+  `tests/unit/test_commands_catalog.py`.
 - For this re-review, use the reviewer packet as the scope source of truth and
   keep the reviewed implementation pinned to that command-catalog slice unless
   a new feature packet is explicitly generated.
-- This packet refresh corrects the handoff metadata only; it does not expand
-  the requested re-review scope beyond the command-catalog slice above.
+- This refresh corrects the handoff so it matches the branch-tip
+  implementation and tests that now satisfy the reviewer-required fixes.
 
 ## Reviewer-Required Fix Verification
 
 - Reviewer required-fix scope:
-  this re-review refresh is limited to the handoff metadata fix requested in
-  the reviewer packet, and it keeps the reviewed implementation scope pinned
-  to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` without any feature-scope
-  expansion.
-- Reviewer required-fix traceability:
-  the metadata-only handoff refresh now fully accounts for both
-  `THREAD_PACKET.md` and `THREAD.md`, so the packet `Files Changed` section
-  matches the metadata-only refresh files on this branch tip.
-- Reviewer required-fix satisfied in handoff metadata:
-  this packet now states exactly which canonical demo-path steps the reviewed
-  command-catalog slice makes more reliable.
+  this re-review covers the command-catalog implementation on the current
+  branch tip and keeps the scope pinned to `src/qual/commands/catalog.py`
+  plus `tests/unit/test_commands_catalog.py`.
+- Reviewer required-fix implementation status:
+  `command_cli_contract()` now validates the declared parser token surface, not
+  only the deduplicated canonical-name projection, and rejects parser-surface
+  drift when accepted entrypoints are replaced, reordered, removed, or
+  expanded.
+- Reviewer required-fix test status:
+  focused unit coverage now patches the parser-entrypoint validation path to
+  prove rejection for alias substitution, parser reorder, removed expected
+  entrypoints, and extra accepted entrypoint drift.
 - Milestone 3 tie-back:
-  this mapping is stated concretely against the roadmap requirement that the
-  CLI must still execute the MVP loop while Textual remains disabled.
+  this mapping stays concrete against the roadmap requirement that the CLI
+  must still execute the MVP loop while Textual remains disabled.
 
 ## Feature-Fixer Validation
 
 - Revalidated against the reviewer packet dated `2026-04-17`.
-- Confirmed the reviewed implementation scope remains pinned to
-  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Confirmed the reviewer-required implementation fixes are already present on
-  this branch and that this packet refresh only updates the handoff contract
-  for re-review.
-- Re-ran the required local gates on this metadata-refresh branch tip:
+- Confirmed the required implementation fixes are present on the current
+  branch tip.
+- Confirmed the command-catalog scope remains limited to one owned command
+  file plus one approved shared test file.
+- Re-ran focused regression coverage and the required local gates on this
+  branch tip:
+  - `python -m unittest tests.unit.test_commands_catalog -q`: PASS
   - `make scope-check`: PASS
   - `./quality-format.sh --check`: PASS
   - `./quality-lint.sh`: PASS
@@ -155,8 +157,8 @@
   entrypoints instead of rebuilding a weaker projection from the lookup table.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
   for canonical-order alignment and drift rejection in the CLI contract.
-- Reissued the handoff packet as a command-catalog-only slice so the review
-  scope matches the claimed implementation files and approval basis.
+- Reissued the handoff packet so the re-review points at the current
+  branch-tip implementation and the actual focused regression evidence.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -177,8 +179,8 @@
    validated canonical names tuple.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for
    canonical-order alignment and drift rejection.
-4. Regenerated the handoff packet so the branch metadata stays scoped to the
-   command-catalog slice and uses the current roadmap and vision labels.
+4. Regenerated the handoff packet so the re-review reflects the current
+   branch-tip implementation and test evidence without expanding scope.
 
 ## Files Changed
 
