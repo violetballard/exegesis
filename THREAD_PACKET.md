@@ -52,13 +52,14 @@
 
 - `retrieve relevant material`
 
-This reviewed range makes `retrieve relevant material` more real by removing the `fetch_excerpt` PageIndex fallback, so the canonical retrieval surface now fails closed on the FTS-first path and downstream basket-promotion consumers only receive canonical FTS-backed excerpt payloads.
+This reviewed range makes `retrieve relevant material` more real by removing the `fetch_excerpt` PageIndex fallback, so the canonical retrieval surface now fails closed on the FTS-first path, downstream basket-promotion consumers only receive canonical FTS-backed excerpt payloads, and PageIndex or embeddings are not reintroduced as required runtime retrieval paths.
 
 ## Required reviewer fixes addressed
 
 1. Added an explicit AGENTS plan-alignment statement naming the canonical demo-path step this work advances: `retrieve relevant material`.
 2. Tied that statement to the narrowed diff by stating that removing the `fetch_excerpt` PageIndex fallback makes the canonical retrieval path strictly FTS-first, deterministic, and auditable for downstream basket promotion.
 3. Kept the packet scope narrowed to the reviewer-specified implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+4. Kept the scope statement explicit that PageIndex and embeddings are compatibility-only and are not reintroduced as required runtime retrieval paths.
 
 ## Tasks completed
 
