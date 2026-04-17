@@ -580,7 +580,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             describe_a2ui_contract()["contract_fingerprints"],
             manifest_fingerprints,
         )
-        self.assertNotEqual(fingerprints, fingerprints_without_render_target)
+        self.assertNotEqual(fingerprints, manifest_fingerprints)
         self.assertNotIn("action", describe_a2ui_contract_fingerprints())
         self.assertNotIn("action_contract", describe_a2ui_contract_fingerprints())
         self.assertNotIn("selection_contract", describe_a2ui_contract_fingerprints())
@@ -770,16 +770,32 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(fingerprints["terminal_artifact_contract"], terminal_artifact_contract_fingerprint())
         self.assertEqual(
+            fingerprints["terminal_artifact_render_target"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
             fingerprints["terminal_artifact_render_target_contract"],
             terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_rendering"],
+            terminal_artifact_rendering_contract_fingerprint(),
         )
         self.assertEqual(
             fingerprints["terminal_artifact_rendering_contract"],
             terminal_artifact_rendering_contract_fingerprint(),
         )
         self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback"],
+            terminal_artifact_cli_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
             fingerprints["terminal_artifact_cli_fallback_contract"],
             terminal_artifact_cli_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_raw_leaf_card_default"],
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         )
         self.assertEqual(
             fingerprints["terminal_artifact_raw_leaf_card_default_contract"],
@@ -1175,8 +1191,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 **fingerprints,
                 "terminal_artifact_kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
                 "terminal_artifact_rendering": terminal_artifact_rendering_contract_fingerprint(),
+                "terminal_artifact_render_target": terminal_artifact_render_target_contract_fingerprint(),
                 "terminal_artifact_render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
                 "terminal_artifact_rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
+                "terminal_artifact_raw_leaf_card_default": (
+                    terminal_artifact_raw_leaf_card_default_contract_fingerprint()
+                ),
                 "terminal_artifact_raw_leaf_card_default_contract": (
                     terminal_artifact_raw_leaf_card_default_contract_fingerprint()
                 ),
@@ -1518,8 +1538,13 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 **fingerprints,
                 "terminal_artifact_kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
                 "terminal_artifact_cli_fallback": terminal_artifact_cli_fallback_contract_fingerprint(),
+                "terminal_artifact_render_target": terminal_artifact_render_target_contract_fingerprint(),
                 "terminal_artifact_render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
+                "terminal_artifact_rendering": terminal_artifact_rendering_contract_fingerprint(),
                 "terminal_artifact_rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
+                "terminal_artifact_raw_leaf_card_default": (
+                    terminal_artifact_raw_leaf_card_default_contract_fingerprint()
+                ),
                 "terminal_artifact_cli_fallback_contract": terminal_artifact_cli_fallback_contract_fingerprint(),
                 "terminal_artifact_raw_leaf_card_default_contract": (
                     terminal_artifact_raw_leaf_card_default_contract_fingerprint()
@@ -1698,6 +1723,9 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "terminal_artifact_kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
                 "terminal_artifact_render_target": terminal_artifact_render_target_contract_fingerprint(),
                 "terminal_artifact_render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
+                "terminal_artifact_raw_leaf_card_default": (
+                    terminal_artifact_raw_leaf_card_default_contract_fingerprint()
+                ),
                 "terminal_artifact_raw_leaf_card_default_contract": (
                     terminal_artifact_raw_leaf_card_default_contract_fingerprint()
                 ),

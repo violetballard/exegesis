@@ -308,6 +308,12 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["terminal_fallback_contract"] = terminal_fallback_contract_fingerprint()
         fingerprints["terminal_artifact_kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
         fingerprints["terminal_artifact_contract"] = terminal_artifact_contract_fingerprint()
+        fingerprints["terminal_artifact_render_target"] = terminal_artifact_render_target_contract_fingerprint()
+        fingerprints["terminal_artifact_rendering"] = terminal_artifact_rendering_contract_fingerprint()
+        fingerprints["terminal_artifact_cli_fallback"] = terminal_artifact_cli_fallback_contract_fingerprint()
+        fingerprints["terminal_artifact_raw_leaf_card_default"] = (
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint()
+        )
         fingerprints["terminal_artifact_render_target_contract"] = (
             terminal_artifact_render_target_contract_fingerprint()
         )
@@ -456,8 +462,12 @@ def describe_terminal_artifact_render_target_contract_fingerprints(
     )
     if include_contract_aliases:
         fingerprints["terminal_artifact_kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
+        fingerprints["terminal_artifact_render_target"] = terminal_artifact_render_target_contract_fingerprint()
         fingerprints["terminal_artifact_render_target_contract"] = (
             terminal_artifact_render_target_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_raw_leaf_card_default"] = (
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint()
         )
         fingerprints["terminal_artifact_raw_leaf_card_default_contract"] = (
             terminal_artifact_raw_leaf_card_default_contract_fingerprint()
@@ -498,10 +508,15 @@ def describe_terminal_artifact_rendering_contract_fingerprints(
     )
     if include_contract_aliases:
         fingerprints["terminal_artifact_kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
+        fingerprints["terminal_artifact_rendering"] = terminal_artifact_rendering_contract_fingerprint()
         fingerprints["terminal_artifact_render_target_contract"] = (
             terminal_artifact_render_target_contract_fingerprint()
         )
+        fingerprints["terminal_artifact_render_target"] = terminal_artifact_render_target_contract_fingerprint()
         fingerprints["terminal_artifact_rendering_contract"] = terminal_artifact_rendering_contract_fingerprint()
+        fingerprints["terminal_artifact_raw_leaf_card_default"] = (
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint()
+        )
         fingerprints["terminal_artifact_raw_leaf_card_default_contract"] = (
             terminal_artifact_raw_leaf_card_default_contract_fingerprint()
         )
@@ -558,12 +573,18 @@ def describe_terminal_artifact_contract_fingerprints(
     if include_contract_aliases:
         fingerprints["terminal_artifact_kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
         fingerprints["terminal_artifact_contract"] = terminal_artifact_contract_fingerprint()
+        fingerprints["terminal_artifact_render_target"] = terminal_artifact_render_target_contract_fingerprint()
         fingerprints["terminal_artifact_render_target_contract"] = (
             terminal_artifact_render_target_contract_fingerprint()
         )
+        fingerprints["terminal_artifact_rendering"] = terminal_artifact_rendering_contract_fingerprint()
         fingerprints["terminal_artifact_rendering_contract"] = terminal_artifact_rendering_contract_fingerprint()
+        fingerprints["terminal_artifact_cli_fallback"] = terminal_artifact_cli_fallback_contract_fingerprint()
         fingerprints["terminal_artifact_cli_fallback_contract"] = (
             terminal_artifact_cli_fallback_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_raw_leaf_card_default"] = (
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint()
         )
         fingerprints["terminal_artifact_raw_leaf_card_default_contract"] = (
             terminal_artifact_raw_leaf_card_default_contract_fingerprint()
@@ -588,12 +609,18 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
     )
     if include_contract_aliases:
         fingerprints["terminal_artifact_kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
+        fingerprints["terminal_artifact_cli_fallback"] = terminal_artifact_cli_fallback_contract_fingerprint()
+        fingerprints["terminal_artifact_rendering"] = terminal_artifact_rendering_contract_fingerprint()
         fingerprints["terminal_artifact_render_target_contract"] = (
             terminal_artifact_render_target_contract_fingerprint()
         )
+        fingerprints["terminal_artifact_render_target"] = terminal_artifact_render_target_contract_fingerprint()
         fingerprints["terminal_artifact_rendering_contract"] = terminal_artifact_rendering_contract_fingerprint()
         fingerprints["terminal_artifact_cli_fallback_contract"] = (
             terminal_artifact_cli_fallback_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_raw_leaf_card_default"] = (
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint()
         )
         fingerprints["terminal_artifact_raw_leaf_card_default_contract"] = (
             terminal_artifact_raw_leaf_card_default_contract_fingerprint()

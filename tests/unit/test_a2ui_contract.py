@@ -28,6 +28,11 @@ from src.qual.ui.a2ui import (
     render_terminal_selection,
     studio_materialize_card,
     selection_contract_fingerprint,
+    terminal_artifact_cli_fallback_contract_fingerprint,
+    terminal_artifact_contract_fingerprint,
+    terminal_artifact_raw_leaf_card_default_contract_fingerprint,
+    terminal_artifact_render_target_contract_fingerprint,
+    terminal_artifact_rendering_contract_fingerprint,
     terminal_fallback_contract_fingerprint,
     validate_action_ref,
     UNKNOWN_FALLBACK_SUBTITLE,
@@ -415,6 +420,50 @@ class A2UIContractTests(unittest.TestCase):
             sorted(entry["id"] for entry in manifest["actions"]),
         )
         self.assertEqual(len(a2ui_contract_fingerprint()), 64)
+
+    def test_contract_fingerprint_alias_mode_exposes_terminal_artifact_field_names(self) -> None:
+        fingerprints = describe_a2ui_contract_fingerprints(
+            include_action=True,
+            include_terminal_artifact=True,
+            include_terminal_artifact_render_target=True,
+            include_terminal_artifact_rendering=True,
+            include_terminal_artifact_cli_fallback=True,
+            include_contract_aliases=True,
+        )
+
+        self.assertEqual(fingerprints["terminal_artifact"], terminal_artifact_contract_fingerprint())
+        self.assertEqual(
+            fingerprints["terminal_artifact_render_target"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_render_target_contract"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_rendering"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_rendering_contract"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback"],
+            terminal_artifact_cli_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_contract"],
+            terminal_artifact_cli_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_raw_leaf_card_default"],
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_raw_leaf_card_default_contract"],
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+        )
 
     def test_selection_contract_manifest_is_versioned_and_fingerprintable(self) -> None:
         manifest = describe_selection_contract()
