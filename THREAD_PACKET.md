@@ -50,6 +50,12 @@ This change advances the canonical demo-path step `retrieve relevant material` b
 - Reviewer packet source-of-truth anchor before this fixer commit: reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, reviewed implementation range `adfa8cdadd43747ffbcb612e4151e262b13e52ca^..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - This metadata-only refresh preserves the reviewed implementation head and narrows the operative reviewed implementation range to the single commit above while adding the explicit AGENTS demo-path statement required for re-review.
 
+## Operative Packet Authority
+
+- `THREAD_PACKET.md` is the authoritative re-review packet for this fixer pass.
+- The lane worktree allows updating this handoff packet but denies writes to `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`.
+- Re-review should use this packet's reviewed implementation range, narrowed scope summary, and canonical demo-path statement as the operative reviewer-fix artifact.
+
 ## Operative Packet Note
 
 - `THREAD_PACKET.md` is the operative corrected handoff artifact for this lane worktree.
