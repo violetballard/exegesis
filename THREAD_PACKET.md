@@ -13,7 +13,7 @@
 - Later packet-refresh commits are metadata-only for re-review and do not expand
   the reviewed implementation surface.
 - Re-review should keep the approval basis on the command-catalog slice below.
-- Latest metadata refresh prepared at: `2026-04-17T14:17:16Z`
+- Latest metadata refresh prepared at: `2026-04-17T14:18:17Z`
 
 ## Current Program Focus
 
@@ -117,7 +117,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Re-verification point: `2026-04-17T14:17:16Z` at the current branch tip
+- Re-verification point: `2026-04-17T14:18:17Z` at the current branch tip
 
 ## Risks / Blockers
 
