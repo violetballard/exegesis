@@ -2021,6 +2021,9 @@ def _build_terminal_artifact_cli_fallback_contract_manifest(
         "terminal_artifact_cli_fallback_target_contract_fingerprints": _snapshot_contract_section(
             terminal_artifact_cli_fallback_target_contract["contract_fingerprints"]
         ),
+        "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint": terminal_artifact_cli_fallback_target_contract[
+            "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"
+        ],
         "renderer_entrypoints": _snapshot_contract_section(
             terminal_artifact_cli_fallback_target_contract["renderer_entrypoints"]
         ),
