@@ -44,6 +44,7 @@
 ## Scope completed
 
 - SQLite FTS remains the authoritative MVP retrieval path on the canonical retrieval surface.
+- This reviewed range advances the canonical demo-path step `retrieve relevant material` by keeping retrieval FTS-first, deterministic, and auditable enough for downstream basket promotion without claiming broader workflow completion.
 - The reviewed implementation range now accurately includes the post-`adfa8cda...` retrieval code and test changes through `b3554eca...`; later commits on the branch are packet-only refreshes.
 - Retrieval payloads, provenance snapshots, source bundles, context bundles, shortlist provenance, ranked ids, and excerpt lookup metadata are normalized deterministically for downstream basket and workflow use.
 - Public retrieval facades expose the canonical query constructor and FTS-first helpers while PageIndex and embeddings remain deferred, non-required paths for the MVP.
