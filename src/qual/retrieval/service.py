@@ -3048,6 +3048,43 @@ class RetrievalService:
         if query_snapshot is not None:
             normalized["query"] = copy.deepcopy(query_snapshot)
             normalized_provenance["query"] = copy.deepcopy(query_snapshot)
+            if _optional_text(normalized.get("query_text")) is None and _optional_text(
+                normalized_provenance.get("query_text")
+            ) is None:
+                query_text = _normalize_query_text_payload(query_snapshot.get("query_text"))
+                if query_text is not None:
+                    normalized["query_text"] = query_text
+                    normalized_provenance["query_text"] = query_text
+            if _normalize_query_scope_payload(normalized_provenance.get("query_scope")) is None:
+                query_scope = _normalize_query_scope_payload(query_snapshot.get("scope"))
+                if query_scope is not None:
+                    normalized["query_scope"] = query_scope
+                    normalized_provenance["query_scope"] = query_scope
+            if _normalize_query_intent_payload(normalized_provenance.get("query_intent")) is None:
+                query_intent = _normalize_query_intent_payload(query_snapshot.get("intent"))
+                if query_intent is not None:
+                    normalized["query_intent"] = query_intent
+                    normalized_provenance["query_intent"] = query_intent
+            if _normalized_profile_text(normalized_provenance.get("query_confidentiality_profile")) is None:
+                query_confidentiality_profile = _normalized_profile_text(
+                    query_snapshot.get("confidentiality_profile")
+                )
+                if query_confidentiality_profile is not None:
+                    normalized["query_confidentiality_profile"] = query_confidentiality_profile
+                    normalized_provenance["query_confidentiality_profile"] = query_confidentiality_profile
+            query_constraints = query_snapshot.get("constraints", {})
+            if not isinstance(query_constraints, dict):
+                query_constraints = {}
+            if _normalize_query_date_range_payload(normalized_provenance.get("query_date_range")) is None:
+                query_date_range = _normalize_query_date_range_payload(query_constraints.get("date_range"))
+                if query_date_range is not None:
+                    normalized["query_date_range"] = query_date_range
+                    normalized_provenance["query_date_range"] = query_date_range
+            if _normalized_text(normalized_provenance.get("section_hint")) is None:
+                section_hint = _normalized_text(query_constraints.get("section_hint"))
+                if section_hint is not None:
+                    normalized["section_hint"] = section_hint
+                    normalized_provenance["section_hint"] = section_hint
         lookup_fingerprint = RetrievalService._stable_fingerprint(
             {
                 "doc_id": doc_id_value,
