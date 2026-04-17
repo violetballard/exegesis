@@ -2,36 +2,26 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `HEAD (current branch tip including reviewer fixes)`
-- Packet refresh commit: `HEAD (feature-fixer required-fix handoff refresh)`
-- Packet refresh role: `feature-fixer reviewer-required-fix packet alignment`
+- Commit: `edff6d8f18ea4b8a24c87bbb062226d5fe6b1961`
+- Packet refresh commit: `HEAD (feature-fixer reviewer-required-fix refresh)`
+- Packet refresh role: `feature-fixer reviewer-required-fix implementation + handoff refresh`
 
 ## Packet Traceability Note
 
-- The current review target is the actual branch tip
-  `edff6d8f18ea4b8a24c87bbb062226d5fe6b1961`.
-- This packet no longer treats later lane commits as metadata-only.
-- Re-review should cover the command-catalog implementation now present at the
-  branch tip, including the earlier `801532e089c1b123bb586c18ac1f874141ebfdd1`
-  workflow compatibility invocation-table change and the current
-  `edff6d8f18ea4b8a24c87bbb062226d5fe6b1961` compatibility-variant hardening.
-- Latest packet refresh prepared after the required-fix rerun on
-  `2026-04-17`.
-
-## Reviewer-Required Fix Verification
-
-- Required fix 1, true review target: satisfied by anchoring this packet to the
-  real branch tip instead of the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-  slice.
-- Required fix 2, explicit plan alignment: satisfied by naming the exact
-  canonical demo-path steps and the concrete CLI contract blocker removed.
-- Required fix 3, shared-file approval provenance: satisfied by tracing the
-  approved shared-test exception for `tests/unit/test_commands_catalog.py` to
-  prior handoff commits `0576acdd`, `c252f4d3`, and `3edc503e`, which recorded
-  the approval reference for this lane's command-catalog test coverage.
-- Required fix 4, branch-tip validation evidence: satisfied by rerunning the
-  full required gate suite against the current branch tip and recording the
-  outcomes below.
+- This packet now reviews the true current command-surface implementation tip,
+  not the earlier `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice alone.
+- Included implementation commits in scope:
+  - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` - lock
+    `command_cli_contract()` to canonical catalog ordering.
+  - `801532e089c1b123bb586c18ac1f874141ebfdd1` - add workflow compatibility
+    invocation-table accessors in `src/qual/commands/catalog.py` and re-export
+    them from `src/qual/commands/__init__.py`.
+  - `edff6d8f18ea4b8a24c87bbb062226d5fe6b1961` - normalize additional demo
+    compatibility variants onto canonical loop tokens for transition helpers.
+- This packet refresh adds one focused regression test for the compatibility
+  variant normalization so the branch tip has explicit validation evidence for
+  the latest implementation change.
+- Latest packet refresh prepared at: `2026-04-17T14:50:45Z`
 
 ## Current Program Focus
 
@@ -48,116 +38,83 @@
 
 ## Scope Goal
 
-- Keep the `feat-commands` CLI compatibility surface deterministic and
-  smoke-testable for the active Milestone 3 engine-first MVP loop by
-  hardening command-catalog contracts, workflow compatibility invocation
-  tables, and compatibility-token normalization.
+- Keep the CLI-first MVP command surface deterministic and parser-ready by
+  locking canonical CLI order, exposing workflow compatibility invocation
+  tables, and normalizing demo compatibility variants onto the trusted loop
+  tokens.
 
 ## Canonical Demo-Path Step Advanced
 
-- Exact canonical demo-path steps advanced:
-  `open project/document`,
-  `retrieve relevant material`,
-  `preview and apply or reject a patch`,
-  and `continue working` into `export handoff`.
-- Concrete blocker removed:
-  the CLI compatibility layer can no longer silently diverge between command
-  catalog order, workflow compatibility invocation argv, and accepted
-  compatibility-token variants for those operator-facing steps.
-- Step mapping:
-  `bootstrap` keeps `open project/document` deterministic,
-  `context-basket` keeps `retrieve relevant material` deterministic,
-  `diff-preview` and its workflow compatibility variants keep
-  `preview and apply or reject a patch` deterministic,
-  and `terminal`/persist-export compatibility routes keep `continue working`
-  and `export handoff` deterministic while Textual remains disabled.
-- Scope-tightening note:
-  this packet claims only CLI contract hardening for existing MVP-loop
-  entrypoints; it does not claim new workflow behavior or new command
-  semantics.
-
-## Scope Boundary
-
-- This slice stays in `feat-commands` Milestone 3 CLI compatibility work.
-- It hardens command-catalog validation, workflow compatibility invocation
-  data, and compatibility-token normalization.
-- It does not add new engine business logic, new command flags, or new UI
-  behavior.
-
-## Priority Outcomes
-
-1. Keep command behavior deterministic and easy to smoke-test.
-2. Prefer thin command entrypoints over embedded business logic.
-3. Preserve compatibility with the canonical engine contract while UI lanes stay disabled.
-
-## Definition of Done for This Lane
-
-- Core engine actions are reachable through stable commands.
-- Command behavior is deterministic and smoke-testable.
-- Compatibility shims keep old command surfaces working where required.
-- Command handlers stay thin and delegate real behavior to engine code.
-
-## Do Not Spend Time On
-
-- Fancy CLI UX that does not support the MVP loop.
-- New command flags that do not help open, retrieve, basket, revise, patch, or save.
-- Embedding engine behavior directly in command handlers.
-
-## Lane / Owned Paths
-
-- `src/qual/commands/**`
+- Primary step advanced: `open project/document -> retrieve relevant material
+  -> preview and apply or reject a patch -> continue working` through the
+  existing CLI-first MVP loop while Textual remains disabled.
+- Concrete blockers removed:
+  - `command_cli_contract()` now fails immediately if parser canonical names
+    drift from `command_names()` instead of silently returning a reordered or
+    truncated contract.
+  - Workflow compatibility verbs can now be flattened into parser-ready argv
+    through explicit invocation-table accessors, so the compatibility surface
+    remains inspectable and smoke-testable.
+  - Demo transition helpers now normalize additional compatibility variants
+    such as `open-workspace`, `preview-diff`, `accept-patch`, `resume-work`,
+    and `queue-handoff` onto the canonical loop tokens, keeping alternate
+    operator verbs on the same trusted MVP path rather than falling off the
+    route lookup surface.
+- Scope-tightening note: this remains command-surface hardening for the
+  existing MVP-loop entrypoints only; it does not add new workflow behavior or
+  expand beyond the current CLI compatibility layer.
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the
-  parser-facing CLI contract validates canonical command order against
-  `command_names()` and fails fast on drift.
-- Added workflow compatibility invocation-table fields and exported helpers in
-  `src/qual/commands/catalog.py` and `src/qual/commands/__init__.py` so the
-  current MVP workflow compatibility surface exposes parser-ready argv data
-  alongside lookup data.
-- Hardened demo compatibility-token normalization and transition lookup in
-  `src/qual/commands/catalog.py` so accepted compatibility variants resolve to
-  the canonical demo workflow tokens instead of silently missing transition
-  edges.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it
+  validates canonical command order against `command_names()`, raising
+  `ValueError` if the CLI lookup table drifts from the catalog's canonical
+  names.
+- Kept the returned contract aligned with the canonical command order by
+  reusing the canonical names tuple instead of rebuilding a divergent list.
+- Added workflow compatibility invocation-table accessors in
+  `src/qual/commands/catalog.py` and re-exported them from
+  `src/qual/commands/__init__.py` so compatibility verbs stay available as a
+  parser-ready contract surface.
+- Normalized additional demo compatibility variants in
+  `src/qual/commands/catalog.py` so transition helpers resolve alternate verbs
+  onto the canonical loop tokens for the trusted MVP path.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
-  for canonical-order drift rejection, workflow compatibility invocation-table
-  behavior, and demo compatibility transition resolution.
-- Refreshed the handoff packet to align review scope, demo-path mapping,
-  approval provenance, and gate evidence to the actual branch tip.
+  for canonical-order alignment, canonical-name drift rejection, workflow
+  compatibility invocation-table accessors, and demo compatibility variant
+  normalization.
+- Refreshed the handoff packet and thread pointer so re-review is anchored to
+  the true branch-tip implementation surface and the current gate rerun.
 
 ## Kickoff Budget / Limits Compliance
 
 - High-risk shared-file handoff: stayed within the 4-task cap, 30-minute
-  budget, and lane size limits for this narrow command-catalog slice.
-- Runtime edits remain in lane-owned `src/qual/commands/**`.
-- The only non-owned implementation path remains the approved shared test file
-  `tests/unit/test_commands_catalog.py`.
+  budget, and lane size limits. The implementation slice stays limited to two
+  owned command files plus one focused approved shared test file.
 
 ## Approved Exception Note
 
-- Approved shared-test exception for `tests/unit/test_commands_catalog.py`.
-- Approval provenance:
-  `THREAD_OWNERSHIP.md` marks that file as `Shared by approval only`, and the
-  lane previously recorded the approval trace in handoff commits `0576acdd`,
-  `c252f4d3`, and `3edc503e`.
-- This packet carries forward that same shared-test approval for the current
-  command-catalog review scope; no additional shared or integrator-locked
-  implementation paths are claimed.
+- Approved shared-test exception for `tests/unit/test_commands_catalog.py`. It
+  remains the only non-owned implementation path in this handoff.
+- Approval provenance available to this fixer turn: the reviewer packet source
+  of truth explicitly included `Approved shared-test exception for
+  tests/unit/test_commands_catalog.py`; this refresh carries that same
+  exception forward and does not add any new shared implementation paths.
 
-## Tasks Completed
+## Tasks Completed (Numbered)
 
-1. Hardened `command_cli_contract()` to reject canonical-name drift and keep
-   canonical order deterministic.
-2. Added workflow compatibility invocation-table data and exports for the
-   current MVP workflow compatibility surface.
-3. Hardened compatibility-token variant normalization so demo workflow
-   transition lookups resolve accepted compatibility verbs to canonical tokens.
-4. Added or retained focused regression coverage in
-   `tests/unit/test_commands_catalog.py` for the branch-tip command-catalog
-   behavior under review.
-5. Refreshed the handoff packet so re-review targets the actual branch tip and
-   includes explicit demo-path and approval-trace evidence.
+1. Hardened `command_cli_contract()` to verify canonical-name consistency
+   against `command_names()` and fail fast on canonical-name drift.
+2. Preserved canonical command ordering in the CLI contract by returning the
+   validated canonical tuple directly.
+3. Added workflow compatibility invocation-table accessors and exports for the
+   current MVP command surface.
+4. Normalized additional demo compatibility variants so transition helpers map
+   alternate verbs back onto the canonical loop tokens.
+5. Added focused regression coverage for the branch-tip command-surface
+   contracts, including the compatibility variant normalization.
+6. Refreshed the handoff packet and thread pointer so re-review tracks the true
+   implementation scope and current gate rerun.
 
 ## Files Changed
 
@@ -180,14 +137,13 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification timestamp: `2026-04-17T14:47:31Z`
+- Re-verification point: `2026-04-17T14:50:45Z`
 
 ## Risks / Blockers
 
 - Risk: `LOW`
-- Remaining risk: future command-surface additions still need matching
-  regression coverage anywhere parser-facing compatibility tokens or workflow
-  invocation tables expand.
+- Remaining risk: none beyond normal merge sequencing for a narrow
+  command-catalog change.
 - Blockers: none
 
 ## Required Handoff Fields
@@ -195,28 +151,32 @@
 ### Roadmap item(s) affected
 
 - Milestone 3: Real workflow loop - preserve CLI compatibility while the
-  package/layout migration lands by keeping the CLI command surface
-  deterministic for the active MVP loop while Textual remains disabled.
+  package/layout migration lands by keeping the command surface deterministic,
+  parser-ready, and smoke-testable across canonical and compatibility verbs.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the
   engine-first MVP loop.
+- Scope-tightening note: this packet only claims command-surface hardening for
+  the current CLI compatibility layer covering `bootstrap`,
+  `context-basket`, `diff-preview`, and `terminal` plus their compatibility
+  verbs in the active MVP loop, not a broader workflow capability change.
 
 ### Vision capability affected
 
 - Canonical engine contract - the CLI compatibility surface stays stable and
-  smoke-testable for the current engine-first MVP loop while Textual remains
-  disabled.
-- Auditable state and workflow - the command surface now fails loudly on drift
-  and keeps compatibility-token routing explicit and traceable for operator
-  flows.
+  smoke-testable while Textual remains disabled.
+- Auditable state and workflow - compatibility verbs now stay on explicit,
+  inspectable parser-ready routes instead of relying on implicit fallback
+  behavior.
 
 ### Routing/provider impact note
 
-- None. This change only affects local command contract validation, command
-  workflow compatibility data, and focused command-catalog test coverage.
+- None. This change only affects local command contract validation and focused
+  command-catalog test coverage.
 
-## Scope-check / Ownership Note
+## Scope-Check / Ownership Note
 
 - Shared/integrator-locked edits: `YES`
-- Ownership detail: runtime edits stay inside lane-owned
-  `src/qual/commands/**`, and the only non-owned implementation path in scope
-  is the approved shared test `tests/unit/test_commands_catalog.py`.
+- Ownership detail: owned implementation paths are
+  `src/qual/commands/catalog.py` and `src/qual/commands/__init__.py`; the only
+  non-owned implementation path is the approved shared test
+  `tests/unit/test_commands_catalog.py`.
