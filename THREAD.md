@@ -31,5 +31,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   only refreshes the handoff contract for re-review.
 - Canonical demo-path step impact: this slice makes the CLI `open
   project/document`, `retrieve relevant material`, and `preview and apply or
-  reject a patch` steps more reliable by rejecting parser/catalog drift before
-  it can silently change the operator-facing contract.
+  reject a patch` steps more reliable by keeping the `bootstrap`,
+  `context-basket`, and `diff-preview` entrypoints aligned with the canonical
+  command catalog and rejecting parser/catalog drift before it can silently
+  change the operator-facing contract.

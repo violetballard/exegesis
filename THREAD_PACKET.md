@@ -66,9 +66,14 @@
   CLI demo-path steps `open project/document`, `retrieve relevant material`,
   and `preview and apply or reject a patch` more reliable by keeping the
   parser-facing command surface deterministic and drift-resistant.
+- Concrete step protection:
+  `bootstrap` protects the `open project/document` entrypoint,
+  `context-basket` protects the `retrieve relevant material` entrypoint, and
+  `diff-preview` protects the `preview and apply or reject a patch`
+  entrypoint.
 - Concrete blocker removed: parser/catalog drift can no longer silently
-  reorder or desynchronize the operator-facing command contract for those
-  CLI-first MVP steps.
+  reorder or desynchronize those operator-facing CLI entrypoints from the
+  canonical command catalog.
 
 ## Scope Boundary
 
