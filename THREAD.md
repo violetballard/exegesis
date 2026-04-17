@@ -32,3 +32,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   `open project/document`, limits the vision mapping to the demonstrated CLI
   contract scope, and records the concrete shared-file approval basis required
   by the reviewer.
+- This final fixer refresh also records the approval provenance explicitly:
+  the user-supplied `2026-04-17` reviewer packet for this run is the source of
+  truth for the approved shared-test exception on
+  `tests/unit/test_commands_catalog.py`.

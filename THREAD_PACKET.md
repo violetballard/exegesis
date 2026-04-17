@@ -262,10 +262,13 @@
 ## Approved Exception Note
 
 - Approved shared-test exception for `tests/unit/test_commands_catalog.py`.
-- Approval provenance: this re-review relies on the explicit `Approved exception note`
-  carried in the reviewed feature packet for the `feat-commands` command-catalog
-  slice, with the branch-local enforcement reference recorded by
-  `SCOPE_ALLOW_SHARED=1 make scope-check`.
+- Approval provenance: this fixer pass uses the user-supplied reviewer packet
+  in the `2026-04-17` fixer prompt as the source of truth, and that packet
+  explicitly says
+  `Approved exception note - Approved shared-test exception for
+  tests/unit/test_commands_catalog.py`.
+- Approval enforcement evidence: the branch-local scope gate for that shared
+  test path is recorded by `SCOPE_ALLOW_SHARED=1 make scope-check`.
 
 ## Tasks Completed
 
@@ -346,9 +349,10 @@
 - Integrator-locked edits: `NO`.
 - Ownership detail: the only non-owned implementation path in this slice is
   the approved shared test `tests/unit/test_commands_catalog.py`.
-- Approval reference: the reviewer packet supplied to this fixer run is the
-  source of truth and explicitly includes `Approved exception note -
-  Approved shared-test exception for tests/unit/test_commands_catalog.py`.
+- Approval reference: the user-supplied reviewer packet for this fixer run on
+  `2026-04-17` is the source of truth and explicitly includes
+  `Approved exception note - Approved shared-test exception for
+  tests/unit/test_commands_catalog.py`.
 - Approval basis: `THREAD_OWNERSHIP.md` marks
   `tests/unit/test_commands_catalog.py` as `feat-commands` shared-by-approval,
   and `scripts/scope-check.sh` permits that path for `codex/feat-commands*`
