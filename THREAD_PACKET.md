@@ -16,7 +16,7 @@
 
 ### Planned Tasks (max 4)
 
-1. Retarget the packet traceability to the actual current branch tip instead of the stale `f8d860e` slice.
+1. Retarget the packet traceability to the actual pre-refresh branch tip instead of the stale `f8d860e` slice.
 2. State the exact canonical demo-path step this command-surface work advances.
 3. Update scope and file lists so they match the real reviewed implementation range now in scope.
 4. Re-run the required local gates and record outcomes for re-review.
@@ -42,7 +42,7 @@
 
 ## Packet Traceability Note
 
-- This re-review packet is anchored to current branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05` immediately before this metadata refresh commit.
+- This re-review packet is anchored to pre-refresh branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05` immediately before this metadata refresh commit.
 - The latest non-metadata command-surface implementation tip in scope remains `423adf3c0b23ac152844bbe3b74577cd3afb318b`.
 - The earlier commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` remains part of the reviewed history, but it is no longer treated as the sole implementation slice.
 - Code changes after `f8d860e` are in scope for this re-review. The current reviewed implementation range includes:
@@ -59,15 +59,15 @@
 ## Reviewer Required Fixes Satisfied
 
 1. Retargeted the packet to the real pre-refresh implementation tip instead of claiming later code commits were metadata-only.
-2. Updated the scope and in-scope file list so the handoff matches the reviewed command implementation present at `423adf3c0b23ac152844bbe3b74577cd3afb318b` and the current branch-tip metadata state at `82cca047f62ff80db73ee76ef1c47767f5061c05`.
+2. Updated the scope and in-scope file list so the handoff matches the reviewed command implementation present at `423adf3c0b23ac152844bbe3b74577cd3afb318b` and the pre-refresh branch-tip metadata state at `82cca047f62ff80db73ee76ef1c47767f5061c05`.
 3. Added the explicit `AGENTS.md` demo-path mapping by naming the exact canonical step this work makes more real and why it removes a concrete blocker there.
-4. Re-ran the required gate suite from current branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05` and recorded fresh passing evidence for re-review on `2026-04-17`.
+4. Re-ran the required gate suite from pre-refresh branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05` and recorded fresh passing evidence for re-review on `2026-04-17`.
 
 ## Fixer Verification Refresh
 
-- Re-ran the full required gate suite on `2026-04-17` against pre-commit branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05`.
+- Re-ran the full required gate suite on `2026-04-17` against pre-refresh branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05`.
 - This metadata-only refresh records that fresh verification pass so the handoff packet matches the latest fixer run.
-- Final fixer consistency check: this pass verified that every traceability and verification-anchor reference in the packet now consistently points at branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05`, with no stale fallback to the earlier `80c9e22d...` packet state.
+- Final fixer consistency check: this pass verified that every traceability and verification-anchor reference in the packet now consistently points at pre-refresh branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05`, with no stale fallback to the earlier `80c9e22d...` packet state.
 
 ## Current Program Focus
 
@@ -117,7 +117,7 @@
 
 ### Tasks Completed (Numbered)
 
-1. Retargeted the handoff packet traceability to current branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05` while preserving implementation scope at `423adf3c0b23ac152844bbe3b74577cd3afb318b`.
+1. Retargeted the handoff packet traceability to pre-refresh branch tip `82cca047f62ff80db73ee76ef1c47767f5061c05` while preserving implementation scope at `423adf3c0b23ac152844bbe3b74577cd3afb318b`.
 2. Added the explicit canonical demo-path mapping: this branch-tip command-surface work strengthens `open project/document`.
 3. Updated `Scope completed`, `Files changed`, and ownership notes so they match the real command implementation now in scope for re-review.
 4. Re-ran the required local gates on the current branch tip and recorded outcomes for this fixer pass.
