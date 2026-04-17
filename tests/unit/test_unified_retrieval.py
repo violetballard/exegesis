@@ -1541,6 +1541,35 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(event["metadata"]["doc_fingerprint"], excerpt["doc_fingerprint"])
         self.assertEqual(event["metadata"]["lookup_fingerprint"], excerpt["lookup_fingerprint"])
 
+    def test_retrieve_fts_excerpt_audit_carries_result_and_promotion_context(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+
+        excerpt = self.service.retrieve_fts_excerpt(excerpt_id or "")
+
+        lines = [json.loads(line) for line in (self.root / "audit_events.jsonl").read_text(encoding="utf-8").splitlines()]
+        event = next(item for item in lines if item["name"] == "excerpt_lookup_completed")
+
+        self.assertEqual(event["metadata"]["result_fingerprint"], excerpt["result_fingerprint"])
+        self.assertEqual(event["metadata"]["excerpt_text_hash"], excerpt["excerpt_text_hash"])
+        self.assertEqual(event["metadata"]["basket_promotion"], excerpt["basket_promotion"])
+        self.assertIsNone(event["metadata"]["query_fingerprint"])
+        self.assertIsNone(event["metadata"]["query_scope"])
+        self.assertIsNone(event["metadata"]["query_intent"])
+        self.assertIsNone(event["metadata"]["query_confidentiality_profile"])
+        self.assertIsNone(event["metadata"]["candidate_doc_count"])
+        self.assertIsNone(event["metadata"]["fts_shortlist_doc_ids"])
+
     def test_retrieve_fts_excerpt_honors_confidentiality_profile_for_title_hint(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

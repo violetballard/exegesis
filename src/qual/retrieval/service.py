@@ -1409,6 +1409,9 @@ class RetrievalService:
         span = excerpt.get("span")
         if not isinstance(span, dict):
             span = None
+        basket_promotion = excerpt.get("basket_promotion")
+        if not isinstance(basket_promotion, dict):
+            basket_promotion = None
         self._audit.record(
             name="excerpt_lookup_completed",
             metadata={
@@ -1427,11 +1430,21 @@ class RetrievalService:
                 "strategies_used": copy.deepcopy(excerpt.get("strategies_used")),
                 "source_hash": excerpt.get("source_hash"),
                 "doc_fingerprint": excerpt.get("doc_fingerprint"),
+                "result_fingerprint": excerpt.get("result_fingerprint"),
                 "text_hash": excerpt.get("text_hash"),
+                "excerpt_text_hash": excerpt.get("excerpt_text_hash"),
                 "excerpt_fingerprint": excerpt.get("excerpt_fingerprint"),
                 "excerpt_provenance_fingerprint": excerpt.get("excerpt_provenance_fingerprint"),
                 "lookup_fingerprint": excerpt.get("lookup_fingerprint"),
                 "doc_identity_fingerprint": excerpt.get("doc_identity_fingerprint"),
+                "query_fingerprint": excerpt.get("query_fingerprint"),
+                "query_scope": excerpt.get("query_scope"),
+                "query_intent": excerpt.get("query_intent"),
+                "query_confidentiality_profile": excerpt.get("query_confidentiality_profile"),
+                "query_date_range": copy.deepcopy(excerpt.get("query_date_range")),
+                "candidate_doc_count": excerpt.get("candidate_doc_count"),
+                "fts_shortlist_doc_ids": copy.deepcopy(excerpt.get("fts_shortlist_doc_ids")),
+                "basket_promotion": copy.deepcopy(basket_promotion),
                 "span": copy.deepcopy(span),
             },
         )
