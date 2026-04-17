@@ -306,6 +306,7 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["action_contract"] = action_contract_fingerprint()
         fingerprints["selection_contract"] = selection_contract_fingerprint()
         fingerprints["terminal_fallback_contract"] = terminal_fallback_contract_fingerprint()
+        fingerprints["terminal_artifact_kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
         fingerprints["terminal_artifact_contract"] = terminal_artifact_contract_fingerprint()
         fingerprints["terminal_artifact_render_target_contract"] = (
             terminal_artifact_render_target_contract_fingerprint()
@@ -433,17 +434,27 @@ def describe_terminal_artifact_render_target_contract() -> dict[str, Any]:
 
 def describe_terminal_artifact_render_target_contract_fingerprints(
     include_terminal_artifact_render_target: bool = False,
+    include_contract_aliases: bool = False,
 ) -> dict[str, str]:
     """Return stable fingerprints for the render-target contract sections.
 
     Pass ``include_terminal_artifact_render_target=True`` to include the
     wrapper contract fingerprint itself alongside the nested section
-    fingerprints.
+    fingerprints. Pass ``include_contract_aliases=True`` to include alias keys
+    that mirror the manifest field names.
     """
 
-    return _build_terminal_artifact_render_target_contract_fingerprints(
+    fingerprints = _build_terminal_artifact_render_target_contract_fingerprints(
         include_terminal_artifact_render_target=include_terminal_artifact_render_target,
     )
+    if include_contract_aliases:
+        fingerprints["terminal_artifact_render_target_contract"] = (
+            terminal_artifact_render_target_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_raw_leaf_card_default_contract"] = (
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint()
+        )
+    return fingerprints
 
 
 def describe_terminal_artifact_rendering_contract() -> dict[str, Any]:
@@ -463,16 +474,28 @@ def describe_terminal_artifact_rendering_contract() -> dict[str, Any]:
 
 def describe_terminal_artifact_rendering_contract_fingerprints(
     include_terminal_artifact_rendering: bool = False,
+    include_contract_aliases: bool = False,
 ) -> dict[str, str]:
     """Return stable fingerprints for the rendering-contract sections.
 
     Pass ``include_terminal_artifact_rendering=True`` to include the wrapper
     contract fingerprint itself alongside the nested section fingerprints.
+    Pass ``include_contract_aliases=True`` to include alias keys that mirror
+    the manifest field names.
     """
 
-    return _build_terminal_artifact_rendering_contract_fingerprints(
+    fingerprints = _build_terminal_artifact_rendering_contract_fingerprints(
         include_terminal_artifact_rendering=include_terminal_artifact_rendering,
     )
+    if include_contract_aliases:
+        fingerprints["terminal_artifact_render_target_contract"] = (
+            terminal_artifact_render_target_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_rendering_contract"] = terminal_artifact_rendering_contract_fingerprint()
+        fingerprints["terminal_artifact_raw_leaf_card_default_contract"] = (
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint()
+        )
+    return fingerprints
 
 
 def describe_terminal_artifact_cli_fallback_contract() -> dict[str, Any]:
@@ -499,8 +522,13 @@ def describe_terminal_artifact_kind_contracts() -> dict[str, dict[str, str]]:
 def describe_terminal_artifact_contract_fingerprints(
     include_terminal_artifact: bool = False,
     include_kind_contracts: bool = False,
+    include_contract_aliases: bool = False,
 ) -> dict[str, str]:
-    """Return stable fingerprints for the terminal artifact contract and subcontracts."""
+    """Return stable fingerprints for the terminal artifact contract and subcontracts.
+
+    Pass ``include_contract_aliases=True`` to include alias keys that mirror
+    the manifest field names.
+    """
 
     fingerprints = {
         "card_contract": card_contract_fingerprint(),
@@ -516,21 +544,49 @@ def describe_terminal_artifact_contract_fingerprints(
         fingerprints["terminal_artifact"] = terminal_artifact_contract_fingerprint()
     if include_kind_contracts:
         fingerprints["kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
+    if include_contract_aliases:
+        fingerprints["terminal_artifact_kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
+        fingerprints["terminal_artifact_contract"] = terminal_artifact_contract_fingerprint()
+        fingerprints["terminal_artifact_render_target_contract"] = (
+            terminal_artifact_render_target_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_rendering_contract"] = terminal_artifact_rendering_contract_fingerprint()
+        fingerprints["terminal_artifact_cli_fallback_contract"] = (
+            terminal_artifact_cli_fallback_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_raw_leaf_card_default_contract"] = (
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint()
+        )
     return fingerprints
 
 
 def describe_terminal_artifact_cli_fallback_contract_fingerprints(
     include_terminal_artifact_cli_fallback: bool = False,
+    include_contract_aliases: bool = False,
 ) -> dict[str, str]:
     """Return stable fingerprints for the CLI fallback wrapper contract sections.
 
     Pass ``include_terminal_artifact_cli_fallback=True`` to include the wrapper
     contract fingerprint itself alongside the nested section fingerprints.
+    Pass ``include_contract_aliases=True`` to include alias keys that mirror
+    the manifest field names.
     """
 
-    return _build_terminal_artifact_cli_fallback_contract_fingerprints(
+    fingerprints = _build_terminal_artifact_cli_fallback_contract_fingerprints(
         include_terminal_artifact_cli_fallback=include_terminal_artifact_cli_fallback,
     )
+    if include_contract_aliases:
+        fingerprints["terminal_artifact_render_target_contract"] = (
+            terminal_artifact_render_target_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_rendering_contract"] = terminal_artifact_rendering_contract_fingerprint()
+        fingerprints["terminal_artifact_cli_fallback_contract"] = (
+            terminal_artifact_cli_fallback_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_raw_leaf_card_default_contract"] = (
+            terminal_artifact_raw_leaf_card_default_contract_fingerprint()
+        )
+    return fingerprints
 
 
 def _build_terminal_artifact_rendering_contract_fingerprints(
