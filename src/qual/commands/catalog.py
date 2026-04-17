@@ -2240,6 +2240,8 @@ def _validate_command_smoke_contract(contract: CommandSmokeContract) -> None:
 def _validate_command_demo_path_contract(
     contract: CommandDemoPathContract,
     smoke_contract: CommandSmokeContract,
+    *,
+    specs: tuple[CommandSpec, ...],
 ) -> None:
     if contract.flow_steps != smoke_contract.flow_steps:
         raise ValueError("Command demo path flow steps are inconsistent")
@@ -2277,6 +2279,30 @@ def _validate_command_demo_path_contract(
         entry.cli_tokens for entry in smoke_contract.entries
     ):
         raise ValueError("Command demo path parser surface invocations are inconsistent")
+    expected_surface_invocations = tuple(
+        tuple(
+            (
+                token,
+                command_smoke_argv_for(specs, (token,), contract.flow_steps),
+            )
+            for token in entry.surface_tokens
+        )
+        for entry in smoke_contract.entries
+    )
+    if tuple(entry.surface_invocations for entry in contract.entries) != expected_surface_invocations:
+        raise ValueError("Command demo path surface invocation argv is inconsistent")
+    expected_parser_surface_invocations = tuple(
+        tuple(
+            (
+                token,
+                command_smoke_argv_for(specs, (token,), contract.flow_steps),
+            )
+            for token in entry.cli_tokens
+        )
+        for entry in smoke_contract.entries
+    )
+    if tuple(entry.parser_surface_invocations for entry in contract.entries) != expected_parser_surface_invocations:
+        raise ValueError("Command demo path parser surface invocation argv is inconsistent")
     if contract.lookup_surface != smoke_contract.lookup_surface:
         raise ValueError("Command demo path lookup surface is inconsistent")
 
@@ -2481,7 +2507,7 @@ def command_demo_path_contract(
         lookup_table=tuple((entry.flow_step, entry.name) for entry in entries),
         lookup_surface=smoke_contract.lookup_surface,
     )
-    _validate_command_demo_path_contract(contract, smoke_contract)
+    _validate_command_demo_path_contract(contract, smoke_contract, specs=specs)
     return contract
 
 

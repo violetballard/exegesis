@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 from unittest.mock import patch
 
 import src.qual.commands.catalog as command_catalog
@@ -1942,6 +1943,52 @@ class CommandCatalogTests(unittest.TestCase):
                 ),
             ),
         )
+
+    def test_command_demo_path_validator_rejects_surface_invocation_argv_drift(self) -> None:
+        contract = command_demo_path_contract()
+        broken_entry = replace(
+            contract.entries[3],
+            surface_invocations=(
+                (
+                    "terminal",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_tool_orchestration",
+                        "--message",
+                        "Export handoff",
+                    ),
+                ),
+                *contract.entries[3].surface_invocations[1:],
+            ),
+        )
+        broken_contract = replace(contract, entries=(*contract.entries[:3], broken_entry))
+
+        with self.assertRaisesRegex(ValueError, "Command demo path surface invocation argv is inconsistent"):
+            command_catalog._validate_command_demo_path_contract(
+                broken_contract,
+                command_demo_smoke_contract(),
+                specs=command_specs(),
+            )
+
+    def test_command_demo_path_validator_rejects_parser_surface_invocation_argv_drift(self) -> None:
+        contract = command_demo_path_contract()
+        broken_entry = replace(
+            contract.entries[2],
+            parser_surface_invocations=(
+                ("diff-preview", ("diff-preview",)),
+                ("diff", ("diff-preview",)),
+            ),
+        )
+        broken_contract = replace(contract, entries=(*contract.entries[:2], broken_entry, *contract.entries[3:]))
+
+        with self.assertRaisesRegex(ValueError, "Command demo path parser surface invocation argv is inconsistent"):
+            command_catalog._validate_command_demo_path_contract(
+                broken_contract,
+                command_demo_smoke_contract(),
+                specs=command_specs(),
+            )
+
     def test_custom_smoke_argv_preserves_flag_values(self) -> None:
         specs = (
             CommandSpec(
