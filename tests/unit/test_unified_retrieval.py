@@ -1727,6 +1727,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                         "intent": "compare",
                         "confidentiality_profile": "  StAnDaRd  ",
                         "constraints": {
+                            "max_results": " 6 ",
                             "doc_types": ("Memo", "pdf"),
                             "require_citations": "1",
                             "prefer_exact_matches": " off ",
@@ -1748,6 +1749,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         self.assertEqual(source_bundle["query"]["query_text"], "memo comparison")
         self.assertEqual(source_bundle["query"]["confidentiality_profile"], "standard")
+        self.assertEqual(source_bundle["query"]["constraints"]["max_results"], 6)
         self.assertEqual(source_bundle["query"]["constraints"]["doc_types"], ["memo", "pdf"])
         self.assertEqual(source_bundle["query"]["constraints"]["require_citations"], True)
         self.assertEqual(source_bundle["query"]["constraints"]["prefer_exact_matches"], False)

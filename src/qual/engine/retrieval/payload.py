@@ -320,6 +320,11 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
         constraints = {}
     else:
         constraints = copy.deepcopy(constraints)
+    max_results = _normalize_optional_int(constraints.get("max_results"))
+    if max_results is not None:
+        constraints["max_results"] = max_results
+    elif "max_results" in constraints:
+        constraints["max_results"] = None
     constraints["doc_types"] = _normalize_query_doc_types(constraints.get("doc_types"))
     constraints["date_range"] = _normalize_query_date_range(constraints.get("date_range"))
     constraints["section_hint"] = _normalize_optional_text(constraints.get("section_hint"))
