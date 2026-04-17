@@ -1705,10 +1705,16 @@ def command_cli_entry_argv_for(
     resolved = command_resolve_for(specs, compatibility_argv[0], ordered_flow_steps)
     if len(compatibility_argv) != 1:
         if not resolved.matched:
+            fallback_argv = _resolve_demo_fallback_argv(specs, compatibility_argv, ordered_flow_steps)
+            if fallback_argv:
+                return fallback_argv
             return normalized_argv
         return _resolved_parser_ready_argv(specs, resolved, compatibility_argv[1:])
 
     if not resolved.matched:
+        fallback_argv = _resolve_demo_fallback_argv(specs, compatibility_argv, ordered_flow_steps)
+        if fallback_argv:
+            return fallback_argv
         return normalized_argv
 
     spec = command_spec_for(specs, resolved.canonical_name)
@@ -3765,6 +3771,29 @@ def _resolved_parser_ready_argv(
     )
 
 
+def _resolve_demo_fallback_argv(
+    specs: tuple[CommandSpec, ...],
+    argv: tuple[str, ...],
+    ordered_flow_steps: tuple[str, ...],
+) -> tuple[str, ...]:
+    if not argv or not _uses_demo_compatibility_flow(ordered_flow_steps):
+        return ()
+
+    demo_token = _normalize_demo_compatibility_token(argv[0])
+    if demo_token not in _COMMAND_DEMO_LOOP_TOKENS:
+        return ()
+
+    try:
+        resolved = _resolve_demo_loop_token(
+            specs,
+            demo_token,
+            ordered_flow_steps=ordered_flow_steps,
+        )
+    except ValueError:
+        return ()
+    return _resolved_parser_ready_argv(specs, resolved, argv[1:])
+
+
 def _prefer_primary_smoke_argv(
     spec: CommandSpec | None,
     *,
@@ -3982,8 +4011,38 @@ def command_resolve_argv_for(
             matched=False,
         )
 
-    resolved = command_resolve_for(specs, raw_argv[0], flow_steps)
+    ordered_flow_steps = _resolve_parser_surface_flow_steps(specs, flow_steps)
+    resolved = command_resolve_for(specs, raw_argv[0], ordered_flow_steps)
     if not resolved.matched:
+        fallback_argv = _resolve_demo_fallback_argv(specs, raw_argv, ordered_flow_steps)
+        if fallback_argv:
+            normalized_token = _normalize_demo_compatibility_token(raw_argv[0])
+            try:
+                fallback_resolved = _preserve_requested_token(
+                    _resolve_demo_loop_token(
+                        specs,
+                        normalized_token,
+                        ordered_flow_steps=ordered_flow_steps,
+                    ),
+                    raw_argv[0],
+                )
+            except ValueError:
+                fallback_resolved = resolved
+            return ResolvedCommand(
+                token=fallback_resolved.token,
+                normalized_token=fallback_resolved.normalized_token,
+                canonical_name=fallback_resolved.canonical_name,
+                flow_step=fallback_resolved.flow_step,
+                primary_cli_token=fallback_resolved.primary_cli_token,
+                argv=fallback_argv,
+                smoke_argv=fallback_resolved.smoke_argv,
+                cli_tokens=fallback_resolved.cli_tokens,
+                lookup_tokens=fallback_resolved.lookup_tokens,
+                surface_tokens=fallback_resolved.surface_tokens,
+                description=fallback_resolved.description,
+                kind=fallback_resolved.kind,
+                matched=True,
+            )
         return ResolvedCommand(
             token=resolved.token,
             normalized_token=resolved.normalized_token,
@@ -4000,7 +4059,7 @@ def command_resolve_argv_for(
             matched=False,
         )
 
-    resolved_argv = command_cli_shim_argv_for(specs, raw_argv, flow_steps)
+    resolved_argv = command_cli_shim_argv_for(specs, raw_argv, ordered_flow_steps)
     spec = command_spec_for(specs, resolved.canonical_name)
     if len(raw_argv) == 1:
         resolved_argv = _prefer_primary_smoke_argv(

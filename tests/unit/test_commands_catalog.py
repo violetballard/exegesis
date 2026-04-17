@@ -3498,11 +3498,129 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(
             command_cli_entry_argv_for(specs, ("accept",), command_mvp_flow_steps()),
-            ("apply-patch",),
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
         )
         self.assertEqual(
             command_cli_entry_argv_for(specs, ("continue", "--message", "Keep going"), command_mvp_flow_steps()),
-            ("persist", "--message", "Keep going"),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Keep going"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv_for(specs, ("handoff",), command_mvp_flow_steps()),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
+
+    def test_command_resolve_argv_for_demo_compatibility_tokens_uses_parser_ready_fallbacks_for_custom_specs(self) -> None:
+        specs = (
+            CommandSpec(
+                name="bootstrap",
+                aliases=("open",),
+                cli_tokens=("bootstrap-run",),
+                smoke_argv=("bootstrap-run", "--project", "demo"),
+                flow_step="project-open",
+            ),
+            CommandSpec(
+                name="context-basket",
+                aliases=("retrieve",),
+                cli_tokens=("context-basket",),
+                smoke_argv=("context-basket", "list"),
+                flow_step="retrieval",
+            ),
+            CommandSpec(
+                name="diff-preview",
+                aliases=("review-patch",),
+                cli_tokens=("review-diff",),
+                smoke_argv=("review-diff", "--original", "before", "--proposed", "after"),
+                flow_step="patch-review",
+            ),
+            CommandSpec(
+                name="terminal",
+                aliases=("save-export", "persist-continue", "patch-apply", "patch-reject"),
+                cli_tokens=("terminal",),
+                smoke_argv=(
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_synthesis_request",
+                    "--message",
+                    "Export handoff",
+                ),
+                surface_argv=(
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_synthesis_request",
+                    "--message",
+                    "Export handoff",
+                ),
+                shim_argv=(
+                    (
+                        "save-export",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Export handoff",
+                        ),
+                    ),
+                    (
+                        "persist-continue",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Persist and continue",
+                        ),
+                    ),
+                    (
+                        "patch-apply",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_tool_orchestration",
+                            "--message",
+                            "Apply patch",
+                        ),
+                    ),
+                    (
+                        "patch-reject",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_tool_orchestration",
+                            "--message",
+                            "Reject patch",
+                        ),
+                    ),
+                ),
+                shim_pinned_options=(
+                    ("save-export", ("--operation-kind",)),
+                    ("persist-continue", ("--operation-kind",)),
+                    ("patch-apply", ("--operation-kind",)),
+                    ("patch-reject", ("--operation-kind",)),
+                ),
+                flow_step="export-handoff",
+            ),
+        )
+
+        resolved = command_resolve_argv_for(specs, ("accept",), command_mvp_flow_steps())
+        self.assertTrue(resolved.matched)
+        self.assertEqual(resolved.canonical_name, "terminal")
+        self.assertEqual(resolved.flow_step, "export-handoff")
+        self.assertEqual(
+            resolved.argv,
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+
+        resolved = command_resolve_argv_for(
+            specs,
+            ("continue", "--message", "Keep going"),
+            command_mvp_flow_steps(),
+        )
+        self.assertTrue(resolved.matched)
+        self.assertEqual(resolved.canonical_name, "terminal")
+        self.assertEqual(
+            resolved.argv,
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Keep going"),
         )
 
     def test_command_flow_helpers_default_to_the_demo_route(self) -> None:
