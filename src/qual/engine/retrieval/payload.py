@@ -2043,12 +2043,18 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     query = payload.get("query", {})
     summary = payload.get("retrieval_summary", {})
     diagnostics = payload.get("retrieval_diagnostics", {})
+    top_level_doc_hits = payload.get("doc_hits", [])
+    top_level_excerpt_hits = payload.get("excerpt_hits", [])
     if not isinstance(query, dict):
         query = {}
     if not isinstance(summary, dict):
         summary = {}
     if not isinstance(diagnostics, dict):
         diagnostics = {}
+    if not isinstance(top_level_doc_hits, list):
+        top_level_doc_hits = []
+    if not isinstance(top_level_excerpt_hits, list):
+        top_level_excerpt_hits = []
     query_constraints = query.get("constraints", {})
     if not isinstance(query_constraints, dict):
         query_constraints = {}
@@ -2236,6 +2242,29 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["excerpt_citations"] = copy.deepcopy(excerpt_citations)
     else:
         normalized["excerpt_citations"] = _normalize_excerpt_citations(normalized["excerpt_citations"])
+    if "retrieved_doc_ids" not in normalized or _is_missing_snapshot_value(normalized.get("retrieved_doc_ids")):
+        normalized["retrieved_doc_ids"] = _normalize_text_list_like(
+            _first_non_none_value(
+                summary.get("doc_ids"),
+                [item.get("doc_id") for item in normalized["doc_citations"] if isinstance(item, dict)],
+                [item.get("doc_id") for item in top_level_doc_hits if isinstance(item, dict)],
+                [item.get("doc_id") for item in top_level_excerpt_hits if isinstance(item, dict)],
+            )
+        )
+    else:
+        normalized["retrieved_doc_ids"] = _normalize_text_list_like(normalized["retrieved_doc_ids"])
+    if "retrieved_excerpt_ids" not in normalized or _is_missing_snapshot_value(
+        normalized.get("retrieved_excerpt_ids")
+    ):
+        normalized["retrieved_excerpt_ids"] = _normalize_text_list_like(
+            _first_non_none_value(
+                summary.get("excerpt_ids"),
+                [item.get("excerpt_id") for item in normalized["excerpt_citations"] if isinstance(item, dict)],
+                [item.get("excerpt_id") for item in top_level_excerpt_hits if isinstance(item, dict)],
+            )
+        )
+    else:
+        normalized["retrieved_excerpt_ids"] = _normalize_text_list_like(normalized["retrieved_excerpt_ids"])
     normalized["basket_promotion"] = _backfill_sparse_snapshot(
         _normalize_basket_promotion_snapshot(normalized.get("basket_promotion")),
         _build_basket_promotion_from_payload(payload),

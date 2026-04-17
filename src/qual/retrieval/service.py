@@ -1017,6 +1017,8 @@ class RetrievalResult:
             "citation_status": citation_status,
             "doc_count": citation_bundle["doc_count"],
             "excerpt_count": citation_bundle["excerpt_count"],
+            "retrieved_doc_ids": [doc_hit.doc_id for doc_hit in self.doc_hits],
+            "retrieved_excerpt_ids": [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None],
             "doc_citations": citation_bundle["doc_citations"],
             "excerpt_citations": citation_bundle["excerpt_citations"],
             "basket_promotion": basket_promotion_snapshot,
