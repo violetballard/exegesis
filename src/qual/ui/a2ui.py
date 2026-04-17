@@ -850,6 +850,8 @@ def _build_terminal_artifact_cli_fallback_target_contract_fingerprints(
         "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
         "raw_leaf_card_default_contract": terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         "raw_leaf_card_default_policy_contract": terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        "kind_resolution": terminal_artifact_kind_resolution_fingerprint(),
+        "fallback_recovery": terminal_artifact_fallback_recovery_fingerprint(),
     }
     if include_terminal_artifact_cli_fallback_target:
         fingerprints["terminal_artifact_cli_fallback_target"] = (
@@ -1197,7 +1199,9 @@ def _build_terminal_artifact_contract_manifest(*, include_contract_fingerprints:
         "terminal_artifact_rendering_contract_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
         "terminal_fallback_contract_fingerprint": terminal_fallback_contract_fingerprint(),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
+        "kind_resolution_fingerprint": render_target_contract["kind_resolution_fingerprint"],
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
+        "fallback_recovery_fingerprint": render_target_contract["fallback_recovery_fingerprint"],
     }
     if include_contract_fingerprints:
         manifest["contract_fingerprints"] = describe_terminal_artifact_contract_fingerprints(
@@ -1244,7 +1248,9 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
         "terminal_fallback_contract": describe_terminal_fallback_contract(),
         "terminal_fallback_fingerprint": terminal_fallback_contract_fingerprint(),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
+        "kind_resolution_fingerprint": render_target_contract["kind_resolution_fingerprint"],
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
+        "fallback_recovery_fingerprint": render_target_contract["fallback_recovery_fingerprint"],
         "contract_fingerprints": describe_terminal_artifact_rendering_contract_fingerprints(),
     }
 
@@ -1309,7 +1315,9 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         ),
         "terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint": terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
+        "kind_resolution_fingerprint": render_target_contract["kind_resolution_fingerprint"],
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
+        "fallback_recovery_fingerprint": render_target_contract["fallback_recovery_fingerprint"],
         "kind_policy": {
             "card": "defer to terminal artifact dispatch and keep card as the default recovery path",
             "action": "recover action payloads with render_terminal_action",
@@ -1346,7 +1354,9 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest() -> dict[str
         },
         "raw_leaf_card_default_policy": _build_terminal_artifact_raw_leaf_card_default_policy_manifest(),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
+        "kind_resolution_fingerprint": render_target_contract["kind_resolution_fingerprint"],
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
+        "fallback_recovery_fingerprint": render_target_contract["fallback_recovery_fingerprint"],
         "raw_leaf_card_default_contract": raw_leaf_card_default_contract,
         "raw_leaf_card_default_contract_fingerprint": raw_leaf_card_default_contract["contract_fingerprint"],
         "raw_leaf_card_default_policy_contract": raw_leaf_card_default_policy_contract,
@@ -1511,7 +1521,9 @@ def _build_terminal_artifact_render_target_contract_manifest() -> dict[str, Any]
         ),
         "raw_leaf_card_default_contract_fingerprints": describe_terminal_artifact_raw_leaf_card_default_contract_fingerprints(),
         "kind_resolution": _build_terminal_artifact_kind_resolution_manifest(),
+        "kind_resolution_fingerprint": terminal_artifact_kind_resolution_fingerprint(),
         "fallback_recovery": _build_terminal_artifact_fallback_recovery_manifest(),
+        "fallback_recovery_fingerprint": terminal_artifact_fallback_recovery_fingerprint(),
         "contract_fingerprints": describe_terminal_artifact_render_target_contract_fingerprints(),
     }
 
@@ -1523,6 +1535,8 @@ def _build_terminal_artifact_render_target_contract_fingerprints(
     fingerprints = {
         "kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
         "raw_leaf_card_default_contract": terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+        "kind_resolution": terminal_artifact_kind_resolution_fingerprint(),
+        "fallback_recovery": terminal_artifact_fallback_recovery_fingerprint(),
     }
     if include_terminal_artifact_render_target:
         fingerprints["terminal_artifact_render_target"] = terminal_artifact_render_target_contract_fingerprint()
@@ -1763,6 +1777,20 @@ def terminal_artifact_render_target_contract_fingerprint() -> str:
     """Return a stable fingerprint for the terminal artifact render-target manifest."""
 
     manifest = _build_terminal_artifact_render_target_contract_manifest()
+    return _fingerprint_manifest_section(manifest)
+
+
+def terminal_artifact_kind_resolution_fingerprint() -> str:
+    """Return a stable fingerprint for the terminal artifact kind-resolution manifest."""
+
+    manifest = _build_terminal_artifact_kind_resolution_manifest()
+    return _fingerprint_manifest_section(manifest)
+
+
+def terminal_artifact_fallback_recovery_fingerprint() -> str:
+    """Return a stable fingerprint for the terminal artifact fallback-recovery manifest."""
+
+    manifest = _build_terminal_artifact_fallback_recovery_manifest()
     return _fingerprint_manifest_section(manifest)
 
 

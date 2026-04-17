@@ -64,6 +64,8 @@ from src.qual.ui.a2ui import (
     terminal_artifact_raw_leaf_card_default_contract_fingerprint,
     terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint,
     terminal_artifact_render_target_contract_fingerprint,
+    terminal_artifact_kind_resolution_fingerprint,
+    terminal_artifact_fallback_recovery_fingerprint,
     terminal_artifact_rendering_contract_fingerprint,
     terminal_artifact_kind_contracts_fingerprint,
     terminal_fallback_contract_fingerprint,
@@ -254,6 +256,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         )
         self.assertEqual(
+            manifest["kind_resolution_fingerprint"],
+            terminal_artifact_kind_resolution_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["fallback_recovery_fingerprint"],
+            terminal_artifact_fallback_recovery_fingerprint(),
+        )
+        self.assertEqual(
             manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"],
             describe_terminal_artifact_cli_fallback_target_contract_fingerprints(),
         )
@@ -285,6 +295,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints["raw_leaf_card_default_contract"],
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["kind_resolution"],
+            terminal_artifact_kind_resolution_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["fallback_recovery"],
+            terminal_artifact_fallback_recovery_fingerprint(),
         )
         self.assertEqual(
             fingerprints_with_self["terminal_artifact_cli_fallback_target"],
@@ -1478,6 +1496,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             },
         )
         self.assertEqual(
+            manifest["kind_resolution_fingerprint"],
+            terminal_artifact_kind_resolution_fingerprint(),
+        )
+        self.assertEqual(
             manifest["fallback_recovery"],
             {
                 "malformed_card_envelopes": {
@@ -1485,6 +1507,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                     "selection": "normalize_selection_ref",
                 }
             },
+        )
+        self.assertEqual(
+            manifest["fallback_recovery_fingerprint"],
+            terminal_artifact_fallback_recovery_fingerprint(),
         )
         self.assertEqual(manifest["terminal_fallback_contract"], describe_terminal_fallback_contract())
         self.assertEqual(manifest["render_target_contract"], describe_terminal_artifact_render_target_contract())
@@ -2213,6 +2239,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             {
                 "kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
                 "raw_leaf_card_default_contract": terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+                "kind_resolution": terminal_artifact_kind_resolution_fingerprint(),
+                "fallback_recovery": terminal_artifact_fallback_recovery_fingerprint(),
             },
         )
         self.assertEqual(manifest["terminal_artifact_kind_contracts"], describe_terminal_artifact_kind_contracts())
@@ -2255,6 +2283,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_kind_contracts_fingerprint(),
         )
         self.assertEqual(len(fingerprints["kind_contracts"]), 64)
+        self.assertEqual(
+            fingerprints["kind_resolution"],
+            terminal_artifact_kind_resolution_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["fallback_recovery"],
+            terminal_artifact_fallback_recovery_fingerprint(),
+        )
         self.assertEqual(
             fingerprints["raw_leaf_card_default_contract"],
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
