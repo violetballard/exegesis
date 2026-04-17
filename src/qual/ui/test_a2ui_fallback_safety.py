@@ -91,6 +91,7 @@ from src.qual.ui.a2ui import (
     TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION,
     TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
     TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_SCHEMA_VERSION,
+    TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_SCHEMA_VERSION,
     TERMINAL_ARTIFACT_RAW_LEAF_CARD_DEFAULT_SCHEMA_VERSION,
     _build_a2ui_schema_versions_manifest,
     studio_materialize_card,
@@ -178,6 +179,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIs(
             public_ui.terminal_artifact_cli_fallback_route_contract_fingerprint,
             terminal_artifact_cli_fallback_route_contract_fingerprint,
+        )
+        self.assertEqual(
+            public_ui.TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_SCHEMA_VERSION,
+            TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_SCHEMA_VERSION,
         )
 
     def test_selection_contract_manifest_exposes_contract_fingerprint_alias(self) -> None:
@@ -3237,7 +3242,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("terminal_artifact_cli_fallback_route_contract", manifest)
         self.assertEqual(route_manifest["contract_version"], 2)
         self.assertEqual(route_manifest["a2ui_version"], 1)
-        self.assertEqual(route_manifest["terminal_artifact_cli_fallback_route_schema_version"], 1)
+        self.assertEqual(
+            route_manifest["terminal_artifact_cli_fallback_route_schema_version"],
+            TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_SCHEMA_VERSION,
+        )
         self.assertEqual(route_manifest["type"], "TerminalArtifactCliFallbackRouteContract")
         self.assertEqual(
             route_manifest["route_precedence"],
