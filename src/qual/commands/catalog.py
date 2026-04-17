@@ -2785,8 +2785,13 @@ _COMMAND_DEMO_COMPATIBILITY_TOKENS: dict[str, str] = {
     "preview-patch": "patch-review",
     "save": "persist",
     "continue": "persist",
+    "resume": "persist",
     "apply": "apply-patch",
+    "approve": "apply-patch",
+    "accept": "apply-patch",
     "reject": "reject-patch",
+    "decline": "reject-patch",
+    "discard": "reject-patch",
 }
 
 
