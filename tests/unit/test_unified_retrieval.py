@@ -481,6 +481,28 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(result.hits)
         self.assertEqual({hit.source_strategy for hit in result.hits}, {"fts"})
 
+    def test_missing_doc_scope_reports_zero_candidates_in_provenance(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="coding comparison",
+                scope="doc:missing-doc",
+                intent="lookup",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        self.assertEqual(result.doc_hits, [])
+        self.assertEqual(result.hits, [])
+        self.assertEqual(result.diagnostics["candidate_doc_count"], 0)
+        self.assertEqual(result.diagnostics["fts_shortlist_doc_ids"], [])
+
+        payload = result.to_downstream_payload()
+        self.assertEqual(payload["retrieval_summary"]["doc_count"], 0)
+        self.assertEqual(payload["retrieval_summary"]["excerpt_count"], 0)
+        self.assertEqual(payload["retrieval_provenance"]["candidate_doc_count"], 0)
+        self.assertEqual(payload["retrieval_evidence"]["candidate_doc_count"], 0)
+
     def test_section_scope_is_rejected_until_pageindex_can_resolve_it(self) -> None:
         with self.assertRaisesRegex(ValueError, "section scope is unsupported"):
             self.service.retrieve_auto(

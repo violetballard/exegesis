@@ -2055,10 +2055,23 @@ class RetrievalService:
 
     def _candidate_docs_from_scope(self, scope: str, *, fallback: tuple[str, ...]) -> tuple[str, ...]:
         if scope.startswith("doc:"):
-            return (scope.split(":", 1)[1],)
+            doc_id = scope.split(":", 1)[1]
+            return (doc_id,) if self._doc_exists(doc_id) else ()
         if scope.startswith("collection:"):
             return fallback
         return fallback
+
+    def _doc_exists(self, doc_id: str) -> bool:
+        normalized_doc_id = _normalize_doc_id(doc_id)
+        if normalized_doc_id in self._load_doc_meta():
+            return True
+        if (self._root / _DOC_BLOBS / f"{normalized_doc_id}.enc").exists():
+            return True
+        rows = self._query_fts_db(
+            "SELECT 1 AS present FROM fts_entries WHERE doc_id = ? LIMIT 1",
+            (normalized_doc_id,),
+        )
+        return bool(rows)
 
     def _filter_candidate_doc_ids_by_date_range(
         self,
