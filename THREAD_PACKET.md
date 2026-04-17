@@ -37,6 +37,7 @@
 
 - Canonical demo-path steps advanced: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`.
 - Canonical demo-path step(s) this work now makes more real before handoff: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`.
+- Exact re-review claim: this slice advances only the deterministic CLI entrypoints that front those three already-documented demo-path steps, and nothing outside that command-backed surface is claimed as more complete by this handoff.
 - Why these exact steps: the reviewed catalog covers the CLI entrypoints that currently front those steps (`bootstrap`, `context-basket`, and `diff-preview`), and this change only hardens the contract for invoking those commands deterministically and rejecting parser/catalog drift before the operator hits them.
 - AGENTS alignment statement: this slice makes those three CLI-first demo-path steps more real by keeping the fallback command surface explicit, canonically ordered, and smoke-testable while Textual remains disabled.
 - Scope-tightening note: this is command-contract hardening for the existing CLI entrypoints only. It does not claim broader workflow execution, retrieval behavior, audit behavior, or UI capability expansion.
