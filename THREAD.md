@@ -12,3 +12,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - The roadmap and product-vision mapping are narrowed to the `open project/document` CLI entry contract only.
 - The current fixer pass reran the full required gate suite on `2026-04-17` and did not reproduce any failing gate output on the current branch tip.
 - The required gate suite remains recorded in `THREAD_PACKET.md`, including the passing rerun evidence for re-review from pre-fix branch tip `72c9180992b2c45c7776dfc2155ecfecb39c9bfe`.
+- Reviewer-required re-review evidence now explicitly records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` as passing on `2026-04-17`.

@@ -61,6 +61,18 @@
 - Confirmed the required fix packet remains aligned with the current branch tip after a full local gate rerun.
 - Did not reproduce any failing gate output on the current branch tip; the reviewer-required fix in this pass is the refreshed passing evidence below.
 
+## Re-Review Gate Evidence
+
+- Review status addressed: reviewer-required fix `1. Resolve failing gate output and include passing results.`
+- Re-review date: `2026-04-17`
+- Passing gate rerun recorded for the current branch tip before this metadata-only commit:
+  - `make scope-check`: `PASS`
+  - `./quality-format.sh --check`: `PASS`
+  - `./quality-lint.sh`: `PASS`
+  - `./quality-test.sh`: `PASS` (`198` tests, `OK`)
+  - `./typecheck-test.sh`: `PASS` (`python3 -m compileall -q src`)
+  - `make ci`: `PASS`
+
 ## Current Program Focus
 
 - Close the engine-side Milestone 3 workflow loop before activating any Textual UI lanes.
