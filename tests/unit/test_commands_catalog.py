@@ -10,6 +10,8 @@ from src.qual.commands import (
     CommandInvocationPlanContract,
     CommandSpec,
     canonical_command,
+    canonical_demo_command,
+    canonical_mvp_command,
     canonical_command_for,
     command_aliases,
     command_aliases_for,
@@ -228,6 +230,40 @@ class CommandCatalogTests(unittest.TestCase):
         for alias, expected in cases.items():
             with self.subTest(alias=alias):
                 self.assertEqual(canonical_command(alias), expected)
+
+    def test_demo_surface_canonicalizer_preserves_trusted_milestone_three_verbs(self) -> None:
+        cases = {
+            "bootstrap": "project-open",
+            "open": "project-open",
+            "project-open": "project-open",
+            "open-workspace": "project-open",
+            "context-basket": "retrieval",
+            "retrieve": "retrieval",
+            "retrieve-context": "retrieval",
+            "diff-preview": "patch-review",
+            "review": "patch-review",
+            "patch-review": "patch-review",
+            "apply": "apply-patch",
+            "apply-patch": "apply-patch",
+            "accept-patch": "apply-patch",
+            "reject": "reject-patch",
+            "patch-reject": "reject-patch",
+            "save": "persist",
+            "persist": "persist",
+            "resume-work": "persist",
+            "handoff": "export-handoff",
+            "export": "export-handoff",
+            "export-handoff": "export-handoff",
+            "terminal": "export-handoff",
+        }
+        for token, expected in cases.items():
+            with self.subTest(token=token):
+                self.assertEqual(canonical_demo_command(token), expected)
+                self.assertEqual(canonical_mvp_command(token), expected)
+
+    def test_demo_surface_canonicalizer_normalizes_unknown_tokens_deterministically(self) -> None:
+        self.assertEqual(canonical_demo_command("  New_Command  "), "new-command")
+        self.assertEqual(canonical_mvp_command(""), "")
 
     def test_unknown_commands_are_normalized_deterministically(self) -> None:
         self.assertEqual(canonical_command("  New_Command  "), "new-command")

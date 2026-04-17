@@ -3836,6 +3836,25 @@ def canonical_command(name: str) -> str:
     return canonical_command_for(COMMAND_SPECS, name)
 
 
+def canonical_demo_command(name: str) -> str:
+    normalized_name = _normalize_token(name)
+    if not normalized_name:
+        return normalized_name
+    if _uses_demo_compatibility_surface(normalized_name):
+        normalized_name = _normalize_demo_compatibility_token(normalized_name)
+    workflow_entry = command_demo_workflow_entry(normalized_name)
+    if workflow_entry is not None:
+        return workflow_entry.token
+    transition_token = _command_demo_transition_token_lookup(COMMAND_SPECS).get(normalized_name)
+    if transition_token is not None:
+        return transition_token
+    return canonical_command(normalized_name)
+
+
+def canonical_mvp_command(name: str) -> str:
+    return canonical_demo_command(name)
+
+
 def command_cli_shim_primary_token(
     token: str,
     flow_steps: tuple[str, ...] | None = None,
