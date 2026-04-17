@@ -793,9 +793,13 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
     promotion_ready = _normalize_optional_bool(normalized.get("promotion_ready"))
     if promotion_ready is not None:
         normalized["promotion_ready"] = promotion_ready
+    elif "promotion_ready" in normalized:
+        normalized["promotion_ready"] = None
     citation_available = _normalize_optional_bool(normalized.get("citation_available"))
     if citation_available is not None:
         normalized["citation_available"] = citation_available
+    elif "citation_available" in normalized:
+        normalized["citation_available"] = None
     for field_name in ("candidate_doc_count", "match_count", "rank", "doc_rank", "section_hint_rank"):
         field_value = _normalize_optional_int(normalized.get(field_name))
         if field_value is not None:
