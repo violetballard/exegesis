@@ -169,7 +169,11 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["card_contract"] = manifest["schemas"]["card_contract"]
     manifest["card_contract_fingerprint"] = manifest["card_contract"]["contract_fingerprint"]
     manifest["action_fingerprint"] = manifest["action"]["contract_fingerprint"]
+    manifest["action_contract"] = manifest["action"]
+    manifest["action_contract_fingerprint"] = manifest["action_fingerprint"]
     manifest["selection_fingerprint"] = manifest["selection"]["contract_fingerprint"]
+    manifest["selection_contract"] = manifest["selection"]
+    manifest["selection_contract_fingerprint"] = manifest["selection_fingerprint"]
     manifest["card_fingerprint"] = card_contract_fingerprint()
     manifest["terminal_artifact_rendering"] = manifest["schemas"]["terminal_artifact_rendering"]
     manifest["terminal_artifact_rendering_fingerprint"] = manifest["schemas"]["terminal_artifact_rendering"][
@@ -243,13 +247,14 @@ def describe_a2ui_contract_fingerprints(
     include_terminal_artifact_render_target: bool = False,
     include_terminal_artifact_rendering: bool = False,
     include_terminal_artifact_cli_fallback: bool = False,
+    include_contract_aliases: bool = False,
 ) -> dict[str, str]:
     """Return stable fingerprints for the contract sections and embedded contracts.
 
     The default key set stays lean for existing callers. Opt-in flags expose the
-    embedded dispatch fingerprints that the full manifest already surfaces so
-    lightweight callers can negotiate the same contract slice without pulling
-    the entire manifest.
+    embedded dispatch fingerprints and contract aliases that the full manifest
+    already surfaces so lightweight callers can negotiate the same contract
+    slice without pulling the entire manifest.
     """
 
     manifest = _build_a2ui_contract_manifest()
@@ -275,6 +280,9 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["terminal_artifact_rendering"] = terminal_artifact_rendering_contract_fingerprint()
     if include_terminal_artifact_cli_fallback:
         fingerprints["terminal_artifact_cli_fallback"] = terminal_artifact_cli_fallback_contract_fingerprint()
+    if include_contract_aliases:
+        fingerprints["action_contract"] = action_contract_fingerprint()
+        fingerprints["selection_contract"] = selection_contract_fingerprint()
     return fingerprints
 
 
