@@ -713,10 +713,16 @@ def _build_terminal_artifact_kind_resolution_manifest() -> dict[str, Any]:
             "validated envelope kind",
             "typed payload kind",
             "explicit caller kind hint",
+            "partial leaf hint recovery",
             "schema-valid leaf payload recovery",
             "card default",
         ],
         "card_payloads_override_conflicting_action_or_selection_hints": True,
+        "partial_leaf_recovery": {
+            "required_fields": ["id", "payload"],
+            "action_hints": ["confirm", "policy_sensitive"],
+            "selection_hints": ["selected", "disabled"],
+        },
         "leaf_recovery": _build_terminal_artifact_leaf_recovery_manifest(),
     }
 
@@ -1510,14 +1516,17 @@ def _resolve_terminal_artifact_render_target(
     """
 
     envelope_kind_hint = None
+    envelope_validated = False
     if isinstance(artifact, Mapping):
         artifact_type = artifact.get("type")
         if isinstance(artifact_type, str) and artifact_type.strip() == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
             envelope_kind_hint = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
+            envelope_validated = True
 
     try:
         artifact, envelope_kind = _unwrap_terminal_artifact_payload(artifact)
     except ValueError:
+        envelope_validated = False
         if not allow_invalid_envelope_recovery and envelope_kind_hint is not None:
             raise
         recovered = _recover_terminal_artifact_payload_from_invalid_envelope(
@@ -1559,16 +1568,20 @@ def _resolve_terminal_artifact_render_target(
             kind = recovered_kind
 
     resolved_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
-    if allow_invalid_envelope_recovery and requested_kind is None and resolved_kind == "card":
+    if requested_kind is None and resolved_kind == "card" and not envelope_validated:
+        # Preserve explicit action/selection hints even when the payload is not
+        # wrapped in a malformed envelope, so partial leaf artifacts do not get
+        # flattened into the card default.
         recovered_partial_kind = _infer_terminal_artifact_partial_leaf_kind(artifact)
         if recovered_partial_kind is not None:
             resolved_kind = recovered_partial_kind
-        else:
-            # Fall back to full schema validation when partial hints are absent
-            # but the payload still cleanly validates as a leaf artifact.
-            recovered_leaf_kind = _recover_terminal_artifact_leaf_kind(artifact)
-            if recovered_leaf_kind is not None:
-                resolved_kind = recovered_leaf_kind
+    if allow_invalid_envelope_recovery and requested_kind is None and resolved_kind == "card":
+        # In fallback-only mode, malformed card envelopes may still carry a
+        # schema-valid action or selection payload. Recover those structured
+        # leaf artifacts before dropping back to a generic card render.
+        recovered_leaf_kind = _recover_terminal_artifact_leaf_kind(artifact)
+        if recovered_leaf_kind is not None:
+            resolved_kind = recovered_leaf_kind
     return artifact, resolved_kind
 
 

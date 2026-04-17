@@ -540,11 +540,20 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "validated envelope kind",
                 "typed payload kind",
                 "explicit caller kind hint",
+                "partial leaf hint recovery",
                 "schema-valid leaf payload recovery",
                 "card default",
             ],
         )
         self.assertTrue(manifest["kind_resolution"]["card_payloads_override_conflicting_action_or_selection_hints"])
+        self.assertEqual(
+            manifest["kind_resolution"]["partial_leaf_recovery"],
+            {
+                "required_fields": ["id", "payload"],
+                "action_hints": ["confirm", "policy_sensitive"],
+                "selection_hints": ["selected", "disabled"],
+            },
+        )
         self.assertEqual(
             manifest["kind_resolution"]["leaf_recovery"],
             {
@@ -1159,6 +1168,64 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             self.assertEqual(resolved_artifact, artifact)
             self.assertEqual(fallback_artifact, resolved_artifact)
             self.assertEqual(fallback_kind, resolved_kind)
+
+    def test_terminal_artifact_renderer_recovers_partial_leaf_payloads_with_hints_without_fallback_failure(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        partial_action = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+            "confirm": {"title": "Approve", "message": "Proceed?"},
+        }
+        partial_selection = {
+            "id": "choice-1",
+            "label": "Choice",
+            "payload": {"nested": {"items": [1, 2]}},
+            "selected": True,
+        }
+
+        action_text = render_terminal_artifact(partial_action)
+        selection_text = render_terminal_artifact(partial_selection)
+        shell_action_text = shell.render_artifact(partial_action)
+        shell_selection_text = shell.render_artifact(partial_selection)
+
+        for text in (action_text, shell_action_text):
+            self.assertIn("[ActionRef] Export", text)
+            self.assertIn("Action schema v1", text)
+            self.assertNotIn("[<missing>] <untitled>", text)
+
+        for text in (selection_text, shell_selection_text):
+            self.assertIn("[SelectionRef] Choice", text)
+            self.assertIn("Selection schema v1", text)
+            self.assertNotIn("[<missing>] <untitled>", text)
+
+    def test_terminal_artifact_renderer_keeps_valid_card_envelopes_authoritative_over_partial_leaf_hints(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        envelope = {
+            "type": "TerminalArtifact",
+            "kind": "card",
+            "artifact": {
+                "type": "GenericCard",
+                "title": " Run Log ",
+                "a2ui_version": 1,
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+                "actions": [],
+                "confirm": {"title": "Approve", "message": "Proceed?"},
+            },
+        }
+
+        text = render_terminal_artifact(envelope)
+        shell_text = shell.render_artifact(envelope)
+
+        for rendered in (text, shell_text):
+            self.assertIn("[GenericCard] Run Log", rendered)
+            self.assertIn("A2UI v1", rendered)
+            self.assertNotIn("[ActionRef]", rendered)
+            self.assertNotIn("[SelectionRef]", rendered)
 
     def test_terminal_artifact_render_target_resolver_recovers_schema_valid_leaf_payloads_without_hints_in_fallback_mode(
         self,
