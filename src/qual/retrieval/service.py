@@ -400,6 +400,12 @@ class RetrievalHit:
     def __post_init__(self) -> None:
         if self.source_strategy != _FTS_SOURCE_STRATEGY:
             raise ValueError("source_strategy must be fts for the FTS-first retrieval lane")
+        # Snapshot mutable payload fields at construction time so downstream
+        # engine consumers cannot accidentally mutate the canonical retrieval
+        # result by holding on to caller-owned dict/list instances.
+        object.__setattr__(self, "span", copy.deepcopy(self.span))
+        object.__setattr__(self, "node_path", copy.deepcopy(self.node_path))
+        object.__setattr__(self, "provenance", copy.deepcopy(self.provenance))
 
     def as_dict(self) -> dict[str, object]:
         payload = {
@@ -526,6 +532,7 @@ class RetrievalDocHit:
     def __post_init__(self) -> None:
         if self.source_strategy != _FTS_SOURCE_STRATEGY:
             raise ValueError("source_strategy must be fts for the FTS-first retrieval lane")
+        object.__setattr__(self, "provenance", copy.deepcopy(self.provenance))
 
     def as_dict(self) -> dict[str, object]:
         payload = {
@@ -642,6 +649,15 @@ class RetrievalResult:
     evidence: dict[str, object]
     audit_ref: str
     result_fingerprint: str
+
+    def __post_init__(self) -> None:
+        # Snapshot mutable collections at construction time so result-level
+        # fingerprints, provenance, and basket-promotion payloads stay stable
+        # even if the caller later mutates the objects originally passed in.
+        object.__setattr__(self, "doc_hits", copy.deepcopy(self.doc_hits))
+        object.__setattr__(self, "hits", copy.deepcopy(self.hits))
+        object.__setattr__(self, "diagnostics", copy.deepcopy(self.diagnostics))
+        object.__setattr__(self, "evidence", copy.deepcopy(self.evidence))
 
     def to_downstream_payload(self) -> dict[str, object]:
         """Return the stable retrieval contract for drafting/patching/research.
