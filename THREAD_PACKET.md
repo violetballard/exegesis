@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `reviewer-required fix finalization`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet refresh commit before this fixer commit: `32b874cce8125ef551c741f1dc2f74c10c27a094`
+- Packet refresh commit before this fixer commit: `d5018d665818d7b1579e96b92060ef8a562e6eb3`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 ## Scope goal
@@ -26,8 +26,8 @@
 
 ### Checkpoint Status
 
-- `plan complete`: refreshed the operative handoff packet again for this fixer pass from pre-fix branch tip `32b874cce8125ef551c741f1dc2f74c10c27a094` while preserving the narrowed implementation slice and explicit AGENTS demo-path statement.
-- `first green tests`: all required gates passed again on the lane branch for this fixer pass.
+- `plan complete`: refreshed the operative handoff packet again for this fixer pass from pre-fix branch tip `d5018d665818d7b1579e96b92060ef8a562e6eb3` while preserving the narrowed implementation slice and explicit AGENTS demo-path statement.
+- `first green tests`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on this fixer pass.
 - `before risky/shared file edit`: no new shared code edit was needed; the only shared implementation file in the reviewed range remains the approved regression surface `tests/unit/test_unified_retrieval.py`.
 - `ready for handoff`: the operative handoff packet carries the narrowed scope and canonical demo-path statement required for re-review.
 
