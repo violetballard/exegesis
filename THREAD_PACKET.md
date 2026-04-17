@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh role: `feature-fixer reviewer-required metadata refresh`
+- Packet refresh role: `feature-fixer reviewer-required final refresh`
 
 ## Packet Traceability Note
 
@@ -18,21 +18,28 @@
 
 ## Reviewer-Required Fix Verification
 
-- Required fix 1 satisfied: this packet explicitly states which canonical
-  demo-path steps this command-catalog change makes more real for the
-  CLI-first MVP loop.
-- Required fix 2 satisfied: the scope statement stays narrow and keeps this
-  refresh limited to the reviewed implementation commit
-  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and the command-catalog contract
-  hardening slice only.
+- Required fix 1 satisfied in implementation:
+  `src/qual/commands/catalog.py` now validates the full default parser surface
+  against the declared command catalog, so alias substitution, removed primary
+  tokens, reordered accepted entrypoints, and extra accepted entrypoints all
+  raise `ValueError("Command CLI parser surface is inconsistent")` instead of
+  silently drifting while canonical command order still appears stable.
+- Required fix 2 satisfied in regression coverage:
+  `tests/unit/test_commands_catalog.py` now includes parser-surface drift
+  regressions that mutate the accepted CLI entrypoints while preserving
+  canonical command order, and asserts that the contract rejects that drift.
+- Required fix 3 satisfied in handoff metadata:
+  this packet explicitly states which canonical demo-path steps the change
+  advances for the CLI-first MVP loop.
 
 ## Feature-Fixer Validation
 
 - Revalidated against the reviewer packet dated `2026-04-17`.
 - Confirmed the reviewed implementation scope remains pinned to
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Confirmed this metadata-only fixer refresh does not change implementation
-  files and only refreshes the handoff contract for re-review.
+- Confirmed the reviewer-required implementation fixes are already present on
+  this branch and that this commit only refreshes the handoff contract for
+  re-review.
 - Re-ran the required local gates on this metadata-refresh branch tip:
   - `make scope-check`: PASS
   - `./quality-format.sh --check`: PASS
@@ -108,13 +115,15 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it
-  compares CLI canonical names against `command_names()` and raises
-  `ValueError` if the parser surface drifts from the catalog.
-- Kept the returned contract aligned with the canonical command order by
-  reusing the canonical names tuple instead of rebuilding a divergent list.
+- Hardened the default `command_cli_contract()` validation in
+  `src/qual/commands/catalog.py` so it rejects parser-surface drift against the
+  declared command catalog, not just canonical-name mismatch.
+- Kept the returned CLI contract aligned with canonical command ordering while
+  also rejecting alias substitution, reordered accepted entrypoints, removed
+  primary tokens, and extra accepted entrypoints in the default parser surface.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
-  for canonical-order alignment and drift rejection.
+  for parser-surface drift cases that preserve canonical command order but must
+  still fail fast.
 - Reissued the handoff packet as a command-catalog-only slice so the review
   scope matches the claimed implementation files and approval basis.
 
@@ -132,11 +141,13 @@
 ## Tasks Completed
 
 1. Hardened `command_cli_contract()` to verify canonical-name consistency
-   against `command_names()` and fail fast on parser drift.
-2. Preserved canonical command ordering in the CLI contract by returning the
-   validated canonical tuple directly.
+   and reject default parser-surface drift against the declared command
+   catalog.
+2. Preserved canonical command ordering in the CLI contract while rejecting
+   alias substitution, primary-token loss, entrypoint reordering, and extra
+   accepted entrypoints.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for
-   canonical-order alignment and drift rejection.
+   parser-surface drift that still preserves canonical command order.
 4. Regenerated the handoff packet so the branch metadata stays scoped to the
    command-catalog slice and uses the current roadmap and vision labels.
 
@@ -179,8 +190,8 @@
 ### Vision capability affected
 
 - Canonical engine contract - CLI compatibility remains stable while the
-  command-catalog surface rejects parser drift before it can silently change
-  the operator contract.
+  command-catalog surface rejects parser-surface drift before it can silently
+  change the operator contract.
 - Auditable state and workflow - the command surface now fails loudly on
   catalog/parser drift, making the operator-facing contract explicit and
   traceable.
