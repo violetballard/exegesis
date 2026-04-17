@@ -26,4 +26,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   implementation pin for re-review; review the current branch tip while
   keeping scope limited to the same command-catalog slice plus the approved
   shared test.
-- `THREAD_PACKET.md` now carries the completed high-risk kickoff fields, an explicit handoff field naming the canonical demo-path step advanced without inference, and the concrete shared-file approval basis required by the reviewer.
+- `THREAD_PACKET.md` now names the canonical demo-path step advanced as
+  `open project/document`, limits the vision mapping to the demonstrated CLI
+  contract scope, and records the concrete shared-file approval basis required
+  by the reviewer.

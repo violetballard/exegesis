@@ -166,20 +166,15 @@
 
 ## Canonical Demo-Path Step Advanced
 
-- Reviewer-required one-line mapping:
-  this strengthens the canonical `open project/document` step and the overall
-  `continue working` CLI contract by keeping the command surface deterministic
-  while Textual remains disabled.
-- AGENTS-required explicit step statement: this change makes the canonical
-  `open project/document` step and the overall `continue working` CLI contract
-  more reliable by keeping the command surface deterministic while Textual
-  remains disabled.
-- Reviewer-required roadmap tie-back:
-  this directly supports the Milestone 3 exit criterion that `CLI can still
-  execute the MVP loop while Textual remains disabled` by keeping the command
-  catalog aligned with the accepted CLI entrypoints.
-- Concrete blocker removed: catalog/parser drift can no longer silently change
-  the canonical CLI contract.
+- Step advanced: `open project/document`.
+- Concrete tie-back: this change makes that CLI-first demo-path step more real
+  by keeping the accepted command surface deterministic while Textual remains
+  disabled, so catalog/parser drift cannot silently change how operators enter
+  the MVP loop.
+- Reviewer-required roadmap tie-back: this directly supports the Milestone 3
+  exit criterion that `CLI can still execute the MVP loop while Textual remains
+  disabled` by keeping the command catalog aligned with the accepted CLI
+  entrypoints.
 - Re-review scope note: this packet refresh exists to make that demo-path-step
   mapping explicit for AGENTS compliance; it does not claim any broader
   implementation change beyond the command-catalog slice already under review.
@@ -296,9 +291,8 @@
 
 ### Canonical demo-path step advanced
 
-- CLI-first operator path for `open project/document` ->
-  `continue working`.
-- This command-catalog hardening keeps that CLI contract deterministic and
+- `open project/document`.
+- This command-catalog hardening keeps that CLI entry step deterministic and
   rejects catalog/parser drift before the active CLI MVP loop can change
   silently while Textual remains disabled.
 - Reviewer-fix refresh note: this field is included explicitly so re-review
