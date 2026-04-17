@@ -89,6 +89,80 @@ class A2UIContractTests(unittest.TestCase):
         store.register("sess-1", caps)
         self.assertEqual(store.get("sess-1").client_name, "Exegesis Studio")
 
+    def test_capabilities_handshake_is_canonicalized_before_session_storage(self) -> None:
+        store = A2UISessionStore()
+        cards_supported = ["RunLogCard"]
+        primitive_blocks_supported = [
+            "MarkdownBlock",
+            "KeyValueBlock",
+            "ListBlock",
+            "TableBlock",
+            "AlertBlock",
+            "ProgressBlock",
+            "CodeBlock",
+        ]
+        actions_supported = [
+            "apply_patch",
+            "reject_patch",
+            "open_section",
+            "open_corpus_item",
+            "pin_to_context_set",
+            "create_context_set",
+            "run_agent",
+            "refresh_license",
+            "export_document",
+            "copy_to_clipboard",
+        ]
+        caps = A2UICapabilities(
+            a2ui_version=1,
+            client_name="Exegesis Studio",
+            cards_supported=cards_supported,
+            primitive_blocks_supported=primitive_blocks_supported,
+            actions_supported=actions_supported,
+            max_payload_bytes=1_000_000,
+            supports_streaming=True,
+        )
+
+        store.register("sess-1", caps)
+        cards_supported[0] = "QuestionsCard"
+        primitive_blocks_supported[0] = "TextBlock"
+        actions_supported[0] = "launch_missiles"
+
+        stored = store.get("sess-1")
+
+        self.assertIsNot(stored, caps)
+        self.assertIsInstance(stored.cards_supported, tuple)
+        self.assertIsInstance(stored.primitive_blocks_supported, tuple)
+        self.assertIsInstance(stored.actions_supported, tuple)
+        self.assertEqual(stored.cards_supported, ("RunLogCard",))
+        self.assertEqual(
+            stored.primitive_blocks_supported,
+            (
+                "MarkdownBlock",
+                "KeyValueBlock",
+                "ListBlock",
+                "TableBlock",
+                "AlertBlock",
+                "ProgressBlock",
+                "CodeBlock",
+            ),
+        )
+        self.assertEqual(
+            stored.actions_supported,
+            (
+                "apply_patch",
+                "reject_patch",
+                "open_section",
+                "open_corpus_item",
+                "pin_to_context_set",
+                "create_context_set",
+                "run_agent",
+                "refresh_license",
+                "export_document",
+                "copy_to_clipboard",
+            ),
+        )
+
     def test_capabilities_contract_manifest_is_versioned_and_fingerprintable(self) -> None:
         manifest = describe_a2ui_capabilities_contract()
 

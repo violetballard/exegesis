@@ -147,7 +147,7 @@ class A2UISessionStore:
 
     def register(self, session_id: str, capabilities: A2UICapabilities) -> None:
         validate_capabilities(capabilities)
-        self._by_session[session_id] = capabilities
+        self._by_session[session_id] = _canonicalize_capabilities(capabilities)
 
     def get(self, session_id: str) -> A2UICapabilities:
         if session_id not in self._by_session:
@@ -213,6 +213,25 @@ def describe_a2ui_contract() -> dict[str, Any]:
     ]
     manifest["contract_fingerprints"] = _build_a2ui_contract_fingerprint_summary()
     return manifest
+
+
+def _canonicalize_capabilities(capabilities: A2UICapabilities) -> A2UICapabilities:
+    """Snapshot a validated handshake into immutable tuple-backed fields.
+
+    ``validate_capabilities`` accepts either lists or tuples so callers can
+    build the payload naturally, but the session store should retain a stable
+    immutable copy once the handshake is negotiated.
+    """
+
+    return A2UICapabilities(
+        a2ui_version=capabilities.a2ui_version,
+        client_name=capabilities.client_name,
+        cards_supported=tuple(capabilities.cards_supported),
+        primitive_blocks_supported=tuple(capabilities.primitive_blocks_supported),
+        actions_supported=tuple(capabilities.actions_supported),
+        max_payload_bytes=capabilities.max_payload_bytes,
+        supports_streaming=capabilities.supports_streaming,
+    )
 
 
 def describe_a2ui_contract_fingerprints(
