@@ -610,6 +610,7 @@ class RetrievalResult:
             retrieval_summary=retrieval_summary,
             basket_promotion=basket_promotion,
         )
+        basket_promotion = copy.deepcopy(retrieval_source_bundle["basket_promotion"])
         return build_retrieval_downstream_payload(
             query=query,
             policy=retrieval_policy,
@@ -701,7 +702,6 @@ class RetrievalResult:
 
     def retrieval_provenance_bundle(self) -> dict[str, object]:
         """Return the deterministic retrieval provenance snapshot for downstream engine flows."""
-
         citation_bundle = self.citation_bundle()
         citation_status = dict(citation_bundle["citation_status"])
         basket_promotion = self._basket_promotion_snapshot()
@@ -1217,6 +1217,7 @@ class RetrievalResult:
         source_bundle["source_bundle_fingerprint"] = RetrievalService._stable_fingerprint(
             {key: value for key, value in source_bundle.items() if key != "source_bundle_fingerprint"}
         )
+        source_bundle["basket_promotion"]["source_bundle_fingerprint"] = source_bundle["source_bundle_fingerprint"]
         return source_bundle
 
 

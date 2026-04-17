@@ -685,6 +685,7 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
     for field_name in (
         "query_fingerprint",
         "result_fingerprint",
+        "source_bundle_fingerprint",
         "lookup_fingerprint",
         "doc_id",
         "doc_fingerprint",
@@ -837,6 +838,7 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
     retrieval_citation_bundle = payload.get("retrieval_citation_bundle", {})
     retrieval_provenance = payload.get("retrieval_provenance", {})
     retrieval_summary = payload.get("retrieval_summary", {})
+    retrieval_source_bundle = payload.get("retrieval_source_bundle", payload.get("source_bundle", {}))
     if not isinstance(retrieval_doc_bundle, dict):
         retrieval_doc_bundle = {}
     if not isinstance(retrieval_excerpt_bundle, dict):
@@ -847,6 +849,8 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
         retrieval_provenance = {}
     if not isinstance(retrieval_summary, dict):
         retrieval_summary = {}
+    if not isinstance(retrieval_source_bundle, dict):
+        retrieval_source_bundle = {}
     retrieval_policy = _normalize_policy_snapshot(
         payload.get(
             "policy",
@@ -955,6 +959,10 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
             payload.get("result_fingerprint"),
             retrieval_provenance.get("result_fingerprint"),
             retrieval_summary.get("result_fingerprint"),
+        ),
+        "source_bundle_fingerprint": _first_text_value(
+            payload.get("source_bundle_fingerprint"),
+            retrieval_source_bundle.get("source_bundle_fingerprint"),
         ),
         "doc_id": _first_text_value(
             first_excerpt_hit.get("doc_id") if isinstance(first_excerpt_hit, dict) else None,
@@ -1327,9 +1335,31 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     if retrieval_mode is not None:
         normalized["retrieval_mode"] = retrieval_mode
 
-    normalized["source_bundle_fingerprint"] = _stable_fingerprint(
-        {key: value for key, value in normalized.items() if key != "source_bundle_fingerprint"}
-    )
+    fingerprint_payload = {
+        key: value for key, value in normalized.items() if key != "source_bundle_fingerprint"
+    }
+    basket_promotion = fingerprint_payload.get("basket_promotion")
+    if isinstance(basket_promotion, dict):
+        basket_promotion = copy.deepcopy(basket_promotion)
+        basket_promotion.pop("source_bundle_fingerprint", None)
+        fingerprint_payload["basket_promotion"] = basket_promotion
+    retrieval_provenance = fingerprint_payload.get("retrieval_provenance")
+    if isinstance(retrieval_provenance, dict):
+        retrieval_provenance = copy.deepcopy(retrieval_provenance)
+        retrieval_provenance.pop("source_bundle_fingerprint", None)
+        nested_basket_promotion = retrieval_provenance.get("basket_promotion")
+        if isinstance(nested_basket_promotion, dict):
+            nested_basket_promotion = copy.deepcopy(nested_basket_promotion)
+            nested_basket_promotion.pop("source_bundle_fingerprint", None)
+            retrieval_provenance["basket_promotion"] = nested_basket_promotion
+        fingerprint_payload["retrieval_provenance"] = retrieval_provenance
+    existing_source_bundle_fingerprint = _normalize_optional_text(normalized.get("source_bundle_fingerprint"))
+    if existing_source_bundle_fingerprint is not None:
+        normalized["source_bundle_fingerprint"] = existing_source_bundle_fingerprint
+    else:
+        normalized["source_bundle_fingerprint"] = _stable_fingerprint(fingerprint_payload)
+    if isinstance(normalized.get("basket_promotion"), dict):
+        normalized["basket_promotion"]["source_bundle_fingerprint"] = normalized["source_bundle_fingerprint"]
     return normalized
 
 
@@ -2210,6 +2240,8 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         _normalize_basket_promotion_snapshot(normalized.get("basket_promotion")),
         _build_basket_promotion_from_payload(payload),
     )
+    if isinstance(normalized["basket_promotion"], dict):
+        normalized["basket_promotion"].pop("source_bundle_fingerprint", None)
     if doc_citations:
         first_doc_citation = doc_citations[0]
         if isinstance(first_doc_citation, dict):
