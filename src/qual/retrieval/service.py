@@ -683,10 +683,12 @@ class RetrievalResult:
         """Return the canonical retrieval context for drafting, patching, and research flows."""
 
         downstream_payload = self.to_downstream_payload()
+        source_bundle_fingerprint = downstream_payload["source_bundle_fingerprint"]
         return {
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
+            "source_bundle_fingerprint": source_bundle_fingerprint,
             "query": copy.deepcopy(downstream_payload["query"]),
             "policy": copy.deepcopy(downstream_payload["policy"]),
             "retrieval_backend": self.diagnostics["retrieval_backend"],

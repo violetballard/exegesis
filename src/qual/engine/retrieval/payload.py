@@ -1402,6 +1402,7 @@ def _backfill_downstream_payload_from_context_bundle(
     context_backfill = {
         "audit_ref": context_bundle.get("audit_ref"),
         "result_fingerprint": context_bundle.get("result_fingerprint"),
+        "source_bundle_fingerprint": context_bundle.get("source_bundle_fingerprint"),
         "retrieval_citation_bundle": context_bundle.get("retrieval_citation_bundle"),
         "retrieval_doc_bundle": context_bundle.get("retrieval_doc_bundle"),
         "retrieval_excerpt_bundle": context_bundle.get("retrieval_excerpt_bundle"),
@@ -1440,6 +1441,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "audit_ref": None,
         "result_fingerprint": source_bundle.get("result_fingerprint"),
         "query_fingerprint": source_bundle.get("query_fingerprint"),
+        "source_bundle_fingerprint": source_bundle.get("source_bundle_fingerprint"),
         "query": query,
         "policy": policy,
         "retrieval_backend": source_bundle.get("retrieval_backend"),
@@ -1594,6 +1596,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
 
     retrieval_provenance = _build_retrieval_provenance_from_payload(payload)
     retrieval_summary = _normalize_retrieval_summary_snapshot(payload.get("retrieval_summary", {}))
+    retrieval_source_bundle = _build_retrieval_source_bundle_from_payload(payload)
     return {
         "audit_ref": payload.get("audit_ref"),
         "result_fingerprint": payload.get("result_fingerprint"),
@@ -1601,6 +1604,10 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
             payload.get("query_fingerprint"),
             retrieval_provenance.get("query_fingerprint"),
             retrieval_summary.get("query_fingerprint"),
+        ),
+        "source_bundle_fingerprint": _first_text_value(
+            payload.get("source_bundle_fingerprint"),
+            retrieval_source_bundle.get("source_bundle_fingerprint"),
         ),
         "query": copy.deepcopy(payload.get("query", {})),
         "policy": copy.deepcopy(payload.get("policy", {})),
@@ -1613,7 +1620,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_doc_bundle": _build_retrieval_doc_bundle_from_payload(payload),
         "retrieval_excerpt_bundle": _build_retrieval_excerpt_bundle_from_payload(payload),
         "retrieval_provenance": retrieval_provenance,
-        "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
+        "retrieval_source_bundle": retrieval_source_bundle,
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "basket_promotion": _build_basket_promotion_from_payload(payload),
     }
