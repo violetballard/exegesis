@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `reviewer-required fix finalization`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet refresh commit before this fixer commit: `70c83fbf82ac53e79e62d2095f0d3c24df7ee892`
+- Packet refresh commit before this fixer commit: `50b15f7823e0237ba0469a53194a84c0d63e4a1f`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 ## Scope goal
@@ -30,6 +30,12 @@
 - `first green tests`: all required gates were re-run on the lane branch for this fixer pass.
 - `before risky/shared file edit`: no new shared code edit was needed; the only shared implementation file in the reviewed range remains the approved regression surface `tests/unit/test_unified_retrieval.py`.
 - `ready for handoff`: the operative handoff packet carries the narrowed scope and canonical demo-path statement required for re-review.
+
+## Reviewer packet alignment
+
+- Reviewer-required canonical demo-path mapping is carried in this operative packet: `retrieve relevant material`.
+- This fixer pass keeps the scope statement tight to the reviewed retrieval slice: FTS-only excerpt lookup is the canonical runtime path, and non-FTS excerpt IDs remain auditable and fail closed.
+- PageIndex and embeddings are not reintroduced as required runtime retrieval paths by this packet refresh.
 
 ## Budget classification
 
