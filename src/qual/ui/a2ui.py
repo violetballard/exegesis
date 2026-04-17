@@ -2370,9 +2370,11 @@ def _snapshot_terminal_artifact_value(value: Any, *, _seen_ids: set[int] | None 
             return f"<cycle:{type(value).__name__}>"
         _seen_ids.add(value_id)
         try:
+            # Canonicalize mappings so engine-produced payload snapshots do not
+            # depend on insertion order from the source object.
             return {
-                key: _snapshot_terminal_artifact_value(item, _seen_ids=_seen_ids)
-                for key, item in value.items()
+                key: _snapshot_terminal_artifact_value(value[key], _seen_ids=_seen_ids)
+                for key in sorted(value, key=lambda item: str(item))
             }
         finally:
             _seen_ids.remove(value_id)

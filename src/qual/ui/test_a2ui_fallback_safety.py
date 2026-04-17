@@ -934,6 +934,40 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             ["alpha", "beta"],
         )
 
+    def test_terminal_artifact_payload_normalizer_canonicalizes_mapping_key_order(self) -> None:
+        action = ActionRef(
+            id=" copy_to_clipboard ",
+            label=" Copy JSON ",
+            payload={"text": "copy me"},
+        )
+        selection = SelectionRef(
+            id=" choice-1 ",
+            label=" Choice ",
+            payload={"b": 2, "a": {"z": 9, "y": 8}},
+        )
+        card_source = {
+            "type": "GenericCard",
+            "title": " Run Log ",
+            "a2ui_version": 1,
+            "blocks": [],
+            "actions": [],
+            "debug": {"b": 2, "a": {"z": 9, "y": 8}},
+        }
+
+        action_payload = normalize_terminal_artifact_payload(action, kind="action")
+        selection_payload = normalize_terminal_artifact_payload(selection, kind="selection")
+        card_payload = normalize_terminal_artifact_payload(card_source, kind="card")
+        envelope = build_terminal_artifact_envelope(card_source, kind="card")
+
+        self.assertEqual(list(action_payload["payload"].keys()), ["text"])
+        self.assertEqual(action_payload["payload"], {"text": "copy me"})
+        self.assertEqual(list(selection_payload["payload"].keys()), ["a", "b"])
+        self.assertEqual(list(selection_payload["payload"]["a"].keys()), ["y", "z"])
+        self.assertEqual(list(card_payload["debug"].keys()), ["a", "b"])
+        self.assertEqual(list(card_payload["debug"]["a"].keys()), ["y", "z"])
+        self.assertEqual(list(envelope["artifact"]["debug"].keys()), ["a", "b"])
+        self.assertEqual(list(envelope["artifact"]["debug"]["a"].keys()), ["y", "z"])
+
     def test_terminal_artifact_payload_normalizer_rejects_action_or_selection_payloads_when_card_kind_is_explicit(self) -> None:
         with self.assertRaises(ValueError):
             normalize_terminal_artifact_payload(
