@@ -2179,8 +2179,26 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
                 )
     if _is_missing_snapshot_value(normalized.get("primary_doc_type")):
         normalized["primary_doc_type"] = normalized["basket_promotion"].get("doc_type")
+    if _is_missing_snapshot_value(normalized.get("primary_doc_id")):
+        normalized["primary_doc_id"] = normalized["basket_promotion"].get("doc_id")
     if _is_missing_snapshot_value(normalized.get("primary_source_hash")):
         normalized["primary_source_hash"] = normalized["basket_promotion"].get("source_hash")
+    if _is_missing_snapshot_value(normalized.get("primary_doc_fingerprint")):
+        normalized["primary_doc_fingerprint"] = normalized["basket_promotion"].get("doc_fingerprint")
+    if _is_missing_snapshot_value(normalized.get("primary_doc_identity_fingerprint")):
+        normalized["primary_doc_identity_fingerprint"] = normalized["basket_promotion"].get(
+            "doc_identity_fingerprint"
+        )
+    if _is_missing_snapshot_value(normalized.get("primary_excerpt_id")):
+        normalized["primary_excerpt_id"] = normalized["basket_promotion"].get("excerpt_id")
+    if _is_missing_snapshot_value(normalized.get("primary_excerpt_fingerprint")):
+        normalized["primary_excerpt_fingerprint"] = normalized["basket_promotion"].get("excerpt_fingerprint")
+    if _is_missing_snapshot_value(normalized.get("primary_excerpt_provenance_fingerprint")):
+        normalized["primary_excerpt_provenance_fingerprint"] = normalized["basket_promotion"].get(
+            "excerpt_provenance_fingerprint"
+        )
+    if _is_missing_snapshot_value(normalized.get("primary_excerpt_text_hash")):
+        normalized["primary_excerpt_text_hash"] = normalized["basket_promotion"].get("excerpt_text_hash")
     if _is_missing_snapshot_value(normalized.get("primary_excerpt_span")):
         normalized["primary_excerpt_span"] = copy.deepcopy(normalized["basket_promotion"].get("span"))
     else:
