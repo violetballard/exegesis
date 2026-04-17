@@ -159,6 +159,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIs(public_ui.ALLOWED_ACTION_IDS, ALLOWED_ACTION_IDS)
         self.assertIs(public_ui.REQUIRED_PRIMITIVE_BLOCKS, REQUIRED_PRIMITIVE_BLOCKS)
         self.assertIs(public_ui.PolicyGate, PolicyGate)
+        self.assertIs(
+            public_ui.terminal_artifact_cli_fallback_route_contract_fingerprint,
+            terminal_artifact_cli_fallback_route_contract_fingerprint,
+        )
 
     def test_selection_contract_manifest_exposes_contract_fingerprint_alias(self) -> None:
         manifest = describe_selection_contract()
@@ -5121,6 +5125,49 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
                 self.assertEqual(text, expected_prefix)
                 specific_renderer.assert_called_once_with(artifact)
+                generic_renderer.assert_not_called()
+
+    def test_shell_ui_skips_generic_artifact_retry_for_leaf_fallbacks_when_specific_renderer_fails(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                {
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                },
+                "[ActionRef] <invalid action>",
+                "render_terminal_action",
+            ),
+            (
+                "selection",
+                {
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                },
+                "[SelectionRef] <invalid selection>",
+                "render_terminal_selection",
+            ),
+        ]
+
+        for fallback_kind, artifact, expected_prefix, renderer_name in cases:
+            with self.subTest(kind=fallback_kind):
+                with patch("src.qual.ui.shell.render_terminal_cli_fallback", side_effect=RuntimeError("boom")):
+                    with patch(
+                        "src.qual.ui.shell.render_terminal_artifact",
+                        return_value="generic-fallback",
+                    ) as generic_renderer:
+                        with patch(
+                            f"src.qual.ui.shell.{renderer_name}",
+                            side_effect=RuntimeError(f"{fallback_kind} boom"),
+                        ):
+                            text = shell.render_artifact(artifact, kind=fallback_kind)
+
+                self.assertIn(expected_prefix, text)
                 generic_renderer.assert_not_called()
 
     def test_shell_ui_keeps_ambiguous_raw_leaf_payloads_on_card_default_for_malformed_envelopes_when_shared_resolver_raises(

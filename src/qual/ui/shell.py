@@ -103,13 +103,14 @@ class ShellUI:
                 pass
         if specific_rendered is not None:
             return specific_rendered
-        try:
-            # Retry the shared renderer on the resolved fallback target so we
-            # do not reprocess the original envelope after CLI fallback
-            # resolution has already recovered a safer payload.
-            return render_terminal_artifact(fallback_artifact, kind=fallback_kind)
-        except Exception:
-            pass
+        if fallback_kind not in {"action", "selection"}:
+            try:
+                # Retry the shared renderer on the resolved fallback target so
+                # we do not reprocess the original envelope after CLI fallback
+                # resolution has already recovered a safer payload.
+                return render_terminal_artifact(fallback_artifact, kind=fallback_kind)
+            except Exception:
+                pass
         if fallback_kind == "action":
             try:
                 return render_terminal_action(fallback_artifact)
