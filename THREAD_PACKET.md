@@ -226,9 +226,6 @@
 - Canonical engine contract - CLI compatibility remains stable while the
   command-catalog surface rejects parser-surface drift before it can silently
   change the operator contract for the active engine-first MVP loop.
-- Auditable state and workflow - the command surface now fails loudly on
-  parser-surface drift, making the operator-facing contract explicit and
-  traceable while the CLI remains the active surface.
 
 ### Routing/provider impact note
 
