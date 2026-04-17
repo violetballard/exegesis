@@ -73,6 +73,13 @@ def _normalized_profile_text(value: object) -> str | None:
     return text.casefold()
 
 
+def _normalized_query_hint_text(value: object) -> str | None:
+    text = _normalized_text(value)
+    if text is None:
+        return None
+    return text.casefold()
+
+
 def _looks_like_redacted_title_hint(value: object) -> bool:
     text = _optional_text(value)
     if text is None:
@@ -371,7 +378,9 @@ class RetrievalConstraints:
             if len(normalized) != 2:
                 raise ValueError("date_range must contain exactly two non-empty values")
             object.__setattr__(self, "date_range", _normalize_date_range(normalized))
-        object.__setattr__(self, "section_hint", _normalized_text(self.section_hint))
+        # Normalize hint casing up front so engine-facing payloads, provenance,
+        # and fingerprints stay aligned for equivalent retrieval queries.
+        object.__setattr__(self, "section_hint", _normalized_query_hint_text(self.section_hint))
 
 
 @dataclass(frozen=True)
