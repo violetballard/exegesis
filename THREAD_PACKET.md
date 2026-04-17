@@ -49,6 +49,7 @@ This change advances the canonical demo-path step `retrieve relevant material` b
 - Pre-fix packet branch tip: `37690f6d63ee0418953d27a0e853e7dadb83610f`
 - Reviewer packet source-of-truth anchor before this fixer commit: reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, reviewed implementation range `adfa8cdadd43747ffbcb612e4151e262b13e52ca^..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - This metadata-only refresh preserves the reviewed implementation head and narrows the operative reviewed implementation range to the single commit above while adding the explicit AGENTS demo-path statement required for re-review.
+- Operative re-review artifact in this lane worktree: `THREAD_PACKET.md` is the source of truth for the narrowed reviewed range and canonical demo-path mapping on this fixer pass.
 - Hidden packet artifacts under `.codex/` are present for reference in this worktree but are filesystem read-only here, so `THREAD_PACKET.md` is the operative corrected handoff artifact for re-review.
 
 ## Operative Packet Authority
