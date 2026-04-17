@@ -3638,6 +3638,53 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         self.assertEqual(payload["basket_promotion"], result.to_downstream_payload()["basket_promotion"])
 
+    def test_retrieval_downstream_payload_helper_normalizes_basket_promotion_identity_fields(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        basket_promotion = sparse_source_bundle.get("basket_promotion")
+        self.assertIsInstance(basket_promotion, dict)
+        basket_promotion["query_fingerprint"] = f"  {basket_promotion['query_fingerprint']}  "
+        basket_promotion["result_fingerprint"] = f"  {basket_promotion['result_fingerprint']}  "
+        basket_promotion["lookup_fingerprint"] = "  synthetic-lookup-fingerprint  "
+        basket_promotion["doc_id"] = f"  {basket_promotion['doc_id']}  "
+        basket_promotion["doc_fingerprint"] = f"  {basket_promotion['doc_fingerprint']}  "
+        basket_promotion["doc_identity_fingerprint"] = f"  {basket_promotion['doc_identity_fingerprint']}  "
+        basket_promotion["source_hash"] = f"  {basket_promotion['source_hash']}  "
+        basket_promotion["title_hint"] = f"  {basket_promotion['title_hint']}  "
+        basket_promotion["excerpt_id"] = f"  {basket_promotion['excerpt_id']}  "
+        basket_promotion["excerpt_fingerprint"] = f"  {basket_promotion['excerpt_fingerprint']}  "
+        basket_promotion["excerpt_provenance_fingerprint"] = (
+            f"  {basket_promotion['excerpt_provenance_fingerprint']}  "
+        )
+        basket_promotion["excerpt_text_hash"] = f"  {basket_promotion['excerpt_text_hash']}  "
+
+        payload = build_retrieval_downstream_payload_from_result(
+            _SourceBundleOnlySource(sparse_source_bundle)
+        )
+
+        canonical_basket_promotion = result.to_downstream_payload()["basket_promotion"]
+        expected_basket_promotion = {
+            **canonical_basket_promotion,
+            "lookup_fingerprint": "synthetic-lookup-fingerprint",
+        }
+        self.assertEqual(payload["basket_promotion"], expected_basket_promotion)
+
     def test_retrieve_auto_citation_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(
             query_text="memo coding comparison",

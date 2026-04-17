@@ -670,6 +670,24 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
     if not isinstance(snapshot, dict):
         return {}
     normalized = copy.deepcopy(snapshot)
+    for field_name in (
+        "query_fingerprint",
+        "result_fingerprint",
+        "lookup_fingerprint",
+        "doc_id",
+        "doc_fingerprint",
+        "doc_identity_fingerprint",
+        "source_hash",
+        "excerpt_id",
+        "excerpt_fingerprint",
+        "excerpt_provenance_fingerprint",
+        "excerpt_text_hash",
+    ):
+        field_value = _normalize_optional_text(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+        elif field_name in normalized:
+            normalized[field_name] = None
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -684,6 +702,11 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
         normalized["doc_type"] = doc_type
     elif "doc_type" in normalized:
         normalized["doc_type"] = None
+    title_hint = _normalize_optional_text(normalized.get("title_hint"))
+    if title_hint is not None:
+        normalized["title_hint"] = title_hint
+    elif "title_hint" in normalized:
+        normalized["title_hint"] = None
     span = _normalize_span_snapshot(normalized.get("span"))
     if span is not None:
         normalized["span"] = copy.deepcopy(span)
