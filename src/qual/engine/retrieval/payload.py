@@ -310,6 +310,16 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
     if not isinstance(query, dict):
         return {}
     normalized = copy.deepcopy(query)
+    has_query_context = any(
+        key in normalized
+        for key in (
+            "query_text",
+            "scope",
+            "intent",
+            "confidentiality_profile",
+            "constraints",
+        )
+    )
     normalized_query_text = _normalize_query_text(normalized.get("query_text"))
     if normalized_query_text is not None:
         normalized["query_text"] = normalized_query_text
@@ -318,7 +328,9 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
     )
     if confidentiality_profile is not None:
         normalized["confidentiality_profile"] = confidentiality_profile
-    elif "query_text" in normalized:
+    elif has_query_context:
+        # Sparse query snapshots should still fail closed for confidentiality so
+        # downstream rehydration never assumes a less restrictive profile.
         normalized["confidentiality_profile"] = "confidential"
     normalized_scope = _normalize_query_scope(normalized.get("scope"))
     if normalized_scope is not None:
