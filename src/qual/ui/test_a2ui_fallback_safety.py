@@ -2594,6 +2594,52 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(list(envelope["artifact"]["debug"].keys()), ["a", "b"])
         self.assertEqual(list(envelope["artifact"]["debug"]["a"].keys()), ["y", "z"])
 
+    def test_terminal_artifact_payload_normalizer_converts_tuple_values_to_lists(self) -> None:
+        card_source = {
+            "type": "GenericCard",
+            "title": " Run Log ",
+            "a2ui_version": 1,
+            "blocks": (
+                {"type": "MarkdownBlock", "markdown": "First"},
+                {"type": "MarkdownBlock", "markdown": "Second"},
+            ),
+            "actions": (
+                ActionRef(
+                    id="copy_to_clipboard",
+                    label="Copy",
+                    payload={"text": "payload"},
+                ),
+                ActionRef(
+                    id="apply_patch",
+                    label="Apply",
+                    payload={"patch_id": "p1"},
+                ),
+            ),
+            "debug": {"tags": ("beta", "alpha")},
+        }
+
+        normalized = normalize_terminal_artifact_payload(card_source, kind="card")
+        envelope = build_terminal_artifact_envelope(card_source, kind="card")
+
+        self.assertIsInstance(normalized["blocks"], list)
+        self.assertIsInstance(normalized["actions"], list)
+        self.assertIsInstance(normalized["debug"]["tags"], list)
+        self.assertEqual(
+            normalized["blocks"],
+            [
+                {"type": "MarkdownBlock", "markdown": "First"},
+                {"type": "MarkdownBlock", "markdown": "Second"},
+            ],
+        )
+        self.assertEqual(
+            [action["id"] for action in normalized["actions"]],
+            ["copy_to_clipboard", "apply_patch"],
+        )
+        self.assertEqual(normalized["debug"]["tags"], ["beta", "alpha"])
+        self.assertEqual(envelope["artifact"], normalized)
+        self.assertNotIsInstance(normalized["blocks"], tuple)
+        self.assertNotIsInstance(normalized["actions"], tuple)
+
     def test_terminal_artifact_payload_normalizer_preserves_raw_leaf_card_default_snapshots(self) -> None:
         raw_leaf = {
             "id": " export_document ",

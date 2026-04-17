@@ -3427,7 +3427,9 @@ def _snapshot_terminal_artifact_value(value: Any, *, _seen_ids: set[int] | None 
             return f"<cycle:{type(value).__name__}>"
         _seen_ids.add(value_id)
         try:
-            return tuple(_snapshot_terminal_artifact_value(item, _seen_ids=_seen_ids) for item in value)
+            # Normalize tuple-shaped snapshots to JSON-native lists so
+            # terminal artifact envelopes stay language-agnostic.
+            return [_snapshot_terminal_artifact_value(item, _seen_ids=_seen_ids) for item in value]
         finally:
             _seen_ids.remove(value_id)
 
