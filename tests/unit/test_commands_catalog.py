@@ -2130,7 +2130,7 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(
             contract.entries[3].preferred_surface_tokens,
-            ("export-handoff", "export", "persist", "apply-patch", "reject-patch"),
+            ("apply-patch", "reject-patch", "persist", "export-handoff", "export"),
         )
         self.assertEqual(
             tuple(entry.preferred_surface_invocations for entry in contract.entries),
@@ -2144,36 +2144,6 @@ class CommandCatalogTests(unittest.TestCase):
                     ),
                 ),
                 (
-                    (
-                        "export-handoff",
-                        (
-                            "terminal",
-                            "--operation-kind",
-                            "terminal_synthesis_request",
-                            "--message",
-                            "Export handoff",
-                        ),
-                    ),
-                    (
-                        "export",
-                        (
-                            "terminal",
-                            "--operation-kind",
-                            "terminal_synthesis_request",
-                            "--message",
-                            "Export handoff",
-                        ),
-                    ),
-                    (
-                        "persist",
-                        (
-                            "terminal",
-                            "--operation-kind",
-                            "terminal_synthesis_request",
-                            "--message",
-                            "Persist and continue",
-                        ),
-                    ),
                     (
                         "apply-patch",
                         (
@@ -2192,6 +2162,36 @@ class CommandCatalogTests(unittest.TestCase):
                             "terminal_tool_orchestration",
                             "--message",
                             "Reject patch",
+                        ),
+                    ),
+                    (
+                        "persist",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Persist and continue",
+                        ),
+                    ),
+                    (
+                        "export-handoff",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Export handoff",
+                        ),
+                    ),
+                    (
+                        "export",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Export handoff",
                         ),
                     ),
                 ),
@@ -2224,36 +2224,6 @@ class CommandCatalogTests(unittest.TestCase):
                 ("retrieval", ("context-basket", "list")),
                 ("patch-review", ("diff-preview", "--original", "before", "--proposed", "after")),
                 (
-                    "export-handoff",
-                    (
-                        "terminal",
-                        "--operation-kind",
-                        "terminal_synthesis_request",
-                        "--message",
-                        "Export handoff",
-                    ),
-                ),
-                (
-                    "export",
-                    (
-                        "terminal",
-                        "--operation-kind",
-                        "terminal_synthesis_request",
-                        "--message",
-                        "Export handoff",
-                    ),
-                ),
-                (
-                    "persist",
-                    (
-                        "terminal",
-                        "--operation-kind",
-                        "terminal_synthesis_request",
-                        "--message",
-                        "Persist and continue",
-                    ),
-                ),
-                (
                     "apply-patch",
                     (
                         "terminal",
@@ -2271,6 +2241,36 @@ class CommandCatalogTests(unittest.TestCase):
                         "terminal_tool_orchestration",
                         "--message",
                         "Reject patch",
+                    ),
+                ),
+                (
+                    "persist",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Persist and continue",
+                    ),
+                ),
+                (
+                    "export-handoff",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Export handoff",
+                    ),
+                ),
+                (
+                    "export",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Export handoff",
                     ),
                 ),
             ),
@@ -2962,13 +2962,13 @@ class CommandCatalogTests(unittest.TestCase):
             contract.entries[3],
             preferred_surface_invocations=(
                 (
-                    "export-handoff",
+                    "apply-patch",
                     (
                         "terminal",
                         "--operation-kind",
-                        "terminal_synthesis_request",
+                        "terminal_tool_orchestration",
                         "--message",
-                        "Persist and continue",
+                        "Ship patch now",
                     ),
                 ),
                 *contract.entries[3].preferred_surface_invocations[1:],

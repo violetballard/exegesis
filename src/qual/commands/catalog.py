@@ -986,7 +986,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
             ("reject-patch", ("--operation-kind",)),
             ("patch-reject", ("--operation-kind",)),
         ),
-        preferred_surface_tokens=("export-handoff", "export", "persist", "apply-patch", "reject-patch"),
+        preferred_surface_tokens=("apply-patch", "reject-patch", "persist", "export-handoff", "export"),
         description="Run terminal export handoff routing.",
         flow_step="export-handoff",
     ),
