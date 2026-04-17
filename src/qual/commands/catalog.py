@@ -2907,9 +2907,38 @@ def command_resolve(
     return command_resolve_for(COMMAND_SPECS, token, flow_steps)
 
 
+def _prefer_demo_flow_smoke_resolution(
+    resolved: ResolvedCommand,
+    *,
+    raw_argv: tuple[str, ...] = (),
+) -> ResolvedCommand:
+    if not resolved.matched or not raw_argv:
+        return resolved
+    if len(raw_argv) != 1 or resolved.kind != "flow-step" or len(resolved.smoke_argv) <= 1:
+        return resolved
+    return ResolvedCommand(
+        token=resolved.token,
+        normalized_token=resolved.normalized_token,
+        canonical_name=resolved.canonical_name,
+        flow_step=resolved.flow_step,
+        primary_cli_token=resolved.primary_cli_token,
+        argv=resolved.smoke_argv,
+        smoke_argv=resolved.smoke_argv,
+        cli_tokens=resolved.cli_tokens,
+        lookup_tokens=resolved.lookup_tokens,
+        surface_tokens=resolved.surface_tokens,
+        description=resolved.description,
+        kind=resolved.kind,
+        matched=resolved.matched,
+    )
+
+
 def command_demo_resolve(token: str) -> ResolvedCommand:
     """Resolve a token against the canonical demo-path command surface."""
-    return command_resolve_for(COMMAND_SPECS, token, command_demo_flow_steps())
+    return _prefer_demo_flow_smoke_resolution(
+        command_resolve_for(COMMAND_SPECS, token, command_demo_flow_steps()),
+        raw_argv=(token,),
+    )
 
 
 def command_mvp_resolve(token: str) -> ResolvedCommand:
@@ -3027,7 +3056,11 @@ def command_demo_resolve_argv(
     argv: tuple[str, ...] | list[str],
 ) -> ResolvedCommand:
     """Resolve argv against the canonical demo-path command surface."""
-    return command_resolve_argv_for(COMMAND_SPECS, argv, command_demo_flow_steps())
+    raw_argv = tuple(argv)
+    return _prefer_demo_flow_smoke_resolution(
+        command_resolve_argv_for(COMMAND_SPECS, raw_argv, command_demo_flow_steps()),
+        raw_argv=raw_argv,
+    )
 
 
 def command_mvp_resolve_argv(
