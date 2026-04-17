@@ -2730,6 +2730,8 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
             requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
         except ValueError:
             requested_kind = None
+    if requested_kind == "card" and _contains_action_or_selection_payload(artifact) and not _should_preserve_raw_leaf_card_default(artifact):
+        return _render_invalid_terminal_card(artifact)
     fallback_target: tuple[Any, str] | None = None
     try:
         fallback_target = resolve_terminal_artifact_cli_fallback_target(
@@ -3290,6 +3292,37 @@ def _should_preserve_raw_leaf_card_default(artifact: Any) -> bool:
     if any(field in artifact for field in ("blocks", "actions")):
         return False
     return all(field in artifact for field in ("id", "label", "payload"))
+
+
+def _contains_action_or_selection_payload(
+    artifact: Any,
+    *,
+    _seen_envelope_ids: set[int] | None = None,
+) -> bool:
+    if isinstance(artifact, (ActionRef, SelectionRef)):
+        return True
+    if not isinstance(artifact, Mapping):
+        return False
+
+    artifact_type = artifact.get("type")
+    if isinstance(artifact_type, str) and artifact_type.strip() == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+        if _seen_envelope_ids is None:
+            _seen_envelope_ids = set()
+        artifact_id = id(artifact)
+        if artifact_id in _seen_envelope_ids:
+            return False
+        _seen_envelope_ids.add(artifact_id)
+        payload = artifact.get("artifact")
+        if payload is None:
+            return False
+        return _contains_action_or_selection_payload(
+            payload,
+            _seen_envelope_ids=_seen_envelope_ids,
+        )
+
+    if _infer_terminal_artifact_explicit_kind(artifact) in {"action", "selection"}:
+        return True
+    return _infer_terminal_artifact_partial_leaf_kind(artifact) is not None
 
 
 def _strip_terminal_type_hint(artifact: Mapping[str, Any], *, expected_type: str) -> dict[str, Any]:

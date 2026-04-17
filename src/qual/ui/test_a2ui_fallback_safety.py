@@ -3922,6 +3922,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
     def test_terminal_artifact_cli_fallback_entrypoint_rejects_conflicting_card_hints_for_authoritative_envelopes(
         self,
     ) -> None:
+        shell = ShellUI()
         action_envelope = build_terminal_artifact_envelope(
             ActionRef(
                 id=" export_document ",
@@ -3938,6 +3939,16 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             ),
             kind="selection",
         )
+        partial_action_payload = {
+            "id": "export_document",
+            "payload": {"format": "md"},
+            "confirm": {"title": "Confirm export", "message": "Export the draft?"},
+        }
+        partial_selection_payload = {
+            "id": "choice-1",
+            "payload": {"nested": {"items": [1, 2]}},
+            "selected": True,
+        }
         raw_leaf_envelope = {
             "type": "TerminalArtifact",
             "kind": "card",
@@ -3952,9 +3963,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         for case_name, artifact in (
             ("action envelope", action_envelope),
             ("selection envelope", selection_envelope),
+            ("partial action payload", partial_action_payload),
+            ("partial selection payload", partial_selection_payload),
         ):
             with self.subTest(case=case_name):
                 text = render_terminal_cli_fallback(artifact, kind="card")
+                self.assertEqual(text, shell.render_artifact(artifact, kind="card"))
                 self.assertIn("[UnknownCard] <invalid card>", text)
                 self.assertIn("- raw:", text)
                 self.assertNotIn("[ActionRef]", text)
