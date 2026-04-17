@@ -41,13 +41,16 @@
 
 ## Canonical Demo-Path Step Advanced
 
-- This slice makes the CLI-first `project-open`, `retrieval`,
-  `patch-review`, `apply-patch`, `reject-patch`, `persist`, and
-  `export-handoff` steps more real while Textual remains disabled.
+- This slice directly advances `open project/document`, `retrieve relevant
+  material`, `preview and apply or reject a patch`, and `continue working
+  without losing context` from the canonical demo path in `AGENTS.md`.
 - Concrete blocker removed: older demo-path verbs such as `open-project`,
   `review`, `save`, `apply`, and `reject` now normalize to the canonical
   parser-facing command surface instead of depending on callers to know the
   internal command tokens.
+- Demo-path impact: operator-facing demo-loop commands are more reliable and
+  smoke-testable because catalog/parser drift is rejected before those CLI
+  steps can silently diverge.
 
 ## Scope Boundary
 
@@ -82,14 +85,18 @@
 ## Scope Completed
 
 - Exposed canonical demo-loop helpers in `src/qual/commands/catalog.py` so the
-  MVP loop now has catalog, token, lookup-table, and invocation-plan accessors.
+  MVP loop now has catalog, token, lookup-table, and invocation-plan accessors
+  for `open project/document`, `retrieve relevant material`, and `preview and
+  apply or reject a patch`.
 - Added demo-path compatibility-token normalization for older surface verbs so
   `command_demo_*` and `command_mvp_*` helpers resolve parser-ready argv
-  through the canonical command catalog.
+  through the canonical command catalog and keep `continue working without
+  losing context` stable across older CLI spellings.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
   for the demo-loop helpers and compatibility-shim behavior.
 - Refreshed the handoff packet so the reviewed commit set, files changed, gate
-  evidence, and explicit demo-path mapping match the actual branch history.
+  evidence, and explicit canonical demo-path mapping match the actual branch
+  history.
 
 ## Kickoff Budget / Limits Compliance
 

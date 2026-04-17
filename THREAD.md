@@ -16,8 +16,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   `THREAD_PACKET.md` by:
   - naming the true reviewed commit set
   - tying gate evidence to the current branch tip
-  - naming the canonical demo-path steps advanced
+  - naming the canonical demo-path steps advanced using `AGENTS.md` wording
   - keeping scope limited to Milestone 3 CLI compatibility work
-- Canonical demo-path steps advanced: `project-open`, `retrieval`,
-  `patch-review`, `apply-patch`, `reject-patch`, `persist`, and
-  `export-handoff`.
+- Canonical demo-path steps advanced: `open project/document`,
+  `retrieve relevant material`, `preview and apply or reject a patch`, and
+  `continue working without losing context`.
