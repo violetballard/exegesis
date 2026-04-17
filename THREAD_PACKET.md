@@ -31,6 +31,7 @@
 2. The packet remains tightly scoped to the narrowed retrieval slice `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and ties that scope to FTS-only excerpt lookup on the canonical retrieval surface with deterministic provenance preserved for downstream basket and workflow use.
 3. The packet does not claim new basket-promotion, workflow-card, or broader engine-surface progress in this slice because the reviewed range only changes the `fetch_excerpt` fallback contract and its approved shared regression coverage.
 4. This metadata-only fixer commit keeps the operative packet in `THREAD_PACKET.md` aligned with the reviewer-required AGENTS demo-path mapping for this narrowed slice.
+5. The operative handoff now carries that AGENTS mapping in a dedicated `Canonical demo-path step advanced` section so re-review no longer depends on implied plan alignment.
 
 ## Tasks completed
 
