@@ -5094,6 +5094,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                     "id": "export_document",
                     "label": "Export",
                     "payload": {"format": "md"},
+                    "confirm": {"title": "Approve", "message": "Proceed?"},
                 },
                 "[ActionRef] Export",
                 "render_terminal_action",
@@ -5104,6 +5105,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                     "id": "choice-1",
                     "label": "Choice",
                     "payload": {"nested": {"items": [1, 2]}},
+                    "selected": True,
                 },
                 "[SelectionRef] Choice",
                 "render_terminal_selection",
@@ -5169,6 +5171,53 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
                 self.assertIn(expected_prefix, text)
                 generic_renderer.assert_not_called()
+
+    def test_shell_ui_recovers_leaf_renderer_when_cli_fallback_returns_card_output(self) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                {
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                    "confirm": {"title": "Approve", "message": "Proceed?"},
+                },
+                "[ActionRef] Export",
+                "render_terminal_action",
+            ),
+            (
+                "selection",
+                {
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                    "selected": True,
+                },
+                "[SelectionRef] Choice",
+                "render_terminal_selection",
+            ),
+        ]
+
+        for fallback_kind, artifact, expected_prefix, renderer_name in cases:
+            with self.subTest(kind=fallback_kind):
+                with patch(
+                    "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
+                    return_value=(artifact, fallback_kind),
+                ):
+                    with patch(
+                        "src.qual.ui.shell.render_terminal_cli_fallback",
+                        return_value="[GenericCard] Fallback view for FutureCard",
+                    ) as cli_fallback:
+                        with patch(
+                            f"src.qual.ui.shell.{renderer_name}",
+                            return_value=expected_prefix,
+                        ) as specific_renderer:
+                            text = shell.render_artifact(artifact)
+
+                self.assertEqual(text, expected_prefix)
+                cli_fallback.assert_called_once_with(artifact, kind=fallback_kind)
+                specific_renderer.assert_called_once_with(artifact)
 
     def test_shell_ui_keeps_ambiguous_raw_leaf_payloads_on_card_default_for_malformed_envelopes_when_shared_resolver_raises(
         self,

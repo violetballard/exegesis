@@ -86,31 +86,17 @@ class ShellUI:
         ):
             fallback_artifact = artifact
             fallback_kind = "card"
+        leaf_specific_fallback = fallback_kind in {"action", "selection"}
         try:
-            return render_terminal_cli_fallback(fallback_artifact, kind=fallback_kind)
+            rendered_cli_fallback = render_terminal_cli_fallback(fallback_artifact, kind=fallback_kind)
         except Exception:
-            pass
-        specific_rendered: str | None = None
-        if fallback_kind == "action":
-            try:
-                specific_rendered = render_terminal_action(fallback_artifact)
-            except Exception:
-                pass
-        elif fallback_kind == "selection":
-            try:
-                specific_rendered = render_terminal_selection(fallback_artifact)
-            except Exception:
-                pass
-        if specific_rendered is not None:
-            return specific_rendered
-        if fallback_kind not in {"action", "selection"}:
-            try:
-                # Retry the shared renderer on the resolved fallback target so
-                # we do not reprocess the original envelope after CLI fallback
-                # resolution has already recovered a safer payload.
-                return render_terminal_artifact(fallback_artifact, kind=fallback_kind)
-            except Exception:
-                pass
+            rendered_cli_fallback = None
+        else:
+            if not leaf_specific_fallback or self._has_expected_leaf_renderer_prefix(
+                rendered_cli_fallback,
+                fallback_kind,
+            ):
+                return rendered_cli_fallback
         if fallback_kind == "action":
             try:
                 return render_terminal_action(fallback_artifact)
@@ -121,6 +107,14 @@ class ShellUI:
                 return render_terminal_selection(fallback_artifact)
             except Exception:
                 return _render_invalid_terminal_selection(fallback_artifact)
+        if fallback_kind not in {"action", "selection"}:
+            try:
+                # Retry the shared renderer on the resolved fallback target so
+                # we do not reprocess the original envelope after CLI fallback
+                # resolution has already recovered a safer payload.
+                return render_terminal_artifact(fallback_artifact, kind=fallback_kind)
+            except Exception:
+                pass
         try:
             return render_terminal_card(fallback_artifact)
         except Exception:
@@ -382,6 +376,16 @@ class ShellUI:
     @staticmethod
     def _normalize_fallback_kind(kind: Any) -> str | None:
         return _normalize_terminal_artifact_kind_hint(kind)
+
+    @staticmethod
+    def _has_expected_leaf_renderer_prefix(rendered: Any, fallback_kind: str) -> bool:
+        if not isinstance(rendered, str):
+            return False
+        if fallback_kind == "action":
+            return rendered.startswith("[ActionRef]")
+        if fallback_kind == "selection":
+            return rendered.startswith("[SelectionRef]")
+        return False
 
     @staticmethod
     def _resolve_fallback_artifact(
