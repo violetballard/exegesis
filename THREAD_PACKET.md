@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Commit: `8333cbed4288faef14592230bd551cd26574e23a`
 - Packet refresh commit: `296b5fccc4746ab512b1155a08173b6335550dc9`
-- Packet refresh role: `reviewer-fix handoff refresh`
+- Packet refresh role: `reviewer-fix plan-alignment refresh`
 
 ## Packet Traceability Note
 
@@ -38,14 +38,22 @@
 
 ## Canonical Demo-Path Step Advanced
 
-- Exact canonical demo-path step advanced: the CLI-first command route for
-  `open project/document -> retrieve relevant material -> preview and apply or
-  reject a patch -> export handoff`.
-- Concrete blocker removed: the CLI-first operator path now rejects parser /
-  catalog drift before the accepted command entrypoints can silently reorder,
-  substitute aliases, drop expected tokens, or add extra entrypoints that would
-  desynchronize that route slice of the engine-first MVP loop while Textual
-  remains disabled.
+- AGENTS.md canonical demo-path step advanced: `open project/document ->
+  retrieve relevant material -> preview and apply or reject a patch -> save and
+  continue working without losing context`, specifically the CLI-first command
+  route slice that covers `open project/document -> retrieve relevant material
+  -> preview and apply or reject a patch -> export handoff`.
+- Concrete blocker removed on that step: the CLI-first operator path now
+  rejects parser / catalog drift before accepted command entrypoints can
+  silently reorder, substitute aliases, drop expected tokens, or add extra
+  entrypoints that would desynchronize that route slice of the engine-first MVP
+  loop while Textual remains disabled.
+- Why this is not second-order work: Milestone 3 currently depends on the CLI
+  remaining the active operator surface. If the parser surface drifts silently,
+  the engine-first demo path can stop being reliably smoke-testable even when
+  engine behavior is unchanged, which makes this command-catalog guardrail a
+  direct stability requirement for the current loop rather than speculative UX
+  work.
 - Scope boundary: this remains command-catalog contract hardening only. It does
   not add new commands, new flags, handler logic, or alternate workflow paths.
 
@@ -115,6 +123,7 @@
 2. Preserved deterministic CLI contract ordering for both canonical command names and per-command entrypoint order in the default parser surface.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for parser-surface drift, including alias substitution, alias removal, entrypoint reordering, and extra accepted entrypoints.
 4. Regenerated the handoff packet so the branch metadata points at the current implementation commit and explicitly states the canonical demo-path step advanced.
+5. Tightened the handoff justification so the reviewer-visible packet names the concrete CLI-loop failure mode this guardrail prevents and why that keeps the current Milestone 3 path real.
 
 ## Files Changed
 
