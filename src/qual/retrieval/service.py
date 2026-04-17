@@ -3064,8 +3064,15 @@ class RetrievalService:
             return None
         if "start" not in char_range or "end" not in char_range:
             return None
-        start = int(char_range["start"])
-        end = int(char_range["end"])
+        start_raw = char_range["start"]
+        end_raw = char_range["end"]
+        if isinstance(start_raw, bool) or isinstance(end_raw, bool):
+            return None
+        try:
+            start = int(start_raw)
+            end = int(end_raw)
+        except (TypeError, ValueError):
+            return None
         if start > end:
             start, end = end, start
         return {
