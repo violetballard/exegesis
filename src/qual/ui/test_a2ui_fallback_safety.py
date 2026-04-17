@@ -2078,6 +2078,25 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Selection schema v1", text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
 
+    def test_shell_ui_routes_fallback_rendering_through_the_explicit_cli_entrypoint(self) -> None:
+        shell = ShellUI()
+        artifact = {
+            "type": "GenericCard",
+            "title": " Fallback ",
+            "blocks": [],
+            "actions": [],
+        }
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            with patch(
+                "src.qual.ui.shell.render_terminal_cli_fallback",
+                return_value="cli-fallback",
+            ) as cli_fallback:
+                text = shell.render_artifact(artifact)
+
+        self.assertEqual(text, "cli-fallback")
+        cli_fallback.assert_called_once_with(artifact, kind="card")
+
     def test_terminal_renderer_includes_safe_raw_preview_for_invalid_cards(self) -> None:
         text = render_terminal_card(_OpaqueValue())
 
@@ -2790,37 +2809,41 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         shell = ShellUI()
 
         with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
-            with patch("src.qual.ui.shell.render_terminal_action", side_effect=RuntimeError("fallback boom")):
-                text = shell.render_artifact(
-                    {
-                        "id": "export_document",
-                        "label": "Export",
-                        "payload": {"format": "md"},
-                    },
-                    kind="action",
-                )
+            with patch("src.qual.ui.shell.render_terminal_cli_fallback", side_effect=RuntimeError("cli fallback boom")):
+                with patch("src.qual.ui.shell.render_terminal_action", side_effect=RuntimeError("fallback boom")):
+                    text = shell.render_artifact(
+                        {
+                            "id": "export_document",
+                            "label": "Export",
+                            "payload": {"format": "md"},
+                        },
+                        kind="action",
+                    )
 
         self.assertIn("[ActionRef] <invalid action>", text)
         self.assertIn("Action schema v1", text)
         self.assertNotIn("fallback boom", text)
+        self.assertNotIn("cli fallback boom", text)
 
     def test_shell_ui_falls_back_to_invalid_selection_when_selection_recovery_renderer_raises(self) -> None:
         shell = ShellUI()
 
         with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
-            with patch("src.qual.ui.shell.render_terminal_selection", side_effect=RuntimeError("fallback boom")):
-                text = shell.render_artifact(
-                    {
-                        "id": "choice-1",
-                        "label": "Choice",
-                        "payload": {"nested": {"items": [1, 2]}},
-                    },
-                    kind="selection",
-                )
+            with patch("src.qual.ui.shell.render_terminal_cli_fallback", side_effect=RuntimeError("cli fallback boom")):
+                with patch("src.qual.ui.shell.render_terminal_selection", side_effect=RuntimeError("fallback boom")):
+                    text = shell.render_artifact(
+                        {
+                            "id": "choice-1",
+                            "label": "Choice",
+                            "payload": {"nested": {"items": [1, 2]}},
+                        },
+                        kind="selection",
+                    )
 
         self.assertIn("[SelectionRef] <invalid selection>", text)
         self.assertIn("Selection schema v1", text)
         self.assertNotIn("fallback boom", text)
+        self.assertNotIn("cli fallback boom", text)
 
     def test_terminal_artifact_uses_explicit_kind_for_raw_mappings(self) -> None:
         action_text = render_terminal_artifact(

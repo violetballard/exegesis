@@ -15,6 +15,7 @@ from .a2ui import (
     resolve_terminal_artifact_render_target,
     render_terminal_action,
     render_terminal_artifact,
+    render_terminal_cli_fallback,
     render_terminal_card,
     render_terminal_selection,
     _render_invalid_terminal_action,
@@ -54,6 +55,10 @@ class ShellUI:
         ):
             fallback_artifact = artifact
             fallback_kind = "card"
+        try:
+            return render_terminal_cli_fallback(fallback_artifact, kind=fallback_kind)
+        except Exception:
+            pass
         if fallback_kind == "action":
             try:
                 return render_terminal_action(fallback_artifact)
