@@ -1280,8 +1280,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(canonical["basket_promotion"]["citation_available"])
         self.assertEqual(canonical["basket_promotion"]["result_fingerprint"], canonical["result_fingerprint"])
         self.assertEqual(canonical["basket_promotion"]["lookup_fingerprint"], canonical["lookup_fingerprint"])
+        self.assertEqual(canonical["basket_promotion"]["lookup_resolution"], canonical["lookup_resolution"])
+        self.assertEqual(
+            canonical["basket_promotion"]["lookup_confidentiality_profile"],
+            canonical["lookup_confidentiality_profile"],
+        )
         self.assertEqual(canonical["basket_promotion"]["doc_id"], canonical["doc_id"])
         self.assertEqual(canonical["basket_promotion"]["excerpt_id"], canonical["excerpt_id"])
+        self.assertEqual(canonical["basket_promotion"]["strategies_used"], canonical["strategies_used"])
         self.assertEqual(
             canonical["basket_promotion"]["excerpt_provenance_fingerprint"],
             canonical["excerpt_provenance_fingerprint"],
@@ -1373,12 +1379,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(normalized["basket_promotion"]["citation_available"])
         self.assertEqual(normalized["basket_promotion"]["query_scope"], "vault")
         self.assertEqual(normalized["basket_promotion"]["query_intent"], "lookup")
+        self.assertEqual(normalized["basket_promotion"]["lookup_resolution"], "fts")
         self.assertEqual(normalized["basket_promotion"]["query_date_range"], ["2026-01-01", "2026-01-31"])
         self.assertEqual(normalized["basket_promotion"]["candidate_doc_count"], 2)
         self.assertEqual(normalized["basket_promotion"]["result_fingerprint"], normalized["result_fingerprint"])
         self.assertEqual(normalized["basket_promotion"]["doc_id"], "doc-pdf-1")
         self.assertEqual(normalized["basket_promotion"]["excerpt_id"], "excerpt-sparse-1")
         self.assertEqual(normalized["basket_promotion"]["span"], {"char_range": {"start": 5, "end": 21}})
+        self.assertEqual(normalized["basket_promotion"]["strategies_used"], ["fts"])
         self.assertEqual(
             normalized["basket_promotion"]["excerpt_provenance_fingerprint"],
             normalized["excerpt_provenance_fingerprint"],

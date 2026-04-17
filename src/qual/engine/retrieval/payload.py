@@ -590,6 +590,8 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
         normalized["retrieval_policy"] = {}
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
+    if "strategies_used" in normalized:
+        normalized["strategies_used"] = _normalize_text_list_like(normalized.get("strategies_used"))
     doc_type = _normalize_optional_text(normalized.get("doc_type"))
     if doc_type is not None:
         normalized["doc_type"] = doc_type
@@ -627,6 +629,18 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
         normalized["query_confidentiality_profile"] = query_confidentiality_profile
     elif "query_confidentiality_profile" in normalized:
         normalized["query_confidentiality_profile"] = None
+    lookup_resolution = _normalize_optional_text(normalized.get("lookup_resolution"))
+    if lookup_resolution is not None:
+        normalized["lookup_resolution"] = lookup_resolution.casefold()
+    elif "lookup_resolution" in normalized:
+        normalized["lookup_resolution"] = None
+    lookup_confidentiality_profile = _normalize_query_confidentiality_profile(
+        normalized.get("lookup_confidentiality_profile")
+    )
+    if lookup_confidentiality_profile is not None:
+        normalized["lookup_confidentiality_profile"] = lookup_confidentiality_profile
+    elif "lookup_confidentiality_profile" in normalized:
+        normalized["lookup_confidentiality_profile"] = None
     query_date_range = _normalize_query_date_range(normalized.get("query_date_range"))
     if query_date_range is not None:
         normalized["query_date_range"] = query_date_range

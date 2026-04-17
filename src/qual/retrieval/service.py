@@ -2783,6 +2783,13 @@ class RetrievalService:
             "query_confidentiality_profile": _normalized_profile_text(
                 provenance.get("query_confidentiality_profile")
             ),
+            "lookup_resolution": _normalize_lookup_resolution_payload(
+                excerpt.get("lookup_resolution") or provenance.get("lookup_resolution")
+            ),
+            "lookup_confidentiality_profile": _normalize_lookup_confidentiality_profile_payload(
+                excerpt.get("lookup_confidentiality_profile")
+                or provenance.get("lookup_confidentiality_profile")
+            ),
             "query_date_range": _normalize_query_date_range_payload(provenance.get("query_date_range")),
             "candidate_doc_count": _optional_int(provenance.get("candidate_doc_count")),
             "fts_shortlist_doc_ids": _normalize_doc_id_list_payload(provenance.get("fts_shortlist_doc_ids")),
@@ -2824,6 +2831,13 @@ class RetrievalService:
             "retrieval_policy": retrieval_policy,
             "active_strategy_ids": active_strategy_ids,
             "deferred_strategy_ids": deferred_strategy_ids,
+            "strategies_used": copy.deepcopy(
+                _normalize_matched_terms(
+                    excerpt.get("strategies_used")
+                    or provenance.get("strategies_used")
+                    or active_strategy_ids
+                )
+            ),
         }
 
     @staticmethod
