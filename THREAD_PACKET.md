@@ -3,13 +3,13 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Reviewed implementation commit: `b644f9ce04a7037ce96f3fe3790f338f03940520`
-- Packet refresh role: `reviewer-fix finalization`
+- Packet refresh role: `reviewer-fix scope/traceability refresh`
 
 ## Packet Traceability Note
 
-- The reviewed implementation scope is the real branch-tip command change at `b644f9ce04a7037ce96f3fe3790f338f03940520`.
-- That implementation commit is not metadata-only: it is the current branch tip and captures the parser-ready retrieval shim hardening layered on top of the earlier command-shim contract work in this branch.
-- This packet refresh commit is metadata-only and exists only to correct the review traceability, scope summary, and roadmap/vision mapping around the actual reviewed implementation tip.
+- The reviewed implementation scope remains the real command change at `b644f9ce04a7037ce96f3fe3790f338f03940520`.
+- That implementation commit is not metadata-only: it captures the parser-ready retrieval shim hardening layered on top of the earlier command-shim contract work in this branch.
+- The current branch tip is a metadata-only packet refresh that exists only to correct the review traceability, parser-surface scope statement, and roadmap/vision mapping around that reviewed implementation tip.
 - The approved shared-test exception remains limited to `tests/unit/test_commands_catalog.py`, the exact `feat-commands` shared-test path recorded in `scripts/scope-check.sh`.
 
 ## Current Program Focus
@@ -26,7 +26,7 @@
 
 ## Scope Goal
 
-- Stabilize the canonical demo-path CLI shims so retrieval aliases and adjacent compatibility shims export parser-ready argv and stay deterministic under the smoke contract.
+- Stabilize the canonical demo-path retrieval CLI shims so retrieval aliases export parser-ready argv and the declared parser surface stays deterministic under the smoke contract.
 
 ## Priority Outcomes
 
@@ -37,9 +37,9 @@
 ## Canonical Demo-Path Mapping
 
 - Single canonical demo-path step advanced: `retrieve relevant material`.
-- Why this exact step: the reviewed implementation only tightens the retrieval shim/export contract and tests around parser-ready retrieval invocations; it does not claim new behavior for `open project/document`, `preview and apply or reject a patch`, or `save and continue`.
-- AGENTS alignment statement: this slice makes `retrieve relevant material` more real by exporting parser-ready retrieval shim argv for surface tokens like `retrieval` and `retrieve`, then validating that those shim invocations stay aligned with the demo-path contract instead of silently collapsing to a bare primary token.
-- Concrete blocker removed for that step: before this slice, the shim catalog defaulted unoverridden surface tokens to only the primary CLI token, so retrieval aliases could be advertised without exporting the parser-ready `context-basket list` invocation they actually need. That left the retrieval step's CLI fallback surface partially implicit. This change makes the retrieval parser entrypoint explicit, smoke-testable, and drift-resistant.
+- Why this exact step: the reviewed implementation only tightens the retrieval shim/export contract and the command-catalog parser-surface validation around parser-ready retrieval invocations; it does not claim new behavior for `open project/document`, `preview and apply or reject a patch`, or `save and continue`.
+- AGENTS alignment statement: this slice makes `retrieve relevant material` more real by exporting parser-ready retrieval shim argv for surface tokens like `retrieval` and `retrieve`, then validating both those shim invocations and the declared parser entrypoint mapping so the retrieval CLI fallback cannot silently drift.
+- Concrete blocker removed for that step: before this slice, retrieval aliases could be advertised without exporting the parser-ready `context-basket list` invocation they actually need, and parser-surface drift checks were too weak to describe that exact contract. The reviewed implementation makes the retrieval parser entrypoint explicit, smoke-testable, and drift-resistant.
 - Why this is not second-order work: the current MVP loop depends on a stable CLI fallback while Textual remains disabled, and `retrieve relevant material` is one of the canonical demo-path steps. Tightening the exported shim contract for that exact step removes a concrete smoke-test blind spot instead of broadening the command surface.
 
 ## Definition of Done for This Lane
@@ -69,9 +69,10 @@
 
 - Extended `CommandDemoPathEntry` in `src/qual/commands/catalog.py` with `surface_invocations` so the canonical demo-path contract exposes the parser-ready argv produced for every surface token in each flow step.
 - Hardened `_validate_command_demo_path_contract()` so the demo-path contract rejects drift between the advertised surface tokens and the exported shim invocation table.
+- Hardened `command_cli_contract()` so it validates the declared CLI entrypoint mapping and rejects parser-surface drift instead of checking only canonical command-order alignment.
 - Added per-command `surface_argv` and taught `command_cli_shim_catalog()` to export parser-ready default argv, so retrieval aliases now map to `context-basket list` instead of a bare `context-basket` token.
 - Pinned terminal shim `--operation-kind` defaults and normalized repeated explicit shim options so compatibility shims for `persist`, `apply-patch`, and `reject-patch` stay deterministic while the retrieval step remains parser-ready.
-- Expanded regression coverage in `tests/unit/test_commands_catalog.py` for retrieval shim argv, terminal shim pinning, duplicate option normalization, and demo-path surface invocation export.
+- Expanded regression coverage in `tests/unit/test_commands_catalog.py` for parser-surface drift rejection, retrieval shim argv, terminal shim pinning, duplicate option normalization, and demo-path surface invocation export.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -85,11 +86,10 @@
 
 ## Tasks Completed
 
-1. Added demo-path contract support for explicit surface-token invocation mappings.
-2. Validated that demo-path surface invocations stay aligned with the smoke contract surface.
+1. Added demo-path contract support for explicit surface-token invocation mappings and drift validation.
+2. Hardened the command catalog so declared CLI entrypoints reject parser-surface drift instead of relying on canonical-name order alone.
 3. Made retrieval aliases export parser-ready `context-basket list` argv and pinned terminal shim operation kinds so adjacent compatibility shims stay deterministic.
-4. Expanded regression coverage for retrieval and terminal shim normalization behavior.
-5. Refreshed the handoff packet so the reviewed implementation commit, roadmap/vision mapping, and traceable shared-test approval reference match the actual branch state.
+4. Refreshed the handoff packet so the reviewed implementation commit, demo-path scope, and traceable shared-test approval reference match the actual branch state.
 
 ## Files Changed
 
@@ -114,7 +114,7 @@
 ## Risks / Blockers
 
 - Risk: `LOW`
-- Residual risk rationale: the change is limited to command-contract metadata and tests, and the new assertions only tighten the deterministic shim surface already exercised by the existing command catalog.
+- Residual risk rationale: the change is limited to command-contract metadata and tests, and the new assertions only tighten the deterministic parser/shim surface already exercised by the existing command catalog.
 - Blockers: none
 
 ## Required Handoff Fields
