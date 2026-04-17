@@ -8,19 +8,18 @@
 
 ## Scope goal
 
-- Keep FTS-first retrieval authoritative while preserving deterministic payload, provenance, and basket-promotion context across the canonical retrieval surfaces consumed by the engine loop.
+- Remove the `fetch_excerpt` PageIndex fallback so the canonical retrieval surface fails closed on non-FTS excerpt IDs and keeps excerpt resolution on the authoritative FTS-only path.
 
 ## Scope completed
 
-- The true cumulative implementation slice `d7fd5d200358287fa42a18d39e2b277463b9b69f..8339c6552ed833b7878ac600e946df54ef29bc0c` keeps SQLite FTS authoritative while hardening the canonical retrieval payload surfaces in `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`.
-- That slice carries deterministic provenance, retrieval policy, query normalization, excerpt lookup metadata, sparse bundle backfill, basket-promotion context, and source-bundle fingerprints through the downstream retrieval contracts without reintroducing PageIndex or embeddings as required runtime paths.
-- `fetch_excerpt` remains FTS-only and approved shared regression coverage in `tests/unit/test_unified_retrieval.py` now validates the corrected canonical retrieval contract against that true implementation range.
+- This reviewed slice keeps SQLite FTS authoritative by removing the `fetch_excerpt` PageIndex fallback from the canonical retrieval service in `src/qual/retrieval/service.py`.
+- The change makes non-FTS excerpt IDs fail closed with `KeyError` instead of silently resolving through PageIndex, keeping excerpt lookup deterministic and auditable on the canonical retrieval path.
+- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` validates that `fetch_excerpt` now accepts only FTS-backed excerpt IDs and rejects PageIndex-only IDs.
 
 ## Canonical Demo-Path Step Advanced
 
 - `retrieve relevant material`
-- This branch-tip work makes the retrieval step more real by ensuring the canonical engine-facing retrieval payloads stay deterministic and auditable as soon as FTS results are produced, which is the contract downstream basket and workflow steps depend on.
-- Reviewer-fix note: this reviewed slice specifically strengthens `retrieve relevant material` by keeping excerpt lookup deterministic and FTS-only on the canonical engine path.
+- This slice makes the retrieval step more real by keeping canonical excerpt resolution deterministic and auditable as soon as FTS results are produced, which is the contract downstream basket promotion depends on.
 
 ## Reviewer Fixes Addressed
 
@@ -92,13 +91,13 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop`
-- `feat-retrieval-fts - retrieval/search`
+- `Milestone 3: Real workflow loop` because this slice hardens the FTS-first retrieval contract used by the engine loop.
+- `feat-retrieval-fts - retrieval/search` because this slice removes the non-canonical PageIndex fallback from excerpt lookup.
 
 ### Vision capability affected
 
-- `Retrieval-first context handling`
-- `Auditable state and workflow`
+- `Retrieval-first context handling` because this slice keeps excerpt lookup on the authoritative FTS path used to gather context.
+- `Auditable state and workflow` because this slice makes excerpt provenance fail closed instead of resolving through a non-canonical fallback.
 
 ### Routing/provider impact note
 
