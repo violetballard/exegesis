@@ -73,7 +73,7 @@
 
 - Normalized `document-open` and `open-document` back onto the canonical `bootstrap` command path in `src/qual/commands/catalog.py` so document-open compatibility stays routed through the existing project-open parser entrypoint.
 - Kept the parser-facing CLI contract deterministic by validating declared entrypoints and canonical names against the command catalog instead of allowing silent parser/catalog drift.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the document-open alias normalization and the stricter CLI contract drift checks.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the document-open alias normalization and the stricter CLI contract drift checks, including token-level parser drift cases for missing expected aliases and `diff` versus `diff_preview` substitution.
 - Retargeted the handoff packet so the claimed review scope, demo-path mapping, and traceability note match the actual branch tip.
 
 ## Kickoff Budget / Limits Compliance
@@ -89,7 +89,7 @@
 
 1. `open project/document`: normalized `document-open` and `open-document` so those document-open compatibility aliases resolve through the canonical `bootstrap` entrypoint instead of creating a divergent command surface.
 2. `open project/document`: kept the parser-facing CLI contract deterministic by validating declared entrypoints and canonical command ordering against the catalog so the active open-command surface cannot drift silently.
-3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for alias normalization and CLI contract drift rejection at the actual branch tip.
+3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for alias normalization and CLI contract drift rejection at the actual branch tip, including missing expected alias tokens and normalized alias substitution drift.
 4. Refreshed the handoff packet and compatibility summary so the review scope explicitly matches the real implementation under review.
 
 ## Files Changed
