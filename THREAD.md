@@ -18,4 +18,4 @@ older lane/fixer prompts.
 - Scope boundary: this metadata refresh stays scoped to the command-catalog
   slice reviewed at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus the approved
   shared-test exception in `tests/unit/test_commands_catalog.py`.
-- Verification timestamp: `2026-04-17T05:15:20Z`.
+- Verification timestamp: `2026-04-17T05:16:17Z`.
