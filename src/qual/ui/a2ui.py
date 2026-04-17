@@ -609,6 +609,7 @@ def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
         "default_kind": "card",
         "render_target_contract": render_target_contract,
         "rendering": rendering_contract,
+        "terminal_artifact_rendering": rendering_contract,
         "kind_contracts": _build_terminal_artifact_kind_contracts(),
         "terminal_fallback_contract": {
             "kind": "card",
@@ -616,6 +617,7 @@ def _build_terminal_artifact_contract_manifest() -> dict[str, Any]:
         },
         "terminal_fallback_fingerprint": terminal_fallback_contract_fingerprint(),
         "cli_fallback": cli_fallback_contract,
+        "terminal_artifact_cli_fallback": cli_fallback_contract,
         "cli_fallback_contract": cli_fallback_contract,
         "terminal_artifact_render_target_fingerprint": terminal_artifact_render_target_contract_fingerprint(),
         "terminal_artifact_rendering_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
@@ -679,6 +681,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "render_target_contract": render_target_contract,
         "renderer_entrypoints": copy.deepcopy(rendering_contract["renderer_entrypoints"]),
         "rendering": rendering_contract,
+        "terminal_artifact_rendering": rendering_contract,
         "rendering_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
