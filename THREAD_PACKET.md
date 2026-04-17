@@ -82,6 +82,57 @@
   parser-surface drift fail immediately instead of changing the contract
   unnoticed.
 
+## Thread Kickoff (High-Risk)
+
+- Branch: `codex/feat-commands`
+- Lane / owned paths: `src/qual/commands/**`
+- Scope goal: harden the command-catalog contract so the accepted CLI parser
+  surface cannot drift away from the canonical catalog without a fast failure,
+  while keeping the slice limited to command-catalog validation plus focused
+  regression coverage.
+- Risk reason: this slice touches the operator-facing CLI command contract and
+  an approved shared test file, so the handoff uses the high-risk template even
+  though the implementation change stays narrow.
+
+### Budget
+
+- Task budget: `4`
+- Time budget: `30m`
+- Size limits: `<=8 files`, `<=300 net LOC`
+- Max fix attempts per failing gate: `2`
+
+### Planned Tasks
+
+1. Tighten `command_cli_contract()` so the declared parser surface and
+   canonical command order cannot silently diverge.
+2. Keep the returned CLI contract deterministic and aligned with
+   `command_names()`.
+3. Add focused regression coverage for canonical-order alignment and
+   parser-surface drift rejection.
+4. Refresh the handoff packet so the review scope, shared-file approval basis,
+   and canonical demo-path mapping are explicit.
+
+### Early Review Triggers
+
+- Before first edit to any shared-by-approval file.
+- Before changing the public command contract asserted by
+  `command_cli_contract()`.
+- Before broadening scope beyond command-catalog validation and the approved
+  shared test.
+
+### Checkpoint Cadence
+
+- Plan complete: recorded by this high-risk kickoff section and the
+  implementation scope remained limited to the command-catalog slice.
+- First green tests: focused `python -m unittest tests.unit.test_commands_catalog -q`
+  passed on the current branch tip before final handoff refresh.
+- Before risky/shared file edit: the only shared-file edit in this slice is
+  `tests/unit/test_commands_catalog.py`, and its approval basis plus
+  `SCOPE_ALLOW_SHARED=1 make scope-check` evidence are recorded below.
+- Ready for handoff: all required local gates passed on this branch tip and the
+  packet now includes the reviewer-required demo-path mapping and complete
+  high-risk kickoff fields.
+
 ## Canonical Demo-Path Step Advanced
 
 - AGENTS-required explicit step statement: this change makes the canonical

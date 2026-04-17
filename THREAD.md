@@ -26,6 +26,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   state explicitly which canonical demo-path step the work makes more real,
   while keeping the implementation review pinned to the same command-catalog
   slice.
+- `THREAD_PACKET.md` now carries the completed high-risk kickoff record
+  required by `AGENTS.md`, including risk reason, explicit budget values,
+  planned tasks, early review triggers, and checkpoint status evidence for the
+  re-review handoff.
 - Slice-level approval basis only: the reviewed change hardens
   `command_cli_contract()` ordering and drift validation for the active CLI
   `open`, `retrieve`, and `patch-review` path; it does not newly claim that
