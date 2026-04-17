@@ -4,7 +4,7 @@ import copy
 import hashlib
 import json
 import unicodedata
-from collections.abc import Mapping
+from collections.abc import Mapping, Set
 from dataclasses import dataclass, fields, is_dataclass
 from typing import Any, Callable, Protocol
 
@@ -2399,7 +2399,7 @@ def _snapshot_terminal_artifact_value(value: Any, *, _seen_ids: set[int] | None 
         finally:
             _seen_ids.remove(value_id)
 
-    if isinstance(value, (set, frozenset)):
+    if isinstance(value, Set):
         value_id = id(value)
         if value_id in _seen_ids:
             return f"<cycle:{type(value).__name__}>"
@@ -2573,7 +2573,7 @@ def _sanitize_json_preview_value(value: Any, *, _seen_ids: set[int] | None = Non
         finally:
             _seen_ids.remove(value_id)
 
-    if isinstance(value, set):
+    if isinstance(value, Set):
         _seen_ids.add(value_id)
         try:
             sanitized_items = [_sanitize_json_preview_value(item, _seen_ids=_seen_ids) for item in value]

@@ -38,6 +38,7 @@ from src.qual.ui.a2ui import (
     render_terminal_artifact,
     render_terminal_card,
     render_terminal_selection,
+    _render_payload_preview,
     SelectionRef,
     _should_preserve_raw_leaf_card_default,
     resolve_terminal_artifact_render_target,
@@ -905,11 +906,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             },
         )
 
-    def test_terminal_artifact_payload_normalizer_canonicalizes_unordered_set_values(self) -> None:
+    def test_terminal_artifact_payload_normalizer_canonicalizes_unordered_set_like_values(self) -> None:
+        tag_view = {"beta": 1, "alpha": 2}.keys()
         selection = SelectionRef(
             id=" choice-1 ",
             label=" Choice ",
-            payload={"tags": {"beta", "alpha"}},
+            payload={"tags": tag_view},
             selected=True,
         )
         card_source = {
@@ -918,21 +920,24 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             "a2ui_version": 1,
             "blocks": [{"type": "MarkdownBlock", "markdown": "Original"}],
             "actions": [],
-            "debug": {"tags": {"beta", "alpha"}},
+            "debug": {"tags": tag_view},
         }
 
         selection_payload = normalize_terminal_artifact_payload(selection, kind="selection")
         card_payload = normalize_terminal_artifact_payload(card_source, kind="card")
         envelope = build_terminal_artifact_envelope(card_source, kind="card")
+        preview = _render_payload_preview(card_source, max_payload_bytes=1_000)
 
         self.assertEqual(selection_payload["payload"]["tags"], ["alpha", "beta"])
         self.assertEqual(card_payload["debug"]["tags"], ["alpha", "beta"])
         self.assertEqual(envelope["artifact"]["debug"]["tags"], ["alpha", "beta"])
-        self.assertEqual(card_source["debug"]["tags"], {"alpha", "beta"})
+        self.assertIs(card_source["debug"]["tags"], tag_view)
         self.assertEqual(
             json.loads(json.dumps(envelope["artifact"]))["debug"]["tags"],
             ["alpha", "beta"],
         )
+        self.assertIn('"tags":["alpha","beta"]', preview)
+        self.assertNotIn("<non-json:dict_keys>", preview)
 
     def test_terminal_artifact_payload_normalizer_canonicalizes_mapping_key_order(self) -> None:
         action = ActionRef(
