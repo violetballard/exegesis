@@ -2884,6 +2884,26 @@ _COMMAND_DEMO_COMPATIBILITY_VARIANTS: dict[str, str] = {
 }
 
 
+def _demo_compatibility_entries() -> tuple[tuple[str, str], ...]:
+    base_tokens_by_canonical: dict[str, list[str]] = {}
+    for token, canonical_token in _COMMAND_DEMO_COMPATIBILITY_TOKENS.items():
+        base_tokens_by_canonical.setdefault(canonical_token, []).append(token)
+
+    variant_tokens_by_canonical: dict[str, list[str]] = {}
+    for variant_token, canonical_token in _COMMAND_DEMO_COMPATIBILITY_VARIANTS.items():
+        variant_tokens_by_canonical.setdefault(canonical_token, []).append(variant_token)
+
+    entries: list[tuple[str, str]] = []
+    seen_canonical_tokens: set[str] = set()
+    for canonical_token in _COMMAND_DEMO_COMPATIBILITY_TOKENS.values():
+        if canonical_token in seen_canonical_tokens:
+            continue
+        seen_canonical_tokens.add(canonical_token)
+        entries.extend((token, canonical_token) for token in base_tokens_by_canonical.get(canonical_token, ()))
+        entries.extend((token, canonical_token) for token in variant_tokens_by_canonical.get(canonical_token, ()))
+    return tuple(entries)
+
+
 def _demo_loop_description_for(token: str, resolved: ResolvedCommand) -> str:
     return _COMMAND_DEMO_LOOP_DESCRIPTIONS.get(token, resolved.description)
 
@@ -3125,7 +3145,7 @@ def command_demo_compatibility_contract(
 ) -> CommandDemoCompatibilityContract:
     ordered_flow_steps = command_demo_flow_steps() if specs is COMMAND_SPECS else command_flow_steps(specs)
     entries: list[CommandDemoCompatibilityEntry] = []
-    for token, canonical_token in _COMMAND_DEMO_COMPATIBILITY_TOKENS.items():
+    for token, canonical_token in _demo_compatibility_entries():
         resolved = _resolve_demo_loop_token(specs, canonical_token, ordered_flow_steps=ordered_flow_steps)
         entries.append(
             CommandDemoCompatibilityEntry(

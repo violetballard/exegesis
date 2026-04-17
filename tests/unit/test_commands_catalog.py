@@ -2485,19 +2485,33 @@ class CommandCatalogTests(unittest.TestCase):
             contract.tokens,
             (
                 "open-project",
+                "project-bootstrap",
+                "bootstrap-project",
+                "open-workspace",
                 "review",
                 "preview-patch",
+                "review-diff",
+                "preview-diff",
                 "save",
                 "continue",
                 "resume",
+                "save-work",
+                "continue-work",
+                "resume-work",
                 "apply",
                 "approve",
                 "accept",
+                "approve-patch",
+                "accept-patch",
                 "reject",
                 "decline",
                 "discard",
+                "decline-patch",
+                "discard-patch",
                 "handoff",
                 "queue-export",
+                "handoff-export",
+                "queue-handoff",
             ),
         )
         self.assertEqual(
@@ -2508,6 +2522,30 @@ class CommandCatalogTests(unittest.TestCase):
             (
                 (
                     "open-project",
+                    "project-open",
+                    "bootstrap",
+                    "project-open",
+                    "compatibility",
+                    ("bootstrap", "--project", "demo"),
+                ),
+                (
+                    "project-bootstrap",
+                    "project-open",
+                    "bootstrap",
+                    "project-open",
+                    "compatibility",
+                    ("bootstrap", "--project", "demo"),
+                ),
+                (
+                    "bootstrap-project",
+                    "project-open",
+                    "bootstrap",
+                    "project-open",
+                    "compatibility",
+                    ("bootstrap", "--project", "demo"),
+                ),
+                (
+                    "open-workspace",
                     "project-open",
                     "bootstrap",
                     "project-open",
@@ -2531,6 +2569,22 @@ class CommandCatalogTests(unittest.TestCase):
                     ("diff-preview", "--original", "before", "--proposed", "after"),
                 ),
                 (
+                    "review-diff",
+                    "patch-review",
+                    "diff-preview",
+                    "patch-review",
+                    "compatibility",
+                    ("diff-preview", "--original", "before", "--proposed", "after"),
+                ),
+                (
+                    "preview-diff",
+                    "patch-review",
+                    "diff-preview",
+                    "patch-review",
+                    "compatibility",
+                    ("diff-preview", "--original", "before", "--proposed", "after"),
+                ),
+                (
                     "save",
                     "persist",
                     "terminal",
@@ -2548,6 +2602,30 @@ class CommandCatalogTests(unittest.TestCase):
                 ),
                 (
                     "resume",
+                    "persist",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "save-work",
+                    "persist",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "continue-work",
+                    "persist",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "resume-work",
                     "persist",
                     "terminal",
                     "export-handoff",
@@ -2579,6 +2657,22 @@ class CommandCatalogTests(unittest.TestCase):
                     ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
                 ),
                 (
+                    "approve-patch",
+                    "apply-patch",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "accept-patch",
+                    "apply-patch",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
                     "reject",
                     "reject-patch",
                     "terminal",
@@ -2603,6 +2697,22 @@ class CommandCatalogTests(unittest.TestCase):
                     ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
                 ),
                 (
+                    "decline-patch",
+                    "reject-patch",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
+                    "discard-patch",
+                    "reject-patch",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
                     "handoff",
                     "export-handoff",
                     "terminal",
@@ -2612,6 +2722,22 @@ class CommandCatalogTests(unittest.TestCase):
                 ),
                 (
                     "queue-export",
+                    "export-handoff",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+                (
+                    "handoff-export",
+                    "export-handoff",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+                (
+                    "queue-handoff",
                     "export-handoff",
                     "terminal",
                     "export-handoff",
@@ -2624,8 +2750,13 @@ class CommandCatalogTests(unittest.TestCase):
             command_demo_compatibility_invocation_table(),
             (
                 ("open-project", ("bootstrap", "--project", "demo")),
+                ("project-bootstrap", ("bootstrap", "--project", "demo")),
+                ("bootstrap-project", ("bootstrap", "--project", "demo")),
+                ("open-workspace", ("bootstrap", "--project", "demo")),
                 ("review", ("diff-preview", "--original", "before", "--proposed", "after")),
                 ("preview-patch", ("diff-preview", "--original", "before", "--proposed", "after")),
+                ("review-diff", ("diff-preview", "--original", "before", "--proposed", "after")),
+                ("preview-diff", ("diff-preview", "--original", "before", "--proposed", "after")),
                 (
                     "save",
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
@@ -2636,6 +2767,18 @@ class CommandCatalogTests(unittest.TestCase):
                 ),
                 (
                     "resume",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "save-work",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "continue-work",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "resume-work",
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
                 ),
                 (
@@ -2651,6 +2794,14 @@ class CommandCatalogTests(unittest.TestCase):
                     ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
                 ),
                 (
+                    "approve-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "accept-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
                     "reject",
                     ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
                 ),
@@ -2663,11 +2814,27 @@ class CommandCatalogTests(unittest.TestCase):
                     ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
                 ),
                 (
+                    "decline-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
+                    "discard-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
                     "handoff",
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
                 ),
                 (
                     "queue-export",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+                (
+                    "handoff-export",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+                (
+                    "queue-handoff",
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
                 ),
             ),
@@ -2773,8 +2940,13 @@ class CommandCatalogTests(unittest.TestCase):
             contract.invocation_table,
             (
                 ("open-project", ("bootstrap-run", "--project", "demo")),
+                ("project-bootstrap", ("bootstrap-run", "--project", "demo")),
+                ("bootstrap-project", ("bootstrap-run", "--project", "demo")),
+                ("open-workspace", ("bootstrap-run", "--project", "demo")),
                 ("review", ("review-diff", "--original", "before", "--proposed", "after")),
                 ("preview-patch", ("review-diff", "--original", "before", "--proposed", "after")),
+                ("review-diff", ("review-diff", "--original", "before", "--proposed", "after")),
+                ("preview-diff", ("review-diff", "--original", "before", "--proposed", "after")),
                 (
                     "save",
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
@@ -2785,6 +2957,18 @@ class CommandCatalogTests(unittest.TestCase):
                 ),
                 (
                     "resume",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "save-work",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "continue-work",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "resume-work",
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
                 ),
                 (
@@ -2800,6 +2984,14 @@ class CommandCatalogTests(unittest.TestCase):
                     ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
                 ),
                 (
+                    "approve-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "accept-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
                     "reject",
                     ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
                 ),
@@ -2812,11 +3004,27 @@ class CommandCatalogTests(unittest.TestCase):
                     ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
                 ),
                 (
+                    "decline-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
+                    "discard-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
                     "handoff",
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
                 ),
                 (
                     "queue-export",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+                (
+                    "handoff-export",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+                (
+                    "queue-handoff",
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
                 ),
             ),
@@ -3132,17 +3340,20 @@ class CommandCatalogTests(unittest.TestCase):
                 ("export-handoff", "terminal", "export-handoff"),
             ),
         )
-        self.assertEqual(workflow_by_token["project-open"].compatibility_tokens, ("open-project",))
+        self.assertEqual(
+            workflow_by_token["project-open"].compatibility_tokens,
+            ("open-project", "project-bootstrap", "bootstrap-project", "open-workspace"),
+        )
         self.assertEqual(workflow_by_token["project-open"].preferred_surface_tokens, ("project-open",))
         self.assertEqual(workflow_by_token["patch-review"].next_tokens, ("apply-patch", "reject-patch"))
         self.assertEqual(
             workflow_by_token["patch-review"].compatibility_tokens,
-            ("review", "preview-patch"),
+            ("review", "preview-patch", "review-diff", "preview-diff"),
         )
         self.assertEqual(workflow_by_token["patch-review"].preferred_surface_tokens, ("patch-review",))
         self.assertEqual(
             workflow_by_token["apply-patch"].compatibility_tokens,
-            ("apply", "approve", "accept"),
+            ("apply", "approve", "accept", "approve-patch", "accept-patch"),
         )
         self.assertEqual(
             workflow_by_token["apply-patch"].preferred_surface_tokens,
@@ -3150,12 +3361,12 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(
             workflow_by_token["persist"].compatibility_tokens,
-            ("save", "continue", "resume"),
+            ("save", "continue", "resume", "save-work", "continue-work", "resume-work"),
         )
         self.assertEqual(workflow_by_token["export-handoff"].next_tokens, ())
         self.assertEqual(
             workflow_by_token["export-handoff"].compatibility_tokens,
-            ("handoff", "queue-export"),
+            ("handoff", "queue-export", "handoff-export", "queue-handoff"),
         )
         self.assertEqual(
             compatibility_invocations["review"],
@@ -3170,7 +3381,15 @@ class CommandCatalogTests(unittest.TestCase):
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
         )
         self.assertEqual(
+            compatibility_invocations["save-work"],
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+        self.assertEqual(
             compatibility_invocations["queue-export"],
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
+        self.assertEqual(
+            compatibility_invocations["queue-handoff"],
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
         )
 
@@ -3334,8 +3553,14 @@ class CommandCatalogTests(unittest.TestCase):
             workflow_by_token["apply-patch"].argv,
             ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
         )
-        self.assertEqual(workflow_by_token["persist"].compatibility_tokens, ("save", "continue", "resume"))
-        self.assertEqual(workflow_by_token["export-handoff"].compatibility_tokens, ("handoff", "queue-export"))
+        self.assertEqual(
+            workflow_by_token["persist"].compatibility_tokens,
+            ("save", "continue", "resume", "save-work", "continue-work", "resume-work"),
+        )
+        self.assertEqual(
+            workflow_by_token["export-handoff"].compatibility_tokens,
+            ("handoff", "queue-export", "handoff-export", "queue-handoff"),
+        )
         self.assertEqual(
             workflow_by_token["apply-patch"].preferred_surface_tokens,
             ("apply-patch",),
