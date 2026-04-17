@@ -3,13 +3,14 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `3e97d729b07a4cdcd71324ae4f6eb3ad534043ea`
-- Packet refresh role: `feature-fixer required-fixes packet alignment refresh v3`
+- Packet refresh role: `feature-fixer required-fixes verification refresh v4`
 
 ## Packet Traceability Note
 
 - The implementation commit above refers to the current runtime fix commit for this lane, which carries the reviewer-required command-surface hardening and the current default `demo` / `mvp` command-flow contract on branch tip.
 - This packet refresh keeps the handoff wording aligned with the current implementation and records a fresh required-fixes verification rerun for the reviewer-fix branch tip.
 - Final verification refresh: re-ran the required gate suite on April 16, 2026 (America/Los_Angeles) after confirming the reviewer-required demo-path alignment remains explicit in this branch-tip handoff.
+- Feature-fixer verification refresh v4: re-ran the full required gate suite on April 16, 2026 at 20:00:25 PDT and confirmed the branch tip already contains the reviewer-required parser-surface drift guard, alias-only drift coverage, and explicit `open project/document` demo-path mapping.
 - Feature-fixer rerun refresh: revalidated the explicit `open project/document` demo-path mapping on April 16, 2026 at 19:53:58 PDT before rerunning the required gate suite for this handoff.
 - Feature-fixer packet refresh: this follow-up exists to make the blocker removal explicit in the handoff itself, so re-review does not have to infer how the command-catalog hardening advances the live MVP loop.
 - Reviewer-fix follow-up scope: this refresh keeps the packet aligned with the actual branch tip, where the default `demo` / `mvp` command-flow helpers still cover `project-open`, `retrieval`, `patch-review`, and `export-handoff`, and where the reviewer-required fix is the explicit demo-path mapping plus the concrete blocker-removal statement in the handoff itself.
@@ -125,6 +126,7 @@
 - Re-verified that the packet itself answers the reviewer’s numbered asks directly by naming the canonical demo-path step advanced and explaining why deterministic command validation makes that step more real in the CLI-first MVP loop.
 - This handoff refresh records both gate contexts explicitly: the reviewed implementation slice used `SCOPE_ALLOW_SHARED=1 make scope-check` and `SCOPE_ALLOW_SHARED=1 make ci` because it includes the approved shared test `tests/unit/test_commands_catalog.py`, while this metadata-only reviewer-fix follow-up commit also passes the standard `make scope-check` and `make ci` reruns on branch tip without broadening implementation scope.
 - Feature-fixer note: this refresh exists only to record the fresh required-fixes gate rerun on branch tip and make the reviewer-requested blocker-removal statement explicit on top of the already-applied reviewer-required fixes.
+- Verification refresh v4 note: no runtime implementation paths changed in this follow-up; it records that the current branch tip still satisfies the numbered reviewer fixes and passes the required gates.
 
 ## Risks / Blockers
 
