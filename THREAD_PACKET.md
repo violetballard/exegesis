@@ -105,7 +105,7 @@
 
 ## Commands Run and Outcomes
 
-- Final post-fix gate rerun is recorded on the packet refresh commit; the final HEAD SHA is reported separately after commit.
+- Final post-fix gate rerun completed during the feature-fixer pass on top of `c99d67784cad542251317b5fd910837ff904d295`; the final HEAD SHA for this follow-up commit is reported separately after commit.
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
