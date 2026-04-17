@@ -2,8 +2,8 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `fb8f9515f7c4156c3a9038e85d1c0f7c73757658`
-- Packet refresh commit: `this feature-fixer implementation-and-packet refresh commit on codex/feat-commands`
+- Commit: `current branch tip on codex/feat-commands (includes fb8f9515f7c4156c3a9038e85d1c0f7c73757658 plus this feature-fixer commit)`
+- Packet refresh commit: `current feature-fixer implementation-and-packet refresh commit on codex/feat-commands`
 - Packet refresh role: `feature-fixer required-fixes coverage and packet retargeting`
 
 ## Packet Traceability Note
