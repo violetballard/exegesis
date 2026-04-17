@@ -377,6 +377,7 @@ def _build_a2ui_contract_fingerprint_summary() -> dict[str, str]:
         include_terminal_artifact_render_target=True,
         include_terminal_artifact_rendering=True,
         include_terminal_artifact_cli_fallback=True,
+        include_terminal_artifact_cli_fallback_target=True,
     )
 
 

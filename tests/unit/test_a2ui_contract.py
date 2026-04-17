@@ -29,6 +29,7 @@ from src.qual.ui.a2ui import (
     studio_materialize_card,
     selection_contract_fingerprint,
     terminal_artifact_cli_fallback_contract_fingerprint,
+    terminal_artifact_cli_fallback_target_contract_fingerprint,
     terminal_artifact_contract_fingerprint,
     terminal_artifact_raw_leaf_card_default_contract_fingerprint,
     terminal_artifact_render_target_contract_fingerprint,
@@ -274,11 +275,16 @@ class A2UIContractTests(unittest.TestCase):
                 include_terminal_artifact_render_target=True,
                 include_terminal_artifact_rendering=True,
                 include_terminal_artifact_cli_fallback=True,
+                include_terminal_artifact_cli_fallback_target=True,
             ),
         )
         self.assertEqual(
             manifest["contract_fingerprints"]["terminal_artifact_render_target"],
             manifest["terminal_artifact_render_target_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["terminal_artifact_cli_fallback_target"],
+            terminal_artifact_cli_fallback_target_contract_fingerprint(),
         )
         self.assertEqual(fingerprints["capabilities"], manifest["capabilities_fingerprint"])
         self.assertEqual(manifest["selection"], describe_selection_contract())

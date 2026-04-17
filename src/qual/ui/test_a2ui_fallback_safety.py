@@ -364,6 +364,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["contract_fingerprints"]["terminal_artifact_render_target"],
             manifest["terminal_artifact_render_target_fingerprint"],
         )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["terminal_artifact_cli_fallback_target"],
+            terminal_artifact_cli_fallback_target_contract_fingerprint(),
+        )
         self.assertEqual(manifest["terminal_artifact"], describe_terminal_artifact_contract())
         self.assertEqual(manifest["schemas"]["selection"], describe_selection_contract())
         self.assertEqual(manifest["schemas"]["terminal_artifact"], describe_terminal_artifact_contract())
@@ -428,6 +432,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 include_terminal_artifact_render_target=True,
                 include_terminal_artifact_rendering=True,
                 include_terminal_artifact_cli_fallback=True,
+                include_terminal_artifact_cli_fallback_target=True,
             ),
         )
         self.assertEqual(len(manifest["terminal_artifact"]["contract_fingerprint"]), 64)
@@ -725,6 +730,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             include_terminal_artifact_render_target=True,
             include_terminal_artifact_rendering=True,
             include_terminal_artifact_cli_fallback=True,
+            include_terminal_artifact_cli_fallback_target=True,
         )
 
         self.assertEqual(fingerprints["action"], action_contract_fingerprint())
