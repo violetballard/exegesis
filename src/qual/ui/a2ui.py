@@ -2099,6 +2099,9 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
     terminal_fallback_contract = describe_terminal_fallback_contract()
     raw_leaf_card_default_contract = describe_terminal_artifact_raw_leaf_card_default_contract()
     raw_leaf_card_default_policy_contract = describe_terminal_artifact_raw_leaf_card_default_policy_contract()
+    contract_fingerprints = describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
     manifest = {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
@@ -2169,11 +2172,11 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
                 include_terminal_artifact_raw_leaf_card_default_policy=True,
             )
         ),
-        "terminal_artifact_cli_fallback_target_contract_fingerprints": describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
-            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
-        ),
-        "contract_fingerprints": describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
-            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        "terminal_artifact_cli_fallback_target_contract_fingerprints": contract_fingerprints,
+        "contract_fingerprints": contract_fingerprints,
+        "contract_fingerprints_fingerprint": _fingerprint_manifest_section(contract_fingerprints),
+        "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint": _fingerprint_manifest_section(
+            contract_fingerprints
         ),
     }
     if include_terminal_artifact_cli_fallback_route:
