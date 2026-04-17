@@ -2,14 +2,14 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh commit: `ecf45f5d5cf510a331a81b12ea1118883fa9b07d`
+- Commit: `5fb0987e61321af1f10054771d075440bb86a203`
+- Packet refresh commit: `5fb0987e61321af1f10054771d075440bb86a203`
 - Packet refresh role: `reviewer-fix finalization`
 
 ## Packet Traceability Note
 
 - The current branch tip is a docs-only packet refresh.
-- Review the command-catalog implementation at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and treat later packet-refresh commits as metadata-only unless this handoff is regenerated.
+- Review the command-catalog implementation at `5fb0987e61321af1f10054771d075440bb86a203`, and treat later packet-refresh commits as metadata-only unless this handoff is regenerated.
 
 ## Current Program Focus
 
