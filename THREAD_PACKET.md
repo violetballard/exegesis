@@ -131,17 +131,21 @@
 
 ## Tasks Completed
 
-1. Added canonical demo-loop helper accessors for the Milestone 3 CLI command
-   surface.
-2. Added compatibility-token normalization so older demo-path verbs map to the
-   canonical parser-facing command surface.
-3. Added a demo command compatibility contract export surface in
-   `src/qual/commands/__init__.py` plus its backing catalog support.
-4. Added focused regression coverage for the demo-loop helpers, compatibility
-   shims, and diff-preview compatibility behavior in
+1. Made the canonical CLI `open project/document` step more real by exposing
+   demo-loop helper accessors for the Milestone 3 command surface.
+2. Made the canonical CLI `retrieve relevant material` and `preview and apply
+   or reject a patch` steps more real by normalizing older demo-path verbs to
+   the parser-facing canonical command surface.
+3. Made the CLI `continue working without losing context` step more real by
+   exporting a demo command compatibility contract from
+   `src/qual/commands/__init__.py` with backing catalog support.
+4. Kept the CLI-first MVP loop smoke-testable for those canonical steps by
+   adding focused regression coverage for the demo-loop helpers,
+   compatibility shims, and diff-preview compatibility behavior in
    `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
 5. Regenerated the handoff packet so it truthfully reports the reviewed commit
-   range, scope, files changed, and gate evidence.
+   range, scope, files changed, gate evidence, and AGENTS-required
+   canonical demo-path mapping.
 
 ## Files Changed
 
