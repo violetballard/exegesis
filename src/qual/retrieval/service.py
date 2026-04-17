@@ -3155,7 +3155,17 @@ class RetrievalService:
             query_snapshot["intent"] = query_intent
         if query_confidentiality_profile is not None:
             query_snapshot["confidentiality_profile"] = query_confidentiality_profile
-        if query_constraints:
+        if query_snapshot:
+            normalized_query_constraints = {
+                "max_results": max_results if max_results is not None else 10,
+                "doc_types": doc_types if doc_types is not None else [],
+                "date_range": query_date_range,
+                "require_citations": require_citations if require_citations is not None else False,
+                "section_hint": section_hint,
+                "prefer_exact_matches": prefer_exact_matches if prefer_exact_matches is not None else False,
+            }
+            query_snapshot["constraints"] = normalized_query_constraints
+        elif query_constraints:
             query_snapshot["constraints"] = query_constraints
         if not query_snapshot:
             return None

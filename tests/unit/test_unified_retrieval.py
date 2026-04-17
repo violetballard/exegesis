@@ -1574,12 +1574,49 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "intent": "outline_support",
             "confidentiality_profile": "standard",
             "constraints": {
+                "max_results": 10,
+                "doc_types": [],
                 "date_range": ["2026-02-01", "2026-02-28"],
+                "require_citations": False,
                 "section_hint": "discussion notes",
+                "prefer_exact_matches": False,
             },
         }
         self.assertEqual(normalized["query"], expected_query)
         self.assertEqual(normalized["provenance"]["query"], expected_query)
+
+    def test_normalize_excerpt_payload_backfills_canonical_query_constraint_defaults(self) -> None:
+        normalized = self.service._normalize_excerpt_payload(
+            {
+                "excerpt_id": "excerpt-sparse-query-defaults-1",
+                "doc_id": "doc-pdf-1",
+                "doc_type": "pdf",
+                "text": "Discussion theory evidence stays deterministic.",
+                "query_text": "  Discussion   Theory  ",
+                "query_scope": " vault ",
+                "query_intent": " compare ",
+            },
+            source_strategy="fts",
+            lookup_resolution="fts",
+        )
+
+        self.assertEqual(
+            normalized["query"],
+            {
+                "query_text": "discussion theory",
+                "scope": "vault",
+                "intent": "compare",
+                "constraints": {
+                    "max_results": 10,
+                    "doc_types": [],
+                    "date_range": None,
+                    "require_citations": False,
+                    "section_hint": None,
+                    "prefer_exact_matches": False,
+                },
+            },
+        )
+        self.assertEqual(normalized["provenance"]["query"], normalized["query"])
 
     def test_normalize_excerpt_payload_canonicalizes_lookup_metadata_for_fingerprints(self) -> None:
         compact = self.service._normalize_excerpt_payload(
