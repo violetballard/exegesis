@@ -849,11 +849,9 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
             normalized["fts_rank"] = normalized_fts_rank
         elif "fts_rank" in normalized:
             normalized["fts_rank"] = None
-    existing_promotion_fingerprint = _normalize_optional_text(normalized.get("promotion_fingerprint"))
-    if existing_promotion_fingerprint is not None:
-        normalized["promotion_fingerprint"] = existing_promotion_fingerprint
-    else:
-        normalized["promotion_fingerprint"] = _basket_promotion_fingerprint(normalized)
+    # Recompute from the normalized snapshot so sparse/backfilled payloads do
+    # not carry a stale fingerprint after fields are canonicalized.
+    normalized["promotion_fingerprint"] = _basket_promotion_fingerprint(normalized)
     return normalized
 
 

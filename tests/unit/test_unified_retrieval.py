@@ -26,6 +26,7 @@ from src.qual.engine.retrieval.payload import _build_retrieval_doc_bundle_from_p
 from src.qual.engine.retrieval.payload import _build_retrieval_excerpt_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_source_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_provenance_from_payload
+from src.qual.engine.retrieval.payload import _basket_promotion_fingerprint
 import src.qual.retrieval as package_retrieval
 from src.qual.retrieval import retrieve_auto as engine_retrieve_auto
 from src.qual.retrieval import retrieve_auto_citation_bundle as engine_retrieve_auto_citation_bundle
@@ -3944,6 +3945,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             f"  {basket_promotion['excerpt_provenance_fingerprint']}  "
         )
         basket_promotion["excerpt_text_hash"] = f"  {basket_promotion['excerpt_text_hash']}  "
+        stale_promotion_fingerprint = str(basket_promotion["promotion_fingerprint"])
 
         payload = build_retrieval_downstream_payload_from_result(
             _SourceBundleOnlySource(sparse_source_bundle)
@@ -3954,7 +3956,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
             **canonical_basket_promotion,
             "lookup_fingerprint": "synthetic-lookup-fingerprint",
         }
+        expected_basket_promotion["promotion_fingerprint"] = _basket_promotion_fingerprint(
+            expected_basket_promotion
+        )
         self.assertEqual(payload["basket_promotion"], expected_basket_promotion)
+        self.assertNotEqual(payload["basket_promotion"]["promotion_fingerprint"], stale_promotion_fingerprint)
 
     def test_retrieval_downstream_payload_helper_normalizes_basket_promotion_excerpt_text(self) -> None:
         result = self.service.retrieve_auto(
