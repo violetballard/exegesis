@@ -696,6 +696,8 @@ def normalize_terminal_artifact_payload(artifact: Any, *, kind: str | None = Non
     card_snapshot = _coerce_terminal_card(artifact)
     if card_snapshot is None:
         raise ValueError("TerminalArtifact card artifact must be a mapping or card-like object")
+    if _should_preserve_raw_leaf_card_default(card_snapshot):
+        return _copy_terminal_artifact_payload(card_snapshot)
     card_snapshot = _canonicalize_card_top_level_fields(card_snapshot)
     return _copy_terminal_artifact_payload(card_snapshot)
 
@@ -800,7 +802,9 @@ def _validate_terminal_artifact_payload_kind(artifact: Any, kind: str) -> None:
         if card_artifact is None:
             raise ValueError("TerminalArtifact card artifact must be a mapping or card-like object")
         card_type = _normalize_card_type(card_artifact)
-        if card_type in {"<missing>", _TERMINAL_ARTIFACT_ENVELOPE_TYPE, "ActionRef", "SelectionRef"}:
+        if card_type in {_TERMINAL_ARTIFACT_ENVELOPE_TYPE, "ActionRef", "SelectionRef"}:
+            raise ValueError("TerminalArtifact card artifact must be a typed card")
+        if card_type == "<missing>" and not _should_preserve_raw_leaf_card_default(card_artifact):
             raise ValueError("TerminalArtifact card artifact must be a typed card")
         if _infer_terminal_artifact_kind_from_mapping(card_artifact) in {"action", "selection"}:
             raise ValueError("TerminalArtifact card artifact must not use action or selection payload shape")

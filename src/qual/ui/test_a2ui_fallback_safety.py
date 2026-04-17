@@ -1907,6 +1907,42 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(list(envelope["artifact"]["debug"].keys()), ["a", "b"])
         self.assertEqual(list(envelope["artifact"]["debug"]["a"].keys()), ["y", "z"])
 
+    def test_terminal_artifact_payload_normalizer_preserves_raw_leaf_card_default_snapshots(self) -> None:
+        raw_leaf = {
+            "id": " export_document ",
+            "label": " Export ",
+            "payload": {"nested": {"b": 2, "a": 1}, "format": "md"},
+            "trace_id": "drop-me",
+        }
+
+        normalized = normalize_terminal_artifact_payload(raw_leaf, kind="card")
+        envelope = build_terminal_artifact_envelope(raw_leaf, kind="card")
+        validate_terminal_artifact_envelope(envelope)
+        rendered_text = render_terminal_artifact(envelope)
+        cli_fallback_text = render_terminal_cli_fallback(envelope)
+
+        raw_leaf["label"] = "Changed"
+        raw_leaf["payload"]["nested"]["a"] = 99
+
+        self.assertEqual(
+            normalized,
+            {
+                "id": " export_document ",
+                "label": " Export ",
+                "payload": {"format": "md", "nested": {"a": 1, "b": 2}},
+                "trace_id": "drop-me",
+            },
+        )
+        self.assertEqual(envelope["artifact"], normalized)
+        self.assertEqual(list(envelope["artifact"].keys()), ["id", "label", "payload", "trace_id"])
+        self.assertEqual(list(envelope["artifact"]["payload"].keys()), ["format", "nested"])
+        self.assertEqual(list(envelope["artifact"]["payload"]["nested"].keys()), ["a", "b"])
+        self.assertIn("[<missing>] <untitled>", rendered_text)
+        self.assertNotIn("[ActionRef]", rendered_text)
+        self.assertNotIn("[SelectionRef]", rendered_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", rendered_text)
+        self.assertEqual(cli_fallback_text, rendered_text)
+
     def test_terminal_artifact_payload_normalizer_rejects_action_or_selection_payloads_when_card_kind_is_explicit(self) -> None:
         with self.assertRaises(ValueError):
             normalize_terminal_artifact_payload(
