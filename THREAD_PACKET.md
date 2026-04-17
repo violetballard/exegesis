@@ -46,6 +46,7 @@ This change advances the canonical demo-path step `retrieve relevant material` b
 This mapping is intentionally scope-tight to the reviewed slice only: deterministic, auditable FTS-only excerpt lookup on the canonical retrieval surface, not broader workflow or basket claims.
 This packet states that mapping explicitly to satisfy the `AGENTS.md` handoff requirement for active-lane demo-path alignment.
 It tightens the canonical engine retrieval contract by requiring FTS-backed excerpt lookup and keeping PageIndex out of the MVP runtime path.
+No other canonical demo-path step is claimed by this packet refresh.
 
 ## Required Reviewer Fixes Addressed
 
@@ -53,6 +54,7 @@ It tightens the canonical engine retrieval contract by requiring FTS-backed exce
 2. Tightened the scope mapping so it states this slice strengthens only the FTS-only excerpt lookup contract for the retrieval step of the canonical demo path.
 3. Kept the reviewed implementation scope narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 4. Restated the demo-path mapping directly in the packet body as a scope-tight constraint so re-review does not have to infer it from adjacent sections.
+5. Stated explicitly that this packet refresh does not claim any other canonical demo-path step.
 
 ## Tasks completed
 
