@@ -92,6 +92,7 @@ This explicit AGENTS mapping is the reviewer-required handoff correction for re-
 ## Risks / blockers
 
 - Risk: `MEDIUM`
+- Remaining compatibility risk: callers that previously relied on `fetch_excerpt` accepting PageIndex-only excerpt IDs will now receive `KeyError` unless they switch to canonical FTS excerpt IDs or the PageIndex-specific surface.
 - Blockers: none
 
 ## Required handoff fields
