@@ -2458,6 +2458,22 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[SelectionRef]", selection_text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
 
+    def test_shell_ui_routes_raw_leaf_card_default_through_cli_fallback_entrypoint(self) -> None:
+        shell = ShellUI()
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            with patch("src.qual.ui.shell.render_terminal_cli_fallback", return_value="cli-fallback") as cli_fallback:
+                with patch("src.qual.ui.shell.render_terminal_card", side_effect=RuntimeError("card boom")):
+                    text = shell.render_artifact(raw_leaf)
+
+        self.assertEqual(text, "cli-fallback")
+        cli_fallback.assert_called_once_with(raw_leaf, kind="card")
+
     def test_shell_ui_unwraps_malformed_terminal_envelopes_for_explicit_kinds(self) -> None:
         shell = ShellUI()
 
