@@ -1931,6 +1931,9 @@ def _build_terminal_artifact_cli_fallback_route_contract_manifest() -> dict[str,
             },
         },
         "contract_fingerprints": _build_terminal_artifact_cli_fallback_route_contract_fingerprints(),
+        "terminal_artifact_cli_fallback_route_contract_fingerprints": _snapshot_contract_section(
+            _build_terminal_artifact_cli_fallback_route_contract_fingerprints()
+        ),
     }
 
 
