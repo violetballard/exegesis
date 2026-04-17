@@ -3,8 +3,8 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
-- Packet refresh commit: `92c70939eefa5411bd3a683b091f9610ab06d124` (baseline before this reviewer-fix refresh)
-- Packet refresh role: `feature-fixer reviewer-required demo-path alignment refresh`
+- Packet refresh commit: `5938f4f8b7a40f5290da53dea65845ee725c269e` (baseline before this reviewer-fix refresh)
+- Packet refresh role: `feature-fixer reviewer-required final packet verification refresh`
 
 ## Packet Traceability Note
 
@@ -107,10 +107,10 @@
 ## Metadata-Only Handoff Maintenance
 
 - Refreshed the handoff packet so the review scope points at the current
-  command-catalog implementation commit and the actual parser-surface invariant
-  enforced in this branch.
+  command-catalog implementation commit, the actual parser-surface invariant
+  enforced in this branch, and this final reviewer-fix verification pass.
 - Verified in this final fixer pass that branch tip
-  `92c70939eefa5411bd3a683b091f9610ab06d124` already contains the reviewer-
+  `5938f4f8b7a40f5290da53dea65845ee725c269e` already contains the reviewer-
   required implementation fix through runtime commit
   `36a360a9464d2f08f55129bc70e1aafe4574721b`, so this final commit remains
   metadata-only.
