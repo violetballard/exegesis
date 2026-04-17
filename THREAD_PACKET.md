@@ -19,7 +19,7 @@
 ## Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- Deterministic excerpt payloads and provenance in this reviewed slice also support the next step `promote or gather context into the basket`.
+- This reviewed slice makes that step more real by keeping the excerpt lookup contract deterministic, auditable, and FTS-only before downstream basket promotion.
 
 ## Tasks completed
 
