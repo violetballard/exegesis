@@ -437,6 +437,7 @@ def describe_a2ui_contract_fingerprints(
         _add_contract_alias_fingerprints(
             fingerprints,
             ("capabilities_contract", a2ui_capabilities_contract_fingerprint()),
+            ("card_fingerprint", card_contract_fingerprint()),
             ("card_contract_fingerprint", card_contract_fingerprint()),
             ("action_contract", action_contract_fingerprint()),
             ("selection_contract", selection_contract_fingerprint()),
