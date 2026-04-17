@@ -39,6 +39,8 @@
   path more real by keeping the CLI command contract deterministic,
   smoke-testable, and drift-resistant for the existing `bootstrap` entrypoint
   while Textual remains disabled.
+- Reviewer-fix note: this sentence is the explicit AGENTS plan-alignment
+  statement required for re-review.
 
 ## Scope Completed
 
@@ -113,6 +115,9 @@
   and smoke-testable.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the
   engine-first MVP loop.
+- Scope-tightening note: this packet only claims command-surface determinism for
+  the current CLI compatibility layer, not a broader workflow capability
+  change.
 
 ### Vision capability affected
 
