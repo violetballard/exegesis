@@ -37,6 +37,7 @@
   - `save and continue`
 - AGENTS alignment: this branch strengthens the CLI-first operator surface for the canonical engine-side demo path while Textual remains disabled.
 - Why these steps: the command catalog now models parser entrypoints, surface tokens, shim rewrites, smoke/demo invocation plans, and terminal compatibility aliases that cover the active MVP command route from bootstrap through retrieval, patch handling, and export/persist handoff.
+- Concrete blocker removed: before this change, parser entrypoints and the command catalog could drift silently, which meant CLI smoke coverage could still pass through stale assumptions while the operator-facing Milestone 3 command route changed underneath it. This change removes that blocker by forcing the CLI contract, canonical command order, parser-native demo invocations, and compatibility aliases to resolve through one explicit catalog and fail fast when they diverge.
 - Scope boundary: this branch stays inside command-surface compatibility work. It does not embed new engine business logic in handlers or expand beyond command routing, command contracts, and focused diff-preview compatibility.
 
 ## Scope-Tightening Note
@@ -134,13 +135,13 @@
 
 ### Roadmap item(s) affected
 
-- Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands so the CLI can still execute the MVP loop while Textual remains disabled.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop, including bootstrap, retrieval, diff-preview, and terminal/export compatibility routing.
+- Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands so the CLI can still execute the concrete MVP loop steps this packet hardens: `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and `save and continue`, while Textual remains disabled.
+- `feat-commands` - CLI compatibility and migration-safe entrypoints for the same engine-first MVP loop steps, specifically bootstrap/open, retrieval/context, diff-preview/patch review, and terminal/export persist routing.
 
 ### Vision capability affected
 
-- Canonical engine contract - CLI compatibility remains stable because parser drift, route drift, and shim drift now fail fast instead of silently changing the operator-facing command surface for the canonical demo path.
-- Auditable state and workflow - the command catalog now makes the active demo-path routing and terminal handoff aliases explicit enough to smoke-test and trace.
+- Canonical engine contract - the operator-facing contract for `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and `save and continue` now fails fast when parser drift, route drift, or shim drift would otherwise silently change the CLI surface.
+- Auditable state and workflow - the active demo-path routing for those same steps is now explicit enough to smoke-test and trace instead of depending on implicit parser/catalog coupling.
 
 ### Routing/provider impact note
 

@@ -11,6 +11,10 @@ older lane/fixer prompts.
 - Exact canonical demo-path steps advanced: `open project/document`,
   `retrieve relevant material`, `preview and apply or reject a patch`, and
   `save and continue`.
+- Concrete blocker removed: parser entrypoints, catalog ordering, and
+  compatibility aliases can no longer drift silently away from the operator
+  contract for those steps; the command surface now fails fast when the parser
+  and catalog diverge.
 - Why these steps: the reviewed command-surface work now keeps parser tokens,
   parser-native demo invocations, shim aliases, smoke/demo invocation plans,
   and terminal/export compatibility routing aligned with the canonical catalog
