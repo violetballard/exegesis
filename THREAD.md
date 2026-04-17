@@ -19,5 +19,6 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   `src/qual/commands/__init__.py`, and
   `tests/unit/test_commands_catalog.py`, plus the carried-forward shared-test
   approval provenance from the fixer turn source packet.
-- The required gate suite was rerun at the current branch tip, and
-  `THREAD_PACKET.md` now records the verified pass outcomes for re-review.
+- The required gate suite was rerun at `2026-04-17T14:53:53Z` on the current
+  branch tip, and `THREAD_PACKET.md` now records the verified pass outcomes for
+  re-review.

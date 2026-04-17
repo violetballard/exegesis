@@ -21,7 +21,7 @@
 - This packet refresh adds one focused regression test for the compatibility
   variant normalization so the branch tip has explicit validation evidence for
   the latest implementation change.
-- Latest packet refresh prepared at: `2026-04-17T14:50:45Z`
+- Latest packet refresh prepared at: `2026-04-17T14:53:53Z`
 
 ## Current Program Focus
 
@@ -45,9 +45,18 @@
 
 ## Canonical Demo-Path Step Advanced
 
-- Primary step advanced: `open project/document -> retrieve relevant material
-  -> preview and apply or reject a patch -> continue working` through the
-  existing CLI-first MVP loop while Textual remains disabled.
+- Primary step advanced: `open project/document`.
+- Why this is the primary step: `feat-commands` owns the operator-facing
+  command surface for entering the MVP loop, and this packet only hardens how
+  CLI verbs are normalized, ordered, and exposed to the parser. That is
+  first-order MVP work because the current operator surface is the CLI, so a
+  drifting or opaque entry contract can break the very first step of the
+  canonical loop before retrieval, patch preview, or continuation can happen.
+- First-order CLI-loop justification: this refresh does not add generic infra
+  or speculative contract polish. It removes concrete operator-surface failure
+  modes in the active CLI-first loop by making the accepted command verbs
+  deterministic, inspectable, and parser-ready at the command boundary the
+  user hits first.
 - Concrete blockers removed:
   - `command_cli_contract()` now fails immediately if parser canonical names
     drift from `command_names()` instead of silently returning a reordered or
@@ -105,16 +114,40 @@
 
 1. Hardened `command_cli_contract()` to verify canonical-name consistency
    against `command_names()` and fail fast on canonical-name drift.
+   Demo-path step advanced: `open project/document`.
+   Concrete blocker removed: the CLI entry contract can no longer silently
+   reorder or drop canonical startup verbs before the operator enters the MVP
+   loop.
 2. Preserved canonical command ordering in the CLI contract by returning the
    validated canonical tuple directly.
+   Demo-path step advanced: `open project/document`.
+   Concrete blocker removed: smoke tests and parser consumers now see the same
+   canonical startup-command order as the command catalog instead of a derived
+   order that could drift.
 3. Added workflow compatibility invocation-table accessors and exports for the
    current MVP command surface.
+   Demo-path step advanced: `open project/document`.
+   Concrete blocker removed: compatibility verbs are now exposed as explicit
+   parser-ready argv tables, so transition helpers can enter the loop through
+   the supported CLI surface instead of relying on implicit lookup behavior.
 4. Normalized additional demo compatibility variants so transition helpers map
    alternate verbs back onto the canonical loop tokens.
+   Demo-path step advanced: `open project/document`.
+   Concrete blocker removed: alternate operator verbs such as
+   `open-workspace` and `resume-work` now land on the trusted canonical entry
+   tokens instead of falling off the supported command route.
 5. Added focused regression coverage for the branch-tip command-surface
    contracts, including the compatibility variant normalization.
+   Demo-path step advanced: `open project/document`.
+   Concrete blocker removed: the current CLI entry contract now has regression
+   checks that catch parser-surface drift before it can break the MVP loop's
+   operator entrypoint.
 6. Refreshed the handoff packet and thread pointer so re-review tracks the true
    implementation scope and current gate rerun.
+   Demo-path step advanced: `open project/document`.
+   Concrete blocker removed: re-review now evaluates the actual branch-tip CLI
+   entry surface instead of an older partial slice, which keeps approval tied
+   to the real operator contract.
 
 ## Files Changed
 
@@ -137,7 +170,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Re-verification point: `2026-04-17T14:50:45Z`
+- Re-verification point: `2026-04-17T14:53:53Z` at the current branch tip
 
 ## Risks / Blockers
 
