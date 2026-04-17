@@ -123,6 +123,10 @@ from src.qual.commands import (
     command_demo_workflow_invocation_table,
     command_demo_workflow_transition_targets,
     command_demo_workflow_compatibility_lookup_table,
+    command_demo_next_action_contract,
+    command_demo_next_action_catalog,
+    command_demo_next_action_lookup_table,
+    command_demo_next_action_invocation_table,
     command_demo_loop_contract,
     command_demo_loop_catalog,
     command_demo_loop_invocation_plan,
@@ -168,6 +172,10 @@ from src.qual.commands import (
     command_mvp_workflow_transition_targets,
     command_mvp_workflow_compatibility_lookup_table,
     command_mvp_workflow_compatibility_invocation_table,
+    command_mvp_next_action_contract,
+    command_mvp_next_action_catalog,
+    command_mvp_next_action_lookup_table,
+    command_mvp_next_action_invocation_table,
     command_mvp_loop_contract,
     command_mvp_loop_catalog,
     command_mvp_loop_invocation_plan,
@@ -3331,6 +3339,169 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             workflow_by_token["apply-patch"].preferred_surface_tokens,
             ("apply-patch", "persist", "export-handoff"),
+        )
+
+    def test_command_demo_next_action_contract_bundles_trusted_follow_up_actions(self) -> None:
+        contract = command_demo_next_action_contract("review")
+        self.assertEqual(contract, command_mvp_next_action_contract("review"))
+        self.assertEqual(contract.entries, command_demo_next_action_catalog("patch-review"))
+        self.assertEqual(contract.lookup_table, command_demo_next_action_lookup_table("patch-review"))
+        self.assertEqual(
+            contract.invocation_table,
+            command_demo_next_action_invocation_table("patch-review"),
+        )
+        self.assertEqual(command_mvp_next_action_catalog("review"), contract.entries)
+        self.assertEqual(
+            command_mvp_next_action_lookup_table("review"),
+            contract.lookup_table,
+        )
+        self.assertEqual(
+            command_mvp_next_action_invocation_table("review"),
+            contract.invocation_table,
+        )
+
+        self.assertEqual(contract.source_token, "patch-review")
+        self.assertEqual(
+            tuple((entry.target_token, entry.canonical_name, entry.flow_step) for entry in contract.entries),
+            (
+                ("apply-patch", "terminal", "export-handoff"),
+                ("reject-patch", "terminal", "export-handoff"),
+            ),
+        )
+        self.assertEqual(
+            tuple(entry.preferred_surface_tokens for entry in contract.entries),
+            (
+                ("apply-patch", "reject-patch", "persist", "export-handoff", "export"),
+                ("reject-patch",),
+            ),
+        )
+        self.assertEqual(
+            contract.invocation_table,
+            (
+                (
+                    "apply-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "reject-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+            ),
+        )
+        self.assertEqual(command_demo_next_action_contract("export-handoff").entries, ())
+        self.assertEqual(command_demo_next_action_contract("missing").source_token, "missing")
+
+    def test_command_demo_next_action_contract_tracks_custom_specs(self) -> None:
+        specs = (
+            CommandSpec(
+                name="bootstrap",
+                aliases=("open",),
+                cli_tokens=("bootstrap-run",),
+                smoke_argv=("bootstrap-run", "--project", "demo"),
+                preferred_surface_tokens=("project-open",),
+                flow_step="project-open",
+            ),
+            CommandSpec(
+                name="context-basket",
+                aliases=("retrieve",),
+                cli_tokens=("context-basket",),
+                smoke_argv=("context-basket", "list"),
+                preferred_surface_tokens=("retrieval",),
+                flow_step="retrieval",
+            ),
+            CommandSpec(
+                name="diff-preview",
+                aliases=("review-patch",),
+                cli_tokens=("review-diff",),
+                smoke_argv=("review-diff", "--original", "before", "--proposed", "after"),
+                preferred_surface_tokens=("patch-review",),
+                flow_step="patch-review",
+            ),
+            CommandSpec(
+                name="terminal",
+                aliases=("persist-continue", "apply-patch", "reject-patch", "export-handoff"),
+                cli_tokens=("terminal",),
+                smoke_argv=(
+                    "terminal",
+                    "--operation-kind",
+                    "terminal_synthesis_request",
+                    "--message",
+                    "Export handoff",
+                ),
+                shim_argv=(
+                    (
+                        "persist-continue",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Persist and continue",
+                        ),
+                    ),
+                    (
+                        "apply-patch",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_tool_orchestration",
+                            "--message",
+                            "Apply patch",
+                        ),
+                    ),
+                    (
+                        "reject-patch",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_tool_orchestration",
+                            "--message",
+                            "Reject patch",
+                        ),
+                    ),
+                    (
+                        "export-handoff",
+                        (
+                            "terminal",
+                            "--operation-kind",
+                            "terminal_synthesis_request",
+                            "--message",
+                            "Export handoff",
+                        ),
+                    ),
+                ),
+                shim_pinned_options=(
+                    ("persist-continue", ("--operation-kind",)),
+                    ("apply-patch", ("--operation-kind",)),
+                    ("reject-patch", ("--operation-kind",)),
+                    ("export-handoff", ("--operation-kind",)),
+                ),
+                preferred_surface_tokens=("apply-patch", "persist-continue", "export-handoff"),
+                flow_step="export-handoff",
+            ),
+        )
+
+        contract = command_demo_next_action_contract("review", specs)
+        self.assertEqual(contract.source_token, "patch-review")
+        self.assertEqual(
+            tuple((entry.target_token, entry.argv) for entry in contract.entries),
+            (
+                (
+                    "apply-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "reject-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+            ),
+        )
+        self.assertEqual(
+            tuple(entry.preferred_surface_tokens for entry in contract.entries),
+            (
+                ("apply-patch", "persist-continue", "export-handoff"),
+                ("reject-patch",),
+            ),
         )
 
     def test_command_demo_path_validator_rejects_surface_invocation_argv_drift(self) -> None:

@@ -179,6 +179,25 @@ class CommandDemoWorkflowContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoNextActionEntry:
+    source_token: str
+    target_token: str
+    canonical_name: str
+    flow_step: str
+    argv: tuple[str, ...]
+    description: str
+    preferred_surface_tokens: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class CommandDemoNextActionContract:
+    source_token: str
+    entries: tuple[CommandDemoNextActionEntry, ...]
+    lookup_table: tuple[tuple[str, str], ...] = ()
+    invocation_table: tuple[tuple[str, tuple[str, ...]], ...] = ()
+
+
+@dataclass(frozen=True)
 class CommandFlowSequence:
     flow_steps: tuple[str, ...]
     names: tuple[str, ...]
@@ -2991,6 +3010,18 @@ def _validate_command_demo_workflow_contract(contract: CommandDemoWorkflowContra
             raise ValueError(f"Command demo workflow token is inconsistent: {entry.token}")
 
 
+def _validate_command_demo_next_action_contract(contract: CommandDemoNextActionContract) -> None:
+    if contract.lookup_table != tuple((entry.target_token, entry.canonical_name) for entry in contract.entries):
+        raise ValueError("Command demo next action lookup table is inconsistent")
+    if contract.invocation_table != tuple((entry.target_token, entry.argv) for entry in contract.entries):
+        raise ValueError("Command demo next action invocation table is inconsistent")
+    for entry in contract.entries:
+        if entry.source_token != contract.source_token:
+            raise ValueError("Command demo next action source token is inconsistent")
+        if not entry.argv:
+            raise ValueError(f"Command demo next action entry is missing argv: {entry.target_token}")
+
+
 @lru_cache(maxsize=None)
 def command_demo_loop_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -3174,6 +3205,47 @@ def command_mvp_workflow_contract(
     return command_demo_workflow_contract(specs)
 
 
+@lru_cache(maxsize=None)
+def command_demo_next_action_contract(
+    source_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoNextActionContract:
+    normalized_source_token = _normalize_token(source_token)
+    canonical_source_token = _command_demo_transition_token_lookup(specs).get(
+        normalized_source_token,
+        normalized_source_token,
+    )
+    workflow_entries = {entry.token: entry for entry in command_demo_workflow_contract(specs).entries}
+    entries = tuple(
+        CommandDemoNextActionEntry(
+            source_token=canonical_source_token,
+            target_token=target_token,
+            canonical_name=workflow_entries[target_token].canonical_name,
+            flow_step=workflow_entries[target_token].flow_step,
+            argv=workflow_entries[target_token].argv,
+            description=workflow_entries[target_token].description,
+            preferred_surface_tokens=workflow_entries[target_token].preferred_surface_tokens,
+        )
+        for target_token in command_demo_transition_targets_for(specs, source_token)
+    )
+    contract = CommandDemoNextActionContract(
+        source_token=canonical_source_token,
+        entries=entries,
+        lookup_table=tuple((entry.target_token, entry.canonical_name) for entry in entries),
+        invocation_table=tuple((entry.target_token, entry.argv) for entry in entries),
+    )
+    _validate_command_demo_next_action_contract(contract)
+    return contract
+
+
+@lru_cache(maxsize=None)
+def command_mvp_next_action_contract(
+    source_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoNextActionContract:
+    return command_demo_next_action_contract(source_token, specs)
+
+
 def command_demo_loop_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandDemoLoopEntry, ...]:
@@ -3220,6 +3292,20 @@ def command_mvp_workflow_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandDemoWorkflowEntry, ...]:
     return command_demo_workflow_catalog(specs)
+
+
+def command_demo_next_action_catalog(
+    source_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandDemoNextActionEntry, ...]:
+    return command_demo_next_action_contract(source_token, specs).entries
+
+
+def command_mvp_next_action_catalog(
+    source_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandDemoNextActionEntry, ...]:
+    return command_demo_next_action_catalog(source_token, specs)
 
 
 def command_demo_loop_tokens(
@@ -3445,6 +3531,34 @@ def command_mvp_workflow_transition_targets(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     return command_demo_workflow_transition_targets(specs)
+
+
+def command_demo_next_action_lookup_table(
+    source_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_next_action_contract(source_token, specs).lookup_table
+
+
+def command_mvp_next_action_lookup_table(
+    source_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_next_action_lookup_table(source_token, specs)
+
+
+def command_demo_next_action_invocation_table(
+    source_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_next_action_contract(source_token, specs).invocation_table
+
+
+def command_mvp_next_action_invocation_table(
+    source_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_next_action_invocation_table(source_token, specs)
 
 
 def command_demo_workflow_compatibility_lookup_table(
