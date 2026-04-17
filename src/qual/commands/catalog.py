@@ -440,6 +440,7 @@ def _validate_command_cli_contract(
 
     # The default catalog contract requires the full parser surface to stay aligned
     # with the declared command catalog, not just the canonical-name projection.
+    # Dropping a canonical token and keeping only an alias must still fail fast.
     if validated_entrypoints is not None and specs == COMMAND_SPECS:
         expected_parser_surface = tuple(
             (spec.name, _declared_cli_entrypoints_for(spec))

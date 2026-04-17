@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh commit: `HEAD (this metadata-only fixer commit)`
-- Packet refresh role: `feature-fixer reviewer-required packet alignment`
+- Packet refresh role: `feature-fixer reviewer-fix verification refresh`
 
 ## Packet Traceability Note
 
@@ -42,22 +42,25 @@
 - Concrete blocker removed: the CLI parser surface can no longer silently drift
   away from the command catalog for `bootstrap` and still present a seemingly
   valid contract; `command_cli_contract()` now raises immediately when the
-  canonical parser-exposed command order diverges from `command_names()`.
+  parser-exposed token surface diverges from the declared catalog-backed CLI
+  entrypoints, including alias-only substitutions that would otherwise preserve
+  the same canonical command names.
 - Reviewer-fix note: this sentence is the explicit AGENTS plan-alignment
   statement required for re-review.
 
 ## Scope Completed
 
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it
-  compares CLI canonical names against `command_names()` and raises `ValueError`
-  if the parser surface drifts from the catalog.
+  validates both canonical command order and the declared CLI token surface,
+  raising `ValueError` if parser entrypoints drift from the catalog.
 - Kept the returned contract aligned with the canonical command order by
   reusing the canonical names tuple instead of rebuilding a divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
-  for canonical-order alignment and drift rejection.
+  for canonical-order alignment, alias-only token drift rejection, and parser
+  surface drift rejection.
 - Refreshed the handoff packet so the review scope stays anchored to
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and explicitly states the
-  canonical demo-path step and blocker removed.
+  canonical demo-path step, blocker removed, and verified gate rerun status.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -73,14 +76,16 @@
 ## Tasks Completed (Numbered)
 
 1. Hardened `command_cli_contract()` to verify canonical-name consistency
-   against `command_names()` and fail fast on parser drift.
+   against `command_names()` and fail fast on parser-token drift.
 2. Preserved canonical command ordering in the CLI contract by returning the
    validated canonical tuple directly.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for
-   canonical-order alignment and drift rejection.
+   canonical-order alignment and alias-only parser-surface drift rejection.
 4. Regenerated the handoff packet so the review scope matches the reviewed
    implementation slice and explicitly names the canonical demo-path step and
    blocker removed.
+5. Re-ran the required local gates at the current branch tip and refreshed this
+   packet for re-review.
 
 ## Files Changed
 
