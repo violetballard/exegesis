@@ -10,13 +10,12 @@ older lane/fixer prompts.
 
 - Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
 - Current metadata refresh baseline: `9a208110d3d3fb740659b00daa9f04eb783f07e2`.
-- Canonical demo-path step advanced: `open project/document` and `preview and
-  apply or reject a patch` via the CLI-first operator surface;
-  `command_cli_contract()` now rejects parser/catalog drift before the
-  accepted command entrypoints can silently change.
+- Canonical demo-path step advanced: `open project/document` via the CLI-first
+  operator surface; `command_cli_contract()` now rejects parser/catalog drift
+  before the accepted bootstrap entrypoint can silently change.
 - Concrete blocker removed: parser/catalog drift could previously reorder,
-  replace, or remove accepted CLI entrypoints for the `bootstrap` and
-  `diff-preview` MVP surfaces without failing the contract.
+  replace, or remove accepted CLI entrypoints for the `bootstrap` MVP surface
+  without failing the contract.
 - Product Vision scope: this reviewer-fix refresh only supports the canonical
   engine contract requirement for CLI compatibility and does not claim workflow,
   persistence, or auditability changes.
@@ -31,6 +30,7 @@ older lane/fixer prompts.
   `tests/unit/test_commands_catalog.py` as the one approved shared test path.
   No other non-owned implementation path is claimed.
 - Scope boundary: this metadata refresh stays scoped to the command-catalog
-  slice plus that one approved shared-test exception.
+  slice for the CLI-first MVP path plus that one approved shared-test
+  exception.
 - Scope limit: this is CLI-first MVP contract hardening only, not broader
   command-surface expansion or handler work.

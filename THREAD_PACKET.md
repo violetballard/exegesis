@@ -4,17 +4,16 @@
 - Branch: `codex/feat-commands`
 - Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
 - Packet refresh commit: `9a208110d3d3fb740659b00daa9f04eb783f07e2`
-- Packet refresh role: `reviewer-fix demo-path and scope alignment`
+- Packet refresh role: `reviewer-fix scope tightening`
 
 ## Packet Traceability Note
 
 - The original reviewer packet pointed at
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, but this branch now contains the
-  required command-catalog fixes for parser-surface drift rejection and the
-  later demo-surface follow-up through branch tip
-  `36a360a9464d2f08f55129bc70e1aafe4574721b`. Treat later packet-only commits
-  after that implementation tip as handoff alignment unless a new runtime
-  handoff is explicitly regenerated.
+  required command-catalog fixes through implementation tip
+  `36a360a9464d2f08f55129bc70e1aafe4574721b`. Treat later commits on this
+  branch as metadata-only handoff alignment unless a new runtime handoff is
+  explicitly regenerated.
 
 ## Current Program Focus
 
@@ -32,24 +31,24 @@
 ## Scope Goal
 
 - Harden the CLI command contract so `command_cli_contract()` stays
-  deterministic for the current CLI-first MVP path only, preserves the
-  declared parser-entrypoint order per command, and fails fast if the accepted
-  CLI surface drifts from the catalog-backed command specs.
+  deterministic for the current CLI-first MVP path only and fails fast if the
+  accepted CLI surface drifts from the catalog-backed command specs.
 
 ## Canonical Demo-Path Step Advanced
 
-- `open project/document` and `preview and apply or reject a patch` via the
-  CLI-first operator surface: this slice keeps those canonical engine-loop
-  entrypoints callable and smoke-testable while Textual remains disabled.
+- `open project/document` via the CLI-first operator surface: this slice keeps
+  the bootstrap entrypoint callable and smoke-testable while Textual remains
+  disabled.
 - Concrete blocker removed: before this contract hardening, parser/catalog
   drift could silently reorder, replace, or drop accepted CLI entrypoints for
-  the `bootstrap` and `diff-preview` surfaces; `command_cli_contract()` now
-  rejects that drift before the MVP operator contract can change unnoticed.
+  the `bootstrap` surface; `command_cli_contract()` now rejects that drift
+  before the MVP operator contract can change unnoticed.
 
 ## Scope Boundary
 
-- This remains command-catalog contract hardening only. It does not add new
-  commands, new flags, handler logic, or alternate workflow paths.
+- This remains command-catalog contract hardening for the CLI-first MVP path
+  only. It does not add new commands, new flags, handler logic, or alternate
+  workflow paths.
 - This does not broaden the command surface beyond the current CLI-first MVP
   contract and should not be read as general command-platform work.
 
