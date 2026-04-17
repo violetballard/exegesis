@@ -51,9 +51,6 @@
   demo-path steps `open project/document`, `retrieve relevant material`,
   `preview and apply or reject a patch`, and `continue working without losing
   context` more real for the CLI-first MVP loop.
-- This slice makes the canonical demo path more real for `open
-  project/document`, `retrieve relevant material`, `preview and apply or reject
-  a patch`, and `continue working without losing context`.
 - Concrete blocker removed: older demo-path verbs such as `open-project`,
   `review`, `save`, `apply`, and `reject` now normalize to the canonical
   parser-facing command surface instead of depending on callers to know the
@@ -185,9 +182,6 @@
 - Canonical engine contract - CLI compatibility remains stable while the
   command catalog exposes canonical demo-loop helpers and normalizes older
   surface verbs to the parser-facing contract.
-- Auditable state and workflow - the operator-facing command surface is more
-  explicit and smoke-testable because demo-path entry normalization is tracked
-  through catalog helpers instead of ad hoc token handling.
 
 ### Routing/provider impact note
 

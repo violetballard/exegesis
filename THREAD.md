@@ -24,9 +24,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - tying gate evidence to the current branch tip
   - naming the canonical demo-path steps advanced with an explicit
     AGENTS-required step statement
+  - stating the concrete blocker removed: parser/catalog drift or older
+    demo-path verbs silently changing the CLI contract surface
   - separating shared-by-approval edits from integrator-locked edits in the
     ownership note
-  - keeping scope limited to Milestone 3 CLI compatibility work
+  - keeping scope limited to Milestone 3 CLI compatibility work and the
+    canonical engine contract mapping
 - Canonical demo-path step impact: this slice makes `open project/document`,
   `retrieve relevant material`, `preview and apply or reject a patch`, and
   `continue working without losing context` more real for the CLI-first MVP
