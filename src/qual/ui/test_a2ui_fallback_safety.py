@@ -243,6 +243,43 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(len(manifest["terminal_artifact"]["contract_fingerprint"]), 64)
 
+    def test_a2ui_contract_manifest_alias_sections_are_snapshot_isolated(self) -> None:
+        manifest = describe_a2ui_contract()
+
+        cases = [
+            ("capabilities", manifest["schemas"]["capabilities"]),
+            ("card_contract", manifest["schemas"]["card_contract"]),
+            ("action", manifest["schemas"]["action"]),
+            ("selection", manifest["schemas"]["selection"]),
+            ("terminal_fallback", manifest["schemas"]["terminal_fallback"]),
+            ("terminal_artifact", manifest["schemas"]["terminal_artifact"]),
+            (
+                "terminal_artifact_render_target",
+                manifest["schemas"]["terminal_artifact_render_target"],
+            ),
+            (
+                "terminal_artifact_rendering",
+                manifest["schemas"]["terminal_artifact_rendering"],
+            ),
+            (
+                "terminal_artifact_cli_fallback",
+                manifest["schemas"]["terminal_artifact_cli_fallback"],
+            ),
+            (
+                "terminal_artifact_raw_leaf_card_default",
+                manifest["terminal_artifact"]["raw_leaf_card_default_contract"],
+            ),
+            (
+                "terminal_artifact_kind_contracts",
+                manifest["terminal_artifact"]["terminal_artifact_kind_contracts"],
+            ),
+        ]
+
+        for key, source in cases:
+            with self.subTest(section=key):
+                self.assertIsNot(manifest[key], source)
+                self.assertEqual(manifest[key], source)
+
     def test_a2ui_contract_manifest_exposes_terminal_fallback_and_artifact_fingerprints(self) -> None:
         manifest = describe_a2ui_contract()
 

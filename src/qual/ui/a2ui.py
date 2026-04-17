@@ -155,6 +155,10 @@ class A2UISessionStore:
         return self._by_session[session_id]
 
 
+def _snapshot_contract_section(section: Mapping[str, Any]) -> dict[str, Any]:
+    return copy.deepcopy(section)
+
+
 def describe_a2ui_contract() -> dict[str, Any]:
     """Return the stable, versioned A2UI contract manifest.
 
@@ -164,57 +168,75 @@ def describe_a2ui_contract() -> dict[str, Any]:
 
     manifest = _build_a2ui_contract_manifest()
     manifest["contract_fingerprint"] = a2ui_contract_fingerprint()
-    manifest["capabilities"] = manifest["schemas"]["capabilities"]
-    manifest["capabilities_fingerprint"] = manifest["capabilities"]["contract_fingerprint"]
-    manifest["card_contract"] = manifest["schemas"]["card_contract"]
-    manifest["card_contract_fingerprint"] = manifest["card_contract"]["contract_fingerprint"]
-    manifest["action_fingerprint"] = manifest["action"]["contract_fingerprint"]
-    manifest["action_contract"] = manifest["action"]
+    capabilities = _snapshot_contract_section(manifest["schemas"]["capabilities"])
+    manifest["capabilities"] = capabilities
+    manifest["capabilities_fingerprint"] = capabilities["contract_fingerprint"]
+    card_contract = _snapshot_contract_section(manifest["schemas"]["card_contract"])
+    manifest["card_contract"] = card_contract
+    manifest["card_contract_fingerprint"] = card_contract["contract_fingerprint"]
+    action_contract = _snapshot_contract_section(manifest["schemas"]["action"])
+    manifest["action"] = action_contract
+    manifest["action_fingerprint"] = action_contract["contract_fingerprint"]
+    manifest["action_contract"] = action_contract
     manifest["action_contract_fingerprint"] = manifest["action_fingerprint"]
-    manifest["selection_fingerprint"] = manifest["selection"]["contract_fingerprint"]
-    manifest["selection_contract"] = manifest["selection"]
+    selection_contract = _snapshot_contract_section(manifest["schemas"]["selection"])
+    manifest["selection"] = selection_contract
+    manifest["selection_fingerprint"] = selection_contract["contract_fingerprint"]
+    manifest["selection_contract"] = selection_contract
     manifest["selection_contract_fingerprint"] = manifest["selection_fingerprint"]
     manifest["card_fingerprint"] = card_contract_fingerprint()
-    manifest["terminal_artifact_rendering"] = manifest["schemas"]["terminal_artifact_rendering"]
-    manifest["terminal_artifact_rendering_fingerprint"] = manifest["schemas"]["terminal_artifact_rendering"][
+    terminal_artifact_rendering = _snapshot_contract_section(
+        manifest["schemas"]["terminal_artifact_rendering"]
+    )
+    manifest["terminal_artifact_rendering"] = terminal_artifact_rendering
+    manifest["terminal_artifact_rendering_fingerprint"] = terminal_artifact_rendering["contract_fingerprint"]
+    terminal_artifact_render_target = _snapshot_contract_section(
+        manifest["schemas"]["terminal_artifact_render_target"]
+    )
+    manifest["terminal_artifact_render_target"] = terminal_artifact_render_target
+    manifest["terminal_artifact_render_target_fingerprint"] = terminal_artifact_render_target[
         "contract_fingerprint"
     ]
-    manifest["terminal_artifact_render_target"] = manifest["schemas"]["terminal_artifact_render_target"]
-    manifest["terminal_artifact_render_target_fingerprint"] = manifest["terminal_artifact_render_target"][
+    terminal_artifact_cli_fallback = _snapshot_contract_section(
+        manifest["schemas"]["terminal_artifact_cli_fallback"]
+    )
+    manifest["terminal_artifact_cli_fallback"] = terminal_artifact_cli_fallback
+    manifest["terminal_artifact_cli_fallback_fingerprint"] = terminal_artifact_cli_fallback[
         "contract_fingerprint"
     ]
-    manifest["terminal_artifact_cli_fallback"] = manifest["schemas"]["terminal_artifact_cli_fallback"]
-    manifest["terminal_artifact_cli_fallback_fingerprint"] = manifest["terminal_artifact_cli_fallback"][
-        "contract_fingerprint"
-    ]
-    manifest["terminal_artifact_contract"] = manifest["schemas"]["terminal_artifact"]
+    terminal_artifact_contract = _snapshot_contract_section(manifest["schemas"]["terminal_artifact"])
+    manifest["terminal_artifact"] = terminal_artifact_contract
+    manifest["terminal_artifact_contract"] = terminal_artifact_contract
     manifest["terminal_artifact_contract_fingerprint"] = manifest["terminal_artifact_fingerprint"]
-    manifest["terminal_artifact_render_target_contract"] = manifest["schemas"]["terminal_artifact_render_target"]
+    manifest["terminal_artifact_render_target_contract"] = terminal_artifact_render_target
     manifest["terminal_artifact_render_target_contract_fingerprint"] = manifest["terminal_artifact_render_target_fingerprint"]
+    manifest["terminal_fallback"] = _snapshot_contract_section(manifest["terminal_fallback"])
     manifest["terminal_fallback_contract"] = manifest["terminal_fallback"]
     manifest["terminal_fallback_contract_fingerprint"] = manifest["terminal_fallback_fingerprint"]
-    manifest["terminal_artifact_raw_leaf_card_default"] = manifest["terminal_artifact"][
-        "raw_leaf_card_default_contract"
+    terminal_artifact_raw_leaf_card_default = _snapshot_contract_section(
+        terminal_artifact_contract["raw_leaf_card_default_contract"]
+    )
+    manifest["terminal_artifact_raw_leaf_card_default"] = terminal_artifact_raw_leaf_card_default
+    manifest["terminal_artifact_raw_leaf_card_default_fingerprint"] = terminal_artifact_raw_leaf_card_default[
+        "contract_fingerprint"
     ]
-    manifest["terminal_artifact_raw_leaf_card_default_fingerprint"] = manifest["terminal_artifact"][
-        "raw_leaf_card_default_contract_fingerprint"
-    ]
-    manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprints"] = manifest["terminal_artifact"][
+    manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprints"] = terminal_artifact_contract[
         "raw_leaf_card_default_contract_fingerprints"
     ]
-    manifest["terminal_artifact_raw_leaf_card_default_contract"] = manifest[
-        "terminal_artifact_raw_leaf_card_default"
-    ]
+    manifest["terminal_artifact_raw_leaf_card_default_contract"] = terminal_artifact_raw_leaf_card_default
     manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprint"] = manifest[
         "terminal_artifact_raw_leaf_card_default_fingerprint"
     ]
-    manifest["terminal_artifact_kind_contracts"] = manifest["terminal_artifact"]["terminal_artifact_kind_contracts"]
-    manifest["terminal_artifact_kind_contracts_fingerprint"] = manifest["terminal_artifact"][
+    terminal_artifact_kind_contracts = _snapshot_contract_section(
+        terminal_artifact_contract["terminal_artifact_kind_contracts"]
+    )
+    manifest["terminal_artifact_kind_contracts"] = terminal_artifact_kind_contracts
+    manifest["terminal_artifact_kind_contracts_fingerprint"] = terminal_artifact_contract[
         "terminal_artifact_kind_contracts_fingerprint"
     ]
-    manifest["terminal_artifact_rendering_contract"] = manifest["schemas"]["terminal_artifact_rendering"]
+    manifest["terminal_artifact_rendering_contract"] = terminal_artifact_rendering
     manifest["terminal_artifact_rendering_contract_fingerprint"] = manifest["terminal_artifact_rendering_fingerprint"]
-    manifest["terminal_artifact_cli_fallback_contract"] = manifest["schemas"]["terminal_artifact_cli_fallback"]
+    manifest["terminal_artifact_cli_fallback_contract"] = terminal_artifact_cli_fallback
     manifest["terminal_artifact_cli_fallback_contract_fingerprint"] = manifest[
         "terminal_artifact_cli_fallback_fingerprint"
     ]
