@@ -1815,7 +1815,7 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest() -> dict[str
         "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
         "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
         "allowed_actions": sorted(ALLOWED_ACTION_IDS),
-        "render_target_contract": render_target_contract,
+        "render_target_contract": _snapshot_contract_section(render_target_contract),
         "terminal_artifact_render_target": terminal_artifact_render_target_contract,
         "terminal_artifact_render_target_contract": _snapshot_contract_section(
             terminal_artifact_render_target_contract
@@ -1839,17 +1839,19 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest() -> dict[str
             "action": ["confirm", "policy_sensitive"],
             "selection": ["selected", "disabled"],
         },
-        "raw_leaf_card_default_policy": _build_terminal_artifact_raw_leaf_card_default_policy_manifest(),
+        "raw_leaf_card_default_policy": _snapshot_contract_section(
+            _build_terminal_artifact_raw_leaf_card_default_policy_manifest()
+        ),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
         "kind_resolution_fingerprint": render_target_contract["kind_resolution_fingerprint"],
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
         "fallback_recovery_fingerprint": render_target_contract["fallback_recovery_fingerprint"],
-        "terminal_fallback_contract": terminal_fallback_contract,
+        "terminal_fallback_contract": _snapshot_contract_section(terminal_fallback_contract),
         "terminal_fallback_fingerprint": terminal_fallback_contract["contract_fingerprint"],
         "terminal_fallback_contract_fingerprint": terminal_fallback_contract["contract_fingerprint"],
-        "raw_leaf_card_default_contract": raw_leaf_card_default_contract,
+        "raw_leaf_card_default_contract": _snapshot_contract_section(raw_leaf_card_default_contract),
         "raw_leaf_card_default_contract_fingerprint": raw_leaf_card_default_contract["contract_fingerprint"],
-        "raw_leaf_card_default_policy_contract": raw_leaf_card_default_policy_contract,
+        "raw_leaf_card_default_policy_contract": _snapshot_contract_section(raw_leaf_card_default_policy_contract),
         "raw_leaf_card_default_policy_contract_fingerprint": raw_leaf_card_default_policy_contract[
             "contract_fingerprint"
         ],

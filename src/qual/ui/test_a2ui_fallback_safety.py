@@ -275,6 +275,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
     def test_terminal_artifact_cli_fallback_target_contract_is_versioned_and_fingerprintable(self) -> None:
         manifest = describe_terminal_artifact_cli_fallback_target_contract()
+        render_target_contract = describe_terminal_artifact_render_target_contract()
+        terminal_fallback_contract = describe_terminal_fallback_contract()
+        raw_leaf_card_default_contract = describe_terminal_artifact_raw_leaf_card_default_contract()
+        raw_leaf_card_default_policy_contract = describe_terminal_artifact_raw_leaf_card_default_policy_contract()
 
         self.assertEqual(manifest["contract_version"], 2)
         self.assertEqual(manifest["a2ui_version"], 1)
@@ -322,6 +326,24 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["contract_fingerprints"]["raw_leaf_card_default_contract"],
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+        )
+        self.assertEqual(manifest["render_target_contract"], render_target_contract)
+        self.assertEqual(manifest["terminal_artifact_render_target"], render_target_contract)
+        self.assertEqual(manifest["terminal_artifact_render_target_contract"], render_target_contract)
+        self.assertEqual(manifest["terminal_fallback_contract"], terminal_fallback_contract)
+        self.assertEqual(manifest["raw_leaf_card_default_contract"], raw_leaf_card_default_contract)
+        self.assertEqual(
+            manifest["raw_leaf_card_default_policy_contract"],
+            raw_leaf_card_default_policy_contract,
+        )
+        self.assertIsNot(manifest["render_target_contract"], render_target_contract)
+        self.assertIsNot(manifest["terminal_artifact_render_target"], render_target_contract)
+        self.assertIsNot(manifest["terminal_artifact_render_target_contract"], render_target_contract)
+        self.assertIsNot(manifest["terminal_fallback_contract"], terminal_fallback_contract)
+        self.assertIsNot(manifest["raw_leaf_card_default_contract"], raw_leaf_card_default_contract)
+        self.assertIsNot(
+            manifest["raw_leaf_card_default_policy_contract"],
+            raw_leaf_card_default_policy_contract,
         )
         self.assertEqual(
             manifest["kind_resolution_fingerprint"],
