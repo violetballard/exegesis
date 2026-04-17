@@ -14,8 +14,10 @@ from .a2ui import (
     normalize_action_ref,
     normalize_selection_ref,
     describe_terminal_artifact_cli_fallback_contract,
+    describe_terminal_artifact_cli_fallback_route_contract,
     describe_terminal_artifact_renderer_entrypoints_contract,
     terminal_artifact_cli_fallback_contract_fingerprint,
+    terminal_artifact_cli_fallback_route_contract_fingerprint,
     terminal_artifact_renderer_entrypoints_contract_fingerprint,
     _fingerprint_manifest_section,
     _normalize_terminal_artifact_kind_hint,
@@ -532,8 +534,11 @@ class ShellUI:
         return None
 
 
-def _build_shell_ui_contract_manifest() -> dict[str, Any]:
-    return {
+def _build_shell_ui_contract_manifest(
+    *,
+    include_terminal_artifact_cli_fallback_route: bool = False,
+) -> dict[str, Any]:
+    manifest = {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
         "shell_ui_schema_version": SHELL_UI_CONTRACT_VERSION,
@@ -556,9 +561,18 @@ def _build_shell_ui_contract_manifest() -> dict[str, Any]:
             terminal_artifact_renderer_entrypoints_contract_fingerprint()
         ),
     }
+    if include_terminal_artifact_cli_fallback_route:
+        terminal_artifact_cli_fallback_route_contract = describe_terminal_artifact_cli_fallback_route_contract()
+        manifest["terminal_artifact_cli_fallback_route_contract"] = terminal_artifact_cli_fallback_route_contract
+        manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"] = terminal_artifact_cli_fallback_route_contract[
+            "contract_fingerprint"
+        ]
+    return manifest
 
 
-def describe_shell_ui_contract_fingerprints() -> dict[str, str]:
+def describe_shell_ui_contract_fingerprints(
+    include_terminal_artifact_cli_fallback_route: bool = False,
+) -> dict[str, str]:
     """Return stable fingerprints for the shell UI contract sections."""
 
     startup_fields = list(SHELL_UI_STARTUP_FIELDS)
@@ -585,25 +599,48 @@ def describe_shell_ui_contract_fingerprints() -> dict[str, str]:
             terminal_artifact_renderer_entrypoints_contract_fingerprint_value
         ),
     }
+    if include_terminal_artifact_cli_fallback_route:
+        terminal_artifact_cli_fallback_route_contract_fingerprint_value = (
+            terminal_artifact_cli_fallback_route_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_cli_fallback_route_contract"] = (
+            terminal_artifact_cli_fallback_route_contract_fingerprint_value
+        )
     return fingerprints
 
 
-def describe_shell_ui_contract() -> dict[str, Any]:
+def describe_shell_ui_contract(
+    *,
+    include_terminal_artifact_cli_fallback_route: bool = False,
+) -> dict[str, Any]:
     """Return the stable shell UI contract manifest."""
 
-    manifest = _build_shell_ui_contract_manifest()
-    contract_fingerprints = describe_shell_ui_contract_fingerprints()
+    manifest = _build_shell_ui_contract_manifest(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
+    contract_fingerprints = describe_shell_ui_contract_fingerprints(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
     manifest["contract_fingerprints"] = dict(contract_fingerprints)
     manifest["contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(contract_fingerprints)
     manifest["startup_fields_fingerprint"] = contract_fingerprints["startup_fields"]
     manifest["startup_preview_fingerprint"] = contract_fingerprints["startup_preview"]
-    fingerprint = shell_ui_contract_fingerprint()
+    fingerprint = shell_ui_contract_fingerprint(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
     manifest["shell_ui_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     return manifest
 
 
-def shell_ui_contract_fingerprint() -> str:
+def shell_ui_contract_fingerprint(
+    *,
+    include_terminal_artifact_cli_fallback_route: bool = False,
+) -> str:
     """Return a stable fingerprint for the shell UI contract manifest."""
 
-    return _fingerprint_manifest_section(_build_shell_ui_contract_manifest())
+    return _fingerprint_manifest_section(
+        _build_shell_ui_contract_manifest(
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        )
+    )

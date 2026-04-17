@@ -3423,6 +3423,34 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
+    def test_shell_ui_contract_can_opt_in_to_cli_fallback_route_contract(self) -> None:
+        default_manifest = describe_shell_ui_contract()
+        manifest = describe_shell_ui_contract(include_terminal_artifact_cli_fallback_route=True)
+        route_manifest = describe_terminal_artifact_cli_fallback_route_contract()
+        fingerprints = describe_shell_ui_contract_fingerprints(
+            include_terminal_artifact_cli_fallback_route=True,
+        )
+
+        self.assertNotIn("terminal_artifact_cli_fallback_route_contract", default_manifest)
+        self.assertEqual(manifest["terminal_artifact_cli_fallback_route_contract"], route_manifest)
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(manifest["contract_fingerprints"], fingerprints)
+        self.assertEqual(
+            manifest["contract_fingerprints_fingerprint"],
+            _fingerprint_manifest_section(fingerprints),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route_contract"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            shell_ui_contract_fingerprint(include_terminal_artifact_cli_fallback_route=True),
+            manifest["contract_fingerprint"],
+        )
+
     def test_shell_ui_contract_fingerprints_are_public_and_canonical(self) -> None:
         from src.qual.ui import (
             describe_shell_ui_contract_fingerprints as exported_shell_ui_contract_fingerprints,
