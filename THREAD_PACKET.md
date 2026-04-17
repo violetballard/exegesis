@@ -78,7 +78,7 @@ This reviewed range makes `retrieve relevant material` more real by removing the
 
 - `THREAD_PACKET.md` is the operative handoff packet for this fixer pass.
 - `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are present but filesystem-protected in this worktree, so this pass leaves them unchanged.
-- Re-review should use `THREAD_PACKET.md` as the source of truth for the narrowed reviewed implementation range and the canonical demo-path statement.
+- Re-review should use `THREAD_PACKET.md` as the operative source of truth for the narrowed reviewed implementation range and the canonical demo-path statement.
 
 ## Commands run with results
 
