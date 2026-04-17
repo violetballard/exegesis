@@ -58,7 +58,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This narrowed slice makes the canonical `retrieve relevant material` step more real by forcing excerpt lookup through the FTS-backed contract and failing closed instead of accepting PageIndex-only excerpt ids.
+- Explicit AGENTS mapping: this narrowed slice makes the canonical `retrieve relevant material` step more real by forcing excerpt lookup through the FTS-backed contract and failing closed instead of accepting PageIndex-only excerpt ids.
 
 ### Routing/provider impact note
 
