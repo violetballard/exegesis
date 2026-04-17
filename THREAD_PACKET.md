@@ -42,7 +42,7 @@
 
 ## Packet Traceability Note
 
-- This fixer refresh is anchored to pre-fix branch tip `72c9180992b2c45c7776dfc2155ecfecb39c9bfe`.
+- This fixer refresh is anchored to pre-fix branch tip `05b5d5e9ea5ebe9140e969b6035c7daf3f14c40e`.
 - Implementation commits in scope:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` - lock `command_cli_contract()` to canonical catalog ordering.
   - `802b61876fff8125fb7f2af16e2f951219eee546` - tighten demo workflow preferred commands.
@@ -54,12 +54,14 @@
 1. Added the explicit canonical demo-path mapping for this slice: it strengthens the `open project/document` step by keeping the CLI entry contract deterministic while Textual remains disabled.
 2. Tightened the scope wording so this packet describes a narrow command-catalog contract-hardening slice, not broader completion of the whole `feat-commands` lane.
 3. Regenerated the handoff packet with the required `AGENTS.md` plan-alignment statements and without claiming unrelated gate-failure remediation.
+4. Re-ran the required gate suite on the current branch tip and recorded this fixer pass as a fresh metadata-only re-review verification.
 
 ## Fixer Verification Refresh
 
 - Reverified the reviewer-fix branch tip in this lane worktree on `2026-04-17`.
 - Confirmed the refreshed packet now satisfies the reviewer’s three required metadata fixes: explicit demo-path mapping, narrower slice wording, and regenerated handoff structure.
 - Re-ran the required local gates on the current branch tip so the refreshed packet carries fresh passing evidence for re-review.
+- This commit is a metadata-only verification refresh after prior packet commit `05b5d5e9ea5ebe9140e969b6035c7daf3f14c40e`.
 
 ## Re-Review Gate Evidence
 
@@ -71,6 +73,7 @@
   - `./quality-test.sh`: `PASS` (`198` tests, `OK`)
   - `./typecheck-test.sh`: `PASS` (`python3 -m compileall -q src`)
   - `make ci`: `PASS`
+- Verification anchor for this rerun: pre-commit branch tip `05b5d5e9ea5ebe9140e969b6035c7daf3f14c40e`.
 
 ## Current Program Focus
 
