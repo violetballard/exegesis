@@ -1813,6 +1813,30 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
     retrieval_provenance = _build_retrieval_provenance_from_payload(payload)
     retrieval_summary = _normalize_retrieval_summary_snapshot(payload.get("retrieval_summary", {}))
     retrieval_source_bundle = _build_retrieval_source_bundle_from_payload(payload)
+    source_query = retrieval_source_bundle.get("query", {})
+    if not isinstance(source_query, dict):
+        source_query = {}
+    source_policy = retrieval_source_bundle.get("policy", retrieval_source_bundle.get("retrieval_policy", {}))
+    if not isinstance(source_policy, dict):
+        source_policy = {}
+    source_citation_status = retrieval_source_bundle.get("citation_status", {})
+    if not isinstance(source_citation_status, dict):
+        source_citation_status = {}
+    source_evidence = retrieval_source_bundle.get("retrieval_evidence", {})
+    if not isinstance(source_evidence, dict):
+        source_evidence = {}
+    retrieval_backend = _first_text_value(
+        payload.get("retrieval_backend"),
+        retrieval_source_bundle.get("retrieval_backend"),
+        retrieval_summary.get("retrieval_backend"),
+        retrieval_provenance.get("retrieval_backend"),
+    )
+    retrieval_mode = _first_text_value(
+        payload.get("retrieval_mode"),
+        retrieval_source_bundle.get("retrieval_mode"),
+        retrieval_summary.get("retrieval_mode"),
+        retrieval_provenance.get("retrieval_mode"),
+    )
     return {
         "audit_ref": payload.get("audit_ref"),
         "result_fingerprint": payload.get("result_fingerprint"),
@@ -1825,11 +1849,11 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
             payload.get("source_bundle_fingerprint"),
             retrieval_source_bundle.get("source_bundle_fingerprint"),
         ),
-        "query": copy.deepcopy(payload.get("query", {})),
-        "policy": copy.deepcopy(payload.get("policy", {})),
-        "retrieval_backend": payload.get("retrieval_backend"),
-        "retrieval_mode": payload.get("retrieval_mode"),
-        "citation_status": copy.deepcopy(payload.get("citation_status", {})),
+        "query": _normalize_query_snapshot(payload.get("query", source_query)),
+        "policy": _normalize_policy_snapshot(payload.get("policy", payload.get("retrieval_policy", source_policy))),
+        "retrieval_backend": retrieval_backend,
+        "retrieval_mode": retrieval_mode,
+        "citation_status": copy.deepcopy(payload.get("citation_status", source_citation_status)),
         "retrieval_summary": retrieval_summary,
         "retrieval_downstream_payload": copy.deepcopy(payload),
         "retrieval_citation_bundle": _build_retrieval_citation_bundle_from_payload(payload),
@@ -1837,7 +1861,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_excerpt_bundle": _build_retrieval_excerpt_bundle_from_payload(payload),
         "retrieval_provenance": retrieval_provenance,
         "retrieval_source_bundle": retrieval_source_bundle,
-        "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
+        "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", source_evidence)),
         "basket_promotion": _build_basket_promotion_from_payload(payload),
     }
 
