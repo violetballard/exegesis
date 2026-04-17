@@ -4722,6 +4722,23 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIs(fallback_artifact, artifact)
         self.assertEqual(fallback_kind, "card")
 
+    def test_shell_ui_infer_fallback_kind_preserves_raw_leaf_card_default_before_schema_inference(self) -> None:
+        shell = ShellUI()
+
+        action_like_raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+        selection_like_raw_leaf = {
+            "id": "choice-1",
+            "label": "Choice",
+            "payload": {"nested": {"items": [1, 2]}},
+        }
+
+        self.assertEqual(shell._infer_fallback_kind(action_like_raw_leaf), "card")
+        self.assertEqual(shell._infer_fallback_kind(selection_like_raw_leaf), "card")
+
     def test_shell_ui_prefers_partial_leaf_hints_over_generic_card_fallbacks(self) -> None:
         shell = ShellUI()
 

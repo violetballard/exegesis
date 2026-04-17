@@ -158,6 +158,11 @@ class ShellUI:
         if not isinstance(artifact, Mapping):
             return None
 
+        if _should_preserve_raw_leaf_card_default(artifact):
+            # Preserve the raw leaf card-default contract before schema-level
+            # leaf inference can reinterpret the same payload as action or selection.
+            return "card"
+
         artifact_type = artifact.get("type")
         if isinstance(artifact_type, str):
             normalized_type = artifact_type.strip()
