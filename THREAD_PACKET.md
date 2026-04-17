@@ -36,18 +36,26 @@
 
 ## Canonical Demo-Path Step Advanced
 
-- `open project/document` via the CLI-first operator surface: this slice keeps
-  the bootstrap entrypoint callable and smoke-testable while Textual remains
-  disabled.
-- AGENTS.md canonical-path statement: this work makes the `open
-  project/document` step more real by locking the accepted bootstrap parser
-  surface to the command catalog that defines the CLI-first MVP contract.
+- `project-open`: this slice keeps the `bootstrap` CLI entrypoint callable and
+  smoke-testable while Textual remains disabled.
+- `retrieval`: this slice keeps the `context-basket` CLI entrypoint pinned to
+  the catalog-backed parser surface so retrieval-facing smoke routes cannot
+  drift silently.
+- `patch-review`: this slice keeps the `diff-preview` and `diff` CLI
+  entrypoints pinned to the catalog-backed parser surface so patch-review
+  routing stays deterministic.
+- `export-handoff`: this slice keeps the `terminal` CLI entrypoint pinned to
+  the catalog-backed parser surface so the current export handoff route stays
+  deterministic.
+- AGENTS.md canonical-path statement: this work makes the CLI-first
+  `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
+  real by locking the accepted parser surface to the command catalog that
+  defines the current MVP contract.
 - Concrete blocker removed: before this contract hardening, parser/catalog
-  drift could silently reorder, replace, or drop accepted CLI entrypoints for
-  the `bootstrap` surface, which would break or destabilize the first step of
-  the engine-side demo loop without a fast failure; `command_cli_contract()`
-  now rejects that drift before the MVP operator contract can change
-  unnoticed.
+  drift could silently reorder, replace, or drop accepted CLI entrypoints
+  across the current demo-path command surface, which would destabilize the
+  engine-side demo loop without a fast failure; `command_cli_contract()` now
+  rejects that drift before the MVP operator contract can change unnoticed.
 
 ## Scope Boundary
 
@@ -100,8 +108,9 @@
   command-catalog implementation commit and the actual parser-surface invariant
   enforced in this branch.
 - Verified in this fixer pass that the reviewer-requested demo-path mapping
-  stays narrowed to the CLI-first `open project/document` step and that the
-  scope statement remains limited to command-catalog contract hardening only.
+  stays narrowed to the CLI-first `project-open`, `retrieval`, `patch-review`,
+  and `export-handoff` steps and that the scope statement remains limited to
+  command-catalog contract hardening only.
 - Re-ran the required lane gates in this feature-fixer pass and confirmed they
   still pass at the current branch tip `db752f9937b99170855f948f3079431253a96713`.
 
@@ -166,20 +175,22 @@
 
 - Milestone 3: Real workflow loop - preserve CLI compatibility while the
   package/layout migration lands by keeping the command-catalog contract
-  deterministic and drift-resistant at the `open project/document` entrypoint
-  that starts the CLI-first MVP loop.
+  deterministic and drift-resistant across the current CLI-first `project-open`,
+  `retrieval`, `patch-review`, and `export-handoff` entrypoints that make the
+  current MVP loop callable and smoke-testable.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the
   engine-first MVP loop. This slice is a concrete unblocker, not second-order
-  cleanup, because the loop cannot start reliably if the accepted `bootstrap`
-  parser surface can drift without the contract failing.
+  cleanup, because the loop cannot run reliably if the accepted parser surface
+  for those current command routes can drift without the contract failing.
 
 ### Vision capability affected
 
 - Canonical engine contract - CLI compatibility remains stable while the
   command-catalog surface rejects parser drift before it can silently change
   the CLI operator contract for the current engine-first MVP loop. That keeps
-  the operator-facing `open project/document` contract deterministic enough to
-  smoke-test and rely on while Textual stays disabled.
+  the operator-facing `project-open`, `retrieval`, `patch-review`, and
+  `export-handoff` contract deterministic enough to smoke-test and rely on
+  while Textual stays disabled.
 - Scope limit note: this slice does not claim workflow, persisted-state,
   auditability, or additional product-vision capability changes. It is limited
   to deterministic CLI compatibility for the active engine-first operator

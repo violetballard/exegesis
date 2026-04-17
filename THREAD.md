@@ -10,13 +10,14 @@ older lane/fixer prompts.
 
 - Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
 - Current metadata refresh baseline: `db752f9937b99170855f948f3079431253a96713`.
-- Canonical demo-path step advanced: `open project/document` via the CLI-first
-  operator surface; `command_cli_contract()` now rejects parser/catalog drift
-  before the accepted bootstrap entrypoint can silently change.
+- Canonical demo-path steps advanced: `project-open`, `retrieval`,
+  `patch-review`, and `export-handoff` via the CLI-first operator surface;
+  `command_cli_contract()` now rejects parser/catalog drift before those
+  accepted CLI entrypoints can silently change.
 - Concrete blocker removed: parser/catalog drift could previously reorder,
-  replace, or remove accepted CLI entrypoints for the `bootstrap` MVP surface
-  without failing the contract, which would destabilize the first step of the
-  engine-side demo loop.
+  replace, or remove accepted CLI entrypoints across the current MVP command
+  surface without failing the contract, which would destabilize the engine-side
+  demo loop.
 - Product Vision scope: this reviewer-fix refresh only supports the canonical
   engine contract requirement for CLI compatibility and does not claim workflow,
   persistence, or auditability changes.
@@ -28,8 +29,9 @@ older lane/fixer prompts.
   `make ci` all passed again in this feature-fixer pass at branch tip
   `db752f9937b99170855f948f3079431253a96713`.
 - Fixer verification: this pass re-checked that the reviewer-required mapping
-  stays narrowed to the CLI-first `open project/document` step and that the
-  packet scope remains command-catalog contract hardening only.
+  stays narrowed to the CLI-first `project-open`, `retrieval`,
+  `patch-review`, and `export-handoff` steps and that the packet scope remains
+  command-catalog contract hardening only.
 - Approval artifact for the non-owned test path: the reviewer packet supplied
   to this fixer pass explicitly records `Approved shared-test exception for
   tests/unit/test_commands_catalog.py`.
