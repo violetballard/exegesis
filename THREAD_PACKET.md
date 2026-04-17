@@ -42,17 +42,16 @@
 
 ## Packet Traceability Note
 
-- This fixer refresh is anchored to pre-commit branch tip `bc662b7f64a0421ca973da2d5e35e89a02c71d3e`.
-- Implementation commits in scope:
-  - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` - lock `command_cli_contract()` to canonical catalog ordering.
-  - `802b61876fff8125fb7f2af16e2f951219eee546` - tighten demo workflow preferred commands.
-  - `7991f9b7227646da8922964106315a0c9afe7382` - normalize demo command compatibility variants.
-- Reviewer-fix scope in this refresh: keep the high-risk handoff structure explicit, preserve the concrete demo-path mapping, and narrow the claims to existing MVP-loop command-contract hardening only.
+- This reviewer-fix refresh is anchored to pre-commit branch tip `bc662b7f64a0421ca973da2d5e35e89a02c71d3e`.
+- Reviewed implementation commit in scope:
+  - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` - lock `command_cli_contract()` to canonical catalog ordering and reject parser/catalog drift.
+- Later packet-refresh commits are treated as metadata-only unless this handoff is regenerated again.
+- Reviewer-fix scope in this refresh: keep the high-risk handoff structure explicit, preserve the concrete demo-path mapping, and narrow the claims to the command-catalog contract-hardening slice only.
 
 ## Reviewer Required Fixes Satisfied
 
 1. Added the explicit canonical demo-path mapping for this slice: it strengthens the `open project/document` step by keeping the CLI entry contract deterministic while Textual remains disabled.
-2. Tightened the scope wording so this packet describes a narrow command-catalog contract-hardening slice, not broader completion of the whole `feat-commands` lane.
+2. Tightened the scope wording so this packet describes a narrow command-catalog contract-hardening slice, not broader completion of the whole `feat-commands` lane or other command-surface work.
 3. Regenerated the handoff packet with the required `AGENTS.md` plan-alignment statements and without claiming unrelated gate-failure remediation.
 4. Re-ran the required gate suite on the current branch tip and recorded this fixer pass as a fresh metadata-only re-review verification.
 
@@ -61,7 +60,7 @@
 - Reverified the reviewer-fix branch tip in this lane worktree on `2026-04-17`.
 - Confirmed the refreshed packet now satisfies the reviewer’s three required metadata fixes: explicit demo-path mapping, narrower slice wording, and regenerated handoff structure.
 - Re-ran the required local gates on the current branch tip so the refreshed packet carries fresh passing evidence for re-review.
-- This commit is a metadata-only verification refresh after prior packet commit `05b5d5e9ea5ebe9140e969b6035c7daf3f14c40e`.
+- This commit is a metadata-only verification refresh after prior packet commit `bc662b7f64a0421ca973da2d5e35e89a02c71d3e`.
 
 ## Re-Review Gate Evidence
 
@@ -90,18 +89,17 @@
 ## Canonical Demo-Path Step Advanced
 
 - Primary step advanced: `open project/document`.
-- Why this step: `feat-commands` owns the CLI operator surface that starts the current MVP loop, so deterministic canonical command ordering and compatibility-token normalization directly harden the first operator action in the canonical demo path: opening a project or document through the stable CLI entry contract.
+- Why this step: `feat-commands` owns the CLI operator surface that starts the current MVP loop, and the reviewed command-catalog change hardens that first operator action by preventing silent parser/catalog drift before `open project/document` runs.
 - Concrete contract improvement:
   - `command_cli_contract()` now fails fast if the parser surface drifts from `command_names()`.
   - Canonical command ordering is returned directly from the catalog instead of being rebuilt from lookup order.
-  - Demo compatibility variants normalize onto the trusted canonical command tokens instead of creating alternate entry paths.
-- Scope-tightening note: this handoff claims existing MVP-loop command-contract hardening only. It does not claim new workflow behavior, new command entrypoints, new CLI UX, persistence behavior, or broader audit features.
+  - Regression coverage verifies canonical-order alignment and drift rejection at the command-catalog boundary.
+- Scope-tightening note: this handoff claims the reviewed `command_cli_contract()` command-catalog hardening slice only. It does not claim new workflow behavior, new command entrypoints, new CLI UX, persistence behavior, or broader audit features.
 
 ## Scope Completed
 
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so canonical CLI names must match `command_names()` and drift raises `ValueError`.
 - Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
-- Tightened demo workflow preferred command resolution and normalized demo compatibility variants in `src/qual/commands/catalog.py` so the command surface stays deterministic at the current branch tip.
 - Added and retained focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection at the command-catalog boundary.
 - Refreshed the handoff packet and thread pointer so re-review evaluates the true branch-tip command-catalog hardening slice with the required AGENTS structure.
 
