@@ -3,12 +3,12 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `4318eb83c89b9e7292a40d303154d1b7257e525a`
-- Packet refresh role: `reviewer-required scope and demo-path clarification`
+- Packet refresh role: `reviewer-required gate rerun and finalization`
 
 ## Packet Traceability Note
 
 - The implementation commit above is the reviewed command-surface hardening commit that satisfies the reviewer-required runtime behavior.
-- This packet refresh keeps the handoff wording aligned with the current implementation and the reviewer-requested scope clarification.
+- This packet refresh keeps the handoff wording aligned with the current implementation and records the final required gate rerun for the reviewer-fix branch tip.
 
 ## Current Program Focus
 
@@ -63,6 +63,7 @@
 - Kept the returned contract aligned with the canonical command order for CLI-exposed commands while treating alias substitution, missing canonical primary tokens, extra accepted entrypoints, and primary-token order drift as contract errors instead of silently accepting them, which keeps those operator-facing demo-path steps deterministic instead of silently changing underneath the user.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment, missing canonical primary-token rejection, alias-substitution rejection, extra accepted-entrypoint drift rejection, and primary-token order drift rejection, which makes the CLI contract for those demo-path steps smoke-testable and explicit.
 - Reissued the handoff packet as a command-catalog-only slice so the review scope matches the claimed implementation files and approval basis.
+- Re-ran the full required gate suite on branch tip after confirming the reviewer-required code and test fixes were already present in the implementation commit.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -107,7 +108,7 @@
 ## Verification Note
 
 - Re-verified on the current `codex/feat-commands` branch tip that the reviewer-required fixes are present in the implementation: `command_cli_contract()` now rejects default-catalog parser-surface drift, and `tests/unit/test_commands_catalog.py` covers missing-primary-token, alias-substitution, extra-entrypoint, and primary-token-order drift where canonical command order alone would still be insufficient.
-- This handoff refresh is tied to a full gate rerun on branch tip `codex/feat-commands`, using the standard `make scope-check` invocation because this follow-up commit only adjusts packet metadata and does not expand the reviewed implementation scope beyond the already-approved shared test exception.
+- This handoff refresh is tied to a fresh full gate rerun on the current packet-refresh branch tip, using the standard `make scope-check` invocation because this follow-up commit only adjusts packet metadata and does not expand the reviewed implementation scope beyond the already-approved shared test exception.
 
 ## Risks / Blockers
 
