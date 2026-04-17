@@ -1,7 +1,7 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Current branch head before this fixer commit: `926e36c9281b4b60cdf9fe4165ca825fd9a42daa`
+- Current branch head before this fixer commit: `78101d23b3fd532679d064d5c91e91acc9ffe814`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet refresh role: `metadata-only reviewer-fix finalization`
@@ -24,6 +24,7 @@
 - Basket-promotion rationale: because only FTS-backed excerpt ids can be re-fetched, downstream basket promotion and later revise/apply steps receive deterministic, auditable excerpt payloads instead of silently accepting PageIndex-only fallback data.
 - Reviewer-fix note: this packet remains intentionally narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and does not broaden scope beyond the FTS-only excerpt lookup contract and its regression coverage.
 - Source-of-truth note: this `THREAD_PACKET.md` handoff is the re-review packet for this fixer pass on top of `926e36c9281b4b60cdf9fe4165ca825fd9a42daa`; `.codex` packet mirrors in this worktree are filesystem-protected and are not required to evaluate the narrowed retrieval scope.
+- Mirror-sync note: the operative handoff remains `THREAD_PACKET.md` because the `.codex` packet mirrors are visible but sandbox-protected in this environment; this fixer commit carries the reviewer-required AGENTS mapping and updated pre-fix branch anchor in the operative packet itself.
 
 ## Required reviewer fixes addressed
 
