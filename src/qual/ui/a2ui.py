@@ -274,6 +274,11 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint"] = (
         manifest["terminal_artifact_raw_leaf_card_default_policy_fingerprint"]
     )
+    manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints"] = _snapshot_contract_section(
+        describe_terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints(
+            include_terminal_artifact_raw_leaf_card_default_policy=True,
+        )
+    )
     terminal_artifact_envelope = _snapshot_contract_section(terminal_artifact_contract["terminal_artifact_envelope_contract"])
     manifest["terminal_artifact_envelope"] = terminal_artifact_envelope
     manifest["terminal_artifact_envelope_contract"] = _snapshot_contract_section(terminal_artifact_envelope)

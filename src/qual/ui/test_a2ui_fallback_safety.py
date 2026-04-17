@@ -642,6 +642,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "terminal_artifact_raw_leaf_card_default_contract_fingerprints",
                 manifest["terminal_artifact"]["raw_leaf_card_default_contract_fingerprints"],
             ),
+            (
+                "terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints",
+                describe_terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints(
+                    include_terminal_artifact_raw_leaf_card_default_policy=True,
+                ),
+            ),
         ]
 
         for key, source in cases:
@@ -865,6 +871,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["terminal_artifact_raw_leaf_card_default_policy_fingerprint"],
             terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints"],
+            describe_terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints(
+                include_terminal_artifact_raw_leaf_card_default_policy=True,
+            ),
         )
         self.assertEqual(
             manifest["terminal_artifact"]["terminal_artifact_raw_leaf_card_default_policy"],
