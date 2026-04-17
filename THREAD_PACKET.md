@@ -13,7 +13,7 @@
 - Later packet-refresh commits are metadata-only for re-review and do not expand
   the reviewed implementation surface.
 - Re-review should keep the approval basis on the command-catalog slice below.
-- Latest metadata refresh prepared at: `2026-04-17T14:02:12Z`
+- Latest metadata refresh prepared at: `2026-04-17T14:05:25Z`
 
 ## Current Program Focus
 
@@ -41,24 +41,24 @@
   smoke-testable, and drift-resistant for the existing `bootstrap` entrypoint
   while Textual remains disabled.
 - Concrete blocker removed: the CLI parser surface can no longer silently drift
-  away from the command catalog for `bootstrap` and still present a seemingly
-  valid contract; `command_cli_contract()` now raises immediately when the
-  parser-exposed token surface diverges from the declared catalog-backed CLI
-  entrypoints, including alias-only substitutions that would otherwise preserve
-  the same canonical command names.
+  away from the command catalog's canonical ordering and still present a
+  seemingly valid contract; `command_cli_contract()` now raises immediately
+  when the CLI lookup table yields canonical command names that no longer match
+  `command_names()`, instead of silently returning a reordered or truncated
+  contract to the CLI compatibility layer.
 - Reviewer-fix note: this sentence is the explicit AGENTS plan-alignment
   statement required for re-review.
 
 ## Scope Completed
 
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it
-  validates both canonical command order and the declared CLI token surface,
-  raising `ValueError` if parser entrypoints drift from the catalog.
+  validates canonical command order against `command_names()`, raising
+  `ValueError` if the CLI lookup table drifts from the catalog's canonical
+  names.
 - Kept the returned contract aligned with the canonical command order by
   reusing the canonical names tuple instead of rebuilding a divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
-  for canonical-order alignment, alias-only token drift rejection, and parser
-  surface drift rejection.
+  for canonical-order alignment and canonical-name drift rejection.
 - Refreshed the handoff packet so the review scope stays anchored to
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and explicitly states the
   canonical demo-path step, blocker removed, and verified gate rerun status.
@@ -80,11 +80,11 @@
 ## Tasks Completed (Numbered)
 
 1. Hardened `command_cli_contract()` to verify canonical-name consistency
-   against `command_names()` and fail fast on parser-token drift.
+   against `command_names()` and fail fast on canonical-name drift.
 2. Preserved canonical command ordering in the CLI contract by returning the
    validated canonical tuple directly.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for
-   canonical-order alignment and alias-only parser-surface drift rejection.
+   canonical-order alignment and canonical-name drift rejection.
 4. Regenerated the handoff packet so the review scope matches the reviewed
    implementation slice and explicitly names the canonical demo-path step and
    blocker removed.
@@ -111,7 +111,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Re-verification point: `2026-04-17T14:02:12Z` at the current branch tip
+- Re-verification point: `2026-04-17T14:05:25Z` at the current branch tip
 
 ## Risks / Blockers
 
