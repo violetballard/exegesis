@@ -248,6 +248,16 @@ def _normalize_token(value: str) -> str:
     return normalized.strip("-")
 
 
+def _document_open_bootstrap_alias(normalized: str) -> bool:
+    return normalized in {"document-open", "open-document"}
+
+
+def _document_open_bootstrap_primary_token(
+    specs: tuple[CommandSpec, ...],
+) -> str:
+    return command_primary_cli_token_for(specs, "bootstrap")
+
+
 def _lookup_aliases(spec: CommandSpec) -> tuple[str, ...]:
     # Keep the surface stable if a spec repeats the command name verbatim.
     return tuple(alias for alias in spec.aliases if alias != spec.name)
@@ -925,8 +935,12 @@ def _command_spec_for(specs: tuple[CommandSpec, ...], name: str) -> CommandSpec 
     if not normalized:
         return None
     if specs is COMMAND_SPECS:
+        if _document_open_bootstrap_alias(normalized):
+            return _COMMAND_SPEC_BY_ALIAS.get("bootstrap")
         return _COMMAND_SPEC_BY_ALIAS.get(normalized) or _COMMAND_SPEC_BY_FLOW_STEP.get(normalized)
     alias_index = _build_command_spec_by_alias(specs)
+    if _document_open_bootstrap_alias(normalized):
+        return alias_index.get("bootstrap")
     return alias_index.get(normalized) or _build_command_spec_by_flow_step(specs).get(normalized)
 
 
@@ -1455,6 +1469,8 @@ def command_cli_shim_primary_token_for(
     if not normalized_token:
         return ""
     shim_lookup = dict(command_cli_shim_lookup_table(specs, flow_steps))
+    if _document_open_bootstrap_alias(normalized_token):
+        return _document_open_bootstrap_primary_token(specs)
     return shim_lookup.get(normalized_token, "")
 
 
@@ -2849,6 +2865,26 @@ def command_resolve_for(
             surface_tokens=route_entry.surface_tokens,
             description=route_entry.description,
             kind=_surface_token_kind(token, route_entry),
+            matched=True,
+        )
+
+    if _document_open_bootstrap_alias(normalized_token):
+        spec = command_spec_for(specs, "bootstrap")
+        primary_cli_token = _document_open_bootstrap_primary_token(specs)
+        smoke_argv = _resolved_single_token_argv(specs, "bootstrap", (primary_cli_token,))
+        return ResolvedCommand(
+            token=token,
+            normalized_token=normalized_token,
+            canonical_name="bootstrap",
+            flow_step="project-open",
+            primary_cli_token=primary_cli_token,
+            argv=(primary_cli_token,),
+            smoke_argv=smoke_argv,
+            cli_tokens=command_cli_tokens_for(specs, "bootstrap"),
+            lookup_tokens=command_lookup_tokens_for(specs, "bootstrap"),
+            surface_tokens=command_surface_tokens_for(specs, "bootstrap", ordered_flow_steps),
+            description="" if spec is None else spec.description,
+            kind="lookup",
             matched=True,
         )
 
