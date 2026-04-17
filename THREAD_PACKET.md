@@ -2,34 +2,44 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet refresh role: `metadata-only reviewer-fix finalization`
-- Packet refresh trace anchor before this commit: `6d532146b627c148129f0f4aad391b784ae0a725`
-- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Current packet-refresh head before this fixer commit: `790c9174e79db53f0fb51e64d7e87d3a6a56ed31`
+- Reviewed implementation head: `e744fe89c74abe487ebcd5df76282149f89de6bb`
+- Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..e744fe89c74abe487ebcd5df76282149f89de6bb`
 
 ## Scope goal
 
-- Remove the `fetch_excerpt` PageIndex fallback so the canonical retrieval surface fails closed on non-FTS excerpt IDs and keeps excerpt resolution on the authoritative FTS-only path.
+- Keep the lane FTS-first while making retrieval payloads, provenance, excerpt lookup, and basket-promotion metadata deterministic and auditable for engine flows.
 
 ## Scope completed
 
-- This reviewed slice removes the PageIndex fallback from `fetch_excerpt` in `src/qual/retrieval/service.py`, so canonical excerpt lookup resolves through the FTS-only path.
-- Non-FTS excerpt IDs now fail closed with `KeyError` instead of silently resolving through PageIndex, which keeps excerpt provenance deterministic and auditable on the canonical retrieval surface.
-- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves that FTS-backed excerpt IDs still resolve and PageIndex-only excerpt IDs are rejected.
+- The reviewed implementation range keeps SQLite FTS authoritative for this MVP lane and preserves PageIndex plus embeddings as deferred compatibility paths rather than required runtime paths.
+- Canonical retrieval payloads now carry normalized query context, richer provenance, source-bundle fingerprints, and deterministic context/basket-promotion snapshots for downstream engine flows.
+- Canonical excerpt lookup stays on the FTS-only path, and lookup promotion metadata is hardened so excerpt resolution fails closed off the authoritative retrieval surface instead of promoting non-canonical fallbacks.
+- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` covers the FTS-only excerpt contract, payload/provenance normalization, deferred-scope rejection, helper exports, and basket-promotion backfills.
 
 ## Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This slice makes that step more real by keeping engine-facing excerpt resolution deterministic and auditable as soon as retrieval returns FTS hits, which is the contract downstream basket promotion depends on.
+- This reviewed slice makes that step more real by keeping engine-facing retrieval outputs deterministic, structured, and auditable at the point where retrieved material is turned into excerpt/context payloads for downstream basket promotion.
 
 ## Tasks completed
 
-1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
-2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
+1. Kept excerpt lookup and engine-facing excerpt helpers on the canonical FTS-only path, including deterministic lookup promotion metadata and fail-closed behavior for non-canonical excerpt IDs.
+2. Hardened retrieval payload, provenance, source-bundle, and context-bundle snapshots so query context, fingerprints, citations, and basket-promotion fields round-trip deterministically for engine consumers.
+3. Tightened FTS-first query behavior by normalizing retrieval query context, failing fast on deferred scopes that the lane does not support, and keeping deferred strategies out of the canonical runtime path.
+4. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the canonical retrieval contract across helpers, provenance/citation backfills, scope validation, and excerpt lookup behavior.
 
 ## Files changed
 
 ### Reviewed implementation files
 
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/embeddings_strategy.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/interface.py`
+- `src/qual/engine/retrieval/pageindex_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
@@ -57,13 +67,13 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` because this slice hardens the FTS-first retrieval contract the engine loop uses when it retrieves relevant material.
-- `feat-retrieval-fts - retrieval/search` because this slice removes the non-canonical PageIndex fallback from excerpt lookup.
+- `Milestone 3: Real workflow loop` because this reviewed slice hardens the FTS-first retrieval contract used by the engine loop when it retrieves relevant material.
+- `feat-retrieval-fts - retrieval/search` because this reviewed slice keeps the lane authoritative for structured, deterministic retrieval output and excerpt lookup.
 
 ### Vision capability affected
 
-- `Retrieval-first context handling` because this slice keeps excerpt lookup on the authoritative FTS path used to gather context.
-- `Auditable state and workflow` because this slice makes excerpt provenance fail closed instead of resolving through a non-canonical fallback.
+- `Retrieval-first context handling` because this reviewed slice keeps retrieval outputs structured enough for context gathering and basket promotion.
+- `Auditable state and workflow` because this reviewed slice keeps provenance, excerpt lookup, and downstream retrieval payloads deterministic and fail-closed on the canonical path.
 
 ### Routing/provider impact note
 
@@ -77,6 +87,7 @@
 
 ## Traceability note
 
-- This packet is intentionally narrowed to the reviewed implementation slice `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-- Later metadata-only packet refresh commits do not change that reviewed implementation range unless the packet is explicitly regenerated to do so.
-- Use the final HEAD SHA reported with this fixer handoff for the current packet-refresh branch tip.
+- The earlier packet was inaccurate because it still anchored review to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` even though later runtime commits remained on the branch.
+- Re-review should use the full reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..e744fe89c74abe487ebcd5df76282149f89de6bb`.
+- The current packet-refresh head before this fixer commit is `790c9174e79db53f0fb51e64d7e87d3a6a56ed31`, and the commits after `e744fe89c74abe487ebcd5df76282149f89de6bb` up to that head are packet-only metadata refreshes.
+- Use the final HEAD SHA reported with this fixer handoff for the post-fix branch tip.
