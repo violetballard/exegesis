@@ -4018,6 +4018,32 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(text, "cli-fallback")
         cli_fallback.assert_called_once_with(raw_leaf, kind="card")
 
+    def test_shell_ui_retries_shared_renderer_on_resolved_fallback_target_after_cli_fallback_failure(self) -> None:
+        shell = ShellUI()
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+        envelope = {
+            "type": "TerminalArtifact",
+            "kind": "dialog",
+            "artifact": raw_leaf,
+            "trace_id": "drop-me",
+        }
+
+        with patch("src.qual.ui.shell.render_terminal_cli_fallback", side_effect=RuntimeError("cli fallback boom")):
+            with patch("src.qual.ui.shell.render_terminal_artifact") as generic_renderer:
+                generic_renderer.side_effect = (
+                    lambda artifact, kind=None: "resolved-target"
+                    if artifact is raw_leaf
+                    else AssertionError("expected the resolved raw leaf payload")
+                )
+                text = shell.render_artifact(envelope)
+
+        self.assertEqual(text, "resolved-target")
+        generic_renderer.assert_called_once_with(raw_leaf, kind="card")
+
     def test_shell_ui_unwraps_malformed_terminal_envelopes_for_explicit_kinds(self) -> None:
         shell = ShellUI()
 
