@@ -11,6 +11,7 @@ from .a2ui import (
     SelectionRef,
     normalize_action_ref,
     normalize_selection_ref,
+    _is_malformed_terminal_artifact_raw_leaf_card_default_envelope,
     _should_preserve_raw_leaf_card_default,
     resolve_terminal_artifact_cli_fallback_target,
     render_terminal_action,
@@ -29,13 +30,19 @@ class ShellUI:
 
     def render_artifact(self, artifact: Any, *, kind: str | None = None) -> str:
         normalized_kind = self._normalize_fallback_kind(kind)
+        if normalized_kind == "card" and _is_malformed_terminal_artifact_raw_leaf_card_default_envelope(artifact):
+            return _render_invalid_terminal_card(artifact)
+        resolved_fallback: tuple[Any, str | None] | None = None
         if normalized_kind == "card":
             try:
-                _, resolved_kind = self._resolve_fallback_artifact(artifact, kind=kind)
+                resolved_fallback = self._resolve_fallback_artifact(artifact, kind=kind)
             except Exception:
-                resolved_kind = None
+                resolved_fallback = None
             else:
-                if resolved_kind in {"action", "selection"} and not _should_preserve_raw_leaf_card_default(artifact):
+                if (
+                    resolved_fallback[1] in {"action", "selection"}
+                    and not _should_preserve_raw_leaf_card_default(artifact)
+                ):
                     return _render_invalid_terminal_card(artifact)
         fallback_artifact: Any = artifact
         fallback_kind: str | None
@@ -44,19 +51,20 @@ class ShellUI:
             # hint was provided, but still flow through the explicit CLI
             # fallback entrypoint.
             fallback_kind = "card"
+        elif resolved_fallback is not None:
+            fallback_artifact, fallback_kind = resolved_fallback
         else:
             fallback_kind = None
-        try:
-            if fallback_kind is None:
+            try:
                 fallback_artifact, fallback_kind = self._resolve_fallback_artifact(
                     artifact,
                     kind=kind,
                 )
-        except Exception:
-            fallback_artifact = artifact
-            fallback_kind = normalized_kind
-            if fallback_kind is None:
-                fallback_kind = self._infer_fallback_kind(artifact)
+            except Exception:
+                fallback_artifact = artifact
+                fallback_kind = normalized_kind
+                if fallback_kind is None:
+                    fallback_kind = self._infer_fallback_kind(artifact)
         if (
             kind is None
             and fallback_kind in {"action", "selection"}

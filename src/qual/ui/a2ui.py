@@ -3055,6 +3055,8 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
             return _render_invalid_terminal_card(artifact)
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
     allow_invalid_envelope_recovery = malformed_envelope
+    if requested_kind == "card" and _is_malformed_terminal_artifact_raw_leaf_card_default_envelope(artifact):
+        return _render_invalid_terminal_card(artifact)
     if requested_kind == "card" and malformed_envelope:
         payload = artifact.get("artifact") if isinstance(artifact, Mapping) else None
         payload_kind = _infer_terminal_artifact_explicit_kind(payload)
@@ -3092,6 +3094,8 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
         except ValueError:
             requested_kind = None
     if requested_kind == "card" and _contains_action_or_selection_payload(artifact) and not _should_preserve_raw_leaf_card_default(artifact):
+        return _render_invalid_terminal_card(artifact)
+    if requested_kind == "card" and _is_malformed_terminal_artifact_raw_leaf_card_default_envelope(artifact):
         return _render_invalid_terminal_card(artifact)
     fallback_target: tuple[Any, str] | None = None
     try:
@@ -3526,6 +3530,16 @@ def _is_malformed_terminal_artifact_envelope(artifact: Any) -> bool:
     except ValueError:
         return True
     return False
+
+
+def _is_malformed_terminal_artifact_raw_leaf_card_default_envelope(artifact: Any) -> bool:
+    """Return True when a malformed envelope wraps an ambiguous raw-leaf card."""
+
+    if not isinstance(artifact, Mapping):
+        return False
+    if not _is_malformed_terminal_artifact_envelope(artifact):
+        return False
+    return _should_preserve_raw_leaf_card_default(artifact.get("artifact"))
 
 
 def _unwrap_terminal_artifact_leaf_payload(artifact: Any, *, expected_kind: str) -> Any:
