@@ -3,12 +3,14 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `35d77e99bca54d97e51a6a4b98abdb389156799e`
-- Packet refresh role: `feature-fixer required-fixes verification refresh v6`
+- Packet refresh role: `feature-fixer required-fixes reviewer-alignment refresh v7`
 
 ## Packet Traceability Note
 
 - The implementation commit above refers to the current runtime fix commit for this lane, which carries the reviewer-required command-surface hardening and the current default `demo` / `mvp` command-flow contract on branch tip.
 - This packet refresh keeps the handoff wording aligned with the current implementation and records a fresh required-fixes verification rerun for the reviewer-fix branch tip.
+- Feature-fixer reviewer-alignment refresh v7: tightened the top-level scope statement itself so the packet now anchors the claimed outcome to the `bootstrap`-backed `open project/document` step, instead of relying on downstream sections to narrow the claim.
+- Feature-fixer reviewer-alignment refresh v7 gates: re-ran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on April 16, 2026 at 20:21:36 PDT after the packet-only scope refresh, and all required gates passed on branch tip.
 - Feature-fixer verification refresh v6: revalidated on April 16, 2026 (America/Los_Angeles) that this handoff stays narrowly scoped to the canonical demo path by naming the exact `open project/document` step hardened by the `bootstrap` CLI contract, without broadening the reviewed implementation slice.
 - Feature-fixer verification refresh v6 gates: re-ran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on April 16, 2026 at 20:20:53 PDT after the packet-only refresh, and all required gates passed on branch tip.
 - Feature-fixer verification refresh v5: re-ran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on April 16, 2026 at 20:17:59 PDT, and confirmed the current branch-tip implementation commit remains `35d77e99bca54d97e51a6a4b98abdb389156799e`.
@@ -33,7 +35,7 @@
 
 ## Scope Goal
 
-- Harden the CLI command contract so `command_cli_contract()` stays deterministic, preserves the canonical command order for exposed commands, fails fast when the default parser surface drifts from the declared command catalog, and keeps the default `demo` / `mvp` helpers explicit and smoke-testable for the current CLI-first Milestone 3 loop.
+- Harden the CLI command contract for the `bootstrap`-backed `open project/document` step in the current CLI-first Milestone 3 loop so `command_cli_contract()` stays deterministic, preserves the canonical command order for exposed commands, fails fast when the default parser surface drifts from the declared command catalog, and keeps the default `demo` / `mvp` helpers explicit and smoke-testable without claiming broader workflow expansion.
 
 ## Priority Outcomes
 
@@ -129,6 +131,8 @@
 - Re-verified on the current `codex/feat-commands` branch tip that the reviewer-required fixes are present in the implementation: `command_cli_contract()` now rejects default-catalog parser-surface drift, and `tests/unit/test_commands_catalog.py` covers missing-primary-token, alias-substitution, extra-entrypoint, and primary-token-order drift where canonical command order alone would still be insufficient.
 - Re-verified that the packet’s roadmap and vision mapping now stays anchored to the `bootstrap` entrypoint and the `open project/document` demo-path step instead of making broader workflow claims.
 - Re-verified that the packet itself answers the reviewer’s numbered asks directly by naming the canonical demo-path step advanced and explaining why deterministic command validation makes that step more real in the CLI-first MVP loop.
+- Re-verified that the top-level scope statement now matches that same narrow claim directly, so re-review does not need to infer the scope tightening from later packet sections.
+- Re-ran the full required gate suite after this v7 packet-only scope refresh and confirmed the branch tip still passes without changing runtime implementation files.
 - This handoff refresh records both gate contexts explicitly: the reviewed implementation slice used `SCOPE_ALLOW_SHARED=1 make scope-check` and `SCOPE_ALLOW_SHARED=1 make ci` because it includes the approved shared test `tests/unit/test_commands_catalog.py`, while this metadata-only reviewer-fix follow-up commit also passes the standard `make scope-check` and `make ci` reruns on branch tip without broadening implementation scope.
 - Feature-fixer note: this refresh exists only to record the fresh required-fixes gate rerun on branch tip and make the reviewer-requested blocker-removal statement explicit on top of the already-applied reviewer-required fixes.
 - Verification refresh v4 note: no runtime implementation paths changed in this follow-up; it records that the current branch tip still satisfies the numbered reviewer fixes and passes the required gates.
