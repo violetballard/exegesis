@@ -3,8 +3,8 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
-- Packet refresh commit: `7e366fdc7e2edc1df3a2b72a36e7894df94fca92` (baseline before this final verified handoff refresh)
-- Packet refresh role: `feature-fixer reviewer-required verified handoff refresh`
+- Packet refresh commit: `ce5ee25b38fe5d205a5e9e99e4e8ca24ef3ddba8` (baseline before this final gate-verified handoff refresh)
+- Packet refresh role: `feature-fixer reviewer-required final gate-verified handoff refresh`
 
 ## Packet Traceability Note
 
@@ -112,9 +112,9 @@
 - Refreshed the handoff packet so the review scope points at the current
   command-catalog implementation commit, the actual parser-surface invariant
   enforced in this branch, and this final reviewer-fix verification pass.
-- Recorded that this final verified refresh was run on `2026-04-17` after a
+- Recorded that this final gate-verified refresh was run on `2026-04-17` after a
   fresh full-gate pass against pre-refresh metadata baseline
-  `7e366fdc7e2edc1df3a2b72a36e7894df94fca92`.
+  `ce5ee25b38fe5d205a5e9e99e4e8ca24ef3ddba8`.
 - This final fixer commit changes `THREAD_PACKET.md` and `THREAD.md` only and
   does not modify runtime or test files beyond the already-reviewed
   implementation at `36a360a9464d2f08f55129bc70e1aafe4574721b`.
@@ -140,6 +140,11 @@
   satisfied the reviewer-requested canonical demo-path mapping, so this refresh
   records a new verified handoff commit without changing the reviewed runtime
   implementation scope.
+- Final verifier note for this commit: reran `make scope-check`,
+  `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`,
+  `./typecheck-test.sh`, and `make ci` on `2026-04-17` against branch tip
+  `ce5ee25b38fe5d205a5e9e99e4e8ca24ef3ddba8` before creating this handoff
+  refresh commit.
 
 ## Kickoff Budget / Limits Compliance
 

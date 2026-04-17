@@ -9,14 +9,14 @@ older lane/fixer prompts.
 ## Reviewer Fix Alignment
 
 - Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
-- Current metadata refresh baseline: `7e366fdc7e2edc1df3a2b72a36e7894df94fca92`
-  before this final verified packet refresh commit.
+- Current metadata refresh baseline: `ce5ee25b38fe5d205a5e9e99e4e8ca24ef3ddba8`
+  before this final gate-verified packet refresh commit.
 - This refresh explicitly satisfies the reviewer's REQUIRED FIXES by naming the
   canonical demo-path steps advanced and keeping the scope tied to the current
   Milestone 3 engine-first CLI loop only.
-- This final verified refresh was run on `2026-04-17` after a fresh full-gate
+- This final gate-verified refresh was run on `2026-04-17` after a fresh full-gate
   pass against pre-refresh metadata baseline
-  `7e366fdc7e2edc1df3a2b72a36e7894df94fca92`.
+  `ce5ee25b38fe5d205a5e9e99e4e8ca24ef3ddba8`.
 - This work explicitly advances the canonical demo path by making the CLI-first
   `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
   real and smoke-testable.
@@ -55,6 +55,11 @@ older lane/fixer prompts.
 - Re-review alignment confirmation: this refresh records a new verified
   handoff commit after confirming the packet already satisfies the reviewer’s
   required canonical demo-path mapping without reopening implementation scope.
+- Final verifier note: reran `make scope-check`, `./quality-format.sh --check`,
+  `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
+  `make ci` on `2026-04-17` against branch tip
+  `ce5ee25b38fe5d205a5e9e99e4e8ca24ef3ddba8` before creating this refresh
+  commit.
 - Approval artifact for the non-owned test path: the reviewer packet supplied
   to this fixer pass explicitly records `Approved shared-test exception for
   tests/unit/test_commands_catalog.py`.
