@@ -45,6 +45,8 @@
 
 Canonical demo-path step advanced: `retrieve relevant material`, by making excerpt lookup deterministically FTS-only and auditable on the canonical engine retrieval surface.
 
+This packet now satisfies the AGENTS handoff requirement to state explicitly which canonical demo-path step the work makes more real before re-review.
+
 This change advances the canonical demo-path step `retrieve relevant material` by making excerpt retrieval fail closed to the authoritative SQLite FTS path before downstream basket-promotion and workflow use, without reintroducing PageIndex or embeddings as required runtime paths.
 
 This explicit AGENTS mapping is the reviewer-required handoff correction for re-review: the narrowed implementation range strengthens the `retrieve relevant material` step of the canonical engine demo path and does not expand scope beyond that retrieval contract fix.
@@ -56,7 +58,7 @@ This explicit AGENTS mapping is the reviewer-required handoff correction for re-
 - Reviewer packet source-of-truth anchor before this fixer commit: reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - This metadata-only refresh preserves the reviewed implementation head, aligns the operative reviewed implementation range to the reviewer packet above, and keeps the handoff packet explicitly mapped to the canonical demo-path step `retrieve relevant material`.
 - This operative packet is the writable checked-in source of truth for the reviewer-required high-risk budget story and canonical demo-path mapping in this fixer pass.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are sandbox read-only in this worktree during the fixer pass, so they could not be refreshed here.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain unchanged in this worktree because filesystem permissions prevent updating them during the fixer pass; `THREAD_PACKET.md` is the operative handoff source of truth for the reviewer-required range and canonical demo-path mapping.
 - Re-review should treat this `THREAD_PACKET.md` entry as the authoritative handoff packet for the required-fix pass, including the explicit canonical demo-path step mapping and the narrowed reviewed implementation range above.
 
 ## Required Reviewer Fixes Addressed
