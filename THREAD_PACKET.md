@@ -2,21 +2,27 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `3a407703933a0d127c78864e3ec91458aad50b20`
+- Commit: `e2e1c437b81b8b39cd266ccd369d21774e2c8777`
 - Packet refresh role: `feature-fixer reviewer-required handoff refresh`
 
 ## Packet Traceability Note
 
 - Review the true branch-tip implementation at
-  `3a407703933a0d127c78864e3ec91458aad50b20`.
+  `e2e1c437b81b8b39cd266ccd369d21774e2c8777`.
+- The previous approved review baseline for this re-review is
+  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+  (`feat(commands): lock CLI contract to command catalog`).
 - The reviewed runtime commit set for this handoff is:
   - `19ab31af48134d155c1eb782bd0ba95a5c25a268`
     (`feat(commands): expose demo loop contract helpers`)
   - `3a407703933a0d127c78864e3ec91458aad50b20`
     (`feat(commands): add demo-path compatibility shims`)
-- This packet refresh is metadata-only and exists to satisfy the reviewer's
-  required handoff fixes without changing the reviewed runtime implementation
-  slice.
+  - `e2e1c437b81b8b39cd266ccd369d21774e2c8777`
+    (`Add demo command compatibility contract`)
+- The reviewed implementation delta for this handoff is the real branch-tip
+  range `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..e2e1c437b81b8b39cd266ccd369d21774e2c8777`.
+- This packet refresh updates handoff metadata only; it does not change the
+  reviewed implementation range above.
 - Full required gates were rerun against the current branch tip after this
   packet refresh.
 
@@ -41,9 +47,9 @@
 
 ## Canonical Demo-Path Step Advanced
 
-- This slice directly advances `open project/document`, `retrieve relevant
-  material`, `preview and apply or reject a patch`, and `continue working
-  without losing context` from the canonical demo path in `AGENTS.md`.
+- This slice makes the canonical demo path more real for `open
+  project/document`, `retrieve relevant material`, `preview and apply or reject
+  a patch`, and `continue working without losing context`.
 - Concrete blocker removed: older demo-path verbs such as `open-project`,
   `review`, `save`, `apply`, and `reject` now normalize to the canonical
   parser-facing command surface instead of depending on callers to know the
@@ -84,16 +90,22 @@
 
 ## Scope Completed
 
-- Exposed canonical demo-loop helpers in `src/qual/commands/catalog.py` so the
-  MVP loop now has catalog, token, lookup-table, and invocation-plan accessors
-  for `open project/document`, `retrieve relevant material`, and `preview and
+- Extended the reviewed command-catalog implementation range from
+  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` to the true branch tip
+  `e2e1c437b81b8b39cd266ccd369d21774e2c8777` so the handoff matches the code
+  actually on `codex/feat-commands`.
+- Exposed canonical demo-loop helpers in `src/qual/commands/catalog.py` and
+  `src/qual/commands/__init__.py` so the MVP loop now has catalog, token,
+  lookup-table, invocation-plan, and compatibility-contract accessors for
+  `open project/document`, `retrieve relevant material`, and `preview and
   apply or reject a patch`.
 - Added demo-path compatibility-token normalization for older surface verbs so
-  `command_demo_*` and `command_mvp_*` helpers resolve parser-ready argv
-  through the canonical command catalog and keep `continue working without
-  losing context` stable across older CLI spellings.
+  `command_demo_*`, `command_mvp_*`, and the demo compatibility contract
+  resolve parser-ready argv through the canonical command catalog and keep
+  `continue working without losing context` stable across older CLI spellings.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
-  for the demo-loop helpers and compatibility-shim behavior.
+  and `tests/unit/test_diff_preview.py` for the demo-loop helpers,
+  compatibility shims, and demo command compatibility contract behavior.
 - Refreshed the handoff packet so the reviewed commit set, files changed, gate
   evidence, and explicit canonical demo-path mapping match the actual branch
   history.
@@ -117,17 +129,24 @@
    surface.
 2. Added compatibility-token normalization so older demo-path verbs map to the
    canonical parser-facing command surface.
-3. Added focused regression coverage for the demo-loop helpers and compatibility
-   shims in `tests/unit/test_commands_catalog.py`.
-4. Regenerated the handoff packet so it truthfully reports the reviewed commit
-   set, scope, files changed, and gate evidence.
+3. Added a demo command compatibility contract export surface in
+   `src/qual/commands/__init__.py` plus its backing catalog support.
+4. Added focused regression coverage for the demo-loop helpers, compatibility
+   shims, and diff-preview compatibility behavior in
+   `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
+5. Regenerated the handoff packet so it truthfully reports the reviewed commit
+   range, scope, files changed, and gate evidence.
 
 ## Files Changed
 
-### Reviewed implementation files
+### Reviewed implementation files in `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..e2e1c437b81b8b39cd266ccd369d21774e2c8777`
 
+- `src/qual/commands/__init__.py`
+- `src/qual/commands/canonical.py`
 - `src/qual/commands/catalog.py`
+- `src/qual/commands/diff_preview.py`
 - `tests/unit/test_commands_catalog.py`
+- `tests/unit/test_diff_preview.py`
 
 ### Metadata-only handoff files
 
