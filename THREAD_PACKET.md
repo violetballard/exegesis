@@ -1,7 +1,7 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Current branch head before this fixer commit: `a11f9cbc4b1dbebefcfbeea2826aed69e4cb856f`
+- Current branch head before this fixer commit: `fc56ffd351cb18897a29c43bf7f539bb8c576dc8`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet refresh role: `metadata-only reviewer-fix finalization`
@@ -20,6 +20,7 @@
 - SQLite FTS remains the authoritative MVP retrieval path in this narrowed slice.
 - The reviewed implementation removes the PageIndex fallback from `fetch_excerpt`, so excerpt lookup now fails closed on the canonical FTS-only path.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs now raise `KeyError`.
+- AGENTS mapping: this narrowed slice directly advances the canonical `retrieve relevant material` step by forcing excerpt lookup through the FTS-backed contract and failing closed on non-FTS excerpt ids.
 - Reviewer-fix note: this packet remains intentionally narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and does not broaden scope beyond the FTS-only excerpt lookup contract and its regression coverage.
 - Source-of-truth note: this `THREAD_PACKET.md` handoff is the re-review packet for this fixer pass; protected `.codex` packet mirrors are not required to evaluate the narrowed retrieval scope.
 
