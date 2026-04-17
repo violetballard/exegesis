@@ -1041,6 +1041,7 @@ def describe_terminal_artifact_cli_fallback_contract(
     manifest["terminal_artifact_render_target_contract_fingerprint"] = (
         terminal_artifact_render_target_contract_fingerprint()
     )
+    manifest["allowed_actions_fingerprint"] = _fingerprint_manifest_section(manifest["allowed_actions"])
     manifest["renderer_entrypoints_fingerprint"] = _fingerprint_manifest_section(manifest["renderer_entrypoints"])
     renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
     manifest["renderer_entrypoints_contract"] = _snapshot_contract_section(renderer_entrypoints_contract)
@@ -1310,6 +1311,7 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
+            ("allowed_actions", _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS))),
             ("terminal_fallback", terminal_fallback_contract_fingerprint()),
             ("terminal_fallback_contract", terminal_fallback_contract_fingerprint()),
             (
@@ -1488,6 +1490,7 @@ def _build_terminal_artifact_cli_fallback_contract_fingerprints(
     include_terminal_artifact_cli_fallback_route: bool = False,
 ) -> dict[str, str]:
     fingerprints = {
+        "allowed_actions": _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS)),
         "kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
         "render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
         "rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
@@ -2074,6 +2077,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest(
         "fallback_renderer": "ShellUI.render_artifact",
         "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
         "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
+        "allowed_actions": sorted(ALLOWED_ACTION_IDS),
         "envelope": describe_terminal_artifact_envelope_contract(),
         "kind_contracts": kind_contracts,
         "terminal_artifact_kind_contracts": terminal_artifact_kind_contracts,
