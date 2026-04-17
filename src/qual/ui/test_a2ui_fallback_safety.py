@@ -3295,6 +3295,19 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[SelectionRef]", selection_text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", selection_text)
 
+    def test_shell_ui_defaults_unclassified_fallback_recovery_to_card(self) -> None:
+        shell = ShellUI()
+        artifact = _OpaqueValue()
+
+        with patch(
+            "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
+            side_effect=RuntimeError("resolver boom"),
+        ):
+            fallback_artifact, fallback_kind = shell._resolve_fallback_artifact(artifact, kind=None)
+
+        self.assertIs(fallback_artifact, artifact)
+        self.assertEqual(fallback_kind, "card")
+
     def test_shell_ui_prefers_partial_leaf_hints_over_generic_card_fallbacks(self) -> None:
         shell = ShellUI()
 

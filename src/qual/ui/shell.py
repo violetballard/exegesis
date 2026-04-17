@@ -362,7 +362,9 @@ class ShellUI:
             inferred_kind = ShellUI._infer_fallback_kind(artifact)
             if inferred_kind is not None:
                 return artifact, inferred_kind
-            return artifact, fallback_kind
+            # Keep the shell fallback path deterministic: if we could not
+            # recover a specific kind, fall back to the default card view.
+            return artifact, fallback_kind or "card"
 
     @staticmethod
     def _recover_terminal_artifact_envelope_fallback(
