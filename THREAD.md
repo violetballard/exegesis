@@ -9,8 +9,8 @@ older lane/fixer prompts.
 ## Reviewer Fix Alignment
 
 - Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
-- Current metadata refresh baseline: `3e1010e15cfac657b02c0b6aef250892985ffb2f`
-  before this packet-only refresh commit.
+- Current metadata refresh baseline: `ba3daa1fca9b6fa8a44c52cde00249f1d908c25f`
+  before this final packet-only refresh commit.
 - Canonical demo-path steps advanced: `project-open`, `retrieval`,
   `patch-review`, and `export-handoff` via the CLI-first operator surface;
   `command_cli_contract()` now rejects parser/catalog drift before those
@@ -25,7 +25,7 @@ older lane/fixer prompts.
 - Merge risk: `LOW` because this remains a narrow command-catalog contract
   change in one owned file plus one approved shared test, with no
   routing/provider changes.
-- Final gate refresh: `make scope-check`, `./quality-format.sh --check`,
+- Final gate refresh in this fixer pass: `make scope-check`, `./quality-format.sh --check`,
   `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
   `make ci` all passed again in this feature-fixer pass before the final
   reviewer-fix commit.
