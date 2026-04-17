@@ -1,7 +1,7 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Current branch head before this fixer commit: `b3554ecae4c443d6a5a03d8a797fb350f5479043`
+- Current branch head before this fixer commit: `5dbaee2acbaf08305ebec654fcbf6d5ea9c0e976`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet refresh role: `metadata-only reviewer-fix finalization`
@@ -45,8 +45,8 @@
 - AGENTS mapping: this narrowed slice directly advances the canonical `retrieve relevant material` step by forcing FTS-only excerpt lookup through the FTS-backed contract on the canonical retrieval surface and failing closed on non-FTS excerpt ids.
 - Basket-promotion rationale: because only FTS-backed excerpt ids can be re-fetched, downstream basket promotion and later revise/apply steps receive deterministic, auditable excerpt payloads instead of silently accepting PageIndex-only fallback data.
 - Reviewer-fix note: this packet remains intentionally narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and does not broaden scope beyond the FTS-only excerpt lookup contract and its regression coverage.
-- Source-of-truth note: this `THREAD_PACKET.md` handoff is the re-review packet for this fixer pass on top of `b3554ecae4c443d6a5a03d8a797fb350f5479043`; `.codex` packet mirrors in this worktree are not required to evaluate the narrowed retrieval scope.
-- Mirror-sync note: the operative handoff remains `THREAD_PACKET.md`; this fixer commit carries the reviewer-required AGENTS mapping and the updated pre-fix branch anchor in the operative packet itself.
+- Source-of-truth note: this `THREAD_PACKET.md` handoff is the operative re-review packet for this fixer pass on top of `5dbaee2acbaf08305ebec654fcbf6d5ea9c0e976`, and matching lane packet mirrors exist in the worktree for traceability.
+- Mirror-sync note: the operative handoff is the re-review source of truth for this fixer pass, and its AGENTS demo-path mapping is the required packet content for re-review.
 - Mirror-write note: `.codex` packet mirrors were permission-blocked in this fixer environment, so the reviewed handoff source of truth for this pass remains this tracked packet file.
 
 ## Required reviewer fixes addressed
@@ -61,7 +61,7 @@
 ## Packet mirror status
 
 - `THREAD_PACKET.md` is the operative re-review handoff in this worktree.
-- The tracked `.codex` packet mirrors for this lane are present for traceability but are filesystem-protected in this environment, so this fixer pass does not mutate them.
+- The tracked `.codex` packet mirrors for this lane are present for traceability, but this environment only permits the operative handoff edit in this fixer pass.
 - Re-review should use this operative packet as the source of truth for the reviewer-required AGENTS demo-path mapping and narrowed implementation scope.
 
 ## Tasks completed
