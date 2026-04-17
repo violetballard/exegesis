@@ -1,8 +1,8 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `reviewer-required packet regeneration`
-- Current packet-refresh branch head before this fixer commit: `d0e3f138efa3221e75484cb07b62f8f3b31ea7d9`
+- Packet role: `reviewer-required packet regeneration finalization`
+- Current packet-refresh branch head before this fixer commit: `bad798e66ef986f5b2814168b4d9ebc1f5eee3ed`
 - Reviewed implementation head: `51f92ca2d461f328de6a663168bc3a6966e7a9a3`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..51f92ca2d461f328de6a663168bc3a6966e7a9a3`
 
