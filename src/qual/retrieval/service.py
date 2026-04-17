@@ -2432,11 +2432,26 @@ class RetrievalService:
         doc_id_value = normalized.get("doc_id")
         if (not isinstance(doc_id_value, str) or not doc_id_value) and isinstance(provenance.get("doc_id"), str):
             doc_id_value = str(provenance["doc_id"])
-            normalized["doc_id"] = doc_id_value
         elif isinstance(doc_id_value, str) and doc_id_value:
             doc_id_value = str(doc_id_value)
         else:
             doc_id_value = None
+        if doc_id_value is not None:
+            doc_id_value = _normalize_doc_id(doc_id_value)
+            normalized["doc_id"] = doc_id_value
+
+        excerpt_id_value = normalized.get("excerpt_id")
+        if (not isinstance(excerpt_id_value, str) or not excerpt_id_value) and isinstance(
+            provenance.get("excerpt_id"), str
+        ):
+            excerpt_id_value = str(provenance["excerpt_id"])
+        elif isinstance(excerpt_id_value, str) and excerpt_id_value:
+            excerpt_id_value = str(excerpt_id_value)
+        else:
+            excerpt_id_value = None
+        if excerpt_id_value is not None:
+            excerpt_id_value = _normalize_excerpt_id(excerpt_id_value)
+            normalized["excerpt_id"] = excerpt_id_value
 
         doc_meta = self._load_doc_meta().get(doc_id_value, {}) if doc_id_value is not None else {}
 
@@ -2447,6 +2462,8 @@ class RetrievalService:
                 source_hash = provenance_source_hash
             elif doc_id_value is not None:
                 source_hash = self._doc_source_hash(doc_id_value, doc_meta=doc_meta)
+        if isinstance(source_hash, str) and source_hash:
+            source_hash = source_hash.strip()
         if isinstance(source_hash, str) and source_hash:
             normalized["source_hash"] = source_hash
         else:
@@ -2462,9 +2479,16 @@ class RetrievalService:
                 if isinstance(meta_doc_type, str) and meta_doc_type:
                     doc_type = meta_doc_type
         if isinstance(doc_type, str) and doc_type:
+            doc_type = _normalize_doc_type(doc_type)
             normalized["doc_type"] = doc_type
         else:
             doc_type = None
+
+        title_hint = _normalized_text(normalized.get("title_hint"))
+        if title_hint is not None:
+            normalized["title_hint"] = title_hint
+        elif "title_hint" in normalized:
+            normalized["title_hint"] = None
 
         doc_identity_fingerprint = normalized.get("doc_identity_fingerprint")
         if not isinstance(doc_identity_fingerprint, str) or not doc_identity_fingerprint:
@@ -2568,7 +2592,6 @@ class RetrievalService:
             **provenance,
             "source_strategy": source_strategy,
         }
-        excerpt_id_value = normalized.get("excerpt_id")
         if isinstance(excerpt_id_value, str) and excerpt_id_value:
             normalized_provenance["excerpt_id"] = excerpt_id_value
         if doc_id_value is not None:
