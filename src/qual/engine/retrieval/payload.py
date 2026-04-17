@@ -1304,6 +1304,7 @@ def _backfill_downstream_payload_from_context_bundle(
         "retrieval_provenance": context_bundle.get("retrieval_provenance"),
         "retrieval_source_bundle": context_bundle.get("retrieval_source_bundle"),
         "retrieval_evidence": context_bundle.get("retrieval_evidence"),
+        "basket_promotion": context_bundle.get("basket_promotion"),
     }
     return _backfill_sparse_snapshot(
         merged,

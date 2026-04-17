@@ -3030,6 +3030,48 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(context_bundle["retrieval_downstream_payload"]["retrieval_citation_bundle"], result.citation_bundle())
 
+    def test_retrieval_downstream_payload_helper_backfills_top_level_basket_promotion_from_context_bundle(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        sparse_context_bundle = json.loads(json.dumps(result.retrieval_context_bundle()))
+        downstream_payload = sparse_context_bundle["retrieval_downstream_payload"]
+        self.assertIsInstance(downstream_payload, dict)
+        downstream_payload.pop("basket_promotion", None)
+        downstream_payload.pop("retrieval_source_bundle", None)
+        downstream_payload.pop("retrieval_doc_bundle", None)
+        downstream_payload.pop("retrieval_excerpt_bundle", None)
+        downstream_payload.pop("retrieval_provenance", None)
+        downstream_payload.pop("retrieval_citation_bundle", None)
+        downstream_payload.pop("doc_hits", None)
+        downstream_payload.pop("excerpt_hits", None)
+
+        sparse_context_bundle.pop("retrieval_source_bundle", None)
+        sparse_context_bundle.pop("retrieval_doc_bundle", None)
+        sparse_context_bundle.pop("retrieval_excerpt_bundle", None)
+        sparse_context_bundle.pop("retrieval_provenance", None)
+        sparse_context_bundle.pop("retrieval_citation_bundle", None)
+
+        class _SparseContextBundleSource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def retrieval_context_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        payload = build_retrieval_downstream_payload_from_result(
+            _SparseContextBundleSource(sparse_context_bundle)
+        )
+
+        self.assertEqual(payload["basket_promotion"], result.to_downstream_payload()["basket_promotion"])
+
     def test_retrieval_downstream_payload_helper_normalizes_evidence_strategy_ids_from_source_bundle(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
