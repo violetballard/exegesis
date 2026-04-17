@@ -950,6 +950,32 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_mvp_resolve_argv(("approve", "--message", "Ship it")), approve)
         self.assertEqual(command_mvp_resolve_argv(("discard", "--message", "Try again")), discard)
 
+    def test_command_demo_resolve_helpers_upgrade_single_token_aliases_to_demo_smoke_defaults(self) -> None:
+        cases = (
+            ("open-document", ("bootstrap", "--project", "demo")),
+            ("retrieve", ("context-basket", "list")),
+            ("diff", ("diff-preview", "--original", "before", "--proposed", "after")),
+            (
+                "terminal",
+                ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+            ),
+        )
+
+        for token, expected_argv in cases:
+            with self.subTest(token=token):
+                resolved = command_demo_resolve(token)
+                self.assertTrue(resolved.matched)
+                self.assertEqual(resolved.token, token)
+                self.assertEqual(resolved.argv, expected_argv)
+
+                argv_resolved = command_demo_resolve_argv((token,))
+                self.assertTrue(argv_resolved.matched)
+                self.assertEqual(argv_resolved.token, token)
+                self.assertEqual(argv_resolved.argv, expected_argv)
+
+        self.assertEqual(command_mvp_resolve("open-document"), command_demo_resolve("open-document"))
+        self.assertEqual(command_mvp_resolve_argv(("diff",)), command_demo_resolve_argv(("diff",)))
+
     def test_command_demo_cli_entry_helpers_keep_demo_smoke_defaults_for_single_token_verbs(self) -> None:
         self.assertEqual(
             command_demo_cli_entry_argv(("project-open",)),

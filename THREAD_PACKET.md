@@ -74,7 +74,7 @@
   reliable if the canonical command order for the `open`, `retrieve`, and
   `patch-review` operator path can drift away from the declared command
   catalog without failing. This slice removes that blocker by making
-  canonical-name drift fail immediately instead of changing the contract
+  parser-surface drift fail immediately instead of changing the contract
   unnoticed.
 
 ## Canonical Demo-Path Step Advanced
@@ -95,9 +95,12 @@
   `context-basket` protects the `retrieve relevant material` entrypoint, and
   `diff-preview` protects the `preview and apply or reject a patch`
   entrypoint.
-- Concrete blocker removed: canonical-name drift can no longer silently
+- Concrete blocker removed: parser-surface drift can no longer silently
   reorder or desynchronize those operator-facing CLI entrypoints from the
   canonical command catalog.
+- Token-level protection detail: the contract now rejects parser-surface drift
+  when canonical entrypoints are replaced, removed, or reordered, even if the
+  affected aliases still resolve back to the same canonical command names.
 - Re-review scope note: this packet refresh exists to make that demo-path-step
   mapping explicit for AGENTS compliance; it does not claim any broader
   implementation change beyond the command-catalog slice already under review.
@@ -121,7 +124,7 @@
 
 ## Definition of Done for This Slice
 
-- `command_cli_contract()` rejects canonical-name drift instead of silently
+- `command_cli_contract()` rejects parser-surface drift instead of silently
   accepting a parser/catalog mismatch.
 - The returned CLI contract preserves the canonical command order declared by
   `command_names()`.
@@ -144,11 +147,12 @@
 ## Scope Completed
 
 - Hardened the default `command_cli_contract()` validation in
-  `src/qual/commands/catalog.py` so it compares the CLI contract's canonical
-  names to `command_names()` and fails fast when they diverge.
+  `src/qual/commands/catalog.py` so it validates the parser surface at the
+  token level against the declared CLI entrypoints and fails fast when they
+  diverge.
 - Kept the returned CLI contract aligned with canonical command ordering by
-  returning the validated `command_names()` tuple instead of rebuilding a
-  separate list from the CLI lookup table.
+  deriving the canonical command sequence from the validated declared
+  entrypoints instead of rebuilding a weaker projection from the lookup table.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
   for canonical-order alignment and drift rejection in the CLI contract.
 - Reissued the handoff packet as a command-catalog-only slice so the review
@@ -168,7 +172,7 @@
 ## Tasks Completed
 
 1. Hardened `command_cli_contract()` to verify canonical-name consistency
-   against the declared command catalog.
+   and parser-surface token alignment against the declared command catalog.
 2. Preserved canonical command ordering in the CLI contract by reusing the
    validated canonical names tuple.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for
@@ -218,10 +222,10 @@
 ### Vision capability affected
 
 - Canonical engine contract - CLI compatibility remains stable while the
-  command-catalog surface rejects canonical-name drift before it can silently
+  command-catalog surface rejects parser-surface drift before it can silently
   change the operator contract for the active engine-first MVP loop.
 - Auditable state and workflow - the command surface now fails loudly on
-  canonical command drift, making the operator-facing contract explicit and
+  parser-surface drift, making the operator-facing contract explicit and
   traceable while the CLI remains the active surface.
 
 ### Routing/provider impact note

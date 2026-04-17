@@ -58,5 +58,5 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   reject a patch` steps, and the ongoing CLI operator path that must remain
   executable while Textual stays disabled, more reliable by keeping the
   `bootstrap`, `context-basket`, and `diff-preview` entrypoints aligned with
-  the canonical command catalog and rejecting canonical-name drift before it
+  the canonical command catalog and rejecting parser-surface drift before it
   can silently change the operator-facing contract.

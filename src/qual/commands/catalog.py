@@ -3661,7 +3661,7 @@ def _prefer_demo_flow_smoke_resolution(
 ) -> ResolvedCommand:
     if not resolved.matched or not raw_argv:
         return resolved
-    if resolved.kind != "flow-step" or len(resolved.smoke_argv) <= 1:
+    if len(resolved.smoke_argv) <= 1:
         return resolved
     explicit_args = raw_argv[1:]
     if explicit_args:
