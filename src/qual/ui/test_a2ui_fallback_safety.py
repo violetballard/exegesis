@@ -1911,6 +1911,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
                 "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
                 "raw_leaf_card_default_contract": terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+                "raw_leaf_card_default_policy_contract": terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
             },
         )
         self.assertEqual(
@@ -2224,6 +2225,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         )
         self.assertEqual(
+            fingerprints["raw_leaf_card_default_policy_contract"],
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        )
+        self.assertEqual(
             manifest["raw_leaf_card_default_policy_contract_fingerprint"],
             terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
         )
@@ -2272,6 +2277,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "terminal_artifact_cli_fallback_contract": terminal_artifact_cli_fallback_contract_fingerprint(),
                 "terminal_artifact_raw_leaf_card_default_contract": (
                     terminal_artifact_raw_leaf_card_default_contract_fingerprint()
+                ),
+                "terminal_artifact_raw_leaf_card_default_policy": (
+                    terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint()
+                ),
+                "terminal_artifact_raw_leaf_card_default_policy_contract": (
+                    terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint()
                 ),
             },
         )

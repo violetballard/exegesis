@@ -852,6 +852,12 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
         fingerprints["terminal_artifact_raw_leaf_card_default_contract"] = (
             terminal_artifact_raw_leaf_card_default_contract_fingerprint()
         )
+        fingerprints["terminal_artifact_raw_leaf_card_default_policy"] = (
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_raw_leaf_card_default_policy_contract"] = (
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint()
+        )
     return fingerprints
 
 
@@ -881,6 +887,7 @@ def _build_terminal_artifact_cli_fallback_contract_fingerprints(
         "rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
         "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
         "raw_leaf_card_default_contract": terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+        "raw_leaf_card_default_policy_contract": terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
     }
     if include_terminal_artifact_cli_fallback:
         fingerprints["terminal_artifact_cli_fallback"] = terminal_artifact_cli_fallback_contract_fingerprint()
