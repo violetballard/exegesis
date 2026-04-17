@@ -3081,6 +3081,11 @@ class RetrievalService:
         if query_snapshot is not None:
             normalized["query"] = copy.deepcopy(query_snapshot)
             normalized_provenance["query"] = copy.deepcopy(query_snapshot)
+            if _optional_text(normalized_provenance.get("query_fingerprint")) is None:
+                derived_query_fingerprint = self._query_fingerprint_from_snapshot(query_snapshot)
+                if derived_query_fingerprint is not None:
+                    normalized["query_fingerprint"] = derived_query_fingerprint
+                    normalized_provenance["query_fingerprint"] = derived_query_fingerprint
             if _optional_text(normalized.get("query_text")) is None and _optional_text(
                 normalized_provenance.get("query_text")
             ) is None:
@@ -3294,6 +3299,44 @@ class RetrievalService:
         if not query_snapshot:
             return None
         return query_snapshot
+
+    @staticmethod
+    def _query_fingerprint_from_snapshot(query_snapshot: object) -> str | None:
+        if not isinstance(query_snapshot, dict):
+            return None
+        query_text = _normalize_query_text_payload(query_snapshot.get("query_text"))
+        query_scope = _normalize_query_scope_payload(query_snapshot.get("scope"))
+        query_intent = _normalize_query_intent_payload(query_snapshot.get("intent"))
+        query_confidentiality_profile = _normalized_profile_text(
+            query_snapshot.get("confidentiality_profile")
+        )
+        if (
+            query_text is None
+            or query_scope is None
+            or query_intent is None
+            or query_confidentiality_profile is None
+        ):
+            return None
+        query_constraints = query_snapshot.get("constraints", {})
+        if not isinstance(query_constraints, dict):
+            query_constraints = {}
+        normalized_constraints = {
+            "max_results": _optional_int(query_constraints.get("max_results")) or 10,
+            "doc_types": _normalize_query_doc_types_payload(query_constraints.get("doc_types")) or [],
+            "date_range": _normalize_query_date_range_payload(query_constraints.get("date_range")),
+            "require_citations": _optional_bool(query_constraints.get("require_citations")) or False,
+            "section_hint": _normalized_query_hint_text(query_constraints.get("section_hint")),
+            "prefer_exact_matches": _optional_bool(query_constraints.get("prefer_exact_matches")) or False,
+        }
+        return RetrievalService._stable_fingerprint(
+            {
+                "query_text": query_text,
+                "scope": query_scope,
+                "intent": query_intent,
+                "constraints": normalized_constraints,
+                "confidentiality_profile": query_confidentiality_profile,
+            }
+        )
 
     def _build_excerpt_lookup_basket_promotion(
         self,
