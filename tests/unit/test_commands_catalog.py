@@ -866,6 +866,47 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_mvp_resolve("patch-review"), resolved)
         self.assertEqual(command_mvp_resolve_argv(("patch-review", "--format=json")), patch_review)
 
+    def test_command_demo_resolve_helpers_preserve_requested_compatibility_tokens(self) -> None:
+        review = command_demo_resolve("review")
+        self.assertTrue(review.matched)
+        self.assertEqual(review.token, "review")
+        self.assertEqual(review.normalized_token, "review")
+        self.assertEqual(review.kind, "flow-step")
+        self.assertEqual(
+            review.argv,
+            ("diff-preview", "--original", "before", "--proposed", "after"),
+        )
+
+        save = command_demo_resolve("save")
+        self.assertTrue(save.matched)
+        self.assertEqual(save.token, "save")
+        self.assertEqual(save.normalized_token, "save")
+        self.assertEqual(save.kind, "lookup")
+        self.assertEqual(
+            save.argv,
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+
+        apply = command_demo_resolve_argv(("apply", "--message", "Now"))
+        self.assertTrue(apply.matched)
+        self.assertEqual(apply.token, "apply")
+        self.assertEqual(apply.normalized_token, "apply")
+        self.assertEqual(apply.kind, "lookup")
+        self.assertEqual(
+            apply.argv,
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Now"),
+        )
+
+        open_project = command_demo_resolve_argv(("open-project", "--project", "workspace"))
+        self.assertTrue(open_project.matched)
+        self.assertEqual(open_project.token, "open-project")
+        self.assertEqual(open_project.normalized_token, "open-project")
+        self.assertEqual(open_project.kind, "flow-step")
+        self.assertEqual(open_project.argv, ("bootstrap", "--project", "workspace"))
+
+        self.assertEqual(command_mvp_resolve("save"), save)
+        self.assertEqual(command_mvp_resolve_argv(("apply", "--message", "Now")), apply)
+
     def test_command_resolve_helpers_support_custom_specs(self) -> None:
         specs = (
             CommandSpec(

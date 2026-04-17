@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import lru_cache
 
 
@@ -3462,13 +3462,33 @@ def _prefer_demo_flow_smoke_resolution(
     )
 
 
+def _preserve_requested_token(
+    resolved: ResolvedCommand,
+    token: str,
+) -> ResolvedCommand:
+    normalized_token = _normalize_token(token)
+    if not token or (
+        resolved.token == token
+        and resolved.normalized_token == normalized_token
+    ):
+        return resolved
+    return replace(
+        resolved,
+        token=token,
+        normalized_token=normalized_token,
+    )
+
+
 def command_demo_resolve(token: str) -> ResolvedCommand:
     """Resolve a token against the canonical demo-path command surface."""
     normalized_token = _normalize_demo_compatibility_token(token)
-    return _prefer_demo_flow_smoke_resolution(
-        command_resolve_for(COMMAND_SPECS, normalized_token, command_demo_flow_steps()),
-        specs=COMMAND_SPECS,
-        raw_argv=(normalized_token,),
+    return _preserve_requested_token(
+        _prefer_demo_flow_smoke_resolution(
+            command_resolve_for(COMMAND_SPECS, normalized_token, command_demo_flow_steps()),
+            specs=COMMAND_SPECS,
+            raw_argv=(normalized_token,),
+        ),
+        token,
     )
 
 
@@ -3587,12 +3607,16 @@ def command_demo_resolve_argv(
     argv: tuple[str, ...] | list[str],
 ) -> ResolvedCommand:
     """Resolve argv against the canonical demo-path command surface."""
-    raw_argv = _normalize_demo_compatibility_argv(argv)
-    return _prefer_demo_flow_smoke_resolution(
+    requested_argv = tuple(argv)
+    raw_argv = _normalize_demo_compatibility_argv(requested_argv)
+    resolved = _prefer_demo_flow_smoke_resolution(
         command_resolve_argv_for(COMMAND_SPECS, raw_argv, command_demo_flow_steps()),
         specs=COMMAND_SPECS,
         raw_argv=raw_argv,
     )
+    if not requested_argv:
+        return resolved
+    return _preserve_requested_token(resolved, requested_argv[0])
 
 
 def command_mvp_resolve_argv(
