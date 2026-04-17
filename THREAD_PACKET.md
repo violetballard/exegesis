@@ -13,7 +13,7 @@
 ## Scope completed
 
 - The reviewed branch state keeps SQLite FTS authoritative for this MVP lane.
-- The excerpt lookup surface stays on the canonical FTS-only path, so PageIndex-only excerpt IDs fail closed instead of promoting a non-canonical runtime fallback.
+- The excerpt lookup surface stays on the canonical FTS-only path, so PageIndex is not part of the MVP excerpt lookup contract for this lane and PageIndex-only excerpt IDs fail closed instead of promoting a non-canonical runtime fallback.
 - Excerpt lookup payloads now carry the canonical retrieval policy snapshot at both the top level and inside provenance so downstream engine flows read one stable FTS-first contract.
 - Ranked retrieval doc/excerpt ids are preserved in deterministic retrieval metadata so downstream engine consumers can rely on authoritative FTS ordering.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` exercises the canonical retrieval contract.
@@ -80,7 +80,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This branch state makes that step more real by ensuring excerpt lookup only succeeds through the authoritative FTS-backed path and by preserving a deterministic, auditable FTS-first retrieval contract.
+- This branch state makes that step more real by ensuring excerpt lookup only succeeds for authoritative FTS-derived excerpt IDs on the canonical retrieval surface and by preserving a deterministic, auditable FTS-first retrieval contract.
 - This packet remains scoped to the retrieval step itself and does not claim basket-promotion changes.
 
 ### Routing/provider impact note
