@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `e2e1c437b81b8b39cd266ccd369d21774e2c8777`
-- Packet refresh role: `feature-fixer reviewer-required handoff refresh`
+- Packet refresh role: `feature-fixer reviewer-required verification refresh`
 
 ## Packet Traceability Note
 
@@ -25,6 +25,21 @@
   reviewed implementation range above.
 - Full required gates were rerun against the current branch tip after this
   packet refresh.
+
+## Reviewer-Required Fix Verification
+
+- Required fix 1 satisfied: `src/qual/commands/catalog.py` now validates the
+  full parser compatibility surface through the command-spec-declared CLI
+  entrypoints, not just canonical-name order, and raises
+  `ValueError("Command CLI parser surface is inconsistent")` when the parser
+  surface drifts.
+- Required fix 2 satisfied: `tests/unit/test_commands_catalog.py` includes
+  focused negative coverage for parser-surface drift that still preserves the
+  canonical command order, including alias substitution, reordered accepted
+  entrypoints, removed expected aliases, and extra accepted entrypoints.
+- Required fix 3 satisfied: this packet explicitly names the canonical
+  demo-path steps advanced and keeps the AGENTS-required step statement in the
+  handoff.
 
 ## Current Program Focus
 
@@ -110,6 +125,9 @@
 - Refreshed the handoff packet so the reviewed commit set, files changed, gate
   evidence, and explicit canonical demo-path mapping match the actual branch
   history.
+- Revalidated the reviewer-requested parser-surface drift guard and regression
+  coverage on the current branch tip, then refreshed this packet so the
+  numbered required fixes are explicitly traceable in the handoff.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -168,12 +186,12 @@
 
 ## Commands Run and Outcomes
 
-- `make scope-check`: PASS on current branch tip after packet refresh
-- `./quality-format.sh --check`: PASS on current branch tip after packet refresh
-- `./quality-lint.sh`: PASS on current branch tip after packet refresh
-- `./quality-test.sh`: PASS on current branch tip after packet refresh
-- `./typecheck-test.sh`: PASS on current branch tip after packet refresh
-- `make ci`: PASS on current branch tip after packet refresh
+- `make scope-check`: PASS during feature-fixer verification on current branch tip
+- `./quality-format.sh --check`: PASS during feature-fixer verification on current branch tip
+- `./quality-lint.sh`: PASS during feature-fixer verification on current branch tip
+- `./quality-test.sh`: PASS during feature-fixer verification on current branch tip
+- `./typecheck-test.sh`: PASS during feature-fixer verification on current branch tip
+- `make ci`: PASS during feature-fixer verification on current branch tip
 
 ## Risks / Blockers
 

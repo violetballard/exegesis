@@ -17,6 +17,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..e2e1c437b81b8b39cd266ccd369d21774e2c8777`.
 - This refresh updates the handoff metadata only; it does not change the
   reviewed implementation delta above.
+- Current feature-fixer verification confirms the reviewer-required fixes are
+  already present on this branch tip:
+  - the CLI contract rejects parser-surface drift, not just canonical-name drift
+  - focused regression tests cover parser-token changes that preserve canonical order
+  - the canonical demo-path steps advanced are stated explicitly in `THREAD_PACKET.md`
 - Reviewer-required handoff fixes are explicitly satisfied in
   `THREAD_PACKET.md` by:
   - naming the true reviewed branch tip and baseline commit range
