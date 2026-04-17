@@ -28,7 +28,8 @@
 
 1. This handoff now explicitly states that the canonical demo-path step advanced is `retrieve relevant material`, matching the AGENTS requirement called out in review.
 2. The packet remains tightly scoped to the narrowed retrieval slice `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and does not broaden re-review back to cumulative branch work.
-3. Re-review should treat `THREAD_PACKET.md` as the operative source of truth for this fixer pass; `.codex` packet mirrors in this worktree are filesystem-protected and are not required to evaluate the narrowed reviewer slice.
+3. The packet does not claim new basket-promotion, workflow-card, or broader engine-surface progress in this slice because the reviewed range only changes the `fetch_excerpt` fallback contract and its approved shared regression coverage.
+4. Re-review should treat `THREAD_PACKET.md` as the operative source of truth for this fixer pass; `.codex` packet mirrors in this worktree are filesystem-protected and are not required to evaluate the narrowed reviewer slice.
 
 ## Tasks completed
 
