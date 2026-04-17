@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `19ab31af48134d155c1eb782bd0ba95a5c25a268`
-- Packet refresh commit: `e4a2016bdd79d51458e4ae27a799662caa9d6482` (metadata refresh baseline before this final feature-fixer handoff refresh)
+- Packet refresh commit: `0c8292168fd2e782f5447cd86e412be71db0cc79` (metadata refresh baseline before this final feature-fixer handoff refresh)
 - Packet refresh role: `feature-fixer reviewer-required follow-up gate-verified handoff refresh`
 
 ## Packet Traceability Note
@@ -14,9 +14,11 @@
   `19ab31af48134d155c1eb782bd0ba95a5c25a268`. Treat this feature-fixer refresh
   as the current handoff authority for that implementation slice plus the final
   in-worktree command-surface alignment captured in this commit.
-- Follow-up reviewer-fix metadata refresh on `2026-04-17`: this handoff reasserts
-  the AGENTS-required canonical demo-path mapping requested by review and keeps
-  the claimed scope narrowed to Milestone 3 CLI-contract hardening only.
+- Follow-up reviewer-fix metadata refresh on `2026-04-17`: this handoff
+  records a new final verifier refresh after confirming that the prior packet
+  update already satisfied the reviewer-requested demo-path and vision-scope
+  corrections, and keeps the claimed scope narrowed to Milestone 3
+  CLI-contract hardening only.
 
 ## Current Program Focus
 
@@ -122,10 +124,9 @@
 - Refreshed the handoff packet so the review scope points at the current
   command-catalog implementation commit, the actual parser-surface invariant
   enforced in this branch, and this final reviewer-fix verification pass.
-- Recorded that this follow-up gate-verified refresh was run on `2026-04-17` after a
-  fresh full-gate pass against implementation tip
-  `19ab31af48134d155c1eb782bd0ba95a5c25a268` with metadata refresh baseline
-  `e4a2016bdd79d51458e4ae27a799662caa9d6482`.
+- Recorded that this follow-up gate-verified refresh was run on `2026-04-17`
+  after a fresh full-gate pass against pre-refresh metadata baseline
+  `0c8292168fd2e782f5447cd86e412be71db0cc79`.
 - This follow-up fixer commit refreshes `THREAD_PACKET.md` and `THREAD.md` and
   also includes the in-worktree command-catalog/test alignment already present
   in this lane worktree before the gate rerun.
