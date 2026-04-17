@@ -33,6 +33,12 @@
 4. This metadata-only fixer commit keeps the operative packet in `THREAD_PACKET.md` aligned with the reviewer-required AGENTS demo-path mapping for this narrowed slice.
 5. The operative handoff now carries that AGENTS mapping in a dedicated `Canonical demo-path step advanced` section so re-review no longer depends on implied plan alignment.
 
+## Packet mirror status
+
+- `THREAD_PACKET.md` is the operative re-review handoff in this worktree.
+- The tracked `.codex` packet mirrors for this lane are present for traceability but are filesystem-protected in this environment, so this fixer pass does not mutate them.
+- Re-review should use this operative packet as the source of truth for the reviewer-required AGENTS demo-path mapping and narrowed implementation scope.
+
 ## Tasks completed
 
 1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves only through the canonical FTS-backed lookup path.
