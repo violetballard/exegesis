@@ -1,10 +1,10 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet refresh role: `reviewer-fix canonical-step correction`
-- Current branch head before this fixer commit: `c162148380388589a552b1d722889d0fca9f5bdf`
-- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Packet refresh role: `reviewer-fix traceability correction`
+- Current branch head before this fixer commit: `c59f89132c1e24cacd4e8c5b0bfc6df0d5455cad`
+- Latest runtime implementation head in that branch state: `c162148380388589a552b1d722889d0fca9f5bdf`
+- Re-review branch-tip range before this fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..c59f89132c1e24cacd4e8c5b0bfc6df0d5455cad`
 
 ## Scope goal
 
@@ -12,25 +12,35 @@
 
 ## Scope completed
 
-- The reviewed implementation range keeps SQLite FTS authoritative for this MVP lane.
-- The excerpt lookup surface now stays on the canonical FTS-only path, so PageIndex-only excerpt IDs fail closed instead of promoting a non-canonical runtime fallback.
-- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs now raise `KeyError` through the canonical retrieval surface.
+- The reviewed branch state keeps SQLite FTS authoritative for this MVP lane.
+- The excerpt lookup surface stays on the canonical FTS-only path, so PageIndex-only excerpt IDs fail closed instead of promoting a non-canonical runtime fallback.
+- Ranked retrieval doc/excerpt ids are carried into basket-promotion metadata so downstream consumers can preserve authoritative FTS ordering.
+- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` exercises the canonical retrieval contract.
 
 ## Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This reviewed slice makes that step more real by ensuring excerpt lookup resolves only through the authoritative FTS-backed path and fails closed for PageIndex-only excerpt IDs.
+- This branch state makes that step more real by ensuring excerpt lookup resolves only through the authoritative FTS-backed path and by preserving the ranked retrieval ids that downstream basket-promotion consumers need.
 - The immediate downstream step it supports is `promote or gather context into the basket`, but this packet remains scoped to the retrieval step itself.
 
 ## Tasks completed
 
-1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
-2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
+1. Kept excerpt lookup on the canonical FTS-only path so PageIndex-only excerpt ids fail closed through the public retrieval surface.
+2. Normalized retrieval payload, provenance, and source-bundle snapshots so downstream engine consumers receive deterministic FTS-first metadata.
+3. Preserved authoritative FTS shortlist and ranking data in basket-promotion metadata, including ranked retrieval doc ids and excerpt ids for downstream promotion flows.
+4. Kept approved shared regression coverage in `tests/unit/test_unified_retrieval.py` aligned with the canonical retrieval contract.
 
 ## Files changed
 
-### Reviewed implementation files
+### Reviewed implementation files in the branch-tip range
 
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/embeddings_strategy.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/interface.py`
+- `src/qual/engine/retrieval/pageindex_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
@@ -56,8 +66,8 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` because this reviewed slice keeps the engine retrieval path FTS-first, deterministic, and auditable.
-- `feat-retrieval-fts - retrieval/search` because this reviewed slice preserves the lane's authoritative excerpt lookup contract.
+- `Milestone 3: Real workflow loop` because this branch state keeps the engine retrieval path FTS-first, deterministic, and auditable.
+- `feat-retrieval-fts - retrieval/search` because this branch state preserves the lane's authoritative retrieval contract.
 
 ### Vision capability affected
 
@@ -67,7 +77,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This reviewed slice makes that step more real by ensuring excerpt lookup only succeeds through the authoritative FTS-backed path with deterministic provenance suitable for later basket promotion.
+- This branch state makes that step more real by ensuring excerpt lookup only succeeds through the authoritative FTS-backed path and by preserving ranked retrieval ids for later basket promotion.
 
 ### Routing/provider impact note
 
@@ -81,7 +91,7 @@
 
 ## Traceability note
 
-- Re-review should anchor to the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-- This packet intentionally keeps the scope narrow to the reviewer-requested implementation slice rather than broadening back into cumulative branch-summary language.
-- Reviewer fix status: the canonical demo-path step is stated explicitly as `retrieve relevant material`, and the narrowed scope text is limited to the fail-closed FTS excerpt lookup slice.
+- The prior packet was stale because it claimed `c162148380388589a552b1d722889d0fca9f5bdf` was metadata-only and did not describe the real branch tip `c59f89132c1e24cacd4e8c5b0bfc6df0d5455cad`.
+- Re-review should anchor to the branch-tip range `378cf9a74a3658058079a32f186fcd254c4a4034..c59f89132c1e24cacd4e8c5b0bfc6df0d5455cad`.
+- Treat `c162148380388589a552b1d722889d0fca9f5bdf` as reviewed runtime implementation, not as a metadata-only packet refresh.
 - Use the final HEAD SHA reported with this fixer handoff for the post-fix branch tip.
