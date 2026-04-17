@@ -9,8 +9,8 @@ older lane/fixer prompts.
 ## Reviewer Fix Alignment
 
 - Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
-- Current metadata refresh baseline: `72e0e9950d36d5cac577d996954de9a156ea2c08`
-  before this final verification-only packet refresh commit.
+- Current metadata refresh baseline: `bc7d97bd7c764c959858cfc25aefa7889d48121f`
+  before this final verified packet refresh commit.
 - This refresh explicitly satisfies the reviewer's REQUIRED FIXES by naming the
   canonical demo-path steps advanced and keeping the scope tied to the current
   Milestone 3 engine-first CLI loop only.
@@ -18,7 +18,7 @@ older lane/fixer prompts.
   `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
   real and smoke-testable.
 - Runtime fix verification: this final fixer pass confirmed that branch tip
-  `72e0e9950d36d5cac577d996954de9a156ea2c08` already includes the reviewer-
+  `bc7d97bd7c764c959858cfc25aefa7889d48121f` already includes the reviewer-
   required parser-surface implementation through runtime commit
   `36a360a9464d2f08f55129bc70e1aafe4574721b`.
 - Canonical demo-path steps advanced: `project-open`, `retrieval`,
