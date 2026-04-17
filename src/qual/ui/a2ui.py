@@ -151,8 +151,7 @@ class A2UISessionStore:
         self._by_session: dict[str, A2UICapabilities] = {}
 
     def register(self, session_id: str, capabilities: A2UICapabilities) -> None:
-        validate_capabilities(capabilities)
-        self._by_session[session_id] = _canonicalize_capabilities(capabilities)
+        self._by_session[session_id] = normalize_capabilities(capabilities)
 
     def get(self, session_id: str) -> A2UICapabilities:
         if session_id not in self._by_session:
@@ -290,22 +289,40 @@ def describe_a2ui_contract() -> dict[str, Any]:
 
 
 def _canonicalize_capabilities(capabilities: A2UICapabilities) -> A2UICapabilities:
-    """Snapshot a validated handshake into immutable tuple-backed fields.
+    """Snapshot a validated handshake into immutable, canonical fields.
 
     ``validate_capabilities`` accepts either lists or tuples so callers can
     build the payload naturally, but the session store should retain a stable
-    immutable copy once the handshake is negotiated.
+    immutable copy once the handshake is negotiated. Supported sequences are
+    reordered into the contract's canonical sequence so equivalent handshakes
+    collapse to the same stored snapshot.
     """
 
     return A2UICapabilities(
         a2ui_version=capabilities.a2ui_version,
-        client_name=capabilities.client_name,
-        cards_supported=tuple(capabilities.cards_supported),
-        primitive_blocks_supported=tuple(capabilities.primitive_blocks_supported),
-        actions_supported=tuple(capabilities.actions_supported),
+        client_name=capabilities.client_name.strip(),
+        cards_supported=_canonicalize_supported_sequence(
+            capabilities.cards_supported,
+            canonical_order=_SPECIALIZED_CARD_TYPES,
+        ),
+        primitive_blocks_supported=_canonicalize_supported_sequence(
+            capabilities.primitive_blocks_supported,
+            canonical_order=REQUIRED_PRIMITIVE_BLOCKS,
+        ),
+        actions_supported=_canonicalize_supported_sequence(
+            capabilities.actions_supported,
+            canonical_order=ALLOWED_ACTION_IDS,
+        ),
         max_payload_bytes=capabilities.max_payload_bytes,
         supports_streaming=capabilities.supports_streaming,
     )
+
+
+def normalize_capabilities(capabilities: A2UICapabilities) -> A2UICapabilities:
+    """Return the canonical, immutable snapshot for an A2UI capability handshake."""
+
+    validate_capabilities(capabilities)
+    return _canonicalize_capabilities(capabilities)
 
 
 def describe_a2ui_contract_fingerprints(
@@ -1798,6 +1815,23 @@ def _build_a2ui_capabilities_field_contracts() -> list[dict[str, Any]]:
             "description": "streaming support flag",
         },
     ]
+
+
+def _canonicalize_supported_sequence(
+    values: tuple[str, ...],
+    *,
+    canonical_order: tuple[str, ...],
+) -> tuple[str, ...]:
+    order_index = {value: index for index, value in enumerate(canonical_order)}
+    return tuple(
+        sorted(
+            values,
+            key=lambda value: (
+                order_index.get(value, len(order_index)),
+                value,
+            ),
+        )
+    )
 
 
 def a2ui_contract_fingerprint() -> str:

@@ -10,6 +10,7 @@ from src.qual.ui.a2ui import (
     A2UI_ACTION_SCHEMA_VERSION,
     A2UI_CAPABILITIES_SCHEMA_VERSION,
     A2UICapabilities,
+    A2UISessionStore,
     ActionRef,
     CARD_CONTRACT_VERSION,
     SELECTION_SCHEMA_VERSION,
@@ -42,6 +43,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_rendering_contract_fingerprints,
     describe_terminal_fallback_contract,
     build_terminal_artifact_envelope,
+    normalize_capabilities,
     normalize_terminal_artifact_payload,
     engine_prepare_card,
     render_terminal_action,
@@ -215,6 +217,55 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             with self.subTest(section=section_name):
                 self.assertEqual(manifest["contract_fingerprint"], expected_fingerprint)
                 self.assertEqual(manifest[alias_key], expected_fingerprint)
+
+    def test_a2ui_capabilities_normalize_to_canonical_snapshots(self) -> None:
+        capabilities = A2UICapabilities(
+            a2ui_version=1,
+            client_name="  Exegesis Studio  ",
+            cards_supported=("RunLogCard", "EvidenceCard"),
+            primitive_blocks_supported=(
+                "ProgressBlock",
+                "MarkdownBlock",
+                "TableBlock",
+                "KeyValueBlock",
+                "ListBlock",
+                "CodeBlock",
+                "AlertBlock",
+            ),
+            actions_supported=("copy_to_clipboard", "export_document", "apply_patch"),
+            max_payload_bytes=1_000_000,
+            supports_streaming=True,
+        )
+
+        normalized = normalize_capabilities(capabilities)
+        store = A2UISessionStore()
+        store.register("session-1", capabilities)
+        stored = store.get("session-1")
+
+        from src.qual.ui import normalize_capabilities as exported_normalize_capabilities
+
+        self.assertIs(exported_normalize_capabilities, normalize_capabilities)
+        self.assertEqual(capabilities.client_name, "  Exegesis Studio  ")
+        self.assertEqual(normalized.client_name, "Exegesis Studio")
+        self.assertEqual(normalized.cards_supported, ("EvidenceCard", "RunLogCard"))
+        self.assertEqual(
+            normalized.primitive_blocks_supported,
+            (
+                "MarkdownBlock",
+                "KeyValueBlock",
+                "ListBlock",
+                "TableBlock",
+                "AlertBlock",
+                "ProgressBlock",
+                "CodeBlock",
+            ),
+        )
+        self.assertEqual(
+            normalized.actions_supported,
+            ("apply_patch", "export_document", "copy_to_clipboard"),
+        )
+        self.assertEqual(stored, normalized)
+        self.assertIsNot(stored, capabilities)
 
     def test_terminal_artifact_cli_fallback_target_contract_is_versioned_and_fingerprintable(self) -> None:
         manifest = describe_terminal_artifact_cli_fallback_target_contract()
