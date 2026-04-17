@@ -10,6 +10,27 @@
 
 - Tighten the narrowed FTS-first excerpt lookup contract so only FTS-backed excerpt ids resolve through the public retrieval surface.
 
+## Thread Kickoff (High-Risk)
+
+- Branch: `codex/feat-retrieval-fts`
+- Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
+- Scope goal: Tighten the narrowed FTS-first excerpt lookup contract so only FTS-backed excerpt ids resolve through the public retrieval surface.
+- Risk reason: the reviewed implementation range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so this handoff must satisfy the shared/high-risk packet requirements.
+
+### Budget
+
+- Task budget: `4`
+- Time budget: `30m`
+- Size limits: `<=8 files`, `<=300 net LOC`
+- Max fix attempts per failing gate: `2`
+
+### Checkpoint Status
+
+- `plan complete`: scoped this fixer pass to reviewer-requested packet compliance only, with the reviewed implementation range kept fixed at `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- `first green tests`: all required gates for the narrowed handoff were already green and are re-run on this metadata-only fixer pass before final handoff.
+- `before risky/shared file edit`: no new risky/shared code edit was needed for this fixer pass; the only shared-file work in the reviewed implementation range remains the already approved regression coverage in `tests/unit/test_unified_retrieval.py`.
+- `ready for handoff`: this operative handoff now carries the AGENTS-required demo-path mapping, high-risk kickoff fields, and checkpoint record requested by review.
+
 ## Budget classification
 
 - Shared/high-risk handoff under the `4`-task cap because the reviewed implementation range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
