@@ -49,6 +49,14 @@ _TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE: tuple[str, ...] = (
     "render_terminal_card",
 )
 
+_TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS: tuple[tuple[str, str], ...] = (
+    ("terminal_artifact", "render_terminal_artifact"),
+    ("card", "render_terminal_card"),
+    ("action", "render_terminal_action"),
+    ("selection", "render_terminal_selection"),
+    ("cli_fallback", "render_terminal_cli_fallback"),
+)
+
 ALLOWED_ACTION_IDS: tuple[str, ...] = (
     "apply_patch",
     "reject_patch",
@@ -1493,6 +1501,12 @@ def _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest() -> 
     }
 
 
+def _build_terminal_artifact_renderer_entrypoints() -> dict[str, str]:
+    """Return the canonical renderer-entrypoint map shared by A2UI manifests."""
+
+    return {entrypoint: renderer for entrypoint, renderer in _TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS}
+
+
 def _build_terminal_artifact_cli_fallback_route_contract_fingerprints() -> dict[str, str]:
     return {
         "render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
@@ -1929,13 +1943,7 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
         "render_target_contract": render_target_contract,
         "terminal_artifact_render_target_contract": _snapshot_contract_section(render_target_contract),
         "terminal_artifact_kind_contracts_fingerprint": terminal_artifact_kind_contracts_fingerprint(),
-        "renderer_entrypoints": {
-            "terminal_artifact": "render_terminal_artifact",
-            "card": "render_terminal_card",
-            "action": "render_terminal_action",
-            "selection": "render_terminal_selection",
-            "cli_fallback": "render_terminal_cli_fallback",
-        },
+        "renderer_entrypoints": _build_terminal_artifact_renderer_entrypoints(),
         "render_target_resolver": "resolve_terminal_artifact_render_target",
         "fallback_renderer": "ShellUI.render_artifact",
         "raw_leaf_card_default": _build_terminal_artifact_raw_leaf_card_default_manifest(),
@@ -1981,8 +1989,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest(
     resolver_failure_policy = _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()
     kind_contracts = _build_terminal_artifact_kind_contracts()
     terminal_artifact_kind_contracts = _snapshot_contract_section(kind_contracts)
-    renderer_entrypoints = copy.deepcopy(rendering_contract["renderer_entrypoints"])
-    renderer_entrypoints["cli_fallback"] = "render_terminal_cli_fallback"
+    renderer_entrypoints = _build_terminal_artifact_renderer_entrypoints()
 
     manifest = {
         "contract_version": A2UI_CONTRACT_VERSION,
@@ -2003,6 +2010,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest(
         "render_target_contract": render_target_contract,
         "terminal_artifact_render_target_contract": _snapshot_contract_section(render_target_contract),
         "renderer_entrypoints": renderer_entrypoints,
+        "renderer_entrypoints_fingerprint": _fingerprint_manifest_section(renderer_entrypoints),
         "route_precedence": list(_TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE),
         "rendering": rendering_contract,
         "terminal_artifact_rendering": _snapshot_contract_section(rendering_contract),
@@ -2024,12 +2032,6 @@ def _build_terminal_artifact_cli_fallback_contract_manifest(
         "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint": terminal_artifact_cli_fallback_target_contract[
             "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"
         ],
-        "renderer_entrypoints": _snapshot_contract_section(
-            terminal_artifact_cli_fallback_target_contract["renderer_entrypoints"]
-        ),
-        "renderer_entrypoints_fingerprint": _fingerprint_manifest_section(
-            terminal_artifact_cli_fallback_target_contract["renderer_entrypoints"]
-        ),
         "raw_leaf_card_default": _build_terminal_artifact_raw_leaf_card_default_manifest(),
         "raw_leaf_card_default_contract": raw_leaf_card_default_contract,
         "terminal_artifact_raw_leaf_card_default_contract": _snapshot_contract_section(
@@ -2129,13 +2131,7 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
         "terminal_artifact_render_target_contract_fingerprint": terminal_artifact_render_target_contract[
             "contract_fingerprint"
         ],
-        "renderer_entrypoints": {
-            "terminal_artifact": "render_terminal_artifact",
-            "cli_fallback": "render_terminal_cli_fallback",
-            "card": "render_terminal_card",
-            "action": "render_terminal_action",
-            "selection": "render_terminal_selection",
-        },
+        "renderer_entrypoints": _build_terminal_artifact_renderer_entrypoints(),
         "preserve_raw_leaf_card_default": True,
         "raw_leaf_required_fields": ["id", "label", "payload"],
         "raw_leaf_hint_fields": {

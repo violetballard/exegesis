@@ -77,6 +77,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_raw_leaf_card_default_contract_fingerprint,
     terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint,
     terminal_artifact_render_target_contract_fingerprint,
+    _build_terminal_artifact_renderer_entrypoints,
     terminal_artifact_kind_resolution_fingerprint,
     terminal_artifact_fallback_recovery_fingerprint,
     terminal_artifact_rendering_contract_fingerprint,
@@ -309,16 +310,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["fallback_target_resolver"], "resolve_terminal_artifact_cli_fallback_target")
         self.assertEqual(manifest["fallback_renderer"], "ShellUI.render_artifact")
         self.assertEqual(manifest["allowed_actions"], sorted(ALLOWED_ACTION_IDS))
-        self.assertEqual(
-            manifest["renderer_entrypoints"],
-            {
-                "terminal_artifact": "render_terminal_artifact",
-                "cli_fallback": "render_terminal_cli_fallback",
-                "card": "render_terminal_card",
-                "action": "render_terminal_action",
-                "selection": "render_terminal_selection",
-            },
-        )
+        self.assertEqual(manifest["renderer_entrypoints"], _build_terminal_artifact_renderer_entrypoints())
         self.assertEqual(manifest["supported_kinds"], list(TERMINAL_ARTIFACT_SUPPORTED_KINDS))
         self.assertEqual(manifest["default_kind"], TERMINAL_ARTIFACT_DEFAULT_KIND)
         self.assertTrue(manifest["preserve_raw_leaf_card_default"])
@@ -1997,16 +1989,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["terminal_artifact_render_target_contract"],
             describe_terminal_artifact_render_target_contract(),
         )
-        self.assertEqual(
-            manifest["renderer_entrypoints"],
-            {
-                "terminal_artifact": "render_terminal_artifact",
-                "cli_fallback": "render_terminal_cli_fallback",
-                "card": "render_terminal_card",
-                "action": "render_terminal_action",
-                "selection": "render_terminal_selection",
-            },
-        )
+        self.assertEqual(manifest["renderer_entrypoints"], _build_terminal_artifact_renderer_entrypoints())
         self.assertEqual(manifest["render_target_resolver"], "resolve_terminal_artifact_render_target")
         self.assertEqual(manifest["fallback_renderer"], "ShellUI.render_artifact")
         self.assertEqual(manifest["render_target_contract"], describe_terminal_artifact_render_target_contract())
