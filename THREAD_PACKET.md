@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet refresh role: `reviewer-fix canonical-step correction`
-- Current branch head before this fixer commit: `4ca63c1d5095b298f8e50669261eb99d6b5d8a13`
+- Current branch head before this fixer commit: `c162148380388589a552b1d722889d0fca9f5bdf`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
@@ -63,6 +63,11 @@
 
 - `Retrieval-first context handling`
 - `Auditable state and workflow`
+
+### Canonical demo-path step advanced
+
+- `retrieve relevant material`
+- This reviewed slice makes that step more real by ensuring excerpt lookup only succeeds through the authoritative FTS-backed path with deterministic provenance suitable for later basket promotion.
 
 ### Routing/provider impact note
 
