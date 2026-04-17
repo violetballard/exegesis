@@ -9,10 +9,10 @@ older lane/fixer prompts.
 ## Reviewer Fix Alignment
 
 - Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
-- Current metadata refresh baseline: `ba3daa1fca9b6fa8a44c52cde00249f1d908c25f`
+- Current metadata refresh baseline: `92c70939eefa5411bd3a683b091f9610ab06d124`
   before this final verification-only packet refresh commit.
 - Runtime fix verification: this final fixer pass confirmed that branch tip
-  `ba3daa1fca9b6fa8a44c52cde00249f1d908c25f` already includes the reviewer-
+  `92c70939eefa5411bd3a683b091f9610ab06d124` already includes the reviewer-
   required parser-surface implementation through runtime commit
   `36a360a9464d2f08f55129bc70e1aafe4574721b`.
 - Canonical demo-path steps advanced: `project-open`, `retrieval`,
