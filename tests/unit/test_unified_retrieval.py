@@ -1408,6 +1408,55 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["basket_promotion"]["query_confidentiality_profile"], "confidential")
         self.assertEqual(excerpt["basket_promotion"]["section_hint"], "coding")
 
+    def test_retrieve_fts_excerpt_drops_stale_saved_query_context_after_doc_update(self) -> None:
+        stable_prefix = (
+            "memo coding comparison excerpt anchor. "
+            "This excerpt should keep the same span and text after the document metadata changes. "
+        )
+        trailing_body = " ".join(f"tail-{index:03d}" for index in range(80))
+        base_text = stable_prefix + trailing_body
+        self.service.add_or_update_document(
+            doc_id="doc-stale-context",
+            doc_type="memo",
+            title_hint="Stale Context Memo",
+            text=base_text,
+        )
+
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="excerpt anchor",
+                scope="doc:doc-stale-context",
+                intent="lookup",
+                constraints=RetrievalConstraints(max_results=2),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+        original_source_hash = result.hits[0].provenance["source_hash"]
+
+        self.service.add_or_update_document(
+            doc_id="doc-stale-context",
+            doc_type="memo",
+            title_hint="Renamed Context Memo",
+            text=base_text + " " + " ".join(f"appended-{index:03d}" for index in range(40)),
+        )
+
+        excerpt = self.service.retrieve_fts_excerpt(excerpt_id or "")
+
+        self.assertEqual(excerpt["doc_id"], "doc-stale-context")
+        self.assertEqual(excerpt["excerpt_id"], excerpt_id)
+        self.assertNotEqual(excerpt["source_hash"], original_source_hash)
+        self.assertIsNone(excerpt.get("query_fingerprint"))
+        self.assertIsNone(excerpt.get("query_scope"))
+        self.assertIsNone(excerpt.get("query_intent"))
+        self.assertIsNone(excerpt.get("candidate_doc_count"))
+        self.assertIsNone(excerpt["basket_promotion"].get("query_fingerprint"))
+        self.assertIsNone(excerpt["basket_promotion"].get("query_scope"))
+        self.assertEqual(excerpt["basket_promotion"]["retrieved_doc_ids"], ["doc-stale-context"])
+        self.assertEqual(excerpt["basket_promotion"]["retrieved_excerpt_ids"], [excerpt_id])
+
     def test_retrieve_auto_excerpt_routes_to_canonical_fts_lookup(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

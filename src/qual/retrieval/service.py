@@ -2822,6 +2822,7 @@ class RetrievalService:
             text = str(row["text"])
             text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
             doc_id = str(row["doc_id"])
+            source_hash = self._doc_source_hash(doc_id)
             excerpt_context = self._load_excerpt_context(excerpt_id, doc_id=doc_id)
             provenance = self._build_fts_provenance(
                 doc_id=doc_id,
@@ -2862,7 +2863,7 @@ class RetrievalService:
                         str(row["title_hint"] or ""),
                         confidentiality_profile=confidentiality_profile,
                     ),
-                    "source_hash": self._doc_source_hash(doc_id),
+                    "source_hash": source_hash,
                     "source_strategy": "fts",
                     "span": {"char_range": {"start": int(row["char_start"]), "end": int(row["char_end"])}},
                     "text": text,
@@ -2904,6 +2905,7 @@ class RetrievalService:
                 "query_confidentiality_profile": query.confidentiality_profile,
                 "query_date_range": copy.deepcopy(query_date_range),
                 "candidate_doc_count": candidate_doc_count,
+                "source_hash": hit.provenance.get("source_hash") or self._doc_source_hash(hit.doc_id),
                 "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
                 "retrieved_doc_ids": list(retrieved_doc_ids),
                 "retrieved_excerpt_ids": list(retrieved_excerpt_ids),
@@ -2934,6 +2936,11 @@ class RetrievalService:
         stored_doc_id = _optional_text(context.get("doc_id"))
         if stored_doc_id is not None and stored_doc_id != doc_id:
             return None
+        stored_source_hash = _optional_text(context.get("source_hash"))
+        if stored_source_hash is not None:
+            current_source_hash = self._doc_source_hash(doc_id)
+            if current_source_hash and current_source_hash != stored_source_hash:
+                return None
         return copy.deepcopy(context)
 
     def _build_fts_provenance(
