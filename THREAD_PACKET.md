@@ -3,12 +3,14 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `35d77e99bca54d97e51a6a4b98abdb389156799e`
-- Packet refresh role: `feature-fixer required-fixes verification refresh v5`
+- Packet refresh role: `feature-fixer required-fixes verification refresh v6`
 
 ## Packet Traceability Note
 
 - The implementation commit above refers to the current runtime fix commit for this lane, which carries the reviewer-required command-surface hardening and the current default `demo` / `mvp` command-flow contract on branch tip.
 - This packet refresh keeps the handoff wording aligned with the current implementation and records a fresh required-fixes verification rerun for the reviewer-fix branch tip.
+- Feature-fixer verification refresh v6: revalidated on April 16, 2026 (America/Los_Angeles) that this handoff stays narrowly scoped to the canonical demo path by naming the exact `open project/document` step hardened by the `bootstrap` CLI contract, without broadening the reviewed implementation slice.
+- Feature-fixer verification refresh v6 gates: re-ran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on April 16, 2026 at 20:20:53 PDT after the packet-only refresh, and all required gates passed on branch tip.
 - Feature-fixer verification refresh v5: re-ran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on April 16, 2026 at 20:17:59 PDT, and confirmed the current branch-tip implementation commit remains `35d77e99bca54d97e51a6a4b98abdb389156799e`.
 - Final verification refresh: re-ran the required gate suite on April 16, 2026 (America/Los_Angeles) after confirming the reviewer-required demo-path alignment remains explicit in this branch-tip handoff.
 - Feature-fixer verification refresh v4: re-ran the full required gate suite on April 16, 2026 at 20:00:25 PDT and confirmed the branch tip already contains the reviewer-required parser-surface drift guard, alias-only drift coverage, and explicit `open project/document` demo-path mapping.
@@ -43,11 +45,13 @@
 
 - Canonical demo-path step advanced: `open project/document`.
 - Canonical demo-path step this work now makes more real before handoff: `open project/document`.
+- Current MVP-loop framing for re-review: this is CLI contract hardening for the first canonical demo-path step, not a general command-surface expansion. The protected surface is the `bootstrap` fallback that operators use to `open project/document` before the later `retrieve relevant material` and `preview/apply or reject a patch` steps.
 - Exact re-review claim: this slice hardens the deterministic CLI contract around the `bootstrap` entrypoint that fronts the current `open project/document` step, and it does not claim broader workflow completion outside that command-contract surface.
 - Why this exact step: `bootstrap` is the command-backed entrypoint for `open project/document`, and this change keeps that operator-facing surface canonical, drift-resistant, and smoke-testable while Textual remains disabled.
 - AGENTS alignment statement: this slice makes `open project/document` more real by keeping the fallback CLI entrypoint explicit, canonically ordered, and safe from silent parser/catalog drift.
 - Concrete blocker removed: before this hardening, parser/catalog drift could silently change which canonical command surface backed `bootstrap`; after this hardening, that drift fails fast instead of weakening the operator-facing `open project/document` step.
 - Scope-tightening note: this is command-contract hardening only. It does not claim broader retrieval behavior, patch workflow behavior, audit behavior, or UI capability expansion.
+- Scope-tightening restatement for reviewer alignment: the only claimed workflow impact is that the active CLI-first MVP loop now has a drift-resistant `bootstrap` entrypoint for `open project/document`; the packet does not claim that this slice implements or completes `retrieve`, `patch-review`, or `save and continue`.
 - Reviewer fix note: this section exists specifically to satisfy the requested re-review correction to name the exact canonical demo-path step advanced by the handoff.
 
 ## Definition of Done for This Lane
