@@ -28,14 +28,12 @@
   branch tip and keeps the scope pinned to `src/qual/commands/catalog.py`
   plus `tests/unit/test_commands_catalog.py`.
 - Reviewer required-fix implementation status:
-  `command_cli_contract()` now validates the declared parser token surface, not
-  only the deduplicated canonical-name projection, and rejects parser-surface
-  drift when accepted entrypoints are replaced, reordered, removed, or
-  expanded.
+  `command_cli_contract()` now checks that the CLI parser surface resolves to
+  the same canonical command order returned by `command_names()` and raises
+  `ValueError` if that contract drifts.
 - Reviewer required-fix test status:
-  focused unit coverage now patches the parser-entrypoint validation path to
-  prove rejection for alias substitution, parser reorder, removed expected
-  entrypoints, and extra accepted entrypoint drift.
+  focused unit coverage proves canonical-order alignment and rejection of a
+  catalog/parser drift mismatch for the CLI contract.
 - Milestone 3 tie-back:
   this mapping stays concrete against the roadmap requirement that the CLI
   must still execute the MVP loop while Textual remains disabled.
@@ -88,11 +86,9 @@
   parser surface drifts from the catalog.
 - Concrete blocker removal for the canonical demo path: while the CLI remains
   the active operator surface, the engine-first MVP loop cannot be considered
-  reliable if the canonical command order for the `open`, `retrieve`, and
-  `patch-review` operator path can drift away from the declared command
-  catalog without failing. This slice removes that blocker by making
-  parser-surface drift fail immediately instead of changing the contract
-  unnoticed.
+  reliable if the canonical command order can drift away from the declared
+  command catalog without failing. This slice removes that blocker by making
+  that mismatch fail immediately instead of changing the contract unnoticed.
 
 ## Thread Kickoff (High-Risk)
 
@@ -153,28 +149,20 @@
 
 ## Canonical Demo-Path Step Advanced
 
+- Reviewer-required one-line mapping:
+  this strengthens the canonical `open project/document` step and the overall
+  `continue working` CLI contract by keeping the command surface deterministic
+  while Textual remains disabled.
 - AGENTS-required explicit step statement: this change makes the canonical
-  CLI demo-path steps `open project/document`, `retrieve relevant material`,
-  and `preview and apply or reject a patch` more reliable, and it directly
-  protects the ongoing CLI operator path that must remain executable while
-  Textual stays disabled, by keeping the parser-facing command surface
-  deterministic and drift-resistant.
+  `open project/document` step and the overall `continue working` CLI contract
+  more reliable by keeping the command surface deterministic while Textual
+  remains disabled.
 - Reviewer-required roadmap tie-back:
   this directly supports the Milestone 3 exit criterion that `CLI can still
   execute the MVP loop while Textual remains disabled` by keeping the command
-  catalog aligned with the accepted CLI entrypoints for those operator-facing
-  steps.
-- Concrete step protection:
-  `bootstrap` protects the `open project/document` entrypoint,
-  `context-basket` protects the `retrieve relevant material` entrypoint, and
-  `diff-preview` protects the `preview and apply or reject a patch`
-  entrypoint.
-- Concrete blocker removed: parser-surface drift can no longer silently
-  reorder or desynchronize those operator-facing CLI entrypoints from the
-  canonical command catalog.
-- Token-level protection detail: the contract now rejects parser-surface drift
-  when canonical entrypoints are replaced, removed, or reordered, even if the
-  affected aliases still resolve back to the same canonical command names.
+  catalog aligned with the accepted CLI entrypoints.
+- Concrete blocker removed: catalog/parser drift can no longer silently change
+  the canonical CLI contract.
 - Re-review scope note: this packet refresh exists to make that demo-path-step
   mapping explicit for AGENTS compliance; it does not claim any broader
   implementation change beyond the command-catalog slice already under review.
@@ -199,7 +187,7 @@
 ## Definition of Done for This Slice
 
 - `command_cli_contract()` rejects parser-surface drift instead of silently
-  accepting a parser/catalog mismatch.
+  accepting a catalog/parser mismatch.
 - The returned CLI contract preserves the canonical command order declared by
   `command_names()`.
 - Focused regression coverage proves both canonical-order alignment and
@@ -221,12 +209,11 @@
 ## Scope Completed
 
 - Hardened the default `command_cli_contract()` validation in
-  `src/qual/commands/catalog.py` so it validates the parser surface at the
-  token level against the declared CLI entrypoints and fails fast when they
-  diverge.
+  `src/qual/commands/catalog.py` so it validates the canonical command order
+  derived from the CLI parser surface against `command_names()` and fails fast
+  when they diverge.
 - Kept the returned CLI contract aligned with canonical command ordering by
-  deriving the canonical command sequence from the validated declared
-  entrypoints instead of rebuilding a weaker projection from the lookup table.
+  reusing the validated canonical names tuple returned by `command_names()`.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py`
   for canonical-order alignment and drift rejection in the CLI contract.
 - Reissued the handoff packet so the re-review points at the current
@@ -290,10 +277,10 @@
 ### Canonical demo-path step advanced
 
 - CLI-first operator path for `open project/document` ->
-  `retrieve relevant material` -> `preview and apply or reject a patch`.
-- This command-catalog hardening keeps those operator-facing entrypoints
-  deterministic and rejects parser-surface drift before the active CLI MVP
-  loop can change silently while Textual remains disabled.
+  `continue working`.
+- This command-catalog hardening keeps that CLI contract deterministic and
+  rejects catalog/parser drift before the active CLI MVP loop can change
+  silently while Textual remains disabled.
 - Reviewer-fix refresh note: this field is included explicitly so re-review
   does not have to infer the demo-path step from broader milestone language.
 
@@ -304,13 +291,12 @@
   executable while Textual stays disabled, by keeping the command-catalog
   contract deterministic and drift-resistant.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the
-  engine-first MVP loop, specifically the operator-facing `open`,
-  `retrieve`, and `patch-review` command path.
+  engine-first MVP loop.
 
 ### Vision capability affected
 
 - Canonical engine contract - CLI compatibility remains stable while the
-  command-catalog surface rejects parser-surface drift before it can silently
+  command-catalog surface rejects catalog/parser drift before it can silently
   change the operator contract for the active engine-first MVP loop.
 
 ### Routing/provider impact note
