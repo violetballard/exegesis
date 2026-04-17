@@ -5,6 +5,7 @@ engine's retrieval orchestration code.
 """
 
 from collections.abc import Iterable, Mapping
+from importlib import import_module
 
 from src.qual.engine.retrieval.fts_strategy import FTSStrategy
 from src.qual.engine.retrieval.interface import RetrievalStrategy, StrategyRun
@@ -180,124 +181,89 @@ def primary_strategy_id() -> str:
     return _primary_strategy_id()
 
 
-def retrieve_fts_context_bundle(*args, **kwargs):
-    from src.qual.retrieval import retrieve_fts_context_bundle as _retrieve_fts_context_bundle
+def _delegate_to_retrieval(name: str, *args, **kwargs):
+    retrieval_module = import_module("src.qual.retrieval")
+    return getattr(retrieval_module, name)(*args, **kwargs)
 
-    return _retrieve_fts_context_bundle(*args, **kwargs)
+
+def retrieve_fts_context_bundle(*args, **kwargs):
+    return _delegate_to_retrieval("retrieve_fts_context_bundle", *args, **kwargs)
 
 
 def retrieve_fts_citation_bundle(*args, **kwargs):
-    from src.qual.retrieval import retrieve_fts_citation_bundle as _retrieve_fts_citation_bundle
-
-    return _retrieve_fts_citation_bundle(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_fts_citation_bundle", *args, **kwargs)
 
 
 def retrieve_fts_source_bundle(*args, **kwargs):
-    from src.qual.retrieval import retrieve_fts_source_bundle as _retrieve_fts_source_bundle
-
-    return _retrieve_fts_source_bundle(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_fts_source_bundle", *args, **kwargs)
 
 
 def retrieve_fts_provenance_bundle(*args, **kwargs):
-    from src.qual.retrieval import retrieve_fts_provenance_bundle as _retrieve_fts_provenance_bundle
-
-    return _retrieve_fts_provenance_bundle(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_fts_provenance_bundle", *args, **kwargs)
 
 
 def retrieve_fts_doc_bundle(*args, **kwargs):
-    from src.qual.retrieval import retrieve_fts_doc_bundle as _retrieve_fts_doc_bundle
-
-    return _retrieve_fts_doc_bundle(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_fts_doc_bundle", *args, **kwargs)
 
 
 def retrieve_fts_excerpt_bundle(*args, **kwargs):
-    from src.qual.retrieval import retrieve_fts_excerpt_bundle as _retrieve_fts_excerpt_bundle
-
-    return _retrieve_fts_excerpt_bundle(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_fts_excerpt_bundle", *args, **kwargs)
 
 
 def retrieve_fts_excerpt(*args, **kwargs):
-    from src.qual.retrieval import retrieve_fts_excerpt as _retrieve_fts_excerpt
-
-    return _retrieve_fts_excerpt(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_fts_excerpt", *args, **kwargs)
 
 
 def fetch_fts_excerpt(*args, **kwargs):
-    from src.qual.retrieval import fetch_fts_excerpt as _fetch_fts_excerpt
-
-    return _fetch_fts_excerpt(*args, **kwargs)
+    return _delegate_to_retrieval("fetch_fts_excerpt", *args, **kwargs)
 
 
 def fetch_excerpt(*args, **kwargs):
-    from src.qual.retrieval import fetch_excerpt as _fetch_excerpt
-
-    return _fetch_excerpt(*args, **kwargs)
+    return _delegate_to_retrieval("fetch_excerpt", *args, **kwargs)
 
 
 def retrieve_auto_excerpt(*args, **kwargs):
-    from src.qual.retrieval import retrieve_auto_excerpt as _retrieve_auto_excerpt
-
-    return _retrieve_auto_excerpt(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_auto_excerpt", *args, **kwargs)
 
 
 def retrieve_fts_payload(*args, **kwargs):
-    from src.qual.retrieval import retrieve_fts_payload as _retrieve_fts_payload
-
-    return _retrieve_fts_payload(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_fts_payload", *args, **kwargs)
 
 
 def retrieve_fts(*args, **kwargs):
-    from src.qual.retrieval import retrieve_fts as _retrieve_fts
-
-    return _retrieve_fts(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_fts", *args, **kwargs)
 
 
 def retrieve_auto(*args, **kwargs):
-    from src.qual.retrieval import retrieve_auto as _retrieve_auto
-
-    return _retrieve_auto(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_auto", *args, **kwargs)
 
 
 def retrieve_auto_context_bundle(*args, **kwargs):
-    from src.qual.retrieval import retrieve_auto_context_bundle as _retrieve_auto_context_bundle
-
-    return _retrieve_auto_context_bundle(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_auto_context_bundle", *args, **kwargs)
 
 
 def retrieve_auto_citation_bundle(*args, **kwargs):
-    from src.qual.retrieval import retrieve_auto_citation_bundle as _retrieve_auto_citation_bundle
-
-    return _retrieve_auto_citation_bundle(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_auto_citation_bundle", *args, **kwargs)
 
 
 def retrieve_auto_source_bundle(*args, **kwargs):
-    from src.qual.retrieval import retrieve_auto_source_bundle as _retrieve_auto_source_bundle
-
-    return _retrieve_auto_source_bundle(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_auto_source_bundle", *args, **kwargs)
 
 
 def retrieve_auto_provenance_bundle(*args, **kwargs):
-    from src.qual.retrieval import retrieve_auto_provenance_bundle as _retrieve_auto_provenance_bundle
-
-    return _retrieve_auto_provenance_bundle(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_auto_provenance_bundle", *args, **kwargs)
 
 
 def retrieve_auto_doc_bundle(*args, **kwargs):
-    from src.qual.retrieval import retrieve_auto_doc_bundle as _retrieve_auto_doc_bundle
-
-    return _retrieve_auto_doc_bundle(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_auto_doc_bundle", *args, **kwargs)
 
 
 def retrieve_auto_excerpt_bundle(*args, **kwargs):
-    from src.qual.retrieval import retrieve_auto_excerpt_bundle as _retrieve_auto_excerpt_bundle
-
-    return _retrieve_auto_excerpt_bundle(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_auto_excerpt_bundle", *args, **kwargs)
 
 
 def retrieve_auto_payload(*args, **kwargs):
-    from src.qual.retrieval import retrieve_auto_payload as _retrieve_auto_payload
-
-    return _retrieve_auto_payload(*args, **kwargs)
+    return _delegate_to_retrieval("retrieve_auto_payload", *args, **kwargs)
 
 
 __all__ = [

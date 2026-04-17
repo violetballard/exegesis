@@ -24,7 +24,7 @@ def _build_retrieval_query(
     constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> RetrievalQuery:
-    return engine_build_retrieval_query(
+    return build_retrieval_query(
         query_text=query_text,
         scope=scope,
         intent=intent,
