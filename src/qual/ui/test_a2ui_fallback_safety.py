@@ -3621,6 +3621,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["entrypoints"],
             {
                 "render_artifact": "ShellUI.render_artifact",
+                "render_cli_fallback": "ShellUI.render_cli_fallback",
                 "render_startup": "ShellUI.render_startup",
             },
         )
@@ -3653,6 +3654,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             embedded["entrypoints"],
             {
                 "render_artifact": "ShellUI.render_artifact",
+                "render_cli_fallback": "ShellUI.render_cli_fallback",
                 "render_startup": "ShellUI.render_startup",
             },
         )
@@ -3742,6 +3744,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_renderer_entrypoints_contract_fingerprint(),
         )
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
+
+    def test_shell_ui_render_cli_fallback_matches_shared_cli_fallback_renderer(self) -> None:
+        shell = ShellUI()
+        artifact = {
+            "type": "TerminalArtifact",
+            "kind": "action",
+            "artifact": {
+                "type": "ActionRef",
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "json"},
+            },
+        }
+
+        self.assertEqual(
+            shell.render_cli_fallback(artifact, kind="action"),
+            render_terminal_cli_fallback(artifact, kind="action"),
+        )
+        self.assertEqual(
+            shell.render_cli_fallback(artifact),
+            render_terminal_cli_fallback(artifact),
+        )
 
     def test_shell_ui_contract_can_opt_in_to_cli_fallback_route_contract(self) -> None:
         default_manifest = describe_shell_ui_contract()

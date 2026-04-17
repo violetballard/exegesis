@@ -51,6 +51,7 @@ SHELL_UI_STARTUP_FIELDS: tuple[str, ...] = (
 )
 SHELL_UI_ENTRYPOINTS: tuple[tuple[str, str], ...] = (
     ("render_artifact", "ShellUI.render_artifact"),
+    ("render_cli_fallback", "ShellUI.render_cli_fallback"),
     ("render_startup", "ShellUI.render_startup"),
 )
 SHELL_UI_STARTUP_PREVIEW_LIMIT = 3
@@ -151,6 +152,11 @@ class ShellUI:
             return render_terminal_card(fallback_artifact)
         except Exception:
             return _render_invalid_terminal_card(fallback_artifact)
+
+    def render_cli_fallback(self, artifact: Any, *, kind: str | None = None) -> str:
+        """Render an A2UI artifact through the explicit CLI fallback entrypoint."""
+
+        return render_terminal_cli_fallback(artifact, kind=kind)
 
     def render_startup(self, runtime: EngineRuntime) -> str:
         item_ids = self._snapshot_item_ids(runtime.basket.item_ids)
