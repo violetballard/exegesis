@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (reviewed implementation slice)
-- Packet refresh role: `feature-fixer final reviewer-required verification refresh`
+- Packet refresh role: `feature-fixer final reviewer-required gate rerun refresh`
 - Packet refresh date: `2026-04-17`
 
 ## Packet Traceability Note
@@ -67,6 +67,11 @@
 - Final gate-rerun record:
   this packet refresh now captures the clean post-fix rerun on the current
   branch tip immediately before commit creation on `2026-04-17`.
+- Final gate-rerun detail:
+  repeated `python -m unittest tests.unit.test_commands_catalog -q`,
+  `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`,
+  `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed again
+  on the branch tip used for this final fixer handoff refresh.
 - Feature-fixer refresh note:
   this packet refresh is metadata-only and records that the current branch tip
   already contains the reviewer-required command-catalog contract fix plus the

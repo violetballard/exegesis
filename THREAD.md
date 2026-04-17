@@ -10,6 +10,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Revalidated on `2026-04-17` with passing `make scope-check`,
   `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`,
   `./typecheck-test.sh`, and `make ci`.
+- Final fixer rerun on `2026-04-17` also repeated
+  `python -m unittest tests.unit.test_commands_catalog -q` and confirmed the
+  focused parser-surface drift coverage is still green on the handoff commit path.
 - This pointer refresh records the final same-day feature-fixer verification
   on the current branch tip so the handoff packet carries fresh gate evidence
   for the reviewer-required demo-path mapping fix.
