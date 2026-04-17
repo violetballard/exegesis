@@ -243,6 +243,15 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprint"] = manifest[
         "terminal_artifact_raw_leaf_card_default_fingerprint"
     ]
+    terminal_artifact_raw_leaf_card_default_policy_contract = _snapshot_contract_section(
+        terminal_artifact_contract["terminal_artifact_raw_leaf_card_default_policy_contract"]
+    )
+    manifest["terminal_artifact_raw_leaf_card_default_policy_contract"] = (
+        terminal_artifact_raw_leaf_card_default_policy_contract
+    )
+    manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint"] = (
+        terminal_artifact_raw_leaf_card_default_policy_contract["contract_fingerprint"]
+    )
     terminal_artifact_envelope = _snapshot_contract_section(terminal_artifact_contract["terminal_artifact_envelope_contract"])
     manifest["terminal_artifact_envelope"] = terminal_artifact_envelope
     manifest["terminal_artifact_envelope_contract"] = terminal_artifact_envelope
@@ -367,6 +376,12 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["terminal_artifact_raw_leaf_card_default_contract"] = (
             terminal_artifact_raw_leaf_card_default_contract_fingerprint()
         )
+        fingerprints["terminal_artifact_raw_leaf_card_default_policy"] = (
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint()
+        )
+        fingerprints["terminal_artifact_raw_leaf_card_default_policy_contract"] = (
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint()
+        )
     return fingerprints
 
 
@@ -444,6 +459,17 @@ def describe_terminal_artifact_raw_leaf_card_default_contract() -> dict[str, Any
     manifest["raw_leaf_card_default_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     manifest["raw_leaf_card_default_contract_fingerprints"] = describe_terminal_artifact_raw_leaf_card_default_contract_fingerprints()
+    return manifest
+
+
+def describe_terminal_artifact_raw_leaf_card_default_policy_contract() -> dict[str, Any]:
+    """Return the stable raw-leaf card default policy contract manifest."""
+
+    manifest = _build_terminal_artifact_raw_leaf_card_default_policy_contract_manifest()
+    fingerprint = terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint()
+    manifest["raw_leaf_card_default_policy_fingerprint"] = fingerprint
+    manifest["raw_leaf_card_default_policy_contract_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
     return manifest
 
 
@@ -1087,6 +1113,10 @@ def _build_terminal_artifact_contract_manifest(*, include_contract_fingerprints:
         "raw_leaf_card_default_policy": copy.deepcopy(
             cli_fallback_target_contract["raw_leaf_card_default_policy"]
         ),
+        "terminal_artifact_raw_leaf_card_default_policy_contract": _snapshot_contract_section(
+            describe_terminal_artifact_raw_leaf_card_default_policy_contract()
+        ),
+        "terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint": terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
         "terminal_fallback_contract": {
             "kind": "card",
             "contract_fingerprint": terminal_fallback_contract_fingerprint(),
@@ -1224,6 +1254,10 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "raw_leaf_card_default_policy": copy.deepcopy(
             terminal_artifact_cli_fallback_target_contract["raw_leaf_card_default_policy"]
         ),
+        "terminal_artifact_raw_leaf_card_default_policy_contract": _snapshot_contract_section(
+            describe_terminal_artifact_raw_leaf_card_default_policy_contract()
+        ),
+        "terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint": terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
         "kind_resolution": copy.deepcopy(render_target_contract["kind_resolution"]),
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
         "kind_policy": {
@@ -1334,6 +1368,21 @@ def _build_terminal_artifact_raw_leaf_card_default_policy_manifest() -> dict[str
         "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
         "preserve_when_kind_is_unset": True,
         "invalid_kind_treated_as_absent": True,
+    }
+
+
+def _build_terminal_artifact_raw_leaf_card_default_policy_contract_manifest() -> dict[str, Any]:
+    raw_leaf_card_default_policy = _build_terminal_artifact_raw_leaf_card_default_policy_manifest()
+    return {
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
+        "terminal_artifact_raw_leaf_card_default_schema_version": TERMINAL_ARTIFACT_RAW_LEAF_CARD_DEFAULT_SCHEMA_VERSION,
+        "terminal_artifact_raw_leaf_card_default_policy_version": TERMINAL_ARTIFACT_RAW_LEAF_CARD_DEFAULT_SCHEMA_VERSION,
+        "type": "TerminalArtifactRawLeafCardDefaultPolicyContract",
+        "default_kind": raw_leaf_card_default_policy["default_kind"],
+        "preserve_when_kind_is_unset": raw_leaf_card_default_policy["preserve_when_kind_is_unset"],
+        "invalid_kind_treated_as_absent": raw_leaf_card_default_policy["invalid_kind_treated_as_absent"],
     }
 
 
@@ -1633,6 +1682,13 @@ def terminal_artifact_raw_leaf_card_default_contract_fingerprint() -> str:
     """Return a stable fingerprint for the raw-leaf card default contract manifest."""
 
     manifest = _build_terminal_artifact_raw_leaf_card_default_contract_manifest()
+    return _fingerprint_manifest_section(manifest)
+
+
+def terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the raw-leaf card default policy manifest."""
+
+    manifest = _build_terminal_artifact_raw_leaf_card_default_policy_contract_manifest()
     return _fingerprint_manifest_section(manifest)
 
 

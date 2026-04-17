@@ -34,6 +34,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_contract,
     describe_terminal_artifact_raw_leaf_card_default_contract,
     describe_terminal_artifact_raw_leaf_card_default_contract_fingerprints,
+    describe_terminal_artifact_raw_leaf_card_default_policy_contract,
     describe_terminal_artifact_render_target_contract,
     describe_terminal_artifact_render_target_contract_fingerprints,
     describe_terminal_artifact_rendering_contract,
@@ -60,6 +61,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_cli_fallback_contract_fingerprint,
     terminal_artifact_cli_fallback_target_contract_fingerprint,
     terminal_artifact_raw_leaf_card_default_contract_fingerprint,
+    terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint,
     terminal_artifact_render_target_contract_fingerprint,
     terminal_artifact_rendering_contract_fingerprint,
     terminal_artifact_kind_contracts_fingerprint,
@@ -783,6 +785,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints["terminal_artifact_raw_leaf_card_default_contract"],
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_raw_leaf_card_default_policy"],
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_raw_leaf_card_default_policy_contract"],
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
         )
         self.assertEqual(fingerprints["capabilities"], a2ui_capabilities_contract_fingerprint())
         self.assertEqual(
@@ -1581,8 +1591,24 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["terminal_artifact_cli_fallback_target"]["raw_leaf_card_default_policy"],
         )
         self.assertEqual(
+            manifest["terminal_artifact_raw_leaf_card_default_policy_contract"],
+            describe_terminal_artifact_raw_leaf_card_default_policy_contract(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint"],
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        )
+        self.assertEqual(
             a2ui_manifest["terminal_artifact"]["raw_leaf_card_default_policy"],
             manifest["raw_leaf_card_default_policy"],
+        )
+        self.assertEqual(
+            a2ui_manifest["terminal_artifact_raw_leaf_card_default_policy_contract"],
+            describe_terminal_artifact_raw_leaf_card_default_policy_contract(),
+        )
+        self.assertEqual(
+            a2ui_manifest["terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint"],
+            terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
         )
         self.assertEqual(manifest["render_target_contract"], describe_terminal_artifact_render_target_contract())
         self.assertEqual(
