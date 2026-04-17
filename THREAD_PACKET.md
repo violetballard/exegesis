@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (reviewed implementation slice)
-- Packet refresh role: `feature-fixer reviewer-required re-review gate refresh`
+- Packet refresh role: `feature-fixer final reviewer-required gate rerun`
 - Packet refresh date: `2026-04-17`
 
 ## Packet Traceability Note
@@ -60,6 +60,9 @@
   reran the full required gate suite on the current branch tip immediately
   before this metadata refresh so the re-review packet records fresh evidence
   for the reviewer-required demo-path alignment fix.
+- Final gate-rerun record:
+  this packet refresh now captures the clean post-fix rerun on the current
+  branch tip immediately before commit creation on `2026-04-17`.
 - Feature-fixer refresh note:
   this packet refresh is metadata-only and records that the current branch tip
   already contains the reviewer-required command-catalog contract fix plus the
