@@ -3519,14 +3519,79 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         manifest = describe_shell_ui_contract()
         target_contract = describe_terminal_artifact_cli_fallback_target_contract()
         route_fingerprint = terminal_artifact_cli_fallback_route_contract_fingerprint()
+        shell_fingerprint = shell_ui_contract_fingerprint()
 
         self.assertEqual(manifest["contract_version"], 2)
         self.assertEqual(manifest["a2ui_version"], 1)
         self.assertEqual(manifest["shell_ui_schema_version"], SHELL_UI_CONTRACT_VERSION)
         self.assertEqual(manifest["shell_ui_version"], SHELL_UI_CONTRACT_VERSION)
         self.assertEqual(manifest["type"], "ShellUIContract")
-        self.assertEqual(manifest["contract_fingerprint"], shell_ui_contract_fingerprint())
-        self.assertEqual(manifest["shell_ui_fingerprint"], shell_ui_contract_fingerprint())
+        self.assertEqual(manifest["contract_fingerprint"], shell_fingerprint)
+        self.assertEqual(manifest["shell_ui_fingerprint"], shell_fingerprint)
+        self.assertIsNot(manifest["shell_ui_contract"], manifest)
+        self.assertEqual(
+            manifest["shell_ui_contract"],
+            {
+                "contract_version": 2,
+                "a2ui_version": 1,
+                "shell_ui_schema_version": SHELL_UI_CONTRACT_VERSION,
+                "shell_ui_version": SHELL_UI_CONTRACT_VERSION,
+                "type": "ShellUIContract",
+                "entrypoints": manifest["entrypoints"],
+                "entrypoints_fingerprint": manifest["entrypoints_fingerprint"],
+                "entrypoints_contract": manifest["entrypoints_contract"],
+                "entrypoints_contract_fingerprint": manifest["entrypoints_contract_fingerprint"],
+                "startup_fields": manifest["startup_fields"],
+                "startup_fields_contract": manifest["startup_fields_contract"],
+                "startup_fields_contract_fingerprint": manifest["startup_fields_contract_fingerprint"],
+                "startup_preview": manifest["startup_preview"],
+                "startup_preview_contract": manifest["startup_preview_contract"],
+                "startup_preview_contract_fingerprint": manifest["startup_preview_contract_fingerprint"],
+                "terminal_artifact_cli_fallback_entrypoint": "render_terminal_cli_fallback",
+                "terminal_artifact_cli_fallback_entrypoint_contract": "render_terminal_cli_fallback",
+                "terminal_artifact_cli_fallback_entrypoint_fingerprint": _fingerprint_manifest_section(
+                    "render_terminal_cli_fallback"
+                ),
+                "terminal_artifact_cli_fallback_entrypoint_contract_fingerprint": _fingerprint_manifest_section(
+                    "render_terminal_cli_fallback"
+                ),
+                "terminal_artifact_cli_fallback_target": manifest["terminal_artifact_cli_fallback_target"],
+                "terminal_artifact_cli_fallback_target_fingerprint": manifest[
+                    "terminal_artifact_cli_fallback_target_fingerprint"
+                ],
+                "terminal_artifact_cli_fallback_target_contract": manifest[
+                    "terminal_artifact_cli_fallback_target_contract"
+                ],
+                "terminal_artifact_cli_fallback_target_contract_fingerprint": manifest[
+                    "terminal_artifact_cli_fallback_target_contract_fingerprint"
+                ],
+                "terminal_artifact_cli_fallback_route_fingerprint": manifest[
+                    "terminal_artifact_cli_fallback_route_fingerprint"
+                ],
+                "terminal_artifact_cli_fallback_route_contract_fingerprint": manifest[
+                    "terminal_artifact_cli_fallback_route_contract_fingerprint"
+                ],
+                "terminal_artifact_cli_fallback_target_contract_fingerprints": manifest[
+                    "terminal_artifact_cli_fallback_target_contract_fingerprints"
+                ],
+                "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint": manifest[
+                    "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"
+                ],
+                "terminal_artifact_cli_fallback_contract": manifest["terminal_artifact_cli_fallback_contract"],
+                "terminal_artifact_cli_fallback_contract_fingerprint": manifest[
+                    "terminal_artifact_cli_fallback_contract_fingerprint"
+                ],
+                "terminal_artifact_renderer_entrypoints_contract": manifest[
+                    "terminal_artifact_renderer_entrypoints_contract"
+                ],
+                "terminal_artifact_renderer_entrypoints_contract_fingerprint": manifest[
+                    "terminal_artifact_renderer_entrypoints_contract_fingerprint"
+                ],
+                "contract_fingerprints": manifest["contract_fingerprints"],
+                "contract_fingerprints_fingerprint": manifest["contract_fingerprints_fingerprint"],
+            },
+        )
+        self.assertEqual(manifest["shell_ui_contract_fingerprint"], shell_fingerprint)
         self.assertEqual(
             manifest["entrypoints"],
             {
@@ -3715,11 +3780,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         manifest = describe_shell_ui_contract()
         fingerprints = describe_shell_ui_contract_fingerprints()
         target_contract = describe_terminal_artifact_cli_fallback_target_contract()
+        shell_fingerprint = shell_ui_contract_fingerprint()
 
         self.assertIs(
             exported_shell_ui_contract_fingerprints,
             describe_shell_ui_contract_fingerprints,
         )
+        self.assertEqual(fingerprints["shell_ui_contract_fingerprint"], shell_fingerprint)
+        self.assertEqual(fingerprints["shell_ui_fingerprint"], shell_fingerprint)
         self.assertEqual(manifest["contract_fingerprints"], fingerprints)
         self.assertEqual(
             manifest["contract_fingerprints_fingerprint"],

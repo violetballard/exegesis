@@ -633,7 +633,12 @@ def describe_shell_ui_contract_fingerprints(
     terminal_artifact_renderer_entrypoints_contract_fingerprint_value = (
         terminal_artifact_renderer_entrypoints_contract_fingerprint()
     )
+    shell_ui_contract_fingerprint_value = shell_ui_contract_fingerprint(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
     fingerprints = {
+        "shell_ui_contract_fingerprint": shell_ui_contract_fingerprint_value,
+        "shell_ui_fingerprint": shell_ui_contract_fingerprint_value,
         "entrypoints": _fingerprint_manifest_section(entrypoints),
         "entrypoints_contract": _fingerprint_manifest_section(entrypoints),
         "startup_fields": _fingerprint_manifest_section(startup_fields),
@@ -693,13 +698,15 @@ def describe_shell_ui_contract(
     contract_fingerprints = describe_shell_ui_contract_fingerprints(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
-    manifest["contract_fingerprints"] = dict(contract_fingerprints)
-    manifest["contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(contract_fingerprints)
-    manifest["startup_fields_fingerprint"] = contract_fingerprints["startup_fields"]
-    manifest["startup_preview_fingerprint"] = contract_fingerprints["startup_preview"]
     fingerprint = shell_ui_contract_fingerprint(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
+    manifest["contract_fingerprints"] = dict(contract_fingerprints)
+    manifest["contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(contract_fingerprints)
+    manifest["shell_ui_contract"] = dict(manifest)
+    manifest["shell_ui_contract_fingerprint"] = fingerprint
+    manifest["startup_fields_fingerprint"] = contract_fingerprints["startup_fields"]
+    manifest["startup_preview_fingerprint"] = contract_fingerprints["startup_preview"]
     manifest["shell_ui_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     return manifest
