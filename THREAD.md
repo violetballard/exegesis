@@ -9,7 +9,7 @@ older lane/fixer prompts.
 ## Reviewer Fix Alignment
 
 - Active implementation review target: `19ab31af48134d155c1eb782bd0ba95a5c25a268`.
-- Current feature-fixer refresh baseline: `0c8292168fd2e782f5447cd86e412be71db0cc79`
+- Current feature-fixer refresh baseline: `4eda73af717792efd109926d7e51e4dc8aef3f42`
   before this final gate-verified packet refresh commit.
 - Final reviewer-fix metadata refresh on `2026-04-17`: this compatibility
   pointer records a new final verifier refresh after confirming that the prior
@@ -20,9 +20,13 @@ older lane/fixer prompts.
 - This refresh explicitly satisfies the reviewer's REQUIRED FIXES by naming the
   canonical demo-path steps advanced and keeping the scope tied to the current
   Milestone 3 engine-first CLI loop only.
+- Feature-fixer closure refresh on `2026-04-17`: this metadata-only pointer
+  refresh exists so branch `codex/feat-commands` carries a new post-review
+  commit that explicitly closes Required Fixes 1-3 from the reviewer packet
+  without changing the reviewed runtime implementation slice.
 - This final gate-verified refresh was run on `2026-04-17` after a fresh full-gate
   pass against pre-refresh metadata baseline
-  `0c8292168fd2e782f5447cd86e412be71db0cc79`.
+  `4eda73af717792efd109926d7e51e4dc8aef3f42`.
 - This work explicitly advances the canonical demo path by making the CLI-first
   `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
   real and smoke-testable.
@@ -64,7 +68,7 @@ older lane/fixer prompts.
 - Final verifier note: reran `make scope-check`, `./quality-format.sh --check`,
   `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
   `make ci` on `2026-04-17` against branch tip
-  `0c8292168fd2e782f5447cd86e412be71db0cc79`, which already included
+  `4eda73af717792efd109926d7e51e4dc8aef3f42`, which already included
   implementation tip `19ab31af48134d155c1eb782bd0ba95a5c25a268`, before
   creating this refresh commit.
 - Approval artifact for the non-owned test path: the reviewer packet supplied

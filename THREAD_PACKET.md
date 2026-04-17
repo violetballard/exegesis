@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `19ab31af48134d155c1eb782bd0ba95a5c25a268`
-- Packet refresh commit: `0c8292168fd2e782f5447cd86e412be71db0cc79` (metadata refresh baseline before this final feature-fixer handoff refresh)
+- Packet refresh commit: `4eda73af717792efd109926d7e51e4dc8aef3f42` (reviewer-packet baseline before this final feature-fixer handoff refresh)
 - Packet refresh role: `feature-fixer reviewer-required follow-up gate-verified handoff refresh`
 
 ## Packet Traceability Note
@@ -20,6 +20,10 @@
   corrections, keeps the claimed scope narrowed to Milestone 3 CLI-contract
   hardening only, and records a fresh full-gate verification pass for this
   fixer turn.
+- Feature-fixer closure refresh on `2026-04-17`: this metadata-only handoff
+  refresh exists so branch `codex/feat-commands` carries a new post-review
+  commit that explicitly closes Required Fixes 1-3 from the reviewer packet
+  without changing the reviewed runtime implementation slice.
 
 ## Current Program Focus
 
@@ -127,7 +131,7 @@
   enforced in this branch, and this final reviewer-fix verification pass.
 - Recorded that this final gate-verified refresh was run on `2026-04-17`
   after a fresh full-gate pass against pre-refresh metadata baseline
-  `0c8292168fd2e782f5447cd86e412be71db0cc79`.
+  `4eda73af717792efd109926d7e51e4dc8aef3f42`.
 - This final fixer commit refreshes `THREAD_PACKET.md` and `THREAD.md` and
   also includes the in-worktree command-catalog/test alignment already present
   in this lane worktree before the gate rerun.
@@ -155,8 +159,8 @@
 - Final verifier note for this commit: reran `make scope-check`,
   `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`,
   `./typecheck-test.sh`, and `make ci` on `2026-04-17` against implementation
-  tip `19ab31af48134d155c1eb782bd0ba95a5c25a268` plus metadata refresh baseline
-  `e4a2016bdd79d51458e4ae27a799662caa9d6482` before creating this handoff
+  tip `19ab31af48134d155c1eb782bd0ba95a5c25a268` plus reviewer-packet baseline
+  `4eda73af717792efd109926d7e51e4dc8aef3f42` before creating this handoff
   refresh commit.
 
 ## Kickoff Budget / Limits Compliance
