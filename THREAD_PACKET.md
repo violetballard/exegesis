@@ -10,7 +10,7 @@
 - The reviewed implementation scope is the real branch-tip command change at `e724470e3d3305b7f7ec38f1e818602aa6d9485a`.
 - That implementation commit is not metadata-only: it changes `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 - This packet refresh commit is metadata-only and exists only to correct the review traceability, scope summary, and roadmap/vision mapping around that implementation commit.
-- The approved shared-test exception remains limited to `tests/unit/test_commands_catalog.py`.
+- The approved shared-test exception remains limited to `tests/unit/test_commands_catalog.py`, the exact `feat-commands` shared-test path recorded in `scripts/scope-check.sh`.
 
 ## Current Program Focus
 
@@ -60,7 +60,7 @@
 
 ## High-Risk Rationale
 
-- This handoff uses the high-risk template because it tightens the public CLI contract and includes the approved shared-test file `tests/unit/test_commands_catalog.py`.
+- This handoff uses the high-risk template because it tightens the public CLI contract and includes `tests/unit/test_commands_catalog.py`, the shared test explicitly approved for `codex/feat-commands` in `scripts/scope-check.sh`.
 - Scope remains narrow: command-catalog demo-path shim metadata and validation only.
 - Non-goals confirmed: no engine logic changes, no routing/provider changes, and no broader CLI UX expansion.
 
@@ -78,14 +78,15 @@
 
 ## Approved Exception Note
 
-- Approved shared-test exception for `tests/unit/test_commands_catalog.py`. It is the only non-owned implementation path in the reviewed implementation commit.
+- Approved shared-test exception for `tests/unit/test_commands_catalog.py`; approval source: `scripts/scope-check.sh` records that exact file as the allowed shared test for `codex/feat-commands`.
+- It is the only non-owned implementation path in the reviewed implementation commit.
 
 ## Tasks Completed
 
 1. Added demo-path contract support for explicit surface-token invocation mappings.
 2. Validated that demo-path surface invocations stay aligned with the smoke contract surface.
 3. Added regression coverage for parser-ready patch-review and export-handoff shim invocations.
-4. Refreshed the handoff packet so the reviewed implementation commit, shared-test exception, and roadmap/vision mapping match the actual branch state.
+4. Refreshed the handoff packet so the reviewed implementation commit, roadmap/vision mapping, and traceable shared-test approval reference match the actual branch state.
 
 ## Files Changed
 
