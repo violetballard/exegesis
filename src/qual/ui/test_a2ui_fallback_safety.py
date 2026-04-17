@@ -2690,6 +2690,29 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(text, "cli-fallback")
         cli_fallback.assert_called_once_with(artifact, kind="card")
 
+    def test_shell_ui_prefers_the_explicit_cli_fallback_entrypoint_when_available(self) -> None:
+        shell = ShellUI()
+        artifact = {
+            "type": "GenericCard",
+            "title": " Fallback ",
+            "blocks": [],
+            "actions": [],
+        }
+
+        with patch(
+            "src.qual.ui.shell.render_terminal_cli_fallback",
+            return_value="cli-fallback",
+        ) as cli_fallback:
+            with patch(
+                "src.qual.ui.shell.render_terminal_artifact",
+                return_value="generic-fallback",
+            ) as generic_renderer:
+                text = shell.render_artifact(artifact)
+
+        self.assertEqual(text, "cli-fallback")
+        cli_fallback.assert_called_once_with(artifact, kind="card")
+        generic_renderer.assert_not_called()
+
     def test_shell_ui_keeps_raw_leaf_card_default_for_invalid_kind_hints_during_fallback(self) -> None:
         shell = ShellUI()
         raw_leaf = {

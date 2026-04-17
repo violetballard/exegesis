@@ -28,33 +28,28 @@ class ShellUI:
     """Minimal CLI shell used to verify bootstrap wiring."""
 
     def render_artifact(self, artifact: Any, *, kind: str | None = None) -> str:
-        try:
-            return render_terminal_artifact(artifact, kind=kind)
-        except Exception:
-            normalized_kind = self._normalize_fallback_kind(kind)
-            if (
-                normalized_kind == "card"
-                and self._contains_action_or_selection_payload(artifact)
-            ):
-                # An explicit card hint should never render an action/selection leaf as a card.
-                return _render_invalid_terminal_card(artifact)
-            fallback_artifact: Any
-            fallback_kind: str | None
-            if normalized_kind is None and _should_preserve_raw_leaf_card_default(artifact):
-                # Raw leaves should stay on the card path when no valid leaf
-                # hint was provided, but still flow through the explicit CLI
-                # fallback entrypoint.
-                fallback_artifact = artifact
-                fallback_kind = "card"
-            else:
-                fallback_artifact = artifact
-                fallback_kind = None
+        normalized_kind = self._normalize_fallback_kind(kind)
+        if normalized_kind == "card" and self._contains_action_or_selection_payload(artifact):
+            # An explicit card hint should never render an action/selection leaf as a card.
+            return _render_invalid_terminal_card(artifact)
+        fallback_artifact: Any = artifact
+        fallback_kind: str | None
+        if normalized_kind is None and _should_preserve_raw_leaf_card_default(artifact):
+            # Raw leaves should stay on the card path when no valid leaf
+            # hint was provided, but still flow through the explicit CLI
+            # fallback entrypoint.
+            fallback_kind = "card"
+        else:
+            fallback_kind = None
         try:
             if fallback_kind is None:
-                fallback_artifact, fallback_kind = self._resolve_fallback_artifact(artifact, kind=kind)
+                fallback_artifact, fallback_kind = self._resolve_fallback_artifact(
+                    artifact,
+                    kind=kind,
+                )
         except Exception:
             fallback_artifact = artifact
-            fallback_kind = self._normalize_fallback_kind(kind)
+            fallback_kind = normalized_kind
             if fallback_kind is None:
                 fallback_kind = self._infer_fallback_kind(artifact)
         if (
@@ -66,6 +61,10 @@ class ShellUI:
             fallback_kind = "card"
         try:
             return render_terminal_cli_fallback(fallback_artifact, kind=fallback_kind)
+        except Exception:
+            pass
+        try:
+            return render_terminal_artifact(artifact, kind=kind)
         except Exception:
             pass
         if fallback_kind == "action":
