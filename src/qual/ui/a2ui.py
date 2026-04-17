@@ -41,6 +41,14 @@ _SPECIALIZED_CARD_TYPES: tuple[str, ...] = (
     "RunLogCard",
 )
 
+_TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE: tuple[str, ...] = (
+    "shared_target_resolver",
+    "shell_refinement",
+    "render_terminal_action",
+    "render_terminal_selection",
+    "render_terminal_card",
+)
+
 ALLOWED_ACTION_IDS: tuple[str, ...] = (
     "apply_patch",
     "reject_patch",
@@ -1949,6 +1957,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest(
         "render_target_contract": render_target_contract,
         "terminal_artifact_render_target_contract": _snapshot_contract_section(render_target_contract),
         "renderer_entrypoints": renderer_entrypoints,
+        "route_precedence": list(_TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE),
         "rendering": rendering_contract,
         "terminal_artifact_rendering": _snapshot_contract_section(rendering_contract),
         "terminal_artifact_rendering_contract": _snapshot_contract_section(rendering_contract),
@@ -2050,6 +2059,7 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
         "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
         "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
         "allowed_actions": sorted(ALLOWED_ACTION_IDS),
+        "route_precedence": list(_TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE),
         "render_target_contract": _snapshot_contract_section(render_target_contract),
         "terminal_artifact_render_target": terminal_artifact_render_target_contract,
         "terminal_artifact_render_target_contract": _snapshot_contract_section(
@@ -2146,13 +2156,7 @@ def _build_terminal_artifact_cli_fallback_route_contract_manifest() -> dict[str,
         "fallback_target_resolver": "resolve_terminal_artifact_cli_fallback_target",
         "fallback_renderer": "ShellUI.render_artifact",
         "allowed_actions": sorted(ALLOWED_ACTION_IDS),
-        "route_precedence": [
-            "shared_target_resolver",
-            "shell_refinement",
-            "render_terminal_action",
-            "render_terminal_selection",
-            "render_terminal_card",
-        ],
+        "route_precedence": list(_TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE),
         "render_target_contract": render_target_contract,
         "render_target_contract_fingerprint": render_target_contract["contract_fingerprint"],
         "terminal_artifact_render_target_contract": _snapshot_contract_section(render_target_contract),

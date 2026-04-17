@@ -371,6 +371,16 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             },
         )
         self.assertEqual(
+            manifest["route_precedence"],
+            [
+                "shared_target_resolver",
+                "shell_refinement",
+                "render_terminal_action",
+                "render_terminal_selection",
+                "render_terminal_card",
+            ],
+        )
+        self.assertEqual(
             manifest["kind_resolution"]["caller_kind_hint_policy"],
             {
                 "invalid_kind_treated_as_absent": True,
@@ -3092,6 +3102,9 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "render_terminal_card",
             ],
         )
+        self.assertEqual(manifest["route_precedence"], route_manifest["route_precedence"])
+        self.assertEqual(routed_manifest["route_precedence"], route_manifest["route_precedence"])
+        self.assertEqual(route_manifest["terminal_artifact_cli_fallback_target_contract"]["route_precedence"], route_manifest["route_precedence"])
         self.assertEqual(
             route_manifest["leaf_renderers"],
             {
@@ -3123,6 +3136,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             route_manifest["terminal_artifact_cli_fallback_target_contract_fingerprint"],
             terminal_artifact_cli_fallback_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            route_manifest["terminal_artifact_cli_fallback_target_contract"]["route_precedence"],
+            route_manifest["route_precedence"],
         )
         self.assertEqual(
             route_manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"],
