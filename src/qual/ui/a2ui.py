@@ -632,6 +632,28 @@ def describe_terminal_artifact_render_target_contract_fingerprints(
     return fingerprints
 
 
+def describe_terminal_artifact_kind_resolution_contract() -> dict[str, Any]:
+    """Return the stable terminal-artifact kind-resolution contract section."""
+
+    manifest = _build_terminal_artifact_kind_resolution_manifest()
+    fingerprint = terminal_artifact_kind_resolution_fingerprint()
+    manifest["kind_resolution_fingerprint"] = fingerprint
+    manifest["kind_resolution_contract_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
+    return manifest
+
+
+def describe_terminal_artifact_fallback_recovery_contract() -> dict[str, Any]:
+    """Return the stable terminal-artifact fallback-recovery contract section."""
+
+    manifest = _build_terminal_artifact_fallback_recovery_manifest()
+    fingerprint = terminal_artifact_fallback_recovery_fingerprint()
+    manifest["fallback_recovery_fingerprint"] = fingerprint
+    manifest["fallback_recovery_contract_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
+    return manifest
+
+
 def describe_terminal_artifact_rendering_contract() -> dict[str, Any]:
     """Return the stable terminal artifact rendering contract manifest."""
 

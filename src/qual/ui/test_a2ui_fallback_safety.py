@@ -37,6 +37,8 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_raw_leaf_card_default_contract_fingerprints,
     describe_terminal_artifact_raw_leaf_card_default_policy_contract,
     describe_terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints,
+    describe_terminal_artifact_kind_resolution_contract,
+    describe_terminal_artifact_fallback_recovery_contract,
     describe_terminal_artifact_render_target_contract,
     describe_terminal_artifact_render_target_contract_fingerprints,
     describe_terminal_artifact_rendering_contract,
@@ -1774,6 +1776,97 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints_with_self["terminal_artifact_raw_leaf_card_default_contract"],
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+        )
+
+    def test_terminal_artifact_kind_resolution_and_fallback_recovery_contract_sections_are_public_and_canonical(
+        self,
+    ) -> None:
+        kind_resolution = describe_terminal_artifact_kind_resolution_contract()
+        fallback_recovery = describe_terminal_artifact_fallback_recovery_contract()
+        render_target_manifest = describe_terminal_artifact_render_target_contract()
+        terminal_artifact_manifest = describe_terminal_artifact_contract()
+
+        from src.qual.ui import (
+            describe_terminal_artifact_fallback_recovery_contract as exported_fallback_recovery_contract,
+        )
+        from src.qual.ui import (
+            describe_terminal_artifact_kind_resolution_contract as exported_kind_resolution_contract,
+        )
+
+        self.assertIs(exported_kind_resolution_contract, describe_terminal_artifact_kind_resolution_contract)
+        self.assertIs(exported_fallback_recovery_contract, describe_terminal_artifact_fallback_recovery_contract)
+        kind_resolution_snapshot = {
+            key: value
+            for key, value in kind_resolution.items()
+            if key
+            not in {
+                "kind_resolution_fingerprint",
+                "kind_resolution_contract_fingerprint",
+                "contract_fingerprint",
+            }
+        }
+        fallback_recovery_snapshot = {
+            key: value
+            for key, value in fallback_recovery.items()
+            if key
+            not in {
+                "fallback_recovery_fingerprint",
+                "fallback_recovery_contract_fingerprint",
+                "contract_fingerprint",
+            }
+        }
+        self.assertEqual(kind_resolution_snapshot, render_target_manifest["kind_resolution"])
+        self.assertEqual(kind_resolution_snapshot, terminal_artifact_manifest["kind_resolution"])
+        self.assertEqual(
+            kind_resolution["contract_fingerprint"],
+            terminal_artifact_kind_resolution_fingerprint(),
+        )
+        self.assertEqual(
+            kind_resolution["kind_resolution_fingerprint"],
+            terminal_artifact_kind_resolution_fingerprint(),
+        )
+        self.assertEqual(
+            kind_resolution["kind_resolution_contract_fingerprint"],
+            terminal_artifact_kind_resolution_fingerprint(),
+        )
+        self.assertEqual(
+            kind_resolution["precedence"],
+            [
+                "validated envelope kind",
+                "typed payload kind",
+                "explicit caller kind hint",
+                "partial leaf hint recovery",
+                "schema-valid leaf payload recovery",
+                "card default",
+            ],
+        )
+        self.assertTrue(kind_resolution["card_payloads_override_conflicting_action_or_selection_hints"])
+        self.assertEqual(kind_resolution["partial_leaf_recovery"], render_target_manifest["kind_resolution"]["partial_leaf_recovery"])
+        self.assertEqual(fallback_recovery_snapshot, render_target_manifest["fallback_recovery"])
+        self.assertEqual(fallback_recovery_snapshot, terminal_artifact_manifest["fallback_recovery"])
+        self.assertEqual(
+            fallback_recovery["contract_fingerprint"],
+            terminal_artifact_fallback_recovery_fingerprint(),
+        )
+        self.assertEqual(
+            fallback_recovery["fallback_recovery_fingerprint"],
+            terminal_artifact_fallback_recovery_fingerprint(),
+        )
+        self.assertEqual(
+            fallback_recovery["fallback_recovery_contract_fingerprint"],
+            terminal_artifact_fallback_recovery_fingerprint(),
+        )
+        self.assertEqual(
+            fallback_recovery,
+            {
+                "malformed_card_envelopes": {
+                    "action": "normalize_action_ref",
+                    "selection": "normalize_selection_ref",
+                },
+                "fallback_recovery_fingerprint": terminal_artifact_fallback_recovery_fingerprint(),
+                "fallback_recovery_contract_fingerprint": terminal_artifact_fallback_recovery_fingerprint(),
+                "contract_fingerprint": terminal_artifact_fallback_recovery_fingerprint(),
+            },
         )
 
     def test_terminal_artifact_cli_fallback_contract_manifest_is_versioned_and_embedded_in_a2ui_contract(self) -> None:
