@@ -498,6 +498,7 @@ def _normalize_doc_hit_provenance_snapshot(provenance: object) -> dict[str, obje
         "doc_fingerprint",
         "doc_identity_fingerprint",
         "top_excerpt_id",
+        "top_excerpt_hash",
         "top_excerpt_fingerprint",
         "top_excerpt_provenance_fingerprint",
         "top_excerpt_text_hash",
@@ -505,7 +506,13 @@ def _normalize_doc_hit_provenance_snapshot(provenance: object) -> dict[str, obje
         field_value = _normalize_optional_text(normalized.get(field_name))
         if field_value is not None:
             normalized[field_name] = field_value
-    for field_name in ("doc_rank", "top_excerpt_rank", "top_section_hint_rank"):
+    top_excerpt_text_hash = _normalize_optional_text(
+        normalized.get("top_excerpt_text_hash") or normalized.get("top_excerpt_hash")
+    )
+    if top_excerpt_text_hash is not None:
+        normalized["top_excerpt_text_hash"] = top_excerpt_text_hash
+        normalized["top_excerpt_hash"] = top_excerpt_text_hash
+    for field_name in ("doc_rank", "top_excerpt_rank", "top_section_hint_rank", "top_match_count"):
         field_value = _normalize_optional_int(normalized.get(field_name))
         if field_value is not None:
             normalized[field_name] = field_value
@@ -525,6 +532,9 @@ def _normalize_doc_hit_provenance_snapshot(provenance: object) -> dict[str, obje
     top_matched_terms = normalized.get("top_matched_terms", normalized.get("matched_terms"))
     if top_matched_terms is not None:
         normalized["top_matched_terms"] = _normalize_text_list_like(top_matched_terms)
+        normalized["top_match_count"] = _normalize_optional_int(normalized.get("top_match_count")) or len(
+            normalized["top_matched_terms"]
+        )
     section_hint = _normalize_optional_text(normalized.get("section_hint"))
     if section_hint is not None:
         normalized["section_hint"] = section_hint
@@ -679,6 +689,7 @@ def _normalize_doc_hit_snapshot(hit: object) -> dict[str, object] | None:
         "doc_type",
         "doc_fingerprint",
         "doc_identity_fingerprint",
+        "top_excerpt_hash",
         "top_excerpt_fingerprint",
         "top_excerpt_provenance_fingerprint",
         "top_excerpt_text_hash",
@@ -686,6 +697,12 @@ def _normalize_doc_hit_snapshot(hit: object) -> dict[str, object] | None:
         field_value = _normalize_optional_text(normalized.get(field_name))
         if field_value is not None:
             normalized[field_name] = field_value
+    top_excerpt_text_hash = _normalize_optional_text(
+        normalized.get("top_excerpt_text_hash") or normalized.get("top_excerpt_hash")
+    )
+    if top_excerpt_text_hash is not None:
+        normalized["top_excerpt_text_hash"] = top_excerpt_text_hash
+        normalized["top_excerpt_hash"] = top_excerpt_text_hash
     query_scope = _normalize_query_scope(normalized.get("query_scope"))
     if query_scope is not None:
         normalized["query_scope"] = query_scope
@@ -703,7 +720,14 @@ def _normalize_doc_hit_snapshot(hit: object) -> dict[str, object] | None:
     top_excerpt_span = _normalize_span_snapshot(normalized.get("top_excerpt_span"))
     if top_excerpt_span is not None:
         normalized["top_excerpt_span"] = top_excerpt_span
-    for field_name in ("excerpt_count", "candidate_doc_count", "doc_rank", "top_excerpt_rank", "top_section_hint_rank"):
+    for field_name in (
+        "excerpt_count",
+        "candidate_doc_count",
+        "doc_rank",
+        "top_excerpt_rank",
+        "top_section_hint_rank",
+        "top_match_count",
+    ):
         field_value = _normalize_optional_int(normalized.get(field_name))
         if field_value is not None:
             normalized[field_name] = field_value
@@ -726,10 +750,15 @@ def _normalize_doc_hit_snapshot(hit: object) -> dict[str, object] | None:
     excerpt_ids = normalized.get("excerpt_ids")
     if excerpt_ids is not None:
         normalized["excerpt_ids"] = _normalize_text_list_like(excerpt_ids)
-    matched_terms = normalized.get("matched_terms", normalized.get("top_matched_terms"))
+    matched_terms = normalized.get("matched_terms")
     if matched_terms is not None:
         normalized["matched_terms"] = _normalize_text_list_like(matched_terms)
-        normalized["top_matched_terms"] = copy.deepcopy(normalized["matched_terms"])
+    top_matched_terms = normalized.get("top_matched_terms", normalized.get("matched_terms"))
+    if top_matched_terms is not None:
+        normalized["top_matched_terms"] = _normalize_text_list_like(top_matched_terms)
+        normalized["top_match_count"] = _normalize_optional_int(normalized.get("top_match_count")) or len(
+            normalized["top_matched_terms"]
+        )
     section_hint = _normalize_optional_text(normalized.get("section_hint"))
     if section_hint is not None:
         normalized["section_hint"] = section_hint
@@ -761,6 +790,7 @@ def _normalize_doc_hit_snapshot(hit: object) -> dict[str, object] | None:
                 "doc_fingerprint": normalized.get("doc_fingerprint"),
                 "doc_identity_fingerprint": normalized.get("doc_identity_fingerprint"),
                 "top_excerpt_id": normalized.get("top_excerpt_id"),
+                "top_excerpt_hash": normalized.get("top_excerpt_hash"),
                 "top_excerpt_fingerprint": normalized.get("top_excerpt_fingerprint"),
                 "top_excerpt_provenance_fingerprint": normalized.get("top_excerpt_provenance_fingerprint"),
                 "top_excerpt_text_hash": normalized.get("top_excerpt_text_hash"),
@@ -771,6 +801,7 @@ def _normalize_doc_hit_snapshot(hit: object) -> dict[str, object] | None:
                 "excerpt_ids": normalized.get("excerpt_ids"),
                 "matched_terms": normalized.get("matched_terms"),
                 "top_matched_terms": normalized.get("top_matched_terms"),
+                "top_match_count": normalized.get("top_match_count"),
                 "section_hint": normalized.get("section_hint"),
                 "top_section_hint_rank": normalized.get("top_section_hint_rank"),
                 "retrieval_backend": normalized.get("retrieval_backend"),

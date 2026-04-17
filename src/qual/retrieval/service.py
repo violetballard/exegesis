@@ -443,6 +443,7 @@ def _normalize_doc_hit_provenance_payload(provenance: object) -> dict[str, objec
         "doc_fingerprint",
         "doc_identity_fingerprint",
         "top_excerpt_id",
+        "top_excerpt_hash",
         "top_excerpt_fingerprint",
         "top_excerpt_provenance_fingerprint",
         "top_excerpt_text_hash",
@@ -450,6 +451,12 @@ def _normalize_doc_hit_provenance_payload(provenance: object) -> dict[str, objec
         field_value = _optional_text(normalized.get(field_name))
         if field_value is not None:
             normalized[field_name] = field_value
+    top_excerpt_text_hash = _optional_text(
+        normalized.get("top_excerpt_text_hash") or normalized.get("top_excerpt_hash")
+    )
+    if top_excerpt_text_hash is not None:
+        normalized["top_excerpt_text_hash"] = top_excerpt_text_hash
+        normalized["top_excerpt_hash"] = top_excerpt_text_hash
     doc_rank = _optional_int(normalized.get("doc_rank"))
     if doc_rank is not None:
         normalized["doc_rank"] = doc_rank
@@ -470,6 +477,10 @@ def _normalize_doc_hit_provenance_payload(provenance: object) -> dict[str, objec
     )
     if top_matched_terms is not None:
         normalized["top_matched_terms"] = top_matched_terms
+        normalized["top_match_count"] = len(top_matched_terms)
+    top_match_count = _optional_int(normalized.get("top_match_count"))
+    if top_match_count is not None:
+        normalized["top_match_count"] = top_match_count
     section_hint = _normalized_query_hint_text(normalized.get("section_hint"))
     if section_hint is not None:
         normalized["section_hint"] = section_hint
@@ -787,15 +798,24 @@ class RetrievalDocHit:
         top_excerpt_provenance_fingerprint = self.provenance.get("top_excerpt_provenance_fingerprint")
         if isinstance(top_excerpt_provenance_fingerprint, str) and top_excerpt_provenance_fingerprint:
             payload["top_excerpt_provenance_fingerprint"] = top_excerpt_provenance_fingerprint
-        top_excerpt_text_hash = self.provenance.get("top_excerpt_text_hash")
+        top_excerpt_text_hash = self.provenance.get("top_excerpt_text_hash") or self.provenance.get(
+            "top_excerpt_hash"
+        )
         if isinstance(top_excerpt_text_hash, str) and top_excerpt_text_hash:
             payload["top_excerpt_text_hash"] = top_excerpt_text_hash
+            payload["top_excerpt_hash"] = top_excerpt_text_hash
         top_excerpt_span = self.provenance.get("top_excerpt_span")
         if isinstance(top_excerpt_span, dict):
             payload["top_excerpt_span"] = copy.deepcopy(top_excerpt_span)
         top_excerpt_rank = self.provenance.get("top_excerpt_rank")
         if isinstance(top_excerpt_rank, int):
             payload["top_excerpt_rank"] = top_excerpt_rank
+        top_matched_terms = self.provenance.get("top_matched_terms")
+        if isinstance(top_matched_terms, list):
+            payload["top_matched_terms"] = copy.deepcopy(top_matched_terms)
+        top_match_count = self.provenance.get("top_match_count")
+        if isinstance(top_match_count, int):
+            payload["top_match_count"] = top_match_count
         section_hint = self.provenance.get("section_hint")
         if isinstance(section_hint, str) and section_hint:
             payload["section_hint"] = section_hint
