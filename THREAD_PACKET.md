@@ -34,12 +34,13 @@
 
 ## Canonical Demo-Path Step Advanced
 
-- Exact canonical demo-path step advanced: `open project/document`.
+- Exact canonical demo-path step advanced: the CLI-first command route for
+  `open project/document -> retrieve relevant material -> preview and apply or
+  reject a patch -> export handoff`.
 - Concrete blocker removed: the CLI-first operator path now rejects parser /
-  catalog drift before the canonical `bootstrap` command surface can silently
-  reorder or drop command names, so the demo loop starts from one auditable and
-  deterministic command contract instead of a parser surface that could drift
-  from the catalog unnoticed.
+  catalog drift before the canonical command surface can silently reorder,
+  drop, or desynchronize the command names that anchor that route slice of the
+  engine-first MVP loop while Textual remains disabled.
 - Scope boundary: this remains command-catalog contract hardening only. It does
   not add new commands, new flags, handler logic, or alternate workflow paths.
 
@@ -145,10 +146,10 @@
 
 - Canonical engine contract - CLI compatibility remains stable while the
   command-catalog surface rejects parser drift before it can silently change
-  the operator contract.
-- Auditable state and workflow - the command surface now fails loudly on
-  catalog/parser drift, making the operator-facing contract explicit and
-  traceable.
+  the CLI operator contract for the current engine-first MVP loop.
+- Writing-centered workflow - this is limited to keeping the active CLI entry
+  surface deterministic for the current operator path; it does not add new
+  engine workflow behavior.
 
 ### Routing/provider impact note
 

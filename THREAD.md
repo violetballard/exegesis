@@ -9,11 +9,13 @@ older lane/fixer prompts.
 ## Reviewer Fix Alignment
 
 - Active implementation review target: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Exact canonical demo-path step advanced: `open project/document`.
+- Exact canonical demo-path step advanced: the CLI-first route slice for
+  `open project/document -> retrieve relevant material -> preview and apply or
+  reject a patch -> export handoff`.
 - Concrete Milestone 3 mapping: `command_cli_contract()` now rejects parser /
-  catalog drift before the canonical `bootstrap` command surface can silently
-  change, keeping the CLI-first entrypoint deterministic for the engine-first
-  MVP loop.
+  catalog drift before the canonical command surface can silently change,
+  keeping the CLI-first command contract deterministic for the engine-first MVP
+  loop while Textual remains disabled.
 - Approval artifact for the non-owned test path: the reviewer packet supplied
   to this fixer pass explicitly records `Approved shared-test exception for
   tests/unit/test_commands_catalog.py`.
