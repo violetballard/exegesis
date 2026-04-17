@@ -36,6 +36,7 @@
 ## Canonical Demo-Path Mapping
 
 - Canonical demo-path steps advanced: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`.
+- Canonical demo-path step(s) this work now makes more real before handoff: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`.
 - Why these exact steps: the reviewed catalog covers the CLI entrypoints that currently front those steps (`bootstrap`, `context-basket`, and `diff-preview`), and this change only hardens the contract for invoking those commands deterministically and rejecting parser/catalog drift before the operator hits them.
 - AGENTS alignment statement: this slice makes those three CLI-first demo-path steps more real by keeping the fallback command surface explicit, canonically ordered, and smoke-testable while Textual remains disabled.
 - Scope-tightening note: this is command-contract hardening for the existing CLI entrypoints only. It does not claim broader workflow execution, retrieval behavior, audit behavior, or UI capability expansion.
@@ -79,15 +80,15 @@
 ## Tasks Completed
 
 1. Hardened `command_cli_contract()` to verify the full default parser surface against the catalog and fail fast on alias substitution or extra-entrypoint drift.
-   Demo-path steps: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`, because the CLI fallback must reject silent parser drift before an operator invokes those entrypoints in the loop.
+   Canonical demo-path step(s) advanced: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`, because the CLI fallback must reject silent parser drift before an operator invokes those entrypoints in the loop.
 2. Preserved canonical command ordering in the CLI contract for CLI-exposed commands while keeping parser-surface validation explicit.
-   Demo-path steps: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`, because the active CLI surface must stay deterministic from run to run at each of those entrypoints.
+   Canonical demo-path step(s) advanced: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`, because the active CLI surface must stay deterministic from run to run at each of those entrypoints.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment plus missing-primary-token, alias-substitution, extra accepted-entrypoint, and primary-token-order parser-surface drift rejection.
-   Demo-path steps: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`, because the smoke tests now prove the CLI contract for those entrypoints remains explicit and stable.
+   Canonical demo-path step(s) advanced: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`, because the smoke tests now prove the CLI contract for those entrypoints remains explicit and stable.
 4. Narrowed the default `demo` / `mvp` helper contracts so they no longer claim `export-handoff` as part of the canonical Milestone 3 CLI smoke route.
-   Demo-path steps: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`, because the demo-path helper layer now names only those currently documented steps while leaving `terminal` as a non-demo compatibility surface.
+   Canonical demo-path step(s) advanced: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`, because the demo-path helper layer now names only those currently documented steps while leaving `terminal` as a non-demo compatibility surface.
 5. Regenerated the handoff packet so the branch metadata stays scoped to the command-catalog slice and uses the current roadmap and vision labels.
-   Demo-path steps: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`, because the handoff now states exactly which existing command-backed loop steps this narrow contract-hardening slice protects.
+   Canonical demo-path step(s) advanced: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`, because the handoff now states exactly which existing command-backed loop steps this narrow contract-hardening slice protects.
 
 ## Files Changed
 
