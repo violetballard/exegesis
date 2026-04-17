@@ -148,6 +148,7 @@ class CommandCatalogTests(unittest.TestCase):
             "diff": "diff-preview",
             "diff_preview": "diff-preview",
             "review-patch": "diff-preview",
+            "patch-review": "diff-preview",
             "context": "context-basket",
             "basket": "context-basket",
             "retrieval": "context-basket",
@@ -160,6 +161,7 @@ class CommandCatalogTests(unittest.TestCase):
             "patch-apply": "terminal",
             "reject-patch": "terminal",
             "patch-reject": "terminal",
+            "export-handoff": "terminal",
         }
         for alias, expected in cases.items():
             with self.subTest(alias=alias):
@@ -176,6 +178,24 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_aliases("project-open"),
             ("open", "project-open", "project", "bootstrap-run", "document-open", "open-document"),
+        )
+        self.assertEqual(
+            command_aliases("patch-review"),
+            ("diff", "review-patch", "patch-review"),
+        )
+        self.assertEqual(
+            command_aliases("export-handoff"),
+            (
+                "export",
+                "save-export",
+                "persist",
+                "persist-continue",
+                "apply-patch",
+                "patch-apply",
+                "reject-patch",
+                "patch-reject",
+                "export-handoff",
+            ),
         )
         self.assertEqual(
             command_lookup_tokens("project-open"),
@@ -1385,7 +1405,7 @@ class CommandCatalogTests(unittest.TestCase):
         )
 
         self.assertEqual(command_spec_for(specs, "project-open").name, "bootstrap")
-        self.assertEqual(command_aliases_for(specs, "patch-review"), ("patch",))
+        self.assertEqual(command_aliases_for(specs, "patch-review"), ("patch", "patch-review"))
         self.assertEqual(command_lookup_tokens_for(specs, "patch-review"), ("review", "patch"))
         self.assertEqual(command_resolution_tokens_for(specs, "patch-review"), ("review", "patch"))
         self.assertEqual(canonical_command_for(specs, " PATCH REVIEW "), "review")

@@ -941,7 +941,10 @@ def command_aliases_for(specs: tuple[CommandSpec, ...], name: str) -> tuple[str,
     spec = command_spec_for(specs, name)
     if spec is None:
         return ()
-    return _lookup_aliases(spec)
+    surface_tokens = command_surface_tokens_for(specs, spec.name)
+    if not surface_tokens:
+        return _lookup_aliases(spec)
+    return tuple(token for token in surface_tokens if token != spec.name)
 
 
 @lru_cache(maxsize=None)
