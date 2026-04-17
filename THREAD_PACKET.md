@@ -2,8 +2,8 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `current branch tip on codex/feat-commands (includes fb8f9515f7c4156c3a9038e85d1c0f7c73757658 plus this feature-fixer commit)`
-- Packet refresh commit: `current feature-fixer implementation-and-packet refresh commit on codex/feat-commands`
+- Commit: `c99d67784cad542251317b5fd910837ff904d295`
+- Packet refresh commit: `post-verification packet refresh commit on codex/feat-commands`
 - Packet refresh role: `feature-fixer required-fixes coverage and packet retargeting`
 
 ## Packet Traceability Note
@@ -106,7 +106,7 @@
 
 ## Commands Run and Outcomes
 
-- Verified on the pre-commit branch tip during the final feature-fixer pass; the final HEAD SHA is reported separately after commit.
+- Verified on branch tip `c99d67784cad542251317b5fd910837ff904d295` during the final feature-fixer pass; the final HEAD SHA is reported separately after the post-verification packet refresh commit.
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
