@@ -32,6 +32,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - This metadata-only fixer refresh does not change implementation files; it
   only refreshes the handoff contract for re-review after confirming the code
   and tests already satisfy the reviewer-required fixes on this branch.
+- Concrete blocker-removal statement for AGENTS alignment: while the CLI is
+  still the active operator surface, the engine-first MVP loop cannot stay
+  dependable if the `bootstrap`, `context-basket`, and `diff-preview`
+  entrypoints can drift away from the declared catalog without failing fast.
+  This handoff now states that blocker explicitly.
 - Canonical demo-path step impact: this slice makes the CLI `open
   project/document`, `retrieve relevant material`, and `preview and apply or
   reject a patch` steps, and the ongoing CLI operator path that must remain

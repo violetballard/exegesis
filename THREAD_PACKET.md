@@ -66,6 +66,12 @@
 - Harden the CLI command contract so `command_cli_contract()` stays
   deterministic, uses the canonical command order, and fails fast if the
   parser surface drifts from the catalog.
+- Concrete blocker removal for the canonical demo path: while the CLI remains
+  the active operator surface, the engine-first MVP loop cannot be considered
+  reliable if `open`, `retrieve`, or `patch-review` entrypoints can silently
+  drift away from the declared command catalog. This slice removes that
+  blocker by making parser/catalog drift fail immediately instead of changing
+  the operator contract unnoticed.
 
 ## Canonical Demo-Path Step Advanced
 
