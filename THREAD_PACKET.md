@@ -2,9 +2,9 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet refresh role: `reviewer-fix current-tip traceability refresh`
-- Current branch head before this fixer commit: `85d61f4510633e1d4bc74998fcf93308382b6e9c`
-- Reviewed runtime implementation head in that branch state: `e7958b4656b045844262c3547cae0011446faef1`
-- Re-review branch-tip range before this fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..85d61f4510633e1d4bc74998fcf93308382b6e9c`
+- Current branch head before this fixer commit: `16403079b72893e52c0d756060ddf50c1386af39`
+- Reviewed runtime implementation head in that branch state: `16403079b72893e52c0d756060ddf50c1386af39`
+- Re-review branch-tip range before this fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..16403079b72893e52c0d756060ddf50c1386af39`
 
 ## Scope goal
 
@@ -95,11 +95,11 @@
 - Shared-by-approval edits: `YES`
 - Approved shared regression surface: `tests/unit/test_unified_retrieval.py`
 - Integrator-locked edits: `NO`
-- Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain read-only in this sandboxed worktree, so this fixer commit updates the writable handoff packet and re-runs gates against the actual branch tip but cannot rewrite those mirror files here.
+- Packet mirror note: this fixer commit refreshes the canonical writable handoff packet at the actual branch tip. The `.codex` mirror packet files in this sandboxed worktree remain unchanged by this pass.
 
 ## Traceability note
 
 - The prior packet refresh already narrowed the canonical demo-path wording to `retrieve relevant material`; this fixer pass refreshes the handoff so it points at the actual current branch tip.
-- Re-review should anchor to the branch-tip range `378cf9a74a3658058079a32f186fcd254c4a4034..85d61f4510633e1d4bc74998fcf93308382b6e9c`.
-- Treat `c073ad1ffeba08fdc6930b34495d5f8abadf9f16` and `e7958b4656b045844262c3547cae0011446faef1` as reviewed runtime implementation; `85d61f4510633e1d4bc74998fcf93308382b6e9c` is the prior metadata-only packet refresh immediately before this fixer commit.
+- Re-review should anchor to the branch-tip range `378cf9a74a3658058079a32f186fcd254c4a4034..16403079b72893e52c0d756060ddf50c1386af39`.
+- Treat `16403079b72893e52c0d756060ddf50c1386af39` as the reviewed runtime implementation head in the pre-fix branch state.
 - Use the final HEAD SHA reported with this fixer handoff for the post-fix branch tip.
