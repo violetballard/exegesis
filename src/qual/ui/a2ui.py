@@ -231,6 +231,11 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprint"] = manifest[
         "terminal_artifact_raw_leaf_card_default_fingerprint"
     ]
+    terminal_artifact_envelope = _snapshot_contract_section(terminal_artifact_contract["terminal_artifact_envelope_contract"])
+    manifest["terminal_artifact_envelope"] = terminal_artifact_envelope
+    manifest["terminal_artifact_envelope_contract"] = terminal_artifact_envelope
+    manifest["terminal_artifact_envelope_fingerprint"] = terminal_artifact_envelope["contract_fingerprint"]
+    manifest["terminal_artifact_envelope_contract_fingerprint"] = manifest["terminal_artifact_envelope_fingerprint"]
     terminal_artifact_kind_contracts = _snapshot_contract_section(
         terminal_artifact_contract["terminal_artifact_kind_contracts"]
     )
@@ -318,6 +323,8 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["terminal_fallback_contract"] = terminal_fallback_contract_fingerprint()
         fingerprints["terminal_artifact_kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
         fingerprints["terminal_artifact_contract"] = terminal_artifact_contract_fingerprint()
+        fingerprints["terminal_artifact_envelope"] = terminal_artifact_envelope_contract_fingerprint()
+        fingerprints["terminal_artifact_envelope_contract"] = terminal_artifact_envelope_contract_fingerprint()
         fingerprints["terminal_artifact_render_target"] = terminal_artifact_render_target_contract_fingerprint()
         fingerprints["terminal_artifact_rendering"] = terminal_artifact_rendering_contract_fingerprint()
         fingerprints["terminal_artifact_cli_fallback"] = terminal_artifact_cli_fallback_contract_fingerprint()
@@ -413,6 +420,17 @@ def describe_terminal_artifact_raw_leaf_card_default_contract() -> dict[str, Any
     return manifest
 
 
+def describe_terminal_artifact_envelope_contract() -> dict[str, Any]:
+    """Return the stable TerminalArtifact envelope contract manifest."""
+
+    manifest = _build_terminal_artifact_envelope_manifest()
+    fingerprint = terminal_artifact_envelope_contract_fingerprint()
+    manifest["terminal_artifact_envelope_fingerprint"] = fingerprint
+    manifest["terminal_artifact_envelope_contract_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
+    return manifest
+
+
 def describe_terminal_artifact_raw_leaf_card_default_contract_fingerprints(
     include_terminal_artifact_raw_leaf_card_default: bool = False,
 ) -> dict[str, str]:
@@ -436,6 +454,11 @@ def describe_terminal_artifact_contract() -> dict[str, Any]:
     manifest["raw_leaf_card_default_contract_fingerprint"] = manifest["raw_leaf_card_default_contract"][
         "contract_fingerprint"
     ]
+    terminal_artifact_envelope = _snapshot_contract_section(manifest["envelope"])
+    manifest["terminal_artifact_envelope"] = terminal_artifact_envelope
+    manifest["terminal_artifact_envelope_contract"] = terminal_artifact_envelope
+    manifest["terminal_artifact_envelope_fingerprint"] = terminal_artifact_envelope["contract_fingerprint"]
+    manifest["terminal_artifact_envelope_contract_fingerprint"] = manifest["terminal_artifact_envelope_fingerprint"]
     manifest["terminal_artifact_kind_contracts"] = manifest["kind_contracts"]
     manifest["terminal_artifact_kind_contracts_fingerprint"] = terminal_artifact_kind_contracts_fingerprint()
     return manifest
@@ -583,6 +606,8 @@ def describe_terminal_artifact_contract_fingerprints(
     if include_contract_aliases:
         fingerprints["terminal_artifact_kind_contracts"] = terminal_artifact_kind_contracts_fingerprint()
         fingerprints["terminal_artifact_contract"] = terminal_artifact_contract_fingerprint()
+        fingerprints["terminal_artifact_envelope"] = terminal_artifact_envelope_contract_fingerprint()
+        fingerprints["terminal_artifact_envelope_contract"] = terminal_artifact_envelope_contract_fingerprint()
         fingerprints["terminal_artifact_render_target"] = terminal_artifact_render_target_contract_fingerprint()
         fingerprints["terminal_artifact_render_target_contract"] = (
             terminal_artifact_render_target_contract_fingerprint()
@@ -798,6 +823,7 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
         },
         "selection": describe_selection_contract(),
         "action": describe_action_contract(),
+        "terminal_artifact_envelope": describe_terminal_artifact_envelope_contract(),
         "fallbacks": _build_card_fallback_manifest(),
         "schemas": _build_a2ui_schema_manifest(),
         "primitive_blocks": [
@@ -941,7 +967,7 @@ def _build_terminal_artifact_contract_manifest(*, include_contract_fingerprints:
         "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
         "terminal_artifact_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
         "type": "TerminalArtifactContract",
-        "envelope": _build_terminal_artifact_envelope_manifest(),
+        "envelope": describe_terminal_artifact_envelope_contract(),
         "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
         "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
         "render_target_contract": render_target_contract,
@@ -1000,7 +1026,7 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
         "type": "TerminalArtifactRenderingContract",
         "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
         "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
-        "envelope": _build_terminal_artifact_envelope_manifest(),
+        "envelope": describe_terminal_artifact_envelope_contract(),
         "kind_contracts": kind_contracts,
         "terminal_artifact_kind_contracts": terminal_artifact_kind_contracts,
         "render_target_contract": render_target_contract,
@@ -1050,7 +1076,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "fallback_renderer": "ShellUI.render_artifact",
         "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
         "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
-        "envelope": _build_terminal_artifact_envelope_manifest(),
+        "envelope": describe_terminal_artifact_envelope_contract(),
         "kind_contracts": kind_contracts,
         "terminal_artifact_kind_contracts": terminal_artifact_kind_contracts,
         "terminal_artifact_kind_contracts_fingerprint": terminal_artifact_kind_contracts_fingerprint(),
@@ -1189,7 +1215,7 @@ def _build_terminal_artifact_render_target_contract_manifest() -> dict[str, Any]
         "render_target_resolver": "resolve_terminal_artifact_render_target",
         "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
         "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
-        "envelope": _build_terminal_artifact_envelope_manifest(),
+        "envelope": describe_terminal_artifact_envelope_contract(),
         "kind_contracts": kind_contracts,
         "terminal_artifact_kind_contracts": terminal_artifact_kind_contracts,
         "terminal_artifact_kind_contracts_fingerprint": terminal_artifact_kind_contracts_fingerprint(),
@@ -1302,6 +1328,7 @@ def _build_a2ui_schema_manifest() -> dict[str, Any]:
         "cards": _build_card_schema_manifest(),
         "selection": describe_selection_contract(),
         "action": describe_action_contract(),
+        "terminal_artifact_envelope": describe_terminal_artifact_envelope_contract(),
         "terminal_artifact_render_target": describe_terminal_artifact_render_target_contract(),
         "actions": [
             {
@@ -1401,6 +1428,13 @@ def terminal_artifact_contract_fingerprint() -> str:
     """Return a stable fingerprint for the terminal artifact dispatch manifest."""
 
     manifest = _build_terminal_artifact_contract_manifest(include_contract_fingerprints=False)
+    return _fingerprint_manifest_section(manifest)
+
+
+def terminal_artifact_envelope_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the TerminalArtifact envelope manifest."""
+
+    manifest = _build_terminal_artifact_envelope_manifest()
     return _fingerprint_manifest_section(manifest)
 
 
