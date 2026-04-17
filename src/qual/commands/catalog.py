@@ -3403,6 +3403,8 @@ def command_cli_shim_primary_token(
     token: str,
     flow_steps: tuple[str, ...] | None = None,
 ) -> str:
+    if flow_steps is None and _normalize_token(token) in _COMMAND_DEMO_COMPATIBILITY_TOKENS:
+        return command_demo_cli_shim_primary_token(token)
     return command_cli_shim_primary_token_for(COMMAND_SPECS, token, flow_steps)
 
 
@@ -3410,6 +3412,14 @@ def command_cli_shim_argv(
     argv: tuple[str, ...] | list[str],
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[str, ...]:
+    raw_argv = tuple(argv)
+    if (
+        flow_steps is None
+        and raw_argv
+        and not raw_argv[0].lstrip().startswith("-")
+        and _normalize_token(raw_argv[0]) in _COMMAND_DEMO_COMPATIBILITY_TOKENS
+    ):
+        return command_demo_cli_shim_argv(raw_argv)
     return command_cli_shim_argv_for(COMMAND_SPECS, argv, flow_steps)
 
 
@@ -3417,6 +3427,14 @@ def command_cli_entry_argv(
     argv: tuple[str, ...] | list[str],
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[str, ...]:
+    raw_argv = tuple(argv)
+    if (
+        flow_steps is None
+        and raw_argv
+        and not raw_argv[0].lstrip().startswith("-")
+        and _normalize_token(raw_argv[0]) in _COMMAND_DEMO_COMPATIBILITY_TOKENS
+    ):
+        return command_demo_cli_entry_argv(raw_argv)
     return command_cli_entry_argv_for(COMMAND_SPECS, argv, flow_steps)
 
 
@@ -3661,6 +3679,8 @@ def command_resolve(
     token: str,
     flow_steps: tuple[str, ...] | None = None,
 ) -> ResolvedCommand:
+    if flow_steps is None and _normalize_token(token) in _COMMAND_DEMO_COMPATIBILITY_TOKENS:
+        return command_demo_resolve(token)
     return command_resolve_for(COMMAND_SPECS, token, flow_steps)
 
 
@@ -3838,6 +3858,14 @@ def command_resolve_argv(
     argv: tuple[str, ...] | list[str],
     flow_steps: tuple[str, ...] | None = None,
 ) -> ResolvedCommand:
+    raw_argv = tuple(argv)
+    if (
+        flow_steps is None
+        and raw_argv
+        and not raw_argv[0].lstrip().startswith("-")
+        and _normalize_token(raw_argv[0]) in _COMMAND_DEMO_COMPATIBILITY_TOKENS
+    ):
+        return command_demo_resolve_argv(raw_argv)
     return command_resolve_argv_for(COMMAND_SPECS, argv, flow_steps)
 
 
