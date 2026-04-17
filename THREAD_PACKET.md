@@ -2,8 +2,8 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `ea00422c0b9c21e4bb0a3774abbad8a06facec62`
-- Packet refresh commit: `ea00422c0b9c21e4bb0a3774abbad8a06facec62` (implementation tip before this final feature-fixer handoff refresh)
+- Commit: `da34f00c9a8885d32c09a36dec4bcb26f4566768`
+- Packet refresh commit: `da34f00c9a8885d32c09a36dec4bcb26f4566768` (implementation tip before this final feature-fixer handoff refresh)
 - Packet refresh role: `feature-fixer reviewer-required final gate-verified handoff refresh`
 
 ## Packet Traceability Note
@@ -11,7 +11,7 @@
 - The original reviewer packet pointed at
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, but this branch now contains the
   required command-catalog fixes through implementation tip
-  `ea00422c0b9c21e4bb0a3774abbad8a06facec62`. Treat this feature-fixer refresh
+  `da34f00c9a8885d32c09a36dec4bcb26f4566768`. Treat this feature-fixer refresh
   as the current handoff authority for that implementation slice plus the final
   in-worktree command-surface alignment captured in this commit.
 - Final reviewer-fix metadata refresh on `2026-04-17`: this handoff reasserts
@@ -124,12 +124,12 @@
   enforced in this branch, and this final reviewer-fix verification pass.
 - Recorded that this final gate-verified refresh was run on `2026-04-17` after a
   fresh full-gate pass against implementation tip
-  `ea00422c0b9c21e4bb0a3774abbad8a06facec62`.
+  `da34f00c9a8885d32c09a36dec4bcb26f4566768`.
 - This final fixer commit refreshes `THREAD_PACKET.md` and `THREAD.md` and
   also includes the in-worktree command-catalog/test alignment already present
   in this lane worktree before the gate rerun.
 - Verified in this final fixer pass that branch tip
-  `ea00422c0b9c21e4bb0a3774abbad8a06facec62` already contains the reviewer-
+  `da34f00c9a8885d32c09a36dec4bcb26f4566768` already contains the reviewer-
   required parser-surface contract fix, and this final commit preserves that
   runtime/test behavior while refreshing the handoff authority.
 - Verified again in this final fixer pass that the reviewer-requested demo-path mapping
@@ -152,7 +152,7 @@
 - Final verifier note for this commit: reran `make scope-check`,
   `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`,
   `./typecheck-test.sh`, and `make ci` on `2026-04-17` against implementation
-  tip `ea00422c0b9c21e4bb0a3774abbad8a06facec62` plus the final in-worktree
+  tip `da34f00c9a8885d32c09a36dec4bcb26f4566768` plus the final in-worktree
   command-catalog/test alignment before creating this handoff refresh commit.
 
 ## Kickoff Budget / Limits Compliance
