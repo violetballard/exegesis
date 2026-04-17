@@ -568,6 +568,9 @@ class RetrievalDocHit:
         top_excerpt_fingerprint = self.provenance.get("top_excerpt_fingerprint")
         if isinstance(top_excerpt_fingerprint, str) and top_excerpt_fingerprint:
             payload["top_excerpt_fingerprint"] = top_excerpt_fingerprint
+        top_excerpt_provenance_fingerprint = self.provenance.get("top_excerpt_provenance_fingerprint")
+        if isinstance(top_excerpt_provenance_fingerprint, str) and top_excerpt_provenance_fingerprint:
+            payload["top_excerpt_provenance_fingerprint"] = top_excerpt_provenance_fingerprint
         top_excerpt_text_hash = self.provenance.get("top_excerpt_text_hash")
         if isinstance(top_excerpt_text_hash, str) and top_excerpt_text_hash:
             payload["top_excerpt_text_hash"] = top_excerpt_text_hash
@@ -1155,7 +1158,7 @@ class RetrievalResult:
             "excerpt_provenance_fingerprint": (
                 primary_excerpt_provenance.get("excerpt_provenance_fingerprint")
                 if primary_excerpt_hit is not None
-                else None
+                else primary_doc_provenance.get("top_excerpt_provenance_fingerprint")
             ),
             "excerpt_text_hash": (
                 primary_excerpt_provenance.get("excerpt_text_hash") or primary_excerpt_provenance.get("hash")
@@ -1928,6 +1931,9 @@ class RetrievalService:
                         "top_excerpt_text_hash": top_excerpt_text_hash,
                         "top_excerpt_text_length": top_excerpt_text_length,
                         "top_excerpt_fingerprint": top_excerpt_fingerprint,
+                        "top_excerpt_provenance_fingerprint": top_hit.provenance.get(
+                            "excerpt_provenance_fingerprint"
+                        ),
                         "top_excerpt_span": top_hit.provenance.get("span"),
                         "top_matched_terms": top_hit.provenance.get("matched_terms"),
                         "top_match_count": top_hit.provenance.get("match_count"),
