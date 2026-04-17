@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
-- Packet refresh commit: `1f6ba5e5fc326511d0eb94f0bf91564ba1a785ac` (baseline before this final reviewer-fix refresh)
+- Packet refresh commit: `e0907a7101789fb91c5d89fe117b40dd3377e525` (baseline before this final reviewer-fix refresh)
 - Packet refresh role: `feature-fixer reviewer-required final packet verification refresh`
 
 ## Packet Traceability Note
@@ -113,7 +113,7 @@
   command-catalog implementation commit, the actual parser-surface invariant
   enforced in this branch, and this final reviewer-fix verification pass.
 - Verified in this final fixer pass that branch tip
-  `1f6ba5e5fc326511d0eb94f0bf91564ba1a785ac` already contains the reviewer-
+  `e0907a7101789fb91c5d89fe117b40dd3377e525` already contains the reviewer-
   required implementation fix through runtime commit
   `36a360a9464d2f08f55129bc70e1aafe4574721b`, so this final commit remains
   metadata-only.

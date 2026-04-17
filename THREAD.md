@@ -9,7 +9,7 @@ older lane/fixer prompts.
 ## Reviewer Fix Alignment
 
 - Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
-- Current metadata refresh baseline: `1f6ba5e5fc326511d0eb94f0bf91564ba1a785ac`
+- Current metadata refresh baseline: `e0907a7101789fb91c5d89fe117b40dd3377e525`
   before this final verification-only packet refresh commit.
 - This refresh explicitly satisfies the reviewer's REQUIRED FIXES by naming the
   canonical demo-path steps advanced and keeping the scope tied to the current
@@ -18,7 +18,7 @@ older lane/fixer prompts.
   `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
   real and smoke-testable.
 - Runtime fix verification: this final fixer pass confirmed that branch tip
-  `1f6ba5e5fc326511d0eb94f0bf91564ba1a785ac` already includes the reviewer-
+  `e0907a7101789fb91c5d89fe117b40dd3377e525` already includes the reviewer-
   required parser-surface implementation through runtime commit
   `36a360a9464d2f08f55129bc70e1aafe4574721b`.
 - Canonical demo-path steps advanced: `project-open`, `retrieval`,
