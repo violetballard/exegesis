@@ -78,4 +78,5 @@
 
 - Re-review should anchor to the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - This packet intentionally keeps the scope narrow to the reviewer-requested implementation slice rather than broadening back into cumulative branch-summary language.
+- Reviewer fix status: the canonical demo-path step is stated explicitly as `retrieve relevant material`, and the narrowed scope text is limited to the fail-closed FTS excerpt lookup slice.
 - Use the final HEAD SHA reported with this fixer handoff for the post-fix branch tip.
