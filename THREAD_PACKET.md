@@ -77,8 +77,8 @@ This reviewed range makes `retrieve relevant material` more real by removing the
 ## Packet mirror note
 
 - `THREAD_PACKET.md` is the operative handoff packet for this fixer pass.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are present but filesystem-protected in this worktree, so this pass leaves them unchanged.
-- Re-review should use `THREAD_PACKET.md` as the operative source of truth for the narrowed reviewed implementation range, the canonical demo-path statement, and the scope-tightening note that this fixer pass does not reintroduce PageIndex or embeddings as required runtime retrieval paths.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain unchanged because this worktree blocks edits under `.codex`.
+- Re-review should use `THREAD_PACKET.md` as the source of truth for the narrowed reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, the canonical demo-path mapping `retrieve relevant material`, and the explicit contract note that `fetch_excerpt` now intentionally raises `KeyError` for PageIndex-only IDs.
 
 ## Commands run with results
 
