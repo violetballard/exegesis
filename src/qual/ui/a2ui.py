@@ -176,15 +176,22 @@ def _add_contract_alias_fingerprints(
         fingerprints[fingerprint_alias] = fingerprint
 
 
-def describe_a2ui_contract() -> dict[str, Any]:
+def describe_a2ui_contract(
+    *,
+    include_terminal_artifact_cli_fallback_route: bool = False,
+) -> dict[str, Any]:
     """Return the stable, versioned A2UI contract manifest.
 
     The manifest is intentionally JSON-serializable so clients can fingerprint
     the contract they negotiated without having to mirror internal module state.
     """
 
-    manifest = _build_a2ui_contract_manifest()
-    manifest["contract_fingerprint"] = a2ui_contract_fingerprint()
+    manifest = _build_a2ui_contract_manifest(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
+    manifest["contract_fingerprint"] = a2ui_contract_fingerprint(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
     capabilities = _snapshot_contract_section(manifest["schemas"]["capabilities"])
     manifest["capabilities"] = capabilities
     manifest["capabilities_fingerprint"] = capabilities["contract_fingerprint"]
@@ -236,6 +243,23 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_cli_fallback_target_contract_fingerprint"] = manifest[
         "terminal_artifact_cli_fallback_target_fingerprint"
     ]
+    if include_terminal_artifact_cli_fallback_route:
+        terminal_artifact_cli_fallback_route = _snapshot_contract_section(
+            manifest["terminal_artifact_cli_fallback_route"]
+        )
+        manifest["terminal_artifact_cli_fallback_route"] = terminal_artifact_cli_fallback_route
+        manifest["terminal_artifact_cli_fallback_route_contract"] = _snapshot_contract_section(
+            terminal_artifact_cli_fallback_route
+        )
+        manifest["terminal_artifact_cli_fallback_route_fingerprint"] = terminal_artifact_cli_fallback_route[
+            "contract_fingerprint"
+        ]
+        manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"] = manifest[
+            "terminal_artifact_cli_fallback_route_fingerprint"
+        ]
+        manifest["terminal_artifact_cli_fallback_route_contract_fingerprints"] = _snapshot_contract_section(
+            terminal_artifact_cli_fallback_route["contract_fingerprints"]
+        )
     terminal_artifact_contract = _snapshot_contract_section(manifest["schemas"]["terminal_artifact"])
     manifest["terminal_artifact"] = terminal_artifact_contract
     manifest["terminal_artifact_contract"] = _snapshot_contract_section(terminal_artifact_contract)
@@ -304,7 +328,9 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"] = _snapshot_contract_section(
         terminal_artifact_contract["terminal_artifact_cli_fallback_target_contract_fingerprints"]
     )
-    manifest["contract_fingerprints"] = _build_a2ui_contract_fingerprint_summary()
+    manifest["contract_fingerprints"] = _build_a2ui_contract_fingerprint_summary(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
     return manifest
 
 
@@ -355,6 +381,7 @@ def describe_a2ui_contract_fingerprints(
     include_terminal_artifact_raw_leaf_card_default: bool = False,
     include_terminal_artifact_raw_leaf_card_default_policy: bool = False,
     include_contract_aliases: bool = False,
+    include_terminal_artifact_cli_fallback_route: bool = False,
 ) -> dict[str, str]:
     """Return stable fingerprints for the contract sections and embedded contracts.
 
@@ -365,7 +392,9 @@ def describe_a2ui_contract_fingerprints(
     same contract slice without pulling the entire manifest.
     """
 
-    manifest = _build_a2ui_contract_manifest()
+    manifest = _build_a2ui_contract_manifest(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
     fingerprints = {
         "contract": _fingerprint_manifest_section(manifest),
         "capabilities": a2ui_capabilities_contract_fingerprint(),
@@ -391,6 +420,10 @@ def describe_a2ui_contract_fingerprints(
     if include_terminal_artifact_cli_fallback_target:
         fingerprints["terminal_artifact_cli_fallback_target"] = (
             terminal_artifact_cli_fallback_target_contract_fingerprint()
+        )
+    if include_terminal_artifact_cli_fallback_route:
+        fingerprints["terminal_artifact_cli_fallback_route"] = (
+            terminal_artifact_cli_fallback_route_contract_fingerprint()
         )
     if include_terminal_artifact_raw_leaf_card_default:
         fingerprints["terminal_artifact_raw_leaf_card_default"] = (
@@ -446,10 +479,25 @@ def describe_a2ui_contract_fingerprints(
                 terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
             ),
         )
+        if include_terminal_artifact_cli_fallback_route:
+            _add_contract_alias_fingerprints(
+                fingerprints,
+                (
+                    "terminal_artifact_cli_fallback_route",
+                    terminal_artifact_cli_fallback_route_contract_fingerprint(),
+                ),
+                (
+                    "terminal_artifact_cli_fallback_route_contract",
+                    terminal_artifact_cli_fallback_route_contract_fingerprint(),
+                ),
+            )
     return fingerprints
 
 
-def _build_a2ui_contract_fingerprint_summary() -> dict[str, str]:
+def _build_a2ui_contract_fingerprint_summary(
+    *,
+    include_terminal_artifact_cli_fallback_route: bool = False,
+) -> dict[str, str]:
     return describe_a2ui_contract_fingerprints(
         include_terminal_artifact=True,
         include_action=True,
@@ -457,6 +505,7 @@ def _build_a2ui_contract_fingerprint_summary() -> dict[str, str]:
         include_terminal_artifact_rendering=True,
         include_terminal_artifact_cli_fallback=True,
         include_terminal_artifact_cli_fallback_target=True,
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
 
 
@@ -1277,16 +1326,24 @@ def validate_terminal_artifact_envelope(envelope: Any) -> None:
     _validate_terminal_artifact_payload_kind(envelope["artifact"], normalized_kind)
 
 
-def _build_a2ui_contract_manifest() -> dict[str, Any]:
-    return {
+def _build_a2ui_contract_manifest(
+    *,
+    include_terminal_artifact_cli_fallback_route: bool = False,
+) -> dict[str, Any]:
+    terminal_artifact_contract = describe_terminal_artifact_contract(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
+    manifest = {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
         "capabilities": describe_a2ui_capabilities_contract(),
         "card_contract": describe_card_contract(),
         "terminal_fallback": describe_terminal_fallback_contract(),
-        "terminal_artifact": describe_terminal_artifact_contract(),
+        "terminal_artifact": terminal_artifact_contract,
         "terminal_fallback_fingerprint": terminal_fallback_contract_fingerprint(),
-        "terminal_artifact_fingerprint": terminal_artifact_contract_fingerprint(),
+        "terminal_artifact_fingerprint": terminal_artifact_contract_fingerprint(
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        ),
         "cards": {
             "generic": GENERIC_CARD_TYPE,
             "unknown": UNKNOWN_CARD_TYPE,
@@ -1297,7 +1354,9 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
         "action": describe_action_contract(),
         "terminal_artifact_envelope": describe_terminal_artifact_envelope_contract(),
         "fallbacks": _build_card_fallback_manifest(),
-        "schemas": _build_a2ui_schema_manifest(),
+        "schemas": _build_a2ui_schema_manifest(
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        ),
         "primitive_blocks": [
             {
                 "type": block_type,
@@ -1314,6 +1373,18 @@ def _build_a2ui_contract_manifest() -> dict[str, Any]:
             for action_id, schema in sorted(_ACTION_SCHEMAS.items())
         ],
     }
+    if include_terminal_artifact_cli_fallback_route:
+        route_contract = describe_terminal_artifact_cli_fallback_route_contract()
+        manifest["terminal_artifact_cli_fallback_route"] = route_contract
+        manifest["terminal_artifact_cli_fallback_route_contract"] = _snapshot_contract_section(route_contract)
+        manifest["terminal_artifact_cli_fallback_route_fingerprint"] = route_contract["contract_fingerprint"]
+        manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"] = manifest[
+            "terminal_artifact_cli_fallback_route_fingerprint"
+        ]
+        manifest["terminal_artifact_cli_fallback_route_contract_fingerprints"] = _snapshot_contract_section(
+            route_contract["contract_fingerprints"]
+        )
+    return manifest
 
 
 def _build_a2ui_capabilities_contract_manifest() -> dict[str, Any]:
@@ -2085,7 +2156,10 @@ def _build_card_fallback_manifest() -> dict[str, Any]:
     }
 
 
-def _build_a2ui_schema_manifest() -> dict[str, Any]:
+def _build_a2ui_schema_manifest(
+    *,
+    include_terminal_artifact_cli_fallback_route: bool = False,
+) -> dict[str, Any]:
     return {
         "capabilities": describe_a2ui_capabilities_contract(),
         "card_contract": describe_card_contract(),
@@ -2104,10 +2178,19 @@ def _build_a2ui_schema_manifest() -> dict[str, Any]:
             }
         ],
         "terminal_fallback": describe_terminal_fallback_contract(),
-        "terminal_artifact": describe_terminal_artifact_contract(),
+        "terminal_artifact": describe_terminal_artifact_contract(
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        ),
         "terminal_artifact_rendering": describe_terminal_artifact_rendering_contract(),
         "terminal_artifact_cli_fallback": describe_terminal_artifact_cli_fallback_contract(),
         "terminal_artifact_cli_fallback_target": describe_terminal_artifact_cli_fallback_target_contract(),
+        **(
+            {
+                "terminal_artifact_cli_fallback_route": describe_terminal_artifact_cli_fallback_route_contract(),
+            }
+            if include_terminal_artifact_cli_fallback_route
+            else {}
+        ),
     }
 
 
@@ -2171,10 +2254,15 @@ def _canonicalize_supported_sequence(
     )
 
 
-def a2ui_contract_fingerprint() -> str:
+def a2ui_contract_fingerprint(
+    *,
+    include_terminal_artifact_cli_fallback_route: bool = False,
+) -> str:
     """Return a stable fingerprint for the current contract manifest."""
 
-    manifest = _build_a2ui_contract_manifest()
+    manifest = _build_a2ui_contract_manifest(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
     return _fingerprint_manifest_section(manifest)
 
 
