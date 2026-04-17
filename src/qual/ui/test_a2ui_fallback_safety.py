@@ -866,6 +866,35 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             },
         )
 
+    def test_terminal_artifact_payload_normalizer_canonicalizes_unordered_set_values(self) -> None:
+        selection = SelectionRef(
+            id=" choice-1 ",
+            label=" Choice ",
+            payload={"tags": {"beta", "alpha"}},
+            selected=True,
+        )
+        card_source = {
+            "type": "GenericCard",
+            "title": " Run Log ",
+            "a2ui_version": 1,
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Original"}],
+            "actions": [],
+            "debug": {"tags": {"beta", "alpha"}},
+        }
+
+        selection_payload = normalize_terminal_artifact_payload(selection, kind="selection")
+        card_payload = normalize_terminal_artifact_payload(card_source, kind="card")
+        envelope = build_terminal_artifact_envelope(card_source, kind="card")
+
+        self.assertEqual(selection_payload["payload"]["tags"], ["alpha", "beta"])
+        self.assertEqual(card_payload["debug"]["tags"], ["alpha", "beta"])
+        self.assertEqual(envelope["artifact"]["debug"]["tags"], ["alpha", "beta"])
+        self.assertEqual(card_source["debug"]["tags"], {"alpha", "beta"})
+        self.assertEqual(
+            json.loads(json.dumps(envelope["artifact"]))["debug"]["tags"],
+            ["alpha", "beta"],
+        )
+
     def test_terminal_artifact_payload_normalizer_rejects_action_or_selection_payloads_when_card_kind_is_explicit(self) -> None:
         with self.assertRaises(ValueError):
             normalize_terminal_artifact_payload(

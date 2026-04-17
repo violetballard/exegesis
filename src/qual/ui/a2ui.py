@@ -394,7 +394,9 @@ def normalize_terminal_artifact_payload(artifact: Any, *, kind: str | None = Non
     Action and selection payloads are normalized through the public ref
     validators before being converted to plain dictionaries. Card payloads are
     copied as mappings or dataclass snapshots so the envelope does not retain
-    references to mutable source objects.
+    references to mutable source objects. Unordered set-like values are
+    converted to sorted lists so the snapshot stays deterministic and
+    JSON-safe.
     """
 
     normalized_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
@@ -2366,13 +2368,17 @@ def _snapshot_terminal_artifact_value(value: Any, *, _seen_ids: set[int] | None 
         finally:
             _seen_ids.remove(value_id)
 
-    if isinstance(value, set):
+    if isinstance(value, (set, frozenset)):
         value_id = id(value)
         if value_id in _seen_ids:
             return f"<cycle:{type(value).__name__}>"
         _seen_ids.add(value_id)
         try:
-            return {_snapshot_terminal_artifact_value(item, _seen_ids=_seen_ids) for item in value}
+            # Unordered set-like containers need a deterministic JSON-safe representation.
+            normalized_items = [
+                _snapshot_terminal_artifact_value(item, _seen_ids=_seen_ids) for item in value
+            ]
+            return sorted(normalized_items, key=_canonical_json_sort_key)
         finally:
             _seen_ids.remove(value_id)
 
