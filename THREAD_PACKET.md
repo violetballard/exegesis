@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `reviewer-required fix finalization`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet refresh commit before this fixer commit: `a450eeb1aee3701c4fc1b21c72565df20e46e2f4`
+- Packet refresh commit before this fixer commit: `70c83fbf82ac53e79e62d2095f0d3c24df7ee892`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 ## Scope goal
@@ -26,10 +26,10 @@
 
 ### Checkpoint Status
 
-- `plan complete`: narrowed the operative handoff back to the reviewer-requested implementation range and packet scope.
+- `plan complete`: narrowed all reviewer-facing metadata to the same implementation slice and added the explicit AGENTS demo-path statement.
 - `first green tests`: all required gates were re-run on the lane branch for this fixer pass.
 - `before risky/shared file edit`: no new shared code edit was needed; the only shared implementation file in the reviewed range remains the approved regression surface `tests/unit/test_unified_retrieval.py`.
-- `ready for handoff`: the operative packet now carries the explicit AGENTS demo-path statement and stays tied to the exact two-file implementation slice the reviewer requested.
+- `ready for handoff`: the operative handoff packet carries the narrowed scope and canonical demo-path statement required for re-review.
 
 ## Budget classification
 
@@ -66,6 +66,10 @@ This reviewed range makes `retrieve relevant material` more real by removing the
   - `tests/unit/test_unified_retrieval.py`
 - Packet refresh files:
   - `THREAD_PACKET.md`
+
+## Packet mirror note
+
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are present in this worktree but not writable in the lane sandbox, so this fixer pass updates the operative handoff packet `THREAD_PACKET.md` and reports the final branch tip separately.
 
 ## Commands run with results
 
