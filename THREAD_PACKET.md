@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `reviewer-required fix finalization`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca^..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 ## Scope goal
 
@@ -14,7 +14,7 @@
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
 - Scope goal: Harden the canonical FTS-only excerpt lookup contract for the engine retrieval step.
-- Risk reason: the reviewed implementation range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+- Risk reason: the reviewed implementation includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 
 ### Budget
 
@@ -25,44 +25,36 @@
 
 ### Checkpoint Status
 
-- `plan complete`: narrowed the operative handoff packet to the reviewed retrieval slice and explicit demo-path mapping.
+- `plan complete`: narrowed the operative handoff packet to the single reviewed implementation commit and explicit demo-path mapping.
 - `first green tests`: all required gates passed on this fixer pass.
-- `before risky/shared file edit`: the only shared implementation file in the reviewed range remains the approved regression surface `tests/unit/test_unified_retrieval.py`.
-- `ready for handoff`: the operative packet now matches the reviewed implementation, risk class, and retrieval contract.
+- `before risky/shared file edit`: the only shared implementation file in scope remains the approved regression surface `tests/unit/test_unified_retrieval.py`.
+- `ready for handoff`: the operative packet now matches the exact reviewed implementation slice and required AGENTS mapping.
 
 ## Scope completed
 
-- SQLite FTS remains the authoritative MVP retrieval path on the canonical retrieval surface.
-- This reviewed range removes the PageIndex fallback from `fetch_excerpt` in `src/qual/retrieval/service.py`.
-- This reviewed range adds approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
-- No broader retrieval facade, payload, or alternate-strategy work is claimed beyond this narrowed implementation slice.
+- SQLite FTS remains the authoritative MVP retrieval path on the canonical excerpt lookup surface.
+- The reviewed implementation commit removes the PageIndex fallback from `fetch_excerpt` in `src/qual/retrieval/service.py`.
+- The reviewed implementation commit adds approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
+- No broader retrieval payload, provenance, or alternate-strategy work is claimed in this narrowed handoff.
 
 ## Canonical Demo-Path Step Advanced
 
 - `retrieve relevant material`
 
-Canonical demo-path step advanced: `retrieve relevant material`.
-This narrowed reviewed slice makes `retrieve relevant material` more real by making excerpt retrieval fail closed to the authoritative SQLite FTS path, strengthening the retrieval surface used before basket promotion in the engine-side workflow loop.
+This change advances the canonical demo-path step `retrieve relevant material` by making excerpt retrieval fail closed to the authoritative SQLite FTS path before downstream basket-promotion and workflow use.
 
 ## Fixer Pass Traceability
 
 - Fixer pass date: `2026-04-17`
-- Pre-fix packet branch tip for this commit: `8b219039ab16d934eb41b96d5143504e203f644e`
-- Reviewer packet source-of-truth anchor before this fixer commit: packet refresh commit `8b219039ab16d934eb41b96d5143504e203f644e`, packet refresh role `metadata-only reviewer-fix finalization`, reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-- This metadata-only refresh preserves the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` while carrying the reviewer-required canonical demo-path mapping for re-review.
-
-## Metadata Write Constraint
-
-- Reviewer packet source of truth: this `THREAD_PACKET.md` handoff is the operative corrected packet for re-review in the lane worktree.
-- Hidden metadata note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain readable reference artifacts in this worktree, but the current filesystem sandbox denies writes to those hidden packet paths.
-- Re-review instruction: evaluate the reviewer-required budget classification, approved shared-test exception, reviewed implementation range, and canonical demo-path mapping from this packet plus the reviewer packet above, without widening implementation scope.
+- Pre-fix packet branch tip: `37690f6d63ee0418953d27a0e853e7dadb83610f`
+- Reviewer packet source-of-truth anchor before this fixer commit: reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, reviewed implementation range `adfa8cdadd43747ffbcb612e4151e262b13e52ca^..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- This metadata-only refresh preserves the reviewed implementation head and narrows the operative reviewed implementation range to the single commit above while adding the explicit AGENTS demo-path statement required for re-review.
 
 ## Required Reviewer Fixes Addressed
 
-1. Reissued the operative handoff packet using the high-risk kickoff framing because this slice includes approved shared-file work.
-2. Made the packet classification, budget, approved shared-test exception, and reviewed range agree on shared/high-risk work over `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-3. Added an explicit canonical demo-path sentence stating that this change advances `retrieve relevant material`.
-4. Reissued the packet without widening implementation scope.
+1. Set the reviewed implementation scope to the single implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca^..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+2. Added an explicit handoff statement that this change advances the canonical demo-path step `retrieve relevant material`.
+3. Kept the narrowed scope wording limited to the FTS-only excerpt lookup change and its approved shared regression coverage.
 
 ## Tasks completed
 
@@ -74,8 +66,10 @@ This narrowed reviewed slice makes `retrieve relevant material` more real by mak
 - Reviewed implementation files:
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`
-- Packet refresh file:
+- Packet refresh files:
   - `THREAD_PACKET.md`
+  - `.codex/kickoff_packets/feat-retrieval-fts.md`
+  - `.codex/lane_meta/feat-retrieval-fts.json`
 
 ## Commands run with results
 
@@ -115,4 +109,3 @@ This narrowed reviewed slice makes `retrieve relevant material` more real by mak
 
 - Shared/integrator-locked edits: `YES`
 - Approved shared exception: `tests/unit/test_unified_retrieval.py` is the sole shared-by-approval file in the reviewed implementation range.
-- Worktree constraint: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are readable in this lane worktree but not writable under current filesystem permissions, so `THREAD_PACKET.md` is the operative corrected handoff artifact for this fixer commit.
