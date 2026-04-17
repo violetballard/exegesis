@@ -2369,10 +2369,13 @@ def command_demo_path_contract(
     route_invocation_plan = smoke_contract.invocation_plan
     parser_invocation_plan = smoke_contract.smoke_invocation_plan
     shim_entries = command_cli_shim_catalog(specs, command_demo_flow_steps())
-    shim_invocations_by_step: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {}
+    parser_ready_invocations_by_step: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {}
     for flow_step in smoke_contract.flow_steps:
-        shim_invocations_by_step[flow_step] = tuple(
-            (entry.token, entry.argv)
+        parser_ready_invocations_by_step[flow_step] = tuple(
+            (
+                entry.token,
+                command_cli_entry_argv_for(specs, (entry.token,), command_demo_flow_steps()),
+            )
             for entry in shim_entries
             if entry.flow_step == flow_step
         )
@@ -2387,7 +2390,7 @@ def command_demo_path_contract(
             description=entry.description,
             lookup_tokens=entry.lookup_tokens,
             surface_tokens=entry.surface_tokens,
-            surface_invocations=shim_invocations_by_step.get(entry.flow_step, ()),
+            surface_invocations=parser_ready_invocations_by_step.get(entry.flow_step, ()),
         )
         for index, entry in enumerate(smoke_contract.entries)
     )

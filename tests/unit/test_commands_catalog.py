@@ -1449,18 +1449,41 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
         self.assertEqual(
+            contract.entries[0].surface_invocations,
+            (
+                ("bootstrap", ("bootstrap", "--project", "demo")),
+                ("open", ("bootstrap", "--project", "demo")),
+                ("project-open", ("bootstrap", "--project", "demo")),
+                ("project", ("bootstrap", "--project", "demo")),
+                ("bootstrap-run", ("bootstrap", "--project", "demo")),
+            ),
+        )
+        self.assertEqual(
+            contract.entries[1].surface_invocations,
+            (
+                ("context-basket", ("context-basket", "list")),
+                ("context", ("context-basket", "list")),
+                ("basket", ("context-basket", "list")),
+                ("retrieval", ("context-basket", "list")),
+                ("retrieve", ("context-basket", "list")),
+            ),
+        )
+        self.assertEqual(
             contract.entries[2].surface_invocations,
             (
-                ("diff-preview", ("diff-preview",)),
-                ("diff", ("diff-preview",)),
-                ("review-patch", ("diff-preview",)),
-                ("patch-review", ("diff-preview",)),
+                ("diff-preview", ("diff-preview", "--original", "before", "--proposed", "after")),
+                ("diff", ("diff-preview", "--original", "before", "--proposed", "after")),
+                ("review-patch", ("diff-preview", "--original", "before", "--proposed", "after")),
+                ("patch-review", ("diff-preview", "--original", "before", "--proposed", "after")),
             ),
         )
         self.assertEqual(
             contract.entries[3].surface_invocations,
             (
-                ("terminal", ("terminal",)),
+                (
+                    "terminal",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
                 (
                     "export",
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
