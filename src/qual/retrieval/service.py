@@ -608,6 +608,9 @@ class RetrievalResult:
             citation_bundle=citation_bundle,
             citation_status=citation_status,
             retrieval_summary=retrieval_summary,
+            retrieval_doc_bundle=retrieval_doc_bundle,
+            retrieval_excerpt_bundle=retrieval_excerpt_bundle,
+            retrieval_provenance=retrieval_provenance,
             basket_promotion=basket_promotion,
         )
         basket_promotion = copy.deepcopy(retrieval_source_bundle["basket_promotion"])
@@ -1170,6 +1173,9 @@ class RetrievalResult:
         citation_bundle: dict[str, object] | None = None,
         citation_status: dict[str, object] | None = None,
         retrieval_summary: dict[str, object] | None = None,
+        retrieval_doc_bundle: dict[str, object] | None = None,
+        retrieval_excerpt_bundle: dict[str, object] | None = None,
+        retrieval_provenance: dict[str, object] | None = None,
         basket_promotion: dict[str, object] | None = None,
     ) -> dict[str, object]:
         query_snapshot = query if query is not None else self._query_snapshot()
@@ -1187,6 +1193,28 @@ class RetrievalResult:
         basket_promotion_snapshot = (
             basket_promotion if basket_promotion is not None else self._basket_promotion_snapshot()
         )
+        retrieval_doc_bundle_snapshot = (
+            copy.deepcopy(retrieval_doc_bundle)
+            if retrieval_doc_bundle is not None
+            else copy.deepcopy(self.retrieval_doc_bundle())
+        )
+        retrieval_excerpt_bundle_snapshot = (
+            copy.deepcopy(retrieval_excerpt_bundle)
+            if retrieval_excerpt_bundle is not None
+            else copy.deepcopy(self.retrieval_excerpt_bundle())
+        )
+        retrieval_provenance_snapshot = (
+            copy.deepcopy(retrieval_provenance)
+            if retrieval_provenance is not None
+            else copy.deepcopy(
+                self._retrieval_provenance_snapshot(
+                    citation_bundle=citation_bundle_snapshot,
+                    citation_status=citation_status_snapshot,
+                    retrieval_policy=retrieval_policy_snapshot,
+                    basket_promotion=basket_promotion_snapshot,
+                )
+            )
+        )
         source_bundle = {
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
@@ -1197,20 +1225,16 @@ class RetrievalResult:
             "citation_status": copy.deepcopy(citation_status_snapshot),
             "retrieval_citation_bundle": copy.deepcopy(citation_bundle_snapshot),
             "retrieval_summary": retrieval_summary_snapshot,
-            "retrieval_doc_bundle": copy.deepcopy(self.retrieval_doc_bundle()),
-            "retrieval_excerpt_bundle": copy.deepcopy(self.retrieval_excerpt_bundle()),
+            # Keep every engine-facing nested retrieval snapshot sourced from
+            # the same canonical computation path so downstream consumers do
+            # not see drift between the payload and the source bundle.
+            "retrieval_doc_bundle": retrieval_doc_bundle_snapshot,
+            "retrieval_excerpt_bundle": retrieval_excerpt_bundle_snapshot,
             "doc_hits": [doc_hit.as_dict() for doc_hit in self.doc_hits],
             "excerpt_hits": [hit.as_dict() for hit in self.hits],
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_evidence": copy.deepcopy(self.evidence),
-            "retrieval_provenance": copy.deepcopy(
-                self._retrieval_provenance_snapshot(
-                    citation_bundle=citation_bundle_snapshot,
-                    citation_status=citation_status_snapshot,
-                    retrieval_policy=retrieval_policy_snapshot,
-                    basket_promotion=basket_promotion_snapshot,
-                )
-            ),
+            "retrieval_provenance": retrieval_provenance_snapshot,
             "basket_promotion": copy.deepcopy(basket_promotion_snapshot),
         }
         # Fingerprint the source snapshot itself so copies can be verified deterministically.
