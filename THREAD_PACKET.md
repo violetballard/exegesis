@@ -30,16 +30,10 @@
 
 ## Canonical Demo-Path Step Advanced
 
-- Exact CLI-first MVP steps strengthened:
-  - `open project/document`
-  - `retrieve relevant material`
-  - `preview and apply or reject a patch`
-- Primary step advanced by the branch-tip alias work: `open project/document`.
-- Supporting contract steps kept deterministic by the existing command-catalog checks: `retrieve relevant material` and `preview and apply or reject a patch`.
-- Concrete blockers removed:
-  - `document-open` / `open-document` now resolve back onto the canonical `bootstrap` parser entrypoint instead of drifting into an unrecognized or divergent document-open surface.
-  - Parser-facing canonical command order and accepted CLI entrypoints remain locked to the declared catalog so parser/catalog drift fails fast instead of silently changing the operator contract.
-- Scope boundary: this slice stays in command-catalog compatibility, resolution, and regression coverage. It does not add new commands, add new flags, widen the MVP loop, or embed engine behavior in handlers.
+- Exact canonical demo-path step advanced: `open project/document`.
+- Concrete blocker removed: `document-open` / `open-document` now resolve back onto the canonical `bootstrap` parser entrypoint instead of drifting into an unrecognized or divergent document-open surface.
+- Contract guard for that same step: parser-facing canonical command order and accepted CLI entrypoints remain locked to the declared catalog so parser/catalog drift fails fast instead of silently changing the active CLI open-command surface.
+- Scope boundary: this slice stays in command-catalog compatibility, resolution, and regression coverage for the existing open-command surface. It does not add new commands, add new flags, widen the MVP loop, or embed engine behavior in handlers.
 
 ## Scope-Tightening Note
 
@@ -49,8 +43,8 @@
 
 ## Ready for Handoff
 
-- This work now makes the canonical Milestone 3 CLI path more real because the active `open project/document` command aliases normalize back to the canonical bootstrap route, while the parser-facing command contract still rejects catalog drift before it can silently alter retrieval or patch-review routing.
-- Pre-handoff alignment statement: this is CLI compatibility and demo-path contract work for the active MVP loop, not standalone infra cleanup.
+- This work now makes the canonical Milestone 3 CLI path more real because the active `open project/document` aliases normalize back to the canonical bootstrap route and fail fast if the parser surface drifts from the declared catalog.
+- Pre-handoff alignment statement: this is narrow CLI compatibility work for the `open project/document` step of the active MVP loop, not standalone infra cleanup.
 
 ## Priority Outcomes
 
@@ -94,7 +88,7 @@
 ## Tasks Completed
 
 1. `open project/document`: normalized `document-open` and `open-document` so those document-open compatibility aliases resolve through the canonical `bootstrap` entrypoint instead of creating a divergent command surface.
-2. `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch`: kept the parser-facing CLI contract deterministic by validating declared entrypoints and canonical command ordering against the catalog.
+2. `open project/document`: kept the parser-facing CLI contract deterministic by validating declared entrypoints and canonical command ordering against the catalog so the active open-command surface cannot drift silently.
 3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for alias normalization and CLI contract drift rejection at the actual branch tip.
 4. Refreshed the handoff packet and compatibility summary so the review scope explicitly matches the real implementation under review.
 
@@ -112,7 +106,7 @@
 
 ## Commands Run and Outcomes
 
-- Verified on actual branch tip `c71150bcbfd20219a1beaab7b090ac2a4b40d8d3` during the final feature-fixer pass.
+- Verified on the pre-commit branch tip during the final feature-fixer pass; the final HEAD SHA is reported separately after commit.
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
@@ -130,11 +124,12 @@
 ### Roadmap item(s) affected
 
 - Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands by keeping the existing CLI route for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` deterministic while Textual remains disabled.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints for the current engine-first MVP loop, specifically by preventing parser/catalog drift and by keeping document-open compatibility aliases routed through the canonical bootstrap command surface.
+- Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands by keeping the existing CLI route for `open project/document` deterministic while Textual remains disabled.
+- `feat-commands` - CLI compatibility and migration-safe entrypoints for the current engine-first MVP loop, specifically by keeping document-open compatibility aliases routed through the canonical bootstrap command surface and by preventing the open-command parser/catalog contract from drifting silently.
 
 ### Vision capability affected
 
-- Canonical engine contract - the operator-facing CLI contract for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` now keeps document-open compatibility aliases on the canonical bootstrap route and fails fast when parser drift would otherwise silently change the command surface.
+- Canonical engine contract - the operator-facing CLI contract for `open project/document` now keeps document-open compatibility aliases on the canonical bootstrap route and fails fast when parser drift would otherwise silently change that command surface.
 - Auditable state and workflow - catalog/parser consistency and deterministic alias normalization make the active CLI contract explicit and traceable instead of depending on implicit ordering or untracked alias behavior.
 
 ### Routing/provider impact note
