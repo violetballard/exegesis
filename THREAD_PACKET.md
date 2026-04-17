@@ -22,6 +22,12 @@
 - This branch-tip work makes the retrieval step more real by ensuring the canonical engine-facing retrieval payloads stay deterministic and auditable as soon as FTS results are produced, which is the contract downstream basket and workflow steps depend on.
 - Reviewer-fix note: this reviewed slice specifically strengthens `retrieve relevant material` by keeping excerpt lookup deterministic and FTS-only on the canonical engine path.
 
+## Reviewer Fixes Addressed
+
+- Added the explicit canonical demo-path step the reviewer requested.
+- Kept that statement tightly scoped to this reviewed slice: deterministic, FTS-only excerpt lookup on the canonical engine path.
+- Regenerated the writable canonical handoff packet in `THREAD_PACKET.md`; the `.codex` packet mirrors remain read-only in this lane worktree and are documented under risks.
+
 ## AGENTS.md handoff packet
 
 - Risk reason: shared/high-risk work because the reviewed implementation range still edits the approved shared regression surface `tests/unit/test_unified_retrieval.py`.

@@ -147,6 +147,29 @@ def _normalize_query_confidentiality_profile(value: object) -> str | None:
     return text.casefold()
 
 
+def _normalize_query_scope(value: object) -> str | None:
+    text = _normalize_optional_text(value)
+    if text is None:
+        return None
+    if text.casefold() == "vault":
+        return "vault"
+    prefix, separator, remainder = text.partition(":")
+    normalized_prefix = prefix.strip().casefold()
+    if separator and normalized_prefix in {"doc", "collection", "section"}:
+        normalized_remainder = remainder.strip()
+        if not normalized_remainder:
+            return None
+        return f"{normalized_prefix}:{normalized_remainder}"
+    return text
+
+
+def _normalize_query_intent(value: object) -> str | None:
+    text = _normalize_optional_text(value)
+    if text is None:
+        return None
+    return text.casefold()
+
+
 def _parse_query_date_value(value: str) -> date | None:
     try:
         return datetime.fromisoformat(value).date()
@@ -270,6 +293,12 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
     )
     if confidentiality_profile is not None:
         normalized["confidentiality_profile"] = confidentiality_profile
+    normalized_scope = _normalize_query_scope(normalized.get("scope"))
+    if normalized_scope is not None:
+        normalized["scope"] = normalized_scope
+    normalized_intent = _normalize_query_intent(normalized.get("intent"))
+    if normalized_intent is not None:
+        normalized["intent"] = normalized_intent
     constraints = normalized.get("constraints", {})
     if not isinstance(constraints, dict):
         constraints = {}
@@ -581,12 +610,12 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
         normalized["section_hint"] = section_hint
     elif "section_hint" in normalized:
         normalized["section_hint"] = None
-    query_scope = _normalize_optional_text(normalized.get("query_scope"))
+    query_scope = _normalize_query_scope(normalized.get("query_scope"))
     if query_scope is not None:
         normalized["query_scope"] = query_scope
     elif "query_scope" in normalized:
         normalized["query_scope"] = None
-    query_intent = _normalize_optional_text(normalized.get("query_intent"))
+    query_intent = _normalize_query_intent(normalized.get("query_intent"))
     if query_intent is not None:
         normalized["query_intent"] = query_intent
     elif "query_intent" in normalized:
@@ -1166,7 +1195,8 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
             ),
         ),
     )
-    query_scope = query.get(
+    query_scope = _normalize_query_scope(
+        query.get(
         "scope",
         provenance.get(
             "query_scope",
@@ -1179,7 +1209,9 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
             ),
         ),
     )
-    query_intent = query.get(
+    )
+    query_intent = _normalize_query_intent(
+        query.get(
         "intent",
         provenance.get(
             "query_intent",
@@ -1191,6 +1223,7 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
                 ),
             ),
         ),
+    )
     )
     query_confidentiality_profile = _normalize_query_confidentiality_profile(
         query.get(
@@ -1490,13 +1523,17 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
             "query_fingerprint",
             provenance.get("query_fingerprint", summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))),
         ),
-        "query_scope": query.get(
-            "scope",
-            provenance.get("query_scope", summary.get("query_scope", diagnostics.get("query_scope"))),
+        "query_scope": _normalize_query_scope(
+            query.get(
+                "scope",
+                provenance.get("query_scope", summary.get("query_scope", diagnostics.get("query_scope"))),
+            )
         ),
-        "query_intent": query.get(
-            "intent",
-            provenance.get("query_intent", summary.get("query_intent", diagnostics.get("query_intent"))),
+        "query_intent": _normalize_query_intent(
+            query.get(
+                "intent",
+                provenance.get("query_intent", summary.get("query_intent", diagnostics.get("query_intent"))),
+            )
         ),
         "query_confidentiality_profile": _normalize_query_confidentiality_profile(
             query.get(
@@ -1648,8 +1685,8 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
     deferred_strategy_ids = _normalize_text_list_like(
         citation_bundle.get("deferred_strategy_ids", retrieval_policy.get("deferred_strategy_ids", []))
     )
-    query_scope = citation_bundle.get("query_scope", query.get("scope"))
-    query_intent = citation_bundle.get("query_intent", query.get("intent"))
+    query_scope = _normalize_query_scope(citation_bundle.get("query_scope", query.get("scope")))
+    query_intent = _normalize_query_intent(citation_bundle.get("query_intent", query.get("intent")))
     query_confidentiality_profile = _normalize_query_confidentiality_profile(
         citation_bundle.get(
             "query_confidentiality_profile",
@@ -1743,9 +1780,17 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     if _is_missing_snapshot_value(normalized.get("query_fingerprint")):
         normalized["query_fingerprint"] = summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))
     if _is_missing_snapshot_value(normalized.get("query_scope")):
-        normalized["query_scope"] = query.get("scope", summary.get("query_scope", diagnostics.get("query_scope")))
+        normalized["query_scope"] = _normalize_query_scope(
+            query.get("scope", summary.get("query_scope", diagnostics.get("query_scope")))
+        )
+    else:
+        normalized["query_scope"] = _normalize_query_scope(normalized.get("query_scope"))
     if _is_missing_snapshot_value(normalized.get("query_intent")):
-        normalized["query_intent"] = query.get("intent", summary.get("query_intent", diagnostics.get("query_intent")))
+        normalized["query_intent"] = _normalize_query_intent(
+            query.get("intent", summary.get("query_intent", diagnostics.get("query_intent")))
+        )
+    else:
+        normalized["query_intent"] = _normalize_query_intent(normalized.get("query_intent"))
     if _is_missing_snapshot_value(normalized.get("query_confidentiality_profile")):
         normalized["query_confidentiality_profile"] = _normalize_query_confidentiality_profile(
             query.get(
