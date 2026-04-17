@@ -3468,6 +3468,9 @@ class RetrievalService:
                 if section_hint is not None:
                     normalized["section_hint"] = section_hint
                     normalized_provenance["section_hint"] = section_hint
+        else:
+            normalized.pop("query", None)
+            normalized_provenance.pop("query", None)
         lookup_fingerprint = RetrievalService._stable_fingerprint(
             {
                 "doc_id": doc_id_value,

@@ -1448,6 +1448,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["doc_id"], "doc-stale-context")
         self.assertEqual(excerpt["excerpt_id"], excerpt_id)
         self.assertNotEqual(excerpt["source_hash"], original_source_hash)
+        self.assertNotIn("query", excerpt)
         self.assertIsNone(excerpt.get("query_fingerprint"))
         self.assertIsNone(excerpt.get("query_scope"))
         self.assertIsNone(excerpt.get("query_intent"))
