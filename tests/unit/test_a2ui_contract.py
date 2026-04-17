@@ -192,9 +192,14 @@ class A2UIContractTests(unittest.TestCase):
             describe_a2ui_contract_fingerprints(
                 include_action=True,
                 include_terminal_artifact=True,
+                include_terminal_artifact_render_target=True,
                 include_terminal_artifact_rendering=True,
                 include_terminal_artifact_cli_fallback=True,
             ),
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["terminal_artifact_render_target"],
+            manifest["terminal_artifact_render_target_fingerprint"],
         )
         self.assertEqual(fingerprints["capabilities"], manifest["capabilities_fingerprint"])
         self.assertEqual(manifest["selection"], describe_selection_contract())

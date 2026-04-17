@@ -126,6 +126,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["contract_fingerprints"]["terminal_artifact_cli_fallback"],
             terminal_artifact_cli_fallback_contract_fingerprint(),
         )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["terminal_artifact_render_target"],
+            manifest["terminal_artifact_render_target_fingerprint"],
+        )
         self.assertEqual(manifest["terminal_artifact"], describe_terminal_artifact_contract())
         self.assertEqual(manifest["schemas"]["selection"], describe_selection_contract())
         self.assertEqual(manifest["schemas"]["terminal_artifact"], describe_terminal_artifact_contract())
@@ -187,6 +191,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             describe_a2ui_contract_fingerprints(
                 include_action=True,
                 include_terminal_artifact=True,
+                include_terminal_artifact_render_target=True,
                 include_terminal_artifact_rendering=True,
                 include_terminal_artifact_cli_fallback=True,
             ),
@@ -251,6 +256,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["contract_fingerprints"]["terminal_artifact_cli_fallback"],
             terminal_artifact_cli_fallback_contract_fingerprint(),
         )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["terminal_artifact_render_target"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
 
     def test_a2ui_contract_fingerprint_map_matches_section_contracts(self) -> None:
         manifest = describe_a2ui_contract()
@@ -302,7 +311,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(fingerprints["capabilities"], a2ui_capabilities_contract_fingerprint())
         self.assertEqual(
             describe_a2ui_contract()["contract_fingerprints"],
-            fingerprints_without_render_target,
+            fingerprints,
         )
         self.assertNotEqual(fingerprints, fingerprints_without_render_target)
         self.assertNotIn("action", describe_a2ui_contract_fingerprints())

@@ -229,6 +229,7 @@ def _build_a2ui_contract_fingerprint_summary() -> dict[str, str]:
     return describe_a2ui_contract_fingerprints(
         include_terminal_artifact=True,
         include_action=True,
+        include_terminal_artifact_render_target=True,
         include_terminal_artifact_rendering=True,
         include_terminal_artifact_cli_fallback=True,
     )
