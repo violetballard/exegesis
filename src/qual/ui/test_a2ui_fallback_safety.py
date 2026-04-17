@@ -496,6 +496,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         manifest = describe_terminal_artifact_contract()
         render_target_manifest = describe_terminal_artifact_render_target_contract()
         rendering_manifest = describe_terminal_artifact_rendering_contract()
+        kind_contracts = describe_terminal_artifact_kind_contracts()
         a2ui_manifest = describe_a2ui_contract()
 
         self.assertEqual(manifest["render_target_contract"], render_target_manifest)
@@ -508,6 +509,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["fallback_recovery"], rendering_manifest["fallback_recovery"])
         self.assertEqual(render_target_manifest["kind_resolution"], rendering_manifest["kind_resolution"])
         self.assertEqual(render_target_manifest["fallback_recovery"], rendering_manifest["fallback_recovery"])
+        self.assertEqual(manifest["kind_contracts"], kind_contracts)
+        self.assertEqual(manifest["terminal_artifact_kind_contracts"], kind_contracts)
+        self.assertEqual(
+            manifest["terminal_artifact_kind_contracts_fingerprint"],
+            terminal_artifact_kind_contracts_fingerprint(),
+        )
         self.assertEqual(
             a2ui_manifest["terminal_artifact"]["kind_resolution"],
             rendering_manifest["kind_resolution"],
@@ -516,9 +523,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             a2ui_manifest["terminal_artifact"]["fallback_recovery"],
             rendering_manifest["fallback_recovery"],
         )
+        self.assertEqual(a2ui_manifest["terminal_artifact_kind_contracts"], kind_contracts)
+        self.assertEqual(
+            a2ui_manifest["terminal_artifact_kind_contracts_fingerprint"],
+            terminal_artifact_kind_contracts_fingerprint(),
+        )
         self.assertEqual(
             a2ui_manifest["terminal_artifact"]["render_target_contract"],
             render_target_manifest,
+        )
+        self.assertEqual(
+            a2ui_manifest["terminal_artifact"]["terminal_artifact_kind_contracts"],
+            kind_contracts,
         )
         self.assertEqual(
             a2ui_manifest["terminal_artifact_render_target"],
@@ -531,6 +547,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             a2ui_manifest["schemas"]["terminal_artifact"]["fallback_recovery"],
             rendering_manifest["fallback_recovery"],
+        )
+        self.assertEqual(
+            a2ui_manifest["schemas"]["terminal_artifact"]["terminal_artifact_kind_contracts"],
+            kind_contracts,
         )
         self.assertEqual(
             a2ui_manifest["schemas"]["terminal_artifact_render_target"],

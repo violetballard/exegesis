@@ -186,6 +186,10 @@ def describe_a2ui_contract() -> dict[str, Any]:
     manifest["terminal_artifact_contract_fingerprint"] = manifest["terminal_artifact_fingerprint"]
     manifest["terminal_artifact_render_target_contract"] = manifest["schemas"]["terminal_artifact_render_target"]
     manifest["terminal_artifact_render_target_contract_fingerprint"] = manifest["terminal_artifact_render_target_fingerprint"]
+    manifest["terminal_artifact_kind_contracts"] = manifest["terminal_artifact"]["terminal_artifact_kind_contracts"]
+    manifest["terminal_artifact_kind_contracts_fingerprint"] = manifest["terminal_artifact"][
+        "terminal_artifact_kind_contracts_fingerprint"
+    ]
     manifest["terminal_artifact_rendering_contract"] = manifest["schemas"]["terminal_artifact_rendering"]
     manifest["terminal_artifact_rendering_contract_fingerprint"] = manifest["terminal_artifact_rendering_fingerprint"]
     manifest["terminal_artifact_cli_fallback_contract"] = manifest["schemas"]["terminal_artifact_cli_fallback"]
@@ -306,6 +310,8 @@ def describe_terminal_artifact_contract() -> dict[str, Any]:
     manifest["contract_fingerprint"] = fingerprint
     manifest["terminal_artifact_render_target"] = manifest["render_target_contract"]
     manifest["terminal_artifact_render_target_fingerprint"] = terminal_artifact_render_target_contract_fingerprint()
+    manifest["terminal_artifact_kind_contracts"] = manifest["kind_contracts"]
+    manifest["terminal_artifact_kind_contracts_fingerprint"] = terminal_artifact_kind_contracts_fingerprint()
     return manifest
 
 
