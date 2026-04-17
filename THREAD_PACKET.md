@@ -4,6 +4,7 @@
 - Current branch head before this fixer commit: `9e5345ee9b094f78a3d2fb2f9fdbd291d1bc496f`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Packet refresh role: `metadata-only reviewer-fix finalization`
 
 ## Scope goal
 
@@ -15,6 +16,7 @@
 - The reviewed implementation removes the PageIndex fallback from `fetch_excerpt`, so excerpt lookup now fails closed on the canonical FTS-only path.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt ids now raise `KeyError`.
 - PageIndex and embeddings remain deferred, non-required compatibility paths in this slice rather than required runtime retrieval paths.
+- Reviewer-fix note: this packet remains intentionally narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and does not broaden scope beyond the required handoff text correction.
 
 ## Tasks completed
 
