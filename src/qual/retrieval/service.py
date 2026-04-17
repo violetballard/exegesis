@@ -2775,6 +2775,20 @@ class RetrievalService:
         section_hint_rank = _optional_int(normalized_provenance.get("section_hint_rank"))
         if section_hint_rank is not None:
             normalized_provenance["section_hint_rank"] = section_hint_rank
+        retrieved_doc_ids = _normalize_doc_id_list_payload(
+            normalized.get("retrieved_doc_ids")
+            or normalized_provenance.get("retrieved_doc_ids")
+            or [doc_id_value]
+        )
+        if retrieved_doc_ids is not None:
+            normalized_provenance["retrieved_doc_ids"] = retrieved_doc_ids
+        retrieved_excerpt_ids = _normalize_doc_id_list_payload(
+            normalized.get("retrieved_excerpt_ids")
+            or normalized_provenance.get("retrieved_excerpt_ids")
+            or [excerpt_id_value]
+        )
+        if retrieved_excerpt_ids is not None:
+            normalized_provenance["retrieved_excerpt_ids"] = retrieved_excerpt_ids
         lookup_fingerprint = RetrievalService._stable_fingerprint(
             {
                 "doc_id": doc_id_value,
@@ -2820,6 +2834,8 @@ class RetrievalService:
             "section_hint",
             "section_hint_rank",
             "lookup_confidentiality_profile",
+            "retrieved_doc_ids",
+            "retrieved_excerpt_ids",
         ):
             value = normalized_provenance.get(key)
             if value is not None:
@@ -2911,20 +2927,22 @@ class RetrievalService:
                     or active_strategy_ids
                 )
             ),
-            "retrieved_doc_ids": [
-                doc_id
-                for doc_id in (
-                    _optional_text(excerpt.get("doc_id")) or _optional_text(provenance.get("doc_id")),
-                )
-                if doc_id is not None
-            ],
-            "retrieved_excerpt_ids": [
-                excerpt_value
-                for excerpt_value in (
-                    _optional_text(excerpt.get("excerpt_id")) or _optional_text(provenance.get("excerpt_id")),
-                )
-                if excerpt_value is not None
-            ],
+            "retrieved_doc_ids": _normalize_doc_id_list_payload(
+                excerpt.get("retrieved_doc_ids")
+                or provenance.get("retrieved_doc_ids")
+                or [
+                    _optional_text(excerpt.get("doc_id"))
+                    or _optional_text(provenance.get("doc_id"))
+                ]
+            ),
+            "retrieved_excerpt_ids": _normalize_doc_id_list_payload(
+                excerpt.get("retrieved_excerpt_ids")
+                or provenance.get("retrieved_excerpt_ids")
+                or [
+                    _optional_text(excerpt.get("excerpt_id"))
+                    or _optional_text(provenance.get("excerpt_id"))
+                ]
+            ),
         }
 
     @staticmethod
