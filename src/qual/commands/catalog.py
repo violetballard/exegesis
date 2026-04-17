@@ -3254,13 +3254,27 @@ def _command_demo_transition_token_lookup(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> dict[str, str]:
     lookup: dict[str, str] = {}
-    for entry in command_demo_loop_contract(specs).entries:
+    loop_entries = command_demo_loop_contract(specs).entries
+    loop_token_by_argv = {entry.argv: entry.token for entry in loop_entries if entry.argv}
+
+    for entry in loop_entries:
         normalized_entry_token = _normalize_token(entry.token)
         if normalized_entry_token:
             lookup[normalized_entry_token] = entry.token
         normalized_primary_cli_token = _normalize_token(entry.argv[0]) if entry.argv else ""
         if normalized_primary_cli_token and entry.kind != "lookup":
             lookup.setdefault(normalized_primary_cli_token, entry.token)
+
+    for entry in command_demo_path_contract(specs).entries:
+        for token, argv in (
+            *entry.surface_invocations,
+            *entry.preferred_surface_invocations,
+            *entry.parser_surface_invocations,
+        ):
+            normalized_surface_token = _normalize_token(token)
+            canonical_token = loop_token_by_argv.get(argv)
+            if normalized_surface_token and canonical_token:
+                lookup.setdefault(normalized_surface_token, canonical_token)
 
     for canonical_token, fallback_tokens in _COMMAND_DEMO_LOOP_FALLBACK_TOKENS.items():
         for fallback_token in fallback_tokens:
