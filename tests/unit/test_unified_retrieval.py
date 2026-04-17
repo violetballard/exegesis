@@ -3829,6 +3829,35 @@ class UnifiedRetrievalTests(unittest.TestCase):
         }
         self.assertEqual(payload["basket_promotion"], expected_basket_promotion)
 
+    def test_retrieval_downstream_payload_helper_normalizes_basket_promotion_excerpt_text(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        basket_promotion = sparse_source_bundle.get("basket_promotion")
+        self.assertIsInstance(basket_promotion, dict)
+        basket_promotion["excerpt_text"] = f"  {basket_promotion['excerpt_text']}  "
+
+        payload = build_retrieval_downstream_payload_from_result(
+            _SourceBundleOnlySource(sparse_source_bundle)
+        )
+
+        self.assertEqual(payload["basket_promotion"], result.to_downstream_payload()["basket_promotion"])
+
     def test_retrieve_auto_citation_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(
             query_text="memo coding comparison",

@@ -723,6 +723,11 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
         normalized["title_hint"] = title_hint
     elif "title_hint" in normalized:
         normalized["title_hint"] = None
+    excerpt_text = _normalize_optional_text(normalized.get("excerpt_text"))
+    if excerpt_text is not None:
+        normalized["excerpt_text"] = excerpt_text
+    elif "excerpt_text" in normalized:
+        normalized["excerpt_text"] = None
     span = _normalize_span_snapshot(normalized.get("span"))
     if span is not None:
         normalized["span"] = copy.deepcopy(span)
