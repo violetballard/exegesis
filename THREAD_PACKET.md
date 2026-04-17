@@ -3,14 +3,14 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `1bf99c36f9a8759c043b314b6b9d84b534048334`
-- Packet refresh role: `feature-fixer implementation-aligned reviewer-fix verification and gate rerun`
+- Packet refresh role: `feature-fixer final gate rerun and handoff refresh`
 
 ## Packet Traceability Note
 
 - The implementation commit above refers to the current runtime fix commit for this lane, which carries the reviewer-required command-surface hardening and the current default `demo` / `mvp` command-flow contract on branch tip.
 - This packet refresh keeps the handoff wording aligned with the current implementation and records the final required gate rerun for the reviewer-fix branch tip.
 - Final verification refresh: re-ran the required gate suite on April 16, 2026 (America/Los_Angeles) after confirming the reviewer-required demo-path alignment is still present on this branch tip.
-- Feature-fixer verification refresh: re-ran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on April 16, 2026 (America/Los_Angeles) to attach a fresh fixer commit to the reviewer-required packet alignment.
+- Feature-fixer verification refresh: re-ran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on April 16, 2026 (America/Los_Angeles) to attach a fresh fixer verification commit to the reviewer-required packet alignment.
 - Reviewer-fix follow-up scope: this refresh keeps the packet aligned with the actual branch tip, where the default `demo` / `mvp` command-flow helpers still cover `project-open`, `retrieval`, `patch-review`, and `export-handoff`, and where the reviewer-required fix is the explicit demo-path mapping in the handoff itself.
 
 ## Current Program Focus
@@ -120,7 +120,7 @@
 - Re-verified on the current `codex/feat-commands` branch tip that the reviewer-required fixes are present in the implementation: `command_cli_contract()` now rejects default-catalog parser-surface drift, and `tests/unit/test_commands_catalog.py` covers missing-primary-token, alias-substitution, extra-entrypoint, and primary-token-order drift where canonical command order alone would still be insufficient.
 - Re-verified that the default `demo` / `mvp` command-flow helpers on the current branch tip still include `export-handoff`, and that the packet now maps that `terminal` compatibility surface to the loop's `save and continue` step instead of claiming it was removed.
 - This handoff refresh records both gate contexts explicitly: the reviewed implementation slice used `SCOPE_ALLOW_SHARED=1 make scope-check` and `SCOPE_ALLOW_SHARED=1 make ci` because it includes the approved shared test `tests/unit/test_commands_catalog.py`, while this metadata-only reviewer-fix follow-up commit also passes the standard `make scope-check` and `make ci` reruns on branch tip without broadening implementation scope.
-- Feature-fixer note: this refresh exists only to record the final gate rerun and produce the requested new commit on top of the already-applied reviewer-required fixes.
+- Feature-fixer note: this refresh exists only to record the final required gate rerun on branch tip and produce the requested new commit on top of the already-applied reviewer-required fixes.
 
 ## Risks / Blockers
 
