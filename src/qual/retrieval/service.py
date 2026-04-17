@@ -953,6 +953,7 @@ class RetrievalResult:
         primary_excerpt_hit = self.hits[0] if self.hits else None
         primary_doc_provenance = primary_doc_hit.provenance if primary_doc_hit is not None else {}
         primary_excerpt_provenance = primary_excerpt_hit.provenance if primary_excerpt_hit is not None else {}
+        retrieval_policy = copy.deepcopy(self.diagnostics["retrieval_policy"])
         promotion_source = "none"
         if primary_excerpt_hit is not None:
             promotion_source = "primary_ranked_excerpt"
@@ -1035,6 +1036,9 @@ class RetrievalResult:
             ),
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
+            "retrieval_policy": retrieval_policy,
+            "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
+            "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
         }
 
     def _retrieval_source_bundle_snapshot(
@@ -2694,6 +2698,13 @@ class RetrievalService:
         provenance: dict[str, object],
         lookup_fingerprint: str,
     ) -> dict[str, object]:
+        retrieval_policy = copy.deepcopy(excerpt.get("retrieval_policy", self._retrieval_policy.as_snapshot()))
+        active_strategy_ids = copy.deepcopy(
+            excerpt.get("active_strategy_ids", retrieval_policy.get("active_strategy_ids", []))
+        )
+        deferred_strategy_ids = copy.deepcopy(
+            excerpt.get("deferred_strategy_ids", retrieval_policy.get("deferred_strategy_ids", []))
+        )
         return {
             "promotion_ready": True,
             "promotion_source": "lookup_excerpt",
@@ -2734,6 +2745,9 @@ class RetrievalService:
             or _optional_text(provenance.get("retrieval_backend")),
             "retrieval_mode": _optional_text(excerpt.get("retrieval_mode"))
             or _optional_text(provenance.get("retrieval_mode")),
+            "retrieval_policy": retrieval_policy,
+            "active_strategy_ids": active_strategy_ids,
+            "deferred_strategy_ids": deferred_strategy_ids,
         }
 
     @staticmethod

@@ -554,6 +554,13 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
     if not isinstance(snapshot, dict):
         return {}
     normalized = copy.deepcopy(snapshot)
+    retrieval_policy = normalized.get("retrieval_policy")
+    if isinstance(retrieval_policy, dict):
+        normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    elif "retrieval_policy" in normalized:
+        normalized["retrieval_policy"] = {}
+    normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
+    normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
     doc_type = _normalize_optional_text(normalized.get("doc_type"))
     if doc_type is not None:
         normalized["doc_type"] = doc_type
@@ -606,6 +613,15 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
         retrieval_provenance = {}
     if not isinstance(retrieval_summary, dict):
         retrieval_summary = {}
+    retrieval_policy = _normalize_policy_snapshot(
+        payload.get(
+            "policy",
+            payload.get(
+                "retrieval_policy",
+                retrieval_provenance.get("retrieval_policy", retrieval_summary.get("retrieval_policy", {})),
+            ),
+        )
+    )
 
     doc_hits = _normalize_list_like(
         payload.get("doc_hits", retrieval_doc_bundle.get("doc_hits", []))
@@ -820,6 +836,25 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
             first_excerpt_citation.get("retrieval_mode"),
             retrieval_summary.get("retrieval_mode"),
             retrieval_provenance.get("retrieval_mode"),
+        ),
+        "retrieval_policy": retrieval_policy,
+        "active_strategy_ids": _normalize_text_list_like(
+            payload.get(
+                "active_strategy_ids",
+                retrieval_provenance.get(
+                    "active_strategy_ids",
+                    retrieval_summary.get("active_strategy_ids", retrieval_policy.get("active_strategy_ids", [])),
+                ),
+            )
+        ),
+        "deferred_strategy_ids": _normalize_text_list_like(
+            payload.get(
+                "deferred_strategy_ids",
+                retrieval_provenance.get(
+                    "deferred_strategy_ids",
+                    retrieval_summary.get("deferred_strategy_ids", retrieval_policy.get("deferred_strategy_ids", [])),
+                ),
+            )
         ),
     }
     if not primary_snapshot:
