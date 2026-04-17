@@ -1,28 +1,36 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Current branch head before this handoff commit: `8ac415f5cd738945fd8ac2e47339b0690922d3bb`
+- Current branch head before this fixer commit: `778eb5db8d5623d58a12051794ef720cb23ebd3a`
+- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+
+## Scope goal
+
+- Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
 
 ## Scope completed
 
-- Kept SQLite FTS authoritative for retrieval-owned excerpt lookup.
-- Promoted deterministic `retrieved_doc_ids` and `retrieved_excerpt_ids` into the canonical excerpt lookup payload, its provenance snapshot, and the basket-promotion record.
-- Kept the lookup contract aligned with the retrieval result contract so engine flows can promote lookup-derived context into the basket without reconstructing ranked source ids.
+- SQLite FTS remains the authoritative MVP retrieval path in this narrowed slice.
+- The reviewed implementation removes the PageIndex fallback from `fetch_excerpt`, so excerpt lookup now fails closed on the canonical FTS-only path.
+- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt ids now raise `KeyError`.
+- PageIndex and embeddings remain deferred, non-required compatibility paths in this slice rather than required runtime retrieval paths.
 
 ## Tasks completed
 
-1. Backfilled stable ranked retrieval ids for canonical excerpt lookup provenance.
-2. Surfaced the same ranked retrieval ids at the top level of the excerpt lookup payload.
-3. Aligned lookup basket-promotion metadata with the same canonical ranked ids for downstream engine promotion flows.
+1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves only through the canonical FTS-backed lookup path.
+2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt ids fail closed with `KeyError`.
 
 ## Files changed
 
 - `src/qual/retrieval/service.py`
+- `tests/unit/test_unified_retrieval.py`
+- `.codex/lane_meta/feat-retrieval-fts.json`
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `THREAD_PACKET.md`
 
 ## Commands run with results
 
-- `python -m unittest tests.unit.test_unified_retrieval`: `PASS`
 - `make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
@@ -32,33 +40,37 @@
 
 ## Risks / blockers
 
-- Risks: low; this change is additive to the lookup payload contract and does not widen retrieval strategy scope beyond FTS-first behavior.
-- Blockers: none.
+- Risk: `HIGH`
+- Blockers: none
 
 ## Required handoff fields
 
 ### Roadmap item(s) affected
 
-- `Milestone 4: Retrieval Layer` by tightening the deterministic, auditable retrieval contract used by engine flows.
-- `Milestone 3: Product Readiness` by narrowing and stabilizing a user-facing retrieval payload shape used in the workflow loop.
+- `Milestone 3: Real workflow loop` by keeping retrieval/search FTS-first and structured for the engine loop.
+- `feat-retrieval-fts` by preserving the authoritative FTS-first retrieval path feeding the engine loop.
 
 ### Vision capability affected
 
 - `Retrieval-first context handling`
-- `Auditable generation`
+- `Auditable state and workflow`
 
 ### Canonical demo-path step advanced
 
-- Canonical demo-path step advanced: `retrieve relevant material`.
 - `retrieve relevant material`
-- This narrowed reviewed slice makes the canonical `retrieve relevant material` step more real by forcing excerpt lookup through the FTS-backed retrieval contract and failing closed instead of falling back to PageIndex-only excerpt ids.
-- The same FTS-only lookup contract remains suitable for later basket/context promotion flows without widening the MVP retrieval path.
-- This fixer pass records that explicit demo-path mapping in the tracked handoff packet so re-review can verify AGENTS alignment directly from the handoff.
+- This narrowed slice makes the canonical `retrieve relevant material` step more real by forcing excerpt lookup through the FTS-backed contract and failing closed instead of accepting PageIndex-only excerpt ids.
+- The same deterministic excerpt contract remains suitable for later basket promotion without widening the MVP retrieval path.
 
 ### Routing/provider impact note
 
-- None.
+- None
 
 ### Proposed `README.md` patch text
 
-- None.
+- None
+
+## Scope-check / ownership note
+
+- Shared/integrator-locked edits: `YES`
+- Approved shared exception: `tests/unit/test_unified_retrieval.py` is the sole shared-by-approval file in the reviewed implementation range.
+- Metadata-only packet refresh edits do not expand the reviewed implementation range beyond `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
