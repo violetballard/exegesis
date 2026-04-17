@@ -452,7 +452,9 @@ def describe_a2ui_contract_fingerprints(
     embedded dispatch fingerprints, including the raw-leaf card-default
     recovery contract and its policy contract, plus contract aliases that the
     full manifest already surfaces so lightweight callers can negotiate the
-    same contract slice without pulling the entire manifest.
+    same contract slice without pulling the entire manifest. The top-level
+    `contract_fingerprint` alias is included only when alias expansion is
+    requested, mirroring the manifest surface.
     """
 
     manifest = _build_a2ui_contract_manifest(
@@ -499,6 +501,7 @@ def describe_a2ui_contract_fingerprints(
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
+            ("contract_fingerprint", _fingerprint_manifest_section(manifest)),
             ("capabilities_contract", a2ui_capabilities_contract_fingerprint()),
             ("card_fingerprint", card_contract_fingerprint()),
             ("card_contract_fingerprint", card_contract_fingerprint()),
