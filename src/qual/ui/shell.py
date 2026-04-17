@@ -366,9 +366,16 @@ class ShellUI:
         *,
         kind: str | None,
     ) -> tuple[Any, str | None]:
-        fallback_kind = ShellUI._normalize_fallback_kind(kind)
+        requested_kind = ShellUI._normalize_fallback_kind(kind)
         try:
-            return resolve_terminal_artifact_cli_fallback_target(artifact, kind=kind)
+            fallback_artifact, fallback_kind = resolve_terminal_artifact_cli_fallback_target(artifact, kind=kind)
+            if requested_kind != "card" and fallback_kind == "card":
+                fallback_artifact, fallback_kind = ShellUI._refine_fallback_artifact(
+                    fallback_artifact,
+                    fallback_kind,
+                    requested_kind=requested_kind,
+                )
+            return fallback_artifact, fallback_kind
         except Exception:
             recovered = ShellUI._recover_terminal_artifact_envelope_fallback(artifact)
             if recovered is not None:
@@ -380,7 +387,41 @@ class ShellUI:
                 return artifact, inferred_kind
             # Keep the shell fallback path deterministic: if we could not
             # recover a specific kind, fall back to the default card view.
-            return artifact, fallback_kind or "card"
+            return artifact, requested_kind or "card"
+
+    @staticmethod
+    def _refine_fallback_artifact(
+        artifact: Any,
+        resolved_kind: str | None,
+        *,
+        requested_kind: str | None,
+    ) -> tuple[Any, str | None]:
+        """Restore a leaf-specific fallback when the shared resolver underflows to card.
+
+        The shell keeps explicit ``kind="card"`` requests authoritative, but if the
+        shared CLI fallback target resolver under-reports a recoverable action or
+        selection leaf, the shell can still route the demo loop to the specific
+        leaf renderer before the generic card retry runs.
+        """
+
+        if resolved_kind != "card" or requested_kind == "card":
+            return artifact, resolved_kind
+
+        if isinstance(artifact, Mapping):
+            artifact_type = artifact.get("type")
+            if isinstance(artifact_type, str) and artifact_type.strip() == "TerminalArtifact":
+                recovered = ShellUI._recover_terminal_artifact_envelope_fallback(artifact)
+                if recovered is not None:
+                    return recovered
+
+        if _should_preserve_raw_leaf_card_default(artifact):
+            return artifact, "card"
+
+        inferred_kind = ShellUI._infer_fallback_kind(artifact)
+        if inferred_kind in {"action", "selection"}:
+            return artifact, inferred_kind
+
+        return artifact, resolved_kind
 
     @staticmethod
     def _recover_terminal_artifact_envelope_fallback(

@@ -4468,6 +4468,52 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(text, "cli-fallback")
         cli_fallback.assert_called_once_with(raw_leaf, kind="card")
 
+    def test_shell_ui_recovers_leaf_kind_when_shared_resolver_underflows_to_card_and_cli_fallback_fails(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                {
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                    "confirm": {"title": "Approve", "message": "Proceed?"},
+                },
+                "[ActionRef] Export",
+                "action",
+            ),
+            (
+                "selection",
+                {
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                    "selected": True,
+                },
+                "[SelectionRef] Choice",
+                "selection",
+            ),
+        ]
+
+        for case_name, artifact, expected_prefix, expected_kind in cases:
+            with self.subTest(case=case_name):
+                with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+                    with patch(
+                        "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
+                        return_value=(artifact, "card"),
+                    ):
+                        with patch(
+                            "src.qual.ui.shell.render_terminal_cli_fallback",
+                            side_effect=RuntimeError("cli fallback boom"),
+                        ) as cli_fallback:
+                            text = shell.render_artifact(artifact)
+
+                self.assertIn(expected_prefix, text)
+                self.assertIn(f"{case_name.capitalize()} schema v1", text)
+                cli_fallback.assert_called_once_with(artifact, kind=expected_kind)
+
     def test_shell_ui_retries_shared_renderer_on_resolved_fallback_target_after_cli_fallback_failure(self) -> None:
         shell = ShellUI()
         raw_leaf = {
