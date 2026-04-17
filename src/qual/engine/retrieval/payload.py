@@ -318,6 +318,8 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
     )
     if confidentiality_profile is not None:
         normalized["confidentiality_profile"] = confidentiality_profile
+    elif "query_text" in normalized:
+        normalized["confidentiality_profile"] = "confidential"
     normalized_scope = _normalize_query_scope(normalized.get("scope"))
     if normalized_scope is not None:
         normalized["scope"] = normalized_scope
@@ -332,17 +334,21 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
     max_results = _normalize_optional_int(constraints.get("max_results"))
     if max_results is not None:
         constraints["max_results"] = max_results
-    elif "max_results" in constraints:
-        constraints["max_results"] = None
+    else:
+        constraints["max_results"] = 10
     constraints["doc_types"] = _normalize_query_doc_types(constraints.get("doc_types"))
     constraints["date_range"] = _normalize_query_date_range(constraints.get("date_range"))
     constraints["section_hint"] = _normalize_optional_text(constraints.get("section_hint"))
     require_citations = _normalize_optional_bool(constraints.get("require_citations"))
     if require_citations is not None:
         constraints["require_citations"] = require_citations
+    else:
+        constraints["require_citations"] = False
     prefer_exact_matches = _normalize_optional_bool(constraints.get("prefer_exact_matches"))
     if prefer_exact_matches is not None:
         constraints["prefer_exact_matches"] = prefer_exact_matches
+    else:
+        constraints["prefer_exact_matches"] = False
     normalized["constraints"] = constraints
     return normalized
 
