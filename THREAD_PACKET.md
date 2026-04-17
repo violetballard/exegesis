@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (reviewed implementation slice)
-- Packet refresh role: `feature-fixer final reviewer-required gate rerun`
+- Packet refresh role: `feature-fixer final reviewer-required verification refresh`
 - Packet refresh date: `2026-04-17`
 
 ## Packet Traceability Note
@@ -15,8 +15,9 @@
 - For this re-review, use the reviewer packet as the scope source of truth and
   keep the reviewed implementation pinned to that command-catalog slice unless
   a new feature packet is explicitly generated.
-- This refresh corrects the handoff so it matches the branch-tip
-  implementation and tests that now satisfy the reviewer-required fixes.
+- This refresh records the final feature-fixer verification pass so the
+  handoff matches the branch-tip implementation and tests that satisfy the
+  reviewer-required fixes.
 - The reviewed implementation commit remains pinned to
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; later metadata-only packet
   refreshes do not broaden the implementation scope under review.
@@ -58,6 +59,11 @@
   reran the full required gate suite on the current branch tip immediately
   before this metadata refresh so the re-review packet records fresh evidence
   for the reviewer-required demo-path alignment fix.
+- Final verification basis:
+  the current branch tip already includes the parser-surface drift guard and
+  focused alias-substitution regression coverage requested by the reviewer, so
+  this refresh records the clean post-fix validation state without broadening
+  the reviewed implementation scope.
 - Final gate-rerun record:
   this packet refresh now captures the clean post-fix rerun on the current
   branch tip immediately before commit creation on `2026-04-17`.
