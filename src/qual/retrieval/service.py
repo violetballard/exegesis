@@ -365,7 +365,9 @@ def _normalize_hit_shared_provenance_payload(provenance: object) -> dict[str, ob
     retrieval_mode = _normalized_profile_text(normalized.get("retrieval_mode"))
     if retrieval_mode is not None:
         normalized["retrieval_mode"] = retrieval_mode
-    retrieval_policy = _normalize_retrieval_policy_snapshot_payload(normalized.get("retrieval_policy"))
+    retrieval_policy = _normalize_retrieval_policy_snapshot_payload(
+        normalized.get("retrieval_policy", normalized.get("policy"))
+    )
     if retrieval_policy:
         normalized["retrieval_policy"] = retrieval_policy
         normalized["policy"] = copy.deepcopy(retrieval_policy)
@@ -701,7 +703,7 @@ class RetrievalHit:
         retrieval_mode = self.provenance.get("retrieval_mode")
         if isinstance(retrieval_mode, str) and retrieval_mode:
             payload["retrieval_mode"] = retrieval_mode
-        retrieval_policy = self.provenance.get("retrieval_policy")
+        retrieval_policy = self.provenance.get("retrieval_policy", self.provenance.get("policy"))
         if isinstance(retrieval_policy, dict):
             payload["retrieval_policy"] = copy.deepcopy(retrieval_policy)
         active_strategy_ids = _optional_list_like(self.provenance.get("active_strategy_ids"))
@@ -832,7 +834,7 @@ class RetrievalDocHit:
         retrieval_mode = self.provenance.get("retrieval_mode")
         if isinstance(retrieval_mode, str) and retrieval_mode:
             payload["retrieval_mode"] = retrieval_mode
-        retrieval_policy = self.provenance.get("retrieval_policy")
+        retrieval_policy = self.provenance.get("retrieval_policy", self.provenance.get("policy"))
         if isinstance(retrieval_policy, dict):
             payload["retrieval_policy"] = copy.deepcopy(retrieval_policy)
         active_strategy_ids = _optional_list_like(self.provenance.get("active_strategy_ids"))
@@ -1822,7 +1824,7 @@ class RetrievalService:
         span = excerpt.get("span")
         if not isinstance(span, dict):
             span = None
-        retrieval_policy = excerpt.get("retrieval_policy")
+        retrieval_policy = excerpt.get("retrieval_policy", excerpt.get("policy"))
         if not isinstance(retrieval_policy, dict):
             retrieval_policy = self._retrieval_policy.as_snapshot()
         basket_promotion = excerpt.get("basket_promotion")
