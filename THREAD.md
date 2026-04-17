@@ -6,8 +6,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Reviewer Fix Alignment
 
-- The current branch tip is a metadata-only fixer refresh commit on top of
-  later lane work already present on `codex/feat-commands`.
+- This packet refresh commit is a metadata-only fixer refresh on top of later
+  lane work already present on `codex/feat-commands`.
 - Review the command-catalog implementation at
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - For this re-review, use the reviewer packet as the scope source of truth and
