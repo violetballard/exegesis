@@ -29,6 +29,8 @@ GENERIC_FALLBACK_SUBTITLE = "Rendered as GenericCard because client does not sup
 UNKNOWN_FALLBACK_SUBTITLE = "Read-only fallback view with safe primitive blocks and raw JSON preview."
 GENERIC_FALLBACK_TITLE_PREFIX = "Fallback view for "
 UNKNOWN_FALLBACK_TITLE_PREFIX = "Unsupported card type: "
+TERMINAL_ARTIFACT_SUPPORTED_KINDS: tuple[str, str, str] = ("card", "action", "selection")
+TERMINAL_ARTIFACT_DEFAULT_KIND = "card"
 _RESERVED_CARD_TYPES: tuple[str, ...] = (GENERIC_CARD_TYPE, UNKNOWN_CARD_TYPE)
 _SPECIALIZED_CARD_TYPES: tuple[str, ...] = (
     "ProposedEditCard",
@@ -62,6 +64,8 @@ REQUIRED_PRIMITIVE_BLOCKS: tuple[str, ...] = (
 
 _PRIMITIVE_BLOCK_SET = set(REQUIRED_PRIMITIVE_BLOCKS)
 _ALLOWED_ACTION_SET = set(ALLOWED_ACTION_IDS)
+_TERMINAL_ARTIFACT_SUPPORTED_KIND_SET = set(TERMINAL_ARTIFACT_SUPPORTED_KINDS)
+_TERMINAL_ARTIFACT_NON_CARD_KIND_SET = set(TERMINAL_ARTIFACT_SUPPORTED_KINDS) - {TERMINAL_ARTIFACT_DEFAULT_KIND}
 
 _PRIMITIVE_BLOCK_SCHEMAS: dict[str, tuple[str, ...]] = {
     "MarkdownBlock": ("markdown",),
@@ -757,7 +761,7 @@ def validate_terminal_artifact_envelope(envelope: Any) -> None:
     if not isinstance(kind, str):
         raise ValueError("TerminalArtifact kind must be a string")
     normalized_kind = kind.strip().lower()
-    if normalized_kind not in {"card", "action", "selection"}:
+    if normalized_kind not in _TERMINAL_ARTIFACT_SUPPORTED_KIND_SET:
         raise ValueError("TerminalArtifact kind must be one of: card, action, selection")
     if "artifact" not in envelope:
         raise ValueError("TerminalArtifact artifact is required")
@@ -919,8 +923,8 @@ def _build_terminal_fallback_contract_manifest() -> dict[str, Any]:
         "terminal_fallback_schema_version": TERMINAL_FALLBACK_SCHEMA_VERSION,
         "terminal_fallback_version": TERMINAL_FALLBACK_SCHEMA_VERSION,
         "type": "TerminalFallbackContract",
-        "supported_kinds": ["card", "action", "selection"],
-        "default_kind": "card",
+        "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
+        "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
         "read_only_action": _build_read_only_fallback_action_manifest()[0],
         "card_fallbacks": _build_card_fallback_manifest(),
     }
@@ -938,8 +942,8 @@ def _build_terminal_artifact_contract_manifest(*, include_contract_fingerprints:
         "terminal_artifact_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
         "type": "TerminalArtifactContract",
         "envelope": _build_terminal_artifact_envelope_manifest(),
-        "supported_kinds": ["card", "action", "selection"],
-        "default_kind": "card",
+        "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
+        "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
         "render_target_contract": render_target_contract,
         "rendering": rendering_contract,
         "terminal_artifact_rendering": rendering_contract,
@@ -994,8 +998,8 @@ def _build_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
         "terminal_artifact_rendering_schema_version": TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION,
         "terminal_artifact_rendering_version": TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION,
         "type": "TerminalArtifactRenderingContract",
-        "supported_kinds": ["card", "action", "selection"],
-        "default_kind": "card",
+        "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
+        "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
         "envelope": _build_terminal_artifact_envelope_manifest(),
         "kind_contracts": kind_contracts,
         "terminal_artifact_kind_contracts": terminal_artifact_kind_contracts,
@@ -1044,8 +1048,8 @@ def _build_terminal_artifact_cli_fallback_contract_manifest() -> dict[str, Any]:
         "fallback_target_resolver": "resolve_terminal_artifact_cli_fallback_target",
         "render_target_resolver": "resolve_terminal_artifact_render_target",
         "fallback_renderer": "ShellUI.render_artifact",
-        "supported_kinds": ["card", "action", "selection"],
-        "default_kind": "card",
+        "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
+        "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
         "envelope": _build_terminal_artifact_envelope_manifest(),
         "kind_contracts": kind_contracts,
         "terminal_artifact_kind_contracts": terminal_artifact_kind_contracts,
@@ -1088,7 +1092,7 @@ def _build_terminal_artifact_envelope_manifest() -> dict[str, Any]:
         "optional_fields": ["contract_version", "a2ui_version"],
         "kind_field": "kind",
         "artifact_field": "artifact",
-        "supported_kinds": ["card", "action", "selection"],
+        "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
     }
 
 
@@ -1147,7 +1151,7 @@ def _build_terminal_artifact_raw_leaf_card_default_contract_manifest() -> dict[s
         "terminal_artifact_raw_leaf_card_default_schema_version": TERMINAL_ARTIFACT_RAW_LEAF_CARD_DEFAULT_SCHEMA_VERSION,
         "terminal_artifact_raw_leaf_card_default_version": TERMINAL_ARTIFACT_RAW_LEAF_CARD_DEFAULT_SCHEMA_VERSION,
         "type": "TerminalArtifactRawLeafCardDefaultContract",
-        "default_kind": "card",
+        "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
         "preserve_when_kind_is_unset": raw_leaf_card_default["preserve_when_kind_is_unset"],
         "required_fields": list(raw_leaf_card_default["required_fields"]),
         "excluded_fields": list(raw_leaf_card_default["excluded_fields"]),
@@ -1183,8 +1187,8 @@ def _build_terminal_artifact_render_target_contract_manifest() -> dict[str, Any]
         "terminal_artifact_render_target_version": TERMINAL_ARTIFACT_RENDER_TARGET_SCHEMA_VERSION,
         "type": "TerminalArtifactRenderTargetContract",
         "render_target_resolver": "resolve_terminal_artifact_render_target",
-        "supported_kinds": ["card", "action", "selection"],
-        "default_kind": "card",
+        "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
+        "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
         "envelope": _build_terminal_artifact_envelope_manifest(),
         "kind_contracts": kind_contracts,
         "terminal_artifact_kind_contracts": terminal_artifact_kind_contracts,
@@ -2063,9 +2067,9 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
     if requested_kind == "card" and malformed_envelope:
         payload = artifact.get("artifact") if isinstance(artifact, Mapping) else None
         payload_kind = _infer_terminal_artifact_explicit_kind(payload)
-        if payload_kind not in {"action", "selection"}:
+        if payload_kind not in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
             payload_kind = _recover_terminal_artifact_leaf_kind(payload)
-        if payload_kind in {"action", "selection"}:
+        if payload_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
             return _render_invalid_terminal_card(artifact)
     artifact, resolved_kind = _resolve_terminal_artifact_render_target(
         artifact,
@@ -2100,9 +2104,9 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
     if requested_kind == "card" and malformed_envelope:
         payload = artifact.get("artifact") if isinstance(artifact, Mapping) else None
         payload_kind = _infer_terminal_artifact_explicit_kind(payload)
-        if payload_kind not in {"action", "selection"}:
+        if payload_kind not in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
             payload_kind = _recover_terminal_artifact_leaf_kind(payload)
-        if payload_kind in {"action", "selection"}:
+        if payload_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
             return _render_invalid_terminal_card(artifact)
     try:
         fallback_artifact, fallback_kind = resolve_terminal_artifact_cli_fallback_target(
@@ -2319,7 +2323,7 @@ def _normalize_terminal_artifact_kind(artifact: Any, *, kind: str | None) -> str
     if not isinstance(kind, str):
         raise ValueError("kind must be a string")
     normalized_kind = kind.strip().lower()
-    if normalized_kind not in {"card", "action", "selection"}:
+    if normalized_kind not in _TERMINAL_ARTIFACT_SUPPORTED_KIND_SET:
         raise ValueError("kind must be one of: card, action, selection")
     return normalized_kind
 
@@ -2436,7 +2440,7 @@ def _normalize_terminal_artifact_envelope_kind(kind: Any) -> str | None:
     if not isinstance(kind, str):
         return None
     normalized_kind = kind.strip().lower()
-    if normalized_kind in {"card", "action", "selection"}:
+    if normalized_kind in _TERMINAL_ARTIFACT_SUPPORTED_KIND_SET:
         return normalized_kind
     return None
 
