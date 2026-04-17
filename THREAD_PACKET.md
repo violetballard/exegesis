@@ -10,6 +10,11 @@
 
 - Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
 
+## Budget classification
+
+- Shared/high-risk handoff under the `4`-task cap because the reviewed implementation range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+- This metadata-only fixer commit updates the handoff packet only; it does not broaden the reviewed implementation range.
+
 ## Scope completed
 
 - SQLite FTS remains the authoritative MVP retrieval path in this narrowed slice.
@@ -25,11 +30,11 @@
 
 ## Files changed
 
-- `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
-- `.codex/lane_meta/feat-retrieval-fts.json`
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `THREAD_PACKET.md`
+- Reviewed implementation files:
+  - `src/qual/retrieval/service.py`
+  - `tests/unit/test_unified_retrieval.py`
+- Metadata-only fixer packet file:
+  - `THREAD_PACKET.md`
 
 ## Commands run with results
 
