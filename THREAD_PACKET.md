@@ -5,6 +5,7 @@
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet refresh role: `metadata-only reviewer-fix finalization`
+- Reviewer re-review status: `2026-04-17 reviewer-required AGENTS demo-path mapping recorded in the operative handoff packet`
 
 ## Scope goal
 
@@ -54,6 +55,7 @@
 3. The packet does not claim new basket-promotion, workflow-card, or broader engine-surface progress in this slice because the reviewed range only changes the `fetch_excerpt` fallback contract and its approved shared regression coverage.
 4. This metadata-only fixer commit keeps the operative packet in `THREAD_PACKET.md` aligned with the reviewer-required AGENTS demo-path mapping for this narrowed slice.
 5. The operative handoff now carries that AGENTS mapping in a dedicated `Canonical demo-path step advanced` section so re-review no longer depends on implied plan alignment.
+6. This packet-only refresh records the 2026-04-17 fixer pass that re-ran all required gates against the same narrowed implementation range before creating a new lane commit.
 
 ## Packet mirror status
 
