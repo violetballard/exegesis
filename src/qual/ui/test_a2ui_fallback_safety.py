@@ -11,6 +11,7 @@ from src.qual.ui.a2ui import (
     A2UI_CAPABILITIES_SCHEMA_VERSION,
     A2UICapabilities,
     A2UISessionStore,
+    ALLOWED_ACTION_IDS,
     ActionRef,
     CARD_CONTRACT_VERSION,
     SELECTION_SCHEMA_VERSION,
@@ -288,6 +289,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["type"], "TerminalArtifactCliFallbackTargetContract")
         self.assertEqual(manifest["fallback_target_resolver"], "resolve_terminal_artifact_cli_fallback_target")
         self.assertEqual(manifest["fallback_renderer"], "ShellUI.render_artifact")
+        self.assertEqual(manifest["allowed_actions"], sorted(ALLOWED_ACTION_IDS))
         self.assertEqual(
             manifest["renderer_entrypoints"],
             {
@@ -346,6 +348,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_cli_fallback_target_contract_fingerprint(),
         )
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
+
+    def test_terminal_artifact_cli_fallback_route_contract_exposes_allowed_actions(self) -> None:
+        manifest = describe_terminal_artifact_cli_fallback_route_contract()
+
+        self.assertEqual(manifest["allowed_actions"], sorted(ALLOWED_ACTION_IDS))
+        self.assertEqual(manifest["terminal_artifact_cli_fallback_route_fingerprint"], terminal_artifact_cli_fallback_route_contract_fingerprint())
 
     def test_terminal_artifact_cli_fallback_target_contract_fingerprints_are_public_and_canonical(
         self,

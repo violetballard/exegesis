@@ -1814,6 +1814,7 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest() -> dict[str
         "fallback_renderer": "ShellUI.render_artifact",
         "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
         "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
+        "allowed_actions": sorted(ALLOWED_ACTION_IDS),
         "render_target_contract": render_target_contract,
         "terminal_artifact_render_target": terminal_artifact_render_target_contract,
         "terminal_artifact_render_target_contract": _snapshot_contract_section(
@@ -1884,6 +1885,7 @@ def _build_terminal_artifact_cli_fallback_route_contract_manifest() -> dict[str,
         "type": "TerminalArtifactCliFallbackRouteContract",
         "fallback_target_resolver": "resolve_terminal_artifact_cli_fallback_target",
         "fallback_renderer": "ShellUI.render_artifact",
+        "allowed_actions": sorted(ALLOWED_ACTION_IDS),
         "route_precedence": [
             "shared_target_resolver",
             "shell_refinement",
