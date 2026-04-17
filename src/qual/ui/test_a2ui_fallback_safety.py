@@ -551,11 +551,23 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(len(manifest["terminal_artifact"]["contract_fingerprint"]), 64)
 
+    def test_a2ui_contract_manifest_exposes_capabilities_contract_alias(self) -> None:
+        manifest = describe_a2ui_contract()
+
+        self.assertEqual(manifest["capabilities_contract"], describe_a2ui_capabilities_contract())
+        self.assertEqual(
+            manifest["capabilities_contract"]["contract_fingerprint"],
+            manifest["capabilities_contract_fingerprint"],
+        )
+        self.assertEqual(manifest["capabilities_contract_fingerprint"], a2ui_capabilities_contract_fingerprint())
+        self.assertEqual(manifest["capabilities"]["contract_fingerprint"], manifest["capabilities_contract_fingerprint"])
+
     def test_a2ui_contract_manifest_alias_sections_are_snapshot_isolated(self) -> None:
         manifest = describe_a2ui_contract()
 
         cases = [
             ("capabilities", manifest["schemas"]["capabilities"]),
+            ("capabilities_contract", manifest["schemas"]["capabilities"]),
             ("card_contract", manifest["schemas"]["card_contract"]),
             ("action", manifest["schemas"]["action"]),
             ("selection", manifest["schemas"]["selection"]),
@@ -602,6 +614,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertIsNot(manifest["action"], manifest["action_contract"])
         self.assertIsNot(manifest["selection"], manifest["selection_contract"])
+        self.assertIsNot(manifest["capabilities"], manifest["capabilities_contract"])
         self.assertIsNot(manifest["terminal_fallback"], manifest["terminal_fallback_contract"])
         self.assertIsNot(manifest["terminal_artifact"], manifest["terminal_artifact_contract"])
         self.assertIsNot(
@@ -854,6 +867,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(fingerprints["terminal_fallback"], terminal_fallback_contract_fingerprint())
         self.assertEqual(fingerprints["capabilities"], a2ui_capabilities_contract_fingerprint())
         self.assertEqual(len(fingerprints["actions"]), 64)
+        self.assertNotIn("capabilities_contract", fingerprints)
+        self.assertEqual(fingerprints_with_aliases["capabilities_contract"], a2ui_capabilities_contract_fingerprint())
         self.assertEqual(fingerprints_with_aliases["action_contract"], action_contract_fingerprint())
         self.assertEqual(fingerprints_with_aliases["selection_contract"], selection_contract_fingerprint())
         self.assertEqual(fingerprints_with_aliases["terminal_fallback_contract"], terminal_fallback_contract_fingerprint())

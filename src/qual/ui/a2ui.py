@@ -175,6 +175,8 @@ def describe_a2ui_contract() -> dict[str, Any]:
     capabilities = _snapshot_contract_section(manifest["schemas"]["capabilities"])
     manifest["capabilities"] = capabilities
     manifest["capabilities_fingerprint"] = capabilities["contract_fingerprint"]
+    manifest["capabilities_contract"] = _snapshot_contract_section(capabilities)
+    manifest["capabilities_contract_fingerprint"] = manifest["capabilities_fingerprint"]
     card_contract = _snapshot_contract_section(manifest["schemas"]["card_contract"])
     manifest["card_contract"] = card_contract
     manifest["card_contract_fingerprint"] = card_contract["contract_fingerprint"]
@@ -381,6 +383,7 @@ def describe_a2ui_contract_fingerprints(
             terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint()
         )
     if include_contract_aliases:
+        fingerprints["capabilities_contract"] = a2ui_capabilities_contract_fingerprint()
         fingerprints["action_contract"] = action_contract_fingerprint()
         fingerprints["selection_contract"] = selection_contract_fingerprint()
         fingerprints["terminal_fallback_contract"] = terminal_fallback_contract_fingerprint()
