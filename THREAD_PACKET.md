@@ -2,9 +2,9 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet refresh role: `metadata-only reviewer re-review regeneration`
-- Packet refresh trace anchor before this commit: `50d618f0`
-- Reviewed implementation head: `50d618f0`
-- Reviewed implementation range for re-review: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..50d618f0`
+- Packet refresh trace anchor before this commit: `8339c6552ed833b7878ac600e946df54ef29bc0c`
+- Reviewed implementation head: `8339c6552ed833b7878ac600e946df54ef29bc0c`
+- Reviewed implementation range for re-review: `d7fd5d200358287fa42a18d39e2b277463b9b69f..8339c6552ed833b7878ac600e946df54ef29bc0c`
 
 ## Scope goal
 
@@ -12,8 +12,8 @@
 
 ## Scope completed
 
-- The post-review implementation slice `adfa8cdadd43747ffbcb612e4151e262b13e52ca..50d618f0` keeps SQLite FTS authoritative while hardening the canonical retrieval payload surfaces in `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`.
-- That slice carries deterministic provenance, retrieval policy, query normalization, excerpt lookup metadata, sparse bundle backfill, and basket-promotion context through the downstream retrieval contracts without reintroducing PageIndex or embeddings as required runtime paths.
+- The true cumulative implementation slice `d7fd5d200358287fa42a18d39e2b277463b9b69f..8339c6552ed833b7878ac600e946df54ef29bc0c` keeps SQLite FTS authoritative while hardening the canonical retrieval payload surfaces in `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`.
+- That slice carries deterministic provenance, retrieval policy, query normalization, excerpt lookup metadata, sparse bundle backfill, basket-promotion context, and source-bundle fingerprints through the downstream retrieval contracts without reintroducing PageIndex or embeddings as required runtime paths.
 - `fetch_excerpt` remains FTS-only and approved shared regression coverage in `tests/unit/test_unified_retrieval.py` now validates the corrected canonical retrieval contract against that true implementation range.
 
 ## Canonical Demo-Path Step Advanced
@@ -30,13 +30,13 @@
 - Max fix attempts per failing gate: `2`
 - Budget status:
   - Task cap met at `4` grouped tasks.
-  - Size cap exceeded on the true implementation slice: `9` implementation files changed with `4730` insertions and `433` deletions.
+  - Size cap exceeded on the true implementation slice: `9` implementation files changed with `6119` insertions and `478` deletions.
   - Including this packet-refresh commit, the full handoff state touches `12` files: `9` implementation files plus `3` packet files.
 - Tasks completed:
-  1. Hardened canonical FTS retrieval metadata, query normalization, and excerpt lookup payloads so deterministic provenance and policy fields survive the branch-tip retrieval path.
-  2. Stabilized downstream retrieval payload backfill so sparse source, citation, provenance, and basket-promotion snapshots rehydrate to the same canonical FTS-first contract.
-  3. Preserved FTS-first behavior while tightening cache/input normalization, context propagation, and basket-promotion metadata without promoting PageIndex or embeddings to required runtime paths.
-  4. Kept the approved shared regression surface `tests/unit/test_unified_retrieval.py` aligned with the corrected branch-tip retrieval contract.
+  1. Hardened canonical FTS retrieval metadata, query normalization, and excerpt lookup payloads so deterministic provenance and policy fields survive the reviewed retrieval path.
+  2. Stabilized downstream retrieval payload backfill so sparse source, citation, provenance, excerpt, and basket-promotion snapshots rehydrate to the same canonical FTS-first contract.
+  3. Preserved FTS-first behavior while tightening cache/input normalization, context propagation, basket-promotion metadata, and source-bundle fingerprints without promoting PageIndex or embeddings to required runtime paths.
+  4. Kept the approved shared regression surface `tests/unit/test_unified_retrieval.py` aligned with the corrected cumulative retrieval contract.
 
 ## Files changed
 
@@ -60,6 +60,7 @@
 
 ## Commands run with results
 
+- Validation rerun date: `2026-04-16`
 - `make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
@@ -72,6 +73,7 @@
 - Risk: `HIGH`
 - Merge risk detail: the reviewed implementation slice remains shared/high-risk and well over the AGENTS size cap because the canonical retrieval payload and regression surfaces changed substantially after the original `adfa8cda` review point.
 - Blockers: none
+- Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are read-only in this sandboxed lane worktree, so this fixer pass updates the canonical `THREAD_PACKET.md` handoff record only.
 
 ## Required handoff fields
 
@@ -98,5 +100,5 @@
 ## Traceability note
 
 - This packet supersedes the stale narrowed handoff that stopped at `adfa8cdadd43747ffbcb612e4151e262b13e52ca` even though later branch commits changed retrieval runtime code.
-- Re-review should evaluate the true post-review implementation slice `adfa8cdadd43747ffbcb612e4151e262b13e52ca..50d618f0`, then treat this packet-refresh commit as metadata-only on top of that implementation head.
+- Re-review should evaluate the true cumulative implementation slice `d7fd5d200358287fa42a18d39e2b277463b9b69f..8339c6552ed833b7878ac600e946df54ef29bc0c`, then treat this packet-refresh commit as metadata-only on top of that implementation head.
 - Because this packet commit is itself metadata-only, it does not self-record its own final SHA inside the packet. Use the final HEAD SHA reported with this handoff as the packet-refresh branch tip.
