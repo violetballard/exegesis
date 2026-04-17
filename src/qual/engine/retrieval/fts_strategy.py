@@ -66,13 +66,19 @@ class FTSStrategy:
         started = int(self._now_fn())
         hits = self._runner(query, normalized_candidate_doc_ids)
         # Keep the one-slot cache coherent even when the caller bypasses cache
-        # reads for this request.
+        # reads for this request. Return a separate defensive snapshot so the
+        # fresh path matches the cached path's mutation isolation.
         self._cache_key = cache_key
         self._cache_hits = copy.deepcopy(hits)
 
         elapsed_ns = max(0, int(self._now_fn()) - started)
         elapsed_ms = elapsed_ns // 1_000_000
-        return StrategyRun(strategy_id=self.id, hits=hits, elapsed_ms=elapsed_ms, cache_used=False)
+        return StrategyRun(
+            strategy_id=self.id,
+            hits=copy.deepcopy(self._cache_hits),
+            elapsed_ms=elapsed_ms,
+            cache_used=False,
+        )
 
     def clear_cache(self) -> None:
         """Drop the one-entry cache after any retrieval corpus change."""
