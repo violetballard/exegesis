@@ -11,6 +11,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - `THREAD_PACKET.md` now states, in one line, that this change makes the
   `open project/document` step more real by keeping the CLI command contract
   deterministic and drift-resistant.
+- The required gate suite was rerun at the current branch tip, and
+  `THREAD_PACKET.md` records those verified pass results for re-review.
 - The roadmap and vision impact text is tightened to the command-surface
   determinism and smoke-testability slice of the CLI compatibility layer.
 - No additional implementation files are added to the reviewer scope beyond
