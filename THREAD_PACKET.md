@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `reviewer-required fix finalization`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet refresh commit before this fixer commit: `3427962ade792c7dd5bff0ac41a58b14cbf3c136`
+- Packet refresh commit before this fixer commit: `8b219039ab16d934eb41b96d5143504e203f644e`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 ## Scope goal
@@ -37,6 +37,7 @@
 - This fixer pass keeps the scope statement tight to the reviewed retrieval slice: FTS-only excerpt lookup is the canonical runtime path, and non-FTS excerpt IDs remain auditable and fail closed.
 - PageIndex and embeddings are not reintroduced as required runtime retrieval paths by this packet refresh.
 - Shared-edit approval traceability now cites the operative approval artifact available in this worktree: the reviewer packet provided to this fixer pass, which states that `tests/unit/test_unified_retrieval.py` has approved shared regression coverage and is the sole shared-by-approval regression surface for `feat-retrieval-fts`.
+- `THREAD_PACKET.md` is the operative re-review packet in this worktree and should take precedence over stale mirror metadata if any packet mirror still omits the canonical demo-path statement.
 
 ## Budget classification
 
@@ -53,12 +54,12 @@
 
 - `retrieve relevant material`
 
-This reviewed range makes `retrieve relevant material` more real by removing the `fetch_excerpt` PageIndex fallback, so the canonical retrieval surface now fails closed on the FTS-first path and PageIndex or embeddings are not reintroduced as required runtime retrieval paths.
+This reviewed range makes `retrieve relevant material` more real by enforcing FTS-only excerpt resolution on the canonical retrieval surface. The narrowed diff removes the `fetch_excerpt` PageIndex fallback, so PageIndex-only excerpt IDs now fail closed with `KeyError`, remain auditable, and do not reintroduce PageIndex or embeddings as required runtime retrieval paths.
 
 ## Required reviewer fixes addressed
 
 1. Added an explicit AGENTS plan-alignment statement naming the canonical demo-path step this work advances: `retrieve relevant material`.
-2. Tied that statement to the narrowed diff by stating that removing the `fetch_excerpt` PageIndex fallback makes the canonical retrieval path strictly FTS-first, deterministic, and auditable on the canonical excerpt lookup surface.
+2. Tied that statement to the narrowed diff by stating that removing the `fetch_excerpt` PageIndex fallback makes the canonical retrieval path strictly FTS-first, deterministic, and auditable on the canonical excerpt lookup surface, with PageIndex-only excerpt IDs failing closed under `KeyError`.
 3. Kept the packet scope narrowed to the reviewer-specified implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 4. Kept the scope statement explicit that PageIndex and embeddings are compatibility-only and are not reintroduced as required runtime retrieval paths.
 
