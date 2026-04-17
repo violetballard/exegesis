@@ -907,6 +907,16 @@ class CommandCatalogTests(unittest.TestCase):
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
         )
 
+        handoff = command_demo_resolve("handoff")
+        self.assertTrue(handoff.matched)
+        self.assertEqual(handoff.token, "handoff")
+        self.assertEqual(handoff.normalized_token, "handoff")
+        self.assertEqual(handoff.kind, "flow-step")
+        self.assertEqual(
+            handoff.argv,
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
+
         apply = command_demo_resolve_argv(("apply", "--message", "Now"))
         self.assertTrue(apply.matched)
         self.assertEqual(apply.token, "apply")
@@ -947,6 +957,7 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_mvp_resolve("save"), save)
         self.assertEqual(command_mvp_resolve_argv(("apply", "--message", "Now")), apply)
         self.assertEqual(command_mvp_resolve("resume"), resume)
+        self.assertEqual(command_mvp_resolve("handoff"), handoff)
         self.assertEqual(command_mvp_resolve_argv(("approve", "--message", "Ship it")), approve)
         self.assertEqual(command_mvp_resolve_argv(("discard", "--message", "Try again")), discard)
 
@@ -992,6 +1003,10 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_demo_cli_entry_argv(("resume",)),
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+        self.assertEqual(
+            command_demo_cli_entry_argv(("handoff",)),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
         )
         self.assertEqual(
             command_mvp_cli_entry_argv(("apply",)),
@@ -2380,6 +2395,8 @@ class CommandCatalogTests(unittest.TestCase):
                 "reject",
                 "decline",
                 "discard",
+                "handoff",
+                "queue-export",
             ),
         )
         self.assertEqual(
@@ -2484,6 +2501,22 @@ class CommandCatalogTests(unittest.TestCase):
                     "compatibility",
                     ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
                 ),
+                (
+                    "handoff",
+                    "export-handoff",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+                (
+                    "queue-export",
+                    "export-handoff",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
             ),
         )
         self.assertEqual(
@@ -2527,6 +2560,14 @@ class CommandCatalogTests(unittest.TestCase):
                 (
                     "discard",
                     ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
+                    "handoff",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+                (
+                    "queue-export",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
                 ),
             ),
         )
@@ -2668,6 +2709,14 @@ class CommandCatalogTests(unittest.TestCase):
                 (
                     "discard",
                     ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
+                    "handoff",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+                (
+                    "queue-export",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
                 ),
             ),
         )
@@ -2811,6 +2860,14 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(
             command_demo_transition_argv("save", "export"),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
+        self.assertEqual(
+            command_demo_transition_argv("resume", "handoff"),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
+        self.assertEqual(
+            command_demo_transition_argv("continue", "queue-export"),
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
         )
         self.assertEqual(command_demo_transition_argv("project-open", "export-handoff"), ())
@@ -3037,6 +3094,10 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_cli_entry_argv_for(command_specs(), ("resume", "--message", "Keep going"), demo_flow_steps),
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Keep going"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv_for(command_specs(), ("handoff",), demo_flow_steps),
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
         )
 
     def test_command_cli_entry_argv_normalizes_demo_compatibility_tokens_for_custom_specs(self) -> None:

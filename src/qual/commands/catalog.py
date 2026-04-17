@@ -2797,6 +2797,8 @@ _COMMAND_DEMO_COMPATIBILITY_TOKENS: dict[str, str] = {
     "reject": "reject-patch",
     "decline": "reject-patch",
     "discard": "reject-patch",
+    "handoff": "export-handoff",
+    "queue-export": "export-handoff",
 }
 
 
