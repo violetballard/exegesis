@@ -9,7 +9,8 @@ older lane/fixer prompts.
 ## Reviewer Fix Alignment
 
 - Active implementation review target: `36a360a9464d2f08f55129bc70e1aafe4574721b`.
-- Current metadata refresh baseline: `3e1010e15cfac657b02c0b6aef250892985ffb2f`.
+- Current metadata refresh baseline: `3e1010e15cfac657b02c0b6aef250892985ffb2f`
+  before this packet-only refresh commit.
 - Canonical demo-path steps advanced: `project-open`, `retrieval`,
   `patch-review`, and `export-handoff` via the CLI-first operator surface;
   `command_cli_contract()` now rejects parser/catalog drift before those

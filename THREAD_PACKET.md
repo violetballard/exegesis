@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
-- Packet refresh commit: `3e1010e15cfac657b02c0b6aef250892985ffb2f`
+- Packet refresh commit: `3e1010e15cfac657b02c0b6aef250892985ffb2f` (pre-fixer metadata baseline)
 - Packet refresh role: `feature-fixer gate refresh verified`
 
 ## Packet Traceability Note
