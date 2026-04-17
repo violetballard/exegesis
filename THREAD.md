@@ -14,6 +14,9 @@ older lane/fixer prompts.
   apply or reject a patch` via the CLI-first operator surface;
   `command_cli_contract()` now rejects parser/catalog drift before the
   accepted command entrypoints can silently change.
+- Concrete blocker removed: parser/catalog drift could previously reorder,
+  replace, or remove accepted CLI entrypoints for the `bootstrap` and
+  `diff-preview` MVP surfaces without failing the contract.
 - Product Vision scope: this reviewer-fix refresh only supports the canonical
   engine contract requirement for CLI compatibility and does not claim workflow,
   persistence, or auditability changes.
@@ -29,3 +32,5 @@ older lane/fixer prompts.
   No other non-owned implementation path is claimed.
 - Scope boundary: this metadata refresh stays scoped to the command-catalog
   slice plus that one approved shared-test exception.
+- Scope limit: this is CLI-first MVP contract hardening only, not broader
+  command-surface expansion or handler work.

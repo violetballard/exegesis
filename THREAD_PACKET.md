@@ -32,22 +32,26 @@
 ## Scope Goal
 
 - Harden the CLI command contract so `command_cli_contract()` stays
-  deterministic, preserves the declared parser-entrypoint order per command,
-  and fails fast if the accepted CLI surface drifts from the catalog-backed
-  command specs.
+  deterministic for the current CLI-first MVP path only, preserves the
+  declared parser-entrypoint order per command, and fails fast if the accepted
+  CLI surface drifts from the catalog-backed command specs.
 
 ## Canonical Demo-Path Step Advanced
 
 - `open project/document` and `preview and apply or reject a patch` via the
   CLI-first operator surface: this slice keeps those canonical engine-loop
-  entrypoints callable and smoke-testable while Textual remains disabled by
-  making `command_cli_contract()` reject parser/catalog drift before accepted
-  command entrypoints can silently change.
+  entrypoints callable and smoke-testable while Textual remains disabled.
+- Concrete blocker removed: before this contract hardening, parser/catalog
+  drift could silently reorder, replace, or drop accepted CLI entrypoints for
+  the `bootstrap` and `diff-preview` surfaces; `command_cli_contract()` now
+  rejects that drift before the MVP operator contract can change unnoticed.
 
 ## Scope Boundary
 
 - This remains command-catalog contract hardening only. It does not add new
   commands, new flags, handler logic, or alternate workflow paths.
+- This does not broaden the command surface beyond the current CLI-first MVP
+  contract and should not be read as general command-platform work.
 
 ## Priority Outcomes
 
