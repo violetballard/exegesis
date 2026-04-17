@@ -1,7 +1,7 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Current branch head before this fixer commit: `fa4b7a0ea2cef480450473471801368693cee976`
+- Current branch head before this fixer commit: `a11f9cbc4b1dbebefcfbeea2826aed69e4cb856f`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet refresh role: `metadata-only reviewer-fix finalization`
@@ -22,6 +22,11 @@
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs now raise `KeyError`.
 - Reviewer-fix note: this packet remains intentionally narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and does not broaden scope beyond the FTS-only excerpt lookup contract and its regression coverage.
 - Source-of-truth note: this `THREAD_PACKET.md` handoff is the re-review packet for this fixer pass; protected `.codex` packet mirrors are not required to evaluate the narrowed retrieval scope.
+
+## Required reviewer fixes addressed
+
+1. This handoff now explicitly states that the canonical demo-path step advanced is `retrieve relevant material`, matching the AGENTS requirement called out in review.
+2. The packet remains tightly scoped to the narrowed retrieval slice `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and does not broaden re-review back to cumulative branch work.
 
 ## Tasks completed
 
