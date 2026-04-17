@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import src.qual.ui as public_ui
 from src.qual.ui.a2ui import (
     A2UI_ACTION_SCHEMA_VERSION,
     A2UI_CAPABILITIES_SCHEMA_VERSION,
@@ -14,6 +15,7 @@ from src.qual.ui.a2ui import (
     ALLOWED_ACTION_IDS,
     ActionRef,
     CARD_CONTRACT_VERSION,
+    REQUIRED_PRIMITIVE_BLOCKS,
     SELECTION_SCHEMA_VERSION,
     GENERIC_FALLBACK_SUBTITLE,
     card_contract_fingerprint,
@@ -152,6 +154,10 @@ _RAW_LEAF_CARD_DEFAULT_CONTRACT_MANIFEST = {
 
 
 class A2UIFallbackSafetyTests(unittest.TestCase):
+    def test_public_ui_package_exports_authoritative_contract_allowlists(self) -> None:
+        self.assertIs(public_ui.ALLOWED_ACTION_IDS, ALLOWED_ACTION_IDS)
+        self.assertIs(public_ui.REQUIRED_PRIMITIVE_BLOCKS, REQUIRED_PRIMITIVE_BLOCKS)
+
     def test_selection_contract_manifest_exposes_contract_fingerprint_alias(self) -> None:
         manifest = describe_selection_contract()
 
