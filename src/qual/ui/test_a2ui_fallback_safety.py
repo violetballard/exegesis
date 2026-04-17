@@ -98,7 +98,12 @@ from src.qual.ui.a2ui import (
     validate_terminal_artifact_envelope,
     validate_generic_card,
 )
-from src.qual.ui.shell import ShellUI
+from src.qual.ui.shell import (
+    SHELL_UI_CONTRACT_VERSION,
+    ShellUI,
+    describe_shell_ui_contract,
+    shell_ui_contract_fingerprint,
+)
 
 
 class _OpaqueValue:
@@ -184,6 +189,9 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             public_ui.TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_SCHEMA_VERSION,
             TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_SCHEMA_VERSION,
         )
+        self.assertEqual(public_ui.SHELL_UI_CONTRACT_VERSION, SHELL_UI_CONTRACT_VERSION)
+        self.assertIs(public_ui.describe_shell_ui_contract, describe_shell_ui_contract)
+        self.assertIs(public_ui.shell_ui_contract_fingerprint, shell_ui_contract_fingerprint)
 
     def test_selection_contract_manifest_exposes_contract_fingerprint_alias(self) -> None:
         manifest = describe_selection_contract()
@@ -3368,6 +3376,45 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_cli_fallback_route_contract_fingerprint(),
         )
         self.assertEqual(len(route_manifest["contract_fingerprint"]), 64)
+
+    def test_shell_ui_contract_is_versioned_and_fingerprintable(self) -> None:
+        manifest = describe_shell_ui_contract()
+
+        self.assertEqual(manifest["contract_version"], 2)
+        self.assertEqual(manifest["a2ui_version"], 1)
+        self.assertEqual(manifest["shell_ui_schema_version"], SHELL_UI_CONTRACT_VERSION)
+        self.assertEqual(manifest["shell_ui_version"], SHELL_UI_CONTRACT_VERSION)
+        self.assertEqual(manifest["type"], "ShellUIContract")
+        self.assertEqual(manifest["contract_fingerprint"], shell_ui_contract_fingerprint())
+        self.assertEqual(manifest["shell_ui_fingerprint"], shell_ui_contract_fingerprint())
+        self.assertEqual(
+            manifest["entrypoints"],
+            {
+                "render_artifact": "ShellUI.render_artifact",
+                "render_startup": "ShellUI.render_startup",
+            },
+        )
+        self.assertEqual(
+            manifest["startup_fields"],
+            ["project", "vault", "locked", "context_items", "context_preview"],
+        )
+        self.assertEqual(
+            manifest["startup_preview"],
+            {
+                "empty_value": "<empty>",
+                "limit": 3,
+                "source_field": "basket.item_ids",
+            },
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_contract"]["contract_fingerprint"],
+            terminal_artifact_cli_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_renderer_entrypoints_contract"]["contract_fingerprint"],
+            terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+        )
+        self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
     def test_terminal_artifact_cli_fallback_route_contract_fingerprints_are_public_and_canonical(self) -> None:
         from src.qual.ui import (
@@ -7133,6 +7180,23 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertIn('- context_preview: "alpha\\\\u202ebeta"', text)
         self.assertNotIn("alpha\u202ebeta", text)
+
+    def test_shell_ui_escapes_control_characters_in_bootstrap_metadata(self) -> None:
+        runtime = SimpleNamespace(
+            vault=SimpleNamespace(
+                project_name="Demo\nProject",
+                root_dir="/tmp/demo\u202e",
+                is_locked=False,
+            ),
+            basket=SimpleNamespace(item_ids=[]),
+        )
+
+        text = ShellUI().render_startup(runtime)
+
+        self.assertIn("- project: Demo\\x0aProject", text)
+        self.assertIn("- vault: /tmp/demo\\u202e", text)
+        self.assertNotIn("Demo\nProject", text)
+        self.assertNotIn("/tmp/demo\u202e", text)
 
     def test_shell_ui_replaces_opaque_object_reprs_in_preview(self) -> None:
         runtime = SimpleNamespace(

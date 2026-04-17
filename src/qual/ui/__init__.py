@@ -104,7 +104,12 @@ from .a2ui import (
     selection_contract_fingerprint,
     terminal_fallback_contract_fingerprint,
 )
-from .shell import ShellUI
+from .shell import (
+    SHELL_UI_CONTRACT_VERSION,
+    ShellUI,
+    describe_shell_ui_contract,
+    shell_ui_contract_fingerprint,
+)
 
 __all__ = [
     "A2UI_CONTRACT_VERSION",
@@ -138,6 +143,7 @@ __all__ = [
     "UNKNOWN_FALLBACK_SUBTITLE",
     "TERMINAL_ARTIFACT_SUPPORTED_KINDS",
     "TERMINAL_ARTIFACT_DEFAULT_KIND",
+    "SHELL_UI_CONTRACT_VERSION",
     "card_contract_fingerprint",
     "action_contract_fingerprint",
     "a2ui_capabilities_contract_fingerprint",
@@ -172,6 +178,7 @@ __all__ = [
     "describe_terminal_artifact_renderer_entrypoints_contract",
     "describe_terminal_artifact_contract_fingerprints",
     "describe_terminal_fallback_contract",
+    "describe_shell_ui_contract",
     "build_terminal_artifact_envelope",
     "normalize_capabilities",
     "normalize_terminal_artifact_payload",
@@ -189,6 +196,7 @@ __all__ = [
     "terminal_artifact_rendering_contract_fingerprint",
     "terminal_artifact_cli_fallback_target_contract_fingerprint",
     "terminal_artifact_kind_contracts_fingerprint",
+    "shell_ui_contract_fingerprint",
     "engine_prepare_card",
     "execute_action_with_policy_gate",
     "normalize_action_ref",

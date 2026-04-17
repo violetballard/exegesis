@@ -8,9 +8,16 @@ import unicodedata
 from src.qual.engine.service import EngineRuntime
 from .a2ui import (
     ActionRef,
+    A2UI_CONTRACT_VERSION,
+    A2UI_VERSION,
     SelectionRef,
     normalize_action_ref,
     normalize_selection_ref,
+    describe_terminal_artifact_cli_fallback_contract,
+    describe_terminal_artifact_renderer_entrypoints_contract,
+    terminal_artifact_cli_fallback_contract_fingerprint,
+    terminal_artifact_renderer_entrypoints_contract_fingerprint,
+    _fingerprint_manifest_section,
     _normalize_terminal_artifact_kind_hint,
     _should_preserve_raw_leaf_card_default,
     resolve_terminal_artifact_cli_fallback_target,
@@ -27,6 +34,17 @@ from .a2ui import (
     _infer_terminal_artifact_explicit_kind,
     _recover_terminal_artifact_leaf_kind,
 )
+
+SHELL_UI_CONTRACT_VERSION = 1
+SHELL_UI_STARTUP_FIELDS: tuple[str, ...] = (
+    "project",
+    "vault",
+    "locked",
+    "context_items",
+    "context_preview",
+)
+SHELL_UI_STARTUP_PREVIEW_LIMIT = 3
+SHELL_UI_STARTUP_EMPTY_PREVIEW = "<empty>"
 
 
 class ShellUI:
@@ -133,8 +151,8 @@ class ShellUI:
             preview = "<empty>"
         return (
             "Qual Workstation bootstrap is running\n"
-            f"- project: {runtime.vault.project_name}\n"
-            f"- vault: {runtime.vault.root_dir}\n"
+            f"- project: {self._render_startup_value(runtime.vault.project_name)}\n"
+            f"- vault: {self._render_startup_value(runtime.vault.root_dir)}\n"
             f"- locked: {runtime.vault.is_locked}\n"
             f"- context_items: {len(item_ids)}\n"
             f"- context_preview: {preview}"
@@ -165,6 +183,15 @@ class ShellUI:
         if not isinstance(value, str) and ShellUI._looks_like_opaque_object_repr(escaped):
             return (type(value).__name__, ShellUI._format_item_id(value), escaped)
         return (type(value).__name__, escaped, "")
+
+    @staticmethod
+    def _render_startup_value(value: object) -> str:
+        if value is None:
+            return "<blank>"
+        rendered = ShellUI._escape_control_chars(str(value)).strip()
+        if not rendered:
+            return "<blank>"
+        return rendered
 
     @staticmethod
     def _infer_fallback_kind(artifact: Any) -> str | None:
@@ -501,3 +528,45 @@ class ShellUI:
             return payload, inferred_kind
 
         return None
+
+
+def _build_shell_ui_contract_manifest() -> dict[str, Any]:
+    return {
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "shell_ui_schema_version": SHELL_UI_CONTRACT_VERSION,
+        "shell_ui_version": SHELL_UI_CONTRACT_VERSION,
+        "type": "ShellUIContract",
+        "entrypoints": {
+            "render_artifact": "ShellUI.render_artifact",
+            "render_startup": "ShellUI.render_startup",
+        },
+        "startup_fields": list(SHELL_UI_STARTUP_FIELDS),
+        "startup_preview": {
+            "empty_value": SHELL_UI_STARTUP_EMPTY_PREVIEW,
+            "limit": SHELL_UI_STARTUP_PREVIEW_LIMIT,
+            "source_field": "basket.item_ids",
+        },
+        "terminal_artifact_cli_fallback_contract": describe_terminal_artifact_cli_fallback_contract(),
+        "terminal_artifact_cli_fallback_contract_fingerprint": terminal_artifact_cli_fallback_contract_fingerprint(),
+        "terminal_artifact_renderer_entrypoints_contract": describe_terminal_artifact_renderer_entrypoints_contract(),
+        "terminal_artifact_renderer_entrypoints_contract_fingerprint": (
+            terminal_artifact_renderer_entrypoints_contract_fingerprint()
+        ),
+    }
+
+
+def describe_shell_ui_contract() -> dict[str, Any]:
+    """Return the stable shell UI contract manifest."""
+
+    manifest = _build_shell_ui_contract_manifest()
+    fingerprint = shell_ui_contract_fingerprint()
+    manifest["shell_ui_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
+    return manifest
+
+
+def shell_ui_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the shell UI contract manifest."""
+
+    return _fingerprint_manifest_section(_build_shell_ui_contract_manifest())
