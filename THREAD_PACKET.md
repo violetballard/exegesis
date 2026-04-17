@@ -35,11 +35,10 @@
 
 ## Canonical Demo-Path Step Advanced
 
-- Step advanced: `open project/document`.
-- Concrete blocker removed: the CLI-first `bootstrap` entry contract now stays
-  pinned to the canonical command catalog order, so parser-surface drift cannot
-  silently change the operator-visible `open project/document` entrypoint while
-  Textual remains disabled.
+- This change makes the `open project/document` portion of the canonical demo
+  path more real by keeping the CLI command contract deterministic,
+  smoke-testable, and drift-resistant for the existing `bootstrap` entrypoint
+  while Textual remains disabled.
 
 ## Scope Completed
 
@@ -110,19 +109,15 @@
 ### Roadmap item(s) affected
 
 - Milestone 3: Real workflow loop - preserve CLI compatibility while the
-  package/layout migration lands by keeping the CLI-first operator contract
-  deterministic and smoke-testable.
+  package/layout migration lands by keeping the command surface deterministic
+  and smoke-testable.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the
   engine-first MVP loop.
 
 ### Vision capability affected
 
-- Canonical engine contract - the CLI compatibility surface remains one stable,
-  auditable engine-facing command contract while Textual stays disabled.
-- Writing-centered workflow - the `open project/document` entry step stays
-  deterministic and smoke-testable instead of depending on parser drift.
-- Auditable state and workflow - parser/catalog drift now fails explicitly
-  instead of silently changing the operator contract.
+- Canonical engine contract - the CLI compatibility surface stays stable and
+  smoke-testable while Textual remains disabled.
 
 ### Routing/provider impact note
 
