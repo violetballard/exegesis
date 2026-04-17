@@ -60,6 +60,9 @@
    this slice only hardens deterministic behavior for existing MVP command
    entrypoints and does not add new commands, new CLI UX, or non-loop
    functionality.
+4. Re-review readability fix:
+   these three reviewer-required fixes are restated here in reviewer order so
+   approval does not depend on cross-referencing multiple later sections.
 
 ## Feature-Fixer Validation
 

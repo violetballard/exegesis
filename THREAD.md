@@ -45,3 +45,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   the user-supplied `2026-04-17` reviewer packet for this run is the source of
   truth for the approved shared-test exception on
   `tests/unit/test_commands_catalog.py`.
+- `THREAD_PACKET.md` now includes a short `Reviewer Fix Checklist` that
+  restates the exact demo-path mapping, per-task mapping, and scope-tightening
+  fixes in the reviewer’s own order so re-review does not need to derive them
+  from surrounding packet prose.
