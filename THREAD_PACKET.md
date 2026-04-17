@@ -60,7 +60,7 @@
 
 1. Regenerated the handoff so review traceability matches the actual branch state: retrieval code/test changes after `adfa8cda...` are now included in the reviewed implementation head `b3554eca...` and range `d7fd5d20..b3554eca`.
 2. Added an explicit AGENTS plan-alignment statement that this lane advances the canonical demo-path step `retrieve relevant material`.
-3. Tightened scope wording so this handoff stays framed as FTS-first retrieval contract hardening and deterministic downstream payload work, not broader excerpt API expansion.
+3. Tightened scope wording so this handoff stays framed as authoritative FTS retrieval, deterministic excerpt payloads, and auditable provenance on the `retrieve relevant material` step, not broader excerpt API expansion or PageIndex/embeddings as required paths.
 
 ## Tasks completed
 
