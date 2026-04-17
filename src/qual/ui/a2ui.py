@@ -2104,10 +2104,15 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
             payload_kind = _recover_terminal_artifact_leaf_kind(payload)
         if payload_kind in {"action", "selection"}:
             return _render_invalid_terminal_card(artifact)
-    fallback_artifact, fallback_kind = resolve_terminal_artifact_cli_fallback_target(
-        artifact,
-        kind=kind,
-    )
+    try:
+        fallback_artifact, fallback_kind = resolve_terminal_artifact_cli_fallback_target(
+            artifact,
+            kind=kind,
+        )
+    except Exception:
+        # Keep the explicit CLI fallback path usable even if the shared
+        # resolver breaks, especially for raw leaf card defaults.
+        return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
     try:
         return _render_terminal_artifact_resolved(
             fallback_artifact,
@@ -2203,6 +2208,11 @@ def _render_terminal_artifact_cli_fallback_failure(
     *,
     requested_kind: str | None,
 ) -> str:
+    if _should_preserve_raw_leaf_card_default(artifact):
+        try:
+            return render_terminal_card(artifact)
+        except Exception:
+            return _render_invalid_terminal_card(artifact)
     fallback_kind = requested_kind
     if fallback_kind is None:
         fallback_kind = _infer_terminal_artifact_explicit_kind(artifact)

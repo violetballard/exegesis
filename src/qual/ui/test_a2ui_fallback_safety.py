@@ -1512,6 +1512,25 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Action schema v1", text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
 
+    def test_terminal_artifact_cli_fallback_entrypoint_preserves_raw_leaf_card_default_when_resolver_fails(
+        self,
+    ) -> None:
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        with patch(
+            "src.qual.ui.a2ui.resolve_terminal_artifact_cli_fallback_target",
+            side_effect=RuntimeError("boom"),
+        ):
+            text = render_terminal_cli_fallback(raw_leaf, kind="action")
+
+        self.assertIn("[<missing>] <untitled>", text)
+        self.assertNotIn("[ActionRef]", text)
+        self.assertNotIn("[SelectionRef]", text)
+
     def test_terminal_artifact_cli_fallback_contract_fingerprints_are_public_and_canonical(self) -> None:
         manifest = describe_terminal_artifact_cli_fallback_contract()
         fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints()
@@ -3045,6 +3064,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("- raw:", text)
         self.assertIn("<non-json:_OpaqueValue>", text)
         self.assertNotIn("resolver boom", text)
+
+    def test_shell_ui_keeps_raw_leaf_card_default_when_shared_resolver_raises(self) -> None:
+        shell = ShellUI()
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            with patch(
+                "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
+                side_effect=RuntimeError("resolver boom"),
+            ):
+                with patch(
+                    "src.qual.ui.shell.render_terminal_cli_fallback",
+                    return_value="cli-fallback",
+                ) as cli_fallback:
+                    text = shell.render_artifact(raw_leaf, kind="action")
+
+        self.assertEqual(text, "cli-fallback")
+        cli_fallback.assert_called_once_with(raw_leaf, kind="card")
 
     def test_shell_ui_recovers_leaf_payloads_from_terminal_envelopes_when_shared_resolver_raises(
         self,

@@ -357,6 +357,8 @@ class ShellUI:
             recovered = ShellUI._recover_terminal_artifact_envelope_fallback(artifact)
             if recovered is not None:
                 return recovered
+            if _should_preserve_raw_leaf_card_default(artifact):
+                return artifact, "card"
             inferred_kind = ShellUI._infer_fallback_kind(artifact)
             if inferred_kind is not None:
                 return artifact, inferred_kind
