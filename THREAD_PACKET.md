@@ -59,10 +59,10 @@ This handoff explicitly advances the canonical demo-path step `retrieve relevant
 
 ## Tasks completed
 
-1. Kept SQLite FTS as the authoritative retrieval path and exported the canonical FTS-first retrieval surface through the retrieval facades.
-2. Made retrieval payloads, provenance snapshots, citation bundles, and basket-promotion snapshots deterministic and auditable for downstream engine flows.
-3. Persisted excerpt query context for canonical FTS lookups and invalidated stale excerpt query context when the source document changed.
-4. Removed the PageIndex fallback from public excerpt lookup and added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` so PageIndex-only excerpt IDs fail closed with `KeyError`.
+1. Strengthened the canonical demo-path step `retrieve relevant material` by keeping SQLite FTS authoritative and exporting the canonical FTS-first retrieval surface through the retrieval facades.
+2. Strengthened the canonical demo-path step `retrieve relevant material` by making retrieval payloads, provenance snapshots, citation bundles, and basket-promotion snapshots deterministic and auditable for downstream engine flows.
+3. Strengthened the canonical demo-path step `retrieve relevant material` by persisting excerpt query context for canonical FTS lookups and invalidating stale excerpt query context when the source document changed.
+4. Strengthened the canonical demo-path step `retrieve relevant material` by removing the PageIndex fallback from public excerpt lookup and adding approved shared regression coverage in `tests/unit/test_unified_retrieval.py` so PageIndex-only excerpt IDs fail closed with `KeyError`.
 
 ## Files changed
 
