@@ -508,14 +508,50 @@ def _shim_option_names(argv: tuple[str, ...]) -> set[str]:
     return option_names
 
 
+def _normalize_explicit_shim_args(explicit_args: tuple[str, ...]) -> tuple[str, ...]:
+    if not explicit_args:
+        return ()
+
+    segments: list[tuple[str, ...]] = []
+    last_option_segment_index: dict[str, int] = {}
+    index = 0
+    while index < len(explicit_args):
+        token = explicit_args[index]
+        if not token.startswith("-"):
+            segments.append((token,))
+            index += 1
+            continue
+
+        option_name, _, _ = token.partition("=")
+        if index + 1 < len(explicit_args) and not explicit_args[index + 1].startswith("-") and "=" not in token:
+            segment = (token, explicit_args[index + 1])
+            index += 2
+        else:
+            segment = (token,)
+            index += 1
+        last_option_segment_index[option_name or token] = len(segments)
+        segments.append(segment)
+
+    normalized: list[str] = []
+    for segment_index, segment in enumerate(segments):
+        head = segment[0]
+        if head.startswith("-"):
+            option_name, _, _ = head.partition("=")
+            if last_option_segment_index.get(option_name or head) != segment_index:
+                continue
+        normalized.extend(segment)
+    return tuple(normalized)
+
+
 def _merge_shim_argv(
     shim_argv: tuple[str, ...],
     explicit_args: tuple[str, ...],
 ) -> tuple[str, ...]:
-    if len(shim_argv) <= 1 or not explicit_args:
-        return (*shim_argv, *explicit_args)
+    normalized_explicit_args = _normalize_explicit_shim_args(explicit_args)
+    if len(shim_argv) <= 1 or not normalized_explicit_args:
+        return (*shim_argv, *normalized_explicit_args)
 
-    overridden_options = _shim_option_names(explicit_args)
+    overridden_options = _shim_option_names(normalized_explicit_args)
     merged: list[str] = [shim_argv[0]]
     index = 1
     while index < len(shim_argv):
@@ -528,7 +564,7 @@ def _merge_shim_argv(
             continue
         merged.append(token)
         index += 1
-    return (*merged, *explicit_args)
+    return (*merged, *normalized_explicit_args)
 
 
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
