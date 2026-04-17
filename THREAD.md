@@ -8,5 +8,6 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - `THREAD_PACKET.md` now uses the explicit `AGENTS.md` high-risk handoff structure.
 - The packet names the concrete canonical demo-path step advanced: `open project/document`.
+- The packet scope is narrowed to existing MVP-loop command-contract hardening only, not command-surface expansion or new CLI UX.
 - The roadmap and product-vision mapping are narrowed to CLI compatibility and canonical engine contract hardening only.
-- The required gate suite remains recorded in `THREAD_PACKET.md` for re-review at branch tip `7991f9b7227646da8922964106315a0c9afe7382`.
+- The required gate suite remains recorded in `THREAD_PACKET.md` for re-review from branch tip `35af142f58990ba07ee792ae309dafa393fd5692`.

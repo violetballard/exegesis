@@ -42,12 +42,12 @@
 
 ## Packet Traceability Note
 
-- This re-review packet is anchored to the true current branch tip `7991f9b7227646da8922964106315a0c9afe7382`.
+- This fixer refresh is anchored to branch tip `35af142f58990ba07ee792ae309dafa393fd5692`.
 - Implementation commits in scope:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` - lock `command_cli_contract()` to canonical catalog ordering.
   - `802b61876fff8125fb7f2af16e2f951219eee546` - tighten demo workflow preferred commands.
   - `7991f9b7227646da8922964106315a0c9afe7382` - normalize demo command compatibility variants.
-- Reviewer-fix scope in this refresh: complete the high-risk handoff structure, add the explicit demo-path mapping, and narrow the roadmap/vision claims to the actual command-surface behavior.
+- Reviewer-fix scope in this refresh: keep the high-risk handoff structure explicit, preserve the concrete demo-path mapping, and narrow the claims to existing MVP-loop command-contract hardening only.
 
 ## Current Program Focus
 
@@ -69,7 +69,7 @@
   - `command_cli_contract()` now fails fast if the parser surface drifts from `command_names()`.
   - Canonical command ordering is returned directly from the catalog instead of being rebuilt from lookup order.
   - Demo compatibility variants normalize onto the trusted canonical command tokens instead of creating alternate entry paths.
-- Scope-tightening note: this handoff claims command-surface hardening only. It does not claim new workflow behavior, persistence behavior, or broader audit features.
+- Scope-tightening note: this handoff claims existing MVP-loop command-contract hardening only. It does not claim new workflow behavior, new command entrypoints, new CLI UX, persistence behavior, or broader audit features.
 
 ## Scope Completed
 
@@ -97,7 +97,7 @@
 1. Rebuilt the handoff packet into the explicit high-risk `AGENTS.md` structure with kickoff, budget, stop-trigger, checkpoint, and handoff sections.
 2. Added the concrete Milestone 3 demo-path mapping: this work strengthens `open project/document` by keeping the CLI entry contract deterministic and parser-ready.
 3. Tightened roadmap and product-vision mapping so the packet claims only CLI compatibility and canonical engine contract hardening supported by the current diff.
-4. Re-ran the required local gates and recorded the branch-tip outcomes for re-review.
+4. Re-ran the required local gates and recorded the outcomes for this docs-only reviewer-fix refresh.
 
 ### Files Changed
 
