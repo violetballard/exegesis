@@ -39,6 +39,10 @@
   path more real by keeping the CLI command contract deterministic,
   smoke-testable, and drift-resistant for the existing `bootstrap` entrypoint
   while Textual remains disabled.
+- Concrete blocker removed: the CLI parser surface can no longer silently drift
+  away from the command catalog for `bootstrap` and still present a seemingly
+  valid contract; `command_cli_contract()` now raises immediately when the
+  canonical parser-exposed command order diverges from `command_names()`.
 - Reviewer-fix note: this sentence is the explicit AGENTS plan-alignment
   statement required for re-review.
 
@@ -116,8 +120,8 @@
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the
   engine-first MVP loop.
 - Scope-tightening note: this packet only claims command-surface determinism for
-  the current CLI compatibility layer, not a broader workflow capability
-  change.
+  the current CLI compatibility layer for the `open project/document` demo-path
+  step, not a broader workflow capability change.
 
 ### Vision capability affected
 
