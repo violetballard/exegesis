@@ -59,9 +59,9 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares the CLI parser surface against `command_names()` and raises `ValueError` when the exposed command surface drifts from the declared catalog.
-- Kept the returned CLI contract aligned with canonical command order by returning the validated canonical tuple instead of rebuilding a separate order from parser tokens.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and parser/catalog drift rejection.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares the CLI parser surface against `command_names()` and raises `ValueError` when the exposed command surface drifts from the declared catalog. This removes a silent-contract-drift blocker from the `open project/document` demo-path step.
+- Kept the returned CLI contract aligned with canonical command order by returning the validated canonical tuple instead of rebuilding a separate order from parser tokens. This removes parser-order ambiguity from the `open project/document` demo-path step.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and parser/catalog drift rejection. This removes a smoke-test coverage gap around the `open project/document` demo-path step.
 - Reissued the handoff packet as a narrow command-catalog slice so the claimed roadmap and vision impact matches the actual implementation.
 
 ## Kickoff Budget / Limits Compliance
@@ -75,10 +75,10 @@
 
 ## Tasks Completed
 
-1. Hardened `command_cli_contract()` to fail fast when the parser surface drifts from the canonical command catalog.
-2. Preserved canonical command ordering in the returned CLI contract.
-3. Added regression coverage for canonical-order alignment and drift rejection.
-4. Tightened the handoff packet so it names the exact demo-path step advanced and states the narrow contract-hardening scope.
+1. `open project/document`: hardened `command_cli_contract()` to fail fast when the parser surface drifts from the canonical command catalog, removing the blocker where the `bootstrap` operator contract could change silently.
+2. `open project/document`: preserved canonical command ordering in the returned CLI contract, removing the blocker where parser token order could diverge from the declared catalog order.
+3. `open project/document`: added regression coverage for canonical-order alignment and drift rejection, removing the blocker where this compatibility contract could regress without a focused smoke-test failure.
+4. `open project/document`: tightened the handoff packet so it names the exact demo-path step advanced and the concrete blocker removed, satisfying the AGENTS handoff requirement for active-lane plan alignment.
 
 ## Files Changed
 
