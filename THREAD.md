@@ -13,6 +13,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   deterministic and drift-resistant.
 - The required gate suite was rerun at the current branch tip, and
   `THREAD_PACKET.md` records those verified pass results for re-review.
+- This pointer was refreshed again for the final fixer handoff so the lane has
+  a dedicated metadata-only re-review commit at the current tip.
 - The roadmap and vision impact text is tightened to the command-surface
   determinism and smoke-testability slice of the CLI compatibility layer.
 - No additional implementation files are added to the reviewer scope beyond
