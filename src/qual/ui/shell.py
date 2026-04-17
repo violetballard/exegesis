@@ -14,9 +14,11 @@ from .a2ui import (
     normalize_action_ref,
     normalize_selection_ref,
     describe_terminal_artifact_cli_fallback_contract,
+    describe_terminal_artifact_cli_fallback_target_contract,
     describe_terminal_artifact_cli_fallback_route_contract,
     describe_terminal_artifact_renderer_entrypoints_contract,
     terminal_artifact_cli_fallback_contract_fingerprint,
+    terminal_artifact_cli_fallback_target_contract_fingerprint,
     terminal_artifact_cli_fallback_route_contract_fingerprint,
     terminal_artifact_renderer_entrypoints_contract_fingerprint,
     _fingerprint_manifest_section,
@@ -538,6 +540,9 @@ def _build_shell_ui_contract_manifest(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,
 ) -> dict[str, Any]:
+    terminal_artifact_cli_fallback_target_contract = describe_terminal_artifact_cli_fallback_target_contract(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
     manifest = {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
@@ -554,6 +559,20 @@ def _build_shell_ui_contract_manifest(
             "limit": SHELL_UI_STARTUP_PREVIEW_LIMIT,
             "source_field": "basket.item_ids",
         },
+        "terminal_artifact_cli_fallback_target": terminal_artifact_cli_fallback_target_contract,
+        "terminal_artifact_cli_fallback_target_fingerprint": terminal_artifact_cli_fallback_target_contract[
+            "contract_fingerprint"
+        ],
+        "terminal_artifact_cli_fallback_target_contract": terminal_artifact_cli_fallback_target_contract,
+        "terminal_artifact_cli_fallback_target_contract_fingerprint": terminal_artifact_cli_fallback_target_contract[
+            "contract_fingerprint"
+        ],
+        "terminal_artifact_cli_fallback_target_contract_fingerprints": dict(
+            terminal_artifact_cli_fallback_target_contract["contract_fingerprints"]
+        ),
+        "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint": (
+            terminal_artifact_cli_fallback_target_contract["contract_fingerprints_fingerprint"]
+        ),
         "terminal_artifact_cli_fallback_contract": describe_terminal_artifact_cli_fallback_contract(),
         "terminal_artifact_cli_fallback_contract_fingerprint": terminal_artifact_cli_fallback_contract_fingerprint(),
         "terminal_artifact_renderer_entrypoints_contract": describe_terminal_artifact_renderer_entrypoints_contract(),
@@ -594,6 +613,14 @@ def describe_shell_ui_contract_fingerprints(
     terminal_artifact_cli_fallback_contract_fingerprint_value = (
         terminal_artifact_cli_fallback_contract_fingerprint()
     )
+    terminal_artifact_cli_fallback_target_contract = describe_terminal_artifact_cli_fallback_target_contract(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
+    terminal_artifact_cli_fallback_target_contract_fingerprint_value = (
+        terminal_artifact_cli_fallback_target_contract_fingerprint(
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        )
+    )
     terminal_artifact_renderer_entrypoints_contract_fingerprint_value = (
         terminal_artifact_renderer_entrypoints_contract_fingerprint()
     )
@@ -602,6 +629,13 @@ def describe_shell_ui_contract_fingerprints(
         "startup_fields_contract": _fingerprint_manifest_section(startup_fields),
         "startup_preview": _fingerprint_manifest_section(startup_preview),
         "startup_preview_contract": _fingerprint_manifest_section(startup_preview),
+        "terminal_artifact_cli_fallback_target": terminal_artifact_cli_fallback_target_contract_fingerprint_value,
+        "terminal_artifact_cli_fallback_target_contract": (
+            terminal_artifact_cli_fallback_target_contract_fingerprint_value
+        ),
+        "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint": (
+            terminal_artifact_cli_fallback_target_contract["contract_fingerprints_fingerprint"]
+        ),
         "terminal_artifact_cli_fallback": terminal_artifact_cli_fallback_contract_fingerprint_value,
         "terminal_artifact_cli_fallback_contract": terminal_artifact_cli_fallback_contract_fingerprint_value,
         "terminal_artifact_renderer_entrypoints": terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
