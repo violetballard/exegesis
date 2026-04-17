@@ -58,9 +58,9 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the default catalog validates the full parser surface against the declared command entrypoints and raises `ValueError` when accepted CLI tokens drift from the catalog.
-- Kept the returned contract aligned with the canonical command order while treating parser-surface drift as a contract error instead of silently accepting alias substitutions or extra entrypoints.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment, alias-substitution rejection, and extra accepted-entrypoint drift rejection.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the default catalog validates the full parser surface against the declared command entrypoints and raises `ValueError` when accepted CLI tokens drift from the catalog, which keeps the CLI fallback trustworthy for the `continue working` step of the canonical MVP loop.
+- Kept the returned contract aligned with the canonical command order while treating parser-surface drift as a contract error instead of silently accepting alias substitutions or extra entrypoints, which keeps the `continue working` operator surface deterministic instead of silently changing underneath the user.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment, alias-substitution rejection, and extra accepted-entrypoint drift rejection, which makes the `continue working` CLI contract smoke-testable and auditable.
 - Reissued the handoff packet as a command-catalog-only slice so the review scope matches the claimed implementation files and approval basis.
 
 ## Kickoff Budget / Limits Compliance
@@ -74,9 +74,13 @@
 ## Tasks Completed
 
 1. Hardened `command_cli_contract()` to verify the full default parser surface against the catalog and fail fast on alias substitution or extra-entrypoint drift.
+   Demo-path step: `continue working`, because the CLI fallback must reject silent parser drift before an operator keeps using the next command in the loop.
 2. Preserved canonical command ordering in the CLI contract while keeping parser-surface validation explicit.
+   Demo-path step: `continue working`, because the active CLI surface must stay deterministic from run to run while the operator continues the workflow.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment plus alias-substitution and extra accepted-entrypoint parser-surface drift rejection.
+   Demo-path step: `continue working`, because the smoke tests now prove the CLI contract used for continued work remains explicit and stable.
 4. Regenerated the handoff packet so the branch metadata stays scoped to the command-catalog slice and uses the current roadmap and vision labels.
+   Demo-path step: `continue working`, because the handoff now states exactly which canonical loop step this narrow contract-hardening slice protects.
 
 ## Files Changed
 
