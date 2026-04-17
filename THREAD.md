@@ -14,6 +14,9 @@ older lane/fixer prompts.
 - This refresh explicitly satisfies the reviewer's REQUIRED FIXES by naming the
   canonical demo-path steps advanced and keeping the scope tied to the current
   Milestone 3 engine-first CLI loop only.
+- This final verified refresh was run on `2026-04-17` after a fresh full-gate
+  pass against pre-refresh metadata baseline
+  `b533eba949d16746829d42f655a0b1e085f59d30`.
 - This work explicitly advances the canonical demo path by making the CLI-first
   `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps more
   real and smoke-testable.

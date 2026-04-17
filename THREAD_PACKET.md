@@ -112,6 +112,9 @@
 - Refreshed the handoff packet so the review scope points at the current
   command-catalog implementation commit, the actual parser-surface invariant
   enforced in this branch, and this final reviewer-fix verification pass.
+- Recorded that this final verified refresh was run on `2026-04-17` after a
+  fresh full-gate pass against pre-refresh metadata baseline
+  `b533eba949d16746829d42f655a0b1e085f59d30`.
 - Verified in this final fixer pass that branch tip
   `b533eba949d16746829d42f655a0b1e085f59d30` already contains the reviewer-
   required implementation fix through runtime commit
