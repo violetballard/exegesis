@@ -102,6 +102,7 @@
 
 ## Reviewer Reconciliation
 - This packet is the writable source of truth for re-review in this fixer environment and supersedes any stale risk classification in blocked `.codex` packet mirrors.
+- This fixer pass records a fresh metadata-only traceability update on `2026-04-16` confirming the reviewer-requested canonical demo-path mapping and ownership clarification remain the authoritative re-review source in this tracked packet.
 - Blocked mirror detail: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` return `EPERM` on write in this sandbox, so this packet carries the authoritative reviewer-fix reconciliation for this pass.
 - Mirror staleness note: those blocked `.codex` packet mirrors still reflect the older broader reviewed range metadata and should not be treated as the re-review source for this pass.
 - Mirror write-block note: the reviewer-required canonical demo-path mapping and the shared-versus-integrator-locked ownership correction are therefore authoritative in this writable packet for the current re-review.
