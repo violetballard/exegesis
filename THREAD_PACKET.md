@@ -113,11 +113,12 @@
 - Harden the CLI command contract so `command_cli_contract()` stays
   deterministic, uses the canonical command order, and fails fast if the
   parser surface drifts from the catalog.
-- Concrete blocker removal for the canonical demo path: while the CLI remains
-  the active operator surface, the engine-first MVP loop cannot be considered
-  reliable if the canonical command order can drift away from the declared
-  command catalog without failing. This slice removes that blocker by making
-  that mismatch fail immediately instead of changing the contract unnoticed.
+- Concrete blocker removal for the canonical demo path step
+  `open project/document`: while the CLI remains the active operator surface,
+  the `bootstrap` entrypoint cannot be considered reliable if the canonical
+  command order can drift away from the declared command catalog without
+  failing. This slice removes that blocker by making that mismatch fail
+  immediately instead of changing the entry contract unnoticed.
 
 ## Thread Kickoff (High-Risk)
 
@@ -234,7 +235,7 @@
 - Focused regression coverage proves both canonical-order alignment and
   drift rejection for this command-catalog slice.
 - This handoff claims only command-catalog contract hardening for the active
-  CLI `open`, `retrieve`, and `patch-review` path; it does not claim broader
+  CLI `open project/document` entry step; it does not claim broader
   command-surface coverage beyond the reviewed implementation commit
   `05c0b20ff5e83e02d3ebadabbe39815d0afc0520` and this metadata-only refresh.
 
@@ -347,7 +348,8 @@
 
 - Canonical engine contract - CLI compatibility remains stable while the
   command-catalog surface rejects catalog/parser drift before it can silently
-  change the operator contract for the active engine-first MVP loop.
+  change the operator contract for the active `open project/document`
+  entrypoint.
 
 ### Routing/provider impact note
 
