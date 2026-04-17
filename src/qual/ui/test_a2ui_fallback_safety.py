@@ -2370,6 +2370,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(rendered_text, cli_fallback_text)
         self.assertIn("[<missing>] <untitled>", rendered_text)
+        self.assertIn("- label: Export", rendered_text)
         self.assertNotIn("[ActionRef]", rendered_text)
         self.assertNotIn("[SelectionRef]", rendered_text)
 
@@ -3541,6 +3542,9 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         for text in (action_text, selection_text):
             self.assertIn("[<missing>] <untitled>", text)
+        self.assertIn("- label: Export", action_text)
+        self.assertIn("- label: Choice", selection_text)
+        for text in (action_text, selection_text):
             self.assertNotIn("[ActionRef]", text)
             self.assertNotIn("[SelectionRef]", text)
             self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)

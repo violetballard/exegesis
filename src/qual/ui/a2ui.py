@@ -2446,6 +2446,13 @@ def render_terminal_card(card: Any) -> str:
         )
         generic_fallback_hint = _is_canonical_generic_fallback_signal(subtitle, actions)
         lines = [f"[{rendered_card_type}] {title}"]
+        if raw_title == "<untitled>" and _should_preserve_raw_leaf_card_default(normalized_card):
+            # Surface the leaf label without changing the card title contract.
+            raw_label = _normalize_card_text(normalized_card.get("label"))
+            if raw_label is not None:
+                rendered_label = _render_terminal_inline_text(raw_label)
+                if rendered_label:
+                    lines.append(f"- label: {rendered_label}")
         if card_type == UNKNOWN_CARD_TYPE:
             lines.append(UNKNOWN_FALLBACK_SUBTITLE)
         elif card_type == GENERIC_CARD_TYPE and (
