@@ -1073,7 +1073,7 @@ class RetrievalResult:
             promotion_source = "primary_ranked_excerpt"
         elif primary_doc_hit is not None:
             promotion_source = "primary_ranked_doc"
-        return {
+        promotion = {
             "promotion_ready": primary_excerpt_hit is not None or primary_doc_hit is not None,
             "promotion_source": promotion_source,
             "citation_available": primary_excerpt_hit is not None,
@@ -1166,6 +1166,8 @@ class RetrievalResult:
             "retrieved_doc_ids": [doc_hit.doc_id for doc_hit in self.doc_hits],
             "retrieved_excerpt_ids": [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None],
         }
+        promotion["promotion_fingerprint"] = RetrievalService._build_basket_promotion_fingerprint(promotion)
+        return promotion
 
     def _retrieval_source_bundle_snapshot(
         self,
@@ -2965,7 +2967,7 @@ class RetrievalService:
         deferred_strategy_ids = copy.deepcopy(
             excerpt.get("deferred_strategy_ids", retrieval_policy.get("deferred_strategy_ids", []))
         )
-        return {
+        promotion = {
             "promotion_ready": True,
             "promotion_source": "lookup_excerpt",
             "citation_available": True,
@@ -3047,6 +3049,15 @@ class RetrievalService:
                 ]
             ),
         }
+        promotion["promotion_fingerprint"] = self._build_basket_promotion_fingerprint(promotion)
+        return promotion
+
+    @staticmethod
+    def _build_basket_promotion_fingerprint(payload: dict[str, object]) -> str:
+        fingerprint_payload = copy.deepcopy(payload)
+        fingerprint_payload.pop("promotion_fingerprint", None)
+        fingerprint_payload.pop("source_bundle_fingerprint", None)
+        return RetrievalService._stable_fingerprint(fingerprint_payload)
 
     @staticmethod
     def _build_doc_identity_fingerprint(

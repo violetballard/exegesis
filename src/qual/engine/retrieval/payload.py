@@ -685,6 +685,7 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
     for field_name in (
         "query_fingerprint",
         "result_fingerprint",
+        "promotion_fingerprint",
         "source_bundle_fingerprint",
         "lookup_fingerprint",
         "doc_id",
@@ -828,7 +829,19 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
             normalized["fts_rank"] = normalized_fts_rank
         elif "fts_rank" in normalized:
             normalized["fts_rank"] = None
+    existing_promotion_fingerprint = _normalize_optional_text(normalized.get("promotion_fingerprint"))
+    if existing_promotion_fingerprint is not None:
+        normalized["promotion_fingerprint"] = existing_promotion_fingerprint
+    else:
+        normalized["promotion_fingerprint"] = _basket_promotion_fingerprint(normalized)
     return normalized
+
+
+def _basket_promotion_fingerprint(snapshot: dict[str, object]) -> str:
+    fingerprint_payload = copy.deepcopy(snapshot)
+    fingerprint_payload.pop("promotion_fingerprint", None)
+    fingerprint_payload.pop("source_bundle_fingerprint", None)
+    return _stable_fingerprint(fingerprint_payload)
 
 
 def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str, object]:
