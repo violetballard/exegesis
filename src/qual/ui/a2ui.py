@@ -1205,6 +1205,14 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
             ("terminal_fallback", terminal_fallback_contract_fingerprint()),
             ("terminal_fallback_contract", terminal_fallback_contract_fingerprint()),
             (
+                "shell_refinement_policy",
+                _fingerprint_manifest_section(_build_terminal_artifact_cli_fallback_shell_refinement_policy_manifest()),
+            ),
+            (
+                "resolver_failure_policy",
+                _fingerprint_manifest_section(_build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()),
+            ),
+            (
                 "terminal_artifact_cli_fallback_target",
                 terminal_artifact_cli_fallback_target_contract_fingerprint(),
             ),
@@ -1303,6 +1311,14 @@ def describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
             ("terminal_fallback", terminal_fallback_contract_fingerprint()),
             ("terminal_fallback_contract", terminal_fallback_contract_fingerprint()),
             (
+                "shell_refinement_policy",
+                _fingerprint_manifest_section(_build_terminal_artifact_cli_fallback_shell_refinement_policy_manifest()),
+            ),
+            (
+                "resolver_failure_policy",
+                _fingerprint_manifest_section(_build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()),
+            ),
+            (
                 "terminal_artifact_cli_fallback_target",
                 terminal_artifact_cli_fallback_target_contract_fingerprint(),
             ),
@@ -1366,6 +1382,12 @@ def _build_terminal_artifact_cli_fallback_contract_fingerprints(
         "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
         "raw_leaf_card_default_contract": terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         "raw_leaf_card_default_policy_contract": terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+        "shell_refinement_policy": _fingerprint_manifest_section(
+            _build_terminal_artifact_cli_fallback_shell_refinement_policy_manifest()
+        ),
+        "resolver_failure_policy": _fingerprint_manifest_section(
+            _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()
+        ),
     }
     if include_terminal_artifact_cli_fallback:
         fingerprints["terminal_artifact_cli_fallback"] = terminal_artifact_cli_fallback_contract_fingerprint()
@@ -1400,6 +1422,26 @@ def _build_terminal_artifact_cli_fallback_target_contract_fingerprints(
     return fingerprints
 
 
+def _build_terminal_artifact_cli_fallback_shell_refinement_policy_manifest() -> dict[str, Any]:
+    return {
+        "preserve_raw_leaf_card_default": True,
+        "invalid_kind_treated_as_absent": True,
+        "refine_card_underflow": True,
+    }
+
+
+def _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest() -> dict[str, Any]:
+    return {
+        "retry_resolver": "resolve_terminal_artifact_render_target",
+        "raw_leaf_card_default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
+        "leaf_renderers": {
+            "card": "render_terminal_card",
+            "action": "render_terminal_action",
+            "selection": "render_terminal_selection",
+        },
+    }
+
+
 def _build_terminal_artifact_cli_fallback_route_contract_fingerprints() -> dict[str, str]:
     return {
         "render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
@@ -1409,6 +1451,12 @@ def _build_terminal_artifact_cli_fallback_route_contract_fingerprints() -> dict[
         "raw_leaf_card_default_policy_contract": terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
         "kind_resolution": terminal_artifact_kind_resolution_fingerprint(),
         "fallback_recovery": terminal_artifact_fallback_recovery_fingerprint(),
+        "shell_refinement_policy": _fingerprint_manifest_section(
+            _build_terminal_artifact_cli_fallback_shell_refinement_policy_manifest()
+        ),
+        "resolver_failure_policy": _fingerprint_manifest_section(
+            _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()
+        ),
     }
 
 
@@ -1875,6 +1923,8 @@ def _build_terminal_artifact_cli_fallback_contract_manifest(
     )
     raw_leaf_card_default_contract = describe_terminal_artifact_raw_leaf_card_default_contract()
     raw_leaf_card_default_policy_contract = describe_terminal_artifact_raw_leaf_card_default_policy_contract()
+    shell_refinement_policy = _build_terminal_artifact_cli_fallback_shell_refinement_policy_manifest()
+    resolver_failure_policy = _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()
     kind_contracts = _build_terminal_artifact_kind_contracts()
     terminal_artifact_kind_contracts = _snapshot_contract_section(kind_contracts)
     renderer_entrypoints = copy.deepcopy(rendering_contract["renderer_entrypoints"])
@@ -1948,20 +1998,15 @@ def _build_terminal_artifact_cli_fallback_contract_manifest(
         "kind_resolution_fingerprint": render_target_contract["kind_resolution_fingerprint"],
         "fallback_recovery": copy.deepcopy(render_target_contract["fallback_recovery"]),
         "fallback_recovery_fingerprint": render_target_contract["fallback_recovery_fingerprint"],
+        "shell_refinement_policy": shell_refinement_policy,
+        "shell_refinement_policy_fingerprint": _fingerprint_manifest_section(shell_refinement_policy),
         "kind_policy": {
             "card": "defer to terminal artifact dispatch and keep card as the default recovery path",
             "action": "recover action payloads with render_terminal_action",
             "selection": "recover selection payloads with render_terminal_selection",
         },
-        "resolver_failure_policy": {
-            "retry_resolver": "resolve_terminal_artifact_render_target",
-            "raw_leaf_card_default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
-            "leaf_renderers": {
-                "card": "render_terminal_card",
-                "action": "render_terminal_action",
-                "selection": "render_terminal_selection",
-            },
-        },
+        "resolver_failure_policy": resolver_failure_policy,
+        "resolver_failure_policy_fingerprint": _fingerprint_manifest_section(resolver_failure_policy),
         "terminal_fallback_contract": terminal_fallback_contract,
         "terminal_artifact_render_target_contract_fingerprint": terminal_artifact_render_target_contract_fingerprint(),
         "terminal_artifact_rendering_contract_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
@@ -2088,6 +2133,8 @@ def _build_terminal_artifact_cli_fallback_route_contract_manifest() -> dict[str,
     raw_leaf_card_default_policy_contract = describe_terminal_artifact_raw_leaf_card_default_policy_contract()
     kind_resolution = copy.deepcopy(render_target_contract["kind_resolution"])
     fallback_recovery = copy.deepcopy(render_target_contract["fallback_recovery"])
+    shell_refinement_policy = _build_terminal_artifact_cli_fallback_shell_refinement_policy_manifest()
+    resolver_failure_policy = _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()
     contract_fingerprints = _build_terminal_artifact_cli_fallback_route_contract_fingerprints()
     return {
         "contract_version": A2UI_CONTRACT_VERSION,
@@ -2136,20 +2183,10 @@ def _build_terminal_artifact_cli_fallback_route_contract_manifest() -> dict[str,
             "action": "render_terminal_action",
             "selection": "render_terminal_selection",
         },
-        "shell_refinement_policy": {
-            "preserve_raw_leaf_card_default": True,
-            "invalid_kind_treated_as_absent": True,
-            "refine_card_underflow": True,
-        },
-        "resolver_failure_policy": {
-            "retry_resolver": "resolve_terminal_artifact_render_target",
-            "raw_leaf_card_default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
-            "leaf_renderers": {
-                "card": "render_terminal_card",
-                "action": "render_terminal_action",
-                "selection": "render_terminal_selection",
-            },
-        },
+        "shell_refinement_policy": shell_refinement_policy,
+        "shell_refinement_policy_fingerprint": _fingerprint_manifest_section(shell_refinement_policy),
+        "resolver_failure_policy": resolver_failure_policy,
+        "resolver_failure_policy_fingerprint": _fingerprint_manifest_section(resolver_failure_policy),
         "contract_fingerprints": contract_fingerprints,
         "contract_fingerprints_fingerprint": _fingerprint_manifest_section(contract_fingerprints),
         "terminal_artifact_cli_fallback_route_contract_fingerprints": _snapshot_contract_section(

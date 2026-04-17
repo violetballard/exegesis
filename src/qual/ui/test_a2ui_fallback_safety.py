@@ -2853,6 +2853,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
         )
         self.assertEqual(
+            fingerprints["shell_refinement_policy"],
+            _fingerprint_manifest_section(manifest["shell_refinement_policy"]),
+        )
+        self.assertEqual(
+            fingerprints["resolver_failure_policy"],
+            _fingerprint_manifest_section(manifest["resolver_failure_policy"]),
+        )
+        self.assertEqual(
             manifest["raw_leaf_card_default_policy_contract_fingerprint"],
             terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
         )
@@ -2873,6 +2881,34 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             describe_terminal_artifact_raw_leaf_card_default_policy_contract_fingerprints(
                 include_terminal_artifact_raw_leaf_card_default_policy=True,
             ),
+        )
+        self.assertEqual(
+            manifest["shell_refinement_policy"],
+            {
+                "preserve_raw_leaf_card_default": True,
+                "invalid_kind_treated_as_absent": True,
+                "refine_card_underflow": True,
+            },
+        )
+        self.assertEqual(
+            manifest["resolver_failure_policy"],
+            {
+                "retry_resolver": "resolve_terminal_artifact_render_target",
+                "raw_leaf_card_default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
+                "leaf_renderers": {
+                    "card": "render_terminal_card",
+                    "action": "render_terminal_action",
+                    "selection": "render_terminal_selection",
+                },
+            },
+        )
+        self.assertEqual(
+            manifest["shell_refinement_policy_fingerprint"],
+            _fingerprint_manifest_section(manifest["shell_refinement_policy"]),
+        )
+        self.assertEqual(
+            manifest["resolver_failure_policy_fingerprint"],
+            _fingerprint_manifest_section(manifest["resolver_failure_policy"]),
         )
         self.assertNotIn("terminal_artifact_cli_fallback", fingerprints)
         self.assertEqual(
@@ -2922,6 +2958,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints_with_self["raw_leaf_card_default_fingerprint"],
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints_with_self["shell_refinement_policy_fingerprint"],
+            _fingerprint_manifest_section(manifest["shell_refinement_policy"]),
+        )
+        self.assertEqual(
+            fingerprints_with_self["resolver_failure_policy_fingerprint"],
+            _fingerprint_manifest_section(manifest["resolver_failure_policy"]),
         )
         self.assertEqual(
             fingerprints_with_self["raw_leaf_card_default_contract_fingerprint"],
@@ -3037,6 +3081,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             },
         )
         self.assertEqual(
+            route_manifest["shell_refinement_policy_fingerprint"],
+            _fingerprint_manifest_section(route_manifest["shell_refinement_policy"]),
+        )
+        self.assertEqual(
+            route_manifest["resolver_failure_policy_fingerprint"],
+            _fingerprint_manifest_section(route_manifest["resolver_failure_policy"]),
+        )
+        self.assertEqual(
             route_manifest["terminal_artifact_cli_fallback_target_contract"],
             describe_terminal_artifact_cli_fallback_target_contract(),
         )
@@ -3142,6 +3194,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints["fallback_recovery"],
             terminal_artifact_fallback_recovery_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["shell_refinement_policy"],
+            _fingerprint_manifest_section(manifest["shell_refinement_policy"]),
+        )
+        self.assertEqual(
+            fingerprints["resolver_failure_policy"],
+            _fingerprint_manifest_section(manifest["resolver_failure_policy"]),
         )
         self.assertEqual(
             fingerprints_with_self["terminal_artifact_cli_fallback_route"],
