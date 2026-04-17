@@ -21,6 +21,7 @@
 - This reviewed slice makes `retrieve relevant material` more real by forcing excerpt lookup through the canonical SQLite FTS path and failing closed for PageIndex-only excerpt IDs, keeping retrieval provenance deterministic for downstream basket/workflow use.
 
 ## Canonical Demo-Path Step Advanced
+- AGENTS.md explicit handoff answer for re-review: this narrowed slice advances the canonical demo-path step `retrieve relevant material`.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Reviewer-required canonical mapping: this slice makes `retrieve relevant material` more real by ensuring excerpt lookup stays on the canonical FTS-only retrieval path and fails closed for PageIndex-only IDs.
 - Suggested reviewer wording satisfied: `Canonical demo-path step advanced: retrieve relevant material; excerpt lookup now fails closed to canonical FTS-backed excerpt IDs, keeping retrieval provenance deterministic for downstream basket/workflow use.`
@@ -45,6 +46,7 @@
 - Fix 1: The handoff packet now states explicitly that this slice advances the canonical demo-path step `retrieve relevant material`.
 - Fix 2: The handoff packet now explains how this slice makes `retrieve relevant material` more real by forcing excerpt lookup through the authoritative SQLite FTS path, keeping retrieval output deterministic and auditable without promoting PageIndex into a required MVP runtime path.
 - Fix 3: The scope wording remains narrowed to the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the approved shared regression exception in `tests/unit/test_unified_retrieval.py`, rather than reading as broader PageIndex compatibility work.
+- Fix 4: This writable packet is the authoritative re-review artifact in this worktree and now surfaces the AGENTS-required demo-path answer as the first line of the dedicated section so the mapping is explicit even if `.codex` mirrors remain stale or write-blocked.
 
 ## Authoritative Re-review Note
 - Fixer guardrail applied: the reviewer packet and this writable `THREAD_PACKET.md` are the source of truth for this pass because the lane-local `.codex` packet mirrors are non-essential and return `EPERM` on write in this worktree.
