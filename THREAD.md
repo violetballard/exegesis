@@ -8,6 +8,7 @@ older lane/fixer prompts.
 
 ## Reviewer Fix Alignment
 
+- Active implementation review target: `c99d67784cad542251317b5fd910837ff904d295`.
 - Exact canonical demo-path step advanced: `open project/document`.
 - Primary branch-tip step: `open project/document`. The active runtime change
   keeps `document-open` and `open-document` normalized onto the canonical
@@ -15,8 +16,9 @@ older lane/fixer prompts.
   surface.
 - Contract guard for that same step: parser entrypoints and catalog ordering
   can no longer drift silently away from the active open-command operator
-  contract; `command_cli_contract()` now fails fast when the parser and catalog
-  diverge.
+  contract; `command_cli_contract()` now fails fast when the parser surface and
+  catalog diverge through added, removed, reordered, or substituted accepted
+  entrypoints.
 - Scope boundary: this slice stays in CLI compatibility, command-catalog
   validation, alias normalization, and focused regression coverage for the
   existing open-command surface. It does not add new commands, new flags,
@@ -31,6 +33,6 @@ older lane/fixer prompts.
   `open project/document` command surface explicit, keeping document-open
   aliases on the bootstrap route, and failing fast when parser/catalog
   ordering drifts instead of silently changing that operator-facing path.
-- Gate rerun note: the final feature-fixer verification was run against actual
-  pre-commit branch tip; see `THREAD_PACKET.md`
+- Gate rerun note: the final feature-fixer verification was run against branch
+  tip `c99d67784cad542251317b5fd910837ff904d295`; see `THREAD_PACKET.md`
   for the full required gate list and outcomes.

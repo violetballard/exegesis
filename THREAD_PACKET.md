@@ -3,14 +3,13 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `c99d67784cad542251317b5fd910837ff904d295`
-- Packet refresh commit: `this post-verification feature-fixer packet refresh commit on codex/feat-commands`
-- Packet refresh role: `feature-fixer required-fixes coverage and packet retargeting`
+- Packet refresh commit: `metadata-only packet refresh on the branch tip after this update`
+- Packet refresh role: `feature-fixer required-fixes parser-surface coverage and packet retargeting`
 
 ## Packet Traceability Note
 
-- The active review target is the actual branch-tip implementation rooted at `fb8f9515f7c4156c3a9038e85d1c0f7c73757658`, which adds normalized `document-open` / `open-document` bootstrap compatibility in `src/qual/commands/catalog.py`.
-- This follow-up fixer commit keeps that runtime behavior in scope, adds focused regression coverage for it in `tests/unit/test_commands_catalog.py`, and retargets the handoff text so the review basis matches the real branch tip.
-- No docs-only traceability claim is being made for `fb8f9515f7c4156c3a9038e85d1c0f7c73757658`; it is implementation scope.
+- The active review target is the branch-tip implementation at `c99d67784cad542251317b5fd910837ff904d295`, which keeps the CLI parser surface locked to the declared command catalog and adds regression coverage for parser-surface drift in `tests/unit/test_commands_catalog.py`.
+- This packet refresh is metadata-only. It does not change the implementation under review; it only aligns the handoff text with the actual branch-tip runtime scope and the reviewer-fix status.
 
 ## Current Program Focus
 
@@ -73,8 +72,8 @@
 
 - Normalized `document-open` and `open-document` back onto the canonical `bootstrap` command path in `src/qual/commands/catalog.py` so document-open compatibility stays routed through the existing project-open parser entrypoint.
 - Kept the parser-facing CLI contract deterministic by validating declared entrypoints and canonical names against the command catalog instead of allowing silent parser/catalog drift.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the document-open alias normalization and the stricter CLI contract drift checks, including token-level parser drift cases for missing expected aliases and `diff` versus `diff_preview` substitution.
-- Retargeted the handoff packet so the claimed review scope, demo-path mapping, and traceability note match the actual branch tip.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for the document-open alias normalization and the stricter CLI contract drift checks, including token-level parser drift cases for reordered accepted entrypoints, missing expected aliases, and `diff` versus `diff_preview` substitution.
+- Refreshed the handoff packet so the claimed review scope, demo-path mapping, and traceability note match the actual branch-tip implementation that satisfies the reviewer's numbered fixes.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -89,7 +88,7 @@
 
 1. `open project/document`: normalized `document-open` and `open-document` so those document-open compatibility aliases resolve through the canonical `bootstrap` entrypoint instead of creating a divergent command surface.
 2. `open project/document`: kept the parser-facing CLI contract deterministic by validating declared entrypoints and canonical command ordering against the catalog so the active open-command surface cannot drift silently.
-3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for alias normalization and CLI contract drift rejection at the actual branch tip, including missing expected alias tokens and normalized alias substitution drift.
+3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for alias normalization and CLI contract drift rejection at the actual branch tip, including reordered accepted entrypoints, missing expected alias tokens, and normalized alias substitution drift.
 4. Refreshed the handoff packet and compatibility summary so the review scope explicitly matches the real implementation under review.
 
 ## Files Changed
@@ -106,7 +105,7 @@
 
 ## Commands Run and Outcomes
 
-- Verified on branch tip `c99d67784cad542251317b5fd910837ff904d295` during the final feature-fixer pass; the final HEAD SHA for this post-verification packet refresh commit is reported separately after commit.
+- Final post-fix gate rerun is recorded on the packet refresh commit; the final HEAD SHA is reported separately after commit.
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
