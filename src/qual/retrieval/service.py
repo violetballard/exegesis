@@ -3015,9 +3015,19 @@ class RetrievalService:
             query_payload = provenance.get("query")
         if not isinstance(query_payload, dict):
             query_payload = {}
-        query_constraints_payload = query_payload.get("constraints")
-        if not isinstance(query_constraints_payload, dict):
-            query_constraints_payload = {}
+        query_constraints_payloads: list[dict[str, object]] = []
+        for candidate in (
+            provenance.get("constraints"),
+            excerpt.get("constraints"),
+            provenance.get("query_constraints"),
+            excerpt.get("query_constraints"),
+            query_payload.get("constraints"),
+        ):
+            if isinstance(candidate, dict):
+                query_constraints_payloads.append(candidate)
+        query_constraints_payload: dict[str, object] = {}
+        for candidate in query_constraints_payloads:
+            query_constraints_payload.update(candidate)
         query_text = _normalize_query_text_payload(
             excerpt.get("query_text", provenance.get("query_text", query_payload.get("query_text")))
         )
@@ -3045,10 +3055,30 @@ class RetrievalService:
                 provenance.get("section_hint", query_constraints_payload.get("section_hint")),
             )
         )
-        max_results = _optional_int(query_constraints_payload.get("max_results"))
-        doc_types = _normalize_query_doc_types_payload(query_constraints_payload.get("doc_types"))
-        require_citations = _optional_bool(query_constraints_payload.get("require_citations"))
-        prefer_exact_matches = _optional_bool(query_constraints_payload.get("prefer_exact_matches"))
+        max_results = _optional_int(
+            query_constraints_payload.get(
+                "max_results",
+                excerpt.get("max_results", provenance.get("max_results")),
+            )
+        )
+        doc_types = _normalize_query_doc_types_payload(
+            query_constraints_payload.get(
+                "doc_types",
+                excerpt.get("doc_types", provenance.get("doc_types")),
+            )
+        )
+        require_citations = _optional_bool(
+            query_constraints_payload.get(
+                "require_citations",
+                excerpt.get("require_citations", provenance.get("require_citations")),
+            )
+        )
+        prefer_exact_matches = _optional_bool(
+            query_constraints_payload.get(
+                "prefer_exact_matches",
+                excerpt.get("prefer_exact_matches", provenance.get("prefer_exact_matches")),
+            )
+        )
         query_constraints: dict[str, object] = {}
         if max_results is not None:
             query_constraints["max_results"] = max_results
