@@ -387,6 +387,13 @@ class ShellUI:
         if payload is None:
             return None
 
+        if ShellUI._normalize_fallback_kind(artifact.get("kind")) is None and _should_preserve_raw_leaf_card_default(
+            payload
+        ):
+            # When the envelope kind is unusable, keep ambiguous raw leaves on
+            # the card path rather than guessing a structured leaf kind.
+            return payload, "card"
+
         inferred_kind = ShellUI._infer_fallback_kind(payload)
         if inferred_kind is not None:
             return payload, inferred_kind

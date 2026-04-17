@@ -1476,6 +1476,21 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             (raw_leaf, "card"),
         )
 
+    def test_terminal_artifact_cli_fallback_target_resolver_keeps_ambiguous_raw_leaf_payloads_on_card_default_for_malformed_envelope_kinds(
+        self,
+    ) -> None:
+        envelope = {
+            "type": "TerminalArtifact",
+            "kind": "dialog",
+            "artifact": {
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+            },
+        }
+
+        self.assertEqual(resolve_terminal_artifact_cli_fallback_target(envelope), (envelope["artifact"], "card"))
+
     def test_terminal_artifact_renderers_preserve_raw_leaf_card_default_without_shared_resolver(self) -> None:
         raw_leaf = {
             "id": "export_document",
@@ -1494,6 +1509,26 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[<missing>] <untitled>", rendered_text)
         self.assertNotIn("[ActionRef]", rendered_text)
         self.assertNotIn("[SelectionRef]", rendered_text)
+
+    def test_terminal_artifact_renderers_keep_ambiguous_raw_leaf_payloads_on_card_default_for_malformed_envelope_kinds(
+        self,
+    ) -> None:
+        envelope = {
+            "type": "TerminalArtifact",
+            "kind": "dialog",
+            "artifact": {
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+            },
+        }
+
+        rendered_text = render_terminal_cli_fallback(envelope)
+
+        self.assertIn("[<missing>] <untitled>", rendered_text)
+        self.assertNotIn("[ActionRef]", rendered_text)
+        self.assertNotIn("[SelectionRef]", rendered_text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", rendered_text)
 
     def test_terminal_artifact_cli_fallback_entrypoint_survives_generic_renderer_failure(self) -> None:
         envelope = build_terminal_artifact_envelope(
@@ -3086,6 +3121,32 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(text, "cli-fallback")
         cli_fallback.assert_called_once_with(raw_leaf, kind="card")
+
+    def test_shell_ui_keeps_ambiguous_raw_leaf_payloads_on_card_default_for_malformed_envelopes_when_shared_resolver_raises(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        envelope = {
+            "type": "TerminalArtifact",
+            "kind": "dialog",
+            "artifact": {
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+            },
+        }
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            with patch(
+                "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
+                side_effect=RuntimeError("resolver boom"),
+            ):
+                text = shell.render_artifact(envelope)
+
+        self.assertIn("[<missing>] <untitled>", text)
+        self.assertNotIn("[ActionRef]", text)
+        self.assertNotIn("[SelectionRef]", text)
+        self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
 
     def test_shell_ui_recovers_leaf_payloads_from_terminal_envelopes_when_shared_resolver_raises(
         self,
