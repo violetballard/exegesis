@@ -35,6 +35,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - `THREAD_PACKET.md` now also ties each completed task directly to the
   `open project/document` step and restates that the slice hardens existing
   command entrypoints only, without broadening the command surface.
+- `THREAD_PACKET.md` now frames the contract-hardening rationale around the
+  single `bootstrap` entrypoint for `open project/document`, rather than the
+  broader CLI loop, so the re-review packet stays scope-tight.
 - This final fixer refresh also records the approval provenance explicitly:
   the user-supplied `2026-04-17` reviewer packet for this run is the source of
   truth for the approved shared-test exception on
