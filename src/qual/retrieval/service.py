@@ -1613,6 +1613,9 @@ class RetrievalService:
         span = excerpt.get("span")
         if not isinstance(span, dict):
             span = None
+        retrieval_policy = excerpt.get("retrieval_policy")
+        if not isinstance(retrieval_policy, dict):
+            retrieval_policy = self._retrieval_policy.as_snapshot()
         basket_promotion = excerpt.get("basket_promotion")
         if not isinstance(basket_promotion, dict):
             basket_promotion = None
@@ -1626,9 +1629,10 @@ class RetrievalService:
                 "lookup_entrypoint": lookup_entrypoint,
                 "lookup_resolution": lookup_resolution,
                 "lookup_confidentiality_profile": lookup_confidentiality_profile,
+                "title_hint": excerpt.get("title_hint"),
                 "retrieval_backend": excerpt.get("retrieval_backend"),
                 "retrieval_mode": excerpt.get("retrieval_mode"),
-                "retrieval_policy": copy.deepcopy(self._retrieval_policy.as_snapshot()),
+                "retrieval_policy": copy.deepcopy(retrieval_policy),
                 "active_strategy_ids": copy.deepcopy(excerpt.get("active_strategy_ids")),
                 "deferred_strategy_ids": copy.deepcopy(excerpt.get("deferred_strategy_ids")),
                 "strategies_used": copy.deepcopy(excerpt.get("strategies_used")),
@@ -1641,6 +1645,13 @@ class RetrievalService:
                 "excerpt_provenance_fingerprint": excerpt.get("excerpt_provenance_fingerprint"),
                 "lookup_fingerprint": excerpt.get("lookup_fingerprint"),
                 "doc_identity_fingerprint": excerpt.get("doc_identity_fingerprint"),
+                "matched_terms": copy.deepcopy(excerpt.get("matched_terms")),
+                "match_count": excerpt.get("match_count"),
+                "rank": excerpt.get("rank"),
+                "fts_rank": excerpt.get("fts_rank"),
+                "doc_rank": excerpt.get("doc_rank"),
+                "section_hint": excerpt.get("section_hint"),
+                "section_hint_rank": excerpt.get("section_hint_rank"),
                 "query_fingerprint": excerpt.get("query_fingerprint"),
                 "query_scope": excerpt.get("query_scope"),
                 "query_intent": excerpt.get("query_intent"),
@@ -1650,6 +1661,9 @@ class RetrievalService:
                 "fts_shortlist_doc_ids": copy.deepcopy(excerpt.get("fts_shortlist_doc_ids")),
                 "retrieved_doc_ids": copy.deepcopy(excerpt.get("retrieved_doc_ids")),
                 "retrieved_excerpt_ids": copy.deepcopy(excerpt.get("retrieved_excerpt_ids")),
+                "promotion_fingerprint": (
+                    basket_promotion.get("promotion_fingerprint") if basket_promotion is not None else None
+                ),
                 "basket_promotion": copy.deepcopy(basket_promotion),
                 "span": copy.deepcopy(span),
             },
