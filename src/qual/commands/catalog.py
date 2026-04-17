@@ -2907,6 +2907,16 @@ def _normalize_demo_compatibility_argv(argv: tuple[str, ...] | list[str]) -> tup
     return (_normalize_demo_compatibility_token(raw_argv[0]), *raw_argv[1:])
 
 
+def _uses_demo_compatibility_surface(token: str) -> bool:
+    normalized_token = _normalize_token(token)
+    if not normalized_token:
+        return False
+    return (
+        normalized_token in _COMMAND_DEMO_COMPATIBILITY_TOKENS
+        or normalized_token in _COMMAND_DEMO_COMPATIBILITY_VARIANTS
+    )
+
+
 def _uses_demo_compatibility_flow(flow_steps: tuple[str, ...]) -> bool:
     return _normalize_flow_steps(flow_steps) == command_demo_flow_steps()
 
@@ -3770,6 +3780,8 @@ def command_aliases(name: str) -> tuple[str, ...]:
 
 
 def canonical_command(name: str) -> str:
+    if _uses_demo_compatibility_surface(name):
+        return canonical_command_for(COMMAND_SPECS, _normalize_demo_compatibility_token(name))
     return canonical_command_for(COMMAND_SPECS, name)
 
 
@@ -3777,7 +3789,7 @@ def command_cli_shim_primary_token(
     token: str,
     flow_steps: tuple[str, ...] | None = None,
 ) -> str:
-    if flow_steps is None and _normalize_token(token) in _COMMAND_DEMO_COMPATIBILITY_TOKENS:
+    if flow_steps is None and _uses_demo_compatibility_surface(token):
         return command_demo_cli_shim_primary_token(token)
     return command_cli_shim_primary_token_for(COMMAND_SPECS, token, flow_steps)
 
@@ -3791,7 +3803,7 @@ def command_cli_shim_argv(
         flow_steps is None
         and raw_argv
         and not raw_argv[0].lstrip().startswith("-")
-        and _normalize_token(raw_argv[0]) in _COMMAND_DEMO_COMPATIBILITY_TOKENS
+        and _uses_demo_compatibility_surface(raw_argv[0])
     ):
         return command_demo_cli_shim_argv(raw_argv)
     return command_cli_shim_argv_for(COMMAND_SPECS, argv, flow_steps)
@@ -3806,7 +3818,7 @@ def command_cli_entry_argv(
         flow_steps is None
         and raw_argv
         and not raw_argv[0].lstrip().startswith("-")
-        and _normalize_token(raw_argv[0]) in _COMMAND_DEMO_COMPATIBILITY_TOKENS
+        and _uses_demo_compatibility_surface(raw_argv[0])
     ):
         return command_demo_cli_entry_argv(raw_argv)
     return command_cli_entry_argv_for(COMMAND_SPECS, argv, flow_steps)
@@ -4076,7 +4088,7 @@ def command_resolve(
     token: str,
     flow_steps: tuple[str, ...] | None = None,
 ) -> ResolvedCommand:
-    if flow_steps is None and _normalize_token(token) in _COMMAND_DEMO_COMPATIBILITY_TOKENS:
+    if flow_steps is None and _uses_demo_compatibility_surface(token):
         return command_demo_resolve(token)
     return command_resolve_for(COMMAND_SPECS, token, flow_steps)
 
@@ -4290,7 +4302,7 @@ def command_resolve_argv(
         flow_steps is None
         and raw_argv
         and not raw_argv[0].lstrip().startswith("-")
-        and _normalize_token(raw_argv[0]) in _COMMAND_DEMO_COMPATIBILITY_TOKENS
+        and _uses_demo_compatibility_surface(raw_argv[0])
     ):
         return command_demo_resolve_argv(raw_argv)
     return command_resolve_argv_for(COMMAND_SPECS, argv, flow_steps)
