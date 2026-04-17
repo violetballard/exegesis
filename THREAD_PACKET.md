@@ -3,8 +3,8 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `36a360a9464d2f08f55129bc70e1aafe4574721b`
-- Packet refresh commit: `9aca0235cd53fbbbc0dacf9712010739ae9b4a87`
-- Packet refresh role: `reviewer-fix final gate refresh`
+- Packet refresh commit: `9a208110d3d3fb740659b00daa9f04eb783f07e2`
+- Packet refresh role: `reviewer-fix demo-path and scope alignment`
 
 ## Packet Traceability Note
 
