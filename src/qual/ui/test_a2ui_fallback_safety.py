@@ -1042,6 +1042,44 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Action schema v1", text)
         self.assertIn("- confirm: {\"message\":\"Export now?\",\"title\":\"Approve\"}", text)
 
+    def test_terminal_artifact_envelope_builder_accepts_typed_leaf_mappings(self) -> None:
+        action = {
+            "type": "ActionRef",
+            "id": " export_document ",
+            "label": " Export ",
+            "payload": {"format": "md"},
+            "confirm": {"title": " Approve ", "message": " Export now? "},
+            "policy_sensitive": True,
+        }
+        selection = {
+            "type": "SelectionRef",
+            "id": " choice-1 ",
+            "label": " Choice ",
+            "payload": {"nested": {"items": [1, 2]}},
+            "selected": True,
+        }
+
+        action_envelope = build_terminal_artifact_envelope(action, kind="action")
+        selection_envelope = build_terminal_artifact_envelope(selection, kind="selection")
+
+        self.assertEqual(action_envelope["artifact"], normalize_terminal_artifact_payload(action, kind="action"))
+        self.assertEqual(
+            selection_envelope["artifact"],
+            normalize_terminal_artifact_payload(selection, kind="selection"),
+        )
+        self.assertNotIn("type", action_envelope["artifact"])
+        self.assertNotIn("type", selection_envelope["artifact"])
+        validate_terminal_artifact_envelope(action_envelope)
+        validate_terminal_artifact_envelope(selection_envelope)
+
+        action_text = render_terminal_artifact(action_envelope)
+        selection_text = render_terminal_artifact(selection_envelope)
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("Action schema v1", action_text)
+        self.assertIn("[SelectionRef] Choice", selection_text)
+        self.assertIn("Selection schema v1", selection_text)
+
     def test_terminal_artifact_payload_normalizer_returns_plain_dict_snapshots(self) -> None:
         action_payload = normalize_terminal_artifact_payload(
             ActionRef(

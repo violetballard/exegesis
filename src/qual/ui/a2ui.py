@@ -477,17 +477,24 @@ def normalize_terminal_artifact_payload(artifact: Any, *, kind: str | None = Non
     """Return the canonical payload snapshot for a structured terminal artifact.
 
     Action and selection payloads are normalized through the public ref
-    validators before being converted to plain dictionaries. Card payloads are
-    copied as mappings or dataclass snapshots so the envelope does not retain
-    references to mutable source objects. Unordered set-like values are
-    converted to sorted lists so the snapshot stays deterministic and
+    validators before being converted to plain dictionaries. Canonical
+    ``ActionRef`` and ``SelectionRef`` mappings may include a ``type`` hint
+    when they arrive from the renderer path, and that hint is stripped before
+    validation so the stored envelope stays on the canonical leaf shape. Card
+    payloads are copied as mappings or dataclass snapshots so the envelope does
+    not retain references to mutable source objects. Unordered set-like values
+    are converted to sorted lists so the snapshot stays deterministic and
     JSON-safe.
     """
 
     normalized_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
     if normalized_kind == "action":
+        if isinstance(artifact, Mapping):
+            artifact = _strip_terminal_type_hint(artifact, expected_type="ActionRef")
         return _action_ref_to_dict(normalize_action_ref(artifact))
     if normalized_kind == "selection":
+        if isinstance(artifact, Mapping):
+            artifact = _strip_terminal_type_hint(artifact, expected_type="SelectionRef")
         return _selection_ref_to_dict(normalize_selection_ref(artifact))
     _validate_terminal_artifact_card_payload(artifact)
     card_snapshot = _coerce_terminal_card(artifact)
@@ -604,12 +611,16 @@ def _validate_terminal_artifact_payload_kind(artifact: Any, kind: str) -> None:
         return
     if kind == "action":
         try:
+            if isinstance(artifact, Mapping):
+                artifact = _strip_terminal_type_hint(artifact, expected_type="ActionRef")
             normalize_action_ref(artifact)
         except ValueError as exc:
             raise ValueError("TerminalArtifact action artifact is invalid") from exc
         return
     if kind == "selection":
         try:
+            if isinstance(artifact, Mapping):
+                artifact = _strip_terminal_type_hint(artifact, expected_type="SelectionRef")
             normalize_selection_ref(artifact)
         except ValueError as exc:
             raise ValueError("TerminalArtifact selection artifact is invalid") from exc
