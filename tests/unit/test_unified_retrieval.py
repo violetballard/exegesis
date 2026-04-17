@@ -1706,6 +1706,46 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["query"], expected_query)
         self.assertEqual(normalized["provenance"]["query"], expected_query)
 
+    def test_normalize_excerpt_payload_defaults_missing_query_confidentiality_profile(self) -> None:
+        normalized = self.service._normalize_excerpt_payload(
+            {
+                "excerpt_id": "excerpt-sparse-query-default-profile-1",
+                "doc_id": "doc-pdf-1",
+                "doc_type": "pdf",
+                "text": "Discussion theory evidence stays deterministic.",
+                "query_text": "  Discussion   Theory  ",
+                "provenance": {
+                    "query_scope": "  DOC:doc-pdf-1  ",
+                    "query_intent": "  OuTlInE_SuPpOrT  ",
+                    "query_date_range": ("2026-02-28", "2026-02-01"),
+                    "section_hint": "  discussion   notes  ",
+                },
+            },
+            source_strategy="fts",
+            lookup_resolution="fts",
+        )
+
+        expected_query = {
+            "query_text": "discussion theory",
+            "scope": "doc:doc-pdf-1",
+            "intent": "outline_support",
+            "confidentiality_profile": "confidential",
+            "constraints": {
+                "date_range": ["2026-02-01", "2026-02-28"],
+                "section_hint": "discussion notes",
+            },
+        }
+        expected_query_fingerprint = RetrievalService._query_fingerprint_from_snapshot(expected_query)
+
+        self.assertEqual(normalized["query"], expected_query)
+        self.assertEqual(normalized["provenance"]["query"], expected_query)
+        self.assertEqual(normalized["query_confidentiality_profile"], "confidential")
+        self.assertEqual(normalized["provenance"]["query_confidentiality_profile"], "confidential")
+        self.assertEqual(normalized["basket_promotion"]["query_confidentiality_profile"], "confidential")
+        self.assertEqual(normalized["query_fingerprint"], expected_query_fingerprint)
+        self.assertEqual(normalized["provenance"]["query_fingerprint"], expected_query_fingerprint)
+        self.assertEqual(normalized["basket_promotion"]["query_fingerprint"], expected_query_fingerprint)
+
     def test_normalize_excerpt_payload_casefolds_section_hint_in_query_context(self) -> None:
         normalized = self.service._normalize_excerpt_payload(
             {

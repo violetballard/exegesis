@@ -3649,12 +3649,11 @@ class RetrievalService:
             query_snapshot["scope"] = query_scope
         if query_intent is not None:
             query_snapshot["intent"] = query_intent
-        if query_confidentiality_profile is not None:
-            query_snapshot["confidentiality_profile"] = query_confidentiality_profile
         if query_constraints:
             query_snapshot["constraints"] = query_constraints
         if not query_snapshot:
             return None
+        query_snapshot["confidentiality_profile"] = query_confidentiality_profile or "confidential"
         return query_snapshot
 
     @staticmethod
@@ -3666,12 +3665,11 @@ class RetrievalService:
         query_intent = _normalize_query_intent_payload(query_snapshot.get("intent"))
         query_confidentiality_profile = _normalized_profile_text(
             query_snapshot.get("confidentiality_profile")
-        )
+        ) or "confidential"
         if (
             query_text is None
             or query_scope is None
             or query_intent is None
-            or query_confidentiality_profile is None
         ):
             return None
         query_constraints = query_snapshot.get("constraints", {})
