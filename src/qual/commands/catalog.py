@@ -2555,6 +2555,24 @@ def command_mvp_path_invocation_plan(
     return command_demo_path_invocation_plan(specs)
 
 
+def command_demo_surface_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Flatten the demo-path surface into parser-ready invocations for smoke checks."""
+    return tuple(
+        invocation
+        for entry in command_demo_path_contract(specs).entries
+        for invocation in entry.surface_invocations
+    )
+
+
+def command_mvp_surface_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Flatten the current MVP command surface into parser-ready invocations."""
+    return command_demo_surface_invocation_table(specs)
+
+
 def command_mvp_flow_lookup_surface(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
