@@ -2942,6 +2942,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             },
         )
         self.assertEqual(
+            route_manifest["terminal_artifact_cli_fallback_target_contract"],
+            describe_terminal_artifact_cli_fallback_target_contract(),
+        )
+        self.assertEqual(
+            route_manifest["terminal_artifact_cli_fallback_target_contract_fingerprint"],
+            terminal_artifact_cli_fallback_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            route_manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            describe_terminal_artifact_cli_fallback_target_contract_fingerprints(),
+        )
+        self.assertEqual(
             route_manifest["contract_fingerprints"]["terminal_artifact_cli_fallback_target_contract"],
             terminal_artifact_cli_fallback_target_contract_fingerprint(),
         )
@@ -2965,6 +2977,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             routed_manifest["terminal_artifact_cli_fallback_route_contract"]["terminal_artifact_cli_fallback_route_contract_fingerprints"],
             route_manifest["contract_fingerprints"],
+        )
+        self.assertEqual(
+            routed_manifest["terminal_artifact_cli_fallback_route_contract"]["terminal_artifact_cli_fallback_target_contract"],
+            route_manifest["terminal_artifact_cli_fallback_target_contract"],
+        )
+        self.assertEqual(
+            routed_manifest["terminal_artifact_cli_fallback_route_contract"]["terminal_artifact_cli_fallback_target_contract_fingerprint"],
+            route_manifest["terminal_artifact_cli_fallback_target_contract_fingerprint"],
+        )
+        self.assertEqual(
+            routed_manifest["terminal_artifact_cli_fallback_route_contract"]["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            route_manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"],
         )
         self.assertEqual(
             routed_manifest["terminal_artifact_cli_fallback_route_contract"]["contract_fingerprints_fingerprint"],

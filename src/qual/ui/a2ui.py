@@ -2000,6 +2000,7 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
 def _build_terminal_artifact_cli_fallback_route_contract_manifest() -> dict[str, Any]:
     render_target_contract = describe_terminal_artifact_render_target_contract()
     terminal_fallback_contract = describe_terminal_fallback_contract()
+    terminal_artifact_cli_fallback_target_contract = describe_terminal_artifact_cli_fallback_target_contract()
     raw_leaf_card_default_policy_contract = describe_terminal_artifact_raw_leaf_card_default_policy_contract()
     kind_resolution = copy.deepcopy(render_target_contract["kind_resolution"])
     fallback_recovery = copy.deepcopy(render_target_contract["fallback_recovery"])
@@ -2026,6 +2027,15 @@ def _build_terminal_artifact_cli_fallback_route_contract_manifest() -> dict[str,
         "terminal_artifact_render_target_contract": _snapshot_contract_section(render_target_contract),
         "terminal_artifact_render_target_contract_fingerprint": render_target_contract["contract_fingerprint"],
         "terminal_artifact_cli_fallback_target_contract_fingerprint": terminal_artifact_cli_fallback_target_contract_fingerprint(),
+        "terminal_artifact_cli_fallback_target_contract": _snapshot_contract_section(
+            terminal_artifact_cli_fallback_target_contract
+        ),
+        "terminal_artifact_cli_fallback_target_contract_fingerprint": terminal_artifact_cli_fallback_target_contract[
+            "contract_fingerprint"
+        ],
+        "terminal_artifact_cli_fallback_target_contract_fingerprints": _snapshot_contract_section(
+            terminal_artifact_cli_fallback_target_contract["contract_fingerprints"]
+        ),
         "terminal_fallback_contract": terminal_fallback_contract,
         "terminal_fallback_contract_fingerprint": terminal_fallback_contract["contract_fingerprint"],
         "raw_leaf_card_default_policy": copy.deepcopy(_build_terminal_artifact_raw_leaf_card_default_policy_manifest()),
