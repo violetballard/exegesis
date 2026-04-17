@@ -52,6 +52,9 @@ older lane/fixer prompts.
   stays narrowed to the CLI-first `project-open`, `retrieval`,
   `patch-review`, and `export-handoff` steps and that the packet scope remains
   command-catalog contract hardening only.
+- Re-review alignment confirmation: this refresh records a new verified
+  handoff commit after confirming the packet already satisfies the reviewer’s
+  required canonical demo-path mapping without reopening implementation scope.
 - Approval artifact for the non-owned test path: the reviewer packet supplied
   to this fixer pass explicitly records `Approved shared-test exception for
   tests/unit/test_commands_catalog.py`.

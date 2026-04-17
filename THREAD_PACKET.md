@@ -136,6 +136,10 @@
   `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and
   `make ci` all still pass for this metadata refresh before the final
   reviewer-fix commit.
+- Re-review alignment confirmation for this fixer turn: the packet already
+  satisfied the reviewer-requested canonical demo-path mapping, so this refresh
+  records a new verified handoff commit without changing the reviewed runtime
+  implementation scope.
 
 ## Kickoff Budget / Limits Compliance
 
