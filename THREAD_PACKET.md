@@ -49,8 +49,9 @@
 
 ### Canonical demo-path step advanced
 
-- `promote or gather context into the basket`
-- The canonical excerpt lookup payload now carries the same ranked retrieval ids as full retrieval results, so basket/context flows can promote lookup-derived excerpts without losing authoritative FTS ordering.
+- `retrieve relevant material`
+- This narrowed reviewed slice makes the canonical `retrieve relevant material` step more real by forcing excerpt lookup through the FTS-backed retrieval contract and failing closed instead of falling back to PageIndex-only excerpt ids.
+- The same FTS-only lookup contract remains suitable for later basket/context promotion flows without widening the MVP retrieval path.
 
 ### Routing/provider impact note
 
