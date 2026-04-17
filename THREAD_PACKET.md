@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (reviewed implementation slice)
-- Packet refresh role: `feature-fixer reviewer-required re-review refresh`
+- Packet refresh role: `feature-fixer reviewer-required re-review gate refresh`
 - Packet refresh date: `2026-04-17`
 
 ## Packet Traceability Note
@@ -56,6 +56,10 @@
   - `./quality-test.sh`: PASS
   - `./typecheck-test.sh`: PASS
   - `make ci`: PASS
+- Final feature-fixer revalidation:
+  reran the full required gate suite on the current branch tip immediately
+  before this metadata refresh so the re-review packet records fresh evidence
+  for the reviewer-required demo-path alignment fix.
 - Feature-fixer refresh note:
   this packet refresh is metadata-only and records that the current branch tip
   already contains the reviewer-required command-catalog contract fix plus the
@@ -275,6 +279,14 @@
 - Blockers: none
 
 ## Required Handoff Fields
+
+### Canonical demo-path step advanced
+
+- CLI-first operator path for `open project/document` ->
+  `retrieve relevant material` -> `preview and apply or reject a patch`.
+- This command-catalog hardening keeps those operator-facing entrypoints
+  deterministic and rejects parser-surface drift before the active CLI MVP
+  loop can change silently while Textual remains disabled.
 
 ### Roadmap item(s) affected
 
