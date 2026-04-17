@@ -24,7 +24,7 @@
 - The branch-tip validation evidence now covers the compatibility-variant
   normalization and the workflow preferred-surface-token fix through the
   required local gate rerun.
-- Latest packet refresh prepared at: `2026-04-17T15:01:14Z`
+- Latest packet refresh prepared at: `2026-04-17T15:04:10Z`
 
 ## Current Program Focus
 
@@ -192,7 +192,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Re-verification point: `2026-04-17T15:01:14Z` at the current branch tip
+- Re-verification point: `2026-04-17T15:04:10Z` at validated implementation tip `82f9f3c7`
 
 ## Risks / Blockers
 
