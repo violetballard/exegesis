@@ -25,6 +25,19 @@
   `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and the command-catalog contract
   hardening slice only.
 
+## Feature-Fixer Validation
+
+- Revalidated against the reviewer packet dated `2026-04-17`.
+- Confirmed the reviewed implementation scope remains pinned to
+  `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Re-ran the required local gates on this metadata-refresh branch tip:
+  - `make scope-check`: PASS
+  - `./quality-format.sh --check`: PASS
+  - `./quality-lint.sh`: PASS
+  - `./quality-test.sh`: PASS
+  - `./typecheck-test.sh`: PASS
+  - `make ci`: PASS
+
 ## Current Program Focus
 
 - Close the engine-side Milestone 3 workflow loop before activating any

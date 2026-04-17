@@ -18,6 +18,14 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - explicitly naming the canonical demo-path steps advanced
   - keeping the scope statement narrow and the approval basis scoped to
     `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Feature-fixer validation on `2026-04-17`: the required local gates were
+  rerun and passed on this metadata-refresh branch tip:
+  - `make scope-check`
+  - `./quality-format.sh --check`
+  - `./quality-lint.sh`
+  - `./quality-test.sh`
+  - `./typecheck-test.sh`
+  - `make ci`
 - Canonical demo-path step impact: this slice makes the CLI `open
   project/document`, `retrieve relevant material`, and `preview and apply or
   reject a patch` steps more reliable by rejecting parser/catalog drift before
