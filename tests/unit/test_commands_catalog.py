@@ -117,6 +117,7 @@ from src.qual.commands import (
     command_demo_compatibility_invocation_table,
     command_demo_workflow_contract,
     command_demo_workflow_catalog,
+    command_demo_workflow_compatibility_invocation_table,
     command_demo_workflow_tokens,
     command_demo_workflow_lookup_table,
     command_demo_workflow_invocation_table,
@@ -166,6 +167,7 @@ from src.qual.commands import (
     command_mvp_workflow_invocation_table,
     command_mvp_workflow_transition_targets,
     command_mvp_workflow_compatibility_lookup_table,
+    command_mvp_workflow_compatibility_invocation_table,
     command_mvp_loop_contract,
     command_mvp_loop_catalog,
     command_mvp_loop_invocation_plan,
@@ -3089,6 +3091,10 @@ class CommandCatalogTests(unittest.TestCase):
             contract.compatibility_lookup_table,
             command_demo_workflow_compatibility_lookup_table(),
         )
+        self.assertEqual(
+            contract.compatibility_invocation_table,
+            command_demo_workflow_compatibility_invocation_table(),
+        )
         self.assertEqual(command_mvp_workflow_contract(), contract)
         self.assertEqual(command_mvp_workflow_catalog(), contract.entries)
         self.assertEqual(command_mvp_workflow_tokens(), contract.tokens)
@@ -3099,8 +3105,13 @@ class CommandCatalogTests(unittest.TestCase):
             command_mvp_workflow_compatibility_lookup_table(),
             contract.compatibility_lookup_table,
         )
+        self.assertEqual(
+            command_mvp_workflow_compatibility_invocation_table(),
+            contract.compatibility_invocation_table,
+        )
 
         workflow_by_token = {entry.token: entry for entry in contract.entries}
+        compatibility_invocations = dict(contract.compatibility_invocation_table)
         self.assertEqual(
             tuple((entry.token, entry.canonical_name, entry.flow_step) for entry in contract.entries),
             (
@@ -3137,6 +3148,22 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             workflow_by_token["export-handoff"].compatibility_tokens,
             ("handoff", "queue-export"),
+        )
+        self.assertEqual(
+            compatibility_invocations["review"],
+            ("diff-preview", "--original", "before", "--proposed", "after"),
+        )
+        self.assertEqual(
+            compatibility_invocations["apply"],
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(
+            compatibility_invocations["resume"],
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+        self.assertEqual(
+            compatibility_invocations["queue-export"],
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
         )
 
     def test_command_demo_workflow_contract_tracks_custom_specs(self) -> None:
