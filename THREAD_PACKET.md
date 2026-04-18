@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: harden the CLI command contract so `command_cli_contract()` stays deterministic, preserves canonical command order, and fails fast if the parser surface drifts from the catalog.
+- Scope goal: harden the CLI command contract so `command_cli_contract()` stays deterministic, preserves canonical command order, and fails fast if accepted parser entrypoints drift from the catalog.
 - Risk reason: this slice uses the approved shared-test exception for `tests/unit/test_commands_catalog.py`, so it stays on the high-risk template even though implementation remains command-catalog-only.
 
 ### Budget
@@ -74,13 +74,13 @@
 
 - Primary step advanced: `open project/document`.
 - Why this step: `feat-commands` owns the CLI operator surface that starts the current MVP loop, and this command-catalog hardening keeps that entry step deterministic and smoke-testable while Textual remains disabled.
-- Concrete effect: `command_cli_contract()` now preserves canonical command order and fails fast if parser entrypoints drift from the command catalog, so the operator-facing command contract for starting the workflow cannot silently change.
+- Concrete effect: `command_cli_contract()` now preserves canonical command order and rejects parser-surface drift such as alias-for-canonical substitution, token reordering, added entrypoints, or removed expected entrypoints, so the operator-facing command contract for starting the workflow cannot silently change.
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it validates the full accepted parser surface against the command catalog and raises `ValueError` if canonical entrypoints, alias entrypoints, or entrypoint order drift.
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and parser-surface drift rejection, including alias substitution and entrypoint reordering.
 - Refreshed the handoff packet so re-review evaluates the command-catalog slice with explicit demo-path alignment.
 
 ## Kickoff Budget / Limits Compliance
@@ -120,7 +120,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification date: `2026-04-17`
+- Verification date: `2026-04-18`
 
 ### Risks / Blockers
 
