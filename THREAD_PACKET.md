@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: keep the `feat-commands` CLI contract deterministic, reject parser-surface drift against the catalog, and resubmit an accurate handoff packet against the branch state that now contains those fixes.
+- Scope goal: make the canonical operator CLI step `open project/document` more real by keeping its command contract deterministic, rejecting parser-surface drift against the catalog, and resubmitting an accurate handoff packet against the branch state that now contains those fixes.
 - Risk reason: the branch includes the approved shared-test path `tests/unit/test_commands_catalog.py`, so this fixer pass stays on the high-risk template even though the current refresh is metadata only.
 
 ### Budget
@@ -16,7 +16,7 @@
 
 ### Planned Tasks (max 4)
 
-1. Verify the current branch tip contains the reviewer-requested parser-surface hardening in the command catalog.
+1. Verify the current branch tip contains the reviewer-requested parser-surface hardening for the canonical `open project/document` CLI step in the command catalog.
 2. Verify focused regression coverage exists for alias substitution, extra entrypoint, dropped entrypoint, and reordered entrypoint drift.
 3. Regenerate the handoff packet so it matches the actual implementation state being resubmitted instead of the stale historical anchor.
 4. Re-run the required local gates and record outcomes for this fixer pass.
@@ -35,7 +35,7 @@
 
 ### Checkpoint Cadence (short updates)
 
-- Plan complete: this fixer pass verified that the branch already contains the parser-surface contract fix and will refresh the packet to the real review basis.
+- Plan complete: this fixer pass verified that the branch already contains the parser-surface contract fix that hardens the canonical `open project/document` CLI step and will refresh the packet to the real review basis.
 - First green tests: satisfied by the full gate rerun recorded below on `2026-04-18`.
 - Before risky/shared file edit: the only shared-file implementation path remains the approved test exception `tests/unit/test_commands_catalog.py`.
 - Ready for handoff: satisfied by this packet refresh and the green gate suite recorded below.
@@ -57,12 +57,13 @@
 
 1. `command_cli_contract()` now validates the full accepted CLI parser surface against the catalog-derived declared entrypoints and raises `ValueError("Command CLI parser surface is inconsistent")` when aliases, ordering, or accepted entrypoints drift.
 2. Focused regression coverage now proves rejection of alias substitution, extra entrypoint, dropped entrypoint, and reordered entrypoint drift in `tests/unit/test_commands_catalog.py`.
-3. This handoff packet now matches the actual implementation state being resubmitted and records a fresh full gate rerun for `2026-04-18`.
+3. This handoff packet now matches the actual implementation state being resubmitted, explicitly maps that work to the canonical `open project/document` demo-path step, and records a fresh full gate rerun for `2026-04-18`.
 
 ## Resubmission Refresh
 
 - Refresh date: `2026-04-18`
-- Refresh purpose: leave a new metadata-only fixer commit that records the fresh `2026-04-18T21:17:21Z` UTC full gate rerun against the current branch tip and keeps the packet anchored to the actual implementation state already on this branch.
+- Refresh purpose: leave a new metadata-only fixer commit that records the fresh `2026-04-18T21:18:25Z` UTC full gate rerun against the current branch tip and keeps the packet anchored to the actual implementation state already on this branch.
+- Plan-alignment note: this resubmission is specifically for the canonical operator CLI step `open project/document`; it makes that step more real by ensuring the parser-facing CLI surface stays identical to the declared command catalog and fails fast if it drifts.
 - Review request: treat this packet as the current source of truth for the `feat-commands` re-review.
 
 ## Canonical Demo-Path Step Advanced
@@ -75,11 +76,11 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the default command catalog validates the full accepted parser surface instead of only the deduplicated canonical-name projection.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the default command catalog validates the full accepted parser surface for the canonical `open project/document` CLI step instead of only the deduplicated canonical-name projection.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for alias substitution, reordered parser entrypoints, extra entrypoints, dropped entrypoints, and related parser-surface drift cases.
 - Preserved deterministic catalog helpers and branch-tip lane-owned command-surface exports in `src/qual/commands/__init__.py`.
 - Refreshed the handoff packet so re-review uses the real current implementation basis instead of the stale `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` anchor.
-- Scope guard: this resubmission does not add new commands, new flags, or CLI UX expansion; it only hardens the existing CLI contract for the current MVP path.
+- Scope guard: this resubmission does not add new commands, new flags, or CLI UX expansion; it only hardens the existing `open project/document` CLI contract on the current MVP path.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -102,7 +103,7 @@
 
 1. Verified that the current branch tip already contains the reviewer-requested parser-surface validation in `src/qual/commands/catalog.py`.
 2. Verified that the required regression tests for alias substitution, extra entrypoints, dropped entrypoints, and reordered entrypoints are present and passing in `tests/unit/test_commands_catalog.py`.
-3. Refreshed the handoff packet so it points to the actual current implementation review basis `5b2ecba061b28cca27eddd587414d52c702aa628` instead of the stale historical anchor.
+3. Refreshed the handoff packet so it points to the actual current implementation review basis `5b2ecba061b28cca27eddd587414d52c702aa628`, and tied the roadmap/vision mapping directly to the canonical `open project/document` demo-path step instead of broad CLI compatibility language.
 4. Re-ran the required local gates and recorded outcomes for this fixer pass.
 
 ### Files Changed
@@ -124,7 +125,7 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-18`
-- Verification timestamp (UTC): `2026-04-18T21:17:21Z`
+- Verification timestamp (UTC): `2026-04-18T21:18:25Z`
 
 ### Risks / Blockers
 
@@ -136,14 +137,14 @@
 
 ### Roadmap item(s) affected
 
-- Milestone 3: Real workflow loop - preserve CLI compatibility at the `open project/document` operator step of the MVP command path.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints.
-- Concrete blocker removed: contract-build now rejects parser/catalog drift before the CLI `open project/document` surface can silently diverge from the declared command catalog.
+- Milestone 3: Real workflow loop - strengthen the operator `open project/document` entrypoint in the MVP command path by keeping that step deterministic at the parser surface.
+- `feat-commands` - CLI compatibility and migration-safe entrypoints specifically for the `open project/document` operator contract, not broad command-surface expansion.
+- Concrete blocker removed: contract-build now rejects parser/catalog drift before the CLI `open project/document` step can silently diverge from the declared command catalog.
 
 ### Vision capability affected
 
-- Stable CLI command contract - the command entry surface remains deterministic for the operator-facing `open project/document` path.
-- Auditable command behavior - parser/catalog drift now fails loudly instead of silently changing the CLI contract.
+- Stable CLI command contract - the operator-facing `open project/document` entry surface remains deterministic across catalog, exports, and parser wiring.
+- Auditable command behavior - parser/catalog drift now fails loudly before silently changing the `open project/document` operator contract.
 
 ### Routing/provider impact note
 
