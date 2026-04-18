@@ -42,8 +42,8 @@
 
 ## Scope completed
 
-- The reviewed implementation commit hardens the FTS-first retrieval contract by removing the PageIndex fallback from `fetch_excerpt()`.
-- `fetch_excerpt()` now fails closed for non-FTS excerpt IDs and returns only canonical FTS-backed excerpt payloads in this narrowed slice.
+- The reviewed implementation commit hardens the Milestone 3 engine-side `retrieve relevant material` step by removing the PageIndex fallback from `fetch_excerpt()`.
+- `fetch_excerpt()` now fails closed for non-FTS excerpt IDs and returns only canonical FTS-backed excerpt payloads, so the engine loop cannot silently switch away from auditable SQLite FTS retrieval during `retrieve relevant material`.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs now raise `KeyError`.
 - PageIndex and embeddings remain non-required compatibility paths, but they are no longer valid runtime fallback sources for `fetch_excerpt()` in the MVP contract.
 
