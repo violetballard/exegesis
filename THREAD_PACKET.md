@@ -97,6 +97,7 @@ This handoff advances `retrieve relevant material` by keeping excerpt lookup, hi
 5. The packet now states the exact reviewed-range file count (`12`) so the resubmitted scope matches the branch diffstat the reviewer called out.
 6. The required gates are rerun and recorded against the resubmitted tree represented by this fixer pass.
 7. This fixer pass reconfirms the explicit demo-path mapping so plan alignment remains stated in the packet rather than inferred by the reviewer.
+8. Reviewer-facing packet language now keeps the Milestone 3 FTS-first requirement and the `retrieve relevant material` step adjacent in the closure summary for faster re-review.
 
 ## Risks / blockers
 
