@@ -62,7 +62,7 @@
 ## Resubmission Refresh
 
 - Refresh date: `2026-04-18`
-- Refresh purpose: leave a new metadata-only fixer commit that records the fresh `2026-04-18T21:18:25Z` UTC full gate rerun against the current branch tip and keeps the packet anchored to the actual implementation state already on this branch.
+- Refresh purpose: leave a new metadata-only fixer commit that records the fresh `2026-04-18T21:21:11Z` UTC full gate rerun against the current branch tip and keeps the packet anchored to the actual implementation state already on this branch.
 - Plan-alignment note: this resubmission is specifically for the canonical operator CLI step `open project/document`; it makes that step more real by ensuring the parser-facing CLI surface stays identical to the declared command catalog and fails fast if it drifts.
 - Review request: treat this packet as the current source of truth for the `feat-commands` re-review.
 
@@ -125,7 +125,7 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-18`
-- Verification timestamp (UTC): `2026-04-18T21:18:25Z`
+- Verification timestamp (UTC): `2026-04-18T21:21:11Z`
 
 ### Risks / Blockers
 
@@ -144,7 +144,7 @@
 ### Vision capability affected
 
 - Stable CLI command contract - the operator-facing `open project/document` entry surface remains deterministic across catalog, exports, and parser wiring.
-- Auditable command behavior - parser/catalog drift now fails loudly before silently changing the `open project/document` operator contract.
+- Fail-fast CLI drift detection - parser/catalog drift now fails loudly before silently changing the `open project/document` operator contract.
 
 ### Routing/provider impact note
 
