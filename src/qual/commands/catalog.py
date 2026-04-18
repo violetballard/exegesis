@@ -617,8 +617,17 @@ def _preferred_surface_tokens_for_workflow_token(
 ) -> tuple[str, ...]:
     preferred_tokens = _preferred_surface_tokens_for_name(specs, name)
     normalized_token = _normalize_token(token)
-    if normalized_token in preferred_tokens:
-        return (normalized_token,)
+    if not normalized_token:
+        return ()
+
+    transition_token_lookup = _command_demo_transition_token_lookup(specs)
+    matching_tokens = tuple(
+        preferred_token
+        for preferred_token in preferred_tokens
+        if transition_token_lookup.get(preferred_token, preferred_token) == normalized_token
+    )
+    if matching_tokens:
+        return matching_tokens
     return (normalized_token,)
 
 
