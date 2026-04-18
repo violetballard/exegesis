@@ -625,46 +625,48 @@ def _normalize_excerpt_hit_snapshot(hit: object) -> dict[str, object] | None:
         if field_name in normalized:
             normalized[field_name] = _normalize_text_list_like(normalized.get(field_name))
     provenance = normalized.get("provenance")
-    if isinstance(provenance, dict):
-        normalized_provenance = _normalize_excerpt_hit_provenance_snapshot(provenance)
-        fallback_provenance = _normalize_excerpt_hit_provenance_snapshot(
-            {
-                "query_fingerprint": normalized.get("query_fingerprint"),
-                "query_scope": normalized.get("query_scope"),
-                "query_intent": normalized.get("query_intent"),
-                "query_confidentiality_profile": normalized.get("query_confidentiality_profile"),
-                "query_date_range": normalized.get("query_date_range"),
-                "candidate_doc_count": normalized.get("candidate_doc_count"),
-                "doc_id": normalized.get("doc_id"),
-                "excerpt_id": normalized.get("excerpt_id"),
-                "source_hash": normalized.get("source_hash"),
-                "doc_type": normalized.get("doc_type"),
-                "doc_fingerprint": normalized.get("doc_fingerprint"),
-                "doc_identity_fingerprint": normalized.get("doc_identity_fingerprint"),
-                "excerpt_fingerprint": normalized.get("excerpt_fingerprint"),
-                "excerpt_provenance_fingerprint": normalized.get("excerpt_provenance_fingerprint"),
-                "excerpt_text_hash": normalized.get("excerpt_text_hash"),
-                "hash": normalized.get("excerpt_text_hash"),
-                "match_count": normalized.get("match_count"),
-                "matched_terms": normalized.get("matched_terms"),
-                "rank": normalized.get("rank"),
-                "fts_rank": normalized.get("fts_rank"),
-                "section_hint": normalized.get("section_hint"),
-                "section_hint_rank": normalized.get("section_hint_rank"),
-                "retrieval_backend": normalized.get("retrieval_backend"),
-                "retrieval_mode": normalized.get("retrieval_mode"),
-                "source_strategy": normalized.get("source_strategy"),
-                "retrieval_source_strategy": normalized.get("retrieval_source_strategy"),
-                "active_strategy_ids": normalized.get("active_strategy_ids"),
-                "deferred_strategy_ids": normalized.get("deferred_strategy_ids"),
-                "strategies_used": normalized.get("strategies_used"),
-                "retrieved_doc_ids": normalized.get("retrieved_doc_ids"),
-                "retrieved_excerpt_ids": normalized.get("retrieved_excerpt_ids"),
-                "span": normalized.get("span"),
-                "policy": normalized.get("retrieval_policy"),
-                "retrieval_policy": normalized.get("retrieval_policy"),
-            }
-        )
+    normalized_provenance = _normalize_excerpt_hit_provenance_snapshot(provenance) if isinstance(provenance, dict) else {}
+    fallback_provenance = _normalize_excerpt_hit_provenance_snapshot(
+        {
+            "query_fingerprint": normalized.get("query_fingerprint"),
+            "query_scope": normalized.get("query_scope"),
+            "query_intent": normalized.get("query_intent"),
+            "query_confidentiality_profile": normalized.get("query_confidentiality_profile"),
+            "query_date_range": normalized.get("query_date_range"),
+            "candidate_doc_count": normalized.get("candidate_doc_count"),
+            "fts_shortlist_doc_ids": normalized.get("fts_shortlist_doc_ids"),
+            "doc_id": normalized.get("doc_id"),
+            "excerpt_id": normalized.get("excerpt_id"),
+            "source_hash": normalized.get("source_hash"),
+            "doc_type": normalized.get("doc_type"),
+            "doc_fingerprint": normalized.get("doc_fingerprint"),
+            "doc_identity_fingerprint": normalized.get("doc_identity_fingerprint"),
+            "excerpt_fingerprint": normalized.get("excerpt_fingerprint"),
+            "excerpt_provenance_fingerprint": normalized.get("excerpt_provenance_fingerprint"),
+            "excerpt_text_hash": normalized.get("excerpt_text_hash"),
+            "excerpt_text_length": normalized.get("excerpt_text_length"),
+            "hash": normalized.get("excerpt_text_hash"),
+            "match_count": normalized.get("match_count"),
+            "matched_terms": normalized.get("matched_terms"),
+            "rank": normalized.get("rank"),
+            "fts_rank": normalized.get("fts_rank"),
+            "section_hint": normalized.get("section_hint"),
+            "section_hint_rank": normalized.get("section_hint_rank"),
+            "retrieval_backend": normalized.get("retrieval_backend"),
+            "retrieval_mode": normalized.get("retrieval_mode"),
+            "source_strategy": normalized.get("source_strategy"),
+            "retrieval_source_strategy": normalized.get("retrieval_source_strategy"),
+            "active_strategy_ids": normalized.get("active_strategy_ids"),
+            "deferred_strategy_ids": normalized.get("deferred_strategy_ids"),
+            "strategies_used": normalized.get("strategies_used"),
+            "retrieved_doc_ids": normalized.get("retrieved_doc_ids"),
+            "retrieved_excerpt_ids": normalized.get("retrieved_excerpt_ids"),
+            "span": normalized.get("span"),
+            "policy": normalized.get("retrieval_policy"),
+            "retrieval_policy": normalized.get("retrieval_policy"),
+        }
+    )
+    if normalized_provenance or fallback_provenance:
         normalized["provenance"] = _backfill_sparse_snapshot(
             normalized_provenance,
             {
@@ -775,48 +777,52 @@ def _normalize_doc_hit_snapshot(hit: object) -> dict[str, object] | None:
         if field_name in normalized:
             normalized[field_name] = _normalize_text_list_like(normalized.get(field_name))
     provenance = normalized.get("provenance")
-    if isinstance(provenance, dict):
-        normalized_provenance = _normalize_doc_hit_provenance_snapshot(provenance)
-        fallback_provenance = _normalize_doc_hit_provenance_snapshot(
-            {
-                "query_fingerprint": normalized.get("query_fingerprint"),
-                "query_scope": normalized.get("query_scope"),
-                "query_intent": normalized.get("query_intent"),
-                "query_confidentiality_profile": normalized.get("query_confidentiality_profile"),
-                "query_date_range": normalized.get("query_date_range"),
-                "candidate_doc_count": normalized.get("candidate_doc_count"),
-                "doc_id": normalized.get("doc_id"),
-                "doc_type": normalized.get("doc_type"),
-                "doc_fingerprint": normalized.get("doc_fingerprint"),
-                "doc_identity_fingerprint": normalized.get("doc_identity_fingerprint"),
-                "top_excerpt_id": normalized.get("top_excerpt_id"),
-                "top_excerpt_hash": normalized.get("top_excerpt_hash"),
-                "top_excerpt_fingerprint": normalized.get("top_excerpt_fingerprint"),
-                "top_excerpt_provenance_fingerprint": normalized.get("top_excerpt_provenance_fingerprint"),
-                "top_excerpt_text_hash": normalized.get("top_excerpt_text_hash"),
-                "doc_rank": normalized.get("doc_rank"),
-                "top_excerpt_rank": normalized.get("top_excerpt_rank"),
-                "top_fts_rank": normalized.get("top_fts_rank"),
-                "top_excerpt_span": normalized.get("top_excerpt_span"),
-                "excerpt_ids": normalized.get("excerpt_ids"),
-                "matched_terms": normalized.get("matched_terms"),
-                "top_matched_terms": normalized.get("top_matched_terms"),
-                "top_match_count": normalized.get("top_match_count"),
-                "section_hint": normalized.get("section_hint"),
-                "top_section_hint_rank": normalized.get("top_section_hint_rank"),
-                "retrieval_backend": normalized.get("retrieval_backend"),
-                "retrieval_mode": normalized.get("retrieval_mode"),
-                "source_strategy": normalized.get("source_strategy"),
-                "retrieval_source_strategy": normalized.get("retrieval_source_strategy"),
-                "active_strategy_ids": normalized.get("active_strategy_ids"),
-                "deferred_strategy_ids": normalized.get("deferred_strategy_ids"),
-                "strategies_used": normalized.get("strategies_used"),
-                "retrieved_doc_ids": normalized.get("retrieved_doc_ids"),
-                "retrieved_excerpt_ids": normalized.get("retrieved_excerpt_ids"),
-                "policy": normalized.get("retrieval_policy"),
-                "retrieval_policy": normalized.get("retrieval_policy"),
-            }
-        )
+    normalized_provenance = _normalize_doc_hit_provenance_snapshot(provenance) if isinstance(provenance, dict) else {}
+    fallback_provenance = _normalize_doc_hit_provenance_snapshot(
+        {
+            "query_fingerprint": normalized.get("query_fingerprint"),
+            "query_scope": normalized.get("query_scope"),
+            "query_intent": normalized.get("query_intent"),
+            "query_confidentiality_profile": normalized.get("query_confidentiality_profile"),
+            "query_date_range": normalized.get("query_date_range"),
+            "candidate_doc_count": normalized.get("candidate_doc_count"),
+            "fts_shortlist_doc_ids": normalized.get("fts_shortlist_doc_ids"),
+            "doc_id": normalized.get("doc_id"),
+            "source_hash": normalized.get("source_hash"),
+            "doc_type": normalized.get("doc_type"),
+            "doc_fingerprint": normalized.get("doc_fingerprint"),
+            "doc_identity_fingerprint": normalized.get("doc_identity_fingerprint"),
+            "top_excerpt_id": normalized.get("top_excerpt_id"),
+            "top_excerpt_hash": normalized.get("top_excerpt_hash"),
+            "top_excerpt_fingerprint": normalized.get("top_excerpt_fingerprint"),
+            "top_excerpt_provenance_fingerprint": normalized.get("top_excerpt_provenance_fingerprint"),
+            "top_excerpt_text_hash": normalized.get("top_excerpt_text_hash"),
+            "top_excerpt_text_length": normalized.get("top_excerpt_text_length"),
+            "doc_rank": normalized.get("doc_rank"),
+            "excerpt_count": normalized.get("excerpt_count"),
+            "top_excerpt_rank": normalized.get("top_excerpt_rank"),
+            "top_fts_rank": normalized.get("top_fts_rank"),
+            "top_excerpt_span": normalized.get("top_excerpt_span"),
+            "excerpt_ids": normalized.get("excerpt_ids"),
+            "matched_terms": normalized.get("matched_terms"),
+            "top_matched_terms": normalized.get("top_matched_terms"),
+            "top_match_count": normalized.get("top_match_count"),
+            "section_hint": normalized.get("section_hint"),
+            "top_section_hint_rank": normalized.get("top_section_hint_rank"),
+            "retrieval_backend": normalized.get("retrieval_backend"),
+            "retrieval_mode": normalized.get("retrieval_mode"),
+            "source_strategy": normalized.get("source_strategy"),
+            "retrieval_source_strategy": normalized.get("retrieval_source_strategy"),
+            "active_strategy_ids": normalized.get("active_strategy_ids"),
+            "deferred_strategy_ids": normalized.get("deferred_strategy_ids"),
+            "strategies_used": normalized.get("strategies_used"),
+            "retrieved_doc_ids": normalized.get("retrieved_doc_ids"),
+            "retrieved_excerpt_ids": normalized.get("retrieved_excerpt_ids"),
+            "policy": normalized.get("retrieval_policy"),
+            "retrieval_policy": normalized.get("retrieval_policy"),
+        }
+    )
+    if normalized_provenance or fallback_provenance:
         normalized["provenance"] = _backfill_sparse_snapshot(
             normalized_provenance,
             {
@@ -844,6 +850,58 @@ def _normalize_excerpt_hits(value: object) -> list[dict[str, object]]:
         if snapshot is not None:
             normalized.append(snapshot)
     return normalized
+
+
+def _doc_hit_identity(snapshot: dict[str, object]) -> tuple[str | None, str | None]:
+    return (
+        _normalize_optional_text(snapshot.get("doc_id")),
+        _normalize_optional_text(snapshot.get("top_excerpt_id")),
+    )
+
+
+def _excerpt_hit_identity(snapshot: dict[str, object]) -> tuple[str | None, str | None]:
+    return (
+        _normalize_optional_text(snapshot.get("doc_id")),
+        _normalize_optional_text(snapshot.get("excerpt_id")),
+    )
+
+
+def _backfill_top_level_doc_hits_from_bundle_hits(
+    doc_hits: object,
+    bundle_doc_hits: object,
+) -> list[dict[str, object]]:
+    primary_hits = _normalize_doc_hits(doc_hits)
+    fallback_hits = _normalize_doc_hits(bundle_doc_hits)
+    fallback_by_identity = {_doc_hit_identity(item): item for item in fallback_hits}
+    merged_hits: list[dict[str, object]] = []
+    for index, hit in enumerate(primary_hits):
+        fallback_hit = fallback_by_identity.get(_doc_hit_identity(hit))
+        if fallback_hit is None and index < len(fallback_hits):
+            fallback_hit = fallback_hits[index]
+        if fallback_hit is not None:
+            merged_hits.append(_backfill_sparse_snapshot(hit, fallback_hit))
+        else:
+            merged_hits.append(hit)
+    return merged_hits
+
+
+def _backfill_top_level_excerpt_hits_from_bundle_hits(
+    excerpt_hits: object,
+    bundle_excerpt_hits: object,
+) -> list[dict[str, object]]:
+    primary_hits = _normalize_excerpt_hits(excerpt_hits)
+    fallback_hits = _normalize_excerpt_hits(bundle_excerpt_hits)
+    fallback_by_identity = {_excerpt_hit_identity(item): item for item in fallback_hits}
+    merged_hits: list[dict[str, object]] = []
+    for index, hit in enumerate(primary_hits):
+        fallback_hit = fallback_by_identity.get(_excerpt_hit_identity(hit))
+        if fallback_hit is None and index < len(fallback_hits):
+            fallback_hit = fallback_hits[index]
+        if fallback_hit is not None:
+            merged_hits.append(_backfill_sparse_snapshot(hit, fallback_hit))
+        else:
+            merged_hits.append(hit)
+    return merged_hits
 
 
 def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, object]:
@@ -3157,6 +3215,18 @@ def _build_retrieval_downstream_payload_from_source_bundle(
     payload["audit_ref"] = payload.get("audit_ref")
     payload["retrieval_diagnostics"] = _build_retrieval_diagnostics_from_source_bundle(normalized)
     payload["retrieval_source_bundle"] = copy.deepcopy(normalized)
+    retrieval_doc_bundle = normalized.get("retrieval_doc_bundle")
+    if isinstance(retrieval_doc_bundle, dict):
+        payload["doc_hits"] = _backfill_top_level_doc_hits_from_bundle_hits(
+            payload.get("doc_hits", []),
+            retrieval_doc_bundle.get("doc_hits", []),
+        )
+    retrieval_excerpt_bundle = normalized.get("retrieval_excerpt_bundle")
+    if isinstance(retrieval_excerpt_bundle, dict):
+        payload["excerpt_hits"] = _backfill_top_level_excerpt_hits_from_bundle_hits(
+            payload.get("excerpt_hits", []),
+            retrieval_excerpt_bundle.get("excerpt_hits", []),
+        )
     return payload
 
 

@@ -4007,6 +4007,76 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         self.assertEqual(payload["basket_promotion"], result.to_downstream_payload()["basket_promotion"])
 
+    def test_retrieval_downstream_payload_helper_backfills_missing_excerpt_hit_provenance(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        excerpt_hits = sparse_source_bundle.get("excerpt_hits")
+        self.assertIsInstance(excerpt_hits, list)
+        self.assertTrue(excerpt_hits)
+        first_excerpt_hit = excerpt_hits[0]
+        self.assertIsInstance(first_excerpt_hit, dict)
+        first_excerpt_hit.pop("provenance", None)
+
+        payload = build_retrieval_downstream_payload_from_result(
+            _SourceBundleOnlySource(sparse_source_bundle)
+        )
+
+        self.assertEqual(
+            payload["excerpt_hits"][0]["provenance"],
+            result.to_downstream_payload()["excerpt_hits"][0]["provenance"],
+        )
+
+    def test_retrieval_downstream_payload_helper_backfills_missing_doc_hit_provenance(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        doc_hits = sparse_source_bundle.get("doc_hits")
+        self.assertIsInstance(doc_hits, list)
+        self.assertTrue(doc_hits)
+        first_doc_hit = doc_hits[0]
+        self.assertIsInstance(first_doc_hit, dict)
+        first_doc_hit.pop("provenance", None)
+
+        payload = build_retrieval_downstream_payload_from_result(
+            _SourceBundleOnlySource(sparse_source_bundle)
+        )
+
+        self.assertEqual(
+            payload["doc_hits"][0]["provenance"],
+            result.to_downstream_payload()["doc_hits"][0]["provenance"],
+        )
+
     def test_retrieval_downstream_payload_helper_backfills_basket_promotion_from_nested_bundles(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
