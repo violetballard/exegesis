@@ -129,6 +129,8 @@ from src.qual.commands import (
     command_demo_next_action_catalog,
     command_demo_next_action_lookup_table,
     command_demo_next_action_invocation_table,
+    command_demo_next_action_compatibility_lookup_table,
+    command_demo_next_action_compatibility_invocation_table,
     command_demo_loop_contract,
     command_demo_loop_catalog,
     command_demo_loop_invocation_plan,
@@ -178,6 +180,8 @@ from src.qual.commands import (
     command_mvp_next_action_catalog,
     command_mvp_next_action_lookup_table,
     command_mvp_next_action_invocation_table,
+    command_mvp_next_action_compatibility_lookup_table,
+    command_mvp_next_action_compatibility_invocation_table,
     command_mvp_loop_contract,
     command_mvp_loop_catalog,
     command_mvp_loop_invocation_plan,
@@ -3396,6 +3400,10 @@ class CommandCatalogTests(unittest.TestCase):
             ("apply-patch",),
         )
         self.assertEqual(
+            workflow_by_token["reject-patch"].compatibility_tokens,
+            ("reject", "decline", "discard", "decline-patch", "discard-patch"),
+        )
+        self.assertEqual(
             workflow_by_token["persist"].compatibility_tokens,
             ("save", "continue", "resume", "save-work", "continue-work", "resume-work"),
         )
@@ -3611,6 +3619,14 @@ class CommandCatalogTests(unittest.TestCase):
             contract.invocation_table,
             command_demo_next_action_invocation_table("patch-review"),
         )
+        self.assertEqual(
+            contract.compatibility_lookup_table,
+            command_demo_next_action_compatibility_lookup_table("patch-review"),
+        )
+        self.assertEqual(
+            contract.compatibility_invocation_table,
+            command_demo_next_action_compatibility_invocation_table("patch-review"),
+        )
         self.assertEqual(command_mvp_next_action_catalog("review"), contract.entries)
         self.assertEqual(
             command_mvp_next_action_lookup_table("review"),
@@ -3619,6 +3635,14 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_mvp_next_action_invocation_table("review"),
             contract.invocation_table,
+        )
+        self.assertEqual(
+            command_mvp_next_action_compatibility_lookup_table("review"),
+            contract.compatibility_lookup_table,
+        )
+        self.assertEqual(
+            command_mvp_next_action_compatibility_invocation_table("review"),
+            contract.compatibility_invocation_table,
         )
 
         self.assertEqual(contract.source_token, "patch-review")
@@ -3637,6 +3661,13 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
         self.assertEqual(
+            tuple(entry.compatibility_tokens for entry in contract.entries),
+            (
+                ("apply", "approve", "accept", "approve-patch", "accept-patch"),
+                ("reject", "decline", "discard", "decline-patch", "discard-patch"),
+            ),
+        )
+        self.assertEqual(
             contract.invocation_table,
             (
                 (
@@ -3645,6 +3676,66 @@ class CommandCatalogTests(unittest.TestCase):
                 ),
                 (
                     "reject-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+            ),
+        )
+        self.assertEqual(
+            contract.compatibility_lookup_table,
+            (
+                ("apply", "terminal"),
+                ("approve", "terminal"),
+                ("accept", "terminal"),
+                ("approve-patch", "terminal"),
+                ("accept-patch", "terminal"),
+                ("reject", "terminal"),
+                ("decline", "terminal"),
+                ("discard", "terminal"),
+                ("decline-patch", "terminal"),
+                ("discard-patch", "terminal"),
+            ),
+        )
+        self.assertEqual(
+            contract.compatibility_invocation_table,
+            (
+                (
+                    "apply",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "approve",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "accept",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "approve-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "accept-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "reject",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
+                    "decline",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
+                    "discard",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
+                    "decline-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
+                    "discard-patch",
                     ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
                 ),
             ),

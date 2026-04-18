@@ -186,6 +186,7 @@ class CommandDemoNextActionEntry:
     flow_step: str
     argv: tuple[str, ...]
     description: str
+    compatibility_tokens: tuple[str, ...] = ()
     preferred_surface_tokens: tuple[str, ...] = ()
 
 
@@ -195,6 +196,8 @@ class CommandDemoNextActionContract:
     entries: tuple[CommandDemoNextActionEntry, ...]
     lookup_table: tuple[tuple[str, str], ...] = ()
     invocation_table: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    compatibility_lookup_table: tuple[tuple[str, str], ...] = ()
+    compatibility_invocation_table: tuple[tuple[str, tuple[str, ...]], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -3052,6 +3055,20 @@ def _validate_command_demo_next_action_contract(contract: CommandDemoNextActionC
         raise ValueError("Command demo next action lookup table is inconsistent")
     if contract.invocation_table != tuple((entry.target_token, entry.argv) for entry in contract.entries):
         raise ValueError("Command demo next action invocation table is inconsistent")
+    expected_compatibility_lookup = tuple(
+        (compatibility_token, entry.canonical_name)
+        for entry in contract.entries
+        for compatibility_token in entry.compatibility_tokens
+    )
+    if contract.compatibility_lookup_table != expected_compatibility_lookup:
+        raise ValueError("Command demo next action compatibility lookup table is inconsistent")
+    expected_compatibility_invocations = tuple(
+        (compatibility_token, entry.argv)
+        for entry in contract.entries
+        for compatibility_token in entry.compatibility_tokens
+    )
+    if contract.compatibility_invocation_table != expected_compatibility_invocations:
+        raise ValueError("Command demo next action compatibility invocation table is inconsistent")
     for entry in contract.entries:
         if entry.source_token != contract.source_token:
             raise ValueError("Command demo next action source token is inconsistent")
@@ -3284,6 +3301,7 @@ def command_demo_next_action_contract(
             flow_step=workflow_entries[target_token].flow_step,
             argv=workflow_entries[target_token].argv,
             description=workflow_entries[target_token].description,
+            compatibility_tokens=workflow_entries[target_token].compatibility_tokens,
             preferred_surface_tokens=workflow_entries[target_token].preferred_surface_tokens,
         )
         for target_token in command_demo_transition_targets_for(specs, source_token)
@@ -3293,6 +3311,16 @@ def command_demo_next_action_contract(
         entries=entries,
         lookup_table=tuple((entry.target_token, entry.canonical_name) for entry in entries),
         invocation_table=tuple((entry.target_token, entry.argv) for entry in entries),
+        compatibility_lookup_table=tuple(
+            (compatibility_token, entry.canonical_name)
+            for entry in entries
+            for compatibility_token in entry.compatibility_tokens
+        ),
+        compatibility_invocation_table=tuple(
+            (compatibility_token, entry.argv)
+            for entry in entries
+            for compatibility_token in entry.compatibility_tokens
+        ),
     )
     _validate_command_demo_next_action_contract(contract)
     return contract
@@ -3627,6 +3655,34 @@ def command_mvp_next_action_invocation_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     return command_demo_next_action_invocation_table(source_token, specs)
+
+
+def command_demo_next_action_compatibility_lookup_table(
+    source_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_next_action_contract(source_token, specs).compatibility_lookup_table
+
+
+def command_mvp_next_action_compatibility_lookup_table(
+    source_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_next_action_compatibility_lookup_table(source_token, specs)
+
+
+def command_demo_next_action_compatibility_invocation_table(
+    source_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_next_action_contract(source_token, specs).compatibility_invocation_table
+
+
+def command_mvp_next_action_compatibility_invocation_table(
+    source_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_next_action_compatibility_invocation_table(source_token, specs)
 
 
 def command_demo_workflow_compatibility_lookup_table(
