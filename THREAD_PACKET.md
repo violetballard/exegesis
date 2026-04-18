@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `reviewer-fix packet regeneration`
-- Current branch tip before this fixer pass: `9afb6edbdd87`
+- Current branch tip before this fixer pass: `8f99d4bbc116`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet-only descendants above the reviewed implementation head: metadata-only packet refresh commits; final HEAD SHA is reported with the fixer handoff
@@ -38,7 +38,7 @@
 - `plan complete`: the packet is narrowed to the reviewer-specified implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - `first green tests`: recorded after rerunning the required gates for this fixer pass.
 - `before risky/shared file edit`: the only shared implementation file in scope remains the approved regression surface `tests/unit/test_unified_retrieval.py`.
-- `ready for handoff`: the packet now states explicitly which canonical demo-path step this change advances and keeps scope narrowed to the reviewer packet.
+- `ready for handoff`: this writable packet is the reviewer-facing source of truth in this worktree, it states explicitly which canonical demo-path step this change advances, and it keeps scope narrowed to the reviewer packet.
 
 ## Scope completed
 
@@ -85,7 +85,7 @@ This handoff advances `retrieve relevant material` by making `fetch_excerpt()` f
 ## Risks / blockers
 
 - Residual risk: non-canonical callers that still pass PageIndex-generated excerpt IDs into `qual.retrieval.fetch_excerpt()`, `qual.engine.retrieval.fetch_excerpt()`, or `RetrievalService.fetch_excerpt()` now receive `KeyError` instead of PageIndex-backed excerpt payloads.
-- In-tree canonical retrieval flows do not rely on that fallback path; the remaining exposure is compatibility-only callers outside the MVP demo path or downstream consumers still holding PageIndex excerpt IDs.
+- In-tree canonical retrieval flows do not rely on that fallback path. `rg` in this worktree found no remaining `RetrievalService.fetch_excerpt()` call sites that depend on PageIndex-only IDs, so the remaining exposure is compatibility-only callers outside the MVP demo path or downstream consumers still holding PageIndex excerpt IDs.
 - Blockers: none
 
 ## Required handoff fields
