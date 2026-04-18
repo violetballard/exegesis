@@ -3509,6 +3509,31 @@ class RetrievalService:
             if derived_query_fingerprint is not None:
                 normalized["query_fingerprint"] = derived_query_fingerprint
                 normalized_provenance["query_fingerprint"] = derived_query_fingerprint
+            query_constraints = query_snapshot.get("constraints", {})
+            if not isinstance(query_constraints, dict):
+                query_constraints = {}
+            # Mirror the canonical retrieval-result query constraint fields on
+            # excerpt lookups so direct promotion/audit callers do not need to
+            # unpack the nested query snapshot to recover the original contract.
+            normalized_query_constraints = copy.deepcopy(query_constraints)
+            normalized["query_constraints"] = copy.deepcopy(normalized_query_constraints)
+            normalized_provenance["query_constraints"] = normalized_query_constraints
+            query_max_results = _optional_int(query_constraints.get("max_results"))
+            if query_max_results is not None:
+                normalized["query_max_results"] = query_max_results
+                normalized_provenance["query_max_results"] = query_max_results
+            query_doc_types = _normalize_query_doc_types_payload(query_constraints.get("doc_types"))
+            if query_doc_types is not None:
+                normalized["query_doc_types"] = copy.deepcopy(query_doc_types)
+                normalized_provenance["query_doc_types"] = copy.deepcopy(query_doc_types)
+            query_require_citations = _optional_bool(query_constraints.get("require_citations"))
+            if query_require_citations is not None:
+                normalized["query_require_citations"] = query_require_citations
+                normalized_provenance["query_require_citations"] = query_require_citations
+            query_prefer_exact_matches = _optional_bool(query_constraints.get("prefer_exact_matches"))
+            if query_prefer_exact_matches is not None:
+                normalized["query_prefer_exact_matches"] = query_prefer_exact_matches
+                normalized_provenance["query_prefer_exact_matches"] = query_prefer_exact_matches
             if _optional_text(normalized.get("query_text")) is None and _optional_text(
                 normalized_provenance.get("query_text")
             ) is None:
