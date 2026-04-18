@@ -74,13 +74,13 @@
 
 - Primary Milestone 3 engine-first demo-path step advanced: `open project/document`.
 - Why this step: `feat-commands` owns the CLI operator surface that starts the current MVP loop, and the branch’s command-surface contract work keeps that entry step deterministic and smoke-testable while Textual remains disabled.
-- Concrete effect: `command_cli_contract()` now preserves canonical command order and rejects canonical-name drift between the CLI contract and the command catalog, so the operator-facing command contract for starting the workflow cannot silently reorder or drop canonical commands.
+- Concrete effect: `command_cli_contract()` now preserves canonical command order and rejects accepted parser-surface drift against the declared command catalog, so the operator-facing command contract for starting the workflow cannot silently reorder, substitute, add, or drop accepted entrypoints.
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares the CLI contract’s canonical names against `command_names()` and raises `ValueError` if the canonical command surface drifts.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it validates the full accepted CLI parser surface against the declared command catalog and raises `ValueError` if canonical tokens, alias entrypoints, or their order drift.
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and canonical drift rejection.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment plus alias substitution, entrypoint reorder, extra-entrypoint, and dropped-entrypoint drift rejection.
 - Refreshed the handoff packet so re-review stays pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` with explicit Milestone 3 demo-path alignment.
 
 ## Kickoff Budget / Limits Compliance
