@@ -27,6 +27,7 @@ from .a2ui import (
     terminal_artifact_renderer_entrypoints_contract_fingerprint,
     _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT,
     _fingerprint_manifest_section,
+    _is_explicit_terminal_artifact_leaf,
     _normalize_terminal_artifact_kind_hint,
     _should_preserve_raw_leaf_card_default,
     refine_terminal_artifact_cli_fallback_target,
@@ -96,6 +97,7 @@ class ShellUI:
                 if (
                     resolved_fallback[1] in {"action", "selection"}
                     and not _should_preserve_raw_leaf_card_default(artifact)
+                    and not _is_explicit_terminal_artifact_leaf(artifact)
                 ):
                     return _render_invalid_terminal_card(artifact)
         fallback_artifact: Any = artifact

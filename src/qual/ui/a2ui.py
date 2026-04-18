@@ -2059,6 +2059,8 @@ def _validate_terminal_artifact_payload_kind(artifact: Any, kind: str) -> None:
 
 
 def _validate_terminal_artifact_card_payload(artifact: Any) -> None:
+    if _is_explicit_terminal_artifact_leaf(artifact):
+        return
     inferred_kind = _normalize_terminal_artifact_kind(artifact, kind=None)
     if inferred_kind in {"action", "selection"}:
         raise ValueError("TerminalArtifact card artifact must not use action or selection payload shape")
@@ -3765,7 +3767,12 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
     """
 
     requested_kind = _normalize_terminal_artifact_kind_hint(kind)
-    if requested_kind == "card" and _contains_action_or_selection_payload(artifact) and not _should_preserve_raw_leaf_card_default(artifact):
+    if (
+        requested_kind == "card"
+        and _contains_action_or_selection_payload(artifact)
+        and not _should_preserve_raw_leaf_card_default(artifact)
+        and not _is_explicit_terminal_artifact_leaf(artifact)
+    ):
         return _render_invalid_terminal_card(artifact)
     fallback_target = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get()
     if fallback_target is None:
@@ -3780,9 +3787,17 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
             # up. This preserves action/selection recovery for demo flows.
             fallback_target = None
         else:
-            if requested_kind == "card" and fallback_target[1] in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+            if (
+                requested_kind == "card"
+                and fallback_target[1] in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET
+                and not _is_explicit_terminal_artifact_leaf(artifact)
+            ):
                 return _render_invalid_terminal_card(artifact)
-    elif requested_kind == "card" and fallback_target[1] in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+    elif (
+        requested_kind == "card"
+        and fallback_target[1] in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET
+        and not _is_explicit_terminal_artifact_leaf(artifact)
+    ):
         return _render_invalid_terminal_card(artifact)
 
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
@@ -4471,6 +4486,17 @@ def _contains_action_or_selection_payload(
     if _infer_terminal_artifact_explicit_kind(artifact) in {"action", "selection"}:
         return True
     return _infer_terminal_artifact_partial_leaf_kind(artifact) is not None
+
+
+def _is_explicit_terminal_artifact_leaf(artifact: Any) -> bool:
+    if isinstance(artifact, (ActionRef, SelectionRef)):
+        return True
+    if not isinstance(artifact, Mapping):
+        return False
+    artifact_type = artifact.get("type")
+    if not isinstance(artifact_type, str):
+        return False
+    return artifact_type.strip() in {"ActionRef", "SelectionRef"}
 
 
 def _strip_terminal_type_hint(artifact: Mapping[str, Any], *, expected_type: str) -> dict[str, Any]:

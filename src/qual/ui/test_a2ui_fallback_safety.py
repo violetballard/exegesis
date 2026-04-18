@@ -7287,6 +7287,43 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[SelectionRef]", text)
         self.assertNotIn("[ActionRef]", text)
 
+    def test_terminal_artifact_cli_fallback_entrypoint_prefers_explicit_typed_leaves_over_card_hints(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                ActionRef(
+                    id=" export_document ",
+                    label=" Export ",
+                    payload={"format": "md"},
+                ),
+                "[ActionRef] Export",
+                "Action schema v1",
+            ),
+            (
+                "selection",
+                SelectionRef(
+                    id=" choice-1 ",
+                    label=" Choice ",
+                    payload={"nested": {"items": [1, 2]}},
+                ),
+                "[SelectionRef] Choice",
+                "Selection schema v1",
+            ),
+        ]
+
+        for case_name, artifact, expected_prefix, expected_schema in cases:
+            with self.subTest(case=case_name):
+                cli_text = render_terminal_cli_fallback(artifact, kind="card")
+                shell_text = shell.render_artifact(artifact, kind="card")
+
+                self.assertEqual(cli_text, shell_text)
+                self.assertIn(expected_prefix, cli_text)
+                self.assertIn(expected_schema, cli_text)
+                self.assertNotIn("[UnknownCard] <invalid card>", cli_text)
+
     def test_shell_ui_preserves_card_kind_hint_for_action_and_selection_envelopes_during_fallback(self) -> None:
         shell = ShellUI()
         direct_action_envelope = build_terminal_artifact_envelope(
