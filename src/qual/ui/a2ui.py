@@ -4,6 +4,7 @@ import copy
 import hashlib
 import json
 import unicodedata
+from contextvars import ContextVar
 from collections.abc import Mapping, Set
 from dataclasses import dataclass, fields, is_dataclass
 from typing import Any, Callable, Protocol
@@ -48,6 +49,11 @@ _TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE: tuple[str, ...] = (
     "render_terminal_action",
     "render_terminal_selection",
     "render_terminal_card",
+)
+
+_TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT: ContextVar[tuple[Any, str] | None] = ContextVar(
+    "qual_terminal_artifact_cli_fallback_target_hint",
+    default=None,
 )
 
 _TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS: tuple[tuple[str, str], ...] = (
@@ -3662,20 +3668,23 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
     requested_kind = _normalize_terminal_artifact_kind_hint(kind)
     if requested_kind == "card" and _contains_action_or_selection_payload(artifact) and not _should_preserve_raw_leaf_card_default(artifact):
         return _render_invalid_terminal_card(artifact)
-    fallback_target: tuple[Any, str] | None = None
-    try:
-        fallback_target = resolve_terminal_artifact_cli_fallback_target(
-            artifact,
-            kind=kind,
-        )
-    except Exception:
-        # Keep the explicit CLI fallback path usable even if the shared
-        # resolver breaks by retrying the local target resolver before giving
-        # up. This preserves action/selection recovery for demo flows.
-        fallback_target = None
-    else:
-        if requested_kind == "card" and fallback_target[1] in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
-            return _render_invalid_terminal_card(artifact)
+    fallback_target = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get()
+    if fallback_target is None:
+        try:
+            fallback_target = resolve_terminal_artifact_cli_fallback_target(
+                artifact,
+                kind=kind,
+            )
+        except Exception:
+            # Keep the explicit CLI fallback path usable even if the shared
+            # resolver breaks by retrying the local target resolver before giving
+            # up. This preserves action/selection recovery for demo flows.
+            fallback_target = None
+        else:
+            if requested_kind == "card" and fallback_target[1] in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+                return _render_invalid_terminal_card(artifact)
+    elif requested_kind == "card" and fallback_target[1] in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+        return _render_invalid_terminal_card(artifact)
 
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
     if requested_kind == "card" and malformed_envelope and isinstance(artifact, Mapping):

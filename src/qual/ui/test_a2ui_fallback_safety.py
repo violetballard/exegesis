@@ -5893,6 +5893,26 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         resolver.assert_called_once_with(raw_leaf, kind="card")
         cli_fallback.assert_called_once_with(raw_leaf, kind="card")
 
+    def test_shell_ui_reuses_pre_resolved_cli_fallback_targets_for_explicit_card_hints(self) -> None:
+        shell = ShellUI()
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            with patch(
+                "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
+                return_value=(raw_leaf, "card"),
+            ) as resolver:
+                text = shell.render_artifact(raw_leaf, kind="card")
+
+        self.assertIn("[<missing>] <untitled>", text)
+        self.assertNotIn("[ActionRef]", text)
+        self.assertNotIn("[SelectionRef]", text)
+        resolver.assert_called_once_with(raw_leaf, kind="card")
+
     def test_shell_ui_does_not_retry_fallback_resolution_on_explicit_card_failure(self) -> None:
         shell = ShellUI()
         artifact = _OpaqueValue()

@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import copy
 import json
+from itertools import count
 from collections.abc import Iterable, Mapping, Set
 from typing import Any
 import unicodedata
+from weakref import WeakKeyDictionary
 
 from src.qual.engine.service import EngineRuntime
 from .a2ui import (
@@ -23,6 +25,7 @@ from .a2ui import (
     terminal_artifact_cli_fallback_target_contract_fingerprint,
     terminal_artifact_cli_fallback_route_contract_fingerprint,
     terminal_artifact_renderer_entrypoints_contract_fingerprint,
+    _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT,
     _fingerprint_manifest_section,
     _normalize_terminal_artifact_kind_hint,
     _should_preserve_raw_leaf_card_default,
@@ -57,6 +60,8 @@ SHELL_UI_ENTRYPOINTS: tuple[tuple[str, str], ...] = (
 )
 SHELL_UI_STARTUP_PREVIEW_LIMIT = 3
 SHELL_UI_STARTUP_EMPTY_PREVIEW = "<empty>"
+_OPAQUE_OBJECT_SORT_TIEBREAKERS: WeakKeyDictionary[object, int] = WeakKeyDictionary()
+_OPAQUE_OBJECT_SORT_TIEBREAKER_COUNTER = count()
 
 
 def _build_shell_ui_entrypoints() -> dict[str, str]:
@@ -121,6 +126,9 @@ class ShellUI:
         ):
             fallback_artifact = artifact
             fallback_kind = "card"
+        fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set(
+            (fallback_artifact, fallback_kind),
+        )
         leaf_specific_fallback = fallback_kind in {"action", "selection"}
         try:
             rendered_cli_fallback = render_terminal_cli_fallback(fallback_artifact, kind=fallback_kind)
@@ -132,6 +140,9 @@ class ShellUI:
                 fallback_kind,
             ):
                 return rendered_cli_fallback
+        finally:
+            if fallback_hint_token is not None:
+                _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.reset(fallback_hint_token)
         if fallback_kind == "action":
             try:
                 return render_terminal_action(fallback_artifact)
@@ -200,12 +211,16 @@ class ShellUI:
     def _snapshot_item_sort_key(value: object) -> tuple[str, str, str]:
         # Use the full normalized value so distinct items do not collapse
         # when their truncated preview strings happen to match. Opaque object
-        # reprs reuse a redacted preview token, so keep the escaped repr as a
-        # hidden tie-breaker for deterministic set ordering.
+        # reprs reuse a redacted preview token, so keep a stable per-object
+        # tiebreaker for deterministic set ordering.
         baseline = " ".join(str(value).split())
         escaped = ShellUI._escape_control_chars(baseline)
         if not isinstance(value, str) and ShellUI._looks_like_opaque_object_repr(escaped):
-            return (type(value).__name__, ShellUI._format_item_id(value), escaped)
+            return (
+                type(value).__name__,
+                ShellUI._format_item_id(value),
+                ShellUI._opaque_object_sort_tiebreaker(value),
+            )
         return (type(value).__name__, escaped, "")
 
     @staticmethod
@@ -423,6 +438,20 @@ class ShellUI:
     @staticmethod
     def _looks_like_opaque_object_repr(value: str) -> bool:
         return value.startswith("<") and value.endswith(">") and " object at 0x" in value
+
+    @staticmethod
+    def _opaque_object_sort_tiebreaker(value: object) -> str:
+        try:
+            token = _OPAQUE_OBJECT_SORT_TIEBREAKERS.get(value)
+        except TypeError:
+            return f"{type(value).__name__}:{id(value)}"
+        if token is None:
+            token = next(_OPAQUE_OBJECT_SORT_TIEBREAKER_COUNTER)
+            try:
+                _OPAQUE_OBJECT_SORT_TIEBREAKERS[value] = token
+            except TypeError:
+                return f"{type(value).__name__}:{id(value)}"
+        return str(token)
 
     @staticmethod
     def _normalize_fallback_kind(kind: Any) -> str | None:
