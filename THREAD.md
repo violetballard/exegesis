@@ -7,7 +7,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Reviewer Fix Alignment
 
 - `THREAD_PACKET.md` is the source of truth for this fixer pass.
-- The packet now uses one exact re-review basis only: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- The required handoff sentence is explicit: this work advances the Milestone 3 engine-first demo-path step `open project/document`.
-- The scope remains inside `feat-commands` and describes the reviewed command-catalog slice tied to that anchor, including full parser-surface drift validation.
-- The packet records a fresh full gate rerun for re-review on `2026-04-18`.
+- The stale historical review anchor `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` has been retired for this resubmission.
+- Re-review should use the current implementation basis `cba120b30e33d8533378e1e93d340b9f181e91e5`, which already contains the parser-surface contract fix and its focused regression coverage.
+- The required handoff sentence remains explicit: this work advances the Milestone 3 engine-first demo-path step `open project/document`.
+- This fixer refresh is metadata only and records a fresh full gate rerun on `2026-04-18`.

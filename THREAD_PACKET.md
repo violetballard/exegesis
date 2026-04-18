@@ -4,8 +4,8 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: harden the CLI command contract so `command_cli_contract()` stays deterministic, preserves canonical command order, and fails fast if accepted parser entrypoints drift from the catalog.
-- Risk reason: this slice uses the approved shared-test exception for `tests/unit/test_commands_catalog.py`, so it stays on the high-risk template even though implementation remains command-catalog-only.
+- Scope goal: keep the `feat-commands` CLI contract deterministic, reject parser-surface drift against the catalog, and resubmit an accurate handoff packet against the branch state that now contains those fixes.
+- Risk reason: the branch includes the approved shared-test path `tests/unit/test_commands_catalog.py`, so this fixer pass stays on the high-risk template even though the current refresh is metadata only.
 
 ### Budget
 
@@ -16,10 +16,10 @@
 
 ### Planned Tasks (max 4)
 
-1. Regenerate the handoff packet so it explicitly keeps the reviewer-required re-review anchor at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-2. Confirm the reviewer-requested parser-surface fixes remain represented in the packet and backed by the checked-in tests for that anchor.
-3. Keep the packet scope aligned with the exact implementation state being submitted for re-review.
-4. Keep the explicit canonical demo-path step mapping required by `AGENTS.md` and rerun the required local gates.
+1. Verify the current branch tip contains the reviewer-requested parser-surface hardening in the command catalog.
+2. Verify focused regression coverage exists for alias substitution, extra entrypoint, dropped entrypoint, and reordered entrypoint drift.
+3. Regenerate the handoff packet so it matches the actual implementation state being resubmitted instead of the stale historical anchor.
+4. Re-run the required local gates and record outcomes for this fixer pass.
 
 ### Early Review Triggers
 
@@ -35,28 +35,29 @@
 
 ### Checkpoint Cadence (short updates)
 
-- Plan complete: this fixer pass keeps the reviewer-required implementation anchor and regenerates the packet against that exact SHA.
-- First green tests: satisfied by the full gate rerun recorded below.
-- Before risky/shared file edit: the only shared-file scope remains the approved test exception `tests/unit/test_commands_catalog.py`.
-- Ready for handoff: satisfied by this refreshed packet and the full gate rerun recorded below.
+- Plan complete: this fixer pass verified that the branch already contains the parser-surface contract fix and will refresh the packet to the real review basis.
+- First green tests: satisfied by the full gate rerun recorded below on `2026-04-18`.
+- Before risky/shared file edit: the only shared-file implementation path remains the approved test exception `tests/unit/test_commands_catalog.py`.
+- Ready for handoff: satisfied by this packet refresh and the green gate suite recorded below.
 
 ## Packet Traceability Note
 
-- Unambiguous review anchor for re-review: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Review basis choice: this packet refresh is metadata only, so re-review should stay pinned to the implementation state captured by `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Implementation files in scope at that anchor:
+- Current implementation review basis: `cba120b30e33d8533378e1e93d340b9f181e91e5`.
+- Review basis choice: this fixer commit is metadata only. Re-review should inspect the implementation already present at `cba120b30e33d8533378e1e93d340b9f181e91e5`, which includes the parser-surface contract hardening, the required regression coverage, and later lane-owned command-surface follow-on work.
+- Reviewer-fix implementation files in scope at that review basis:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
-- Metadata-only handoff files for this fixer refresh:
+- Additional lane-owned branch-tip implementation file present at that review basis:
+  - `src/qual/commands/__init__.py`
+- Metadata-only files for this fixer refresh:
   - `THREAD.md`
   - `THREAD_PACKET.md`
 
 ## Reviewer Required Fixes Satisfied
 
-1. Regenerated the handoff packet to add the explicit Milestone 3 demo-path mapping required by the reviewer and `AGENTS.md`.
-2. Kept the resubmission scope narrow and pinned to the reviewed implementation anchor `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-3. Kept the explicit canonical demo-path mapping required by `AGENTS.md`: this work advances the Milestone 3 engine-first step `open project/document`.
-4. Regenerated this packet so re-review stays pinned to the reviewer-required implementation anchor `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, then re-ran the required gate suite.
+1. `command_cli_contract()` now validates the full accepted CLI parser surface against the catalog-derived declared entrypoints and raises `ValueError("Command CLI parser surface is inconsistent")` when aliases, ordering, or accepted entrypoints drift.
+2. Focused regression coverage now proves rejection of alias substitution, extra entrypoint, dropped entrypoint, and reordered entrypoint drift in `tests/unit/test_commands_catalog.py`.
+3. This handoff packet now matches the actual implementation state being resubmitted and records a fresh full gate rerun for `2026-04-18`.
 
 ## Current Program Focus
 
@@ -73,20 +74,20 @@
 ## Canonical Demo-Path Step Advanced
 
 - Primary Milestone 3 engine-first demo-path step advanced: `open project/document`.
-- Why this step: `feat-commands` owns the CLI operator surface that starts the current MVP loop, and the branch’s command-surface contract work keeps that entry step deterministic and smoke-testable while Textual remains disabled.
-- Concrete effect: `command_cli_contract()` now preserves canonical command order and rejects accepted parser-surface drift against the declared command catalog, so the operator-facing command contract for starting the workflow cannot silently reorder, substitute, add, or drop accepted entrypoints.
+- Why this step: `feat-commands` owns the CLI operator surface that starts the MVP loop, and the command-catalog contract hardening keeps that entry step deterministic and smoke-testable while Textual remains disabled.
+- Concrete effect: the accepted CLI parser surface now fails fast if canonical tokens, alias entrypoints, or their order drift away from the declared command catalog.
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it validates the full accepted CLI parser surface against the declared command catalog and raises `ValueError` if canonical tokens, alias entrypoints, or their order drift.
-- Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment plus alias substitution, entrypoint reorder, extra-entrypoint, and dropped-entrypoint drift rejection.
-- Refreshed the handoff packet so re-review stays pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` with explicit Milestone 3 demo-path alignment.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the default command catalog validates the full accepted parser surface instead of only the deduplicated canonical-name projection.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for alias substitution, reordered parser entrypoints, extra entrypoints, dropped entrypoints, and related parser-surface drift cases.
+- Preserved deterministic catalog helpers and branch-tip lane-owned command-surface exports in `src/qual/commands/__init__.py`.
+- Refreshed the handoff packet so re-review uses the real current implementation basis instead of the stale `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` anchor.
 
 ## Kickoff Budget / Limits Compliance
 
 - High-risk shared-file handoff stayed within the `4`-task cap, `30m` time budget, and the lane size limits.
-- The implementation slice remains limited to one owned command file plus one approved shared test file, with packet metadata refreshed for re-review.
+- This fixer refresh only edits `THREAD.md` and `THREAD_PACKET.md`; the implementation under review remains inside the owned command paths plus the approved shared test file.
 
 ## Approved Exception Note
 
@@ -98,17 +99,20 @@
 
 ### Tasks Completed (Numbered)
 
-1. Confirmed the live branch already contains the reviewer-requested parser-surface hardening in `src/qual/commands/catalog.py`.
-2. Confirmed the live branch already contains the requested regression coverage in `tests/unit/test_commands_catalog.py`, including alias-substitution drift cases.
-3. Regenerated the handoff packet so it maps this work explicitly to the Milestone 3 `open project/document` step and uses `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as the only review basis.
+1. Verified that the current branch tip already contains the reviewer-requested parser-surface validation in `src/qual/commands/catalog.py`.
+2. Verified that the required regression tests for alias substitution, extra entrypoints, dropped entrypoints, and reordered entrypoints are present and passing in `tests/unit/test_commands_catalog.py`.
+3. Refreshed the handoff packet so it points to the actual implementation review basis `cba120b30e33d8533378e1e93d340b9f181e91e5` instead of the stale historical anchor.
 4. Re-ran the required local gates and recorded outcomes for this fixer pass.
 
 ### Files Changed
 
-- `src/qual/commands/catalog.py`
-- `tests/unit/test_commands_catalog.py`
-- `THREAD.md`
-- `THREAD_PACKET.md`
+- Implementation files in the current review basis:
+  - `src/qual/commands/catalog.py`
+  - `src/qual/commands/__init__.py`
+  - `tests/unit/test_commands_catalog.py`
+- Metadata-only files changed in this fixer pass:
+  - `THREAD.md`
+  - `THREAD_PACKET.md`
 
 ### Commands Run and Outcomes
 
@@ -123,7 +127,7 @@
 ### Risks / Blockers
 
 - Risk: `LOW`
-- Remaining risk: future parser-surface changes still require the catalog and command tests to be updated together by design.
+- Remaining risk: future command-surface changes still require the catalog, exports, and focused parser-surface tests to remain aligned by design.
 - Blockers: none
 
 ## Required Handoff Fields
@@ -131,7 +135,7 @@
 ### Roadmap item(s) affected
 
 - Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands, specifically at the `open project/document` entry step of the engine-first MVP path.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop, specifically the `open project/document` operator entry contract and its parser-surface determinism.
+- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ### Vision capability affected
 
@@ -140,7 +144,7 @@
 
 ### Routing/provider impact note
 
-- None. This change only affects local command-contract validation and focused command-catalog test coverage.
+- None. This change only affects local command-contract validation, lane-owned command exports, and focused command-catalog test coverage.
 
 ### Proposed `README.md` patch text
 
