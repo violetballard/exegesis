@@ -11,3 +11,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Re-review should use the current implementation basis `cba120b30e33d8533378e1e93d340b9f181e91e5`, which already contains the parser-surface contract fix and its focused regression coverage.
 - The required handoff sentence remains explicit: this work advances the Milestone 3 engine-first demo-path step `open project/document`.
 - This fixer refresh is metadata only and records a fresh full gate rerun on `2026-04-18`.
+
+## Resubmission Note
+
+- Reviewer-required packet fixes remain satisfied in the canonical packet.
+- This refresh exists to leave a new lane commit with current gate verification attached to that packet state.

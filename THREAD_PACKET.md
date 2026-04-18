@@ -59,6 +59,12 @@
 2. Focused regression coverage now proves rejection of alias substitution, extra entrypoint, dropped entrypoint, and reordered entrypoint drift in `tests/unit/test_commands_catalog.py`.
 3. This handoff packet now matches the actual implementation state being resubmitted and records a fresh full gate rerun for `2026-04-18`.
 
+## Resubmission Refresh
+
+- Refresh date: `2026-04-18`
+- Refresh purpose: leave a new metadata-only fixer commit that preserves the explicit demo-path mapping, narrowed scope wording, and corrected residual-risk statement requested by review.
+- Review request: treat this packet as the current source of truth for the `feat-commands` re-review.
+
 ## Current Program Focus
 
 - Close the engine-side Milestone 3 workflow loop before activating any Textual UI lanes.
