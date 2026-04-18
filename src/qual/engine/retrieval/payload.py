@@ -19,6 +19,11 @@ class RetrievalCitationBundleSource(Protocol):
         """Return the deterministic citation snapshot consumed by downstream engine flows."""
 
 
+class RetrievalCanonicalCitationBundleSource(Protocol):
+    def retrieval_citation_bundle(self) -> dict[str, object]:
+        """Return the canonical citation snapshot consumed by downstream engine flows."""
+
+
 class RetrievalSourceBundleSource(Protocol):
     def source_bundle(self) -> dict[str, object]:
         """Return the deterministic doc and excerpt snapshot consumed by engine flows."""
@@ -3271,11 +3276,18 @@ def _build_retrieval_source_bundle_from_result_source(result: object) -> dict[st
 
 
 def build_retrieval_citation_bundle_from_result(
-    result: RetrievalDownstreamPayloadSource | RetrievalCitationBundleSource | RetrievalSourceBundleSource,
+    result: (
+        RetrievalDownstreamPayloadSource
+        | RetrievalCitationBundleSource
+        | RetrievalCanonicalCitationBundleSource
+        | RetrievalSourceBundleSource
+    ),
 ) -> dict[str, object]:
     """Return the deterministic doc and excerpt citation snapshot for a result."""
-    bundle_source = getattr(result, "citation_bundle", None)
-    if callable(bundle_source):
+    for attr_name in ("retrieval_citation_bundle", "citation_bundle"):
+        bundle_source = getattr(result, attr_name, None)
+        if not callable(bundle_source):
+            continue
         source_bundle = _build_retrieval_source_bundle_from_result_source(result)
         if source_bundle is not None:
             primary = _build_retrieval_citation_bundle_from_payload(

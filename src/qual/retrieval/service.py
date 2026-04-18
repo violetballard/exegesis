@@ -972,6 +972,11 @@ class RetrievalResult:
             "excerpt_citations": self._excerpt_citation_snapshots(),
         }
 
+    def retrieval_citation_bundle(self) -> dict[str, object]:
+        """Return the canonical citation snapshot for downstream engine flows."""
+
+        return self.citation_bundle()
+
     def as_downstream_payload(self) -> dict[str, object]:
         """Return the canonical downstream payload using result-oriented naming."""
 
@@ -1688,7 +1693,7 @@ class RetrievalService:
     def retrieve_fts_citation_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical citation/provenance bundle for a single FTS retrieval."""
 
-        return self.retrieve_fts(query).citation_bundle()
+        return self.retrieve_fts(query).retrieval_citation_bundle()
 
     def retrieve_fts_source_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical retrieval source bundle for a single FTS retrieval."""
@@ -1726,7 +1731,7 @@ class RetrievalService:
     def retrieve_auto_citation_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical citation/provenance bundle for the FTS-first auto path."""
 
-        return self.retrieve_auto(query).citation_bundle()
+        return self.retrieve_auto(query).retrieval_citation_bundle()
 
     def retrieve_auto_source_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical retrieval source bundle for the FTS-first auto path."""
