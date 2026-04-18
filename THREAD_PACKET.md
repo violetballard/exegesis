@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: make the canonical operator CLI step `open project/document` more real by keeping its command contract deterministic and rejecting parser-surface drift against the catalog.
+- Scope goal: make the canonical operator CLI step `open project/document` more real in the current CLI-first MVP loop by keeping its command contract deterministic and rejecting parser-surface drift against the catalog.
 - Risk reason: the branch includes the approved shared-test path `tests/unit/test_commands_catalog.py`, so this fixer pass stays on the high-risk template even though the current refresh is metadata only.
 
 ### Budget
@@ -18,8 +18,8 @@
 
 1. Verify the current branch tip contains the reviewer-requested parser-surface hardening for the canonical `open project/document` CLI step in the command catalog.
 2. Verify focused regression coverage exists for alias substitution, extra entrypoint, dropped entrypoint, and reordered entrypoint drift.
-3. Regenerate the handoff packet so it matches the actual implementation state being resubmitted instead of the stale historical anchor.
-4. Re-run the required local gates and record outcomes for this fixer pass.
+3. Re-run the required local gates and record outcomes for this fixer pass.
+4. Refresh handoff metadata without counting that refresh as implementation scope.
 
 ### Early Review Triggers
 
@@ -62,24 +62,25 @@
 ## Resubmission Refresh
 
 - Refresh date: `2026-04-18`
-- Refresh purpose: leave a new metadata-only fixer commit that records the fresh `2026-04-18T22:06:46Z` UTC full gate rerun against the current branch tip and keeps the packet anchored to the actual implementation state already on this branch.
-- Plan-alignment note: this resubmission is specifically for the canonical operator CLI step `open project/document`; it makes that step more real by ensuring the parser-facing CLI surface stays identical to the declared command catalog and fails fast if it drifts.
+- Refresh purpose: leave a new metadata-only fixer commit that records the fresh `2026-04-18T22:07:49Z` UTC full gate rerun against the current branch tip and keeps the packet anchored to the actual implementation state already on this branch.
+- Plan-alignment note: this resubmission is specifically for the canonical operator CLI step `open project/document`; it makes that step more real in the current CLI-first MVP loop by ensuring the parser-facing CLI surface stays identical to the declared command catalog and fails fast if it drifts.
 - Review request: treat this packet as the current source of truth for the `feat-commands` re-review.
 
 ## Canonical Demo-Path Step Advanced
 
 - Canonical demo-path step advanced: operator CLI step `open project/document`.
+- Demo-path loop: this is the front-door step of the current MVP operator path that must reliably support the CLI-first flow `vault -> context -> run -> patch -> export` before `Exegesis Console` exists.
 - Narrow mapping: this `feat-commands` change is contract-hardening for the existing CLI path only, not new command capability or CLI UX expansion.
-- Specific path impact: it makes only the existing `open project/document` CLI step more reliable by forcing the accepted parser surface to stay identical to the declared command catalog.
+- Specific path impact: it makes only the existing `open project/document` CLI step more reliable by forcing the accepted parser surface to stay identical to the declared command catalog before the operator can continue into retrieval, review, and export.
 - Concrete effect: the accepted CLI parser surface now fails fast if canonical tokens, alias entrypoints, or their order drift away from the declared command catalog.
-- Concrete blocker removed: without this guard, the CLI can silently accept a parser surface that no longer matches the documented command catalog for `open project/document`.
+- Concrete blocker removed: without this guard, the CLI can silently accept a parser surface that no longer matches the documented command catalog for `open project/document`, which undermines the Milestone 3 operator loop at its entry step.
 
 ## Scope Completed
 
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the default command catalog validates the full accepted parser surface for the canonical `open project/document` CLI step instead of only the deduplicated canonical-name projection.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for alias substitution, reordered parser entrypoints, extra entrypoints, dropped entrypoints, and related parser-surface drift cases.
 - Preserved deterministic catalog helpers and branch-tip lane-owned command-surface exports in `src/qual/commands/__init__.py`.
-- Scope guard: this resubmission does not add new commands, new flags, or CLI UX expansion; it only hardens the existing `open project/document` CLI contract on the current MVP path.
+- Scope guard: this resubmission does not add new commands, new flags, or CLI UX expansion; it only hardens the existing `open project/document` CLI contract on the current MVP path so the operator can enter the CLI-first workflow without parser/catalog drift.
 
 ## Metadata-Only Fixer Refresh
 
@@ -107,12 +108,13 @@
 
 1. Verified that the current branch tip already contains the reviewer-requested parser-surface validation in `src/qual/commands/catalog.py`.
 2. Verified that the required regression tests for alias substitution, extra entrypoints, dropped entrypoints, and reordered entrypoints are present and passing in `tests/unit/test_commands_catalog.py`.
-3. Verified that the roadmap and vision mapping now tie this work directly to the canonical `open project/document` demo-path step and the concrete parser/catalog drift blocker it removes.
+3. Verified that the current review basis preserves the lane-owned command-surface exports in `src/qual/commands/__init__.py` needed to keep the hardened `open project/document` entrypoint wired through the existing CLI path.
 
 ### Metadata-Only Fixer Actions
 
 - Refreshed the handoff packet so it points to the actual current implementation review basis `6e8d077b67056fd0f5b890bcb840485eca4d7b7e`.
 - Re-ran the required local gates and recorded outcomes for this fixer pass.
+- Tightened the roadmap/vision justification so the packet maps the work to the active CLI-first MVP loop instead of broad CLI stability language.
 
 ### Files Changed
 
@@ -133,7 +135,7 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-18`
-- Verification timestamp (UTC): `2026-04-18T22:06:46Z`
+- Verification timestamp (UTC): `2026-04-18T22:07:49Z`
 
 ### Risks / Blockers
 
@@ -145,14 +147,14 @@
 
 ### Roadmap item(s) affected
 
-- Milestone 3: Real workflow loop - strengthen the operator `open project/document` entrypoint in the MVP command path by keeping that step deterministic at the parser surface.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints specifically for the `open project/document` operator contract, not broad command-surface expansion.
-- Concrete blocker removed: contract-build now rejects parser/catalog drift before the CLI `open project/document` step can silently diverge from the declared command catalog.
+- Milestone 3 / current MVP loop justification: the active engine-side CLI-first path must reliably execute `vault -> context -> run -> patch -> export`, and this change hardens the `open project/document` entry step that launches that loop.
+- `feat-commands`: lock the parser-facing command contract for the existing `open project/document` operator path so later retrieval, review, and export steps start from a deterministic CLI surface.
+- Concrete blocker removed: contract-build now rejects parser/catalog drift before the CLI-first Milestone 3 loop can start from a silently divergent `open project/document` entrypoint.
 
 ### Vision capability affected
 
-- Stable CLI command contract - the operator-facing `open project/document` entry surface remains deterministic across catalog, exports, and parser wiring.
-- Fail-fast CLI drift detection - parser/catalog drift now fails loudly before silently changing the `open project/document` operator contract.
+- Operator-first control surface: CLI remains the first-class MVP surface, and the `open project/document` entrypoint now stays deterministic across catalog, exports, and parser wiring.
+- No silent output or contract drift: parser/catalog drift now fails loudly before silently changing the operator contract that starts the CLI-first loop.
 
 ### Routing/provider impact note
 
