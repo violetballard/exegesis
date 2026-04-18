@@ -14,7 +14,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `THREAD.md`
   - `THREAD_PACKET.md`
 - The canonical demo-path step advanced is `open project/document`, using the exact current MVP path wording from `AGENTS.md` and `ROADMAP.md`.
-- Explicit handoff statement: this change hardens the deterministic CLI contract for the `open project/document` bootstrap step and does not claim broader workflow, retrieval, patch, or UI progress.
+- Explicit handoff statement: this change hardens the deterministic CLI contract for the `open project/document` bootstrap step in the active engine-first CLI loop, stabilizing the entrypoint that begins the current open -> retrieval -> patch-review -> persist/continue workflow without claiming broader progress in later steps.
 - Scope-tightening note: this fixer remains command-contract hardening only and does not add any new user-facing command breadth beyond the current MVP loop.
 - Concrete blocker removed: without validating that CLI parser entrypoints resolve to the canonical catalog in canonical order, the `bootstrap` entrypoint for `open project/document` could drift silently from the catalog contract and break deterministic CLI smoke tests for that step.
 - Vision capability affected is intentionally narrow: `Canonical engine contract` only.

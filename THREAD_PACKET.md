@@ -124,7 +124,7 @@
 
 - Step advanced: `open project/document`
 - Exact current MVP path language source: `AGENTS.md` Active MVP Note and `ROADMAP.md` Current operational narrowing both require the canonical step `open project/document`.
-- Explicit handoff statement: this change hardens the CLI-first operator surface for the canonical `open project/document` step by keeping the bootstrap command contract deterministic and drift-resistant.
+- Explicit handoff statement: this change hardens the CLI-first operator surface for the canonical `open project/document` step in the active engine-first CLI loop by keeping the bootstrap command contract deterministic and drift-resistant, so the entrypoint that starts the current open -> retrieval -> patch-review -> persist/continue workflow stays stable.
 - Concrete blocker removed: before this hardening, the explicit CLI parser surface could drift from the canonical command catalog order or membership without failing fast, which would make the bootstrap path for `open project/document` non-deterministic and weaken smoke-test coverage for that step.
 - Scope-specific alignment note: for this command-catalog slice, the strengthened operator path is limited to the bootstrap command surface for `open project/document`; it does not add any new user-facing command breadth and does not claim broader progress on retrieval, patch apply/reject, or UI work.
 
