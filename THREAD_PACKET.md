@@ -52,6 +52,7 @@
 - `retrieve relevant material`
 
 This handoff advances `retrieve relevant material` by forcing `fetch_excerpt()` to return only canonical FTS-backed excerpt payloads, which keeps downstream basket promotion and audit provenance tied to deterministic, auditable SQLite FTS hits.
+This packet is the handoff source of truth for re-review, and the required AGENTS.md demo-path mapping is intentionally limited to `retrieve relevant material` rather than basket promotion, planning, patch application, or UI behavior.
 
 ## Tasks completed
 
