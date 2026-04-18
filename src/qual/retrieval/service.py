@@ -923,7 +923,7 @@ class RetrievalResult:
             retrieval_summary=retrieval_summary,
             doc_hits=[doc_hit.as_dict() for doc_hit in self.doc_hits],
             excerpt_hits=[hit.as_dict() for hit in self.hits],
-            retrieval_diagnostics=dict(self.diagnostics),
+            retrieval_diagnostics=self._public_diagnostics_snapshot(),
             retrieval_manifest=dict(self.diagnostics["retrieval_manifest"]),
             retrieval_evidence=dict(self.evidence),
             retrieval_provenance=retrieval_provenance,
@@ -1087,6 +1087,20 @@ class RetrievalResult:
 
     def _retrieval_policy_snapshot(self) -> dict[str, object]:
         return copy.deepcopy(self.diagnostics["retrieval_policy"])
+
+    def _public_diagnostics_snapshot(self) -> dict[str, object]:
+        diagnostics = copy.deepcopy(self.diagnostics)
+        strategies_used = diagnostics.get("strategies_used", [])
+        if not isinstance(strategies_used, list):
+            strategies_used = []
+        # Keep the downstream retrieval contract deterministic across repeated
+        # runs of the same query. Runtime timing stays available in audit
+        # events, but engine-facing payloads should not drift on wall-clock
+        # measurements alone.
+        diagnostics["elapsed_ms_by_strategy"] = {str(strategy_id): 0 for strategy_id in strategies_used}
+        diagnostics["elapsed_ms_total"] = 0
+        diagnostics["caches_used"] = {str(strategy_id): False for strategy_id in strategies_used}
+        return diagnostics
 
     def _citation_status_snapshot(self) -> dict[str, object]:
         return {
