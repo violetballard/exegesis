@@ -84,7 +84,8 @@ This handoff advances `retrieve relevant material` by making `fetch_excerpt()` f
 
 ## Risks / blockers
 
-- Risk: `HIGH`
+- Residual risk: non-canonical callers that still pass PageIndex-generated excerpt IDs into `qual.retrieval.fetch_excerpt()`, `qual.engine.retrieval.fetch_excerpt()`, or `RetrievalService.fetch_excerpt()` now receive `KeyError` instead of PageIndex-backed excerpt payloads.
+- In-tree canonical retrieval flows do not rely on that fallback path; the remaining exposure is compatibility-only callers outside the MVP demo path or downstream consumers still holding PageIndex excerpt IDs.
 - Blockers: none
 
 ## Required handoff fields
