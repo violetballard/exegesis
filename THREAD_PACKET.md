@@ -42,8 +42,9 @@
 
 ## Packet Traceability Note
 
-- Current branch tip for re-review: `f42c2a9b9ae183fadc893982c2cf90aec8c0c705`.
-- The earlier review anchor `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` is superseded by later lane-owned command-surface work on this branch.
+- Unambiguous review anchor for re-review: `f42c2a9b9ae183fadc893982c2cf90aec8c0c705`.
+- Review basis choice: this packet fixes metadata only and does not change the implementation under review, so re-review should evaluate the single superseding implementation state at `f42c2a9b9ae183fadc893982c2cf90aec8c0c705`.
+- The earlier review anchor `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` is out of scope for re-review because later lane-owned command-surface work superseded that slice before this packet refresh.
 - Reviewer-fix implementation remains in scope at:
   - `543632d5` - `fix(commands): reject cli token drift`
   - `0f4de989` - `fix(commands): satisfy reviewer required fixes`
@@ -59,7 +60,7 @@
 1. Tightened the CLI contract so parser-surface drift is rejected against the declared catalog-backed parser surface, not just against deduplicated canonical names.
 2. Added regression coverage for alias substitution, token reordering, extra entrypoints, removed entrypoints, and normalized alias drift in `tests/unit/test_commands_catalog.py`.
 3. Kept the explicit canonical demo-path mapping required by `AGENTS.md`: this work advances `open project/document`.
-4. Regenerated this packet so re-review evaluates the live branch state instead of the stale `f8d860ed...` anchor, then re-ran the required gate suite.
+4. Regenerated this packet so re-review evaluates one review basis only: the superseding implementation anchor `f42c2a9b9ae183fadc893982c2cf90aec8c0c705`, then re-ran the required gate suite.
 
 ## Current Program Focus
 
@@ -75,7 +76,7 @@
 
 ## Canonical Demo-Path Step Advanced
 
-- Primary step advanced: `open project/document`.
+- Primary Milestone 3 engine-first demo-path step advanced: `open project/document`.
 - Why this step: `feat-commands` owns the CLI operator surface that starts the current MVP loop, and the branch’s command-surface contract work keeps that entry step deterministic and smoke-testable while Textual remains disabled.
 - Concrete effect: `command_cli_contract()` now preserves canonical command order and rejects parser-surface drift such as alias-for-canonical substitution, token reordering, added entrypoints, or removed expected entrypoints, so the operator-facing command contract for starting the workflow cannot silently change.
 
@@ -84,7 +85,7 @@
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it validates the full accepted parser surface against the command catalog and raises `ValueError` if canonical entrypoints, alias entrypoints, or entrypoint order drift.
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and parser-surface drift rejection, including alias substitution, entrypoint reordering, added entrypoints, and removed expected entrypoints.
-- Refreshed the handoff packet so re-review evaluates the live branch state with explicit demo-path alignment.
+- Refreshed the handoff packet so re-review evaluates the single implementation anchor `f42c2a9b9ae183fadc893982c2cf90aec8c0c705`, with explicit Milestone 3 demo-path alignment.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -103,7 +104,7 @@
 
 1. Confirmed the live branch already contains the reviewer-requested parser-surface hardening in `src/qual/commands/catalog.py`.
 2. Confirmed the live branch already contains the requested regression coverage in `tests/unit/test_commands_catalog.py`, including alias-substitution drift cases.
-3. Regenerated the handoff packet so it maps this work explicitly to `open project/document` and reflects the current branch tip instead of the stale review anchor.
+3. Regenerated the handoff packet so it maps this work explicitly to the Milestone 3 `open project/document` step and uses `f42c2a9b9ae183fadc893982c2cf90aec8c0c705` as the only review basis.
 4. Re-ran the required local gates and recorded outcomes for this fixer pass.
 
 ### Files Changed
