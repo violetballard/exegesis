@@ -36,7 +36,7 @@
 ### Checkpoint Cadence (short updates)
 
 - Plan complete: the reviewer’s required fixes are limited to packet traceability and file inventory completeness.
-- First green tests: full required gate suite rerun on `2026-04-18`.
+- First green tests: full required gate suite rerun and reconfirmed in this fixer execution on `2026-04-18`.
 - Before risky/shared file edit: only `THREAD.md` and `THREAD_PACKET.md` are edited in this fixer pass.
 - Ready for handoff: the packet again names `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as the implementation review target and fully enumerates the metadata-only refresh files.
 
@@ -111,7 +111,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification date: `2026-04-18`
+- Verification date: `2026-04-18` (reconfirmed in this fixer execution)
 
 ### Risks / Blockers
 

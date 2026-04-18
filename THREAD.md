@@ -15,4 +15,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - This fixer pass is also metadata-only and edits only `THREAD.md` and `THREAD_PACKET.md`.
 - The refreshed packet now names the exact canonical demo-path step advanced by the reviewed implementation: `open project/document`.
 - The refreshed packet also states the concrete blocker removed: preventing silent parser/catalog drift from changing the operator-facing bootstrap command contract.
-- Required gates were rerun on `2026-04-18`; `THREAD_PACKET.md` is the source of truth for those outcomes.
+- Required gates were rerun and reconfirmed on `2026-04-18`; `THREAD_PACKET.md` is the source of truth for those outcomes.
