@@ -4,15 +4,14 @@ This file exists for compatibility with older lane and fixer prompts.
 
 Canonical handoff contract lives in `THREAD_PACKET.md`.
 
-## Reviewer Fix Alignment
+## Current Review Focus
 
-- The implementation review target remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`).
-- That implementation change touches only:
+- This branch is no longer a metadata-only resubmission.
+- Reviewer-required fixes are implemented in:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
-- Later commits in this resubmission chain are metadata-only packet refreshes. Their touched files must be fully enumerated wherever the handoff packet claims metadata-only scope.
-- The reviewer-called packet-refresh commit `6ee4015b1b62fb44c2b81ac19be7cbf03440313f` touched both `THREAD.md` and `THREAD_PACKET.md`; the refreshed packet now records both files explicitly.
-- This fixer pass is also metadata-only and edits only `THREAD.md` and `THREAD_PACKET.md`.
-- The refreshed packet now names the exact canonical demo-path step advanced by the reviewed implementation: `open project/document`.
-- The refreshed packet also states the concrete blocker removed: preventing silent parser/catalog drift from changing the operator-facing bootstrap command contract.
-- Required gates were rerun and reconfirmed on `2026-04-18`; `THREAD_PACKET.md` is the source of truth for those outcomes.
+- Shared handoff metadata for this pass lives in:
+  - `THREAD.md`
+  - `THREAD_PACKET.md`
+- The protected canonical demo-path step is `open project/document`.
+- The concrete blocker removed is silent parser/catalog drift changing the operator-facing bootstrap CLI surface while the CLI remains the active MVP entrypoint.
