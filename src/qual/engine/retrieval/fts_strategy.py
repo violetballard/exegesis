@@ -41,7 +41,18 @@ class FTSStrategy:
         self._cache_hits: list[Any] | None = None
 
     def supports(self, query: Any) -> bool:
-        return True
+        payload = self._query_payload(query)
+        if payload is None:
+            return False
+
+        scope = payload.get("scope")
+        if not isinstance(scope, str) or not scope:
+            return False
+
+        # The FTS-first MVP lane owns vault/doc retrieval only. Section and
+        # collection scopes remain deferred until a future strategy can resolve
+        # them deterministically without widening the active engine path.
+        return not scope.startswith(("section:", "collection:"))
 
     def retrieve(self, query: Any, *, candidate_doc_ids: tuple[str, ...], use_cache: bool = True) -> StrategyRun:
         """Execute the underlying ``runner`` or return a cached result.
