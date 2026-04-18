@@ -1323,7 +1323,7 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
         normalized["retrieved_doc_ids"] = _normalize_text_list_like(normalized.get("retrieved_doc_ids"))
     if "retrieved_excerpt_ids" in normalized:
         normalized["retrieved_excerpt_ids"] = _normalize_text_list_like(normalized.get("retrieved_excerpt_ids"))
-    doc_type = _normalize_optional_text(normalized.get("doc_type"))
+    doc_type = _normalize_optional_casefold_text(normalized.get("doc_type"))
     if doc_type is not None:
         normalized["doc_type"] = doc_type
     elif "doc_type" in normalized:

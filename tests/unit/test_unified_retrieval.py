@@ -4356,6 +4356,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         basket_promotion["source_strategy"] = "  FTS  "
         basket_promotion["retrieval_backend"] = "  SQLITE_FTS  "
         basket_promotion["retrieval_mode"] = "  FTS_FIRST  "
+        basket_promotion["doc_type"] = "  MEMO  "
         basket_promotion["fts_rank"] = f"  {basket_promotion['fts_rank']}  "
 
         payload = build_retrieval_downstream_payload_from_result(
