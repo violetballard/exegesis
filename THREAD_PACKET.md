@@ -24,6 +24,13 @@
 - Size limits: `<=8 files`, `<=300 net LOC`
 - Max fix attempts per failing gate: `2`
 
+### Planned Tasks (max 4)
+
+1. Remove the `PageIndex` fallback from `fetch_excerpt` so excerpt lookup stays on the canonical FTS-only path.
+2. Add approved shared regression coverage proving PageIndex-only excerpt IDs fail closed with `KeyError`.
+3. Keep the reviewed implementation range anchored to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and treat later packet refreshes as metadata-only.
+4. Regenerate the handoff packet with an explicit canonical demo-path mapping for the narrowed reviewed slice.
+
 ### Checkpoint Status
 
 - `plan complete`: the packet is reissued against the narrowed reviewed implementation range and explicitly names the canonical demo-path step advanced.
@@ -55,8 +62,6 @@ This handoff explicitly advances the canonical demo-path step `retrieve relevant
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`
 - Metadata-only handoff files:
-  - `.codex/kickoff_packets/feat-retrieval-fts.md`
-  - `.codex/lane_meta/feat-retrieval-fts.json`
   - `THREAD_PACKET.md`
 
 ## Commands run with results
@@ -73,6 +78,7 @@ This handoff explicitly advances the canonical demo-path step `retrieve relevant
 1. Regenerated the handoff with an explicit canonical demo-path mapping: `retrieve relevant material`.
 2. Stated concretely that removing the `PageIndex` fallback from `fetch_excerpt` strengthens the FTS-first retrieval contract for the engine-side Milestone 3 loop without expanding scope beyond the MVP retrieval path.
 3. Kept the reviewed implementation range anchored to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and treated later packet refreshes as metadata-only.
+4. Quoted the completed high-risk kickoff details directly in this handoff packet, including risk reason, planned tasks, checkpoint status, and canonical demo-path step advanced.
 
 ## Risks / blockers
 
