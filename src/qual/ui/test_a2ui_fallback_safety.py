@@ -3413,6 +3413,43 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         )
 
+    def test_route_aware_fingerprint_summaries_propagate_route_into_target_fingerprints(self) -> None:
+        route_target_fingerprints = describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
+            include_terminal_artifact_cli_fallback_route=True,
+        )
+        route_target_fingerprint = terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint(
+            include_terminal_artifact_cli_fallback_route=True,
+        )
+
+        cli_fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints(
+            include_terminal_artifact_cli_fallback=True,
+            include_terminal_artifact_cli_fallback_route=True,
+            include_contract_aliases=True,
+        )
+        a2ui_fingerprints = describe_a2ui_contract_fingerprints(
+            include_terminal_artifact=True,
+            include_terminal_artifact_cli_fallback_target=True,
+            include_terminal_artifact_cli_fallback_route=True,
+            include_contract_aliases=True,
+        )
+
+        self.assertEqual(
+            cli_fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            route_target_fingerprints,
+        )
+        self.assertEqual(
+            cli_fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"],
+            route_target_fingerprint,
+        )
+        self.assertEqual(
+            a2ui_fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            route_target_fingerprints,
+        )
+        self.assertEqual(
+            a2ui_fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"],
+            route_target_fingerprint,
+        )
+
     def test_terminal_artifact_cli_fallback_route_contract_is_opt_in_and_fingerprintable(self) -> None:
         from src.qual.ui import (
             describe_terminal_artifact_cli_fallback_route_contract as exported_route_contract,

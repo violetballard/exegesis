@@ -573,10 +573,14 @@ def describe_a2ui_contract_fingerprints(
             ),
         )
         fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints"] = (
-            describe_terminal_artifact_cli_fallback_target_contract_fingerprints()
+            describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
+                include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+            )
         )
         fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"] = (
-            terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint()
+            terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint(
+                include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+            )
         )
     return fingerprints
 
@@ -1430,10 +1434,14 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
             ),
         )
         fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints"] = (
-            describe_terminal_artifact_cli_fallback_target_contract_fingerprints()
+            describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
+                include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+            )
         )
         fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"] = (
-            terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint()
+            terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint(
+                include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+            )
         )
         if include_terminal_artifact_cli_fallback_route:
             _add_contract_alias_fingerprints(
