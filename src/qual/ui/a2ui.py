@@ -484,7 +484,9 @@ def describe_a2ui_contract_fingerprints(
     `contract_fingerprint` alias is included only when alias expansion is
     requested, mirroring the manifest surface. Pass
     ``include_shell_ui_contract=True`` to opt into the shell adapter contract
-    fingerprint used by the CLI fallback path.
+    fingerprint used by the CLI fallback path. That opt-in also exposes the
+    canonical ``shell_ui_contract_fingerprint`` key so the fingerprint map
+    mirrors the embedded shell manifest more closely.
     """
 
     manifest = _build_a2ui_contract_manifest(
@@ -530,9 +532,11 @@ def describe_a2ui_contract_fingerprints(
             terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint()
         )
     if include_shell_ui_contract:
-        fingerprints["shell_ui_contract"] = _snapshot_shell_ui_contract(
+        shell_ui_contract_fingerprint = _snapshot_shell_ui_contract(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         )["contract_fingerprint"]
+        fingerprints["shell_ui_contract"] = shell_ui_contract_fingerprint
+        fingerprints["shell_ui_contract_fingerprint"] = shell_ui_contract_fingerprint
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
@@ -591,6 +595,7 @@ def describe_a2ui_contract_fingerprints(
             _add_contract_alias_fingerprints(
                 fingerprints,
                 ("shell_ui_contract", fingerprints["shell_ui_contract"]),
+                ("shell_ui_contract_fingerprint", fingerprints["shell_ui_contract_fingerprint"]),
             )
         if include_terminal_artifact_cli_fallback_route:
             _add_contract_alias_fingerprints(

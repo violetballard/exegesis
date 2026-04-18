@@ -1641,7 +1641,15 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             shell_manifest["contract_fingerprint"],
         )
         self.assertEqual(
+            manifest["contract_fingerprints"]["shell_ui_contract_fingerprint"],
+            shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
             fingerprints["shell_ui_contract"],
+            shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["shell_ui_contract_fingerprint"],
             shell_manifest["contract_fingerprint"],
         )
         self.assertEqual(
@@ -1664,6 +1672,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(fingerprints, manifest["contract_fingerprints"])
         self.assertEqual(
             fingerprints["shell_ui_contract"],
+            shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["shell_ui_contract_fingerprint"],
             shell_manifest["contract_fingerprint"],
         )
         self.assertEqual(
