@@ -351,6 +351,9 @@ def describe_a2ui_contract(
     manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprints"] = _snapshot_contract_section(
         terminal_artifact_contract["raw_leaf_card_default_contract_fingerprints"]
     )
+    manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(
+        manifest["terminal_artifact_raw_leaf_card_default_contract_fingerprints"]
+    )
     manifest["terminal_artifact_raw_leaf_card_default_contract"] = _snapshot_contract_section(
         terminal_artifact_raw_leaf_card_default
     )
@@ -623,6 +626,14 @@ def describe_a2ui_contract_fingerprints(
             (
                 "terminal_artifact_raw_leaf_card_default_contract",
                 terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+            ),
+            (
+                "terminal_artifact_raw_leaf_card_default_contract_fingerprints",
+                _fingerprint_manifest_section(describe_terminal_artifact_raw_leaf_card_default_contract_fingerprints()),
+            ),
+            (
+                "terminal_artifact_raw_leaf_card_default_contract_fingerprints_fingerprint",
+                _fingerprint_manifest_section(describe_terminal_artifact_raw_leaf_card_default_contract_fingerprints()),
             ),
             (
                 "terminal_artifact_raw_leaf_card_default_policy",
