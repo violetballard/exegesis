@@ -695,7 +695,13 @@ def describe_shell_ui_contract_fingerprints(
         "terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint": (
             terminal_artifact_cli_fallback_route_contract["contract_fingerprints_fingerprint"]
         ),
+        "terminal_artifact_cli_fallback_route_contract_fingerprints": (
+            terminal_artifact_cli_fallback_route_contract["contract_fingerprints_fingerprint"]
+        ),
         "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint": (
+            terminal_artifact_cli_fallback_target_contract["contract_fingerprints_fingerprint"]
+        ),
+        "terminal_artifact_cli_fallback_target_contract_fingerprints": (
             terminal_artifact_cli_fallback_target_contract["contract_fingerprints_fingerprint"]
         ),
         "terminal_artifact_cli_fallback": terminal_artifact_cli_fallback_contract_fingerprint_value,
