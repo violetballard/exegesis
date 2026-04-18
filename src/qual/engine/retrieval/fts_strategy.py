@@ -173,13 +173,13 @@ class FTSStrategy:
             }
         return {
             "max_results": FTSStrategy._normalize_optional_int(payload.get("max_results"), default=10),
-            "doc_types": FTSStrategy._normalize_list_like(payload.get("doc_types")),
+            "doc_types": FTSStrategy._normalize_doc_types(payload.get("doc_types")),
             "date_range": FTSStrategy._normalize_date_range(payload.get("date_range")),
             "require_citations": FTSStrategy._normalize_optional_bool(
                 payload.get("require_citations"),
                 default=False,
             ),
-            "section_hint": FTSStrategy._normalize_text(payload.get("section_hint")),
+            "section_hint": FTSStrategy._normalize_query_hint(payload.get("section_hint")),
             "prefer_exact_matches": FTSStrategy._normalize_optional_bool(
                 payload.get("prefer_exact_matches"),
                 default=False,
@@ -253,6 +253,14 @@ class FTSStrategy:
             text for item in items if (text := FTSStrategy._normalize_text(item)) is not None
         }
         return sorted(normalized)
+
+    @staticmethod
+    def _normalize_doc_types(value: object) -> list[str]:
+        return FTSStrategy._normalize_list_like(value)
+
+    @staticmethod
+    def _normalize_query_hint(value: object) -> str | None:
+        return FTSStrategy._normalize_text(value)
 
     @staticmethod
     def _normalize_optional_list_like(value: object) -> list[str] | None:

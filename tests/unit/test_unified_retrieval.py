@@ -2778,6 +2778,41 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(replayed.hits, ["fresh-hit"])
         self.assertEqual(runner_hits, [])
 
+    def test_fts_strategy_normalizes_doc_type_and_section_hint_case_in_mapping_queries(self) -> None:
+        runner_hits = [["fresh-hit"]]
+        strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: list(runner_hits.pop(0)))
+        mapping_query = {
+            "query_text": "discussion theory",
+            "scope": "doc:doc-pdf-1",
+            "intent": "outline_support",
+            "constraints": {
+                "max_results": 6,
+                "doc_types": [" PDF ", "Memo", "pdf"],
+                "section_hint": "  Discussion Notes  ",
+            },
+            "confidentiality_profile": "CONFIDENTIAL",
+        }
+        dataclass_query = RetrievalQuery(
+            query_text="discussion theory",
+            scope="doc:doc-pdf-1",
+            intent="outline_support",
+            constraints=RetrievalConstraints(
+                max_results=6,
+                doc_types=("memo", "pdf"),
+                section_hint="discussion notes",
+            ),
+            confidentiality_profile="confidential",
+        )
+
+        first = strategy.retrieve(mapping_query, candidate_doc_ids=("doc-a",))
+        replayed = strategy.retrieve(dataclass_query, candidate_doc_ids=("doc-a",))
+
+        self.assertFalse(first.cache_used)
+        self.assertEqual(first.hits, ["fresh-hit"])
+        self.assertTrue(replayed.cache_used)
+        self.assertEqual(replayed.hits, ["fresh-hit"])
+        self.assertEqual(runner_hits, [])
+
     def test_fts_strategy_does_not_alias_case_distinct_scoped_ids_in_cache(self) -> None:
         runner_hits = [["upper-hit"], ["lower-hit"]]
         strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: list(runner_hits.pop(0)))
