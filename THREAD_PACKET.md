@@ -103,6 +103,12 @@ This slice is limited to hardening the FTS-first retrieval and excerpt lookup co
 
 ## Required handoff fields
 
+### Canonical demo-path step advanced
+
+- `retrieve relevant material`
+- This change makes `retrieve relevant material` more real by enforcing FTS-only excerpt lookup on the canonical retrieval surface.
+- Deterministic FTS-only excerpt and provenance output keeps downstream basket promotion auditable and avoids PageIndex fallback ambiguity.
+
 ### Roadmap item(s) affected
 
 - `Milestone 3: Real workflow loop`
