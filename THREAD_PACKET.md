@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `reviewer-fix packet regeneration`
-- Current branch tip before this fixer pass: `8f99d4bbc116`
+- Current branch tip before this fixer pass: `3f010faf88f6`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet-only descendants above the reviewed implementation head: metadata-only packet refresh commits; final HEAD SHA is reported with the fixer handoff
@@ -51,7 +51,7 @@
 
 - `retrieve relevant material`
 
-This handoff advances `retrieve relevant material` by making `fetch_excerpt()` fail closed on canonical SQLite FTS hits, which keeps downstream basket promotion and audit provenance tied to deterministic FTS-backed excerpt payloads.
+This handoff advances the canonical demo-path step `retrieve relevant material` by making `fetch_excerpt()` fail closed unless the excerpt exists on the canonical SQLite FTS path, which keeps downstream basket promotion and audit provenance tied to deterministic, auditable FTS-backed excerpt payloads.
 
 ## Tasks completed
 
@@ -78,7 +78,7 @@ This handoff advances `retrieve relevant material` by making `fetch_excerpt()` f
 ## Reviewer fix closure
 
 1. The packet now states explicitly which canonical demo-path step this change advances.
-2. That statement is tied to the narrowed scope: this change strengthens `retrieve relevant material` by making `fetch_excerpt()` fail closed on canonical SQLite FTS hits and preserving deterministic provenance payloads.
+2. That statement is tied to the narrowed scope: this change strengthens `retrieve relevant material` by making `fetch_excerpt()` fail closed unless the excerpt exists on the canonical SQLite FTS path and preserving deterministic, auditable provenance payloads.
 3. The reviewed scope remains narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and is not broadened by this fixer pass.
 4. This handoff packet is the writable source of truth for the reviewer-required metadata corrections in this worktree.
 
