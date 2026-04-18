@@ -4580,7 +4580,11 @@ def _selection_ref_to_dict(selection: SelectionRef | Mapping[str, Any]) -> dict[
             selection_dict["disabled"] = selection.disabled
         return selection_dict
     if isinstance(selection, Mapping):
-        return dict(selection)
+        selection_dict = dict(selection)
+        selection_type = selection_dict.get("type")
+        if isinstance(selection_type, str) and selection_type.strip() == "SelectionRef":
+            selection_dict.pop("type", None)
+        return selection_dict
     raise ValueError("SelectionRef must be an object")
 
 
@@ -4597,7 +4601,11 @@ def _action_ref_to_dict(action: ActionRef | Mapping[str, Any]) -> dict[str, Any]
             action_dict["policy_sensitive"] = action.policy_sensitive
         return action_dict
     if isinstance(action, Mapping):
-        return dict(action)
+        action_dict = dict(action)
+        action_type = action_dict.get("type")
+        if isinstance(action_type, str) and action_type.strip() == "ActionRef":
+            action_dict.pop("type", None)
+        return action_dict
     raise ValueError("ActionRef must be an object")
 
 

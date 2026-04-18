@@ -99,8 +99,10 @@ from src.qual.ui.a2ui import (
     TERMINAL_ARTIFACT_RAW_LEAF_CARD_DEFAULT_SCHEMA_VERSION,
     _build_a2ui_schema_versions_manifest,
     studio_materialize_card,
+    validate_action_ref,
     validate_terminal_artifact_envelope,
     validate_generic_card,
+    validate_selection_ref,
 )
 from src.qual.ui.shell import (
     SHELL_UI_CONTRACT_VERSION,
@@ -7483,6 +7485,41 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                     ],
                 }
             )
+
+    def test_typed_action_and_selection_mappings_are_valid_leaf_contract_inputs(self) -> None:
+        validate_action_ref(
+            {"type": "ActionRef", "id": "export_document", "label": "Export", "payload": {"format": "md"}}
+        )
+        validate_selection_ref(
+            {
+                "type": "SelectionRef",
+                "id": "choice-1",
+                "label": "Choice",
+                "payload": {"nested": {"items": [1, 2]}},
+            }
+        )
+
+    def test_terminal_renderer_preserves_typed_action_refs_inside_generic_card_actions(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Run Log",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+            "actions": [
+                {
+                    "type": "ActionRef",
+                    "id": "copy_to_clipboard",
+                    "label": "Copy JSON",
+                    "payload": {"text": "{}"},
+                }
+            ],
+        }
+
+        validate_generic_card(card)
+        text = render_terminal_card(card)
+
+        self.assertIn("[GenericCard] Run Log", text)
+        self.assertIn("- Copy JSON (copy_to_clipboard)", text)
+        self.assertNotIn("Actions filtered out by allowlist or validation", text)
 
     def test_engine_materializes_generic_cards_by_sanitizing_unsupported_content(self) -> None:
         card = engine_prepare_card(
