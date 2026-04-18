@@ -62,7 +62,7 @@
 ## Resubmission Refresh
 
 - Refresh date: `2026-04-18`
-- Refresh purpose: leave a new metadata-only fixer commit that records a fresh full gate rerun against the current branch tip and keeps the packet anchored to the actual implementation state already on this branch.
+- Refresh purpose: leave a new metadata-only fixer commit that records the fresh `2026-04-18T21:14:57Z` UTC full gate rerun against the current branch tip and keeps the packet anchored to the actual implementation state already on this branch.
 - Review request: treat this packet as the current source of truth for the `feat-commands` re-review.
 
 ## Canonical Demo-Path Step Advanced
@@ -124,7 +124,7 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-18`
-- Verification timestamp (UTC): `2026-04-18T21:09:12Z`
+- Verification timestamp (UTC): `2026-04-18T21:14:57Z`
 
 ### Risks / Blockers
 
