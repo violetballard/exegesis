@@ -45,12 +45,14 @@
 - Review basis remains the command-catalog implementation at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Packet refresh commit `f70b5c46acb14da462c2c739ba3fbb5e7013a758` is metadata-only.
 - This fixer adds one more metadata-only handoff refresh on top of that slice.
+- Approval basis for re-review stays anchored to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this packet refresh does not broaden the implementation claim.
 
 ## Reviewer Required Fixes Satisfied
 
 1. The handoff packet now explicitly names the canonical demo-path step advanced by this change using the current `AGENTS.md` and `ROADMAP.md` wording: `open project/document`.
 2. The packet now states the concrete blocker removed on that path: silent parser/catalog drift could break the deterministic bootstrap CLI contract and its smoke-test coverage for `open project/document`.
 3. The scope statement stays narrow and describes this work as deterministic command-contract hardening only, not broader workflow or UI progress.
+4. The vision mapping is intentionally limited to `Canonical engine contract`; no auditable-state claim is carried forward.
 
 ## Scope Completed
 
