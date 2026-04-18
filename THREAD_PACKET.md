@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: make the canonical operator CLI step `open project/document` more real by keeping its command contract deterministic, rejecting parser-surface drift against the catalog, and resubmitting an accurate handoff packet against the current branch implementation.
+- Scope goal: make the canonical operator CLI step `open project/document` more real by keeping its command contract deterministic and rejecting parser-surface drift against the catalog.
 - Risk reason: the branch includes the approved shared-test path `tests/unit/test_commands_catalog.py`, so this fixer pass stays on the high-risk template even though the current refresh is metadata only.
 
 ### Budget
@@ -62,7 +62,7 @@
 ## Resubmission Refresh
 
 - Refresh date: `2026-04-18`
-- Refresh purpose: leave a new metadata-only fixer commit that records the fresh `2026-04-18T22:02:54Z` UTC full gate rerun against the current branch tip and keeps the packet anchored to the actual implementation state already on this branch.
+- Refresh purpose: leave a new metadata-only fixer commit that records the fresh `2026-04-18T22:06:46Z` UTC full gate rerun against the current branch tip and keeps the packet anchored to the actual implementation state already on this branch.
 - Plan-alignment note: this resubmission is specifically for the canonical operator CLI step `open project/document`; it makes that step more real by ensuring the parser-facing CLI surface stays identical to the declared command catalog and fails fast if it drifts.
 - Review request: treat this packet as the current source of truth for the `feat-commands` re-review.
 
@@ -79,8 +79,12 @@
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the default command catalog validates the full accepted parser surface for the canonical `open project/document` CLI step instead of only the deduplicated canonical-name projection.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for alias substitution, reordered parser entrypoints, extra entrypoints, dropped entrypoints, and related parser-surface drift cases.
 - Preserved deterministic catalog helpers and branch-tip lane-owned command-surface exports in `src/qual/commands/__init__.py`.
-- Refreshed the handoff packet so re-review uses the real current implementation basis instead of the stale `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` anchor.
 - Scope guard: this resubmission does not add new commands, new flags, or CLI UX expansion; it only hardens the existing `open project/document` CLI contract on the current MVP path.
+
+## Metadata-Only Fixer Refresh
+
+- Refreshed the handoff packet so re-review uses the real current implementation basis instead of the stale `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` anchor.
+- Re-ran the required local gates for this fixer pass and recorded the current outcomes below.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -99,12 +103,16 @@
 
 - Branch name: `codex/feat-commands`
 
-### Tasks Completed (Numbered)
+### Implementation Tasks Completed (Numbered)
 
 1. Verified that the current branch tip already contains the reviewer-requested parser-surface validation in `src/qual/commands/catalog.py`.
 2. Verified that the required regression tests for alias substitution, extra entrypoints, dropped entrypoints, and reordered entrypoints are present and passing in `tests/unit/test_commands_catalog.py`.
-3. Refreshed the handoff packet so it points to the actual current implementation review basis `6e8d077b67056fd0f5b890bcb840485eca4d7b7e`, and tied the roadmap/vision mapping directly to the canonical `open project/document` demo-path step instead of broad CLI compatibility language.
-4. Re-ran the required local gates and recorded outcomes for this fixer pass.
+3. Verified that the roadmap and vision mapping now tie this work directly to the canonical `open project/document` demo-path step and the concrete parser/catalog drift blocker it removes.
+
+### Metadata-Only Fixer Actions
+
+- Refreshed the handoff packet so it points to the actual current implementation review basis `6e8d077b67056fd0f5b890bcb840485eca4d7b7e`.
+- Re-ran the required local gates and recorded outcomes for this fixer pass.
 
 ### Files Changed
 
@@ -125,7 +133,7 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-18`
-- Verification timestamp (UTC): `2026-04-18T22:02:54Z`
+- Verification timestamp (UTC): `2026-04-18T22:06:46Z`
 
 ### Risks / Blockers
 
