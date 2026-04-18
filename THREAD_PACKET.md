@@ -45,6 +45,8 @@
 
 This handoff explicitly advances the canonical demo-path step `retrieve relevant material`. It does so by keeping public excerpt lookup on the FTS-only retrieval contract and by preserving deterministic, auditable excerpt behavior for downstream basket promotion and workflow use.
 
+The removal of the PageIndex excerpt fallback and the fail-closed regression test both strengthen the same canonical demo-path step, `retrieve relevant material`, rather than broadening scope into alternate retrieval flows.
+
 ## Tasks completed
 
 1. Kept excerpt lookup on the FTS-only contract and tightened sparse excerpt query/provenance normalization so stale or partial excerpt context fails closed instead of rehydrating incorrect runtime state.
@@ -91,6 +93,7 @@ This handoff explicitly advances the canonical demo-path step `retrieve relevant
 2. Corrected the traceability note so `1d0b5377bff5a5b45845c0f00e7f106eeae6f2ed` is treated as reviewed runtime code, not as a metadata-only packet refresh.
 3. Updated `Scope completed`, `Files changed`, and the validation notes to match the real reviewed range.
 4. Restated the canonical demo-path step explicitly as `retrieve relevant material`.
+5. Tied the two completed reviewer-scoped tasks to that same step in one sentence: removing the PageIndex excerpt fallback and adding the fail-closed regression test both reinforce `retrieve relevant material`, not alternate retrieval flows.
 
 ## Risks / blockers
 
