@@ -44,7 +44,7 @@
 
 - Reviewer snapshot called out implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and requested additional fixes before re-review.
 - Current branch state carries those fixes forward on top of that snapshot instead of preserving it as the final implementation anchor.
-- Latest verification baseline before this packet refresh: `34d819d74b7603c69f9eef4a0c9c61c1020635b1`.
+- Latest verification baseline before this packet refresh: `8ee235cd6df55e7709370c26ebeb4ef2eeef3fc9`.
 - Current implementation under review lives in:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -100,7 +100,7 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-18`
-- Verification baseline before this packet refresh: `34d819d74b7603c69f9eef4a0c9c61c1020635b1`
+- Verification baseline before this packet refresh: `8ee235cd6df55e7709370c26ebeb4ef2eeef3fc9`
 
 ### Risks / Blockers
 

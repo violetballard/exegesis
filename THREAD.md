@@ -15,4 +15,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `THREAD_PACKET.md`
 - The protected canonical demo-path step is `open project/document`.
 - The concrete blocker removed is silent parser/catalog drift changing the operator-facing bootstrap CLI surface while the CLI remains the active MVP entrypoint.
-- The latest successful full-gate verification before this packet refresh was recorded at `34d819d74b7603c69f9eef4a0c9c61c1020635b1`.
+- The latest successful full-gate verification before this packet refresh was recorded at `8ee235cd6df55e7709370c26ebeb4ef2eeef3fc9`.
