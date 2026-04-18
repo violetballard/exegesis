@@ -3724,6 +3724,8 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
     requested_kind = None
     if kind is not None:
         requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+    if requested_kind == "card" and _is_explicit_terminal_artifact_leaf_mapping(artifact):
+        raise ValueError("TerminalArtifact card artifact must not use action or selection payload shape")
     if requested_kind is None and _should_preserve_raw_leaf_card_default(artifact):
         try:
             return render_terminal_card(artifact)
@@ -3879,6 +3881,11 @@ def resolve_terminal_artifact_cli_fallback_target(
 
     requested_kind = _normalize_terminal_artifact_kind_hint(kind)
     if requested_kind is None and _should_preserve_raw_leaf_card_default(artifact):
+        return artifact, "card"
+    if requested_kind == "card" and _is_explicit_terminal_artifact_leaf_mapping(artifact):
+        # Explicit leaf mappings should stay on the card path so the CLI
+        # fallback can surface the safe invalid-card renderer instead of
+        # reinterpreting typed leaf JSON as a leaf selection.
         return artifact, "card"
     if requested_kind is None and isinstance(artifact, Mapping):
         artifact_type = artifact.get("type")
@@ -4491,6 +4498,15 @@ def _contains_action_or_selection_payload(
 def _is_explicit_terminal_artifact_leaf(artifact: Any) -> bool:
     if isinstance(artifact, (ActionRef, SelectionRef)):
         return True
+    if not isinstance(artifact, Mapping):
+        return False
+    artifact_type = artifact.get("type")
+    if not isinstance(artifact_type, str):
+        return False
+    return artifact_type.strip() in {"ActionRef", "SelectionRef"}
+
+
+def _is_explicit_terminal_artifact_leaf_mapping(artifact: Any) -> bool:
     if not isinstance(artifact, Mapping):
         return False
     artifact_type = artifact.get("type")

@@ -3230,6 +3230,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             (raw_leaf, "card"),
         )
 
+    def test_terminal_artifact_cli_fallback_target_resolver_keeps_explicit_typed_leaf_mappings_on_card_path(
+        self,
+    ) -> None:
+        action = {
+            "type": "ActionRef",
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+        selection = {
+            "type": "SelectionRef",
+            "id": "choice-1",
+            "label": "Choice",
+            "payload": {"nested": {"items": [1, 2]}},
+        }
+
+        self.assertEqual(resolve_terminal_artifact_cli_fallback_target(action, kind="card"), (action, "card"))
+        self.assertEqual(
+            resolve_terminal_artifact_cli_fallback_target(selection, kind="card"),
+            (selection, "card"),
+        )
+
     def test_terminal_artifact_cli_fallback_target_resolver_keeps_ambiguous_raw_leaf_payloads_on_card_default_for_malformed_envelope_kinds(
         self,
     ) -> None:
