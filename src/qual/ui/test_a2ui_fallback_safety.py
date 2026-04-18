@@ -23,6 +23,7 @@ from src.qual.ui.a2ui import (
     card_contract_fingerprint,
     action_contract_fingerprint,
     a2ui_capabilities_contract_fingerprint,
+    a2ui_contract_fingerprint,
     build_unknown_card,
     describe_a2ui_contract,
     describe_a2ui_contract_fingerprints,
@@ -1403,11 +1404,17 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             fingerprints_with_aliases["terminal_artifact_cli_fallback_target_contract_fingerprints"],
-            describe_terminal_artifact_cli_fallback_target_contract_fingerprints(),
+            describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
+                include_terminal_artifact_cli_fallback_route=True,
+            ),
         )
         self.assertEqual(
             fingerprints_with_aliases["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"],
-            _fingerprint_manifest_section(describe_terminal_artifact_cli_fallback_target_contract_fingerprints()),
+            _fingerprint_manifest_section(
+                describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
+                    include_terminal_artifact_cli_fallback_route=True,
+                )
+            ),
         )
         self.assertEqual(
             fingerprints_with_aliases["terminal_artifact_cli_fallback_route_contract_fingerprints"],
@@ -1611,6 +1618,61 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints["terminal_artifact"],
             terminal_artifact_contract_fingerprint(include_terminal_artifact_cli_fallback_route=True),
+        )
+
+    def test_a2ui_contract_can_opt_in_to_shell_ui_contract_snapshot(self) -> None:
+        default_manifest = describe_a2ui_contract()
+        shell_manifest = describe_shell_ui_contract()
+        manifest = describe_a2ui_contract(include_shell_ui_contract=True)
+        fingerprints = describe_a2ui_contract_fingerprints(include_shell_ui_contract=True)
+        aliased_fingerprints = describe_a2ui_contract_fingerprints(
+            include_shell_ui_contract=True,
+            include_contract_aliases=True,
+        )
+
+        self.assertNotIn("shell_ui_contract", default_manifest)
+        self.assertEqual(manifest["shell_ui_contract"], shell_manifest)
+        self.assertEqual(
+            manifest["shell_ui_contract_fingerprint"],
+            shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["shell_ui_contract"],
+            shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["shell_ui_contract"],
+            shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            aliased_fingerprints["shell_ui_contract_fingerprint"],
+            shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["contract_fingerprint"],
+            a2ui_contract_fingerprint(include_shell_ui_contract=True),
+        )
+
+    def test_a2ui_dispatch_contract_fingerprints_can_opt_into_shell_ui_contract_snapshot(self) -> None:
+        shell_manifest = describe_shell_ui_contract(include_terminal_artifact_cli_fallback_route=True)
+        manifest = describe_a2ui_contract(
+            include_terminal_artifact_cli_fallback_route=True,
+            include_shell_ui_contract=True,
+        )
+        fingerprints = describe_a2ui_dispatch_contract_fingerprints(include_shell_ui_contract=True)
+
+        self.assertEqual(fingerprints, manifest["contract_fingerprints"])
+        self.assertEqual(
+            fingerprints["shell_ui_contract"],
+            shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract"],
+            shell_manifest,
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract_fingerprint"],
+            shell_manifest["contract_fingerprint"],
         )
 
     def test_a2ui_contract_fingerprint_map_can_opt_into_raw_leaf_card_default_dispatch(self) -> None:
