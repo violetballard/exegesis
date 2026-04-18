@@ -376,10 +376,35 @@ def _normalize_policy_snapshot(policy: object) -> dict[str, object]:
 
 def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(citation_bundle)
+    for field_name in ("query_fingerprint", "result_fingerprint", "doc_hits_fingerprint", "excerpt_hits_fingerprint"):
+        field_value = _normalize_optional_text(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+    query_scope = _normalize_query_scope(normalized.get("query_scope"))
+    if query_scope is not None:
+        normalized["query_scope"] = query_scope
+    query_intent = _normalize_query_intent(normalized.get("query_intent"))
+    if query_intent is not None:
+        normalized["query_intent"] = query_intent
+    query_confidentiality_profile = _normalize_query_confidentiality_profile(
+        normalized.get("query_confidentiality_profile")
+    )
+    if query_confidentiality_profile is not None:
+        normalized["query_confidentiality_profile"] = query_confidentiality_profile
     normalized["query_date_range"] = _normalize_query_date_range(normalized.get("query_date_range"))
     normalized["fts_shortlist_doc_ids"] = _normalize_text_list_like(normalized.get("fts_shortlist_doc_ids"))
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
+    for field_name in ("candidate_doc_count", "doc_count", "excerpt_count"):
+        field_value = _normalize_optional_int(normalized.get(field_name))
+        if field_value is not None:
+            normalized[field_name] = field_value
+    retrieval_backend = _normalize_optional_casefold_text(normalized.get("retrieval_backend"))
+    if retrieval_backend is not None:
+        normalized["retrieval_backend"] = retrieval_backend
+    retrieval_mode = _normalize_optional_casefold_text(normalized.get("retrieval_mode"))
+    if retrieval_mode is not None:
+        normalized["retrieval_mode"] = retrieval_mode
     normalized["doc_citations"] = _normalize_doc_citations(normalized.get("doc_citations"))
     normalized["excerpt_citations"] = _normalize_excerpt_citations(normalized.get("excerpt_citations"))
     retrieval_policy = normalized.get("retrieval_policy")
