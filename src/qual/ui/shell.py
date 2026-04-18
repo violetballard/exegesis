@@ -40,6 +40,7 @@ from .a2ui import (
     _render_invalid_terminal_card,
     _render_invalid_terminal_selection,
     _is_malformed_terminal_artifact_envelope,
+    _infer_terminal_artifact_kind_from_mapping,
     _normalize_terminal_artifact_envelope_kind,
     _infer_terminal_artifact_explicit_kind,
     _recover_terminal_artifact_leaf_kind,
@@ -246,24 +247,12 @@ class ShellUI:
             # leaf inference can reinterpret the same payload as action or selection.
             return "card"
 
-        artifact_type = artifact.get("type")
-        if isinstance(artifact_type, str):
-            normalized_type = artifact_type.strip()
-            if normalized_type == "ActionRef":
-                return "action"
-            if normalized_type == "SelectionRef":
-                return "selection"
-            if normalized_type and normalized_type != "TerminalArtifact":
-                # Any other typed mapping should still render as a card even if
-                # the surrounding envelope metadata is broken.
-                return "card"
-
-        if (not isinstance(artifact_type, str) or not artifact_type.strip()) and any(
-            field in artifact for field in ("blocks", "actions")
-        ):
-            # Untyped card-shaped payloads should stay on the card path even if
-            # they carry stray action/selection-style fields.
-            return "card"
+        # Keep the shell fallback classifier in lockstep with the shared
+        # A2UI mapping classifier so card/action/selection detection stays
+        # consistent between direct rendering and fallback recovery.
+        shared_kind = _infer_terminal_artifact_kind_from_mapping(artifact)
+        if shared_kind is not None:
+            return shared_kind
 
         has_required_fields = all(field in artifact for field in ("id", "label", "payload"))
         if not has_required_fields:

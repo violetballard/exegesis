@@ -63,6 +63,7 @@ from src.qual.ui.a2ui import (
     render_terminal_cli_fallback,
     render_terminal_card,
     render_terminal_selection,
+    _infer_terminal_artifact_kind_from_mapping,
     refine_terminal_artifact_cli_fallback_target,
     _render_payload_preview,
     SelectionRef,
@@ -6329,6 +6330,43 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(shell._infer_fallback_kind(action_like_raw_leaf), "card")
         self.assertEqual(shell._infer_fallback_kind(selection_like_raw_leaf), "card")
+
+    def test_shell_ui_infer_fallback_kind_stays_in_lockstep_with_shared_mapping_classifier(self) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "card",
+                {
+                    "type": "GenericCard",
+                    "title": "Run Log",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+                    "actions": [],
+                },
+            ),
+            (
+                "action",
+                {
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                    "confirm": {"title": "Approve", "message": "Export now?"},
+                },
+            ),
+            (
+                "selection",
+                {
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                    "selected": True,
+                },
+            ),
+        ]
+
+        for expected_kind, artifact in cases:
+            with self.subTest(kind=expected_kind):
+                self.assertEqual(_infer_terminal_artifact_kind_from_mapping(artifact), expected_kind)
+                self.assertEqual(shell._infer_fallback_kind(artifact), expected_kind)
 
     def test_shell_ui_prefers_partial_leaf_hints_over_generic_card_fallbacks(self) -> None:
         shell = ShellUI()
