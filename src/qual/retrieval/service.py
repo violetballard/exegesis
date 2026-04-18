@@ -976,6 +976,7 @@ class RetrievalResult:
             "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
+            "policy": copy.deepcopy(self.diagnostics["retrieval_policy"]),
             "retrieval_policy": copy.deepcopy(self.diagnostics["retrieval_policy"]),
             "active_strategy_ids": active_strategy_ids,
             "deferred_strategy_ids": deferred_strategy_ids,
@@ -1316,6 +1317,7 @@ class RetrievalResult:
             "result_fingerprint": self.result_fingerprint,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
+            "policy": copy.deepcopy(retrieval_policy),
             "retrieval_policy": retrieval_policy,
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
@@ -1521,6 +1523,7 @@ class RetrievalResult:
             ),
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
+            "policy": copy.deepcopy(retrieval_policy),
             "retrieval_policy": retrieval_policy,
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
@@ -3853,6 +3856,7 @@ class RetrievalService:
             "retrieval_mode": _normalized_profile_text(
                 excerpt.get("retrieval_mode") or provenance.get("retrieval_mode")
             ),
+            "policy": copy.deepcopy(retrieval_policy),
             "retrieval_policy": retrieval_policy,
             "active_strategy_ids": active_strategy_ids,
             "deferred_strategy_ids": deferred_strategy_ids,

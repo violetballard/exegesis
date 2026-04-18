@@ -432,9 +432,12 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
         normalized["retrieval_mode"] = retrieval_mode
     normalized["doc_citations"] = _normalize_doc_citations(normalized.get("doc_citations"))
     normalized["excerpt_citations"] = _normalize_excerpt_citations(normalized.get("excerpt_citations"))
-    retrieval_policy = normalized.get("retrieval_policy")
+    retrieval_policy = normalized.get("retrieval_policy", normalized.get("policy"))
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+        normalized["policy"] = copy.deepcopy(normalized["retrieval_policy"])
+    elif "policy" in normalized:
+        normalized["policy"] = {}
     citation_status = normalized.get("citation_status")
     if isinstance(citation_status, dict):
         normalized["citation_status"] = copy.deepcopy(citation_status)
@@ -1304,9 +1307,12 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
             normalized[field_name] = field_value
         elif field_name in normalized:
             normalized[field_name] = None
-    retrieval_policy = normalized.get("retrieval_policy")
+    retrieval_policy = normalized.get("retrieval_policy", normalized.get("policy"))
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+        normalized["policy"] = copy.deepcopy(normalized["retrieval_policy"])
+    elif "policy" in normalized:
+        normalized["policy"] = {}
     elif "retrieval_policy" in normalized:
         normalized["retrieval_policy"] = {}
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
@@ -2877,10 +2883,17 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     normalized["retrieval_mode"] = _normalize_optional_casefold_text(normalized.get("retrieval_mode"))
     if _is_missing_snapshot_value(normalized.get("retrieval_policy")):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(
-            summary.get("retrieval_policy", diagnostics.get("retrieval_policy", {}))
+            summary.get(
+                "retrieval_policy",
+                summary.get(
+                    "policy",
+                    diagnostics.get("retrieval_policy", diagnostics.get("policy", {})),
+                ),
+            )
         )
     else:
         normalized["retrieval_policy"] = _normalize_policy_snapshot(normalized["retrieval_policy"])
+    normalized["policy"] = copy.deepcopy(normalized["retrieval_policy"])
     if "active_strategy_ids" not in normalized or _is_missing_snapshot_value(normalized.get("active_strategy_ids")):
         normalized["active_strategy_ids"] = _normalize_text_list_like(
             summary.get("active_strategy_ids", diagnostics.get("active_strategy_ids", []))
