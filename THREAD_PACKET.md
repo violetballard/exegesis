@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: reissue the reviewer packet without changing the approved command implementation, while making the metadata-only refresh fully auditable.
+- Scope goal: reissue the reviewer packet without changing the approved command implementation, while making the metadata-only refresh fully auditable and explicitly tying the reviewed command-catalog check to the canonical `open project/document` demo-path step.
 - Risk reason: this fixer pass touches shared handoff metadata (`THREAD.md`, `THREAD_PACKET.md`) and must preserve the existing implementation approval basis exactly.
 
 ### Budget
@@ -18,8 +18,8 @@
 
 1. Restore the packet’s implementation review anchor to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 2. Fully enumerate the metadata files touched by the packet-refresh commit, including `THREAD.md`.
-3. Re-run the required gates on the current worktree and record the outcomes.
-4. Leave a packet-only fixer commit for re-review.
+3. Amend the roadmap/vision mapping so it names `open project/document`, the concrete parser/catalog drift failure it prevents, and why that matters to the active CLI-first MVP loop.
+4. Re-run the required gates on the current worktree, record the outcomes, and leave a packet-only fixer commit for re-review.
 
 ### Early Review Triggers
 
@@ -55,15 +55,17 @@
 
 ## Reviewer Required Fixes Satisfied
 
-1. The `Files changed` inventory now includes every file touched by the reviewer-cited packet-refresh commit `6ee4015b1b62fb44c2b81ac19be7cbf03440313f`, including `THREAD.md`.
-2. The implementation review target remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-3. The packet limits any metadata-only claim to explicitly enumerated metadata files.
-4. This fixer pass remains packet-only and does not modify command implementation.
+1. The packet now names the exact canonical demo-path step advanced by the reviewed implementation: `open project/document`.
+2. The scope justification now states the concrete operator-path failure being prevented: silent parser/catalog drift changing the bootstrap CLI entrypoint contract.
+3. The roadmap/vision mapping now explains why that check is necessary for the active CLI-first MVP loop while Textual remains disabled, not as general infrastructure hardening.
+4. The `Files changed` inventory still includes every file touched by the reviewer-cited packet-refresh commit `6ee4015b1b62fb44c2b81ac19be7cbf03440313f`, including `THREAD.md`.
+5. The implementation review target remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and this fixer pass remains packet-only.
 
 ## Scope Completed
 
 - Preserved the original implementation approval basis at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Corrected the packet so the metadata-refresh inventory is complete and auditable.
+- Stated the exact canonical demo-path step this lane hardens and the concrete CLI operator-path failure the reviewed command-catalog check prevents.
 - Re-ran the required gates after the metadata correction.
 - Scope boundary: no changes to `src/qual/commands/**` or test implementation in this fixer pass.
 
@@ -86,8 +88,8 @@
 
 1. Restored the packet traceability note so `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` remains the implementation review target.
 2. Completed the metadata-only `Files changed` inventory for the reviewer-cited packet-refresh commit `6ee4015b1b62fb44c2b81ac19be7cbf03440313f`, including `THREAD.md`.
-3. Re-ran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
-4. Left a packet-only re-review update that changes only `THREAD.md` and `THREAD_PACKET.md`.
+3. Rewrote the roadmap/vision mapping so it names `open project/document`, the parser/catalog drift blocker, and the CLI-first MVP-loop rationale directly in the handoff fields.
+4. Re-ran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ### Files Changed
 
@@ -121,13 +123,19 @@
 
 ### Roadmap item(s) affected
 
-- Milestone 3: preserve CLI compatibility while the package/layout migration lands so the MVP loop can still start with a stable `open project/document` command surface while Textual remains disabled.
-- `feat-commands`: keep the command catalog contract deterministic for the CLI-first MVP flow.
+- Milestone 3: preserve CLI compatibility while the package/layout migration lands so the canonical demo path can reliably start at `open project/document` while Textual remains disabled.
+- `feat-commands`: keep the CLI entrypoint catalog for `open project/document` migration-safe and deterministic so the CLI-first MVP loop does not silently drift away from the reviewed command contract.
 
 ### Vision capability affected
 
-- Writing-centered workflow: opening the project/document remains bound to a stable CLI contract.
-- Canonical engine contract: the packet preserves the previously reviewed command-catalog hardening as the active approval basis.
+- Writing-centered workflow: the canonical `open project/document` step remains reachable through a stable CLI entrypoint instead of a silently drifted parser surface.
+- Canonical engine contract: the reviewed command-catalog check fails fast if the parser surface stops matching the catalog order used by the engine-facing CLI contract.
+
+### Canonical demo-path step advanced
+
+- Step advanced: `open project/document`
+- Concrete blocker removed: without the reviewed `command_cli_contract()` consistency check, the CLI parser surface could drift from the canonical command catalog and still build a contract, which would let the operator-facing bootstrap entrypoint silently move out of sync with the reviewed MVP command order.
+- Why this is MVP-loop-specific: this lane keeps the active CLI-first engine loop trustworthy while Textual is disabled by making the very first operator step fail loudly on parser/catalog drift instead of degrading into an ambiguous or stale startup contract.
 
 ### Routing/provider impact note
 
