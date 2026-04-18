@@ -539,12 +539,12 @@ def describe_a2ui_contract_fingerprints(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         )
         shell_ui_contract_fingerprint = shell_ui_contract["contract_fingerprint"]
+        shell_ui_contract_fingerprints_fingerprint = shell_ui_contract["contract_fingerprints_fingerprint"]
         fingerprints["shell_ui_contract"] = shell_ui_contract_fingerprint
         fingerprints["shell_ui_contract_fingerprint"] = shell_ui_contract_fingerprint
         fingerprints["shell_ui_fingerprint"] = shell_ui_contract_fingerprint
-        fingerprints["shell_ui_contract_fingerprints_fingerprint"] = shell_ui_contract[
-            "contract_fingerprints_fingerprint"
-        ]
+        fingerprints["shell_ui_contract_fingerprints"] = shell_ui_contract_fingerprints_fingerprint
+        fingerprints["shell_ui_contract_fingerprints_fingerprint"] = shell_ui_contract_fingerprints_fingerprint
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
@@ -1920,6 +1920,9 @@ def _build_a2ui_contract_manifest(
         manifest["shell_ui_contract"] = shell_ui_contract
         manifest["shell_ui_contract_fingerprint"] = shell_ui_contract["contract_fingerprint"]
         manifest["shell_ui_fingerprint"] = shell_ui_contract["contract_fingerprint"]
+        manifest["shell_ui_contract_fingerprints"] = _snapshot_contract_section(
+            shell_ui_contract["contract_fingerprints"]
+        )
         manifest["shell_ui_contract_fingerprints_fingerprint"] = shell_ui_contract[
             "contract_fingerprints_fingerprint"
         ]
