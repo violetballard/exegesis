@@ -63,6 +63,7 @@ This handoff advances `retrieve relevant material` by keeping excerpt lookup, hi
 
 ## Files changed
 
+- Total files in the submitted reviewed range: `12`
 - Handoff metadata:
   - `.codex/kickoff_packets/feat-retrieval-fts.md`
   - `.codex/lane_meta/feat-retrieval-fts.json`
@@ -93,7 +94,9 @@ This handoff advances `retrieve relevant material` by keeping excerpt lookup, hi
 2. `Scope completed`, `Tasks completed`, and `Files changed` now explicitly include the non-metadata retrieval work that landed after `adfa8cda`, including payload, strategy, service, and regression-surface changes.
 3. Roadmap, vision, and demo-path mapping now describe the real cumulative retrieval scope through `cc6190fd...`, including basket-promotion constraints and rebuilt section-hint normalization.
 4. The required handoff fields now explicitly name the canonical demo-path step `retrieve relevant material` and tie it to the Milestone 3 FTS-first retrieval requirement instead of leaving that alignment implicit.
-5. The required gates are rerun and recorded against the resubmitted tree represented by this fixer pass.
+5. The packet now states the exact reviewed-range file count (`12`) so the resubmitted scope matches the branch diffstat the reviewer called out.
+6. The required gates are rerun and recorded against the resubmitted tree represented by this fixer pass.
+7. This fixer pass reconfirms the explicit demo-path mapping so plan alignment remains stated in the packet rather than inferred by the reviewer.
 
 ## Risks / blockers
 
