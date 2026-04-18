@@ -80,7 +80,7 @@ This packet is the handoff source of truth for re-review, and the required AGENT
 
 1. This packet now points at one unambiguous reviewed implementation scope: the single commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 2. `Scope completed`, `Files changed`, and the budget framing are restated against that exact reviewed implementation commit.
-3. The packet states explicitly which canonical demo-path step this change advances and how the FTS-only excerpt behavior strengthens that step.
+3. The packet states explicitly which canonical demo-path step this change advances and, in `Scope completed`, ties the FTS-only excerpt change directly to the Milestone 3 engine-side `retrieve relevant material` step rather than describing it as general cleanup.
 
 ## Risks / blockers
 
