@@ -53,6 +53,7 @@
 - `retrieve relevant material`
 
 This handoff advances `retrieve relevant material` by tightening the canonical retrieval contract around deterministic FTS behavior, excerpt lookup, cache-key normalization, and sparse payload rehydration that downstream basket promotion and workflow consumers can audit.
+This slice is limited to hardening the FTS-first retrieval and excerpt lookup contract for `retrieve relevant material`; it does not expand into basket promotion, workflow execution, UI work, or alternate retrieval modes.
 
 ## Tasks completed
 
