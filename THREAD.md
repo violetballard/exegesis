@@ -22,3 +22,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - The protected canonical demo-path step is `open project/document`.
 - Explicit handoff statement: this work advances the canonical `open project/document` demo-path step.
 - AGENTS alignment: this work strengthens the Milestone 3 CLI-first loop by keeping the CLI-first operator contract deterministic while Textual remains disabled, and by explicitly tracing the bootstrap command surface to the current branch tip.
+- This fixer pass stays metadata-only and is limited to `THREAD.md` and `THREAD_PACKET.md`.

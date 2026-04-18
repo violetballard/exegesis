@@ -55,9 +55,11 @@
 2. The handoff now covers the full live branch state rather than the earlier narrow `f8d860ed...` slice, so the scope, file inventory, and risk notes match the implementation under review.
 3. The AGENTS alignment is explicit: this work advances the canonical `open project/document` demo-path step and strengthens the Milestone 3 CLI-first loop by hardening the deterministic bootstrap command contract.
 4. The shared-file exception note now lists every non-owned/shared path in scope for the regenerated handoff instead of naming only one shared test file.
+5. This fixer pass stays metadata-only and does not expand the reviewed implementation scope beyond the handoff files needed to satisfy the reviewer packet.
 
 ## Scope Completed
 
+- Refreshed only the handoff metadata in `THREAD.md` and `THREAD_PACKET.md` for this fixer pass so the reviewer packet leaves a commit on `codex/feat-commands` without widening the implementation scope.
 - Expanded the command surface in `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, and `src/qual/commands/catalog.py` so trusted surface lookups, canonical/demo-path mappings, and parser-facing command resolution stay deterministic.
 - Updated `src/qual/commands/diff_preview.py` and the unit coverage in `tests/unit/test_diff_preview.py` to keep diff-preview behavior aligned with the current command surface.
 - Extended `tests/unit/test_commands_catalog.py` to cover the wider command-surface and parser-contract behavior now shipped on this branch tip.
