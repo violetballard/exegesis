@@ -377,7 +377,7 @@ def _normalize_policy_snapshot(policy: object) -> dict[str, object]:
 def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(citation_bundle)
     normalized["query_date_range"] = _normalize_query_date_range(normalized.get("query_date_range"))
-    normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized.get("fts_shortlist_doc_ids"))
+    normalized["fts_shortlist_doc_ids"] = _normalize_text_list_like(normalized.get("fts_shortlist_doc_ids"))
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
     normalized["doc_citations"] = _normalize_doc_citations(normalized.get("doc_citations"))
@@ -906,15 +906,15 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
         normalized["query_date_range"] = _normalize_query_date_range(normalized.get("query_date_range"))
     if "primary_title_hint" in normalized:
         normalized["primary_title_hint"] = _normalize_optional_text(normalized.get("primary_title_hint"))
-    normalized["doc_ids"] = _normalize_list_like(normalized.get("doc_ids"))
-    normalized["doc_fingerprints"] = _normalize_list_like(normalized.get("doc_fingerprints"))
-    normalized["doc_identity_fingerprints"] = _normalize_list_like(normalized.get("doc_identity_fingerprints"))
-    normalized["excerpt_ids"] = _normalize_list_like(normalized.get("excerpt_ids"))
-    normalized["excerpt_fingerprints"] = _normalize_list_like(normalized.get("excerpt_fingerprints"))
-    normalized["excerpt_text_hashes"] = _normalize_list_like(normalized.get("excerpt_text_hashes"))
-    normalized["top_excerpt_ids"] = _normalize_list_like(normalized.get("top_excerpt_ids"))
-    normalized["top_excerpt_fingerprints"] = _normalize_list_like(normalized.get("top_excerpt_fingerprints"))
-    normalized["top_excerpt_text_hashes"] = _normalize_list_like(normalized.get("top_excerpt_text_hashes"))
+    normalized["doc_ids"] = _normalize_text_list_like(normalized.get("doc_ids"))
+    normalized["doc_fingerprints"] = _normalize_text_list_like(normalized.get("doc_fingerprints"))
+    normalized["doc_identity_fingerprints"] = _normalize_text_list_like(normalized.get("doc_identity_fingerprints"))
+    normalized["excerpt_ids"] = _normalize_text_list_like(normalized.get("excerpt_ids"))
+    normalized["excerpt_fingerprints"] = _normalize_text_list_like(normalized.get("excerpt_fingerprints"))
+    normalized["excerpt_text_hashes"] = _normalize_text_list_like(normalized.get("excerpt_text_hashes"))
+    normalized["top_excerpt_ids"] = _normalize_text_list_like(normalized.get("top_excerpt_ids"))
+    normalized["top_excerpt_fingerprints"] = _normalize_text_list_like(normalized.get("top_excerpt_fingerprints"))
+    normalized["top_excerpt_text_hashes"] = _normalize_text_list_like(normalized.get("top_excerpt_text_hashes"))
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
     retrieval_policy = normalized.get("retrieval_policy")
@@ -930,15 +930,15 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
 
 def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(manifest)
-    normalized["doc_ids"] = _normalize_list_like(normalized.get("doc_ids"))
-    normalized["doc_fingerprints"] = _normalize_list_like(normalized.get("doc_fingerprints"))
-    normalized["doc_identity_fingerprints"] = _normalize_list_like(normalized.get("doc_identity_fingerprints"))
-    normalized["top_excerpt_ids"] = _normalize_list_like(normalized.get("top_excerpt_ids"))
-    normalized["top_excerpt_fingerprints"] = _normalize_list_like(normalized.get("top_excerpt_fingerprints"))
-    normalized["top_excerpt_text_hashes"] = _normalize_list_like(normalized.get("top_excerpt_text_hashes"))
-    normalized["excerpt_ids"] = _normalize_list_like(normalized.get("excerpt_ids"))
-    normalized["excerpt_fingerprints"] = _normalize_list_like(normalized.get("excerpt_fingerprints"))
-    normalized["excerpt_text_hashes"] = _normalize_list_like(normalized.get("excerpt_text_hashes"))
+    normalized["doc_ids"] = _normalize_text_list_like(normalized.get("doc_ids"))
+    normalized["doc_fingerprints"] = _normalize_text_list_like(normalized.get("doc_fingerprints"))
+    normalized["doc_identity_fingerprints"] = _normalize_text_list_like(normalized.get("doc_identity_fingerprints"))
+    normalized["top_excerpt_ids"] = _normalize_text_list_like(normalized.get("top_excerpt_ids"))
+    normalized["top_excerpt_fingerprints"] = _normalize_text_list_like(normalized.get("top_excerpt_fingerprints"))
+    normalized["top_excerpt_text_hashes"] = _normalize_text_list_like(normalized.get("top_excerpt_text_hashes"))
+    normalized["excerpt_ids"] = _normalize_text_list_like(normalized.get("excerpt_ids"))
+    normalized["excerpt_fingerprints"] = _normalize_text_list_like(normalized.get("excerpt_fingerprints"))
+    normalized["excerpt_text_hashes"] = _normalize_text_list_like(normalized.get("excerpt_text_hashes"))
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
     retrieval_policy = normalized.get("retrieval_policy")
@@ -950,7 +950,7 @@ def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[
 def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(evidence)
     normalized["query_date_range"] = _normalize_query_date_range(normalized.get("query_date_range"))
-    normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized.get("fts_shortlist_doc_ids"))
+    normalized["fts_shortlist_doc_ids"] = _normalize_text_list_like(normalized.get("fts_shortlist_doc_ids"))
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))
     normalized["doc_citations"] = _normalize_doc_citations(normalized.get("doc_citations"))
@@ -2723,11 +2723,11 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     else:
         normalized["candidate_doc_count"] = _normalize_optional_int(normalized.get("candidate_doc_count"))
     if "fts_shortlist_doc_ids" not in normalized or _is_missing_snapshot_value(normalized.get("fts_shortlist_doc_ids")):
-        normalized["fts_shortlist_doc_ids"] = _normalize_list_like(
+        normalized["fts_shortlist_doc_ids"] = _normalize_text_list_like(
             diagnostics.get("fts_shortlist_doc_ids", [])
         )
     else:
-        normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized["fts_shortlist_doc_ids"])
+        normalized["fts_shortlist_doc_ids"] = _normalize_text_list_like(normalized["fts_shortlist_doc_ids"])
     if _is_missing_snapshot_value(normalized.get("primary_doc_id")):
         normalized["primary_doc_id"] = summary.get("primary_doc_id")
     else:
@@ -2822,7 +2822,7 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     if _is_missing_snapshot_value(normalized.get("candidate_doc_count")):
         normalized["candidate_doc_count"] = citation_bundle.get("candidate_doc_count")
     if "fts_shortlist_doc_ids" not in normalized or _is_missing_snapshot_value(normalized.get("fts_shortlist_doc_ids")):
-        normalized["fts_shortlist_doc_ids"] = _normalize_list_like(
+        normalized["fts_shortlist_doc_ids"] = _normalize_text_list_like(
             citation_bundle.get("fts_shortlist_doc_ids", normalized.get("fts_shortlist_doc_ids", []))
         )
     doc_citations = citation_bundle.get("doc_citations", [])
