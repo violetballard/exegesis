@@ -487,9 +487,9 @@ def describe_a2ui_contract_fingerprints(
     requested, mirroring the manifest surface. Pass
     ``include_shell_ui_contract=True`` to opt into the shell adapter contract
     fingerprint used by the CLI fallback path. That opt-in also exposes the
-    canonical ``shell_ui_contract_fingerprint`` and ``shell_ui_fingerprint``
-    keys so the fingerprint map mirrors the embedded shell manifest more
-    closely.
+    canonical ``shell_ui_contract_fingerprint``, ``shell_ui_fingerprint``,
+    and ``shell_ui_contract_fingerprints_fingerprint`` keys so the fingerprint
+    map mirrors the embedded shell manifest more closely.
     """
 
     manifest = _build_a2ui_contract_manifest(
@@ -535,12 +535,16 @@ def describe_a2ui_contract_fingerprints(
             terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint()
         )
     if include_shell_ui_contract:
-        shell_ui_contract_fingerprint = _snapshot_shell_ui_contract(
+        shell_ui_contract = _snapshot_shell_ui_contract(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
-        )["contract_fingerprint"]
+        )
+        shell_ui_contract_fingerprint = shell_ui_contract["contract_fingerprint"]
         fingerprints["shell_ui_contract"] = shell_ui_contract_fingerprint
         fingerprints["shell_ui_contract_fingerprint"] = shell_ui_contract_fingerprint
         fingerprints["shell_ui_fingerprint"] = shell_ui_contract_fingerprint
+        fingerprints["shell_ui_contract_fingerprints_fingerprint"] = shell_ui_contract[
+            "contract_fingerprints_fingerprint"
+        ]
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
@@ -1916,6 +1920,9 @@ def _build_a2ui_contract_manifest(
         manifest["shell_ui_contract"] = shell_ui_contract
         manifest["shell_ui_contract_fingerprint"] = shell_ui_contract["contract_fingerprint"]
         manifest["shell_ui_fingerprint"] = shell_ui_contract["contract_fingerprint"]
+        manifest["shell_ui_contract_fingerprints_fingerprint"] = shell_ui_contract[
+            "contract_fingerprints_fingerprint"
+        ]
     if include_terminal_artifact_cli_fallback_route:
         route_contract = describe_terminal_artifact_cli_fallback_route_contract()
         manifest["terminal_artifact_cli_fallback_route"] = route_contract

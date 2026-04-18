@@ -1642,6 +1642,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             shell_manifest["contract_fingerprint"],
         )
         self.assertEqual(
+            manifest["shell_ui_contract_fingerprints_fingerprint"],
+            shell_manifest["contract_fingerprints_fingerprint"],
+        )
+        self.assertEqual(
             manifest["contract_fingerprints"]["shell_ui_contract"],
             shell_manifest["contract_fingerprint"],
         )
@@ -1654,6 +1658,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             shell_manifest["contract_fingerprint"],
         )
         self.assertEqual(
+            manifest["contract_fingerprints"]["shell_ui_contract_fingerprints_fingerprint"],
+            shell_manifest["contract_fingerprints_fingerprint"],
+        )
+        self.assertEqual(
             fingerprints["shell_ui_contract"],
             shell_manifest["contract_fingerprint"],
         )
@@ -1664,6 +1672,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints["shell_ui_fingerprint"],
             shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["shell_ui_contract_fingerprints_fingerprint"],
+            shell_manifest["contract_fingerprints_fingerprint"],
         )
         self.assertEqual(
             aliased_fingerprints["shell_ui_contract_fingerprint"],
@@ -1710,6 +1722,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["shell_ui_fingerprint"],
             shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract_fingerprints_fingerprint"],
+            shell_manifest["contract_fingerprints_fingerprint"],
         )
 
     def test_a2ui_contract_fingerprint_map_can_opt_into_raw_leaf_card_default_dispatch(self) -> None:
