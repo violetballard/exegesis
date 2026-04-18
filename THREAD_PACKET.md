@@ -45,6 +45,7 @@
 - Unambiguous review anchor for re-review: `f42c2a9b9ae183fadc893982c2cf90aec8c0c705`.
 - Review basis choice: this packet fixes metadata only and does not change the implementation under review, so re-review should evaluate the single superseding implementation state at `f42c2a9b9ae183fadc893982c2cf90aec8c0c705`.
 - The earlier review anchor `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` is out of scope for re-review because later lane-owned command-surface work superseded that slice before this packet refresh.
+- Packet submission mode: packet-only resubmission for the superseding implementation anchor above, with no additional implementation delta in this fixer pass.
 - Reviewer-fix implementation remains in scope at:
   - `543632d5` - `fix(commands): reject cli token drift`
   - `0f4de989` - `fix(commands): satisfy reviewer required fixes`
@@ -61,6 +62,7 @@
 2. Added regression coverage for alias substitution, token reordering, extra entrypoints, removed entrypoints, and normalized alias drift in `tests/unit/test_commands_catalog.py`.
 3. Kept the explicit canonical demo-path mapping required by `AGENTS.md`: this work advances `open project/document`.
 4. Regenerated this packet so re-review evaluates one review basis only: the superseding implementation anchor `f42c2a9b9ae183fadc893982c2cf90aec8c0c705`, then re-ran the required gate suite.
+5. Marked this resubmission explicitly as a packet-only fixer pass so the claimed review anchor, scope, and current handoff contents stay aligned.
 
 ## Current Program Focus
 
