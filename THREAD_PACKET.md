@@ -42,10 +42,10 @@
 
 ## Scope completed
 
-- SQLite FTS remains the authoritative MVP retrieval path in this narrowed slice.
-- The single reviewed implementation commit removes the PageIndex fallback from `fetch_excerpt()` so excerpt lookup now fail-closes on the canonical FTS-only path.
+- The reviewed implementation commit hardens the FTS-first retrieval contract by removing the PageIndex fallback from `fetch_excerpt()`.
+- `fetch_excerpt()` now fails closed for non-FTS excerpt IDs and returns only canonical FTS-backed excerpt payloads in this narrowed slice.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs now raise `KeyError`.
-- PageIndex and embeddings remain non-required compatibility paths in this slice; excerpt lookup no longer promotes PageIndex as a runtime fallback path for the MVP contract.
+- PageIndex and embeddings remain non-required compatibility paths, but they are no longer valid runtime fallback sources for `fetch_excerpt()` in the MVP contract.
 
 ## Canonical Demo-Path Step Advanced
 
@@ -91,8 +91,8 @@ This handoff advances `retrieve relevant material` by forcing `fetch_excerpt()` 
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop`
-- `feat-retrieval-fts`
+- `Milestone 3: Real workflow loop` by hardening the FTS-first retrieval contract used for the engine-side `retrieve relevant material` step
+- `feat-retrieval-fts` by keeping excerpt lookup on the authoritative SQLite FTS path
 
 ### Canonical demo-path step advanced
 
@@ -100,8 +100,8 @@ This handoff advances `retrieve relevant material` by forcing `fetch_excerpt()` 
 
 ### Vision capability affected
 
-- `Retrieval-first context handling`
-- `Auditable state and workflow`
+- `Retrieval-first context handling` because excerpt lookup now resolves only to canonical FTS-backed retrieval hits
+- `Auditable state and workflow` because downstream excerpt payloads fail closed instead of silently switching to PageIndex-backed provenance
 
 ### Routing/provider impact note
 
