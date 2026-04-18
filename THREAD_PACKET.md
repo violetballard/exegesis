@@ -51,7 +51,7 @@
 
 - `retrieve relevant material`
 
-This handoff advances `retrieve relevant material` by keeping excerpt lookup, payload reconstruction, and provenance output on the authoritative FTS-first path that downstream basket promotion and engine workflow steps consume.
+This handoff advances `retrieve relevant material` by making `fetch_excerpt` fail closed on canonical FTS-backed excerpt IDs, which keeps excerpt lookup, payload reconstruction, and provenance output on the authoritative FTS-first path that downstream basket promotion and engine workflow steps consume.
 
 ## Tasks completed
 
@@ -91,7 +91,7 @@ This handoff advances `retrieve relevant material` by keeping excerpt lookup, pa
 ## Reviewer fix closure
 
 1. The handoff now matches the actual branch being reviewed: it names the current tip `49adae86...`, the true reviewed implementation range `378cf9a7..245ddb91`, and the packet-only commits that sit above that implementation head.
-2. The packet now states the canonical demo-path step explicitly as `retrieve relevant material`, matching `AGENTS.md` and `ROADMAP.md`.
+2. The packet now states the canonical demo-path step explicitly as `retrieve relevant material` and ties it to `fetch_excerpt` failing closed on canonical FTS-backed excerpt IDs, matching `AGENTS.md` and `ROADMAP.md`.
 3. The roadmap and vision mapping now describe the true cumulative reviewed contents and reaffirm that SQLite FTS remains the required MVP path while PageIndex and embeddings stay deferred, compatibility-only paths.
 
 ## Risks / blockers
