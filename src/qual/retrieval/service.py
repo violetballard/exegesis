@@ -547,6 +547,13 @@ def _normalize_doc_id_list_payload(value: object) -> list[str] | None:
     return normalized
 
 
+def _normalized_doc_id_list_snapshot(value: object) -> list[str]:
+    normalized = _normalize_doc_id_list_payload(value)
+    if normalized is None:
+        return []
+    return normalized
+
+
 @dataclass(frozen=True)
 class RetrievalConstraints:
     max_results: int = 10
@@ -958,13 +965,7 @@ class RetrievalResult:
             if self.query.constraints.date_range is not None
             else None
         )
-        fts_shortlist_doc_ids = self.diagnostics.get("fts_shortlist_doc_ids", [])
-        if isinstance(fts_shortlist_doc_ids, list):
-            fts_shortlist_doc_ids = copy.deepcopy(fts_shortlist_doc_ids)
-        elif isinstance(fts_shortlist_doc_ids, tuple):
-            fts_shortlist_doc_ids = list(fts_shortlist_doc_ids)
-        else:
-            fts_shortlist_doc_ids = []
+        fts_shortlist_doc_ids = _normalized_doc_id_list_snapshot(self.diagnostics.get("fts_shortlist_doc_ids"))
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "result_fingerprint": self.result_fingerprint,
@@ -1220,13 +1221,7 @@ class RetrievalResult:
             for hit in self.hits
             if hit.excerpt_id is not None
         ]
-        fts_shortlist_doc_ids = self.diagnostics.get("fts_shortlist_doc_ids", [])
-        if isinstance(fts_shortlist_doc_ids, list):
-            fts_shortlist_doc_ids = copy.deepcopy(fts_shortlist_doc_ids)
-        elif isinstance(fts_shortlist_doc_ids, tuple):
-            fts_shortlist_doc_ids = list(fts_shortlist_doc_ids)
-        else:
-            fts_shortlist_doc_ids = []
+        fts_shortlist_doc_ids = _normalized_doc_id_list_snapshot(self.diagnostics.get("fts_shortlist_doc_ids"))
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "result_fingerprint": self.result_fingerprint,
@@ -1324,7 +1319,7 @@ class RetrievalResult:
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
             "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
-            "fts_shortlist_doc_ids": list(self.diagnostics.get("fts_shortlist_doc_ids", [])),
+            "fts_shortlist_doc_ids": _normalized_doc_id_list_snapshot(self.diagnostics.get("fts_shortlist_doc_ids")),
             "primary_doc_id": primary_doc_hit.doc_id if primary_doc_hit is not None else None,
             "primary_doc_type": (
                 primary_doc_provenance.get("doc_type")
@@ -1450,7 +1445,7 @@ class RetrievalResult:
             "query_prefer_exact_matches": self.query.constraints.prefer_exact_matches,
             "query_date_range": copy.deepcopy(self.diagnostics["date_range"]),
             "candidate_doc_count": self.diagnostics["candidate_doc_count"],
-            "fts_shortlist_doc_ids": copy.deepcopy(self.diagnostics["fts_shortlist_doc_ids"]),
+            "fts_shortlist_doc_ids": _normalized_doc_id_list_snapshot(self.diagnostics.get("fts_shortlist_doc_ids")),
             "result_fingerprint": self.result_fingerprint,
             "doc_id": (
                 primary_excerpt_hit.doc_id

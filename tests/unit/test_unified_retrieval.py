@@ -41,7 +41,7 @@ from src.qual.retrieval import retrieve_fts_excerpt as engine_retrieve_fts_excer
 from src.qual.retrieval import retrieve_fts_provenance_bundle as engine_retrieve_fts_provenance_bundle
 from src.qual.retrieval import retrieve_fts_payload as engine_retrieve_fts_payload
 from src.qual.retrieval import retrieve_fts_source_bundle as engine_retrieve_fts_source_bundle
-from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
+from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalResult, RetrievalService
 from src.qual.retrieval.service import RetrievalDocHit
 from src.qual.retrieval.service import RetrievalHit
 
@@ -5021,6 +5021,40 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertNotIn("mutated-doc-id", refreshed["retrieval_summary"]["doc_ids"])
         self.assertNotEqual(refreshed["doc_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
+
+    def test_retrieval_result_normalizes_shortlist_ids_in_all_snapshots(self) -> None:
+        baseline = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4, doc_types=("memo",)),
+                confidentiality_profile="confidential",
+            )
+        )
+        rebuilt = RetrievalResult(
+            query=baseline.query,
+            doc_hits=baseline.doc_hits,
+            hits=baseline.hits,
+            diagnostics={
+                **baseline.diagnostics,
+                "fts_shortlist_doc_ids": (" doc-memo-1 ", "doc-memo-1", "", "doc-pdf-1"),
+            },
+            evidence=baseline.evidence,
+            audit_ref=baseline.audit_ref,
+            result_fingerprint=baseline.result_fingerprint,
+        )
+
+        self.assertEqual(rebuilt.citation_bundle()["fts_shortlist_doc_ids"], ["doc-memo-1", "doc-pdf-1"])
+        self.assertEqual(
+            rebuilt.retrieval_provenance_bundle()["fts_shortlist_doc_ids"],
+            ["doc-memo-1", "doc-pdf-1"],
+        )
+
+        payload = rebuilt.to_downstream_payload()
+        self.assertEqual(payload["retrieval_summary"]["fts_shortlist_doc_ids"], ["doc-memo-1", "doc-pdf-1"])
+        self.assertEqual(payload["retrieval_provenance"]["fts_shortlist_doc_ids"], ["doc-memo-1", "doc-pdf-1"])
+        self.assertEqual(payload["basket_promotion"]["fts_shortlist_doc_ids"], ["doc-memo-1", "doc-pdf-1"])
 
     def test_retrieval_audit_uses_query_hash_not_plaintext(self) -> None:
         query_text = "highly sensitive question text"
