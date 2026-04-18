@@ -6,17 +6,15 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Reviewer Fix Alignment
 
-- `THREAD_PACKET.md` is the source of truth for this fixer pass.
-- Re-review remains anchored to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Later packet refresh commits on this branch are metadata only for re-review traceability and gate rerun recording unless a regenerated handoff explicitly says otherwise.
-- The required handoff sentence remains explicit: this work advances the canonical operator CLI demo-path step `open project/document`.
-- The packet now ties its scope goal, resubmission note, and roadmap/vision mapping directly to that exact step in the current CLI-first MVP loop `vault -> context -> run -> patch -> export` instead of broad CLI compatibility language.
-- The packet separates implementation tasks from metadata-only fixer actions so the numbered completed-task count stays limited to meaningful, testable work.
-- The packet now also states the concrete blocker removal: parser/catalog drift can no longer silently destabilize that CLI step at the front of the Milestone 3 operator loop.
-- The packet now records traceable shared-file approval provenance from `scripts/scope-check.sh`, approved by `Violet Ballard` on `2026-03-28` in commit `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50`, with confirmation in `c3a66bb580772d65201a630d673a8de1d4a63776`.
-- This fixer refresh is metadata only and records a fresh full gate rerun on `2026-04-18` at `2026-04-18T22:14:54Z` UTC.
-
-## Resubmission Note
-
-- Reviewer-required packet fixes remain satisfied in the canonical packet.
-- This refresh exists to leave a new lane commit with current gate verification attached to that packet state.
+- Re-review is anchored to the live branch tip `07bec2928350f3e1a69d9f93a05b2f431e94ee4b`, not the stale `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
+- The implementation range currently being handed off is `eda0197b..07bec292`, which is the unreviewed `feat-commands` work after the previously consumed `feat-commands` merge.
+- In-scope implementation files are:
+  - `src/qual/commands/__init__.py`
+  - `src/qual/commands/canonical.py`
+  - `src/qual/commands/catalog.py`
+  - `src/qual/commands/diff_preview.py`
+  - `tests/unit/test_commands_catalog.py`
+  - `tests/unit/test_diff_preview.py`
+- This fixer pass is packet-only. It does not change command implementation; it corrects traceability, scope, and gate reporting for the current tree.
+- The reviewer-observed import failure does not reproduce on this worktree: `python -m unittest tests.unit.test_commands_catalog -q` passes at the current branch tip.
+- The required gates were rerun against the exact tree being handed off on `2026-04-18`, and `THREAD_PACKET.md` records those results as the source of truth.
