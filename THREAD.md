@@ -15,4 +15,5 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `THREAD_PACKET.md`
 - The canonical demo-path step advanced is `open project/document`.
 - Explicit handoff statement: this change hardens the deterministic CLI contract for the `open project/document` bootstrap step and does not claim broader workflow or UI progress.
+- Concrete blocker removed: without validating that CLI parser entrypoints resolve to the canonical catalog in canonical order, the `bootstrap` entrypoint for `open project/document` could drift silently from the catalog contract and break deterministic CLI smoke tests for that step.
 - This fixer pass stays metadata-only and is limited to `THREAD.md` and `THREAD_PACKET.md`.

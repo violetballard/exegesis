@@ -49,7 +49,8 @@
 ## Reviewer Required Fixes Satisfied
 
 1. The handoff packet now explicitly names the canonical demo-path step advanced by this change: `open project/document`.
-2. The scope statement stays narrow and describes this work as deterministic command-contract hardening only, not broader workflow or UI progress.
+2. The packet now states the concrete blocker removed on that path: silent parser/catalog drift could break the deterministic bootstrap CLI contract and its smoke-test coverage for `open project/document`.
+3. The scope statement stays narrow and describes this work as deterministic command-contract hardening only, not broader workflow or UI progress.
 
 ## Scope Completed
 
@@ -115,13 +116,13 @@
 
 ### Vision capability affected
 
-- Canonical engine contract - CLI compatibility remains stable while the command-catalog surface rejects parser drift before it can silently change the operator contract.
-- Auditable state and workflow - the command surface now fails loudly on catalog/parser drift, making the operator-facing contract explicit and traceable.
+- Canonical engine contract - CLI compatibility remains stable while the command-catalog surface rejects parser drift before it can silently change the operator contract for the CLI-first MVP loop.
 
 ### Canonical demo-path step advanced
 
 - Step advanced: `open project/document`
 - Explicit handoff statement: this change hardens the CLI-first operator surface for the canonical `open project/document` step by keeping the bootstrap command contract deterministic and drift-resistant.
+- Concrete blocker removed: before this hardening, the explicit CLI parser surface could drift from the canonical command catalog order or membership without failing fast, which would make the bootstrap path for `open project/document` non-deterministic and weaken smoke-test coverage for that step.
 
 ### Routing/provider impact note
 
