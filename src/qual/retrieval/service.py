@@ -3353,6 +3353,14 @@ class RetrievalService:
             and _optional_text(normalized_provenance.get("query_fingerprint")) is None
         ):
             normalized_provenance["query_fingerprint"] = top_level_query_fingerprint
+        top_level_query_text = _normalize_query_text_payload(normalized.get("query_text"))
+        if top_level_query_text is not None:
+            normalized["query_text"] = top_level_query_text
+        if (
+            top_level_query_text is not None
+            and _normalize_query_text_payload(normalized_provenance.get("query_text")) is None
+        ):
+            normalized_provenance["query_text"] = top_level_query_text
         top_level_query_scope = _normalize_query_scope_payload(normalized.get("query_scope"))
         if top_level_query_scope is not None and _normalize_query_scope_payload(
             normalized_provenance.get("query_scope")
@@ -3684,17 +3692,19 @@ class RetrievalService:
             query_constraints["section_hint"] = section_hint
         if prefer_exact_matches is not None:
             query_constraints["prefer_exact_matches"] = prefer_exact_matches
-        query_snapshot: dict[str, object] = {}
-        if query_text is not None:
-            query_snapshot["query_text"] = query_text
-        if query_scope is not None:
-            query_snapshot["scope"] = query_scope
-        if query_intent is not None:
-            query_snapshot["intent"] = query_intent
+        # Fail closed when sparse lookup context cannot identify the original
+        # retrieval contract. A partial ``query`` object looks canonical to
+        # downstream basket-promotion flows even though it cannot be
+        # fingerprinted or audited as a real retrieval request.
+        if query_text is None or query_scope is None or query_intent is None:
+            return None
+        query_snapshot: dict[str, object] = {
+            "query_text": query_text,
+            "scope": query_scope,
+            "intent": query_intent,
+        }
         if query_constraints:
             query_snapshot["constraints"] = query_constraints
-        if not query_snapshot:
-            return None
         query_snapshot["confidentiality_profile"] = query_confidentiality_profile or "confidential"
         return query_snapshot
 

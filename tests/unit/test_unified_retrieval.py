@@ -1817,6 +1817,36 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["provenance"]["query_fingerprint"], expected_query_fingerprint)
         self.assertEqual(normalized["basket_promotion"]["query_fingerprint"], expected_query_fingerprint)
 
+    def test_normalize_excerpt_payload_omits_incomplete_query_snapshot(self) -> None:
+        normalized = self.service._normalize_excerpt_payload(
+            {
+                "excerpt_id": "excerpt-sparse-query-incomplete-1",
+                "doc_id": "doc-pdf-1",
+                "doc_type": "pdf",
+                "text": "Discussion theory evidence stays deterministic.",
+                "query_text": "  Discussion   Theory  ",
+                "provenance": {
+                    "query_confidentiality_profile": "  StAnDaRd  ",
+                    "section_hint": "  discussion   notes  ",
+                },
+            },
+            source_strategy="fts",
+            lookup_resolution="fts",
+        )
+
+        self.assertNotIn("query", normalized)
+        self.assertNotIn("query", normalized["provenance"])
+        self.assertIsNone(normalized.get("query_fingerprint"))
+        self.assertIsNone(normalized["provenance"].get("query_fingerprint"))
+        self.assertEqual(normalized["query_text"], "discussion theory")
+        self.assertEqual(normalized["basket_promotion"]["query_text"], "discussion theory")
+        self.assertIsNone(normalized.get("query_scope"))
+        self.assertIsNone(normalized.get("query_intent"))
+        self.assertEqual(normalized["query_confidentiality_profile"], "standard")
+        self.assertEqual(normalized["basket_promotion"]["query_confidentiality_profile"], "standard")
+        self.assertEqual(normalized["section_hint"], "discussion notes")
+        self.assertEqual(normalized["basket_promotion"]["section_hint"], "discussion notes")
+
     def test_normalize_excerpt_payload_casefolds_section_hint_in_query_context(self) -> None:
         normalized = self.service._normalize_excerpt_payload(
             {
