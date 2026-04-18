@@ -37,6 +37,8 @@ def main() -> int:
     timeout_seconds = float(spec.get("timeout_seconds") or 0) or None
     env = os.environ.copy()
     env.update({str(k): str(v) for k, v in dict(spec.get("env_overrides") or {}).items()})
+    stdin_path_value = str(spec.get("stdin_path") or "").strip()
+    stdin_path = Path(stdin_path_value) if stdin_path_value else None
     output_path = Path(str(spec.get("output_path") or spec_path.with_suffix(".out.log")))
     result_path = Path(str(spec.get("result_path") or spec_path.with_suffix(".result.json")))
 
@@ -47,16 +49,21 @@ def main() -> int:
     error = ""
 
     try:
-        proc = subprocess.run(
-            cmd,
-            cwd=cwd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            stdin=subprocess.DEVNULL,
-            text=True,
-            timeout=timeout_seconds,
-            env=env,
-        )
+        stdin_handle = open(stdin_path, "r", encoding="utf-8") if stdin_path else None
+        try:
+            proc = subprocess.run(
+                cmd,
+                cwd=cwd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                stdin=stdin_handle if stdin_handle is not None else subprocess.DEVNULL,
+                text=True,
+                timeout=timeout_seconds,
+                env=env,
+            )
+        finally:
+            if stdin_handle is not None:
+                stdin_handle.close()
         stdout_text = proc.stdout or ""
         rc = int(proc.returncode)
         status = "ok" if rc == 0 else "error"

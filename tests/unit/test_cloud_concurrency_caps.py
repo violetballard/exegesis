@@ -402,7 +402,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         self.assertIs(updated_state, state)
         run_fixer_mock.assert_not_called()
 
-    def test_run_fixer_detached_cli_uses_devnull_stdin_for_local_mode(self) -> None:
+    def test_run_fixer_detached_cli_streams_prompt_via_stdin_for_local_mode(self) -> None:
         cfg = router.RouterConfig(
             model="gpt-5.4-mini",
             codex_cmd="codex",
@@ -469,7 +469,134 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 )
 
         self.assertEqual(updated["fixer_fallback_jobs"]["feat-commands"]["pid"], 12345)
-        self.assertIs(popen_mock.call_args.kwargs["stdin"], router.subprocess.DEVNULL)
+        self.assertIn("prompt_path", updated["fixer_fallback_jobs"]["feat-commands"])
+        self.assertEqual(popen_mock.call_args.args[0][-1], "-")
+        self.assertNotEqual(popen_mock.call_args.kwargs["stdin"], router.subprocess.DEVNULL)
+
+    def test_spawn_detached_cli_job_writes_prompt_to_spec_stdin_path(self) -> None:
+        cfg = router.RouterConfig(
+            model="gpt-5.4-mini",
+            codex_cmd="codex",
+            fallback_model="unsloth/gpt-oss-20b",
+            fallback_codex_cmd="codex",
+            fallback_codex_args=["-c", "model_provider=lms"],
+            fallback_model_args=[],
+            runtime_mode_default="cloud_primary",
+            auto_switch_to_local_on_quota=True,
+            auto_probe_cloud_recovery=True,
+            cloud_probe_cooldown_seconds=300.0,
+            cloud_probe_timeout_seconds=30.0,
+            reviewer_timeout=180.0,
+            integrator_timeout=900.0,
+            max_packets_per_run=5,
+            inline_fixer=True,
+            kick_fixers_on_reviewer_backlog=True,
+            fixer_kick_timeout_seconds=8.0,
+            reviewer_fixer_retry_cooldown_seconds=120.0,
+            fixer_quota_retry_cooldown_seconds=3600.0,
+            max_cloud_fixer_kicks_per_run=2,
+            max_local_fixer_kicks_per_run=2,
+            max_cloud_fixer_jobs=2,
+            max_local_fixer_jobs=2,
+            prefer_cli_fixer=True,
+            prefer_cli_reviewer=True,
+            prefer_cli_integrator=True,
+            use_cli_reviewer_fallback=True,
+            use_cli_integrator_fallback=True,
+            profiles={
+                "worker_cloud": router.LaunchProfile("codex", [], "gpt-5.4-mini", []),
+            },
+            role_profiles={"integrator_cloud": "worker_cloud"},
+            lanes={"feat-commands": {"branch": "codex/feat-commands"}},
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            proc = SimpleNamespace(pid=7890)
+            with (
+                mock.patch.object(router, "LOCAL_JOB_ROOT", repo / "jobs"),
+                mock.patch.object(router, "_profile_for_role", return_value=cfg.profiles["worker_cloud"]),
+                mock.patch.object(router, "_current_resume_epoch", return_value="resume-1"),
+                mock.patch.object(router.subprocess, "Popen", return_value=proc),
+            ):
+                job = router._spawn_detached_cli_job(
+                    role="integrator",
+                    cfg=cfg,
+                    repo_cwd=str(repo),
+                    lane="feat-commands",
+                    packet_name="pkt.md",
+                    prompt="very long prompt",
+                    sandbox="workspace-write",
+                    timeout_seconds=30.0,
+                    local=False,
+                )
+
+            spec = router.load_json(Path(job["spec_path"]), {})
+            self.assertEqual(spec["cmd"][-1], "-")
+            self.assertTrue(spec["stdin_path"])
+            self.assertEqual(Path(spec["stdin_path"]).read_text(), "very long prompt")
+
+    def test_feature_direct_exec_streams_prompt_via_stdin(self) -> None:
+        profile_cfg = {
+            "cmd": "codex",
+            "cmd_args": [],
+            "mode": "cloud_primary",
+            "model": "gpt-5.4-mini",
+            "model_args": [],
+        }
+        proc = SimpleNamespace(pid=2468)
+        with tempfile.TemporaryDirectory() as tmp:
+            workdir = Path(tmp) / "wt"
+            workdir.mkdir()
+            log_path = Path(tmp) / "lane.log"
+            prompt_path = Path(tmp) / "lane.prompt.md"
+            with mock.patch.object(launch_feature_lanes.subprocess, "Popen", return_value=proc) as popen_mock:
+                pid = launch_feature_lanes._spawn_direct_exec(
+                    profile_cfg,
+                    workdir=str(workdir),
+                    prompt="lane kickoff prompt",
+                    log_path=log_path,
+                    prompt_path=prompt_path,
+                )
+                self.assertEqual(pid, 2468)
+                self.assertEqual(prompt_path.read_text(), "lane kickoff prompt")
+                self.assertEqual(popen_mock.call_args.args[0][-1], "-")
+                self.assertNotEqual(popen_mock.call_args.kwargs["stdin"], launch_feature_lanes.subprocess.DEVNULL)
+
+    def test_materialize_reviewer_packet_uses_final_verdict_packet_for_huge_note(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            lane_dir = Path(tmp)
+            reviewer_dir = lane_dir / "inbox" / "reviewer"
+            reviewer_dir.mkdir(parents=True, exist_ok=True)
+            reviewer_note = reviewer_dir / "R__CHANGES__lane__abc1234__20260418T000000Z.md"
+            reviewer_note.write_text(
+                "\n".join(
+                    [
+                        "Reading additional input from stdin...",
+                        "tokens used",
+                        "999,999",
+                        "",
+                        "## 1. Verdict",
+                        "`CHANGES_REQUESTED`",
+                        "",
+                        "## 2. Findings",
+                        "- Keep only the final actionable review packet.",
+                        "",
+                        "## 4. Required fixes before re-review",
+                        "1. Do the real fix.",
+                        "",
+                        "Error: turn/start failed: Input exceeds the maximum length of 1048576 characters.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            materialized = router._materialize_reviewer_packet(lane_dir, reviewer_note)
+
+        self.assertIn("## 1. Verdict", materialized)
+        self.assertIn("Do the real fix.", materialized)
+        self.assertNotIn("Reading additional input from stdin", materialized)
+        self.assertNotIn("tokens used", materialized)
 
 
 if __name__ == "__main__":

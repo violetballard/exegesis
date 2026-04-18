@@ -261,7 +261,14 @@ def _write_log(log_path: Path, header: Dict[str, Any], content: str) -> None:
     log_path.write_text("\n".join(lines))
 
 
-def _spawn_direct_exec(profile_cfg: Dict[str, object], *, workdir: str, prompt: str, log_path: Path) -> int:
+def _spawn_direct_exec(
+    profile_cfg: Dict[str, object],
+    *,
+    workdir: str,
+    prompt: str,
+    log_path: Path,
+    prompt_path: Path | None = None,
+) -> int:
     prune_log_dir(
         log_path.parent,
         keep_recent=FEATURE_LOG_KEEP_RECENT,
@@ -277,14 +284,18 @@ def _spawn_direct_exec(profile_cfg: Dict[str, object], *, workdir: str, prompt: 
     if model and "-m" not in cmd_args and "--model" not in cmd_args:
         cmd.extend(["-m", model])
     cmd.extend([str(x) for x in list(profile_cfg.get("model_args") or [])])
-    cmd.extend(["-s", "workspace-write", prompt])
+    cmd.extend(["-s", "workspace-write", "-"])
     env = isolated_codex_env(str(REPO_ROOT)) if local_mode else None
-    with log_path.open("a") as lf:
+    resolved_prompt_path = prompt_path or log_path.with_suffix(".prompt.md")
+    resolved_prompt_path.parent.mkdir(parents=True, exist_ok=True)
+    resolved_prompt_path.write_text(prompt)
+    with log_path.open("a") as lf, resolved_prompt_path.open("r", encoding="utf-8") as pf:
         proc = subprocess.Popen(
             cmd,
             cwd=workdir,
             stdout=lf,
             stderr=subprocess.STDOUT,
+            stdin=pf,
             text=True,
             env=env,
         )

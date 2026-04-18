@@ -885,6 +885,7 @@ def _build_cli_exec_cmd(
     sandbox: str,
     prompt: str,
     local: bool,
+    read_prompt_from_stdin: bool = False,
 ) -> List[str]:
     cmd = [profile.codex_cmd, *profile.codex_args, "exec"]
     if local:
@@ -893,7 +894,7 @@ def _build_cli_exec_cmd(
         cmd.extend(["-m", profile.model])
     if profile.model_args:
         cmd.extend(profile.model_args)
-    cmd.extend(["-s", sandbox, prompt])
+    cmd.extend(["-s", sandbox, "-" if read_prompt_from_stdin else prompt])
     return [str(x) for x in cmd]
 
 
@@ -918,11 +919,20 @@ def _spawn_detached_cli_job(
     spec_path = job_dir / f"{ts}__{token}.spec.json"
     output_path = job_dir / f"{ts}__{token}.out.log"
     result_path = job_dir / f"{ts}__{token}.result.json"
+    prompt_path = job_dir / f"{ts}__{token}.prompt.txt"
+    write_text(prompt_path, prompt)
     spec = {
-        "cmd": _build_cli_exec_cmd(profile, sandbox=sandbox, prompt=prompt, local=local),
+        "cmd": _build_cli_exec_cmd(
+            profile,
+            sandbox=sandbox,
+            prompt=prompt,
+            local=local,
+            read_prompt_from_stdin=True,
+        ),
         "cwd": repo_cwd,
         "timeout_seconds": float(timeout_seconds),
         "env_overrides": {"CODEX_HOME": isolated_codex_env(repo_cwd)["CODEX_HOME"]} if local else {},
+        "stdin_path": str(prompt_path),
         "output_path": str(output_path),
         "result_path": str(result_path),
         "resume_epoch": resume_epoch,
@@ -1347,27 +1357,38 @@ def run_fixer(
     logp = logs / f"fixer__{lane}__{ts}.log"
     env = isolated_codex_env(repo_cwd) if runtime_local else None
     with logp.open("w") as lf:
-        proc = subprocess.Popen(
-            [
-                prof.codex_cmd,
-                *prof.codex_args,
-                "exec",
-                *(["--skip-git-repo-check"] if runtime_local else []),
-                *(["-m", prof.model] if prof.model else []),
-                *prof.model_args,
-                "-s",
-                "workspace-write",
-                fixer_prompt(lane, branch, reviewer_packet, wt),
-            ],
-            cwd=(wt or repo_cwd),
-            stdout=lf,
-            stderr=subprocess.STDOUT,
-            stdin=subprocess.DEVNULL,
-            text=True,
-            env=env,
-        )
+        prompt_text = fixer_prompt(lane, branch, reviewer_packet, wt)
+        prompt_path = logs / f"fixer__{lane}__{ts}.prompt.txt"
+        write_text(prompt_path, prompt_text)
+        cmd = [
+            prof.codex_cmd,
+            *prof.codex_args,
+            "exec",
+            *(["--skip-git-repo-check"] if runtime_local else []),
+            *(["-m", prof.model] if prof.model else []),
+            *prof.model_args,
+            "-s",
+            "workspace-write",
+            "-",
+        ]
+        with prompt_path.open("r", encoding="utf-8") as pf:
+            proc = subprocess.Popen(
+                cmd,
+                cwd=(wt or repo_cwd),
+                stdout=lf,
+                stderr=subprocess.STDOUT,
+                stdin=pf,
+                text=True,
+                env=env,
+            )
     fallback = state.get("fixer_fallback_jobs") or {}
-    fallback[lane] = {"log": str(logp), "ts": ts, "pid": proc.pid, "local": runtime_local}
+    fallback[lane] = {
+        "log": str(logp),
+        "ts": ts,
+        "pid": proc.pid,
+        "local": runtime_local,
+        "prompt_path": str(prompt_path),
+    }
     state["fixer_fallback_jobs"] = fallback
     return state
 
@@ -1425,6 +1446,9 @@ def _materialize_reviewer_packet(lane_dir: Path, reviewer_note: Optional[Path], 
         if "session not found for thread_id" in lower or "thread not found" in lower:
             invalid_note = True
     if note_text and not invalid_note:
+        compact_note = _extract_final_verdict_packet(note_text)
+        if compact_note:
+            return compact_note
         return note_text
 
     archived_feature = ""
