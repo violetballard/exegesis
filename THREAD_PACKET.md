@@ -42,8 +42,8 @@
 
 ## Packet Traceability Note
 
-- Current implementation review basis: `cba120b30e33d8533378e1e93d340b9f181e91e5`.
-- Review basis choice: this fixer commit is metadata only. Re-review should inspect the implementation already present at `cba120b30e33d8533378e1e93d340b9f181e91e5`, which includes the parser-surface contract hardening, the required regression coverage, and later lane-owned command-surface follow-on work.
+- Current implementation review basis: `5b2ecba061b28cca27eddd587414d52c702aa628`.
+- Review basis choice: this fixer commit is metadata only. Re-review should inspect the implementation already present at `5b2ecba061b28cca27eddd587414d52c702aa628`, which includes the parser-surface contract hardening, the required regression coverage, and the later lane-owned command-surface follow-on work already on this branch.
 - Reviewer-fix implementation files in scope at that review basis:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -62,7 +62,7 @@
 ## Resubmission Refresh
 
 - Refresh date: `2026-04-18`
-- Refresh purpose: leave a new metadata-only fixer commit that preserves the explicit demo-path mapping, narrowed scope wording, and corrected residual-risk statement requested by review.
+- Refresh purpose: leave a new metadata-only fixer commit that records a fresh full gate rerun against the current branch tip and keeps the packet anchored to the actual implementation state already on this branch.
 - Review request: treat this packet as the current source of truth for the `feat-commands` re-review.
 
 ## Current Program Focus
@@ -108,7 +108,7 @@
 
 1. Verified that the current branch tip already contains the reviewer-requested parser-surface validation in `src/qual/commands/catalog.py`.
 2. Verified that the required regression tests for alias substitution, extra entrypoints, dropped entrypoints, and reordered entrypoints are present and passing in `tests/unit/test_commands_catalog.py`.
-3. Refreshed the handoff packet so it points to the actual implementation review basis `cba120b30e33d8533378e1e93d340b9f181e91e5` instead of the stale historical anchor.
+3. Refreshed the handoff packet so it points to the actual current implementation review basis `5b2ecba061b28cca27eddd587414d52c702aa628` instead of the stale historical anchor.
 4. Re-ran the required local gates and recorded outcomes for this fixer pass.
 
 ### Files Changed
@@ -130,6 +130,7 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-18`
+- Verification timestamp (UTC): `2026-04-18T20:55:47Z`
 
 ### Risks / Blockers
 
