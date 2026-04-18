@@ -123,3 +123,4 @@ This handoff advances `retrieve relevant material` by keeping excerpt lookup, pa
 
 - Shared/integrator-locked edits: `YES`
 - Approved shared exception: `tests/unit/test_unified_retrieval.py` is the sole shared-by-approval implementation file in the reviewed range.
+- Ownership detail: no integrator-locked runtime files are part of the reviewed retrieval implementation range. Runtime edits remain in the lane-owned retrieval paths, and the only non-owned edit is the approved shared regression file `tests/unit/test_unified_retrieval.py`.
