@@ -4,8 +4,8 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: keep the CLI-first MVP command surface deterministic and smoke-testable by ensuring the live parser, exported command helpers, and diff-preview workflow contracts stay aligned on the current `feat-commands` branch tip.
-- Risk reason: the review target includes the approved shared test paths `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`, so this fixer pass stays on the high-risk template.
+- Scope goal: reissue the `feat-commands` handoff packet so it preserves the original command-catalog review target, fully enumerates the metadata refresh files, and stays auditable for re-review.
+- Risk reason: this is a shared-file packet correction and the implementation slice still includes the approved shared test file `tests/unit/test_commands_catalog.py`.
 
 ### Budget
 
@@ -16,9 +16,9 @@
 
 ### Planned Tasks (max 4)
 
-1. Validate the live `codex/feat-commands` branch tip instead of the stale `f8d860ed` packet anchor.
-2. Re-run the required gates on that exact tree and confirm the reviewer-reported import failure does not reproduce.
-3. Refresh the packet so it names the real implementation review range and actual in-scope command files.
+1. Re-anchor the packet to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+2. Preserve the metadata-only treatment for the later packet-refresh commit while fully enumerating the metadata files it touched.
+3. Re-run the required gates on the current tree and record the outcomes.
 4. Leave a packet-only fixer commit for re-review.
 
 ### Early Review Triggers
@@ -35,33 +35,29 @@
 
 ### Checkpoint Cadence (short updates)
 
-- Plan complete: validated that the current worktree already exports the reviewer-cited `src.qual.commands` symbols and that re-review must target the live branch tip.
-- First green tests: `python -m unittest tests.unit.test_commands_catalog -q` passed on `2026-04-18`.
+- Plan complete: reviewer fixes reduced to packet traceability only, so the implementation review basis remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- First green tests: required gate reruns are recorded below for the current tree on `2026-04-18`.
 - Before risky/shared file edit: only `THREAD.md` and `THREAD_PACKET.md` are being edited in this fixer pass.
-- Ready for handoff: the packet now reflects the real review target and all required gates passed on the exact tree being handed off.
+- Ready for handoff: the packet now preserves the original approval basis and fully lists the metadata refresh files.
 
 ## Packet Traceability Note
 
-- Current review target: branch tip `07bec2928350f3e1a69d9f93a05b2f431e94ee4b`.
-- Current implementation review range: `eda0197b..07bec2928350f3e1a69d9f93a05b2f431e94ee4b`.
-- Why this range: `eda0197b` is the previously consumed `feat-commands` merge (`merge: consume approved feat-commands f8d860ed`). Everything after that merge in the command lane is the live unreviewed implementation being handed off now.
-- Metadata rule for this resubmission: there is no claim that later implementation commits are metadata only. This packet names the live review target directly and includes the real in-scope implementation files below.
+- Reviewed implementation target: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Packet refresh commit: `6ee4015b1b62fb44c2b81ac19be7cbf03440313f`
+- Packet refresh role: `metadata-only reviewer-fix finalization`
+- Traceability rule for this resubmission: review the command-catalog implementation at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and treat later packet-refresh commits as metadata-only because this refreshed packet fully enumerates the metadata files they changed.
 
 ## Reviewer Required Fixes Satisfied
 
-1. The packet is regenerated against the real review target: live branch tip `07bec2928350f3e1a69d9f93a05b2f431e94ee4b`, with implementation range `eda0197b..07bec2928350f3e1a69d9f93a05b2f431e94ee4b`.
-2. The stale `f8d860ed`-only narrative and the false “metadata-only reviewer-fix finalization” claim are removed.
-3. The current branch tip was revalidated directly. The reviewer-observed import failure does not reproduce here: `python -m unittest tests.unit.test_commands_catalog -q` passes on this tree.
-4. Scope mapping now explicitly includes the retrieval-compatibility and `diff_preview` command-surface work that is present in the live lane, rather than claiming a command-catalog-only slice.
+1. The `Files changed` section now includes every file touched by packet-refresh commit `6ee4015b1b62fb44c2b81ac19be7cbf03440313f`, including `THREAD.md`.
+2. The approval basis is preserved explicitly: the implementation review target remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and later commits are treated as metadata-only only because the refreshed packet fully enumerates those metadata files.
 
 ## Scope Completed
 
-- The current `feat-commands` tip preserves a deterministic command contract across exported helpers, parser-facing CLI entrypoints, compatibility shims, route tables, and smoke/demo path contracts in `src/qual/commands/**`.
-- The current tip includes the command catalog drift protections and the broader parser-surface regression coverage in `tests/unit/test_commands_catalog.py`.
-- The current tip also includes the `diff_preview` command-surface work and its focused regression coverage in `tests/unit/test_diff_preview.py`, which were missing from the stale packet scope.
-- This fixer pass does not change command implementation. It corrects packet traceability and records fresh validation for the tree actually being handed off.
-- Canonical demo-path step advanced: `open project/document`. This slice removes a concrete blocker on that first MVP loop step by ensuring the parser-facing `bootstrap` command and exported command catalog cannot silently drift apart; if they do, the contract now fails fast instead of changing the operator surface implicitly.
-- Scope boundary: this slice hardens the existing CLI contract only. It does not add new command behavior, new flags, or any non-MVP command surface.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
+- Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
+- This fixer pass does not change command implementation. It only corrects packet traceability so the original command-catalog review slice remains auditable.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -70,10 +66,7 @@
 
 ## Approved Exception Note
 
-- Approved shared-test paths for this lane:
-  - `tests/unit/test_commands_catalog.py`
-  - `tests/unit/test_diff_preview.py`
-- Approval source: lane policy in `THREAD_OWNERSHIP.md` and scope enforcement for the lane-specific shared-test allowance.
+- Approved shared-test exception for `tests/unit/test_commands_catalog.py`. It remains the only non-owned implementation path in the reviewed command-catalog slice.
 
 ## Handoff Packet
 
@@ -81,27 +74,22 @@
 
 ### Tasks Completed (Numbered)
 
-1. Validated the live branch tip `07bec2928350f3e1a69d9f93a05b2f431e94ee4b` as the real re-review target and removed the stale `f8d860ed`-only traceability claim.
-2. Confirmed the reviewer-reported `src.qual.commands` import failure does not reproduce on this worktree by running `python -m unittest tests.unit.test_commands_catalog -q`.
-3. Re-ran the required gate suite on the exact tree being handed off and recorded the current outcomes below.
-4. Refreshed the handoff packet so the review scope includes the actual command-lane implementation files present in `eda0197b..07bec2928350f3e1a69d9f93a05b2f431e94ee4b`.
+1. Restored the packet’s implementation review target to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+2. Updated the metadata inventory so packet-refresh commit `6ee4015b1b62fb44c2b81ac19be7cbf03440313f` is explicitly recorded as touching both `THREAD.md` and `THREAD_PACKET.md`.
+3. Re-ran the required gate suite on the current tree and recorded the outcomes below.
+4. Reissued the handoff packet so the metadata-only refresh remains auditable without expanding the implementation review scope.
 
 ### Files Changed
 
-- Implementation files in the current review range:
-  - `src/qual/commands/__init__.py`
-  - `src/qual/commands/canonical.py`
+- Reviewed implementation files:
   - `src/qual/commands/catalog.py`
-  - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_commands_catalog.py`
-  - `tests/unit/test_diff_preview.py`
-- Metadata-only files changed in this fixer pass:
+- Metadata-only handoff files touched by packet-refresh commit `6ee4015b1b62fb44c2b81ac19be7cbf03440313f`:
   - `THREAD.md`
   - `THREAD_PACKET.md`
 
 ### Commands Run and Outcomes
 
-- `python -m unittest tests.unit.test_commands_catalog -q`: `PASS`
 - `make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
@@ -112,25 +100,25 @@
 
 ### Risks / Blockers
 
-- Risk: `MEDIUM`
-- Remaining risk: the review surface is broader than the stale packet claimed, so re-review needs to examine the full command-lane delta named above rather than a command-catalog-only slice.
+- Risk: `LOW`
+- Remaining risk: none beyond normal metadata drift risk if future packet refreshes are not fully enumerated.
 - Blockers: none
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- Milestone 3: preserve CLI compatibility while the package/layout migration lands so the MVP loop can still start with a stable `open project/document` command surface while Textual remains disabled.
-- `feat-commands`: keep the `bootstrap` entrypoint and related command catalog deterministic so the engine-first MVP loop still has a reliable CLI start point.
+- Milestone 3: Real workflow loop. Preserve CLI compatibility while the package/layout migration lands by keeping the command-catalog contract deterministic and drift-resistant.
+- `feat-commands`: CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ### Vision capability affected
 
-- Writing-centered workflow: the trust surface starts with opening the project/document reliably, and this slice hardens that CLI entrypoint against silent parser/catalog drift.
-- Canonical engine contract: the CLI compatibility layer keeps one stable, explicit `bootstrap` contract while the future client stays disabled.
+- Canonical engine contract: CLI compatibility remains stable while the command-catalog surface rejects parser drift before it can silently change the operator contract.
+- Auditable state and workflow: the command surface fails loudly on catalog/parser drift, making the operator-facing contract explicit and traceable.
 
 ### Routing/provider impact note
 
-- None. This lane work remains inside local command contracts, helper exports, and command-surface tests.
+- None. This change only affects local command contract validation and focused command-catalog test coverage.
 
 ### Proposed `README.md` patch text
 
@@ -140,6 +128,6 @@
 
 - Shared/integrator-locked edits: `YES`
 - Ownership detail:
-  - owned implementation paths stay inside `src/qual/commands/**`
-  - approved shared test paths are `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`
+  - owned implementation path stays inside `src/qual/commands/catalog.py`
+  - approved shared test path is `tests/unit/test_commands_catalog.py`
   - this fixer pass edits only `THREAD.md` and `THREAD_PACKET.md`
