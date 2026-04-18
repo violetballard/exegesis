@@ -43,14 +43,16 @@
 ## Packet Traceability Note
 
 - Reviewer packet cited branch tip `3e0be5cbf94ff74cc192e88c239aebc9fb98982a` but described it as metadata-only; that was incorrect.
-- Actual branch tip under review is still `3e0be5cbf94ff74cc192e88c239aebc9fb98982a` (`feat(commands): add trusted surface lookup helpers`).
-- Review scope for this regenerated packet is the live branch tip, including the full diff from reviewer anchor `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` to `HEAD`.
+- Reviewer-visible implementation anchor is `3e0be5cbf94ff74cc192e88c239aebc9fb98982a` (`feat(commands): add trusted surface lookup helpers`).
+- This fixer adds a metadata refresh commit on top so the handoff packet matches the real live scope instead of repeating the earlier incorrect metadata-only claim.
+- Review scope for this regenerated packet is the live branch state, including the full diff from reviewer anchor `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` through the implementation anchor and this packet-refresh commit.
 - That live scope includes `8` changed files and `9029` insertions / `462` deletions.
 
 ## Reviewer Required Fixes Satisfied
 
 1. The packet is regenerated against the actual branch tip `3e0be5cbf94ff74cc192e88c239aebc9fb98982a`; it no longer describes that commit as metadata-only.
-2. The handoff now covers the full current branch tip rather than the earlier narrow `f8d860ed...` slice, so the scope, file inventory, and risk notes match the implementation under review.
+1. The packet now treats `3e0be5cbf94ff74cc192e88c239aebc9fb98982a` as the reviewer-visible implementation anchor and treats this fixer as the metadata refresh on top of it, instead of incorrectly describing `3e0be5cb...` itself as metadata-only.
+2. The handoff now covers the full live branch state rather than the earlier narrow `f8d860ed...` slice, so the scope, file inventory, and risk notes match the implementation under review.
 3. The AGENTS alignment is explicit: this work advances the canonical `open project/document` demo-path step and strengthens the Milestone 3 CLI-first loop by hardening the deterministic bootstrap command contract.
 4. The shared-file exception note now lists every non-owned/shared path in scope for the regenerated handoff instead of naming only one shared test file.
 
@@ -77,7 +79,8 @@
 ## Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Branch tip under review: `3e0be5cbf94ff74cc192e88c239aebc9fb98982a`
+- Reviewer-visible implementation anchor: `3e0be5cbf94ff74cc192e88c239aebc9fb98982a`
+- Current packet-refresh commit: pending this fixer commit
 
 ### Tasks Completed (Numbered)
 

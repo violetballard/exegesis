@@ -7,7 +7,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Current Review Focus
 
 - This branch is not a metadata-only resubmission.
-- Actual branch tip under review: `3e0be5cbf94ff74cc192e88c239aebc9fb98982a` (`feat(commands): add trusted surface lookup helpers`).
+- Reviewer-visible implementation anchor remains `3e0be5cbf94ff74cc192e88c239aebc9fb98982a` (`feat(commands): add trusted surface lookup helpers`).
+- The current fixer commit on top of that anchor is a metadata refresh so the handoff packet matches the real live scope.
 - Regenerated packet scope is the live `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD` diff, not the earlier narrow-slice claim.
 - Files in scope:
   - `src/qual/commands/__init__.py`
