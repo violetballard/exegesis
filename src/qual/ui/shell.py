@@ -93,7 +93,7 @@ class ShellUI:
                 ):
                     return _render_invalid_terminal_card(artifact)
         fallback_artifact: Any = artifact
-        fallback_kind: str | None
+        fallback_kind: str | None = None
         if normalized_kind is None and _should_preserve_raw_leaf_card_default(artifact):
             # Raw leaves should stay on the card path when no valid leaf
             # hint was provided, but still flow through the explicit CLI
@@ -101,8 +101,9 @@ class ShellUI:
             fallback_kind = "card"
         elif resolved_fallback is not None:
             fallback_artifact, fallback_kind = resolved_fallback
+        elif normalized_kind == "card":
+            fallback_kind = "card"
         else:
-            fallback_kind = None
             try:
                 fallback_artifact, fallback_kind = self._resolve_fallback_artifact(
                     artifact,

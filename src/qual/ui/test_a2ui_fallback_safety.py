@@ -5893,6 +5893,20 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         resolver.assert_called_once_with(raw_leaf, kind="card")
         cli_fallback.assert_called_once_with(raw_leaf, kind="card")
 
+    def test_shell_ui_does_not_retry_fallback_resolution_on_explicit_card_failure(self) -> None:
+        shell = ShellUI()
+        artifact = _OpaqueValue()
+
+        with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+            with patch.object(ShellUI, "_resolve_fallback_artifact", side_effect=RuntimeError("resolver boom")) as resolver:
+                text = shell.render_artifact(artifact, kind="card")
+
+        self.assertIn("[UnknownCard] <invalid card>", text)
+        self.assertIn("Fallback: unknown card", text)
+        self.assertIn("<non-json:_OpaqueValue>", text)
+        self.assertEqual(resolver.call_count, 1)
+        resolver.assert_called_once_with(artifact, kind="card")
+
     def test_terminal_renderer_includes_safe_raw_preview_for_invalid_cards(self) -> None:
         text = render_terminal_card(_OpaqueValue())
 
