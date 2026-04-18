@@ -7,14 +7,14 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Reviewer Fix Alignment
 
 - `THREAD_PACKET.md` is the source of truth for this fixer pass.
-- The stale historical review anchor `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` has been retired for this resubmission.
-- Re-review should use the current implementation basis `6e8d077b67056fd0f5b890bcb840485eca4d7b7e`, which already contains the parser-surface contract fix, its focused regression coverage, and the later lane-owned command-surface follow-on work already on this branch.
+- Re-review remains anchored to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Later packet refresh commits on this branch are metadata only for re-review traceability and gate rerun recording unless a regenerated handoff explicitly says otherwise.
 - The required handoff sentence remains explicit: this work advances the canonical operator CLI demo-path step `open project/document`.
 - The packet now ties its scope goal, resubmission note, and roadmap/vision mapping directly to that exact step in the current CLI-first MVP loop `vault -> context -> run -> patch -> export` instead of broad CLI compatibility language.
 - The packet separates implementation tasks from metadata-only fixer actions so the numbered completed-task count stays limited to meaningful, testable work.
 - The packet now also states the concrete blocker removal: parser/catalog drift can no longer silently destabilize that CLI step at the front of the Milestone 3 operator loop.
 - The packet now records traceable shared-file approval provenance from `scripts/scope-check.sh`, approved by `Violet Ballard` on `2026-03-28` in commit `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50`, with confirmation in `c3a66bb580772d65201a630d673a8de1d4a63776`.
-- This fixer refresh is metadata only and records a fresh full gate rerun on `2026-04-18` at `2026-04-18T22:07:49Z` UTC.
+- This fixer refresh is metadata only and records a fresh full gate rerun on `2026-04-18` at `2026-04-18T22:14:54Z` UTC.
 
 ## Resubmission Note
 

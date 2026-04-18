@@ -42,27 +42,26 @@
 
 ## Packet Traceability Note
 
-- Current implementation review basis: `6e8d077b67056fd0f5b890bcb840485eca4d7b7e`.
-- Review basis choice: this fixer commit is metadata only. Re-review should inspect the implementation already present at `6e8d077b67056fd0f5b890bcb840485eca4d7b7e`, which includes the parser-surface contract hardening, the required regression coverage, and the later lane-owned command-surface follow-on work already on this branch.
+- Current implementation review basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Review basis choice: re-review should stay anchored to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, which is the command-catalog implementation commit the reviewer inspected for the required fixes below.
+- Metadata-only rule: later packet refresh commits on this branch are metadata only unless a regenerated handoff explicitly says otherwise, so they do not expand the implementation review scope for this resubmission.
 - Reviewer-fix implementation files in scope at that review basis:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
-- Additional lane-owned branch-tip implementation file present at that review basis:
-  - `src/qual/commands/__init__.py`
 - Metadata-only files for this fixer refresh:
   - `THREAD.md`
   - `THREAD_PACKET.md`
 
 ## Reviewer Required Fixes Satisfied
 
-1. `command_cli_contract()` now validates the full accepted CLI parser surface against the catalog-derived declared entrypoints and raises `ValueError("Command CLI parser surface is inconsistent")` when aliases, ordering, or accepted entrypoints drift.
-2. Focused regression coverage now proves rejection of alias substitution, extra entrypoint, dropped entrypoint, and reordered entrypoint drift in `tests/unit/test_commands_catalog.py`.
-3. This handoff packet now matches the actual implementation state being resubmitted, explicitly maps that work to the canonical `open project/document` demo-path step, and records a fresh full gate rerun for `2026-04-18`.
+1. This handoff packet now names the canonical demo-path step advanced by the reviewed change: the operator CLI step `open project/document`.
+2. The roadmap and vision mapping are now tightened to the exact operator-facing contract strengthened by the reviewed diff: deterministic CLI command ordering and fail-fast parser/catalog drift detection for the CLI-first MVP loop.
+3. Re-review remains anchored to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and later packet refresh commits are preserved as metadata only for this resubmission.
 
 ## Resubmission Refresh
 
 - Refresh date: `2026-04-18`
-- Refresh purpose: leave a new metadata-only fixer commit that records the fresh `2026-04-18T22:07:49Z` UTC full gate rerun against the current branch tip and keeps the packet anchored to the actual implementation state already on this branch.
+- Refresh purpose: leave a new metadata-only fixer commit that records the fresh full gate rerun against the current branch tip while keeping re-review anchored to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Plan-alignment note: this resubmission is specifically for the canonical operator CLI step `open project/document`; it makes that step more real in the current CLI-first MVP loop by ensuring the parser-facing CLI surface stays identical to the declared command catalog and fails fast if it drifts.
 - Review request: treat this packet as the current source of truth for the `feat-commands` re-review.
 
@@ -77,9 +76,8 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the default command catalog validates the full accepted parser surface for the canonical `open project/document` CLI step instead of only the deduplicated canonical-name projection.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for alias substitution, reordered parser entrypoints, extra entrypoints, dropped entrypoints, and related parser-surface drift cases.
-- Preserved deterministic catalog helpers and branch-tip lane-owned command-surface exports in `src/qual/commands/__init__.py`.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the reviewed command catalog implementation at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` keeps the canonical CLI contract aligned to catalog order and rejects parser/catalog drift.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` at that same reviewed implementation commit for canonical-order alignment and parser/catalog drift rejection.
 - Scope guard: this resubmission does not add new commands, new flags, or CLI UX expansion; it only hardens the existing `open project/document` CLI contract on the current MVP path so the operator can enter the CLI-first workflow without parser/catalog drift.
 
 ## Metadata-Only Fixer Refresh
@@ -106,13 +104,12 @@
 
 ### Implementation Tasks Completed (Numbered)
 
-1. Verified that the current branch tip already contains the reviewer-requested parser-surface validation in `src/qual/commands/catalog.py`.
-2. Verified that the required regression tests for alias substitution, extra entrypoints, dropped entrypoints, and reordered entrypoints are present and passing in `tests/unit/test_commands_catalog.py`.
-3. Verified that the current review basis preserves the lane-owned command-surface exports in `src/qual/commands/__init__.py` needed to keep the hardened `open project/document` entrypoint wired through the existing CLI path.
+1. Verified that implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` contains the reviewed `command_cli_contract()` hardening in `src/qual/commands/catalog.py`.
+2. Verified that implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` contains the focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and parser/catalog drift rejection.
 
 ### Metadata-Only Fixer Actions
 
-- Refreshed the handoff packet so it points to the actual current implementation review basis `6e8d077b67056fd0f5b890bcb840485eca4d7b7e`.
+- Refreshed the handoff packet so it keeps re-review anchored to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Re-ran the required local gates and recorded outcomes for this fixer pass.
 - Tightened the roadmap/vision justification so the packet maps the work to the active CLI-first MVP loop instead of broad CLI stability language.
 
@@ -120,7 +117,6 @@
 
 - Implementation files in the current review basis:
   - `src/qual/commands/catalog.py`
-  - `src/qual/commands/__init__.py`
   - `tests/unit/test_commands_catalog.py`
 - Metadata-only files changed in this fixer pass:
   - `THREAD.md`
@@ -135,7 +131,7 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-18`
-- Verification timestamp (UTC): `2026-04-18T22:07:49Z`
+- Verification timestamp (UTC): `2026-04-18T22:14:54Z`
 
 ### Risks / Blockers
 
