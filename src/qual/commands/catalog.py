@@ -3317,6 +3317,24 @@ def command_mvp_workflow_entry_for(
     return command_demo_workflow_entry_for(specs, token)
 
 
+def command_demo_path_entry_for(
+    specs: tuple[CommandSpec, ...],
+    flow_step: str,
+) -> CommandDemoPathEntry | None:
+    normalized_flow_step = _normalize_token(flow_step)
+    if not normalized_flow_step:
+        return None
+    path_entries = {entry.flow_step: entry for entry in command_demo_path_contract(specs).entries}
+    return path_entries.get(normalized_flow_step)
+
+
+def command_mvp_path_entry_for(
+    specs: tuple[CommandSpec, ...],
+    flow_step: str,
+) -> CommandDemoPathEntry | None:
+    return command_demo_path_entry_for(specs, flow_step)
+
+
 @lru_cache(maxsize=None)
 def command_demo_next_action_contract(
     source_token: str,
@@ -3655,6 +3673,14 @@ def command_mvp_transition_argv(source_token: str, target_token: str) -> tuple[s
     return command_demo_transition_argv(source_token, target_token)
 
 
+def command_demo_trusted_surface_entry(token: str) -> CommandTrustedSurfaceEntry | None:
+    return command_demo_trusted_surface_entry_for(COMMAND_SPECS, token)
+
+
+def command_mvp_trusted_surface_entry(token: str) -> CommandTrustedSurfaceEntry | None:
+    return command_mvp_trusted_surface_entry_for(COMMAND_SPECS, token)
+
+
 def command_demo_workflow_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
@@ -3914,6 +3940,20 @@ def command_mvp_trusted_surface_tokens(
     return command_demo_trusted_surface_tokens(specs)
 
 
+def command_demo_trusted_surface_flow_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    """Map each trusted demo token to its canonical flow step."""
+    return tuple((entry.token, entry.flow_step) for entry in command_demo_trusted_surface_contract(specs).entries)
+
+
+def command_mvp_trusted_surface_flow_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    """Map each trusted MVP token to its canonical flow step."""
+    return command_demo_trusted_surface_flow_lookup_table(specs)
+
+
 @lru_cache(maxsize=None)
 def command_demo_trusted_surface_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -3963,6 +4003,24 @@ def command_mvp_trusted_surface_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandTrustedSurfaceEntry, ...]:
     return command_demo_trusted_surface_catalog(specs)
+
+
+def command_demo_trusted_surface_entry_for(
+    specs: tuple[CommandSpec, ...],
+    token: str,
+) -> CommandTrustedSurfaceEntry | None:
+    normalized_token = _normalize_token(token)
+    if not normalized_token:
+        return None
+    trusted_entries = {entry.token: entry for entry in command_demo_trusted_surface_catalog(specs)}
+    return trusted_entries.get(normalized_token)
+
+
+def command_mvp_trusted_surface_entry_for(
+    specs: tuple[CommandSpec, ...],
+    token: str,
+) -> CommandTrustedSurfaceEntry | None:
+    return command_demo_trusted_surface_entry_for(specs, token)
 
 
 def command_mvp_loop_surface_invocation_table(
@@ -4098,6 +4156,14 @@ def command_surface_tokens(
 
 def command_spec(name: str) -> CommandSpec | None:
     return command_spec_for(COMMAND_SPECS, name)
+
+
+def command_demo_path_entry(flow_step: str) -> CommandDemoPathEntry | None:
+    return command_demo_path_entry_for(COMMAND_SPECS, flow_step)
+
+
+def command_mvp_path_entry(flow_step: str) -> CommandDemoPathEntry | None:
+    return command_mvp_path_entry_for(COMMAND_SPECS, flow_step)
 
 
 def command_aliases(name: str) -> tuple[str, ...]:
