@@ -168,6 +168,13 @@ def _normalize_query_text(value: object) -> str | None:
     return " ".join(text.casefold().split())
 
 
+def _normalize_query_hint(value: object) -> str | None:
+    text = _normalize_optional_text(value)
+    if text is None:
+        return None
+    return " ".join(text.casefold().split())
+
+
 def _normalize_query_confidentiality_profile(value: object) -> str | None:
     text = _normalize_optional_text(value)
     if text is None:
@@ -360,7 +367,7 @@ def _normalize_query_constraints(constraints: object) -> dict[str, object]:
         normalized["max_results"] = 10
     normalized["doc_types"] = _normalize_query_doc_types(normalized.get("doc_types"))
     normalized["date_range"] = _normalize_query_date_range(normalized.get("date_range"))
-    normalized["section_hint"] = _normalize_optional_text(normalized.get("section_hint"))
+    normalized["section_hint"] = _normalize_query_hint(normalized.get("section_hint"))
     require_citations = _normalize_optional_bool(normalized.get("require_citations"))
     if require_citations is not None:
         normalized["require_citations"] = require_citations
@@ -521,7 +528,7 @@ def _normalize_excerpt_hit_provenance_snapshot(provenance: object) -> dict[str, 
     span = _normalize_span_snapshot(normalized.get("span"))
     if span is not None:
         normalized["span"] = span
-    section_hint = _normalize_optional_text(normalized.get("section_hint"))
+    section_hint = _normalize_query_hint(normalized.get("section_hint"))
     if section_hint is not None:
         normalized["section_hint"] = section_hint
     source_strategy = _normalize_optional_casefold_text(
@@ -578,7 +585,7 @@ def _normalize_doc_hit_provenance_snapshot(provenance: object) -> dict[str, obje
         normalized["top_match_count"] = _normalize_optional_int(normalized.get("top_match_count")) or len(
             normalized["top_matched_terms"]
         )
-    section_hint = _normalize_optional_text(normalized.get("section_hint"))
+    section_hint = _normalize_query_hint(normalized.get("section_hint"))
     if section_hint is not None:
         normalized["section_hint"] = section_hint
     source_strategy = _normalize_optional_casefold_text(
@@ -652,7 +659,7 @@ def _normalize_excerpt_hit_snapshot(hit: object) -> dict[str, object] | None:
     matched_terms = normalized.get("matched_terms")
     if matched_terms is not None:
         normalized["matched_terms"] = _normalize_text_list_like(matched_terms)
-    section_hint = _normalize_optional_text(normalized.get("section_hint"))
+    section_hint = _normalize_query_hint(normalized.get("section_hint"))
     if section_hint is not None:
         normalized["section_hint"] = section_hint
     retrieval_policy = normalized.get("retrieval_policy", normalized.get("policy"))
@@ -804,7 +811,7 @@ def _normalize_doc_hit_snapshot(hit: object) -> dict[str, object] | None:
         normalized["top_match_count"] = _normalize_optional_int(normalized.get("top_match_count")) or len(
             normalized["top_matched_terms"]
         )
-    section_hint = _normalize_optional_text(normalized.get("section_hint"))
+    section_hint = _normalize_query_hint(normalized.get("section_hint"))
     if section_hint is not None:
         normalized["section_hint"] = section_hint
     retrieval_policy = normalized.get("retrieval_policy", normalized.get("policy"))
@@ -1335,7 +1342,7 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
         normalized["matched_terms"] = _normalize_text_list_like(matched_terms)
     elif "matched_terms" in normalized:
         normalized["matched_terms"] = None
-    section_hint = _normalize_optional_text(normalized.get("section_hint"))
+    section_hint = _normalize_query_hint(normalized.get("section_hint"))
     if section_hint is not None:
         normalized["section_hint"] = section_hint
     elif "section_hint" in normalized:
