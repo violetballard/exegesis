@@ -332,6 +332,22 @@ def _normalize_query_doc_types_payload(value: object) -> list[str] | None:
     return sorted(normalized)
 
 
+def _basket_promotion_query_constraint_snapshot(query: RetrievalQuery) -> dict[str, object]:
+    """Return the normalized retrieval constraints carried with basket promotion."""
+
+    constraints: dict[str, object] = {
+        "max_results": query.constraints.max_results,
+        "doc_types": list(query.constraints.doc_types),
+        "require_citations": query.constraints.require_citations,
+        "prefer_exact_matches": query.constraints.prefer_exact_matches,
+    }
+    if query.constraints.date_range is not None:
+        constraints["date_range"] = list(query.constraints.date_range)
+    if query.constraints.section_hint is not None:
+        constraints["section_hint"] = query.constraints.section_hint
+    return constraints
+
+
 def _normalize_hit_shared_provenance_payload(provenance: object) -> dict[str, object]:
     if not isinstance(provenance, dict):
         return {}
@@ -1425,6 +1441,11 @@ class RetrievalResult:
             "query_scope": self.diagnostics["query_scope"],
             "query_intent": self.diagnostics["query_intent"],
             "query_confidentiality_profile": self.diagnostics["query_confidentiality_profile"],
+            "query_constraints": _basket_promotion_query_constraint_snapshot(self.query),
+            "query_max_results": self.query.constraints.max_results,
+            "query_doc_types": list(self.query.constraints.doc_types),
+            "query_require_citations": self.query.constraints.require_citations,
+            "query_prefer_exact_matches": self.query.constraints.prefer_exact_matches,
             "query_date_range": copy.deepcopy(self.diagnostics["date_range"]),
             "candidate_doc_count": self.diagnostics["candidate_doc_count"],
             "fts_shortlist_doc_ids": copy.deepcopy(self.diagnostics["fts_shortlist_doc_ids"]),
@@ -3752,6 +3773,10 @@ class RetrievalService:
         provenance: dict[str, object],
         lookup_fingerprint: str,
     ) -> dict[str, object]:
+        query_snapshot = self._build_excerpt_query_snapshot(excerpt=excerpt, provenance=provenance)
+        query_constraints = query_snapshot.get("constraints", {}) if isinstance(query_snapshot, dict) else {}
+        if not isinstance(query_constraints, dict):
+            query_constraints = {}
         retrieval_policy = _normalize_retrieval_policy_snapshot_payload(
             copy.deepcopy(excerpt.get("retrieval_policy", self._retrieval_policy.as_snapshot()))
         )
@@ -3774,6 +3799,11 @@ class RetrievalService:
             "query_confidentiality_profile": _normalized_profile_text(
                 provenance.get("query_confidentiality_profile")
             ),
+            "query_constraints": copy.deepcopy(query_constraints),
+            "query_max_results": _optional_int(query_constraints.get("max_results")),
+            "query_doc_types": _normalize_query_doc_types_payload(query_constraints.get("doc_types")),
+            "query_require_citations": _optional_bool(query_constraints.get("require_citations")),
+            "query_prefer_exact_matches": _optional_bool(query_constraints.get("prefer_exact_matches")),
             "lookup_resolution": _normalize_lookup_resolution_payload(
                 excerpt.get("lookup_resolution") or provenance.get("lookup_resolution")
             ),

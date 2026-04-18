@@ -344,29 +344,42 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
     if normalized_intent is not None:
         normalized["intent"] = normalized_intent
     constraints = normalized.get("constraints", {})
+    normalized["constraints"] = _normalize_query_constraints(constraints)
+    return normalized
+
+
+def _normalize_query_constraints(constraints: object) -> dict[str, object]:
     if not isinstance(constraints, dict):
-        constraints = {}
+        normalized: dict[str, object] = {}
     else:
-        constraints = copy.deepcopy(constraints)
-    max_results = _normalize_optional_int(constraints.get("max_results"))
+        normalized = copy.deepcopy(constraints)
+    max_results = _normalize_optional_int(normalized.get("max_results"))
     if max_results is not None:
-        constraints["max_results"] = max_results
+        normalized["max_results"] = max_results
     else:
-        constraints["max_results"] = 10
-    constraints["doc_types"] = _normalize_query_doc_types(constraints.get("doc_types"))
-    constraints["date_range"] = _normalize_query_date_range(constraints.get("date_range"))
-    constraints["section_hint"] = _normalize_optional_text(constraints.get("section_hint"))
-    require_citations = _normalize_optional_bool(constraints.get("require_citations"))
+        normalized["max_results"] = 10
+    normalized["doc_types"] = _normalize_query_doc_types(normalized.get("doc_types"))
+    normalized["date_range"] = _normalize_query_date_range(normalized.get("date_range"))
+    normalized["section_hint"] = _normalize_optional_text(normalized.get("section_hint"))
+    require_citations = _normalize_optional_bool(normalized.get("require_citations"))
     if require_citations is not None:
-        constraints["require_citations"] = require_citations
+        normalized["require_citations"] = require_citations
     else:
-        constraints["require_citations"] = False
-    prefer_exact_matches = _normalize_optional_bool(constraints.get("prefer_exact_matches"))
+        normalized["require_citations"] = False
+    prefer_exact_matches = _normalize_optional_bool(normalized.get("prefer_exact_matches"))
     if prefer_exact_matches is not None:
-        constraints["prefer_exact_matches"] = prefer_exact_matches
+        normalized["prefer_exact_matches"] = prefer_exact_matches
     else:
-        constraints["prefer_exact_matches"] = False
-    normalized["constraints"] = constraints
+        normalized["prefer_exact_matches"] = False
+    return normalized
+
+
+def _normalize_basket_promotion_query_constraints(constraints: object) -> dict[str, object]:
+    normalized = _normalize_query_constraints(constraints)
+    if normalized.get("date_range") is None:
+        normalized.pop("date_range", None)
+    if normalized.get("section_hint") is None:
+        normalized.pop("section_hint", None)
     return normalized
 
 
@@ -1381,6 +1394,31 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
         normalized["query_date_range"] = query_date_range
     elif "query_date_range" in normalized:
         normalized["query_date_range"] = None
+    query_constraints = normalized.get("query_constraints")
+    if isinstance(query_constraints, dict):
+        normalized["query_constraints"] = _normalize_basket_promotion_query_constraints(query_constraints)
+    elif "query_constraints" in normalized:
+        normalized["query_constraints"] = {}
+    query_doc_types = normalized.get("query_doc_types")
+    if query_doc_types is not None:
+        normalized["query_doc_types"] = _normalize_query_doc_types(query_doc_types)
+    elif "query_doc_types" in normalized:
+        normalized["query_doc_types"] = []
+    query_max_results = _normalize_optional_int(normalized.get("query_max_results"))
+    if query_max_results is not None:
+        normalized["query_max_results"] = query_max_results
+    elif "query_max_results" in normalized:
+        normalized["query_max_results"] = None
+    query_require_citations = _normalize_optional_bool(normalized.get("query_require_citations"))
+    if query_require_citations is not None:
+        normalized["query_require_citations"] = query_require_citations
+    elif "query_require_citations" in normalized:
+        normalized["query_require_citations"] = None
+    query_prefer_exact_matches = _normalize_optional_bool(normalized.get("query_prefer_exact_matches"))
+    if query_prefer_exact_matches is not None:
+        normalized["query_prefer_exact_matches"] = query_prefer_exact_matches
+    elif "query_prefer_exact_matches" in normalized:
+        normalized["query_prefer_exact_matches"] = None
     fts_shortlist_doc_ids = _normalize_optional_list_like(normalized.get("fts_shortlist_doc_ids"))
     if fts_shortlist_doc_ids is not None:
         normalized["fts_shortlist_doc_ids"] = _normalize_text_list_like(fts_shortlist_doc_ids)
@@ -1447,6 +1485,9 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
     query_payload = payload.get("query", retrieval_source_bundle.get("query", {}))
     if not isinstance(query_payload, dict):
         query_payload = {}
+    query_constraints = query_payload.get("constraints", {})
+    if not isinstance(query_constraints, dict):
+        query_constraints = {}
     retrieval_policy = _normalize_policy_snapshot(
         payload.get(
             "policy",
@@ -1551,6 +1592,44 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
                 retrieval_provenance.get("query_confidentiality_profile"),
                 retrieval_summary.get("query_confidentiality_profile"),
                 retrieval_citation_bundle.get("query_confidentiality_profile"),
+            )
+        ),
+        "query_constraints": _normalize_basket_promotion_query_constraints(
+            _first_dict_value(
+                payload.get("query_constraints"),
+                retrieval_provenance.get("query_constraints"),
+                retrieval_source_bundle.get("query_constraints"),
+                query_constraints,
+            )
+        ),
+        "query_max_results": _first_non_none_value(
+            payload.get("query_max_results"),
+            retrieval_provenance.get("query_max_results"),
+            retrieval_source_bundle.get("query_max_results"),
+            query_constraints.get("max_results"),
+        ),
+        "query_doc_types": _normalize_query_doc_types(
+            _first_non_none_value(
+                payload.get("query_doc_types"),
+                retrieval_provenance.get("query_doc_types"),
+                retrieval_source_bundle.get("query_doc_types"),
+                query_constraints.get("doc_types"),
+            )
+        ),
+        "query_require_citations": _normalize_optional_bool(
+            _first_non_none_value(
+                payload.get("query_require_citations"),
+                retrieval_provenance.get("query_require_citations"),
+                retrieval_source_bundle.get("query_require_citations"),
+                query_constraints.get("require_citations"),
+            )
+        ),
+        "query_prefer_exact_matches": _normalize_optional_bool(
+            _first_non_none_value(
+                payload.get("query_prefer_exact_matches"),
+                retrieval_provenance.get("query_prefer_exact_matches"),
+                retrieval_source_bundle.get("query_prefer_exact_matches"),
+                query_constraints.get("prefer_exact_matches"),
             )
         ),
         "query_date_range": _normalize_query_date_range(
