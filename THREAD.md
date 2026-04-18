@@ -6,20 +6,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- This branch is not a metadata-only resubmission.
-- Reviewer-visible implementation anchor remains `3e0be5cbf94ff74cc192e88c239aebc9fb98982a` (`feat(commands): add trusted surface lookup helpers`).
-- The current fixer commit on top of that anchor is a metadata refresh so the handoff packet matches the real live scope.
-- Regenerated packet scope is the live `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD` diff, not the earlier narrow-slice claim.
-- Files in scope:
-  - `src/qual/commands/__init__.py`
-  - `src/qual/commands/canonical.py`
+- Reviewer-visible implementation anchor remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`).
+- Later handoff-refresh commits are metadata-only for this re-review.
+- Review scope stays narrow:
   - `src/qual/commands/catalog.py`
-  - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_commands_catalog.py`
-  - `tests/unit/test_diff_preview.py`
   - `THREAD.md`
   - `THREAD_PACKET.md`
-- The protected canonical demo-path step is `open project/document`.
-- Explicit handoff statement: this work advances the canonical `open project/document` demo-path step.
-- AGENTS alignment: this work strengthens the Milestone 3 CLI-first loop by keeping the CLI-first operator contract deterministic while Textual remains disabled, and by explicitly tracing the bootstrap command surface to the current branch tip.
+- The canonical demo-path step advanced is `open project/document`.
+- Explicit handoff statement: this change hardens the deterministic CLI contract for the `open project/document` bootstrap step and does not claim broader workflow or UI progress.
 - This fixer pass stays metadata-only and is limited to `THREAD.md` and `THREAD_PACKET.md`.
