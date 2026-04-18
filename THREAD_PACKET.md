@@ -52,9 +52,16 @@ This handoff explicitly advances the canonical demo-path step `retrieve relevant
 3. Preserved canonical query text, query context, basket-promotion metadata, and policy aliases through retrieval source/context bundle rehydration and engine-facing exports.
 4. Added and expanded approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for deterministic FTS-first retrieval behavior and the fail-closed excerpt lookup contract.
 
+## Reviewed branch-tip commits
+
+- `cf866ba3`: harden excerpt query context defaults
+- `95eee546`: carry query text in basket promotion
+- `5adbeb7b`: prune stale retrieval excerpt contexts
+- `1d0b5377`: preserve policy alias in context bundles
+
 ## Files changed
 
-- Reviewed implementation files:
+- Runtime files in the reviewed implementation range:
   - `src/qual/engine/retrieval/__init__.py`
   - `src/qual/engine/retrieval/embeddings_strategy.py`
   - `src/qual/engine/retrieval/fts_strategy.py`
@@ -64,6 +71,7 @@ This handoff explicitly advances the canonical demo-path step `retrieve relevant
   - `src/qual/retrieval/__init__.py`
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`
+- Packet files in the reviewed implementation range:
   - `.codex/kickoff_packets/feat-retrieval-fts.md`
   - `.codex/lane_meta/feat-retrieval-fts.json`
   - `THREAD_PACKET.md`
