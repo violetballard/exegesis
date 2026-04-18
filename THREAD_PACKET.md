@@ -120,18 +120,19 @@
 
 ### Roadmap item(s) affected
 
-- Milestone 3: preserve the CLI-first MVP loop while Textual remains disabled and the engine workflow continues to start from a deterministic bootstrap command.
+- Milestone 3: CLI-first operator contract support for the active engine demo path while Textual remains disabled, preserving a deterministic bootstrap command for the workflow loop.
 - `feat-commands`: keep command discovery, canonicalization, and preview flows stable as the reviewed CLI surface expands.
 
 ### Vision capability affected
 
-- Writing-centered workflow: the operator can still begin the canonical flow from a stable CLI bootstrap surface.
+- Writing-centered workflow: the operator can still begin the active engine demo path from a stable CLI bootstrap surface while Textual remains disabled.
 - Canonical engine contract: trusted surface lookup helpers and parser-contract coverage keep the reviewed command catalog auditable instead of allowing silent drift across aliases or demo-path shims.
 
 ### Canonical demo-path step advanced
 
 - Step advanced: `open project/document`
-- AGENTS alignment: this change makes the canonical `open project/document` bootstrap step more real by keeping the CLI entry surface deterministic while Milestone 3 remains CLI-first.
+- Explicit handoff statement: this change advances the canonical `open project/document` demo-path step.
+- AGENTS alignment: this change makes the canonical `open project/document` bootstrap step more real by keeping the CLI-first operator contract deterministic while Milestone 3 remains CLI-first and Textual remains disabled.
 - Concrete blocker removed: the branch now documents and tests the real parser-facing command surface, reducing the risk that alias/canonical drift silently changes the operator’s first CLI step.
 - Why this is MVP-loop-specific: while Textual is disabled, the CLI bootstrap command is the active operator entry into the engine workflow, so deterministic command-surface lookup protects the Milestone 3 CLI-first loop.
 
