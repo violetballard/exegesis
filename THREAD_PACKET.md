@@ -1,7 +1,7 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `reviewer-required handoff regeneration for the current branch tip`
+- Packet role: `reviewer-required handoff regeneration for the narrowed implementation slice`
 - Reviewed implementation head: `1d0b5377bff5a5b45845c0f00e7f106eeae6f2ed`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..1d0b5377bff5a5b45845c0f00e7f106eeae6f2ed`
 - Packet refresh note: this fixer commit is metadata-only, but it explicitly treats `1d0b5377bff5a5b45845c0f00e7f106eeae6f2ed` as reviewed retrieval/runtime code in scope rather than a metadata-only refresh.
@@ -43,9 +43,7 @@
 
 - Canonical demo-path step advanced: `retrieve relevant material`
 
-This handoff explicitly advances the canonical demo-path step `retrieve relevant material`. It does so by keeping public excerpt lookup on the FTS-only retrieval contract and by preserving deterministic, auditable excerpt behavior for downstream basket promotion and workflow use.
-
-The removal of the PageIndex excerpt fallback and the fail-closed regression test both strengthen the same canonical demo-path step, `retrieve relevant material`, rather than broadening scope into alternate retrieval flows.
+This handoff explicitly advances the canonical demo-path step `retrieve relevant material`. It does so by keeping public excerpt lookup on the FTS-only retrieval contract and by preserving deterministic, auditable excerpt behavior for downstream basket promotion and workflow use. The removal of the PageIndex excerpt fallback and the fail-closed regression test both strengthen that same step rather than broadening scope into alternate retrieval flows.
 
 ## Tasks completed
 
