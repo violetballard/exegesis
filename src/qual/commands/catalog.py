@@ -207,6 +207,7 @@ class CommandDemoNextActionEntry:
     description: str
     compatibility_tokens: tuple[str, ...] = ()
     preferred_surface_tokens: tuple[str, ...] = ()
+    preferred_surface_invocations: tuple[tuple[str, tuple[str, ...]], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -215,6 +216,7 @@ class CommandDemoNextActionContract:
     entries: tuple[CommandDemoNextActionEntry, ...]
     lookup_table: tuple[tuple[str, str], ...] = ()
     invocation_table: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    preferred_invocation_table: tuple[tuple[str, tuple[str, ...]], ...] = ()
     compatibility_lookup_table: tuple[tuple[str, str], ...] = ()
     compatibility_invocation_table: tuple[tuple[str, tuple[str, ...]], ...] = ()
 
@@ -3074,6 +3076,12 @@ def _validate_command_demo_next_action_contract(contract: CommandDemoNextActionC
         raise ValueError("Command demo next action lookup table is inconsistent")
     if contract.invocation_table != tuple((entry.target_token, entry.argv) for entry in contract.entries):
         raise ValueError("Command demo next action invocation table is inconsistent")
+    if contract.preferred_invocation_table != tuple(
+        invocation
+        for entry in contract.entries
+        for invocation in entry.preferred_surface_invocations
+    ):
+        raise ValueError("Command demo next action preferred invocation table is inconsistent")
     expected_compatibility_lookup = tuple(
         (compatibility_token, entry.canonical_name)
         for entry in contract.entries
@@ -3093,6 +3101,14 @@ def _validate_command_demo_next_action_contract(contract: CommandDemoNextActionC
             raise ValueError("Command demo next action source token is inconsistent")
         if not entry.argv:
             raise ValueError(f"Command demo next action entry is missing argv: {entry.target_token}")
+        if tuple(token for token, _ in entry.preferred_surface_invocations) != entry.preferred_surface_tokens:
+            raise ValueError(
+                "Command demo next action preferred surface invocations are inconsistent"
+            )
+        if any(not argv for _, argv in entry.preferred_surface_invocations):
+            raise ValueError(
+                f"Command demo next action preferred invocation is missing argv: {entry.target_token}"
+            )
 
 
 @lru_cache(maxsize=None)
@@ -3312,6 +3328,7 @@ def command_demo_next_action_contract(
         normalized_source_token,
     )
     workflow_entries = {entry.token: entry for entry in command_demo_workflow_contract(specs).entries}
+    ordered_flow_steps = command_demo_flow_steps() if specs is COMMAND_SPECS else command_flow_steps(specs)
     entries = tuple(
         CommandDemoNextActionEntry(
             source_token=canonical_source_token,
@@ -3322,6 +3339,13 @@ def command_demo_next_action_contract(
             description=workflow_entries[target_token].description,
             compatibility_tokens=workflow_entries[target_token].compatibility_tokens,
             preferred_surface_tokens=workflow_entries[target_token].preferred_surface_tokens,
+            preferred_surface_invocations=tuple(
+                (
+                    preferred_token,
+                    command_smoke_argv_for(specs, (preferred_token,), ordered_flow_steps),
+                )
+                for preferred_token in workflow_entries[target_token].preferred_surface_tokens
+            ),
         )
         for target_token in command_demo_transition_targets_for(specs, source_token)
     )
@@ -3330,6 +3354,11 @@ def command_demo_next_action_contract(
         entries=entries,
         lookup_table=tuple((entry.target_token, entry.canonical_name) for entry in entries),
         invocation_table=tuple((entry.target_token, entry.argv) for entry in entries),
+        preferred_invocation_table=tuple(
+            invocation
+            for entry in entries
+            for invocation in entry.preferred_surface_invocations
+        ),
         compatibility_lookup_table=tuple(
             (compatibility_token, entry.canonical_name)
             for entry in entries
@@ -3351,6 +3380,20 @@ def command_mvp_next_action_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoNextActionContract:
     return command_demo_next_action_contract(source_token, specs)
+
+
+def command_demo_next_action_preferred_invocation_table(
+    source_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_next_action_contract(source_token, specs).preferred_invocation_table
+
+
+def command_mvp_next_action_preferred_invocation_table(
+    source_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_next_action_preferred_invocation_table(source_token, specs)
 
 
 def command_demo_loop_catalog(

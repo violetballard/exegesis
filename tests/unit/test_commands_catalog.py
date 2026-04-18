@@ -129,6 +129,7 @@ from src.qual.commands import (
     command_demo_next_action_catalog,
     command_demo_next_action_lookup_table,
     command_demo_next_action_invocation_table,
+    command_demo_next_action_preferred_invocation_table,
     command_demo_next_action_compatibility_lookup_table,
     command_demo_next_action_compatibility_invocation_table,
     command_demo_loop_contract,
@@ -180,6 +181,7 @@ from src.qual.commands import (
     command_mvp_next_action_catalog,
     command_mvp_next_action_lookup_table,
     command_mvp_next_action_invocation_table,
+    command_mvp_next_action_preferred_invocation_table,
     command_mvp_next_action_compatibility_lookup_table,
     command_mvp_next_action_compatibility_invocation_table,
     command_mvp_loop_contract,
@@ -3620,6 +3622,10 @@ class CommandCatalogTests(unittest.TestCase):
             command_demo_next_action_invocation_table("patch-review"),
         )
         self.assertEqual(
+            contract.preferred_invocation_table,
+            command_demo_next_action_preferred_invocation_table("patch-review"),
+        )
+        self.assertEqual(
             contract.compatibility_lookup_table,
             command_demo_next_action_compatibility_lookup_table("patch-review"),
         )
@@ -3635,6 +3641,10 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_mvp_next_action_invocation_table("review"),
             contract.invocation_table,
+        )
+        self.assertEqual(
+            command_mvp_next_action_preferred_invocation_table("review"),
+            contract.preferred_invocation_table,
         )
         self.assertEqual(
             command_mvp_next_action_compatibility_lookup_table("review"),
@@ -3661,6 +3671,23 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
         self.assertEqual(
+            tuple(entry.preferred_surface_invocations for entry in contract.entries),
+            (
+                (
+                    (
+                        "apply-patch",
+                        ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                    ),
+                ),
+                (
+                    (
+                        "reject-patch",
+                        ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                    ),
+                ),
+            ),
+        )
+        self.assertEqual(
             tuple(entry.compatibility_tokens for entry in contract.entries),
             (
                 ("apply", "approve", "accept", "approve-patch", "accept-patch"),
@@ -3669,6 +3696,19 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(
             contract.invocation_table,
+            (
+                (
+                    "apply-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "reject-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+            ),
+        )
+        self.assertEqual(
+            contract.preferred_invocation_table,
             (
                 (
                     "apply-patch",
@@ -3741,6 +3781,7 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
         self.assertEqual(command_demo_next_action_contract("export-handoff").entries, ())
+        self.assertEqual(command_demo_next_action_preferred_invocation_table("persist"), (("export-handoff", ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff")), ("export", ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"))))
         self.assertEqual(command_demo_next_action_contract("missing").source_token, "missing")
 
     def test_command_demo_next_action_contract_tracks_custom_specs(self) -> None:
@@ -3853,6 +3894,23 @@ class CommandCatalogTests(unittest.TestCase):
             (
                 ("apply-patch",),
                 ("reject-patch",),
+            ),
+        )
+        self.assertEqual(
+            tuple(entry.preferred_surface_invocations for entry in contract.entries),
+            (
+                (
+                    (
+                        "apply-patch",
+                        ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                    ),
+                ),
+                (
+                    (
+                        "reject-patch",
+                        ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                    ),
+                ),
             ),
         )
 
