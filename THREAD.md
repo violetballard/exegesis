@@ -13,8 +13,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `tests/unit/test_commands_catalog.py`
   - `THREAD.md`
   - `THREAD_PACKET.md`
-- The canonical demo-path mapping is the current engine-first CLI loop: `project-open` -> `retrieval` -> `patch-review` -> `apply-patch`/`reject-patch` -> `persist` -> `export-handoff`, with this reviewed slice specifically strengthening the `open project/document` bootstrap entrypoint that starts that loop.
-- Explicit handoff statement: this change hardens the deterministic CLI contract for the engine-first loop entrypoints used to open, retrieve, patch-review, and continue the workflow, and does not claim broader retrieval-engine, patch-application, or UI progress.
+- The canonical demo-path mapping for this reviewed slice is the current engine-first CLI path to `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and `continue working`, with this command-catalog hardening specifically stabilizing the command entrypoints that start and traverse that loop.
+- Explicit handoff statement: this change makes the canonical demo path more real by keeping the CLI-first operator surface deterministic for the `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and `continue working` steps, and it does not claim broader retrieval-engine, patch-application, persistence, or UI progress.
 - Scope-tightening note: this fixer remains command-contract hardening only and does not add any new user-facing command breadth beyond the current MVP loop.
 - Concrete blocker removed: without validating that CLI parser entrypoints resolve to the canonical catalog in canonical order, the parser surface feeding the engine-first CLI loop could drift silently from the catalog contract and break deterministic smoke tests for the workflow entrypoints used to open, retrieve, patch-review, and continue.
 - Vision capability affected is intentionally narrow: `Canonical engine contract` only.
