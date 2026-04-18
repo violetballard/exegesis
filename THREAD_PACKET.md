@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: make the canonical operator CLI step `open project/document` more real by keeping its command contract deterministic, rejecting parser-surface drift against the catalog, and resubmitting an accurate handoff packet against the branch state that now contains those fixes.
+- Scope goal: make the canonical operator CLI step `open project/document` more real by keeping its command contract deterministic, rejecting parser-surface drift against the catalog, and resubmitting an accurate handoff packet against the current branch implementation.
 - Risk reason: the branch includes the approved shared-test path `tests/unit/test_commands_catalog.py`, so this fixer pass stays on the high-risk template even though the current refresh is metadata only.
 
 ### Budget
@@ -42,8 +42,8 @@
 
 ## Packet Traceability Note
 
-- Current implementation review basis: `5b2ecba061b28cca27eddd587414d52c702aa628`.
-- Review basis choice: this fixer commit is metadata only. Re-review should inspect the implementation already present at `5b2ecba061b28cca27eddd587414d52c702aa628`, which includes the parser-surface contract hardening, the required regression coverage, and the later lane-owned command-surface follow-on work already on this branch.
+- Current implementation review basis: `7f1d3e7b916a11cddbd17f5057c656210f5ae69f`.
+- Review basis choice: this fixer commit is metadata only. Re-review should inspect the implementation already present at `7f1d3e7b916a11cddbd17f5057c656210f5ae69f`, which includes the parser-surface contract hardening, the required regression coverage, and the later lane-owned command-surface follow-on work already on this branch.
 - Reviewer-fix implementation files in scope at that review basis:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -62,7 +62,7 @@
 ## Resubmission Refresh
 
 - Refresh date: `2026-04-18`
-- Refresh purpose: leave a new metadata-only fixer commit that records the fresh `2026-04-18T21:42:46Z` UTC full gate rerun against the current branch tip and keeps the packet anchored to the actual implementation state already on this branch.
+- Refresh purpose: leave a new metadata-only fixer commit that records the fresh `2026-04-18T21:54:29Z` UTC full gate rerun against the current branch tip and keeps the packet anchored to the actual implementation state already on this branch.
 - Plan-alignment note: this resubmission is specifically for the canonical operator CLI step `open project/document`; it makes that step more real by ensuring the parser-facing CLI surface stays identical to the declared command catalog and fails fast if it drifts.
 - Review request: treat this packet as the current source of truth for the `feat-commands` re-review.
 
@@ -103,7 +103,7 @@
 
 1. Verified that the current branch tip already contains the reviewer-requested parser-surface validation in `src/qual/commands/catalog.py`.
 2. Verified that the required regression tests for alias substitution, extra entrypoints, dropped entrypoints, and reordered entrypoints are present and passing in `tests/unit/test_commands_catalog.py`.
-3. Refreshed the handoff packet so it points to the actual current implementation review basis `5b2ecba061b28cca27eddd587414d52c702aa628`, and tied the roadmap/vision mapping directly to the canonical `open project/document` demo-path step instead of broad CLI compatibility language.
+3. Refreshed the handoff packet so it points to the actual current implementation review basis `7f1d3e7b916a11cddbd17f5057c656210f5ae69f`, and tied the roadmap/vision mapping directly to the canonical `open project/document` demo-path step instead of broad CLI compatibility language.
 4. Re-ran the required local gates and recorded outcomes for this fixer pass.
 
 ### Files Changed
@@ -125,7 +125,7 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-18`
-- Verification timestamp (UTC): `2026-04-18T21:42:46Z`
+- Verification timestamp (UTC): `2026-04-18T21:54:29Z`
 
 ### Risks / Blockers
 
