@@ -16,5 +16,6 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `tests/unit/test_commands_catalog.py`
   - `tests/unit/test_diff_preview.py`
 - This fixer pass is packet-only. It does not change command implementation; it corrects traceability, scope, and gate reporting for the current tree.
+- The explicit canonical demo-path step for re-review is `open project/document`: the packet now states that the `bootstrap` parser surface must fail fast on catalog drift so the CLI loop keeps a stable starting point.
 - The reviewer-observed import failure does not reproduce on this worktree: `python -m unittest tests.unit.test_commands_catalog -q` passes at the current branch tip.
 - The required gates were rerun against the exact tree being handed off on `2026-04-18`, and `THREAD_PACKET.md` records those results as the source of truth.
