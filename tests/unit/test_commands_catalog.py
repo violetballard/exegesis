@@ -2530,6 +2530,9 @@ class CommandCatalogTests(unittest.TestCase):
                 "project-bootstrap",
                 "bootstrap-project",
                 "open-workspace",
+                "retrieve-context",
+                "gather-context",
+                "load-context",
                 "review",
                 "preview-patch",
                 "review-diff",
@@ -2593,6 +2596,30 @@ class CommandCatalogTests(unittest.TestCase):
                     "project-open",
                     "compatibility",
                     ("bootstrap", "--project", "demo"),
+                ),
+                (
+                    "retrieve-context",
+                    "retrieval",
+                    "context-basket",
+                    "retrieval",
+                    "compatibility",
+                    ("context-basket", "list"),
+                ),
+                (
+                    "gather-context",
+                    "retrieval",
+                    "context-basket",
+                    "retrieval",
+                    "compatibility",
+                    ("context-basket", "list"),
+                ),
+                (
+                    "load-context",
+                    "retrieval",
+                    "context-basket",
+                    "retrieval",
+                    "compatibility",
+                    ("context-basket", "list"),
                 ),
                 (
                     "review",
@@ -2795,6 +2822,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-bootstrap", ("bootstrap", "--project", "demo")),
                 ("bootstrap-project", ("bootstrap", "--project", "demo")),
                 ("open-workspace", ("bootstrap", "--project", "demo")),
+                ("retrieve-context", ("context-basket", "list")),
+                ("gather-context", ("context-basket", "list")),
+                ("load-context", ("context-basket", "list")),
                 ("review", ("diff-preview", "--original", "before", "--proposed", "after")),
                 ("preview-patch", ("diff-preview", "--original", "before", "--proposed", "after")),
                 ("review-diff", ("diff-preview", "--original", "before", "--proposed", "after")),
@@ -2985,6 +3015,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("project-bootstrap", ("bootstrap-run", "--project", "demo")),
                 ("bootstrap-project", ("bootstrap-run", "--project", "demo")),
                 ("open-workspace", ("bootstrap-run", "--project", "demo")),
+                ("retrieve-context", ("context-basket", "list")),
+                ("gather-context", ("context-basket", "list")),
+                ("load-context", ("context-basket", "list")),
                 ("review", ("review-diff", "--original", "before", "--proposed", "after")),
                 ("preview-patch", ("review-diff", "--original", "before", "--proposed", "after")),
                 ("review-diff", ("review-diff", "--original", "before", "--proposed", "after")),
@@ -3387,6 +3420,11 @@ class CommandCatalogTests(unittest.TestCase):
             ("open-project", "project-bootstrap", "bootstrap-project", "open-workspace"),
         )
         self.assertEqual(workflow_by_token["project-open"].preferred_surface_tokens, ("project-open",))
+        self.assertEqual(
+            workflow_by_token["retrieval"].compatibility_tokens,
+            ("retrieve-context", "gather-context", "load-context"),
+        )
+        self.assertEqual(workflow_by_token["retrieval"].preferred_surface_tokens, ("retrieval",))
         self.assertEqual(workflow_by_token["patch-review"].next_tokens, ("apply-patch", "reject-patch"))
         self.assertEqual(
             workflow_by_token["patch-review"].compatibility_tokens,
@@ -3415,8 +3453,37 @@ class CommandCatalogTests(unittest.TestCase):
             ("handoff", "queue-export", "handoff-export", "queue-handoff"),
         )
         self.assertEqual(
+            compatibility_invocations["retrieve-context"],
+            ("context-basket", "list"),
+        )
+        self.assertEqual(
             compatibility_invocations["review"],
             ("diff-preview", "--original", "before", "--proposed", "after"),
+        )
+        project_open_next = command_demo_next_action_contract("project-open")
+        self.assertEqual(
+            tuple(entry.target_token for entry in project_open_next.entries),
+            ("retrieval",),
+        )
+        self.assertEqual(
+            tuple(entry.compatibility_tokens for entry in project_open_next.entries),
+            (("retrieve-context", "gather-context", "load-context"),),
+        )
+        self.assertEqual(
+            project_open_next.compatibility_lookup_table,
+            (
+                ("retrieve-context", "context-basket"),
+                ("gather-context", "context-basket"),
+                ("load-context", "context-basket"),
+            ),
+        )
+        self.assertEqual(
+            project_open_next.compatibility_invocation_table,
+            (
+                ("retrieve-context", ("context-basket", "list")),
+                ("gather-context", ("context-basket", "list")),
+                ("load-context", ("context-basket", "list")),
+            ),
         )
         self.assertEqual(
             compatibility_invocations["apply"],

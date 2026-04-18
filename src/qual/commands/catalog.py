@@ -2881,6 +2881,7 @@ _COMMAND_DEMO_TRANSITIONS: tuple[tuple[str, tuple[str, ...]], ...] = (
 
 _COMMAND_DEMO_COMPATIBILITY_TOKENS: dict[str, str] = {
     "open-project": "project-open",
+    "retrieve-context": "retrieval",
     "review": "patch-review",
     "preview-patch": "patch-review",
     "save": "persist",
@@ -2900,7 +2901,6 @@ _COMMAND_DEMO_COMPATIBILITY_VARIANTS: dict[str, str] = {
     "project-bootstrap": "project-open",
     "bootstrap-project": "project-open",
     "open-workspace": "project-open",
-    "retrieve-context": "retrieval",
     "gather-context": "retrieval",
     "load-context": "retrieval",
     "review-diff": "patch-review",
