@@ -60,6 +60,8 @@
 - The current tip includes the command catalog drift protections and the broader parser-surface regression coverage in `tests/unit/test_commands_catalog.py`.
 - The current tip also includes the `diff_preview` command-surface work and its focused regression coverage in `tests/unit/test_diff_preview.py`, which were missing from the stale packet scope.
 - This fixer pass does not change command implementation. It corrects packet traceability and records fresh validation for the tree actually being handed off.
+- Canonical demo-path step advanced: this slice makes the operator-facing `open project/document` and `preview and apply or reject a patch` CLI steps more reliable by keeping the existing command catalog and parser surface deterministic for `bootstrap` and `diff-preview`.
+- Scope boundary: this slice hardens the existing CLI contract only. It does not add new command behavior, new flags, or any non-MVP command surface.
 
 ## Kickoff Budget / Limits Compliance
 
