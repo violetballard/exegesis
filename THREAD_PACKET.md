@@ -2,11 +2,11 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `reviewer-fix packet regeneration`
-- Current branch tip before this fixer pass: `3f010faf88f6`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Current branch tip before this fixer pass: `3f010faf88f624075d206de7742a4aa060aaed74`
+- Reviewed implementation commit: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca^..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet-only descendants above the reviewed implementation head: metadata-only packet refresh commits; final HEAD SHA is reported with the fixer handoff
-- Packet traceability note: use the reviewer packet as the source of truth for scope. This handoff stays narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and does not broaden the reviewed retrieval implementation range.
+- Packet traceability note: this handoff is narrowed to the single reviewed implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`; later metadata-only packet refresh commits do not broaden the reviewed retrieval implementation scope.
 
 ## Scope goal
 
@@ -17,7 +17,7 @@
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
 - Scope goal: keep excerpt lookup on the canonical SQLite FTS path and preserve deterministic provenance output for downstream engine flows.
-- Risk reason: the submitted scope includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
+- Risk reason: the reviewed implementation commit includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 
 ### Budget
 
@@ -31,19 +31,19 @@
 1. Keep excerpt lookup fail-closed on the canonical FTS path.
 2. Preserve deterministic excerpt and provenance payload output.
 3. Maintain approved shared regression coverage for the FTS-only excerpt contract.
-4. Regenerate the handoff packet so it explicitly states the canonical demo-path step advanced by this narrowed change.
+4. Regenerate the handoff packet so every artifact points at one exact reviewed implementation commit and states the canonical demo-path step advanced.
 
 ### Checkpoint Status
 
-- `plan complete`: the packet is narrowed to the reviewer-specified implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- `plan complete`: all handoff artifacts are being narrowed to the single reviewed implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 - `first green tests`: recorded after rerunning the required gates for this fixer pass.
 - `before risky/shared file edit`: the only shared implementation file in scope remains the approved regression surface `tests/unit/test_unified_retrieval.py`.
-- `ready for handoff`: this writable packet is the reviewer-facing source of truth in this worktree, it states explicitly which canonical demo-path step this change advances, and it keeps scope narrowed to the reviewer packet.
+- `ready for handoff`: this packet now uses a single reviewed implementation scope and explicit demo-path mapping for re-review.
 
 ## Scope completed
 
 - SQLite FTS remains the authoritative MVP retrieval path in this narrowed slice.
-- The reviewed implementation commit makes excerpt lookup fail closed on the canonical FTS-only path by removing the PageIndex fallback from `fetch_excerpt`.
+- The single reviewed implementation commit removes the PageIndex fallback from `fetch_excerpt()` so excerpt lookup now fail-closes on the canonical FTS-only path.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs now raise `KeyError`.
 - PageIndex and embeddings remain non-required compatibility paths in this slice; excerpt lookup no longer promotes PageIndex as a runtime fallback path for the MVP contract.
 
@@ -51,7 +51,7 @@
 
 - `retrieve relevant material`
 
-This handoff advances the canonical demo-path step `retrieve relevant material` by making `fetch_excerpt()` fail closed unless the excerpt exists on the canonical SQLite FTS path, which keeps downstream basket promotion and audit provenance tied to deterministic, auditable FTS-backed excerpt payloads.
+This handoff advances `retrieve relevant material` by forcing `fetch_excerpt()` to return only canonical FTS-backed excerpt payloads, which keeps downstream basket promotion and audit provenance tied to deterministic, auditable SQLite FTS hits.
 
 ## Tasks completed
 
@@ -63,7 +63,7 @@ This handoff advances the canonical demo-path step `retrieve relevant material` 
 - Reviewed implementation files:
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`
-- Metadata-only handoff file:
+- Metadata-only handoff files:
   - `THREAD_PACKET.md`
 
 ## Commands run with results
@@ -77,10 +77,9 @@ This handoff advances the canonical demo-path step `retrieve relevant material` 
 
 ## Reviewer fix closure
 
-1. The packet now states explicitly which canonical demo-path step this change advances.
-2. That statement is tied to the narrowed scope: this change strengthens `retrieve relevant material` by making `fetch_excerpt()` fail closed unless the excerpt exists on the canonical SQLite FTS path and preserving deterministic, auditable provenance payloads.
-3. The reviewed scope remains narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and is not broadened by this fixer pass.
-4. This handoff packet is the writable source of truth for the reviewer-required metadata corrections in this worktree.
+1. This packet now points at one unambiguous reviewed implementation scope: the single commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+2. `Scope completed`, `Files changed`, and the budget framing are restated against that exact reviewed implementation commit.
+3. The packet states explicitly which canonical demo-path step this change advances and how the FTS-only excerpt behavior strengthens that step.
 
 ## Risks / blockers
 
@@ -114,5 +113,5 @@ This handoff advances the canonical demo-path step `retrieve relevant material` 
 
 ## Scope-check / ownership note
 
-- Shared/integrator-locked edits in the reviewed implementation range: `YES`
-- Approved shared exception: `tests/unit/test_unified_retrieval.py` is the sole shared-by-approval implementation file in the reviewed range.
+- Shared/integrator-locked edits in the reviewed implementation commit: `YES`
+- Approved shared exception: `tests/unit/test_unified_retrieval.py` is the sole shared-by-approval implementation file in the reviewed scope.
