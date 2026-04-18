@@ -3799,6 +3799,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "terminal_artifact_renderer_entrypoints_contract_fingerprint": manifest[
                     "terminal_artifact_renderer_entrypoints_contract_fingerprint"
                 ],
+                "contract_fingerprints_contract": manifest["contract_fingerprints_contract"],
+                "contract_fingerprints_contract_fingerprint": manifest[
+                    "contract_fingerprints_contract_fingerprint"
+                ],
                 "contract_fingerprints": manifest["contract_fingerprints"],
                 "contract_fingerprints_fingerprint": manifest["contract_fingerprints_fingerprint"],
             },
@@ -3836,6 +3840,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         manifest["entrypoints"]["render_artifact"] = "mutated"
         manifest["startup_preview"]["limit"] = 99
+        manifest["contract_fingerprints"]["entrypoints"] = "mutated"
 
         self.assertEqual(
             embedded["entrypoints"],
@@ -3852,6 +3857,19 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "limit": SHELL_UI_STARTUP_PREVIEW_LIMIT,
                 "source_field": "basket.item_ids",
             },
+        )
+        self.assertEqual(
+            embedded["contract_fingerprints_contract"],
+            manifest["contract_fingerprints_contract"],
+        )
+        self.assertIsNot(embedded["contract_fingerprints_contract"], manifest["contract_fingerprints"])
+        self.assertEqual(
+            embedded["contract_fingerprints_contract"]["entrypoints"],
+            _fingerprint_manifest_section(embedded["entrypoints"]),
+        )
+        self.assertEqual(
+            embedded["contract_fingerprints_contract_fingerprint"],
+            manifest["contract_fingerprints_contract_fingerprint"],
         )
         self.assertEqual(manifest["startup_preview"]["limit"], 99)
         self.assertIsNot(manifest["startup_fields_contract"], manifest["startup_fields"])
