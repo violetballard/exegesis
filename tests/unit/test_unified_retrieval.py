@@ -2165,6 +2165,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(source_bundle["query"]["constraints"]["date_range"], ["2026-01-01", "2026-01-31"])
         self.assertEqual(source_bundle["policy"]["active_strategy_ids"], ["fts"])
         self.assertEqual(source_bundle["policy"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(source_bundle["retrieval_policy"], source_bundle["policy"])
         self.assertEqual(excerpt_bundle["doc_count"], 1)
         self.assertEqual(excerpt_bundle["excerpt_count"], 1)
         self.assertIsInstance(excerpt_bundle["excerpt_hits"], list)
@@ -2388,6 +2389,27 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertNotEqual(refreshed["doc_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
         self.assertNotEqual(refreshed["excerpt_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
+
+    def test_retrieval_source_bundle_exposes_retrieval_policy_alias(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        source_bundle = result.source_bundle()
+        self.assertEqual(source_bundle["retrieval_policy"], source_bundle["policy"])
+
+        sparse_source_bundle = json.loads(json.dumps(source_bundle))
+        sparse_source_bundle.pop("retrieval_policy", None)
+        rebuilt = _build_retrieval_source_bundle_from_payload(
+            {"retrieval_source_bundle": sparse_source_bundle}
+        )
+        self.assertEqual(rebuilt["retrieval_policy"], rebuilt["policy"])
 
     def test_citation_bundle_helper_rebuilds_citations_from_top_level_hits(self) -> None:
         result = self.service.retrieve_auto(

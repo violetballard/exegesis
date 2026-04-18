@@ -2022,6 +2022,7 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
             or {}
         )
         normalized["policy"] = copy.deepcopy(retrieval_policy)
+    normalized["retrieval_policy"] = copy.deepcopy(retrieval_policy)
 
     citation_status = normalized.get("citation_status")
     if not isinstance(citation_status, dict):
