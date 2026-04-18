@@ -68,7 +68,8 @@
 ## Canonical Demo-Path Step Advanced
 
 - Canonical demo-path step advanced: operator CLI step `open project/document`.
-- Narrow mapping: this `feat-commands` change makes only that CLI step more reliable by forcing the accepted parser surface to stay identical to the declared command catalog.
+- Narrow mapping: this `feat-commands` change is contract-hardening for the existing CLI path only, not new command capability or CLI UX expansion.
+- Specific path impact: it makes only the existing `open project/document` CLI step more reliable by forcing the accepted parser surface to stay identical to the declared command catalog.
 - Concrete effect: the accepted CLI parser surface now fails fast if canonical tokens, alias entrypoints, or their order drift away from the declared command catalog.
 - Concrete blocker removed: without this guard, the CLI can silently accept a parser surface that no longer matches the documented command catalog for `open project/document`.
 
@@ -78,6 +79,7 @@
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for alias substitution, reordered parser entrypoints, extra entrypoints, dropped entrypoints, and related parser-surface drift cases.
 - Preserved deterministic catalog helpers and branch-tip lane-owned command-surface exports in `src/qual/commands/__init__.py`.
 - Refreshed the handoff packet so re-review uses the real current implementation basis instead of the stale `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` anchor.
+- Scope guard: this resubmission does not add new commands, new flags, or CLI UX expansion; it only hardens the existing CLI contract for the current MVP path.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -122,7 +124,7 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-18`
-- Verification timestamp (UTC): `2026-04-18T21:00:01Z`
+- Verification timestamp (UTC): `2026-04-18T21:09:12Z`
 
 ### Risks / Blockers
 
