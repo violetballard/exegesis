@@ -99,6 +99,12 @@ This handoff explicitly advances the canonical demo-path step `retrieve relevant
 
 ## Required handoff fields
 
+### Canonical demo-path step advanced
+
+- `retrieve relevant material`
+
+This change makes `retrieve relevant material` more real by keeping public excerpt lookup on the canonical FTS-only path and preserving deterministic, auditable excerpt provenance for downstream basket promotion and workflow use.
+
 ### Roadmap item(s) affected
 
 - `Milestone 3: Real workflow loop`
