@@ -51,7 +51,7 @@
 
 1. The handoff packet now explicitly names the canonical demo-path step advanced by this change using the current `AGENTS.md` and `ROADMAP.md` wording: `open project/document`.
 2. The packet now states the concrete blocker removed on that path: silent parser/catalog drift could break the deterministic bootstrap CLI contract and its smoke-test coverage for `open project/document`.
-3. The scope statement stays narrow and describes this work as deterministic command-contract hardening only, not broader workflow or UI progress.
+3. The scope statement stays narrow and describes this work as deterministic command-contract hardening only, with no new user-facing command breadth beyond the current MVP loop.
 4. The vision mapping is intentionally limited to `Canonical engine contract`; no auditable-state claim is carried forward.
 
 ## Scope Completed
@@ -126,7 +126,7 @@
 - Exact current MVP path language source: `AGENTS.md` Active MVP Note and `ROADMAP.md` Current operational narrowing both require the canonical step `open project/document`.
 - Explicit handoff statement: this change hardens the CLI-first operator surface for the canonical `open project/document` step by keeping the bootstrap command contract deterministic and drift-resistant.
 - Concrete blocker removed: before this hardening, the explicit CLI parser surface could drift from the canonical command catalog order or membership without failing fast, which would make the bootstrap path for `open project/document` non-deterministic and weaken smoke-test coverage for that step.
-- Scope-specific alignment note: for this command-catalog slice, the strengthened operator path is limited to the bootstrap command surface for `open project/document`; it does not claim broader progress on retrieval, patch apply/reject, or UI work.
+- Scope-specific alignment note: for this command-catalog slice, the strengthened operator path is limited to the bootstrap command surface for `open project/document`; it does not add any new user-facing command breadth and does not claim broader progress on retrieval, patch apply/reject, or UI work.
 
 ### Routing/provider impact note
 
