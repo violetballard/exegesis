@@ -82,6 +82,7 @@
 - Primary Milestone 3 engine-first demo-path step advanced: `open project/document`.
 - Why this step: `feat-commands` owns the CLI operator surface that starts the MVP loop, and the command-catalog contract hardening keeps that entry step deterministic and smoke-testable while Textual remains disabled.
 - Concrete effect: the accepted CLI parser surface now fails fast if canonical tokens, alias entrypoints, or their order drift away from the declared command catalog.
+- Concrete blocker removed: without this guard, the MVP loop can silently accept a parser surface that no longer matches the documented command catalog, which makes the `open project/document` entry step unreliable for smoke tests and for the engine-first CLI contract that Milestone 3 still depends on.
 
 ## Scope Completed
 
@@ -142,6 +143,7 @@
 
 - Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands, specifically at the `open project/document` entry step of the engine-first MVP path.
 - `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
+- Concrete Milestone 3 blocker removed: the branch now rejects parser/catalog drift at contract-build time, so the CLI entry surface cannot silently diverge from the command catalog that operators and downstream engine-loop smoke tests rely on.
 
 ### Vision capability affected
 
