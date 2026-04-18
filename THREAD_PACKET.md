@@ -53,8 +53,8 @@
 
 ## Reviewer Required Fixes Satisfied
 
-1. Tightened the CLI contract so parser-surface drift is rejected against the declared catalog-backed parser surface, not just against deduplicated canonical names.
-2. Added regression coverage for alias substitution, token reordering, extra entrypoints, removed entrypoints, and normalized alias drift in `tests/unit/test_commands_catalog.py`.
+1. Regenerated the handoff packet to add the explicit Milestone 3 demo-path mapping required by the reviewer and `AGENTS.md`.
+2. Kept the resubmission scope narrow and pinned to the reviewed implementation anchor `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 3. Kept the explicit canonical demo-path mapping required by `AGENTS.md`: this work advances the Milestone 3 engine-first step `open project/document`.
 4. Regenerated this packet so re-review stays pinned to the reviewer-required implementation anchor `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, then re-ran the required gate suite.
 
@@ -74,13 +74,13 @@
 
 - Primary Milestone 3 engine-first demo-path step advanced: `open project/document`.
 - Why this step: `feat-commands` owns the CLI operator surface that starts the current MVP loop, and the branch’s command-surface contract work keeps that entry step deterministic and smoke-testable while Textual remains disabled.
-- Concrete effect: `command_cli_contract()` now preserves canonical command order and rejects parser-surface drift such as alias-for-canonical substitution, token reordering, added entrypoints, or removed expected entrypoints, so the operator-facing command contract for starting the workflow cannot silently change.
+- Concrete effect: `command_cli_contract()` now preserves canonical command order and rejects canonical-name drift between the CLI contract and the command catalog, so the operator-facing command contract for starting the workflow cannot silently reorder or drop canonical commands.
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it validates the full accepted parser surface against the command catalog and raises `ValueError` if canonical entrypoints, alias entrypoints, or entrypoint order drift.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares the CLI contract’s canonical names against `command_names()` and raises `ValueError` if the canonical command surface drifts.
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and parser-surface drift rejection, including alias substitution, entrypoint reordering, added entrypoints, and removed expected entrypoints.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and canonical drift rejection.
 - Refreshed the handoff packet so re-review stays pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` with explicit Milestone 3 demo-path alignment.
 
 ## Kickoff Budget / Limits Compliance
