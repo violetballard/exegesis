@@ -63,9 +63,7 @@ This handoff advances `retrieve relevant material` by making excerpt lookup fail
 - Reviewed implementation files:
   - `src/qual/retrieval/service.py`
   - `tests/unit/test_unified_retrieval.py`
-- Metadata-only handoff files:
-  - `.codex/kickoff_packets/feat-retrieval-fts.md`
-  - `.codex/lane_meta/feat-retrieval-fts.json`
+- Metadata-only handoff file:
   - `THREAD_PACKET.md`
 
 ## Commands run with results
@@ -82,6 +80,7 @@ This handoff advances `retrieve relevant material` by making excerpt lookup fail
 1. The packet now states explicitly which canonical demo-path step this change advances.
 2. That statement is tied to the narrowed scope: this change strengthens `retrieve relevant material` by making excerpt lookup fail closed on the canonical SQLite FTS path and preserving deterministic provenance payloads.
 3. The reviewed scope remains narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and is not broadened by this fixer pass.
+4. This handoff packet is the writable source of truth for the reviewer-required metadata corrections in this worktree.
 
 ## Risks / blockers
 
