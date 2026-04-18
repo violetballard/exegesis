@@ -4100,6 +4100,21 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(len(manifest["contract_fingerprints_fingerprint"]), 64)
 
+    def test_shell_ui_contract_fingerprints_can_include_contract_aliases(self) -> None:
+        manifest = describe_shell_ui_contract(include_contract_aliases=True)
+        fingerprints = describe_shell_ui_contract_fingerprints(include_contract_aliases=True)
+        shell_fingerprint = shell_ui_contract_fingerprint()
+
+        self.assertEqual(fingerprints["contract"], shell_fingerprint)
+        self.assertEqual(fingerprints["contract_fingerprint"], shell_fingerprint)
+        self.assertEqual(fingerprints["shell_ui_contract"], shell_fingerprint)
+        self.assertEqual(fingerprints["shell_ui_contract_fingerprint"], shell_fingerprint)
+        self.assertEqual(manifest["contract_fingerprints"], fingerprints)
+        self.assertEqual(
+            manifest["contract_fingerprints_fingerprint"],
+            _fingerprint_manifest_section(fingerprints),
+        )
+
     def test_shell_ui_render_startup_uses_contract_preview_constants(self) -> None:
         runtime = SimpleNamespace(
             vault=SimpleNamespace(project_name="Demo", root_dir="/tmp/demo", is_locked=False),
