@@ -65,24 +65,12 @@
 - Refresh purpose: leave a new metadata-only fixer commit that records a fresh full gate rerun against the current branch tip and keeps the packet anchored to the actual implementation state already on this branch.
 - Review request: treat this packet as the current source of truth for the `feat-commands` re-review.
 
-## Current Program Focus
-
-- Close the engine-side Milestone 3 workflow loop before activating any Textual UI lanes.
-
-## Current Engine Execution Order
-
-1. `feat-context-storage` - Persistence floor for document, basket, vault, and session state.
-2. `feat-commands` - Stable command surface for the CLI-first MVP loop.
-3. `feat-retrieval-fts` - Authoritative FTS-first retrieval for engine runs.
-4. `feat-engine-runs` - Close the plan, revise, patch, and apply loop in the engine.
-5. `feat-a2ui-contract` - Support the engine loop with stable shared contracts, not UI ambition.
-
 ## Canonical Demo-Path Step Advanced
 
-- Primary Milestone 3 engine-first demo-path step advanced: `open project/document`.
-- Operator-step mapping: this change makes the CLI `open project/document` step more reliable by forcing the accepted parser surface to stay identical to the declared command catalog.
+- Canonical demo-path step advanced: operator CLI step `open project/document`.
+- Narrow mapping: this `feat-commands` change makes only that CLI step more reliable by forcing the accepted parser surface to stay identical to the declared command catalog.
 - Concrete effect: the accepted CLI parser surface now fails fast if canonical tokens, alias entrypoints, or their order drift away from the declared command catalog.
-- Concrete blocker removed: without this guard, the CLI can silently accept a parser surface that no longer matches the documented command catalog, which makes the `open project/document` operator step unreliable for smoke tests.
+- Concrete blocker removed: without this guard, the CLI can silently accept a parser surface that no longer matches the documented command catalog for `open project/document`.
 
 ## Scope Completed
 
@@ -98,12 +86,11 @@
 
 ## Approved Exception Note
 
-- Shared-test exception for `tests/unit/test_commands_catalog.py` is traceable to the lane policy approval recorded in `scripts/scope-check.sh`.
-- Approver / policy author: `Violet Ballard`.
-- Approval reference: commit `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` (`fix(commands): align feat-commands handoff policy`), plus the follow-up tightening commit `c3a66bb580772d65201a630d673a8de1d4a63776` (`fix(commands): tighten feat-commands packet and policy`).
-- Approval date: `2026-03-28`.
-- Approver: the approval already carried in the reviewed `feat-commands` feature packet that this fixer run was instructed to treat as the source of truth for shared-file exceptions.
-- Approval reference/date: reviewer packet section `Approved exception note` in the fixer input for this run, refreshed on `2026-04-18`, plus branch-local enforcement evidence from `SCOPE_ALLOW_SHARED=1 make scope-check`.
+- Shared-test exception for `tests/unit/test_commands_catalog.py` is explicitly approved in lane policy enforcement for `codex/feat-commands` in `scripts/scope-check.sh`.
+- Approver: `Violet Ballard`.
+- Approval reference: commit `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` (`fix(commands): align feat-commands handoff policy`), which added the `tests/unit/test_commands_catalog.py` shared-test allowance for this lane.
+- Approval confirmation: commit `c3a66bb580772d65201a630d673a8de1d4a63776` (`fix(commands): tighten feat-commands packet and policy`).
+- Approval date: `2026-03-28` (`Sat Mar 28 17:34:01 2026 -0700`; confirmation at `Sat Mar 28 20:24:01 2026 -0700`).
 
 ## Handoff Packet
 
@@ -147,14 +134,14 @@
 
 ### Roadmap item(s) affected
 
-- Milestone 3: Real workflow loop - preserve CLI compatibility at the `open project/document` entry step of the engine-first MVP path.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
-- Concrete Milestone 3 blocker removed: the branch now rejects parser/catalog drift at contract-build time, so the CLI entry surface cannot silently diverge from the command catalog that operators and downstream engine-loop smoke tests rely on.
+- Milestone 3: Real workflow loop - preserve CLI compatibility at the `open project/document` operator step of the MVP command path.
+- `feat-commands` - CLI compatibility and migration-safe entrypoints.
+- Concrete blocker removed: contract-build now rejects parser/catalog drift before the CLI `open project/document` surface can silently diverge from the declared command catalog.
 
 ### Vision capability affected
 
-- Canonical engine contract - CLI compatibility remains stable and deterministic for the command entry surface.
-- Auditable state and workflow - the command surface now fails loudly on parser/catalog drift instead of silently changing the operator contract.
+- Stable CLI command contract - the command entry surface remains deterministic for the operator-facing `open project/document` path.
+- Auditable command behavior - parser/catalog drift now fails loudly instead of silently changing the CLI contract.
 
 ### Routing/provider impact note
 
@@ -170,9 +157,9 @@
 - Ownership detail:
   - owned implementation paths stay inside `src/qual/commands/**`
   - approved shared test path is `tests/unit/test_commands_catalog.py`
-  - approval trace: `scripts/scope-check.sh`, commits `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` and `c3a66bb580772d65201a630d673a8de1d4a63776` on `2026-03-28`, authored by `Violet Ballard`
+  - approval trace: `scripts/scope-check.sh`, commit `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` on `2026-03-28`, authored by `Violet Ballard`, with confirmation in `c3a66bb580772d65201a630d673a8de1d4a63776`
 - Shared-file approval traceability:
-  - approver: prior `feat-commands` packet approval carried forward into the reviewer packet supplied to this fixer run
-  - approval reference: fixer input source-of-truth line `Approved exception note - Approved shared-test exception for tests/unit/test_commands_catalog.py`
-  - approval date: `2026-04-18` reviewer packet refresh used for this fixer pass
+  - approver: `Violet Ballard`
+  - approval reference: `scripts/scope-check.sh` allowance added by commit `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` (`fix(commands): align feat-commands handoff policy`)
+  - approval date: `2026-03-28`
   - enforcement evidence: `SCOPE_ALLOW_SHARED=1 make scope-check` passed on this branch, which is the lane-local gate path for approved shared-file edits
