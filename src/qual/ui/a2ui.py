@@ -489,7 +489,10 @@ def describe_a2ui_contract_fingerprints(
     fingerprint used by the CLI fallback path. That opt-in also exposes the
     canonical ``shell_ui_contract_fingerprint``, ``shell_ui_fingerprint``,
     and ``shell_ui_contract_fingerprints_fingerprint`` keys so the fingerprint
-    map mirrors the embedded shell manifest more closely.
+    map mirrors the embedded shell manifest more closely. Because the shell
+    snapshot always carries the CLI fallback route slice, that opt-in also
+    surfaces the route fingerprint aliases for the embedded fallback route
+    contract.
     """
 
     manifest = _build_a2ui_contract_manifest(
@@ -545,6 +548,21 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["shell_ui_fingerprint"] = shell_ui_contract_fingerprint
         fingerprints["shell_ui_contract_fingerprints"] = shell_ui_contract_fingerprints_fingerprint
         fingerprints["shell_ui_contract_fingerprints_fingerprint"] = shell_ui_contract_fingerprints_fingerprint
+        _add_contract_alias_fingerprints(
+            fingerprints,
+            (
+                "terminal_artifact_cli_fallback_route",
+                shell_ui_contract["terminal_artifact_cli_fallback_route_fingerprint"],
+            ),
+            (
+                "terminal_artifact_cli_fallback_route_contract",
+                shell_ui_contract["terminal_artifact_cli_fallback_route_contract_fingerprint"],
+            ),
+            (
+                "terminal_artifact_cli_fallback_route_contract_fingerprints",
+                shell_ui_contract["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"],
+            ),
+        )
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
