@@ -51,12 +51,12 @@
 
 - `retrieve relevant material`
 
-This handoff advances `retrieve relevant material` by making excerpt lookup fail closed on the canonical SQLite FTS path and by preserving deterministic provenance payloads suitable for downstream basket and workflow use.
+This handoff advances `retrieve relevant material` by making `fetch_excerpt()` fail closed on canonical SQLite FTS hits, which keeps downstream basket promotion and audit provenance tied to deterministic FTS-backed excerpt payloads.
 
 ## Tasks completed
 
-1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
-2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
+1. `src/qual/retrieval/service.py` now makes `fetch_excerpt()` resolve through the canonical FTS-only path instead of falling back to PageIndex.
+2. `tests/unit/test_unified_retrieval.py` adds approved shared regression coverage proving PageIndex-only excerpt IDs fail closed with `KeyError`.
 
 ## Files changed
 
@@ -78,7 +78,7 @@ This handoff advances `retrieve relevant material` by making excerpt lookup fail
 ## Reviewer fix closure
 
 1. The packet now states explicitly which canonical demo-path step this change advances.
-2. That statement is tied to the narrowed scope: this change strengthens `retrieve relevant material` by making excerpt lookup fail closed on the canonical SQLite FTS path and preserving deterministic provenance payloads.
+2. That statement is tied to the narrowed scope: this change strengthens `retrieve relevant material` by making `fetch_excerpt()` fail closed on canonical SQLite FTS hits and preserving deterministic provenance payloads.
 3. The reviewed scope remains narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and is not broadened by this fixer pass.
 4. This handoff packet is the writable source of truth for the reviewer-required metadata corrections in this worktree.
 
