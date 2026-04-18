@@ -179,6 +179,25 @@ class CommandDemoWorkflowContract:
 
 
 @dataclass(frozen=True)
+class CommandTrustedSurfaceEntry:
+    token: str
+    canonical_token: str
+    canonical_name: str
+    flow_step: str
+    argv: tuple[str, ...]
+    description: str
+    source: str
+
+
+@dataclass(frozen=True)
+class CommandTrustedSurfaceContract:
+    tokens: tuple[str, ...]
+    entries: tuple[CommandTrustedSurfaceEntry, ...]
+    lookup_table: tuple[tuple[str, str], ...] = ()
+    invocation_table: tuple[tuple[str, tuple[str, ...]], ...] = ()
+
+
+@dataclass(frozen=True)
 class CommandDemoNextActionEntry:
     source_token: str
     target_token: str
@@ -3771,6 +3790,41 @@ def _ordered_token_invocation_union(
     return tuple(ordered_entries)
 
 
+def _trusted_surface_source_by_token(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> dict[str, str]:
+    source_by_token: dict[str, str] = {}
+    for source, table in (
+        ("preferred", command_demo_preferred_surface_invocation_table(specs)),
+        ("surface", command_demo_surface_invocation_table(specs)),
+        ("compatibility", command_demo_compatibility_invocation_table(specs)),
+    ):
+        for token, _ in table:
+            normalized_token = _normalize_token(token)
+            if normalized_token:
+                source_by_token.setdefault(normalized_token, source)
+    for token in _COMMAND_DEMO_COMPATIBILITY_VARIANTS:
+        normalized_token = _normalize_token(token)
+        if normalized_token:
+            source_by_token.setdefault(normalized_token, "compatibility-variant")
+    return source_by_token
+
+
+def _validate_command_trusted_surface_contract(contract: CommandTrustedSurfaceContract) -> None:
+    if contract.tokens != tuple(entry.token for entry in contract.entries):
+        raise ValueError("Command trusted surface tokens are inconsistent")
+    if contract.lookup_table != tuple((entry.token, entry.canonical_name) for entry in contract.entries):
+        raise ValueError("Command trusted surface lookup table is inconsistent")
+    if contract.invocation_table != tuple((entry.token, entry.argv) for entry in contract.entries):
+        raise ValueError("Command trusted surface invocation table is inconsistent")
+    allowed_sources = {"preferred", "surface", "compatibility", "compatibility-variant"}
+    for entry in contract.entries:
+        if not entry.argv:
+            raise ValueError(f"Command trusted surface entry is missing argv: {entry.token}")
+        if entry.source not in allowed_sources:
+            raise ValueError(f"Command trusted surface source is inconsistent: {entry.token}")
+
+
 def command_demo_trusted_surface_invocation_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
@@ -3815,6 +3869,57 @@ def command_mvp_trusted_surface_tokens(
 ) -> tuple[str, ...]:
     """List the deterministic token order for the current MVP trusted command surface."""
     return command_demo_trusted_surface_tokens(specs)
+
+
+@lru_cache(maxsize=None)
+def command_demo_trusted_surface_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandTrustedSurfaceContract:
+    invocation_table = command_demo_trusted_surface_invocation_table(specs)
+    source_by_token = _trusted_surface_source_by_token(specs)
+    entries: list[CommandTrustedSurfaceEntry] = []
+    for token, argv in invocation_table:
+        workflow_entry = command_demo_workflow_entry_for(specs, token)
+        if workflow_entry is None:
+            raise ValueError(f"Command trusted surface token is unresolved: {token}")
+        entries.append(
+            CommandTrustedSurfaceEntry(
+                token=token,
+                canonical_token=workflow_entry.token,
+                canonical_name=workflow_entry.canonical_name,
+                flow_step=workflow_entry.flow_step,
+                argv=argv,
+                description=workflow_entry.description,
+                source=source_by_token.get(token, "surface"),
+            )
+        )
+    contract = CommandTrustedSurfaceContract(
+        tokens=tuple(entry.token for entry in entries),
+        entries=tuple(entries),
+        lookup_table=tuple((entry.token, entry.canonical_name) for entry in entries),
+        invocation_table=tuple((entry.token, entry.argv) for entry in entries),
+    )
+    _validate_command_trusted_surface_contract(contract)
+    return contract
+
+
+@lru_cache(maxsize=None)
+def command_mvp_trusted_surface_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandTrustedSurfaceContract:
+    return command_demo_trusted_surface_contract(specs)
+
+
+def command_demo_trusted_surface_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandTrustedSurfaceEntry, ...]:
+    return command_demo_trusted_surface_contract(specs).entries
+
+
+def command_mvp_trusted_surface_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandTrustedSurfaceEntry, ...]:
+    return command_demo_trusted_surface_catalog(specs)
 
 
 def command_mvp_loop_surface_invocation_table(
