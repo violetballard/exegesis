@@ -3505,11 +3505,10 @@ class RetrievalService:
         if query_snapshot is not None:
             normalized["query"] = copy.deepcopy(query_snapshot)
             normalized_provenance["query"] = copy.deepcopy(query_snapshot)
-            if _optional_text(normalized_provenance.get("query_fingerprint")) is None:
-                derived_query_fingerprint = self._query_fingerprint_from_snapshot(query_snapshot)
-                if derived_query_fingerprint is not None:
-                    normalized["query_fingerprint"] = derived_query_fingerprint
-                    normalized_provenance["query_fingerprint"] = derived_query_fingerprint
+            derived_query_fingerprint = self._query_fingerprint_from_snapshot(query_snapshot)
+            if derived_query_fingerprint is not None:
+                normalized["query_fingerprint"] = derived_query_fingerprint
+                normalized_provenance["query_fingerprint"] = derived_query_fingerprint
             if _optional_text(normalized.get("query_text")) is None and _optional_text(
                 normalized_provenance.get("query_text")
             ) is None:
