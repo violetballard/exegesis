@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: tighten the handoff packet so it matches the reviewer-approved command-catalog slice and explicitly states which canonical demo-path step this deterministic CLI-contract hardening strengthens.
+- Scope goal: tighten the handoff packet so it matches the reviewer-approved command-catalog slice and explicitly maps this deterministic CLI-contract hardening to the canonical engine-first CLI loop it strengthens.
 - Risk reason: this fixer edits shared handoff metadata and must keep the review scope narrow instead of re-expanding it to broader branch history.
 
 ### Budget
@@ -38,7 +38,7 @@
 - Plan complete: fix only the shared handoff metadata required by the reviewer packet.
 - First green tests: recorded after the full required gate suite on `2026-04-18`.
 - Before risky/shared file edit: this fixer pass only edits `THREAD.md` and `THREAD_PACKET.md`.
-- Ready for handoff: the packet now names the canonical demo-path step and keeps scope limited to command-contract hardening.
+- Ready for handoff: the packet now names the canonical engine-first CLI loop mapping and keeps scope limited to command-contract hardening.
 
 ## Packet Traceability Note
 
@@ -49,8 +49,8 @@
 
 ## Reviewer Required Fixes Satisfied
 
-1. The handoff packet now explicitly names the canonical demo-path step advanced by this change using the current `AGENTS.md` and `ROADMAP.md` wording: `open project/document`.
-2. The packet now states the concrete blocker removed on that path: silent parser/catalog drift could break the deterministic bootstrap CLI contract and its smoke-test coverage for `open project/document`.
+1. The handoff packet now explicitly maps this change to the canonical engine-first CLI loop and states that it specifically stabilizes the command entrypoints used to open, retrieve, patch-review, and continue the workflow.
+2. The packet now states the concrete blocker removed on that loop: silent parser/catalog drift could break the deterministic CLI contract and its smoke-test coverage for those workflow entrypoints.
 3. The scope statement stays narrow and describes this work as deterministic command-contract hardening only, with no new user-facing command breadth beyond the current MVP loop.
 4. The vision mapping is intentionally limited to `Canonical engine contract`; no auditable-state claim is carried forward.
 
@@ -84,7 +84,7 @@
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on parser drift.
 2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Refreshed the handoff metadata so the reviewer packet explicitly maps this deterministic CLI-contract hardening to the canonical demo-path step it advances.
+4. Refreshed the handoff metadata so the reviewer packet explicitly maps this deterministic CLI-contract hardening to the canonical engine-first CLI loop it advances.
 
 ### Files Changed
 
@@ -122,11 +122,11 @@
 
 ### Canonical demo-path step advanced
 
-- Step advanced: `open project/document`
-- Exact current MVP path language source: `AGENTS.md` Active MVP Note and `ROADMAP.md` Current operational narrowing both require the canonical step `open project/document`.
-- Explicit handoff statement: this change hardens the CLI-first operator surface for the canonical `open project/document` step in the active engine-first CLI loop by keeping the bootstrap command contract deterministic and drift-resistant, so the entrypoint that starts the current open -> retrieval -> patch-review -> persist/continue workflow stays stable.
-- Concrete blocker removed: before this hardening, the explicit CLI parser surface could drift from the canonical command catalog order or membership without failing fast, which would make the bootstrap path for `open project/document` non-deterministic and weaken smoke-test coverage for that step.
-- Scope-specific alignment note: for this command-catalog slice, the strengthened operator path is limited to the bootstrap command surface for `open project/document`; it does not add any new user-facing command breadth and does not claim broader progress on retrieval, patch apply/reject, or UI work.
+- Canonical loop advanced: `project-open` -> `retrieval` -> `patch-review` -> `apply-patch`/`reject-patch` -> `persist` -> `export-handoff`
+- Concrete demo-path narrowing: this handoff ties the reviewed command-catalog slice to the active engine-first CLI loop and specifically makes the entrypoints used to open, retrieve, patch-review, and continue that workflow more deterministic.
+- Explicit handoff statement: this change hardens the CLI-first operator surface for the current MVP loop by keeping the canonical command entrypoints aligned to the catalog in canonical order before the workflow proceeds.
+- Concrete blocker removed: before this hardening, the explicit CLI parser surface could drift from the canonical command catalog order or membership without failing fast, which would make the engine-first CLI loop less deterministic and weaken smoke-test coverage for the workflow entrypoints used to open, retrieve, patch-review, and continue.
+- Scope-specific alignment note: this is contract hardening only, with no new user-facing command breadth beyond the current MVP loop.
 
 ### Routing/provider impact note
 
