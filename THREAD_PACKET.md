@@ -4,8 +4,8 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: satisfy the reviewer-required fixes by making `command_cli_contract()` reject real parser-surface drift, adding focused regressions for those drift cases, and updating the handoff packet to name the exact canonical demo-path step this protects.
-- Risk reason: this fixer pass touches the shared command contract and shared handoff metadata while preserving the CLI-first Milestone 3 surface.
+- Scope goal: regenerate the handoff packet against the actual branch tip and make the reviewer-facing scope, shared-file notes, and CLI-first demo-path alignment match the implementation currently on `HEAD`.
+- Risk reason: the branch under review changes the shared command surface and shared handoff metadata, so an inaccurate packet would misstate the real review target.
 
 ### Budget
 
@@ -16,9 +16,9 @@
 
 ### Planned Tasks (max 4)
 
-1. Tighten the default command-catalog contract so it validates the declared parser surface, not only the canonical-name projection derived from accepted entrypoints.
-2. Add regressions for parser-surface drift that preserves canonical command names but changes accepted CLI entrypoints.
-3. Update the handoff packet so it explicitly maps this work to the canonical `open project/document` demo-path step and the concrete blocker removed.
+1. Re-anchor the packet to the actual branch tip instead of the earlier narrow-slice description.
+2. Expand handoff scope, files changed, and shared-path notes so they match the live `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD` diff.
+3. Add an explicit AGENTS alignment line naming the canonical demo-path step and how the deterministic CLI contract strengthens the Milestone 3 CLI-first loop.
 4. Re-run `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ### Early Review Triggers
@@ -35,61 +35,67 @@
 
 ### Checkpoint Cadence (short updates)
 
-- Plan complete: the remaining work is the command-contract hardening the reviewer asked for plus packet alignment.
+- Plan complete: packet regeneration will describe the actual `HEAD` implementation instead of the earlier narrowed handoff.
 - First green tests: recorded after the full required gate suite on `2026-04-18`.
-- Before risky/shared file edit: `THREAD.md` and `THREAD_PACKET.md` are shared metadata paths; the command catalog is a public CLI contract.
-- Ready for handoff: branch includes command-catalog enforcement, focused parser-drift regressions, and corrected handoff metadata.
+- Before risky/shared file edit: `THREAD.md` and `THREAD_PACKET.md` are shared metadata paths; the reviewed implementation also includes shared test coverage.
+- Ready for handoff: packet scope, files changed, exceptions, and demo-path alignment now match the branch tip being re-reviewed.
 
 ## Packet Traceability Note
 
-- Reviewer snapshot called out implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and requested additional fixes before re-review.
-- Current branch state carries those fixes forward on top of that snapshot instead of preserving it as the final implementation anchor.
-- Latest verification baseline before this packet refresh: `56cf24342c674c99e0d355ad63904d495d005a0d`.
-- Current implementation under review lives in:
-  - `src/qual/commands/catalog.py`
-  - `tests/unit/test_commands_catalog.py`
-- Current handoff metadata for this fixer pass lives in:
-  - `THREAD.md`
-  - `THREAD_PACKET.md`
+- Reviewer packet cited branch tip `3e0be5cbf94ff74cc192e88c239aebc9fb98982a` but described it as metadata-only; that was incorrect.
+- Actual branch tip under review is still `3e0be5cbf94ff74cc192e88c239aebc9fb98982a` (`feat(commands): add trusted surface lookup helpers`).
+- Review scope for this regenerated packet is the live branch tip, including the full diff from reviewer anchor `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` to `HEAD`.
+- That live scope includes `8` changed files and `9029` insertions / `462` deletions.
 
 ## Reviewer Required Fixes Satisfied
 
-1. `command_cli_contract()` now validates the declared parser surface for the default catalog, not just the deduplicated canonical-name projection, so alias substitution, canonical-token removal, and entrypoint reordering fail fast.
-2. Focused regressions cover parser-surface drift that still preserves canonical command names, including the reviewer-described case where an alias remains accepted while the canonical token is dropped.
-3. The handoff packet now names the exact canonical demo-path step advanced: `open project/document`.
-4. The handoff packet now states the concrete blocker removed: silent parser/catalog drift changing the operator-facing bootstrap CLI contract while the CLI remains the active MVP surface.
+1. The packet is regenerated against the actual branch tip `3e0be5cbf94ff74cc192e88c239aebc9fb98982a`; it no longer describes that commit as metadata-only.
+2. The handoff now covers the full current branch tip rather than the earlier narrow `f8d860ed...` slice, so the scope, file inventory, and risk notes match the implementation under review.
+3. The AGENTS alignment is explicit: this work advances the canonical `open project/document` demo-path step and strengthens the Milestone 3 CLI-first loop by hardening the deterministic bootstrap command contract.
+4. The shared-file exception note now lists every non-owned/shared path in scope for the regenerated handoff instead of naming only one shared test file.
 
 ## Scope Completed
 
-- Hardened the default `command_cli_contract()` path and related helpers to reject parser-surface drift even when canonical command order still appears correct.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for missing canonical entrypoints, alias substitution, and reordered accepted entrypoints.
-- Corrected the handoff metadata so it reflects the actual branch state and the canonical demo-path step strengthened by this work.
+- Expanded the command surface in `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, and `src/qual/commands/catalog.py` so trusted surface lookups, canonical/demo-path mappings, and parser-facing command resolution stay deterministic.
+- Updated `src/qual/commands/diff_preview.py` and the unit coverage in `tests/unit/test_diff_preview.py` to keep diff-preview behavior aligned with the current command surface.
+- Extended `tests/unit/test_commands_catalog.py` to cover the wider command-surface and parser-contract behavior now shipped on this branch tip.
+- Regenerated `THREAD.md` and `THREAD_PACKET.md` so the handoff accurately reflects the real branch tip and review scope.
 
 ## Kickoff Budget / Limits Compliance
 
-- High-risk fixer pass stayed within the `4`-task cap and focused on one lane-owned implementation file, one approved shared test file, and two handoff metadata files.
-- Net scope stayed within the lane handoff boundaries described above.
+- This packet regeneration stayed within the current fixer-pass task budget.
+- The reviewed branch tip is wider than the earlier narrow-slice packet claimed; this regenerated packet intentionally documents that wider live scope rather than repeating the invalid narrow claim.
 
 ## Approved Exception Note
 
-- Approved shared-test exception for `tests/unit/test_commands_catalog.py`.
+- Shared/non-owned paths in scope for this branch-tip handoff:
+  - `tests/unit/test_commands_catalog.py`
+  - `tests/unit/test_diff_preview.py`
+  - `THREAD.md`
+  - `THREAD_PACKET.md`
 
 ## Handoff Packet
 
 - Branch name: `codex/feat-commands`
+- Branch tip under review: `3e0be5cbf94ff74cc192e88c239aebc9fb98982a`
 
 ### Tasks Completed (Numbered)
 
-1. Tightened the default `command_cli_contract()` validation so parser/catalog drift fails even when canonical names still line up.
-2. Added regression coverage for parser-surface drift that preserves canonical names but changes accepted entrypoints.
-3. Updated the packet and thread pointer so the handoff explicitly maps to `open project/document` and the active CLI-first MVP loop.
+1. Added trusted surface lookup helpers and supporting command-surface exports in `src/qual/commands/__init__.py` and `src/qual/commands/catalog.py`.
+2. Hardened canonical/demo-path command resolution in `src/qual/commands/canonical.py` and `src/qual/commands/catalog.py`, including parser-surface determinism checks covered by `tests/unit/test_commands_catalog.py`.
+3. Kept diff-preview command behavior and coverage aligned with the widened command surface in `src/qual/commands/diff_preview.py` and `tests/unit/test_diff_preview.py`.
+4. Regenerated the handoff metadata in `THREAD.md` and `THREAD_PACKET.md` so this packet matches the actual branch tip, shared-path scope, and demo-path alignment.
 
 ### Files Changed
 
-- `src/qual/commands/catalog.py`
-- `tests/unit/test_commands_catalog.py`
 - `THREAD.md`
 - `THREAD_PACKET.md`
+- `src/qual/commands/__init__.py`
+- `src/qual/commands/canonical.py`
+- `src/qual/commands/catalog.py`
+- `src/qual/commands/diff_preview.py`
+- `tests/unit/test_commands_catalog.py`
+- `tests/unit/test_diff_preview.py`
 
 ### Commands Run and Outcomes
 
@@ -100,31 +106,31 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-18`
-- Verification baseline before this packet refresh: `56cf24342c674c99e0d355ad63904d495d005a0d`
 
 ### Risks / Blockers
 
 - Risk: `MEDIUM`
-- Remaining risk: the command catalog now carries more explicit CLI-surface metadata, so future command additions need to keep aliases, CLI tokens, and smoke/demo contracts aligned.
+- Remaining risk: the command surface is broader than the original narrow packet described, so future follow-up reviews should continue to anchor packet claims to the real branch tip rather than a historical subset.
 - Blockers: none
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- Milestone 3: preserve CLI compatibility while the package/layout migration lands so the canonical demo path can reliably start at `open project/document` while Textual remains disabled.
-- `feat-commands`: keep the CLI entrypoint catalog deterministic and migration-safe for the engine-first MVP loop.
+- Milestone 3: preserve the CLI-first MVP loop while Textual remains disabled and the engine workflow continues to start from a deterministic bootstrap command.
+- `feat-commands`: keep command discovery, canonicalization, and preview flows stable as the reviewed CLI surface expands.
 
 ### Vision capability affected
 
-- Writing-centered workflow: the canonical `open project/document` step remains reachable through a stable bootstrap CLI surface.
-- Canonical engine contract: the CLI contract now fails fast when the parser surface drifts away from the reviewed command catalog instead of silently accepting a stale or ambiguous entrypoint surface.
+- Writing-centered workflow: the operator can still begin the canonical flow from a stable CLI bootstrap surface.
+- Canonical engine contract: trusted surface lookup helpers and parser-contract coverage keep the reviewed command catalog auditable instead of allowing silent drift across aliases or demo-path shims.
 
 ### Canonical demo-path step advanced
 
 - Step advanced: `open project/document`
-- Concrete blocker removed: the CLI parser could previously drift away from the canonical bootstrap entrypoint surface while still producing the same canonical-name projection, which risked silently changing the operator’s first step in the MVP loop.
-- Why this is MVP-loop-specific: while Textual is disabled, the CLI bootstrap command is the active operator entry into the engine workflow, so this check keeps the first demo-path step deterministic and auditable.
+- AGENTS alignment: this change makes the canonical `open project/document` bootstrap step more real by keeping the CLI entry surface deterministic while Milestone 3 remains CLI-first.
+- Concrete blocker removed: the branch now documents and tests the real parser-facing command surface, reducing the risk that alias/canonical drift silently changes the operator’s first CLI step.
+- Why this is MVP-loop-specific: while Textual is disabled, the CLI bootstrap command is the active operator entry into the engine workflow, so deterministic command-surface lookup protects the Milestone 3 CLI-first loop.
 
 ### Routing/provider impact note
 
@@ -138,6 +144,6 @@
 
 - Shared/integrator-locked edits: `YES`
 - Ownership detail:
-  - lane-owned implementation: `src/qual/commands/catalog.py`
-  - approved shared test: `tests/unit/test_commands_catalog.py`
+  - lane-owned implementation: `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`
+  - shared/non-owned tests: `tests/unit/test_commands_catalog.py`, `tests/unit/test_diff_preview.py`
   - shared metadata updated for handoff accuracy: `THREAD.md`, `THREAD_PACKET.md`

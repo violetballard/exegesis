@@ -6,13 +6,17 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- This branch is no longer a metadata-only resubmission.
-- Reviewer-required fixes are implemented in:
+- This branch is not a metadata-only resubmission.
+- Actual branch tip under review: `3e0be5cbf94ff74cc192e88c239aebc9fb98982a` (`feat(commands): add trusted surface lookup helpers`).
+- Regenerated packet scope is the live `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD` diff, not the earlier narrow-slice claim.
+- Files in scope:
+  - `src/qual/commands/__init__.py`
+  - `src/qual/commands/canonical.py`
   - `src/qual/commands/catalog.py`
+  - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_commands_catalog.py`
-- Shared handoff metadata for this pass lives in:
+  - `tests/unit/test_diff_preview.py`
   - `THREAD.md`
   - `THREAD_PACKET.md`
 - The protected canonical demo-path step is `open project/document`.
-- The concrete blocker removed is silent parser/catalog drift changing the operator-facing bootstrap CLI surface while the CLI remains the active MVP entrypoint.
-- The latest successful full-gate verification before this packet refresh was recorded at `56cf24342c674c99e0d355ad63904d495d005a0d`.
+- AGENTS alignment: this work strengthens the Milestone 3 CLI-first loop by keeping the bootstrap command surface deterministic and explicitly traced to the current branch tip.
