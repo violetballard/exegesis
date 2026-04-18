@@ -16,7 +16,7 @@
 
 ### Planned Tasks (max 4)
 
-1. Extend the command catalog so CLI entrypoints are declared per command spec and the contract can validate the full parser surface, not only canonical-name order.
+1. Tighten the default command-catalog contract so it validates the declared parser surface, not only the canonical-name projection derived from accepted entrypoints.
 2. Add regressions for parser-surface drift that preserves canonical command names but changes accepted CLI entrypoints.
 3. Update the handoff packet so it explicitly maps this work to the canonical `open project/document` demo-path step and the concrete blocker removed.
 4. Re-run `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
@@ -54,15 +54,14 @@
 
 ## Reviewer Required Fixes Satisfied
 
-1. `command_cli_contract()` now validates the declared parser surface, not just the deduplicated canonical-name projection, so alias substitution, canonical-token removal, and entrypoint reordering fail fast.
+1. `command_cli_contract()` now validates the declared parser surface for the default catalog, not just the deduplicated canonical-name projection, so alias substitution, canonical-token removal, and entrypoint reordering fail fast.
 2. Focused regressions cover parser-surface drift that still preserves canonical command names, including the reviewer-described case where an alias remains accepted while the canonical token is dropped.
 3. The handoff packet now names the exact canonical demo-path step advanced: `open project/document`.
 4. The handoff packet now states the concrete blocker removed: silent parser/catalog drift changing the operator-facing bootstrap CLI contract while the CLI remains the active MVP surface.
 
 ## Scope Completed
 
-- Extended `CommandSpec` with explicit CLI-surface metadata so parser entrypoints are declared by the catalog rather than inferred indirectly.
-- Hardened `command_cli_contract()` and related helpers to reject parser-surface drift even when canonical command order still appears correct.
+- Hardened the default `command_cli_contract()` path and related helpers to reject parser-surface drift even when canonical command order still appears correct.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for missing canonical entrypoints, alias substitution, and reordered accepted entrypoints.
 - Corrected the handoff metadata so it reflects the actual branch state and the canonical demo-path step strengthened by this work.
 
@@ -81,10 +80,9 @@
 
 ### Tasks Completed (Numbered)
 
-1. Declared per-command CLI entrypoints in the command catalog so the parser surface is explicit and reviewable.
-2. Tightened `command_cli_contract()` validation so parser/catalog drift fails even when canonical names still line up.
-3. Added regression tests for the parser-drift cases required by review.
-4. Updated the packet and thread pointer so the handoff explicitly maps to `open project/document` and the active CLI-first MVP loop.
+1. Tightened the default `command_cli_contract()` validation so parser/catalog drift fails even when canonical names still line up.
+2. Added regression coverage for parser-surface drift that preserves canonical names but changes accepted entrypoints.
+3. Updated the packet and thread pointer so the handoff explicitly maps to `open project/document` and the active CLI-first MVP loop.
 
 ### Files Changed
 
