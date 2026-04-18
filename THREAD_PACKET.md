@@ -41,19 +41,15 @@
 
 ## Scope completed
 
-- SQLite FTS remains the authoritative MVP retrieval path in the reviewed implementation.
-- Public excerpt lookup resolves only through the canonical FTS-backed path in `src/qual/retrieval/service.py`, so PageIndex-only excerpt IDs fail closed instead of silently backfilling from compatibility storage.
-- `src/qual/engine/retrieval/fts_strategy.py` normalizes equivalent query variants for deterministic cache behavior on the FTS-first path.
-- `src/qual/engine/retrieval/payload.py` backfills missing doc-hit and excerpt-hit provenance from canonical top-level fields so sparse source/context bundle rehydration stays deterministic and auditable.
-- PageIndex and embeddings remain compatibility-only paths; the lane does not reintroduce them as required runtime retrieval paths.
-- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` exercises both the FTS-only excerpt contract and the missing-provenance backfill behavior.
+- `fetch_excerpt` now resolves only through the canonical FTS lookup path in `src/qual/retrieval/service.py`.
+- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` verifies PageIndex-only excerpt IDs raise `KeyError`.
 
 ## Canonical Demo-Path Step Advanced
 
 - `retrieve relevant material`
 
-This handoff advances `retrieve relevant material` by tightening the canonical retrieval contract around deterministic FTS behavior, excerpt lookup, cache-key normalization, and sparse payload rehydration that downstream basket promotion and workflow consumers can audit.
-This slice is limited to hardening the FTS-first retrieval and excerpt lookup contract for `retrieve relevant material`; it does not expand into basket promotion, workflow execution, UI work, or alternate retrieval modes.
+This handoff advances `retrieve relevant material` by making `fetch_excerpt` resolve only through the canonical FTS lookup path.
+If basket promotion is mentioned, it is only as a downstream consumer of deterministic FTS excerpts; this slice does not deliver new basket-promotion scope.
 
 ## Tasks completed
 
@@ -106,8 +102,8 @@ This slice is limited to hardening the FTS-first retrieval and excerpt lookup co
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This change makes `retrieve relevant material` more real by enforcing FTS-only excerpt lookup on the canonical retrieval surface.
-- Deterministic FTS-only excerpt and provenance output keeps downstream basket promotion auditable and avoids PageIndex fallback ambiguity.
+- This change makes `retrieve relevant material` more real because `fetch_excerpt` now resolves only through the canonical FTS lookup path.
+- Approved shared regression coverage verifies PageIndex-only excerpt IDs raise `KeyError`.
 
 ### Roadmap item(s) affected
 
