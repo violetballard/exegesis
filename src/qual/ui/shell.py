@@ -720,6 +720,31 @@ def describe_shell_ui_contract_fingerprints(
             terminal_artifact_renderer_entrypoints_contract_fingerprint_value
         ),
     }
+    _add_contract_alias_fingerprints(
+        fingerprints,
+        ("entrypoints", fingerprints["entrypoints"]),
+        ("entrypoints_contract", fingerprints["entrypoints_contract"]),
+        ("startup_fields", fingerprints["startup_fields"]),
+        ("startup_fields_contract", fingerprints["startup_fields_contract"]),
+        ("startup_preview", fingerprints["startup_preview"]),
+        ("startup_preview_contract", fingerprints["startup_preview_contract"]),
+        (
+            "terminal_artifact_cli_fallback_entrypoint",
+            fingerprints["terminal_artifact_cli_fallback_entrypoint"],
+        ),
+        (
+            "terminal_artifact_cli_fallback_entrypoint_contract",
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract"],
+        ),
+        (
+            "terminal_artifact_cli_fallback_contract",
+            fingerprints["terminal_artifact_cli_fallback_contract"],
+        ),
+        (
+            "terminal_artifact_renderer_entrypoints_contract",
+            fingerprints["terminal_artifact_renderer_entrypoints_contract"],
+        ),
+    )
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
@@ -766,8 +791,8 @@ def describe_shell_ui_contract(
     # live manifest's nested entrypoint and preview structures.
     manifest["shell_ui_contract"] = copy.deepcopy(manifest)
     manifest["shell_ui_contract_fingerprint"] = fingerprint
-    manifest["startup_fields_fingerprint"] = contract_fingerprints["startup_fields"]
-    manifest["startup_preview_fingerprint"] = contract_fingerprints["startup_preview"]
+    manifest["startup_fields_fingerprint"] = contract_fingerprints["startup_fields_fingerprint"]
+    manifest["startup_preview_fingerprint"] = contract_fingerprints["startup_preview_fingerprint"]
     manifest["shell_ui_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     return manifest
