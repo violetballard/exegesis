@@ -3756,6 +3756,67 @@ def command_mvp_compatibility_invocation_table(
     return command_demo_compatibility_invocation_table(specs)
 
 
+def _ordered_token_invocation_union(
+    *tables: tuple[tuple[str, tuple[str, ...]], ...],
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    ordered_entries: list[tuple[str, tuple[str, ...]]] = []
+    seen_tokens: set[str] = set()
+    for table in tables:
+        for token, argv in table:
+            normalized_token = _normalize_token(token)
+            if not normalized_token or normalized_token in seen_tokens:
+                continue
+            seen_tokens.add(normalized_token)
+            ordered_entries.append((normalized_token, argv))
+    return tuple(ordered_entries)
+
+
+def command_demo_trusted_surface_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return the preferred, parser, and legacy demo verbs as one deterministic smoke surface."""
+    compatibility_invocations = command_demo_compatibility_invocation_table(specs)
+    known_compatibility_tokens = {_normalize_token(token) for token, _ in compatibility_invocations}
+    compatibility_variants = tuple(
+        (
+            variant_token,
+            resolved.argv,
+        )
+        for variant_token, canonical_token in _COMMAND_DEMO_COMPATIBILITY_VARIANTS.items()
+        for resolved in (
+            command_demo_workflow_entry_for(specs, canonical_token),
+        )
+        if resolved is not None and _normalize_token(variant_token) not in known_compatibility_tokens
+    )
+    return _ordered_token_invocation_union(
+        command_demo_preferred_surface_invocation_table(specs),
+        command_demo_surface_invocation_table(specs),
+        compatibility_invocations,
+        compatibility_variants,
+    )
+
+
+def command_mvp_trusted_surface_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return the current MVP trusted smoke surface, including compatibility verbs."""
+    return command_demo_trusted_surface_invocation_table(specs)
+
+
+def command_demo_trusted_surface_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    """List the deterministic token order for the trusted demo command surface."""
+    return tuple(token for token, _ in command_demo_trusted_surface_invocation_table(specs))
+
+
+def command_mvp_trusted_surface_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    """List the deterministic token order for the current MVP trusted command surface."""
+    return command_demo_trusted_surface_tokens(specs)
+
+
 def command_mvp_loop_surface_invocation_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
