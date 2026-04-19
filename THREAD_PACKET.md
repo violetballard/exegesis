@@ -42,16 +42,22 @@
 
 ## Packet Traceability Note
 
-- Review basis remains the command-catalog implementation at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Latest pre-fixer packet refresh commit `6a8eb130cafd8415f09223e1d51d76079972a754` is metadata-only.
-- This fixer adds one more metadata-only handoff refresh on top of that slice.
-- Approval basis for re-review stays anchored to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this packet refresh does not broaden the implementation claim.
+- Review basis for re-review includes the two implementation commits in this narrow command-catalog slice:
+  - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
+  - `1e04f9633c4abc4988dcb991944680b86f94f753` (`Fix command shim subcommand routing`)
+- Metadata-only handoff refresh commits in this re-review thread are:
+  - `6a8eb130cafd8415f09223e1d51d76079972a754`
+  - `9049bfd99ec15b89f983b78a53092713750a3031`
+  - `6d40bdd5c1643b2e9b8688029daffcd264905dfd`
+  - `49865ddc1337e78850134479abd03610075e20e3`
+- This fixer adds one more metadata-only handoff refresh on top of the current reviewed implementation slice.
+- Approval basis for re-review stays limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; this packet refresh corrects the handoff traceability without broadening the implementation claim beyond the current branch tip.
 
 ## Reviewer Required Fixes Satisfied
 
 1. The handoff packet now explicitly names one canonical demo-path step advanced by this slice: the CLI fallback `run` entrypoint in the MVP flow `vault -> context -> run -> patch -> export`, concretely through the already-in-scope `project-open` / `bootstrap` command surface.
 2. The packet now states the concrete blocker removed on that path: silent parser/catalog drift could break the deterministic CLI contract and its smoke-test coverage for the `bootstrap` / `project-open` surface that feeds that `run` entrypoint.
-3. The scope statement stays narrow and describes this work as deterministic CLI contract hardening only for that existing MVP command surface, with no new user-facing command breadth beyond the current MVP loop.
+3. The scope statement stays narrow and describes this work as deterministic CLI contract hardening only for that existing MVP command surface, including preserving routed subcommands for the existing retrieval shim path, with no new user-facing command breadth beyond the current MVP loop.
 4. The vision mapping is intentionally limited to `Canonical engine contract`; no auditable-state claim is carried forward.
 
 ## Scope Completed
@@ -59,6 +65,8 @@
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
+- Fixed command shim subcommand routing so flow-step retrieval shims preserve explicit subcommands such as `search` instead of falling back to the default `context-basket list` tail.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for retrieval shim subcommand preservation through `command_cli_entry_argv()` and `command_resolve_argv()`.
 - Refreshed `THREAD.md` and `THREAD_PACKET.md` so the handoff matches the reviewed command-catalog slice and its MVP CLI-fallback demo-path mapping.
 
 ## Kickoff Budget / Limits Compliance
@@ -76,7 +84,9 @@
 ## Handoff Packet
 
 - Branch name: `codex/feat-commands`
-- Reviewed implementation commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Reviewed implementation commits:
+  - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+  - `1e04f9633c4abc4988dcb991944680b86f94f753`
 - Packet refresh commit: this fixer commit (`HEAD` after commit)
 
 ### Tasks Completed (Numbered)
@@ -84,7 +94,9 @@
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on parser drift.
 2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Refreshed the handoff metadata so the reviewer packet explicitly maps this deterministic CLI-contract hardening to the MVP CLI fallback `run` entrypoint it advances.
+4. Fixed command shim subcommand routing so retrieval flow-step shims preserve explicit routed actions such as `search`.
+5. Added regression coverage in `tests/unit/test_commands_catalog.py` for retrieval shim subcommand preservation.
+6. Refreshed the handoff metadata so the reviewer packet explicitly maps this deterministic CLI-contract hardening to the MVP CLI fallback `run` entrypoint it advances and accurately points to the current reviewed implementation commits.
 
 ### Files Changed
 
@@ -102,13 +114,13 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-18`
-- Fixer verification note: reran the full required gate suite after confirming the reviewer-requested canonical demo-path mapping remained present and scope-tight in the handoff metadata.
+- Fixer verification note: reran the full required gate suite after correcting the reviewed implementation anchors and confirming the reviewer-requested canonical demo-path mapping remained present and scope-tight in the handoff metadata.
 
 ## Ready For Handoff
 
 - Status: ready for re-review
 - Current fixer pass: metadata-only handoff refresh plus fresh required gate rerun on `2026-04-18`
-- Reviewed implementation anchor remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Reviewed implementation anchors are `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and `1e04f9633c4abc4988dcb991944680b86f94f753`
 - No implementation files changed in this fixer pass
 
 ### Risks / Blockers
@@ -133,8 +145,10 @@
 - Canonical demo-path step advanced: the CLI fallback `run` entrypoint in the MVP flow `vault -> context -> run -> patch -> export`, concretely through the already-in-scope `project-open` / `bootstrap` command surface.
 - Concrete demo-path narrowing: this handoff ties the reviewed command-catalog slice to `A2UI contracts with CLI fallback` by making the `bootstrap` / `project-open` surface deterministic and smoke-testable where the MVP flow must stay runnable through the CLI.
 - Explicit handoff statement: this change makes the canonical demo path more real at the CLI fallback `run` entrypoint by hardening the existing `bootstrap` / `project-open` command contract, keeping that entrypoint aligned to the canonical catalog before the workflow proceeds further without expanding the CLI surface.
-- Concrete blocker removed: before this hardening, the explicit CLI parser surface could drift from the canonical command catalog order or membership without failing fast, which would make the `bootstrap` / `project-open` surface feeding the MVP `run` entrypoint less deterministic and weaken smoke-test coverage for that entrypoint.
-- Scope-specific alignment note: this is CLI contract hardening only for the existing `bootstrap` / `project-open` surface that feeds the MVP `run` step, with no claim of broader retrieval, patch-application, persistence, or UI progress and no new user-facing command breadth beyond the current MVP loop.
+- Concrete blockers removed:
+  - before this hardening, the explicit CLI parser surface could drift from the canonical command catalog order or membership without failing fast, which would make the `bootstrap` / `project-open` surface feeding the MVP `run` entrypoint less deterministic and weaken smoke-test coverage for that entrypoint
+  - before the shim routing fix, an explicit retrieval subcommand such as `search` could be swallowed by the default `context-basket list` tail when resolved through the flow-step shim, making the same CLI fallback path less trustworthy for the already-in-scope retrieval surface
+- Scope-specific alignment note: this is CLI contract hardening only for the existing `bootstrap` / `project-open` and retrieval shim surfaces that feed the MVP `run` step, with no claim of broader retrieval ranking, patch-application, persistence, or UI progress and no new user-facing command breadth beyond the current MVP loop.
 
 ### Routing/provider impact note
 
