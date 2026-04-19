@@ -557,6 +557,9 @@ def _build_shell_ui_contract_manifest(
         terminal_artifact_cli_fallback_route_contract_fingerprint()
     )
     terminal_artifact_cli_fallback_entrypoint = "render_terminal_cli_fallback"
+    terminal_artifact_cli_fallback_entrypoint_contract_manifest = (
+        describe_terminal_artifact_cli_fallback_entrypoint_contract()
+    )
     terminal_artifact_cli_fallback_target_contract = copy.deepcopy(
         describe_terminal_artifact_cli_fallback_target_contract(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
@@ -595,6 +598,12 @@ def _build_shell_ui_contract_manifest(
         ),
         "terminal_artifact_cli_fallback_entrypoint_contract_fingerprint": _fingerprint_manifest_section(
             terminal_artifact_cli_fallback_entrypoint
+        ),
+        "terminal_artifact_cli_fallback_entrypoint_contract_manifest": copy.deepcopy(
+            terminal_artifact_cli_fallback_entrypoint_contract_manifest
+        ),
+        "terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint": (
+            terminal_artifact_cli_fallback_entrypoint_contract_manifest["contract_fingerprint"]
         ),
         "terminal_artifact_cli_fallback_target": copy.deepcopy(
             terminal_artifact_cli_fallback_target_contract

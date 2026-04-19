@@ -2052,6 +2052,12 @@ def _build_a2ui_contract_manifest(
         manifest["terminal_artifact_cli_fallback_entrypoint_contract_fingerprint"] = shell_ui_contract[
             "terminal_artifact_cli_fallback_entrypoint_contract_fingerprint"
         ]
+        manifest["terminal_artifact_cli_fallback_entrypoint_contract_manifest"] = (
+            describe_terminal_artifact_cli_fallback_entrypoint_contract()
+        )
+        manifest["terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint"] = (
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprint()
+        )
     if include_terminal_artifact_cli_fallback_route:
         route_contract = describe_terminal_artifact_cli_fallback_route_contract()
         manifest["terminal_artifact_cli_fallback_route"] = route_contract
