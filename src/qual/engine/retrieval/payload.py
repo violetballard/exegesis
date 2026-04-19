@@ -3027,6 +3027,28 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["excerpt_citations"] = copy.deepcopy(excerpt_citations)
     else:
         normalized["excerpt_citations"] = _normalize_excerpt_citations(normalized["excerpt_citations"])
+    if "primary_doc_citation" not in normalized or _is_missing_snapshot_value(normalized.get("primary_doc_citation")):
+        normalized["primary_doc_citation"] = (
+            copy.deepcopy(normalized["doc_citations"][0])
+            if normalized["doc_citations"]
+            else None
+        )
+    elif isinstance(normalized.get("primary_doc_citation"), dict):
+        normalized["primary_doc_citation"] = _normalize_doc_citation(normalized["primary_doc_citation"])
+    else:
+        normalized["primary_doc_citation"] = None
+    if "primary_excerpt_citation" not in normalized or _is_missing_snapshot_value(
+        normalized.get("primary_excerpt_citation")
+    ):
+        normalized["primary_excerpt_citation"] = (
+            copy.deepcopy(normalized["excerpt_citations"][0])
+            if normalized["excerpt_citations"]
+            else None
+        )
+    elif isinstance(normalized.get("primary_excerpt_citation"), dict):
+        normalized["primary_excerpt_citation"] = _normalize_excerpt_citation(normalized["primary_excerpt_citation"])
+    else:
+        normalized["primary_excerpt_citation"] = None
     if "retrieved_doc_ids" not in normalized or _is_missing_snapshot_value(normalized.get("retrieved_doc_ids")):
         normalized["retrieved_doc_ids"] = _normalize_text_list_like(
             _first_non_none_value(

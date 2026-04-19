@@ -1299,6 +1299,16 @@ class RetrievalResult:
             if basket_promotion is not None
             else self._basket_promotion_snapshot()
         )
+        primary_doc_citation = (
+            copy.deepcopy(citation_bundle["doc_citations"][0])
+            if citation_bundle["doc_citations"]
+            else None
+        )
+        primary_excerpt_citation = (
+            copy.deepcopy(citation_bundle["excerpt_citations"][0])
+            if citation_bundle["excerpt_citations"]
+            else None
+        )
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
@@ -1364,6 +1374,8 @@ class RetrievalResult:
             "excerpt_count": citation_bundle["excerpt_count"],
             "retrieved_doc_ids": [doc_hit.doc_id for doc_hit in self.doc_hits],
             "retrieved_excerpt_ids": [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None],
+            "primary_doc_citation": primary_doc_citation,
+            "primary_excerpt_citation": primary_excerpt_citation,
             "doc_citations": citation_bundle["doc_citations"],
             "excerpt_citations": citation_bundle["excerpt_citations"],
             "basket_promotion": basket_promotion_snapshot,

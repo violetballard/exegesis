@@ -3550,6 +3550,45 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.retrieval_provenance_bundle()["primary_excerpt_text_hash"],
         )
 
+    def test_retrieval_provenance_surfaces_primary_citations(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        provenance = result.retrieval_provenance_bundle()
+        citation_bundle = result.citation_bundle()
+
+        self.assertEqual(provenance["primary_doc_citation"], citation_bundle["doc_citations"][0])
+        self.assertEqual(provenance["primary_excerpt_citation"], citation_bundle["excerpt_citations"][0])
+
+    def test_retrieval_provenance_helper_backfills_primary_citations_from_citations(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        payload = result.to_downstream_payload()
+        provenance = payload["retrieval_provenance"]
+        self.assertIsInstance(provenance, dict)
+        provenance.pop("primary_doc_citation", None)
+        provenance.pop("primary_excerpt_citation", None)
+
+        rebuilt = _build_retrieval_provenance_from_payload(payload)
+
+        self.assertEqual(rebuilt["primary_doc_citation"], result.citation_bundle()["doc_citations"][0])
+        self.assertEqual(rebuilt["primary_excerpt_citation"], result.citation_bundle()["excerpt_citations"][0])
+
     def test_retrieval_downstream_payload_helper_backfills_sparse_context_bundle_fields(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
