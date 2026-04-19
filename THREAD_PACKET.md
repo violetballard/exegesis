@@ -51,6 +51,7 @@
 - `retrieve relevant material`
 
 This handoff advances `retrieve relevant material` by enforcing authoritative FTS-only excerpt lookup with deterministic fail-closed behavior for non-FTS excerpt IDs.
+It does not claim newly completed basket-promotion behavior; any downstream basket effect remains an indirect consequence of the hardened excerpt contract.
 
 ## Tasks completed
 
@@ -82,6 +83,7 @@ This handoff advances `retrieve relevant material` by enforcing authoritative FT
 1. Packet traceability now matches the cited git history: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is recorded as `THREAD_PACKET.md` only.
 2. The `Files changed` section now separates reviewed implementation files from the actual metadata-only packet refresh files.
 3. The handoff explicitly states the canonical demo-path step advanced: `retrieve relevant material`.
+4. Scope language now explicitly avoids claiming broader retrieval-mode or basket-promotion work beyond the `fetch_excerpt()` FTS-only contract hardening proved in the reviewed implementation.
 
 ## Risks / blockers
 
