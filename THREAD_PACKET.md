@@ -9,7 +9,7 @@
 
 ## Scope goal
 
-- Harden the canonical `fetch_excerpt()` contract so excerpt lookup stays FTS-only and PageIndex-only excerpt IDs fail closed.
+- Harden the canonical `fetch_excerpt()` contract so excerpt lookup stays on the canonical FTS-only path, removes the PageIndex fallback, and proves PageIndex-only excerpt IDs fail closed.
 
 ## Thread Kickoff (High-Risk)
 
@@ -43,6 +43,7 @@
 
 - `fetch_excerpt()` now resolves through the canonical FTS-only path and no longer falls back to PageIndex-backed excerpt payloads.
 - Approved shared regression coverage proves PageIndex-only excerpt IDs fail closed with `KeyError`.
+- This slice does not add new basket-promotion or broader retrieval-mode behavior; any downstream basket value is indirect contract hardening from the stricter FTS-only excerpt lookup surface.
 - SQLite FTS remains the authoritative MVP retrieval path; PageIndex and embeddings remain compatibility-only, non-required paths in this slice.
 
 ## Canonical Demo-Path Step Advanced
@@ -55,6 +56,7 @@ This handoff advances `retrieve relevant material` by enforcing authoritative FT
 
 1. Removed the PageIndex fallback from `fetch_excerpt()` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
 2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
+3. Tightened the handoff scope language so it describes indirect downstream basket contract hardening only and does not claim new basket-promotion behavior.
 
 ## Files changed
 
