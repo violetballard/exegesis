@@ -570,6 +570,13 @@ def describe_a2ui_contract_fingerprints(
         _add_contract_alias_fingerprints(
             fingerprints,
             (
+                "terminal_artifact_cli_fallback_entrypoint_contract_manifest",
+                terminal_artifact_cli_fallback_entrypoint_contract_fingerprint(),
+            ),
+        )
+        _add_contract_alias_fingerprints(
+            fingerprints,
+            (
                 "terminal_artifact_cli_fallback_route",
                 shell_ui_contract["terminal_artifact_cli_fallback_route_fingerprint"],
             ),
@@ -1077,6 +1084,26 @@ def describe_terminal_artifact_renderer_entrypoints_contract() -> dict[str, Any]
     manifest["renderer_entrypoints_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     return manifest
+
+
+def describe_terminal_artifact_cli_fallback_entrypoint_contract() -> dict[str, Any]:
+    """Return the stable explicit CLI fallback entrypoint contract manifest."""
+
+    manifest = _build_terminal_artifact_cli_fallback_entrypoint_contract_manifest()
+    contract_fingerprint = terminal_artifact_cli_fallback_entrypoint_contract_fingerprint()
+    manifest["terminal_artifact_cli_fallback_entrypoint_contract_fingerprint"] = contract_fingerprint
+    manifest["contract_fingerprint"] = contract_fingerprint
+    manifest["contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(
+        manifest["contract_fingerprints"]
+    )
+    return manifest
+
+
+def terminal_artifact_cli_fallback_entrypoint_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the explicit CLI fallback entrypoint manifest."""
+
+    manifest = _build_terminal_artifact_cli_fallback_entrypoint_contract_manifest()
+    return _fingerprint_manifest_section(manifest)
 
 
 def describe_terminal_artifact_rendering_contract_fingerprints(
@@ -1771,6 +1798,35 @@ def _build_terminal_artifact_renderer_entrypoints_contract_manifest() -> dict[st
         "renderer_entrypoints_fingerprint": renderer_entrypoints_fingerprint,
         "contract_fingerprints": {
             "renderer_entrypoints": renderer_entrypoints_fingerprint,
+        },
+    }
+
+
+def _build_terminal_artifact_cli_fallback_entrypoint_contract_manifest() -> dict[str, Any]:
+    renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
+    terminal_artifact_cli_fallback_entrypoint = "render_terminal_cli_fallback"
+    terminal_artifact_cli_fallback_entrypoint_fingerprint = _fingerprint_manifest_section(
+        terminal_artifact_cli_fallback_entrypoint
+    )
+    return {
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
+        "terminal_artifact_cli_fallback_schema_version": TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
+        "terminal_artifact_renderer_entrypoints_schema_version": TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
+        "type": "TerminalArtifactCliFallbackEntrypointContract",
+        "terminal_artifact_cli_fallback_entrypoint": terminal_artifact_cli_fallback_entrypoint,
+        "terminal_artifact_cli_fallback_entrypoint_contract": terminal_artifact_cli_fallback_entrypoint,
+        "terminal_artifact_cli_fallback_entrypoint_fingerprint": terminal_artifact_cli_fallback_entrypoint_fingerprint,
+        "terminal_artifact_cli_fallback_entrypoint_contract_fingerprint": (
+            terminal_artifact_cli_fallback_entrypoint_fingerprint
+        ),
+        "renderer_entrypoints": _snapshot_contract_section(renderer_entrypoints_contract["renderer_entrypoints"]),
+        "renderer_entrypoints_contract": _snapshot_contract_section(renderer_entrypoints_contract),
+        "renderer_entrypoints_contract_fingerprint": renderer_entrypoints_contract["contract_fingerprint"],
+        "contract_fingerprints": {
+            "terminal_artifact_cli_fallback_entrypoint": terminal_artifact_cli_fallback_entrypoint_fingerprint,
+            "renderer_entrypoints": renderer_entrypoints_contract["contract_fingerprint"],
         },
     }
 
