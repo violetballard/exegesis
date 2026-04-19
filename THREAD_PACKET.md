@@ -49,9 +49,9 @@
 
 ## Reviewer Required Fixes Satisfied
 
-1. The handoff packet now explicitly names one canonical demo-path step advanced by this slice: `project-open` (`open project/document`) via `bootstrap`.
-2. The packet now states the concrete blocker removed on that path: silent parser/catalog drift could break the deterministic CLI contract and its smoke-test coverage for the `project-open` / `bootstrap` entrypoint.
-3. The scope statement stays narrow and describes this work as deterministic command-contract hardening only for that single CLI-first reachability step, with no new user-facing command breadth beyond the current MVP loop.
+1. The handoff packet now explicitly names one canonical demo-path step advanced by this slice: the CLI fallback `run` entrypoint in the MVP flow `vault -> context -> run -> patch -> export`, concretely through the already-in-scope `project-open` / `bootstrap` command surface.
+2. The packet now states the concrete blocker removed on that path: silent parser/catalog drift could break the deterministic CLI contract and its smoke-test coverage for the `bootstrap` / `project-open` surface that feeds that `run` entrypoint.
+3. The scope statement stays narrow and describes this work as deterministic CLI contract hardening only for that existing MVP command surface, with no new user-facing command breadth beyond the current MVP loop.
 4. The vision mapping is intentionally limited to `Canonical engine contract`; no auditable-state claim is carried forward.
 
 ## Scope Completed
@@ -59,7 +59,7 @@
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-- Refreshed `THREAD.md` and `THREAD_PACKET.md` so the handoff matches the reviewed command-catalog slice and its AGENTS-required demo-path mapping.
+- Refreshed `THREAD.md` and `THREAD_PACKET.md` so the handoff matches the reviewed command-catalog slice and its MVP CLI-fallback demo-path mapping.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -84,7 +84,7 @@
 1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on parser drift.
 2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Refreshed the handoff metadata so the reviewer packet explicitly maps this deterministic CLI-contract hardening to the canonical engine-first CLI loop it advances.
+4. Refreshed the handoff metadata so the reviewer packet explicitly maps this deterministic CLI-contract hardening to the MVP CLI fallback `run` entrypoint it advances.
 
 ### Files Changed
 
@@ -130,11 +130,11 @@
 
 ### Canonical demo-path step advanced
 
-- Canonical demo-path step advanced: `project-open` (`open project/document`) via `bootstrap`.
-- Concrete demo-path narrowing: this handoff ties the reviewed command-catalog slice to the active engine-first CLI path by making the `project-open` / `bootstrap` entrypoint deterministic and smoke-testable in canonical catalog order.
-- Explicit handoff statement: this change makes the canonical demo path more real at `project-open` (`open project/document`) via `bootstrap` by hardening CLI compatibility for already-in-scope MVP commands, keeping that entrypoint aligned to the canonical catalog before the workflow proceeds further without expanding the CLI surface.
-- Concrete blocker removed: before this hardening, the explicit CLI parser surface could drift from the canonical command catalog order or membership without failing fast, which would make the `project-open` step via `bootstrap` less deterministic and weaken smoke-test coverage for that entrypoint.
-- Scope-specific alignment note: this is contract hardening only for the `project-open` reachability step, with no claim of broader retrieval, patch-application, persistence, or UI progress and no new user-facing command breadth beyond the current MVP loop.
+- Canonical demo-path step advanced: the CLI fallback `run` entrypoint in the MVP flow `vault -> context -> run -> patch -> export`, concretely through the already-in-scope `project-open` / `bootstrap` command surface.
+- Concrete demo-path narrowing: this handoff ties the reviewed command-catalog slice to `A2UI contracts with CLI fallback` by making the `bootstrap` / `project-open` surface deterministic and smoke-testable where the MVP flow must stay runnable through the CLI.
+- Explicit handoff statement: this change makes the canonical demo path more real at the CLI fallback `run` entrypoint by hardening the existing `bootstrap` / `project-open` command contract, keeping that entrypoint aligned to the canonical catalog before the workflow proceeds further without expanding the CLI surface.
+- Concrete blocker removed: before this hardening, the explicit CLI parser surface could drift from the canonical command catalog order or membership without failing fast, which would make the `bootstrap` / `project-open` surface feeding the MVP `run` entrypoint less deterministic and weaken smoke-test coverage for that entrypoint.
+- Scope-specific alignment note: this is CLI contract hardening only for the existing `bootstrap` / `project-open` surface that feeds the MVP `run` step, with no claim of broader retrieval, patch-application, persistence, or UI progress and no new user-facing command breadth beyond the current MVP loop.
 
 ### Routing/provider impact note
 
