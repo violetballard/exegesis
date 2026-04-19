@@ -102,6 +102,7 @@ from src.qual.ui.a2ui import (
     TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_SCHEMA_VERSION,
     TERMINAL_ARTIFACT_RAW_LEAF_CARD_DEFAULT_SCHEMA_VERSION,
     _build_a2ui_schema_versions_manifest,
+    _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT,
     studio_materialize_card,
     validate_action_ref,
     validate_terminal_artifact_envelope,
@@ -6846,6 +6847,31 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("- label: Export", text)
         self.assertNotIn("[ActionRef]", text)
         self.assertNotIn("[SelectionRef]", text)
+
+    def test_terminal_artifact_cli_fallback_ignores_stale_context_hints_for_other_artifacts(self) -> None:
+        stale_artifact = {
+            "id": "choice-1",
+            "label": "Choice",
+            "payload": {"nested": {"items": [1, 2]}},
+            "selected": True,
+        }
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set((stale_artifact, "selection"))
+        try:
+            text = render_terminal_cli_fallback(raw_leaf)
+        finally:
+            _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.reset(token)
+
+        self.assertEqual(text, render_terminal_card(raw_leaf))
+        self.assertIn("[<missing>] <untitled>", text)
+        self.assertIn("- label: Export", text)
+        self.assertNotIn("[SelectionRef] Choice", text)
+        self.assertNotIn("[ActionRef] Export", text)
 
     def test_shell_ui_recovers_leaf_kind_when_shared_resolver_underflows_to_card_and_cli_fallback_fails(
         self,

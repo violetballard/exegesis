@@ -3833,6 +3833,8 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
     ):
         return _render_invalid_terminal_card(artifact)
     fallback_target = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get()
+    if not _is_current_terminal_artifact_cli_fallback_hint(artifact, fallback_target):
+        fallback_target = None
     if fallback_target is None:
         try:
             fallback_target = resolve_terminal_artifact_cli_fallback_target(
@@ -3901,6 +3903,27 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
         )
     except Exception:
         return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
+
+
+def _is_current_terminal_artifact_cli_fallback_hint(
+    artifact: Any,
+    fallback_target: tuple[Any, str] | None,
+) -> bool:
+    """Return True when a CLI fallback hint matches the current artifact object.
+
+    The shell sets the hint immediately before calling the explicit fallback
+    entrypoint, so an identity check is enough to accept the intended hint
+    while ignoring stale context from other renders.
+    """
+
+    if fallback_target is None:
+        return False
+    hinted_artifact, hinted_kind = fallback_target
+    if hinted_artifact is not artifact:
+        return False
+    if not isinstance(hinted_kind, str):
+        return False
+    return hinted_kind.strip().lower() in _TERMINAL_ARTIFACT_SUPPORTED_KIND_SET
 
 
 render_terminal_a2ui = render_terminal_artifact
