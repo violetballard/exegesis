@@ -14,7 +14,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `THREAD.md`
   - `THREAD_PACKET.md`
 - The canonical demo-path mapping for this reviewed slice is the current engine-first CLI path to `open project/document` via `bootstrap`, `retrieve relevant material` via `context-basket`, `preview and apply or reject a patch` via `diff-preview`, and `continue working` via `terminal`.
-- Explicit handoff statement: this change makes the canonical demo path more real by keeping those four CLI entrypoints deterministic and aligned to the canonical catalog order, and it does not claim broader retrieval-engine, patch-application, persistence, or UI progress.
+- Explicit handoff statement: this change makes the canonical demo path more real by keeping the CLI entrypoints for `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and `continue working without losing context` deterministic and aligned to the canonical catalog order, and it does not claim broader retrieval-engine, patch-application, persistence, or UI progress.
 - Scope-tightening note: this fixer remains command-contract hardening only and does not add any new user-facing command breadth beyond the current MVP loop.
 - Concrete blocker removed: without validating that CLI parser entrypoints resolve to the canonical catalog in canonical order, the parser surface feeding the engine-first CLI loop could drift silently from the catalog contract and break deterministic smoke tests for `bootstrap`, `context-basket`, `diff-preview`, and `terminal`.
 - Vision capability affected is intentionally narrow: `Canonical engine contract` only.

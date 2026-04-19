@@ -135,7 +135,7 @@
   - `preview and apply or reject a patch` via `diff-preview`
   - `continue working` via `terminal`
 - Concrete demo-path narrowing: this handoff ties the reviewed command-catalog slice to the active engine-first CLI path by making `bootstrap`, `context-basket`, `diff-preview`, and `terminal` deterministic and smoke-testable in canonical catalog order.
-- Explicit handoff statement: this change makes the canonical demo path more real by keeping the CLI-first operator surface aligned to the catalog before the workflow proceeds through those four command entrypoints.
+- Explicit handoff statement: this change makes the canonical demo path more real by keeping the CLI entrypoints for `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and `continue working without losing context` deterministic and aligned to the canonical catalog order.
 - Concrete blocker removed: before this hardening, the explicit CLI parser surface could drift from the canonical command catalog order or membership without failing fast, which would make the engine-first CLI path less deterministic and weaken smoke-test coverage for `bootstrap`, `context-basket`, `diff-preview`, and `terminal`.
 - Scope-specific alignment note: this is contract hardening only, with no new user-facing command breadth beyond the current MVP loop.
 
