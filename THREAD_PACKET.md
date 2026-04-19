@@ -51,6 +51,7 @@
 - `retrieve relevant material`
 
 This handoff advances `retrieve relevant material` by enforcing authoritative FTS-only excerpt lookup with deterministic fail-closed behavior for non-FTS excerpt IDs.
+It does not claim new basket-promotion behavior; any downstream basket value here is indirect contract hardening only.
 It does not claim newly completed basket-promotion behavior; any downstream basket effect remains an indirect consequence of the hardened excerpt contract.
 
 ## Tasks completed
