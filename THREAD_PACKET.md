@@ -132,7 +132,7 @@
 
 - Canonical demo-path step advanced: `project-open` (`open project/document`) via `bootstrap`.
 - Concrete demo-path narrowing: this handoff ties the reviewed command-catalog slice to the active engine-first CLI path by making the `project-open` / `bootstrap` entrypoint deterministic and smoke-testable in canonical catalog order.
-- Explicit handoff statement: this change makes the canonical demo path more real by keeping the CLI operator surface aligned to the catalog at the `project-open` step before the workflow proceeds further.
+- Explicit handoff statement: this change makes the canonical demo path more real at `project-open` (`open project/document`) via `bootstrap` by hardening CLI compatibility for already-in-scope MVP commands, keeping that entrypoint aligned to the canonical catalog before the workflow proceeds further without expanding the CLI surface.
 - Concrete blocker removed: before this hardening, the explicit CLI parser surface could drift from the canonical command catalog order or membership without failing fast, which would make the `project-open` step via `bootstrap` less deterministic and weaken smoke-test coverage for that entrypoint.
 - Scope-specific alignment note: this is contract hardening only for the `project-open` reachability step, with no claim of broader retrieval, patch-application, persistence, or UI progress and no new user-facing command breadth beyond the current MVP loop.
 
