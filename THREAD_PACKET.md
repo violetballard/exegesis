@@ -43,13 +43,13 @@
 ## Packet Traceability Note
 
 - Review basis remains the command-catalog implementation at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Packet refresh commit `f70b5c46acb14da462c2c739ba3fbb5e7013a758` is metadata-only.
+- Packet refresh commit `33ca8b43c08492bcb201b6fe0c6c6fef70175347` is metadata-only.
 - This fixer adds one more metadata-only handoff refresh on top of that slice.
 - Approval basis for re-review stays anchored to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this packet refresh does not broaden the implementation claim.
 
 ## Reviewer Required Fixes Satisfied
 
-1. The handoff packet now explicitly maps this change to the canonical engine-first demo path and states that it specifically stabilizes the command entrypoints used to `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and `continue working`.
+1. The handoff packet now explicitly maps this change to the canonical engine-first demo path and states that it specifically stabilizes `bootstrap`, `context-basket`, `diff-preview`, and `terminal` for the `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and `continue working` steps.
 2. The packet now states the concrete blocker removed on that path: silent parser/catalog drift could break the deterministic CLI contract and its smoke-test coverage for those workflow entrypoints.
 3. The scope statement stays narrow and describes this work as deterministic command-contract hardening only, with no new user-facing command breadth beyond the current MVP loop.
 4. The vision mapping is intentionally limited to `Canonical engine contract`; no auditable-state claim is carried forward.
@@ -123,13 +123,13 @@
 ### Canonical demo-path step advanced
 
 - Canonical demo-path steps advanced:
-  - `open project/document`
-  - `retrieve relevant material`
-  - `preview and apply or reject a patch`
-  - `continue working`
-- Concrete demo-path narrowing: this handoff ties the reviewed command-catalog slice to the active engine-first CLI path by making those command entrypoints deterministic and smoke-testable in canonical catalog order.
-- Explicit handoff statement: this change makes the canonical demo path more real by keeping the CLI-first operator surface aligned to the catalog before the workflow proceeds through `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and `continue working`.
-- Concrete blocker removed: before this hardening, the explicit CLI parser surface could drift from the canonical command catalog order or membership without failing fast, which would make the engine-first CLI path less deterministic and weaken smoke-test coverage for the workflow entrypoints used in those four steps.
+  - `open project/document` via `bootstrap`
+  - `retrieve relevant material` via `context-basket`
+  - `preview and apply or reject a patch` via `diff-preview`
+  - `continue working` via `terminal`
+- Concrete demo-path narrowing: this handoff ties the reviewed command-catalog slice to the active engine-first CLI path by making `bootstrap`, `context-basket`, `diff-preview`, and `terminal` deterministic and smoke-testable in canonical catalog order.
+- Explicit handoff statement: this change makes the canonical demo path more real by keeping the CLI-first operator surface aligned to the catalog before the workflow proceeds through those four command entrypoints.
+- Concrete blocker removed: before this hardening, the explicit CLI parser surface could drift from the canonical command catalog order or membership without failing fast, which would make the engine-first CLI path less deterministic and weaken smoke-test coverage for `bootstrap`, `context-basket`, `diff-preview`, and `terminal`.
 - Scope-specific alignment note: this is contract hardening only, with no new user-facing command breadth beyond the current MVP loop.
 
 ### Routing/provider impact note
