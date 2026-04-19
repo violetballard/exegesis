@@ -2,10 +2,10 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Current branch tip before this fixer pass: `6b783b60b840c5fd63c3b07b19aa0c67ebf09081`
+- Current branch tip before this fixer pass: `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`. This fixer pass also refreshes only `THREAD_PACKET.md` and does not move the reviewed implementation head or range.
+- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, and commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before this fixer pass. This fixer pass refreshes only `THREAD_PACKET.md` and does not move the reviewed implementation head or range.
 
 ## Scope goal
 
