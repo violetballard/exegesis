@@ -18,4 +18,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Scope-tightening note: this fixer remains command-contract hardening only for the `project-open` reachability step and does not add any new user-facing command breadth beyond the current MVP loop.
 - Concrete blocker removed: without validating that the CLI parser entrypoint resolves to the canonical catalog in canonical order, the parser surface feeding the `project-open` step via `bootstrap` in the engine-first CLI loop could drift silently from the catalog contract and break deterministic smoke tests for that step.
 - Vision capability affected is intentionally narrow: `Canonical engine contract` only.
-- This fixer pass stays metadata-only, is limited to `THREAD.md` and `THREAD_PACKET.md`, and re-runs the required gate suite before re-review.
+- This fixer pass stays metadata-only, is limited to `THREAD.md` and `THREAD_PACKET.md`, and has re-run the required gate suite before re-review.

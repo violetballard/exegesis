@@ -43,7 +43,7 @@
 ## Packet Traceability Note
 
 - Review basis remains the command-catalog implementation at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Packet refresh commit `33ca8b43c08492bcb201b6fe0c6c6fef70175347` is metadata-only.
+- Latest pre-fixer packet refresh commit `6a8eb130cafd8415f09223e1d51d76079972a754` is metadata-only.
 - This fixer adds one more metadata-only handoff refresh on top of that slice.
 - Approval basis for re-review stays anchored to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this packet refresh does not broaden the implementation claim.
 
@@ -102,6 +102,7 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-18`
+- Fixer verification note: reran the full required gate suite after confirming the reviewer-requested canonical demo-path mapping remained present and scope-tight in the handoff metadata.
 
 ## Ready For Handoff
 
