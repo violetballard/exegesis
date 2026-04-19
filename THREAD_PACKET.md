@@ -44,7 +44,7 @@
 
 - The reviewed implementation range keeps SQLite FTS authoritative across the retrieval facade and excerpt lookup surface.
 - Retrieval hits, provenance bundles, citation/source/context payloads, and sparse bundle rehydration remain deterministic and auditable for downstream engine flows.
-- Public retrieval helpers accept normalized constraint inputs and preserve canonical query/constraint context through excerpt lookup and basket-promotion-adjacent payloads.
+- The later reviewed tip commit `e398c81caafee19dd55b6b62f9bc57615b0b05c8` updates `src/qual/retrieval/service.py` to carry canonical query constraints and lookup context into excerpt lookup audit records and payloads, which remains in scope because it strengthens auditable FTS-first retrieval behavior rather than adding a new retrieval mode.
 - `fetch_excerpt()` now fails closed for non-FTS excerpt IDs, approved shared regression coverage proves PageIndex-only excerpt IDs raise `KeyError`, and PageIndex plus embeddings remain compatibility-only shims rather than required MVP paths.
 
 ## Canonical Demo-Path Step Advanced
