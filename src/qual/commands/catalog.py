@@ -863,6 +863,14 @@ def _merge_shim_argv(
             continue
         explicit_option_segments[option_name] = segment
 
+    replace_default_tail = bool(explicit_tail_segments) and any(
+        not segment[0].startswith("-")
+        for segment in _argv_segments(
+            shim_argv[1:],
+            option_names_with_values=shim_option_names_with_values,
+            known_option_names=shim_known_option_names,
+        )
+    )
     merged_segments: list[tuple[str, ...]] = [(shim_argv[0],)]
     for segment in _argv_segments(
         shim_argv[1:],
@@ -871,6 +879,8 @@ def _merge_shim_argv(
     ):
         head = segment[0]
         if not head.startswith("-"):
+            if replace_default_tail:
+                continue
             merged_segments.append(segment)
             continue
         option_name = head.partition("=")[0] or head

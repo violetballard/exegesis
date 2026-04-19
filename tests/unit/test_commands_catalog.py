@@ -746,6 +746,9 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_cli_entry_argv(["context-basket"]), ("context-basket", "list"))
         self.assertEqual(command_cli_entry_argv(["retrieve"]), ("context-basket", "list"))
         self.assertEqual(command_cli_entry_argv(["retrieval"]), ("context-basket", "list"))
+        self.assertEqual(command_cli_entry_argv(["context-basket", "search"]), ("context-basket", "search"))
+        self.assertEqual(command_cli_entry_argv(["retrieve", "search"]), ("context-basket", "search"))
+        self.assertEqual(command_cli_entry_argv(["retrieval", "search"]), ("context-basket", "search"))
         self.assertEqual(
             command_cli_entry_argv(["terminal"]),
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
@@ -923,6 +926,11 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertTrue(normalized_lookup.matched)
         self.assertEqual(normalized_lookup.argv, ("diff-preview", "--format", "json"))
         self.assertEqual(normalized_lookup.kind, "lookup")
+
+        retrieval_search = command_resolve_argv(("retrieval", "search"))
+        self.assertTrue(retrieval_search.matched)
+        self.assertEqual(retrieval_search.argv, ("context-basket", "search"))
+        self.assertEqual(retrieval_search.kind, "flow-step")
 
         document_open = command_resolve_argv(("document-open", "--project", "demo"))
         self.assertTrue(document_open.matched)
@@ -1314,6 +1322,10 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_cli_entry_argv_for(specs, ("context",)),
             ("context-basket", "list"),
+        )
+        self.assertEqual(
+            command_cli_entry_argv_for(specs, ("context", "search")),
+            ("context-basket", "search"),
         )
         self.assertEqual(
             command_cli_entry_argv_for(specs, ("--format", "json"), ("retrieval",)),
