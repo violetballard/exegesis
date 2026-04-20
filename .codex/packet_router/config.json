@@ -116,6 +116,9 @@
       "reviewer_cloud_profile": "worker_cloud_standard_medium",
       "fixer_cloud_profile": "worker_cloud_standard_medium",
       "integrator_cloud_profile": "worker_cloud_standard_medium",
+      "feature_local_profile": "worker_local_heavy",
+      "reviewer_local_profile": "worker_local_heavy",
+      "fixer_local_profile": "worker_local_heavy",
       "integrator_local_profile": "worker_local_heavy"
     },
     "feat-a2ui-contract": {

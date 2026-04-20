@@ -14,14 +14,17 @@ from typing import Optional
 
 try:
     from log_maintenance import compact_log_file
+    from local_exec_sweeper import find_orphaned_repo_local_exec_pids, terminate_local_exec_pids
 except ImportError:  # pragma: no cover - package execution fallback
     from .log_maintenance import compact_log_file
+    from .local_exec_sweeper import find_orphaned_repo_local_exec_pids, terminate_local_exec_pids
 
 COORD_DIR = Path(".codex/packet_coordinator")
 PID_FILE = COORD_DIR / "daemon.pid"
 LOG_FILE = COORD_DIR / "daemon.log"
 LEASE_FILE = COORD_DIR / "lease.json"
 FEATURE_RUNNER_STATE_FILE = Path(".codex/feature_runner/state.json")
+ROUTER_STATE_FILE = Path(".codex/packet_router/state.json")
 CMD = [sys.executable, "codex_packet_handoff/tools/agents_coordinator.py", "--daemon"]
 PROC_MATCH = "codex_packet_handoff/tools/agents_coordinator.py --daemon"
 LEASE_FRESH_SECONDS = 3600
@@ -135,6 +138,22 @@ def _feature_runner_pids() -> list[int]:
         pid = int(lane_state.get("pid", 0) or 0)
         if pid > 0:
             pids.append(pid)
+    return pids
+
+
+def _router_job_pids() -> list[int]:
+    state = _load_json(ROUTER_STATE_FILE)
+    pids: list[int] = []
+    for key in ("fixer_fallback_jobs", "local_reviewer_jobs", "local_integrator_jobs", "cloud_integrator_jobs"):
+        jobs = state.get(key) if isinstance(state, dict) else {}
+        if not isinstance(jobs, dict):
+            continue
+        for job in jobs.values():
+            if not isinstance(job, dict):
+                continue
+            pid = int(job.get("pid", 0) or 0)
+            if pid > 0:
+                pids.append(pid)
     return pids
 
 
@@ -308,6 +327,12 @@ def _stop() -> int:
             stopped_any = True
         except OSError:
             pass
+
+    tracked_local_exec_pids = set(_feature_runner_pids() + _router_job_pids())
+    orphaned_local_exec_pids = find_orphaned_repo_local_exec_pids(REPO_ROOT, tracked_local_exec_pids)
+    if orphaned_local_exec_pids:
+        terminate_local_exec_pids(orphaned_local_exec_pids)
+        stopped_any = True
 
     try:
         PID_FILE.unlink()

@@ -328,6 +328,43 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
             "feature_tool_loop_detected",
         )
 
+    def test_reconcile_terminates_orphan_local_exec_processes(self) -> None:
+        from codex_packet_handoff.tools import agents_coordinator as coordinator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            feature_state = root / "feature_runner_state.json"
+            router_state = root / "router_state.json"
+            feature_state.write_text(json.dumps({"lanes": {}}), encoding="utf-8")
+            router_state.write_text(json.dumps({}), encoding="utf-8")
+            coordinator_state = {"lane_refill": {}}
+
+            with (
+                patch.object(coordinator, "FEATURE_RUNNER_STATE_FILE", feature_state),
+                patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
+                patch.object(coordinator, "_reconcile_lane_worktrees", return_value={
+                    "gitdir_repaired": [],
+                    "gitdir_backups": [],
+                    "artifacts_removed": {},
+                    "health_failures": {},
+                    "rebuilt": {},
+                    "rebuild_backups": {},
+                    "rebuild_failures": {},
+                }),
+                patch.object(coordinator, "run_hygiene", return_value={
+                    "stale_git_pids": [],
+                    "temp_worktrees_removed": [],
+                    "stale_commit_locks_removed": [],
+                    "stale_worktree_index_locks_removed": [],
+                }),
+                patch.object(coordinator, "find_orphaned_repo_local_exec_pids", return_value=[111, 222]),
+                patch.object(coordinator, "terminate_local_exec_pids", return_value=[111, 222]) as terminate_mock,
+            ):
+                summary = coordinator._reconcile_control_plane_state(coordinator_state)
+
+        terminate_mock.assert_called_once_with([111, 222])
+        self.assertEqual(summary["orphan_local_exec_pids_removed"], [111, 222])
+
     def test_reconcile_router_state_prunes_missing_packet_jobs_and_expired_retries(self) -> None:
         from codex_packet_handoff.tools import agents_coordinator as coordinator
 

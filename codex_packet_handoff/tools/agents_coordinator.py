@@ -23,9 +23,11 @@ from typing import Dict, List, Optional, Tuple
 try:
     from git_ops import run_git
     from git_hygiene import run_hygiene
+    from local_exec_sweeper import find_orphaned_repo_local_exec_pids, terminate_local_exec_pids
 except ImportError:  # pragma: no cover - package execution fallback
     from .git_ops import run_git
     from .git_hygiene import run_hygiene
+    from .local_exec_sweeper import find_orphaned_repo_local_exec_pids, terminate_local_exec_pids
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(line_buffering=True, write_through=True)
@@ -513,6 +515,39 @@ def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = Non
     return removed
 
 
+def _tracked_local_exec_pids() -> List[int]:
+    tracked: List[int] = []
+    feature_state = load_json(FEATURE_RUNNER_STATE_FILE, {})
+    lanes = feature_state.get("lanes") if isinstance(feature_state, dict) else {}
+    if isinstance(lanes, dict):
+        for lane_state in lanes.values():
+            if not isinstance(lane_state, dict):
+                continue
+            pid = int(lane_state.get("pid") or 0)
+            if pid > 0:
+                tracked.append(pid)
+    router_state = load_json(ROUTER_STATE_FILE, {})
+    if isinstance(router_state, dict):
+        for key in ROUTER_JOB_STATE_KEYS:
+            jobs = router_state.get(key)
+            if not isinstance(jobs, dict):
+                continue
+            for job in jobs.values():
+                if not isinstance(job, dict):
+                    continue
+                pid = int(job.get("pid") or 0)
+                if pid > 0:
+                    tracked.append(pid)
+    return sorted(set(tracked))
+
+
+def _reconcile_orphan_local_exec_processes() -> List[int]:
+    orphaned = find_orphaned_repo_local_exec_pids(REPO_ROOT, _tracked_local_exec_pids())
+    if orphaned:
+        terminate_local_exec_pids(orphaned)
+    return orphaned
+
+
 def _update_git_hygiene_status(coordinator_state: Dict[str, object], git_hygiene: Dict[str, object]) -> Dict[str, object]:
     status = dict(coordinator_state.get("git_hygiene_status") or {})
     stale_count = len(list(git_hygiene.get("stale_git_pids") or []))
@@ -535,6 +570,7 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
     feature_runner_terminated = dict(feature_runner_reconcile.get("terminated") or {})
     duplicate_feature_pids_removed = _reconcile_duplicate_feature_exec_processes()
     router_removed = _reconcile_router_state(coordinator_state)
+    orphan_local_exec_pids_removed = _reconcile_orphan_local_exec_processes()
     worktree_reconcile = _reconcile_lane_worktrees()
     git_hygiene = run_hygiene(REPO_ROOT)
     git_hygiene_status = _update_git_hygiene_status(coordinator_state, git_hygiene)
@@ -563,6 +599,11 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
         print(f"[reconcile] pruned stale router state from {key}: {', '.join(names)}")
     for lane, pids in sorted(duplicate_feature_pids_removed.items()):
         print(f"[reconcile] terminated duplicate feature workers for {lane}: {', '.join(str(pid) for pid in pids)}")
+    if orphan_local_exec_pids_removed:
+        print(
+            "[reconcile] terminated orphan local exec processes: "
+            + ", ".join(str(pid) for pid in orphan_local_exec_pids_removed)
+        )
     for repaired in worktree_reconcile["gitdir_repaired"]:
         print(f"[reconcile] restored shared gitdir for {repaired}")
     for backup in worktree_reconcile["gitdir_backups"]:
@@ -591,6 +632,7 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
         "feature_runner_terminated": feature_runner_terminated,
         "router_removed": router_removed,
         "duplicate_feature_pids_removed": duplicate_feature_pids_removed,
+        "orphan_local_exec_pids_removed": orphan_local_exec_pids_removed,
         "worktree_reconcile": worktree_reconcile,
         "git_hygiene": git_hygiene,
         "git_hygiene_status": git_hygiene_status,
