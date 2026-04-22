@@ -1,13 +1,16 @@
 {
   "model": "gpt-5.1-codex",
   "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
-  "fallback_model": "unsloth/gpt-oss-20b",
+  "fallback_model": "gpt-oss-20b",
   "fallback_codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
   "fallback_codex_args": [
     "-c",
     "model_provider=lms"
   ],
-  "fallback_model_args": [],
+  "fallback_model_args": [
+    "-c",
+    "model_reasoning_effort=medium"
+  ],
   "profiles": {
     "orchestrator": {
       "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
@@ -15,8 +18,11 @@
         "-c",
         "model_provider=lms"
       ],
-      "model": "unsloth/gpt-oss-20b",
-      "model_args": []
+      "model": "gpt-oss-20b",
+      "model_args": [
+        "-c",
+        "model_reasoning_effort=medium"
+      ]
     },
     "worker_cloud": {
       "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
@@ -45,8 +51,11 @@
         "-c",
         "model_provider=lms"
       ],
-      "model": "unsloth/gpt-oss-20b",
-      "model_args": []
+      "model": "gpt-oss-20b",
+      "model_args": [
+        "-c",
+        "model_reasoning_effort=medium"
+      ]
     },
     "worker_local_heavy": {
       "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",

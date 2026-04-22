@@ -19,9 +19,12 @@ class OfflineHandoffConfigTests(unittest.TestCase):
     def test_live_router_config_uses_explicit_lms_provider(self) -> None:
         cfg = json.loads((REPO_ROOT / ".codex/packet_router/config.json").read_text(encoding="utf-8"))
         self.assertEqual(cfg["fallback_codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["fallback_model"], "unsloth/gpt-oss-20b")
+        self.assertEqual(cfg["fallback_model"], "gpt-oss-20b")
+        self.assertEqual(cfg["fallback_model_args"], ["-c", "model_reasoning_effort=medium"])
         self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "unsloth/gpt-oss-20b")
+        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gpt-oss-20b")
+        self.assertEqual(cfg["profiles"]["worker_local"]["model_args"], ["-c", "model_reasoning_effort=medium"])
+        self.assertEqual(cfg["profiles"]["orchestrator"]["model_args"], ["-c", "model_reasoning_effort=medium"])
         self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "gpt-oss-120b")
         self.assertEqual(cfg["role_profiles"]["integrator_local"], "worker_local")
         self.assertEqual(cfg["lanes"]["feat-retrieval-fts"]["integrator_local_profile"], "worker_local_heavy")
@@ -40,9 +43,12 @@ class OfflineHandoffConfigTests(unittest.TestCase):
                 os.chdir(prev_cwd)
 
         self.assertEqual(cfg["fallback_codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["fallback_model"], "unsloth/gpt-oss-20b")
+        self.assertEqual(cfg["fallback_model"], "gpt-oss-20b")
+        self.assertEqual(cfg["fallback_model_args"], ["-c", "model_reasoning_effort=medium"])
         self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "unsloth/gpt-oss-20b")
+        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gpt-oss-20b")
+        self.assertEqual(cfg["profiles"]["worker_local"]["model_args"], ["-c", "model_reasoning_effort=medium"])
+        self.assertEqual(cfg["profiles"]["orchestrator"]["model_args"], ["-c", "model_reasoning_effort=medium"])
         self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "gpt-oss-120b")
         self.assertEqual(cfg["role_profiles"]["integrator_local"], "worker_local")
         self.assertEqual(cfg["lanes"]["feat-retrieval-fts"]["integrator_local_profile"], "worker_local_heavy")
@@ -117,7 +123,7 @@ class OfflineReviewerGuardTests(unittest.TestCase):
             rc, out = router._run_cli_codex(
                 "codex",
                 ["-c", "model_provider=lms"],
-                "unsloth/gpt-oss-20b",
+                "gpt-oss-20b",
                 [],
                 "read-only",
                 "/repo",
@@ -536,11 +542,36 @@ class OfflineHandoffProbeTests(unittest.TestCase):
 
 
 class LocalCodexRuntimeTests(unittest.TestCase):
-    def test_isolated_codex_env_copies_source_config(self) -> None:
+    def test_isolated_codex_env_writes_minimal_local_config(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             source_home = Path(tmp) / "source"
             source_home.mkdir()
-            (source_home / "config.toml").write_text("model = 'gpt-5.4'\n", encoding="utf-8")
+            (source_home / "config.toml").write_text(
+                "\n".join(
+                    [
+                        "model = 'gpt-5.4'",
+                        "model_reasoning_effort = 'xhigh'",
+                        "oss_provider = 'lmstudio'",
+                        "",
+                        "[projects.\"/tmp/repo\"]",
+                        "trust_level = 'trusted'",
+                        "",
+                        "[model_providers.lms]",
+                        "name = 'LM Studio'",
+                        "base_url = 'http://127.0.0.1:1234/v1'",
+                        "",
+                        "[profiles.gpt-oss-20b-lms]",
+                        "model_provider = 'lms'",
+                        "model = 'gpt-oss-20b'",
+                        "",
+                        "[plugins.\"github@openai-curated\"]",
+                        "enabled = true",
+                        "",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
             repo_root = Path(tmp) / "repo"
             repo_root.mkdir()
 
@@ -548,7 +579,16 @@ class LocalCodexRuntimeTests(unittest.TestCase):
                 env = local_codex_runtime.isolated_codex_env(str(repo_root))
 
             target_home = Path(env["CODEX_HOME"])
-            self.assertEqual(
-                (target_home / "config.toml").read_text(encoding="utf-8"),
-                "model = 'gpt-5.4'\n",
-            )
+            written = (target_home / "config.toml").read_text(encoding="utf-8")
+            self.assertIn('model = "gpt-oss-20b"', written)
+            self.assertIn('model_reasoning_effort = "medium"', written)
+            self.assertIn('oss_provider = "lmstudio"', written)
+            self.assertIn('[model_providers.lms]', written)
+            self.assertIn('base_url = "http://127.0.0.1:1234/v1"', written)
+            self.assertIn(f'[projects."{repo_root.resolve()}"]', written)
+            self.assertIn("[features]", written)
+            self.assertIn("plugins = false", written)
+            self.assertIn("responses_websockets = false", written)
+            self.assertIn("responses_websockets_v2 = false", written)
+            self.assertNotIn("gpt-5.4", written)
+            self.assertNotIn('[plugins."github@openai-curated"]', written)

@@ -61,16 +61,16 @@ def write_example_config():
     example = {
         "model": "gpt-5.1-codex",
         "codex_cmd": APP_CODEX_CMD,
-        "fallback_model": "unsloth/gpt-oss-20b",
+        "fallback_model": "gpt-oss-20b",
         "fallback_codex_cmd": APP_CODEX_CMD,
         "fallback_codex_args": ["-c", "model_provider=lms"],
-        "fallback_model_args": [],
+        "fallback_model_args": ["-c", "model_reasoning_effort=medium"],
         "profiles": {
             "orchestrator": {
                 "codex_cmd": APP_CODEX_CMD,
                 "codex_args": ["-c", "model_provider=lms"],
-                "model": "unsloth/gpt-oss-20b",
-                "model_args": [],
+                "model": "gpt-oss-20b",
+                "model_args": ["-c", "model_reasoning_effort=medium"],
             },
             "worker_cloud": {
                 "codex_cmd": APP_CODEX_CMD,
@@ -93,8 +93,8 @@ def write_example_config():
             "worker_local": {
                 "codex_cmd": APP_CODEX_CMD,
                 "codex_args": ["-c", "model_provider=lms"],
-                "model": "unsloth/gpt-oss-20b",
-                "model_args": [],
+                "model": "gpt-oss-20b",
+                "model_args": ["-c", "model_reasoning_effort=medium"],
             },
             "worker_local_heavy": {
                 "codex_cmd": APP_CODEX_CMD,

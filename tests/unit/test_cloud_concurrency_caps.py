@@ -406,7 +406,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         cfg = router.RouterConfig(
             model="gpt-5.4-mini",
             codex_cmd="codex",
-            fallback_model="unsloth/gpt-oss-20b",
+            fallback_model="gpt-oss-20b",
             fallback_codex_cmd="codex",
             fallback_codex_args=["-c", "model_provider=lms"],
             fallback_model_args=[],
@@ -436,7 +436,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 "worker_local": router.LaunchProfile(
                     "codex",
                     ["-c", "model_provider=lms"],
-                    "unsloth/gpt-oss-20b",
+                    "gpt-oss-20b",
                     [],
                 ),
             },
@@ -477,7 +477,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         cfg = router.RouterConfig(
             model="gpt-5.4-mini",
             codex_cmd="codex",
-            fallback_model="unsloth/gpt-oss-20b",
+            fallback_model="gpt-oss-20b",
             fallback_codex_cmd="codex",
             fallback_codex_args=["-c", "model_provider=lms"],
             fallback_model_args=[],

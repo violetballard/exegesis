@@ -20,7 +20,7 @@ class LocalExecSweeperTests(unittest.TestCase):
             ps_output = "\n".join(
                 [
                     "101 /Applications/Codex.app/Contents/Resources/codex -c model_provider=lms exec --skip-git-repo-check -m gpt-oss-120b -s workspace-write -",
-                    "202 /Applications/Codex.app/Contents/Resources/codex -c model_provider=lms exec --skip-git-repo-check -m unsloth/gpt-oss-20b -s workspace-write -",
+                    "202 /Applications/Codex.app/Contents/Resources/codex -c model_provider=lms exec --skip-git-repo-check -m gpt-oss-20b -s workspace-write -",
                     "303 /Applications/Codex.app/Contents/Resources/codex exec hello",
                 ]
             )
