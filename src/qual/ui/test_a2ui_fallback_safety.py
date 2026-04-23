@@ -2245,6 +2245,47 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             shell_manifest["contract_fingerprints_fingerprint"],
         )
 
+    def test_a2ui_dispatch_contract_fingerprints_can_opt_into_terminal_artifact_cli_fallback_entrypoint_contract_slice(
+        self,
+    ) -> None:
+        default_fingerprints = describe_a2ui_dispatch_contract_fingerprints()
+        fingerprints = describe_a2ui_dispatch_contract_fingerprints(
+            include_terminal_artifact_cli_fallback_entrypoint=True,
+        )
+        route_fingerprint = terminal_artifact_cli_fallback_route_contract_fingerprint()
+
+        self.assertNotIn("terminal_artifact_cli_fallback_entrypoint", default_fingerprints)
+        self.assertNotIn("terminal_artifact_cli_fallback_entrypoint_contract_manifest", default_fingerprints)
+        self.assertEqual(
+            default_fingerprints["terminal_artifact_cli_fallback_route"],
+            route_fingerprint,
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint"],
+            _fingerprint_manifest_section("render_terminal_cli_fallback"),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_manifest"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint(),
+        )
+        self.assertEqual(fingerprints["terminal_artifact_cli_fallback_route"], route_fingerprint)
+
     def test_a2ui_contract_fingerprint_map_can_opt_into_raw_leaf_card_default_dispatch(self) -> None:
         fingerprints = describe_a2ui_contract_fingerprints(
             include_terminal_artifact_raw_leaf_card_default=True,

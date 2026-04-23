@@ -825,9 +825,14 @@ def _build_a2ui_schema_versions_manifest(
 
 def describe_a2ui_dispatch_contract_fingerprints(
     *,
+    include_terminal_artifact_cli_fallback_entrypoint: bool = False,
     include_shell_ui_contract: bool = False,
 ) -> dict[str, str]:
-    """Return the full route-aware A2UI dispatch fingerprint summary."""
+    """Return the full route-aware A2UI dispatch fingerprint summary.
+
+    Pass ``include_terminal_artifact_cli_fallback_entrypoint=True`` to include
+    the explicit CLI fallback entrypoint slice without the shell snapshot.
+    """
 
     return describe_a2ui_contract_fingerprints(
         include_action=True,
@@ -837,6 +842,7 @@ def describe_a2ui_dispatch_contract_fingerprints(
         include_terminal_artifact_cli_fallback=True,
         include_terminal_artifact_cli_fallback_target=True,
         include_terminal_artifact_cli_fallback_route=True,
+        include_terminal_artifact_cli_fallback_entrypoint=include_terminal_artifact_cli_fallback_entrypoint,
         include_shell_ui_contract=include_shell_ui_contract,
     )
 
