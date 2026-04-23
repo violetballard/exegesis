@@ -36,9 +36,9 @@
 ### Checkpoint Cadence (short updates)
 
 - Plan complete: packet scope reset to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` instead of the full branch tip.
-- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T21:53:46Z`.
+- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T21:59:30Z`.
 - Before risky/shared file edit: this fixer edits shared handoff metadata only (`THREAD.md`, `THREAD_PACKET.md`).
-- Ready for handoff: as of `2026-04-23T21:53:46Z`, the packet and required gate results match the reviewed slice.
+- Ready for handoff: as of `2026-04-23T21:59:30Z`, the packet and required gate results match the reviewed slice.
 
 ## Review Basis
 
@@ -117,6 +117,9 @@
   - `THREAD_PACKET.md`
 - Shared-file note:
   - this packet claims high-risk/shared-file handling because the reviewed commit includes a shared test file and this fixer updates shared handoff metadata. No integrator-locked runtime files were changed.
+- Approval provenance:
+  - the reviewed shared-test edit is covered by the repo's recorded lane-specific shared-test allowlist in `scripts/scope-check.sh`, where `is_approved_shared_test()` explicitly approves `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`.
+  - verification basis: `make scope-check` passes from this branch with that recorded allowlist in effect, so the exception is traceable to repo policy rather than an uncited packet claim.
 
 ## Handoff Packet
 
@@ -146,7 +149,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification timestamp: `2026-04-23T21:53:46Z`
+- Verification timestamp: `2026-04-23T21:59:30Z`
 
 ### Risks / Blockers
 
