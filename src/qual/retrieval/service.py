@@ -38,6 +38,14 @@ _FTS_BOUNDARY_SCAN_CHARS = 40
 _SUPPORTED_RETRIEVAL_INTENTS = {"lookup", "compare", "summarize", "quote_find", "outline_support"}
 _SUPPORTED_CONFIDENTIALITY_PROFILES = {"confidential", "standard"}
 _FTS_SOURCE_STRATEGY = "fts"
+_EXCERPT_QUERY_MIRROR_FIELDS = (
+    "query",
+    "query_constraints",
+    "query_max_results",
+    "query_doc_types",
+    "query_require_citations",
+    "query_prefer_exact_matches",
+)
 
 
 def _canonicalize_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
@@ -3594,17 +3602,17 @@ class RetrievalService:
                     normalized["section_hint"] = section_hint
                     normalized_provenance["section_hint"] = section_hint
         else:
-            normalized.pop("query", None)
-            normalized_provenance.pop("query", None)
-            for key in (
-                "query_constraints",
-                "query_max_results",
-                "query_doc_types",
-                "query_require_citations",
-                "query_prefer_exact_matches",
-            ):
+            # Fail closed across every mirrored query field when the sparse
+            # excerpt payload cannot reconstitute a canonical query snapshot.
+            for key in _EXCERPT_QUERY_MIRROR_FIELDS:
                 normalized.pop(key, None)
                 normalized_provenance.pop(key, None)
+            if (
+                _normalize_query_scope_payload(normalized_provenance.get("query_scope")) is None
+                or _normalize_query_intent_payload(normalized_provenance.get("query_intent")) is None
+            ):
+                normalized.pop("query_fingerprint", None)
+                normalized_provenance.pop("query_fingerprint", None)
         lookup_fingerprint = RetrievalService._stable_fingerprint(
             {
                 "doc_id": doc_id_value,
