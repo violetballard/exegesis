@@ -1841,12 +1841,20 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_manifest() -> dict
 
 
 def _build_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints() -> dict[str, str]:
-    return {
+    fingerprints = {
         "terminal_artifact_cli_fallback_entrypoint": _fingerprint_manifest_section(
             "render_terminal_cli_fallback"
         ),
         "renderer_entrypoints": terminal_artifact_renderer_entrypoints_contract_fingerprint(),
     }
+    _add_contract_alias_fingerprints(
+        fingerprints,
+        (
+            "renderer_entrypoints_contract",
+            terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+        ),
+    )
+    return fingerprints
 
 
 def describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints() -> dict[str, str]:
