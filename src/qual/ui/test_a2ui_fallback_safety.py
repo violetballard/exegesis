@@ -3429,6 +3429,42 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             (selection, "card"),
         )
 
+    def test_terminal_artifact_cli_fallback_entrypoint_keeps_typed_leaf_mappings_on_card_path(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                {
+                    "type": "ActionRef",
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                },
+            ),
+            (
+                "selection",
+                {
+                    "type": "SelectionRef",
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                },
+            ),
+        ]
+
+        for case_name, artifact in cases:
+            with self.subTest(kind=case_name):
+                cli_text = render_terminal_cli_fallback(artifact, kind="card")
+                shell_text = shell.render_cli_fallback(artifact, kind="card")
+
+                self.assertEqual(cli_text, shell_text)
+                self.assertIn("[UnknownCard] <invalid card>", cli_text)
+                self.assertIn("Fallback: unknown card", cli_text)
+                self.assertNotIn("[ActionRef]", cli_text)
+                self.assertNotIn("[SelectionRef]", cli_text)
+
     def test_terminal_artifact_cli_fallback_target_resolver_keeps_ambiguous_raw_leaf_payloads_on_card_default_for_malformed_envelope_kinds(
         self,
     ) -> None:
