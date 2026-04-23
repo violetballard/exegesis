@@ -4317,8 +4317,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         seen_hint: list[tuple[object, str] | None] = []
 
         def _render_with_hint(rendered_artifact: object, *, kind: str | None = None) -> str:
-            self.assertIs(rendered_artifact, artifact)
-            self.assertIsNone(kind)
+            self.assertIs(rendered_artifact, artifact["artifact"])
+            self.assertEqual(kind, "action")
             seen_hint.append(_TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get())
             return "cli-fallback"
 
@@ -4334,7 +4334,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(text, "cli-fallback")
         resolver.assert_called_once_with(artifact, kind=None)
-        cli_fallback.assert_called_once_with(artifact, kind=None)
+        cli_fallback.assert_called_once_with(artifact["artifact"], kind="action")
         self.assertEqual(seen_hint, [(artifact["artifact"], "action")])
         self.assertIsNone(_TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get())
 

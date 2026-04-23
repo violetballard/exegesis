@@ -182,6 +182,9 @@ class ShellUI:
         else:
             fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set(fallback_target)
         try:
+            if fallback_target is not None:
+                fallback_artifact, fallback_kind = fallback_target
+                return render_terminal_cli_fallback(fallback_artifact, kind=fallback_kind)
             return render_terminal_cli_fallback(artifact, kind=kind)
         finally:
             if fallback_hint_token is not None:
