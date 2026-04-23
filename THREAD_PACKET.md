@@ -68,9 +68,7 @@
 - `tests/unit/test_unified_retrieval.py`
 - `codex_packet_handoff/tools/planner.py`
 - `tests/unit/test_packet_planner.py`
-- Metadata-only packet-refresh files in the same branch window:
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
+- Metadata-only packet-refresh files in this fixer pass:
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
 
@@ -130,7 +128,7 @@
 - Residual risk: callers that relied on incomplete sparse excerpt query mirrors will now fail closed instead of receiving partially reconstructed metadata; that is the intended FTS-first contract but can expose stale callers outside this lane.
 - Residual risk: the truthful cumulative handoff is much larger than the normal high-risk size budget, so reviewer attention needs to stay on scope accuracy and regression coverage.
 - Residual risk: the branch includes reviewer-fix support edits in packet-planner tooling outside the lane-owned retrieval paths; those changes are narrow and regression-tested, but they are still part of the reviewed tip and remain called out explicitly.
-- Blockers: none
+- Blocker: the sandbox rejected writes under `.codex/`, so `.codex/lane_meta/feat-retrieval-fts.json` and `.codex/kickoff_packets/feat-retrieval-fts.md` remain stale copies of the older handoff narrative in this session.
 
 ## Required handoff fields
 
