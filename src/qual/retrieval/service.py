@@ -2985,10 +2985,11 @@ class RetrievalService:
         context_by_excerpt = self._load_excerpt_context_map()
         query_snapshot = self._build_query_snapshot(query)
         query_date_range = list(query.constraints.date_range) if query.constraints.date_range is not None else None
+        changed = False
         for hit in hits:
             if hit.excerpt_id is None:
                 continue
-            context_by_excerpt[hit.excerpt_id] = {
+            excerpt_context = {
                 "doc_id": hit.doc_id,
                 "query": copy.deepcopy(query_snapshot),
                 "query_fingerprint": query_fingerprint,
@@ -3008,7 +3009,12 @@ class RetrievalService:
                 "section_hint": query.constraints.section_hint,
                 "section_hint_rank": hit.provenance.get("section_hint_rank"),
             }
-        self._write_encrypted_json(self._root / _EXCERPT_CONTEXT_FILE, context_by_excerpt)
+            if context_by_excerpt.get(hit.excerpt_id) == excerpt_context:
+                continue
+            context_by_excerpt[hit.excerpt_id] = excerpt_context
+            changed = True
+        if changed:
+            self._write_encrypted_json(self._root / _EXCERPT_CONTEXT_FILE, context_by_excerpt)
 
     def _load_excerpt_context_map(self) -> dict[str, dict[str, object]]:
         payload = self._read_encrypted_json(self._root / _EXCERPT_CONTEXT_FILE, default={})
