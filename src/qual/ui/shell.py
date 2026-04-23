@@ -144,6 +144,13 @@ class ShellUI:
 
     def render_cli_fallback(self, artifact: Any, *, kind: str | None = None) -> str:
         """Render an A2UI artifact through the explicit CLI fallback entrypoint."""
+        normalized_kind = self._normalize_fallback_kind(kind)
+        if normalized_kind == "card":
+            fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set((artifact, "card"))
+            try:
+                return self._render_cli_fallback_with_recovery(artifact, "card")
+            finally:
+                _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.reset(fallback_hint_token)
         fallback_hint_token = None
         try:
             fallback_target = resolve_terminal_artifact_cli_fallback_target(artifact, kind=kind)

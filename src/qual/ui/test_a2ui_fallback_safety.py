@@ -4566,6 +4566,46 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             render_terminal_cli_fallback(artifact),
         )
 
+    def test_shell_ui_render_cli_fallback_preserves_card_hint_semantics(self) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action envelope",
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "dialog",
+                    "artifact": {
+                        "type": "ActionRef",
+                        "id": "export_document",
+                        "label": "Export",
+                        "payload": {"format": "json"},
+                    },
+                },
+            ),
+            (
+                "selection envelope",
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "dialog",
+                    "artifact": {
+                        "type": "SelectionRef",
+                        "id": "choice-1",
+                        "label": "Choice",
+                        "payload": {"nested": {"items": [1, 2]}},
+                    },
+                },
+            ),
+        ]
+
+        for case_name, artifact in cases:
+            with self.subTest(case=case_name):
+                cli_text = render_terminal_cli_fallback(artifact, kind="card")
+                shell_text = shell.render_cli_fallback(artifact, kind="card")
+
+                self.assertEqual(shell_text, cli_text)
+                self.assertIn("[UnknownCard] <invalid card>", cli_text)
+                self.assertIn("Fallback: unknown card", cli_text)
+
     def test_shell_ui_render_cli_fallback_prefers_pre_resolved_target_hint(self) -> None:
         shell = ShellUI()
         artifact = {
