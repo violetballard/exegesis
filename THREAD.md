@@ -11,7 +11,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - The branch now carries later code-side fixes as well as the handoff refresh. This fixer pass keeps the reviewed implementation slice pinned to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and updates the handoff text so it accurately describes that commit's narrower behavior: canonical command order and canonical-name consistency between `command_cli_lookup_table()` and `command_names()`, plus the direct Milestone 3 CLI mapping for demo-path step 3.
-- Final fixer validation reran the required gate sequence from this worktree on `2026-04-23T21:35:16Z`; the metadata refresh below records that fresh verification on top of the already-landed code-side reviewer fixes.
+- Final fixer validation reran the required gate sequence from this worktree on `2026-04-23T21:36:12Z`; the metadata refresh below records that fresh verification on top of the already-landed code-side reviewer fixes.
 - Exact canonical demo-path mapping for the reviewed slice:
   - direct step advanced: step 3 `preview and apply or reject a patch`
   - explicit step sentence: this change directly strengthens demo-path step 3 `preview and apply or reject a patch` in the CLI-first MVP loop because it fails fast when canonical command order or canonical-name consistency drifts away from the catalog the operator-facing patch route depends on while Textual remains disabled
