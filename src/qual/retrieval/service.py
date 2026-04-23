@@ -3596,6 +3596,15 @@ class RetrievalService:
         else:
             normalized.pop("query", None)
             normalized_provenance.pop("query", None)
+            for key in (
+                "query_constraints",
+                "query_max_results",
+                "query_doc_types",
+                "query_require_citations",
+                "query_prefer_exact_matches",
+            ):
+                normalized.pop(key, None)
+                normalized_provenance.pop(key, None)
         lookup_fingerprint = RetrievalService._stable_fingerprint(
             {
                 "doc_id": doc_id_value,
