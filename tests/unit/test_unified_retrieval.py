@@ -793,6 +793,35 @@ class UnifiedRetrievalTests(unittest.TestCase):
         payload["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
         self.assertNotIn("mutated-doc-id", build_retrieval_downstream_payload_from_result(_DictOnlySource(result.as_dict()))["retrieval_summary"]["doc_ids"])
 
+    def test_retrieval_payload_helper_prefers_explicit_payload_surface_over_generic_as_dict(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _CompetingPayloadSource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+                self.as_dict_calls = 0
+
+            def as_dict(self) -> dict[str, object]:
+                self.as_dict_calls += 1
+                return {"not": "a retrieval payload"}
+
+            def to_downstream_payload(self) -> dict[str, object]:
+                return self._payload
+
+        source = _CompetingPayloadSource(result.to_downstream_payload())
+        payload = build_retrieval_downstream_payload_from_result(source)
+
+        self.assertEqual(payload, result.to_downstream_payload())
+        self.assertEqual(source.as_dict_calls, 0)
+
     def test_retrieval_source_bundle_helper_accepts_source_bundle_only_sources(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

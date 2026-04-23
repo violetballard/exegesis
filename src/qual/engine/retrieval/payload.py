@@ -3313,25 +3313,10 @@ def build_retrieval_downstream_payload_from_result(
                 payload = _backfill_downstream_payload_from_context_bundle(payload, context_bundle)
         source_bundle = _build_retrieval_source_bundle_from_result_source(result)
         if source_bundle is not None:
-            payload = _backfill_sparse_snapshot(
-                payload,
-                _build_retrieval_downstream_payload_from_source_bundle(source_bundle),
-            )
-        return payload
-    payload_source = getattr(result, "as_dict", None)
-    if callable(payload_source):
-        payload = copy.deepcopy(payload_source())
-        context_source = getattr(result, "retrieval_context_bundle", None)
-        if callable(context_source):
-            context_bundle = context_source()
-            if isinstance(context_bundle, dict):
-                payload = _backfill_downstream_payload_from_context_bundle(payload, context_bundle)
-        source_bundle = _build_retrieval_source_bundle_from_result_source(result)
-        if source_bundle is not None:
-            payload = _backfill_sparse_snapshot(
-                payload,
-                _build_retrieval_downstream_payload_from_source_bundle(source_bundle),
-            )
+                payload = _backfill_sparse_snapshot(
+                    payload,
+                    _build_retrieval_downstream_payload_from_source_bundle(source_bundle),
+                )
         return payload
     payload_source = getattr(result, "to_downstream_payload", None)
     if callable(payload_source):
@@ -3347,6 +3332,21 @@ def build_retrieval_downstream_payload_from_result(
                 payload,
                 _build_retrieval_downstream_payload_from_source_bundle(source_bundle),
             )
+        return payload
+    payload_source = getattr(result, "as_dict", None)
+    if callable(payload_source):
+        payload = copy.deepcopy(payload_source())
+        context_source = getattr(result, "retrieval_context_bundle", None)
+        if callable(context_source):
+            context_bundle = context_source()
+            if isinstance(context_bundle, dict):
+                payload = _backfill_downstream_payload_from_context_bundle(payload, context_bundle)
+        source_bundle = _build_retrieval_source_bundle_from_result_source(result)
+        if source_bundle is not None:
+                payload = _backfill_sparse_snapshot(
+                    payload,
+                    _build_retrieval_downstream_payload_from_source_bundle(source_bundle),
+                )
         return payload
     context_bundle_source = getattr(result, "retrieval_context_bundle", None)
     if callable(context_bundle_source):
