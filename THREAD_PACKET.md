@@ -2,10 +2,10 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix refresh`
-- Current submitted tip before this packet refresh commit: `118c4f1dd0e008f5bf084678a0ffe00c091a1966`
+- Current submitted tip before this packet refresh commit: `c461c2ad96f9253c6d710373d7038bf634802e70`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet traceability note: review this lane against the narrowed implementation range above. Later packet-refresh commits after `adfa8cda`, including `118c4f1dd0e008f5bf084678a0ffe00c091a1966`, are metadata-only and do not broaden retrieval scope.
+- Packet traceability note: review this lane against the narrowed implementation range above. Later packet-refresh commits after `adfa8cda`, including `c461c2ad96f9253c6d710373d7038bf634802e70`, are metadata-only and do not broaden retrieval scope.
 - Canonical demo-path step advanced: `retrieve relevant material`
 
 ## Scope Goal
@@ -29,7 +29,7 @@
 ### Planned Tasks (max 4)
 
 1. Correct the packet traceability so the reviewed implementation head/range stay anchored to `adfa8cda` and `378cf9a7..adfa8cda`.
-2. Correct the metadata-only handoff file accounting for commit `118c4f1dd0e008f5bf084678a0ffe00c091a1966`.
+2. Correct the metadata-only handoff file accounting for commit `c461c2ad96f9253c6d710373d7038bf634802e70`.
 3. State explicitly that this handoff advances the canonical demo-path step `retrieve relevant material` by making retrieval deterministic and auditable for downstream basket/workflow use.
 4. Re-run the required gates and record results against the narrowed reviewed implementation range.
 
@@ -38,7 +38,7 @@
 - `plan complete`: the packet is being corrected back to the approved `378cf9a7..adfa8cda` review slice.
 - `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `before risky/shared file edit`: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
-- `ready for handoff`: the authoritative packet and gate summary agree on the same narrowed reviewed range, exact metadata-only file list for `118c4f1d`, demo-path step, and gate results; `.codex` mirrors remain stale because writes there are blocked in this environment.
+- `ready for handoff`: the authoritative packet and gate summary agree on the same narrowed reviewed range, exact metadata-only file list for `c461c2ad`, demo-path step, and gate results; `.codex` mirrors remain stale because writes there are blocked in this environment.
 
 ## Scope Completed
 
@@ -52,7 +52,7 @@
 - Reviewed implementation files:
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
-- Metadata-only handoff files in commit `118c4f1dd0e008f5bf084678a0ffe00c091a1966`:
+- Metadata-only handoff files in commit `c461c2ad96f9253c6d710373d7038bf634802e70`:
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
 
@@ -61,7 +61,7 @@
 1. Removed the PageIndex excerpt fallback so excerpt lookup now stays on the canonical FTS path.
 2. Added fail-closed shared regression coverage for PageIndex-only excerpt IDs in `tests/unit/test_unified_retrieval.py`.
 3. Preserved the narrowed review boundary at `378cf9a7..adfa8cda` instead of broadening the packet back toward later retrieval or alternate-mode work.
-4. Refreshed the handoff metadata so commit `118c4f1d` and this fixer pass both report truthful packet-only file changes.
+4. Refreshed the handoff metadata so commit `c461c2ad` and this fixer pass both report truthful packet-only file changes.
 
 ## Files Changed
 
@@ -71,7 +71,7 @@
 - Reviewed implementation files in `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`:
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
-- Metadata-only handoff files in cited refresh commit `118c4f1dd0e008f5bf084678a0ffe00c091a1966`:
+- Metadata-only handoff files in cited refresh commit `c461c2ad96f9253c6d710373d7038bf634802e70`:
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
 
@@ -87,7 +87,7 @@
 ## Reviewer Fix Closure
 
 1. The packet no longer broadens review to branch tip `850eacce`; it stays anchored to reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-2. The cited metadata-only refresh commit `118c4f1dd0e008f5bf084678a0ffe00c091a1966` now has truthful file accounting: only `THREAD_PACKET.md` and `docs/gate_passed.txt`.
+2. The cited metadata-only refresh commit `c461c2ad96f9253c6d710373d7038bf634802e70` now has truthful file accounting: only `THREAD_PACKET.md` and `docs/gate_passed.txt`.
 3. The handoff explicitly names canonical demo-path step `retrieve relevant material` and states that deterministic, auditable FTS-only excerpt lookup is the plan-alignment reason.
 4. The reviewed implementation scope remains narrowed and does not reintroduce PageIndex compatibility work or alternate retrieval modes.
 

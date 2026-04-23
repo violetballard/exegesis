@@ -3,7 +3,7 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran against:
 
-* packet refresh head before this fixer commit `118c4f1dd0e008f5bf084678a0ffe00c091a1966`
+* packet refresh head before this fixer commit `c461c2ad96f9253c6d710373d7038bf634802e70`
 * reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 * reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
@@ -19,7 +19,7 @@ Gate status:
 Canonical demo-path step advanced: `retrieve relevant material`
 Plan-alignment statement: this handoff advances `retrieve relevant material` because FTS-only excerpt lookup makes the retrieval contract deterministic and auditable for downstream basket/workflow use.
 
-Truthful metadata-only file accounting for cited refresh commit `118c4f1dd0e008f5bf084678a0ffe00c091a1966`:
+Truthful metadata-only file accounting for cited refresh commit `c461c2ad96f9253c6d710373d7038bf634802e70`:
 
 * `THREAD_PACKET.md`
 * `docs/gate_passed.txt`
