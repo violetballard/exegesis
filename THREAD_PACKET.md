@@ -2,10 +2,10 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix refresh against the current branch tip`
-- Current submitted tip before this packet refresh commit: `b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`
+- Current submitted tip before this packet refresh commit: `302e264beff029792dd85fc5731f904b5950f8e9`
 - Reviewed implementation head: `b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`
 - Reviewed implementation range: `d9542206f6fd14db37d1ddf5efd76f941d32314b..b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`
-- Packet traceability note: this refresh commit is metadata-only. It preserves the reviewed implementation head `b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`, which is the actual current branch tip before this packet refresh commit.
+- Packet traceability note: this refresh commit is metadata-only. It preserves the reviewed implementation head `b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`, while the later metadata-only branch tip before this refresh commit is `302e264beff029792dd85fc5731f904b5950f8e9`.
 - Fixer note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain locked in this sandbox, so `THREAD_PACKET.md` and `docs/gate_passed.txt` are the authoritative writable handoff artifacts for this pass.
 - Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to canonical FTS hits only, keeping retrieval provenance deterministic for downstream basket promotion.
 
@@ -29,7 +29,7 @@
 
 ### Planned Tasks (max 4)
 
-1. Refresh the handoff packet against the actual branch tip `b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`.
+1. Refresh the handoff packet against the actual metadata-only branch tip `302e264beff029792dd85fc5731f904b5950f8e9`.
 2. Add the explicit canonical demo-path line required by review and keep that claim limited to the FTS-only excerpt lookup contract.
 3. Refresh gate evidence against the same branch tip.
 4. Commit the metadata-only reviewer-fix packet refresh.
@@ -42,8 +42,8 @@
 
 ### Checkpoint Status
 
-- `plan complete`: the packet now targets the actual branch tip `b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`, and the required reviewer fix is narrowed to the canonical excerpt lookup claim only.
-- `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on `b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`.
+- `plan complete`: the packet now targets the actual metadata-only branch tip `302e264beff029792dd85fc5731f904b5950f8e9`, and the required reviewer fix is narrowed to the canonical excerpt lookup claim only.
+- `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on `302e264beff029792dd85fc5731f904b5950f8e9`.
 - `before risky/shared file edit`: this pass edits handoff artifacts only.
 - `ready for handoff`: the packet, canonical demo-path line, reviewed range, and gate evidence all point at the same branch tip.
 
@@ -75,9 +75,9 @@
 
 ## Tasks Completed
 
-1. Refreshed the handoff packet against the actual branch tip `b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`.
+1. Refreshed the handoff packet against the actual metadata-only branch tip `302e264beff029792dd85fc5731f904b5950f8e9`.
 2. Added the explicit canonical demo-path line requested by review and kept the claim scoped to the FTS-only excerpt lookup contract.
-3. Refreshed gate evidence against `b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`.
+3. Refreshed gate evidence against `302e264beff029792dd85fc5731f904b5950f8e9`.
 4. Produced a metadata-only reviewer-fix packet refresh for re-review.
 
 ## Files Changed
@@ -92,7 +92,7 @@
 ## Commands Run With Results
 
 - Gate rerun date: `2026-04-23`
-- Gate rerun target: `b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`
+- Gate rerun target: `302e264beff029792dd85fc5731f904b5950f8e9`
 - `make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`

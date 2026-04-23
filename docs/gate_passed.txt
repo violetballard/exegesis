@@ -3,7 +3,7 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran against:
 
-* `b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`
+* `302e264beff029792dd85fc5731f904b5950f8e9`
 
 Gate status:
 
@@ -15,7 +15,8 @@ Gate status:
 * `make ci` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to canonical FTS hits only, keeping retrieval provenance deterministic for downstream basket promotion.
+Plan-alignment statement: this refreshed handoff only claims the FTS-only excerpt lookup contract for `retrieve relevant material`; it does not broaden scope to general engine completion or alternate retrieval modes.
 
-This packet-refresh commit is metadata-only and targets the current branch tip `b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`.
+This packet-refresh commit is metadata-only and targets the current branch tip `302e264beff029792dd85fc5731f904b5950f8e9`, while preserving the reviewed implementation head `b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`.
 The authoritative writable packet artifacts for this pass remain `THREAD_PACKET.md` and this file because `.codex/kickoff_packets/feat-retrieval-fts.md` plus `.codex/lane_meta/feat-retrieval-fts.json` are locked in this sandbox.
 The reviewed implementation range is `d9542206f6fd14db37d1ddf5efd76f941d32314b..b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`.
