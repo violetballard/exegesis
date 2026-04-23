@@ -7,6 +7,7 @@
 - Reviewed implementation range: `d9542206f6fd14db37d1ddf5efd76f941d32314b..ced0bcaf3d5446d549b04d1bc24593eda8850266`
 - Packet traceability note: the reviewed implementation head remains `ced0bcaf3d5446d549b04d1bc24593eda8850266`, while later commits through `48896bc5f4bd5187edfe0c6253b73a1c611533f3` are metadata-only packet refreshes. This packet finalizes the reviewer-required handoff metadata against the current branch tip without changing the reviewed implementation range.
 - Fixer note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are not writable in this sandbox and rejected both `apply_patch` and direct shell writes with `Operation not permitted`, so this root packet and `docs/gate_passed.txt` are the authoritative writable refreshed handoff artifacts for this pass. The stale `.codex` packet copies still point at the older `adfa8cd...` reviewed range and must not be used for re-review.
+- Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to canonical FTS hits only, keeping retrieval provenance deterministic for downstream basket promotion.
 
 ## Scope goal
 
@@ -145,6 +146,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
+- Excerpt lookup now fails closed to canonical FTS hits only, keeping retrieval provenance deterministic for downstream basket promotion.
 
 ### Vision capability affected
 

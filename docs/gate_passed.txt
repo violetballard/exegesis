@@ -15,6 +15,7 @@ All automated gates passed:
 * `make ci` - passed
 
 This packet-refresh commit finalizes reviewer-fix metadata against the current branch tip while preserving the reviewed implementation head `ced0bcaf3d5446d549b04d1bc24593eda8850266`.
+Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to canonical FTS hits only, keeping retrieval provenance deterministic for downstream basket promotion.
 The authoritative writable packet artifacts for this pass remain `THREAD_PACKET.md` and this file because `.codex/kickoff_packets/feat-retrieval-fts.md` plus `.codex/lane_meta/feat-retrieval-fts.json` are locked in this sandbox.
 The reviewed implementation range remains `d9542206f6fd14db37d1ddf5efd76f941d32314b..ced0bcaf3d5446d549b04d1bc24593eda8850266`.
 The `.codex` packet copies are stale and not writable in this sandbox; use `THREAD_PACKET.md` and this gate record as the authoritative refreshed handoff artifacts for re-review.
