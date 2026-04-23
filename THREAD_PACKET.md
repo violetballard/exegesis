@@ -98,6 +98,7 @@
 
 - Reviewer-required fix satisfied:
   - this packet now states explicitly that the branch makes canonical demo-path step 2 `retrieve relevant material` more real directly and step 3 `preview and apply or reject a patch` more real as the immediate follow-on review step, while keeping the claim narrow to deterministic CLI compatibility support for the existing Milestone 3 loop.
+  - `2026-04-23` fixer verification rerun confirmed the reviewer-requested `Vision capability affected` narrowing is still present on the current branch tip and remains limited to CLI compatibility / canonical engine contract scope.
 - Ready-for-handoff checkpoint:
   - ready for handoff on `2026-04-23`: the current branch tip keeps the step 2 retrieval CLI route and the immediate step 3 preview/apply-or-reject CLI route deterministic, smoke-testable, and operator-visible, and the verification rerun recorded below passed on that same tip.
 - Scope-tightening preserved:
