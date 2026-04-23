@@ -36,9 +36,9 @@
 ### Checkpoint Cadence (short updates)
 
 - Plan complete: packet scope reset to the current fixed branch state instead of the earlier narrower review slice.
-- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:42:39Z`.
+- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:44:52Z`.
 - Before risky/shared file edit: this fixer refreshes the shared handoff metadata (`THREAD.md`, `THREAD_PACKET.md`) for a branch state that already includes the approved shared regression file `tests/unit/test_commands_catalog.py`.
-- Ready for handoff: as of `2026-04-23T22:42:39Z`, the packet and required gate results match the fixed branch state.
+- Ready for handoff: as of `2026-04-23T22:44:52Z`, the packet and required gate results match the fixed branch state.
 
 ## Review Basis
 
@@ -74,7 +74,7 @@
   - this hardens the stable CLI command surface the operator uses to invoke the engine-first loop while Textual remains disabled, including the command routes used to open a project or document, retrieve relevant material, preview and apply or reject a patch, and hand work off through the existing CLI contract.
   - the canonical demo-path step this work makes more real is `preview and apply or reject a patch`.
   - the direct step strengthened by the fixed change is `preview and apply or reject a patch`: `command_cli_contract()` now fails fast if the accepted CLI token surface for that route drifts away from the catalog the patch-review route depends on.
-  - explicit primary-step claim for re-review: this change makes step 5, `preview and apply or reject a patch`, more real by preventing the CLI patch-review route from silently accepting a stale parser surface while the catalog still appears canonical.
+  - explicit primary-step claim for re-review: this change makes step 5, `preview and apply or reject a patch`, more real by preventing the CLI patch-review route from silently accepting a stale parser surface while the catalog still appears canonical and the `patch` step would otherwise look healthy.
   - out of scope: this slice does not claim new workflow implementation for opening, retrieval, or export; it keeps those existing CLI entrypoints deterministic by preventing silent parser or catalog drift in the shared command contract.
 - Why this is direct MVP-loop work rather than second-order cleanup:
   - this is operator-surface hardening, not generic catalog cleanup: the fixed change keeps the CLI patch-review step invocable and deterministic on the same contract the operator and smoke tests rely on while Textual remains disabled.
@@ -163,7 +163,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification timestamp: `2026-04-23T22:42:39Z`
+- Verification timestamp: `2026-04-23T22:44:52Z`
 
 ### Risks / Blockers
 
