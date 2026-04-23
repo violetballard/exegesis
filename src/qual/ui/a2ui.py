@@ -1355,6 +1355,10 @@ def describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
                     "terminal_artifact_cli_fallback_route_contract",
                     terminal_artifact_cli_fallback_route_contract_fingerprint(),
                 ),
+                (
+                    "terminal_artifact_cli_fallback_route_contract_fingerprints",
+                    terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
+                ),
             )
     return fingerprints
 
@@ -1485,19 +1489,19 @@ def describe_terminal_artifact_contract_fingerprints(
         if include_terminal_artifact_cli_fallback_route:
             _add_contract_alias_fingerprints(
                 fingerprints,
-            (
-                "terminal_artifact_cli_fallback_route",
-                terminal_artifact_cli_fallback_route_contract_fingerprint(),
-            ),
-            (
-                "terminal_artifact_cli_fallback_route_contract",
-                terminal_artifact_cli_fallback_route_contract_fingerprint(),
-            ),
-            (
-                "terminal_artifact_cli_fallback_route_contract_fingerprints",
-                terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
-            ),
-        )
+                (
+                    "terminal_artifact_cli_fallback_route",
+                    terminal_artifact_cli_fallback_route_contract_fingerprint(),
+                ),
+                (
+                    "terminal_artifact_cli_fallback_route_contract",
+                    terminal_artifact_cli_fallback_route_contract_fingerprint(),
+                ),
+                (
+                    "terminal_artifact_cli_fallback_route_contract_fingerprints",
+                    terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
+                ),
+            )
     return fingerprints
 
 
@@ -1629,6 +1633,10 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
                 (
                     "terminal_artifact_cli_fallback_route_contract",
                     terminal_artifact_cli_fallback_route_contract_fingerprint(),
+                ),
+                (
+                    "terminal_artifact_cli_fallback_route_contract_fingerprints",
+                    terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
                 ),
             )
     return fingerprints

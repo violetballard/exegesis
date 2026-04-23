@@ -3942,6 +3942,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         route_target_fingerprints = describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
             include_terminal_artifact_cli_fallback_route=True,
         )
+        route_target_fingerprints_with_aliases = describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
+            include_terminal_artifact_cli_fallback_route=True,
+            include_contract_aliases=True,
+        )
         route_target_fingerprint = terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint(
             include_terminal_artifact_cli_fallback_route=True,
         )
@@ -3963,6 +3967,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             route_target_fingerprints,
         )
         self.assertEqual(
+            route_target_fingerprints_with_aliases["terminal_artifact_cli_fallback_route_contract_fingerprints"],
+            terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
+        )
+        self.assertEqual(
+            cli_fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprints"],
+            terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
+        )
+        self.assertEqual(
             cli_fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"],
             route_target_fingerprint,
         )
@@ -3973,6 +3985,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             a2ui_fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints"],
             route_target_fingerprints,
+        )
+        self.assertEqual(
+            a2ui_fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprints"],
+            terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
         )
         self.assertEqual(
             a2ui_fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"],
@@ -4089,6 +4105,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             route_manifest["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"],
             route_manifest["contract_fingerprints_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprints"],
+            terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
         )
         self.assertEqual(routed_manifest["terminal_artifact_cli_fallback_route_contract"], route_manifest)
         self.assertEqual(
