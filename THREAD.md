@@ -10,13 +10,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Reviewed implementation files at that commit:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
-- The branch now carries the code-side reviewer fixes as well as the handoff refresh. This fixer pass keeps the implementation slice untouched and updates the handoff text so it accurately describes the parser-surface validation, alias-drift regressions, and canonical demo-path mapping now present on the branch.
+- The branch now carries the code-side reviewer fixes as well as the handoff refresh. This fixer pass keeps the implementation slice untouched and updates the handoff text so it accurately describes the parser-surface validation, alias-drift regressions, and the narrow Milestone 3 CLI-contract demo-path mapping now present on the branch.
 - Exact canonical demo-path mapping for the reviewed slice:
-  - direct step advanced: step 2 `retrieve relevant material`
-  - immediate follow-on step hardened: step 3 `preview and apply or reject a patch`
-  - out of scope: no new step 1 `open project/document` workflow coverage is claimed beyond preserving the existing CLI entrypoint into the retrieval path
+  - direct step advanced: step 3 `preview and apply or reject a patch`
+  - out of scope: no new step 1 `open project/document` or step 2 `retrieve relevant material` workflow coverage is claimed by this command-catalog contract slice
 - Concrete reason this is not second-order work:
-  - the `catalog.py` CLI contract now validates the full declared parser surface instead of only the deduplicated canonical-name projection. That prevents alias-level parser drift from silently changing the operator-visible CLI command surface used to reach retrieval and its immediate preview/apply follow-on, so the deterministic CLI loop stays smoke-testable instead of drifting unnoticed.
+  - the `catalog.py` CLI contract now validates the full declared parser surface instead of only the deduplicated canonical-name projection. That prevents alias-level parser drift from silently changing the operator-visible CLI command surface used for patch preview/apply handling, so the deterministic Milestone 3 CLI loop stays smoke-testable instead of drifting unnoticed.
 - Shared-file basis for the high-risk packet:
   - lane-owned implementation: `src/qual/commands/**`
   - shared test touched by the reviewed commit: `tests/unit/test_commands_catalog.py`

@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: regenerate the handoff for reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` so it satisfies the high-risk AGENTS template and states exactly which canonical demo-path CLI step(s) this command-contract change advances.
+- Scope goal: regenerate the handoff for reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` so it satisfies the high-risk AGENTS template and states exactly which canonical demo-path CLI step this Milestone 3 command-contract change advances.
 - Risk reason: the reviewed slice mixes lane-owned command code with a shared test file, and this fixer also updates shared handoff metadata to satisfy the lane-specific review gate.
 
 ### Budget
@@ -17,7 +17,7 @@
 ### Planned Tasks (max 4)
 
 1. Rebuild the handoff as a completed high-risk AGENTS packet pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-2. Add the explicit canonical demo-path mapping statement the reviewer requested, including why this is direct MVP-loop support rather than second-order cleanup.
+2. Add the explicit canonical demo-path mapping statement the reviewer requested, keeping the claim pinned to the Milestone 3 CLI contract and the single demo-path step this slice directly hardens.
 3. Keep implementation scope pinned to the reviewed files and record the shared-file basis truthfully.
 4. Run `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`, then stamp the packet with the results.
 
@@ -36,9 +36,9 @@
 ### Checkpoint Cadence (short updates)
 
 - Plan complete: packet scope reset to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` instead of the full branch tip.
-- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T20:51:16Z`.
+- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T21:02:47Z`.
 - Before risky/shared file edit: this fixer edits shared handoff metadata only (`THREAD.md`, `THREAD_PACKET.md`).
-- Ready for handoff: as of `2026-04-23T20:51:16Z`, the packet and required gate results match the reviewed slice.
+- Ready for handoff: as of `2026-04-23T21:02:47Z`, the packet and required gate results match the reviewed slice.
 
 ## Review Basis
 
@@ -54,7 +54,7 @@
 ## Scope Completed
 
 - Regenerated the lane handoff as a completed high-risk AGENTS packet for the reviewed shared-file slice.
-- Added the missing reviewer-requested canonical demo-path mapping statement and the explicit reason this work advances the MVP loop directly.
+- Added the missing reviewer-requested canonical demo-path mapping statement and the explicit reason this work advances the Milestone 3 CLI loop directly.
 - Kept review scope pinned to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; no additional implementation change was made.
 
 ## Kickoff Budget / Limits Compliance
@@ -66,13 +66,12 @@
 
 ## Plan Alignment
 
-- Exact canonical demo-path steps this reviewed slice makes more real:
-  - direct step advanced: step 2 `retrieve relevant material`
-  - immediate follow-on step hardened: step 3 `preview and apply or reject a patch`
-  - out of scope: no new step 1 `open project/document` workflow coverage is claimed beyond preserving the existing CLI entrypoint into retrieval
+- Exact canonical demo-path step this reviewed slice makes more real:
+  - direct step advanced: step 3 `preview and apply or reject a patch`
+  - out of scope: no new step 1 `open project/document` or step 2 `retrieve relevant material` workflow coverage is claimed by this command-catalog contract slice
 - Why this is direct MVP-loop work rather than second-order cleanup:
   - the reviewed `catalog.py` change makes the CLI contract fail fast if the parser-visible entrypoint surface drifts away from the command catalog, including alias-level drift that would otherwise still collapse to the same canonical tuple.
-  - that stricter check protects the operator-visible command route used to reach retrieval and the immediate preview/apply follow-on, so deterministic CLI smoke coverage remains meaningful instead of silently testing the wrong contract.
+  - that stricter check protects the operator-visible patch preview/apply route, so deterministic CLI smoke coverage for the Milestone 3 command contract remains meaningful instead of silently testing the wrong contract.
 
 ## Reviewer Fix Closure
 
@@ -81,18 +80,16 @@
 - Required fix 2 satisfied:
   - targeted regressions in `tests/unit/test_commands_catalog.py` now cover concrete parser-surface drift cases such as dropped canonical tokens, alias substitution, entrypoint reordering, extra accepted aliases, and removed expected aliases.
 - Required fix 3 satisfied:
-  - this packet states explicitly which canonical demo-path step the change advances and why the work is direct MVP-loop support.
+  - this packet states explicitly which canonical demo-path step the change advances and why the work is direct Milestone 3 CLI-loop support.
 
 ## Canonical Demo-Path Mapping
 
-- Primary step advanced directly: step 2 `retrieve relevant material`
-  - reason: the reviewed catalog contract check keeps the canonical CLI command surface aligned with the command catalog, so the retrieval entrypoint cannot silently drift away from the route the operator and smoke tests expect.
-- Immediate dependent step hardened: step 3 `preview and apply or reject a patch`
-  - reason: the same deterministic CLI contract is what keeps the next operator-visible command path stable after retrieval, so the review/apply follow-on remains reachable through the intended CLI contract.
+- Primary step advanced directly: step 3 `preview and apply or reject a patch`
+  - reason: the reviewed catalog contract check keeps the canonical CLI command surface aligned with the command catalog, so the patch preview/apply entrypoint cannot silently drift away from the route the operator and smoke tests expect.
 - Out of scope:
-  - this slice does not claim new step 1 `open project/document` workflow coverage beyond preserving the existing CLI entrypoint into retrieval.
+  - this slice does not claim new step 1 `open project/document` or step 2 `retrieve relevant material` workflow coverage.
 - Explicit AGENTS mapping statement:
-  - this reviewed change is not generic command-catalog cleanup. It makes step 2 more real directly, and step 3 more real as the immediate follow-on, because it turns parser/catalog drift from a silent contract change into a deterministic failure on the exact CLI surface the MVP loop depends on.
+  - this reviewed change is not generic command-catalog cleanup. It makes step 3 `preview and apply or reject a patch` more real directly because it turns parser/catalog drift from a silent contract change into a deterministic failure on the exact CLI surface that step depends on.
 
 ## Shared-Path Approval Basis
 
@@ -113,7 +110,7 @@
 ### Tasks Completed (Numbered)
 
 1. Regenerated the handoff as a completed high-risk AGENTS packet for reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-2. Added the explicit canonical demo-path mapping statement showing that the reviewed deterministic command-contract change advances step 2 directly and step 3 as the immediate follow-on.
+2. Added the explicit canonical demo-path mapping statement showing that the reviewed deterministic command-contract change advances step 3 `preview and apply or reject a patch` directly.
 3. Kept implementation scope pinned to the reviewed files and recorded the shared-file basis truthfully.
 4. Re-ran the required gate suite and recorded the results below.
 
@@ -134,7 +131,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification timestamp: `2026-04-23T20:51:16Z`
+- Verification timestamp: `2026-04-23T21:02:47Z`
 
 ### Risks / Blockers
 
@@ -149,7 +146,6 @@
 ### Roadmap item(s) affected
 
 - `ROADMAP.md` Milestone 3 (`Product Readiness`): define and lock user-facing output contracts.
-- `ROADMAP.md` Milestone 5 (`A2UI Presentation Layer`): keep CLI fallback views and the MVP CLI loop executable against the same engine contracts while UI work remains deferred.
 - `ROADMAP.md` MVP focus through `2026-05-04`: `feat-commands` is still an active implementation lane in the current engine-first push.
 
 ### Vision capability affected
