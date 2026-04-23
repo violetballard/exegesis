@@ -227,8 +227,7 @@
 ### Vision capability affected
 
 - `PRODUCT_VISION.md` canonical engine contract: CLI compatibility is required while Textual remains disabled.
-- `PRODUCT_VISION.md` auditable state and workflow: workflow actions must stay explicit and traceable for operators.
-- Narrow capability mapping: this change strengthens the operator-visible CLI contract for retrieval and preview commands; it does not claim broader UI-contract or workflow-surface progress.
+- Narrow capability mapping: this change preserves deterministic operator access to the existing CLI retrieval and preview loop commands; it does not claim broader UI-contract, audit, or workflow-surface progress.
 
 ### Routing / Provider Impact Note
 
