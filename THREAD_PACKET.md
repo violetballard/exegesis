@@ -36,9 +36,9 @@
 ### Checkpoint Cadence (short updates)
 
 - Plan complete: packet scope reset to the current fixed branch state instead of the earlier narrower review slice.
-- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:11:44Z`.
+- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:13:13Z`.
 - Before risky/shared file edit: this fixer edits shared handoff metadata only (`THREAD.md`, `THREAD_PACKET.md`).
-- Ready for handoff: as of `2026-04-23T22:11:44Z`, the packet and required gate results match the fixed branch state.
+- Ready for handoff: as of `2026-04-23T22:13:13Z`, the packet and required gate results match the fixed branch state.
 
 ## Review Basis
 
@@ -68,20 +68,22 @@
 ## Plan Alignment
 
 - Operator-path mapping this fixed slice advances:
-  - this hardens the stable CLI command surface the operator uses to invoke the engine-first loop while Textual remains disabled, including the command routes used to open a project or document, retrieve relevant material, preview or apply a patch, and hand work off through the existing CLI contract.
-  - the direct step strengthened by the fixed change is `preview and apply or reject a patch`: `command_cli_contract()` now fails fast if the accepted CLI token surface for that route drifts away from the catalog the patch route depends on.
+  - this hardens the stable CLI command surface the operator uses to invoke the engine-first loop while Textual remains disabled, including the command routes used to open a project or document, retrieve relevant material, preview and apply or reject a patch, and hand work off through the existing CLI contract.
+  - the canonical demo-path step this work makes more real is `preview and apply or reject a patch`.
+  - the direct step strengthened by the fixed change is `preview and apply or reject a patch`: `command_cli_contract()` now fails fast if the accepted CLI token surface for that route drifts away from the catalog the patch-review route depends on.
   - out of scope: this slice does not claim new workflow implementation for opening, retrieval, or export; it keeps those existing CLI entrypoints deterministic by preventing silent parser or catalog drift in the shared command contract.
 - Why this is direct MVP-loop work rather than second-order cleanup:
-  - this is operator-surface hardening, not generic catalog cleanup: the fixed change keeps the CLI loop invocable and deterministic on the same contract the operator and smoke tests rely on while Textual remains disabled.
+  - this is operator-surface hardening, not generic catalog cleanup: the fixed change keeps the CLI patch-review step invocable and deterministic on the same contract the operator and smoke tests rely on while Textual remains disabled.
   - the fixed `catalog.py` change makes the CLI contract fail fast if accepted parser tokens drift away from the declared catalog surface, not just when canonical command names diverge.
-  - that check removes the blocker where the operator-visible patch preview/apply route could silently lose or reorder accepted tokens while still resolving to the same canonical command, and it preserves trust in the broader CLI control surface generally.
+  - that check removes the concrete blocker where the operator-visible patch-review route could silently lose or reorder accepted tokens while still resolving to the same canonical command, making `preview and apply or reject a patch` unreliable even though the command name tuple still looked healthy.
 
 ## Canonical Demo-Path Step Advanced
 
 - AGENTS-required explicit step statement:
-  - this change directly strengthens `preview and apply or reject a patch` in the canonical demo path because `command_cli_contract()` now fails fast when the accepted CLI token surface for that route drifts away from the approved catalog while Textual remains disabled.
+  - the canonical demo-path step advanced by this work is `preview and apply or reject a patch`.
+  - this change directly strengthens `preview and apply or reject a patch` in the canonical demo path because `command_cli_contract()` now fails fast when the accepted CLI token surface for that route drifts away from the approved catalog the patch-review route depends on while Textual remains disabled.
 - Why this is the primary step:
-  - the slice does not add new workflow behavior; it makes the existing patch preview/apply CLI route deterministic and smoke-testable by turning parser-surface drift into an immediate contract failure.
+  - the slice does not add new workflow behavior; it makes the existing patch preview/apply CLI route deterministic and smoke-testable by turning parser-surface drift into an immediate contract failure on the operator path that performs patch review.
 
 ## Reviewer Fix Closure
 
@@ -102,13 +104,13 @@
   - `preview and apply or reject a patch`
   - reason: the fixed catalog contract check keeps the accepted parser tokens for the patch preview/apply route aligned with the command catalog, so that entrypoint cannot silently drop, swap, or reorder accepted tokens while still resolving to the same canonical command.
 - Explicit step sentence:
-  - this change directly strengthens `preview and apply or reject a patch` in the CLI-first MVP loop because it turns token-surface drift into a deterministic failure on the exact CLI surface the operator-facing patch route depends on while Textual remains disabled.
+  - this change directly strengthens `preview and apply or reject a patch` in the CLI-first MVP loop because it turns token-surface drift into a deterministic failure on the exact CLI surface the operator-facing patch-review route depends on while Textual remains disabled.
 - Out of scope:
   - this slice does not claim new workflow implementation for `open project/document`, `retrieve relevant material`, or export; it preserves determinism for those existing CLI routes by protecting the shared command contract they all consume.
 - Explicit AGENTS mapping statement:
-  - this reviewed change is not generic command-catalog cleanup. It is stable CLI control-surface hardening for the active engine-first demo path, with direct impact on `preview and apply or reject a patch` and protective impact on the rest of the invocable CLI loop.
+  - this reviewed change is not generic command-catalog cleanup. It is stable CLI control-surface hardening for the active engine-first demo path, with direct impact on `preview and apply or reject a patch`.
 - Concrete blocker removed:
-  - before this fix set, the patch route could have silently lost or reordered accepted CLI tokens without tripping the canonical command-name tuple. The branch now rejects that drift immediately, so the CLI-first MVP loop cannot present a stale parser surface for the patch step while still appearing catalog-consistent.
+  - before this fix set, the patch-review route could have silently lost or reordered accepted CLI tokens without tripping the canonical command-name tuple. The branch now rejects that drift immediately, so the CLI-first MVP loop cannot present a stale parser surface for `preview and apply or reject a patch` while still appearing catalog-consistent.
 
 ## Shared-Path Approval Basis
 
@@ -153,7 +155,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification timestamp: `2026-04-23T22:11:44Z`
+- Verification timestamp: `2026-04-23T22:13:13Z`
 
 ### Risks / Blockers
 
@@ -167,9 +169,8 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3 (`Product Readiness`): this locks a user-facing CLI contract on the active patch-review route by making token-surface drift explicit and testable instead of allowing the same canonical command name to hide a stale parser surface.
-- `ROADMAP.md` Milestone 3 scope item `Define and lock user-facing output contracts`: the patch-review step `preview and apply or reject a patch` depends on a deterministic CLI contract, and `command_cli_contract()` now rejects token add, remove, alias, or reorder drift on that route before operators hit an inconsistent interface.
-- `ROADMAP.md` MVP focus through `2026-05-04`: `feat-commands` remains an active implementation lane in the current engine-first push, and this slice stays narrow to CLI compatibility plus migration-safe entrypoints for that lane.
+- `ROADMAP.md` Milestone 3 (`Product Readiness`): this is user-facing output-contract work for the CLI-first MVP loop because the patch-review step only stays operator-safe when the accepted CLI token surface for `preview and apply or reject a patch` remains explicit, intentional, and testable instead of silently drifting under the same canonical command name.
+- `ROADMAP.md` active lane `feat-commands`: scope remains limited to CLI compatibility and migration-safe entrypoints in `src/qual/commands/**`; this packet does not claim generic workflow or audit progress beyond that operator path.
 
 ### Vision capability affected
 
