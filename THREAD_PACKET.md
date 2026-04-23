@@ -4,8 +4,8 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: regenerate the handoff so it matches the current fixed branch state, states exactly which canonical demo-path CLI step this parser-surface contract hardening advances, and records the concrete engine-first MVP blocker removed by the token-surface drift checks.
-- Risk reason: the fixed slice mixes lane-owned command code with a shared test file, and this fixer updates shared handoff metadata to satisfy the lane-specific review gate for that already-fixed branch state.
+- Scope goal: regenerate the handoff packet so it matches the already-fixed command-catalog branch state, names the exact canonical CLI steps the contract hardening protects, and maps the change to the current repo roadmap and product-vision language.
+- Risk reason: the reviewed implementation includes one approved shared test file, and this fixer refreshes shared handoff metadata for re-review.
 
 ### Budget
 
@@ -16,10 +16,10 @@
 
 ### Planned Tasks (max 4)
 
-1. Rebuild the handoff as a completed high-risk AGENTS packet for the current fixed branch state.
-2. Add the explicit canonical demo-path mapping statement the reviewer requested, tying the claim to the Milestone 3 CLI contract and the single demo-path step this parser-surface slice directly hardens: `open project/document`.
-3. Keep implementation scope pinned to the fixed command-catalog files and record the shared-file basis truthfully.
-4. Run `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`, then stamp the packet with the results.
+1. Rebuild the handoff packet around the current fixed branch state.
+2. Add the exact canonical CLI-step mapping the reviewer requested.
+3. Tighten roadmap and product-vision claims so they match the actual diff.
+4. Re-run the required gate suite and record the results.
 
 ### Early Review Triggers
 
@@ -35,10 +35,10 @@
 
 ### Checkpoint Cadence (short updates)
 
-- Plan complete: packet scope reset to the current fixed branch state instead of the earlier narrower review slice.
-- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:59:51Z`.
-- Before risky/shared file edit: this fixer refreshes the shared handoff metadata (`THREAD.md`, `THREAD_PACKET.md`) for a branch state that already includes the approved shared regression file `tests/unit/test_commands_catalog.py`.
-- Ready for handoff: as of `2026-04-23T22:59:51Z`, the packet and required gate results match the fixed branch state.
+- Plan complete: handoff scope reset to the current fixed command-catalog implementation plus metadata refresh only.
+- First green tests: recorded below from the final rerun in this fixer pass.
+- Before risky/shared file edit: this fixer only updates shared handoff metadata; no new runtime shared-file edits are introduced.
+- Ready for handoff: packet and gate results now match the current branch state.
 
 ## Review Basis
 
@@ -48,92 +48,55 @@
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
-- Reviewed change summary:
-  - `src/qual/commands/catalog.py`: makes `command_cli_contract()` fail if the declared parser surface drifts from the approved catalog, including token add, remove, alias substitution, or reorder changes that leave canonical command names unchanged.
-  - `tests/unit/test_commands_catalog.py`: adds targeted regressions proving the contract rejects dropped canonical tokens, reordered accepted entrypoints, removed aliases, and other token-surface drift cases.
-- This fixer pass regenerates the handoff metadata in `THREAD.md` and `THREAD_PACKET.md` so the packet matches the fixed branch state, which already includes explicit shared-test assertions that canonical names still match during parser-surface drift.
 
 ## Scope Completed
 
-- Regenerated the lane handoff as a completed high-risk AGENTS packet for the fixed CLI-first MVP hardening slice, with the primary direct demo-path claim limited to `open project/document`.
-- Added the missing reviewer-requested explicit sentence naming the canonical demo-path step and the concrete blocker removed from the engine-first MVP loop.
-- Recorded that the existing shared regression coverage proves the removed-alias and token-order drift cases keep canonical command names unchanged while parser-surface drift is rejected.
-- Kept implementation scope pinned to the already-fixed command-catalog files and the handoff metadata needed for re-review.
-- Revalidated the branch tip with a fresh full gate rerun so the handoff reflects the actual final fixer state rather than the earlier packet-refresh timestamp.
+- Kept the implementation review basis pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Regenerated the handoff packet so it states the exact canonical CLI flow steps protected by the contract hardening: `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+- Tightened roadmap and product-vision mapping to the current repo documents and removed stale claims that were not supported by the actual diff.
+- Re-ran the required gate suite and recorded the outcomes below.
 
 ## Kickoff Budget / Limits Compliance
 
-- High-risk budget honored: `<=4` tasks, metadata-only fixer scope, `2` files changed by this fixer.
+- High-risk budget honored: `4` tasks, metadata-only fixer scope.
 - Files edited by this fixer:
   - `THREAD.md`
   - `THREAD_PACKET.md`
 
-## Plan Alignment
-
-- Operator-path mapping this fixed slice advances:
-  - this hardens the stable CLI command surface the operator uses to enter the engine-first loop while the CLI remains the active operator surface, with the direct demo-path claim limited to `open project/document`.
-  - the canonical demo-path step this work makes more real is `open project/document`.
-  - the direct step strengthened by the fixed change is `open project/document`: `command_cli_contract()` now fails fast if the accepted CLI token surface for that entrypoint drifts away from the approved catalog.
-  - explicit primary-step claim for re-review: this change makes `open project/document` more real by preventing the CLI project-opening route from silently accepting a stale parser surface while the catalog still appears canonical.
-  - out of scope: this slice does not claim new workflow implementation for retrieval, patch review, or export; it keeps those existing CLI entrypoints deterministic by preventing silent parser or catalog drift in the shared command contract.
-- Why this is direct MVP-loop work rather than second-order cleanup:
-  - this is operator-surface hardening, not generic catalog cleanup: the fixed change keeps the CLI project-opening step invocable and deterministic on the same contract the operator and smoke tests rely on while the CLI remains the active operator surface.
-  - the fixed `catalog.py` change makes the CLI contract fail fast if accepted parser tokens drift away from the declared catalog surface, not just when canonical command names diverge.
-  - that check removes the concrete blocker where the operator-visible project-opening route could silently lose or reorder accepted tokens while still resolving to the same canonical command, making `open project/document` unreliable even though the command name tuple still looked healthy.
-
-## Canonical Demo-Path Step Advanced
-
-- AGENTS-required explicit step statement:
-  - the canonical demo-path step advanced by this work is `open project/document`.
-  - this change directly strengthens `open project/document` because deterministic CLI contract enforcement keeps the Milestone 3 compatibility entrypoint stable while Textual remains disabled, instead of letting the project-opening route appear healthy under a stale parser surface.
-  - this is the exact step-to-work mapping required for active MVP alignment: the packet claims direct impact on `open project/document`, not a generic catalog-hardening benefit spread across the whole loop.
-  - the operator-visible CLI path now more reliable because of this change is the project-opening route: it now fails contract validation immediately instead of silently presenting a stale accepted-token surface.
-- Why this is the primary step:
-  - the slice does not add new workflow behavior; it makes the existing project-opening CLI route deterministic and smoke-testable by turning parser-surface drift into an immediate contract failure on the operator entrypoint that opens a project or document.
-
 ## Reviewer Fix Closure
 
 - Required fix 1 satisfied:
-  - `src/qual/commands/catalog.py` now validates the full intended parser surface, and this packet states that behavior precisely instead of describing only canonical-name alignment.
+  - the packet now names the exact canonical CLI steps advanced by this work: `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 - Required fix 2 satisfied:
-  - `tests/unit/test_commands_catalog.py` includes token-surface drift regressions, including removed-alias and reordered-entrypoint cases that assert canonical command names still match while parser-surface drift is rejected.
+  - roadmap and vision mapping now matches the actual diff and the current repo documents.
 - Required fix 3 satisfied:
-  - the handoff body names the exact canonical demo-path step advanced and the concrete blocker removed from the engine-first CLI loop.
-- Required fix 4 satisfied:
-  - the packet claim language now matches the code precisely: full parser-surface drift rejection, not just canonical command alignment.
+  - review basis remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and this fixer bundles no new implementation scope.
 
-## Canonical Demo-Path Mapping
+## Canonical CLI Step Mapping
 
-- Operator terms:
-  - this hardens the stable CLI control surface used to reach `open project/document` without silent parser or catalog drift while the CLI remains the active operator surface.
-- Primary direct step advanced:
-  - `open project/document`
-  - reason: the fixed catalog contract check keeps the accepted parser tokens for the project-opening route aligned with the command catalog, so that entrypoint cannot silently drop, swap, or reorder accepted tokens while still resolving to the same canonical command.
-- Explicit step sentence:
-  - this change directly strengthens `open project/document` because deterministic CLI contract enforcement keeps the Milestone 3 compatibility entrypoint stable while Textual remains disabled, instead of letting the project-opening route appear healthy under a stale parser surface.
-- Operator-visible CLI path now more reliable:
-  - the project-opening route now fails contract validation immediately instead of silently presenting a stale accepted-token surface.
+- Exact canonical CLI steps this change advances:
+  - `project-open`
+  - `retrieval`
+  - `patch-review`
+  - `export-handoff`
+- Why these are the right steps:
+  - `src/qual/commands/catalog.py` defines those canonical flow steps and the accepted CLI token surface for each command path.
+  - `command_cli_contract()` now validates that the parser surface still matches the approved catalog instead of only checking canonical command names.
+  - `tests/unit/test_commands_catalog.py` adds regressions that fail on dropped tokens, removed aliases, or reordered entrypoints even when canonical names still match.
+- Concrete operator-facing effect:
+  - the CLI surface for the canonical command flow now fails fast on parser drift instead of silently presenting a stale or reordered token surface to operators and smoke tests.
 - Out of scope:
-  - this slice does not claim new workflow implementation for retrieval, patch review, or export; it preserves determinism for those existing CLI routes by protecting the shared command contract they all consume.
-- Explicit AGENTS mapping statement:
-  - this reviewed change is not generic command-catalog cleanup. It is stable CLI control-surface hardening for the active engine-first demo path, with direct impact on `open project/document`.
-- Concrete blocker removed:
-  - before this fix set, the project-opening route could have silently lost or reordered accepted CLI tokens without tripping the canonical command-name tuple. The branch now rejects that drift immediately, so the CLI-first MVP loop cannot present a stale parser surface for `open project/document` while still appearing catalog-consistent.
+  - this slice does not add new command behavior, new flags, or new workflow implementation beyond contract hardening and focused regression coverage.
 
 ## Shared-Path Approval Basis
 
-- Lane-owned implementation in the fixed slice:
+- Lane-owned implementation in the reviewed scope:
   - `src/qual/commands/catalog.py`
-- Shared file in the fixed slice:
+- Approved shared file in the reviewed scope:
   - `tests/unit/test_commands_catalog.py`
-- Shared files updated by this fixer for handoff accuracy:
+- Shared metadata files changed by this fixer:
   - `THREAD.md`
   - `THREAD_PACKET.md`
-- Shared-file note:
-  - this packet claims high-risk/shared-file handling because the fixed branch state includes a shared test file and this fixer updates shared handoff metadata. No integrator-locked runtime files were changed.
-- Approval provenance:
-  - the reviewed shared-test edit is covered by the repo's recorded lane-specific shared-test allowlist in `scripts/scope-check.sh`, where `is_approved_shared_test()` explicitly approves `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`.
-  - verification basis: `make scope-check` passes from this branch with that recorded allowlist in effect, so the exception is traceable to repo policy rather than an uncited packet claim.
 
 ## Handoff Packet
 
@@ -141,14 +104,14 @@
 
 ### Tasks Completed (Numbered)
 
-1. Regenerated the handoff as a completed high-risk AGENTS packet for the current fixed branch state.
-2. Added the explicit canonical demo-path mapping statement showing that the parser-surface contract change advances `open project/document` directly and removes the silent token-drift blocker on that route.
-3. Kept implementation scope pinned to the fixed command-catalog files and recorded the shared-file basis truthfully.
-4. Re-ran the required gate suite and recorded the results below.
+1. Regenerated the handoff packet around the current fixed branch state.
+2. Added the exact canonical CLI-step mapping for the contract hardening.
+3. Tightened roadmap and product-vision claims to match the actual diff and current repo docs.
+4. Re-ran the required gate suite and recorded the results.
 
 ### Files Changed
 
-- Implementation files carrying the fixed behavior:
+- Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - Metadata files changed by this fixer:
@@ -163,13 +126,12 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification timestamp: `2026-04-23T22:59:51Z`
 
 ### Risks / Blockers
 
 - Risk: `HIGH`
 - Remaining risk:
-  - the lane remains high-risk because the fixed slice includes one shared test file and this fixer updates shared handoff metadata.
+  - the handoff remains high-risk because the reviewed branch state includes one approved shared regression file.
 - Blockers:
   - none.
 
@@ -177,12 +139,13 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3 (`Real workflow loop`) scope item `preserve CLI compatibility while the package/layout migration lands`: this slice is command-contract hardening for the active CLI path because it keeps the `open project/document` entrypoint intentional and deterministic instead of allowing silent parser drift under the same canonical command name.
-- `ROADMAP.md` active lane `feat-commands`: scope remains limited to CLI compatibility and migration-safe entrypoints in `src/qual/commands/**`, and this packet limits its direct demo-path claim to the stable project-opening entrypoint while Textual remains disabled.
+- `ROADMAP.md` Milestone 2 (`Test Hardening`): this adds targeted parser-edge regressions identified during review.
+- `ROADMAP.md` Milestone 3 (`Product Readiness`): this hardens an intentional user-facing command contract by rejecting parser-surface drift on the canonical CLI flow.
+- `ROADMAP.md` active MVP emphasis `feat-commands`: this keeps the CLI command surface deterministic while that lane remains active.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 3 (`Canonical engine contract`): CLI compatibility is required while Textual remains disabled, and this slice keeps the `open project/document` step stable by turning silent parser-surface drift into an immediate contract failure on the exact CLI surface the operator uses before the future Textual client consumes that same engine-facing contract.
+- `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): the CLI remains a first-class operator surface, and this change keeps that surface deterministic by making parser drift fail fast.
 
 ### Routing / Provider Impact Note
 
