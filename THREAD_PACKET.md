@@ -101,6 +101,7 @@ This handoff advances `retrieve relevant material` by enforcing authoritative FT
 3. The retained changes are each mapped to the canonical demo-path step `retrieve relevant material`.
 4. The shared-test approval scope is now explicit: `tests/unit/test_unified_retrieval.py` is approved only for the fail-closed excerpt regressions included in `adfa8cda`, not for unrelated broader API/export assertions that already existed in the file.
 5. Packet traceability still matches git history and still separates reviewed implementation files from metadata-only packet refresh files.
+6. This metadata-only fixer pass reran the required gate suite on `2026-04-23` and confirmed the all-`PASS` results listed in `Commands run with results`.
 
 ## Risks / blockers
 
