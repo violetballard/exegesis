@@ -25,6 +25,7 @@ from .a2ui import (
     describe_terminal_artifact_renderer_entrypoints_contract,
     terminal_artifact_cli_fallback_contract_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
+    terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint,
     terminal_artifact_cli_fallback_target_contract_fingerprint,
     terminal_artifact_cli_fallback_route_contract_fingerprint,
     terminal_artifact_renderer_entrypoints_contract_fingerprint,
@@ -764,6 +765,10 @@ def describe_shell_ui_contract_fingerprints(
         (
             "terminal_artifact_cli_fallback_entrypoint_contract_manifest",
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprint_value,
+        ),
+        (
+            "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints",
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint(),
         ),
         (
             "terminal_artifact_cli_fallback_contract",
