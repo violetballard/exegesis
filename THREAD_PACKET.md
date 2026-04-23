@@ -9,7 +9,7 @@
 
 ## Scope goal
 
-- Keep Milestone 3 retrieval FTS-first while making post-lookup payloads, provenance, and excerpt/audit surfaces deterministic and fail-closed on the canonical retrieval path.
+- Advance the canonical demo-path step `retrieve relevant material` by keeping retrieval FTS-first and tightening `fetch_excerpt` to fail closed to FTS-backed excerpt IDs for downstream basket/workflow use.
 
 ## Thread Kickoff (High-Risk)
 
@@ -48,11 +48,9 @@
 ## Scope completed
 
 - Canonical demo-path step advanced: `retrieve relevant material`.
-- This reviewed slice advances `retrieve relevant material` by keeping SQLite FTS authoritative while hardening the payload, provenance, source-bundle, and excerpt lookup data that downstream engine flows consume after retrieval.
+- This reviewed slice advances `retrieve relevant material` by making `fetch_excerpt` fail closed to FTS-backed excerpt IDs, which strengthens the authoritative FTS-first retrieval contract for downstream basket/workflow use.
 - The post-`adfa8cda` runtime work stays inside the `feat-retrieval-fts` lane-owned paths `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`, plus the pre-approved shared regression file `tests/unit/test_unified_retrieval.py`. No routing, provider, CLI, app, or integrator-locked entrypoints are touched.
-- The runtime changes keep retrieval FTS-first rather than widening scope: `src/qual/retrieval/service.py` continues to treat FTS as authoritative, the `fts_strategy` changes normalize cache/query behavior around that same path, and the `pageindex_strategy` / `embeddings_strategy` edits remain compatibility-shim adjustments instead of restoring them as required retrieval paths.
-- The branch tip `0bf3263d` adds another fail-closed retrieval hardening step by rejecting orphaned excerpt query fingerprints instead of letting stale lookup metadata silently survive. The immediately preceding runtime commit `69456f6b` does the same for orphaned sparse query mirrors.
-- Across the full post-`adfa8cda` range, retrieval payload snapshots, provenance fingerprints, source/context bundle backfills, helper exports, and excerpt lookup audit fields are normalized so downstream engine flows receive deterministic, auditable retrieval state without reopening non-FTS behavior.
+- The runtime changes keep retrieval FTS-first rather than widening scope: `src/qual/retrieval/service.py` continues to treat FTS as authoritative, while the `pageindex_strategy` and `embeddings_strategy` edits remain compatibility-shim adjustments instead of restoring them as required retrieval paths.
 
 ## Reviewed Scope Boundary
 
@@ -73,7 +71,7 @@
 
 - `retrieve relevant material`
 
-This handoff advances `retrieve relevant material` by ensuring the retrieval result that leaves the FTS lane stays canonical and auditable: query inputs normalize deterministically, FTS cache/query state stays isolated, payload/source-bundle reconstruction preserves the right provenance, and excerpt lookup fails closed when stale or orphaned query metadata would otherwise blur the authoritative FTS path.
+This handoff advances `retrieve relevant material` by making `fetch_excerpt` fail closed to FTS-backed excerpt IDs, which strengthens the authoritative FTS-first retrieval contract for downstream basket/workflow use while keeping the retrieval result canonical and auditable.
 
 ## Tasks completed
 
