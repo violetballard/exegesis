@@ -2200,6 +2200,15 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
         self.assertEqual(
+            tuple(entry.next_tokens for entry in contract.entries),
+            (
+                ("retrieval",),
+                ("patch-review",),
+                ("apply-patch", "reject-patch"),
+                (),
+            ),
+        )
+        self.assertEqual(
             contract.entries[0].surface_invocations,
             (
                 ("bootstrap", ("bootstrap", "--project", "demo")),

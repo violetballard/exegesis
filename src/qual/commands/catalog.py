@@ -84,6 +84,7 @@ class CommandDemoPathEntry:
     lookup_tokens: tuple[str, ...] = ()
     surface_tokens: tuple[str, ...] = ()
     preferred_surface_tokens: tuple[str, ...] = ()
+    next_tokens: tuple[str, ...] = ()
     surface_invocations: tuple[tuple[str, tuple[str, ...]], ...] = ()
     preferred_surface_invocations: tuple[tuple[str, tuple[str, ...]], ...] = ()
     parser_surface_invocations: tuple[tuple[str, tuple[str, ...]], ...] = ()
@@ -2528,6 +2529,7 @@ def _validate_command_demo_path_contract(
     *,
     specs: tuple[CommandSpec, ...],
 ) -> None:
+    transition_targets_by_source = dict(command_demo_transition_targets_by_source(specs))
     if contract.flow_steps != smoke_contract.flow_steps:
         raise ValueError("Command demo path flow steps are inconsistent")
     if contract.names != smoke_contract.names:
@@ -2560,6 +2562,10 @@ def _validate_command_demo_path_contract(
         _preferred_surface_tokens_for_name(specs, entry.name) for entry in smoke_contract.entries
     ):
         raise ValueError("Command demo path preferred surface tokens are inconsistent")
+    if tuple(entry.next_tokens for entry in contract.entries) != tuple(
+        transition_targets_by_source.get(entry.flow_step, ()) for entry in contract.entries
+    ):
+        raise ValueError("Command demo path next tokens are inconsistent")
     if tuple(tuple(token for token, _ in entry.surface_invocations) for entry in contract.entries) != tuple(
         entry.surface_tokens for entry in smoke_contract.entries
     ):
@@ -2767,6 +2773,7 @@ def command_demo_path_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoPathContract:
     smoke_contract = command_demo_smoke_contract(specs)
+    transition_targets_by_source = dict(command_demo_transition_targets_by_source(specs))
     route_invocation_plan = smoke_contract.invocation_plan
     parser_invocation_plan = smoke_contract.smoke_invocation_plan
     route_catalog = command_flow_route_catalog(flow_steps=command_demo_flow_steps(), specs=specs)
@@ -2803,6 +2810,7 @@ def command_demo_path_contract(
             lookup_tokens=entry.lookup_tokens,
             surface_tokens=entry.surface_tokens,
             preferred_surface_tokens=_preferred_surface_tokens_for_name(specs, entry.name),
+            next_tokens=transition_targets_by_source.get(entry.flow_step, ()),
             surface_invocations=parser_ready_invocations_by_step.get(entry.flow_step, ()),
             preferred_surface_invocations=tuple(
                 (
