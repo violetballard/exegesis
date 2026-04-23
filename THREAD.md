@@ -20,11 +20,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `patch-review`
   - `export-handoff`
 - Primary AGENTS plan-alignment statement:
-  - this slice advances the broader CLI operator path that currently stands in for the MVP demo loop while Textual remains disabled, by keeping the existing parser-facing entrypoints `project-open`, `retrieval`, `patch-review`, and `export-handoff` deterministic for the `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and `save and continue` steps.
+  - this slice advances the canonical demo-path step `preview and apply or reject a patch` by keeping the existing parser-facing `patch-review` entrypoint deterministic inside the current CLI-first MVP loop from `ROADMAP.md`, `vault -> context -> run -> patch -> export`, while `feat-console` remains disabled.
 - Scope-tightened plan-alignment note:
   - this is direct CLI contract work for the active `feat-commands` lane because `ROADMAP.md` requires the MVP CLI flow `vault -> context -> run -> patch -> export` to stay executable and `PRODUCT_VISION.md` keeps the CLI as a first-class operator surface. It does not add new command behavior.
 - Concrete blocker removed on that path:
-  - parser/catalog drift can no longer silently swap, reorder, or alias-substitute the operator-facing CLI parser surface in the active `vault -> context -> run -> patch -> export` smoke loop while canonical command names still appear valid.
+  - parser/catalog drift can no longer silently swap, reorder, or alias-substitute the operator-facing `patch-review` parser surface in the active `vault -> context -> run -> patch -> export` smoke loop while canonical command names still appear valid.
 - Plan-aligned roadmap and vision grounding:
   - `ROADMAP.md` Milestone 3 (`Product Readiness`): this is user-facing contract-locking work on the CLI surface, keeping command-surface changes documented, intentional, and deterministic before publish.
   - `ROADMAP.md` CLI MVP flow exit criterion: keeps the required CLI path `vault -> context -> run -> patch -> export` executable against the engine by preventing silent command-surface drift on the exposed steps this lane owns.
