@@ -585,6 +585,7 @@ class ShellUI:
 def _build_shell_ui_contract_manifest(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,
+    include_contract_aliases: bool = False,
 ) -> dict[str, Any]:
     terminal_artifact_cli_fallback_route_contract_fingerprint_value = (
         terminal_artifact_cli_fallback_route_contract_fingerprint()
@@ -695,6 +696,13 @@ def _build_shell_ui_contract_manifest(
             terminal_artifact_renderer_entrypoints_contract_fingerprint()
         ),
     }
+    if include_contract_aliases:
+        manifest["terminal_artifact_renderer_entrypoints_contract_manifest"] = copy.deepcopy(
+            manifest["terminal_artifact_renderer_entrypoints_contract"]
+        )
+        manifest["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"] = manifest[
+            "terminal_artifact_renderer_entrypoints_contract_fingerprint"
+        ]
     return manifest
 
 
@@ -823,6 +831,10 @@ def describe_shell_ui_contract_fingerprints(
             "terminal_artifact_renderer_entrypoints_contract",
             fingerprints["terminal_artifact_renderer_entrypoints_contract"],
         ),
+        (
+            "terminal_artifact_renderer_entrypoints_contract_manifest",
+            terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
+        ),
     )
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
@@ -847,6 +859,7 @@ def describe_shell_ui_contract(
     manifest = copy.deepcopy(
         _build_shell_ui_contract_manifest(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+            include_contract_aliases=include_contract_aliases,
         )
     )
     contract_fingerprints = describe_shell_ui_contract_fingerprints(
