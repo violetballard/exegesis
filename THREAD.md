@@ -14,7 +14,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - The fixed branch behavior under review:
   - `command_cli_contract()` now rejects parser-surface drift, including token add, remove, alias substitution, or reorder cases that would otherwise leave canonical command names unchanged.
   - the regression coverage proves that rejected drift behavior on the canonical CLI command surface.
-- Exact canonical CLI steps advanced by this work:
+- Exact documented MVP path this work strengthens:
+  - `vault -> context -> run -> patch -> export`
+- Exact catalog steps on that path advanced by this work:
   - `project-open`
   - `retrieval`
   - `patch-review`

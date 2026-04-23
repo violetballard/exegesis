@@ -52,7 +52,7 @@
 ## Scope Completed
 
 - Kept the implementation review basis pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Regenerated the handoff packet so it states the exact canonical CLI flow steps protected by the contract hardening: `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+- Regenerated the handoff packet so it explicitly maps this change to the current MVP CLI path in `ROADMAP.md`: `vault -> context -> run -> patch -> export`, narrowed here to the catalog's exposed command-flow steps `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 - Tightened roadmap and product-vision mapping to the current repo documents and removed stale claims that were not supported by the actual diff.
 - Re-ran the required gate suite and recorded the outcomes below.
 
@@ -66,27 +66,27 @@
 ## Reviewer Fix Closure
 
 - Required fix 1 satisfied:
-  - the packet now names the exact canonical CLI steps advanced by this work: `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+  - the packet now states which canonical demo-path step this slice makes more real by tying the command-contract hardening to the current MVP CLI flow `vault -> context -> run -> patch -> export`, specifically the exposed catalog steps `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 - Required fix 2 satisfied:
-  - roadmap and vision mapping now matches the actual diff and the current repo documents.
-- Required fix 3 satisfied:
-  - review basis remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and this fixer bundles no new implementation scope.
+  - that mapping stays scope-tight and describes command-surface determinism plus drift detection only, not new workflow capability or broader engine-loop completion.
 
-## Canonical CLI Step Mapping
+## Canonical Demo-Path Mapping
 
-- Exact canonical CLI steps this change advances:
+- Exact documented MVP path this change strengthens:
+  - `vault -> context -> run -> patch -> export` (`ROADMAP.md`)
+- Exact catalog steps on that path that this slice hardens:
   - `project-open`
   - `retrieval`
   - `patch-review`
   - `export-handoff`
 - Why these are the right steps:
-  - `src/qual/commands/catalog.py` defines those canonical flow steps and the accepted CLI token surface for each command path.
-  - `command_cli_contract()` now validates that the parser surface still matches the approved catalog instead of only checking canonical command names.
-  - `tests/unit/test_commands_catalog.py` adds regressions that fail on dropped tokens, removed aliases, or reordered entrypoints even when canonical names still match.
+  - `ROADMAP.md` defines the active CLI-first MVP path as `vault -> context -> run -> patch -> export`.
+  - `src/qual/commands/catalog.py` exposes the currently implemented command-flow steps for that path as `project-open -> retrieval -> patch-review -> ... -> export-handoff`.
+  - `command_cli_contract()` and `tests/unit/test_commands_catalog.py` keep that exposed CLI contract deterministic by rejecting parser-surface drift before the operator-facing path can silently change.
 - Concrete operator-facing effect:
-  - the CLI surface for the canonical command flow now fails fast on parser drift instead of silently presenting a stale or reordered token surface to operators and smoke tests.
+  - the existing CLI route through the MVP flow fails fast on parser drift instead of silently presenting a stale, reordered, or alias-substituted command surface to operators and smoke tests.
 - Out of scope:
-  - this slice does not add new command behavior, new flags, or new workflow implementation beyond contract hardening and focused regression coverage.
+  - this slice does not add new command behavior, new flags, or new workflow implementation; it only hardens the existing command contract for the already-exposed MVP path.
 
 ## Shared-Path Approval Basis
 
@@ -142,6 +142,7 @@
 - `ROADMAP.md` Milestone 2 (`Test Hardening`): this adds targeted parser-edge regressions identified during review.
 - `ROADMAP.md` Milestone 3 (`Product Readiness`): this hardens an intentional user-facing command contract by rejecting parser-surface drift on the canonical CLI flow.
 - `ROADMAP.md` active MVP emphasis `feat-commands`: this keeps the CLI command surface deterministic while that lane remains active.
+- Canonical demo-path step made more real: the existing CLI-first MVP flow `vault -> context -> run -> patch -> export`, via the currently exposed catalog steps `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 
 ### Vision capability affected
 
