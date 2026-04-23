@@ -6,11 +6,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Current branch tip carries the required code-side reviewer fixes for the command CLI contract and the matching regression coverage.
+- Current branch tip carries the required code-side reviewer fixes for the command CLI contract and the matching regression coverage, including explicit assertions that parser-surface drift is rejected even when canonical names still match.
 - Reviewed implementation files for the fixed branch state:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
-- This fixer pass updates the handoff text so it matches the actual branch behavior: `command_cli_contract()` now rejects full parser-surface drift, including token add, remove, alias substitution, or reorder changes that would otherwise leave canonical command names unchanged.
+- This fixer pass updates the handoff text so it matches the actual branch behavior already present at the current branch tip: `command_cli_contract()` now rejects full parser-surface drift, including token add, remove, alias substitution, or reorder changes that would otherwise leave canonical command names unchanged.
 - Final fixer validation reran the required gate sequence from this worktree on `2026-04-23T22:25:04Z`; the metadata refresh below records that fresh verification for the full fixed branch state.
 - Exact canonical demo-path mapping for the fixed branch state:
   - operator terms: this hardens the stable CLI command surface used to reach `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and existing CLI handoff or export flows without silent parser or catalog drift

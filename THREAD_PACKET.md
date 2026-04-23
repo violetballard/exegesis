@@ -5,7 +5,7 @@
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: regenerate the handoff so it matches the current fixed branch state, states exactly which canonical demo-path CLI step this parser-surface contract hardening advances, and records the concrete engine-first MVP blocker removed by the token-surface drift checks.
-- Risk reason: the fixed slice mixes lane-owned command code with a shared test file, and this fixer also updates shared handoff metadata to satisfy the lane-specific review gate.
+- Risk reason: the fixed slice mixes lane-owned command code with a shared test file, and this fixer updates shared handoff metadata to satisfy the lane-specific review gate for that already-fixed branch state.
 
 ### Budget
 
@@ -37,7 +37,7 @@
 
 - Plan complete: packet scope reset to the current fixed branch state instead of the earlier narrower review slice.
 - First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:25:04Z`.
-- Before risky/shared file edit: this fixer edits shared handoff metadata only (`THREAD.md`, `THREAD_PACKET.md`).
+- Before risky/shared file edit: this fixer refreshes the shared handoff metadata (`THREAD.md`, `THREAD_PACKET.md`) for a branch state that already includes the approved shared regression file `tests/unit/test_commands_catalog.py`.
 - Ready for handoff: as of `2026-04-23T22:25:04Z`, the packet and required gate results match the fixed branch state.
 
 ## Review Basis
@@ -49,13 +49,14 @@
 - Reviewed change summary:
   - `src/qual/commands/catalog.py`: makes `command_cli_contract()` fail if the declared parser surface drifts from the approved catalog, including token add, remove, alias substitution, or reorder changes that leave canonical command names unchanged.
   - `tests/unit/test_commands_catalog.py`: adds targeted regressions proving the contract rejects dropped canonical tokens, reordered accepted entrypoints, removed aliases, and other token-surface drift cases.
-- This fixer pass does not change that implementation scope. It regenerates the handoff metadata in `THREAD.md` and `THREAD_PACKET.md` so the packet matches the fixed branch state.
+- This fixer pass regenerates the handoff metadata in `THREAD.md` and `THREAD_PACKET.md` so the packet matches the fixed branch state, which already includes explicit shared-test assertions that canonical names still match during parser-surface drift.
 
 ## Scope Completed
 
 - Regenerated the lane handoff as a completed high-risk AGENTS packet for the fixed Milestone 3 CLI-compatibility hardening slice.
 - Added the missing reviewer-requested explicit sentence naming the canonical demo-path step and the concrete blocker removed from the engine-first MVP loop.
-- Kept implementation scope pinned to the command-catalog files already carrying the code-side reviewer fixes; this fixer changes only handoff metadata.
+- Recorded that the existing shared regression coverage proves the removed-alias and token-order drift cases keep canonical command names unchanged while parser-surface drift is rejected.
+- Kept implementation scope pinned to the already-fixed command-catalog files and the handoff metadata needed for re-review.
 - Revalidated the branch tip with a fresh full gate rerun so the handoff reflects the actual final fixer state rather than the earlier packet-refresh timestamp.
 
 ## Kickoff Budget / Limits Compliance
@@ -91,7 +92,7 @@
 - Required fix 1 satisfied:
   - `src/qual/commands/catalog.py` now validates the full intended parser surface, and this packet states that behavior precisely instead of describing only canonical-name alignment.
 - Required fix 2 satisfied:
-  - `tests/unit/test_commands_catalog.py` includes token-surface drift regressions, including dropped canonical-token and reordered-entrypoint cases that would keep canonical command names unchanged.
+  - `tests/unit/test_commands_catalog.py` includes token-surface drift regressions, including removed-alias and reordered-entrypoint cases that assert canonical command names still match while parser-surface drift is rejected.
 - Required fix 3 satisfied:
   - the handoff body names the exact canonical demo-path step advanced and the concrete blocker removed from the engine-first CLI loop.
 - Required fix 4 satisfied:
