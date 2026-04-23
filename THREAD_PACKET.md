@@ -148,7 +148,6 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 2 (`Test Hardening`): this adds targeted parser-edge regressions identified during review.
 - `ROADMAP.md` Milestone 3 (`Product Readiness`): this hardens an intentional user-facing command contract by rejecting parser-surface drift on the canonical CLI flow.
 - `ROADMAP.md` active MVP emphasis `feat-commands`: this keeps the CLI command surface deterministic while that lane remains active.
 - Canonical demo-path step made more real: the existing CLI-first MVP flow `vault -> context -> run -> patch -> export`, via the currently exposed catalog steps `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
@@ -156,7 +155,7 @@
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): the CLI remains a first-class operator surface, and this change keeps that surface deterministic by making parser drift fail fast.
+- `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): this narrows to the canonical engine contract that the CLI exposes now, keeping that contract deterministic by making parser drift fail fast while the Textual lanes remain disabled.
 
 ### Routing / Provider Impact Note
 

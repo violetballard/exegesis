@@ -24,10 +24,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Concrete blocker removed on that path:
   - parser/catalog drift can no longer silently change the operator-facing CLI command surface for `project-open`, `retrieval`, `patch-review`, and `export-handoff` in the active MVP smoke loop while Textual remains disabled.
 - Plan-aligned roadmap and vision grounding:
-  - `ROADMAP.md` Milestone 2 (`Test Hardening`): adds targeted parser-edge regressions identified during review.
   - `ROADMAP.md` Milestone 3 (`Product Readiness`): supports locking intentional user-facing command contracts.
   - `ROADMAP.md` active MVP emphasis `feat-commands`: keeps the CLI command surface deterministic while that lane is active.
-  - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): preserves a stable CLI operator surface.
+  - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): narrows to preserving the canonical engine contract exposed through the stable CLI operator surface.
 - Shared-file basis for this high-risk handoff:
   - lane-owned implementation: `src/qual/commands/**`
   - approved shared-by-exception regression file in reviewed implementation scope: `tests/unit/test_commands_catalog.py`
