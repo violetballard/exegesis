@@ -36,9 +36,9 @@
 ### Checkpoint Cadence (short updates)
 
 - Plan complete: packet scope reset to the current fixed branch state instead of the earlier narrower review slice.
-- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:13:13Z`.
+- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:16:13Z`.
 - Before risky/shared file edit: this fixer edits shared handoff metadata only (`THREAD.md`, `THREAD_PACKET.md`).
-- Ready for handoff: as of `2026-04-23T22:13:13Z`, the packet and required gate results match the fixed branch state.
+- Ready for handoff: as of `2026-04-23T22:16:13Z`, the packet and required gate results match the fixed branch state.
 
 ## Review Basis
 
@@ -134,7 +134,7 @@
 ### Tasks Completed (Numbered)
 
 1. Regenerated the handoff as a completed high-risk AGENTS packet for the current fixed branch state.
-2. Added the explicit canonical demo-path mapping statement showing that the parser-surface contract change advances step 3 `preview and apply or reject a patch` directly and removes the silent token-drift blocker on that route.
+2. Added the explicit canonical demo-path mapping statement showing that the parser-surface contract change advances step 5 `preview and apply or reject a patch` directly and removes the silent token-drift blocker on that route.
 3. Kept implementation scope pinned to the fixed command-catalog files and recorded the shared-file basis truthfully.
 4. Re-ran the required gate suite and recorded the results below.
 
@@ -155,7 +155,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification timestamp: `2026-04-23T22:13:13Z`
+- Verification timestamp: `2026-04-23T22:16:13Z`
 
 ### Risks / Blockers
 
@@ -169,12 +169,12 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3 (`Product Readiness`): this is user-facing output-contract work for the CLI-first MVP loop because the patch-review step only stays operator-safe when the accepted CLI token surface for `preview and apply or reject a patch` remains explicit, intentional, and testable instead of silently drifting under the same canonical command name.
+- `ROADMAP.md` Milestone 3 (`Real workflow loop`): this is CLI-compatibility hardening for the active MVP loop because the CLI must still execute the demo path while Textual remains disabled, and the patch-review step only stays operator-safe when the accepted CLI token surface for `preview and apply or reject a patch` remains explicit, intentional, and testable instead of silently drifting under the same canonical command name.
 - `ROADMAP.md` active lane `feat-commands`: scope remains limited to CLI compatibility and migration-safe entrypoints in `src/qual/commands/**`; this packet does not claim generic workflow or audit progress beyond that operator path.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` required capability 4 (`Operator-first control surface`): CLI remains a first-class surface for development and reliability, and this slice removes a concrete blocker on `preview and apply or reject a patch` by turning silent parser-surface drift into an immediate contract failure on the exact operator path the CLI-first MVP loop uses.
+- `PRODUCT_VISION.md` required capability 3 (`Canonical engine contract`): the future Textual client depends on one clean engine-facing state and action surface, and this slice keeps the current CLI compatibility layer stable by turning silent parser-surface drift into an immediate contract failure on the exact patch-review route the MVP loop uses while Textual remains disabled.
 
 ### Routing / Provider Impact Note
 
