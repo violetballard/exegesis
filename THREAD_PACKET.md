@@ -75,7 +75,10 @@
 ## Approved Exception Note
 
 - Current explicit shared-path allowance in repo policy:
-  - `tests/unit/test_commands_catalog.py` is still allowlisted for `codex/feat-commands*` in `scripts/scope-check.sh`
+  - `tests/unit/test_commands_catalog.py` only is still allowlisted for `codex/feat-commands*` in `scripts/scope-check.sh`
+  - Approver / policy author: `Violet Ballard`
+  - Approval date: `2026-03-28`
+  - Approval references: `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` (`fix(commands): align feat-commands handoff policy`) and `c3a66bb580772d65201a630d673a8de1d4a63776` (`fix(commands): tighten feat-commands packet and policy`)
 - Historical branch approval trail for additional shared test coverage already present in the reviewed tip:
   - `e00623f0be7934383d64df46fdaec99d9f92f13c` (`Allow feat-commands shared diff preview test`)
   - `8a38d7bde29da3ecfb3da905ff78416034b151b7` (`fix(commands): approve diff preview shared regression`)
@@ -146,7 +149,7 @@
 - `open project/document` via the CLI fallback `bootstrap` / `project-open` surface
 - `retrieve relevant material` via the routed `context-basket search` surface
 - `preview and apply or reject a patch` via `diff-preview`
-- Explicit handoff statement: this reviewed slice makes those existing Milestone 3 CLI fallback surfaces more deterministic and smoke-testable while Textual remains disabled; it does not claim broader workflow completion beyond those current operator surfaces.
+- Explicit handoff statement: this reviewed slice makes the existing Milestone 3 CLI fallback surfaces for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` more deterministic and smoke-testable while Textual remains disabled; it does not claim broader workflow completion beyond those current operator surfaces.
 
 ### Routing / Provider Impact Note
 
