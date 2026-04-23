@@ -4,8 +4,8 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: regenerate the handoff so it explicitly names the exact canonical demo-path steps this branch tip hardens, explains the concrete CLI failure mode it prevents, and keeps the roadmap and vision mapping limited to Milestone 3 command-contract hardening.
-- Risk reason: the reviewed branch tip mixes lane-owned command implementation with shared test files, and this fixer updates shared handoff metadata that must match the true tip-level diff.
+- Scope goal: regenerate the `feat-commands` handoff so re-review is explicitly pinned to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, while completing the missing high-risk AGENTS packet fields and the required Milestone 3 demo-path mapping.
+- Risk reason: the reviewed slice changes command-contract behavior in `src/qual/commands/catalog.py` and uses shared regression coverage in `tests/unit/test_commands_catalog.py`, so the handoff must be treated as high-risk shared-file work.
 
 ### Budget
 
@@ -16,9 +16,9 @@
 
 ### Planned Tasks (max 4)
 
-1. Replace the stale narrow-slice review basis with the real branch-tip diff basis.
-2. Update scope, file inventory, and roadmap mapping so they describe the actual implementation present on `codex/feat-commands`.
-3. Replace the vague shared-test exception note with concrete policy and commit traceability for each shared path still in scope.
+1. Rebuild the handoff around the reviewer-pinned implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+2. Add the missing high-risk template fields and checkpoint evidence required by `AGENTS.md`.
+3. Add an explicit canonical demo-path mapping for the deterministic command-contract change.
 4. Re-run `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ### Early Review Triggers
@@ -35,127 +35,55 @@
 
 ### Checkpoint Cadence (Short Updates)
 
-- Plan complete: switch the packet from a false cherry-picked review basis to the actual branch-tip diff.
-- First green tests: recorded after the required gate rerun on `2026-04-23T20:29:55Z`.
-- Before risky/shared file edit: this fixer only edits `THREAD.md` and `THREAD_PACKET.md`.
-- Ready for handoff: the packet now matches the real implementation scope, concrete MVP step mapping, and the live gate rerun on the current branch tip.
+- Plan complete: the handoff was narrowed back to the reviewer-pinned implementation slice at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- First green tests: recorded in the rerun block below after refreshing this packet.
+- Before risky/shared file edit: this fixer edits only `THREAD.md` and `THREAD_PACKET.md`; no new implementation files are touched.
+- Ready for handoff: the packet now includes the completed high-risk template, the explicit demo-path statement, and fresh gate results for this metadata refresh.
 
 ## Review Basis
 
-- Review basis for re-review is the real branch tip for `codex/feat-commands`, not a cherry-picked subset of commits.
-- Tip-level implementation basis:
-  - merge base with `codex/quality-baseline`: `60136caf9ee4e1ff08d35e2da2922af78e7974d5`
-  - reviewed implementation tip before this metadata-only fixer refresh: `434c8a33f82fd53da97445ebb41b5a329a748245`
-- This packet does not claim that post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` commits are metadata-only. The current branch diff includes many implementation commits after that point, including `1e04f9633c4abc4988dcb991944680b86f94f753`, `5c89ce987fc78ed158d378a988b3e211ce93145d`, and `b3be9f0c12e6fd3ecd52f1b8af2bd1b6d890e1a0`.
-- Truthful merge-base-to-tip changed files for the command handoff pathset (`src/qual/commands`, `tests/unit`, `THREAD*`):
-  - `src/qual/commands/__init__.py`
-  - `src/qual/commands/canonical.py`
+- Re-review scope is pinned to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` exactly, per reviewer instruction.
+- Reviewed implementation files at that commit:
   - `src/qual/commands/catalog.py`
-  - `src/qual/commands/diff_preview.py`
-  - `tests/unit/test_a2ui_contract.py`
-  - `tests/unit/test_bulk_draft_routing.py`
   - `tests/unit/test_commands_catalog.py`
-  - `tests/unit/test_context_storage_recovery.py`
-  - `tests/unit/test_diff_preview.py`
-  - `tests/unit/test_docindex_pageindex.py`
-  - `tests/unit/test_export_preview_flow.py`
-  - `tests/unit/test_metrics_module.py`
-  - `tests/unit/test_terminal_chat_routing.py`
-  - `tests/unit/test_unified_retrieval.py`
+- This fixer commit refreshes handoff metadata only:
   - `THREAD.md`
   - `THREAD_PACKET.md`
-- Narrow command-lane review claim inside that truthful file set:
-  - lane-owned implementation remains `src/qual/commands/**`
-  - the extra `tests/unit/*` files above are branch-carried shared regression coverage for adjacent MVP slices that still appear in the current tip-level delta
-  - this packet is explicit about those shared files instead of pretending the branch only touches the command catalog slice
+- No additional implementation change is claimed for this resubmission.
 
 ## Scope Completed
 
-- Built out the trusted command surface used by the current CLI fallback path, including command-surface metadata, canonical wrapper exports, deterministic route and alias helpers, parser-surface validation, shim routing, and smoke-ready invocation contracts across the owned `src/qual/commands/**` lane files.
-- Hardened `src/qual/commands/catalog.py` so the current engine-first MVP loop keeps a deterministic CLI compatibility contract: the parser is checked against the catalog, parser-surface drift is rejected deterministically, and routed fallback subcommands such as retrieval-oriented command shims preserve their intended subcommand tokens.
-- Stabilized `src/qual/commands/diff_preview.py` so `diff-preview` keeps effective labels and option-state visibility in no-diff JSON responses instead of silently dropping operator-visible review context.
-- Added and expanded focused regression coverage in `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` for command-surface drift, canonical ordering, routed subcommand preservation, and no-diff preview payload fidelity.
-- Carried forward truthful branch-tip regression coverage in the shared tests `tests/unit/test_a2ui_contract.py`, `tests/unit/test_bulk_draft_routing.py`, `tests/unit/test_context_storage_recovery.py`, `tests/unit/test_docindex_pageindex.py`, `tests/unit/test_export_preview_flow.py`, `tests/unit/test_metrics_module.py`, `tests/unit/test_terminal_chat_routing.py`, and `tests/unit/test_unified_retrieval.py`, which remain part of the current merge-base-to-tip delta even though the lane-owned implementation is confined to `src/qual/commands/**`.
-- Refreshed `THREAD.md` and `THREAD_PACKET.md` so the handoff now covers the real branch-tip scope, the concrete MVP demo-path step mapping, and traceable policy or branch-history basis for every shared test still visible in the truthful delta.
-
-## Kickoff Budget / Limits Compliance
-
-- High-risk shared-file handoff: stayed within the `4`-task cap, `30m` budget, and metadata-only fixer scope.
-- This fixer pass edits only `THREAD.md` and `THREAD_PACKET.md`.
+- Locked the CLI contract to the command catalog by making `command_cli_contract()` verify that the canonical-name sequence implied by the parser-facing lookup table matches `command_names()` exactly.
+- Added a deterministic failure when parser-surface canonical ordering drifts away from the catalog, raising `ValueError("Command CLI canonical names are inconsistent")` instead of silently accepting a stale CLI contract.
+- Added regression coverage that proves the happy path still matches the catalog order and that drift is rejected explicitly.
 
 ## Plan Alignment
 
-- Canonical demo-path step alignment:
-  - in-scope primary step: step 2 `retrieve relevant material`, via the CLI-side `open project/document` and retrieval command entrypoints that must continue resolving to the intended canonical routes during the engine-first MVP loop
-  - in-scope follow-on step: step 3 `preview and apply or reject a patch`, via the CLI `diff-preview` entrypoint that must preserve operator-visible review context even when there is no diff payload to apply
-  - out of scope: this slice does not claim new step 1 `open project/document` workflow coverage beyond keeping the existing CLI entrypoint compatible with the retrieval path
-- Concrete blocker removed:
-  - this branch tip removes a CLI compatibility blocker on the current engine-first MVP loop: parser/catalog drift can no longer silently change the retrieval and preview command contract, so deterministic smoke coverage keeps exercising the intended CLI operator path while Textual remains disabled.
-- Scope framing:
-  - this work makes step 2 more real directly and step 3 more real as the immediate follow-on review step. It is intentionally scoped as CLI compatibility support for the current engine-first MVP loop, not as generic command-catalog hardening or broader workflow progress outside that `retrieve relevant material -> preview and apply or reject a patch` slice, and it does not claim new workflow progress for step 1.
+- Exact canonical demo-path step made more real directly: step 2 `retrieve relevant material`.
+- Immediate dependent step kept trustworthy: step 3 `preview and apply or reject a patch`.
+- Out of scope: this handoff does not claim new step 1 `open project/document` workflow coverage.
+- Why this is not second-order work:
+  - the Milestone 3 CLI loop currently depends on deterministic parser-to-catalog routing while Textual is disabled.
+  - commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` hardens that live operator surface by proving the CLI lookup contract cannot silently drift away from the canonical command catalog.
+  - that directly matters to step 2 because the retrieval entrypoint must keep resolving to the intended canonical command under smoke coverage.
+  - it also keeps the immediate follow-on step 3 trustworthy because the same CLI contract continues to describe the parser-facing `diff-preview` route deterministically, even though this commit does not change step 3 behavior directly.
 
 ## Reviewer Fix Closure
 
-- Reviewer-required fix satisfied:
-  - this packet now states explicitly that the branch makes canonical demo-path step 2 `retrieve relevant material` more real directly and step 3 `preview and apply or reject a patch` more real as the immediate follow-on review step, while keeping the claim narrow to deterministic CLI compatibility support for the existing Milestone 3 loop.
-  - `2026-04-23T20:29:55Z` fixer verification rerun confirmed the reviewer-requested `Vision capability affected` narrowing is still present on the current branch tip and remains limited to CLI compatibility / canonical engine contract scope.
-- Ready-for-handoff checkpoint:
-  - ready for handoff on `2026-04-23T20:29:55Z`: the current branch tip keeps the step 2 retrieval CLI route and the immediate step 3 preview/apply-or-reject CLI route deterministic, smoke-testable, and operator-visible, and the verification rerun recorded below passed on that same tip.
-- Scope-tightening preserved:
-  - this handoff does not claim broader engine workflow progress, new step 1 coverage, or any UI-lane advancement.
-  - this contract hardening is a direct Milestone 3 CLI-compatibility safeguard for the engine-first MVP loop, not second-order command cleanup.
+- Required fix 1 satisfied: this is now a completed high-risk AGENTS handoff, including `Risk reason`, `Planned Tasks`, `Early Review Triggers`, `Stop Triggers`, and `Checkpoint Cadence`.
+- Required fix 2 satisfied: the packet now states exactly which Milestone 3 CLI-loop steps the deterministic command-contract change advances and why that work is part of the active MVP loop rather than generic cleanup.
+- Required fix 3 satisfied: re-review scope is pinned to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this resubmission does not expand the reviewed implementation slice.
 
 ## Canonical Demo-Path Mapping
 
-- Exact canonical demo-path steps this slice makes more real:
-  - exact primary step advanced: step 2 `retrieve relevant material`, via the CLI-side `open project/document` and retrieval command entrypoints that must continue resolving to the intended canonical routes during the engine-first MVP loop
-  - in-scope follow-on step: step 3 `preview and apply or reject a patch`, via the CLI `diff-preview` entrypoint that must preserve operator-visible review context even when there is no diff payload to apply
-  - out of scope: this slice does not claim new step 1 `open project/document` workflow coverage beyond keeping the existing CLI entrypoint compatible with the retrieval path
-- Concrete operator-facing failure mode prevented by this change:
-  - if the parser surface drifted away from the catalog, the CLI fallback path could silently accept a different command ordering, drop the canonical retrieval entrypoint in favor of an alias, or lose routed subcommand tokens. That parser/catalog drift would silently change the operator contract and break deterministic smoke coverage for the Milestone 3 CLI loop.
-  - if `diff-preview` dropped effective labels or option-state fields in a no-diff response, the operator could reach step 3 but lose the visible review context needed to judge whether there is anything to apply or reject.
-- Concrete blocker removed:
-  - this branch tip removes a CLI compatibility blocker on the current engine-first MVP loop: parser/catalog drift can no longer silently change the retrieval and preview command contract, so deterministic smoke coverage keeps exercising the intended CLI operator path while Textual remains disabled.
+- Primary step advanced directly: step 2 `retrieve relevant material`.
+  - reason: the retrieval CLI route depends on the parser-facing lookup table staying in lockstep with the canonical command catalog; otherwise smoke coverage can exercise the wrong canonical command without failing.
+- Immediate dependent step preserved: step 3 `preview and apply or reject a patch`.
+  - reason: the same parser-facing CLI contract also covers `diff-preview`, so deterministic catalog alignment keeps the next review step trustworthy after retrieval.
 - Explicit AGENTS mapping statement:
-  - this work makes step 2 more real directly and step 3 more real as the immediate follow-on review step. It is intentionally scoped as CLI compatibility support for the current engine-first MVP loop, not as generic command-catalog hardening or broader workflow progress outside that `retrieve relevant material -> preview and apply or reject a patch` slice, and it does not claim new workflow progress for step 1.
-
-## Shared-Path Approval Basis
-
-- Shared path still in scope: `tests/unit/test_commands_catalog.py`
-  - current policy basis: `scripts/scope-check.sh` explicitly allowlists this path for `codex/feat-commands*` in the lane-specific shared-test exception block
-  - traceable policy commits:
-    - `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` `fix(commands): align feat-commands handoff policy`
-    - `c3a66bb580772d65201a630d673a8de1d4a63776` `fix(commands): tighten feat-commands packet and policy`
-  - approver / policy author for those commits: `Violet Ballard`
-- Shared path still in scope: `tests/unit/test_diff_preview.py`
-  - current policy basis: `scripts/scope-check.sh` now explicitly allowlists this path for `codex/feat-commands*` in the lane-specific shared-test exception block
-  - traceable branch approval trail:
-    - `8a38d7bde29da3ecfb3da905ff78416034b151b7` `fix(commands): approve diff preview shared regression`
-    - `2afa0f7f2f23c2d73773cc9c5a2fc0007ba19be3` `fix(commands): restore diff preview scope allowance`
-    - `51279575df18d44dc112129f561f2dcb7743e70f` `Restore scope-check shared-test allowance`
-  - approver / policy author for those commits: `Violet Ballard`
-- Shared paths still visible in the truthful merge-base-to-tip delta because this branch carries adjacent regression coverage, and each now has explicit current allowlist coverage in `scripts/scope-check.sh` for the `codex/feat-commands*` lane:
-  - `tests/unit/test_a2ui_contract.py`
-    - branch-history origin: `21e84fb5` `a2ui: add composable card contract and safe fallback`
-  - `tests/unit/test_bulk_draft_routing.py`
-    - branch-history origin: `d80d1559` `engine: implement dual bulk draft routing and drafting mode policy`
-    - follow-up coverage: `d4a85bbc` `engine: align bulk draft routing to no-ui dual-tier spec`
-    - follow-up coverage: `2c7db0ca` `spec: add 128gb drafting-mode bulk routing`
-  - `tests/unit/test_context_storage_recovery.py`
-    - branch-history origin: `fce8968e` `test: add diff env-mode and context-vault recovery coverage`
-    - follow-up coverage: `a87d10ba` `test: align recovery expectations with quarantine cleanup semantics`
-  - `tests/unit/test_docindex_pageindex.py`
-    - branch-history origin: `3824b2b4` `docindex: add encrypted pageindex retrieval service`
-    - follow-up coverage: `57a0c7b4` `docindex: add vision-gated scanned pdf fallback`
-  - `tests/unit/test_export_preview_flow.py`
-    - branch-history origin: `27135550` `export: add encrypted preview and final render flow`
-  - `tests/unit/test_metrics_module.py`
-    - branch-history origin: `39535aa6` `metrics: add offline weekly traction rollups and anonymous export scaffold`
-  - `tests/unit/test_terminal_chat_routing.py`
-    - branch-history origin: `b5d97889` `terminal: add magistral default and qwen escalation routing`
-  - `tests/unit/test_unified_retrieval.py`
-    - branch-history origin: `2e8c75f6` `retrieval: add unified auto pipeline contract`
-- This fixer adds explicit current approval coverage for the truthful full-delta shared test set and keeps the concrete branch-history traceability for re-review.
+  - this deterministic command-contract change makes step 2 more real directly because it guards the live retrieval CLI entrypoint against silent parser/catalog drift.
+  - it makes step 3 more real only as the immediate follow-on route that relies on that same trusted CLI contract.
+  - it is not second-order work because Milestone 3 requires the CLI fallback path to remain executable and smoke-testable while the UI surface is still disabled.
 
 ## Handoff Packet
 
@@ -163,50 +91,35 @@
 
 ### Tasks Completed (Numbered)
 
-1. Built out the trusted command-surface contract and canonical wrapper exports for the CLI fallback path in `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, and `src/qual/commands/catalog.py`.
-2. Hardened deterministic command routing and parser-surface validation so routed command shims preserve the intended CLI-first MVP flow instead of silently drifting.
-3. Stabilized `diff-preview` no-diff payload reporting in `src/qual/commands/diff_preview.py`, then added and expanded regression coverage in `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
-4. Regenerated the handoff metadata so it now reflects the real merge-base-to-tip command/test/handoff pathset, the exact canonical demo-path steps advanced, and concrete policy or branch-history traceability for every shared test still visible in the current delta.
+1. Added a command-contract consistency check in `src/qual/commands/catalog.py` so parser-facing canonical names must match the canonical command catalog order exactly.
+2. Added regression coverage in `tests/unit/test_commands_catalog.py` for the matching contract case and for explicit rejection of catalog drift.
+3. Regenerated the handoff as a completed high-risk AGENTS packet.
+4. Re-ran the required scope and quality gates for this metadata refresh.
 
 ### Files Changed
 
-- `THREAD.md`
-- `THREAD_PACKET.md`
-- `src/qual/commands/__init__.py`
-- `src/qual/commands/canonical.py`
-- `src/qual/commands/catalog.py`
-- `src/qual/commands/diff_preview.py`
-- `tests/unit/test_commands_catalog.py`
-- `tests/unit/test_a2ui_contract.py`
-- `tests/unit/test_bulk_draft_routing.py`
-- `tests/unit/test_context_storage_recovery.py`
-- `tests/unit/test_diff_preview.py`
-- `tests/unit/test_docindex_pageindex.py`
-- `tests/unit/test_export_preview_flow.py`
-- `tests/unit/test_metrics_module.py`
-- `tests/unit/test_terminal_chat_routing.py`
-- `tests/unit/test_unified_retrieval.py`
+- Reviewed implementation scope pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`:
+  - `src/qual/commands/catalog.py`
+  - `tests/unit/test_commands_catalog.py`
+- Metadata-only changes in this fixer commit:
+  - `THREAD.md`
+  - `THREAD_PACKET.md`
 
 ### Commands Run and Outcomes
 
 - `make scope-check`: `PASS`
-- `SCOPE_WINDOW=full make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification date: `2026-04-23T20:29:55Z`
-- Verification basis: rerun on the current branch tip after the verification-only metadata refresh recorded by this packet pass
-  - `make scope-check` passes under the branch's default `recent` scope window
-  - `SCOPE_WINDOW=full make scope-check` passes against the truthful merge-base-to-tip branch delta used for this handoff
 
 ### Risks / Blockers
 
 - Risk: `HIGH`
 - Remaining risk:
-  - the truthful merge-base-to-tip delta still includes multiple shared `tests/unit/*` files, so the lane remains high-risk even though those paths now have explicit current allowlist coverage and a passing full-delta scope check.
-  - default `make scope-check` still uses the feature-lane `recent` window, so the handoff relies on the additional recorded `SCOPE_WINDOW=full make scope-check` result for truthful full-branch enforcement.
+  - the reviewed slice still includes shared-file regression coverage in `tests/unit/test_commands_catalog.py`, so the handoff remains high-risk even though no new shared implementation is added in this fixer pass.
+  - this resubmission is intentionally review-scope-limited to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; later branch history is not part of the requested re-review.
 - Blockers: none
 
 ## Required Handoff Fields
@@ -214,21 +127,20 @@
 ### Canonical demo-path step advanced
 
 - Primary step advanced directly: step 2 `retrieve relevant material`
-- Immediate dependent follow-on step hardened: step 3 `preview and apply or reject a patch`
-- Scope note: this slice preserves the existing CLI `open project/document` entrypoint into retrieval but does not claim new step 1 workflow coverage
-- Exact AGENTS mapping statement: this work makes step 2 more real directly and step 3 more real as the immediate follow-on review step because the same verified branch tip now rejects parser/catalog drift before it can silently change those CLI operator paths.
-- Milestone 3 exit-criterion tie: this handoff strengthens the requirement that `CLI can still execute the MVP loop while Textual remains disabled` by keeping the step 2 retrieval command path and the immediate step 3 preview/apply-or-reject command path deterministic, smoke-testable, and operator-visible.
+- Immediate dependent follow-on preserved: step 3 `preview and apply or reject a patch`
+- Scope note: no new step 1 `open project/document` workflow coverage is claimed
+- Exact AGENTS mapping statement: this work makes step 2 more real directly by preventing silent parser/catalog drift on the retrieval CLI route, and it keeps step 3 trustworthy as the immediate dependent parser route that uses the same deterministic command contract.
+- Milestone 3 exit-criterion tie: this keeps the active CLI fallback loop executable and smoke-testable while UI work remains disabled.
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3 (`Real workflow loop`): preserve CLI compatibility while the package and layout migration lands.
-- `ROADMAP.md` lane mapping: `feat-commands` owns CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
-- Narrow lane mapping: this packet covers CLI compatibility support for the current engine-first MVP loop, specifically to keep step 2 `retrieve relevant material` and the immediate step 3 `preview and apply or reject a patch` deterministic, smoke-testable, and operator-visible while UI lanes remain disabled. It does not claim new workflow progress for step 1 `open project/document`.
+- `ROADMAP.md` Milestone 3 (`Real workflow loop`): preserve CLI compatibility while the engine-first MVP loop is still exercised through command routes.
+- Active MVP focus: `feat-commands` remains one of the current active implementation lanes for the CLI-first push.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` canonical engine contract: CLI compatibility is required while Textual remains disabled.
-- Narrow capability mapping: this change preserves deterministic operator access to the existing CLI retrieval and preview loop commands; it does not claim broader UI-contract, audit, or workflow-surface progress.
+- `PRODUCT_VISION.md` operator-first control surface: CLI remains a first-class surface for development and reliability.
+- Narrow capability mapping: this change hardens the deterministic CLI contract for the existing retrieval and immediate review path; it does not claim broader UI or workflow-surface progress.
 
 ### Routing / Provider Impact Note
 
@@ -242,6 +154,6 @@
 
 - Shared or integrator-locked edits: `YES`
 - Ownership detail:
-  - lane-owned implementation: `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`
-  - shared tests: `tests/unit/test_a2ui_contract.py`, `tests/unit/test_bulk_draft_routing.py`, `tests/unit/test_commands_catalog.py`, `tests/unit/test_context_storage_recovery.py`, `tests/unit/test_diff_preview.py`, `tests/unit/test_docindex_pageindex.py`, `tests/unit/test_export_preview_flow.py`, `tests/unit/test_metrics_module.py`, `tests/unit/test_terminal_chat_routing.py`, `tests/unit/test_unified_retrieval.py`
-  - shared metadata updated for handoff accuracy: `THREAD.md`, `THREAD_PACKET.md`
+  - lane-owned reviewed implementation: `src/qual/commands/catalog.py`
+  - shared reviewed test coverage: `tests/unit/test_commands_catalog.py`
+  - metadata refreshed for handoff accuracy only: `THREAD.md`, `THREAD_PACKET.md`
