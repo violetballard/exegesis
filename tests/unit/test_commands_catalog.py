@@ -472,6 +472,10 @@ class CommandCatalogTests(unittest.TestCase):
                 ("terminal", ("terminal",)),
             ),
         ):
+            self.assertEqual(
+                tuple(name for name, _ in command_catalog._validated_cli_entrypoints_for()),
+                command_names(),
+            )
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract(command_specs())
 
@@ -502,6 +506,10 @@ class CommandCatalogTests(unittest.TestCase):
                 ("terminal", ("context-basket",)),
             ),
         ):
+            self.assertEqual(
+                tuple(name for name, _ in command_catalog._validated_cli_entrypoints_for()),
+                command_names(),
+            )
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract(command_specs())
 
