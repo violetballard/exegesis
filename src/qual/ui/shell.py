@@ -876,6 +876,8 @@ def describe_shell_ui_contract(
     # Snapshot the manifest deeply so embedded contract views do not alias the
     # live manifest's nested entrypoint and preview structures.
     manifest["shell_ui_contract"] = copy.deepcopy(manifest)
+    manifest["shell_ui_contract_manifest"] = copy.deepcopy(manifest["shell_ui_contract"])
+    manifest["shell_ui_contract_manifest_fingerprint"] = fingerprint
     manifest["shell_ui_contract_fingerprint"] = fingerprint
     manifest["startup_fields_fingerprint"] = contract_fingerprints["startup_fields_fingerprint"]
     manifest["startup_preview_fingerprint"] = contract_fingerprints["startup_preview_fingerprint"]

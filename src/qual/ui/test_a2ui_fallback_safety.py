@@ -4490,6 +4490,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["type"], "ShellUIContract")
         self.assertEqual(manifest["contract_fingerprint"], shell_fingerprint)
         self.assertEqual(manifest["shell_ui_fingerprint"], shell_fingerprint)
+        self.assertEqual(manifest["shell_ui_contract_manifest"], manifest["shell_ui_contract"])
+        self.assertEqual(manifest["shell_ui_contract_manifest_fingerprint"], shell_fingerprint)
         self.assertIsNot(manifest["shell_ui_contract"], manifest)
         self.assertEqual(
             manifest["shell_ui_contract"],
