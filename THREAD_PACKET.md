@@ -5,7 +5,7 @@
 - Current branch tip before this fixer pass: `0b6ed199b752d758c8e3d71433740274efd2b62c`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before the gate-rerun note, and commit `0b6ed199b752d758c8e3d71433740274efd2b62c` recorded the passing gate rerun in `docs/gate_passed.txt`. This fixer pass refreshes only `THREAD_PACKET.md`, adds the explicit canonical demo-path step field requested by review, and does not move the reviewed implementation head or range.
+- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before the gate-rerun note, and commit `0b6ed199b752d758c8e3d71433740274efd2b62c` recorded the passing gate rerun in `docs/gate_passed.txt`. This fixer pass refreshes only `THREAD_PACKET.md`, keeps this file as the authoritative re-review packet, adds the explicit canonical demo-path step field requested by review, and does not move the reviewed implementation head or range.
 
 ## Scope goal
 
