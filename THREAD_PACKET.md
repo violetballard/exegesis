@@ -36,9 +36,9 @@
 ### Checkpoint Cadence (short updates)
 
 - Plan complete: packet scope reset to the current fixed branch state instead of the earlier narrower review slice.
-- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:55:41Z`.
+- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:59:51Z`.
 - Before risky/shared file edit: this fixer refreshes the shared handoff metadata (`THREAD.md`, `THREAD_PACKET.md`) for a branch state that already includes the approved shared regression file `tests/unit/test_commands_catalog.py`.
-- Ready for handoff: as of `2026-04-23T22:55:41Z`, the packet and required gate results match the fixed branch state.
+- Ready for handoff: as of `2026-04-23T22:59:51Z`, the packet and required gate results match the fixed branch state.
 
 ## Review Basis
 
@@ -163,7 +163,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification timestamp: `2026-04-23T22:55:41Z`
+- Verification timestamp: `2026-04-23T22:59:51Z`
 
 ### Risks / Blockers
 
