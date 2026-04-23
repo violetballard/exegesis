@@ -2,23 +2,22 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix refresh against the current branch tip`
-- Current submitted tip before this packet refresh commit: `302e264beff029792dd85fc5731f904b5950f8e9`
-- Reviewed implementation head: `b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`
-- Reviewed implementation range: `d9542206f6fd14db37d1ddf5efd76f941d32314b..b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`
-- Packet traceability note: this refresh commit is metadata-only. It preserves the reviewed implementation head `b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`, while the later metadata-only branch tip before this refresh commit is `302e264beff029792dd85fc5731f904b5950f8e9`.
-- Fixer note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain locked in this sandbox, so `THREAD_PACKET.md` and `docs/gate_passed.txt` are the authoritative writable handoff artifacts for this pass.
+- Current submitted tip before this packet refresh commit: `57aa020dcd152d4910e49e66dd6293b3fecb166d`
+- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Packet traceability note: this refresh commit is metadata-only. It preserves the reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` while refreshing the handoff packet on the later metadata-only branch tip `57aa020dcd152d4910e49e66dd6293b3fecb166d`.
 - Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to canonical FTS hits only, keeping retrieval provenance deterministic for downstream basket promotion.
 
 ## Scope Goal
 
-- Keep the handoff claim narrowly scoped to the canonical demo-path step `retrieve relevant material`, specifically the FTS-only excerpt lookup contract and its regression-backed downstream provenance behavior.
+- Keep the handoff claim narrowly scoped to the canonical demo-path step `retrieve relevant material`, specifically the FTS-only excerpt lookup contract and its regression-backed deterministic provenance behavior.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
-- Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
-- Scope goal: finalize the retrieval handoff on the actual branch tip while keeping the reviewer-visible claim limited to the canonical FTS excerpt lookup slice.
-- Risk reason: retrieval contract code is in scope and the lane remains under the retrieval-specific review gate.
+- Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
+- Scope goal: finalize the retrieval handoff on the actual branch tip while keeping the reviewer-visible claim limited to the canonical FTS excerpt lookup slice proved by `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- Risk reason: the lane touches the retrieval contract and includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the shared/high-risk 4-task cap applies.
 
 ### Budget
 
@@ -29,70 +28,57 @@
 
 ### Planned Tasks (max 4)
 
-1. Refresh the handoff packet against the actual metadata-only branch tip `302e264beff029792dd85fc5731f904b5950f8e9`.
-2. Add the explicit canonical demo-path line required by review and keep that claim limited to the FTS-only excerpt lookup contract.
-3. Refresh gate evidence against the same branch tip.
-4. Commit the metadata-only reviewer-fix packet refresh.
-
-### Early Review Triggers
-
-- before changing public retrieval contract wording
-- before broadening the canonical demo-path claim beyond excerpt lookup
-- before changing reviewed-range traceability
+1. Refresh the handoff packet against the actual metadata-only branch tip `57aa020dcd152d4910e49e66dd6293b3fecb166d`.
+2. Add the explicit canonical demo-path line requested by review and keep the claim scoped to the FTS-only excerpt lookup contract.
+3. Tighten `Scope goal`, `Scope completed`, and related handoff language so this packet claims only what `adfa8cdadd43747ffbcb612e4151e262b13e52ca` proves.
+4. Re-run the required gates and commit the metadata-only reviewer-fix packet refresh.
 
 ### Checkpoint Status
 
-- `plan complete`: the packet now targets the actual metadata-only branch tip `302e264beff029792dd85fc5731f904b5950f8e9`, and the required reviewer fix is narrowed to the canonical excerpt lookup claim only.
-- `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on `302e264beff029792dd85fc5731f904b5950f8e9`.
-- `before risky/shared file edit`: this pass edits handoff artifacts only.
-- `ready for handoff`: the packet, canonical demo-path line, reviewed range, and gate evidence all point at the same branch tip.
+- `plan complete`: the packet targets the actual metadata-only branch tip `57aa020dcd152d4910e49e66dd6293b3fecb166d`, and the reviewer fix is narrowed to the canonical excerpt lookup claim only.
+- `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on `57aa020dcd152d4910e49e66dd6293b3fecb166d`.
+- `before risky/shared file edit`: this pass edits packet metadata only.
+- `ready for handoff`: the packet, reviewed range, canonical demo-path line, and gate evidence all point at the same branch tip.
 
 ## Scope Completed
 
 - Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to canonical FTS hits only, keeping retrieval provenance deterministic for downstream basket promotion.
-- Plan-alignment statement: this reviewed slice only advances `retrieve relevant material`; it does not claim broader engine-surface completion or alternate retrieval modes beyond the FTS-only excerpt lookup contract.
-- `src/qual/retrieval/service.py` rebuilds excerpt query snapshots from the canonical nested query payload when present, clears mirrored query fields when that canonical snapshot is absent, and avoids rewriting the encrypted FTS database on read-only lookup paths.
-- `src/qual/engine/retrieval/payload.py` preserves `excerpt_provenance_fingerprints` in normalized retrieval manifests so result fingerprints stay stable for audit and promotion consumers.
-- The packet refresh is metadata-only and does not change the reviewed implementation range above.
+- Plan-alignment statement: this reviewed slice only advances `retrieve relevant material`; it does not claim broader engine-surface completion, alternate retrieval modes, or full lane completion.
+- `src/qual/retrieval/service.py` now makes `fetch_excerpt()` resolve only through the canonical FTS lookup path.
+- `tests/unit/test_unified_retrieval.py` now proves PageIndex-only excerpt IDs fail closed with `KeyError` under approved shared regression coverage.
+- This packet refresh is metadata-only and does not change the reviewed implementation range above.
 
 ## Reviewed Scope Boundary
 
-- Reviewed implementation range: `d9542206f6fd14db37d1ddf5efd76f941d32314b..b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`
-- Cumulative non-metadata files in that range:
-- `src/qual/engine/retrieval/payload.py`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation files:
 - `src/qual/retrieval/service.py`
+- `tests/unit/test_unified_retrieval.py`
 - Metadata-only packet-refresh files in this resubmission:
 - `THREAD_PACKET.md`
-- `docs/gate_passed.txt`
-- Locked stale packet copies not refreshed in place:
+- Stale mirror files not writable in this sandbox:
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
 
-## Canonical Demo-Path Step Advanced
-
-- `retrieve relevant material`
-- Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to canonical FTS hits only, keeping retrieval provenance deterministic for downstream basket promotion.
-
 ## Tasks Completed
 
-1. Refreshed the handoff packet against the actual metadata-only branch tip `302e264beff029792dd85fc5731f904b5950f8e9`.
+1. Refreshed the handoff packet against the actual metadata-only branch tip `57aa020dcd152d4910e49e66dd6293b3fecb166d`.
 2. Added the explicit canonical demo-path line requested by review and kept the claim scoped to the FTS-only excerpt lookup contract.
-3. Refreshed gate evidence against `302e264beff029792dd85fc5731f904b5950f8e9`.
-4. Produced a metadata-only reviewer-fix packet refresh for re-review.
+3. Tightened the handoff language so this packet claims only the deterministic, auditable excerpt-lookup contract change proved by `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+4. Re-ran the required gates and produced a metadata-only reviewer-fix packet refresh for re-review.
 
 ## Files Changed
 
-- Cumulative non-metadata files in `d9542206f6fd14db37d1ddf5efd76f941d32314b..b8ae6c7a0e73d9d3ec5e1024ceb1c34d232e46c6`:
-- `src/qual/engine/retrieval/payload.py`
+- Reviewed implementation files in `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`:
 - `src/qual/retrieval/service.py`
-- Metadata-only packet-refresh files in this resubmission:
+- `tests/unit/test_unified_retrieval.py`
+- Metadata-only packet-refresh file in this resubmission:
 - `THREAD_PACKET.md`
-- `docs/gate_passed.txt`
 
 ## Commands Run With Results
 
 - Gate rerun date: `2026-04-23`
-- Gate rerun target: `302e264beff029792dd85fc5731f904b5950f8e9`
+- Gate rerun target: `57aa020dcd152d4910e49e66dd6293b3fecb166d`
 - `make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
@@ -102,15 +88,15 @@
 
 ## Reviewer Fix Closure
 
-1. The packet now states the canonical demo-path step explicitly in a single handoff line, using the reviewer-requested `retrieve relevant material` wording.
+1. The packet now states the canonical demo-path step explicitly using the reviewer-requested `retrieve relevant material` wording.
 2. The scope statement stays narrow to the FTS-only excerpt lookup contract and its deterministic downstream provenance behavior.
-3. The authoritative writable handoff artifacts have been regenerated on the actual branch tip for re-review.
+3. The authoritative writable handoff artifact has been regenerated on the actual branch tip for re-review.
 
 ## Risks / Blockers
 
 - Risk: `MEDIUM`
-- Residual risk: the cumulative reviewed range includes a later retrieval read-path hardening change in `src/qual/retrieval/service.py`; the canonical demo-path claim above remains intentionally narrower than the full implementation range.
-- Blockers: none
+- Residual risk: this packet intentionally narrows the claim to the excerpt-lookup contract change; broader retrieval-lane work remains out of scope for this specific re-review.
+- Blockers: the `.codex` kickoff and lane-meta mirror files are visible but not writable in this sandbox (`EPERM`), so this refresh is carried by `THREAD_PACKET.md`.
 
 ## Required Handoff Fields
 
@@ -140,5 +126,4 @@
 ## Scope-Check / Ownership Note
 
 - Shared or integrator-locked edits in this packet refresh commit: `NO`
-- Cumulative reviewed implementation files remain in the retrieval lane paths above.
-- `.codex` packet copies remain locked in this sandbox, so the root packet artifacts are authoritative for this pass.
+- Shared-by-approval coverage in the reviewed implementation range remains limited to `tests/unit/test_unified_retrieval.py`.
