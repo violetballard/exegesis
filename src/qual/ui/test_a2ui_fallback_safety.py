@@ -4349,12 +4349,13 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             },
         }
         seen_hint: list[tuple[object, str] | None] = []
+        expected_text = "[ActionRef] Export\nAction schema v1"
 
         def _render_with_hint(rendered_artifact: object, *, kind: str | None = None) -> str:
             self.assertIs(rendered_artifact, artifact["artifact"])
             self.assertEqual(kind, "action")
             seen_hint.append(_TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get())
-            return "cli-fallback"
+            return expected_text
 
         with patch(
             "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
@@ -4363,14 +4364,56 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             with patch(
                 "src.qual.ui.shell.render_terminal_cli_fallback",
                 side_effect=_render_with_hint,
-            ) as cli_fallback:
+                ) as cli_fallback:
                 text = shell.render_cli_fallback(artifact)
 
-        self.assertEqual(text, "cli-fallback")
+        self.assertEqual(text, expected_text)
         resolver.assert_called_once_with(artifact, kind=None)
         cli_fallback.assert_called_once_with(artifact["artifact"], kind="action")
         self.assertEqual(seen_hint, [(artifact["artifact"], "action")])
         self.assertIsNone(_TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get())
+
+    def test_shell_ui_render_cli_fallback_recovers_when_shared_fallback_renderer_raises(self) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                ActionRef(
+                    id=" export_document ",
+                    label=" Export ",
+                    payload={"format": "json"},
+                ),
+                "render_terminal_action",
+                "[ActionRef] recovered",
+            ),
+            (
+                "selection",
+                SelectionRef(
+                    id=" choice-1 ",
+                    label=" Choice ",
+                    payload={"nested": {"items": [1, 2]}},
+                ),
+                "render_terminal_selection",
+                "[SelectionRef] recovered",
+            ),
+        ]
+
+        for case_name, artifact, renderer_name, expected_text in cases:
+            with self.subTest(case=case_name):
+                with patch(
+                    "src.qual.ui.shell.render_terminal_cli_fallback",
+                    side_effect=RuntimeError("cli fallback boom"),
+                ) as cli_fallback:
+                    with patch(
+                        f"src.qual.ui.shell.{renderer_name}",
+                        return_value=expected_text,
+                    ) as leaf_renderer:
+                        text = shell.render_cli_fallback(artifact)
+
+                self.assertEqual(text, expected_text)
+                cli_fallback.assert_called_once_with(artifact, kind=case_name)
+                leaf_renderer.assert_called_once_with(artifact)
+                self.assertIsNone(_TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get())
 
     def test_shell_ui_contract_can_opt_in_to_cli_fallback_route_contract(self) -> None:
         default_manifest = describe_shell_ui_contract()

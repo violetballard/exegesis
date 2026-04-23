@@ -136,42 +136,11 @@ class ShellUI:
         fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set(
             (fallback_artifact, fallback_kind),
         )
-        leaf_specific_fallback = fallback_kind in {"action", "selection"}
         try:
-            rendered_cli_fallback = render_terminal_cli_fallback(fallback_artifact, kind=fallback_kind)
-        except Exception:
-            rendered_cli_fallback = None
-        else:
-            if not leaf_specific_fallback or self._has_expected_leaf_renderer_prefix(
-                rendered_cli_fallback,
-                fallback_kind,
-            ):
-                return rendered_cli_fallback
+            return self._render_cli_fallback_with_recovery(fallback_artifact, fallback_kind)
         finally:
             if fallback_hint_token is not None:
                 _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.reset(fallback_hint_token)
-        if fallback_kind == "action":
-            try:
-                return render_terminal_action(fallback_artifact)
-            except Exception:
-                return _render_invalid_terminal_action(fallback_artifact)
-        if fallback_kind == "selection":
-            try:
-                return render_terminal_selection(fallback_artifact)
-            except Exception:
-                return _render_invalid_terminal_selection(fallback_artifact)
-        if fallback_kind not in {"action", "selection"}:
-            try:
-                # Retry the shared renderer on the resolved fallback target so
-                # we do not reprocess the original envelope after CLI fallback
-                # resolution has already recovered a safer payload.
-                return render_terminal_artifact(fallback_artifact, kind=fallback_kind)
-            except Exception:
-                pass
-        try:
-            return render_terminal_card(fallback_artifact)
-        except Exception:
-            return _render_invalid_terminal_card(fallback_artifact)
 
     def render_cli_fallback(self, artifact: Any, *, kind: str | None = None) -> str:
         """Render an A2UI artifact through the explicit CLI fallback entrypoint."""
@@ -185,11 +154,52 @@ class ShellUI:
         try:
             if fallback_target is not None:
                 fallback_artifact, fallback_kind = fallback_target
-                return render_terminal_cli_fallback(fallback_artifact, kind=fallback_kind)
-            return render_terminal_cli_fallback(artifact, kind=kind)
+                return self._render_cli_fallback_with_recovery(fallback_artifact, fallback_kind)
+            return self._render_cli_fallback_with_recovery(artifact, kind)
         finally:
             if fallback_hint_token is not None:
                 _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.reset(fallback_hint_token)
+
+    def _render_cli_fallback_with_recovery(self, artifact: Any, kind: str | None) -> str:
+        """Render through the shared CLI fallback path and recover on failure.
+
+        The explicit CLI fallback entrypoint should stay usable even if the
+        shared fallback renderer raises or returns an unexpected leaf shape.
+        """
+
+        leaf_specific_fallback = kind in {"action", "selection"}
+        try:
+            rendered_cli_fallback = render_terminal_cli_fallback(artifact, kind=kind)
+        except Exception:
+            rendered_cli_fallback = None
+        else:
+            if not leaf_specific_fallback or self._has_expected_leaf_renderer_prefix(
+                rendered_cli_fallback,
+                kind,
+            ):
+                return rendered_cli_fallback
+        if kind == "action":
+            try:
+                return render_terminal_action(artifact)
+            except Exception:
+                return _render_invalid_terminal_action(artifact)
+        if kind == "selection":
+            try:
+                return render_terminal_selection(artifact)
+            except Exception:
+                return _render_invalid_terminal_selection(artifact)
+        if kind not in {"action", "selection"}:
+            try:
+                # Retry the shared renderer on the resolved fallback target so
+                # we do not reprocess the original envelope after CLI fallback
+                # resolution has already recovered a safer payload.
+                return render_terminal_artifact(artifact, kind=kind)
+            except Exception:
+                pass
+        try:
+            return render_terminal_card(artifact)
+        except Exception:
+            return _render_invalid_terminal_card(artifact)
 
     def render_startup(self, runtime: EngineRuntime) -> str:
         item_ids = self._snapshot_item_ids(runtime.basket.item_ids)
