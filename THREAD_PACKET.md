@@ -7,7 +7,8 @@
 - Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..11d7079e3652cbcf14e9de2524b37ef2f8ab8a05`
 - Packet traceability note: review this lane against the narrowed implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `adfa8cda..11d7079e`.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Reviewer-required plan-alignment statement: this slice advances `retrieve relevant material` by keeping excerpt lookup and provenance on the deterministic FTS contract, without claiming broader basket or workflow completion.
+- Reviewer-required plan-alignment statement: Canonical demo-path step advanced: `retrieve relevant material`; this commit removes the PageIndex fallback from `fetch_excerpt`, and regression coverage proves PageIndex-only excerpt IDs now fail closed.
+- Packet authority note: this top-level packet and `docs/gate_passed.txt` are the reviewer-facing source of truth for the explicit demo-path mapping and plan-alignment wording on this branch.
 
 ## Scope Goal
 
@@ -46,7 +47,7 @@
 - SQLite FTS remains the authoritative retrieval path for the reviewed implementation range.
 - Excerpt lookup still fails closed on the canonical FTS path for PageIndex-only excerpt IDs.
 - Sparse excerpt query snapshots now rehydrate canonical constraint fields from both nested `query.constraints` payloads and the mirrored top-level `query_constraints` or `query_*` fields, so excerpt lookup, provenance, and basket-promotion payloads stay deterministic and auditable instead of silently dropping prior constraints.
-- This handoff advances the canonical demo-path step `retrieve relevant material` by tightening canonical excerpt lookup and provenance on the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed and downstream basket/workflow consumers audit the same stored query contract.
+- This handoff advances the canonical demo-path step `retrieve relevant material` by removing the `fetch_excerpt` PageIndex fallback on the authoritative SQLite FTS path and proving with regression coverage that PageIndex-only excerpt IDs now fail closed.
 
 ## Reviewed Scope Boundary
 
@@ -86,10 +87,11 @@
 ## Reviewer Fix Closure
 
 1. The packet now matches the real branch tip by reviewing the code-changing range `adfa8cda..11d7079e` instead of calling those commits metadata-only.
-2. The handoff explicitly states that this lane advances canonical demo-path step `retrieve relevant material`.
-3. The packet now includes a dedicated reviewer-required plan-alignment statement that keeps the claim narrowed to deterministic FTS excerpt lookup and provenance behavior.
-4. The scope summary is now limited to the canonical excerpt lookup/provenance slice instead of implying broader `feat-retrieval-fts` completion.
+2. The handoff explicitly states `Canonical demo-path step advanced: retrieve relevant material; this commit removes the PageIndex fallback from fetch_excerpt, and regression coverage proves PageIndex-only excerpt IDs now fail closed.`
+3. The packet now includes a dedicated reviewer-required plan-alignment statement that keeps the claim narrowed to the reviewed `fetch_excerpt` fail-closed slice.
+4. The scope summary is now limited to the reviewed `fetch_excerpt` fail-closed slice instead of implying broader `feat-retrieval-fts` completion.
 5. The reviewed file list, task list, and gate summary all match the current reviewed implementation range and branch contents.
+6. The reviewer-facing truth sources are explicitly identified so re-review reads the demo-path mapping from this packet and `docs/gate_passed.txt`.
 
 ## Risks / Blockers
 
@@ -106,6 +108,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
+- Deterministic FTS-only excerpt lookup strengthens auditable basket-promotion inputs.
 
 ### Vision capability affected
 
