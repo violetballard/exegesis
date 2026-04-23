@@ -6,10 +6,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
+- Reviewed implementation commit pinned for re-review: `06540160de4cf0d452c1ed9b4d4926c205888be9`.
+- Any later commit on this branch is a metadata-only packet refresh unless a newer handoff explicitly broadens review scope.
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - Reviewed implementation behavior:
+  - `command_cli_contract()` rejects parser-surface drift, including alias substitution, token removal, token addition, and parser-surface reorder cases that leave canonical command names unchanged
   - shim-backed demo-loop tokens now keep their logical flow-step identity in the canonical CLI MVP workflow contract
   - `apply-patch`, `reject-patch`, and `persist` no longer collapse to `export-handoff` inside workflow, trusted-surface, compatibility, and next-action metadata
   - regression coverage now locks that corrected metadata for the `project-open -> retrieval -> patch-review -> apply/reject -> persist -> export-handoff` demo path
@@ -30,5 +33,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - lane-owned implementation: `src/qual/commands/catalog.py`
   - approved shared regression file: `tests/unit/test_commands_catalog.py`
   - integrator-locked files touched: none
-  - required gates passed: `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, `make ci`
+  - canonical demo-path step advanced: `preview and apply or reject a patch`
+  - concrete blocker removed: shim-backed terminal commands no longer inherit the base `export-handoff` flow-step label when the logical command is `apply-patch`, `reject-patch`, or `persist`, and parser-surface drift on `command_cli_contract()` now fails fast instead of silently preserving only canonical-name order
+  - required gates passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, `make ci`
   - metadata refreshed for this handoff: `THREAD.md`, `THREAD_PACKET.md`
