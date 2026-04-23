@@ -721,6 +721,75 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["contract_fingerprint"], fingerprint)
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
+    def test_a2ui_contract_can_opt_into_terminal_artifact_cli_fallback_entrypoint_contract_slice(self) -> None:
+        default_manifest = describe_a2ui_contract()
+        default_fingerprints = describe_a2ui_contract_fingerprints()
+        manifest = describe_a2ui_contract(include_terminal_artifact_cli_fallback_entrypoint=True)
+        fingerprints = describe_a2ui_contract_fingerprints(
+            include_terminal_artifact_cli_fallback_entrypoint=True,
+        )
+        entrypoint_manifest = describe_terminal_artifact_cli_fallback_entrypoint_contract()
+        entrypoint_fingerprints = describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints()
+
+        self.assertNotIn("terminal_artifact_cli_fallback_entrypoint_contract", default_manifest)
+        self.assertNotIn("terminal_artifact_cli_fallback_entrypoint", default_fingerprints)
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint"],
+            "render_terminal_cli_fallback",
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_fingerprint"],
+            _fingerprint_manifest_section("render_terminal_cli_fallback"),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_contract"],
+            entrypoint_manifest,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_contract_manifest"],
+            entrypoint_manifest,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_contract_fingerprint"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints"],
+            entrypoint_fingerprints,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint"],
+            _fingerprint_manifest_section("render_terminal_cli_fallback"),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_fingerprint"],
+            _fingerprint_manifest_section("render_terminal_cli_fallback"),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_manifest"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint(),
+        )
+
     def test_terminal_artifact_cli_fallback_target_contract_can_opt_into_route_contract(self) -> None:
         manifest = describe_terminal_artifact_cli_fallback_target_contract(
             include_terminal_artifact_cli_fallback_route=True,
