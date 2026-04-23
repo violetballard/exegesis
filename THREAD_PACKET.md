@@ -2,10 +2,10 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Current branch tip before this fixer pass: `34b511ace9324f15de023d89e0b57bad382c35bd`
+- Current branch tip before this fixer pass: `1c2058975a5207bd7193a228bf8d0031f7d3e058`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before the gate-rerun note, commit `0b6ed199b752d758c8e3d71433740274efd2b62c` recorded the first passing gate rerun in `docs/gate_passed.txt`, commit `86e0f49aac171d1cfc4f461274c672233279cd64` added the explicit canonical demo-path step requested by review, and commit `34b511ace9324f15de023d89e0b57bad382c35bd` is the latest metadata-only packet refresh before this fixer pass. This fixer pass refreshes `THREAD_PACKET.md`, keeps this file as the authoritative re-review packet, records a fresh all-green gate rerun on `2026-04-23`, and does not move the reviewed implementation head or range.
+- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before the gate-rerun note, commit `0b6ed199b752d758c8e3d71433740274efd2b62c` recorded the first passing gate rerun in `docs/gate_passed.txt`, commit `86e0f49aac171d1cfc4f461274c672233279cd64` added the explicit canonical demo-path step requested by review, and commit `1c2058975a5207bd7193a228bf8d0031f7d3e058` is the latest metadata-only packet refresh before this fixer pass. This fixer pass refreshes `THREAD_PACKET.md`, keeps this file as the authoritative re-review packet, makes the roadmap and vision mapping explicit on the same narrowed FTS-only excerpt-contract scope, records a fresh all-green gate rerun on `2026-04-23`, and does not move the reviewed implementation head or range.
 
 ## Scope goal
 
@@ -41,8 +41,10 @@
 
 ## Scope completed
 
-- `fetch_excerpt()` now resolves through the canonical FTS-only path and no longer falls back to PageIndex-backed excerpt payloads.
-- Approved shared regression coverage now covers both previously indexed PageIndex excerpts and a synthetic PageIndex-only excerpt ID, and both paths fail closed with `KeyError`.
+- Canonical demo-path step advanced in this reviewed scope: `retrieve relevant material`.
+- This handoff is a Milestone 3 retrieval/search hardening change for the canonical engine retrieval surface.
+- `fetch_excerpt()` now resolves through the authoritative FTS-only path and no longer falls back to PageIndex-backed excerpt payloads, which makes `retrieve relevant material` depend on structured FTS results only.
+- Approved shared regression coverage proves PageIndex-backed excerpt IDs fail closed with `KeyError`, which keeps `retrieve relevant material` aligned to the FTS-first roadmap contract instead of silently reopening a non-FTS excerpt path.
 - SQLite FTS remains the authoritative MVP retrieval path; PageIndex and embeddings remain compatibility-only, non-required paths in this slice.
 
 ## Reviewed Scope Boundary
@@ -63,10 +65,10 @@ This handoff advances `retrieve relevant material` by enforcing authoritative FT
 
 ## Tasks completed
 
-1. Removed the PageIndex fallback from `fetch_excerpt()` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
-2. Replaced the old shared test that normalized PageIndex excerpt payloads with a fail-closed assertion that `fetch_excerpt()` now raises `KeyError` for that path.
-3. Added a second approved shared regression that constructs a PageIndex-only excerpt ID via `DocIndexService` and proves the canonical retrieval surface rejects it with `KeyError`.
-4. Re-emitted the handoff packet so `Scope completed`, `Tasks completed`, shared-test approval, and the canonical demo-path mapping all describe the actual `adfa8cda` reviewed range.
+1. Advanced `retrieve relevant material` by removing the PageIndex fallback from `fetch_excerpt()` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
+2. Advanced `retrieve relevant material` by replacing the old shared test that normalized PageIndex excerpt payloads with a fail-closed assertion that `fetch_excerpt()` now raises `KeyError` for that path.
+3. Advanced `retrieve relevant material` by adding a second approved shared regression that constructs a PageIndex-only excerpt ID via `DocIndexService` and proves the canonical retrieval surface rejects it with `KeyError`.
+4. Re-emitted the handoff packet so `Scope completed`, `Tasks completed`, and the dedicated `Canonical demo-path step advanced` field all state that this `adfa8cda` reviewed range advances Milestone 3 retrieval/search by making `retrieve relevant material` more real.
 
 ## Files changed
 
@@ -124,7 +126,7 @@ This handoff advances `retrieve relevant material` by enforcing authoritative FT
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop`
+- `Milestone 3: Real workflow loop` because this change keeps retrieval/search FTS-first and structured on the engine path.
 - `feat-retrieval-fts`
 
 ### Canonical demo-path step advanced
@@ -134,7 +136,6 @@ This handoff advances `retrieve relevant material` by enforcing authoritative FT
 ### Vision capability affected
 
 - `2. Retrieval-first context handling`
-- `6. Auditable state and workflow`
 
 ### Routing/provider impact note
 
