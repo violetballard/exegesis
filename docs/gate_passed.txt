@@ -1,17 +1,18 @@
 Gate Results Summary (as of 2026-04-23)
 -------------------------------------
 
-All automated gates ran successfully:
+Required automated gates ran successfully against:
 
-* `scope-check` – passed
-* `quality-format.sh --check` – passed
-* `quality-lint.sh` – passed (no lint errors)
-* `quality-test.sh` – passed 199 unit and smoke tests
-* `typecheck-test.sh` – passed
-* `make ci` – passed all CI checks
+* `d9542206f6fd14db37d1ddf5efd76f941d32314b`
 
-This reviewer-fix pass is metadata-only for the current submission state.
-The reviewed retrieval/runtime tip remains `0bf3263dbcc96d1b94cb890c27bfd4a2375ba61d`,
-and the authoritative packet in `THREAD_PACKET.md` matches the real post-`adfa8cda` scope.
-Mirror writes to `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`
-are OS-blocked in this worktree with `PermissionError: [Errno 1] Operation not permitted`.
+All automated gates passed:
+
+* `make scope-check` - passed
+* `quality-format.sh --check` - passed
+* `quality-lint.sh` - passed
+* `quality-test.sh` - passed 200 tests
+* `typecheck-test.sh` - passed
+* `make ci` - passed
+
+This packet-refresh commit updates handoff traceability only.
+The reviewed implementation range remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca..d9542206f6fd14db37d1ddf5efd76f941d32314b`.
