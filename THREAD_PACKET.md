@@ -2,10 +2,10 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Current branch tip before this fixer pass: `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982`
+- Current branch tip before this fixer pass: `0b6ed199b752d758c8e3d71433740274efd2b62c`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, and commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before this fixer pass. This fixer pass refreshes only `THREAD_PACKET.md` and does not move the reviewed implementation head or range.
+- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before the gate-rerun note, and commit `0b6ed199b752d758c8e3d71433740274efd2b62c` recorded the passing gate rerun in `docs/gate_passed.txt`. This fixer pass refreshes only `THREAD_PACKET.md`, adds the explicit canonical demo-path step field requested by review, and does not move the reviewed implementation head or range.
 
 ## Scope goal
 
@@ -51,7 +51,6 @@
 - `retrieve relevant material`
 
 This handoff advances `retrieve relevant material` by enforcing authoritative FTS-only excerpt lookup with deterministic fail-closed behavior for non-FTS excerpt IDs.
-It does not claim new basket-promotion behavior; any downstream basket value here is indirect contract hardening only.
 It does not claim newly completed basket-promotion behavior; any downstream basket effect remains an indirect consequence of the hardened excerpt contract.
 
 ## Tasks completed
@@ -59,6 +58,7 @@ It does not claim newly completed basket-promotion behavior; any downstream bask
 1. Removed the PageIndex fallback from `fetch_excerpt()` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
 2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
 3. Tightened the handoff scope language so it describes indirect downstream basket contract hardening only and does not claim new basket-promotion behavior.
+4. Re-emitted the handoff packet with the explicit canonical demo-path step advanced by this slice and kept it scoped to the reviewed `fetch_excerpt()` narrowing only.
 
 ## Files changed
 
