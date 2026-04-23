@@ -1049,6 +1049,9 @@ def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[
     normalized["top_excerpt_text_hashes"] = _normalize_text_list_like(normalized.get("top_excerpt_text_hashes"))
     normalized["excerpt_ids"] = _normalize_text_list_like(normalized.get("excerpt_ids"))
     normalized["excerpt_fingerprints"] = _normalize_text_list_like(normalized.get("excerpt_fingerprints"))
+    normalized["excerpt_provenance_fingerprints"] = _normalize_text_list_like(
+        normalized.get("excerpt_provenance_fingerprints")
+    )
     normalized["excerpt_text_hashes"] = _normalize_text_list_like(normalized.get("excerpt_text_hashes"))
     normalized["active_strategy_ids"] = _normalize_text_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_text_list_like(normalized.get("deferred_strategy_ids"))

@@ -2431,6 +2431,11 @@ class RetrievalService:
         excerpt_fingerprints = [
             _optional_text(hit.provenance.get("excerpt_fingerprint")) for hit in hits if hit.excerpt_id is not None
         ]
+        excerpt_provenance_fingerprints = [
+            _optional_text(hit.provenance.get("excerpt_provenance_fingerprint"))
+            for hit in hits
+            if hit.excerpt_id is not None
+        ]
         excerpt_text_hashes = [
             _optional_text(hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"))
             for hit in hits
@@ -2475,6 +2480,7 @@ class RetrievalService:
             "top_excerpt_text_hashes": top_excerpt_text_hashes,
             "excerpt_ids": [hit.excerpt_id for hit in hits if hit.excerpt_id is not None],
             "excerpt_fingerprints": excerpt_fingerprints,
+            "excerpt_provenance_fingerprints": excerpt_provenance_fingerprints,
             "excerpt_text_hashes": excerpt_text_hashes,
             "doc_hits_fingerprint": doc_hits_fingerprint,
             "excerpt_hits_fingerprint": excerpt_hits_fingerprint,
@@ -2599,6 +2605,9 @@ class RetrievalService:
             "doc_fingerprints": retrieval_manifest.get("doc_fingerprints", []),
             "top_excerpt_fingerprints": retrieval_manifest.get("top_excerpt_fingerprints", []),
             "excerpt_fingerprints": retrieval_manifest.get("excerpt_fingerprints", []),
+            # Keep provenance-sensitive result fingerprints stable for audit and
+            # basket promotion consumers even when excerpt text stays the same.
+            "excerpt_provenance_fingerprints": retrieval_manifest.get("excerpt_provenance_fingerprints", []),
             "top_excerpt_text_hashes": retrieval_manifest.get("top_excerpt_text_hashes", []),
             "excerpt_text_hashes": retrieval_manifest.get("excerpt_text_hashes", []),
             "active_strategy_ids": retrieval_manifest.get("active_strategy_ids", []),
