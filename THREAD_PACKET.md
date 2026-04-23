@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: regenerate the handoff for reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` so it satisfies the high-risk AGENTS template and states exactly which canonical demo-path CLI step this Milestone 3 command-contract change advances.
+- Scope goal: regenerate the handoff for reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` so it satisfies the high-risk AGENTS template and states exactly which canonical demo-path CLI step this Milestone 3 CLI-compatibility hardening change advances.
 - Risk reason: the reviewed slice mixes lane-owned command code with a shared test file, and this fixer also updates shared handoff metadata to satisfy the lane-specific review gate.
 
 ### Budget
@@ -36,9 +36,9 @@
 ### Checkpoint Cadence (short updates)
 
 - Plan complete: packet scope reset to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` instead of the full branch tip.
-- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T21:02:47Z`.
+- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T21:18:21Z`.
 - Before risky/shared file edit: this fixer edits shared handoff metadata only (`THREAD.md`, `THREAD_PACKET.md`).
-- Ready for handoff: as of `2026-04-23T21:02:47Z`, the packet and required gate results match the reviewed slice.
+- Ready for handoff: as of `2026-04-23T21:18:21Z`, the packet and required gate results match the reviewed slice.
 
 ## Review Basis
 
@@ -53,8 +53,8 @@
 
 ## Scope Completed
 
-- Regenerated the lane handoff as a completed high-risk AGENTS packet for the reviewed shared-file slice.
-- Added the missing reviewer-requested canonical demo-path mapping statement and the explicit reason this work advances the Milestone 3 CLI loop directly.
+- Regenerated the lane handoff as a completed high-risk AGENTS packet for the reviewed Milestone 3 CLI-compatibility hardening slice.
+- Added the missing reviewer-requested canonical demo-path mapping statement and the explicit reason this work advances the Milestone 3 CLI loop directly instead of serving as generic infra cleanup.
 - Kept review scope pinned to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; no additional implementation change was made.
 
 ## Kickoff Budget / Limits Compliance
@@ -70,6 +70,7 @@
   - direct step advanced: step 3 `preview and apply or reject a patch`
   - out of scope: no new step 1 `open project/document` or step 2 `retrieve relevant material` workflow coverage is claimed by this command-catalog contract slice
 - Why this is direct MVP-loop work rather than second-order cleanup:
+  - this is Milestone 3 CLI-compatibility hardening, not generic infra cleanup: it hardens the operator-visible command contract while Textual remains disabled and the CLI carries the demo path.
   - the reviewed `catalog.py` change makes the CLI contract fail fast if the parser-visible entrypoint surface drifts away from the command catalog, including alias-level drift that would otherwise still collapse to the same canonical tuple.
   - that stricter check protects the operator-visible patch preview/apply route, so deterministic CLI smoke coverage for the Milestone 3 command contract remains meaningful instead of silently testing the wrong contract.
 
@@ -86,10 +87,12 @@
 
 - Primary step advanced directly: step 3 `preview and apply or reject a patch`
   - reason: the reviewed catalog contract check keeps the canonical CLI command surface aligned with the command catalog, so the patch preview/apply entrypoint cannot silently drift away from the route the operator and smoke tests expect.
+- Canonical demo-path step(s) advanced:
+  - step 3 `preview and apply or reject a patch`, because the CLI command contract now fails fast on parser/catalog drift instead of silently changing the operator-visible patch preview/apply surface while Textual remains disabled.
 - Out of scope:
   - this slice does not claim new step 1 `open project/document` or step 2 `retrieve relevant material` workflow coverage.
 - Explicit AGENTS mapping statement:
-  - this reviewed change is not generic command-catalog cleanup. It makes step 3 `preview and apply or reject a patch` more real directly because it turns parser/catalog drift from a silent contract change into a deterministic failure on the exact CLI surface that step depends on.
+  - this reviewed change is not generic command-catalog cleanup. It is a Milestone 3 CLI-compatibility hardening change that makes step 3 `preview and apply or reject a patch` more real directly because it turns parser/catalog drift from a silent contract change into a deterministic failure on the exact CLI surface that step depends on.
 
 ## Shared-Path Approval Basis
 
@@ -131,7 +134,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification timestamp: `2026-04-23T21:02:47Z`
+- Verification timestamp: `2026-04-23T21:18:21Z`
 
 ### Risks / Blockers
 
