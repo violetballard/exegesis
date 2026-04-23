@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: regenerate the handoff for reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` so it satisfies the high-risk AGENTS template and states exactly which canonical demo-path CLI step this Milestone 3 CLI-compatibility hardening change advances.
+- Scope goal: regenerate the handoff for reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` so it satisfies the high-risk AGENTS template and states exactly which canonical demo-path CLI step this canonical command order/name hardening change advances.
 - Risk reason: the reviewed slice mixes lane-owned command code with a shared test file, and this fixer also updates shared handoff metadata to satisfy the lane-specific review gate.
 
 ### Budget
@@ -17,7 +17,7 @@
 ### Planned Tasks (max 4)
 
 1. Rebuild the handoff as a completed high-risk AGENTS packet pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-2. Add the explicit canonical demo-path mapping statement the reviewer requested, keeping the claim pinned to the Milestone 3 CLI contract and the single demo-path step this slice directly hardens.
+2. Add the explicit canonical demo-path mapping statement the reviewer requested, keeping the claim pinned to the Milestone 3 CLI contract and the single demo-path step this reviewed canonical-order/name slice directly hardens.
 3. Keep implementation scope pinned to the reviewed files and record the shared-file basis truthfully.
 4. Run `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`, then stamp the packet with the results.
 
@@ -38,7 +38,7 @@
 - Plan complete: packet scope reset to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` instead of the full branch tip.
 - First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T21:18:21Z`.
 - Before risky/shared file edit: this fixer edits shared handoff metadata only (`THREAD.md`, `THREAD_PACKET.md`).
-- Ready for handoff: as of `2026-04-23T21:18:21Z`, the packet and required gate results match the reviewed slice.
+- Ready for handoff: as of `2026-04-23T21:35:16Z`, the packet and required gate results match the reviewed slice.
 
 ## Review Basis
 
@@ -47,14 +47,14 @@
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - Reviewed change summary:
-  - `src/qual/commands/catalog.py`: routes `command_cli_contract()` through the stricter parser-surface validator so the contract must match both the canonical command order and the full declared CLI entrypoint surface.
-  - `tests/unit/test_commands_catalog.py`: adds parser-surface drift regressions for dropped canonical tokens, alias substitution, alias reordering, extra accepted entrypoints, and removed expected aliases.
+  - `src/qual/commands/catalog.py`: makes `command_cli_contract()` fail if the canonical command order derived from `command_cli_lookup_table()` no longer matches `command_names()`.
+  - `tests/unit/test_commands_catalog.py`: adds the targeted mismatch regression that proves the contract rejects canonical-name/order drift in that catalog projection.
 - This fixer pass does not change that implementation scope. It only regenerates the handoff metadata in `THREAD.md` and `THREAD_PACKET.md`.
 
 ## Scope Completed
 
 - Regenerated the lane handoff as a completed high-risk AGENTS packet for the reviewed Milestone 3 CLI-compatibility hardening slice.
-- Added the missing reviewer-requested canonical demo-path mapping statement and the explicit reason this work advances the Milestone 3 CLI loop directly instead of serving as generic infra cleanup.
+- Added the missing reviewer-requested canonical demo-path mapping statement and the explicit reason this reviewed canonical-order/name hardening advances the Milestone 3 CLI loop directly instead of serving as generic infra cleanup.
 - Kept review scope pinned to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; no additional implementation change was made.
 - Revalidated the branch tip with a fresh full gate rerun so the handoff reflects the actual final fixer state rather than the earlier packet-refresh timestamp.
 
@@ -72,28 +72,28 @@
   - out of scope: no new step 1 `open project/document` or step 2 `retrieve relevant material` workflow coverage is claimed by this command-catalog contract slice
 - Why this is direct MVP-loop work rather than second-order cleanup:
   - this is Milestone 3 CLI-compatibility hardening, not generic infra cleanup: it hardens the operator-visible command contract while Textual remains disabled and the CLI carries the demo path.
-  - the reviewed `catalog.py` change makes the CLI contract fail fast if the parser-visible entrypoint surface drifts away from the command catalog, including alias-level drift that would otherwise still collapse to the same canonical tuple.
-  - that stricter check protects the operator-visible patch preview/apply route, so deterministic CLI smoke coverage for the Milestone 3 command contract remains meaningful instead of silently testing the wrong contract.
+  - the reviewed `catalog.py` change makes the CLI contract fail fast if the canonical command order derived from the lookup table drifts away from `command_names()`.
+  - that check protects the operator-visible patch preview/apply route, so deterministic CLI smoke coverage for the Milestone 3 command contract remains meaningful instead of silently testing the wrong command ordering.
 
 ## Reviewer Fix Closure
 
 - Required fix 1 satisfied:
-  - `command_cli_contract()` now validates the actual declared parser surface, not only the deduplicated canonical-name projection, so alias-level parser drift fails fast.
+  - this packet explicitly names demo-path step 3 `preview and apply or reject a patch` and explains that the reviewed contract hardening keeps that CLI route aligned with the catalog order the operator and smoke tests expect.
 - Required fix 2 satisfied:
-  - targeted regressions in `tests/unit/test_commands_catalog.py` now cover concrete parser-surface drift cases such as dropped canonical tokens, alias substitution, entrypoint reordering, extra accepted aliases, and removed expected aliases.
+  - the scope language is now pinned to the reviewed behavior only: canonical command order and canonical-name consistency between `command_cli_lookup_table()` and `command_names()`.
 - Required fix 3 satisfied:
-  - this packet states explicitly which canonical demo-path step the change advances and why the work is direct Milestone 3 CLI-loop support.
+  - the handoff body preserves both corrections so the roadmap and vision mapping is unambiguous on its own.
 
 ## Canonical Demo-Path Mapping
 
 - Primary step advanced directly: step 3 `preview and apply or reject a patch`
-  - reason: the reviewed catalog contract check keeps the canonical CLI command surface aligned with the command catalog, so the patch preview/apply entrypoint cannot silently drift away from the route the operator and smoke tests expect.
+  - reason: the reviewed catalog contract check keeps canonical command order and canonical-name resolution aligned with the command catalog, so the patch preview/apply entrypoint cannot silently drift away from the route the operator and smoke tests expect.
 - Canonical demo-path step(s) advanced:
-  - step 3 `preview and apply or reject a patch`, because the CLI command contract now fails fast on parser/catalog drift instead of silently changing the operator-visible patch preview/apply surface while Textual remains disabled.
+  - step 3 `preview and apply or reject a patch`, because the reviewed CLI contract now fails fast when canonical command order or canonical-name resolution drifts away from the operator-visible patch preview/apply surface while Textual remains disabled.
 - Out of scope:
   - this slice does not claim new step 1 `open project/document` or step 2 `retrieve relevant material` workflow coverage.
 - Explicit AGENTS mapping statement:
-  - this reviewed change is not generic command-catalog cleanup. It is a Milestone 3 CLI-compatibility hardening change that makes step 3 `preview and apply or reject a patch` more real directly because it turns parser/catalog drift from a silent contract change into a deterministic failure on the exact CLI surface that step depends on.
+  - this reviewed change is not generic command-catalog cleanup. It is a Milestone 3 CLI-compatibility hardening change that makes step 3 `preview and apply or reject a patch` more real directly because it turns canonical command order/name drift from a silent contract change into a deterministic failure on the exact CLI surface that step depends on.
 
 ## Shared-Path Approval Basis
 
@@ -114,7 +114,7 @@
 ### Tasks Completed (Numbered)
 
 1. Regenerated the handoff as a completed high-risk AGENTS packet for reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-2. Added the explicit canonical demo-path mapping statement showing that the reviewed deterministic command-contract change advances step 3 `preview and apply or reject a patch` directly.
+2. Added the explicit canonical demo-path mapping statement showing that the reviewed canonical-order/name contract change advances step 3 `preview and apply or reject a patch` directly.
 3. Kept implementation scope pinned to the reviewed files and recorded the shared-file basis truthfully.
 4. Re-ran the required gate suite and recorded the results below.
 
@@ -135,7 +135,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification timestamp: `2026-04-23T21:23:51Z`
+- Verification timestamp: `2026-04-23T21:35:16Z`
 
 ### Risks / Blockers
 
