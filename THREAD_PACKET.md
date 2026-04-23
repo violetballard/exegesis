@@ -2,10 +2,10 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Current branch tip before this fixer pass: `39b1a1d5421b2d18b5a09aaaa3f517884da82672`
+- Current branch tip before this fixer pass: `4748167a2b68834ee90f430c072a8564b9f3bd45`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before the gate-rerun note, commit `0b6ed199b752d758c8e3d71433740274efd2b62c` recorded the first passing gate rerun in `docs/gate_passed.txt`, commit `86e0f49aac171d1cfc4f461274c672233279cd64` added the explicit canonical demo-path step requested by review, and commit `39b1a1d5421b2d18b5a09aaaa3f517884da82672` is the latest metadata-only packet refresh before this fixer pass. This fixer pass refreshes `THREAD_PACKET.md`, keeps this file as the authoritative re-review packet, refreshes traceability for the current metadata-only reviewer-fix commit, confirms the roadmap and vision mapping remain explicit on the same narrowed FTS-only excerpt-contract scope, makes the numbered retained tasks state the canonical step directly instead of by implication, records a fresh all-green gate rerun on `2026-04-23`, and does not move the reviewed implementation head or range.
+- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before the gate-rerun note, commit `0b6ed199b752d758c8e3d71433740274efd2b62c` recorded the first passing gate rerun in `docs/gate_passed.txt`, commit `86e0f49aac171d1cfc4f461274c672233279cd64` added the explicit canonical demo-path step requested by review, commit `39b1a1d5421b2d18b5a09aaaa3f517884da82672` refreshed the packet after that reviewer-fix pass, and commit `4748167a2b68834ee90f430c072a8564b9f3bd45` is the latest metadata-only handoff traceability refresh before this fixer pass. This fixer pass refreshes `THREAD_PACKET.md`, keeps this file as the authoritative re-review packet, confirms the roadmap and vision mapping remain explicit on the same narrowed FTS-only excerpt-contract scope, records the exact canonical demo-path mapping the reviewer asked for, and does not move the reviewed implementation head or range. The mirrored kickoff packet under `.codex/kickoff_packets/` remains sandbox-blocked in this environment, so this file carries the corrected authoritative handoff metadata for re-review.
 
 ## Scope goal
 
@@ -32,6 +32,12 @@
 3. Add approved shared regression coverage proving a PageIndex-only excerpt ID cannot be fetched through the canonical retrieval surface.
 4. Re-emit the authoritative handoff packet with the actual reviewed scope, the retained approval boundary, and the explicit canonical demo-path step advanced by this work.
 
+### Early Review Triggers
+
+- before first edit to the shared-by-approval regression file `tests/unit/test_unified_retrieval.py`
+- before changing public retrieval command or contract wording in the handoff packet
+- before touching provider routing/config behavior
+
 ### Checkpoint Status
 
 - `plan complete`: the packet remains anchored to the narrowed implementation range from the reviewer packet and this fixer pass only refreshes packet evidence.
@@ -42,6 +48,7 @@
 ## Scope completed
 
 - Canonical demo-path step advanced in this reviewed scope: `retrieve relevant material`.
+- This reviewed slice advances `retrieve relevant material` by making FTS-only excerpt lookup fail closed on PageIndex-only IDs.
 - This handoff is a Milestone 3 retrieval/search hardening change for the canonical engine retrieval surface.
 - `fetch_excerpt()` now resolves through the authoritative FTS-only path and no longer falls back to PageIndex-backed excerpt payloads, which makes `retrieve relevant material` depend on structured FTS results only.
 - Approved shared regression coverage proves PageIndex-backed excerpt IDs fail closed with `KeyError`, which keeps `retrieve relevant material` aligned to the FTS-first roadmap contract instead of silently reopening a non-FTS excerpt path.
@@ -58,7 +65,7 @@
 
 - `retrieve relevant material`
 
-This handoff advances `retrieve relevant material` by enforcing authoritative FTS-only excerpt lookup with deterministic fail-closed behavior for non-FTS excerpt IDs.
+This handoff advances `retrieve relevant material` by enforcing authoritative FTS-only excerpt lookup with deterministic fail-closed behavior for non-FTS excerpt IDs before basket promotion or downstream workflow use.
 - Retained change 1: the `fetch_excerpt()` implementation change advances `retrieve relevant material` by making excerpt hydration depend only on canonical FTS hits.
 - Retained change 2: the shared fail-closed regressions advance `retrieve relevant material` by proving non-FTS excerpt IDs cannot silently re-enter the MVP retrieval flow.
 - This packet does not claim new basket-promotion or broader provenance-surface work; any downstream value remains indirect contract hardening from the stricter excerpt lookup surface.
@@ -98,7 +105,7 @@ This handoff advances `retrieve relevant material` by enforcing authoritative FT
 
 ## Fresh gate evidence for this fixer pass
 
-- Branch head under test: `39b1a1d5421b2d18b5a09aaaa3f517884da82672`
+- Branch head under test: `4748167a2b68834ee90f430c072a8564b9f3bd45`
 - Gate rerun timestamp: `2026-04-23`
 - `make scope-check`: passed with branch-policy skip notice for `codex/feat-retrieval-fts`
 - `./quality-format.sh --check`: passed
@@ -114,14 +121,14 @@ This handoff advances `retrieve relevant material` by enforcing authoritative FT
 3. The retained changes are each mapped to the canonical demo-path step `retrieve relevant material`.
 4. The shared-test approval scope is now explicit: `tests/unit/test_unified_retrieval.py` is approved only for the fail-closed excerpt regressions included in `adfa8cda`, not for unrelated broader API/export assertions that already existed in the file.
 5. Packet traceability still matches git history and still separates reviewed implementation files from metadata-only packet refresh files.
-6. This metadata-only fixer pass reran the required gate suite on `2026-04-23` at branch head `39b1a1d5421b2d18b5a09aaaa3f517884da82672` and confirmed the all-`PASS` results listed in `Commands run with results`.
+6. This metadata-only fixer pass reran the required gate suite on `2026-04-23` at branch head `4748167a2b68834ee90f430c072a8564b9f3bd45` and confirmed the all-`PASS` results listed in `Commands run with results`.
 7. `Tasks completed` now names `retrieve relevant material` on each retained implementation item so the Milestone 3 / FTS-first mapping is explicit in the numbered handoff summary, not inferred from surrounding sections.
 
 ## Risks / blockers
 
 - Risk: `HIGH`
 - Residual risk: callers holding PageIndex-generated excerpt IDs now receive `KeyError` from canonical excerpt lookup surfaces instead of a fallback payload.
-- Blockers: none
+- Blockers: sandbox denied writes under `.codex/kickoff_packets/`, so the mirrored kickoff packet could not be updated in this environment even though this authoritative handoff packet was refreshed.
 
 ## Required handoff fields
 
