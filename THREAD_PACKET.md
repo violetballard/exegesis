@@ -36,9 +36,9 @@
 ### Checkpoint Cadence (short updates)
 
 - Plan complete: packet scope reset to the current fixed branch state instead of the earlier narrower review slice.
-- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:05:45Z`.
+- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:11:44Z`.
 - Before risky/shared file edit: this fixer edits shared handoff metadata only (`THREAD.md`, `THREAD_PACKET.md`).
-- Ready for handoff: as of `2026-04-23T22:05:45Z`, the packet and required gate results match the fixed branch state.
+- Ready for handoff: as of `2026-04-23T22:11:44Z`, the packet and required gate results match the fixed branch state.
 
 ## Review Basis
 
@@ -153,7 +153,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification timestamp: `2026-04-23T22:05:45Z`
+- Verification timestamp: `2026-04-23T22:11:44Z`
 
 ### Risks / Blockers
 
@@ -167,13 +167,13 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`): command and diff-preview behavior hardening while the manual CLI smoke flow stays stable.
-- `ROADMAP.md` Milestone 2 (`Test Hardening`): focused command-contract regression coverage for parser and catalog drift.
-- `ROADMAP.md` MVP focus through `2026-05-04`: `feat-commands` remains an active implementation lane in the current engine-first push.
+- `ROADMAP.md` Milestone 3 (`Product Readiness`): this locks a user-facing CLI contract on the active patch-review route by making token-surface drift explicit and testable instead of allowing the same canonical command name to hide a stale parser surface.
+- `ROADMAP.md` Milestone 3 scope item `Define and lock user-facing output contracts`: the patch-review step `preview and apply or reject a patch` depends on a deterministic CLI contract, and `command_cli_contract()` now rejects token add, remove, alias, or reorder drift on that route before operators hit an inconsistent interface.
+- `ROADMAP.md` MVP focus through `2026-05-04`: `feat-commands` remains an active implementation lane in the current engine-first push, and this slice stays narrow to CLI compatibility plus migration-safe entrypoints for that lane.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` required capability 4 (`Operator-first control surface`): CLI remains a first-class surface for development and reliability.
+- `PRODUCT_VISION.md` required capability 4 (`Operator-first control surface`): CLI remains a first-class surface for development and reliability, and this slice removes a concrete blocker on `preview and apply or reject a patch` by turning silent parser-surface drift into an immediate contract failure on the exact operator path the CLI-first MVP loop uses.
 
 ### Routing / Provider Impact Note
 
