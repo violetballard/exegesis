@@ -36,7 +36,7 @@
 ### Checkpoint Cadence (short updates)
 
 - Plan complete: fix only the shared handoff metadata required by the reviewer packet.
-- First green tests: recorded after the full required gate suite on `2026-04-18`.
+- First green tests: recorded after the full required gate suite on `2026-04-23`.
 - Before risky/shared file edit: this fixer pass only edits `THREAD.md` and `THREAD_PACKET.md`.
 - Ready for handoff: the packet now names the canonical engine-first CLI loop mapping and keeps scope limited to command-contract hardening.
 
@@ -113,13 +113,13 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification date: `2026-04-18`
-- Fixer verification note: reran the full required gate suite after correcting the reviewed implementation anchors and confirming the reviewer-requested canonical demo-path mapping remained present and scope-tight in the handoff metadata.
+- Verification date: `2026-04-23`
+- Fixer verification note: reran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on `2026-04-23` after confirming the reviewed implementation anchors and the reviewer-requested canonical demo-path mapping remained present and scope-tight in the handoff metadata.
 
 ## Ready For Handoff
 
 - Status: ready for re-review
-- Current fixer pass: metadata-only handoff refresh plus fresh required gate rerun on `2026-04-18`
+- Current fixer pass: metadata-only handoff refresh plus fresh required gate rerun on `2026-04-23`
 - Reviewed implementation anchors are `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and `1e04f9633c4abc4988dcb991944680b86f94f753`
 - No implementation files changed in this fixer pass
 

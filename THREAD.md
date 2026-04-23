@@ -22,4 +22,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - without validating that the CLI parser entrypoint resolves to the canonical catalog in canonical order, the parser surface feeding the MVP `run` entrypoint through `bootstrap` / `project-open` in the CLI fallback flow could drift silently from the catalog contract and break deterministic smoke tests for that already-in-scope command path
   - without preserving explicit subcommands when a flow-step shim resolves through the retrieval surface, the CLI fallback path into `context-basket` could silently collapse `search` back to the default list behavior instead of preserving the intended routed action
 - Vision capability affected is intentionally narrow: `Canonical engine contract` only.
-- This fixer pass stays metadata-only, is limited to `THREAD.md` and `THREAD_PACKET.md`, and has re-run the required gate suite before re-review.
+- This fixer pass stays metadata-only, is limited to `THREAD.md` and `THREAD_PACKET.md`, and re-ran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on `2026-04-23` before re-review.
