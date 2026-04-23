@@ -22,6 +22,7 @@ from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload
 from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_result
 from src.qual.engine.retrieval.payload import _build_retrieval_diagnostics_from_source_bundle
 from src.qual.engine.retrieval.payload import _build_retrieval_citation_bundle_from_payload
+from src.qual.engine.retrieval.payload import _build_basket_promotion_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_doc_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_excerpt_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_source_bundle_from_payload
@@ -2410,6 +2411,68 @@ class UnifiedRetrievalTests(unittest.TestCase):
             {"retrieval_source_bundle": sparse_source_bundle}
         )
         self.assertEqual(rebuilt["retrieval_policy"], rebuilt["policy"])
+
+    def test_basket_promotion_rehydrates_query_context_from_sparse_doc_bundle(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(
+                    max_results=4,
+                    doc_types=("memo",),
+                    require_citations=True,
+                    prefer_exact_matches=True,
+                ),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        promotion = _build_basket_promotion_from_payload(
+            {"retrieval_doc_bundle": result.retrieval_doc_bundle()}
+        )
+
+        self.assertEqual(promotion["promotion_source"], "primary_ranked_doc")
+        self.assertEqual(promotion["query_text"], "memo coding comparison")
+        self.assertEqual(promotion["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(promotion["query_scope"], "vault")
+        self.assertEqual(promotion["query_intent"], "compare")
+        self.assertEqual(promotion["query_confidentiality_profile"], "confidential")
+        self.assertEqual(promotion["query_max_results"], 4)
+        self.assertEqual(promotion["query_doc_types"], ["memo"])
+        self.assertTrue(promotion["query_require_citations"])
+        self.assertTrue(promotion["query_prefer_exact_matches"])
+
+    def test_basket_promotion_rehydrates_query_context_from_sparse_excerpt_bundle(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(
+                    max_results=4,
+                    doc_types=("memo",),
+                    require_citations=True,
+                    prefer_exact_matches=True,
+                ),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        promotion = _build_basket_promotion_from_payload(
+            {"retrieval_excerpt_bundle": result.retrieval_excerpt_bundle()}
+        )
+
+        self.assertEqual(promotion["promotion_source"], "primary_ranked_excerpt")
+        self.assertEqual(promotion["query_text"], "memo coding comparison")
+        self.assertEqual(promotion["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(promotion["query_scope"], "vault")
+        self.assertEqual(promotion["query_intent"], "compare")
+        self.assertEqual(promotion["query_confidentiality_profile"], "confidential")
+        self.assertEqual(promotion["query_max_results"], 4)
+        self.assertEqual(promotion["query_doc_types"], ["memo"])
+        self.assertTrue(promotion["query_require_citations"])
+        self.assertTrue(promotion["query_prefer_exact_matches"])
 
     def test_citation_bundle_helper_rebuilds_citations_from_top_level_hits(self) -> None:
         result = self.service.retrieve_auto(

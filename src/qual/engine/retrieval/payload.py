@@ -1498,7 +1498,13 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
         retrieval_summary = {}
     if not isinstance(retrieval_source_bundle, dict):
         retrieval_source_bundle = {}
-    query_payload = payload.get("query", retrieval_source_bundle.get("query", {}))
+    query_payload = payload.get(
+        "query",
+        retrieval_source_bundle.get(
+            "query",
+            retrieval_doc_bundle.get("query", retrieval_excerpt_bundle.get("query", {})),
+        ),
+    )
     if not isinstance(query_payload, dict):
         query_payload = {}
     query_constraints = query_payload.get("constraints", {})
@@ -1589,18 +1595,24 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
             payload.get("query_fingerprint"),
             retrieval_provenance.get("query_fingerprint"),
             retrieval_summary.get("query_fingerprint"),
+            retrieval_doc_bundle.get("query_fingerprint"),
+            retrieval_excerpt_bundle.get("query_fingerprint"),
         ),
         "query_scope": _first_text_value(
             payload.get("query_scope"),
             retrieval_provenance.get("query_scope"),
             retrieval_summary.get("query_scope"),
             retrieval_citation_bundle.get("query_scope"),
+            retrieval_doc_bundle.get("query_scope"),
+            retrieval_excerpt_bundle.get("query_scope"),
         ),
         "query_intent": _first_text_value(
             payload.get("query_intent"),
             retrieval_provenance.get("query_intent"),
             retrieval_summary.get("query_intent"),
             retrieval_citation_bundle.get("query_intent"),
+            retrieval_doc_bundle.get("query_intent"),
+            retrieval_excerpt_bundle.get("query_intent"),
         ),
         "query_confidentiality_profile": _normalize_query_confidentiality_profile(
             _first_text_value(
@@ -1608,6 +1620,8 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
                 retrieval_provenance.get("query_confidentiality_profile"),
                 retrieval_summary.get("query_confidentiality_profile"),
                 retrieval_citation_bundle.get("query_confidentiality_profile"),
+                retrieval_doc_bundle.get("query_confidentiality_profile"),
+                retrieval_excerpt_bundle.get("query_confidentiality_profile"),
             )
         ),
         "query_constraints": _normalize_basket_promotion_query_constraints(
