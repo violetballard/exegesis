@@ -21,12 +21,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `open project/document` via `bootstrap` / `project-open`
   - `retrieve relevant material` via the routed `context-basket search` surface
   - `preview and apply or reject a patch` via `diff-preview`
-- Concrete blocker removed from the CLI-first MVP loop: parser-surface drift, routed-subcommand loss, or no-diff preview-state loss could silently break those operator-visible fallback steps before A2UI/Textual is involved; this slice makes those failures deterministic and test-covered instead.
-- Explicit handoff statement: this slice hardens the existing CLI operator contract for those current MVP fallback steps while Textual remains disabled; it does not claim new workflow breadth beyond the current CLI fallback surface.
+- Concrete blocker removed from the CLI-first MVP loop: the operator could complete step 1 (`open project/document`) yet still hit non-deterministic command resolution in step 2 (`retrieve relevant material`) or lose review-state fidelity in step 3 (`preview and apply or reject a patch`) before A2UI/Textual was involved; this slice makes those failures deterministic and test-covered instead.
+- Explicit handoff statement: this slice makes step 2 (`retrieve relevant material`) and step 3 (`preview and apply or reject a patch`) materially more real by locking the command contract that step 1 feeds into, preserving routed retrieval subcommands, and preserving no-diff preview state on the current CLI fallback path while Textual remains disabled.
 - Shared-path approval basis:
   - current `scripts/scope-check.sh` still explicitly allows `tests/unit/test_commands_catalog.py` only for `codex/feat-commands*`
   - approver / policy author: `Violet Ballard`
   - approval date: `2026-03-28`
-  - traceable approval source: `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` added that allowlist entry in `scripts/scope-check.sh`, and `c3a66bb580772d65201a630d673a8de1d4a63776` preserved it while tightening the packet text
+  - traceable approval source for `tests/unit/test_commands_catalog.py`: `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` added that allowlist entry in `scripts/scope-check.sh`, and `c3a66bb580772d65201a630d673a8de1d4a63776` preserved it while tightening the packet text
   - historical branch approval for `tests/unit/test_diff_preview.py` was recorded in `e00623f0be7934383d64df46fdaec99d9f92f13c`, `8a38d7bde29da3ecfb3da905ff78416034b151b7`, and `9e6b2206d7a37fc28b1233569ed2ac473e61f15a`
 - This fixer pass stays metadata-only, limited to `THREAD.md` and `THREAD_PACKET.md`, and the required gate sequence passed on `2026-04-23`.

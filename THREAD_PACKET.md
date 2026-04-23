@@ -53,9 +53,10 @@
 
 1. The handoff now names the real reviewed commit set at the current branch tip, including the additional `diff_preview` implementation the reviewer called out.
 2. `Scope completed`, `Files changed`, and the handoff narrative now match that reviewed tip instead of a stale command-catalog-only slice.
-3. The packet now states the named CLI-fallback MVP steps this work advances: `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch`, via the current CLI fallback surfaces while Textual remains disabled.
+3. The packet now states the exact named CLI-fallback MVP steps this work advances: step 1 `open project/document`, step 2 `retrieve relevant material`, and step 3 `preview and apply or reject a patch`, via the current CLI fallback surfaces while Textual remains disabled.
 4. The vague shared-test exception note is replaced with a concrete approval trail:
    - current scope-check policy explicitly allows `tests/unit/test_commands_catalog.py`
+   - that approval is traceable to `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` and `c3a66bb580772d65201a630d673a8de1d4a63776`, both authored by `Violet Ballard`
    - historical branch approval for `tests/unit/test_diff_preview.py` was recorded in `e00623f0be7934383d64df46fdaec99d9f92f13c`, `8a38d7bde29da3ecfb3da905ff78416034b151b7`, and `9e6b2206d7a37fc28b1233569ed2ac473e61f15a`
 
 ## Scope Completed
@@ -137,9 +138,12 @@
 
 ### Roadmap item(s) affected
 
-- MVP focus / active implementation emphasis: `feat-commands` is one of the current active lanes called out in `ROADMAP.md` under `MVP Focus Through 2026-05-04`.
+- Named current CLI-first MVP demo-path steps advanced by this lane:
+  - step 1 `open project/document`
+  - step 2 `retrieve relevant material`
+  - step 3 `preview and apply or reject a patch`
+- `feat-commands` remains one of the current active lanes called out in `ROADMAP.md` under `MVP Focus Through 2026-05-04`.
 - Milestone 5 exit criterion support: the reviewed slice hardens the CLI fallback that must stay executable for the MVP flow (`vault -> context -> run -> patch -> export`) while Textual remains disabled.
-- Milestone 3 product-readiness support: this slice also makes the command contract more explicit and testable instead of allowing silent CLI drift.
 
 ### Vision capability affected
 
@@ -150,8 +154,8 @@
 - `open project/document` via the CLI fallback `bootstrap` / `project-open` surface
 - `retrieve relevant material` via the routed `context-basket search` surface
 - `preview and apply or reject a patch` via `diff-preview`
-- Concrete blocker removed from the CLI-first MVP loop: parser-surface drift, routed-subcommand loss, or no-diff preview-state loss could silently break those operator-visible CLI fallback steps even before A2UI/Textual is in play; this slice turns those failures into deterministic, test-covered contract checks instead.
-- Explicit handoff statement: this reviewed slice makes the current CLI fallback surfaces for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` more deterministic and smoke-testable while Textual remains disabled; it does not claim broader workflow completion beyond those current operator surfaces.
+- Concrete blocker removed from the CLI-first MVP loop: after step 1 (`open project/document`), the operator could still lose deterministic routing for step 2 (`retrieve relevant material`) or lose effective-state visibility for step 3 (`preview and apply or reject a patch`) because parser drift, shimmed-subcommand loss, or no-diff payload loss would silently break the fallback CLI contract.
+- Explicit handoff statement: this reviewed slice makes step 2 (`retrieve relevant material`) and step 3 (`preview and apply or reject a patch`) more real by locking the command contract that step 1 feeds into, preserving routed retrieval subcommands, and preserving no-diff preview state while Textual remains disabled; it does not claim broader workflow completion beyond those current operator surfaces.
 
 ### Routing / Provider Impact Note
 
@@ -166,6 +170,6 @@
 - Shared or integrator-locked edits: `YES`
 - Ownership detail:
   - lane-owned implementation: `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`
-  - current shared-test allowlist in repo policy: `tests/unit/test_commands_catalog.py`
+  - current shared-test allowlist in repo policy: `tests/unit/test_commands_catalog.py` approved by `Violet Ballard` in `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50`, preserved in `c3a66bb580772d65201a630d673a8de1d4a63776`
   - historical shared-test approval trail already present in branch history: `tests/unit/test_diff_preview.py`
   - shared metadata updated for handoff accuracy: `THREAD.md`, `THREAD_PACKET.md`
