@@ -10,13 +10,13 @@
 
 ## Scope Goal
 
-- Keep FTS-first retrieval deterministic and auditable by preserving canonical query-constraint snapshots during excerpt lookup rehydration.
+- Make canonical excerpt lookup fail closed to FTS-only IDs for the Milestone 3 retrieval path while preserving deterministic query-constraint provenance.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: correct the reviewer packet against the real post-review retrieval fixes without widening the lane beyond deterministic FTS retrieval behavior.
+- Scope goal: correct the reviewer packet against the real post-review retrieval fixes without widening the lane beyond canonical FTS excerpt lookup and provenance behavior.
 - Risk reason: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so it is shared/high-risk work under the 4-task cap.
 
 ### Budget
@@ -45,7 +45,7 @@
 - SQLite FTS remains the authoritative retrieval path for the reviewed implementation range.
 - Excerpt lookup still fails closed on the canonical FTS path for PageIndex-only excerpt IDs.
 - Sparse excerpt query snapshots now rehydrate canonical constraint fields from both nested `query.constraints` payloads and the mirrored top-level `query_constraints` or `query_*` fields, so excerpt lookup, provenance, and basket-promotion payloads stay deterministic and auditable instead of silently dropping prior constraints.
-- This handoff advances the canonical demo-path step `retrieve relevant material` by keeping FTS excerpt lookup faithful to the stored query contract that downstream basket and workflow consumers audit.
+- This handoff advances the canonical demo-path step `retrieve relevant material` by tightening canonical excerpt lookup and provenance on the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed and downstream basket/workflow consumers audit the same stored query contract.
 
 ## Reviewed Scope Boundary
 
@@ -86,7 +86,7 @@
 
 1. The packet now matches the real branch tip by reviewing the code-changing range `adfa8cda..11d7079e` instead of calling those commits metadata-only.
 2. The handoff explicitly states that this lane advances canonical demo-path step `retrieve relevant material`.
-3. The scope summary explains why sparse query-constraint rehydration is required for deterministic, auditable FTS retrieval output rather than broadening the lane.
+3. The scope summary is now limited to the canonical excerpt lookup/provenance slice instead of implying broader `feat-retrieval-fts` completion.
 4. The reviewed file list, task list, and gate summary all match the current reviewed implementation range and branch contents.
 
 ## Risks / Blockers
@@ -98,8 +98,8 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop`
-- `feat-retrieval-fts`
+- `Milestone 3: Real workflow loop` via the `retrieve relevant material` step's deterministic excerpt-query contract
+- `feat-retrieval-fts` excerpt lookup and provenance rehydration slice
 
 ### Canonical demo-path step advanced
 

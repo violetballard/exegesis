@@ -17,7 +17,7 @@ Gate status:
 * `make ci` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: this handoff advances `retrieve relevant material` because sparse excerpt query-constraint rehydration preserves the deterministic, auditable FTS retrieval contract consumed by downstream basket and workflow steps.
+Plan-alignment statement: this handoff advances `retrieve relevant material` because sparse excerpt query-constraint rehydration preserves the deterministic, auditable FTS retrieval contract consumed by downstream basket and workflow steps rather than widening scope to broader lane completion.
 
 Reviewed implementation files:
 
