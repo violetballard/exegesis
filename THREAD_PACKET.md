@@ -68,7 +68,7 @@
 - Required fix 1 satisfied:
   - the packet now names the exact canonical demo-path step this slice strengthens, keeps the claim narrow to the touched command surface, and ties that statement directly to `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 - Required fix 2 satisfied:
-  - the packet now includes a scope-tightened plan-alignment note explaining why this is active MVP work: `feat-commands` is on the current roadmap emphasis, the MVP must run through the CLI-first path while `feat-console` stays disabled, and this diff hardens that existing CLI contract rather than adding second-order infrastructure.
+  - the packet now includes a scope-tightened plan-alignment note explaining why this is Milestone 3 contract work: it locks an operator-facing CLI contract on the active `feat-commands` lane, keeps the current CLI MVP flow usable while `feat-console` remains disabled, and stays within command-surface hardening instead of second-order infrastructure.
 - Required fix 3 satisfied:
   - the packet now replaces the generic `Risk: HIGH` label with a concrete remaining-risk statement, why that residual risk is acceptable for merge, and the specific post-merge validation the integrator should watch.
 
@@ -81,21 +81,24 @@
   - `retrieval`
   - `patch-review`
   - `export-handoff`
-- Canonical demo-path step advanced:
-  - `open project/document` and `continue working`, by keeping the CLI command contract deterministic and drift-resistant while the engine-first MVP loop remains CLI-first.
+- Exact canonical demo-path steps strengthened by the touched command surface:
+  - `vault` entry via `project-open`
+  - `context` via `retrieval`
+  - `patch` via `patch-review`
+  - `export` via `export-handoff`
 - Explicit AGENTS sentence:
-  - this slice makes the existing CLI-first operator path more real by stabilizing the command surface for `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+  - this slice makes the canonical CLI demo-path steps `vault -> context -> patch -> export` more real by stabilizing the exposed commands `project-open`, `retrieval`, `patch-review`, and `export-handoff` while the MVP remains CLI-first.
 - Scope-tightened plan-alignment note:
-  - this is Milestone 3 work because `feat-commands` is part of the current MVP emphasis, `ROADMAP.md` requires the CLI to execute the MVP flow `vault -> context -> run -> patch -> export`, and `PRODUCT_VISION.md` keeps the CLI as the first-class operator surface while `feat-console` remains disabled; hardening the existing command catalog and parser contract therefore advances the active engine-side demo path rather than second-order infrastructure.
+  - this is Milestone 3 work because `ROADMAP.md:54` calls for locking user-facing output contracts, `ROADMAP.md:65` requires contract changes to be documented and intentional, `ROADMAP.md:68` keeps enforcement focused on deterministic operator-visible behavior, and `ROADMAP.md:105` says the CLI must execute the MVP flow while `feat-commands` remains active and `feat-console` stays disabled. `PRODUCT_VISION.md:37-40` separately says the CLI is the first-class operator surface until the later console build. Hardening the existing command catalog and parser contract is therefore direct CLI-compatibility work for the active demo path, not second-order infra.
 - Why these are the right steps:
   - `ROADMAP.md` defines the active CLI-first MVP path as `vault -> context -> run -> patch -> export`.
-  - `src/qual/commands/catalog.py` exposes the currently implemented command-flow steps for that path as `project-open -> retrieval -> patch-review -> ... -> export-handoff`.
+  - `src/qual/commands/catalog.py` exposes the currently implemented operator-visible command-flow steps on that path as `project-open -> retrieval -> patch-review -> ... -> export-handoff`.
   - `command_cli_contract()` and `tests/unit/test_commands_catalog.py` keep that exposed CLI contract deterministic by rejecting parser-surface drift before the operator-facing path can silently change.
 - Concrete operator-facing effect:
   - the existing CLI route through the MVP flow fails fast on parser drift instead of silently presenting a stale, reordered, or alias-substituted command surface to operators and smoke tests.
 - Concrete blocker removed:
   - parser/catalog drift could previously leave the CLI-first MVP loop appearing intact while the operator-facing command surface had silently diverged from the intended `project-open -> retrieval -> patch-review -> export-handoff` path through alias substitution, reorder, or other parser-surface mutations.
-  - because the MVP depends on the CLI smoke path while the future console surface stays downstream of engine contracts, this contract guard removes a first-order blocker to trusting that loop during current roadmap acceptance.
+  - because Milestone 3 is explicitly about locking intentional user-facing contracts before publish and the MVP still depends on the CLI smoke path while the future console surface stays downstream of engine contracts, this contract guard removes a first-order blocker to trusting that loop during current roadmap acceptance.
 - Out of scope:
   - this slice does not add new command behavior, new flags, or new workflow implementation; it only hardens the existing command contract for the already-exposed MVP path.
 
@@ -145,9 +148,9 @@
 ### Risks / Blockers
 
 - Remaining risk:
-  - future command additions still depend on keeping `_CLI_ENTRYPOINTS`, the catalog, and smoke expectations in sync; if a later change updates parser entrypoints without updating the catalog contract or these regression tests, the CLI surface could regress until the guard trips.
-  - that residual risk is acceptable for merge because the reviewed runtime change is narrow, all local gates pass, and the failure mode is now explicit `ValueError` drift detection instead of silent operator-surface skew.
-  - post-merge validation the integrator should perform: confirm the canonical CLI smoke path still covers `project-open -> retrieval -> patch-review -> export-handoff` after the next command-surface edit or command addition.
+  - the remaining regression risk is future command-surface expansion: a follow-up could add or rename parser entrypoints without updating `_CLI_ENTRYPOINTS`, the catalog contract, and the smoke expectations together, which would break the CLI-first demo path at the contract boundary for `project-open`, `retrieval`, `patch-review`, or `export-handoff`.
+  - that residual risk is acceptable for merge because this diff is intentionally narrow, every required local gate passes, and the guarded failure mode is now an immediate contract error during CLI validation rather than silent operator-facing drift in the active MVP path.
+  - post-merge validation the integrator should perform: after the next command-surface edit, run the CLI smoke path and confirm it still exposes and exercises `project-open -> retrieval -> patch-review -> export-handoff` without contract drift.
 - Blockers:
   - none.
 
@@ -155,11 +158,10 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`): this hardens command behavior on the manual CLI smoke path by keeping the parser-visible command contract deterministic.
-- `ROADMAP.md` Milestone 2 (`Test Hardening`): this adds the targeted parser-edge regression coverage the roadmap calls out for missing command-level cases.
-- `ROADMAP.md` Milestone 5 (`A2UI Presentation Layer`) exit criterion: this keeps the CLI MVP flow (`vault -> context -> run -> patch -> export`) stable against the same engine `PolicyGate` by failing fast when the parser surface drifts from the catalog.
+- `ROADMAP.md` Milestone 3 (`Product Readiness`): this is user-facing contract-locking work on the CLI surface, specifically keeping command-surface changes documented, intentional, and deterministic before publish.
+- `ROADMAP.md` CLI MVP flow exit criterion: this keeps the required CLI path `vault -> context -> run -> patch -> export` executable against the engine by preventing silent command-surface drift on the exposed steps this lane owns.
 - `ROADMAP.md` active MVP emphasis `feat-commands`: this keeps the CLI command surface deterministic while that lane remains active.
-- Canonical demo-path step advanced: `open project/document` and `continue working`, by keeping the CLI command contract deterministic and drift-resistant while the engine-first MVP loop remains CLI-first.
+- Canonical demo-path steps advanced: `vault`, `context`, `patch`, and `export`, specifically via the exposed commands `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 - Canonical demo-path step made more real: this slice makes the existing CLI-first operator path more real by stabilizing the command surface for `project-open`, `retrieval`, `patch-review`, and `export-handoff` within the MVP flow `vault -> context -> run -> patch -> export`.
 - Concrete blocker removed on that demo path: parser/catalog drift can no longer silently change the operator-facing CLI contract for the CLI-first MVP smoke loop while Textual remains disabled.
 
