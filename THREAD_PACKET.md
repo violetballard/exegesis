@@ -101,6 +101,8 @@
   - `tests/unit/test_commands_catalog.py`
 - Integrator-locked implementation files touched in the reviewed scope:
   - none
+- Risk classification note:
+  - this handoff is high-risk because the reviewed implementation includes one approved shared regression file, not because any integrator-locked implementation file was edited.
 - Shared metadata files changed by this fixer:
   - `THREAD.md`
   - `THREAD_PACKET.md`

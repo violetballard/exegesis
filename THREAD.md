@@ -32,4 +32,5 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - lane-owned implementation: `src/qual/commands/**`
   - approved shared-by-exception regression file in reviewed implementation scope: `tests/unit/test_commands_catalog.py`
   - integrator-locked implementation files in reviewed scope: none
+  - risk stays high because of the approved shared regression file only, not because any integrator-locked implementation file was edited
   - metadata files refreshed by this fixer: `THREAD.md`, `THREAD_PACKET.md`
