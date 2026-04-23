@@ -1805,6 +1805,7 @@ def _build_terminal_artifact_renderer_entrypoints_contract_manifest() -> dict[st
 def _build_terminal_artifact_cli_fallback_entrypoint_contract_manifest() -> dict[str, Any]:
     renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
     terminal_artifact_cli_fallback_entrypoint = "render_terminal_cli_fallback"
+    contract_fingerprints = describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints()
     terminal_artifact_cli_fallback_entrypoint_fingerprint = _fingerprint_manifest_section(
         terminal_artifact_cli_fallback_entrypoint
     )
@@ -1824,11 +1825,35 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_manifest() -> dict
         "renderer_entrypoints": _snapshot_contract_section(renderer_entrypoints_contract["renderer_entrypoints"]),
         "renderer_entrypoints_contract": _snapshot_contract_section(renderer_entrypoints_contract),
         "renderer_entrypoints_contract_fingerprint": renderer_entrypoints_contract["contract_fingerprint"],
-        "contract_fingerprints": {
-            "terminal_artifact_cli_fallback_entrypoint": terminal_artifact_cli_fallback_entrypoint_fingerprint,
-            "renderer_entrypoints": renderer_entrypoints_contract["contract_fingerprint"],
-        },
+        "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints": _snapshot_contract_section(
+            contract_fingerprints
+        ),
+        "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint": (
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint()
+        ),
+        "contract_fingerprints": contract_fingerprints,
     }
+
+
+def _build_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints() -> dict[str, str]:
+    return {
+        "terminal_artifact_cli_fallback_entrypoint": _fingerprint_manifest_section(
+            "render_terminal_cli_fallback"
+        ),
+        "renderer_entrypoints": terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+    }
+
+
+def describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints() -> dict[str, str]:
+    """Return stable fingerprints for the explicit CLI fallback entrypoint contract."""
+
+    return _build_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints()
+
+
+def terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint() -> str:
+    """Return a stable fingerprint for the explicit CLI fallback entrypoint fingerprint map."""
+
+    return _fingerprint_manifest_section(describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints())
 
 
 def _build_terminal_artifact_cli_fallback_route_contract_fingerprints() -> dict[str, str]:
