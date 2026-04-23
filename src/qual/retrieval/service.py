@@ -3729,12 +3729,26 @@ class RetrievalService:
             return None
 
         query_constraints_explicit = query_payload_present and "constraints" in query_payload
+        top_level_query_constraint_payloads: list[dict[str, object]] = []
+        for candidate in (
+            excerpt.get("query_constraints"),
+            provenance.get("query_constraints"),
+            excerpt.get("constraints"),
+            provenance.get("constraints"),
+        ):
+            if isinstance(candidate, dict):
+                top_level_query_constraint_payloads.append(candidate)
         if query_payload_present:
             query_constraints_payload = (
                 copy.deepcopy(query_payload.get("constraints"))
                 if isinstance(query_payload.get("constraints"), dict)
                 else {}
             )
+            merged_query_constraints_payload = copy.deepcopy(query_constraints_payload)
+            for candidate in top_level_query_constraint_payloads:
+                for key, value in candidate.items():
+                    if key not in merged_query_constraints_payload:
+                        merged_query_constraints_payload[key] = copy.deepcopy(value)
             query_text_raw = _first_query_value(
                 query_payload.get("query_text"),
                 excerpt.get("query_text"),
@@ -3756,18 +3770,17 @@ class RetrievalService:
                 provenance.get("query_confidentiality_profile"),
             )
         else:
-            query_constraints_payloads: list[dict[str, object]] = []
+            query_constraints_payload = {}
             for candidate in (
                 provenance.get("constraints"),
                 excerpt.get("constraints"),
                 provenance.get("query_constraints"),
                 excerpt.get("query_constraints"),
             ):
-                if isinstance(candidate, dict):
-                    query_constraints_payloads.append(candidate)
-            query_constraints_payload = {}
-            for candidate in query_constraints_payloads:
+                if not isinstance(candidate, dict):
+                    continue
                 query_constraints_payload.update(candidate)
+            merged_query_constraints_payload = copy.deepcopy(query_constraints_payload)
             query_text_raw = _first_query_value(
                 excerpt.get("query_text"),
                 provenance.get("query_text"),
@@ -3792,41 +3805,42 @@ class RetrievalService:
         if query_constraints_explicit:
             # Older sparse excerpt snapshots may carry a partial nested
             # ``query.constraints`` object while the mirrored top-level query
-            # fields still hold the canonical values. Fall back field-by-field
-            # so lookup rehydration preserves the original auditable contract.
+            # fields or ``query_constraints`` dict still hold the canonical
+            # values. Fall back field-by-field so lookup rehydration preserves
+            # the original auditable contract.
             query_date_range_raw = _first_query_value(
-                query_constraints_payload.get("date_range"),
+                merged_query_constraints_payload.get("date_range"),
                 excerpt.get("query_date_range"),
                 provenance.get("query_date_range"),
             )
             section_hint_raw = _first_query_value(
-                query_constraints_payload.get("section_hint"),
+                merged_query_constraints_payload.get("section_hint"),
                 excerpt.get("section_hint"),
                 provenance.get("section_hint"),
             )
             max_results_raw = _first_query_value(
-                query_constraints_payload.get("max_results"),
+                merged_query_constraints_payload.get("max_results"),
                 excerpt.get("query_max_results"),
                 provenance.get("query_max_results"),
                 excerpt.get("max_results"),
                 provenance.get("max_results"),
             )
             doc_types_raw = _first_query_value(
-                query_constraints_payload.get("doc_types"),
+                merged_query_constraints_payload.get("doc_types"),
                 excerpt.get("query_doc_types"),
                 provenance.get("query_doc_types"),
                 excerpt.get("doc_types"),
                 provenance.get("doc_types"),
             )
             require_citations_raw = _first_query_value(
-                query_constraints_payload.get("require_citations"),
+                merged_query_constraints_payload.get("require_citations"),
                 excerpt.get("query_require_citations"),
                 provenance.get("query_require_citations"),
                 excerpt.get("require_citations"),
                 provenance.get("require_citations"),
             )
             prefer_exact_matches_raw = _first_query_value(
-                query_constraints_payload.get("prefer_exact_matches"),
+                merged_query_constraints_payload.get("prefer_exact_matches"),
                 excerpt.get("query_prefer_exact_matches"),
                 provenance.get("query_prefer_exact_matches"),
                 excerpt.get("prefer_exact_matches"),
