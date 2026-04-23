@@ -21,6 +21,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `retrieval`
   - `patch-review`
   - `export-handoff`
+- Canonical demo-path step advanced:
+  - `open project/document` and `continue working`, by keeping the CLI command contract deterministic and drift-resistant while the engine-first MVP loop remains CLI-first.
 - Explicit AGENTS sentence:
   - this slice makes the existing CLI-first operator path more real by stabilizing the command surface for `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 - Concrete blocker removed on that path:

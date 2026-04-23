@@ -83,6 +83,8 @@
   - `retrieval`
   - `patch-review`
   - `export-handoff`
+- Canonical demo-path step advanced:
+  - `open project/document` and `continue working`, by keeping the CLI command contract deterministic and drift-resistant while the engine-first MVP loop remains CLI-first.
 - Explicit AGENTS sentence:
   - this slice makes the existing CLI-first operator path more real by stabilizing the command surface for `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 - Why these are the right steps:
@@ -154,6 +156,7 @@
 
 - `ROADMAP.md` Milestone 3 (`Product Readiness`): this supports the exit criterion that the CLI can execute the MVP flow (`vault -> context -> run -> patch -> export`) against the same engine PolicyGate by keeping the parser-visible command contract deterministic on that path.
 - `ROADMAP.md` active MVP emphasis `feat-commands`: this keeps the CLI command surface deterministic while that lane remains active.
+- Canonical demo-path step advanced: `open project/document` and `continue working`, by keeping the CLI command contract deterministic and drift-resistant while the engine-first MVP loop remains CLI-first.
 - Canonical demo-path step made more real: this slice makes the existing CLI-first operator path more real by stabilizing the command surface for `project-open`, `retrieval`, `patch-review`, and `export-handoff` within the MVP flow `vault -> context -> run -> patch -> export`.
 - Concrete blocker removed on that demo path: parser/catalog drift can no longer silently change the operator-facing CLI contract for the CLI-first MVP smoke loop while Textual remains disabled.
 
