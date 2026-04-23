@@ -2,10 +2,10 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Current branch tip before this fixer pass: `86e0f49aac171d1cfc4f461274c672233279cd64`
+- Current branch tip before this fixer pass: `7bd332628dddf1912710436094c2144cffa7ef21`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before the gate-rerun note, commit `0b6ed199b752d758c8e3d71433740274efd2b62c` recorded the passing gate rerun in `docs/gate_passed.txt`, and commit `86e0f49aac171d1cfc4f461274c672233279cd64` added the explicit canonical demo-path step requested by review. This fixer pass refreshes `THREAD_PACKET.md`, keeps this file as the authoritative re-review packet, and does not move the reviewed implementation head or range.
+- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before the gate-rerun note, commit `0b6ed199b752d758c8e3d71433740274efd2b62c` recorded the passing gate rerun in `docs/gate_passed.txt`, commit `86e0f49aac171d1cfc4f461274c672233279cd64` added the explicit canonical demo-path step requested by review, and commit `7bd332628dddf1912710436094c2144cffa7ef21` is the latest metadata-only packet refresh before this re-review evidence pass. This fixer pass refreshes `THREAD_PACKET.md`, keeps this file as the authoritative re-review packet, records a fresh all-green gate rerun on `2026-04-23`, and does not move the reviewed implementation head or range.
 
 ## Scope goal
 
@@ -35,7 +35,7 @@
 ### Checkpoint Status
 
 - `plan complete`: the packet now anchors re-review to the narrowed implementation range from the reviewer packet.
-- `first green tests`: recorded after rerunning the required local gates for this fixer pass.
+- `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` for this fixer pass.
 - `before risky/shared file edit`: the only shared implementation file in the reviewed range remains `tests/unit/test_unified_retrieval.py`.
 - `ready for handoff`: this packet now separates reviewed implementation files from metadata-only packet refresh files, states the canonical demo-path step explicitly, and refreshes traceability for the latest metadata-only reviewer-fix commit.
 
@@ -80,10 +80,12 @@ This handoff advances `retrieve relevant material` by enforcing authoritative FT
   - `THREAD_PACKET.md`
 - Metadata-only reviewer-fix packet files in commit `86e0f49aac171d1cfc4f461274c672233279cd64`:
   - `THREAD_PACKET.md`
-- Metadata-only packet refresh files in this fixer pass:
+- Metadata-only packet refresh files in this fixer pass after the fresh all-green gate rerun:
   - `THREAD_PACKET.md`
 
 ## Commands run with results
+
+- Gate rerun date: `2026-04-23`
 
 - `make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
