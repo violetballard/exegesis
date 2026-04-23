@@ -13,21 +13,21 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - This fixer pass updates the handoff text so it matches the actual branch behavior already present at the current branch tip: `command_cli_contract()` now rejects full parser-surface drift, including token add, remove, alias substitution, or reorder changes that would otherwise leave canonical command names unchanged.
-- Final fixer validation reran the required gate sequence from this worktree on `2026-04-23T22:53:09Z`; the metadata refresh below records that fresh verification for the full fixed branch state.
+- Final fixer validation reran the required gate sequence from this worktree on `2026-04-23T22:55:41Z`; the metadata refresh below records that fresh verification for the full fixed branch state.
 - Exact canonical demo-path mapping for the fixed branch state:
-  - operator terms: this hardens the stable CLI command surface used to reach `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and existing CLI handoff or export flows without silent parser or catalog drift
-  - direct step advanced: `preview and apply or reject a patch`
-  - canonical demo-path step advanced: this work makes `preview and apply or reject a patch` more real in the CLI-first MVP loop
-  - explicit step sentence: this change directly strengthens `preview and apply or reject a patch` in the CLI-first MVP loop because it fails fast when the accepted CLI token surface for that route drifts away from the approved command catalog the patch-review route depends on while the CLI remains the active operator surface, instead of letting the `patch` step appear healthy under a stale parser surface
-  - operator-visible CLI path now more reliable: the `patch-review` route and its branch into `apply-patch` or `reject-patch` now fail contract validation immediately instead of silently presenting a stale accepted-token surface
-  - AGENTS-required handoff statement: the canonical demo-path step this work makes more real is `preview and apply or reject a patch`
-  - out of scope: no new workflow implementation for `open project/document`, `retrieve relevant material`, or export is claimed by this command-catalog contract slice
+  - operator terms: this hardens the stable CLI command surface used to reach `open project/document` without silent parser or catalog drift while the CLI remains the active operator surface
+  - direct step advanced: `open project/document`
+  - canonical demo-path step advanced: this work makes `open project/document` more real in the CLI-first MVP loop
+  - explicit step sentence: this change directly strengthens `open project/document` because deterministic CLI contract enforcement keeps the Milestone 3 compatibility entrypoint stable while Textual remains disabled, instead of letting the project-opening route appear healthy under a stale parser surface
+  - operator-visible CLI path now more reliable: the project-opening command entrypoint now fails contract validation immediately instead of silently presenting a stale accepted-token surface
+  - AGENTS-required handoff statement: the canonical demo-path step this work makes more real is `open project/document`
+  - out of scope: no new workflow implementation for retrieval, patch review, or export is claimed by this command-catalog contract slice
 - Roadmap and vision grounding for that step:
-  - roadmap hardening scope: this aligns with `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization`, which explicitly includes command behavior hardening, because this slice hardens the accepted CLI token surface for the patch-review route instead of allowing silent drift under the same canonical command name
-  - roadmap MVP-loop relevance: this also satisfies `ROADMAP.md` Milestone 5 `A2UI Presentation Layer`, whose exit criteria require the CLI to execute the MVP flow `(vault -> context -> run -> patch -> export)` against the same engine `PolicyGate`; this slice keeps the `patch` step deterministic and smoke-testable in that exact CLI-first loop
-  - vision capability: this serves `PRODUCT_VISION.md` capability 4 `Operator-first control surface` by keeping the CLI patch-review step stable as the active operator surface before `Exegesis Console` is brought online on top of the same engine-facing contracts
+  - roadmap hardening scope: this aligns with `ROADMAP.md` Milestone 3 `Product Readiness`, specifically the requirement to define and lock user-facing output contracts, because this slice keeps the project-opening CLI entrypoint intentional and deterministic instead of allowing silent parser drift under the same canonical command name
+  - roadmap MVP-loop relevance: this supports the active `feat-commands` CLI-compatibility lane by keeping the operator-facing command entrypoint stable while Textual remains disabled
+  - vision capability: this serves `PRODUCT_VISION.md` capability 4 `Operator-first control surface` by keeping the CLI project-opening step stable as the active operator surface before `Exegesis Console` is brought online on top of the same engine-facing contracts
 - Concrete reason this is not second-order work:
-  - `catalog.py` now makes `command_cli_contract()` fail fast if the parser surface for an accepted CLI route drifts away from the declared catalog, even when the canonical command tuple is unchanged. That removes the concrete blocker where the CLI-first patch-review step could still appear available while the operator-facing route had silently lost or reordered accepted tokens.
+  - `catalog.py` now makes `command_cli_contract()` fail fast if the parser surface for an accepted CLI route drifts away from the declared catalog, even when the canonical command tuple is unchanged. That removes the concrete blocker where the CLI-first project-opening step could still appear available while the operator-facing entrypoint had silently lost or reordered accepted tokens.
 - Shared-file basis for the high-risk packet:
   - lane-owned implementation: `src/qual/commands/**`
   - shared test touched by the fixed branch state: `tests/unit/test_commands_catalog.py`
