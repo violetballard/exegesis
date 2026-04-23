@@ -109,6 +109,12 @@ from src.qual.commands import (
     command_demo_preferred_surface_invocation_table,
     command_demo_resolve,
     command_demo_resolve_argv,
+    command_demo_trusted_surface_catalog,
+    command_demo_trusted_surface_contract,
+    command_demo_trusted_surface_entry,
+    command_demo_trusted_surface_entry_for,
+    command_demo_trusted_surface_flow_lookup_table,
+    command_demo_trusted_surface_tokens,
     command_demo_flow_surface_tokens,
     command_demo_smoke_argv,
     command_demo_smoke_contract,
@@ -154,6 +160,12 @@ from src.qual.commands import (
     command_mvp_preferred_surface_invocation_table,
     command_mvp_resolve,
     command_mvp_resolve_argv,
+    command_mvp_trusted_surface_catalog,
+    command_mvp_trusted_surface_contract,
+    command_mvp_trusted_surface_entry,
+    command_mvp_trusted_surface_entry_for,
+    command_mvp_trusted_surface_flow_lookup_table,
+    command_mvp_trusted_surface_tokens,
     command_spec,
     command_spec_for,
     command_specs,
@@ -2449,6 +2461,150 @@ class CommandCatalogTests(unittest.TestCase):
             command_mvp_preferred_surface_invocation_table(),
             command_demo_preferred_surface_invocation_table(),
         )
+
+    def test_command_demo_trusted_surface_contract_exposes_self_describing_demo_tokens(self) -> None:
+        contract = command_demo_trusted_surface_contract()
+        self.assertEqual(contract, command_mvp_trusted_surface_contract())
+        self.assertEqual(contract.entries, command_demo_trusted_surface_catalog())
+        self.assertEqual(command_mvp_trusted_surface_catalog(), command_demo_trusted_surface_catalog())
+        self.assertEqual(contract.tokens, command_demo_trusted_surface_tokens())
+        self.assertEqual(command_mvp_trusted_surface_tokens(), command_demo_trusted_surface_tokens())
+        self.assertEqual(
+            command_demo_trusted_surface_flow_lookup_table(),
+            command_mvp_trusted_surface_flow_lookup_table(),
+        )
+        self.assertEqual(
+            contract.lookup_table,
+            tuple((entry.token, entry.canonical_name) for entry in contract.entries),
+        )
+        self.assertEqual(
+            contract.invocation_table,
+            tuple((entry.token, entry.argv) for entry in contract.entries),
+        )
+        self.assertEqual(
+            contract.tokens,
+            (
+                "project-open",
+                "retrieval",
+                "patch-review",
+                "apply-patch",
+                "reject-patch",
+                "persist",
+                "export-handoff",
+                "export",
+                "bootstrap",
+                "open",
+                "project",
+                "bootstrap-run",
+                "document-open",
+                "open-document",
+                "context-basket",
+                "context",
+                "basket",
+                "retrieve",
+                "diff-preview",
+                "diff",
+                "review-patch",
+                "terminal",
+                "save-export",
+                "persist-continue",
+                "patch-apply",
+                "patch-reject",
+                "open-project",
+                "project-bootstrap",
+                "bootstrap-project",
+                "open-workspace",
+                "retrieve-context",
+                "gather-context",
+                "load-context",
+                "review",
+                "preview-patch",
+                "review-diff",
+                "preview-diff",
+                "save",
+                "continue",
+                "resume",
+                "save-work",
+                "continue-work",
+                "resume-work",
+                "apply",
+                "approve",
+                "accept",
+                "approve-patch",
+                "accept-patch",
+                "reject",
+                "decline",
+                "discard",
+                "decline-patch",
+                "discard-patch",
+                "handoff",
+                "queue-export",
+                "handoff-export",
+                "queue-handoff",
+            ),
+        )
+
+        project_open = command_demo_trusted_surface_entry("project-open")
+        self.assertEqual(project_open, command_mvp_trusted_surface_entry("project-open"))
+        self.assertEqual(project_open, command_demo_trusted_surface_entry_for(command_specs(), "project-open"))
+        self.assertEqual(project_open, command_mvp_trusted_surface_entry_for(command_specs(), "project-open"))
+        self.assertIsNotNone(project_open)
+        assert project_open is not None
+        self.assertEqual(project_open.canonical_token, "project-open")
+        self.assertEqual(project_open.canonical_name, "bootstrap")
+        self.assertEqual(project_open.flow_step, "project-open")
+        self.assertEqual(project_open.argv, ("bootstrap", "--project", "demo"))
+        self.assertEqual(project_open.source, "preferred")
+        self.assertEqual(project_open.next_tokens, ("retrieval",))
+        self.assertEqual(
+            project_open.compatibility_tokens,
+            ("open-project", "project-bootstrap", "bootstrap-project", "open-workspace"),
+        )
+        self.assertEqual(project_open.preferred_surface_tokens, ("project-open",))
+
+        apply_patch = command_demo_trusted_surface_entry("apply")
+        self.assertEqual(apply_patch, command_mvp_trusted_surface_entry("apply"))
+        self.assertEqual(apply_patch, command_demo_trusted_surface_entry_for(command_specs(), "apply"))
+        self.assertIsNotNone(apply_patch)
+        assert apply_patch is not None
+        self.assertEqual(apply_patch.canonical_token, "apply-patch")
+        self.assertEqual(apply_patch.canonical_name, "terminal")
+        self.assertEqual(apply_patch.flow_step, "export-handoff")
+        self.assertEqual(
+            apply_patch.argv,
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+        )
+        self.assertEqual(apply_patch.source, "compatibility")
+        self.assertEqual(apply_patch.next_tokens, ("persist",))
+        self.assertEqual(
+            apply_patch.compatibility_tokens,
+            ("apply", "approve", "accept", "approve-patch", "accept-patch"),
+        )
+        self.assertEqual(apply_patch.preferred_surface_tokens, ("apply-patch",))
+
+        persist_variant = command_demo_trusted_surface_entry("resume-work")
+        self.assertIsNotNone(persist_variant)
+        assert persist_variant is not None
+        self.assertEqual(persist_variant.canonical_token, "persist")
+        self.assertEqual(persist_variant.source, "compatibility")
+        self.assertEqual(persist_variant.next_tokens, ("export-handoff",))
+        self.assertEqual(
+            persist_variant.compatibility_tokens,
+            ("save", "continue", "resume", "save-work", "continue-work", "resume-work"),
+        )
+        self.assertEqual(persist_variant.preferred_surface_tokens, ("persist",))
+
+        export_variant = command_demo_trusted_surface_entry("queue-handoff")
+        self.assertIsNotNone(export_variant)
+        assert export_variant is not None
+        self.assertEqual(export_variant.canonical_token, "export-handoff")
+        self.assertEqual(export_variant.source, "compatibility")
+        self.assertEqual(export_variant.next_tokens, ())
+        self.assertEqual(
+            export_variant.compatibility_tokens,
+            ("handoff", "queue-export", "handoff-export", "queue-handoff"),
+        )
+        self.assertEqual(export_variant.preferred_surface_tokens, ("export-handoff", "export"))
 
     def test_command_demo_loop_contract_exposes_the_canonical_milestone_three_verbs(self) -> None:
         contract = command_demo_loop_contract()

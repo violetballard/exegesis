@@ -187,6 +187,9 @@ class CommandTrustedSurfaceEntry:
     argv: tuple[str, ...]
     description: str
     source: str
+    next_tokens: tuple[str, ...] = ()
+    compatibility_tokens: tuple[str, ...] = ()
+    preferred_surface_tokens: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -3902,6 +3905,14 @@ def _validate_command_trusted_surface_contract(contract: CommandTrustedSurfaceCo
             raise ValueError(f"Command trusted surface entry is missing argv: {entry.token}")
         if entry.source not in allowed_sources:
             raise ValueError(f"Command trusted surface source is inconsistent: {entry.token}")
+        if entry.token != _normalize_token(entry.token):
+            raise ValueError(f"Command trusted surface token is inconsistent: {entry.token}")
+        if entry.canonical_token != _normalize_token(entry.canonical_token):
+            raise ValueError(
+                f"Command trusted surface canonical token is inconsistent: {entry.token}"
+            )
+        if entry.flow_step != _normalize_token(entry.flow_step):
+            raise ValueError(f"Command trusted surface flow step is inconsistent: {entry.token}")
 
 
 def command_demo_trusted_surface_invocation_table(
@@ -3970,11 +3981,15 @@ def command_demo_trusted_surface_contract(
 ) -> CommandTrustedSurfaceContract:
     invocation_table = command_demo_trusted_surface_invocation_table(specs)
     source_by_token = _trusted_surface_source_by_token(specs)
+    workflow_by_token = {entry.token: entry for entry in command_demo_workflow_catalog(specs)}
     entries: list[CommandTrustedSurfaceEntry] = []
     for token, argv in invocation_table:
         workflow_entry = command_demo_workflow_entry_for(specs, token)
         if workflow_entry is None:
             raise ValueError(f"Command trusted surface token is unresolved: {token}")
+        canonical_workflow_entry = workflow_by_token.get(workflow_entry.token)
+        if canonical_workflow_entry is None:
+            raise ValueError(f"Command trusted surface canonical token is unresolved: {token}")
         entries.append(
             CommandTrustedSurfaceEntry(
                 token=token,
@@ -3983,6 +3998,9 @@ def command_demo_trusted_surface_contract(
                 flow_step=workflow_entry.flow_step,
                 argv=argv,
                 description=workflow_entry.description,
+                next_tokens=canonical_workflow_entry.next_tokens,
+                compatibility_tokens=canonical_workflow_entry.compatibility_tokens,
+                preferred_surface_tokens=canonical_workflow_entry.preferred_surface_tokens,
                 source=source_by_token.get(token, "surface"),
             )
         )
