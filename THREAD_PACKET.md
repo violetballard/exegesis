@@ -38,14 +38,14 @@
 - Plan complete: switch the packet from a false cherry-picked review basis to the actual branch-tip diff.
 - First green tests: recorded after the required gate rerun on `2026-04-23`.
 - Before risky/shared file edit: this fixer only edits `THREAD.md` and `THREAD_PACKET.md`.
-- Ready for handoff: the packet now matches the real implementation scope, concrete MVP step mapping, and the live gate rerun against `ac54e825427e6eec6cc823703442952be150e363`.
+- Ready for handoff: the packet now matches the real implementation scope, concrete MVP step mapping, and the live gate rerun on the current branch tip.
 
 ## Review Basis
 
 - Review basis for re-review is the real branch tip for `codex/feat-commands`, not a cherry-picked subset of commits.
 - Tip-level implementation basis:
   - merge base with `codex/quality-baseline`: `60136caf9ee4e1ff08d35e2da2922af78e7974d5`
-  - reviewed tip before this verification-only fixer commit: `025ed0b77951e7d94a5d950f52227433581c0e19`
+  - reviewed implementation tip before this metadata-only fixer refresh: `434c8a33f82fd53da97445ebb41b5a329a748245`
 - This packet does not claim that post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` commits are metadata-only. The current branch diff includes many implementation commits after that point, including `1e04f9633c4abc4988dcb991944680b86f94f753`, `5c89ce987fc78ed158d378a988b3e211ce93145d`, and `b3be9f0c12e6fd3ecd52f1b8af2bd1b6d890e1a0`.
 - Truthful merge-base-to-tip changed files for the command handoff pathset (`src/qual/commands`, `tests/unit`, `THREAD*`):
   - `src/qual/commands/__init__.py`
@@ -99,7 +99,7 @@
 ## Shared-Path Approval Basis
 
 - Shared path still in scope: `tests/unit/test_commands_catalog.py`
-  - current policy basis: `scripts/scope-check.sh` explicitly allowlists this path for `codex/feat-commands*`
+  - current policy basis: `scripts/scope-check.sh` explicitly allowlists this path for `codex/feat-commands*` in the lane-specific shared-test exception block
   - traceable policy commits:
     - `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` `fix(commands): align feat-commands handoff policy`
     - `c3a66bb580772d65201a630d673a8de1d4a63776` `fix(commands): tighten feat-commands packet and policy`
@@ -142,9 +142,8 @@
 
 1. Built out the trusted command-surface contract and canonical wrapper exports for the CLI fallback path in `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, and `src/qual/commands/catalog.py`.
 2. Hardened deterministic command routing and parser-surface validation so routed command shims preserve the intended CLI-first MVP flow instead of silently drifting.
-3. Stabilized `diff-preview` no-diff payload reporting in `src/qual/commands/diff_preview.py`.
-4. Added and expanded regression coverage in `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
-5. Regenerated the handoff metadata so it now reflects the real merge-base-to-tip command/test/handoff pathset, the exact canonical demo-path steps advanced, and concrete policy or branch-history traceability for every shared test still visible in the current delta.
+3. Stabilized `diff-preview` no-diff payload reporting in `src/qual/commands/diff_preview.py`, then added and expanded regression coverage in `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`.
+4. Regenerated the handoff metadata so it now reflects the real merge-base-to-tip command/test/handoff pathset, the exact canonical demo-path steps advanced, and concrete policy or branch-history traceability for every shared test still visible in the current delta.
 
 ### Files Changed
 

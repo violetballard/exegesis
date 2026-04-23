@@ -9,7 +9,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Review the real `codex/feat-commands` branch tip, not a cherry-picked subset of commits.
 - Truthful implementation basis:
   - merge base with `codex/quality-baseline`: `60136caf9ee4e1ff08d35e2da2922af78e7974d5`
-  - reviewed tip before this verification-only fixer commit: `025ed0b77951e7d94a5d950f52227433581c0e19`
+  - reviewed implementation tip before this metadata-only fixer refresh: `434c8a33f82fd53da97445ebb41b5a329a748245`
 - The truthful merge-base-to-tip changed file set for the command handoff pathset (`src/qual/commands`, `tests/unit`, `THREAD*`) is:
   - `src/qual/commands/__init__.py`
   - `src/qual/commands/canonical.py`
@@ -39,7 +39,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - the operator no longer depends on fragile parser drift behavior, dropped routed subcommands, or missing no-diff preview state for the current CLI fallback path.
   - the packet now states that this is narrow Milestone 3 command-contract hardening, not a broader workflow or UI milestone.
 - Shared-path approval basis:
-  - current policy allowlist for `tests/unit/test_commands_catalog.py`: `scripts/scope-check.sh`, traced through `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` and `c3a66bb580772d65201a630d673a8de1d4a63776`
+  - current policy allowlist for `tests/unit/test_commands_catalog.py`: `scripts/scope-check.sh` lane-specific shared-test exception for `codex/feat-commands*`, traced through `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` and `c3a66bb580772d65201a630d673a8de1d4a63776`
   - branch-history approval trail for `tests/unit/test_diff_preview.py`: `8a38d7bde29da3ecfb3da905ff78416034b151b7`, `2afa0f7f2f23c2d73773cc9c5a2fc0007ba19be3`, and `51279575df18d44dc112129f561f2dcb7743e70f`
   - shared branch-history origin for the remaining truthful tip-level shared tests:
     - `tests/unit/test_a2ui_contract.py`: `21e84fb5`
