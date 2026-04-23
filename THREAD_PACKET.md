@@ -1,12 +1,12 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `reviewer-fix packet regeneration against actual branch tip`
-- Current submitted tip before this packet refresh commit: `ced0bcaf3d5446d549b04d1bc24593eda8850266`
+- Packet role: `metadata-only reviewer-fix finalization against the current branch tip`
+- Current submitted tip before this packet refresh commit: `e7e545664f277419ff97a05740e45f88179dbe24`
 - Reviewed implementation head: `ced0bcaf3d5446d549b04d1bc24593eda8850266`
 - Reviewed implementation range: `d9542206f6fd14db37d1ddf5efd76f941d32314b..ced0bcaf3d5446d549b04d1bc24593eda8850266`
-- Packet traceability note: the prior packet stopped at `d9542206f6fd14db37d1ddf5efd76f941d32314b` and falsely treated the real branch tip `ced0bcaf3d5446d549b04d1bc24593eda8850266` as metadata-only. This packet reviews the actual tip directly and keeps only the packet-refresh docs in the metadata-only bucket.
-- Fixer note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are not writable in this sandbox and rejected both `apply_patch` and direct shell writes with `operation not permitted`, so this root packet and `docs/gate_passed.txt` are the writable refreshed handoff artifacts for this pass.
+- Packet traceability note: the reviewed implementation head remains `ced0bcaf3d5446d549b04d1bc24593eda8850266`, while later commits `7ec7e2720aee94c2b9c412fe1e003a4dc4fa6db4` and `e7e545664f277419ff97a05740e45f88179dbe24` are metadata-only packet refreshes. This packet finalizes the reviewer-required handoff metadata against the current branch tip without changing the reviewed implementation range.
+- Fixer note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are not writable in this sandbox and rejected both `apply_patch` and direct shell writes with `Operation not permitted`, so this root packet and `docs/gate_passed.txt` are the writable refreshed handoff artifacts for this pass.
 
 ## Scope goal
 
@@ -28,10 +28,10 @@
 
 ### Planned Tasks (max 4)
 
-1. Regenerate the handoff against the real tip `ced0bcaf3d5446d549b04d1bc24593eda8850266` instead of labeling that tip metadata-only.
-2. Restate the packet so `Scope completed`, `Files changed`, and budget notes match the actual current submission.
+1. Finalize the handoff against the current metadata-only branch tip `e7e545664f277419ff97a05740e45f88179dbe24` without moving the reviewed implementation head.
+2. Keep the packet explicit that the reviewed implementation head remains `ced0bcaf3d5446d549b04d1bc24593eda8850266` while later packet-refresh commits are metadata-only.
 3. Keep the canonical demo-path mapping explicit as `retrieve relevant material`.
-4. Re-run the required gate suite on the reviewed tip and record the results against that exact commit.
+4. Re-run the required gate suite on the current branch tip and record the results against that exact commit.
 
 ### Early Review Triggers
 
@@ -41,8 +41,8 @@
 
 ### Checkpoint Status
 
-- `plan complete`: the packet now targets the actual branch tip `ced0bcaf3d5446d549b04d1bc24593eda8850266`.
-- `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on `ced0bcaf3d5446d549b04d1bc24593eda8850266`.
+- `plan complete`: the packet now targets the current branch tip `e7e545664f277419ff97a05740e45f88179dbe24` while preserving the reviewed implementation head `ced0bcaf3d5446d549b04d1bc24593eda8850266`.
+- `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on `e7e545664f277419ff97a05740e45f88179dbe24`.
 - `before risky/shared file edit`: this refresh edits packet metadata only; the cumulative branch still includes the previously approved shared regression file `tests/unit/test_unified_retrieval.py`.
 - `ready for handoff`: the packet, reviewed tip, canonical demo-path step, and gate evidence now refer to the same actual branch state.
 
@@ -50,7 +50,7 @@
 
 - Canonical demo-path step advanced: `retrieve relevant material`.
 - `src/qual/retrieval/service.py` now prefers canonical excerpt query snapshots when excerpt lookup and promotion records are rebuilt, so mirrored sparse-query fields remain derived copies and can no longer override the authoritative FTS-backed query state.
-- The packet no longer claims `ced0bcaf3d5446d549b04d1bc24593eda8850266` is metadata-only. It now names the actual reviewed tip, the actual reviewed implementation range, and the actual canonical demo-path step advanced.
+- The packet now distinguishes the reviewed implementation head `ced0bcaf3d5446d549b04d1bc24593eda8850266` from the later metadata-only packet refresh commits through the current tip `e7e545664f277419ff97a05740e45f88179dbe24`, while keeping the canonical demo-path step advanced explicit.
 - SQLite FTS remains authoritative, and PageIndex and embeddings remain compatibility-only shims rather than required MVP retrieval paths.
 
 ## Reviewed Scope Boundary
@@ -84,9 +84,9 @@
 ## Tasks completed
 
 1. Updated `src/qual/retrieval/service.py` so canonical excerpt query snapshots take precedence over partial mirrored query metadata when excerpt lookup and promotion records are reconstructed.
-2. Regenerated the handoff against the actual branch tip `ced0bcaf3d5446d549b04d1bc24593eda8850266` instead of describing that tip as metadata-only.
-3. Updated `Scope completed`, `Files changed`, budget notes, and the canonical demo-path mapping so they describe the current submission truthfully.
-4. Re-ran the required gate suite against the actual reviewed tip.
+2. Finalized the handoff against the current metadata-only branch tip `e7e545664f277419ff97a05740e45f88179dbe24` while keeping the reviewed implementation head anchored to `ced0bcaf3d5446d549b04d1bc24593eda8850266`.
+3. Kept the canonical demo-path mapping explicit as `retrieve relevant material` and recorded the `.codex` write blocker in the authoritative writable packet artifacts.
+4. Re-ran the required gate suite against the current branch tip `e7e545664f277419ff97a05740e45f88179dbe24`.
 
 ## Files changed
 
@@ -113,7 +113,7 @@
 ## Commands run with results
 
 - Gate rerun date: `2026-04-23`
-- Gate rerun target: `ced0bcaf3d5446d549b04d1bc24593eda8850266`
+- Gate rerun target: `e7e545664f277419ff97a05740e45f88179dbe24`
 - `make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
@@ -123,10 +123,10 @@
 
 ## Reviewer fix closure
 
-1. The packet now reviews the actual submitted tip `ced0bcaf3d5446d549b04d1bc24593eda8850266` instead of claiming it is metadata-only.
-2. `Scope completed`, `Files changed`, and budget notes now distinguish the incremental reviewed implementation delta from the cumulative branch file surface that still exists at the reviewed tip.
-3. The canonical demo-path step advanced is stated directly as `retrieve relevant material`.
-4. The required gate suite is rerun and recorded against the actual reviewed tip.
+1. The packet now distinguishes the current submitted tip `e7e545664f277419ff97a05740e45f88179dbe24` from the reviewed implementation head `ced0bcaf3d5446d549b04d1bc24593eda8850266` instead of conflating them.
+2. The canonical demo-path step advanced is stated directly as `retrieve relevant material` in the authoritative writable handoff packet.
+3. The packet records the exact `.codex` metadata write blocker so re-review uses the correct refreshed artifacts for this pass.
+4. The required gate suite is rerun and recorded against the current branch tip `e7e545664f277419ff97a05740e45f88179dbe24`.
 
 ## Risks / blockers
 
