@@ -4325,6 +4325,35 @@ def canonical_mvp_command(name: str) -> str:
     return canonical_demo_command(name)
 
 
+def canonical_demo_command_argv(argv: tuple[str, ...] | list[str]) -> str:
+    """Map a full demo-path invocation back to its stable workflow token."""
+    raw_argv = tuple(argv)
+    if not raw_argv:
+        return ""
+
+    resolved = command_demo_resolve_argv(raw_argv)
+    workflow_token_by_argv = {
+        entry.argv: entry.token
+        for entry in command_demo_workflow_contract(COMMAND_SPECS).entries
+        if entry.argv
+    }
+    workflow_token = workflow_token_by_argv.get(resolved.argv)
+    if workflow_token is not None:
+        return workflow_token
+
+    if resolved.matched and resolved.flow_step:
+        normalized_flow_step = _normalize_token(resolved.flow_step)
+        if normalized_flow_step in _COMMAND_DEMO_LOOP_TOKENS:
+            return normalized_flow_step
+
+    return canonical_demo_command(raw_argv[0])
+
+
+def canonical_mvp_command_argv(argv: tuple[str, ...] | list[str]) -> str:
+    """Map a full MVP invocation back to its stable workflow token."""
+    return canonical_demo_command_argv(argv)
+
+
 def command_cli_shim_primary_token(
     token: str,
     flow_steps: tuple[str, ...] | None = None,
