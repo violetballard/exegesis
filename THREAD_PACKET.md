@@ -94,6 +94,13 @@
 - Scope framing:
   - this work makes step 2 more real directly and step 3 more real as the immediate follow-on review step. It is intentionally scoped as CLI compatibility support for the current engine-first MVP loop, not as generic command-catalog hardening or broader workflow progress outside that `retrieve relevant material -> preview and apply or reject a patch` slice, and it does not claim new workflow progress for step 1.
 
+## Reviewer Fix Closure
+
+- Reviewer-required fix satisfied:
+  - this packet now states explicitly that the branch makes canonical demo-path step 2 `retrieve relevant material` more real directly and step 3 `preview and apply or reject a patch` more real as the immediate follow-on review step, while keeping the claim narrow to deterministic CLI compatibility support for the existing Milestone 3 loop.
+- Scope-tightening preserved:
+  - this handoff does not claim broader engine workflow progress, new step 1 coverage, or any UI-lane advancement.
+
 ## Canonical Demo-Path Mapping
 
 - Exact canonical demo-path steps this slice makes more real:
