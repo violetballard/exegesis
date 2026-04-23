@@ -43,8 +43,11 @@
 
 ## Review Basis
 
-- Reviewed implementation commit pinned for re-review: `06540160de4cf0d452c1ed9b4d4926c205888be9`
-- Later commits on this branch are metadata-only packet refreshes unless a regenerated handoff explicitly broadens implementation review scope
+- Reviewed implementation base previously approved for comparison: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Reviewed implementation commits included in this re-review:
+  - `06540160de4cf0d452c1ed9b4d4926c205888be9` (`fix(commands): preserve demo flow steps for shim tokens`)
+  - `7fe699292035b6671bd17a3c5defa1659819c6fa` (`feat(commands): canonicalize demo argv workflow tokens`)
+- Current handoff packet is a metadata-only refresh on top of that reviewed implementation range
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -53,6 +56,7 @@
 
 - Hardened `command_cli_contract()` so it rejects parser-surface drift, including alias-only substitutions, token removals, token additions, and entrypoint reordering that would otherwise leave canonical command names unchanged.
 - Fixed `_resolve_demo_loop_token()` so demo-loop resolution preserves the logical demo token as the flow step when a shim-backed terminal command is selected for `apply-patch`, `reject-patch`, or `persist`.
+- Added canonical demo-argv normalization so shim-backed parser invocations map back to the stable workflow token used by the demo-path contracts.
 - Corrected the downstream demo workflow metadata generated from that loop resolution so the canonical CLI MVP path now reports:
   - `apply-patch` as `apply-patch`
   - `reject-patch` as `reject-patch`
@@ -83,7 +87,7 @@
 - Canonical demo-path step advanced:
   - `preview and apply or reject a patch`
 - Concrete blocker removed:
-  - shim-backed terminal commands in the demo workflow previously inherited the base `terminal` spec flow step `export-handoff`, so follow-up metadata for apply/reject/persist was internally mislabeled even when the argv was correct. That made the CLI demo loop less deterministic for smoke checks and future A2UI/Console consumers reading command workflow contracts.
+  - shim-backed terminal commands in the demo workflow previously inherited the base `terminal` spec flow step `export-handoff`, and shim-backed parser invocations could canonicalize to the fallback command name instead of the stable workflow token, so follow-up metadata for apply/reject/persist was internally mislabeled even when the argv was correct. That made the CLI demo loop less deterministic for smoke checks and future A2UI/Console consumers reading command workflow contracts.
 
 ## Handoff Packet
 
@@ -93,7 +97,7 @@
 
 1. Verified the CLI contract path now rejects parser-surface drift while preserving canonical command ordering for the exposed command catalog.
 2. Fixed lane-owned demo-loop resolution so workflow contracts preserve the logical demo token for apply/reject/persist instead of collapsing to `export-handoff`.
-3. Updated regression coverage in the shared command-catalog unit tests to lock both parser-surface drift rejection and the corrected demo-path metadata.
+3. Canonicalized full demo-path argv back to the stable workflow token and updated regression coverage to lock both parser-surface drift rejection and the corrected demo-path metadata.
 4. Re-ran the required gate suite and refreshed the handoff metadata for re-review.
 
 ### Files Changed
