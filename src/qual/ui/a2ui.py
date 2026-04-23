@@ -622,6 +622,12 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["shell_ui_contract_manifest_fingerprint"] = shell_ui_contract_fingerprints[
             "shell_ui_contract_manifest_fingerprint"
         ]
+        fingerprints["terminal_artifact_renderer_entrypoints"] = shell_ui_contract[
+            "terminal_artifact_renderer_entrypoints_contract_fingerprint"
+        ]
+        fingerprints["terminal_artifact_renderer_entrypoints_contract"] = shell_ui_contract[
+            "terminal_artifact_renderer_entrypoints_contract_fingerprint"
+        ]
         fingerprints["terminal_artifact_cli_fallback_entrypoint"] = shell_ui_contract[
             "terminal_artifact_cli_fallback_entrypoint_fingerprint"
         ]
@@ -2275,6 +2281,14 @@ def _build_a2ui_contract_manifest(
         )
         manifest["shell_ui_contract_fingerprints_fingerprint"] = shell_ui_contract[
             "contract_fingerprints_fingerprint"
+        ]
+        # Mirror the shell's renderer-entrypoint alias so shell-aware
+        # consumers can negotiate the same renderer contract names.
+        manifest["terminal_artifact_renderer_entrypoints_contract"] = _snapshot_contract_section(
+            shell_ui_contract["terminal_artifact_renderer_entrypoints_contract"]
+        )
+        manifest["terminal_artifact_renderer_entrypoints_contract_fingerprint"] = shell_ui_contract[
+            "terminal_artifact_renderer_entrypoints_contract_fingerprint"
         ]
         manifest["terminal_artifact_cli_fallback_entrypoint"] = shell_ui_contract[
             "terminal_artifact_cli_fallback_entrypoint"

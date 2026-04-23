@@ -1994,7 +1994,9 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("shell_ui_contract", default_manifest)
         self.assertNotIn("shell_ui_contract_manifest", default_manifest)
         self.assertNotIn("terminal_artifact_cli_fallback_entrypoint", default_manifest)
+        self.assertNotIn("terminal_artifact_renderer_entrypoints_contract", default_manifest)
         self.assertNotIn("shell_ui_contract_manifest", default_fingerprints)
+        self.assertNotIn("terminal_artifact_renderer_entrypoints", default_fingerprints)
         self.assertEqual(
             default_manifest["contract_fingerprints_fingerprint"],
             _fingerprint_manifest_section(default_manifest["contract_fingerprints"]),
@@ -2019,6 +2021,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["shell_ui_contract_fingerprints_fingerprint"],
             shell_manifest["contract_fingerprints_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_renderer_entrypoints_contract"],
+            shell_manifest["terminal_artifact_renderer_entrypoints_contract"],
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_renderer_entrypoints_contract_fingerprint"],
+            shell_manifest["terminal_artifact_renderer_entrypoints_contract_fingerprint"],
         )
         self.assertEqual(
             manifest["shell_ui_contract_manifest"],
@@ -2147,6 +2157,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints["shell_ui_contract_manifest_fingerprint"],
             shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_renderer_entrypoints"],
+            shell_manifest["terminal_artifact_renderer_entrypoints_contract_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_renderer_entrypoints_contract"],
+            shell_manifest["terminal_artifact_renderer_entrypoints_contract_fingerprint"],
         )
         self.assertEqual(
             fingerprints["shell_ui_fingerprint"],
