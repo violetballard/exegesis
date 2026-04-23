@@ -2,12 +2,12 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix refresh`
-- Current submitted tip before this packet refresh commit: `96f4c08993cf6e9b7fab14a58b7b849a6b5936f9`
+- Current submitted tip before this packet refresh commit: `9b5c1d678bdbadeab3587757dd656718e2eda681`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet traceability note: review this lane against the narrowed implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `d7fd5d20..adfa8cda`.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Reviewer-required plan-alignment statement: This work advances `retrieve relevant material` by making the authoritative SQLite FTS excerpt path fail closed for PageIndex-only excerpt IDs under shared regression coverage.
+- Reviewer-required plan-alignment statement: This work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage and basket-promotion inputs stay deterministic.
 - Packet authority note: this top-level packet and `docs/gate_passed.txt` are the reviewer-facing source of truth for the explicit demo-path mapping and plan-alignment wording on this branch.
 
 ## Scope Goal
@@ -32,7 +32,7 @@
 
 1. Keep the handoff anchored to reviewed implementation head `adfa8cda` and reviewed range `d7fd5d20..adfa8cda`.
 2. State the canonical demo-path step explicitly as `retrieve relevant material`.
-3. Reissue the reviewed file list and completed tasks without widening scope beyond commit `adfa8cda`.
+3. Reconcile packet wording so `fetch_excerpt` is described as FTS-only, with no PageIndex runtime fallback on the public excerpt lookup surface.
 4. Re-run the required gates and record results against the narrowed reviewed implementation head/range.
 
 ### Checkpoint Status
@@ -45,7 +45,7 @@
 ## Scope Completed
 
 - SQLite FTS remains the authoritative retrieval path for the reviewed implementation range.
-- Excerpt lookup still fails closed on the canonical FTS path for PageIndex-only excerpt IDs.
+- The public excerpt lookup surface resolves through the canonical FTS path, so PageIndex-only excerpt IDs fail closed with no PageIndex runtime fallback on that surface.
 - This handoff explicitly states that the reviewed slice advances the canonical demo-path step `retrieve relevant material`.
 
 ## Reviewed Scope Boundary
@@ -64,7 +64,7 @@
 
 1. Kept `fetch_excerpt` on the canonical FTS-only lookup path so PageIndex-only excerpt IDs fail closed.
 2. Kept the reviewed scope anchored to commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-3. Stated explicitly that this work advances the canonical demo-path step `retrieve relevant material`.
+3. Stated explicitly that this work advances the canonical demo-path step `retrieve relevant material` by keeping public excerpt resolution FTS-only and deterministic.
 4. Preserved the narrowed reviewer-facing handoff without expanding beyond the approved retrieval slice.
 
 ## Files Changed
@@ -105,7 +105,7 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` via the `retrieve relevant material` step's deterministic excerpt-query contract
+- `Milestone 4: Retrieval Layer` via the `retrieve relevant material` step's deterministic excerpt-query contract
 - `feat-retrieval-fts` FTS-only excerpt fail-closed slice
 
 ### Canonical demo-path step advanced
@@ -116,7 +116,7 @@
 ### Vision capability affected
 
 - `2. Retrieval-first context handling`
-- `6. Auditable state and workflow`
+- `3. Auditable generation`
 
 ### Routing/provider impact note
 
