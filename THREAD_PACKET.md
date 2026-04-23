@@ -6,6 +6,7 @@
 - Reviewed implementation head: `ced0bcaf3d5446d549b04d1bc24593eda8850266`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..ced0bcaf3d5446d549b04d1bc24593eda8850266`
 - Packet traceability note: the previous packet falsely anchored review at `adfa8cdadd43747ffbcb612e4151e262b13e52ca` even though later commits changed `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, and retrieval code in `src/qual/retrieval/service.py`. This packet treats the full code-bearing cumulative range through `ced0bcaf3d5446d549b04d1bc24593eda8850266` as the reviewed implementation, and this commit changes only handoff metadata.
+- Fixer note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` could not be rewritten in this sandbox because writes under `.codex/` failed with `Operation not permitted`, so the writable review packet files in the repo root are the authoritative refreshed handoff for this pass.
 
 ## Scope goal
 
