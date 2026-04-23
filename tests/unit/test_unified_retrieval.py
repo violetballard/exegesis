@@ -1847,6 +1847,63 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["provenance"]["query_fingerprint"], expected_query_fingerprint)
         self.assertEqual(normalized["basket_promotion"]["query_fingerprint"], expected_query_fingerprint)
 
+    def test_normalize_excerpt_payload_backfills_partial_nested_query_constraints(self) -> None:
+        normalized = self.service._normalize_excerpt_payload(
+            {
+                "excerpt_id": "excerpt-sparse-query-partial-1",
+                "doc_id": "doc-pdf-1",
+                "doc_type": "pdf",
+                "text": "Discussion theory evidence stays deterministic.",
+                "query": {
+                    "query_text": "  Discussion   Theory  ",
+                    "scope": "  DOC:doc-pdf-1  ",
+                    "intent": "  OuTlInE_SuPpOrT  ",
+                    "confidentiality_profile": "  StAnDaRd  ",
+                    "constraints": {},
+                },
+                "query_date_range": ("2026-02-28", "2026-02-01"),
+                "query_max_results": "6",
+                "query_doc_types": (" Memo ", "pdf", "memo"),
+                "query_require_citations": "true",
+                "query_prefer_exact_matches": "1",
+                "section_hint": "  discussion   notes  ",
+            },
+            source_strategy="fts",
+            lookup_resolution="fts",
+        )
+
+        expected_query = {
+            "query_text": "discussion theory",
+            "scope": "doc:doc-pdf-1",
+            "intent": "outline_support",
+            "confidentiality_profile": "standard",
+            "constraints": {
+                "max_results": 6,
+                "doc_types": ["memo", "pdf"],
+                "date_range": ["2026-02-01", "2026-02-28"],
+                "require_citations": True,
+                "section_hint": "discussion notes",
+                "prefer_exact_matches": True,
+            },
+        }
+
+        self.assertEqual(normalized["query"], expected_query)
+        self.assertEqual(normalized["provenance"]["query"], expected_query)
+        self.assertEqual(normalized["query_constraints"], expected_query["constraints"])
+        self.assertEqual(normalized["query_date_range"], ["2026-02-01", "2026-02-28"])
+        self.assertEqual(normalized["query_max_results"], 6)
+        self.assertEqual(normalized["query_doc_types"], ["memo", "pdf"])
+        self.assertTrue(normalized["query_require_citations"])
+        self.assertTrue(normalized["query_prefer_exact_matches"])
+        self.assertEqual(normalized["section_hint"], "discussion notes")
+        self.assertEqual(normalized["basket_promotion"]["query_constraints"], expected_query["constraints"])
+        self.assertEqual(normalized["basket_promotion"]["query_date_range"], ["2026-02-01", "2026-02-28"])
+        self.assertEqual(normalized["basket_promotion"]["query_max_results"], 6)
+        self.assertEqual(normalized["basket_promotion"]["query_doc_types"], ["memo", "pdf"])
+        self.assertTrue(normalized["basket_promotion"]["query_require_citations"])
+        self.assertTrue(normalized["basket_promotion"]["query_prefer_exact_matches"])
+        self.assertEqual(normalized["basket_promotion"]["section_hint"], "discussion notes")
+
     def test_normalize_excerpt_payload_omits_incomplete_query_snapshot(self) -> None:
         normalized = self.service._normalize_excerpt_payload(
             {

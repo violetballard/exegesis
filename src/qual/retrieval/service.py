@@ -3790,12 +3790,48 @@ class RetrievalService:
         query_intent = _normalize_query_intent_payload(query_intent_raw)
         query_confidentiality_profile = _normalized_profile_text(query_confidentiality_profile_raw)
         if query_constraints_explicit:
-            query_date_range_raw = query_constraints_payload.get("date_range")
-            section_hint_raw = query_constraints_payload.get("section_hint")
-            max_results_raw = query_constraints_payload.get("max_results")
-            doc_types_raw = query_constraints_payload.get("doc_types")
-            require_citations_raw = query_constraints_payload.get("require_citations")
-            prefer_exact_matches_raw = query_constraints_payload.get("prefer_exact_matches")
+            # Older sparse excerpt snapshots may carry a partial nested
+            # ``query.constraints`` object while the mirrored top-level query
+            # fields still hold the canonical values. Fall back field-by-field
+            # so lookup rehydration preserves the original auditable contract.
+            query_date_range_raw = _first_query_value(
+                query_constraints_payload.get("date_range"),
+                excerpt.get("query_date_range"),
+                provenance.get("query_date_range"),
+            )
+            section_hint_raw = _first_query_value(
+                query_constraints_payload.get("section_hint"),
+                excerpt.get("section_hint"),
+                provenance.get("section_hint"),
+            )
+            max_results_raw = _first_query_value(
+                query_constraints_payload.get("max_results"),
+                excerpt.get("query_max_results"),
+                provenance.get("query_max_results"),
+                excerpt.get("max_results"),
+                provenance.get("max_results"),
+            )
+            doc_types_raw = _first_query_value(
+                query_constraints_payload.get("doc_types"),
+                excerpt.get("query_doc_types"),
+                provenance.get("query_doc_types"),
+                excerpt.get("doc_types"),
+                provenance.get("doc_types"),
+            )
+            require_citations_raw = _first_query_value(
+                query_constraints_payload.get("require_citations"),
+                excerpt.get("query_require_citations"),
+                provenance.get("query_require_citations"),
+                excerpt.get("require_citations"),
+                provenance.get("require_citations"),
+            )
+            prefer_exact_matches_raw = _first_query_value(
+                query_constraints_payload.get("prefer_exact_matches"),
+                excerpt.get("query_prefer_exact_matches"),
+                provenance.get("query_prefer_exact_matches"),
+                excerpt.get("prefer_exact_matches"),
+                provenance.get("prefer_exact_matches"),
+            )
         else:
             query_date_range_raw = _first_query_value(
                 query_constraints_payload.get("date_range"),
