@@ -3,8 +3,8 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran against:
 
-* current reviewed implementation head `11d7079e3652cbcf14e9de2524b37ef2f8ab8a05`
-* reviewed implementation range `adfa8cdadd43747ffbcb612e4151e262b13e52ca..11d7079e3652cbcf14e9de2524b37ef2f8ab8a05`
+* current reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+* reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 * current packet refresh workspace before this metadata-only fixer commit
 
 Gate status:
@@ -16,9 +16,9 @@ Gate status:
 * `./typecheck-test.sh` - passed
 * `make ci` - passed
 
-Canonical demo-path step advanced: `retrieve relevant material`; this commit removes the PageIndex fallback from `fetch_excerpt`, and regression coverage proves PageIndex-only excerpt IDs now fail closed.
-Plan-alignment statement: deterministic FTS-only excerpt lookup strengthens auditable basket-promotion inputs without widening scope beyond the reviewed `fetch_excerpt` fail-closed slice.
-Reviewer fix closure: the authoritative handoff packet now carries that explicit plan-alignment statement in its top-level packet metadata and reviewer-fix closure section.
+Canonical demo-path step advanced: `retrieve relevant material`.
+Plan-alignment statement: this work advances `retrieve relevant material` by making the authoritative SQLite FTS excerpt path fail closed for PageIndex-only excerpt IDs under shared regression coverage.
+Reviewer fix closure: the authoritative handoff packet now carries that explicit demo-path mapping and plan-alignment statement while staying narrowed to reviewed commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 Reviewer-facing truth sources: `THREAD_PACKET.md` and this gate summary carry the canonical demo-path mapping and plan-alignment wording for re-review on this branch.
 
 Reviewed implementation files:

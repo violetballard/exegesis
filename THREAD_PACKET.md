@@ -2,23 +2,23 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix refresh`
-- Current submitted tip before this packet refresh commit: `11d7079e3652cbcf14e9de2524b37ef2f8ab8a05`
-- Reviewed implementation head: `11d7079e3652cbcf14e9de2524b37ef2f8ab8a05`
-- Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..11d7079e3652cbcf14e9de2524b37ef2f8ab8a05`
-- Packet traceability note: review this lane against the narrowed implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `adfa8cda..11d7079e`.
+- Current submitted tip before this packet refresh commit: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Packet traceability note: review this lane against the narrowed implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `d7fd5d20..adfa8cda`.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Reviewer-required plan-alignment statement: Canonical demo-path step advanced: `retrieve relevant material`; this commit removes the PageIndex fallback from `fetch_excerpt`, and regression coverage proves PageIndex-only excerpt IDs now fail closed.
+- Reviewer-required plan-alignment statement: This work advances `retrieve relevant material` by making the authoritative SQLite FTS excerpt path fail closed for PageIndex-only excerpt IDs under shared regression coverage.
 - Packet authority note: this top-level packet and `docs/gate_passed.txt` are the reviewer-facing source of truth for the explicit demo-path mapping and plan-alignment wording on this branch.
 
 ## Scope Goal
 
-- Make canonical excerpt lookup fail closed to FTS-only IDs for the Milestone 3 retrieval path while preserving deterministic query-constraint provenance.
+- Correct the handoff packet so it stays narrowed to reviewed commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` while stating explicitly that this work advances `retrieve relevant material`.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: correct the reviewer packet against the real post-review retrieval fixes without widening the lane beyond canonical FTS excerpt lookup and provenance behavior.
+- Scope goal: correct the reviewer packet against the reviewed retrieval implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` without widening the lane beyond the approved FTS-only excerpt fail-closed slice.
 - Risk reason: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so it is shared/high-risk work under the 4-task cap.
 
 ### Budget
@@ -30,14 +30,14 @@
 
 ### Planned Tasks (max 4)
 
-1. Re-anchor the handoff to the real reviewed implementation head `11d7079e` and reviewed range `adfa8cda..11d7079e`.
-2. Explain why sparse query-constraint rehydration is required for deterministic, auditable FTS excerpt lookup instead of being off-lane expansion.
-3. Reissue the reviewed file list, completed tasks, and canonical demo-path statement to match the current branch contents.
-4. Re-run the required gates and record results against the real reviewed implementation head/range.
+1. Keep the handoff anchored to reviewed implementation head `adfa8cda` and reviewed range `d7fd5d20..adfa8cda`.
+2. State the canonical demo-path step explicitly as `retrieve relevant material`.
+3. Reissue the reviewed file list and completed tasks without widening scope beyond commit `adfa8cda`.
+4. Re-run the required gates and record results against the narrowed reviewed implementation head/range.
 
 ### Checkpoint Status
 
-- `plan complete`: the packet is now anchored to the real post-review retrieval implementation range `adfa8cda..11d7079e`.
+- `plan complete`: the packet is anchored to the reviewer-approved retrieval implementation range `d7fd5d20..adfa8cda`.
 - `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `before risky/shared file edit`: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - `ready for handoff`: the packet and gate summary agree on the same reviewed implementation head, reviewed range, reviewed files, and canonical demo-path step.
@@ -46,12 +46,11 @@
 
 - SQLite FTS remains the authoritative retrieval path for the reviewed implementation range.
 - Excerpt lookup still fails closed on the canonical FTS path for PageIndex-only excerpt IDs.
-- Sparse excerpt query snapshots now rehydrate canonical constraint fields from both nested `query.constraints` payloads and the mirrored top-level `query_constraints` or `query_*` fields, so excerpt lookup, provenance, and basket-promotion payloads stay deterministic and auditable instead of silently dropping prior constraints.
-- This handoff advances the canonical demo-path step `retrieve relevant material` by removing the `fetch_excerpt` PageIndex fallback on the authoritative SQLite FTS path and proving with regression coverage that PageIndex-only excerpt IDs now fail closed.
+- This handoff explicitly states that the reviewed slice advances the canonical demo-path step `retrieve relevant material`.
 
 ## Reviewed Scope Boundary
 
-- Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..11d7079e3652cbcf14e9de2524b37ef2f8ab8a05`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation files:
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
@@ -62,13 +61,13 @@
 ## Tasks Completed
 
 1. Kept `fetch_excerpt` on the canonical FTS-only lookup path so PageIndex-only excerpt IDs fail closed.
-2. Backfilled sparse excerpt query-constraint fields from canonical top-level mirrors when a nested `query.constraints` snapshot is partial or empty.
-3. Merged sparse top-level `query_constraints` payloads into excerpt query snapshot rebuilding so lookup provenance and basket-promotion payloads preserve the original auditable query contract.
-4. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving partial sparse query snapshots still normalize back to the canonical deterministic query payload.
+2. Kept the reviewed scope anchored to commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+3. Stated explicitly that this work advances the canonical demo-path step `retrieve relevant material`.
+4. Preserved the narrowed reviewer-facing handoff without expanding beyond the approved retrieval slice.
 
 ## Files Changed
 
-- Reviewed implementation files in `adfa8cdadd43747ffbcb612e4151e262b13e52ca..11d7079e3652cbcf14e9de2524b37ef2f8ab8a05`:
+- Reviewed implementation files in `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`:
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 - Current metadata-only packet refresh files:
@@ -86,11 +85,11 @@
 
 ## Reviewer Fix Closure
 
-1. The packet now matches the real branch tip by reviewing the code-changing range `adfa8cda..11d7079e` instead of calling those commits metadata-only.
-2. The handoff explicitly states `Canonical demo-path step advanced: retrieve relevant material; this commit removes the PageIndex fallback from fetch_excerpt, and regression coverage proves PageIndex-only excerpt IDs now fail closed.`
-3. The packet now includes a dedicated reviewer-required plan-alignment statement that keeps the claim narrowed to the reviewed `fetch_excerpt` fail-closed slice.
-4. The scope summary is now limited to the reviewed `fetch_excerpt` fail-closed slice instead of implying broader `feat-retrieval-fts` completion.
-5. The reviewed file list, task list, and gate summary all match the current reviewed implementation range and branch contents.
+1. The packet stays narrowed to reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and reviewed range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+2. The handoff explicitly states that this work advances the canonical demo-path step `retrieve relevant material`.
+3. The packet includes a dedicated reviewer-required plan-alignment statement without widening scope beyond the reviewed `fetch_excerpt` fail-closed slice.
+4. The scope summary remains limited to the reviewed `fetch_excerpt` fail-closed slice instead of implying broader `feat-retrieval-fts` completion.
+5. The reviewed file list, task list, and gate summary all match the narrowed reviewed implementation range and current metadata-only packet refresh contents.
 6. The reviewer-facing truth sources are explicitly identified so re-review reads the demo-path mapping from this packet and `docs/gate_passed.txt`.
 
 ## Risks / Blockers
@@ -103,7 +102,7 @@
 ### Roadmap item(s) affected
 
 - `Milestone 3: Real workflow loop` via the `retrieve relevant material` step's deterministic excerpt-query contract
-- `feat-retrieval-fts` excerpt lookup and provenance rehydration slice
+- `feat-retrieval-fts` FTS-only excerpt fail-closed slice
 
 ### Canonical demo-path step advanced
 
