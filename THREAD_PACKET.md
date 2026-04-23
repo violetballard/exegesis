@@ -6,7 +6,7 @@
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet traceability note: this refresh commit is metadata-only. It preserves the reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` while refreshing the handoff packet on the later metadata-only branch tip `57aa020dcd152d4910e49e66dd6293b3fecb166d`.
-- Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to canonical FTS hits only, keeping retrieval provenance deterministic for downstream basket promotion.
+- Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to the canonical FTS-backed retrieval surface and no longer treats PageIndex as a runtime fallback path.
 
 ## Scope Goal
 
@@ -42,7 +42,7 @@
 
 ## Scope Completed
 
-- Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to canonical FTS hits only, keeping retrieval provenance deterministic for downstream basket promotion.
+- Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to the canonical FTS-backed retrieval surface and no longer treats PageIndex as a runtime fallback path.
 - Plan-alignment statement: this reviewed slice only advances `retrieve relevant material`; it does not claim broader engine-surface completion, alternate retrieval modes, or full lane completion.
 - `src/qual/retrieval/service.py` now makes `fetch_excerpt()` resolve only through the canonical FTS lookup path.
 - `tests/unit/test_unified_retrieval.py` now proves PageIndex-only excerpt IDs fail closed with `KeyError` under approved shared regression coverage.
@@ -108,7 +108,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to canonical FTS hits only, keeping retrieval provenance deterministic for downstream basket promotion.
+- Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to the canonical FTS-backed retrieval surface and no longer treats PageIndex as a runtime fallback path.
 
 ### Vision capability affected
 
