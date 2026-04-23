@@ -36,9 +36,9 @@
 ### Checkpoint Cadence (short updates)
 
 - Plan complete: packet scope reset to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` instead of the full branch tip.
-- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T21:39:10Z`.
+- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T21:42:16Z`.
 - Before risky/shared file edit: this fixer edits shared handoff metadata only (`THREAD.md`, `THREAD_PACKET.md`).
-- Ready for handoff: as of `2026-04-23T21:39:10Z`, the packet and required gate results match the reviewed slice.
+- Ready for handoff: as of `2026-04-23T21:42:16Z`, the packet and required gate results match the reviewed slice.
 
 ## Review Basis
 
@@ -67,14 +67,14 @@
 
 ## Plan Alignment
 
-- Exact canonical demo-path step this reviewed slice makes more real:
-  - direct step advanced: step 3 `preview and apply or reject a patch`
-  - explicit step sentence: this change directly strengthens demo-path step 3 `preview and apply or reject a patch` in the CLI-first MVP loop because it fails fast when canonical command order or canonical-name consistency drifts away from the catalog the operator-facing patch route depends on while Textual remains disabled.
-  - out of scope: no new step 1 `open project/document` or step 2 `retrieve relevant material` workflow coverage is claimed by this command-catalog contract slice
+- Operator-path mapping this reviewed slice advances:
+  - this hardens the stable CLI command surface the operator uses to invoke the engine-first loop while Textual remains disabled, including the command routes used to open a project or document, retrieve relevant material, preview or apply a patch, and hand work off through the existing CLI contract.
+  - the direct step strengthened by the reviewed change is `preview and apply or reject a patch`: `command_cli_contract()` now fails fast if canonical command order or canonical command names drift away from the catalog the patch route depends on.
+  - out of scope: this slice does not claim new workflow implementation for opening, retrieval, or export; it keeps those existing CLI entrypoints deterministic by preventing silent parser or catalog drift in the shared command contract.
 - Why this is direct MVP-loop work rather than second-order cleanup:
-  - this is Milestone 3 CLI-compatibility hardening, not generic infra cleanup: it hardens the operator-visible command contract while Textual remains disabled and the CLI carries the demo path.
+  - this is operator-surface hardening, not generic catalog cleanup: the reviewed change keeps the CLI loop invocable and deterministic on the same contract the operator and smoke tests rely on while Textual remains disabled.
   - the reviewed `catalog.py` change makes the CLI contract fail fast if the canonical command order derived from the lookup table drifts away from `command_names()`.
-  - that check protects the operator-visible patch preview/apply route, so deterministic CLI smoke coverage for the Milestone 3 command contract remains meaningful instead of silently testing the wrong command ordering.
+  - that check protects the operator-visible patch preview/apply route specifically and preserves trust in the broader CLI control surface generally, so deterministic smoke coverage cannot silently validate the wrong command ordering.
 
 ## Reviewer Fix Closure
 
@@ -87,14 +87,17 @@
 
 ## Canonical Demo-Path Mapping
 
-- Primary step advanced directly: step 3 `preview and apply or reject a patch`
+- Operator terms:
+  - this hardens the stable CLI control surface used to reach `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and existing CLI handoff or export flows without silent parser or catalog drift.
+- Primary direct step advanced:
+  - `preview and apply or reject a patch`
   - reason: the reviewed catalog contract check keeps canonical command order and canonical command names aligned with the command catalog, so the patch preview/apply entrypoint cannot silently drift away from the route the operator and smoke tests expect.
 - Explicit step sentence:
-  - this change directly strengthens demo-path step 3 `preview and apply or reject a patch` in the CLI-first MVP loop because it fails fast when canonical command order or canonical-name consistency drifts away from the catalog the operator-facing patch route depends on while Textual remains disabled.
+  - this change directly strengthens `preview and apply or reject a patch` in the CLI-first MVP loop because it turns canonical command order or canonical-name drift into a deterministic failure on the exact CLI surface the operator-facing patch route depends on while Textual remains disabled.
 - Out of scope:
-  - this slice does not claim new step 1 `open project/document` or step 2 `retrieve relevant material` workflow coverage.
+  - this slice does not claim new workflow implementation for `open project/document`, `retrieve relevant material`, or export; it preserves determinism for those existing CLI routes by protecting the shared command contract they all consume.
 - Explicit AGENTS mapping statement:
-  - this reviewed change is not generic command-catalog cleanup. It is a Milestone 3 CLI-compatibility hardening change that makes step 3 `preview and apply or reject a patch` more real directly because it turns canonical command order/name drift from a silent contract change into a deterministic failure on the exact CLI surface that step depends on.
+  - this reviewed change is not generic command-catalog cleanup. It is stable CLI control-surface hardening for the active engine-first demo path, with direct impact on `preview and apply or reject a patch` and protective impact on the rest of the invocable CLI loop.
 
 ## Shared-Path Approval Basis
 
@@ -136,7 +139,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification timestamp: `2026-04-23T21:39:10Z`
+- Verification timestamp: `2026-04-23T21:42:16Z`
 
 ### Risks / Blockers
 
@@ -150,8 +153,9 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3 (`Product Readiness`): define and lock user-facing output contracts.
-- `ROADMAP.md` MVP focus through `2026-05-04`: `feat-commands` is still an active implementation lane in the current engine-first push.
+- `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`): command and diff-preview behavior hardening while the manual CLI smoke flow stays stable.
+- `ROADMAP.md` Milestone 2 (`Test Hardening`): focused command-contract regression coverage for parser and catalog drift.
+- `ROADMAP.md` MVP focus through `2026-05-04`: `feat-commands` remains an active implementation lane in the current engine-first push.
 
 ### Vision capability affected
 
