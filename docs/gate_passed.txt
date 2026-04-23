@@ -3,9 +3,9 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran against:
 
-* current packet refresh head `850eacce56c3c3e59a2ec0509ffbe58b69f3e636` with truthful packet edits in the working tree
-* corrected reviewed implementation head `850eacce56c3c3e59a2ec0509ffbe58b69f3e636`
-* corrected reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..850eacce56c3c3e59a2ec0509ffbe58b69f3e636`
+* packet refresh commit `118c4f1dd0e008f5bf084678a0ffe00c091a1966`
+* reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+* reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 Gate status:
 
@@ -17,8 +17,8 @@ Gate status:
 * `make ci` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: this corrected handoff covers the actual branch implementation tip and keeps the lane classified as shared/high-risk because `tests/unit/test_unified_retrieval.py` is in scope.
+Plan-alignment statement: this narrowed retrieval fix advances `retrieve relevant material` by making FTS-only excerpt lookup deterministic and auditable for downstream basket and workflow use.
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
-The earlier `metadata-only` traceability note after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` was false and has been removed from the authoritative packet.
-The environment is currently rejecting writes under `.codex/` with `Operation not permitted`, so mirrored packet artifacts under `.codex/` remain stale until that restriction is lifted.
+Packet refresh commit `118c4f1dd0e008f5bf084678a0ffe00c091a1966` changes only `THREAD_PACKET.md` and `docs/gate_passed.txt`.
+The reviewed implementation scope remains narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
