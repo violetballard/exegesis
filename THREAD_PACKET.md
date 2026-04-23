@@ -72,7 +72,7 @@
 ## Scope Completed
 
 - Built out the trusted command surface used by the current CLI fallback path, including command-surface metadata, canonical wrapper exports, deterministic route and alias helpers, parser-surface validation, shim routing, and smoke-ready invocation contracts across the owned `src/qual/commands/**` lane files.
-- Hardened `src/qual/commands/catalog.py` so the CLI contract is checked against the catalog, parser-surface drift is rejected deterministically, and routed fallback subcommands such as retrieval-oriented command shims preserve their intended subcommand tokens.
+- Hardened `src/qual/commands/catalog.py` so the current engine-first MVP loop keeps a deterministic CLI compatibility contract: the parser is checked against the catalog, parser-surface drift is rejected deterministically, and routed fallback subcommands such as retrieval-oriented command shims preserve their intended subcommand tokens.
 - Stabilized `src/qual/commands/diff_preview.py` so `diff-preview` keeps effective labels and option-state visibility in no-diff JSON responses instead of silently dropping operator-visible review context.
 - Added and expanded focused regression coverage in `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` for command-surface drift, canonical ordering, routed subcommand preservation, and no-diff preview payload fidelity.
 - Carried forward truthful branch-tip regression coverage in the shared tests `tests/unit/test_a2ui_contract.py`, `tests/unit/test_bulk_draft_routing.py`, `tests/unit/test_context_storage_recovery.py`, `tests/unit/test_docindex_pageindex.py`, `tests/unit/test_export_preview_flow.py`, `tests/unit/test_metrics_module.py`, `tests/unit/test_terminal_chat_routing.py`, and `tests/unit/test_unified_retrieval.py`, which remain part of the current merge-base-to-tip delta even though the lane-owned implementation is confined to `src/qual/commands/**`.
@@ -85,16 +85,17 @@
 
 ## Canonical Demo-Path Mapping
 
-- Exact current MVP demo-path steps advanced by this lane:
-  - primary step: step 2 `retrieve relevant material`
-  - dependent step: step 3 `preview and apply or reject a patch`
+- Exact canonical demo-path steps this slice makes more real:
+  - in-scope primary step: step 2 `retrieve relevant material`, via the CLI-side `open project/document` and retrieval command entrypoints that must continue resolving to the intended canonical routes during the engine-first MVP loop
+  - in-scope follow-on step: step 3 `preview and apply or reject a patch`, via the CLI `diff-preview` entrypoint that must preserve operator-visible review context even when there is no diff payload to apply
+  - out of scope: this slice does not claim new step 1 `open project/document` workflow coverage beyond keeping the existing CLI entrypoint compatible with the retrieval path
 - Concrete operator-facing failure mode prevented by this change:
-  - if the parser surface drifted away from the catalog, the CLI fallback path could silently accept a different command ordering, drop the canonical retrieval entrypoint in favor of an alias, or lose routed subcommand tokens. In that state, an operator could issue the expected retrieval command and get a mismatched or degraded route instead of the intended deterministic contract.
+  - if the parser surface drifted away from the catalog, the CLI fallback path could silently accept a different command ordering, drop the canonical retrieval entrypoint in favor of an alias, or lose routed subcommand tokens. That parser/catalog drift would silently change the operator contract and break deterministic smoke coverage for the Milestone 3 CLI loop.
   - if `diff-preview` dropped effective labels or option-state fields in a no-diff response, the operator could reach step 3 but lose the visible review context needed to judge whether there is anything to apply or reject.
 - Concrete blocker removed:
-  - this branch tip removes a CLI-contract blocker on the current engine-first loop by making retrieval-command drift fail fast and by preserving operator-visible no-diff preview context, instead of letting those failures degrade the loop silently while Textual remains disabled.
+  - this branch tip removes a CLI compatibility blocker on the current engine-first MVP loop: parser/catalog drift can no longer silently change the retrieval and preview command contract, so deterministic smoke coverage keeps exercising the intended CLI operator path while Textual remains disabled.
 - Explicit AGENTS mapping statement:
-  - this work makes step 2 more real directly and step 3 more real as the immediate follow-on review step. It does not claim broader workflow progress outside that `retrieve relevant material -> preview and apply or reject a patch` slice.
+  - this work makes step 2 more real directly and step 3 more real as the immediate follow-on review step. It is intentionally scoped as CLI compatibility support for the current engine-first MVP loop, not as generic command-catalog hardening or broader workflow progress outside that `retrieve relevant material -> preview and apply or reject a patch` slice, and it does not claim new workflow progress for step 1.
 
 ## Shared-Path Approval Basis
 
@@ -191,7 +192,7 @@
 
 - `ROADMAP.md` Milestone 3 (`Real workflow loop`): preserve CLI compatibility while the package and layout migration lands.
 - `ROADMAP.md` lane mapping: `feat-commands` owns CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
-- Narrow lane mapping: this packet covers command-contract hardening for the CLI-first loop, specifically to keep step 2 `retrieve relevant material` and the immediate step 3 `preview and apply or reject a patch` deterministic, smoke-testable, and operator-visible while UI lanes remain disabled.
+- Narrow lane mapping: this packet covers CLI compatibility support for the current engine-first MVP loop, specifically to keep step 2 `retrieve relevant material` and the immediate step 3 `preview and apply or reject a patch` deterministic, smoke-testable, and operator-visible while UI lanes remain disabled. It does not claim new workflow progress for step 1 `open project/document`.
 
 ### Vision capability affected
 

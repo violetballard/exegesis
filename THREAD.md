@@ -33,11 +33,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - the extra `tests/unit/*` files above are branch-carried shared regression coverage for adjacent MVP slices that still appear in the truthful tip-level delta
   - this handoff does not pretend those shared tests are absent; it states them explicitly and carries the residual approval risk forward
 - Canonical demo-path steps advanced:
-  - primary: `retrieve relevant material`
-  - dependent: `preview and apply or reject a patch`
+  - primary: `retrieve relevant material`, via the CLI-side `open project/document` and retrieval entrypoints that must keep their canonical routing in the engine-first MVP loop
+  - dependent: `preview and apply or reject a patch`, via the CLI `diff-preview` entrypoint that must retain operator-visible no-diff review context
+  - out of scope: no new `open project/document` workflow coverage is claimed beyond preserving CLI compatibility into retrieval
 - Concrete blocker removed from the CLI-first MVP loop:
-  - the operator no longer depends on fragile parser drift behavior, dropped routed subcommands, or missing no-diff preview state for the current CLI fallback path.
-  - the packet now states that this is narrow Milestone 3 command-contract hardening, not a broader workflow or UI milestone.
+  - parser/catalog drift can no longer silently change the retrieval or preview CLI operator contract, which removes a deterministic smoke-coverage blocker for the Milestone 3 engine-first loop while Textual remains disabled.
+  - the packet now states that this is narrow CLI compatibility support for the current engine-first MVP loop, not generic catalog hardening or a broader workflow or UI milestone.
 - Shared-path approval basis:
   - current policy allowlist for `tests/unit/test_commands_catalog.py`: `scripts/scope-check.sh` lane-specific shared-test exception for `codex/feat-commands*`, traced through `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` and `c3a66bb580772d65201a630d673a8de1d4a63776`
   - branch-history approval trail for `tests/unit/test_diff_preview.py`: `8a38d7bde29da3ecfb3da905ff78416034b151b7`, `2afa0f7f2f23c2d73773cc9c5a2fc0007ba19be3`, and `51279575df18d44dc112129f561f2dcb7743e70f`
