@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix refresh`
-- Current submitted tip before this packet refresh commit: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Current submitted tip before this packet refresh commit: `96f4c08993cf6e9b7fab14a58b7b849a6b5936f9`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet traceability note: review this lane against the narrowed implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `d7fd5d20..adfa8cda`.
@@ -55,6 +55,8 @@
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 - Current metadata-only handoff files in this packet refresh:
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
 
@@ -71,6 +73,8 @@
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 - Current metadata-only packet refresh files:
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
 
