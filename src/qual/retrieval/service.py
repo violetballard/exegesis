@@ -627,14 +627,19 @@ class RetrievalHit:
     def __post_init__(self) -> None:
         if self.source_strategy != _FTS_SOURCE_STRATEGY:
             raise ValueError("source_strategy must be fts for the FTS-first retrieval lane")
+        canonical_span = RetrievalService._canonicalize_span(self.span)
+        if canonical_span is None:
+            canonical_span = {"char_range": {"start": 0, "end": 0}}
         # Snapshot mutable payload fields at construction time so downstream
         # engine consumers cannot accidentally mutate the canonical retrieval
         # result by holding on to caller-owned dict/list instances.
-        object.__setattr__(self, "span", copy.deepcopy(self.span))
+        object.__setattr__(self, "span", copy.deepcopy(canonical_span))
         object.__setattr__(self, "node_path", copy.deepcopy(self.node_path))
         # Normalize loose dict-shaped provenance so compatibility shims and any
         # hit rehydration still emit the canonical deterministic FTS contract.
-        object.__setattr__(self, "provenance", _normalize_excerpt_hit_provenance_payload(self.provenance))
+        normalized_provenance = _normalize_excerpt_hit_provenance_payload(self.provenance)
+        normalized_provenance["span"] = copy.deepcopy(canonical_span)
+        object.__setattr__(self, "provenance", normalized_provenance)
 
     def as_dict(self) -> dict[str, object]:
         payload = {
