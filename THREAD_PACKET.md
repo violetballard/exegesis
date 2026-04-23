@@ -36,13 +36,15 @@
 ### Checkpoint Cadence (short updates)
 
 - Plan complete: packet scope reset to the current fixed branch state instead of the earlier narrower review slice.
-- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:31:27Z`.
+- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:34:30Z`.
 - Before risky/shared file edit: this fixer refreshes the shared handoff metadata (`THREAD.md`, `THREAD_PACKET.md`) for a branch state that already includes the approved shared regression file `tests/unit/test_commands_catalog.py`.
-- Ready for handoff: as of `2026-04-23T22:31:27Z`, the packet and required gate results match the fixed branch state.
+- Ready for handoff: as of `2026-04-23T22:34:30Z`, the packet and required gate results match the fixed branch state.
 
 ## Review Basis
 
 - Review scope covers the current fixed branch state for the command CLI contract.
+- Reviewed implementation commit pinned for re-review: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Metadata-only packet refresh commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are out of implementation review scope unless a regenerated handoff explicitly broadens the review basis.
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -159,7 +161,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification timestamp: `2026-04-23T22:31:27Z`
+- Verification timestamp: `2026-04-23T22:34:30Z`
 
 ### Risks / Blockers
 
@@ -173,12 +175,13 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3 (`Product Readiness`): this is user-facing contract hardening for the active CLI path because that milestone now covers defining and locking output and operator-visible contracts, and the patch-review step only stays operator-safe when the accepted CLI token surface for `preview and apply or reject a patch` remains explicit, intentional, and testable instead of silently drifting under the same canonical command name.
+- `ROADMAP.md` Milestone 3 (`Product Readiness`): this is user-facing contract hardening for the active CLI path because that milestone requires contract changes to be explicit and intentional, and this slice locks the accepted CLI token surface for `preview and apply or reject a patch` instead of allowing silent parser drift under the same canonical command name.
+- `ROADMAP.md` Milestone 5 (`A2UI Presentation Layer`) exit criterion `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`: this command-catalog hardening preserves the `patch` step of that CLI-first MVP loop by keeping the patch-review route deterministic and smoke-testable while Textual remains disabled.
 - `ROADMAP.md` active lane `feat-commands`: scope remains limited to CLI compatibility and migration-safe entrypoints in `src/qual/commands/**`; this packet does not claim generic workflow or audit progress beyond that operator path.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): the CLI remains a first-class reliability surface while future clients build on the same engine contracts, and this slice keeps that patch-review route stable by turning silent parser-surface drift into an immediate contract failure on the exact CLI surface the operator uses while Textual remains disabled.
+- `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): the CLI remains a first-class reliability surface while future clients build on the same engine contracts, and this slice keeps the `patch` step stable by turning silent parser-surface drift into an immediate contract failure on the exact CLI surface the operator uses while Textual remains disabled.
 
 ### Routing / Provider Impact Note
 

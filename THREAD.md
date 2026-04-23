@@ -7,11 +7,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Current Review Focus
 
 - Current branch tip carries the required code-side reviewer fixes for the command CLI contract and the matching regression coverage, including explicit assertions that parser-surface drift is rejected even when canonical names still match.
+- Reviewed implementation commit pinned for re-review: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Metadata-only packet refresh commits after that implementation commit are out of review scope unless a regenerated handoff says otherwise.
 - Reviewed implementation files for the fixed branch state:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - This fixer pass updates the handoff text so it matches the actual branch behavior already present at the current branch tip: `command_cli_contract()` now rejects full parser-surface drift, including token add, remove, alias substitution, or reorder changes that would otherwise leave canonical command names unchanged.
-- Final fixer validation reran the required gate sequence from this worktree on `2026-04-23T22:31:27Z`; the metadata refresh below records that fresh verification for the full fixed branch state.
+- Final fixer validation reran the required gate sequence from this worktree on `2026-04-23T22:34:30Z`; the metadata refresh below records that fresh verification for the full fixed branch state.
 - Exact canonical demo-path mapping for the fixed branch state:
   - operator terms: this hardens the stable CLI command surface used to reach `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and existing CLI handoff or export flows without silent parser or catalog drift
   - direct step advanced: `preview and apply or reject a patch`
@@ -21,7 +23,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - AGENTS-required handoff statement: the canonical demo-path step this work makes more real is `preview and apply or reject a patch`
   - out of scope: no new workflow implementation for `open project/document`, `retrieve relevant material`, or export is claimed by this command-catalog contract slice
 - Roadmap and vision grounding for that step:
-  - roadmap contract: this is `ROADMAP.md` Milestone 3 `Product Readiness` work because that milestone now includes defining and locking user-facing output contracts, and this slice makes the patch-review CLI route fail fast when its accepted token surface drifts instead of silently changing under the same canonical command name
+  - roadmap contract: this is `ROADMAP.md` Milestone 3 `Product Readiness` work because that milestone requires user-facing contract changes to be explicit and intentional, and this slice locks the accepted CLI token surface for the patch-review route instead of allowing silent drift under the same canonical command name
+  - roadmap MVP-loop relevance: this also preserves the `ROADMAP.md` MVP-flow requirement that `CLI can execute the MVP flow (vault -> context -> run -> patch -> export)` because the `patch` step remains deterministic and smoke-testable while Textual stays disabled
   - vision capability: this serves `PRODUCT_VISION.md` capability 4 `Operator-first control surface` by keeping the CLI patch-review step stable as the active operator surface while Textual remains disabled and future clients consume the same engine-facing contracts
 - Concrete reason this is not second-order work:
   - `catalog.py` now makes `command_cli_contract()` fail fast if the parser surface for an accepted CLI route drifts away from the declared catalog, even when the canonical command tuple is unchanged. That removes the concrete blocker where the CLI-first patch-review step could still appear available while the operator-facing route had silently lost or reordered accepted tokens.
