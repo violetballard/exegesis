@@ -47,8 +47,8 @@
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - Reviewed change summary:
-  - `src/qual/commands/catalog.py`: adds a strict `command_cli_contract()` consistency check so canonical CLI names must match catalog order instead of silently drifting.
-  - `tests/unit/test_commands_catalog.py`: adds regression coverage that proves the CLI contract matches catalog order and raises on catalog drift.
+  - `src/qual/commands/catalog.py`: routes `command_cli_contract()` through the stricter parser-surface validator so the contract must match both the canonical command order and the full declared CLI entrypoint surface.
+  - `tests/unit/test_commands_catalog.py`: adds parser-surface drift regressions for dropped canonical tokens, alias substitution, alias reordering, extra accepted entrypoints, and removed expected aliases.
 - This fixer pass does not change that implementation scope. It only regenerates the handoff metadata in `THREAD.md` and `THREAD_PACKET.md`.
 
 ## Scope Completed
@@ -71,17 +71,17 @@
   - immediate follow-on step hardened: step 3 `preview and apply or reject a patch`
   - out of scope: no new step 1 `open project/document` workflow coverage is claimed beyond preserving the existing CLI entrypoint into retrieval
 - Why this is direct MVP-loop work rather than second-order cleanup:
-  - the reviewed `catalog.py` change makes the CLI contract fail fast if parser-visible canonical command names drift away from the command catalog order.
-  - that drift check protects the operator-visible command route used to reach retrieval and the immediate preview/apply follow-on, so deterministic CLI smoke coverage remains meaningful instead of silently testing the wrong contract.
+  - the reviewed `catalog.py` change makes the CLI contract fail fast if the parser-visible entrypoint surface drifts away from the command catalog, including alias-level drift that would otherwise still collapse to the same canonical tuple.
+  - that stricter check protects the operator-visible command route used to reach retrieval and the immediate preview/apply follow-on, so deterministic CLI smoke coverage remains meaningful instead of silently testing the wrong contract.
 
 ## Reviewer Fix Closure
 
 - Required fix 1 satisfied:
-  - this packet now includes the completed high-risk AGENTS fields that were missing: `Risk reason`, `Planned Tasks`, `Early Review Triggers`, `Stop Triggers`, and `Checkpoint Cadence`.
+  - `command_cli_contract()` now validates the actual declared parser surface, not only the deduplicated canonical-name projection, so alias-level parser drift fails fast.
 - Required fix 2 satisfied:
-  - this packet now states exactly which canonical demo-path step(s) the reviewed deterministic command-contract change advances and why that is direct MVP-loop support.
+  - targeted regressions in `tests/unit/test_commands_catalog.py` now cover concrete parser-surface drift cases such as dropped canonical tokens, alias substitution, entrypoint reordering, extra accepted aliases, and removed expected aliases.
 - Required fix 3 satisfied:
-  - review scope remains pinned to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and no implementation change beyond handoff metadata regeneration was made in this fixer pass.
+  - this packet states explicitly which canonical demo-path step the change advances and why the work is direct MVP-loop support.
 
 ## Canonical Demo-Path Mapping
 

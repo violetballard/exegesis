@@ -10,13 +10,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Reviewed implementation files at that commit:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
-- This fixer pass is metadata-only. It does not change the reviewed implementation slice; it regenerates the handoff as a completed high-risk AGENTS packet and adds the missing canonical demo-path mapping required by review.
+- The branch now carries the code-side reviewer fixes as well as the handoff refresh. This fixer pass keeps the implementation slice untouched and updates the handoff text so it accurately describes the parser-surface validation, alias-drift regressions, and canonical demo-path mapping now present on the branch.
 - Exact canonical demo-path mapping for the reviewed slice:
   - direct step advanced: step 2 `retrieve relevant material`
   - immediate follow-on step hardened: step 3 `preview and apply or reject a patch`
   - out of scope: no new step 1 `open project/document` workflow coverage is claimed beyond preserving the existing CLI entrypoint into the retrieval path
 - Concrete reason this is not second-order work:
-  - the `catalog.py` contract check added at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` prevents parser and catalog drift from silently changing the operator-visible CLI command surface used to reach retrieval and its immediate preview/apply follow-on. That keeps the deterministic CLI loop smoke-testable instead of allowing the MVP operator path to drift unnoticed.
+  - the `catalog.py` CLI contract now validates the full declared parser surface instead of only the deduplicated canonical-name projection. That prevents alias-level parser drift from silently changing the operator-visible CLI command surface used to reach retrieval and its immediate preview/apply follow-on, so the deterministic CLI loop stays smoke-testable instead of drifting unnoticed.
 - Shared-file basis for the high-risk packet:
   - lane-owned implementation: `src/qual/commands/**`
   - shared test touched by the reviewed commit: `tests/unit/test_commands_catalog.py`
