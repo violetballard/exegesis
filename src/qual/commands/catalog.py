@@ -355,6 +355,21 @@ class CommandSmokeInvocationContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoWorkflowInvocationEntry:
+    token: str
+    canonical_name: str
+    flow_step: str
+    argv: tuple[str, ...]
+    description: str
+
+
+@dataclass(frozen=True)
+class CommandDemoWorkflowInvocationContract:
+    decision_token: str
+    entries: tuple[CommandDemoWorkflowInvocationEntry, ...]
+
+
+@dataclass(frozen=True)
 class ResolvedCommand:
     token: str
     normalized_token: str
@@ -3328,6 +3343,70 @@ def command_mvp_workflow_entry_for(
     token: str,
 ) -> CommandDemoWorkflowEntry | None:
     return command_demo_workflow_entry_for(specs, token)
+
+
+def _demo_workflow_branch_token(
+    specs: tuple[CommandSpec, ...],
+    decision_token: str,
+) -> str:
+    workflow_entry = command_demo_workflow_entry_for(specs, decision_token)
+    if workflow_entry is None or workflow_entry.token not in {"apply-patch", "reject-patch"}:
+        raise ValueError(
+            "Command demo workflow invocation plan requires an apply/reject branch token"
+        )
+    return workflow_entry.token
+
+
+def _demo_workflow_branch_tokens(
+    specs: tuple[CommandSpec, ...],
+    decision_token: str,
+) -> tuple[str, ...]:
+    branch_token = _demo_workflow_branch_token(specs, decision_token)
+    return ("project-open", "retrieval", "patch-review", branch_token, "persist", "export-handoff")
+
+
+def command_demo_workflow_invocation_plan(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandDemoWorkflowInvocationEntry, ...]:
+    """Return a full parser-ready demo loop for either the apply or reject branch."""
+    workflow_entries = {entry.token: entry for entry in command_demo_workflow_contract(specs).entries}
+    return tuple(
+        CommandDemoWorkflowInvocationEntry(
+            token=token,
+            canonical_name=workflow_entries[token].canonical_name,
+            flow_step=workflow_entries[token].flow_step,
+            argv=workflow_entries[token].argv,
+            description=workflow_entries[token].description,
+        )
+        for token in _demo_workflow_branch_tokens(specs, decision_token)
+    )
+
+
+def command_mvp_workflow_invocation_plan(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandDemoWorkflowInvocationEntry, ...]:
+    """Return the current MVP parser-ready loop for either the apply or reject branch."""
+    return command_demo_workflow_invocation_plan(decision_token, specs)
+
+
+def command_demo_workflow_invocation_contract(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoWorkflowInvocationContract:
+    canonical_decision_token = _demo_workflow_branch_token(specs, decision_token)
+    return CommandDemoWorkflowInvocationContract(
+        decision_token=canonical_decision_token,
+        entries=command_demo_workflow_invocation_plan(canonical_decision_token, specs),
+    )
+
+
+def command_mvp_workflow_invocation_contract(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoWorkflowInvocationContract:
+    return command_demo_workflow_invocation_contract(decision_token, specs)
 
 
 def command_demo_path_entry_for(
