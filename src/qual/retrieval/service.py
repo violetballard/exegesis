@@ -3836,9 +3836,30 @@ class RetrievalService:
         lookup_fingerprint: str,
     ) -> dict[str, object]:
         query_snapshot = self._build_excerpt_query_snapshot(excerpt=excerpt, provenance=provenance)
+        query_fingerprint = self._query_fingerprint_from_snapshot(query_snapshot)
         query_constraints = query_snapshot.get("constraints", {}) if isinstance(query_snapshot, dict) else {}
         if not isinstance(query_constraints, dict):
             query_constraints = {}
+        query_text = (
+            query_snapshot.get("query_text")
+            if isinstance(query_snapshot, dict)
+            else excerpt.get("query_text") or provenance.get("query_text")
+        )
+        query_scope = (
+            query_snapshot.get("scope")
+            if isinstance(query_snapshot, dict)
+            else provenance.get("query_scope")
+        )
+        query_intent = (
+            query_snapshot.get("intent")
+            if isinstance(query_snapshot, dict)
+            else provenance.get("query_intent")
+        )
+        query_confidentiality_profile = (
+            query_snapshot.get("confidentiality_profile")
+            if isinstance(query_snapshot, dict)
+            else provenance.get("query_confidentiality_profile")
+        )
         retrieval_policy = _normalize_retrieval_policy_snapshot_payload(
             copy.deepcopy(excerpt.get("retrieval_policy", self._retrieval_policy.as_snapshot()))
         )
@@ -3852,15 +3873,11 @@ class RetrievalService:
             "promotion_ready": True,
             "promotion_source": "lookup_excerpt",
             "citation_available": True,
-            "query_text": _normalize_query_text_payload(
-                excerpt.get("query_text") or provenance.get("query_text")
-            ),
-            "query_fingerprint": _optional_text(provenance.get("query_fingerprint")),
-            "query_scope": _normalize_query_scope_payload(provenance.get("query_scope")),
-            "query_intent": _normalize_query_intent_payload(provenance.get("query_intent")),
-            "query_confidentiality_profile": _normalized_profile_text(
-                provenance.get("query_confidentiality_profile")
-            ),
+            "query_text": _normalize_query_text_payload(query_text),
+            "query_fingerprint": query_fingerprint or _optional_text(provenance.get("query_fingerprint")),
+            "query_scope": _normalize_query_scope_payload(query_scope),
+            "query_intent": _normalize_query_intent_payload(query_intent),
+            "query_confidentiality_profile": _normalized_profile_text(query_confidentiality_profile),
             "query_constraints": copy.deepcopy(query_constraints),
             "query_max_results": _optional_int(query_constraints.get("max_results")),
             "query_doc_types": _normalize_query_doc_types_payload(query_constraints.get("doc_types")),
@@ -3873,7 +3890,9 @@ class RetrievalService:
                 excerpt.get("lookup_confidentiality_profile")
                 or provenance.get("lookup_confidentiality_profile")
             ),
-            "query_date_range": _normalize_query_date_range_payload(provenance.get("query_date_range")),
+            "query_date_range": _normalize_query_date_range_payload(
+                query_constraints.get("date_range", provenance.get("query_date_range"))
+            ),
             "candidate_doc_count": _optional_int(provenance.get("candidate_doc_count")),
             "fts_shortlist_doc_ids": _normalize_doc_id_list_payload(provenance.get("fts_shortlist_doc_ids")),
             "result_fingerprint": _optional_text(excerpt.get("result_fingerprint"))
