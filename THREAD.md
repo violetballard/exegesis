@@ -14,7 +14,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Final fixer validation reran the required gate sequence from this worktree on `2026-04-23T21:35:16Z`; the metadata refresh below records that fresh verification on top of the already-landed code-side reviewer fixes.
 - Exact canonical demo-path mapping for the reviewed slice:
   - direct step advanced: step 3 `preview and apply or reject a patch`
-  - canonical demo-path step(s) advanced: step 3 `preview and apply or reject a patch`, because the reviewed CLI contract check fails fast when canonical command order or canonical-name resolution drifts away from the operator-visible patch preview/apply route while Textual remains disabled
+  - explicit step sentence: this change directly strengthens demo-path step 3 `preview and apply or reject a patch` in the CLI-first MVP loop because it fails fast when canonical command order or canonical-name consistency drifts away from the catalog the operator-facing patch route depends on while Textual remains disabled
   - out of scope: no new step 1 `open project/document` or step 2 `retrieve relevant material` workflow coverage is claimed by this command-catalog contract slice
 - Concrete reason this is not second-order work:
   - at reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, `catalog.py` makes `command_cli_contract()` fail fast if the lookup-table-derived canonical command order no longer matches `command_names()`. That prevents the operator-visible patch preview/apply route from silently drifting away from the catalog order the CLI and smoke tests expect, so this remains direct Milestone 3 CLI-loop hardening rather than generic cleanup.

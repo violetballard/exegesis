@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: regenerate the handoff for reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` so it satisfies the high-risk AGENTS template and states exactly which canonical demo-path CLI step this canonical command order/name hardening change advances.
+- Scope goal: regenerate the handoff for reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` so it satisfies the high-risk AGENTS template, states exactly which canonical demo-path CLI step this canonical command order/name hardening change advances, and avoids broader parser-surface claims the reviewed slice does not prove.
 - Risk reason: the reviewed slice mixes lane-owned command code with a shared test file, and this fixer also updates shared handoff metadata to satisfy the lane-specific review gate.
 
 ### Budget
@@ -54,7 +54,7 @@
 ## Scope Completed
 
 - Regenerated the lane handoff as a completed high-risk AGENTS packet for the reviewed Milestone 3 CLI-compatibility hardening slice.
-- Added the missing reviewer-requested canonical demo-path mapping statement and the explicit reason this reviewed canonical-order/name hardening advances the Milestone 3 CLI loop directly instead of serving as generic infra cleanup.
+- Added the missing reviewer-requested explicit sentence naming the canonical demo-path step and the reason this reviewed canonical-order/name hardening advances the Milestone 3 CLI-first MVP loop directly instead of serving as generic infra cleanup.
 - Kept review scope pinned to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; no additional implementation change was made.
 - Revalidated the branch tip with a fresh full gate rerun so the handoff reflects the actual final fixer state rather than the earlier packet-refresh timestamp.
 
@@ -69,6 +69,7 @@
 
 - Exact canonical demo-path step this reviewed slice makes more real:
   - direct step advanced: step 3 `preview and apply or reject a patch`
+  - explicit step sentence: this change directly strengthens demo-path step 3 `preview and apply or reject a patch` in the CLI-first MVP loop because it fails fast when canonical command order or canonical-name consistency drifts away from the catalog the operator-facing patch route depends on while Textual remains disabled.
   - out of scope: no new step 1 `open project/document` or step 2 `retrieve relevant material` workflow coverage is claimed by this command-catalog contract slice
 - Why this is direct MVP-loop work rather than second-order cleanup:
   - this is Milestone 3 CLI-compatibility hardening, not generic infra cleanup: it hardens the operator-visible command contract while Textual remains disabled and the CLI carries the demo path.
@@ -78,7 +79,7 @@
 ## Reviewer Fix Closure
 
 - Required fix 1 satisfied:
-  - this packet explicitly names demo-path step 3 `preview and apply or reject a patch` and explains that the reviewed contract hardening keeps that CLI route aligned with the catalog order the operator and smoke tests expect.
+  - this packet now includes an explicit sentence naming demo-path step 3 `preview and apply or reject a patch` and explaining that the reviewed contract hardening keeps that CLI route aligned with the catalog order and canonical command names the operator and smoke tests expect.
 - Required fix 2 satisfied:
   - the scope language is now pinned to the reviewed behavior only: canonical command order and canonical-name consistency between `command_cli_lookup_table()` and `command_names()`.
 - Required fix 3 satisfied:
@@ -87,9 +88,9 @@
 ## Canonical Demo-Path Mapping
 
 - Primary step advanced directly: step 3 `preview and apply or reject a patch`
-  - reason: the reviewed catalog contract check keeps canonical command order and canonical-name resolution aligned with the command catalog, so the patch preview/apply entrypoint cannot silently drift away from the route the operator and smoke tests expect.
-- Canonical demo-path step(s) advanced:
-  - step 3 `preview and apply or reject a patch`, because the reviewed CLI contract now fails fast when canonical command order or canonical-name resolution drifts away from the operator-visible patch preview/apply surface while Textual remains disabled.
+  - reason: the reviewed catalog contract check keeps canonical command order and canonical command names aligned with the command catalog, so the patch preview/apply entrypoint cannot silently drift away from the route the operator and smoke tests expect.
+- Explicit step sentence:
+  - this change directly strengthens demo-path step 3 `preview and apply or reject a patch` in the CLI-first MVP loop because it fails fast when canonical command order or canonical-name consistency drifts away from the catalog the operator-facing patch route depends on while Textual remains disabled.
 - Out of scope:
   - this slice does not claim new step 1 `open project/document` or step 2 `retrieve relevant material` workflow coverage.
 - Explicit AGENTS mapping statement:
