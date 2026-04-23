@@ -3,9 +3,9 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran against:
 
-* packet refresh head before this fixer commit `c461c2ad96f9253c6d710373d7038bf634802e70`
-* reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-* reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+* current reviewed implementation head `11d7079e3652cbcf14e9de2524b37ef2f8ab8a05`
+* reviewed implementation range `adfa8cdadd43747ffbcb612e4151e262b13e52ca..11d7079e3652cbcf14e9de2524b37ef2f8ab8a05`
+* current packet refresh workspace before this metadata-only fixer commit
 
 Gate status:
 
@@ -17,11 +17,11 @@ Gate status:
 * `make ci` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: this handoff advances `retrieve relevant material` because FTS-only excerpt lookup makes the retrieval contract deterministic and auditable for downstream basket/workflow use.
+Plan-alignment statement: this handoff advances `retrieve relevant material` because sparse excerpt query-constraint rehydration preserves the deterministic, auditable FTS retrieval contract consumed by downstream basket and workflow steps.
 
-Truthful metadata-only file accounting for cited refresh commit `c461c2ad96f9253c6d710373d7038bf634802e70`:
+Reviewed implementation files:
 
-* `THREAD_PACKET.md`
-* `docs/gate_passed.txt`
+* `src/qual/retrieval/service.py`
+* `tests/unit/test_unified_retrieval.py`
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
