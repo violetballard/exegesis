@@ -5,7 +5,7 @@
 - Current branch tip before this fixer pass: `0bf3263dbcc96d1b94cb890c27bfd4a2375ba61d`
 - Reviewed implementation head: `0bf3263dbcc96d1b94cb890c27bfd4a2375ba61d`
 - Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..0bf3263dbcc96d1b94cb890c27bfd4a2375ba61d`
-- Packet traceability note: the previous handoff incorrectly described post-`adfa8cda` commits as metadata-only. This packet is regenerated against the actual submitted tip `0bf3263d` and now treats the full post-`adfa8cda` retrieval/runtime diff as in-scope reviewed implementation. Interleaved docs-only packet refresh commits remain metadata, but they no longer narrow or replace the actual reviewed implementation head.
+- Packet traceability note: the previous handoff incorrectly described post-`adfa8cda` commits as metadata-only. This packet is regenerated against the actual submitted tip `0bf3263d` and now treats the full post-`adfa8cda` retrieval/runtime diff as in-scope reviewed implementation. Interleaved docs-only packet refresh commits remain metadata, but they no longer narrow or replace the actual reviewed implementation head. This `THREAD_PACKET.md` file is the authoritative re-review source in this worktree for the canonical demo-path mapping because the mirrored `.codex` packet files are locked read-only here.
 
 ## Scope goal
 
