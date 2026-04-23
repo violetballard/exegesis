@@ -3010,6 +3010,21 @@ def _uses_demo_compatibility_flow(flow_steps: tuple[str, ...]) -> bool:
     return _normalize_flow_steps(flow_steps) == command_demo_flow_steps()
 
 
+def _align_demo_flow_step(
+    resolved: ResolvedCommand,
+    demo_token: str,
+) -> ResolvedCommand:
+    normalized_demo_token = _normalize_token(demo_token)
+    if (
+        not resolved.matched
+        or not normalized_demo_token
+        or normalized_demo_token not in _COMMAND_DEMO_LOOP_TOKENS
+        or resolved.flow_step == normalized_demo_token
+    ):
+        return resolved
+    return replace(resolved, flow_step=normalized_demo_token)
+
+
 def _resolve_demo_loop_token(
     specs: tuple[CommandSpec, ...],
     token: str,
@@ -4675,10 +4690,13 @@ def command_demo_resolve(token: str) -> ResolvedCommand:
     """Resolve a token against the canonical demo-path command surface."""
     normalized_token = _normalize_demo_compatibility_token(token)
     return _preserve_requested_token(
-        _prefer_demo_flow_smoke_resolution(
-            command_resolve_for(COMMAND_SPECS, normalized_token, command_demo_flow_steps()),
-            specs=COMMAND_SPECS,
-            raw_argv=(normalized_token,),
+        _align_demo_flow_step(
+            _prefer_demo_flow_smoke_resolution(
+                command_resolve_for(COMMAND_SPECS, normalized_token, command_demo_flow_steps()),
+                specs=COMMAND_SPECS,
+                raw_argv=(normalized_token,),
+            ),
+            normalized_token,
         ),
         token,
     )
@@ -4839,10 +4857,13 @@ def command_demo_resolve_argv(
     """Resolve argv against the canonical demo-path command surface."""
     requested_argv = tuple(argv)
     raw_argv = _normalize_demo_compatibility_argv(requested_argv)
-    resolved = _prefer_demo_flow_smoke_resolution(
-        command_resolve_argv_for(COMMAND_SPECS, raw_argv, command_demo_flow_steps()),
-        specs=COMMAND_SPECS,
-        raw_argv=raw_argv,
+    resolved = _align_demo_flow_step(
+        _prefer_demo_flow_smoke_resolution(
+            command_resolve_argv_for(COMMAND_SPECS, raw_argv, command_demo_flow_steps()),
+            specs=COMMAND_SPECS,
+            raw_argv=raw_argv,
+        ),
+        raw_argv[0] if raw_argv else "",
     )
     if not requested_argv:
         return resolved
