@@ -113,6 +113,10 @@ from .a2ui import (
 )
 from .shell import (
     SHELL_UI_CONTRACT_VERSION,
+    SHELL_UI_ENTRYPOINTS,
+    SHELL_UI_STARTUP_EMPTY_PREVIEW,
+    SHELL_UI_STARTUP_FIELDS,
+    SHELL_UI_STARTUP_PREVIEW_LIMIT,
     ShellUI,
     describe_shell_ui_contract,
     describe_shell_ui_contract_fingerprints,
@@ -152,6 +156,10 @@ __all__ = [
     "TERMINAL_ARTIFACT_SUPPORTED_KINDS",
     "TERMINAL_ARTIFACT_DEFAULT_KIND",
     "SHELL_UI_CONTRACT_VERSION",
+    "SHELL_UI_ENTRYPOINTS",
+    "SHELL_UI_STARTUP_EMPTY_PREVIEW",
+    "SHELL_UI_STARTUP_FIELDS",
+    "SHELL_UI_STARTUP_PREVIEW_LIMIT",
     "card_contract_fingerprint",
     "action_contract_fingerprint",
     "a2ui_capabilities_contract_fingerprint",

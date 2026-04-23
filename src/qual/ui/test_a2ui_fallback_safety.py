@@ -113,7 +113,9 @@ from src.qual.ui.a2ui import (
 )
 from src.qual.ui.shell import (
     SHELL_UI_CONTRACT_VERSION,
+    SHELL_UI_ENTRYPOINTS,
     SHELL_UI_STARTUP_EMPTY_PREVIEW,
+    SHELL_UI_STARTUP_FIELDS,
     SHELL_UI_STARTUP_PREVIEW_LIMIT,
     ShellUI,
     describe_shell_ui_contract,
@@ -189,6 +191,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             public_ui.TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
             TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
         )
+        self.assertIs(public_ui.SHELL_UI_ENTRYPOINTS, SHELL_UI_ENTRYPOINTS)
+        self.assertIs(public_ui.SHELL_UI_STARTUP_FIELDS, SHELL_UI_STARTUP_FIELDS)
+        self.assertEqual(public_ui.SHELL_UI_STARTUP_PREVIEW_LIMIT, SHELL_UI_STARTUP_PREVIEW_LIMIT)
+        self.assertEqual(public_ui.SHELL_UI_STARTUP_EMPTY_PREVIEW, SHELL_UI_STARTUP_EMPTY_PREVIEW)
         self.assertIs(
             public_ui.describe_terminal_artifact_renderer_entrypoints_contract,
             describe_terminal_artifact_renderer_entrypoints_contract,
