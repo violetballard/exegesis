@@ -1075,6 +1075,11 @@ def describe_terminal_artifact_render_target_contract() -> dict[str, Any]:
     manifest["terminal_artifact_render_target_fingerprint"] = fingerprint
     manifest["terminal_artifact_render_target_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
+    manifest["terminal_artifact_render_target_contract"] = _snapshot_contract_section(manifest)
+    manifest["terminal_artifact_render_target_contract_manifest"] = _snapshot_contract_section(
+        manifest["terminal_artifact_render_target_contract"]
+    )
+    manifest["terminal_artifact_render_target_contract_manifest_fingerprint"] = fingerprint
     manifest["raw_leaf_card_default_contract_fingerprint"] = manifest["raw_leaf_card_default_contract"][
         "contract_fingerprint"
     ]
@@ -1112,6 +1117,10 @@ def describe_terminal_artifact_render_target_contract_fingerprints(
             ("terminal_artifact_render_target", terminal_artifact_render_target_contract_fingerprint()),
             (
                 "terminal_artifact_render_target_contract",
+                terminal_artifact_render_target_contract_fingerprint(),
+            ),
+            (
+                "terminal_artifact_render_target_contract_manifest",
                 terminal_artifact_render_target_contract_fingerprint(),
             ),
             (

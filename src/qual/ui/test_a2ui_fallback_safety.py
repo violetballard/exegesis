@@ -5551,6 +5551,23 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["terminal_artifact_raw_leaf_card_default_policy_contract"],
             describe_terminal_artifact_raw_leaf_card_default_policy_contract(),
         )
+        self.assertEqual(
+            manifest["terminal_artifact_render_target_contract"]["contract_fingerprint"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_render_target_contract_manifest"],
+            manifest["terminal_artifact_render_target_contract"],
+        )
+        self.assertIsNot(manifest["terminal_artifact_render_target_contract"], manifest)
+        self.assertIsNot(
+            manifest["terminal_artifact_render_target_contract_manifest"],
+            manifest["terminal_artifact_render_target_contract"],
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_render_target_contract_manifest_fingerprint"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
         self.assertEqual(manifest["envelope"], describe_terminal_artifact_contract()["envelope"])
         self.assertEqual(manifest["kind_contracts"], describe_terminal_artifact_kind_contracts())
         self.assertEqual(manifest["kind_resolution"], rendering_manifest["kind_resolution"])
@@ -5632,6 +5649,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
         )
         self.assertNotIn("terminal_artifact_render_target", fingerprints)
+        self.assertNotIn("terminal_artifact_render_target_contract_manifest", fingerprints)
         self.assertEqual(
             fingerprints_with_self["terminal_artifact_render_target"],
             terminal_artifact_render_target_contract_fingerprint(),
@@ -5646,6 +5664,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             fingerprints_with_self["terminal_artifact_render_target_contract_fingerprint"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints_with_self["terminal_artifact_render_target_contract_manifest"],
+            terminal_artifact_render_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints_with_self["terminal_artifact_render_target_contract_manifest_fingerprint"],
             terminal_artifact_render_target_contract_fingerprint(),
         )
         self.assertEqual(
