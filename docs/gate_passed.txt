@@ -3,7 +3,7 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran against:
 
-* `e3ba89260c66e03a0d01f3147943410bfacfb7a9`
+* actual current tip `edd5380ab2aafe6dc83c6d4d6b2222b1256f20a2` plus the reviewer-fix packet refresh in the working tree
 
 Gate status:
 
@@ -14,9 +14,10 @@ Gate status:
 * `typecheck-test.sh` - passed
 * `make ci` - passed
 
-Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to canonical FTS hits only, keeping retrieval provenance deterministic for downstream basket promotion.
-Plan-alignment statement: this refreshed handoff only claims the FTS-only excerpt lookup contract for `retrieve relevant material`; it does not broaden scope to general engine completion or alternate retrieval modes.
+Canonical demo-path step advanced: `retrieve relevant material`
+Plan-alignment statement: this refreshed handoff claims the truthful cumulative FTS-first retrieval branch scope on the actual current tip while keeping the roadmap mapping tied to Milestone 3 retrieval work, not general engine completion.
 
-This packet-refresh commit is metadata-only and targets the current branch tip `e3ba89260c66e03a0d01f3147943410bfacfb7a9`, while preserving the reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-The authoritative writable packet artifacts for this pass remain `THREAD_PACKET.md` and this file because `.codex/kickoff_packets/feat-retrieval-fts.md` plus `.codex/lane_meta/feat-retrieval-fts.json` are locked in this sandbox.
-The reviewed implementation range is `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+This packet refresh no longer describes post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval commits as metadata-only.
+The writable authoritative handoff artifacts for this pass are `THREAD_PACKET.md` and this file.
+The `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirrors could not be refreshed in this worktree because writes to those paths fail with `EPERM`.
+The reviewed implementation range is `d7fd5d200358287fa42a18d39e2b277463b9b69f..edd5380ab2aafe6dc83c6d4d6b2222b1256f20a2`.
