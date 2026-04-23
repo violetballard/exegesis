@@ -83,6 +83,17 @@
 - High-risk shared-file handoff: stayed within the `4`-task cap, `30m` budget, and metadata-only fixer scope.
 - This fixer pass edits only `THREAD.md` and `THREAD_PACKET.md`.
 
+## Plan Alignment
+
+- Canonical demo-path step alignment:
+  - in-scope primary step: step 2 `retrieve relevant material`, via the CLI-side `open project/document` and retrieval command entrypoints that must continue resolving to the intended canonical routes during the engine-first MVP loop
+  - in-scope follow-on step: step 3 `preview and apply or reject a patch`, via the CLI `diff-preview` entrypoint that must preserve operator-visible review context even when there is no diff payload to apply
+  - out of scope: this slice does not claim new step 1 `open project/document` workflow coverage beyond keeping the existing CLI entrypoint compatible with the retrieval path
+- Concrete blocker removed:
+  - this branch tip removes a CLI compatibility blocker on the current engine-first MVP loop: parser/catalog drift can no longer silently change the retrieval and preview command contract, so deterministic smoke coverage keeps exercising the intended CLI operator path while Textual remains disabled.
+- Scope framing:
+  - this work makes step 2 more real directly and step 3 more real as the immediate follow-on review step. It is intentionally scoped as CLI compatibility support for the current engine-first MVP loop, not as generic command-catalog hardening or broader workflow progress outside that `retrieve relevant material -> preview and apply or reject a patch` slice, and it does not claim new workflow progress for step 1.
+
 ## Canonical Demo-Path Mapping
 
 - Exact canonical demo-path steps this slice makes more real:

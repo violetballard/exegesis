@@ -32,6 +32,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - the lane-owned implementation remains `src/qual/commands/**`
   - the extra `tests/unit/*` files above are branch-carried shared regression coverage for adjacent MVP slices that still appear in the truthful tip-level delta
   - this handoff does not pretend those shared tests are absent; it states them explicitly and carries the residual approval risk forward
+- Plan alignment:
+  - canonical demo-path steps advanced: primary step 2 `retrieve relevant material`; dependent step 3 `preview and apply or reject a patch`; no new step 1 workflow coverage is claimed beyond preserving the CLI `open project/document` entrypoint into retrieval
+  - concrete blocker removed: parser/catalog drift can no longer silently change the retrieval or preview CLI operator contract, which removes a deterministic smoke-coverage blocker for the current engine-first MVP loop while Textual remains disabled
+  - scope framing: this is narrow CLI compatibility support for the current engine-first MVP loop, not generic command-catalog hardening or broader workflow progress
 - Canonical demo-path steps advanced:
   - primary: `retrieve relevant material`, via the CLI-side `open project/document` and retrieval entrypoints that must keep their canonical routing in the engine-first MVP loop
   - dependent: `preview and apply or reject a patch`, via the CLI `diff-preview` entrypoint that must retain operator-visible no-diff review context
