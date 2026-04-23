@@ -1,89 +1,57 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `reviewer-fix packet regeneration against actual branch tip`
-- Current submitted tip before this packet refresh commit: `d9542206f6fd14db37d1ddf5efd76f941d32314b`
-- Reviewed implementation head: `d9542206f6fd14db37d1ddf5efd76f941d32314b`
-- Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..d9542206f6fd14db37d1ddf5efd76f941d32314b`
-- Packet traceability note: the previous packet stopped at `0bf3263d` and therefore hid a real non-metadata branch-tip change in `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py`. This packet treats the full non-metadata `adfa8cda..d9542206` diff as in-scope reviewed implementation, while still separating interleaved packet-refresh docs from product or tooling behavior changes.
+- Packet role: `metadata-only reviewer-fix packet regeneration against actual branch tip`
+- Current submitted implementation head before this packet refresh commit: `ced0bcaf3d5446d549b04d1bc24593eda8850266`
+- Reviewed implementation head: `ced0bcaf3d5446d549b04d1bc24593eda8850266`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..ced0bcaf3d5446d549b04d1bc24593eda8850266`
+- Packet traceability note: earlier packet refreshes froze the reviewed scope at `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and then `d9542206f6fd14db37d1ddf5efd76f941d32314b` even though the real branch tip kept moving with non-metadata retrieval changes. This packet treats the full cumulative implementation range through `ced0bcaf3d5446d549b04d1bc24593eda8850266` as the reviewed implementation and keeps this commit metadata-only.
 
 ## Scope goal
 
-- Advance the canonical demo-path step `retrieve relevant material` by keeping excerpt lookup and excerpt-promotion metadata on the authoritative SQLite FTS path, and by making the packet generator emit that demo-path mapping even when lane metadata is stale.
+- Advance the canonical demo-path step `retrieve relevant material` by keeping excerpt lookup and excerpt-promotion metadata on the authoritative SQLite FTS path, and by making the handoff packet truthful about the real reviewed branch tip.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
-- Scope goal: preserve SQLite FTS as the authoritative retrieval path while closing the reviewer-requested handoff fidelity gaps on the current branch tip.
-- Risk reason: the reviewed implementation range includes the approved shared regression surface `tests/unit/test_unified_retrieval.py` plus reviewer-fix support edits in `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py`.
+- Scope goal: preserve SQLite FTS as the authoritative retrieval path while closing the reviewer-requested handoff fidelity gaps on the actual branch tip.
+- Risk reason: the reviewed implementation range includes the approved shared regression surface `tests/unit/test_unified_retrieval.py` plus reviewer-fix packet-planner support edits in `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py`.
 
 ### Budget
 
 - Task budget: `4`
 - Time budget: `30m`
-- Size limits: `<=8 files`, `<=300 net LOC`
+- Single-thread size limits: `<=8 files`, `<=300 net LOC`
+- Actual cumulative reviewed range being handed off: `11 implementation files`, `15 total changed files including metadata`, `+10482/-745` net lines. This exceeds the single-thread size limits, so the packet states that fact explicitly instead of narrowing the reviewed slice.
 - Max fix attempts per failing gate: `2`
 
 ### Planned Tasks (max 4)
 
-1. Regenerate the handoff packet against the real branch tip `d9542206` instead of freezing the story at `0bf3263d`.
-2. Restate the reviewed scope so it covers both the retrieval-runtime fixes and the planner/test safeguard commit that prevents the same packet omission from recurring.
-3. Keep the canonical demo-path mapping explicit as `retrieve relevant material` and tie it to the actual FTS-first behavior in `src/qual/retrieval/service.py`.
-4. Re-run the required gate suite on the true current tip and record the results against that exact commit.
-
-### Early Review Triggers
-
-- before first edit to the shared-by-approval regression file `tests/unit/test_unified_retrieval.py`
-- before changing public retrieval contract wording in the handoff packet
-- before changing packet-generator behavior outside the reviewer-required demo-path field backfill
+1. Regenerate the handoff packet against the real current implementation head `ced0bcaf3d5446d549b04d1bc24593eda8850266`.
+2. Restate `Scope completed`, `Files changed`, and budget/size notes so they match the full cumulative implementation range now under review.
+3. Add the canonical demo-path mapping `retrieve relevant material` explicitly in both machine-readable metadata and the human handoff.
+4. Re-run the required gate suite against the actual reviewed implementation head and record that evidence against the same SHA.
 
 ### Checkpoint Status
 
-- `plan complete`: this packet now targets the actual branch tip `d9542206` instead of the stale `0bf3263d` story.
-- `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on `d9542206`.
-- `before risky/shared file edit`: the reviewed range still includes the approved shared regression file `tests/unit/test_unified_retrieval.py`; this packet refresh itself edits only handoff metadata files.
-- `ready for handoff`: this packet now aligns the reviewed range, canonical demo-path step, branch-tip traceability, and gate evidence to the same real submitted tip.
+- `plan complete`: the packet now targets the real branch-tip implementation head `ced0bcaf3d5446d549b04d1bc24593eda8850266` instead of the stale `adfa8cda...` or `d9542206...` slices.
+- `first green tests`: `./quality-test.sh` passed on `ced0bcaf3d5446d549b04d1bc24593eda8850266`.
+- `before risky/shared file edit`: the reviewed implementation range still includes the approved shared regression file `tests/unit/test_unified_retrieval.py`; this packet refresh itself edits only handoff metadata files.
+- `ready for handoff`: the packet, lane metadata, and gate summary now all refer to the same reviewed implementation head and the same canonical demo-path step.
 
 ## Scope completed
 
 - Canonical demo-path step advanced: `retrieve relevant material`.
-- `src/qual/retrieval/service.py` keeps `retrieve relevant material` FTS-first by failing closed when sparse excerpt payloads cannot reconstitute canonical query metadata, by clearing mirrored query fields consistently, and by deriving excerpt-promotion query metadata from the canonical query snapshot instead of stale provenance fragments.
-- `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` close the reviewer-requested packet gap by making packet generation include the canonical demo-path step and impact for `feat-retrieval-fts` even when lane metadata is stale, so the same omission does not reappear on a later packet refresh.
-- The reviewed runtime changes remain narrow: SQLite FTS stays authoritative, PageIndex and embeddings remain compatibility-only shims, and no routing, provider, CLI, app, or integrator-locked entrypoints are added to the retrieval surface.
-
-## Reviewed Scope Boundary
-
-- The reviewed implementation range is `adfa8cdadd43747ffbcb612e4151e262b13e52ca..d9542206f6fd14db37d1ddf5efd76f941d32314b`.
-- Non-metadata reviewed files in that range:
-- `src/qual/engine/retrieval/__init__.py`
-- `src/qual/engine/retrieval/embeddings_strategy.py`
-- `src/qual/engine/retrieval/fts_strategy.py`
-- `src/qual/engine/retrieval/interface.py`
-- `src/qual/engine/retrieval/pageindex_strategy.py`
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/retrieval/__init__.py`
-- `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
-- `codex_packet_handoff/tools/planner.py`
-- `tests/unit/test_packet_planner.py`
-- Interleaved `.codex/**`, `THREAD_PACKET.md`, and `docs/gate_passed.txt` commits in the same branch window remain metadata-only packet refreshes and are not counted as reviewed implementation files.
-
-## Canonical Demo-Path Step Advanced
-
-- `retrieve relevant material`
-- This handoff advances `retrieve relevant material` by ensuring excerpt lookup and excerpt-promotion records stay bound to canonical FTS-backed query context, which keeps downstream basket/workflow use deterministic and auditable.
-
-## Tasks completed
-
-1. Hardened `src/qual/retrieval/service.py` so orphaned sparse excerpt payloads fail closed on mirrored query state instead of fabricating incomplete query fingerprints or partially repaired lookup context.
-2. Hardened excerpt-promotion metadata in `src/qual/retrieval/service.py` so query text, scope, intent, confidentiality profile, fingerprint, and date-range fields are rebuilt from the canonical query snapshot before promotion records are emitted.
-3. Updated `codex_packet_handoff/tools/planner.py` to emit the canonical demo-path step and impact for `feat-retrieval-fts` by default, and added `tests/unit/test_packet_planner.py` coverage for both metadata-driven and stale-metadata fallback packet generation.
-4. Regenerated the handoff metadata against `d9542206` and reran the required gate suite on that exact tip so the packet scope and gate evidence now refer to the same code.
+- `src/qual/retrieval/service.py` now prefers canonical excerpt query snapshots when rehydrating sparse lookup state, fails closed when authoritative FTS query context cannot be reconstructed, and keeps excerpt-promotion metadata bound to canonical query fingerprints rather than stale sparse mirrors.
+- `src/qual/retrieval/**` and `src/qual/engine/retrieval/**` keep SQLite FTS authoritative across both retrieval facades while preserving PageIndex and embeddings as compatibility-only fallback shims.
+- `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` now preserve the canonical demo-path mapping for `feat-retrieval-fts` when lane metadata is stale, so later packet refreshes do not silently drop `retrieve relevant material`.
+- The reviewed implementation range includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`, which exercises the FTS-first retrieval contract and the packet-planner fallback behavior now present on the real branch tip.
 
 ## Files changed
 
-- Non-metadata reviewed implementation files in `adfa8cdadd43747ffbcb612e4151e262b13e52ca..d9542206f6fd14db37d1ddf5efd76f941d32314b`:
+- Reviewed implementation files in `d7fd5d200358287fa42a18d39e2b277463b9b69f..ced0bcaf3d5446d549b04d1bc24593eda8850266`:
+- `codex_packet_handoff/tools/planner.py`
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/embeddings_strategy.py`
 - `src/qual/engine/retrieval/fts_strategy.py`
@@ -92,10 +60,9 @@
 - `src/qual/engine/retrieval/payload.py`
 - `src/qual/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
-- `codex_packet_handoff/tools/planner.py`
 - `tests/unit/test_packet_planner.py`
-- Metadata-only packet-refresh files in the same branch window:
+- `tests/unit/test_unified_retrieval.py`
+- Metadata-only packet refresh files in this fixer pass:
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
@@ -104,7 +71,7 @@
 ## Commands run with results
 
 - Gate rerun date: `2026-04-23`
-- Gate rerun target: `d9542206f6fd14db37d1ddf5efd76f941d32314b`
+- Gate rerun target: `ced0bcaf3d5446d549b04d1bc24593eda8850266`
 - `make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
@@ -112,18 +79,11 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 
-## Reviewer fix closure
-
-1. The packet is regenerated against the actual submitted tip `d9542206` instead of stopping at `0bf3263d`.
-2. `Reviewed implementation range`, `Scope completed`, `Tasks completed`, and `Files changed` now cover the retrieval-runtime fixes plus the planner/test safeguard commit that existed at the real branch tip.
-3. The canonical demo-path step advanced is stated directly as `retrieve relevant material` and is tied both to the FTS-first retrieval behavior and to the packet-generator fallback that now preserves that mapping.
-4. The gate evidence section is now explicitly commit-scoped, and the full required suite passed on `d9542206`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
-
 ## Risks / blockers
 
 - Risk: `HIGH`
-- Residual risk: callers that relied on incomplete sparse excerpt query mirrors will now fail closed instead of receiving partially reconstructed metadata; that is the intended FTS-first contract but can expose stale callers outside this lane.
-- Residual risk: the branch includes reviewer-fix support edits in packet-planner tooling outside the lane-owned retrieval paths; those changes are narrow and regression-tested, but they are still part of the reviewed tip and must stay called out explicitly.
+- Residual risk: callers that relied on incomplete sparse excerpt query mirrors will now fail closed instead of receiving partially reconstructed metadata. That is the intended FTS-first contract, but it can expose stale callers outside this lane.
+- Residual risk: the reviewed implementation range includes packet-planner support edits outside the lane-owned retrieval paths. They are narrow, covered by `tests/unit/test_packet_planner.py`, and called out explicitly here so re-review is not scoped too narrowly again.
 - Blockers: none
 
 ## Required handoff fields
@@ -136,6 +96,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
+- This handoff advances `retrieve relevant material` by ensuring excerpt lookup resolves through the authoritative SQLite FTS path, preserving deterministic query/provenance snapshots for downstream workflow use.
 
 ### Vision capability affected
 
@@ -153,6 +114,6 @@
 ## Scope-check / ownership note
 
 - Shared/integrator-locked edits in the reviewed implementation range: `YES`
-- Approved shared exception: `tests/unit/test_unified_retrieval.py` remains the sole shared-by-approval implementation file in the retrieval-runtime slice.
-- Additional non-lane reviewer-fix support edits in the reviewed tip: `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py`.
+- Approved shared exception: `tests/unit/test_unified_retrieval.py` remains the sole shared-by-approval implementation file in the reviewed retrieval slice.
+- Additional non-lane reviewer-fix support edits in the reviewed implementation range: `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py`
 - All remaining non-metadata reviewed files stay in the lane-owned retrieval paths.
