@@ -100,6 +100,7 @@
   - this packet now states explicitly that the branch makes canonical demo-path step 2 `retrieve relevant material` more real directly and step 3 `preview and apply or reject a patch` more real as the immediate follow-on review step, while keeping the claim narrow to deterministic CLI compatibility support for the existing Milestone 3 loop.
 - Scope-tightening preserved:
   - this handoff does not claim broader engine workflow progress, new step 1 coverage, or any UI-lane advancement.
+  - this contract hardening is a direct Milestone 3 CLI-compatibility safeguard for the engine-first MVP loop, not second-order command cleanup.
 
 ## Canonical Demo-Path Mapping
 
