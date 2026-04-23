@@ -39,6 +39,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - scope framing: this is narrow CLI compatibility support for the current engine-first MVP loop, not generic command-catalog hardening or broader workflow progress
 - Reviewer fix closure:
   - the handoff now explicitly states which canonical demo-path steps this work advances and keeps that claim narrow to deterministic CLI compatibility support for the existing Milestone 3 loop.
+  - ready for handoff on `2026-04-23`: the current branch tip keeps the step 2 retrieval CLI route and the immediate step 3 preview/apply-or-reject CLI route deterministic, smoke-testable, and operator-visible, and the recorded verification rerun passed on that same tip.
 - Canonical demo-path steps advanced:
   - primary: `retrieve relevant material`, via the CLI-side `open project/document` and retrieval entrypoints that must keep their canonical routing in the engine-first MVP loop
   - dependent: `preview and apply or reject a patch`, via the CLI `diff-preview` entrypoint that must retain operator-visible no-diff review context

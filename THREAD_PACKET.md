@@ -98,6 +98,8 @@
 
 - Reviewer-required fix satisfied:
   - this packet now states explicitly that the branch makes canonical demo-path step 2 `retrieve relevant material` more real directly and step 3 `preview and apply or reject a patch` more real as the immediate follow-on review step, while keeping the claim narrow to deterministic CLI compatibility support for the existing Milestone 3 loop.
+- Ready-for-handoff checkpoint:
+  - ready for handoff on `2026-04-23`: the current branch tip keeps the step 2 retrieval CLI route and the immediate step 3 preview/apply-or-reject CLI route deterministic, smoke-testable, and operator-visible, and the verification rerun recorded below passed on that same tip.
 - Scope-tightening preserved:
   - this handoff does not claim broader engine workflow progress, new step 1 coverage, or any UI-lane advancement.
   - this contract hardening is a direct Milestone 3 CLI-compatibility safeguard for the engine-first MVP loop, not second-order command cleanup.
@@ -213,6 +215,7 @@
 - Primary step advanced directly: step 2 `retrieve relevant material`
 - Immediate dependent follow-on step hardened: step 3 `preview and apply or reject a patch`
 - Scope note: this slice preserves the existing CLI `open project/document` entrypoint into retrieval but does not claim new step 1 workflow coverage
+- Exact AGENTS mapping statement: this work makes step 2 more real directly and step 3 more real as the immediate follow-on review step because the same verified branch tip now rejects parser/catalog drift before it can silently change those CLI operator paths.
 - Milestone 3 exit-criterion tie: this handoff strengthens the requirement that `CLI can still execute the MVP loop while Textual remains disabled` by keeping the step 2 retrieval command path and the immediate step 3 preview/apply-or-reject command path deterministic, smoke-testable, and operator-visible.
 
 ### Roadmap item(s) affected
