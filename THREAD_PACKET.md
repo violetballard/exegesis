@@ -38,14 +38,14 @@
 - Plan complete: switch the packet from a false cherry-picked review basis to the actual branch-tip diff.
 - First green tests: recorded after the required gate rerun on `2026-04-23`.
 - Before risky/shared file edit: this fixer only edits `THREAD.md` and `THREAD_PACKET.md`.
-- Ready for handoff: the packet now matches the real implementation scope and its concrete MVP step mapping.
+- Ready for handoff: the packet now matches the real implementation scope, concrete MVP step mapping, and the live gate rerun against `ac54e825427e6eec6cc823703442952be150e363`.
 
 ## Review Basis
 
 - Review basis for re-review is the real branch tip for `codex/feat-commands`, not a cherry-picked subset of commits.
 - Tip-level implementation basis:
   - merge base with `codex/quality-baseline`: `60136caf9ee4e1ff08d35e2da2922af78e7974d5`
-  - reviewed tip before this metadata-only fixer commit: `ca17857f2039f59fbd19e0e150168f6d220a110b`
+  - reviewed tip before this verification-only fixer commit: `ac54e825427e6eec6cc823703442952be150e363`
 - This packet does not claim that post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` commits are metadata-only. The current branch diff includes many implementation commits after that point, including `1e04f9633c4abc4988dcb991944680b86f94f753`, `5c89ce987fc78ed158d378a988b3e211ce93145d`, and `b3be9f0c12e6fd3ecd52f1b8af2bd1b6d890e1a0`.
 - Current implementation files in scope for the truthful tip-based handoff:
   - `src/qual/commands/__init__.py`
@@ -133,7 +133,7 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-23`
-- Verification basis: rerun on the metadata-refresh working tree immediately before the fixer commit
+- Verification basis: rerun on branch tip `ac54e825427e6eec6cc823703442952be150e363` immediately before this verification-only fixer commit
 
 ### Risks / Blockers
 

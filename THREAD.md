@@ -9,7 +9,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Review the real `codex/feat-commands` branch tip, not a cherry-picked subset of commits.
 - Truthful implementation basis:
   - merge base with `codex/quality-baseline`: `60136caf9ee4e1ff08d35e2da2922af78e7974d5`
-  - reviewed tip before this metadata-only fixer commit: `ca17857f2039f59fbd19e0e150168f6d220a110b`
+  - reviewed tip before this verification-only fixer commit: `ac54e825427e6eec6cc823703442952be150e363`
 - The tip-level implementation diff in scope is:
   - `src/qual/commands/__init__.py`
   - `src/qual/commands/canonical.py`
@@ -27,4 +27,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Shared-path approval basis:
   - current policy allowlist for `tests/unit/test_commands_catalog.py`: `scripts/scope-check.sh`, traced through `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` and `c3a66bb580772d65201a630d673a8de1d4a63776`
   - branch-history approval trail for `tests/unit/test_diff_preview.py`: `8a38d7bde29da3ecfb3da905ff78416034b151b7`, `2afa0f7f2f23c2d73773cc9c5a2fc0007ba19be3`, and `51279575df18d44dc112129f561f2dcb7743e70f`
-- This fixer pass is metadata-only and limited to `THREAD.md` and `THREAD_PACKET.md`.
+- This fixer pass is verification-only metadata and limited to `THREAD.md` and `THREAD_PACKET.md`.
