@@ -306,6 +306,14 @@ def describe_a2ui_contract(
     manifest["terminal_artifact_cli_fallback_target_contract_fingerprint"] = manifest[
         "terminal_artifact_cli_fallback_target_fingerprint"
     ]
+    manifest["terminal_artifact_cli_fallback_target_contract_manifest"] = (
+        describe_terminal_artifact_cli_fallback_target_contract(
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        )
+    )
+    manifest["terminal_artifact_cli_fallback_target_contract_manifest_fingerprint"] = manifest[
+        "terminal_artifact_cli_fallback_target_fingerprint"
+    ]
     if include_terminal_artifact_cli_fallback_route:
         terminal_artifact_cli_fallback_route = _snapshot_contract_section(
             manifest["terminal_artifact_cli_fallback_route"]
@@ -1270,6 +1278,10 @@ def describe_terminal_artifact_cli_fallback_target_contract(
     renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
     manifest["renderer_entrypoints_contract"] = _snapshot_contract_section(renderer_entrypoints_contract)
     manifest["renderer_entrypoints_contract_fingerprint"] = renderer_entrypoints_contract["contract_fingerprint"]
+    manifest["terminal_artifact_cli_fallback_target_contract_manifest"] = _snapshot_contract_section(
+        manifest
+    )
+    manifest["terminal_artifact_cli_fallback_target_contract_manifest_fingerprint"] = fingerprint
     return manifest
 
 
