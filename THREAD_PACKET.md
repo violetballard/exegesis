@@ -36,9 +36,9 @@
 ### Checkpoint Cadence (short updates)
 
 - Plan complete: packet scope reset to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` instead of the full branch tip.
-- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T21:42:16Z`.
+- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T21:46:35Z`.
 - Before risky/shared file edit: this fixer edits shared handoff metadata only (`THREAD.md`, `THREAD_PACKET.md`).
-- Ready for handoff: as of `2026-04-23T21:42:16Z`, the packet and required gate results match the reviewed slice.
+- Ready for handoff: as of `2026-04-23T21:46:35Z`, the packet and required gate results match the reviewed slice.
 
 ## Review Basis
 
@@ -75,6 +75,13 @@
   - this is operator-surface hardening, not generic catalog cleanup: the reviewed change keeps the CLI loop invocable and deterministic on the same contract the operator and smoke tests rely on while Textual remains disabled.
   - the reviewed `catalog.py` change makes the CLI contract fail fast if the canonical command order derived from the lookup table drifts away from `command_names()`.
   - that check protects the operator-visible patch preview/apply route specifically and preserves trust in the broader CLI control surface generally, so deterministic smoke coverage cannot silently validate the wrong command ordering.
+
+## Canonical Demo-Path Step Advanced
+
+- AGENTS-required explicit step statement:
+  - this change directly strengthens `preview and apply or reject a patch` in the canonical demo path because `command_cli_contract()` now fails fast when canonical command order or canonical command names drift away from the catalog the operator-facing patch route depends on while Textual remains disabled.
+- Why this is the primary step:
+  - the reviewed slice does not add new workflow behavior; it makes the existing patch preview/apply CLI route deterministic and smoke-testable by turning parser or catalog drift into an immediate contract failure.
 
 ## Reviewer Fix Closure
 
@@ -139,7 +146,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification timestamp: `2026-04-23T21:42:16Z`
+- Verification timestamp: `2026-04-23T21:46:35Z`
 
 ### Risks / Blockers
 
