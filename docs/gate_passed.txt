@@ -3,7 +3,9 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran against:
 
-* current branch tip `efa8157ddd61614dfca0e65fad974b76d4fca10a`
+* current packet refresh head `850eacce56c3c3e59a2ec0509ffbe58b69f3e636` with truthful packet edits in the working tree
+* corrected reviewed implementation head `850eacce56c3c3e59a2ec0509ffbe58b69f3e636`
+* corrected reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..850eacce56c3c3e59a2ec0509ffbe58b69f3e636`
 
 Gate status:
 
@@ -15,9 +17,8 @@ Gate status:
 * `make ci` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: this metadata-only handoff refresh stays narrowed to the FTS-only excerpt contract and deterministic provenance slice. It does not broaden into basket promotion, workflow actions, or UI work.
+Plan-alignment statement: this corrected handoff covers the actual branch implementation tip and keeps the lane classified as shared/high-risk because `tests/unit/test_unified_retrieval.py` is in scope.
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
-The reviewed implementation head remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-The reviewed implementation range remains `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-The current branch tip `efa8157ddd61614dfca0e65fad974b76d4fca10a` is a metadata-only packet-refresh commit.
+The earlier `metadata-only` traceability note after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` was false and has been removed from the authoritative packet.
+The environment is currently rejecting writes under `.codex/` with `Operation not permitted`, so mirrored packet artifacts under `.codex/` remain stale until that restriction is lifted.
