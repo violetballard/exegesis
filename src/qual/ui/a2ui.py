@@ -590,6 +590,10 @@ def describe_a2ui_contract_fingerprints(
                 shell_ui_contract["terminal_artifact_cli_fallback_route_contract_fingerprint"],
             ),
             (
+                "terminal_artifact_cli_fallback_route_contract_manifest",
+                shell_ui_contract["terminal_artifact_cli_fallback_route_contract_fingerprint"],
+            ),
+            (
                 "terminal_artifact_cli_fallback_route_contract_fingerprints",
                 shell_ui_contract["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"],
             ),
