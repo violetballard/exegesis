@@ -11,7 +11,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - This fixer pass updates the handoff text so it matches the actual branch behavior already present at the current branch tip: `command_cli_contract()` now rejects full parser-surface drift, including token add, remove, alias substitution, or reorder changes that would otherwise leave canonical command names unchanged.
-- Final fixer validation reran the required gate sequence from this worktree on `2026-04-23T22:25:04Z`; the metadata refresh below records that fresh verification for the full fixed branch state.
+- Final fixer validation reran the required gate sequence from this worktree on `2026-04-23T22:29:37Z`; the metadata refresh below records that fresh verification for the full fixed branch state.
 - Exact canonical demo-path mapping for the fixed branch state:
   - operator terms: this hardens the stable CLI command surface used to reach `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and existing CLI handoff or export flows without silent parser or catalog drift
   - direct step advanced: `preview and apply or reject a patch`
@@ -21,8 +21,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - AGENTS-required handoff statement: the canonical demo-path step this work makes more real is `preview and apply or reject a patch`
   - out of scope: no new workflow implementation for `open project/document`, `retrieve relevant material`, or export is claimed by this command-catalog contract slice
 - Roadmap and vision grounding for that step:
-  - roadmap contract: this is `ROADMAP.md` Milestone 3 `Real workflow loop` work because the CLI must still execute the MVP loop while Textual remains disabled, and the patch-review route only stays reliable when its accepted entrypoint tokens remain explicit, intentional, and testable instead of silently drifting under the same canonical command name
-  - vision capability: this serves `PRODUCT_VISION.md` required capability 3 `Canonical engine contract` by keeping the CLI patch-review step stable as the active compatibility surface while Textual remains disabled
+  - roadmap contract: this is `ROADMAP.md` Milestone 3 `Product Readiness` work because that milestone now includes defining and locking user-facing output contracts, and this slice makes the patch-review CLI route fail fast when its accepted token surface drifts instead of silently changing under the same canonical command name
+  - vision capability: this serves `PRODUCT_VISION.md` capability 4 `Operator-first control surface` by keeping the CLI patch-review step stable as the active operator surface while Textual remains disabled and future clients consume the same engine-facing contracts
 - Concrete reason this is not second-order work:
   - `catalog.py` now makes `command_cli_contract()` fail fast if the parser surface for an accepted CLI route drifts away from the declared catalog, even when the canonical command tuple is unchanged. That removes the concrete blocker where the CLI-first patch-review step could still appear available while the operator-facing route had silently lost or reordered accepted tokens.
 - Shared-file basis for the high-risk packet:
