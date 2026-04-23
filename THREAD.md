@@ -14,24 +14,17 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - The fixed branch behavior under review:
   - `command_cli_contract()` now rejects parser-surface drift, including token add, remove, alias substitution, or reorder cases that would otherwise leave canonical command names unchanged.
   - the regression coverage proves that rejected drift behavior on the canonical CLI command surface.
-- Exact documented MVP path this work strengthens:
-  - `vault -> context -> run -> patch -> export`
-- Exact catalog steps on that path advanced by this work:
+- Exact existing CLI entrypoints this work hardens:
   - `project-open`
   - `retrieval`
   - `patch-review`
   - `export-handoff`
-- Exact canonical demo-path steps strengthened by this work:
-  - `vault` entry via `project-open`
-  - `context` via `retrieval`
-  - `patch` via `patch-review`
-  - `export` via `export-handoff`
 - Explicit AGENTS sentence:
-  - this slice makes the canonical CLI demo-path steps `vault -> context -> patch -> export` more real by stabilizing the exposed commands `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+  - this slice makes the canonical demo-path steps `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and `save and continue` more real by keeping the existing CLI entrypoints `project-open`, `retrieval`, `patch-review`, and `export-handoff` deterministic and drift-resistant.
 - Scope-tightened plan-alignment note:
-  - this is Milestone 3 work because `ROADMAP.md:54` calls for locking user-facing output contracts, `ROADMAP.md:65` requires contract changes to be documented and intentional, `ROADMAP.md:105` keeps the CLI MVP path active, and `PRODUCT_VISION.md:37-40` keeps the CLI as the first-class operator surface while `feat-console` remains inactive. Hardening the existing command catalog and parser contract is therefore direct CLI-compatibility work for the active engine path, not second-order infrastructure.
+  - this is direct CLI contract work for the active `feat-commands` lane because `ROADMAP.md` requires user-facing contracts to stay intentional and `PRODUCT_VISION.md` keeps the CLI as a first-class operator surface. It does not add new command behavior.
 - Concrete blocker removed on that path:
-  - parser/catalog drift can no longer silently change the operator-facing CLI command surface for `project-open`, `retrieval`, `patch-review`, and `export-handoff` in the active MVP smoke loop while Textual remains disabled.
+  - parser/catalog drift can no longer silently change the operator-facing CLI command surface in the active MVP smoke loop.
 - Plan-aligned roadmap and vision grounding:
   - `ROADMAP.md` Milestone 3 (`Product Readiness`): this is user-facing contract-locking work on the CLI surface, keeping command-surface changes documented, intentional, and deterministic before publish.
   - `ROADMAP.md` CLI MVP flow exit criterion: keeps the required CLI path `vault -> context -> run -> patch -> export` executable against the engine by preventing silent command-surface drift on the exposed steps this lane owns.
@@ -42,7 +35,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - approved shared-by-exception regression file in reviewed implementation scope: `tests/unit/test_commands_catalog.py`
   - integrator-locked implementation files in reviewed scope: none
   - risk stays high because of the approved shared regression file only, not because any integrator-locked implementation file was edited
-  - remaining regression risk: a later command-surface expansion could change parser entrypoints without updating `_CLI_ENTRYPOINTS`, the catalog contract, and smoke expectations together, which would break the CLI-first demo path at the command boundary for `project-open`, `retrieval`, `patch-review`, or `export-handoff`
+  - remaining regression risk: a later command-surface expansion could change parser entrypoints without updating `_CLI_ENTRYPOINTS`, the catalog contract, and smoke expectations together
   - why acceptable for merge: the current diff is narrow, all required local gates pass, and the new failure mode is loud and reviewable at the same CLI boundary the MVP currently relies on
-  - post-merge validation to watch: integrator should confirm the canonical CLI smoke path still covers `project-open -> retrieval -> patch-review -> export-handoff` after the next command-surface edit
+  - post-merge validation to watch: integrator should confirm the canonical CLI smoke path still resolves the existing entrypoints after the next command-surface edit
   - metadata files refreshed by this fixer: `THREAD.md`, `THREAD_PACKET.md`
