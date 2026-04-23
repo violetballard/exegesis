@@ -27,4 +27,6 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Shared-path approval basis:
   - current policy allowlist for `tests/unit/test_commands_catalog.py`: `scripts/scope-check.sh`, traced through `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` and `c3a66bb580772d65201a630d673a8de1d4a63776`
   - branch-history approval trail for `tests/unit/test_diff_preview.py`: `8a38d7bde29da3ecfb3da905ff78416034b151b7`, `2afa0f7f2f23c2d73773cc9c5a2fc0007ba19be3`, and `51279575df18d44dc112129f561f2dcb7743e70f`
+- Current packet verification rerun:
+  - `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on the current branch tip on `2026-04-23`.
 - This fixer pass is verification-only metadata and limited to `THREAD.md` and `THREAD_PACKET.md`.

@@ -133,7 +133,7 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-23`
-- Verification basis: rerun on branch tip `ac54e825427e6eec6cc823703442952be150e363` immediately before this verification-only fixer commit
+- Verification basis: rerun on the current branch tip after the verification-only metadata refresh recorded by this packet pass
 
 ### Risks / Blockers
 
