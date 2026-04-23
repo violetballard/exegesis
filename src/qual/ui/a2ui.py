@@ -1157,6 +1157,40 @@ def describe_terminal_artifact_cli_fallback_entrypoint_contract() -> dict[str, A
     return manifest
 
 
+def describe_terminal_artifact_cli_fallback_shell_refinement_policy_contract() -> dict[str, Any]:
+    """Return the stable shell refinement policy used by the CLI fallback path."""
+
+    manifest = _build_terminal_artifact_cli_fallback_shell_refinement_policy_manifest()
+    fingerprint = terminal_artifact_cli_fallback_shell_refinement_policy_contract_fingerprint()
+    manifest["shell_refinement_policy_fingerprint"] = fingerprint
+    manifest["shell_refinement_policy_contract_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
+    return manifest
+
+
+def terminal_artifact_cli_fallback_shell_refinement_policy_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the shell refinement policy contract."""
+
+    return _fingerprint_manifest_section(_build_terminal_artifact_cli_fallback_shell_refinement_policy_manifest())
+
+
+def describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract() -> dict[str, Any]:
+    """Return the stable resolver failure policy used by the CLI fallback path."""
+
+    manifest = _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()
+    fingerprint = terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint()
+    manifest["resolver_failure_policy_fingerprint"] = fingerprint
+    manifest["resolver_failure_policy_contract_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
+    return manifest
+
+
+def terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the resolver failure policy contract."""
+
+    return _fingerprint_manifest_section(_build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest())
+
+
 def terminal_artifact_cli_fallback_entrypoint_contract_fingerprint() -> str:
     """Return a stable fingerprint for the explicit CLI fallback entrypoint manifest."""
 

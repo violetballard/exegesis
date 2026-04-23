@@ -40,6 +40,8 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_cli_fallback_contract_fingerprints,
     describe_terminal_artifact_cli_fallback_entrypoint_contract,
     describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints,
+    describe_terminal_artifact_cli_fallback_shell_refinement_policy_contract,
+    describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract,
     describe_terminal_artifact_cli_fallback_target_contract,
     describe_terminal_artifact_cli_fallback_target_contract_fingerprints,
     describe_terminal_artifact_cli_fallback_route_contract,
@@ -83,6 +85,8 @@ from src.qual.ui.a2ui import (
     terminal_artifact_cli_fallback_contract_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint,
+    terminal_artifact_cli_fallback_shell_refinement_policy_contract_fingerprint,
+    terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint,
     terminal_artifact_cli_fallback_target_contract_fingerprint,
     terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint,
     terminal_artifact_cli_fallback_route_contract_fingerprint,
@@ -215,12 +219,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints,
         )
         self.assertIs(
+            public_ui.describe_terminal_artifact_cli_fallback_shell_refinement_policy_contract,
+            describe_terminal_artifact_cli_fallback_shell_refinement_policy_contract,
+        )
+        self.assertIs(
+            public_ui.describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract,
+            describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract,
+        )
+        self.assertIs(
             public_ui.terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
         )
         self.assertIs(
             public_ui.terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint,
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint,
+        )
+        self.assertIs(
+            public_ui.terminal_artifact_cli_fallback_shell_refinement_policy_contract_fingerprint,
+            terminal_artifact_cli_fallback_shell_refinement_policy_contract_fingerprint,
+        )
+        self.assertIs(
+            public_ui.terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint,
+            terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint,
         )
         self.assertIs(
             public_ui.terminal_artifact_cli_fallback_route_contract_fingerprint,
@@ -4985,6 +5005,46 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             target_contract["contract_fingerprint"],
         )
         self.assertEqual(len(manifest["contract_fingerprints_fingerprint"]), 64)
+
+    def test_terminal_artifact_cli_fallback_policy_contract_accessors_are_public_and_versioned(self) -> None:
+        fallback_manifest = describe_terminal_artifact_cli_fallback_contract()
+        shell_policy_manifest = describe_terminal_artifact_cli_fallback_shell_refinement_policy_contract()
+        resolver_policy_manifest = describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract()
+        shell_policy_expected = fallback_manifest["shell_refinement_policy"]
+        resolver_policy_expected = fallback_manifest["resolver_failure_policy"]
+
+        self.assertEqual(
+            {key: shell_policy_manifest[key] for key in shell_policy_expected},
+            shell_policy_expected,
+        )
+        self.assertEqual(
+            {key: resolver_policy_manifest[key] for key in resolver_policy_expected},
+            resolver_policy_expected,
+        )
+        self.assertEqual(
+            shell_policy_manifest["contract_fingerprint"],
+            terminal_artifact_cli_fallback_shell_refinement_policy_contract_fingerprint(),
+        )
+        self.assertEqual(
+            resolver_policy_manifest["contract_fingerprint"],
+            terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint(),
+        )
+        self.assertEqual(
+            shell_policy_manifest["shell_refinement_policy_fingerprint"],
+            shell_policy_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            shell_policy_manifest["shell_refinement_policy_contract_fingerprint"],
+            shell_policy_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            resolver_policy_manifest["resolver_failure_policy_fingerprint"],
+            resolver_policy_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            resolver_policy_manifest["resolver_failure_policy_contract_fingerprint"],
+            resolver_policy_manifest["contract_fingerprint"],
+        )
 
     def test_shell_ui_contract_fingerprints_can_include_contract_aliases(self) -> None:
         manifest = describe_shell_ui_contract(include_contract_aliases=True)
