@@ -2,10 +2,10 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Current branch tip before this fixer pass: `057623be3ea8887e47c25debb4403247c4d94c9f`
+- Current branch tip before this fixer pass: `69456f6b8ce84287f45280e6fbb40e409be9e002`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before the gate-rerun note, commit `0b6ed199b752d758c8e3d71433740274efd2b62c` recorded the first passing gate rerun in `docs/gate_passed.txt`, commit `86e0f49aac171d1cfc4f461274c672233279cd64` added the explicit canonical demo-path step requested by review, commit `39b1a1d5421b2d18b5a09aaaa3f517884da82672` refreshed the packet after that reviewer-fix pass, commit `4748167a2b68834ee90f430c072a8564b9f3bd45` refreshed handoff traceability, commit `3ce9b5d10defb43c8d180a73505804858614de60` refreshed the authoritative packet, and commit `057623be3ea8887e47c25debb4403247c4d94c9f` is the latest metadata-only packet refresh before this fixer pass. This fixer pass refreshes `THREAD_PACKET.md`, keeps the authoritative re-review packet aligned to the narrowed FTS-only excerpt-contract scope, records the exact canonical demo-path mapping the reviewer asked for, and does not move the reviewed implementation head or range.
+- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before the gate-rerun note, commit `0b6ed199b752d758c8e3d71433740274efd2b62c` recorded the first passing gate rerun in `docs/gate_passed.txt`, commit `86e0f49aac171d1cfc4f461274c672233279cd64` added the explicit canonical demo-path step requested by review, commit `39b1a1d5421b2d18b5a09aaaa3f517884da82672` refreshed the packet after that reviewer-fix pass, commit `4748167a2b68834ee90f430c072a8564b9f3bd45` refreshed handoff traceability, commit `3ce9b5d10defb43c8d180a73505804858614de60` refreshed the authoritative packet, commit `057623be3ea8887e47c25debb4403247c4d94c9f` refreshed the authoritative packet again, and commit `69456f6b8ce84287f45280e6fbb40e409be9e002` is the latest metadata-only packet refresh before this fixer pass. This fixer pass refreshes `THREAD_PACKET.md`, keeps the authoritative re-review packet aligned to the narrowed FTS-only excerpt-contract scope, records the exact canonical demo-path mapping the reviewer asked for, and does not move the reviewed implementation head or range.
 
 ## Scope goal
 
@@ -105,7 +105,7 @@ This handoff advances `retrieve relevant material` by enforcing authoritative FT
 
 ## Fresh gate evidence for this fixer pass
 
-- Branch head under test before this fixer commit: `057623be3ea8887e47c25debb4403247c4d94c9f`
+- Branch head under test before this fixer commit: `69456f6b8ce84287f45280e6fbb40e409be9e002`
 - Gate rerun timestamp: `2026-04-23`
 - `make scope-check`: passed with branch-policy skip notice for `codex/feat-retrieval-fts`
 - `./quality-format.sh --check`: passed
@@ -121,7 +121,7 @@ This handoff advances `retrieve relevant material` by enforcing authoritative FT
 3. The retained changes are each mapped to the canonical demo-path step `retrieve relevant material`.
 4. The shared-test approval scope is now explicit: `tests/unit/test_unified_retrieval.py` is approved only for the fail-closed excerpt regressions included in `adfa8cda`, not for unrelated broader API/export assertions that already existed in the file.
 5. Packet traceability still matches git history and still separates reviewed implementation files from metadata-only packet refresh files.
-6. This metadata-only fixer pass reran the required gate suite on `2026-04-23` from branch head `057623be3ea8887e47c25debb4403247c4d94c9f` before creating the new fixer commit and confirmed the all-`PASS` results listed in `Commands run with results`.
+6. This metadata-only fixer pass reran the required gate suite on `2026-04-23` from branch head `69456f6b8ce84287f45280e6fbb40e409be9e002` before creating the new fixer commit and confirmed the all-`PASS` results listed in `Commands run with results`.
 7. The mirrored `.codex` kickoff packet and lane metadata remain stale because writes under those paths are permission-blocked in this worktree, so this authoritative packet carries the corrected narrowed excerpt-only review slice for re-review.
 8. `Tasks completed` now names `retrieve relevant material` on each retained implementation item so the Milestone 3 / FTS-first mapping is explicit in the numbered handoff summary, not inferred from surrounding sections.
 
