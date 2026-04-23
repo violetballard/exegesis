@@ -3750,25 +3750,49 @@ class RetrievalService:
         max_results = _optional_int(
             query_constraints_payload.get(
                 "max_results",
-                excerpt.get("max_results", provenance.get("max_results")),
+                excerpt.get(
+                    "query_max_results",
+                    provenance.get(
+                        "query_max_results",
+                        excerpt.get("max_results", provenance.get("max_results")),
+                    ),
+                ),
             )
         )
         doc_types = _normalize_query_doc_types_payload(
             query_constraints_payload.get(
                 "doc_types",
-                excerpt.get("doc_types", provenance.get("doc_types")),
+                excerpt.get(
+                    "query_doc_types",
+                    provenance.get(
+                        "query_doc_types",
+                        excerpt.get("doc_types", provenance.get("doc_types")),
+                    ),
+                ),
             )
         )
         require_citations = _optional_bool(
             query_constraints_payload.get(
                 "require_citations",
-                excerpt.get("require_citations", provenance.get("require_citations")),
+                excerpt.get(
+                    "query_require_citations",
+                    provenance.get(
+                        "query_require_citations",
+                        excerpt.get("require_citations", provenance.get("require_citations")),
+                    ),
+                ),
             )
         )
         prefer_exact_matches = _optional_bool(
             query_constraints_payload.get(
                 "prefer_exact_matches",
-                excerpt.get("prefer_exact_matches", provenance.get("prefer_exact_matches")),
+                excerpt.get(
+                    "query_prefer_exact_matches",
+                    provenance.get(
+                        "query_prefer_exact_matches",
+                        excerpt.get("prefer_exact_matches", provenance.get("prefer_exact_matches")),
+                    ),
+                ),
             )
         )
         query_constraints: dict[str, object] = {}
