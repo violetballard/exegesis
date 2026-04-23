@@ -18,12 +18,19 @@ Gate status:
 
 Canonical demo-path step advanced: `retrieve relevant material`.
 Plan-alignment statement: this work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage and basket-promotion inputs stay deterministic.
-Reviewer fix closure: the authoritative handoff packet now carries that explicit demo-path mapping and plan-alignment statement while staying narrowed to reviewed commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+Reviewer fix closure: the authoritative handoff packet is retrieval-specific, remains classified as shared/high-risk work, and stays narrowed to reviewed commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 Reviewer-facing truth sources: `THREAD_PACKET.md` and this gate summary carry the canonical demo-path mapping and plan-alignment wording for re-review on this branch.
 
 Reviewed implementation files:
 
 * `src/qual/retrieval/service.py`
 * `tests/unit/test_unified_retrieval.py`
+
+Metadata-only refresh files in this packet slice:
+
+* `.codex/kickoff_packets/feat-retrieval-fts.md`
+* `.codex/lane_meta/feat-retrieval-fts.json`
+* `THREAD_PACKET.md`
+* `docs/gate_passed.txt`
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.

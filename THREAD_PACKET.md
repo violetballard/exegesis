@@ -1,7 +1,7 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `metadata-only reviewer-fix refresh`
+- Packet role: `metadata-only reviewer-fix re-emit`
 - Current submitted tip before this packet refresh commit: `f246061b66e00e2ad8e750c1b75a54cbcaae91b4`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
@@ -12,7 +12,7 @@
 
 ## Scope Goal
 
-- Correct the handoff packet so it stays narrowed to reviewed commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` while stating explicitly that this work advances `retrieve relevant material`.
+- Regenerate the retrieval-specific handoff packet so it stays narrowed to reviewed commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, states explicitly that this work advances `retrieve relevant material`, and reports the metadata-only refresh files from this packet slice accurately.
 
 ## Thread Kickoff (High-Risk)
 
@@ -32,7 +32,7 @@
 
 1. Keep the handoff anchored to reviewed implementation head `adfa8cda` and reviewed range `d7fd5d20..adfa8cda`.
 2. State the canonical demo-path step explicitly as `retrieve relevant material`.
-3. Reconcile packet wording so `fetch_excerpt` is described as FTS-only, with no PageIndex runtime fallback on the public excerpt lookup surface.
+3. Reconcile the packet file lists and metadata-only traceability so they match this packet-refresh slice, including `docs/gate_passed.txt`.
 4. Re-run the required gates and record results against the narrowed reviewed implementation head/range.
 
 ### Checkpoint Status
@@ -40,7 +40,7 @@
 - `plan complete`: the packet is anchored to the reviewer-approved retrieval implementation range `d7fd5d20..adfa8cda`.
 - `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `before risky/shared file edit`: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
-- `ready for handoff`: the packet and gate summary agree on the same reviewed implementation head, reviewed range, reviewed files, and canonical demo-path step.
+- `ready for handoff`: the kickoff packet, lane metadata, top-level packet, and gate summary agree on the same reviewed implementation head, reviewed range, risk class, reviewed files, and metadata-only refresh files.
 
 ## Scope Completed
 
@@ -64,8 +64,8 @@
 
 1. Kept `fetch_excerpt` on the canonical FTS-only lookup path so PageIndex-only excerpt IDs fail closed.
 2. Kept the reviewed scope anchored to commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-3. Stated explicitly that this work advances the canonical demo-path step `retrieve relevant material` by keeping public excerpt resolution FTS-only and deterministic.
-4. Preserved the narrowed reviewer-facing handoff without expanding beyond the approved retrieval slice.
+3. Re-emitted retrieval-specific handoff artifacts so the completed packet is no longer stale or lane-mismatched.
+4. Regenerated the metadata-only file lists so this packet-refresh slice discloses `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, and `docs/gate_passed.txt`.
 
 ## Files Changed
 
@@ -91,14 +91,14 @@
 
 1. The packet stays narrowed to reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and reviewed range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 2. The handoff explicitly states that this work advances the canonical demo-path step `retrieve relevant material`.
-3. The packet includes a dedicated reviewer-required plan-alignment statement without widening scope beyond the reviewed `fetch_excerpt` fail-closed slice.
-4. The scope summary remains limited to the reviewed `fetch_excerpt` fail-closed slice instead of implying broader `feat-retrieval-fts` completion.
-5. The reviewed file list, task list, and gate summary all match the narrowed reviewed implementation range and current metadata-only packet refresh contents.
+3. The handoff is classified consistently as shared/high-risk work because the reviewed slice includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+4. The completed packet is retrieval-specific and branch-local instead of lane-stale.
+5. The reviewed file list, metadata-only file list, and gate summary all match the narrowed reviewed implementation range and current packet-refresh contents.
 6. The reviewer-facing truth sources are explicitly identified so re-review reads the demo-path mapping from this packet and `docs/gate_passed.txt`.
 
 ## Risks / Blockers
 
-- Risk: `MEDIUM`
+- Risk: `HIGH`
 - Blockers: none
 
 ## Required Handoff Fields
