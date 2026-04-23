@@ -1240,6 +1240,7 @@ def describe_terminal_artifact_cli_fallback_contract(
     manifest["terminal_artifact_cli_fallback_fingerprint"] = fingerprint
     manifest["terminal_artifact_cli_fallback_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
+    manifest["terminal_artifact_cli_fallback_contract_manifest_fingerprint"] = fingerprint
     manifest["terminal_artifact_render_target"] = manifest["render_target_contract"]
     manifest["terminal_artifact_render_target_fingerprint"] = terminal_artifact_render_target_contract_fingerprint()
     manifest["terminal_artifact_render_target_contract"] = _snapshot_contract_section(
@@ -1560,12 +1561,24 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
         include_terminal_artifact_cli_fallback=include_terminal_artifact_cli_fallback,
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
+    if include_terminal_artifact_cli_fallback:
+        _add_contract_alias_fingerprints(
+            fingerprints,
+            (
+                "terminal_artifact_cli_fallback_contract_manifest",
+                terminal_artifact_cli_fallback_contract_fingerprint(),
+            ),
+        )
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
             ("allowed_actions", _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS))),
             ("terminal_fallback", terminal_fallback_contract_fingerprint()),
             ("terminal_fallback_contract", terminal_fallback_contract_fingerprint()),
+            (
+                "terminal_artifact_cli_fallback_contract_manifest",
+                terminal_artifact_cli_fallback_contract_fingerprint(),
+            ),
             (
                 "shell_refinement_policy",
                 _fingerprint_manifest_section(_build_terminal_artifact_cli_fallback_shell_refinement_policy_manifest()),
@@ -2595,6 +2608,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest(
         )
     else:
         manifest["contract_fingerprints"] = describe_terminal_artifact_cli_fallback_contract_fingerprints()
+    manifest["terminal_artifact_cli_fallback_contract_manifest"] = _snapshot_contract_section(manifest)
     return manifest
 
 
