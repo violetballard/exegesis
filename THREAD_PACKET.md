@@ -68,7 +68,9 @@
 - Required fix 1 satisfied:
   - the packet now states which canonical demo-path step this slice makes more real by tying the command-contract hardening to the current MVP CLI flow `vault -> context -> run -> patch -> export`, specifically the exposed catalog steps `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 - Required fix 2 satisfied:
-  - that mapping stays scope-tight and describes command-surface determinism plus drift detection only, not new workflow capability or broader engine-loop completion.
+  - the packet now states the concrete blocker removed: parser/catalog drift could silently change the operator-facing CLI contract for `project-open`, `retrieval`, `patch-review`, and `export-handoff` while Textual remains disabled, so this guard is required to keep the CLI smoke path stable.
+- Required fix 3 satisfied:
+  - the ownership note now distinguishes the approved shared regression file from integrator-locked files and keeps the shared-test exception attached to that note.
 
 ## Canonical Demo-Path Mapping
 
@@ -85,6 +87,9 @@
   - `command_cli_contract()` and `tests/unit/test_commands_catalog.py` keep that exposed CLI contract deterministic by rejecting parser-surface drift before the operator-facing path can silently change.
 - Concrete operator-facing effect:
   - the existing CLI route through the MVP flow fails fast on parser drift instead of silently presenting a stale, reordered, or alias-substituted command surface to operators and smoke tests.
+- Concrete blocker removed:
+  - parser/catalog drift could previously leave the CLI-first MVP loop appearing intact while the operator-facing command surface had silently diverged from the intended `project-open -> retrieval -> patch-review -> export-handoff` path through alias substitution, reorder, or other parser-surface mutations.
+  - because Textual remains disabled and the MVP depends on the CLI smoke path, this contract guard removes a first-order blocker to trusting that loop during Milestone 3 acceptance.
 - Out of scope:
   - this slice does not add new command behavior, new flags, or new workflow implementation; it only hardens the existing command contract for the already-exposed MVP path.
 
@@ -92,8 +97,10 @@
 
 - Lane-owned implementation in the reviewed scope:
   - `src/qual/commands/catalog.py`
-- Approved shared file in the reviewed scope:
+- Approved shared-by-exception regression file in the reviewed implementation scope:
   - `tests/unit/test_commands_catalog.py`
+- Integrator-locked implementation files touched in the reviewed scope:
+  - none
 - Shared metadata files changed by this fixer:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -131,7 +138,7 @@
 
 - Risk: `HIGH`
 - Remaining risk:
-  - the handoff remains high-risk because the reviewed branch state includes one approved shared regression file.
+  - the handoff remains high-risk because the reviewed branch state includes one approved shared regression file, even though no integrator-locked file is in scope.
 - Blockers:
   - none.
 
@@ -143,6 +150,7 @@
 - `ROADMAP.md` Milestone 3 (`Product Readiness`): this hardens an intentional user-facing command contract by rejecting parser-surface drift on the canonical CLI flow.
 - `ROADMAP.md` active MVP emphasis `feat-commands`: this keeps the CLI command surface deterministic while that lane remains active.
 - Canonical demo-path step made more real: the existing CLI-first MVP flow `vault -> context -> run -> patch -> export`, via the currently exposed catalog steps `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+- Concrete blocker removed on that demo path: parser/catalog drift can no longer silently change the operator-facing CLI contract for the CLI-first MVP smoke loop while Textual remains disabled.
 
 ### Vision capability affected
 
