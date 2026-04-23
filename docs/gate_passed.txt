@@ -18,6 +18,7 @@ Gate status:
 
 Canonical demo-path step advanced: `retrieve relevant material`
 Plan-alignment statement: this handoff advances `retrieve relevant material` because sparse excerpt query-constraint rehydration preserves the deterministic, auditable FTS retrieval contract consumed by downstream basket and workflow steps rather than widening scope to broader lane completion.
+Reviewer fix closure: the authoritative handoff packet now carries that explicit plan-alignment statement in its top-level packet metadata and reviewer-fix closure section.
 
 Reviewed implementation files:
 

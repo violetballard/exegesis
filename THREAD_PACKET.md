@@ -7,6 +7,7 @@
 - Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..11d7079e3652cbcf14e9de2524b37ef2f8ab8a05`
 - Packet traceability note: review this lane against the narrowed implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `adfa8cda..11d7079e`.
 - Canonical demo-path step advanced: `retrieve relevant material`
+- Reviewer-required plan-alignment statement: this slice advances `retrieve relevant material` by keeping excerpt lookup and provenance on the deterministic FTS contract, without claiming broader basket or workflow completion.
 
 ## Scope Goal
 
@@ -86,8 +87,9 @@
 
 1. The packet now matches the real branch tip by reviewing the code-changing range `adfa8cda..11d7079e` instead of calling those commits metadata-only.
 2. The handoff explicitly states that this lane advances canonical demo-path step `retrieve relevant material`.
-3. The scope summary is now limited to the canonical excerpt lookup/provenance slice instead of implying broader `feat-retrieval-fts` completion.
-4. The reviewed file list, task list, and gate summary all match the current reviewed implementation range and branch contents.
+3. The packet now includes a dedicated reviewer-required plan-alignment statement that keeps the claim narrowed to deterministic FTS excerpt lookup and provenance behavior.
+4. The scope summary is now limited to the canonical excerpt lookup/provenance slice instead of implying broader `feat-retrieval-fts` completion.
+5. The reviewed file list, task list, and gate summary all match the current reviewed implementation range and branch contents.
 
 ## Risks / Blockers
 
