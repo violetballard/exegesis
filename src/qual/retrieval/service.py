@@ -3561,55 +3561,62 @@ class RetrievalService:
             if query_max_results is not None:
                 normalized["query_max_results"] = query_max_results
                 normalized_provenance["query_max_results"] = query_max_results
+            else:
+                normalized.pop("query_max_results", None)
+                normalized_provenance.pop("query_max_results", None)
             query_doc_types = _normalize_query_doc_types_payload(query_constraints.get("doc_types"))
             if query_doc_types is not None:
                 normalized["query_doc_types"] = copy.deepcopy(query_doc_types)
                 normalized_provenance["query_doc_types"] = copy.deepcopy(query_doc_types)
+            else:
+                normalized.pop("query_doc_types", None)
+                normalized_provenance.pop("query_doc_types", None)
             query_require_citations = _optional_bool(query_constraints.get("require_citations"))
             if query_require_citations is not None:
                 normalized["query_require_citations"] = query_require_citations
                 normalized_provenance["query_require_citations"] = query_require_citations
+            else:
+                normalized.pop("query_require_citations", None)
+                normalized_provenance.pop("query_require_citations", None)
             query_prefer_exact_matches = _optional_bool(query_constraints.get("prefer_exact_matches"))
             if query_prefer_exact_matches is not None:
                 normalized["query_prefer_exact_matches"] = query_prefer_exact_matches
                 normalized_provenance["query_prefer_exact_matches"] = query_prefer_exact_matches
-            if _optional_text(normalized.get("query_text")) is None and _optional_text(
-                normalized_provenance.get("query_text")
-            ) is None:
-                query_text = _normalize_query_text_payload(query_snapshot.get("query_text"))
-                if query_text is not None:
-                    normalized["query_text"] = query_text
-                    normalized_provenance["query_text"] = query_text
-            if _normalize_query_scope_payload(normalized_provenance.get("query_scope")) is None:
-                query_scope = _normalize_query_scope_payload(query_snapshot.get("scope"))
-                if query_scope is not None:
-                    normalized["query_scope"] = query_scope
-                    normalized_provenance["query_scope"] = query_scope
-            if _normalize_query_intent_payload(normalized_provenance.get("query_intent")) is None:
-                query_intent = _normalize_query_intent_payload(query_snapshot.get("intent"))
-                if query_intent is not None:
-                    normalized["query_intent"] = query_intent
-                    normalized_provenance["query_intent"] = query_intent
-            if _normalized_profile_text(normalized_provenance.get("query_confidentiality_profile")) is None:
-                query_confidentiality_profile = _normalized_profile_text(
-                    query_snapshot.get("confidentiality_profile")
-                )
-                if query_confidentiality_profile is not None:
-                    normalized["query_confidentiality_profile"] = query_confidentiality_profile
-                    normalized_provenance["query_confidentiality_profile"] = query_confidentiality_profile
-            query_constraints = query_snapshot.get("constraints", {})
-            if not isinstance(query_constraints, dict):
-                query_constraints = {}
-            if _normalize_query_date_range_payload(normalized_provenance.get("query_date_range")) is None:
-                query_date_range = _normalize_query_date_range_payload(query_constraints.get("date_range"))
-                if query_date_range is not None:
-                    normalized["query_date_range"] = query_date_range
-                    normalized_provenance["query_date_range"] = query_date_range
-            if _normalized_query_hint_text(normalized_provenance.get("section_hint")) is None:
-                section_hint = _normalized_query_hint_text(query_constraints.get("section_hint"))
-                if section_hint is not None:
-                    normalized["section_hint"] = section_hint
-                    normalized_provenance["section_hint"] = section_hint
+            else:
+                normalized.pop("query_prefer_exact_matches", None)
+                normalized_provenance.pop("query_prefer_exact_matches", None)
+            query_text = _normalize_query_text_payload(query_snapshot.get("query_text"))
+            if query_text is not None:
+                normalized["query_text"] = query_text
+                normalized_provenance["query_text"] = query_text
+            query_scope = _normalize_query_scope_payload(query_snapshot.get("scope"))
+            if query_scope is not None:
+                normalized["query_scope"] = query_scope
+                normalized_provenance["query_scope"] = query_scope
+            query_intent = _normalize_query_intent_payload(query_snapshot.get("intent"))
+            if query_intent is not None:
+                normalized["query_intent"] = query_intent
+                normalized_provenance["query_intent"] = query_intent
+            query_confidentiality_profile = _normalized_profile_text(
+                query_snapshot.get("confidentiality_profile")
+            )
+            if query_confidentiality_profile is not None:
+                normalized["query_confidentiality_profile"] = query_confidentiality_profile
+                normalized_provenance["query_confidentiality_profile"] = query_confidentiality_profile
+            query_date_range = _normalize_query_date_range_payload(query_constraints.get("date_range"))
+            if query_date_range is not None:
+                normalized["query_date_range"] = query_date_range
+                normalized_provenance["query_date_range"] = query_date_range
+            else:
+                normalized.pop("query_date_range", None)
+                normalized_provenance.pop("query_date_range", None)
+            section_hint = _normalized_query_hint_text(query_constraints.get("section_hint"))
+            if section_hint is not None:
+                normalized["section_hint"] = section_hint
+                normalized_provenance["section_hint"] = section_hint
+            else:
+                normalized.pop("section_hint", None)
+                normalized_provenance.pop("section_hint", None)
         else:
             # Fail closed across every mirrored query field when the sparse
             # excerpt payload cannot reconstitute a canonical query snapshot.
@@ -3705,96 +3712,129 @@ class RetrievalService:
         query_payload = excerpt.get("query")
         if not isinstance(query_payload, dict):
             query_payload = provenance.get("query")
-        if not isinstance(query_payload, dict):
+        query_payload_present = isinstance(query_payload, dict)
+        if not query_payload_present:
             query_payload = {}
-        query_constraints_payloads: list[dict[str, object]] = []
-        for candidate in (
-            provenance.get("constraints"),
-            excerpt.get("constraints"),
-            provenance.get("query_constraints"),
-            excerpt.get("query_constraints"),
-            query_payload.get("constraints"),
-        ):
-            if isinstance(candidate, dict):
-                query_constraints_payloads.append(candidate)
-        query_constraints_payload: dict[str, object] = {}
-        for candidate in query_constraints_payloads:
-            query_constraints_payload.update(candidate)
-        query_text = _normalize_query_text_payload(
-            excerpt.get("query_text", provenance.get("query_text", query_payload.get("query_text")))
-        )
-        query_scope = _normalize_query_scope_payload(
-            excerpt.get("query_scope", provenance.get("query_scope", query_payload.get("scope")))
-        )
-        query_intent = _normalize_query_intent_payload(
-            excerpt.get("query_intent", provenance.get("query_intent", query_payload.get("intent")))
-        )
-        query_confidentiality_profile = _normalized_profile_text(
-            excerpt.get(
-                "query_confidentiality_profile",
-                provenance.get("query_confidentiality_profile", query_payload.get("confidentiality_profile")),
+
+        def _first_query_value(*values: object) -> object:
+            for value in values:
+                if value is not None:
+                    return value
+            return None
+
+        query_constraints_explicit = query_payload_present and "constraints" in query_payload
+        if query_payload_present:
+            query_constraints_payload = (
+                copy.deepcopy(query_payload.get("constraints"))
+                if isinstance(query_payload.get("constraints"), dict)
+                else {}
             )
-        )
-        query_date_range = _normalize_query_date_range_payload(
-            excerpt.get(
-                "query_date_range",
-                provenance.get("query_date_range", query_constraints_payload.get("date_range")),
+            query_text_raw = _first_query_value(
+                query_payload.get("query_text"),
+                excerpt.get("query_text"),
+                provenance.get("query_text"),
             )
-        )
-        section_hint = _normalized_query_hint_text(
-            excerpt.get(
-                "section_hint",
-                provenance.get("section_hint", query_constraints_payload.get("section_hint")),
+            query_scope_raw = _first_query_value(
+                query_payload.get("scope"),
+                excerpt.get("query_scope"),
+                provenance.get("query_scope"),
             )
-        )
-        max_results = _optional_int(
-            query_constraints_payload.get(
-                "max_results",
-                excerpt.get(
-                    "query_max_results",
-                    provenance.get(
-                        "query_max_results",
-                        excerpt.get("max_results", provenance.get("max_results")),
-                    ),
-                ),
+            query_intent_raw = _first_query_value(
+                query_payload.get("intent"),
+                excerpt.get("query_intent"),
+                provenance.get("query_intent"),
             )
-        )
-        doc_types = _normalize_query_doc_types_payload(
-            query_constraints_payload.get(
-                "doc_types",
-                excerpt.get(
-                    "query_doc_types",
-                    provenance.get(
-                        "query_doc_types",
-                        excerpt.get("doc_types", provenance.get("doc_types")),
-                    ),
-                ),
+            query_confidentiality_profile_raw = _first_query_value(
+                query_payload.get("confidentiality_profile"),
+                excerpt.get("query_confidentiality_profile"),
+                provenance.get("query_confidentiality_profile"),
             )
-        )
-        require_citations = _optional_bool(
-            query_constraints_payload.get(
-                "require_citations",
-                excerpt.get(
-                    "query_require_citations",
-                    provenance.get(
-                        "query_require_citations",
-                        excerpt.get("require_citations", provenance.get("require_citations")),
-                    ),
-                ),
+        else:
+            query_constraints_payloads: list[dict[str, object]] = []
+            for candidate in (
+                provenance.get("constraints"),
+                excerpt.get("constraints"),
+                provenance.get("query_constraints"),
+                excerpt.get("query_constraints"),
+            ):
+                if isinstance(candidate, dict):
+                    query_constraints_payloads.append(candidate)
+            query_constraints_payload = {}
+            for candidate in query_constraints_payloads:
+                query_constraints_payload.update(candidate)
+            query_text_raw = _first_query_value(
+                excerpt.get("query_text"),
+                provenance.get("query_text"),
             )
-        )
-        prefer_exact_matches = _optional_bool(
-            query_constraints_payload.get(
-                "prefer_exact_matches",
-                excerpt.get(
-                    "query_prefer_exact_matches",
-                    provenance.get(
-                        "query_prefer_exact_matches",
-                        excerpt.get("prefer_exact_matches", provenance.get("prefer_exact_matches")),
-                    ),
-                ),
+            query_scope_raw = _first_query_value(
+                excerpt.get("query_scope"),
+                provenance.get("query_scope"),
             )
-        )
+            query_intent_raw = _first_query_value(
+                excerpt.get("query_intent"),
+                provenance.get("query_intent"),
+            )
+            query_confidentiality_profile_raw = _first_query_value(
+                excerpt.get("query_confidentiality_profile"),
+                provenance.get("query_confidentiality_profile"),
+            )
+
+        query_text = _normalize_query_text_payload(query_text_raw)
+        query_scope = _normalize_query_scope_payload(query_scope_raw)
+        query_intent = _normalize_query_intent_payload(query_intent_raw)
+        query_confidentiality_profile = _normalized_profile_text(query_confidentiality_profile_raw)
+        if query_constraints_explicit:
+            query_date_range_raw = query_constraints_payload.get("date_range")
+            section_hint_raw = query_constraints_payload.get("section_hint")
+            max_results_raw = query_constraints_payload.get("max_results")
+            doc_types_raw = query_constraints_payload.get("doc_types")
+            require_citations_raw = query_constraints_payload.get("require_citations")
+            prefer_exact_matches_raw = query_constraints_payload.get("prefer_exact_matches")
+        else:
+            query_date_range_raw = _first_query_value(
+                query_constraints_payload.get("date_range"),
+                excerpt.get("query_date_range"),
+                provenance.get("query_date_range"),
+            )
+            section_hint_raw = _first_query_value(
+                query_constraints_payload.get("section_hint"),
+                excerpt.get("section_hint"),
+                provenance.get("section_hint"),
+            )
+            max_results_raw = _first_query_value(
+                query_constraints_payload.get("max_results"),
+                excerpt.get("query_max_results"),
+                provenance.get("query_max_results"),
+                excerpt.get("max_results"),
+                provenance.get("max_results"),
+            )
+            doc_types_raw = _first_query_value(
+                query_constraints_payload.get("doc_types"),
+                excerpt.get("query_doc_types"),
+                provenance.get("query_doc_types"),
+                excerpt.get("doc_types"),
+                provenance.get("doc_types"),
+            )
+            require_citations_raw = _first_query_value(
+                query_constraints_payload.get("require_citations"),
+                excerpt.get("query_require_citations"),
+                provenance.get("query_require_citations"),
+                excerpt.get("require_citations"),
+                provenance.get("require_citations"),
+            )
+            prefer_exact_matches_raw = _first_query_value(
+                query_constraints_payload.get("prefer_exact_matches"),
+                excerpt.get("query_prefer_exact_matches"),
+                provenance.get("query_prefer_exact_matches"),
+                excerpt.get("prefer_exact_matches"),
+                provenance.get("prefer_exact_matches"),
+            )
+        query_date_range = _normalize_query_date_range_payload(query_date_range_raw)
+        section_hint = _normalized_query_hint_text(section_hint_raw)
+        max_results = _optional_int(max_results_raw)
+        doc_types = _normalize_query_doc_types_payload(doc_types_raw)
+        require_citations = _optional_bool(require_citations_raw)
+        prefer_exact_matches = _optional_bool(prefer_exact_matches_raw)
         query_constraints: dict[str, object] = {}
         if max_results is not None:
             query_constraints["max_results"] = max_results
