@@ -5,7 +5,7 @@
 - Current branch tip before this fixer pass: `7bd332628dddf1912710436094c2144cffa7ef21`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before the gate-rerun note, commit `0b6ed199b752d758c8e3d71433740274efd2b62c` recorded the passing gate rerun in `docs/gate_passed.txt`, commit `86e0f49aac171d1cfc4f461274c672233279cd64` added the explicit canonical demo-path step requested by review, and commit `7bd332628dddf1912710436094c2144cffa7ef21` is the latest metadata-only packet refresh before this re-review evidence pass. This fixer pass refreshes `THREAD_PACKET.md`, keeps this file as the authoritative re-review packet, records a fresh all-green gate rerun on `2026-04-23`, and does not move the reviewed implementation head or range.
+- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before the gate-rerun note, commit `0b6ed199b752d758c8e3d71433740274efd2b62c` recorded the passing gate rerun in `docs/gate_passed.txt`, commit `86e0f49aac171d1cfc4f461274c672233279cd64` added the explicit canonical demo-path step requested by review, and commit `7bd332628dddf1912710436094c2144cffa7ef21` is the latest metadata-only packet refresh before this re-review evidence pass. This fixer pass refreshes `THREAD_PACKET.md`, keeps this file as the authoritative re-review packet, records a fresh all-green gate rerun on `2026-04-23 11:33:46 PDT`, and does not move the reviewed implementation head or range.
 
 ## Scope goal
 
@@ -93,6 +93,17 @@ This handoff advances `retrieve relevant material` by enforcing authoritative FT
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
+
+## Fresh gate evidence for this fixer pass
+
+- Branch head under test: `7bd332628dddf1912710436094c2144cffa7ef21`
+- Gate rerun timestamp: `2026-04-23 11:33:46 PDT`
+- `make scope-check`: passed with branch-policy skip notice for `codex/feat-retrieval-fts`
+- `./quality-format.sh --check`: passed
+- `./quality-lint.sh`: passed
+- `./quality-test.sh`: passed, `199` tests run, `OK`
+- `./typecheck-test.sh`: passed via `python3 -m compileall -q src`
+- `make ci`: passed and completed the same gate sequence end-to-end
 
 ## Reviewer fix closure
 
