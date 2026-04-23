@@ -1205,6 +1205,10 @@ def describe_terminal_artifact_cli_fallback_entrypoint_contract() -> dict[str, A
     manifest["contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(
         manifest["contract_fingerprints"]
     )
+    manifest["terminal_artifact_cli_fallback_entrypoint_contract_manifest"] = _snapshot_contract_section(
+        manifest
+    )
+    manifest["terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint"] = contract_fingerprint
     return manifest
 
 
