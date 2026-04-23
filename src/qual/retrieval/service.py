@@ -4272,7 +4272,7 @@ class RetrievalService:
         return raw
 
     @contextmanager
-    def _connect_fts_db(self) -> Iterator[sqlite3.Connection]:
+    def _connect_fts_db(self, *, read_only: bool = False) -> Iterator[sqlite3.Connection]:
         with NamedTemporaryFile(prefix="retrieval_fts_", suffix=".sqlite3", delete=False) as tmp:
             tmp_path = Path(tmp.name)
         try:
@@ -4285,13 +4285,15 @@ class RetrievalService:
             try:
                 self._initialize_fts_schema(conn)
                 yield conn
-                conn.commit()
+                if not read_only:
+                    conn.commit()
             finally:
                 conn.close()
-            encrypted = encrypt_bytes(tmp_path.read_bytes(), self._key)
-            out_tmp = db_path.with_suffix(".tmp")
-            out_tmp.write_bytes(encrypted)
-            out_tmp.replace(db_path)
+            if not read_only:
+                encrypted = encrypt_bytes(tmp_path.read_bytes(), self._key)
+                out_tmp = db_path.with_suffix(".tmp")
+                out_tmp.write_bytes(encrypted)
+                out_tmp.replace(db_path)
         finally:
             tmp_path.unlink(missing_ok=True)
 
@@ -4312,7 +4314,7 @@ class RetrievalService:
         )
 
     def _query_fts_db(self, sql: str, params: tuple[object, ...]) -> list[sqlite3.Row]:
-        with self._connect_fts_db() as conn:
+        with self._connect_fts_db(read_only=True) as conn:
             rows = conn.execute(sql, params).fetchall()
         return rows
 
