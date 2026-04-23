@@ -735,6 +735,8 @@ def describe_shell_ui_contract_fingerprints(
     fingerprints = {
         "shell_ui_contract_fingerprint": shell_ui_contract_fingerprint_value,
         "shell_ui_fingerprint": shell_ui_contract_fingerprint_value,
+        "shell_ui_contract_manifest": shell_ui_contract_fingerprint_value,
+        "shell_ui_contract_manifest_fingerprint": shell_ui_contract_fingerprint_value,
         "entrypoints": _fingerprint_manifest_section(entrypoints),
         "entrypoints_contract": _fingerprint_manifest_section(entrypoints),
         "startup_fields": _fingerprint_manifest_section(startup_fields),

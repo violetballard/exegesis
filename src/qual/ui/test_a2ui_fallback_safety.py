@@ -1934,6 +1934,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             shell_manifest["contract_fingerprints"],
         )
         self.assertEqual(
+            manifest["shell_ui_contract_fingerprints"]["shell_ui_contract_manifest"],
+            shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
             manifest["contract_fingerprints_contract"],
             manifest["contract_fingerprints"],
         )
@@ -1990,11 +1994,23 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             shell_manifest["contract_fingerprints_fingerprint"],
         )
         self.assertEqual(
+            manifest["contract_fingerprints"]["shell_ui_contract_manifest"],
+            shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
             fingerprints["shell_ui_contract"],
             shell_manifest["contract_fingerprint"],
         )
         self.assertEqual(
             fingerprints["shell_ui_contract_fingerprint"],
+            shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["shell_ui_contract_manifest"],
+            shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["shell_ui_contract_manifest_fingerprint"],
             shell_manifest["contract_fingerprint"],
         )
         self.assertEqual(
@@ -2062,6 +2078,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             shell_manifest["contract_fingerprint"],
         )
         self.assertEqual(
+            aliased_fingerprints["shell_ui_contract_manifest"],
+            shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
             aliased_fingerprints["shell_ui_fingerprint"],
             shell_manifest["contract_fingerprint"],
         )
@@ -2109,6 +2129,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             fingerprints["shell_ui_contract_fingerprint"],
+            shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["shell_ui_contract_manifest"],
             shell_manifest["contract_fingerprint"],
         )
         self.assertEqual(
@@ -4917,6 +4941,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(fingerprints["contract_fingerprint"], shell_fingerprint)
         self.assertEqual(fingerprints["shell_ui_contract"], shell_fingerprint)
         self.assertEqual(fingerprints["shell_ui_contract_fingerprint"], shell_fingerprint)
+        self.assertEqual(fingerprints["shell_ui_contract_manifest"], shell_fingerprint)
+        self.assertEqual(fingerprints["shell_ui_contract_manifest_fingerprint"], shell_fingerprint)
         self.assertEqual(
             fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints"],
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint(),
@@ -4924,6 +4950,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints["terminal_artifact_cli_fallback_target_contract_manifest"],
             terminal_artifact_cli_fallback_target_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["shell_ui_contract_manifest"],
+            shell_fingerprint,
         )
         self.assertEqual(manifest["contract_fingerprints"], fingerprints)
         self.assertEqual(
