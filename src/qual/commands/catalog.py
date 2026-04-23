@@ -485,10 +485,10 @@ def _validate_command_cli_contract(
     if contract.canonical_names != expected_canonical_names:
         raise ValueError("Command CLI canonical names are inconsistent")
 
-    # The default catalog contract requires the full parser surface to stay aligned
-    # with the declared command catalog, not just the canonical-name projection.
-    # Dropping a canonical token and keeping only an alias must still fail fast.
-    if validated_entrypoints is not None and specs == COMMAND_SPECS:
+    # The CLI contract must track the full declared parser surface, not just the
+    # canonical-name projection. Dropping a canonical token and keeping only an
+    # alias must still fail fast for both the default catalog and custom spec sets.
+    if validated_entrypoints is not None:
         expected_parser_surface = tuple(
             (spec.name, _declared_cli_entrypoints_for(spec))
             for spec in specs

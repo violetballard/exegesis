@@ -547,6 +547,34 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_primary_cli_token_for(specs, "catalog-only"), "")
         self.assertEqual(command_cli_primary_tokens(specs), ("project-open", "review-patch"))
 
+    def test_command_cli_contract_rejects_custom_spec_parser_surface_drift(self) -> None:
+        specs = (
+            CommandSpec(
+                name="bootstrap",
+                aliases=("open",),
+                cli_tokens=("project-open", "bootstrap-run"),
+                flow_step="project-open",
+            ),
+            CommandSpec(
+                name="review",
+                aliases=("patch",),
+                cli_tokens=("review-patch", "diff"),
+                flow_step="patch-review",
+            ),
+        )
+
+        command_catalog.command_cli_contract.cache_clear()
+        with patch.object(
+            command_catalog,
+            "_validated_cli_entrypoints_for",
+            return_value=(
+                ("bootstrap", ("bootstrap-run",)),
+                ("review", ("review-patch", "diff")),
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                command_catalog.command_cli_contract(specs)
+
     def test_command_cli_shim_lookup_table_rewrites_surface_tokens_to_primary_entrypoints(self) -> None:
         self.assertEqual(
             command_cli_shim_lookup_table(),

@@ -104,7 +104,7 @@
 ## Canonical Demo-Path Mapping
 
 - Exact canonical demo-path steps this slice makes more real:
-  - in-scope primary step: step 2 `retrieve relevant material`, via the CLI-side `open project/document` and retrieval command entrypoints that must continue resolving to the intended canonical routes during the engine-first MVP loop
+  - exact primary step advanced: step 2 `retrieve relevant material`, via the CLI-side `open project/document` and retrieval command entrypoints that must continue resolving to the intended canonical routes during the engine-first MVP loop
   - in-scope follow-on step: step 3 `preview and apply or reject a patch`, via the CLI `diff-preview` entrypoint that must preserve operator-visible review context even when there is no diff payload to apply
   - out of scope: this slice does not claim new step 1 `open project/document` workflow coverage beyond keeping the existing CLI entrypoint compatible with the retrieval path
 - Concrete operator-facing failure mode prevented by this change:
@@ -206,6 +206,12 @@
 - Blockers: none
 
 ## Required Handoff Fields
+
+### Canonical demo-path step advanced
+
+- Primary step advanced directly: step 2 `retrieve relevant material`
+- Immediate dependent follow-on step hardened: step 3 `preview and apply or reject a patch`
+- Scope note: this slice preserves the existing CLI `open project/document` entrypoint into retrieval but does not claim new step 1 workflow coverage
 
 ### Roadmap item(s) affected
 
