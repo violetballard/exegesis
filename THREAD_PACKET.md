@@ -57,12 +57,13 @@
 
 1. The handoff packet now explicitly maps this slice to the concrete canonical demo-path steps it advances: `vault` via the existing `bootstrap` / `project-open` entrypoint and `context` via the routed `context-basket search` surface while Textual remains disabled.
 2. The packet now states the concrete blockers removed on those steps: silent parser/catalog drift could break the deterministic CLI contract for the `bootstrap` / `project-open` `vault` surface, and routed retrieval shims could lose the explicit `search` subcommand inside the `context` step.
-3. The scope statement stays narrow and describes this work as deterministic CLI contract hardening only for those existing CLI fallback surfaces, with no claim that this patch implements later `run`, `patch`, or `export` steps, any audit/traceability behavior, or any new user-facing command breadth beyond the current MVP loop.
-4. The vision mapping is intentionally limited to `Canonical engine contract`; no auditable-state claim is carried forward.
+3. The scope statement stays narrow and describes this work as deterministic CLI contract hardening only for those existing CLI fallback surfaces, with the guarantee stated precisely: the default catalog rejects parser-surface token drift, while custom-spec helpers still only require canonical coverage/order. This packet does not claim that the patch implements later `run`, `patch`, or `export` steps, any audit/traceability behavior, or any new user-facing command breadth beyond the current MVP loop.
+4. The regression proof is named directly: `test_command_cli_contract_rejects_alias_substitution_in_parser_surface_when_canonical_order_still_matches` and `test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches` cover the token-surface drift guarantee for the default catalog, while the custom-spec subset test is kept narrower on purpose.
+5. The vision mapping is intentionally limited to `Canonical engine contract`; no auditable-state claim is carried forward.
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the default catalog rejects parser-surface token membership/order drift while custom-spec helpers keep the narrower canonical coverage/order contract.
 - Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
 - Fixed command shim subcommand routing so flow-step retrieval shims preserve explicit subcommands such as `search` instead of falling back to the default `context-basket list` tail.
@@ -148,6 +149,10 @@
 - Concrete blockers removed:
   - before this hardening, the explicit CLI parser surface could drift from the canonical command catalog order or membership without failing fast, which would make the `bootstrap` / `project-open` `vault` step less deterministic and weaken smoke-test coverage for that path
   - before the shim routing fix, an explicit retrieval subcommand such as `search` could be swallowed by the default `context-basket list` tail when resolved through the flow-step shim, making the CLI fallback `context` step less trustworthy for the already-in-scope retrieval surface
+- Targeted regression proof:
+  - `test_command_cli_contract_rejects_alias_substitution_in_parser_surface_when_canonical_order_still_matches` proves the default catalog fails when a token swap preserves canonical names but mutates the parser surface
+  - `test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches` proves the default catalog fails when extra accepted tokens appear even though canonical names still match
+  - `test_command_cli_contract_preserves_cli_subset_order_without_requiring_full_catalog_equality` keeps the custom-spec contract intentionally narrower, so the packet does not overstate that behavior
 - Scope-specific alignment note: this is CLI contract hardening only for the existing `bootstrap` / `project-open` `vault` surface and `context-basket search` `context` shim surface, with no claim of broader retrieval ranking, `run` execution, patch application, persistence, auditability, or UI progress and no new user-facing command breadth beyond the current MVP loop.
 
 ### Routing/provider impact note
