@@ -201,7 +201,9 @@ class FTSStrategy:
         if isinstance(value, bool):
             return value
         if isinstance(value, int):
-            return bool(value)
+            if value in {0, 1}:
+                return bool(value)
+            raise ValueError(f"unsupported boolean value: {value}")
         if isinstance(value, str):
             normalized = value.strip().casefold()
             if not normalized:
@@ -211,7 +213,7 @@ class FTSStrategy:
             if normalized in {"0", "false", "no", "off"}:
                 return False
             raise ValueError(f"unsupported boolean value: {value}")
-        return bool(value)
+        raise ValueError(f"unsupported boolean value: {value}")
 
     @staticmethod
     def _normalize_query_text(value: object) -> str | None:

@@ -62,7 +62,9 @@ def _normalize_optional_bool(value: object, *, default: bool) -> bool:
     if isinstance(value, bool):
         return value
     if isinstance(value, int):
-        return bool(value)
+        if value in {0, 1}:
+            return bool(value)
+        raise ValueError(f"unsupported boolean value: {value}")
     if isinstance(value, str):
         normalized = value.strip().casefold()
         if not normalized:
@@ -72,7 +74,7 @@ def _normalize_optional_bool(value: object, *, default: bool) -> bool:
         if normalized in {"0", "false", "no", "off"}:
             return False
         raise ValueError(f"unsupported boolean value: {value}")
-    return bool(value)
+    raise ValueError(f"unsupported boolean value: {value}")
 
 
 def _normalize_required_text(value: object, *, field_name: str, casefold: bool = False) -> str:
