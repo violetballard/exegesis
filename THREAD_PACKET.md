@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: correct the handoff so it truthfully describes the real current `feat-commands` branch tip, explicitly maps that tip to the canonical Milestone 3 CLI fallback steps it advances, and cites the concrete shared-path approval basis already present in branch history.
+- Scope goal: correct the handoff so it truthfully describes the real current `feat-commands` branch tip, explicitly maps that tip to the named CLI-fallback MVP steps it advances, and cites the concrete shared-path approval basis already present in branch history.
 - Risk reason: this fixer edits shared handoff metadata for a lane whose current tip includes both owned command files and shared test files.
 
 ### Budget
@@ -17,7 +17,7 @@
 ### Planned Tasks (max 4)
 
 1. Replace the stale narrow-slice traceability note with the truthful current-tip implementation set.
-2. Add the missing canonical demo-path mapping required by the reviewer.
+2. Add the missing canonical demo-path mapping and concrete CLI-loop blocker removal required by the reviewer.
 3. Replace the vague shared-test note with the concrete current and historical approval trail.
 4. Re-run `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
@@ -38,7 +38,7 @@
 - Plan complete: truthify the handoff to the real branch tip instead of a stale narrow slice.
 - First green tests: recorded after the required gate rerun on `2026-04-23`.
 - Before risky/shared file edit: this fixer only edits `THREAD.md` and `THREAD_PACKET.md`.
-- Ready for handoff: the packet now matches the current branch tip and names the Milestone 3 CLI fallback steps it advances.
+- Ready for handoff: the packet now matches the current branch tip and names the current CLI-fallback MVP steps it advances.
 
 ## Packet Traceability Note
 
@@ -53,7 +53,7 @@
 
 1. The handoff now names the real reviewed commit set at the current branch tip, including the additional `diff_preview` implementation the reviewer called out.
 2. `Scope completed`, `Files changed`, and the handoff narrative now match that reviewed tip instead of a stale command-catalog-only slice.
-3. The packet now states the canonical Milestone 3 demo-path steps this work advances: `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch`, via the current CLI fallback surfaces while Textual remains disabled.
+3. The packet now states the named CLI-fallback MVP steps this work advances: `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch`, via the current CLI fallback surfaces while Textual remains disabled.
 4. The vague shared-test exception note is replaced with a concrete approval trail:
    - current scope-check policy explicitly allows `tests/unit/test_commands_catalog.py`
    - historical branch approval for `tests/unit/test_diff_preview.py` was recorded in `e00623f0be7934383d64df46fdaec99d9f92f13c`, `8a38d7bde29da3ecfb3da905ff78416034b151b7`, and `9e6b2206d7a37fc28b1233569ed2ac473e61f15a`
@@ -65,7 +65,7 @@
 - Stabilized the no-diff JSON payload in `src/qual/commands/diff_preview.py` so `diff-preview` returns the effective labels and option state even when no diff is emitted.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for parser-surface drift rejection, canonical ordering, and routed subcommand preservation.
 - Added focused regression coverage in `tests/unit/test_diff_preview.py` for no-diff JSON payload shape, effective labels, and effective options.
-- Refreshed `THREAD.md` and `THREAD_PACKET.md` so the handoff truthfully matches the actual current branch tip and its roadmap-aligned CLI fallback mapping.
+- Refreshed `THREAD.md` and `THREAD_PACKET.md` so the handoff truthfully matches the actual current branch tip, the active CLI-fallback MVP path it hardens, and the traceable shared-test approval record.
 
 ## Kickoff Budget / Limits Compliance
 
@@ -78,7 +78,7 @@
   - `tests/unit/test_commands_catalog.py` only is still allowlisted for `codex/feat-commands*` in `scripts/scope-check.sh`
   - Approver / policy author: `Violet Ballard`
   - Approval date: `2026-03-28`
-  - Approval references: `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` (`fix(commands): align feat-commands handoff policy`) and `c3a66bb580772d65201a630d673a8de1d4a63776` (`fix(commands): tighten feat-commands packet and policy`)
+  - Traceable approval source: `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` added the `codex/feat-commands*` allowlist entry for `tests/unit/test_commands_catalog.py` in `scripts/scope-check.sh`, and `c3a66bb580772d65201a630d673a8de1d4a63776` kept that approval in force while tightening the packet text.
 - Historical branch approval trail for additional shared test coverage already present in the reviewed tip:
   - `e00623f0be7934383d64df46fdaec99d9f92f13c` (`Allow feat-commands shared diff preview test`)
   - `8a38d7bde29da3ecfb3da905ff78416034b151b7` (`fix(commands): approve diff preview shared regression`)
@@ -100,7 +100,7 @@
 2. Preserved explicit routed subcommands for CLI fallback flows such as `context-basket search`.
 3. Stabilized the no-diff `diff-preview` payload so JSON output keeps labels and effective option state when no diff is emitted.
 4. Added focused regression coverage in `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` for those behaviors.
-5. Refreshed the handoff metadata so the reviewed scope, demo-path mapping, and shared-path approval basis match the actual current branch tip.
+5. Refreshed the handoff metadata so the reviewed scope, named demo-path mapping, concrete CLI-loop blocker removal, and shared-path approval basis match the actual current branch tip.
 
 ### Files Changed
 
@@ -137,8 +137,9 @@
 
 ### Roadmap item(s) affected
 
-- Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands by keeping the current command surface deterministic, routed correctly, and stable for no-diff patch-preview output while Textual remains disabled.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
+- MVP focus / active implementation emphasis: `feat-commands` is one of the current active lanes called out in `ROADMAP.md` under `MVP Focus Through 2026-05-04`.
+- Milestone 5 exit criterion support: the reviewed slice hardens the CLI fallback that must stay executable for the MVP flow (`vault -> context -> run -> patch -> export`) while Textual remains disabled.
+- Milestone 3 product-readiness support: this slice also makes the command contract more explicit and testable instead of allowing silent CLI drift.
 
 ### Vision capability affected
 
@@ -149,7 +150,8 @@
 - `open project/document` via the CLI fallback `bootstrap` / `project-open` surface
 - `retrieve relevant material` via the routed `context-basket search` surface
 - `preview and apply or reject a patch` via `diff-preview`
-- Explicit handoff statement: this reviewed slice makes the existing Milestone 3 CLI fallback surfaces for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` more deterministic and smoke-testable while Textual remains disabled; it does not claim broader workflow completion beyond those current operator surfaces.
+- Concrete blocker removed from the CLI-first MVP loop: parser-surface drift, routed-subcommand loss, or no-diff preview-state loss could silently break those operator-visible CLI fallback steps even before A2UI/Textual is in play; this slice turns those failures into deterministic, test-covered contract checks instead.
+- Explicit handoff statement: this reviewed slice makes the current CLI fallback surfaces for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` more deterministic and smoke-testable while Textual remains disabled; it does not claim broader workflow completion beyond those current operator surfaces.
 
 ### Routing / Provider Impact Note
 
