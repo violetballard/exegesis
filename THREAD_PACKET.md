@@ -105,7 +105,7 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 4: Retrieval Layer` via the `retrieve relevant material` step's deterministic excerpt-query contract
+- `Milestone 3: Real workflow loop` via the `retrieve relevant material` step's deterministic excerpt-query contract
 - `feat-retrieval-fts` FTS-only excerpt fail-closed slice
 
 ### Canonical demo-path step advanced
