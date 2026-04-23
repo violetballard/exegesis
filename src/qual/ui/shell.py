@@ -808,6 +808,10 @@ def describe_shell_ui_contract_fingerprints(
             fingerprints,
             ("contract", shell_ui_contract_fingerprint_value),
             ("shell_ui_contract", shell_ui_contract_fingerprint_value),
+            (
+                "terminal_artifact_cli_fallback_target_contract_manifest",
+                terminal_artifact_cli_fallback_target_contract_fingerprint_value,
+            ),
         )
     return fingerprints
 

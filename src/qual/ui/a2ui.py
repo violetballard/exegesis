@@ -648,6 +648,10 @@ def describe_a2ui_contract_fingerprints(
                 terminal_artifact_cli_fallback_target_contract_fingerprint(),
             ),
             (
+                "terminal_artifact_cli_fallback_target_contract_manifest",
+                terminal_artifact_cli_fallback_target_contract_fingerprint(),
+            ),
+            (
                 "terminal_artifact_raw_leaf_card_default_contract",
                 terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
             ),
@@ -1310,6 +1314,10 @@ def describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
                 terminal_artifact_cli_fallback_target_contract_fingerprint(),
             ),
             (
+                "terminal_artifact_cli_fallback_target_contract_manifest",
+                terminal_artifact_cli_fallback_target_contract_fingerprint(),
+            ),
+            (
                 "renderer_entrypoints_contract",
                 terminal_artifact_renderer_entrypoints_contract_fingerprint(),
             ),
@@ -1448,6 +1456,10 @@ def describe_terminal_artifact_contract_fingerprints(
                 terminal_artifact_cli_fallback_target_contract_fingerprint(),
             ),
             (
+                "terminal_artifact_cli_fallback_target_contract_manifest",
+                terminal_artifact_cli_fallback_target_contract_fingerprint(),
+            ),
+            (
                 "terminal_artifact_raw_leaf_card_default",
                 terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
             ),
@@ -1564,6 +1576,10 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
             ),
             (
                 "terminal_artifact_cli_fallback_target_contract",
+                terminal_artifact_cli_fallback_target_contract_fingerprint(),
+            ),
+            (
+                "terminal_artifact_cli_fallback_target_contract_manifest",
                 terminal_artifact_cli_fallback_target_contract_fingerprint(),
             ),
             (
