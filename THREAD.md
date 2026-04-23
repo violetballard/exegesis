@@ -11,12 +11,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - This fixer pass updates the handoff text so it matches the actual branch behavior: `command_cli_contract()` now rejects full parser-surface drift, including token add, remove, alias substitution, or reorder changes that would otherwise leave canonical command names unchanged.
-- Final fixer validation reran the required gate sequence from this worktree on `2026-04-23T22:16:13Z`; the metadata refresh below records that fresh verification for the full fixed branch state.
+- Final fixer validation reran the required gate sequence from this worktree on `2026-04-23T22:20:55Z`; the metadata refresh below records that fresh verification for the full fixed branch state.
 - Exact canonical demo-path mapping for the fixed branch state:
   - operator terms: this hardens the stable CLI command surface used to reach `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and existing CLI handoff or export flows without silent parser or catalog drift
   - direct step advanced: `preview and apply or reject a patch`
   - canonical demo-path step advanced: this work makes `preview and apply or reject a patch` more real in the CLI-first MVP loop
   - explicit step sentence: this change directly strengthens `preview and apply or reject a patch` in the CLI-first MVP loop because it fails fast when the accepted CLI token surface for that route drifts away from the approved command catalog the patch-review route depends on while Textual remains disabled
+  - operator-visible CLI path now more reliable: the `patch-review` route and its branch into `apply-patch` or `reject-patch` now fail contract validation immediately instead of silently presenting a stale accepted-token surface
   - AGENTS-required handoff statement: the canonical demo-path step this work makes more real is `preview and apply or reject a patch`
   - out of scope: no new workflow implementation for `open project/document`, `retrieve relevant material`, or export is claimed by this command-catalog contract slice
 - Roadmap and vision grounding for that step:

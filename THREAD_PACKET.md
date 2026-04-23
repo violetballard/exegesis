@@ -36,9 +36,9 @@
 ### Checkpoint Cadence (short updates)
 
 - Plan complete: packet scope reset to the current fixed branch state instead of the earlier narrower review slice.
-- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:16:13Z`.
+- First green tests: `make scope-check`, `./quality-format.sh --check`, and `./quality-lint.sh` passed during the rerun completed at `2026-04-23T22:20:55Z`.
 - Before risky/shared file edit: this fixer edits shared handoff metadata only (`THREAD.md`, `THREAD_PACKET.md`).
-- Ready for handoff: as of `2026-04-23T22:16:13Z`, the packet and required gate results match the fixed branch state.
+- Ready for handoff: as of `2026-04-23T22:20:55Z`, the packet and required gate results match the fixed branch state.
 
 ## Review Basis
 
@@ -82,6 +82,7 @@
 - AGENTS-required explicit step statement:
   - the canonical demo-path step advanced by this work is `preview and apply or reject a patch`.
   - this change directly strengthens `preview and apply or reject a patch` in the canonical demo path because `command_cli_contract()` now fails fast when the accepted CLI token surface for that route drifts away from the approved catalog the patch-review route depends on while Textual remains disabled.
+  - the operator-visible CLI path now more reliable because of this change is the patch preview/apply route: it now fails contract validation immediately instead of silently presenting a stale accepted-token surface.
 - Why this is the primary step:
   - the slice does not add new workflow behavior; it makes the existing patch preview/apply CLI route deterministic and smoke-testable by turning parser-surface drift into an immediate contract failure on the operator path that performs patch review.
 
@@ -105,6 +106,8 @@
   - reason: the fixed catalog contract check keeps the accepted parser tokens for the patch preview/apply route aligned with the command catalog, so that entrypoint cannot silently drop, swap, or reorder accepted tokens while still resolving to the same canonical command.
 - Explicit step sentence:
   - this change directly strengthens `preview and apply or reject a patch` in the CLI-first MVP loop because it turns token-surface drift into a deterministic failure on the exact CLI surface the operator-facing patch-review route depends on while Textual remains disabled.
+- Operator-visible CLI path now more reliable:
+  - the `patch-review` route and its branch into `apply-patch` or `reject-patch` now fail contract validation immediately instead of silently presenting a stale accepted-token surface.
 - Out of scope:
   - this slice does not claim new workflow implementation for `open project/document`, `retrieve relevant material`, or export; it preserves determinism for those existing CLI routes by protecting the shared command contract they all consume.
 - Explicit AGENTS mapping statement:
@@ -155,7 +158,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification timestamp: `2026-04-23T22:16:13Z`
+- Verification timestamp: `2026-04-23T22:20:55Z`
 
 ### Risks / Blockers
 
