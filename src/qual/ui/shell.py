@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+from functools import lru_cache
 from itertools import count
 from collections.abc import Iterable, Mapping, Set
 from typing import Any
@@ -549,6 +550,7 @@ class ShellUI:
         return None
 
 
+@lru_cache(maxsize=None)
 def _build_shell_ui_contract_manifest(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,
@@ -775,16 +777,16 @@ def describe_shell_ui_contract(
 ) -> dict[str, Any]:
     """Return the stable shell UI contract manifest."""
 
-    manifest = _build_shell_ui_contract_manifest(
-        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    manifest = copy.deepcopy(
+        _build_shell_ui_contract_manifest(
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        )
     )
     contract_fingerprints = describe_shell_ui_contract_fingerprints(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         include_contract_aliases=include_contract_aliases,
     )
-    fingerprint = shell_ui_contract_fingerprint(
-        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
-    )
+    fingerprint = _fingerprint_manifest_section(manifest)
     manifest["contract_fingerprints"] = dict(contract_fingerprints)
     manifest["contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(contract_fingerprints)
     manifest["contract_fingerprints_contract"] = copy.deepcopy(manifest["contract_fingerprints"])

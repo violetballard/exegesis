@@ -4,6 +4,7 @@ import copy
 import hashlib
 import json
 import unicodedata
+from functools import lru_cache
 from contextvars import ContextVar
 from collections.abc import Mapping, Set
 from dataclasses import dataclass, fields, is_dataclass
@@ -230,14 +231,11 @@ def describe_a2ui_contract(
     name without depending on shell internals.
     """
 
-    manifest = _build_a2ui_contract_manifest(
+    manifest = _snapshot_contract_section(_build_a2ui_contract_manifest(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         include_shell_ui_contract=include_shell_ui_contract,
-    )
-    manifest["contract_fingerprint"] = a2ui_contract_fingerprint(
-        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
-        include_shell_ui_contract=include_shell_ui_contract,
-    )
+    ))
+    manifest["contract_fingerprint"] = _fingerprint_manifest_section(manifest)
     capabilities = _snapshot_contract_section(manifest["schemas"]["capabilities"])
     manifest["capabilities"] = capabilities
     manifest["capabilities_fingerprint"] = capabilities["contract_fingerprint"]
@@ -427,6 +425,13 @@ def describe_a2ui_contract(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         include_shell_ui_contract=include_shell_ui_contract,
     )
+    manifest["contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(
+        manifest["contract_fingerprints"]
+    )
+    manifest["contract_fingerprints_contract"] = _snapshot_contract_section(
+        manifest["contract_fingerprints"]
+    )
+    manifest["contract_fingerprints_contract_fingerprint"] = manifest["contract_fingerprints_fingerprint"]
     manifest["a2ui_contract"] = _snapshot_contract_section(manifest)
     manifest["a2ui_contract_fingerprint"] = manifest["contract_fingerprint"]
     return manifest
@@ -2004,6 +2009,7 @@ def validate_terminal_artifact_envelope(envelope: Any) -> None:
     _validate_terminal_artifact_payload_kind(envelope["artifact"], normalized_kind)
 
 
+@lru_cache(maxsize=None)
 def _build_a2ui_contract_manifest(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,

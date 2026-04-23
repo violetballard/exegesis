@@ -1778,6 +1778,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertNotIn("shell_ui_contract", default_manifest)
         self.assertNotIn("terminal_artifact_cli_fallback_entrypoint", default_manifest)
+        self.assertEqual(
+            default_manifest["contract_fingerprints_fingerprint"],
+            _fingerprint_manifest_section(default_manifest["contract_fingerprints"]),
+        )
+        self.assertEqual(
+            default_manifest["contract_fingerprints_contract"],
+            default_manifest["contract_fingerprints"],
+        )
+        self.assertEqual(
+            default_manifest["contract_fingerprints_contract_fingerprint"],
+            default_manifest["contract_fingerprints_fingerprint"],
+        )
         self.assertEqual(manifest["shell_ui_contract"], shell_manifest)
         self.assertEqual(
             manifest["shell_ui_contract_fingerprint"],
@@ -1818,6 +1830,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["shell_ui_contract_fingerprints"],
             shell_manifest["contract_fingerprints"],
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints_contract"],
+            manifest["contract_fingerprints"],
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints_contract_fingerprint"],
+            manifest["contract_fingerprints_fingerprint"],
         )
         self.assertEqual(
             manifest["contract_fingerprints"]["shell_ui_contract_fingerprints"],
