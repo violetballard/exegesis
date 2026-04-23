@@ -2,10 +2,10 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Current branch tip before this fixer pass: `7bd332628dddf1912710436094c2144cffa7ef21`
+- Current branch tip before this fixer pass: `34b511ace9324f15de023d89e0b57bad382c35bd`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before the gate-rerun note, commit `0b6ed199b752d758c8e3d71433740274efd2b62c` recorded the passing gate rerun in `docs/gate_passed.txt`, commit `86e0f49aac171d1cfc4f461274c672233279cd64` added the explicit canonical demo-path step requested by review, and commit `7bd332628dddf1912710436094c2144cffa7ef21` is the latest metadata-only packet refresh before this re-review evidence pass. This fixer pass refreshes `THREAD_PACKET.md`, keeps this file as the authoritative re-review packet, records a fresh all-green gate rerun on `2026-04-23 11:33:46 PDT`, and does not move the reviewed implementation head or range.
+- Packet traceability note: commit `206e37e3509c1e3331b45258c6e82ab31e52a82e` is a metadata-only packet refresh that changed only `THREAD_PACKET.md`, commit `412a3f777dcb7c1bb1ddf43e64b1fbce36d45982` is the latest metadata-only scope-wording refresh before the gate-rerun note, commit `0b6ed199b752d758c8e3d71433740274efd2b62c` recorded the first passing gate rerun in `docs/gate_passed.txt`, commit `86e0f49aac171d1cfc4f461274c672233279cd64` added the explicit canonical demo-path step requested by review, and commit `34b511ace9324f15de023d89e0b57bad382c35bd` is the latest metadata-only packet refresh before this fixer pass. This fixer pass refreshes `THREAD_PACKET.md`, keeps this file as the authoritative re-review packet, records a fresh all-green gate rerun on `2026-04-23`, and does not move the reviewed implementation head or range.
 
 ## Scope goal
 
@@ -34,10 +34,10 @@
 
 ### Checkpoint Status
 
-- `plan complete`: the packet now anchors re-review to the narrowed implementation range from the reviewer packet.
+- `plan complete`: the packet remains anchored to the narrowed implementation range from the reviewer packet and this fixer pass only refreshes packet evidence.
 - `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` for this fixer pass.
 - `before risky/shared file edit`: the only shared implementation file in the reviewed range remains `tests/unit/test_unified_retrieval.py`.
-- `ready for handoff`: this packet now separates reviewed implementation files from metadata-only packet refresh files, states the canonical demo-path step explicitly, and refreshes traceability for the latest metadata-only reviewer-fix commit.
+- `ready for handoff`: this packet separates reviewed implementation files from metadata-only packet refresh files, states the canonical demo-path step explicitly, and refreshes traceability for the latest metadata-only reviewer-fix commit.
 
 ## Scope completed
 
@@ -96,8 +96,8 @@ This handoff advances `retrieve relevant material` by enforcing authoritative FT
 
 ## Fresh gate evidence for this fixer pass
 
-- Branch head under test: `7bd332628dddf1912710436094c2144cffa7ef21`
-- Gate rerun timestamp: `2026-04-23 11:33:46 PDT`
+- Branch head under test: `34b511ace9324f15de023d89e0b57bad382c35bd`
+- Gate rerun timestamp: `2026-04-23`
 - `make scope-check`: passed with branch-policy skip notice for `codex/feat-retrieval-fts`
 - `./quality-format.sh --check`: passed
 - `./quality-lint.sh`: passed
@@ -112,7 +112,7 @@ This handoff advances `retrieve relevant material` by enforcing authoritative FT
 3. The retained changes are each mapped to the canonical demo-path step `retrieve relevant material`.
 4. The shared-test approval scope is now explicit: `tests/unit/test_unified_retrieval.py` is approved only for the fail-closed excerpt regressions included in `adfa8cda`, not for unrelated broader API/export assertions that already existed in the file.
 5. Packet traceability still matches git history and still separates reviewed implementation files from metadata-only packet refresh files.
-6. This metadata-only fixer pass reran the required gate suite on `2026-04-23` and confirmed the all-`PASS` results listed in `Commands run with results`.
+6. This metadata-only fixer pass reran the required gate suite on `2026-04-23` at branch head `34b511ace9324f15de023d89e0b57bad382c35bd` and confirmed the all-`PASS` results listed in `Commands run with results`.
 
 ## Risks / blockers
 
