@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: regenerate the handoff so it truthfully describes the real `codex/feat-commands` branch tip, names the exact CLI-first MVP steps advanced by that tip, and records traceable approval basis for every shared path still in scope.
+- Scope goal: regenerate the handoff so it explicitly names the exact canonical demo-path steps this branch tip hardens, explains the concrete CLI failure mode it prevents, and keeps the roadmap and vision mapping limited to Milestone 3 command-contract hardening.
 - Risk reason: the reviewed branch tip mixes lane-owned command implementation with shared test files, and this fixer updates shared handoff metadata that must match the true tip-level diff.
 
 ### Budget
@@ -74,13 +74,15 @@
 ## Canonical Demo-Path Mapping
 
 - Exact current MVP demo-path steps advanced by this lane:
-  - step 1 `open project/document`
-  - step 2 `retrieve relevant material`
-  - step 3 `preview and apply or reject a patch`
+  - primary step: step 2 `retrieve relevant material`
+  - dependent step: step 3 `preview and apply or reject a patch`
+- Concrete operator-facing failure mode prevented by this change:
+  - if the parser surface drifted away from the catalog, the CLI fallback path could silently accept a different command ordering, drop the canonical retrieval entrypoint in favor of an alias, or lose routed subcommand tokens. In that state, an operator could issue the expected retrieval command and get a mismatched or degraded route instead of the intended deterministic contract.
+  - if `diff-preview` dropped effective labels or option-state fields in a no-diff response, the operator could reach step 3 but lose the visible review context needed to judge whether there is anything to apply or reject.
 - Concrete blocker removed:
-  - after step 1, the operator could still lose deterministic CLI routing for step 2 or lose operator-visible state during step 3 because command-surface drift, shimmed-subcommand loss, or no-diff preview-state loss could silently break the CLI fallback contract while Textual remains disabled.
-- Explicit AGENTS/ROADMAP mapping statement:
-  - this branch tip makes steps 2 and 3 more real, and keeps step 1 wired into them reliably, by hardening the CLI-first command contract that the current MVP loop depends on for `open project/document -> retrieve relevant material -> preview and apply or reject a patch`.
+  - this branch tip removes a CLI-contract blocker on the current engine-first loop by making retrieval-command drift fail fast and by preserving operator-visible no-diff preview context, instead of letting those failures degrade the loop silently while Textual remains disabled.
+- Explicit AGENTS mapping statement:
+  - this work makes step 2 more real directly and step 3 more real as the immediate follow-on review step. It does not claim broader workflow progress outside that `retrieve relevant material -> preview and apply or reject a patch` slice.
 
 ## Shared-Path Approval Basis
 
@@ -144,12 +146,15 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` current MVP focus: CLI remains the operator-first control surface and must keep the MVP flow executable while `Exegesis Console` remains deferred.
-- `ROADMAP.md` Milestone 5 (`A2UI Presentation Layer`) exit criteria: CLI must execute the MVP flow (`vault -> context -> run -> patch -> export`) against the same engine-authoritative contracts.
+- `ROADMAP.md` Milestone 3 (`Real workflow loop`): preserve CLI compatibility while the package and layout migration lands.
+- `ROADMAP.md` lane mapping: `feat-commands` owns CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
+- Narrow lane mapping: this packet covers command-contract hardening for the CLI-first loop, specifically to keep step 2 `retrieve relevant material` and the immediate step 3 `preview and apply or reject a patch` deterministic, smoke-testable, and operator-visible while UI lanes remain disabled.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` operator-first control surface: this branch tip keeps the CLI fallback deterministic and operator-visible so engine outputs can remain consumable by CLI now and future UI surfaces later.
+- `PRODUCT_VISION.md` canonical engine contract: CLI compatibility is required while Textual remains disabled.
+- `PRODUCT_VISION.md` auditable state and workflow: workflow actions must stay explicit and traceable for operators.
+- Narrow capability mapping: this change strengthens the operator-visible CLI contract for retrieval and preview commands; it does not claim broader UI-contract or workflow-surface progress.
 
 ### Routing / Provider Impact Note
 

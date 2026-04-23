@@ -19,11 +19,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `tests/unit/test_diff_preview.py`
 - The packet no longer claims that post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` work is metadata-only. Later implementation is present, including `1e04f9633c4abc4988dcb991944680b86f94f753`, `5c89ce987fc78ed158d378a988b3e211ce93145d`, and `b3be9f0c12e6fd3ecd52f1b8af2bd1b6d890e1a0`.
 - Canonical demo-path steps advanced:
-  - `open project/document`
-  - `retrieve relevant material`
-  - `preview and apply or reject a patch`
+  - primary: `retrieve relevant material`
+  - dependent: `preview and apply or reject a patch`
 - Concrete blocker removed from the CLI-first MVP loop:
   - the operator no longer depends on fragile parser drift behavior, dropped routed subcommands, or missing no-diff preview state for the current CLI fallback path.
+  - the packet now states that this is narrow Milestone 3 command-contract hardening, not a broader workflow or UI milestone.
 - Shared-path approval basis:
   - current policy allowlist for `tests/unit/test_commands_catalog.py`: `scripts/scope-check.sh`, traced through `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` and `c3a66bb580772d65201a630d673a8de1d4a63776`
   - branch-history approval trail for `tests/unit/test_diff_preview.py`: `8a38d7bde29da3ecfb3da905ff78416034b151b7`, `2afa0f7f2f23c2d73773cc9c5a2fc0007ba19be3`, and `51279575df18d44dc112129f561f2dcb7743e70f`
