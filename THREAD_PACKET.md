@@ -66,11 +66,13 @@
 ## Reviewer Fix Closure
 
 - Required fix 1 satisfied:
-  - the packet now states which canonical demo-path step this slice makes more real by tying the command-contract hardening to the current MVP CLI flow `vault -> context -> run -> patch -> export`, specifically the exposed catalog steps `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+  - the packet now limits roadmap and vision mapping to Milestone 3 CLI compatibility and `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`), framed only as command-contract hardening on the current CLI surface.
 - Required fix 2 satisfied:
-  - the packet now states the concrete blocker removed: parser/catalog drift could silently change the operator-facing CLI contract for `project-open`, `retrieval`, `patch-review`, and `export-handoff` while Textual remains disabled, so this guard is required to keep the CLI smoke path stable.
+  - the packet removes the unsupported `Auditable state and workflow` claim and does not attribute any persistence or traceability change to this diff.
 - Required fix 3 satisfied:
-  - the ownership note now distinguishes the approved shared regression file from integrator-locked files and keeps the shared-test exception attached to that note.
+  - the packet now explicitly says this slice makes the existing CLI-first operator path more real by stabilizing the command surface for `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+- Required fix 4 satisfied:
+  - the handoff now keeps scope framed as contract hardening only and does not claim new command behavior, new flags, or new workflow logic.
 
 ## Canonical Demo-Path Mapping
 
@@ -81,6 +83,8 @@
   - `retrieval`
   - `patch-review`
   - `export-handoff`
+- Explicit AGENTS sentence:
+  - this slice makes the existing CLI-first operator path more real by stabilizing the command surface for `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 - Why these are the right steps:
   - `ROADMAP.md` defines the active CLI-first MVP path as `vault -> context -> run -> patch -> export`.
   - `src/qual/commands/catalog.py` exposes the currently implemented command-flow steps for that path as `project-open -> retrieval -> patch-review -> ... -> export-handoff`.
@@ -148,14 +152,14 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3 (`Product Readiness`): this hardens an intentional user-facing command contract by rejecting parser-surface drift on the canonical CLI flow.
+- `ROADMAP.md` Milestone 3 (`Product Readiness`): this supports the exit criterion that the CLI can execute the MVP flow (`vault -> context -> run -> patch -> export`) against the same engine PolicyGate by keeping the parser-visible command contract deterministic on that path.
 - `ROADMAP.md` active MVP emphasis `feat-commands`: this keeps the CLI command surface deterministic while that lane remains active.
-- Canonical demo-path step made more real: the existing CLI-first MVP flow `vault -> context -> run -> patch -> export`, via the currently exposed catalog steps `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+- Canonical demo-path step made more real: this slice makes the existing CLI-first operator path more real by stabilizing the command surface for `project-open`, `retrieval`, `patch-review`, and `export-handoff` within the MVP flow `vault -> context -> run -> patch -> export`.
 - Concrete blocker removed on that demo path: parser/catalog drift can no longer silently change the operator-facing CLI contract for the CLI-first MVP smoke loop while Textual remains disabled.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): this narrows to the canonical engine contract that the CLI exposes now, keeping that contract deterministic by making parser drift fail fast while the Textual lanes remain disabled.
+- `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): limited here to the "engine contracts come first" requirement; this change hardens the canonical engine command contract that the CLI path consumes, without claiming new UI, workflow, persistence, or audit behavior.
 
 ### Routing / Provider Impact Note
 
