@@ -93,7 +93,7 @@
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
   - `1e04f9633c4abc4988dcb991944680b86f94f753`
   - `5c89ce987fc78ed158d378a988b3e211ce93145d`
-- Packet refresh commit: this fixer commit (`HEAD` after commit)
+- Packet refresh commit: this final metadata-only fixer commit (`HEAD` after commit)
 
 ### Tasks Completed (Numbered)
 
@@ -121,12 +121,12 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-23`
-- Verification basis: rerun from clean branch `HEAD` `233a0c1c8bb848cc904d8831d13740e0589ef6e5` before this metadata-only refresh commit
+- Verification basis: rerun from clean branch `HEAD` `ca17857f2039f59fbd19e0e150168f6d220a110b` before this final metadata-only refresh commit
 
 ## Ready For Handoff
 
 - Status: ready for re-review
-- Current fixer pass: metadata-only handoff correction with a second clean-HEAD gate rerun on `2026-04-23`
+- Current fixer pass: final metadata-only handoff correction with a clean-HEAD gate rerun on `2026-04-23`
 - No implementation files changed in this fixer pass
 
 ### Risks / Blockers

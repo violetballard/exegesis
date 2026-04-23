@@ -30,4 +30,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - traceable approval source for `tests/unit/test_commands_catalog.py`: `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` added that allowlist entry in `scripts/scope-check.sh`, and `c3a66bb580772d65201a630d673a8de1d4a63776` preserved it while tightening the packet text
   - historical branch approval for `tests/unit/test_diff_preview.py` was recorded in `e00623f0be7934383d64df46fdaec99d9f92f13c`, `8a38d7bde29da3ecfb3da905ff78416034b151b7`, and `9e6b2206d7a37fc28b1233569ed2ac473e61f15a`
 - This fixer pass stays metadata-only, limited to `THREAD.md` and `THREAD_PACKET.md`, and the required gate sequence passed on `2026-04-23`.
-- Fresh verification note for this follow-up fixer pass: the branch was revalidated from clean `HEAD` `233a0c1c8bb848cc904d8831d13740e0589ef6e5` on `2026-04-23` before issuing the next metadata-only refresh commit.
+- Fresh verification note for this follow-up fixer pass: the branch was revalidated from clean `HEAD` `ca17857f2039f59fbd19e0e150168f6d220a110b` on `2026-04-23` before issuing this final metadata-only refresh commit.
