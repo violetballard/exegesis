@@ -572,6 +572,12 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_fingerprint"] = shell_ui_contract[
             "terminal_artifact_cli_fallback_entrypoint_contract_fingerprint"
         ]
+        fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints"] = shell_ui_contract[
+            "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"
+        ]
+        fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"] = (
+            shell_ui_contract["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"]
+        )
         _add_contract_alias_fingerprints(
             fingerprints,
             (
@@ -2125,6 +2131,12 @@ def _build_a2ui_contract_manifest(
         manifest["terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint"] = (
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprint()
         )
+        manifest["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints"] = shell_ui_contract[
+            "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints"
+        ]
+        manifest["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"] = shell_ui_contract[
+            "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"
+        ]
     if include_terminal_artifact_cli_fallback_route:
         route_contract = describe_terminal_artifact_cli_fallback_route_contract()
         manifest["terminal_artifact_cli_fallback_route"] = route_contract
