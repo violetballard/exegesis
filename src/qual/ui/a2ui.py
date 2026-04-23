@@ -2504,10 +2504,16 @@ def _build_terminal_artifact_cli_fallback_contract_manifest(
         "terminal_artifact_cli_fallback_target_contract": _snapshot_contract_section(
             terminal_artifact_cli_fallback_target_contract
         ),
+        "terminal_artifact_cli_fallback_target_contract_manifest": _snapshot_contract_section(
+            terminal_artifact_cli_fallback_target_contract
+        ),
         "terminal_artifact_cli_fallback_target_fingerprint": terminal_artifact_cli_fallback_target_contract[
             "contract_fingerprint"
         ],
         "terminal_artifact_cli_fallback_target_contract_fingerprint": terminal_artifact_cli_fallback_target_contract[
+            "contract_fingerprint"
+        ],
+        "terminal_artifact_cli_fallback_target_contract_manifest_fingerprint": terminal_artifact_cli_fallback_target_contract[
             "contract_fingerprint"
         ],
         "terminal_artifact_cli_fallback_target_contract_fingerprints": _snapshot_contract_section(
