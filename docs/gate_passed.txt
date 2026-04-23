@@ -3,21 +3,21 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran against:
 
-* actual current tip `edd5380ab2aafe6dc83c6d4d6b2222b1256f20a2` plus the reviewer-fix packet refresh in the working tree
+* current branch tip `efa8157ddd61614dfca0e65fad974b76d4fca10a`
 
 Gate status:
 
 * `make scope-check` - passed
-* `quality-format.sh --check` - passed
-* `quality-lint.sh` - passed
-* `quality-test.sh` - passed
-* `typecheck-test.sh` - passed
+* `./quality-format.sh --check` - passed
+* `./quality-lint.sh` - passed
+* `./quality-test.sh` - passed
+* `./typecheck-test.sh` - passed
 * `make ci` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: this refreshed handoff claims the truthful cumulative FTS-first retrieval branch scope on the actual current tip while keeping the roadmap mapping tied to Milestone 3 retrieval work, not general engine completion.
+Plan-alignment statement: this metadata-only handoff refresh stays narrowed to the FTS-only excerpt contract and deterministic provenance slice. It does not broaden into basket promotion, workflow actions, or UI work.
 
-This packet refresh no longer describes post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval commits as metadata-only.
-The writable authoritative handoff artifacts for this pass are `THREAD_PACKET.md` and this file.
-The `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirrors could not be refreshed in this worktree because writes to those paths fail with `EPERM`.
-The reviewed implementation range is `d7fd5d200358287fa42a18d39e2b277463b9b69f..edd5380ab2aafe6dc83c6d4d6b2222b1256f20a2`.
+The authoritative handoff packet remains `THREAD_PACKET.md`.
+The reviewed implementation head remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+The reviewed implementation range remains `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+The current branch tip `efa8157ddd61614dfca0e65fad974b76d4fca10a` is a metadata-only packet-refresh commit.
