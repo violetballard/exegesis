@@ -10,4 +10,8 @@ All automated gates ran successfully:
 * `typecheck-test.sh` – passed
 * `make ci` – passed all CI checks
 
-No changes were required to the codebase.
+This reviewer-fix pass is metadata-only for the current submission state.
+The reviewed retrieval/runtime tip remains `0bf3263dbcc96d1b94cb890c27bfd4a2375ba61d`,
+and the authoritative packet in `THREAD_PACKET.md` matches the real post-`adfa8cda` scope.
+Mirror writes to `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`
+are OS-blocked in this worktree with `PermissionError: [Errno 1] Operation not permitted`.
