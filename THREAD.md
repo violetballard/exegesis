@@ -25,4 +25,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Shared-path approval basis:
   - current `scripts/scope-check.sh` still explicitly allows `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`
   - historical branch approval for `tests/unit/test_diff_preview.py` was recorded in `e00623f0be7934383d64df46fdaec99d9f92f13c`, `8a38d7bde29da3ecfb3da905ff78416034b151b7`, and `9e6b2206d7a37fc28b1233569ed2ac473e61f15a`
-- This fixer pass stays metadata-only, limited to `THREAD.md` and `THREAD_PACKET.md`.
+- This fixer pass stays metadata-only, limited to `THREAD.md` and `THREAD_PACKET.md`, and the required gate sequence passed on `2026-04-23`.

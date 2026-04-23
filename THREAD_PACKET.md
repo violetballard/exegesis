@@ -110,24 +110,25 @@
 
 ### Commands Run and Outcomes
 
-- `make scope-check`: `PENDING`
-- `./quality-format.sh --check`: `PENDING`
-- `./quality-lint.sh`: `PENDING`
-- `./quality-test.sh`: `PENDING`
-- `./typecheck-test.sh`: `PENDING`
-- `make ci`: `PENDING`
+- `make scope-check`: `PASS`
+- `./quality-format.sh --check`: `PASS`
+- `./quality-lint.sh`: `PASS`
+- `./quality-test.sh`: `PASS`
+- `./typecheck-test.sh`: `PASS`
+- `make ci`: `PASS`
+- Verification date: `2026-04-23`
 
 ## Ready For Handoff
 
-- Status: pending fresh gate rerun after this metadata-only packet refresh
-- Current fixer pass: metadata-only handoff correction
+- Status: ready for re-review
+- Current fixer pass: metadata-only handoff correction with fresh required gate rerun on `2026-04-23`
 - No implementation files changed in this fixer pass
 
 ### Risks / Blockers
 
 - Risk: `MEDIUM`
 - Remaining risk: the reviewed branch tip includes historical shared `diff_preview` test coverage whose approval trail exists in branch history but is no longer reflected in the current `scripts/scope-check.sh` allowlist.
-- Blockers: none yet; fresh gate rerun pending
+- Blockers: none
 
 ## Required Handoff Fields
 
