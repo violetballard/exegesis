@@ -237,7 +237,10 @@ def describe_a2ui_contract(
     callers can use the same naming as the shell contract itself. That opt-in
     also surfaces the explicit CLI fallback entrypoint aliases from the shell
     contract so engine-side payloads can negotiate the same renderer entrypoint
-    name without depending on shell internals.
+    name without depending on shell internals. The top-level manifest mirrors
+    the shell contract alias set with ``shell_ui_contract_manifest`` and
+    ``shell_ui_contract_manifest_fingerprint`` for consumers that prefer the
+    shell-style manifest naming.
     """
 
     manifest = _snapshot_contract_section(_build_a2ui_contract_manifest(
@@ -2253,6 +2256,8 @@ def _build_a2ui_contract_manifest(
         manifest["shell_ui_contract"] = shell_ui_contract
         manifest["shell_ui_contract_fingerprint"] = shell_ui_contract["contract_fingerprint"]
         manifest["shell_ui_fingerprint"] = shell_ui_contract["contract_fingerprint"]
+        manifest["shell_ui_contract_manifest"] = _snapshot_contract_section(shell_ui_contract)
+        manifest["shell_ui_contract_manifest_fingerprint"] = shell_ui_contract["contract_fingerprint"]
         manifest["shell_ui_contract_fingerprints"] = _snapshot_contract_section(
             shell_ui_contract["contract_fingerprints"]
         )

@@ -1954,6 +1954,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
     def test_a2ui_contract_can_opt_in_to_shell_ui_contract_snapshot(self) -> None:
         default_manifest = describe_a2ui_contract()
+        default_fingerprints = describe_a2ui_contract_fingerprints()
         shell_manifest = describe_shell_ui_contract()
         route_manifest = describe_terminal_artifact_cli_fallback_route_contract()
         manifest = describe_a2ui_contract(include_shell_ui_contract=True)
@@ -1964,7 +1965,9 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
 
         self.assertNotIn("shell_ui_contract", default_manifest)
+        self.assertNotIn("shell_ui_contract_manifest", default_manifest)
         self.assertNotIn("terminal_artifact_cli_fallback_entrypoint", default_manifest)
+        self.assertNotIn("shell_ui_contract_manifest", default_fingerprints)
         self.assertEqual(
             default_manifest["contract_fingerprints_fingerprint"],
             _fingerprint_manifest_section(default_manifest["contract_fingerprints"]),
@@ -1989,6 +1992,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["shell_ui_contract_fingerprints_fingerprint"],
             shell_manifest["contract_fingerprints_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract_manifest"],
+            shell_manifest,
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract_manifest_fingerprint"],
+            shell_manifest["contract_fingerprint"],
         )
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_entrypoint"],
