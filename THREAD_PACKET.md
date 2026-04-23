@@ -2,10 +2,10 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix refresh against the current branch tip`
-- Current submitted tip before this packet refresh commit: `57aa020dcd152d4910e49e66dd6293b3fecb166d`
+- Current submitted tip before this packet refresh commit: `e3ba89260c66e03a0d01f3147943410bfacfb7a9`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet traceability note: this refresh commit is metadata-only. It preserves the reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` while refreshing the handoff packet on the later metadata-only branch tip `57aa020dcd152d4910e49e66dd6293b3fecb166d`.
+- Packet traceability note: this refresh commit is metadata-only. It preserves the reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` while refreshing the handoff packet on the later metadata-only branch tip `e3ba89260c66e03a0d01f3147943410bfacfb7a9`.
 - Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to the canonical FTS-backed retrieval surface and no longer treats PageIndex as a runtime fallback path.
 
 ## Scope Goal
@@ -28,15 +28,15 @@
 
 ### Planned Tasks (max 4)
 
-1. Refresh the handoff packet against the actual metadata-only branch tip `57aa020dcd152d4910e49e66dd6293b3fecb166d`.
+1. Refresh the handoff packet against the actual metadata-only branch tip `e3ba89260c66e03a0d01f3147943410bfacfb7a9`.
 2. Add the explicit canonical demo-path line requested by review and keep the claim scoped to the FTS-only excerpt lookup contract.
 3. Tighten `Scope goal`, `Scope completed`, and related handoff language so this packet claims only what `adfa8cdadd43747ffbcb612e4151e262b13e52ca` proves.
 4. Re-run the required gates and commit the metadata-only reviewer-fix packet refresh.
 
 ### Checkpoint Status
 
-- `plan complete`: the packet targets the actual metadata-only branch tip `57aa020dcd152d4910e49e66dd6293b3fecb166d`, and the reviewer fix is narrowed to the canonical excerpt lookup claim only.
-- `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on `57aa020dcd152d4910e49e66dd6293b3fecb166d`.
+- `plan complete`: the packet targets the actual metadata-only branch tip `e3ba89260c66e03a0d01f3147943410bfacfb7a9`, and the reviewer fix is narrowed to the canonical excerpt lookup claim only.
+- `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on `e3ba89260c66e03a0d01f3147943410bfacfb7a9`.
 - `before risky/shared file edit`: this pass edits packet metadata only.
 - `ready for handoff`: the packet, reviewed range, canonical demo-path line, and gate evidence all point at the same branch tip.
 
@@ -56,13 +56,14 @@
 - `tests/unit/test_unified_retrieval.py`
 - Metadata-only packet-refresh files in this resubmission:
 - `THREAD_PACKET.md`
+- `docs/gate_passed.txt`
 - Stale mirror files not writable in this sandbox:
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
 
 ## Tasks Completed
 
-1. Refreshed the handoff packet against the actual metadata-only branch tip `57aa020dcd152d4910e49e66dd6293b3fecb166d`.
+1. Refreshed the handoff packet against the actual metadata-only branch tip `e3ba89260c66e03a0d01f3147943410bfacfb7a9`.
 2. Added the explicit canonical demo-path line requested by review and kept the claim scoped to the FTS-only excerpt lookup contract.
 3. Tightened the handoff language so this packet claims only the deterministic, auditable excerpt-lookup contract change proved by `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 4. Re-ran the required gates and produced a metadata-only reviewer-fix packet refresh for re-review.
@@ -72,13 +73,14 @@
 - Reviewed implementation files in `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`:
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
-- Metadata-only packet-refresh file in this resubmission:
+- Metadata-only packet-refresh files in this resubmission:
 - `THREAD_PACKET.md`
+- `docs/gate_passed.txt`
 
 ## Commands Run With Results
 
 - Gate rerun date: `2026-04-23`
-- Gate rerun target: `57aa020dcd152d4910e49e66dd6293b3fecb166d`
+- Gate rerun target: `e3ba89260c66e03a0d01f3147943410bfacfb7a9`
 - `make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
@@ -90,7 +92,7 @@
 
 1. The packet now states the canonical demo-path step explicitly using the reviewer-requested `retrieve relevant material` wording.
 2. The scope statement stays narrow to the FTS-only excerpt lookup contract and its deterministic downstream provenance behavior.
-3. The authoritative writable handoff artifact has been regenerated on the actual branch tip for re-review.
+3. The authoritative writable handoff artifacts have been regenerated on the actual branch tip for re-review.
 
 ## Risks / Blockers
 
