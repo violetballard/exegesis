@@ -39,8 +39,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - scope framing: this is narrow CLI compatibility support for the current engine-first MVP loop, not generic command-catalog hardening or broader workflow progress
 - Reviewer fix closure:
   - the handoff now explicitly states which canonical demo-path steps this work advances and keeps that claim narrow to deterministic CLI compatibility support for the existing Milestone 3 loop.
-  - `2026-04-23T20:23:06Z` fixer verification rerun confirmed the packet still keeps `Vision capability affected` narrowed to CLI compatibility / canonical engine contract scope on the current branch tip.
-  - ready for handoff on `2026-04-23T20:23:06Z`: the current branch tip keeps the step 2 retrieval CLI route and the immediate step 3 preview/apply-or-reject CLI route deterministic, smoke-testable, and operator-visible, and the recorded verification rerun passed on that same tip.
+  - `2026-04-23T20:26:28Z` fixer verification rerun confirmed the packet still keeps `Vision capability affected` narrowed to CLI compatibility / canonical engine contract scope on the current branch tip.
+  - ready for handoff on `2026-04-23T20:26:28Z`: the current branch tip keeps the step 2 retrieval CLI route and the immediate step 3 preview/apply-or-reject CLI route deterministic, smoke-testable, and operator-visible, and the recorded verification rerun passed on that same tip.
 - Canonical demo-path steps advanced:
   - primary: `retrieve relevant material`, via the CLI-side `open project/document` and retrieval entrypoints that must keep their canonical routing in the engine-first MVP loop
   - dependent: `preview and apply or reject a patch`, via the CLI `diff-preview` entrypoint that must retain operator-visible no-diff review context
@@ -72,5 +72,5 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
     - `tests/unit/test_terminal_chat_routing.py`: `b5d97889`
     - `tests/unit/test_unified_retrieval.py`: `2e8c75f6`
 - Current packet verification rerun:
-  - `make scope-check`, `SCOPE_WINDOW=full make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on the current branch tip on `2026-04-23T20:23:06Z`.
+  - `make scope-check`, `SCOPE_WINDOW=full make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on the current branch tip on `2026-04-23T20:26:28Z`.
 - This fixer pass is verification-only metadata and limited to `THREAD.md` and `THREAD_PACKET.md`.

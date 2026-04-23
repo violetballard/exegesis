@@ -36,7 +36,7 @@
 ### Checkpoint Cadence (Short Updates)
 
 - Plan complete: switch the packet from a false cherry-picked review basis to the actual branch-tip diff.
-- First green tests: recorded after the required gate rerun on `2026-04-23T20:23:06Z`.
+- First green tests: recorded after the required gate rerun on `2026-04-23T20:26:28Z`.
 - Before risky/shared file edit: this fixer only edits `THREAD.md` and `THREAD_PACKET.md`.
 - Ready for handoff: the packet now matches the real implementation scope, concrete MVP step mapping, and the live gate rerun on the current branch tip.
 
@@ -98,9 +98,9 @@
 
 - Reviewer-required fix satisfied:
   - this packet now states explicitly that the branch makes canonical demo-path step 2 `retrieve relevant material` more real directly and step 3 `preview and apply or reject a patch` more real as the immediate follow-on review step, while keeping the claim narrow to deterministic CLI compatibility support for the existing Milestone 3 loop.
-  - `2026-04-23T20:23:06Z` fixer verification rerun confirmed the reviewer-requested `Vision capability affected` narrowing is still present on the current branch tip and remains limited to CLI compatibility / canonical engine contract scope.
+  - `2026-04-23T20:26:28Z` fixer verification rerun confirmed the reviewer-requested `Vision capability affected` narrowing is still present on the current branch tip and remains limited to CLI compatibility / canonical engine contract scope.
 - Ready-for-handoff checkpoint:
-  - ready for handoff on `2026-04-23T20:23:06Z`: the current branch tip keeps the step 2 retrieval CLI route and the immediate step 3 preview/apply-or-reject CLI route deterministic, smoke-testable, and operator-visible, and the verification rerun recorded below passed on that same tip.
+  - ready for handoff on `2026-04-23T20:26:28Z`: the current branch tip keeps the step 2 retrieval CLI route and the immediate step 3 preview/apply-or-reject CLI route deterministic, smoke-testable, and operator-visible, and the verification rerun recorded below passed on that same tip.
 - Scope-tightening preserved:
   - this handoff does not claim broader engine workflow progress, new step 1 coverage, or any UI-lane advancement.
   - this contract hardening is a direct Milestone 3 CLI-compatibility safeguard for the engine-first MVP loop, not second-order command cleanup.
@@ -196,7 +196,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Verification date: `2026-04-23T20:23:06Z`
+- Verification date: `2026-04-23T20:26:28Z`
 - Verification basis: rerun on the current branch tip after the verification-only metadata refresh recorded by this packet pass
   - `make scope-check` passes under the branch's default `recent` scope window
   - `SCOPE_WINDOW=full make scope-check` passes against the truthful merge-base-to-tip branch delta used for this handoff
