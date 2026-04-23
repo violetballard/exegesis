@@ -28,12 +28,11 @@ class PacketPlannerTests(unittest.TestCase):
 
     def test_build_packet_includes_completed_scope_and_cumulative_context(self) -> None:
         meta = {
-            "scope_goal": "Complete the FTS-first retrieval MVP review packet.",
+            "scope_goal": "Make canonical excerpt lookup fail closed to FTS-only IDs for the Milestone 3 retrieval path.",
             "scope_completed": (
-                "Shipped the cumulative 1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac retrieval thread: SQLite FTS stayed authoritative, "
-                "the canonical retrieval query constructor was exported through both retrieval facades, and the "
-                "retrieval payload/provenance helpers stayed deterministic while payloads were reconstructed from "
-                "source bundles."
+                "Tightened the cumulative 1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac retrieval slice so "
+                "canonical excerpt lookup stays on SQLite FTS, PageIndex-only excerpt IDs fail closed, and "
+                "query-constraint provenance stays deterministic while payloads are reconstructed from source bundles."
             ),
             "reviewed_implementation_range": "1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac",
             "tasks_completed": [
@@ -70,14 +69,14 @@ class PacketPlannerTests(unittest.TestCase):
         self.assertIn("## Scope completed", packet)
         self.assertIn("- Reviewed implementation range: `1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`", packet)
         self.assertIn("## Files changed (cumulative range)", packet)
-        self.assertIn("Shipped the cumulative 1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac retrieval thread", packet)
+        self.assertIn("Tightened the cumulative 1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac retrieval slice", packet)
         self.assertIn("### Canonical demo-path step advanced", packet)
         self.assertIn("- retrieve relevant material", packet)
         self.assertIn("authoritative SQLite FTS path", packet)
 
     def test_build_packet_uses_lane_default_demo_path_when_metadata_is_stale(self) -> None:
         meta = {
-            "scope_goal": "Complete the FTS-first retrieval MVP review packet.",
+            "scope_goal": "Make canonical excerpt lookup fail closed to FTS-only IDs for the Milestone 3 retrieval path.",
             "tasks_completed": ["Kept SQLite FTS authoritative."],
             "risk": "LOW",
             "roadmap_items": ["ROADMAP.md: Milestone 3: Real workflow loop"],
