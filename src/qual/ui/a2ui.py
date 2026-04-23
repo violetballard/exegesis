@@ -15,6 +15,7 @@ A2UI_CONTRACT_VERSION = 2
 A2UI_ACTION_SCHEMA_VERSION = 1
 A2UI_CAPABILITIES_SCHEMA_VERSION = 1
 SELECTION_SCHEMA_VERSION = 1
+A2UI_LEAF_CONTRACTS_SCHEMA_VERSION = 1
 CARD_CONTRACT_VERSION = 1
 TERMINAL_FALLBACK_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_SCHEMA_VERSION = 1
@@ -809,6 +810,21 @@ def describe_card_contract() -> dict[str, Any]:
     fingerprint = card_contract_fingerprint()
     manifest["card_fingerprint"] = fingerprint
     manifest["card_contract_fingerprint"] = fingerprint
+    manifest["contract_fingerprint"] = fingerprint
+    return manifest
+
+
+def describe_a2ui_leaf_contracts() -> dict[str, Any]:
+    """Return the stable shared ActionRef and SelectionRef contract bundle."""
+
+    manifest = _snapshot_contract_section(_build_a2ui_leaf_contracts_manifest())
+    fingerprint = a2ui_leaf_contracts_fingerprint()
+    manifest["action_fingerprint"] = manifest["action"]["contract_fingerprint"]
+    manifest["action_contract_fingerprint"] = manifest["action_fingerprint"]
+    manifest["selection_fingerprint"] = manifest["selection"]["contract_fingerprint"]
+    manifest["selection_contract_fingerprint"] = manifest["selection_fingerprint"]
+    manifest["leaf_contracts_fingerprint"] = fingerprint
+    manifest["leaf_contracts_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     return manifest
 
@@ -3031,6 +3047,34 @@ def _build_a2ui_schema_manifest(
     }
 
 
+def _build_a2ui_leaf_contracts_manifest() -> dict[str, Any]:
+    action_contract = describe_action_contract()
+    selection_contract = describe_selection_contract()
+    contract_fingerprints = {
+        "action": action_contract["contract_fingerprint"],
+        "selection": selection_contract["contract_fingerprint"],
+    }
+    return {
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "schema_version": A2UI_LEAF_CONTRACTS_SCHEMA_VERSION,
+        "leaf_contracts_schema_version": A2UI_LEAF_CONTRACTS_SCHEMA_VERSION,
+        "leaf_contracts_version": A2UI_LEAF_CONTRACTS_SCHEMA_VERSION,
+        "type": "A2UILeafContracts",
+        "leaf_contracts": {
+            "action": _snapshot_contract_section(action_contract),
+            "selection": _snapshot_contract_section(selection_contract),
+        },
+        "action": _snapshot_contract_section(action_contract),
+        "selection": _snapshot_contract_section(selection_contract),
+        "action_contract": _snapshot_contract_section(action_contract),
+        "selection_contract": _snapshot_contract_section(selection_contract),
+        "contract_fingerprints": contract_fingerprints,
+        "contract_fingerprints_fingerprint": _fingerprint_manifest_section(contract_fingerprints),
+        "contract_fingerprints_contract": _snapshot_contract_section(contract_fingerprints),
+    }
+
+
 def _build_a2ui_capabilities_field_contracts() -> list[dict[str, Any]]:
     return [
         {
@@ -3123,6 +3167,13 @@ def card_contract_fingerprint() -> str:
     """Return a stable fingerprint for the card contract manifest."""
 
     manifest = _build_card_contract_manifest()
+    return _fingerprint_manifest_section(manifest)
+
+
+def a2ui_leaf_contracts_fingerprint() -> str:
+    """Return a stable fingerprint for the shared ActionRef and SelectionRef bundle."""
+
+    manifest = _build_a2ui_leaf_contracts_manifest()
     return _fingerprint_manifest_section(manifest)
 
 

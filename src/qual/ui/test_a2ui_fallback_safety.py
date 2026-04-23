@@ -10,6 +10,7 @@ import src.qual.ui as public_ui
 from src.qual.ui.a2ui import (
     A2UI_ACTION_SCHEMA_VERSION,
     A2UI_CAPABILITIES_SCHEMA_VERSION,
+    A2UI_LEAF_CONTRACTS_SCHEMA_VERSION,
     A2UICapabilities,
     A2UISessionStore,
     ALLOWED_ACTION_IDS,
@@ -24,11 +25,13 @@ from src.qual.ui.a2ui import (
     action_contract_fingerprint,
     a2ui_capabilities_contract_fingerprint,
     a2ui_contract_fingerprint,
+    a2ui_leaf_contracts_fingerprint,
     build_unknown_card,
     describe_a2ui_contract,
     describe_a2ui_contract_fingerprints,
     describe_a2ui_dispatch_contract_fingerprints,
     describe_a2ui_capabilities_contract,
+    describe_a2ui_leaf_contracts,
     describe_action_contract,
     describe_card_contract,
     describe_selection_contract,
@@ -239,7 +242,13 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             public_ui.TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_SCHEMA_VERSION,
             TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_SCHEMA_VERSION,
         )
+        self.assertEqual(
+            public_ui.A2UI_LEAF_CONTRACTS_SCHEMA_VERSION,
+            A2UI_LEAF_CONTRACTS_SCHEMA_VERSION,
+        )
         self.assertEqual(public_ui.SHELL_UI_CONTRACT_VERSION, SHELL_UI_CONTRACT_VERSION)
+        self.assertIs(public_ui.describe_a2ui_leaf_contracts, describe_a2ui_leaf_contracts)
+        self.assertIs(public_ui.a2ui_leaf_contracts_fingerprint, a2ui_leaf_contracts_fingerprint)
         self.assertIs(public_ui.describe_shell_ui_contract, describe_shell_ui_contract)
         self.assertIs(public_ui.shell_ui_contract_fingerprint, shell_ui_contract_fingerprint)
 
@@ -255,6 +264,33 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["schema_version"], SELECTION_SCHEMA_VERSION)
         self.assertEqual(manifest["selection_schema_version"], SELECTION_SCHEMA_VERSION)
         self.assertEqual(manifest["selection_version"], SELECTION_SCHEMA_VERSION)
+
+    def test_a2ui_leaf_contract_manifest_bundles_action_and_selection_contracts(self) -> None:
+        manifest = describe_a2ui_leaf_contracts()
+
+        self.assertEqual(manifest["contract_version"], 2)
+        self.assertEqual(manifest["a2ui_version"], 1)
+        self.assertEqual(manifest["schema_version"], A2UI_LEAF_CONTRACTS_SCHEMA_VERSION)
+        self.assertEqual(manifest["leaf_contracts_schema_version"], A2UI_LEAF_CONTRACTS_SCHEMA_VERSION)
+        self.assertEqual(manifest["leaf_contracts_version"], A2UI_LEAF_CONTRACTS_SCHEMA_VERSION)
+        self.assertEqual(manifest["type"], "A2UILeafContracts")
+        self.assertEqual(manifest["action"], describe_action_contract())
+        self.assertEqual(manifest["selection"], describe_selection_contract())
+        self.assertEqual(manifest["action_contract"], describe_action_contract())
+        self.assertEqual(manifest["selection_contract"], describe_selection_contract())
+        self.assertEqual(manifest["action_fingerprint"], action_contract_fingerprint())
+        self.assertEqual(manifest["selection_fingerprint"], selection_contract_fingerprint())
+        self.assertEqual(manifest["contract_fingerprints"]["action"], action_contract_fingerprint())
+        self.assertEqual(manifest["contract_fingerprints"]["selection"], selection_contract_fingerprint())
+        self.assertEqual(
+            manifest["contract_fingerprints_fingerprint"],
+            _fingerprint_manifest_section(manifest["contract_fingerprints"]),
+        )
+        self.assertEqual(manifest["contract_fingerprints_contract"], manifest["contract_fingerprints"])
+        self.assertEqual(manifest["contract_fingerprint"], a2ui_leaf_contracts_fingerprint())
+        self.assertEqual(manifest["leaf_contracts_fingerprint"], a2ui_leaf_contracts_fingerprint())
+        self.assertEqual(manifest["leaf_contracts_contract_fingerprint"], a2ui_leaf_contracts_fingerprint())
+        self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
     def test_standalone_contract_manifests_expose_contract_fingerprint_aliases(self) -> None:
         cases = [
