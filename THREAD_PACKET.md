@@ -1,11 +1,11 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `reviewer-fix packet regeneration against the actual branch tip`
-- Current submitted tip before this packet refresh commit: `ced0bcaf3d5446d549b04d1bc24593eda8850266`
+- Packet role: `metadata-only reviewer-fix packet finalization against the actual branch tip`
+- Current submitted implementation head before this packet refresh commit: `ced0bcaf3d5446d549b04d1bc24593eda8850266`
 - Reviewed implementation head: `ced0bcaf3d5446d549b04d1bc24593eda8850266`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..ced0bcaf3d5446d549b04d1bc24593eda8850266`
-- Packet traceability note: the previous packet falsely anchored review at `adfa8cdadd43747ffbcb612e4151e262b13e52ca` even though later commits changed `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, and retrieval code in `src/qual/retrieval/service.py`. This packet treats the full code-bearing cumulative range through `ced0bcaf3d5446d549b04d1bc24593eda8850266` as the reviewed implementation.
+- Packet traceability note: the previous packet falsely anchored review at `adfa8cdadd43747ffbcb612e4151e262b13e52ca` even though later commits changed `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, and retrieval code in `src/qual/retrieval/service.py`. This packet treats the full code-bearing cumulative range through `ced0bcaf3d5446d549b04d1bc24593eda8850266` as the reviewed implementation, and this commit changes only handoff metadata.
 
 ## Scope goal
 
@@ -110,19 +110,19 @@
 
 - Gate rerun date: `2026-04-23`
 - Gate rerun target: `ced0bcaf3d5446d549b04d1bc24593eda8850266`
-- `make scope-check`: `PENDING`
-- `./quality-format.sh --check`: `PENDING`
-- `./quality-lint.sh`: `PENDING`
-- `./quality-test.sh`: `PENDING`
-- `./typecheck-test.sh`: `PENDING`
-- `make ci`: `PENDING`
+- `make scope-check`: `PASS`
+- `./quality-format.sh --check`: `PASS`
+- `./quality-lint.sh`: `PASS`
+- `./quality-test.sh`: `PASS` (`200` tests, `OK`)
+- `./typecheck-test.sh`: `PASS`
+- `make ci`: `PASS`
 
 ## Reviewer fix closure
 
 1. The packet is regenerated so the reviewed implementation range reaches the actual code-bearing branch tip `ced0bcaf3d5446d549b04d1bc24593eda8850266`.
 2. `Reviewed implementation range`, `Scope completed`, `Files changed`, and budget or size statements now cover the true cumulative reviewed implementation instead of the older narrowed historical slice.
 3. The canonical demo-path step advanced is stated directly as `retrieve relevant material` and is tied both to the FTS-first retrieval behavior and to the packet-generator fallback that now preserves that mapping.
-4. The gate evidence section is commit-scoped to the real reviewed implementation head `ced0bcaf3d5446d549b04d1bc24593eda8850266`.
+4. The gate evidence section is commit-scoped to the real reviewed implementation head `ced0bcaf3d5446d549b04d1bc24593eda8850266`, and all required gates passed on that SHA.
 
 ## Risks / blockers
 
