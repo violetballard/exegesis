@@ -42,6 +42,11 @@ class PacketPlannerTests(unittest.TestCase):
             ],
             "risk": "LOW",
             "roadmap_items": ["ROADMAP.md: Milestone 3: Real workflow loop"],
+            "canonical_demo_path_step": "retrieve relevant material",
+            "canonical_demo_path_impact": (
+                "This change keeps excerpt lookup on the authoritative SQLite FTS path "
+                "so downstream basket/workflow use stays deterministic and auditable."
+            ),
             "vision_capabilities": ["2. Retrieval-first context handling"],
             "routing_provider_impact": "None",
             "shared_file_exception": False,
@@ -66,6 +71,33 @@ class PacketPlannerTests(unittest.TestCase):
         self.assertIn("- Reviewed implementation range: `1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`", packet)
         self.assertIn("## Files changed (cumulative range)", packet)
         self.assertIn("Shipped the cumulative 1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac retrieval thread", packet)
+        self.assertIn("### Canonical demo-path step advanced", packet)
+        self.assertIn("- retrieve relevant material", packet)
+        self.assertIn("authoritative SQLite FTS path", packet)
+
+    def test_build_packet_uses_lane_default_demo_path_when_metadata_is_stale(self) -> None:
+        meta = {
+            "scope_goal": "Complete the FTS-first retrieval MVP review packet.",
+            "tasks_completed": ["Kept SQLite FTS authoritative."],
+            "risk": "LOW",
+            "roadmap_items": ["ROADMAP.md: Milestone 3: Real workflow loop"],
+            "vision_capabilities": ["2. Retrieval-first context handling"],
+            "routing_provider_impact": "None",
+            "shared_file_exception": False,
+        }
+
+        packet = build_packet(
+            lane="feat-retrieval-fts",
+            branch="codex/feat-retrieval-fts",
+            sha="42820d4864f8b5137a6a9e05399ad68fe5b9d4ac",
+            meta=meta,
+            files=["src/qual/retrieval/service.py"],
+            gate_results=[("./quality-test.sh", 0)],
+        )
+
+        self.assertIn("### Canonical demo-path step advanced", packet)
+        self.assertIn("- retrieve relevant material", packet)
+        self.assertIn("fails closed for PageIndex-only IDs", packet)
 
 
 if __name__ == "__main__":

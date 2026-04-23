@@ -19,6 +19,17 @@ REQUIRED_GATES_DEFAULT = [
     "make ci",
 ]
 
+LANE_CANONICAL_DEMO_PATH = {
+    "feat-retrieval-fts": {
+        "step": "retrieve relevant material",
+        "impact": (
+            "This handoff advances `retrieve relevant material` by ensuring excerpt lookup "
+            "resolves only through the authoritative SQLite FTS path and fails closed for "
+            "PageIndex-only IDs, keeping downstream basket/workflow use deterministic and auditable."
+        ),
+    },
+}
+
 LANE_OWNED_PATHS = {
     "feat-commands": ["src/qual/commands/**"],
     "feat-context-storage": ["src/qual/context/**", "src/qual/storage/**"],
@@ -123,6 +134,17 @@ def apply_meta_defaults(meta: Json, missing: List[str]) -> Json:
         out["routing_provider_impact"] = "None"
     return out
 
+
+def canonical_demo_path_fields(lane: str, meta: Json) -> Tuple[str, str]:
+    step = str(meta.get("canonical_demo_path_step", "")).strip()
+    impact = str(meta.get("canonical_demo_path_impact", "")).strip()
+    lane_defaults = LANE_CANONICAL_DEMO_PATH.get(lane, {})
+    if not step:
+        step = str(lane_defaults.get("step", "")).strip()
+    if not impact:
+        impact = str(lane_defaults.get("impact", "")).strip()
+    return step, impact
+
 def resolve_reviewed_head_sha(meta: Json, fallback_sha: str) -> str:
     final_head_sha = str(meta.get("final_head_sha", "")).strip()
     if final_head_sha:
@@ -142,6 +164,7 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
     reviewed_range = str(meta.get("reviewed_implementation_range", "")).strip()
     scope_completed = str(meta.get("scope_completed", "")).strip()
+    canonical_demo_path_step, canonical_demo_path_impact = canonical_demo_path_fields(lane, meta)
     is_cumulative = bool(reviewed_range or scope_completed)
     lines=[]
     lines += ["# Feature → Review Packet",""]
@@ -166,6 +189,9 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
         lines.append(f"- `{cmd}`: {rcstr(rc)}")
     lines += ["","## Risks / blockers", f"- Risk: `{str(meta.get('risk','LOW')).strip()}`","- Blockers: none",""]
     lines += ["## Required handoff fields","### Roadmap item(s) affected"] + [f"- {x}" for x in (meta.get("roadmap_items") or [])]
+    lines += ["### Canonical demo-path step advanced", f"- {canonical_demo_path_step or '(missing)'}"]
+    if canonical_demo_path_impact:
+        lines.append(f"- {canonical_demo_path_impact}")
     lines += ["### Vision capability affected"] + [f"- {x}" for x in (meta.get("vision_capabilities") or [])]
     lines += ["### Routing/provider impact note", f"- {str(meta.get('routing_provider_impact','None')).strip()}", ""]
     prp=str(meta.get("proposed_readme_patch","")).strip()
