@@ -121,11 +121,12 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 - Verification date: `2026-04-23`
+- Verification basis: rerun from clean branch `HEAD` `233a0c1c8bb848cc904d8831d13740e0589ef6e5` before this metadata-only refresh commit
 
 ## Ready For Handoff
 
 - Status: ready for re-review
-- Current fixer pass: metadata-only handoff correction with fresh required gate rerun on `2026-04-23`
+- Current fixer pass: metadata-only handoff correction with a second clean-HEAD gate rerun on `2026-04-23`
 - No implementation files changed in this fixer pass
 
 ### Risks / Blockers
