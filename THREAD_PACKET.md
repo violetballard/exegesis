@@ -213,6 +213,7 @@
 - Primary step advanced directly: step 2 `retrieve relevant material`
 - Immediate dependent follow-on step hardened: step 3 `preview and apply or reject a patch`
 - Scope note: this slice preserves the existing CLI `open project/document` entrypoint into retrieval but does not claim new step 1 workflow coverage
+- Milestone 3 exit-criterion tie: this handoff strengthens the requirement that `CLI can still execute the MVP loop while Textual remains disabled` by keeping the step 2 retrieval command path and the immediate step 3 preview/apply-or-reject command path deterministic, smoke-testable, and operator-visible.
 
 ### Roadmap item(s) affected
 

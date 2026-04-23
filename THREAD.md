@@ -35,6 +35,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Plan alignment:
   - canonical demo-path steps advanced: primary step 2 `retrieve relevant material`; dependent step 3 `preview and apply or reject a patch`; no new step 1 workflow coverage is claimed beyond preserving the CLI `open project/document` entrypoint into retrieval
   - concrete blocker removed: parser/catalog drift can no longer silently change the retrieval or preview CLI operator contract, which removes a deterministic smoke-coverage blocker for the current engine-first MVP loop while Textual remains disabled
+  - explicit Milestone 3 tie: this keeps the exit criterion `CLI can still execute the MVP loop while Textual remains disabled` concrete by preserving a deterministic, smoke-testable, operator-visible command path for step 2 retrieval and the immediate step 3 preview/apply-or-reject follow-on
   - scope framing: this is narrow CLI compatibility support for the current engine-first MVP loop, not generic command-catalog hardening or broader workflow progress
 - Reviewer fix closure:
   - the handoff now explicitly states which canonical demo-path steps this work advances and keeps that claim narrow to deterministic CLI compatibility support for the existing Milestone 3 loop.
