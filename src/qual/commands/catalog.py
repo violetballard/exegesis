@@ -3039,7 +3039,7 @@ def _resolve_demo_loop_token(
             raw_argv=(candidate,),
         )
         if resolved.matched:
-            return resolved
+            return _align_demo_flow_step(resolved, token)
     raise ValueError(f"Command demo loop token is unresolved: {token}")
 
 
