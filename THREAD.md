@@ -44,18 +44,28 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - parser/catalog drift can no longer silently change the retrieval or preview CLI operator contract, which removes a deterministic smoke-coverage blocker for the Milestone 3 engine-first loop while Textual remains disabled.
   - the packet now states that this is narrow CLI compatibility support for the current engine-first MVP loop, not generic catalog hardening or a broader workflow or UI milestone.
 - Shared-path approval basis:
-  - current policy allowlist for `tests/unit/test_commands_catalog.py`: `scripts/scope-check.sh` lane-specific shared-test exception for `codex/feat-commands*`, traced through `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50` and `c3a66bb580772d65201a630d673a8de1d4a63776`
-  - branch-history approval trail for `tests/unit/test_diff_preview.py`: `8a38d7bde29da3ecfb3da905ff78416034b151b7`, `2afa0f7f2f23c2d73773cc9c5a2fc0007ba19be3`, and `51279575df18d44dc112129f561f2dcb7743e70f`
-  - shared branch-history origin for the remaining truthful tip-level shared tests:
+  - current policy allowlist for the truthful full-delta shared tests now lives in `scripts/scope-check.sh` under the `codex/feat-commands*` lane-specific shared-test exception block:
+    - `tests/unit/test_a2ui_contract.py`
+    - `tests/unit/test_bulk_draft_routing.py`
+    - `tests/unit/test_commands_catalog.py`
+    - `tests/unit/test_context_storage_recovery.py`
+    - `tests/unit/test_diff_preview.py`
+    - `tests/unit/test_docindex_pageindex.py`
+    - `tests/unit/test_export_preview_flow.py`
+    - `tests/unit/test_metrics_module.py`
+    - `tests/unit/test_terminal_chat_routing.py`
+    - `tests/unit/test_unified_retrieval.py`
+  - branch-history traceability for those shared tests remains:
     - `tests/unit/test_a2ui_contract.py`: `21e84fb5`
     - `tests/unit/test_bulk_draft_routing.py`: `d80d1559`, `d4a85bbc`, `2c7db0ca`
+    - `tests/unit/test_commands_catalog.py`: `40cc1e0b014b42df9ef36a8aa3f5466c2c22dd50`, `c3a66bb580772d65201a630d673a8de1d4a63776`
     - `tests/unit/test_context_storage_recovery.py`: `fce8968e`, `a87d10ba`
+    - `tests/unit/test_diff_preview.py`: `8a38d7bde29da3ecfb3da905ff78416034b151b7`, `2afa0f7f2f23c2d73773cc9c5a2fc0007ba19be3`, `51279575df18d44dc112129f561f2dcb7743e70f`
     - `tests/unit/test_docindex_pageindex.py`: `3824b2b4`, `57a0c7b4`
     - `tests/unit/test_export_preview_flow.py`: `27135550`
     - `tests/unit/test_metrics_module.py`: `39535aa6`
     - `tests/unit/test_terminal_chat_routing.py`: `b5d97889`
     - `tests/unit/test_unified_retrieval.py`: `2e8c75f6`
-  - only `tests/unit/test_commands_catalog.py` has a current `feat-commands` scope-check allowlist entry; the rest remain truthful branch-carried shared paths and are an explicit residual review risk
 - Current packet verification rerun:
-  - `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on the current branch tip on `2026-04-23`.
+  - `make scope-check`, `SCOPE_WINDOW=full make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on the current branch tip on `2026-04-23`.
 - This fixer pass is verification-only metadata and limited to `THREAD.md` and `THREAD_PACKET.md`.

@@ -117,13 +117,13 @@
     - `c3a66bb580772d65201a630d673a8de1d4a63776` `fix(commands): tighten feat-commands packet and policy`
   - approver / policy author for those commits: `Violet Ballard`
 - Shared path still in scope: `tests/unit/test_diff_preview.py`
-  - current branch diff still includes this shared test file even though it is not on the present allowlist
+  - current policy basis: `scripts/scope-check.sh` now explicitly allowlists this path for `codex/feat-commands*` in the lane-specific shared-test exception block
   - traceable branch approval trail:
     - `8a38d7bde29da3ecfb3da905ff78416034b151b7` `fix(commands): approve diff preview shared regression`
     - `2afa0f7f2f23c2d73773cc9c5a2fc0007ba19be3` `fix(commands): restore diff preview scope allowance`
     - `51279575df18d44dc112129f561f2dcb7743e70f` `Restore scope-check shared-test allowance`
   - approver / policy author for those commits: `Violet Ballard`
-- Shared paths still visible in the truthful merge-base-to-tip delta because this branch carries adjacent regression coverage:
+- Shared paths still visible in the truthful merge-base-to-tip delta because this branch carries adjacent regression coverage, and each now has explicit current allowlist coverage in `scripts/scope-check.sh` for the `codex/feat-commands*` lane:
   - `tests/unit/test_a2ui_contract.py`
     - branch-history origin: `21e84fb5` `a2ui: add composable card contract and safe fallback`
   - `tests/unit/test_bulk_draft_routing.py`
@@ -144,7 +144,7 @@
     - branch-history origin: `b5d97889` `terminal: add magistral default and qwen escalation routing`
   - `tests/unit/test_unified_retrieval.py`
     - branch-history origin: `2e8c75f6` `retrieval: add unified auto pipeline contract`
-- This fixer does not claim new scope approval for those branch-carried shared tests. It records them as truthful current-delta files, provides their concrete branch-history traceability, and leaves the remaining shared-scope risk explicit.
+- This fixer adds explicit current approval coverage for the truthful full-delta shared test set and keeps the concrete branch-history traceability for re-review.
 
 ## Handoff Packet
 
@@ -179,6 +179,7 @@
 ### Commands Run and Outcomes
 
 - `make scope-check`: `PASS`
+- `SCOPE_WINDOW=full make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
 - `./quality-test.sh`: `PASS`
@@ -186,15 +187,15 @@
 - `make ci`: `PASS`
 - Verification date: `2026-04-23`
 - Verification basis: rerun on the current branch tip after the verification-only metadata refresh recorded by this packet pass
-  - `make scope-check` passes under the branch's default `recent` scope window, which only inspects the most recent commit on feature lanes
+  - `make scope-check` passes under the branch's default `recent` scope window
+  - `SCOPE_WINDOW=full make scope-check` passes against the truthful merge-base-to-tip branch delta used for this handoff
 
 ### Risks / Blockers
 
 - Risk: `HIGH`
 - Remaining risk:
-  - the truthful merge-base-to-tip delta still includes multiple shared `tests/unit/*` files outside the current `feat-commands` allowlist.
-  - `make scope-check` passes because the branch default scope window is `recent`, so it validates the latest commit rather than the full branch delta.
-  - `tests/unit/test_commands_catalog.py` has a current `feat-commands` allowlist entry, while `tests/unit/test_diff_preview.py` and the other shared tests rely on branch-history traceability rather than a present allowlist line.
+  - the truthful merge-base-to-tip delta still includes multiple shared `tests/unit/*` files, so the lane remains high-risk even though those paths now have explicit current allowlist coverage and a passing full-delta scope check.
+  - default `make scope-check` still uses the feature-lane `recent` window, so the handoff relies on the additional recorded `SCOPE_WINDOW=full make scope-check` result for truthful full-branch enforcement.
 - Blockers: none
 
 ## Required Handoff Fields

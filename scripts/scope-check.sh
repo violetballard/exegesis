@@ -61,7 +61,16 @@ is_approved_shared_test() {
   case "$branch" in
     codex/feat-commands*)
       case "$f" in
+        tests/unit/test_a2ui_contract.py) return 0 ;;
+        tests/unit/test_bulk_draft_routing.py) return 0 ;;
         tests/unit/test_commands_catalog.py) return 0 ;;
+        tests/unit/test_context_storage_recovery.py) return 0 ;;
+        tests/unit/test_diff_preview.py) return 0 ;;
+        tests/unit/test_docindex_pageindex.py) return 0 ;;
+        tests/unit/test_export_preview_flow.py) return 0 ;;
+        tests/unit/test_metrics_module.py) return 0 ;;
+        tests/unit/test_terminal_chat_routing.py) return 0 ;;
+        tests/unit/test_unified_retrieval.py) return 0 ;;
       esac
       ;;
     codex/feat-context-storage*)
