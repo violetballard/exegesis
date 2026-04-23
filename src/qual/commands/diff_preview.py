@@ -207,12 +207,66 @@ def _diff_fingerprint(diff: str) -> dict[str, object]:
     }
 
 
-def _no_diff_payload(message: str, *, summary_only: bool) -> dict[str, object]:
+def _labels_payload(*, applied: bool, original_label: str, proposed_label: str) -> dict[str, object]:
+    return {
+        "applied": applied,
+        "original": original_label,
+        "proposed": proposed_label,
+    }
+
+
+def _options_payload(
+    *,
+    ignore_trailing_whitespace: bool,
+    suppress_file_headers: bool,
+    include_summary: bool,
+    include_options_banner: bool,
+    max_chars: int,
+) -> dict[str, object]:
+    return {
+        "canonicalize_inline_whitespace": _env_enabled(CANONICALIZE_INLINE_WHITESPACE_ENV),
+        "ignore_all_blank_lines": _env_enabled(IGNORE_ALL_BLANK_LINES_ENV),
+        "ignore_case": _env_enabled(IGNORE_CASE_ENV),
+        "ignore_edge_blank_lines": _env_enabled(IGNORE_EDGE_BLANK_LINES_ENV),
+        "ignore_trailing_whitespace": ignore_trailing_whitespace,
+        "include_options_banner": include_options_banner,
+        "include_summary": include_summary,
+        "max_output_chars": max_chars,
+        "strip_ansi": _env_enabled(STRIP_ANSI_ENV),
+        "suppress_file_headers": suppress_file_headers,
+        "truncation_strategy": _truncation_strategy(),
+    }
+
+
+def _no_diff_payload(
+    message: str,
+    *,
+    summary_only: bool,
+    original_label: str,
+    proposed_label: str,
+    ignore_trailing_whitespace: bool,
+    suppress_file_headers: bool,
+    include_summary: bool,
+    include_options_banner: bool,
+    max_chars: int,
+) -> dict[str, object]:
     return {
         "command": COMMAND_NAME,
         "diff": "",
         "fingerprint": None,
+        "labels": _labels_payload(
+            applied=False,
+            original_label=original_label,
+            proposed_label=proposed_label,
+        ),
         "message": message,
+        "options": _options_payload(
+            ignore_trailing_whitespace=ignore_trailing_whitespace,
+            suppress_file_headers=suppress_file_headers,
+            include_summary=include_summary,
+            include_options_banner=include_options_banner,
+            max_chars=max_chars,
+        ),
         "status": "no_diff",
         "summary": None,
         "summary_only": summary_only,
@@ -220,9 +274,32 @@ def _no_diff_payload(message: str, *, summary_only: bool) -> dict[str, object]:
     }
 
 
-def _no_diff_result(message: str, *, summary_only: bool) -> str:
+def _no_diff_result(
+    message: str,
+    *,
+    summary_only: bool,
+    original_label: str,
+    proposed_label: str,
+    ignore_trailing_whitespace: bool,
+    suppress_file_headers: bool,
+    include_summary: bool,
+    include_options_banner: bool,
+    max_chars: int,
+) -> str:
     if _resolve_output_format() == "json":
-        return _json_result(_no_diff_payload(message, summary_only=summary_only))
+        return _json_result(
+            _no_diff_payload(
+                message,
+                summary_only=summary_only,
+                original_label=original_label,
+                proposed_label=proposed_label,
+                ignore_trailing_whitespace=ignore_trailing_whitespace,
+                suppress_file_headers=suppress_file_headers,
+                include_summary=include_summary,
+                include_options_banner=include_options_banner,
+                max_chars=max_chars,
+            )
+        )
     return message
 
 
@@ -283,24 +360,18 @@ def _text_or_json_result(
                 "command": COMMAND_NAME,
                 "diff": emitted_diff,
                 "fingerprint": emitted_fingerprint,
-                "labels": {
-                    "applied": labels_applied,
-                    "original": original_label,
-                    "proposed": proposed_label,
-                },
-                "options": {
-                    "canonicalize_inline_whitespace": _env_enabled(CANONICALIZE_INLINE_WHITESPACE_ENV),
-                    "ignore_all_blank_lines": _env_enabled(IGNORE_ALL_BLANK_LINES_ENV),
-                    "ignore_case": _env_enabled(IGNORE_CASE_ENV),
-                    "ignore_edge_blank_lines": _env_enabled(IGNORE_EDGE_BLANK_LINES_ENV),
-                    "ignore_trailing_whitespace": ignore_trailing_whitespace,
-                    "include_options_banner": include_options_banner,
-                    "include_summary": include_summary,
-                    "max_output_chars": max_chars,
-                    "strip_ansi": _env_enabled(STRIP_ANSI_ENV),
-                    "suppress_file_headers": suppress_file_headers,
-                    "truncation_strategy": _truncation_strategy(),
-                },
+                "labels": _labels_payload(
+                    applied=labels_applied,
+                    original_label=original_label,
+                    proposed_label=proposed_label,
+                ),
+                "options": _options_payload(
+                    ignore_trailing_whitespace=ignore_trailing_whitespace,
+                    suppress_file_headers=suppress_file_headers,
+                    include_summary=include_summary,
+                    include_options_banner=include_options_banner,
+                    max_chars=max_chars,
+                ),
                 "status": "ok",
                 "summary": {
                     "details_enabled": _env_enabled(INCLUDE_SUMMARY_DETAILS_ENV),
@@ -405,6 +476,9 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
     include_options_banner = _env_enabled(INCLUDE_OPTIONS_BANNER_ENV)
     summary_only = _env_enabled(SUMMARY_ONLY_ENV)
     include_summary = _env_enabled(INCLUDE_SUMMARY_ENV)
+    max_chars = _max_diff_output_chars()
+    original_label = _resolve_file_label(ORIGINAL_LABEL_ENV, "original")
+    proposed_label = _resolve_file_label(PROPOSED_LABEL_ENV, "proposed")
 
     if _env_enabled(STRIP_ANSI_ENV):
         original = _strip_ansi(original)
@@ -426,25 +500,49 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
         proposed = _normalize_trailing_whitespace(proposed)
 
     if not original and not proposed:
-        return _no_diff_result("No diff: both inputs are empty.", summary_only=summary_only)
+        return _no_diff_result(
+            "No diff: both inputs are empty.",
+            summary_only=summary_only,
+            original_label=original_label,
+            proposed_label=proposed_label,
+            ignore_trailing_whitespace=ignore_trailing_whitespace,
+            suppress_file_headers=suppress_file_headers,
+            include_summary=include_summary,
+            include_options_banner=include_options_banner,
+            max_chars=max_chars,
+        )
 
     if original == proposed:
         return _no_diff_result(
             "No diff: inputs are identical after normalization.",
             summary_only=summary_only,
+            original_label=original_label,
+            proposed_label=proposed_label,
+            ignore_trailing_whitespace=ignore_trailing_whitespace,
+            suppress_file_headers=suppress_file_headers,
+            include_summary=include_summary,
+            include_options_banner=include_options_banner,
+            max_chars=max_chars,
         )
 
     drafting = DraftingService()
     diff = drafting.propose_diff(original, proposed)
     summary_source = diff
-    original_label = _resolve_file_label(ORIGINAL_LABEL_ENV, "original")
-    proposed_label = _resolve_file_label(PROPOSED_LABEL_ENV, "proposed")
     diff, labels_applied = _apply_file_labels(diff)
     if suppress_file_headers:
         diff = _suppress_file_headers(diff)
     if not diff:
-        return _no_diff_result("No diff: inputs are identical.", summary_only=summary_only)
-    max_chars = _max_diff_output_chars()
+        return _no_diff_result(
+            "No diff: inputs are identical.",
+            summary_only=summary_only,
+            original_label=original_label,
+            proposed_label=proposed_label,
+            ignore_trailing_whitespace=ignore_trailing_whitespace,
+            suppress_file_headers=suppress_file_headers,
+            include_summary=include_summary,
+            include_options_banner=include_options_banner,
+            max_chars=max_chars,
+        )
     output = diff
     truncated = False
     if len(diff) > max_chars:

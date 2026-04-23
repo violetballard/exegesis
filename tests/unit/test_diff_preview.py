@@ -147,7 +147,25 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
                 "command": "diff-preview",
                 "diff": "",
                 "fingerprint": None,
+                "labels": {
+                    "applied": False,
+                    "original": "original",
+                    "proposed": "proposed",
+                },
                 "message": "No diff: inputs are identical after normalization.",
+                "options": {
+                    "canonicalize_inline_whitespace": False,
+                    "ignore_all_blank_lines": False,
+                    "ignore_case": False,
+                    "ignore_edge_blank_lines": False,
+                    "ignore_trailing_whitespace": False,
+                    "include_options_banner": False,
+                    "include_summary": False,
+                    "max_output_chars": 20000,
+                    "strip_ansi": False,
+                    "suppress_file_headers": False,
+                    "truncation_strategy": "middle",
+                },
                 "status": "no_diff",
                 "summary": None,
                 "summary_only": False,
@@ -177,6 +195,7 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
         self.assertTrue(payload["summary_only"])
         self.assertIsNone(payload["summary"])
         self.assertIsNone(payload["fingerprint"])
+        self.assertFalse(payload["labels"]["applied"])
         self.assertEqual(payload["diff"], "")
 
     def test_json_no_diff_summary_only_ignores_fingerprint_gate(self) -> None:
@@ -206,6 +225,26 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
         self.assertTrue(payload["summary_only"])
         self.assertIsNone(payload["fingerprint"])
         self.assertEqual(payload["message"], "No diff: inputs are identical after normalization.")
+
+    def test_json_no_diff_includes_effective_labels_and_options(self) -> None:
+        with _env(
+            **{
+                OUTPUT_FORMAT_ENV: "json",
+                ORIGINAL_LABEL_ENV: "before.txt",
+                PROPOSED_LABEL_ENV: "after.txt",
+                INCLUDE_SUMMARY_ENV: "1",
+                SUPPRESS_FILE_HEADERS_ENV: "1",
+                MAX_DIFF_OUTPUT_CHARS_ENV: "512",
+            }
+        ):
+            payload = json.loads(run_diff_preview(DiffPreviewInput("same\n", "same\n")))
+        self.assertEqual(payload["labels"]["original"], "before.txt")
+        self.assertEqual(payload["labels"]["proposed"], "after.txt")
+        self.assertFalse(payload["labels"]["applied"])
+        self.assertTrue(payload["summary_only"] is False)
+        self.assertTrue(payload["options"]["include_summary"])
+        self.assertTrue(payload["options"]["suppress_file_headers"])
+        self.assertEqual(payload["options"]["max_output_chars"], 512)
 
     def test_text_fingerprint_matches_emitted_labeled_and_truncated_diff(self) -> None:
         with _env(
