@@ -23,9 +23,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - AGENTS-required handoff statement: the canonical demo-path step this work makes more real is `open project/document`
   - out of scope: no new workflow implementation for retrieval, patch review, or export is claimed by this command-catalog contract slice
 - Roadmap and vision grounding for that step:
-  - roadmap hardening scope: this aligns with `ROADMAP.md` Milestone 3 `Product Readiness`, specifically the requirement to define and lock user-facing output contracts, because this slice keeps the project-opening CLI entrypoint intentional and deterministic instead of allowing silent parser drift under the same canonical command name
+  - roadmap hardening scope: this aligns with `ROADMAP.md` Milestone 3 `Real workflow loop`, specifically the requirement to preserve CLI compatibility while the package and layout migration lands, because this slice keeps the project-opening CLI entrypoint intentional and deterministic instead of allowing silent parser drift under the same canonical command name
   - roadmap MVP-loop relevance: this supports the active `feat-commands` CLI-compatibility lane by keeping the operator-facing command entrypoint stable while Textual remains disabled
-  - vision capability: this serves `PRODUCT_VISION.md` capability 4 `Operator-first control surface` by keeping the CLI project-opening step stable as the active operator surface before `Exegesis Console` is brought online on top of the same engine-facing contracts
+  - vision capability: this serves `PRODUCT_VISION.md` capability 3 `Canonical engine contract` by keeping the CLI project-opening step stable as the active operator surface until the future Textual client can consume that same engine-facing contract
 - Concrete reason this is not second-order work:
   - `catalog.py` now makes `command_cli_contract()` fail fast if the parser surface for an accepted CLI route drifts away from the declared catalog, even when the canonical command tuple is unchanged. That removes the concrete blocker where the CLI-first project-opening step could still appear available while the operator-facing entrypoint had silently lost or reordered accepted tokens.
 - Shared-file basis for the high-risk packet:

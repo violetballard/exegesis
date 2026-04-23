@@ -177,12 +177,12 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3 (`Product Readiness`) scope item `Define and lock user-facing output contracts`: this slice is command-contract hardening for the active CLI path because it keeps the `open project/document` entrypoint intentional and deterministic instead of allowing silent parser drift under the same canonical command name.
+- `ROADMAP.md` Milestone 3 (`Real workflow loop`) scope item `preserve CLI compatibility while the package/layout migration lands`: this slice is command-contract hardening for the active CLI path because it keeps the `open project/document` entrypoint intentional and deterministic instead of allowing silent parser drift under the same canonical command name.
 - `ROADMAP.md` active lane `feat-commands`: scope remains limited to CLI compatibility and migration-safe entrypoints in `src/qual/commands/**`, and this packet limits its direct demo-path claim to the stable project-opening entrypoint while Textual remains disabled.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): the CLI remains a first-class reliability surface while future clients build on the same engine contracts, and this slice keeps the `open project/document` step stable by turning silent parser-surface drift into an immediate contract failure on the exact CLI surface the operator uses before `Exegesis Console` is activated.
+- `PRODUCT_VISION.md` capability 3 (`Canonical engine contract`): CLI compatibility is required while Textual remains disabled, and this slice keeps the `open project/document` step stable by turning silent parser-surface drift into an immediate contract failure on the exact CLI surface the operator uses before the future Textual client consumes that same engine-facing contract.
 
 ### Routing / Provider Impact Note
 
