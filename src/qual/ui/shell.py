@@ -174,8 +174,18 @@ class ShellUI:
 
     def render_cli_fallback(self, artifact: Any, *, kind: str | None = None) -> str:
         """Render an A2UI artifact through the explicit CLI fallback entrypoint."""
-
-        return render_terminal_cli_fallback(artifact, kind=kind)
+        fallback_hint_token = None
+        try:
+            fallback_target = resolve_terminal_artifact_cli_fallback_target(artifact, kind=kind)
+        except Exception:
+            fallback_target = None
+        else:
+            fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set(fallback_target)
+        try:
+            return render_terminal_cli_fallback(artifact, kind=kind)
+        finally:
+            if fallback_hint_token is not None:
+                _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.reset(fallback_hint_token)
 
     def render_startup(self, runtime: EngineRuntime) -> str:
         item_ids = self._snapshot_item_ids(runtime.basket.item_ids)

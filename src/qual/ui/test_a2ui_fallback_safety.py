@@ -4302,6 +4302,42 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             render_terminal_cli_fallback(artifact),
         )
 
+    def test_shell_ui_render_cli_fallback_prefers_pre_resolved_target_hint(self) -> None:
+        shell = ShellUI()
+        artifact = {
+            "type": "TerminalArtifact",
+            "kind": "action",
+            "artifact": {
+                "type": "ActionRef",
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "json"},
+            },
+        }
+        seen_hint: list[tuple[object, str] | None] = []
+
+        def _render_with_hint(rendered_artifact: object, *, kind: str | None = None) -> str:
+            self.assertIs(rendered_artifact, artifact)
+            self.assertIsNone(kind)
+            seen_hint.append(_TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get())
+            return "cli-fallback"
+
+        with patch(
+            "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
+            return_value=(artifact["artifact"], "action"),
+        ) as resolver:
+            with patch(
+                "src.qual.ui.shell.render_terminal_cli_fallback",
+                side_effect=_render_with_hint,
+            ) as cli_fallback:
+                text = shell.render_cli_fallback(artifact)
+
+        self.assertEqual(text, "cli-fallback")
+        resolver.assert_called_once_with(artifact, kind=None)
+        cli_fallback.assert_called_once_with(artifact, kind=None)
+        self.assertEqual(seen_hint, [(artifact["artifact"], "action")])
+        self.assertIsNone(_TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get())
+
     def test_shell_ui_contract_can_opt_in_to_cli_fallback_route_contract(self) -> None:
         default_manifest = describe_shell_ui_contract()
         manifest = describe_shell_ui_contract(include_terminal_artifact_cli_fallback_route=True)
