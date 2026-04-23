@@ -51,6 +51,7 @@
 - `retrieve relevant material`
 
 This handoff advances `retrieve relevant material` by enforcing authoritative FTS-only excerpt lookup with deterministic fail-closed behavior for non-FTS excerpt IDs.
+Canonical demo-path step advanced: `retrieve relevant material`; excerpt lookup now fails closed to canonical FTS results, preserving deterministic provenance for downstream basket/workflow use.
 It does not claim newly completed basket-promotion behavior; any downstream basket effect remains an indirect consequence of the hardened excerpt contract.
 
 ## Tasks completed
@@ -85,6 +86,7 @@ It does not claim newly completed basket-promotion behavior; any downstream bask
 2. The `Files changed` section now separates reviewed implementation files from the actual metadata-only packet refresh files.
 3. The handoff explicitly states the canonical demo-path step advanced: `retrieve relevant material`.
 4. Scope language now explicitly avoids claiming broader retrieval-mode or basket-promotion work beyond the `fetch_excerpt()` FTS-only contract hardening proved in the reviewed implementation.
+5. The canonical demo-path statement is explicitly tied to the narrowed reviewed slice rather than the broader branch history.
 
 ## Risks / blockers
 
