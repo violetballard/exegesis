@@ -126,6 +126,7 @@ from src.qual.commands import (
     command_demo_compatibility_lookup_table,
     command_demo_compatibility_invocation_table,
     command_demo_workflow_contract,
+    command_workflow_contract,
     command_demo_workflow_catalog,
     command_demo_workflow_branch_tokens,
     command_demo_workflow_compatibility_invocation_table,
@@ -134,6 +135,7 @@ from src.qual.commands import (
     command_demo_workflow_lookup_table,
     command_demo_workflow_invocation_table,
     command_demo_workflow_trusted_tokens,
+    command_workflow_trusted_tokens,
     command_demo_workflow_trusted_invocation_table,
     command_demo_workflow_transition_targets,
     command_demo_workflow_compatibility_lookup_table,
@@ -172,6 +174,9 @@ from src.qual.commands import (
     command_mvp_trusted_surface_entry_for,
     command_mvp_trusted_surface_flow_lookup_table,
     command_mvp_trusted_surface_tokens,
+    command_trusted_surface_catalog,
+    command_trusted_surface_contract,
+    command_trusted_surface_tokens,
     command_spec,
     command_spec_for,
     command_specs,
@@ -192,6 +197,7 @@ from src.qual.commands import (
     command_mvp_workflow_branch_tokens,
     command_mvp_workflow_trusted_contract,
     command_mvp_workflow_tokens,
+    command_workflow_tokens,
     command_mvp_workflow_lookup_table,
     command_mvp_workflow_invocation_table,
     command_mvp_workflow_trusted_tokens,
@@ -5591,6 +5597,25 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(mvp_contract.flow_catalog, command_mvp_flow_catalog())
         self.assertEqual(mvp_contract.lookup_surface, command_mvp_flow_lookup_surface())
         self.assertEqual(mvp_contract.flow_surface_tokens, command_mvp_flow_surface_tokens())
+
+    def test_public_workflow_contract_aliases_track_the_current_mvp_contract(self) -> None:
+        self.assertEqual(command_workflow_contract(), command_mvp_workflow_contract())
+        self.assertEqual(command_workflow_tokens(), command_mvp_workflow_tokens())
+
+    def test_public_trusted_surface_aliases_track_the_current_mvp_surface(self) -> None:
+        self.assertEqual(command_trusted_surface_contract(), command_mvp_trusted_surface_contract())
+        self.assertEqual(command_trusted_surface_catalog(), command_mvp_trusted_surface_catalog())
+        self.assertEqual(command_trusted_surface_tokens(), command_mvp_trusted_surface_tokens())
+
+    def test_public_workflow_trusted_tokens_alias_tracks_the_current_mvp_branch(self) -> None:
+        self.assertEqual(
+            command_workflow_trusted_tokens("apply"),
+            command_mvp_workflow_trusted_tokens("apply"),
+        )
+        self.assertEqual(
+            command_workflow_trusted_tokens("reject"),
+            command_mvp_workflow_trusted_tokens("reject"),
+        )
 
     def test_command_manifest_keeps_catalog_order(self) -> None:
         manifest = command_manifest()

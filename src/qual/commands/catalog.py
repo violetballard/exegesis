@@ -3508,6 +3508,13 @@ def command_mvp_workflow_contract(
     return command_demo_workflow_contract(specs)
 
 
+def command_workflow_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoWorkflowContract:
+    """Return the default current-MVP workflow contract."""
+    return command_mvp_workflow_contract(specs)
+
+
 def command_demo_workflow_entry_for(
     specs: tuple[CommandSpec, ...],
     token: str,
@@ -3648,6 +3655,14 @@ def command_mvp_workflow_trusted_tokens(
 ) -> tuple[str, ...]:
     """Return the current MVP trusted command tokens for one apply/reject branch."""
     return command_demo_workflow_trusted_tokens(decision_token, specs)
+
+
+def command_workflow_trusted_tokens(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    """Return the default current-MVP trusted workflow branch tokens."""
+    return command_mvp_workflow_trusted_tokens(decision_token, specs)
 
 
 def command_demo_workflow_trusted_invocation_table(
@@ -3973,6 +3988,13 @@ def command_mvp_workflow_tokens(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[str, ...]:
     return command_demo_workflow_tokens(specs)
+
+
+def command_workflow_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    """List the default current-MVP workflow tokens."""
+    return command_mvp_workflow_tokens(specs)
 
 
 def command_demo_loop_invocation_plan(
@@ -4425,6 +4447,13 @@ def command_mvp_trusted_surface_tokens(
     return command_demo_trusted_surface_tokens(specs)
 
 
+def command_trusted_surface_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    """List the deterministic token order for the default current-MVP trusted surface."""
+    return command_mvp_trusted_surface_tokens(specs)
+
+
 def command_demo_trusted_surface_flow_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
@@ -4485,6 +4514,13 @@ def command_mvp_trusted_surface_contract(
     return command_demo_trusted_surface_contract(specs)
 
 
+def command_trusted_surface_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandTrustedSurfaceContract:
+    """Return the default current-MVP trusted command surface."""
+    return command_mvp_trusted_surface_contract(specs)
+
+
 def command_demo_trusted_surface_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandTrustedSurfaceEntry, ...]:
@@ -4495,6 +4531,13 @@ def command_mvp_trusted_surface_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandTrustedSurfaceEntry, ...]:
     return command_demo_trusted_surface_catalog(specs)
+
+
+def command_trusted_surface_catalog(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandTrustedSurfaceEntry, ...]:
+    """Return the trusted command entries for the current MVP surface."""
+    return command_mvp_trusted_surface_catalog(specs)
 
 
 def command_demo_trusted_surface_entry_for(
