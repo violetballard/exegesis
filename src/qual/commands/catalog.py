@@ -567,12 +567,12 @@ def _validate_command_cli_contract(
         raise ValueError("Command CLI catalog entrypoint projection is inconsistent")
 
     expected_canonical_names = _canonical_name_projection_from_entrypoints(
-        expected_entrypoints
+        authoritative_entrypoints
     )
     if contract.canonical_names != expected_canonical_names:
         raise ValueError("Command CLI canonical names are inconsistent")
 
-    expected_lookup_table = _cli_lookup_projection_from_entrypoints(expected_entrypoints)
+    expected_lookup_table = _cli_lookup_projection_from_entrypoints(authoritative_entrypoints)
     expected_tokens = tuple(token for token, _ in expected_lookup_table)
     if contract.tokens != expected_tokens:
         raise ValueError("Command CLI tokens are inconsistent")
