@@ -15,13 +15,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `THREAD.md`
   - `THREAD_PACKET.md`
 - Reviewed implementation scope:
-  - deterministic CLI compatibility for the active fallback surface: fail-fast parser/catalog drift detection plus normalized terminal persistence alias routing
+  - deterministic CLI compatibility for the active fallback surface: fail-fast parser/catalog drift detection on the declared parser-facing command contract
 - Primary canonical demo-path step advanced now:
   - `open project/document`
 - Required handoff field now called out explicitly:
   - `Canonical demo-path step advanced: open project/document`
 - Primary-step scope note:
-  - this packet advances `open project/document` only; any downstream persistence compatibility value is secondary context rather than a second canonical demo-path-step claim
+  - this packet advances `open project/document` only
 - One-line plan alignment:
   - this change makes `open project/document` more real by keeping the CLI fallback command contract deterministic and failing fast before that first operator step can run on a drifted parser/catalog surface
 - `command_cli_contract()` dependency sentence:
@@ -35,7 +35,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Concrete blocker removed for Milestone 3:
   - the active CLI surface no longer allows the declared parser-facing token catalog to drift away from the canonical command catalog without failing closed, including the explicit reviewer-called case where the `diff` parser token disappears while the canonical-name tuple still appears stable; that removes a concrete reliability blocker before the CLI can safely begin the `open project/document` demo-path step.
 - Scope-tightening note:
-  - this reviewed slice hardens only deterministic command ordering plus fail-fast parser/catalog drift detection for the primary `open project/document` fallback step; any value for retrieval, patch review, persistence, or later demo-path coverage is secondary and not part of the primary scope claim
+  - this reviewed slice hardens only deterministic command ordering plus fail-fast parser/catalog drift detection for the primary `open project/document` fallback step; it does not claim progress on retrieval, patch review, persistence, export, or any later demo-path step
 - Why this is milestone-worthy now:
   - deterministic CLI command ordering is a required smoke-test guard for the active engine-first MVP loop while Textual remains disabled, so preventing silent contract drift in the declared command catalog is direct operator-surface hardening rather than second-order cleanup.
 - Roadmap / vision alignment for this reviewed slice:
