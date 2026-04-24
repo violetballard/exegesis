@@ -46,13 +46,7 @@ class FTSStrategy:
             return False
 
         scope = payload.get("scope")
-        if not isinstance(scope, str) or not scope:
-            return False
-
-        # The FTS-first MVP lane owns vault/doc retrieval only. Section and
-        # collection scopes remain deferred until a future strategy can resolve
-        # them deterministically without widening the active engine path.
-        return not scope.startswith(("section:", "collection:"))
+        return self._scope_is_supported(scope)
 
     def retrieve(self, query: Any, *, candidate_doc_ids: tuple[str, ...], use_cache: bool = True) -> StrategyRun:
         """Execute the underlying ``runner`` or return a cached result.
@@ -62,6 +56,10 @@ class FTSStrategy:
         ``cache_used=True``; otherwise we invoke the runner, refresh the
         one-slot cache with the fresh result, and report ``cache_used=False``.
         """
+        payload = self._query_payload(query)
+        if payload is not None and not self._scope_is_supported(payload.get("scope")):
+            raise ValueError("FTSStrategy only supports canonical vault/doc scopes in the FTS-first MVP lane")
+
         normalized_candidate_doc_ids = self._normalize_candidate_doc_ids(candidate_doc_ids)
         cache_key = self._make_cache_key(query, normalized_candidate_doc_ids)
         # Check for a cache hit before measuring time – a cached path is fast
@@ -253,6 +251,26 @@ class FTSStrategy:
                 return raw_text
             return f"{normalized_prefix}:{normalized_remainder}"
         return raw_text
+
+    @staticmethod
+    def _scope_is_supported(scope: object) -> bool:
+        if not isinstance(scope, str) or not scope:
+            return False
+        if scope == "vault":
+            return True
+        prefix, separator, remainder = scope.partition(":")
+        if not separator:
+            return True
+        normalized_prefix = prefix.strip().casefold()
+        normalized_remainder = remainder.strip()
+        if normalized_prefix == "doc":
+            return bool(normalized_remainder)
+        # The FTS-first MVP lane owns vault/doc retrieval only. Section and
+        # collection scopes remain deferred until a future strategy can resolve
+        # them deterministically without widening the active engine path.
+        if normalized_prefix in {"section", "collection"}:
+            return False
+        return True
 
     @staticmethod
     def _normalize_list_like(value: object) -> list[str]:
