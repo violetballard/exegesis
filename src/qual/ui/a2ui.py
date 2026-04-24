@@ -5285,6 +5285,7 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
     fallback_target = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get()
     if not _is_current_terminal_artifact_cli_fallback_hint(artifact, fallback_target):
         fallback_target = None
+    resolved_fallback_target: tuple[Any, str] | None = None
     if fallback_target is None:
         try:
             fallback_target = resolve_terminal_artifact_cli_fallback_target(
@@ -5302,6 +5303,7 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
                 and fallback_target[1] in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET
                 and not _is_explicit_terminal_artifact_leaf(artifact)
                 and envelope_kind == "card"
+                and not _has_nested_terminal_artifact_envelope(artifact)
             ):
                 return _render_invalid_terminal_card(artifact)
     elif (
@@ -5309,8 +5311,11 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
         and fallback_target[1] in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET
         and not _is_explicit_terminal_artifact_leaf(artifact)
         and envelope_kind == "card"
+        and not _has_nested_terminal_artifact_envelope(artifact)
     ):
         return _render_invalid_terminal_card(artifact)
+    else:
+        resolved_fallback_target = fallback_target
 
     if requested_kind == "card" and malformed_envelope and isinstance(artifact, Mapping):
         payload = artifact.get("artifact")
@@ -5345,6 +5350,14 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
             fallback_kind,
             requested_kind=requested_kind,
         )
+        if (
+            requested_kind == "card"
+            and fallback_kind == "card"
+            and resolved_fallback_target is not None
+            and resolved_fallback_target[1] in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET
+            and _has_nested_terminal_artifact_envelope(artifact)
+        ):
+            fallback_artifact, fallback_kind = resolved_fallback_target
     if (
         requested_kind == "card"
         and fallback_kind == "card"
@@ -5890,6 +5903,21 @@ def _is_malformed_terminal_artifact_envelope(artifact: Any) -> bool:
     except ValueError:
         return True
     return False
+
+
+def _has_nested_terminal_artifact_envelope(artifact: Any) -> bool:
+    """Return True when a TerminalArtifact envelope wraps another envelope."""
+
+    if not isinstance(artifact, Mapping):
+        return False
+    artifact_type = artifact.get("type")
+    if not isinstance(artifact_type, str) or artifact_type.strip() != _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+        return False
+    payload = artifact.get("artifact")
+    if not isinstance(payload, Mapping):
+        return False
+    payload_type = payload.get("type")
+    return isinstance(payload_type, str) and payload_type.strip() == _TERMINAL_ARTIFACT_ENVELOPE_TYPE
 
 
 def _is_valid_terminal_artifact_envelope_metadata(artifact: Any) -> bool:
