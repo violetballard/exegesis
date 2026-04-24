@@ -2,31 +2,31 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Packet refresh trace anchor before this fixer commit: `67cf9ec372b66c7e332efa310f8820f8f2824e61`
-- Reviewed implementation head: `0a222d08310c907b67e6ce9d1585d55cd00d88aa`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..0a222d08310c907b67e6ce9d1585d55cd00d88aa`
+- Packet refresh trace anchor before this fixer commit: `a30809c13617516f67d63fed3a5e76c755085304`
+- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Plan-alignment statement: this reviewed implementation advances `retrieve relevant material` by keeping excerpt provenance lookup deterministic on the FTS-only path and preventing PageIndex-only excerpt IDs from acting like an MVP retrieval path.
-- Explicit Milestone 3 mapping: this makes the Milestone 3 demo-path step `retrieve relevant material` more real by advancing `Define generation provenance contract (retrieval evidence attached to outputs)` with deterministic FTS-only excerpt provenance.
-- Traceability note: re-review this lane against the reviewed implementation range above. Commits after `0a222d08310c907b67e6ce9d1585d55cd00d88aa` are metadata-only packet refreshes; this fixer pass does not broaden retrieval runtime scope beyond that reviewed implementation head.
+- Plan-alignment statement: this reviewed slice strengthens `retrieve relevant material` by making excerpt lookup resolve only through the authoritative FTS path, which keeps downstream basket and workflow provenance deterministic.
+- Explicit Milestone 3 mapping: this slice advances `Milestone 3: Real workflow loop` by keeping retrieval/search FTS-first and structured enough for basket promotion.
+- Traceability note: re-review this lane against the reviewed implementation range above. Commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` are metadata-only packet refreshes unless a later handoff explicitly broadens the reviewed implementation range.
 
 ## Scope Goal
 
-- Regenerate the writable reviewer-facing handoff metadata so the branch-tip lineage, metadata-only refresh files, and Milestone 3 demo-path mapping are truthful, while recording the blocked `.codex` packet mirrors.
+- Resubmit the retrieval handoff as a completed AGENTS high-risk packet for the reviewed FTS-only excerpt slice without broadening runtime retrieval scope.
 
 ## Scope Completed
 
-- The reviewed implementation keeps SQLite FTS authoritative for MVP retrieval while `fetch_excerpt` stays on the canonical FTS-only path in `src/qual/retrieval/service.py`.
+- SQLite FTS remains the authoritative MVP retrieval path in the reviewed slice.
+- `fetch_excerpt` now resolves through the canonical FTS-only lookup path in `src/qual/retrieval/service.py`.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves that PageIndex-only excerpt IDs fail closed with `KeyError`.
-- The packet now truthfully absorbs the runtime-bearing `0a222d08310c907b67e6ce9d1585d55cd00d88aa` service change into the reviewed implementation head and leaves only metadata-only packet refreshes after that point.
-- The `.codex` kickoff and lane-metadata mirrors remain stale only because writes to those paths fail in this sandbox with `PermissionError: [Errno 1] Operation not permitted`.
+- PageIndex and embeddings remain compatibility-only paths and are not required MVP runtime paths in this slice.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: correct the writable reviewer-facing metadata so it truthfully describes the reviewed retrieval implementation slice, the packet-refresh lineage, and the Milestone 3 retrieval-step mapping, and explicitly note the blocked `.codex` mirrors.
-- Risk reason: this lane includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the handoff stays on the AGENTS high-risk/shared 4-task basis.
+- Scope goal: resubmit the retrieval handoff as a completed AGENTS high-risk packet for the reviewed FTS-only excerpt slice without broadening runtime retrieval scope.
+- Risk reason: this lane includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the handoff stays on the shared/high-risk 4-task basis.
 
 ### Budget
 
@@ -37,10 +37,10 @@
 
 ### Planned Tasks (max 4)
 
-1. Re-anchor the reviewed implementation head so every runtime-bearing commit after `adfa8cd...` is either absorbed into the reviewed range or excluded as metadata-only.
-2. Restamp every writable reviewer-facing packet surface with the same packet trace anchor, metadata-only file list, and shared/high-risk budget basis, and record any blocked mirrors.
+1. Restamp the handoff as a completed shared/high-risk packet for the reviewed slice anchored to `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+2. Add the explicit `Risk reason` and `Planned Tasks` sections the reviewer requested.
 3. State explicitly that this work advances the canonical demo-path step `retrieve relevant material` in Milestone 3.
-4. Re-run the required local gates and record the refreshed metadata-only verification state.
+4. Re-run the required local gates and record the refreshed outcomes on the packet surfaces.
 
 ### Early Review Triggers
 
@@ -72,43 +72,20 @@
 
 ## Tasks Completed
 
-1. Moved the reviewed implementation head forward to `0a222d08310c907b67e6ce9d1585d55cd00d88aa` so the branch-tip lineage is truthful about the last runtime retrieval change.
-2. Restamped the writable packet surfaces with one consistent metadata-only refresh anchor `67cf9ec372b66c7e332efa310f8820f8f2824e61`, one consistent metadata-only file set for this fixer pass, and an explicit note that the `.codex` mirrors are blocked.
-3. Added the explicit canonical demo-path mapping for `retrieve relevant material`, tied to deterministic FTS-only excerpt provenance and the Milestone 3 provenance-contract step.
-4. Re-ran the required local gates on the metadata-only packet refresh state.
+1. Reissued the writable handoff as a completed AGENTS high-risk packet for the reviewed slice anchored to `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+2. Added the explicit `Risk reason` and `Planned Tasks` sections the reviewer required on the writable packet surfaces.
+3. Added the explicit canonical demo-path mapping to `retrieve relevant material` within Milestone 3.
+4. Re-ran the required gates on the packet-refresh branch head and recorded the outcomes.
 
 ## Files Changed
 
-### Reviewed implementation files
-
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
-- `THREAD_PACKET.md`
-- `docs/gate_passed.txt`
-- `src/qual/engine/retrieval/__init__.py`
-- `src/qual/engine/retrieval/embeddings_strategy.py`
-- `src/qual/engine/retrieval/fts_strategy.py`
-- `src/qual/engine/retrieval/interface.py`
-- `src/qual/engine/retrieval/pageindex_strategy.py`
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/retrieval/__init__.py`
-- `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py` (approved shared regression coverage)
-
-### Writable metadata-only packet refresh files
-
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
 
-### Blocked packet mirrors
+## Blocked Packet Mirrors
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md` (write blocked by `PermissionError: [Errno 1] Operation not permitted`)
-- `.codex/lane_meta/feat-retrieval-fts.json` (write blocked by `PermissionError: [Errno 1] Operation not permitted`)
-
-### Prior metadata-only refresh before this fixer commit
-
-- `THREAD_PACKET.md`
-- `docs/gate_passed.txt`
+- `.codex/kickoff_packets/feat-retrieval-fts.md` (`PermissionError: [Errno 1] Operation not permitted`)
+- `.codex/lane_meta/feat-retrieval-fts.json` (`PermissionError: [Errno 1] Operation not permitted`)
 
 ## Commands Run With Results
 
@@ -121,33 +98,32 @@
 
 ## Reviewer Fix Closure
 
-1. The packet now tells a truthful branch-tip lineage: the last runtime retrieval change is included in the reviewed implementation head `0a222d08310c907b67e6ce9d1585d55cd00d88aa`, and later commits are metadata-only packet refreshes.
-2. The packet traceability fields now match reality for the writable packet refresh commits and file lists, and they explicitly call out the blocked `.codex` mirrors instead of implying those files were refreshed.
-3. The handoff now includes the explicit canonical demo-path statement naming `retrieve relevant material` and tying it to deterministic FTS-only excerpt provenance.
-4. The visible thread packet and gate summary now point at the same reviewed implementation head and metadata-only packet-refresh lineage, while the stale `.codex` mirrors are called out as blocked.
+1. The handoff is now explicitly resubmitted as a completed `Thread Kickoff (High-Risk)` packet.
+2. The writable packet now includes a concrete `Risk reason` tied to the approved shared regression surface in `tests/unit/test_unified_retrieval.py`.
+3. The writable packet now includes the actual `Planned Tasks` for this narrowed reviewer-fix slice, capped at four items.
+4. The handoff now explicitly states that this work advances the canonical demo-path step `retrieve relevant material`.
 
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Blockers: cannot write `.codex/kickoff_packets/feat-retrieval-fts.md` or `.codex/lane_meta/feat-retrieval-fts.json` because writes under `.codex/` fail with `PermissionError: [Errno 1] Operation not permitted`.
+- Blockers: cannot write `.codex/kickoff_packets/feat-retrieval-fts.md` or `.codex/lane_meta/feat-retrieval-fts.json` in this sandbox because direct writes fail with `PermissionError: [Errno 1] Operation not permitted`
 
 ## Ready For Handoff
 
-- Status: packet-ready on the writable handoff surfaces; `.codex` mirror refresh remains blocked by sandbox permissions
+- Status: ready for re-review on writable packet surfaces; `.codex` mirror refresh remains blocked by sandbox permissions
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- `Milestone 4: Retrieval Layer (Planned)`
-- `FTS-first ingestion/index path for context/vault documents`
-- `Milestone 3: Product Readiness (Planned)`
-- `Define generation provenance contract (retrieval evidence attached to outputs)`
+- `Milestone 3: Real workflow loop`
+- `feat-retrieval-fts`: retrieval/search
+- `retrieval returns structured results suitable for basket promotion`
 
 ### Vision capability affected
 
 - `Retrieval-first context handling`
-- `Auditable generation`
+- `Auditable state and workflow`
 
 ### Routing/provider impact note
 

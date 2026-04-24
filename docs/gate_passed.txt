@@ -3,35 +3,25 @@ Gate Results Summary (as of 2026-04-24)
 
 Feature lane: `codex/feat-retrieval-fts`
 Packet role: `metadata-only reviewer-fix finalization`
-Packet refresh trace anchor before this fixer commit: `67cf9ec372b66c7e332efa310f8820f8f2824e61`
-Reviewed implementation head: `0a222d08310c907b67e6ce9d1585d55cd00d88aa`
-Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..0a222d08310c907b67e6ce9d1585d55cd00d88aa`
+Packet refresh trace anchor before this fixer commit: `a30809c13617516f67d63fed3a5e76c755085304`
+Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: this reviewed implementation advances `retrieve relevant material` by keeping excerpt provenance lookup deterministic on the FTS-only path and preventing PageIndex-only excerpt IDs from acting like an MVP retrieval path.
-Explicit Milestone 3 mapping: this makes the Milestone 3 demo-path step `retrieve relevant material` more real by advancing `Define generation provenance contract (retrieval evidence attached to outputs)` with deterministic FTS-only excerpt provenance.
+Plan-alignment statement: this reviewed slice strengthens `retrieve relevant material` by making excerpt lookup resolve only through the authoritative FTS path, which keeps downstream basket and workflow provenance deterministic.
+Explicit Milestone 3 mapping: this slice advances `Milestone 3: Real workflow loop` by keeping retrieval/search FTS-first and structured enough for basket promotion.
 
 Reviewed implementation scope:
 
 * SQLite FTS remains authoritative for the reviewed slice.
 * `fetch_excerpt` stays on the canonical FTS-only path in `src/qual/retrieval/service.py`.
 * Approved shared regression coverage proves that PageIndex-only excerpt IDs fail closed with `KeyError`.
-* The runtime-bearing `0a222d08310c907b67e6ce9d1585d55cd00d88aa` service change is now included in the reviewed implementation head, so later commits are metadata-only packet refreshes.
+* PageIndex and embeddings remain compatibility-only paths and are not required MVP runtime paths in this slice.
 
-Reviewed implementation files:
+Packet classification:
 
-* `.codex/kickoff_packets/feat-retrieval-fts.md`
-* `.codex/lane_meta/feat-retrieval-fts.json`
-* `THREAD_PACKET.md`
-* `docs/gate_passed.txt`
-* `src/qual/engine/retrieval/__init__.py`
-* `src/qual/engine/retrieval/embeddings_strategy.py`
-* `src/qual/engine/retrieval/fts_strategy.py`
-* `src/qual/engine/retrieval/interface.py`
-* `src/qual/engine/retrieval/pageindex_strategy.py`
-* `src/qual/engine/retrieval/payload.py`
-* `src/qual/retrieval/__init__.py`
-* `src/qual/retrieval/service.py`
-* `tests/unit/test_unified_retrieval.py` (approved shared regression coverage)
+* Shared/high-risk because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file for this lane.
+* The packet is reissued on the AGENTS high-risk 4-task basis.
+* The handoff now includes the required `Risk reason`, `Planned Tasks`, and explicit canonical demo-path statement.
 
 Metadata-only packet refresh files:
 
@@ -42,17 +32,6 @@ Blocked packet mirrors:
 
 * `.codex/kickoff_packets/feat-retrieval-fts.md` (`PermissionError: [Errno 1] Operation not permitted`)
 * `.codex/lane_meta/feat-retrieval-fts.json` (`PermissionError: [Errno 1] Operation not permitted`)
-
-Reviewer-fix closure:
-
-* The packet now truthfully absorbs the last runtime retrieval change into the reviewed implementation head `0a222d08310c907b67e6ce9d1585d55cd00d88aa`.
-* The packet traceability fields now match the actual writable packet refresh files and no longer imply a metadata-only tail after `adfa8cd...`.
-* The handoff includes the explicit canonical demo-path statement naming `retrieve relevant material` and tying it to deterministic FTS-only excerpt provenance lookup.
-
-Budget classification:
-
-* Shared/high-risk because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file for this lane.
-* The packet is reissued on the AGENTS high-risk 4-task basis.
 
 Verification:
 
@@ -65,15 +44,14 @@ Verification:
 
 Roadmap items affected:
 
-* `Milestone 4: Retrieval Layer (Planned)`
-* `FTS-first ingestion/index path for context/vault documents`
-* `Milestone 3: Product Readiness (Planned)`
-* `Define generation provenance contract (retrieval evidence attached to outputs)`
+* `Milestone 3: Real workflow loop`
+* `feat-retrieval-fts`: retrieval/search
+* `retrieval returns structured results suitable for basket promotion`
 
 Vision capabilities affected:
 
 * `Retrieval-first context handling`
-* `Auditable generation`
+* `Auditable state and workflow`
 
 Routing/provider impact:
 
