@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 import time
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from datetime import date, datetime
 from typing import Any, Callable
 
@@ -75,12 +75,12 @@ class FTSStrategy:
             )
 
         started = int(self._now_fn())
-        hits = self._runner(query, normalized_candidate_doc_ids)
+        hits = self._snapshot_hits(self._runner(query, normalized_candidate_doc_ids))
         # Keep the one-slot cache coherent even when the caller bypasses cache
         # reads for this request. Return a separate defensive snapshot so the
         # fresh path matches the cached path's mutation isolation.
         self._cache_key = cache_key
-        self._cache_hits = copy.deepcopy(hits)
+        self._cache_hits = hits
 
         elapsed_ns = max(0, int(self._now_fn()) - started)
         elapsed_ms = elapsed_ns // 1_000_000
@@ -96,6 +96,18 @@ class FTSStrategy:
 
         self._cache_key = None
         self._cache_hits = None
+
+    @staticmethod
+    def _snapshot_hits(hits: Any) -> list[Any]:
+        """Normalize runner output into the stable list contract used by StrategyRun."""
+
+        if isinstance(hits, list):
+            return copy.deepcopy(hits)
+        if isinstance(hits, tuple):
+            return [copy.deepcopy(item) for item in hits]
+        if isinstance(hits, Iterable) and not isinstance(hits, (str, bytes, bytearray, Mapping)):
+            return [copy.deepcopy(item) for item in hits]
+        return [copy.deepcopy(hits)]
 
     @staticmethod
     def _make_cache_key(query: Any, candidate_doc_ids: tuple[str, ...]) -> tuple[Any, tuple[str, ...]]:
