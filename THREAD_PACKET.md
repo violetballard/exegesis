@@ -55,6 +55,7 @@
 ## Scope Completed
 
 - Hardened `command_cli_contract()` so it rejects catalog-entrypoint projection drift, including alias-only substitutions, token removals, token additions, and entrypoint reordering that would otherwise leave canonical command names unchanged.
+- Re-verified the reviewer-requested parser-surface guardrail against the current branch tip so the contract claim, implementation, and regression coverage are explicitly aligned for re-review.
 - Fixed `_resolve_demo_loop_token()` so demo-loop resolution preserves the logical demo token as the flow step when a shim-backed terminal command is selected for `apply-patch`, `reject-patch`, or `persist`.
 - Added canonical demo-argv normalization so shim-backed parser invocations map back to the stable workflow token used by the demo-path contracts.
 - Kept the active CLI smoke route self-describing from `patch-review` into `apply-patch` or `reject-patch`, then `persist`, by preventing shim-backed terminal actions from collapsing back to fallback `terminal` metadata.
