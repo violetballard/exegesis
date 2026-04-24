@@ -4,6 +4,8 @@
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: `reviewer-fix handoff refresh`
+- Packet refresh basis: `post-gate revalidation of the reviewer-fix packet on 2026-04-23`
+- Packet refresh parent commit: `52de8dab`
 
 ## Thread Kickoff (High-Risk)
 
@@ -38,6 +40,7 @@
 - The reviewed implementation basis is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`).
 - Re-review approval basis is pinned to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and only these two reviewed implementation files: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 - Later packet-refresh commits are metadata-only and do not expand the reviewed implementation scope.
+- This packet was revalidated after a fresh full-gate pass in the current worktree before handoff.
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
