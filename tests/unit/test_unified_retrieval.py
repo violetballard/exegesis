@@ -1351,6 +1351,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["retrieval_source_strategy"], "pageindex")
         self.assertEqual(excerpt["lookup_resolution"], "pageindex_fallback")
         self.assertEqual(excerpt["lookup_confidentiality_profile"], "confidential")
+        self.assertEqual(excerpt["provenance"]["source_strategy"], "pageindex")
+        self.assertEqual(excerpt["provenance"]["lookup_resolution"], "pageindex_fallback")
         self.assertTrue(excerpt["text"])
 
     def test_retrieve_fts_excerpt_returns_canonical_fts_payload(self) -> None:
@@ -2264,6 +2266,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         excerpt_ids = query_result.hits[0]["excerpt_ids"]
         self.assertTrue(excerpt_ids)
 
+        with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
+            self.service.fetch_fts_excerpt(str(excerpt_ids[0]))
         with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
             self.service.retrieve_fts_excerpt(str(excerpt_ids[0]))
 
