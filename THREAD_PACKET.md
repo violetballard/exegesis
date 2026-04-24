@@ -2,18 +2,18 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review scope: current branch-tip Milestone 3 CLI compatibility safeguard for the engine-first demo loop plus one shared regression for alias-level parser-surface drift
+- Review scope: current branch-tip Milestone 3 CLI compatibility facade for the canonical workflow loop, exposing the stable `command_workflow_*` workflow/transition tables and review follow-up compatibility lookups
 - Canonical demo-path steps advanced: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`
-- Required mapping statement: this slice strengthens the active CLI demo loop by specifically making `preview and apply or reject a patch` more reliable, with `open project/document` and `promote or gather context into the basket` included only as the surrounding CLI-first Milestone 3 path that feeds the patch-review step, because the `diff-preview` CLI surface now fails fast if the `diff` alias drops or mutates while the canonical command order still looks stable.
-- Concrete blocker removed: before this slice, alias-level parser drift could silently change or remove the `diff` entrypoint while `canonical_names` still matched, weakening the deterministic CLI control surface for the patch-review step.
-- Traceability note: reviewed implementation commit is `ebe78557`; prior metadata refresh `e1d22341` changed only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` before this branch-tip packet refresh.
+- Required mapping statement: this slice specifically makes `open project/document` more real because callers can now bootstrap the canonical CLI loop through one stable public `command_workflow_*` facade instead of importing `command_mvp_*` internals; `promote or gather context into the basket` and `preview and apply or reject a patch` remain protected as downstream steps because the same facade now exports the canonical workflow transitions plus the review follow-up compatibility tables that keep the loop executable while Textual remains disabled.
+- Concrete blocker removed: before this slice, external callers of `src.qual.commands` could not obtain the full stable workflow contract, lookup table, invocation table, transition targets, and review next-action compatibility mappings from the public facade, which made the demo loop harder to drive from `open project/document` without reaching into MVP-specific internals.
+- Traceability note: reviewed implementation commit is `35d93429`; this metadata refresh changes only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: keep the Milestone 3 CLI compatibility surface deterministic by rejecting alias-level parser drift in the command catalog contract that protects the engine-first demo loop.
-- Risk reason: this touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file.
+- Scope goal: keep the Milestone 3 CLI compatibility surface stable by exposing the full current-MVP workflow facade through the public `command_workflow_*` API that downstream CLI and future A2UI consumers can call directly.
+- Risk reason: this touches exported command-contract surfaces in `src/qual/commands/workflow.py` and `src/qual/commands/__init__.py`, plus a shared-by-approval regression test file.
 
 ### Budget
 
@@ -24,15 +24,16 @@
 
 ### Planned Tasks
 
-1. Tighten the CLI contract to validate full grouped parser surface, not just canonical command order.
-2. Add a regression proving alias-level drift raises even when canonical names stay unchanged.
-3. Refresh the handoff packet so it matches the current branch tip, states the shared-test exception explicitly, and maps the work to the concrete Milestone 3 CLI demo-path steps it protects.
-4. Re-run the required gates and record the results.
+1. Export the stable workflow contract, lookup, invocation, transition, and compatibility tables through `src/qual/commands/workflow.py`.
+2. Re-export the new workflow facade helpers from `src/qual/commands/__init__.py`.
+3. Extend shared regression coverage to prove the public workflow facade aliases still track the current MVP contract and review next-action compatibility tables.
+4. Refresh the handoff packet so it matches the current branch tip, states the concrete canonical demo-path step advanced, and records the required gate results.
 
 ## Review Basis
 
 - Implementation files:
-  - `src/qual/commands/catalog.py`
+  - `src/qual/commands/__init__.py`
+  - `src/qual/commands/workflow.py`
   - `tests/unit/test_commands_catalog.py`
 - Metadata files:
   - `THREAD.md`
@@ -41,28 +42,28 @@
 
 ## Commands Run and Outcomes
 
-- `python3 -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_mutated_diff_alias_with_stable_canonical_names`: `PASSED`
+- `python3 -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_public_workflow_contract_aliases_track_the_current_mvp_contract`: `PASSED`
+- `python3 -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_public_workflow_next_action_aliases_track_the_current_mvp_contract`: `PASSED`
 - `make scope-check`: `PASSED`
 - `./quality-format.sh --check`: `PASSED`
 - `./quality-lint.sh`: `PASSED`
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Verification rerun timestamp: `2026-04-24T12:17:42Z`
 
 ## Ownership Note
 
-- Lane-owned implementation path: `src/qual/commands/catalog.py`
+- Lane-owned implementation paths: `src/qual/commands/__init__.py`, `src/qual/commands/workflow.py`
 - Approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
 - Approval mechanism: `scripts/scope-check.sh` branch allowlist for `codex/feat-commands*`
 - Integrator-locked edits: `none`
-- Scope note: the current branch tip contains only the two implementation files above plus the handoff metadata files in this packet.
-- Packet-refresh accounting note: metadata-only refresh commit `e1d22341` changed `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`; those files are intentionally part of the branch-level handoff record.
+- Scope note: the current branch tip contains the three implementation files above plus the handoff metadata files in this packet.
+- Packet-refresh accounting note: this metadata refresh changes only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 
 ## Roadmap and Vision Mapping
 
-- `ROADMAP.md` Milestone 3 `Real workflow loop`: this change is a CLI compatibility safeguard for the engine-first MVP loop while Textual remains disabled, making the `diff-preview` patch-review entrypoint deterministic and drift-resistant.
-- `ROADMAP.md` canonical demo path steps: the direct operator-visible gain is `preview and apply or reject a patch`, while `open project/document` and `promote or gather context into the basket` stay relevant only as the surrounding CLI-first loop that must still arrive at a trustworthy `diff-preview` step; alias-level parser drift on `diff` now fails fast instead of silently weakening that patch-review surface.
+- `ROADMAP.md` Milestone 3 `Real workflow loop`: this change keeps the CLI compatibility layer complete for the engine-first MVP loop while Textual remains disabled.
+- `ROADMAP.md` canonical demo path steps: the direct operator-visible step advanced is `open project/document`, because the public workflow facade now exposes the stable entrypoint mappings that bootstrap the loop, while `promote or gather context into the basket` and `preview and apply or reject a patch` stay covered by the same exported transition and review-next-action tables.
 - `ROADMAP.md` active lane mapping: `feat-commands` owns CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
-- `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: the CLI compatibility surface stays stable for the future client while Textual remains disabled.
-- `PRODUCT_VISION.md` near-term product truth: the CLI remains the active operator surface until UI lanes are enabled, so guarding the `diff-preview` patch-review entrypoint removes a concrete blocker on that active path.
+- `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: downstream consumers now get the workflow contract from the stable public commands facade instead of MVP-specific internals.
+- `PRODUCT_VISION.md` near-term product truth: the CLI remains the active operator surface until UI lanes are enabled, so exporting the full workflow facade removes a concrete bootstrap blocker on that active path.
