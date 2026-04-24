@@ -59,7 +59,7 @@
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
-  - revalidation note: all required gates were rerun on `2026-04-24` after confirming the packet already named the exact demo-path step and engine-contract blocker requested in review
+  - revalidation note: all required gates were rerun on `2026-04-24` for reviewer packet `fixer__feat-commands__20260424T204003Z`, confirming the packet names the exact demo-path step and the existing command-contract hardening already covers alias-only parser-surface drift
 - traceability:
   - reviewed implementation slice only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`
   - docs-only refresh commit in branch history: `8391bf07914fffd6fcd29867dc6f21ed25a56ea1` (`docs(thread): pin feat-commands demo-path step`)
