@@ -3003,23 +3003,37 @@ def _normalize_demo_compatibility_argv(argv: tuple[str, ...] | list[str]) -> tup
     return (_normalize_demo_compatibility_token(raw_argv[0]), *raw_argv[1:])
 
 
-_COMMAND_DEMO_TERMINAL_MESSAGE_TOKENS: dict[tuple[str, str], str] = {
-    ("terminal-tool-orchestration", "apply-patch"): "apply-patch",
-    ("terminal-tool-orchestration", "approve-patch"): "apply-patch",
-    ("terminal-tool-orchestration", "accept-patch"): "apply-patch",
-    ("terminal-tool-orchestration", "reject-patch"): "reject-patch",
-    ("terminal-tool-orchestration", "decline-patch"): "reject-patch",
-    ("terminal-tool-orchestration", "discard-patch"): "reject-patch",
-    ("terminal-synthesis-request", "persist"): "persist",
-    ("terminal-synthesis-request", "persist-and-continue"): "persist",
-    ("terminal-synthesis-request", "save-work"): "persist",
-    ("terminal-synthesis-request", "continue-work"): "persist",
-    ("terminal-synthesis-request", "resume-work"): "persist",
-    ("terminal-synthesis-request", "export"): "export-handoff",
-    ("terminal-synthesis-request", "export-handoff"): "export-handoff",
-    ("terminal-synthesis-request", "handoff-export"): "export-handoff",
-    ("terminal-synthesis-request", "queue-handoff"): "export-handoff",
-}
+def _build_demo_terminal_message_tokens() -> dict[tuple[str, str], str]:
+    operation_kind_by_canonical_token = {
+        "apply-patch": "terminal-tool-orchestration",
+        "reject-patch": "terminal-tool-orchestration",
+        "persist": "terminal-synthesis-request",
+        "export-handoff": "terminal-synthesis-request",
+    }
+    explicit_message_variants = {
+        "persist": ("persist-and-continue",),
+        "export-handoff": ("export",),
+    }
+
+    message_tokens_by_canonical: dict[str, set[str]] = {
+        canonical_token: {canonical_token}
+        for canonical_token in operation_kind_by_canonical_token
+    }
+    for token, canonical_token in _demo_compatibility_entries():
+        if canonical_token not in message_tokens_by_canonical:
+            continue
+        message_tokens_by_canonical[canonical_token].add(token)
+    for canonical_token, extra_tokens in explicit_message_variants.items():
+        message_tokens_by_canonical.setdefault(canonical_token, {canonical_token}).update(extra_tokens)
+
+    terminal_message_tokens: dict[tuple[str, str], str] = {}
+    for canonical_token, operation_kind in operation_kind_by_canonical_token.items():
+        for message_token in sorted(message_tokens_by_canonical.get(canonical_token, ())):
+            terminal_message_tokens[(operation_kind, message_token)] = canonical_token
+    return terminal_message_tokens
+
+
+_COMMAND_DEMO_TERMINAL_MESSAGE_TOKENS: dict[tuple[str, str], str] = _build_demo_terminal_message_tokens()
 
 
 def _argv_option_value(argv: tuple[str, ...], option_name: str) -> str:

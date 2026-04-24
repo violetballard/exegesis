@@ -299,6 +299,22 @@ class CommandCatalogTests(unittest.TestCase):
                 ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", " decline patch "),
                 "reject-patch",
             ),
+            (
+                ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", " approve "),
+                "apply-patch",
+            ),
+            (
+                ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "ACCEPT"),
+                "apply-patch",
+            ),
+            (
+                ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", " reject "),
+                "reject-patch",
+            ),
+            (
+                ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "DISCARD"),
+                "reject-patch",
+            ),
         )
         for argv, expected in cases:
             with self.subTest(argv=argv):
@@ -313,6 +329,22 @@ class CommandCatalogTests(unittest.TestCase):
             ),
             (
                 ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "EXPORT HANDOFF"),
+                "export-handoff",
+            ),
+            (
+                ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", " save "),
+                "persist",
+            ),
+            (
+                ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "RESUME"),
+                "persist",
+            ),
+            (
+                ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", " handoff "),
+                "export-handoff",
+            ),
+            (
+                ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "QUEUE EXPORT"),
                 "export-handoff",
             ),
         )
