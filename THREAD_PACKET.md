@@ -5,8 +5,8 @@
 - Reviewed implementation commit: `2446deb4`
 - Packet refresh role: `reviewer-fix resubmission refresh 10`
 - Review scope: narrow command-contract hardening in `src/qual/commands/catalog.py`, plus focused regression coverage in `tests/unit/test_commands_catalog.py`, with the guardrail explicitly enforcing full parser-surface projection consistency rather than only canonical-name/order consistency.
-- Canonical demo-path step advanced: `open project/document` via stable CLI entrypoints in the active AGENTS demo path.
-- Concrete canonical mapping sentence: this slice makes the existing `open project/document` CLI gateway more real by forcing the parser-backed `project-open` entrypoints to stay aligned with the canonical catalog before the operator starts the loop, with downstream protection for later CLI-only steps if that gateway would otherwise drift.
+- Canonical demo-path step(s) advanced: primary step `open project/document`, with deterministic protection for the same CLI-backed MVP loop surfaces that carry `retrieval`, `patch-review`, and `export-handoff` while Textual remains disabled.
+- Concrete canonical mapping sentence: this slice hardens the CLI-backed MVP loop by forcing the parser-backed `project-open` gateway to stay aligned with the canonical catalog before the operator starts the loop, which in turn keeps the already-existing `retrieval`, `patch-review`, and `export-handoff` entrypoints drift-resistant because they share the same deterministic command-surface contract.
 - Non-claim boundary: this resubmission does not claim progress on persistence, A2UI, Textual activation, or any new command reachability; it is limited to deterministic CLI compatibility and parser-drift rejection for the existing command surface while Textual remains disabled.
 - Canonical demo-path context: `AGENTS.md` currently defines the engine-side path as `open project/document` -> `retrieve relevant material` -> `promote or gather context into the basket` -> `produce a plan or revision` -> `preview and apply or reject a patch` -> `persist the updated document/session state` -> `continue working without losing context`.
 - Causal link: the Milestone 3 CLI-first loop cannot begin unless `open project/document` still resolves through the canonical command surface while Textual remains disabled.
@@ -21,17 +21,17 @@
 - Final verification note: this packet refresh revalidated the corrected handoff packet, confirmed the shipped broader parser-surface validation still matches the stated scope, and reran the full required gate set on the current branch tip without widening implementation scope.
 - Latest implementation evidence note: after reloading the reviewer packet against the live worktree on `2026-04-24`, the parser-surface guardrail remained present on `codex/feat-commands`, including the direct `_CLI_PARSER_ENTRYPOINTS` regression that exercises live parser drift.
 - Current fixer pass note: this follow-up pass is metadata-only; it rechecked the live `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` state, confirmed the reviewer-requested parser-surface guardrail and tests were already committed, and refreshed the handoff wording to match that shipped scope exactly before another required-gates rerun on the current branch tip.
-- Reviewer-fix closure note: this refresh exists specifically to satisfy the reviewer-requested handoff field by stating the exact canonical demo-path step advanced, tying that step to the active Milestone 3 CLI-first loop, and keeping the resubmission scoped to packet alignment rather than new implementation work.
+- Reviewer-fix closure note: this refresh exists specifically to satisfy the reviewer-requested handoff field by stating the exact canonical demo-path step advanced, naming the dependent CLI loop surfaces `retrieval`, `patch-review`, and `export-handoff`, tying that contract to the active Milestone 3 CLI-first loop, and keeping the resubmission scoped to packet alignment rather than new implementation work.
 - Resubmission note: this pass is metadata-only and exists to regenerate the handoff packet after the reviewer packet reload, keeping the claims pinned to the already-landed parser-surface implementation while recording a fresh full gate rerun on the current branch tip before re-review.
 - Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` were rerun in this packet-refresh pass.
-- Current revalidation note: this fixer pass re-read the reviewer packet from `fixer__feat-commands__20260424T181851Z.prompt.txt`, confirmed the missing canonical demo-path field was present in the live handoff metadata, reran the full required gate set on the current branch tip, and reissued the packet as a fresh metadata-only resubmission commit for re-review traceability.
+- Current revalidation note: this fixer pass re-read the reviewer packet from `fixer__feat-commands__20260424T181943Z.prompt.txt`, tightened the live handoff metadata so it explicitly maps the change to the CLI-backed MVP loop surfaces `project-open`, `retrieval`, `patch-review`, and `export-handoff`, reran the full required gate set on the current branch tip, and reissued the packet as a fresh metadata-only resubmission commit for re-review traceability.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: keep the existing Milestone 3 CLI gateway deterministic by locking the parser-backed `open project/document` command surface to the canonical catalog without adding new commands or new engine behavior.
-- Risk reason: this touches a public command contract in `src/qual/commands/catalog.py` and one focused regression test file.
+- Risk reason: this touches a public command contract in `src/qual/commands/catalog.py` and one explicitly approved shared regression file in `tests/unit/test_commands_catalog.py`, so parser-surface drift here can silently break the deterministic CLI-backed MVP loop across `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 
 ### Budget
 
