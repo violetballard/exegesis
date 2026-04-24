@@ -4,18 +4,17 @@
 - Reviewed implementation basis:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
 - Scope completed: hardened `command_cli_contract()` for the current engine-first CLI smoke path by protecting the `project-open` / `retrieval` / `patch-review` command surface so the parser-derived canonical command names stay locked to the declared command catalog and fail fast on drift.
-- Primary canonical demo-path step advanced: `preview and apply or reject a patch`
-- Hardened smoke-path steps: `open project/document`, `retrieve`, `preview and apply or reject a patch`
-- Required packet statement: this change makes `preview and apply or reject a patch` more real by forcing the public command surface to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set, while keeping the current engine-first `project-open` / `retrieval` / `patch-review` smoke path deterministic.
-- Concrete blocker removed: parser or catalog drift can no longer silently change the canonical command contract, which keeps the current CLI fallback deterministic across the `project-open` / `retrieval` / `patch-review` path before patch review.
+- Canonical demo-path step(s) advanced: `open project/document`, `retrieve`, `preview and apply or reject a patch`
+- Required packet statement: this change makes `open project/document`, `retrieve`, and `preview and apply or reject a patch` more real by forcing the public command surface to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set on the current engine-first `project-open` / `retrieval` / `patch-review` smoke path.
+- Concrete blocker removed: parser or catalog drift can no longer silently change the canonical command contract, which keeps the current CLI fallback deterministic across the `project-open` / `retrieval` / `patch-review` path.
 - Route-coverage evidence anchor: `tests/unit/test_commands_catalog.py` keeps the CLI-first claim pinned to the tested patch-review route entry `("patch-review", "diff-preview", ("diff-preview", "diff"))` in the smoke-route summary and route-contract assertions.
-- Plan-alignment statement: this is one patch-review contract-hardening slice inside the active CLI-first MVP path. Deterministic CLI contract validation preserves the operator-facing command surface for the current `project-open` / `retrieval` / `patch-review` smoke path, with explicit demo-path advancement still limited to the patch-review step while Textual remains disabled and interactive clients stay secondary. It does not claim new retrieval behavior, persistence, export, audit-path, or broader workflow behavior.
-- `AGENTS.md` compliance statement: every active lane task in this packet is tied to the canonical `preview and apply or reject a patch` step, and the packet now states the concrete blocker removed at that step.
-- Current roadmap alignment statement: this slice stays aligned to the current canonical roadmap by narrowing its claim to command and diff-preview hardening under Milestone 1 and CLI fallback reliability at the patch-review contract boundary while Textual remains disabled. `terminal` and `export-handoff` remain outside the review basis for this packet and appear here only as incidental aliases inside the shared catalog contract. It does not claim retrieval, persistence, export, audit-path, or broader workflow behavior.
+- Plan-alignment statement: this is one CLI smoke-path contract-hardening slice inside the active engine-first MVP path. Deterministic CLI contract validation preserves the operator-facing bootstrap, context-basket, and diff-preview command surface for the current `project-open` / `retrieval` / `patch-review` smoke path while Textual remains disabled and interactive clients stay secondary. It does not claim new retrieval internals, patch application, persistence, export, audit-path, or broader workflow behavior.
+- `AGENTS.md` compliance statement: every active lane task in this packet is tied to the canonical `open project/document`, `retrieve`, or `preview and apply or reject a patch` steps, and the packet now states the concrete blocker removed on that path.
+- Current roadmap alignment statement: this slice stays aligned to the current canonical roadmap by narrowing its claim to command and diff-preview hardening under Milestone 1 and CLI fallback reliability at the `project-open` / `retrieval` / `patch-review` contract boundary while Textual remains disabled. `terminal` and `export-handoff` remain outside the review basis for this packet and appear here only as incidental aliases inside the shared catalog contract. It does not claim retrieval internals, persistence, export, audit-path, or broader workflow behavior.
 - Packet refresh traceability: later `docs(commands)` commits are metadata-only and update only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
 - High-risk kickoff context:
   - lane/owned paths: `src/qual/commands/**`
-  - scope goal: make the canonical `preview and apply or reject a patch` step more real by keeping the operator-visible command contract locked to the parser/catalog boundary so the CLI fallback stays deterministic while interactive clients stay secondary
+  - scope goal: make the canonical `open project/document`, `retrieve`, and `preview and apply or reject a patch` steps more real by keeping the operator-visible command contract locked to the parser/catalog boundary so the CLI fallback stays deterministic across the `project-open` / `retrieval` / `patch-review` smoke path while interactive clients stay secondary
   - risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file
   - planned scope: 4-task high-risk slice limited to command-contract hardening, shared regression coverage, packet correction, and required gate reruns
   - early review triggers: before first edit to any shared or integrator-locked file, before changing public interfaces or command contracts, and before touching provider routing or config behavior
@@ -23,14 +22,14 @@
 - Roadmap item(s) affected:
   - `ROADMAP.md` active lane: `feat-commands`
   - `ROADMAP.md` Milestone 1 scope: `Command and diff-preview behavior hardening`
-  - roadmap relevance is limited to the patch segment of the CLI-first MVP loop; `terminal` and `export-handoff` are not part of this packet's approval basis
+  - roadmap relevance is limited to the `project-open` / `retrieval` / `patch-review` segment of the CLI-first MVP loop; `terminal` and `export-handoff` are not part of this packet's approval basis
 - Vision capability affected:
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
   - `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)`
   - specific requirements advanced:
     - `CLI remains a first-class surface for development and reliability.`
     - `CLI remains able to render a text fallback of the same underlying artifacts.`
-  - no claim against persistence, audit hooks, retrieval progress, or workflow trace records; this diff does not add them
+  - no claim against persistence, audit hooks, retrieval internals, or workflow trace records; this diff does not add them
 - Routing/provider impact note: none; this slice does not touch model routing, provider configuration, or integrator-locked entrypoints.
 - Proposed `README.md` patch text: none.
 
