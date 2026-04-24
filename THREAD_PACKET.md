@@ -13,6 +13,7 @@
 - Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so an operator could begin the manual MVP flow through an `open project/document` surface that no longer matched the canonical command catalog.
 - Review basis scope: keep implementation and approval claims pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and its two implementation files only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 - Final fixer note: this packet refresh exists only to record the green rerun of the required gates after the reviewer-requested demo-path mapping was added; the reviewed implementation commit remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` were rerun successfully from the current branch tip before this metadata-only fixer handoff.
 
 ## Thread Kickoff (High-Risk)
 
