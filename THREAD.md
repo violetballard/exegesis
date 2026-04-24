@@ -6,12 +6,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: reviewer-fix final verification refresh regenerated at 2026-04-24T07:28:38Z for the exact reviewed implementation slice, with the canonical `preview and apply or reject a patch` mapping preserved and the required gates rerun against the unchanged CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 4.
-- Reviewed implementation commit: `f9b74eebe1caca69ae03ce3570d419c5329e1d82` (`docs(commands): refresh final handoff verification`), carrying forward the command helper implementation from `3e1e7d7f9ebce3001ebe941133b00e145e79cb7b` and the warmed-cache parser-surface regression coverage from `bd118a6cbb417005bb793b3d784372ba6c1452a1`.
+- Packet refresh status: reviewer-fix final verification refresh regenerated at 2026-04-24T07:33:10Z for the exact reviewed implementation slice, with the canonical `preview and apply or reject a patch` mapping preserved and the required gates rerun against the unchanged CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 4.
+- Reviewed implementation commit: `1efa1c47e775e47b2aa4cb7619ea5cc499687448` (`docs(commands): finalize reviewer handoff packet`), carrying forward the command helper implementation from `3e1e7d7f9ebce3001ebe941133b00e145e79cb7b` and the warmed-cache parser-surface regression coverage from `bd118a6cbb417005bb793b3d784372ba6c1452a1`.
 - Packet refresh traceability:
-  - the pre-refresh branch tip for this re-review pass was `f9b74eebe1caca69ae03ce3570d419c5329e1d82`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
+  - the pre-refresh branch tip for this re-review pass was `1efa1c47e775e47b2aa4cb7619ea5cc499687448`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
 - Post-fixer verification note:
-- 2026-04-24T07:28:38Z UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh
+- 2026-04-24T07:33:10Z UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh
 - Reviewed implementation files:
   - `src/qual/commands/__init__.py`
   - `tests/unit/test_commands_catalog.py`
@@ -43,7 +43,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Concrete smoke-test evidence:
   - `tests/unit/test_commands_catalog.py` now proves the live parser surface stays `("diff-preview", "diff")` for the `preview and apply or reject a patch` step and fails fast when `diff-preview` disappears while `diff` still resolves to the same canonical command, even after the CLI token helpers have been warmed
 - Traceability note:
-  - `f9b74eebe1caca69ae03ce3570d419c5329e1d82` is the current reviewed implementation tip for this lane slice, carrying forward the command helper implementation from `3e1e7d7f9ebce3001ebe941133b00e145e79cb7b`, the warmed-cache regression coverage from `bd118a6cbb417005bb793b3d784372ba6c1452a1`, and the earlier `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` drift fix; this packet refresh commit records the updated re-review mapping and gate results on top of pre-refresh tip `f9b74eebe1caca69ae03ce3570d419c5329e1d82`
+  - `1efa1c47e775e47b2aa4cb7619ea5cc499687448` is the current reviewed implementation tip for this lane slice, carrying forward the command helper implementation from `3e1e7d7f9ebce3001ebe941133b00e145e79cb7b`, the warmed-cache regression coverage from `bd118a6cbb417005bb793b3d784372ba6c1452a1`, and the earlier `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` drift fix; this packet refresh commit records the updated re-review mapping and gate results on top of pre-refresh tip `1efa1c47e775e47b2aa4cb7619ea5cc499687448`
 - Concrete blocker removed for the current CLI smoke route:
   - the active CLI smoke route no longer allows the public `diff-preview` parser token for `preview and apply or reject a patch` to disappear and leave only the still-resolvable alias `diff` without an immediate contract failure
 - Scope-tightening note:
@@ -71,4 +71,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `./typecheck-test.sh`
   - `make ci`
 - Gate attribution note:
-- these gates were rerun at 2026-04-24T07:28:38Z against the packet-refresh workspace state at `f9b74eebe1caca69ae03ce3570d419c5329e1d82`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
+- these gates were rerun at 2026-04-24T07:33:10Z against the packet-refresh workspace state at `1efa1c47e775e47b2aa4cb7619ea5cc499687448`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
