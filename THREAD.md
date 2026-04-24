@@ -6,12 +6,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: reviewer-fix final verification refresh regenerated at 2026-04-24T07:05:23Z for the exact reviewed implementation slice, with the canonical `patch-review` mapping preserved and the required gates rerun against the unchanged CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 3.
+- Packet refresh status: reviewer-fix final verification refresh regenerated at 2026-04-24T07:14:46Z for the exact reviewed implementation slice, with the canonical `patch-review` mapping preserved and the required gates rerun against the unchanged CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 3.
 - Reviewed implementation commit: `bd118a6cbb417005bb793b3d784372ba6c1452a1` (`test(commands): cover cached parser surface drift`).
 - Packet refresh traceability:
-  - the pre-refresh branch tip for this re-review pass was `759260d03cda2727a807a313d30f5586fca89b5d`, a packet-only refresh above `bd118a6cbb417005bb793b3d784372ba6c1452a1`; no implementation files beyond the reviewed slice changed in this refresh
+  - the pre-refresh branch tip for this re-review pass was `f84c26610ffc33937ed5e1477b9b63ebaaddab2c`, a packet-only refresh above `bd118a6cbb417005bb793b3d784372ba6c1452a1`; no implementation files beyond the reviewed slice changed in this refresh
 - Post-fixer verification note:
-- 2026-04-24T07:05:23Z UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh
+- 2026-04-24T07:14:46Z UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh
 - Reviewed implementation files:
   - `tests/unit/test_commands_catalog.py`
   - implementation basis retained on branch: `src/qual/commands/catalog.py`
@@ -42,7 +42,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Concrete smoke-test evidence:
   - `tests/unit/test_commands_catalog.py` now proves the live parser surface stays `("diff-preview", "diff")` for the `patch-review` step and fails fast when `diff-preview` disappears while `diff` still resolves to the same canonical command, even after the CLI token helpers have been warmed
 - Traceability note:
-  - `bd118a6cbb417005bb793b3d784372ba6c1452a1` is the reviewed implementation tip for the parser-surface fix set, carrying the warmed-cache regression coverage on top of the earlier `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` drift fix; this packet refresh commit records the updated re-review mapping and gate results on top of packet-refresh tip `759260d03cda2727a807a313d30f5586fca89b5d`
+  - `bd118a6cbb417005bb793b3d784372ba6c1452a1` is the reviewed implementation tip for the parser-surface fix set, carrying the warmed-cache regression coverage on top of the earlier `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` drift fix; this packet refresh commit records the updated re-review mapping and gate results on top of packet-refresh tip `f84c26610ffc33937ed5e1477b9b63ebaaddab2c`
 - Concrete blocker removed for the current CLI smoke route:
   - the active CLI smoke route no longer allows the public `diff-preview` parser token for `patch-review` to disappear and leave only the still-resolvable alias `diff` without an immediate contract failure
 - Scope-tightening note:
@@ -70,4 +70,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `./typecheck-test.sh`
   - `make ci`
 - Gate attribution note:
-- these gates were rerun at 2026-04-24T07:05:23Z against the packet-refresh workspace state at `759260d03cda2727a807a313d30f5586fca89b5d`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
+- these gates were rerun at 2026-04-24T07:14:46Z against the packet-refresh workspace state at `f84c26610ffc33937ed5e1477b9b63ebaaddab2c`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`

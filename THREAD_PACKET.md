@@ -2,10 +2,10 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `759260d03cda2727a807a313d30f5586fca89b5d`
+- Commit: `f84c26610ffc33937ed5e1477b9b63ebaaddab2c`
 - Packet refresh role: `reviewer-fix final verification refresh`
-- Packet refresh basis: `regenerated on 2026-04-24T07:05:23Z after rerunning the required gates on the pre-refresh branch tip 759260d03cda2727a807a313d30f5586fca89b5d to satisfy the reviewer's numbered handoff fixes for explicit canonical demo-path mapping, concrete blocker removal, narrowed roadmap and vision mapping, and current branch-tip traceability`
-- Post-fixer verification: `2026-04-24T07:05:23Z UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh`
+- Packet refresh basis: `regenerated on 2026-04-24T07:14:46Z after rerunning the required gates on the pre-refresh branch tip f84c26610ffc33937ed5e1477b9b63ebaaddab2c to satisfy the reviewer's numbered handoff fixes for explicit canonical demo-path mapping, concrete blocker removal, narrowed roadmap and vision mapping, and current branch-tip traceability`
+- Post-fixer verification: `2026-04-24T07:14:46Z UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -42,7 +42,7 @@
 ## Review Basis
 
 - Reviewed implementation commit: `bd118a6cbb417005bb793b3d784372ba6c1452a1` (`test(commands): cover cached parser surface drift`).
-- Packet refresh traceability: the pre-refresh branch tip for this final verification pass was `759260d03cda2727a807a313d30f5586fca89b5d`, a packet-only refresh above `bd118a6cbb417005bb793b3d784372ba6c1452a1`; no implementation files beyond the reviewed slice changed in this refresh.
+- Packet refresh traceability: the pre-refresh branch tip for this final verification pass was `f84c26610ffc33937ed5e1477b9b63ebaaddab2c`, a packet-only refresh above `bd118a6cbb417005bb793b3d784372ba6c1452a1`; no implementation files beyond the reviewed slice changed in this refresh.
 - Reviewed implementation files:
   - `tests/unit/test_commands_catalog.py`
   - implementation basis retained on branch: `src/qual/commands/catalog.py`
@@ -103,7 +103,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at 2026-04-24T07:05:23Z against the reviewer-fix packet-refresh workspace state at `759260d03cda2727a807a313d30f5586fca89b5d`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
+- Gate attribution note: these gates were rerun at 2026-04-24T07:14:46Z against the reviewer-fix packet-refresh workspace state at `f84c26610ffc33937ed5e1477b9b63ebaaddab2c`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 
 ### Risks / Blockers
 
