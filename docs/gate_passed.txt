@@ -42,6 +42,7 @@ Reviewer-fix closure:
 * `Scope completed` and `Tasks completed` now describe the full reviewed implementation range anchored at `adfa8cda`, not just the final excerpt fail-closed behavior.
 * The packet explicitly includes the added retrieval contract, provenance snapshot, and helper-surface changes in scope and plan mapping.
 * The handoff explicitly states that this work advances the engine-first canonical demo-path step `retrieve relevant material`.
+* This fixer pass records the `.codex` mirror permission lock explicitly so re-review can use the writable packet surfaces as the authoritative reviewer-facing update from this worktree.
 
 Budget classification:
 

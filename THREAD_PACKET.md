@@ -85,6 +85,7 @@
 1. `Scope completed` and `Tasks completed` now describe the full reviewed implementation range anchored at `adfa8cda`, not just the final `fetch_excerpt` fail-closed behavior.
 2. The handoff explicitly includes the added retrieval contract, provenance snapshot, and helper-surface changes in scope and plan mapping rather than implying a narrower implementation than the reviewed range.
 3. The handoff explicitly states that this work advances the canonical demo-path step `retrieve relevant material` using engine-first wording.
+4. This fixer pass records the `.codex` mirror permission lock explicitly so re-review can use the writable packet surfaces as the authoritative reviewer-facing update from this worktree.
 
 ## Risks / Blockers
 
