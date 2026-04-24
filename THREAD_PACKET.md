@@ -9,7 +9,7 @@
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Reviewer-required plan-alignment statement: this lane advances `retrieve relevant material` by keeping SQLite FTS authoritative across retrieval execution, excerpt lookup, and provenance payload rehydration so engine flows consume canonical retrieval state instead of PageIndex-only fallbacks.
 - Approved shared regression exception: `tests/unit/test_unified_retrieval.py` remains the only shared-by-approval regression surface in the reviewed implementation range.
-- Packet authority note: this packet, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json` are the aligned reviewer-fix artifacts for this pass.
+- Packet authority note: `THREAD_PACKET.md` is the corrected reviewer-fix artifact for this pass. The `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirrors remain stale in this environment because sandbox writes to `.codex/**` are blocked with `operation not permitted`.
 
 ## Scope Goal
 
@@ -93,7 +93,7 @@
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Blockers: none
+- Blockers: sandbox policy prevented updating `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` (`operation not permitted`), so `THREAD_PACKET.md` is the corrected source of truth for this fixer pass.
 
 ## Required Handoff Fields
 
