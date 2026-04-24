@@ -112,6 +112,11 @@
 
 ## Required Handoff Fields
 
+### Canonical demo-path step advanced
+
+- `open project/document`
+- This change makes `open project/document` more real by keeping the CLI fallback command contract deterministic and failing fast if the parser-facing surface drifts from the canonical command catalog before the first operator step runs.
+
 ### Roadmap item(s) affected
 
 - `ROADMAP.md` Milestone 3: preserve CLI compatibility while the package/layout migration lands, within the `feat-commands` lane for CLI compatibility and migration-safe entrypoints.

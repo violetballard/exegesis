@@ -18,6 +18,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - deterministic CLI compatibility for the active fallback surface: fail-fast parser/catalog drift detection plus normalized terminal persistence alias routing
 - Primary canonical demo-path step advanced now:
   - `open project/document`
+- Required handoff field now called out explicitly:
+  - `Canonical demo-path step advanced: open project/document`
 - Primary-step scope note:
   - this packet advances `open project/document` only; any downstream persistence compatibility value is secondary context rather than a second canonical demo-path-step claim
 - One-line plan alignment:
