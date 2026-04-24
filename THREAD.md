@@ -6,9 +6,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
+- Packet refresh commit status: metadata-only resubmission packet update.
 - Reviewed implementation base previously approved for comparison: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Reviewed implementation range in this resubmission: the full branch delta through `5ea27f3d960f2f2876347f2b8ce616223227a713`.
-- This resubmission is not metadata-only. The true reviewed basis includes non-doc command and diff-preview implementation across:
+- The resubmission commit is metadata-only, but the true reviewed basis includes non-doc command and diff-preview implementation across:
   - `scripts/scope-check.sh`
   - `src/qual/commands/__init__.py`
   - `src/qual/commands/canonical.py`

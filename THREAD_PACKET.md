@@ -16,6 +16,7 @@
 
 ### Budget Reconciliation Against The True Reviewed Basis
 
+- Packet refresh commit status: metadata-only resubmission packet update
 - Reviewed implementation base previously approved for comparison: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Reviewed implementation range in this resubmission: the full branch delta through `5ea27f3d960f2f2876347f2b8ce616223227a713`
 - Files changed in the true reviewed basis: `9`
@@ -32,7 +33,8 @@
 
 ## Review Basis
 
-- This resubmission is not metadata-only.
+- This packet-refresh commit is metadata-only.
+- The reviewed implementation basis is not metadata-only.
 - The true reviewed basis includes non-doc implementation across:
   - `scripts/scope-check.sh`
   - `src/qual/commands/__init__.py`
