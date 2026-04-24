@@ -2,10 +2,10 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix reissue`
-- Current submitted implementation tip before this packet refresh commit: `18f0ab0960c6d07920de212785c9517e8688418c`
-- Reviewed implementation head: `18f0ab0960c6d07920de212785c9517e8688418c`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..18f0ab0960c6d07920de212785c9517e8688418c`
-- Packet traceability note: review this lane against the cumulative implementation range above. That range includes the substantive post-`adfa8cda` retrieval commits `206ee919c0bb7a1736e07a86a5cba5aff314a785`, `a96043fee95c3be1b69fba0148e6fdbb5d1d51a9`, `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`, `2a136e56b78470a1a579f3cca73397a58b08622a`, and `18f0ab0960c6d07920de212785c9517e8688418c`. This fixer commit is metadata-only and does not broaden retrieval scope beyond `378cf9a7..18f0ab09`.
+- Current submitted implementation tip before this packet refresh commit: `416d3293d064b6e7fb05a7e8997d91bddbef443f`
+- Reviewed implementation head: `416d3293d064b6e7fb05a7e8997d91bddbef443f`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..416d3293d064b6e7fb05a7e8997d91bddbef443f`
+- Packet traceability note: review this lane against the cumulative implementation range above. That range includes the substantive post-`adfa8cda` retrieval commits `206ee919c0bb7a1736e07a86a5cba5aff314a785`, `a96043fee95c3be1b69fba0148e6fdbb5d1d51a9`, `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`, `2a136e56b78470a1a579f3cca73397a58b08622a`, `18f0ab0960c6d07920de212785c9517e8688418c`, `7fb9b3cb389e424fcbc0d54cb2087421fe8c6727`, and `416d3293d064b6e7fb05a7e8997d91bddbef443f`. This fixer commit is metadata-only and does not broaden retrieval scope beyond `378cf9a7..416d3293`.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Reviewer-required plan-alignment statement: This change makes the `retrieve relevant material` step more real by keeping excerpt lookup on the canonical FTS-only contract and by making sparse-hit provenance and citation ordering deterministic for downstream basket and workflow use.
 - Approved shared regression exception: `tests/unit/test_unified_retrieval.py` remains the only shared-by-approval regression surface in the reviewed implementation range.
@@ -13,7 +13,7 @@
 
 ## Scope Goal
 
-- Reissue the retrieval handoff truthfully against the real reviewed implementation range through the current substantive branch tip `18f0ab09`, while keeping this fixer commit metadata-only.
+- Reissue the retrieval handoff truthfully against the real reviewed implementation range through the current substantive branch tip `416d3293`, while keeping this fixer commit metadata-only.
 
 ## Thread Kickoff (High-Risk)
 
@@ -40,12 +40,13 @@
 
 - Kept excerpt lookup on the canonical FTS-only path so PageIndex-only excerpt IDs fail closed.
 - Preserved mirrored query constraints, sparse-hit provenance, and primary citation ordering in deterministic retrieval payloads for downstream engine flows.
+- Exposed the canonical retrieval provenance bundle alias and hardened sparse FTS excerpt query rehydration so excerpt payloads preserve stable query metadata when looked up after retrieval.
 - Kept retrieval FTS-first, with PageIndex and embeddings remaining compatibility-only fallback shims rather than required runtime paths.
-- Regenerated the handoff against the real cumulative implementation range through `18f0ab09` instead of the stale `adfa8cda`-anchored slice.
+- Regenerated the handoff against the real cumulative implementation range through `416d3293` instead of the stale `adfa8cda`-anchored slice.
 
 ## Reviewed Scope Boundary
 
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..18f0ab0960c6d07920de212785c9517e8688418c`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..416d3293d064b6e7fb05a7e8997d91bddbef443f`
 - Reviewed implementation files:
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
@@ -68,14 +69,14 @@
 
 ## Tasks Completed
 
-1. Corrected the reviewed implementation head and range so the packet now includes the substantive post-`adfa8cda` retrieval commits through `18f0ab09`.
+1. Corrected the reviewed implementation head and range so the packet now includes the substantive post-`adfa8cda` retrieval commits through `416d3293`.
 2. Replaced the false metadata-only branch-history claim with truthful cumulative traceability and the real reviewed file list.
 3. Added the explicit canonical demo-path statement naming `retrieve relevant material`.
 4. Re-ran the required gate suite on top of this metadata-only packet refresh and recorded results against the corrected range.
 
 ## Files Changed
 
-- Reviewed implementation files in `378cf9a74a3658058079a32f186fcd254c4a4034..18f0ab0960c6d07920de212785c9517e8688418c`:
+- Reviewed implementation files in `378cf9a74a3658058079a32f186fcd254c4a4034..416d3293d064b6e7fb05a7e8997d91bddbef443f`:
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
@@ -106,8 +107,8 @@
 
 ## Reviewer Fix Closure
 
-1. The packet now includes the real substantive history after `adfa8cda`, including `2a136e56` and `18f0ab09`.
-2. The reviewed file list is the real cumulative file set for `378cf9a7..18f0ab09`; the false metadata-only implementation story is gone.
+1. The packet now includes the real substantive history after `adfa8cda`, including `2a136e56`, `18f0ab09`, `7fb9b3cb`, and `416d3293`.
+2. The reviewed file list is the real cumulative file set for `378cf9a7..416d3293`; the false metadata-only implementation story is gone.
 3. The packet names the canonical demo-path step directly as `retrieve relevant material` and explains how this range makes that step more real.
 4. The shared-file exception remains limited to `tests/unit/test_unified_retrieval.py`.
 
