@@ -4568,7 +4568,7 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
     if kind is not None:
         requested_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
     if requested_kind == "card" and _is_explicit_terminal_artifact_leaf(artifact):
-        return _render_invalid_terminal_card(artifact)
+        raise ValueError("Explicit typed leaf payloads cannot be rendered as cards")
     if requested_kind is None and _should_preserve_raw_leaf_card_default(artifact):
         try:
             rendered_card = render_terminal_card(artifact)
@@ -4630,7 +4630,10 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
         envelope_kind = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
     if requested_kind == "card" and isinstance(artifact, Mapping) and malformed_envelope:
         payload = artifact.get("artifact")
-        if not _should_preserve_raw_leaf_card_default(payload):
+        # Only explicit card envelopes stay on the invalid-card path here.
+        # Other malformed envelope kinds still get a chance to recover typed
+        # leaf payloads through the shared fallback resolver below.
+        if envelope_kind == "card" and not _should_preserve_raw_leaf_card_default(payload):
             payload_kind = _infer_terminal_artifact_explicit_kind(payload)
             if payload_kind not in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
                 payload_kind = _recover_terminal_artifact_leaf_kind(payload)
@@ -4644,13 +4647,6 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
         and envelope_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET
     ):
         return _render_invalid_terminal_card(artifact)
-    if (
-        requested_kind == "card"
-        and _contains_action_or_selection_payload(artifact)
-        and not _should_preserve_raw_leaf_card_default(artifact)
-        and (not malformed_envelope or envelope_kind == "card")
-    ):
-        return _render_invalid_terminal_card(artifact)
     if requested_kind == "card" and malformed_envelope and isinstance(artifact, Mapping):
         kind_value = artifact.get("kind")
         if not isinstance(kind_value, str) or not kind_value.strip():
@@ -4661,6 +4657,16 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
                     payload_kind = _recover_terminal_artifact_leaf_kind(payload)
                 if payload_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
                     return _render_invalid_terminal_card(artifact)
+    if (
+        requested_kind == "card"
+        and not malformed_envelope
+        and isinstance(artifact, Mapping)
+        and not _should_preserve_raw_leaf_card_default(artifact)
+        and not _is_explicit_terminal_artifact_leaf(artifact)
+    ):
+        partial_kind = _infer_terminal_artifact_partial_leaf_kind(artifact)
+        if partial_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+            return _render_invalid_terminal_card(artifact)
     fallback_target = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get()
     if not _is_current_terminal_artifact_cli_fallback_hint(artifact, fallback_target):
         fallback_target = None
@@ -4724,6 +4730,18 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
             fallback_kind,
             requested_kind=requested_kind,
         )
+    if (
+        requested_kind == "card"
+        and fallback_kind == "card"
+        and not malformed_envelope
+        and _is_explicit_terminal_artifact_leaf(fallback_artifact)
+        and not _should_preserve_raw_leaf_card_default(fallback_artifact)
+    ):
+        recovered_kind = _infer_terminal_artifact_explicit_kind(fallback_artifact)
+        if recovered_kind not in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+            recovered_kind = _recover_terminal_artifact_leaf_kind(fallback_artifact)
+        if recovered_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+            fallback_kind = recovered_kind
     try:
         rendered_artifact = _render_terminal_artifact_resolved(
             fallback_artifact,
