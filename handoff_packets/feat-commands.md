@@ -2,16 +2,18 @@
 
 - Branch name: `codex/feat-commands`
 - Scope completed: hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the CLI contract reuses the canonical `command_names()` ordering and raises if the parser surface drifts from the command catalog, then added focused regression coverage for canonical-order alignment and drift rejection in `tests/unit/test_commands_catalog.py`.
-- Canonical MVP flow advanced: `vault -> context -> run -> patch -> export` for the manual CLI smoke flow.
-- Canonical MVP flow mapping sentence: this `feat-commands` CLI-contract hardening slice strengthens `vault -> context -> run -> patch -> export` by preserving the operator-facing CLI command catalog contract that the manual smoke flow depends on while CLI remains the active first-class surface.
-- Concrete blocker removed: before this change, parser drift could silently desynchronize the CLI surface from the catalog while leaving the contract seemingly valid, so an operator could run `vault -> context -> run -> patch -> export` through a CLI contract that had drifted away from the canonical catalog.
+- Canonical MVP flow advanced: `project-open -> retrieval -> patch-review -> export-handoff` for the manual CLI smoke flow.
+- Canonical MVP flow mapping sentence: this `feat-commands` CLI-contract hardening slice strengthens `project-open -> retrieval -> patch-review -> export-handoff` by preserving the operator-facing CLI command catalog contract that the manual smoke flow depends on while CLI remains the active first-class surface.
+- Concrete blocker removed: before this change, parser drift could silently desynchronize the CLI surface from the catalog while leaving the contract seemingly valid, so an operator could run `project-open -> retrieval -> patch-review -> export-handoff` through a CLI contract that had drifted away from the canonical catalog.
 - Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 
 ## Tasks Completed
 1. Hardened `command_cli_contract()` so it validates canonical command names against `command_names()` instead of rebuilding a divergent list from parser lookup output.
 2. Preserved canonical CLI contract ordering by returning the validated catalog-order tuple directly.
 3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and parser/catalog drift rejection.
-4. Refreshed the lane handoff metadata so it names the exact canonical demo-path step advanced, narrows the claim to CLI-contract hardening, cites the traceable shared-test approval source, and records the re-run gate results for the command-catalog slice.
+
+## Packet Refresh Notes
+- Metadata refresh only: this handoff now names the exact canonical demo-path step advanced, narrows the claim to CLI-contract hardening, cites the traceable shared-test approval source, and records the re-run gate results for the command-catalog slice.
 
 ## Files Changed
 - `src/qual/commands/catalog.py`
@@ -29,17 +31,17 @@
 - `make ci` -> passed
 
 ## Risks / Blockers
-- Risks: future command-surface edits still need to preserve the parser/catalog lock so the CLI contract for `vault -> context -> run -> patch -> export` stays deterministic.
+- Risks: future command-surface edits still need to preserve the parser/catalog lock so the CLI contract for `project-open -> retrieval -> patch-review -> export-handoff` stays deterministic.
 - Blockers: none.
 
 ## Roadmap Item(s) Affected
 - `AGENTS.md` handoff readiness and checkpoint rules because this packet now explicitly names the exact roadmap MVP flow advanced, records the shared-file checkpoint, and keeps the claim limited to the blocker removed for that flow.
-- `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization` because this is a narrow `feat-commands` command-catalog contract hardening slice that keeps the manual CLI smoke flow `vault -> context -> run -> patch -> export` stable.
-- `ROADMAP.md` Milestone 3 `Product Readiness` because this slice helps lock an intentional user-facing output contract by failing fast when the parser-backed CLI surface drifts from the canonical catalog.
+- `ROADMAP.md` Milestone 3 `Real workflow loop` because this is a narrow `feat-commands` command-catalog hardening slice that keeps the manual CLI smoke flow `project-open -> retrieval -> patch-review -> export-handoff` stable while Textual remains disabled.
+- `ROADMAP.md` exit criterion `CLI can still execute the MVP loop while Textual remains disabled` because this slice helps lock an intentional user-facing output contract by failing fast when the parser-backed CLI surface drifts from the canonical catalog.
 
 ## Vision Capability Affected
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface` because the active CLI operator surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on for `vault -> context -> run -> patch -> export`.
-- `PRODUCT_VISION.md` current capability alignments because the CLI remains the current operator path while `Exegesis Console` is still next, and this change hardens one real operator flow rather than claiming broader command reachability.
+- `PRODUCT_VISION.md` capability 3 `Canonical engine contract` because the active CLI operator surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on for `project-open -> retrieval -> patch-review -> export-handoff`.
+- `PRODUCT_VISION.md` near-term product truth because the CLI remains the current operator path while Textual stays disabled, and this change hardens one real operator flow rather than claiming broader command reachability.
 
 ## Routing / Provider Impact Note
 - None. This change does not touch routing or provider configuration.
