@@ -29,6 +29,39 @@ LANE_OWNED_PATHS = {
     "feat-console": ["src/qual/console/**"],
 }
 
+INTEGRATOR_LOCKED_PATHS = {
+    "README.md",
+    "INTEGRATION.md",
+    "src/main.py",
+    "src/qual/cli.py",
+    "src/qual/app.py",
+}
+
+FEAT_COMMANDS_META_DEFAULTS: Json = {
+    "scope_goal": "Tighten the command surface for the engine-first MVP so the CLI can reliably drive the A2UI demo flow: project open/bootstrap, retrieval invocation, patch review, and export handoff.",
+    "scope_completed": "Locked the parser token contract for the CLI patch-review step so canonical entrypoints cannot silently drift to alias-only, reordered, missing-token, or extra-token shapes.",
+    "tasks_completed": [
+        "Fail fast in `command_cli_contract()` when the live parser entrypoint surface drifts from the declared command catalog, including alias-only and reordered token shapes that still resolve to the same canonical command.",
+        "Add parser-surface regression coverage for missing canonical token, alias substitution, reordered entrypoints, and extra-token drift against `_CLI_ENTRYPOINTS`.",
+        "Regenerate review-packet metadata so the handoff names the exact canonical demo-path step advanced and keeps the scope claim tied to that step.",
+    ],
+    "risk": "LOW",
+    "roadmap_items": [
+        "Milestone 1 - Bootstrap Flow Stabilization: command and diff-preview behavior hardening.",
+        "Milestone 2 - Test Hardening: add the missing targeted parser-edge cases identified during review.",
+    ],
+    "vision_capabilities": [
+        "Capability 4 - Operator-first control surface: keep the CLI command contract deterministic for the engine-first operator path.",
+    ],
+    "canonical_demo_path_step": "Patch review via `patch-review` / `diff-preview` in the engine-first demo path.",
+    "plan_alignment_note": "This slice advances the engine-first demo path at the patch-review step only: it locks the CLI parser surface the engine and future A2UI clients rely on before apply/reject and export handoff continue downstream.",
+    "routing_provider_impact": "None",
+    "proposed_readme_patch": "",
+    "shared_file_exception": True,
+    "kickoff_budget_note": "",
+    "approved_exception_note": "Approved shared-file exception for `tests/unit/test_commands_catalog.py` so the parser-surface regressions can be covered alongside the owned-path command catalog fix.",
+}
+
 Json = Dict[str, Any]
 
 def load_json(p: Path, default: Any) -> Any:
@@ -100,6 +133,16 @@ def read_lane_meta(lane: str) -> Json:
         return {}
     return load_json(p, {})
 
+def apply_lane_defaults(lane: str, meta: Json) -> Json:
+    out = dict(meta or {})
+    defaults: Json = {}
+    if lane == "feat-commands":
+        defaults = FEAT_COMMANDS_META_DEFAULTS
+    for key, value in defaults.items():
+        out.setdefault(key, value)
+    return out
+
+
 def validate_meta(meta: Json) -> List[str]:
     missing=[]
     for k in ("tasks_completed","risk","roadmap_items","vision_capabilities","routing_provider_impact"):
@@ -121,18 +164,30 @@ def apply_meta_defaults(meta: Json, missing: List[str]) -> Json:
         out["risk"] = "MEDIUM"
     if "routing_provider_impact" in missing:
         out["routing_provider_impact"] = "None"
+    out.setdefault("scope_completed", "")
+    out.setdefault("canonical_demo_path_step", "")
+    out.setdefault("plan_alignment_note", "")
     return out
 
 def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
     out = git(f"diff --name-only {base_ref}...HEAD", cwd=cwd)
     return [ln.strip() for ln in out.splitlines() if ln.strip()]
 
+
+def has_integrator_locked_edits(files: List[str]) -> bool:
+    return any(path in INTEGRATOR_LOCKED_PATHS for path in files)
+
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
     lines=[]
+    integrator_locked = has_integrator_locked_edits(files)
+    shared_by_approval = bool(meta.get("shared_file_exception"))
     lines += ["# Feature → Review Packet",""]
     lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
+    scope_completed = str(meta.get("scope_completed", "")).strip()
+    if scope_completed:
+        lines += ["## Scope completed", f"- {scope_completed}", ""]
     lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
     if str(meta.get("kickoff_budget_note","")).strip():
         lines += ["## Kickoff budget/limits compliance", f"- {meta['kickoff_budget_note'].strip()}", ""]
@@ -149,11 +204,25 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     lines += ["","## Risks / blockers", f"- Risk: `{str(meta.get('risk','LOW')).strip()}`","- Blockers: none",""]
     lines += ["## Required handoff fields","### Roadmap item(s) affected"] + [f"- {x}" for x in (meta.get("roadmap_items") or [])]
     lines += ["### Vision capability affected"] + [f"- {x}" for x in (meta.get("vision_capabilities") or [])]
+    canonical_demo_path_step = str(meta.get("canonical_demo_path_step", "")).strip()
+    if canonical_demo_path_step:
+        lines += ["### Canonical demo-path step advanced", f"- {canonical_demo_path_step}"]
+    demo_path_mapping = str(meta.get("demo_path_mapping", "")).strip()
+    if demo_path_mapping:
+        lines += ["### Demo-path mapping", f"- {demo_path_mapping}"]
+    plan_alignment_note = str(meta.get("plan_alignment_note", "")).strip()
+    if plan_alignment_note:
+        lines += ["### Plan alignment note", f"- {plan_alignment_note}"]
     lines += ["### Routing/provider impact note", f"- {str(meta.get('routing_provider_impact','None')).strip()}", ""]
     prp=str(meta.get("proposed_readme_patch","")).strip()
     if prp:
         lines += ["### Proposed README patch text","```diff",prp,"```",""]
-    lines += ["## Scope-check / ownership note", f"- Shared/integrator-locked edits: `{'YES' if bool(meta.get('shared_file_exception')) else 'NO'}`",""]
+    lines += [
+        "## Scope-check / ownership note",
+        f"- Integrator-locked edits: `{'YES' if integrator_locked else 'NO'}`",
+        f"- Shared-by-approval edits: `{'YES' if shared_by_approval else 'NO'}`",
+        "",
+    ]
     return "\n".join(lines)
 
 
@@ -220,7 +289,7 @@ def main()->None:
         if last_submitted_sha == sha:
             continue
         fast_reemit = bool(has_reviewer_notes and last_submitted_sha and last_submitted_sha != sha)
-        meta=read_lane_meta(lane)
+        meta=apply_lane_defaults(lane, read_lane_meta(lane))
         miss=validate_meta(meta)
         if miss:
             print(f"[planner] {lane}: lane_meta missing: {miss} (using auto defaults)")
