@@ -62,7 +62,13 @@ def _normalize_constraint_values(value: object, *, field_name: str) -> tuple[str
     if not isinstance(value, Iterable):
         raise TypeError(f"{field_name} must be an iterable of values or None")
 
-    items = [str(item) for item in value if item is not None]
+    items: list[str] = []
+    for item in value:
+        if item is None:
+            continue
+        if isinstance(item, (bytes, bytearray)):
+            raise TypeError(f"{field_name} entries must be text values, not bytes")
+        items.append(str(item))
     if isinstance(value, (set, frozenset)):
         return tuple(sorted(items))
     return tuple(items)
@@ -158,12 +164,16 @@ def build_retrieval_query(
         raise TypeError("constraints must be a mapping or RetrievalConstraints")
 
     normalized_query_text = _normalize_required_text(query_text, field_name="query_text")
+    normalized_scope = _normalize_required_text(scope, field_name="scope")
     normalized_intent = _normalize_required_text(intent, field_name="intent", casefold=True)
     normalized_confidentiality_profile = _normalize_required_text(
         confidentiality_profile,
         field_name="confidentiality_profile",
         casefold=True,
     )
+    section_hint = payload.get("section_hint")
+    if section_hint is not None and isinstance(section_hint, (bytes, bytearray)):
+        raise TypeError("section_hint must be a text string, not bytes")
     doc_types = _normalize_constraint_values(payload.get("doc_types"), field_name="doc_types")
     date_range = payload.get("date_range")
     if isinstance(date_range, str):
@@ -172,7 +182,7 @@ def build_retrieval_query(
         date_range = _normalize_constraint_values(date_range, field_name="date_range")
     return RetrievalQuery(
         query_text=normalized_query_text,
-        scope=scope,
+        scope=normalized_scope,
         intent=normalized_intent,  # type: ignore[arg-type]
         constraints=RetrievalConstraints(
             max_results=_normalize_optional_int(payload.get("max_results"), default=10),
@@ -182,7 +192,7 @@ def build_retrieval_query(
                 payload.get("require_citations"),
                 default=False,
             ),
-            section_hint=payload.get("section_hint"),  # type: ignore[arg-type]
+            section_hint=section_hint,  # type: ignore[arg-type]
             prefer_exact_matches=_normalize_optional_bool(
                 payload.get("prefer_exact_matches"),
                 default=False,

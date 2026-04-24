@@ -58,6 +58,8 @@ def _canonicalize_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
     seen: set[str] = set()
     normalized: list[str] = []
     for doc_type in doc_types:
+        if isinstance(doc_type, (bytes, bytearray)):
+            raise TypeError("doc_types entries must be text strings, not bytes")
         value = str(doc_type).strip().casefold()
         if not value or value in seen:
             continue
@@ -191,6 +193,8 @@ def _parse_date_value(value: str) -> date | None:
 
 
 def _normalize_date_range(value: tuple[str, str]) -> tuple[str, str]:
+    if any(isinstance(item, (bytes, bytearray)) for item in value):
+        raise TypeError("date_range values must be text strings, not bytes")
     start_raw, end_raw = (str(item).strip() for item in value)
     if not start_raw or not end_raw:
         raise ValueError("date_range must contain exactly two non-empty values")
@@ -205,6 +209,8 @@ def _normalize_date_range(value: tuple[str, str]) -> tuple[str, str]:
 
 
 def _normalize_scope(value: object) -> str:
+    if isinstance(value, (bytes, bytearray)):
+        raise TypeError("scope must be a text string, not bytes")
     scope = str(value).strip()
     if not scope:
         raise ValueError("scope must be a non-empty string")
@@ -252,6 +258,8 @@ def _stable_sort_key(value: object) -> str:
 
 
 def _normalize_supported_value(value: object, *, field_name: str, allowed: set[str]) -> str:
+    if isinstance(value, (bytes, bytearray)):
+        raise TypeError(f"{field_name} must be a text string, not bytes")
     normalized = str(value).strip().casefold()
     if normalized not in allowed:
         raise ValueError(f"unsupported {field_name}: {normalized}")
@@ -611,12 +619,16 @@ class RetrievalConstraints:
             raise ValueError("max_results must be greater than zero")
         object.__setattr__(self, "doc_types", _canonicalize_doc_types(self.doc_types))
         if self.date_range is not None:
+            if any(isinstance(value, (bytes, bytearray)) for value in self.date_range):
+                raise TypeError("date_range values must be text strings, not bytes")
             normalized = tuple(str(value).strip() for value in self.date_range)
             if len(normalized) != 2:
                 raise ValueError("date_range must contain exactly two non-empty values")
             object.__setattr__(self, "date_range", _normalize_date_range(normalized))
         # Normalize hint casing up front so engine-facing payloads, provenance,
         # and fingerprints stay aligned for equivalent retrieval queries.
+        if isinstance(self.section_hint, (bytes, bytearray)):
+            raise TypeError("section_hint must be a text string, not bytes")
         object.__setattr__(self, "section_hint", _normalized_query_hint_text(self.section_hint))
 
 
