@@ -45,6 +45,7 @@ def build_retrieval_query(
     normalization path as the retrieval-owned facade.
     """
 
+    _ensure_runtime_types()
     return _delegate_to_retrieval(
         "build_retrieval_query",
         query_text=query_text,
@@ -95,6 +96,14 @@ def _bind_runtime_types() -> None:
     service_module = import_module("src.qual.retrieval.service")
     globals()["RetrievalConstraints"] = service_module.RetrievalConstraints
     globals()["RetrievalQuery"] = service_module.RetrievalQuery
+
+
+def _ensure_runtime_types() -> None:
+    """Bind retrieval dataclasses once the retrieval service has finished importing."""
+
+    if "RetrievalConstraints" in globals() and "RetrievalQuery" in globals():
+        return
+    _bind_runtime_types()
 
 
 def _delegate_to_retrieval(name: str, *args, **kwargs):
@@ -179,10 +188,6 @@ def retrieve_auto_excerpt_bundle(*args, **kwargs):
 
 def retrieve_auto_payload(*args, **kwargs):
     return _delegate_to_retrieval("retrieve_auto_payload", *args, **kwargs)
-
-
-_bind_runtime_types()
-
 
 __all__ = [
     "StrategyRun",
