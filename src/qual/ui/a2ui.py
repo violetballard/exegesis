@@ -861,11 +861,14 @@ def describe_a2ui_dispatch_contract_fingerprints(
     *,
     include_terminal_artifact_cli_fallback_entrypoint: bool = False,
     include_shell_ui_contract: bool = False,
+    include_contract_aliases: bool = False,
 ) -> dict[str, str]:
     """Return the full route-aware A2UI dispatch fingerprint summary.
 
     Pass ``include_terminal_artifact_cli_fallback_entrypoint=True`` to include
     the explicit CLI fallback entrypoint slice without the shell snapshot.
+    Pass ``include_contract_aliases=True`` to expose the same self-describing
+    alias keys that the base A2UI fingerprint helper already supports.
     """
 
     return describe_a2ui_contract_fingerprints(
@@ -878,6 +881,7 @@ def describe_a2ui_dispatch_contract_fingerprints(
         include_terminal_artifact_cli_fallback_route=True,
         include_terminal_artifact_cli_fallback_entrypoint=include_terminal_artifact_cli_fallback_entrypoint,
         include_shell_ui_contract=include_shell_ui_contract,
+        include_contract_aliases=include_contract_aliases,
     )
 
 

@@ -2462,6 +2462,37 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(fingerprints["terminal_artifact_cli_fallback_route"], route_fingerprint)
 
+    def test_a2ui_dispatch_contract_fingerprints_can_opt_into_contract_aliases(self) -> None:
+        default_fingerprints = describe_a2ui_dispatch_contract_fingerprints(
+            include_shell_ui_contract=True,
+        )
+        aliased_fingerprints = describe_a2ui_dispatch_contract_fingerprints(
+            include_shell_ui_contract=True,
+            include_contract_aliases=True,
+        )
+        canonical_fingerprints = describe_a2ui_contract_fingerprints(
+            include_action=True,
+            include_terminal_artifact=True,
+            include_terminal_artifact_render_target=True,
+            include_terminal_artifact_rendering=True,
+            include_terminal_artifact_cli_fallback=True,
+            include_terminal_artifact_cli_fallback_target=True,
+            include_terminal_artifact_cli_fallback_route=True,
+            include_shell_ui_contract=True,
+            include_contract_aliases=True,
+        )
+
+        self.assertNotIn("contract_fingerprint", default_fingerprints)
+        self.assertEqual(aliased_fingerprints, canonical_fingerprints)
+        self.assertEqual(
+            aliased_fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_manifest"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprint(),
+        )
+        self.assertEqual(
+            aliased_fingerprints["shell_ui_contract_manifest"],
+            shell_ui_contract_fingerprint(include_terminal_artifact_cli_fallback_route=True),
+        )
+
     def test_a2ui_contract_fingerprint_map_can_opt_into_raw_leaf_card_default_dispatch(self) -> None:
         fingerprints = describe_a2ui_contract_fingerprints(
             include_terminal_artifact_raw_leaf_card_default=True,
