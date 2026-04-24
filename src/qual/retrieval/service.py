@@ -1950,6 +1950,9 @@ class RetrievalService:
                 "retrieval_backend": excerpt.get("retrieval_backend"),
                 "retrieval_mode": excerpt.get("retrieval_mode"),
                 "retrieval_policy": copy.deepcopy(retrieval_policy),
+                # Keep success and failure lookup audit payloads schema-aligned
+                # so downstream audit readers can consume one canonical alias.
+                "policy": copy.deepcopy(retrieval_policy),
                 "active_strategy_ids": copy.deepcopy(excerpt.get("active_strategy_ids")),
                 "deferred_strategy_ids": copy.deepcopy(excerpt.get("deferred_strategy_ids")),
                 "strategies_used": copy.deepcopy(excerpt.get("strategies_used")),
