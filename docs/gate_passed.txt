@@ -7,8 +7,8 @@ Packet refresh trace anchor before this fixer commit: `d5d57e4ba3ee4be4da27e9742
 Reviewed implementation head before this fixer commit: `72a65689bc806e3f33afa9f28e87c827020e5021`
 Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..72a65689bc806e3f33afa9f28e87c827020e5021`
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: This handoff makes `retrieve relevant material` more real by enforcing canonical FTS-only excerpt resolution and deterministic provenance on the engine retrieval surface.
-Reviewer-fix reconciliation: the packet now includes `72a65689bc806e3f33afa9f28e87c827020e5021` in the reviewed implementation range, keeps the handoff classified as shared/high-risk work under the `4`-task cap, records the explicit canonical demo-path mapping in the handoff itself, and distinguishes the packet-refresh branch tip from the reviewed implementation head.
+Plan-alignment statement: This handoff makes `retrieve relevant material` more real by ensuring the canonical excerpt lookup surface is FTS-only and auditable for downstream engine use through deterministic provenance on the engine retrieval surface.
+Reviewer-fix reconciliation: the packet now includes `72a65689bc806e3f33afa9f28e87c827020e5021` in the reviewed implementation range, records the explicit canonical demo-path mapping in the handoff itself, distinguishes the packet-refresh branch tip from the reviewed implementation head, and narrows the ownership note to an approved shared test edit in `tests/unit/test_unified_retrieval.py` with no integrator-locked edits in scope.
 FTS-first confirmation: SQLite FTS remains authoritative for the MVP across the reviewed range; PageIndex and embeddings remain compatibility-only shims and are not required retrieval paths in this handoff.
 
 Reviewed implementation scope:
