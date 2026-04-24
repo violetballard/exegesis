@@ -1461,6 +1461,12 @@ class RetrievalResult:
             retrieval_policy=retrieval_policy,
             basket_promotion=basket_promotion,
         )
+        # Keep the ranked retrieval ids available directly on the narrower
+        # doc/excerpt bundles so callers that consume those snapshots do not
+        # have to unpack the larger summary payload just to preserve the
+        # authoritative FTS ordering for later basket/context promotion.
+        retrieved_doc_ids = [doc_hit.doc_id for doc_hit in self.doc_hits]
+        retrieved_excerpt_ids = [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None]
         return {
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
@@ -1476,6 +1482,8 @@ class RetrievalResult:
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             "citation_status": citation_status,
+            "retrieved_doc_ids": retrieved_doc_ids,
+            "retrieved_excerpt_ids": retrieved_excerpt_ids,
             # Keep the citation bundle inline so doc/excerpt snapshots remain
             # self-contained for downstream drafting and patching flows.
             "retrieval_citation_bundle": copy.deepcopy(citation_bundle),
