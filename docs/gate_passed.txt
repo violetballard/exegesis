@@ -32,8 +32,6 @@ Reviewed implementation files:
 
 Metadata-only refresh files in this packet slice:
 
-* `.codex/kickoff_packets/feat-retrieval-fts.md`
-* `.codex/lane_meta/feat-retrieval-fts.json`
 * `THREAD_PACKET.md`
 * `docs/gate_passed.txt`
 
