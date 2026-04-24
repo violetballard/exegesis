@@ -2,15 +2,18 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Reviewed implementation head: `f310336ed561c8c126ff279d1368df88d7bc6e6c`
+Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..f310336ed561c8c126ff279d1368df88d7bc6e6c`
 Canonical demo-path step advanced: `retrieve relevant material`
 Scope: narrow `fetch_excerpt()` to canonical FTS-only excerpt resolution and add regression coverage proving PageIndex-only excerpt IDs fail closed on the public excerpt lookup path, while preserving the same reviewed implementation range.
-Current branch tip before this handoff refresh commit: `e60b5084b7a491066724b9524419f971d289b172`
+Current branch tip before this handoff refresh commit: `31cb8a23788e9a4e435d8d365a82d5a520c54589`
 
 Reviewed implementation files:
 
 * `src/qual/retrieval/service.py`
+* `src/qual/engine/retrieval/__init__.py`
+* `src/qual/engine/retrieval/payload.py`
+* `src/qual/retrieval/__init__.py`
 * `tests/unit/test_unified_retrieval.py`
 
 Metadata-only packet refresh commits:

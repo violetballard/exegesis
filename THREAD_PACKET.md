@@ -2,22 +2,23 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `feature lane handoff`
-- Reviewed implementation head: `9e02450b28a598afddeecb0466af7fcb724f942b`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..9e02450b28a598afddeecb0466af7fcb724f942b`
+- Reviewed implementation head: `f310336ed561c8c126ff279d1368df88d7bc6e6c`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..f310336ed561c8c126ff279d1368df88d7bc6e6c`
 - Scope goal: keep retrieval FTS-first by narrowing `fetch_excerpt()` to canonical FTS-only excerpt resolution, localize the canonical retrieval query builder in the lane-owned facade, delegate the engine facade to that canonical builder, and preserve regression coverage proving PageIndex-only excerpt IDs fail closed on the public excerpt lookup path.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Plan-alignment statement: this slice advances `retrieve relevant material` by making the public `fetch_excerpt` surface resolve only through the canonical SQLite FTS path, so PageIndex-only excerpt IDs fail closed on the retrieval step itself.
 - Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by narrowing public excerpt resolution to the canonical FTS-only lookup path and by adding approved shared regression coverage proving PageIndex-only excerpt IDs raise `KeyError`. It does not promote PageIndex or embeddings to required runtime paths, and it does not claim basket promotion, plan/revise behavior, or broader workflow progress.
-- Approved exception surface: approved shared regression coverage in `tests/unit/test_unified_retrieval.py` only; no other shared-by-approval or integrator-locked files are part of the reviewed implementation range, and both `src/qual/retrieval/__init__.py` and `src/qual/engine/retrieval/__init__.py` are included as lane-owned implementation in that range.
+- Approved exception surface: approved shared regression coverage in `tests/unit/test_unified_retrieval.py` only; no other shared-by-approval or integrator-locked files are part of the reviewed implementation range, and both `src/qual/retrieval/__init__.py` and `src/qual/engine/retrieval/__init__.py` remain lane-owned implementation in that range.
 
 ## Scope Completed
 
 - `src/qual/retrieval/service.py::fetch_excerpt()` now resolves only through the canonical SQLite FTS lookup path in the reviewed implementation range.
 - `src/qual/retrieval/__init__.py` now owns the canonical retrieval query builder for the compatibility facade, so the lane no longer depends on an engine-side helper for query normalization on this surface.
 - `src/qual/engine/retrieval/__init__.py` now delegates `build_retrieval_query()` to the canonical retrieval package, so the engine surface shares the same normalization path instead of carrying a divergent local copy.
+- `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py` now mirror query section hints consistently in retrieval payloads, keeping the canonical retrieval surface and downstream payload metadata aligned inside this reviewed slice.
 - `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt identifiers fail closed with `KeyError` on `fetch_excerpt()` and both retrieval facades.
 - This is a narrow Milestone 3 retrieval-contract slice for `retrieve relevant material`; it does not claim basket promotion, plan/revise behavior, or full-lane completion.
-- No retrieval code changed after `9e02450b28a598afddeecb0466af7fcb724f942b`; later commits are metadata-only packet refreshes.
+- No retrieval code changed after `f310336ed561c8c126ff279d1368df88d7bc6e6c`; later commits are metadata-only packet refreshes.
 
 ## Thread Kickoff (High-Risk)
 
@@ -36,7 +37,7 @@
 ### Tasks Completed
 
 1. Reclassified the reviewed slice as shared/high-risk work with `tests/unit/test_unified_retrieval.py` as the sole approved shared exception surface.
-2. Regenerated the reviewed implementation range to `378cf9a74a3658058079a32f186fcd254c4a4034..9e02450b28a598afddeecb0466af7fcb724f942b` so it matches the branch’s actual retrieval implementation tip.
+2. Regenerated the reviewed implementation range to `378cf9a74a3658058079a32f186fcd254c4a4034..f310336ed561c8c126ff279d1368df88d7bc6e6c` so it matches the branch’s actual retrieval implementation tip.
 3. Updated the packet scope and file inventory to treat both retrieval facade files, including the engine delegation change in `src/qual/engine/retrieval/__init__.py`, as reviewed lane implementation rather than metadata.
 4. Re-emitted the canonical handoff packet with the explicit `retrieve relevant material` plan-alignment sentence and the scope-tight retrieval wording requested in review.
 
@@ -45,8 +46,10 @@
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
+- `docs/gate_passed.txt`
 - `src/qual/retrieval/__init__.py`
 - `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/payload.py`
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
@@ -58,7 +61,7 @@
 - `./quality-test.sh`: `PASS` (`216 tests`)
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Current fixer pass note: reran the full required gate set after regenerating this packet on the packet-refresh head descended from `9e02450b28a598afddeecb0466af7fcb724f942b`; the final fixer commit reports the resulting branch tip SHA.
+- Current fixer pass note: reran the full required gate set after regenerating this packet on the packet-refresh head `31cb8a23788e9a4e435d8d365a82d5a520c54589` while preserving the reviewed implementation head `f310336ed561c8c126ff279d1368df88d7bc6e6c`; the final fixer commit reports the resulting branch tip SHA.
 
 ## Risks / Blockers
 
