@@ -8,6 +8,9 @@ from typing import Any, Callable
 
 from src.qual.engine.retrieval.interface import StrategyRun
 
+_SUPPORTED_RETRIEVAL_INTENTS = {"lookup", "compare", "summarize", "quote_find", "outline_support"}
+_SUPPORTED_CONFIDENTIALITY_PROFILES = {"confidential", "standard"}
+
 
 class FTSStrategy:
     id = "fts"
@@ -45,8 +48,7 @@ class FTSStrategy:
         if payload is None:
             return False
 
-        scope = payload.get("scope")
-        return self._scope_is_supported(scope)
+        return self._payload_is_supported(payload)
 
     def retrieve(self, query: Any, *, candidate_doc_ids: tuple[str, ...], use_cache: bool = True) -> StrategyRun:
         """Execute the underlying ``runner`` or return a cached result.
@@ -57,8 +59,10 @@ class FTSStrategy:
         one-slot cache with the fresh result, and report ``cache_used=False``.
         """
         payload = self._query_payload(query)
-        if payload is not None and not self._scope_is_supported(payload.get("scope")):
-            raise ValueError("FTSStrategy only supports canonical vault/doc scopes in the FTS-first MVP lane")
+        if payload is not None and not self._payload_is_supported(payload):
+            raise ValueError(
+                "FTSStrategy only supports canonical FTS-first retrieval queries in the MVP lane"
+            )
 
         normalized_candidate_doc_ids = self._normalize_candidate_doc_ids(candidate_doc_ids)
         cache_key = self._make_cache_key(query, normalized_candidate_doc_ids)
@@ -273,6 +277,29 @@ class FTSStrategy:
         # them deterministically without widening the active engine path.
         if normalized_prefix in {"section", "collection"}:
             return False
+        return True
+
+    @staticmethod
+    def _payload_is_supported(payload: Mapping[str, object]) -> bool:
+        query_text = payload.get("query_text")
+        if not isinstance(query_text, str) or not query_text:
+            return False
+
+        scope = payload.get("scope")
+        if not FTSStrategy._scope_is_supported(scope):
+            return False
+
+        intent = payload.get("intent")
+        if not isinstance(intent, str) or intent not in _SUPPORTED_RETRIEVAL_INTENTS:
+            return False
+
+        confidentiality_profile = payload.get("confidentiality_profile")
+        if (
+            not isinstance(confidentiality_profile, str)
+            or confidentiality_profile not in _SUPPORTED_CONFIDENTIALITY_PROFILES
+        ):
+            return False
+
         return True
 
     @staticmethod
