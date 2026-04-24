@@ -32,6 +32,7 @@ from .a2ui import (
     _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT,
     _fingerprint_manifest_section,
     _has_expected_card_renderer_prefix,
+    _is_nonempty_terminal_rendered_text,
     _is_explicit_terminal_artifact_leaf,
     _normalize_terminal_artifact_kind_hint,
     _should_preserve_raw_leaf_card_default,
@@ -192,7 +193,7 @@ class ShellUI:
         except Exception:
             rendered_cli_fallback = None
         else:
-            if isinstance(rendered_cli_fallback, str):
+            if _is_nonempty_terminal_rendered_text(rendered_cli_fallback):
                 if leaf_specific_fallback and self._has_expected_leaf_renderer_prefix(
                     rendered_cli_fallback,
                     kind,
@@ -216,7 +217,7 @@ class ShellUI:
                 rendered_action = render_terminal_action(artifact)
             except Exception:
                 return _render_invalid_terminal_action(artifact)
-            if isinstance(rendered_action, str):
+            if _is_nonempty_terminal_rendered_text(rendered_action):
                 return rendered_action
             return _render_invalid_terminal_action(artifact)
         if kind == "selection":
@@ -224,7 +225,7 @@ class ShellUI:
                 rendered_selection = render_terminal_selection(artifact)
             except Exception:
                 return _render_invalid_terminal_selection(artifact)
-            if isinstance(rendered_selection, str):
+            if _is_nonempty_terminal_rendered_text(rendered_selection):
                 return rendered_selection
             return _render_invalid_terminal_selection(artifact)
         if kind == "card" and card_hint_leaf_kind in {"action", "selection"}:
@@ -234,7 +235,7 @@ class ShellUI:
                 except Exception:
                     pass
                 else:
-                    if isinstance(rendered_action, str):
+                    if _is_nonempty_terminal_rendered_text(rendered_action):
                         return rendered_action
             else:
                 try:
@@ -242,7 +243,7 @@ class ShellUI:
                 except Exception:
                     pass
                 else:
-                    if isinstance(rendered_selection, str):
+                    if _is_nonempty_terminal_rendered_text(rendered_selection):
                         return rendered_selection
         if kind not in {"action", "selection"}:
             try:
@@ -253,7 +254,7 @@ class ShellUI:
             except Exception:
                 pass
             else:
-                if isinstance(rendered_artifact, str):
+                if _is_nonempty_terminal_rendered_text(rendered_artifact):
                     if kind == "card":
                         if card_hint_leaf_kind in {"action", "selection"}:
                             if self._has_expected_leaf_renderer_prefix(rendered_artifact, card_hint_leaf_kind):
@@ -266,7 +267,7 @@ class ShellUI:
             rendered_card = render_terminal_card(artifact)
         except Exception:
             return _render_invalid_terminal_card(artifact)
-        if isinstance(rendered_card, str):
+        if _is_nonempty_terminal_rendered_text(rendered_card):
             return rendered_card
         return _render_invalid_terminal_card(artifact)
 
@@ -549,7 +550,7 @@ class ShellUI:
 
     @staticmethod
     def _has_expected_leaf_renderer_prefix(rendered: Any, fallback_kind: str) -> bool:
-        if not isinstance(rendered, str):
+        if not _is_nonempty_terminal_rendered_text(rendered):
             return False
         if fallback_kind == "action":
             return rendered.startswith("[ActionRef]")

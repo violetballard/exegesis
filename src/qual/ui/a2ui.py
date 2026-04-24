@@ -4337,7 +4337,7 @@ def render_terminal_card(card: Any) -> str:
             except Exception:
                 rendered_artifact = None
             else:
-                if isinstance(rendered_artifact, str):
+                if _is_nonempty_terminal_rendered_text(rendered_artifact):
                     return rendered_artifact
             try:
                 recovered_artifact, recovered_kind = _resolve_terminal_artifact_render_target(
@@ -4353,7 +4353,7 @@ def render_terminal_card(card: Any) -> str:
                         rendered_action = render_terminal_action(recovered_artifact)
                     except Exception:
                         return _render_invalid_terminal_action(recovered_artifact)
-                    if isinstance(rendered_action, str):
+                    if _is_nonempty_terminal_rendered_text(rendered_action):
                         return rendered_action
                     return _render_invalid_terminal_action(recovered_artifact)
                 if recovered_kind == "selection":
@@ -4361,7 +4361,7 @@ def render_terminal_card(card: Any) -> str:
                         rendered_selection = render_terminal_selection(recovered_artifact)
                     except Exception:
                         return _render_invalid_terminal_selection(recovered_artifact)
-                    if isinstance(rendered_selection, str):
+                    if _is_nonempty_terminal_rendered_text(rendered_selection):
                         return rendered_selection
                     return _render_invalid_terminal_selection(recovered_artifact)
                 if recovered_kind == "card":
@@ -4370,7 +4370,7 @@ def render_terminal_card(card: Any) -> str:
                     except Exception:
                         pass
                     else:
-                        if isinstance(rendered_card, str):
+                        if _is_nonempty_terminal_rendered_text(rendered_card):
                             return rendered_card
                 recovered_card = _resolve_terminal_artifact_card_fallback(normalized_card)
                 if recovered_card is not None:
@@ -4379,7 +4379,7 @@ def render_terminal_card(card: Any) -> str:
                     except Exception:
                         pass
                     else:
-                        if isinstance(rendered_card, str):
+                        if _is_nonempty_terminal_rendered_text(rendered_card):
                             return rendered_card
                 return _render_invalid_terminal_artifact(normalized_card)
         # Keep the card leaf renderer card-only so explicit action/selection
@@ -4642,7 +4642,7 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
             rendered_card = render_terminal_card(artifact)
         except Exception:
             return _render_invalid_terminal_card(artifact)
-        if isinstance(rendered_card, str):
+        if _is_nonempty_terminal_rendered_text(rendered_card):
             return rendered_card
         return _render_invalid_terminal_card(artifact)
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
@@ -4666,18 +4666,18 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
     )
     if resolved_kind == "action":
         rendered_action = render_terminal_action(artifact)
-        if isinstance(rendered_action, str):
+        if _is_nonempty_terminal_rendered_text(rendered_action):
             return rendered_action
         return _render_invalid_terminal_action(artifact)
     if resolved_kind == "selection":
         rendered_selection = render_terminal_selection(artifact)
-        if isinstance(rendered_selection, str):
+        if _is_nonempty_terminal_rendered_text(rendered_selection):
             return rendered_selection
         return _render_invalid_terminal_selection(artifact)
     if requested_kind != "card":
         _validate_terminal_artifact_card_payload(artifact)
     rendered_card = render_terminal_card(artifact)
-    if isinstance(rendered_card, str):
+    if _is_nonempty_terminal_rendered_text(rendered_card):
         return rendered_card
     return _render_invalid_terminal_card(artifact)
 
@@ -4828,7 +4828,7 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
         # instead of leaking action or selection presentation through the card
         # contract.
         return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
-    if isinstance(rendered_artifact, str):
+    if _is_nonempty_terminal_rendered_text(rendered_artifact):
         return rendered_artifact
     return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
 
@@ -4975,7 +4975,7 @@ def _render_terminal_artifact_resolved(
             rendered_action = render_terminal_action(artifact)
         except Exception:
             return _render_invalid_terminal_action(artifact)
-        if isinstance(rendered_action, str):
+        if _is_nonempty_terminal_rendered_text(rendered_action):
             return rendered_action
         return _render_invalid_terminal_action(artifact)
     if resolved_kind == "selection":
@@ -4983,7 +4983,7 @@ def _render_terminal_artifact_resolved(
             rendered_selection = render_terminal_selection(artifact)
         except Exception:
             return _render_invalid_terminal_selection(artifact)
-        if isinstance(rendered_selection, str):
+        if _is_nonempty_terminal_rendered_text(rendered_selection):
             return rendered_selection
         return _render_invalid_terminal_selection(artifact)
     if requested_kind != "card":
@@ -4992,13 +4992,13 @@ def _render_terminal_artifact_resolved(
         rendered_card = render_terminal_card(artifact)
     except Exception:
         return _render_invalid_terminal_card(artifact)
-    if isinstance(rendered_card, str):
+    if _is_nonempty_terminal_rendered_text(rendered_card):
         return rendered_card
     return _render_invalid_terminal_card(artifact)
 
 
 def _has_expected_card_renderer_prefix(rendered: Any) -> bool:
-    if not isinstance(rendered, str):
+    if not _is_nonempty_terminal_rendered_text(rendered):
         return False
     return not rendered.startswith(("[ActionRef]", "[SelectionRef]", "[TerminalArtifact]"))
 
@@ -5013,7 +5013,7 @@ def _render_terminal_artifact_cli_fallback_failure(
             rendered_card = render_terminal_card(artifact)
         except Exception:
             return _render_invalid_terminal_card(artifact)
-        if isinstance(rendered_card, str):
+        if _is_nonempty_terminal_rendered_text(rendered_card):
             return rendered_card
         return _render_invalid_terminal_card(artifact)
     fallback_kind = requested_kind
@@ -5026,7 +5026,7 @@ def _render_terminal_artifact_cli_fallback_failure(
             rendered_action = render_terminal_action(artifact)
         except Exception:
             return _render_invalid_terminal_action(artifact)
-        if isinstance(rendered_action, str):
+        if _is_nonempty_terminal_rendered_text(rendered_action):
             return rendered_action
         return _render_invalid_terminal_action(artifact)
     if fallback_kind == "selection":
@@ -5034,7 +5034,7 @@ def _render_terminal_artifact_cli_fallback_failure(
             rendered_selection = render_terminal_selection(artifact)
         except Exception:
             return _render_invalid_terminal_selection(artifact)
-        if isinstance(rendered_selection, str):
+        if _is_nonempty_terminal_rendered_text(rendered_selection):
             return rendered_selection
         return _render_invalid_terminal_selection(artifact)
     try:
@@ -5043,7 +5043,7 @@ def _render_terminal_artifact_cli_fallback_failure(
         rendered_card = render_terminal_card(artifact)
     except Exception:
         return _render_invalid_terminal_card(artifact)
-    if isinstance(rendered_card, str):
+    if _is_nonempty_terminal_rendered_text(rendered_card):
         return rendered_card
     return _render_invalid_terminal_card(artifact)
 
@@ -6861,6 +6861,10 @@ def _render_terminal_inline_text(value: Any) -> str:
     if not rendered:
         return ""
     return " ".join(rendered.replace("\n", " ").split())
+
+
+def _is_nonempty_terminal_rendered_text(rendered: Any) -> bool:
+    return isinstance(rendered, str) and bool(rendered.strip())
 
 
 def _escape_terminal_text(value: str) -> str:
