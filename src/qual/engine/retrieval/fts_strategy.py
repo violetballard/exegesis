@@ -260,7 +260,10 @@ class FTSStrategy:
             return True
         prefix, separator, remainder = scope.partition(":")
         if not separator:
-            return True
+            # The FTS-first MVP lane only accepts the canonical unscoped vault
+            # sentinel. Any other bare scope should fail closed here instead of
+            # reaching the runner as an engine-visible "supported" query.
+            return False
         normalized_prefix = prefix.strip().casefold()
         normalized_remainder = remainder.strip()
         if normalized_prefix == "doc":
