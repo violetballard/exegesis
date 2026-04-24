@@ -6,17 +6,16 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review scope: branch-tip Milestone 3 CLI compatibility facade for the canonical workflow loop, exposing the stable `command_workflow_*` contract/lookup/invocation APIs plus review follow-up compatibility tables
-- Canonical demo-path steps advanced: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`
-- Explicit re-review statement: the current branch tip is the review target, and this slice specifically makes `open project/document` more real by exporting one stable public workflow facade that can bootstrap the canonical CLI loop while Textual remains disabled; `promote or gather context into the basket` and `preview and apply or reject a patch` remain in scope as downstream steps because the same facade now exposes canonical transitions and review follow-up compatibility tables.
-- Concrete blocker removed: callers no longer need to reach into `command_mvp_*` internals or reconstruct workflow tables themselves to enter the canonical loop from `open project/document` and continue into review/apply-or-reject follow-ups.
-- Traceability note: reviewed implementation commit is `35d93429`; this metadata refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
-- Canonical roadmap/vision mapping: `ROADMAP.md` Milestone 3 `Real workflow loop` plus `PRODUCT_VISION.md` capability 3 `Canonical engine contract`, because the CLI remains the active operator surface while Textual is disabled.
+- Review scope: command-catalog Milestone 3 CLI compatibility slice that locks `command_cli_contract()` to the canonical catalog and rejects parser-surface drift
+- Canonical demo-path step advanced: `preview and apply or reject a patch`
+- Explicit re-review statement: this slice makes `preview and apply or reject a patch` more real in the CLI-first Milestone 3 loop because the `diff-preview` and `diff` patch-review entrypoints now fail fast if the parser surface drifts from the catalog instead of silently changing the operator contract while Textual remains disabled.
+- Concrete blocker removed: patch-review CLI drift can no longer silently desynchronize the parser surface from the catalog while still appearing canonically ordered.
+- Reviewed implementation commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Shared-test approval reference: `scripts/scope-check.sh` explicitly allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`.
 
 ## Reviewed Files
 
-- `src/qual/commands/__init__.py`
-- `src/qual/commands/workflow.py`
+- `src/qual/commands/catalog.py`
 - `tests/unit/test_commands_catalog.py`
 - `THREAD.md`
 - `THREAD_PACKET.md`
@@ -24,8 +23,6 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Required Gates
 
-- `python3 -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_public_workflow_contract_aliases_track_the_current_mvp_contract`
-- `python3 -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_public_workflow_next_action_aliases_track_the_current_mvp_contract`
 - `make scope-check`
 - `./quality-format.sh --check`
 - `./quality-lint.sh`
