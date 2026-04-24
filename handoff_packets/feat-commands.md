@@ -50,12 +50,11 @@
 - Blockers: none.
 
 ## Roadmap Item(s) Affected
-- `ROADMAP.md` Milestone 3 `Real workflow loop`: this slice supports the requirement to preserve CLI compatibility while the package/layout migration lands.
-- `ROADMAP.md` lane mapping for `feat-commands`: this slice hardens migration-safe CLI entrypoints without adding new workflow reachability.
+- `ROADMAP.md` Milestone 3 `Real workflow loop`: this slice stays within the CLI-compatibility requirement by keeping the existing `open project/document` entry surface deterministic while the package/layout migration lands.
+- `ROADMAP.md` lane mapping for `feat-commands`: this slice hardens migration-safe CLI entrypoints only and does not claim broader workflow reachability.
 
 ## Vision Capability Affected
 - `PRODUCT_VISION.md` capability 3 `Canonical engine contract` because the existing CLI surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on while Textual remains disabled.
-- `PRODUCT_VISION.md` capability 6 `Auditable state and workflow` because the change makes command-surface drift explicit and traceable instead of silent.
 
 ## Routing / Provider Impact Note
 - None. This change does not touch routing or provider configuration.
