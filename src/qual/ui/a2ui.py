@@ -1200,6 +1200,66 @@ def describe_a2ui_dispatch_contract_fingerprints(
     )
 
 
+def describe_a2ui_dispatch_contract(
+    *,
+    include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
+    include_shell_ui_contract: bool = False,
+    include_contract_aliases: bool = False,
+) -> dict[str, Any]:
+    """Return the full route-aware A2UI dispatch manifest.
+
+    This wrapper keeps the engine-facing dispatch surface explicit: it always
+    includes the terminal artifact, render-target, rendering, CLI fallback,
+    target-selection, route, and CLI fallback entrypoint slices that the
+    engine loop needs while leaving the shell UI snapshot opt-in. Pass
+    ``include_terminal_artifact_cli_fallback_card_hint_recovery_policy=True``
+    to expose the standalone card-hint recovery policy slice too.
+    """
+
+    manifest = describe_a2ui_contract(
+        include_terminal_artifact_cli_fallback_route=True,
+        include_terminal_artifact_cli_fallback_entrypoint=True,
+        include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
+        include_shell_ui_contract=include_shell_ui_contract,
+        include_contract_aliases=include_contract_aliases,
+    )
+    dispatch_contract_fingerprints = describe_a2ui_dispatch_contract_fingerprints(
+        include_terminal_artifact_cli_fallback_entrypoint=True,
+        include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
+        include_shell_ui_contract=include_shell_ui_contract,
+        include_contract_aliases=include_contract_aliases,
+    )
+    manifest["dispatch_contract_fingerprints"] = dispatch_contract_fingerprints
+    manifest["dispatch_contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(
+        dispatch_contract_fingerprints
+    )
+    manifest["dispatch_contract_fingerprint"] = a2ui_dispatch_contract_fingerprint(
+        include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
+        include_shell_ui_contract=include_shell_ui_contract,
+        include_contract_aliases=include_contract_aliases,
+    )
+    return manifest
+
+
+def a2ui_dispatch_contract_fingerprint(
+    *,
+    include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
+    include_shell_ui_contract: bool = False,
+    include_contract_aliases: bool = False,
+) -> str:
+    """Return a stable fingerprint for the full A2UI dispatch manifest."""
+
+    return _fingerprint_manifest_section(
+        _build_a2ui_contract_manifest(
+            include_terminal_artifact_cli_fallback_route=True,
+            include_terminal_artifact_cli_fallback_entrypoint=True,
+            include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
+            include_shell_ui_contract=include_shell_ui_contract,
+            include_contract_aliases=include_contract_aliases,
+        )
+    )
+
+
 def describe_selection_contract() -> dict[str, Any]:
     """Return the stable, versioned SelectionRef contract manifest."""
 

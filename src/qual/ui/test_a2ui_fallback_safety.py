@@ -25,11 +25,13 @@ from src.qual.ui.a2ui import (
     action_contract_fingerprint,
     a2ui_capabilities_contract_fingerprint,
     a2ui_contract_fingerprint,
+    a2ui_dispatch_contract_fingerprint,
     a2ui_engine_contract_fingerprint,
     a2ui_leaf_contracts_fingerprint,
     build_unknown_card,
     describe_a2ui_contract,
     describe_a2ui_contract_fingerprints,
+    describe_a2ui_dispatch_contract,
     describe_a2ui_dispatch_contract_fingerprints,
     describe_a2ui_capabilities_contract,
     describe_a2ui_engine_contract,
@@ -2861,6 +2863,60 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints["terminal_artifact"],
             terminal_artifact_contract_fingerprint(include_terminal_artifact_cli_fallback_route=True),
+        )
+
+    def test_a2ui_dispatch_contract_manifest_matches_route_aware_fingerprint_surface(self) -> None:
+        from src.qual.ui import (
+            a2ui_dispatch_contract_fingerprint as exported_dispatch_fingerprint,
+            describe_a2ui_dispatch_contract as exported_dispatch_contract,
+        )
+
+        manifest = describe_a2ui_dispatch_contract()
+        dispatch_fingerprints = describe_a2ui_dispatch_contract_fingerprints(
+            include_terminal_artifact_cli_fallback_entrypoint=True,
+        )
+
+        self.assertIs(exported_dispatch_contract, describe_a2ui_dispatch_contract)
+        self.assertIs(exported_dispatch_fingerprint, a2ui_dispatch_contract_fingerprint)
+        self.assertEqual(manifest["dispatch_contract_fingerprints"], dispatch_fingerprints)
+        self.assertEqual(
+            manifest["dispatch_contract_fingerprints_fingerprint"],
+            _fingerprint_manifest_section(dispatch_fingerprints),
+        )
+        self.assertEqual(manifest["contract_fingerprint"], a2ui_dispatch_contract_fingerprint())
+        self.assertEqual(
+            manifest["dispatch_contract_fingerprint"],
+            a2ui_dispatch_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact"],
+            describe_terminal_artifact_contract(include_terminal_artifact_cli_fallback_route=True),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback"],
+            describe_terminal_artifact_cli_fallback_contract(include_terminal_artifact_cli_fallback_route=True),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_render_target"],
+            describe_terminal_artifact_render_target_contract(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_rendering"],
+            describe_terminal_artifact_rendering_contract(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_target"],
+            describe_terminal_artifact_cli_fallback_target_contract(
+                include_terminal_artifact_cli_fallback_route=True,
+            ),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route"],
+            describe_terminal_artifact_cli_fallback_route_contract(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_contract"],
+            describe_terminal_artifact_cli_fallback_entrypoint_contract(),
         )
 
     def test_a2ui_contract_can_opt_into_contract_aliases(self) -> None:
