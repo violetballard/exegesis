@@ -55,12 +55,14 @@
   - metadata-only handoff refresh: `THREAD_PACKET.md`
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - `make scope-check` -> passed
+  - `make scope-check` -> failed on branch policy for shared file `src/qual/cli.py`, as expected for this reviewer-required fix
+  - `SCOPE_ALLOW_SHARED=1 make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
-  - `make ci` -> passed
+  - `make ci` -> failed on the same shared-file branch policy gate, as expected for this reviewer-required fix
+  - `SCOPE_ALLOW_SHARED=1 make ci` -> passed
   - revalidation note: all required gates were rerun on `2026-04-24`, and the alias-substitution regression still raises `ValueError: Command CLI canonical names are inconsistent`, confirming the packet stays narrowed to command-catalog CLI compatibility for the exact drift concern raised in review
 - traceability:
   - reviewed implementation slice: `src/qual/cli.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`
