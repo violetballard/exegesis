@@ -379,6 +379,16 @@ class CommandDemoWorkflowTrustedContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoBranchContract:
+    decision_token: str
+    branch_tokens: tuple[str, ...]
+    invocation_entries: tuple[CommandDemoWorkflowInvocationEntry, ...]
+    trusted_entries: tuple[CommandTrustedSurfaceEntry, ...]
+    invocation_table: tuple[tuple[str, tuple[str, ...]], ...]
+    trusted_invocation_table: tuple[tuple[str, tuple[str, ...]], ...]
+
+
+@dataclass(frozen=True)
 class ResolvedCommand:
     token: str
     normalized_token: str
@@ -3672,6 +3682,69 @@ def command_demo_workflow_trusted_contract(
         entries=entries,
         invocation_table=tuple((entry.token, entry.argv) for entry in entries),
     )
+
+
+@lru_cache(maxsize=None)
+def command_demo_branch_contract(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoBranchContract:
+    invocation_contract = command_demo_workflow_invocation_contract(decision_token, specs)
+    trusted_contract = command_demo_workflow_trusted_contract(decision_token, specs)
+    if invocation_contract.decision_token != trusted_contract.decision_token:
+        raise ValueError("Command demo branch decision token is inconsistent")
+    if tuple(entry.token for entry in invocation_contract.entries) != trusted_contract.branch_tokens:
+        raise ValueError("Command demo branch tokens are inconsistent")
+    if tuple(entry.token for entry in trusted_contract.entries) != trusted_contract.branch_tokens:
+        raise ValueError("Command demo trusted branch tokens are inconsistent")
+    return CommandDemoBranchContract(
+        decision_token=trusted_contract.decision_token,
+        branch_tokens=trusted_contract.branch_tokens,
+        invocation_entries=invocation_contract.entries,
+        trusted_entries=trusted_contract.entries,
+        invocation_table=tuple((entry.token, entry.argv) for entry in invocation_contract.entries),
+        trusted_invocation_table=trusted_contract.invocation_table,
+    )
+
+
+@lru_cache(maxsize=None)
+def command_mvp_branch_contract(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoBranchContract:
+    return command_demo_branch_contract(decision_token, specs)
+
+
+def command_demo_branch_invocation_table(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return the parser-ready apply/reject demo branch in workflow order."""
+    return command_demo_branch_contract(decision_token, specs).invocation_table
+
+
+def command_mvp_branch_invocation_table(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return the current MVP parser-ready apply/reject branch in workflow order."""
+    return command_demo_branch_invocation_table(decision_token, specs)
+
+
+def command_demo_branch_trusted_invocation_table(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return the trusted demo apply/reject branch in preferred surface order."""
+    return command_demo_branch_contract(decision_token, specs).trusted_invocation_table
+
+
+def command_mvp_branch_trusted_invocation_table(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return the current MVP trusted apply/reject branch in preferred surface order."""
+    return command_demo_branch_trusted_invocation_table(decision_token, specs)
 
 
 def command_mvp_workflow_trusted_contract(
