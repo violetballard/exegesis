@@ -17,6 +17,7 @@
 - Final fixer note: this packet refresh exists only to align the handoff scope language with the already-landed full parser-surface guardrail and to record the green rerun of the required gates from this fixer pass; the reviewed implementation commit remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Final verification note: this metadata-only fixer rerun on `2026-04-24` revalidated the corrected handoff packet and reran the full required gate set from the current branch tip without widening implementation scope.
 - Latest fixer rerun note: after reloading the reviewer packet against the live worktree, this handoff remained metadata-only because the required command-contract guardrail and regression coverage were already present on `codex/feat-commands`.
+- Current fixer pass note: this follow-up pass rechecked the live `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` state from branch tip `75b1a3fc5b2bcb8c05d6ebf12876ec7b1397459a`, confirmed the reviewer-requested parser-surface guardrail and alias-drift regressions were already committed, and limited the new work to another handoff metadata refresh plus a fresh required-gates rerun.
 - Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed again from the current branch tip in this metadata-only fixer handoff.
 
 ## Thread Kickoff (High-Risk)
