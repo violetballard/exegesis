@@ -5,12 +5,12 @@
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: `reviewer-fix handoff narrowing`
 - Review scope: narrow Milestone 3 CLI-contract hardening in `src/qual/commands/catalog.py`, plus focused regression coverage in `tests/unit/test_commands_catalog.py`.
-- Canonical demo-path step advanced: the Milestone 3 CLI-first control surface for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch`
-- Canonical MVP flow advanced: `open project/document -> retrieve relevant material -> preview and apply or reject a patch` for the manual CLI smoke flow, via `bootstrap`/`project-open` for open, `context-basket` for retrieval staging, and `diff-preview`/`review-patch` for patch preview
+- Canonical demo-path step advanced: the Milestone 3 CLI-first `open project/document` control surface that keeps the operator in the manual MVP loop while Textual remains disabled
+- Canonical MVP flow context: `open project/document -> retrieve relevant material -> preview and apply or reject a patch` for the manual CLI smoke flow, with this slice specifically hardening the parser-backed command surface that starts and preserves that operator path
 - AGENTS.md alignment note: this packet explicitly names the exact roadmap MVP flow advanced by the reviewed slice and ties the claim to the current AGENTS handoff packet and checkpoint requirements.
-- Required mapping statement: this `feat-commands` slice is not internal contract cleanup for its own sake; it protects the Milestone 3 CLI-first operator path by making `command_cli_contract()` fail fast when parser/catalog drift would otherwise silently break the command surface used for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` while Textual remains disabled.
-- Demo-path sentence: this change makes the `open project/document -> retrieve relevant material -> preview and apply or reject a patch` loop more real for the CLI-first MVP path because the concrete parser-backed command entrypoints an operator runs now fail fast if parser drift changes the canonical catalog contract.
-- Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so an operator could attempt the `open project/document -> retrieve relevant material -> preview and apply or reject a patch` loop through a CLI contract that had silently drifted away from the canonical catalog.
+- Required mapping statement: this `feat-commands` slice is not internal contract cleanup for its own sake; it is in-plan Milestone 3 CLI-first hardening because `command_cli_contract()` now fails fast when parser/catalog drift would otherwise silently break the operator-facing CLI surface that the `open project/document` entry step and the rest of the manual MVP loop depend on while Textual remains disabled.
+- Demo-path sentence: this change makes the CLI-first MVP path more real by ensuring the concrete parser-backed command entrypoints an operator uses to open project or document state cannot silently drift away from the canonical catalog before the rest of the loop runs.
+- Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so an operator could start the manual MVP loop through an `open project/document` surface that had silently drifted away from the canonical catalog.
 - Review basis scope: keep implementation and approval claims pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and its two implementation files only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 
 ## Thread Kickoff (High-Risk)
@@ -58,10 +58,6 @@
 - Implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
-- Metadata files:
-  - `THREAD.md`
-  - `THREAD_PACKET.md`
-  - `handoff_packets/feat-commands.md`
 
 ## Commands Run and Outcomes
 
