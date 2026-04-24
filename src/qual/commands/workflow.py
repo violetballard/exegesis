@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from src.qual.commands.catalog import (
+    CommandDemoLoopContract,
     CommandDemoBranchContract,
     CommandDemoNextActionContract,
     CommandDemoWorkflowInvocationEntry,
@@ -13,6 +14,9 @@ from src.qual.commands.catalog import (
     command_mvp_branch_contract,
     command_mvp_branch_invocation_table,
     command_mvp_branch_trusted_invocation_table,
+    command_mvp_loop_contract,
+    command_mvp_loop_invocation_plan,
+    command_mvp_loop_tokens,
     command_mvp_next_action_contract,
     command_mvp_next_action_invocation_table,
     command_mvp_next_action_preferred_invocation_table,
@@ -49,6 +53,21 @@ def command_workflow_path_tokens() -> tuple[str, ...]:
 def command_workflow_path_invocation_plan() -> tuple[CommandInvocationPlanEntry, ...]:
     """Return the parser-ready current-MVP demo-path invocation plan."""
     return command_mvp_path_invocation_plan()
+
+
+def command_workflow_loop_contract() -> CommandDemoLoopContract:
+    """Return the stable current-MVP review/apply-or-reject/persist/export loop."""
+    return command_mvp_loop_contract()
+
+
+def command_workflow_loop_tokens() -> tuple[str, ...]:
+    """Return the current-MVP workflow loop tokens in deterministic order."""
+    return command_mvp_loop_tokens()
+
+
+def command_workflow_loop_invocation_plan() -> tuple[CommandInvocationPlanEntry, ...]:
+    """Return the parser-ready current-MVP workflow loop invocation plan."""
+    return command_mvp_loop_invocation_plan()
 
 
 def command_workflow_branch_contract(decision_token: str) -> CommandDemoBranchContract:
@@ -119,6 +138,9 @@ __all__ = [
     "command_workflow_path_contract",
     "command_workflow_path_tokens",
     "command_workflow_path_invocation_plan",
+    "command_workflow_loop_contract",
+    "command_workflow_loop_tokens",
+    "command_workflow_loop_invocation_plan",
     "command_workflow_branch_contract",
     "command_workflow_branch_tokens",
     "command_workflow_branch_invocation_plan",
