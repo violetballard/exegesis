@@ -20,6 +20,7 @@ from .a2ui import (
     normalize_selection_ref,
     describe_terminal_artifact_cli_fallback_contract,
     describe_terminal_artifact_cli_fallback_entrypoint_contract,
+    describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract,
     describe_terminal_artifact_cli_fallback_target_contract,
     describe_terminal_artifact_cli_fallback_route_contract,
     describe_terminal_artifact_renderer_entrypoints_contract,
@@ -794,14 +795,13 @@ def describe_shell_ui_contract_fingerprints(
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprint_value = (
         terminal_artifact_cli_fallback_entrypoint_contract_fingerprint()
     )
+    card_hint_recovery_policy_contract = describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract()
+    card_hint_recovery_policy_contract_fingerprint_value = card_hint_recovery_policy_contract["contract_fingerprint"]
     terminal_artifact_cli_fallback_contract_fingerprint_value = (
         terminal_artifact_cli_fallback_contract_fingerprint()
     )
     terminal_artifact_cli_fallback_entrypoint_contract = (
         describe_terminal_artifact_cli_fallback_entrypoint_contract()
-    )
-    card_hint_recovery_policy_contract_fingerprint_value = (
-        terminal_artifact_cli_fallback_entrypoint_contract["card_hint_recovery_policy_fingerprint"]
     )
     terminal_artifact_cli_fallback_target_contract = describe_terminal_artifact_cli_fallback_target_contract(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,

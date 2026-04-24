@@ -41,6 +41,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_cli_fallback_contract_fingerprints,
     describe_terminal_artifact_cli_fallback_entrypoint_contract,
     describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints,
+    describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract,
     describe_terminal_artifact_cli_fallback_shell_refinement_policy_contract,
     describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract,
     describe_terminal_artifact_cli_fallback_target_contract,
@@ -93,6 +94,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint,
+    terminal_artifact_cli_fallback_card_hint_recovery_policy_contract_fingerprint,
     terminal_artifact_cli_fallback_shell_refinement_policy_contract_fingerprint,
     terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint,
     terminal_artifact_cli_fallback_target_contract_fingerprint,
@@ -1131,6 +1133,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             ),
             _fingerprint_manifest_section(fingerprints),
         )
+
+    def test_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract_is_public_and_canonical(self) -> None:
+        manifest = describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract()
+        fingerprint = terminal_artifact_cli_fallback_card_hint_recovery_policy_contract_fingerprint()
+
+        self.assertTrue(manifest["recover_typed_leaf_mappings"])
+        self.assertTrue(manifest["recover_typed_leaf_payloads"])
+        self.assertTrue(manifest["explicit_leaf_instances_rejected_under_card_hints"])
+        self.assertTrue(manifest["preserve_raw_leaf_card_default"])
+        self.assertEqual(manifest["card_hint_recovery_policy_fingerprint"], fingerprint)
+        self.assertEqual(manifest["card_hint_recovery_policy_contract_fingerprint"], fingerprint)
+        self.assertEqual(manifest["contract_fingerprint"], fingerprint)
 
     def test_a2ui_contract_can_opt_into_terminal_artifact_cli_fallback_entrypoint_contract_slice(self) -> None:
         default_manifest = describe_a2ui_contract()
