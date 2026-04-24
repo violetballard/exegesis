@@ -5,7 +5,7 @@ Required automated gates reran for the reviewed retrieval branch tip:
 
 * current packet refresh tip before this commit `7baf6c00c87f89ef8b80e60b167e03d4eb3f2b88`
 * reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-* reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+* reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 * reviewed implementation files `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`
 * approved shared regression surface `tests/unit/test_unified_retrieval.py`
 
@@ -27,9 +27,9 @@ Focused retrieval proof:
 
 Canonical demo-path step advanced: `retrieve relevant material`.
 Plan-alignment statement: this reviewed retrieval range makes `retrieve relevant material` more real by ensuring excerpt lookup stays on the auditable SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage. That is this slice's direct contribution to Milestone 3's FTS-first structured retrieval requirement.
-Scope note: this packet is intentionally narrow to the reviewed slice: removal of the PageIndex fallback from `fetch_excerpt` and regression coverage proving non-FTS excerpt IDs now raise `KeyError`.
+Scope note: this packet is intentionally narrow to the reviewed slice `378cf9a7..adfa8cda`: removal of the PageIndex fallback from `fetch_excerpt` and regression coverage proving non-FTS excerpt IDs now raise `KeyError`.
 Budget compliance statement: this packet is shared/high-risk work because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`, so the handoff is read against the 4-task cap rather than the default 8-task cap.
-Traceability statement: re-review should validate the actual reviewed implementation range `d7fd5d20..adfa8cda`; this packet refresh remains metadata-only and does not broaden that reviewed slice.
+Traceability statement: re-review should validate the actual reviewed implementation range `378cf9a7..adfa8cda`; this packet refresh remains metadata-only and does not broaden that reviewed slice.
 Fixer pass note: this packet records a fresh full-gate rerun on a metadata-only handoff refresh without changing the reviewed implementation range.
 
 The authoritative handoff packet remains `THREAD_PACKET.md`. Reviewer-facing plan alignment for this branch is carried by `THREAD_PACKET.md` and this gate summary.
