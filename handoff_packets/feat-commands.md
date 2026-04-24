@@ -11,9 +11,9 @@
 
 ### Scope / Plan Alignment
 
-- Canonical demo-path step advanced: `patch` in the CLI MVP flow `vault -> context -> run -> patch -> export`.
-- Explicit handoff sentence: this handoff advances the canonical `patch` step by making the operator-facing `patch-review` plus `apply-patch` / `reject-patch` command surface explicit, parser-checked, compatibility-mapped, and smoke-testable on the same branch tip being submitted for merge.
-- Roadmap alignment: `ROADMAP.md` Milestone 1 command and diff-preview behavior hardening, plus Milestone 5 CLI fallback coverage for the `patch` leg of the MVP flow.
+- Canonical demo-path step advanced: `preview and apply or reject a patch` in the engine-first demo path `open document -> retrieve relevant material -> gather context -> plan or revise -> preview and apply or reject a patch -> save and continue`.
+- Explicit handoff sentence: this handoff advances the canonical `preview and apply or reject a patch` step by making the operator-facing `patch-review` plus `apply-patch` / `reject-patch` command surface explicit, parser-checked, compatibility-mapped, and smoke-testable while Textual stays disabled.
+- Roadmap alignment: `ROADMAP.md` Milestone 3 CLI compatibility for the real workflow loop, specifically the CLI fallback surface that keeps the patch-review/apply-or-reject leg deterministic while the package/layout migration lands.
 - Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract` only.
 - Non-claim boundary: this handoff does not claim provider routing changes, storage behavior changes, audit trail changes, or UI-console work.
 
@@ -55,13 +55,13 @@
 - branch name: `codex/feat-commands`
 - scope completed:
   - added the authoritative command catalog in `src/qual/commands/catalog.py` and re-exported the stable catalog/workflow helpers through `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, and `src/qual/commands/workflow.py`
-  - bound the live parser surface in `src/qual/cli.py` to the catalog contract through exported parser entrypoints and startup validation, so parser drift now fails fast against the authoritative command surface
+  - bound the live parser surface in `src/qual/cli.py` to the catalog contract through exported parser entrypoints and startup validation, so parser token, alias, and ordering drift now fail fast against the authoritative command surface
   - exposed the current-MVP `patch-review` loop, transition, compatibility, trusted-surface, and invocation-plan helpers that make `project-open -> retrieval -> patch-review -> apply/reject -> persist -> export-handoff` deterministic and smoke-testable
   - hardened `src/qual/commands/diff_preview.py` with labeled file headers, JSON output, fingerprint metadata, and stable no-diff payloads
   - added and updated regression coverage in `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`, and carried the branch’s scope-check allowances needed for approved shared tests and handoff packet paths
 - tasks completed (numbered implementation work only; metadata-only packet refreshes excluded):
   1. Added the authoritative command catalog plus stable command, flow, path, transition, compatibility, and trusted-surface helpers for the current CLI MVP loop.
-  2. Hardened the live parser contract in `src/qual/cli.py` and catalog validation so command entrypoint drift is rejected against the authoritative branch-tip surface.
+  2. Hardened the live parser contract in `src/qual/cli.py` and catalog validation so command entrypoint token, alias, and ordering drift are rejected against the authoritative branch-tip surface.
   3. Expanded `diff-preview` into a stable output contract with labeled text output, JSON mode, fingerprint support, and deterministic no-diff behavior.
   4. Added branch-tip unit coverage for command-surface and diff-preview behavior, and reran the required gates against the same merge candidate branch tip.
 - files changed:
@@ -93,8 +93,8 @@
   - risk: future patch-loop alias additions must preserve the deterministic `patch-review -> apply/reject -> persist -> export-handoff` transition tables and their smoke/default argv coverage
   - blockers: none
 - roadmap item(s) affected:
-  - `ROADMAP.md` Milestone 1 command and diff-preview behavior hardening
-  - `ROADMAP.md` Milestone 5 CLI can execute the MVP flow (`vault -> context -> run -> patch -> export`) against the same engine PolicyGate
+  - `ROADMAP.md` Milestone 3 real workflow loop: preserve CLI compatibility while the package/layout migration lands
+  - `ROADMAP.md` active engine-first demo path step `preview and apply or reject a patch`, kept deterministic and smoke-testable while Textual remains disabled
 - vision capability affected:
   - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`
 - routing/provider impact note:
@@ -102,4 +102,4 @@
 - approved exception note:
   - this branch includes approved shared parser work in `src/qual/cli.py` and approved shared-test/scope-check coverage needed to keep the lane reviewable
 - reviewer-fix satisfaction note:
-  - this packet is reissued against the actual merge candidate implementation basis `077764032`, tightens the claim to the branch’s real command-surface and diff-preview work, names the concrete `patch` step it advances, and makes explicit that any newer tip from this handoff refresh is metadata-only instead of hidden implementation drift
+  - this packet is reissued against the actual merge candidate implementation basis `077764032`, keeps the claim scoped to the branch's real command-surface and diff-preview work, makes the Milestone 3 CLI-compatibility mapping explicit, and states that parser token, alias, and ordering drift fail fast instead of describing the guarantee only in canonical-name terms

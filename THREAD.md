@@ -10,9 +10,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Verified implementation basis SHA: `077764032`
 - Submitted tip note: any newer tip created by this handoff refresh is metadata-only packet bookkeeping on top of that verified implementation basis
 - Review scope: branch-tip command-surface hardening across the command catalog, live CLI parser entrypoints, diff-preview contract output, current-MVP workflow wrappers, and the matching unit coverage
-- Canonical demo-path step advanced: `patch` in the CLI MVP flow `vault -> context -> run -> patch -> export`
-- Concrete step mapping: this lane makes the operator-facing `patch-review` plus `apply-patch` / `reject-patch` surface explicit, parser-checked, and smoke-testable for the active CLI-first MVP loop
-- Roadmap alignment: `ROADMAP.md` Milestone 1 command and diff-preview behavior hardening, plus Milestone 5 CLI fallback coverage for the `patch` leg of the MVP flow
+- Canonical demo-path step advanced: `preview and apply or reject a patch` in the engine-first demo path `open document -> retrieve relevant material -> gather context -> plan or revise -> preview and apply or reject a patch -> save and continue`
+- Concrete step mapping: this lane makes the operator-facing `patch-review` plus `apply-patch` / `reject-patch` surface explicit, parser-checked, and smoke-testable for the active CLI-first MVP loop while Textual remains disabled
+- Roadmap alignment: `ROADMAP.md` Milestone 3 CLI compatibility for the real workflow loop, specifically the CLI fallback surface that keeps the patch-review/apply-or-reject leg deterministic while the package/layout migration lands
 - Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract`
 - Scope boundary: this handoff claims command-surface and diff-preview contract work only; it does not claim provider, routing, storage, or audit behavior changes
 - Task accounting note: metadata-only packet refreshes are bookkeeping for the handoff and are not counted as implementation tasks
