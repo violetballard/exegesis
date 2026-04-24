@@ -1513,7 +1513,15 @@ def describe_terminal_artifact_cli_fallback_route_contract() -> dict[str, Any]:
     manifest["route_precedence_contract"] = _snapshot_contract_section(manifest["route_precedence"])
     manifest["leaf_renderers_contract"] = _snapshot_contract_section(manifest["leaf_renderers"])
     manifest["contract_fingerprint"] = fingerprint
+    manifest["terminal_artifact_cli_fallback_route_contract_manifest"] = _snapshot_contract_section(manifest)
+    manifest["terminal_artifact_cli_fallback_route_contract_manifest_fingerprint"] = fingerprint
     return manifest
+
+
+def describe_terminal_artifact_cli_fallback_route_contract_manifest() -> dict[str, Any]:
+    """Return the CLI fallback route contract under a manifest-specific name."""
+
+    return describe_terminal_artifact_cli_fallback_route_contract()
 
 
 def describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
@@ -1626,6 +1634,12 @@ def terminal_artifact_cli_fallback_route_contract_fingerprint() -> str:
 
     manifest = _build_terminal_artifact_cli_fallback_route_contract_manifest()
     return _fingerprint_manifest_section(manifest)
+
+
+def terminal_artifact_cli_fallback_route_contract_manifest_fingerprint() -> str:
+    """Return the CLI fallback route manifest fingerprint under a manifest-specific name."""
+
+    return terminal_artifact_cli_fallback_route_contract_fingerprint()
 
 
 def terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint() -> str:
@@ -1987,6 +2001,10 @@ def describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
             ),
             (
                 "terminal_artifact_cli_fallback_route_contract",
+                terminal_artifact_cli_fallback_route_contract_fingerprint(),
+            ),
+            (
+                "terminal_artifact_cli_fallback_route_contract_manifest",
                 terminal_artifact_cli_fallback_route_contract_fingerprint(),
             ),
         )

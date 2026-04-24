@@ -45,6 +45,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_cli_fallback_target_contract,
     describe_terminal_artifact_cli_fallback_target_contract_fingerprints,
     describe_terminal_artifact_cli_fallback_route_contract,
+    describe_terminal_artifact_cli_fallback_route_contract_manifest,
     describe_terminal_artifact_cli_fallback_route_contract_fingerprints,
     describe_terminal_artifact_kind_contracts,
     describe_terminal_artifact_contract_fingerprints,
@@ -93,6 +94,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_cli_fallback_target_contract_fingerprint,
     terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint,
     terminal_artifact_cli_fallback_route_contract_fingerprint,
+    terminal_artifact_cli_fallback_route_contract_manifest_fingerprint,
     terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint,
     _fingerprint_manifest_section,
     terminal_artifact_raw_leaf_card_default_contract_fingerprint,
@@ -270,6 +272,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIs(
             public_ui.terminal_artifact_cli_fallback_route_contract_fingerprint,
             terminal_artifact_cli_fallback_route_contract_fingerprint,
+        )
+        self.assertIs(
+            public_ui.describe_terminal_artifact_cli_fallback_route_contract_manifest,
+            describe_terminal_artifact_cli_fallback_route_contract_manifest,
+        )
+        self.assertIs(
+            public_ui.terminal_artifact_cli_fallback_route_contract_manifest_fingerprint,
+            terminal_artifact_cli_fallback_route_contract_manifest_fingerprint,
         )
         self.assertIs(
             public_ui.terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint,
@@ -5791,6 +5801,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
 
         manifest = describe_terminal_artifact_cli_fallback_route_contract()
+        manifest_alias = describe_terminal_artifact_cli_fallback_route_contract_manifest()
+        manifest_fingerprint = terminal_artifact_cli_fallback_route_contract_manifest_fingerprint()
         fingerprints = describe_terminal_artifact_cli_fallback_route_contract_fingerprints()
         fingerprints_with_self = describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
             include_terminal_artifact_cli_fallback_route=True,
@@ -5799,6 +5811,22 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIs(
             exported_route_fingerprints,
             describe_terminal_artifact_cli_fallback_route_contract_fingerprints,
+        )
+        self.assertEqual(manifest_alias, manifest)
+        self.assertEqual(manifest_fingerprint, manifest["contract_fingerprint"])
+        self.assertNotIn(
+            "terminal_artifact_cli_fallback_route_contract_manifest",
+            manifest["terminal_artifact_cli_fallback_route_contract_manifest"],
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_manifest"][
+                "terminal_artifact_cli_fallback_route_contract_fingerprint"
+            ],
+            manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_manifest_fingerprint"],
+            manifest["contract_fingerprint"],
         )
         self.assertEqual(fingerprints, manifest["contract_fingerprints"])
         self.assertEqual(
@@ -5867,6 +5895,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route_contract_manifest"],
+            terminal_artifact_cli_fallback_route_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route_contract_manifest_fingerprint"],
             terminal_artifact_cli_fallback_route_contract_fingerprint(),
         )
         self.assertEqual(
