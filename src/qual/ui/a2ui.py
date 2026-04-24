@@ -5111,6 +5111,16 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
         requested_kind == "card"
         and not malformed_envelope
         and isinstance(artifact, Mapping)
+        and _infer_terminal_artifact_explicit_kind(artifact) in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET
+    ):
+        # Explicit leaf mappings should not leak leaf-shaped output through the
+        # card-hint fallback path. Malformed envelopes still get a recovery
+        # chance below so engine flows can unwrap bad wrappers safely.
+        return _render_invalid_terminal_card(artifact)
+    if (
+        requested_kind == "card"
+        and not malformed_envelope
+        and isinstance(artifact, Mapping)
         and not _should_preserve_raw_leaf_card_default(artifact)
         and not _is_explicit_terminal_artifact_leaf(artifact)
     ):

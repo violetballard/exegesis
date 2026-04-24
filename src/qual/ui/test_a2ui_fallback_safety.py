@@ -4880,6 +4880,43 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 self.assertIn(expected_schema, cli_text)
                 self.assertNotIn("[UnknownCard] <invalid card>", cli_text)
 
+    def test_terminal_artifact_cli_fallback_entrypoint_keeps_explicit_typed_leaf_mappings_invalid_for_card_hints(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                {
+                    "type": "ActionRef",
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                },
+            ),
+            (
+                "selection",
+                {
+                    "type": "SelectionRef",
+                    "id": "choice-1",
+                    "label": "Choice",
+                    "payload": {"nested": {"items": [1, 2]}},
+                },
+            ),
+        ]
+
+        for case_name, artifact in cases:
+            with self.subTest(kind=case_name):
+                cli_text = render_terminal_cli_fallback(artifact, kind="card")
+                shell_text = shell.render_cli_fallback(artifact, kind="card")
+                shell_render_text = shell.render_artifact(artifact, kind="card")
+
+                self.assertEqual(cli_text, shell_text)
+                self.assertEqual(shell_text, shell_render_text)
+                self.assertIn("[UnknownCard] <invalid card>", cli_text)
+                self.assertNotIn("[ActionRef]", cli_text)
+                self.assertNotIn("[SelectionRef]", cli_text)
+
     def test_terminal_artifact_cli_fallback_target_resolver_preserves_raw_leaf_card_default(self) -> None:
         raw_leaf = {
             "id": "export_document",
@@ -4945,7 +4982,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             (selection, "card"),
         )
 
-    def test_terminal_artifact_cli_fallback_entrypoint_recovers_typed_leaf_mappings_on_card_hint(
+    def test_terminal_artifact_cli_fallback_entrypoint_rejects_explicit_typed_leaf_mappings_under_card_hints(
         self,
     ) -> None:
         shell = ShellUI()
@@ -4976,13 +5013,20 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         for case_name, artifact, expected_prefix, expected_schema in cases:
             with self.subTest(kind=case_name):
+                self.assertEqual(
+                    resolve_terminal_artifact_cli_fallback_target(artifact, kind="card"),
+                    (artifact, "card"),
+                )
+                with self.assertRaises(ValueError):
+                    render_terminal_artifact(artifact, kind="card")
                 cli_text = render_terminal_cli_fallback(artifact, kind="card")
                 shell_text = shell.render_cli_fallback(artifact, kind="card")
 
                 self.assertEqual(cli_text, shell_text)
-                self.assertIn(expected_prefix, cli_text)
-                self.assertIn(expected_schema, cli_text)
-                self.assertNotIn("[UnknownCard] <invalid card>", cli_text)
+                self.assertIn("[UnknownCard] <invalid card>", cli_text)
+                self.assertIn("Action policy: copy_to_clipboard_only", cli_text)
+                self.assertNotIn(expected_prefix, cli_text)
+                self.assertNotIn(expected_schema, cli_text)
 
     def test_terminal_artifact_cli_fallback_target_resolver_keeps_ambiguous_raw_leaf_payloads_on_card_default_for_malformed_envelope_kinds(
         self,
