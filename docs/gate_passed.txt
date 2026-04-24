@@ -3,11 +3,11 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran for the reviewer-fix packet refresh on:
 
-* current packet-refresh branch tip before this commit `f4ddf4d47dbe6ccc56d1c8739b8b9e1f31221c78`
-* reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-* reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-* reviewed implementation files `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`
-* metadata-only packet refresh files `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, and `docs/gate_passed.txt`
+* current packet-refresh branch tip before this commit `58474e0967272070e48febd42c29107e6000744b`
+* truthful reviewed implementation head `cf644d98c43cc396cd5b7c6b8d725b87fb715c61`
+* truthful reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..cf644d98c43cc396cd5b7c6b8d725b87fb715c61`
+* truthful reviewed implementation files `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `codex_packet_handoff/tools/planner.py`, `docs/gate_passed.txt`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/embeddings_strategy.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/interface.py`, `src/qual/engine/retrieval/pageindex_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, `tests/unit/test_packet_planner.py`, and `tests/unit/test_unified_retrieval.py`
+* packet-refresh-only files after `cf644d98` on the current tip: `THREAD_PACKET.md` and `docs/gate_passed.txt`
 * shared regression approval basis `tests/unit/test_unified_retrieval.py`
 
 Gate status:
@@ -19,17 +19,9 @@ Gate status:
 * `./typecheck-test.sh` - passed
 * `make ci` - passed
 
-Focused retrieval proof:
-
-* `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_fetch_excerpt_requires_an_fts_lookup_hit` - passed
-* `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_fts_source_bundle_matches_result_snapshot` - passed
-* `python3 -m unittest tests.unit.test_unified_retrieval` - passed (`214 tests`)
-
 Canonical demo-path step advanced: `retrieve relevant material`.
-Plan-alignment statement: this work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage while structured retrieval outputs stay deterministic for downstream consumers.
-Roadmap and vision mapping: this narrowed slice directly supports the Milestone 3 exit criterion `retrieval returns structured results suitable for basket promotion` and the Product Vision capability `Retrieval-first context handling`; basket promotion remains only a downstream consumer of the structured FTS results from this slice.
-Scope-tightening statement: basket promotion is only a downstream consumer of the structured FTS results from this slice; this handoff does not broaden the lane beyond the FTS-only excerpt fail-closed contract.
-Shared-file approval basis: `tests/unit/test_unified_retrieval.py` remains the approved shared-by-approval regression exception for this lane.
-Traceability statement: re-review should validate the narrowed reviewed implementation range `378cf9a7..adfa8cda` and read the explicit demo-path mapping from `THREAD_PACKET.md` plus this gate summary.
+Plan-alignment statement: this work advances `retrieve relevant material` by keeping SQLite FTS authoritative, hardening excerpt lookup failure auditing, and making canonical retrieval payload rebuilds fail closed so downstream engine consumers only receive deterministic, auditable retrieval metadata.
+Budget note: the truthful promoted range is shared/high-risk work and exceeds the nominal high-risk size budget (`15 files changed` in `git diff --stat 378cf9a7..cf644d98`), so this summary no longer claims narrowed-slice budget compliance for the cumulative branch range.
+Traceability statement: re-review should validate the truthful reviewed implementation range `378cf9a7..cf644d98` and treat later branch-tip commits as packet-refresh artifacts only because `git diff --name-only cf644d98..58474e09` currently returns only `THREAD_PACKET.md` and `docs/gate_passed.txt`.
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
