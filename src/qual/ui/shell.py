@@ -52,6 +52,7 @@ from .a2ui import (
     _render_invalid_terminal_card,
     _render_invalid_terminal_selection,
     _is_malformed_terminal_artifact_envelope,
+    _extract_terminal_artifact_envelope,
     _infer_terminal_artifact_kind_from_mapping,
     _normalize_terminal_artifact_envelope_kind,
     _infer_terminal_artifact_explicit_kind,
@@ -193,6 +194,22 @@ class ShellUI:
             fallback_target = (artifact, "card")
         else:
             fallback_target = self._resolve_fallback_artifact(artifact, kind=kind)
+        if (
+            normalized_kind == "card"
+            and fallback_target is not None
+            and isinstance(artifact, Mapping)
+        ):
+            try:
+                extracted_envelope = _extract_terminal_artifact_envelope(artifact)
+            except ValueError:
+                extracted_envelope = None
+            if extracted_envelope is not None:
+                _, envelope_kind = extracted_envelope
+                if envelope_kind in {"action", "selection"}:
+                    # Valid typed envelopes should still respect a card hint
+                    # in the explicit CLI fallback entrypoint. Malformed
+                    # envelopes keep their recovery path below.
+                    fallback_target = (artifact, "card")
         fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set(fallback_target)
         try:
             if fallback_target is not None:

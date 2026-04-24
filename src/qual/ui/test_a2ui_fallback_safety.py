@@ -10605,6 +10605,46 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 self.assertIn("[ActionRef]" if case_name == "action" else "[SelectionRef]", cli_text)
                 self.assertNotIn("[UnknownCard] <invalid card>", cli_text)
 
+    def test_terminal_artifact_cli_fallback_entrypoint_preserves_card_hints_for_valid_typed_envelopes(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                build_terminal_artifact_envelope(
+                    ActionRef(
+                        id=" export_document ",
+                        label=" Export ",
+                        payload={"format": "md"},
+                    ),
+                    kind="action",
+                ),
+            ),
+            (
+                "selection",
+                build_terminal_artifact_envelope(
+                    SelectionRef(
+                        id=" choice-1 ",
+                        label=" Choice ",
+                        payload={"nested": {"items": [1, 2]}},
+                        selected=True,
+                    ),
+                    kind="selection",
+                ),
+            ),
+        ]
+
+        for case_name, artifact in cases:
+            with self.subTest(case=case_name):
+                cli_text = render_terminal_cli_fallback(artifact, kind="card")
+                shell_text = shell.render_cli_fallback(artifact, kind="card")
+
+                self.assertEqual(cli_text, shell_text)
+                self.assertIn("[UnknownCard] <invalid card>", cli_text)
+                self.assertNotIn("[ActionRef]", cli_text)
+                self.assertNotIn("[SelectionRef]", cli_text)
+
     def test_shell_ui_preserves_card_kind_hint_for_action_and_selection_envelopes_during_fallback(self) -> None:
         shell = ShellUI()
         direct_action_envelope = build_terminal_artifact_envelope(
