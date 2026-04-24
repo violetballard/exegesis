@@ -1,15 +1,15 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `metadata-only reviewer-fix re-emit`
-- Current submitted tip before this packet refresh commit: `60948686e4b1dec6e159eef8925bf6204e31e65c`
+- Packet role: `metadata-only reviewer-fix scope alignment`
+- Current submitted tip before this packet refresh commit: `7baf6c00c87f89ef8b80e60b167e03d4eb3f2b88`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet traceability note: review this lane against the narrowed implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `d7fd5d20..adfa8cda`.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Reviewer-required plan-alignment statement: This work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage.
+- Reviewer-required plan-alignment statement: This work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage. That is the reviewed slice's direct contribution to Milestone 3's FTS-first structured retrieval requirement.
 - Evidence note: `tests/unit/test_unified_retrieval.py` covers both the narrowed service-level contract and the public retrieval facade for this slice. `test_retrieval_service_rejects_pageindex_excerpt_payloads` proves PageIndex-only excerpt IDs fail closed on `fetch_excerpt(...)`, and `test_retrieve_fts_excerpt_returns_canonical_fts_payload` proves the canonical/public FTS excerpt helpers return the same payload shape.
-- Packet authority note: this top-level packet and `docs/gate_passed.txt` are the reviewer-facing source of truth for the explicit demo-path mapping and plan-alignment wording on this branch.
+- Packet authority note: this top-level packet and `docs/gate_passed.txt` are the reviewer-facing source of truth for the explicit demo-path mapping, high-risk/shared classification, and narrowed scope wording on this branch.
 
 ## Scope Goal
 
@@ -48,7 +48,7 @@
 - Removed the PageIndex fallback from `fetch_excerpt`, so the public excerpt lookup surface now resolves through the canonical FTS-only path.
 - Added regression coverage proving PageIndex-only excerpt IDs now raise `KeyError` instead of silently backfilling through PageIndex.
 - Kept the reviewed evidence intentionally narrow to the excerpt lookup contract and its public FTS helper surface rather than broader retrieval or provenance claims.
-- This handoff explicitly states that the reviewed slice advances the canonical demo-path step `retrieve relevant material`.
+- This handoff explicitly states that the reviewed slice advances the canonical demo-path step `retrieve relevant material`, which is the Milestone 3 FTS-first structured retrieval requirement this slice makes more real.
 
 ## Reviewed Scope Boundary
 
@@ -106,13 +106,13 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop` via the `retrieve relevant material` step's deterministic excerpt-query contract
+- `Milestone 3: Product Readiness` via the `retrieve relevant material` step's deterministic FTS-first excerpt-query contract
 - `feat-retrieval-fts` FTS-only excerpt fail-closed slice
 
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- Deterministic FTS-only excerpt lookup keeps the demo path auditable and fail-closed.
+- Deterministic FTS-only excerpt lookup keeps the demo path auditable, fail-closed, and aligned with Milestone 3's FTS-first structured retrieval requirement.
 
 ### Vision capability affected
 
