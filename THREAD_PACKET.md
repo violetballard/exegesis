@@ -14,11 +14,11 @@
 - Demo-path sentence: this change makes the existing CLI path safer to rely on because the concrete parser-backed command entrypoints an operator already uses to open project or document state can no longer silently drift away from the canonical catalog through alias-level or ordering changes.
 - Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so an operator could begin the active Milestone 3 flow through an `open project/document` surface that no longer matched the canonical command catalog.
 - Review basis scope: keep implementation and approval claims pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and its two implementation files only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
-- Final fixer note: this packet refresh exists only to align the handoff scope language with the already-landed full parser-surface guardrail and to record the green rerun of the required gates from this fixer pass; the reviewed implementation commit remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and the live branch tip revalidated here was `724b7ed01a4bdbf16d875ac8b1da5153aeca523e`.
-- Final verification note: this metadata-only fixer rerun at `2026-04-24T17:14:20Z` revalidated the corrected handoff packet and reran the full required gate set without widening implementation scope.
-- Latest fixer rerun note: after reloading the reviewer packet against the live worktree on `2026-04-24`, this handoff remained metadata-only because the required command-contract guardrail and regression coverage were already present on `codex/feat-commands`.
-- Current fixer pass note: this follow-up pass rechecked the live `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` state from branch tip `724b7ed01a4bdbf16d875ac8b1da5153aeca523e`, confirmed the reviewer-requested parser-surface guardrail and alias-drift regressions were already committed, and limited the new work to another handoff metadata refresh plus a fresh required-gates rerun.
-- Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed again at `2026-04-24T17:14:20Z` in this metadata-only fixer handoff.
+- Final fixer note: this packet refresh aligns the handoff scope language with the already-landed full parser-surface guardrail, adds direct regression coverage against the live CLI parser entrypoint constant, and records the green rerun of the required gates from this fixer pass.
+- Final verification note: this fixer rerun revalidated the corrected handoff packet, added direct live-parser drift coverage, and reran the full required gate set without widening implementation scope.
+- Latest fixer rerun note: after reloading the reviewer packet against the live worktree on `2026-04-24`, the parser-surface guardrail remained present on `codex/feat-commands` and the new work tightened the regression proof by mutating `src.qual.cli._CLI_PARSER_ENTRYPOINTS` directly.
+- Current fixer pass note: this follow-up pass rechecked the live `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` state, confirmed the reviewer-requested parser-surface guardrail was already committed, added the direct live-parser alias-drift regression, and then reran the required gates.
+- Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` were rerun in this fixer pass after adding the direct live-parser drift regression.
 
 ## Thread Kickoff (High-Risk)
 
@@ -37,7 +37,7 @@
 ### Planned Tasks
 
 1. Harden `command_cli_contract()` so the full grouped parser-surface projection is validated against the canonical catalog instead of trusting derived canonical-name order alone.
-2. Add regression coverage proving live parser/catalog drift raises a hard failure, including alias-level drift that preserves canonical command names.
+2. Add regression coverage proving live parser/catalog drift raises a hard failure, including alias-level drift that preserves canonical command names and direct mutation of the live parser entrypoint constant.
 3. Refresh the handoff packet so it names the exact canonical demo-path step protected by this contract, explains why the work is migration-safe compatibility hardening rather than second-order cleanup, and makes the alias-level parser-surface-drift scope explicit even when canonical names stay stable.
 4. Re-run the required gates and record the results.
 
