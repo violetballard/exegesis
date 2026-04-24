@@ -2907,6 +2907,12 @@ def _build_retrieval_downstream_payload_from_context_bundle(
 ) -> dict[str, object]:
     """Return the canonical downstream payload from a context-bundle snapshot."""
 
+    retrieval_provenance = context_bundle.get(
+        "retrieval_provenance",
+        context_bundle.get("retrieval_provenance_bundle", {}),
+    )
+    if not isinstance(retrieval_provenance, dict):
+        retrieval_provenance = {}
     payload = {
         "audit_ref": context_bundle.get("audit_ref"),
         "result_fingerprint": context_bundle.get("result_fingerprint"),
@@ -2921,7 +2927,7 @@ def _build_retrieval_downstream_payload_from_context_bundle(
         "retrieval_citation_bundle": copy.deepcopy(context_bundle.get("retrieval_citation_bundle", {})),
         "retrieval_doc_bundle": copy.deepcopy(context_bundle.get("retrieval_doc_bundle", {})),
         "retrieval_excerpt_bundle": copy.deepcopy(context_bundle.get("retrieval_excerpt_bundle", {})),
-        "retrieval_provenance": copy.deepcopy(context_bundle.get("retrieval_provenance", {})),
+        "retrieval_provenance": copy.deepcopy(retrieval_provenance),
         "retrieval_source_bundle": copy.deepcopy(context_bundle.get("retrieval_source_bundle", {})),
         "retrieval_evidence": copy.deepcopy(context_bundle.get("retrieval_evidence", {})),
         "basket_promotion": copy.deepcopy(context_bundle.get("basket_promotion", {})),
@@ -2966,6 +2972,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "retrieval_doc_bundle": copy.deepcopy(retrieval_doc_bundle),
         "retrieval_excerpt_bundle": copy.deepcopy(retrieval_excerpt_bundle),
         "retrieval_provenance": copy.deepcopy(retrieval_provenance),
+        "retrieval_provenance_bundle": copy.deepcopy(retrieval_provenance),
         "retrieval_source_bundle": copy.deepcopy(source_bundle),
         "retrieval_evidence": copy.deepcopy(source_bundle.get("retrieval_evidence", {})),
         "basket_promotion": copy.deepcopy(basket_promotion),
@@ -3188,6 +3195,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_doc_bundle": _build_retrieval_doc_bundle_from_payload(payload),
         "retrieval_excerpt_bundle": _build_retrieval_excerpt_bundle_from_payload(payload),
         "retrieval_provenance": retrieval_provenance,
+        "retrieval_provenance_bundle": copy.deepcopy(retrieval_provenance),
         "retrieval_source_bundle": retrieval_source_bundle,
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", source_evidence)),
         "basket_promotion": _build_basket_promotion_from_payload(payload),
@@ -3292,7 +3300,7 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
 def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict[str, object]:
     """Return the deterministic retrieval provenance snapshot from a downstream payload snapshot."""
 
-    provenance = payload.get("retrieval_provenance")
+    provenance = payload.get("retrieval_provenance", payload.get("retrieval_provenance_bundle"))
     if isinstance(provenance, dict):
         normalized = copy.deepcopy(provenance)
     else:

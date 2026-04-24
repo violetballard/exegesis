@@ -1131,6 +1131,7 @@ class RetrievalResult:
             "retrieval_doc_bundle": copy.deepcopy(downstream_payload["retrieval_doc_bundle"]),
             "retrieval_excerpt_bundle": copy.deepcopy(downstream_payload["retrieval_excerpt_bundle"]),
             "retrieval_provenance": copy.deepcopy(downstream_payload["retrieval_provenance"]),
+            "retrieval_provenance_bundle": copy.deepcopy(downstream_payload["retrieval_provenance"]),
             "retrieval_source_bundle": copy.deepcopy(downstream_payload["retrieval_source_bundle"]),
             "retrieval_evidence": copy.deepcopy(downstream_payload["retrieval_evidence"]),
             # Promote the canonical basket-ready record to the top level so
