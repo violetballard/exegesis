@@ -138,8 +138,10 @@ from src.qual.ui.shell import (
     SHELL_UI_STARTUP_PREVIEW_LIMIT,
     ShellUI,
     describe_shell_ui_contract,
+    describe_shell_ui_contract_manifest,
     describe_shell_ui_contract_fingerprints,
     shell_ui_contract_fingerprint,
+    shell_ui_contract_manifest_fingerprint,
 )
 
 
@@ -346,7 +348,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIs(public_ui.describe_a2ui_leaf_contracts, describe_a2ui_leaf_contracts)
         self.assertIs(public_ui.a2ui_leaf_contracts_fingerprint, a2ui_leaf_contracts_fingerprint)
         self.assertIs(public_ui.describe_shell_ui_contract, describe_shell_ui_contract)
+        self.assertIs(public_ui.describe_shell_ui_contract_manifest, describe_shell_ui_contract_manifest)
         self.assertIs(public_ui.shell_ui_contract_fingerprint, shell_ui_contract_fingerprint)
+        self.assertIs(
+            public_ui.shell_ui_contract_manifest_fingerprint,
+            shell_ui_contract_manifest_fingerprint,
+        )
 
     def test_selection_contract_manifest_exposes_contract_fingerprint_alias(self) -> None:
         manifest = describe_selection_contract()
@@ -4940,9 +4947,11 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
     def test_shell_ui_contract_is_versioned_and_fingerprintable(self) -> None:
         manifest = describe_shell_ui_contract()
+        manifest_alias = describe_shell_ui_contract_manifest()
         target_contract = describe_terminal_artifact_cli_fallback_target_contract()
         route_fingerprint = terminal_artifact_cli_fallback_route_contract_fingerprint()
         shell_fingerprint = shell_ui_contract_fingerprint()
+        shell_manifest_fingerprint = shell_ui_contract_manifest_fingerprint()
 
         self.assertEqual(manifest["contract_version"], 2)
         self.assertEqual(manifest["a2ui_version"], 1)
@@ -4950,7 +4959,9 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["shell_ui_version"], SHELL_UI_CONTRACT_VERSION)
         self.assertEqual(manifest["type"], "ShellUIContract")
         self.assertEqual(manifest["contract_fingerprint"], shell_fingerprint)
+        self.assertEqual(manifest_alias, manifest)
         self.assertEqual(manifest["shell_ui_fingerprint"], shell_fingerprint)
+        self.assertEqual(shell_manifest_fingerprint, shell_fingerprint)
         self.assertEqual(manifest["shell_ui_contract_manifest"], manifest["shell_ui_contract"])
         self.assertEqual(manifest["shell_ui_contract_manifest_fingerprint"], shell_fingerprint)
         self.assertIsNot(manifest["shell_ui_contract"], manifest)
