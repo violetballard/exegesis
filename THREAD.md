@@ -23,8 +23,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - Reviewed implementation scope:
-  - fail fast when the canonical command names derived from the live CLI lookup table drift from the declared command catalog
-  - prove in shared tests that the command contract returns canonical catalog order and raises on drift
+  - fail fast when the live CLI parser surface drifts from the declared command catalog, including extra accepted aliases or reordered parser entrypoints
+  - prove in shared tests that the command contract returns the declared parser surface and raises on parser-surface drift
   - prove in shared tests that the smoke-route patch-review entry remains `("patch-review", "diff-preview", ("diff-preview", "diff"))`
 - Primary canonical demo-path step(s) advanced:
   - `open project/document`
@@ -37,8 +37,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - AGENTS compliance note:
   - every active lane task in this packet now names the exact canonical demo-path step it advances, and the handoff states the concrete blocker removed at that step
 - Per-task canonical demo-path mapping for re-review:
-  - task 1 `open project/document`, `retrieve`, `preview and apply or reject a patch`: lock the live CLI smoke-surface command contract to the command catalog so canonical-name drift fails closed before the operator reaches the `project-open`, `retrieval`, or `patch-review` verb sets
-  - task 2 `open project/document`, `retrieve`, `preview and apply or reject a patch`: add focused regression coverage proving canonical-order alignment and command-catalog drift rejection for the `project-open` / `retrieval` / `patch-review` CLI smoke surface
+  - task 1 `open project/document`, `retrieve`, `preview and apply or reject a patch`: lock the live CLI smoke-surface command contract to the command catalog so parser-surface drift fails closed before the operator reaches the `project-open`, `retrieval`, or `patch-review` verb sets
+  - task 2 `open project/document`, `retrieve`, `preview and apply or reject a patch`: add focused regression coverage proving parser-surface alignment and command-catalog drift rejection for the `project-open` / `retrieval` / `patch-review` CLI smoke surface
   - task 3 `open project/document`, `retrieve`, `preview and apply or reject a patch`: regenerate the handoff packet so the re-review basis, roadmap/vision scope, and explicit demo-path mapping stay aligned to the reviewed implementation slice
   - task 4 `open project/document`, `retrieve`, `preview and apply or reject a patch`: rerun the required gates and record the outcomes against the same reviewed implementation scope
 - Scope note:
@@ -46,10 +46,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - the CLI-first MVP loop claim is intentionally narrowed to the tested `project-open` / `retrieval` / `patch-review` route coverage in `tests/unit/test_commands_catalog.py`, not to a broader workflow-loop completion claim
   - `terminal` and `export-handoff` are outside the approval basis for this packet
 - Concrete blocker removed:
-  - the active CLI fallback no longer allows the parser-derived canonical command order to diverge from the declared command catalog without an immediate contract failure on the `project-open` / `retrieval` / `patch-review` smoke path
+  - the active CLI fallback no longer allows the parser-derived command surface to diverge from the declared command catalog, including extra accepted aliases, without an immediate contract failure on the `project-open` / `retrieval` / `patch-review` smoke path
 - Roadmap / vision alignment for this reviewed slice:
   - `ROADMAP.md` active lane keeps `feat-commands` in the current implementation push
-  - `ROADMAP.md` Milestone 1 still includes `Command and diff-preview behavior hardening`
+  - `ROADMAP.md` Milestone 5 keeps CLI fallback in scope for the MVP flow with the exit criterion `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`
   - `AGENTS.md` operational narrowing rules require each active lane task to name which canonical demo-path step it advances and to state that step explicitly before handoff
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface` and capability 5 `Agent-to-UI protocol (A2UI)` are the only capabilities claimed here, specifically `CLI remains a first-class surface for development and reliability` and `CLI remains able to render a text fallback of the same underlying artifacts`
   - this packet does not claim persistence, audit hooks, retrieval progress, or broader workflow trace records
