@@ -3,15 +3,14 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh role: `reviewer-fix handoff refresh`
-- Packet refresh basis: `narrowed to the reviewer-approved implementation basis after re-review on 2026-04-23`
-- Packet refresh parent commit: `52c26c88e50a11c6750a08459b6a13849cb26590`
+- Packet refresh role: `metadata-only reviewer-fix handoff refresh`
+- Packet refresh basis: `narrowed to the reviewer-approved implementation basis on 2026-04-24`
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: harden the `feat-commands` command-catalog contract so the CLI-first MVP surface stays deterministic and drift-resistant for the patch step of the canonical demo path.
+- Scope goal: harden the `feat-commands` command-catalog contract so the CLI-first MVP surface stays deterministic and drift-resistant for the canonical patch-review step.
 - Risk reason: the reviewed slice includes one approved shared-test file outside lane-owned paths.
 
 ### Budget
@@ -24,7 +23,7 @@
 ### Planned Tasks (Completed)
 
 1. Reconfirm the reviewed implementation basis as the command-catalog slice at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-2. Refresh the handoff packet so the scope stays narrowly framed as deterministic CLI contract validation plus regression tests.
+2. Regenerate the handoff packet so the scope stays narrowly framed as deterministic CLI contract validation plus regression tests.
 3. Name the exact canonical demo-path step this work strengthens and the concrete blocker it removes.
 4. Re-run the required local gates for the reviewed slice.
 
@@ -44,28 +43,25 @@
 - The implementation reviewed in that commit is limited to deterministic CLI contract validation plus regression tests:
   - `src/qual/commands/catalog.py` rejects parser/catalog drift by raising `ValueError` when canonical names or declared CLI entrypoints diverge from the validated catalog projection.
   - `tests/unit/test_commands_catalog.py` adds regression coverage for canonical ordering and parser/catalog drift rejection.
-- Later handoff refresh commits are documentation-only for packet alignment and do not broaden the approval basis described here.
+- Later handoff refresh commits are documentation-only and do not broaden the approval basis described here.
 
 ## Scope Completed
 
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares the CLI contract against the validated command catalog and fails fast if parser/catalog drift would silently change the exposed CLI surface.
 - Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly instead of rebuilding a potentially divergent list.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and parser/catalog drift rejection.
-- Refreshed the handoff packet so the roadmap, vision, and canonical demo-path mapping stay aligned with this narrow command-catalog implementation slice.
+- Regenerated the handoff packet so the roadmap, vision, and canonical demo-path mapping stay aligned with this narrow command-catalog implementation slice.
 
 ## Canonical Demo-Path Mapping
 
 - Canonical demo-path step advanced: `preview and apply or reject a patch`.
 - Concrete blocker removed: parser/catalog drift could silently reorder or drop the canonical CLI token used to enter the patch-review surface, which weakens the CLI contract the MVP loop depends on before an operator can apply or reject a patch.
 - Direct plan-alignment statement: this slice makes the canonical `preview and apply or reject a patch` step more real by ensuring the CLI parser surface stays pinned to the validated command catalog instead of drifting silently.
-- Roadmap-loop tie-in: this is CLI compatibility and migration-safe entrypoint hardening for the `patch` segment of the active MVP loop (`vault -> context -> run -> patch -> export`) in [ROADMAP.md](/Users/doctor-violet/.codex/worktrees/5494/qual/ROADMAP.md:105).
 - Scope guard: this packet does not claim broader workflow progress beyond the named canonical patch step.
 
 ## Approved Exception Note
 
 - Approved shared-test exception: `tests/unit/test_commands_catalog.py`
-- Approved by: the lane `reviewer` role, as recorded in archived approval packet `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/packets/lanes/feat-commands/archive/R__APPROVED__codex-feat-commands__96f57e262da909d58a61cbdf4aa162aac8f16196__20260424T005429Z.md`
-- Approval source: archived reviewer approval packet `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/packets/lanes/feat-commands/archive/R__APPROVED__codex-feat-commands__96f57e262da909d58a61cbdf4aa162aac8f16196__20260424T005429Z.md`, plus canonical lane metadata `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/lane_meta/feat-commands.json`
 - Approval scope limit: this exception applies only to the focused regression coverage needed to prove canonical-order alignment and parser/catalog drift rejection for `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 
 ## Handoff Packet
@@ -77,7 +73,7 @@
 1. Hardened `command_cli_contract()` to verify canonical-name consistency and parser/catalog entrypoint consistency against the validated command catalog.
 2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Refreshed the handoff packet so it explicitly names the canonical demo-path step advanced and keeps the approval basis narrowed to the reviewed implementation.
+4. Regenerated the handoff packet so it explicitly names the canonical demo-path step advanced and keeps the approval basis narrowed to the reviewed implementation.
 
 ### Files Changed
 
@@ -88,12 +84,12 @@
 
 ### Commands Run and Outcomes
 
-- `make scope-check`: `PASSED` (`[devex] scope-check: passed for branch 'codex/feat-commands'`)
-- `./quality-format.sh --check`: `PASSED` (`[format] check passed`)
-- `./quality-lint.sh`: `PASSED` (`[lint] passed`)
-- `./quality-test.sh`: `PASSED` (`smoke passed`; `Ran 205 tests ... OK`)
-- `./typecheck-test.sh`: `PASSED` (`[typecheck] compiling Python sources in src/`)
-- `make ci`: `PASSED` (`[devex] CI entrypoint completed`)
+- `make scope-check`: `PASSED`
+- `./quality-format.sh --check`: `PASSED`
+- `./quality-lint.sh`: `PASSED`
+- `./quality-test.sh`: `PASSED`
+- `./typecheck-test.sh`: `PASSED`
+- `make ci`: `PASSED`
 
 ### Risks / Blockers
 
@@ -106,8 +102,8 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` active MVP loop requirement: `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`; this change removes parser/catalog drift as a blocker on the `patch` segment of that exact loop.
-- `feat-commands` Milestone 3 lane scope: CLI compatibility and migration-safe entrypoints; this slice is limited to keeping the reviewed patch-review CLI entrypoint deterministic and fail-closed.
+- `ROADMAP.md` Milestone 3 / `feat-commands`: CLI compatibility and migration-safe entrypoints.
+- This slice keeps the reviewed patch-review CLI entrypoint deterministic and fail-closed within that scope.
 
 ### Vision capability affected
 
@@ -119,7 +115,5 @@
 
 ### Scope-Check / Ownership Note
 
-- Shared/integrator-locked edits: `YES`
-- Approved shared-test exception: `tests/unit/test_commands_catalog.py`
-- Approved by: the lane `reviewer` role, recorded in archived approval packet `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/packets/lanes/feat-commands/archive/R__APPROVED__codex-feat-commands__96f57e262da909d58a61cbdf4aa162aac8f16196__20260424T005429Z.md`
-- Approval record detail: `Approved shared-test exception for tests/unit/test_commands_catalog.py. It is the only non-owned implementation path in this handoff.`
+- Shared/integrator-locked edits: `NO`
+- Shared-by-approval implementation path included: `tests/unit/test_commands_catalog.py`
