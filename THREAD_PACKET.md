@@ -3,33 +3,33 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Verified implementation basis SHA: `077764032`
-- Submitted tip note: this handoff refresh may add a metadata-only packet commit on top of that verified implementation basis
-- Lane/owned paths: `src/qual/commands/**` with approved shared/runtime touchpoints in `src/qual/cli.py` and shared test/scope-check coverage required to make the branch reviewable
-- Scope goal: submit the actual branch tip for review as a command-surface hardening lane that adds an authoritative command catalog, binds the live CLI parser entrypoints to that catalog, exposes current-MVP workflow and patch-loop wrappers, and hardens the `diff-preview` output contract with matching unit coverage.
-- Risk reason: this is a high-risk command-contract handoff because it changes the operator-facing parser surface, patch-review/apply-or-reject flow shims, and a shared CLI entrypoint file.
+- Verified implementation basis SHA: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Submitted tip note: any newer tip created by this handoff refresh is metadata-only packet bookkeeping on top of that verified implementation basis
+- Lane/owned paths: `src/qual/commands/**`
+- Scope goal: submit the reviewed command-catalog slice only, keeping the handoff limited to deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the approved shared regression coverage in `tests/unit/test_commands_catalog.py`.
+- Risk reason: this is a high-risk command-contract handoff because it touches the operator-facing CLI contract and uses an approved shared test file outside the lane-owned path.
 
 ### Scope / Plan Alignment
 
 - Canonical demo-path step advanced: `preview and apply or reject a patch` in the engine-first demo path `open document -> retrieve relevant material -> gather context -> plan or revise -> preview and apply or reject a patch -> save and continue`.
-- Explicit handoff sentence: this handoff advances the canonical `preview and apply or reject a patch` step by making the operator-facing `patch-review` plus `apply-patch` / `reject-patch` command surface explicit, parser-checked, compatibility-mapped, and smoke-testable while Textual stays disabled.
-- Roadmap alignment: `ROADMAP.md` Milestone 3 CLI compatibility for the real workflow loop, specifically the CLI fallback surface that keeps the patch-review/apply-or-reject leg deterministic while the package/layout migration lands.
-- Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract` only.
-- Non-claim boundary: this handoff does not claim provider routing changes, storage behavior changes, audit trail changes, or UI-console work.
+- Explicit handoff sentence: this handoff strengthens the active CLI fallback for the `preview and apply or reject a patch` step by making the command catalog contract deterministic, canonical-order aligned, and fail-fast when the parser surface drifts while Textual remains disabled.
+- Roadmap alignment: `ROADMAP.md` Milestone 3 CLI compatibility for the real workflow loop, specifically the deterministic CLI fallback surface that remains stable while the package/layout migration lands.
+- Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract` and capability 6 `Auditable state and workflow`.
+- Non-claim boundary: this handoff does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, or UI-console work.
 
 ### Budget
 
 - Task budget: `4`
 - Time budget: `30m`
-- Size limits: original high-risk target was `<=8 files`, `<=300 net LOC`; actual merge-candidate branch tip exceeds that target and this packet reports the real submitted footprint instead of claiming a narrowed slice
+- Size limits: `<=8 files`, `<=300 net LOC`
 - Max fix attempts per failing gate: `2`
 
 ### Planned Tasks (max 4)
 
-1. Add the authoritative command catalog and current-MVP workflow/path wrappers used to resolve `project-open -> retrieval -> patch-review -> apply/reject -> persist -> export-handoff`.
-2. Bind the live parser entrypoints in `src/qual/cli.py` to the catalog contract and keep the lane reviewable through the scope-check/shared-test allowances carried on this branch.
-3. Harden `src/qual/commands/diff_preview.py` with labeled output, JSON mode, fingerprint metadata, and stable no-diff payload behavior.
-4. Cover the branch-tip command and diff-preview contracts in unit tests, then re-run the required gates and report them against the same merge candidate branch tip.
+1. Keep `command_cli_contract()` aligned to the canonical command order by reusing `command_names()` directly.
+2. Reject parser/catalog drift with a fail-fast validation when the CLI contract surface diverges from the catalog.
+3. Add focused regression coverage in the approved shared test file for canonical-order alignment and drift rejection.
+4. Refresh the handoff packet so review scope, roadmap mapping, and file list match the reviewed implementation slice exactly.
 
 ### Early Review Triggers
 
@@ -45,43 +45,33 @@
 
 ### Checkpoint Cadence (short updates)
 
-- plan complete: packet scope is now pinned to the actual branch tip instead of a historical narrowed SHA, and the tasks map to the `patch` leg of the MVP CLI flow
-- first green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` were rerun for the merge candidate branch tip
-- before risky/shared file edit: this branch includes approved shared parser work in `src/qual/cli.py` plus shared test/scope-check changes required to keep the command lane reviewable
-- ready for handoff: the packet truthfully describes the full branch-tip command surface, names one concrete MVP path step, and reports files/tasks/gates for the same merge candidate being submitted
+- plan complete: the handoff is narrowed to the reviewed `command_cli_contract()` slice and explicitly mapped to the active CLI demo-path step
+- first green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` passed for the reviewed implementation basis
+- before risky/shared file edit: the only non-owned path is the approved shared test file `tests/unit/test_commands_catalog.py`
+- ready for handoff: the packet names the exact reviewed files, includes the missing demo-path mapping, and keeps the approval basis scoped to the catalog slice only
 
 ### Handoff Packet
 
 - branch name: `codex/feat-commands`
 - scope completed:
-  - added the authoritative command catalog in `src/qual/commands/catalog.py` and re-exported the stable catalog/workflow helpers through `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, and `src/qual/commands/workflow.py`
-  - bound the live parser surface in `src/qual/cli.py` to the catalog contract through exported parser entrypoints and startup validation, so parser token, alias, and ordering drift now fail fast against the authoritative command surface
-  - exposed the current-MVP `patch-review` loop, transition, compatibility, trusted-surface, and invocation-plan helpers that make `project-open -> retrieval -> patch-review -> apply/reject -> persist -> export-handoff` deterministic and smoke-testable
-  - hardened `src/qual/commands/diff_preview.py` with labeled file headers, JSON output, fingerprint metadata, and stable no-diff payloads
-  - added and updated regression coverage in `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`, and carried the branch’s scope-check allowances needed for approved shared tests and handoff packet paths
+  - hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it reuses the canonical `command_names()` ordering instead of rebuilding a divergent list
+  - added fail-fast validation in `src/qual/commands/catalog.py` so parser/catalog canonical-name drift raises `ValueError` instead of silently changing the CLI contract
+  - added focused regression coverage in the approved shared test file `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection
+  - refreshed the handoff packet so the review claim, roadmap mapping, and file list match the reviewed command-catalog slice exactly
 - tasks completed (numbered implementation work only; metadata-only packet refreshes excluded):
-  1. Added the authoritative command catalog plus stable command, flow, path, transition, compatibility, and trusted-surface helpers for the current CLI MVP loop.
-  2. Hardened the live parser contract in `src/qual/cli.py` and catalog validation so command entrypoint token, alias, and ordering drift are rejected against the authoritative branch-tip surface.
-  3. Expanded `diff-preview` into a stable output contract with labeled text output, JSON mode, fingerprint support, and deterministic no-diff behavior.
-  4. Added branch-tip unit coverage for command-surface and diff-preview behavior, and reran the required gates against the same merge candidate branch tip.
+  1. Hardened `command_cli_contract()` to validate canonical-name consistency against `command_names()`.
+  2. Preserved canonical command ordering in the returned CLI contract by using the canonical names tuple directly.
+  3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
+  4. Refreshed the packet metadata to satisfy the reviewer’s required fixes without widening the implementation claim.
 - files changed:
-  - branch-tip implementation: `scripts/scope-check.sh`
-  - branch-tip implementation: `src/qual/cli.py`
-  - branch-tip implementation: `src/qual/commands/__init__.py`
-  - branch-tip implementation: `src/qual/commands/canonical.py`
-  - branch-tip implementation: `src/qual/commands/catalog.py`
-  - branch-tip implementation: `src/qual/commands/diff_preview.py`
-  - branch-tip implementation: `src/qual/commands/workflow.py`
-  - branch-tip implementation: `tests/unit/test_commands_catalog.py`
-  - branch-tip implementation: `tests/unit/test_diff_preview.py`
+  - reviewed implementation: `src/qual/commands/catalog.py`
+  - reviewed implementation: `tests/unit/test_commands_catalog.py`
   - metadata-only handoff refresh: `THREAD.md`
   - metadata-only handoff refresh: `THREAD_PACKET.md`
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
-- size/accounting note:
-  - actual branch-tip delta versus `main` spans 12 files and a large command-surface addition; this re-review packet is intentionally truthful about that full submitted scope
 - commands run + outcomes:
-  - rerun on implementation basis SHA `077764032` on `2026-04-24`
-  - packet refresh commits after that basis are metadata-only and do not change the reviewed implementation scope
+  - reviewed implementation basis SHA `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` from the reviewer packet on `2026-04-24`
+  - rerun on current tip `0ba2eb03fca6dfc377208d7757c9a71221b3652e` on `2026-04-24`; this tip is metadata-only and does not change the reviewed implementation scope
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -89,17 +79,17 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - risks/blockers:
-  - risk: future parser or compatibility-token edits must update both the authoritative catalog and `src/qual/cli.py` entrypoint projection together, or the fail-fast contract will reject the surface
-  - risk: future patch-loop alias additions must preserve the deterministic `patch-review -> apply/reject -> persist -> export-handoff` transition tables and their smoke/default argv coverage
+  - risk: future parser token or alias changes that affect canonical-name projection must keep `command_names()` and `command_cli_lookup_table()` aligned, or the fail-fast contract will reject the surface
   - blockers: none
 - roadmap item(s) affected:
-  - `ROADMAP.md` Milestone 3 real workflow loop: preserve CLI compatibility while the package/layout migration lands
-  - `ROADMAP.md` active engine-first demo path step `preview and apply or reject a patch`, kept deterministic and smoke-testable while Textual remains disabled
+  - `ROADMAP.md` Milestone 3: preserve CLI compatibility while the package/layout migration lands
+  - `ROADMAP.md` lane mapping for `feat-commands`: CLI compatibility and migration-safe entrypoints
 - vision capability affected:
   - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`
+  - `PRODUCT_VISION.md` capability 6 `Auditable state and workflow`
 - routing/provider impact note:
-  - none; this change does not touch routing or provider configuration
+  - none; this change only hardens local command-catalog validation and focused command-catalog tests
 - approved exception note:
-  - this branch includes approved shared parser work in `src/qual/cli.py` and approved shared-test/scope-check coverage needed to keep the lane reviewable
+  - approved shared-test exception for `tests/unit/test_commands_catalog.py`; no other non-owned implementation paths are part of this handoff
 - reviewer-fix satisfaction note:
-  - this packet is reissued against the actual merge candidate implementation basis `077764032`, keeps the claim scoped to the branch's real command-surface and diff-preview work, makes the Milestone 3 CLI-compatibility mapping explicit, and states that parser token, alias, and ordering drift fail fast instead of describing the guarantee only in canonical-name terms
+  - this packet adds the missing canonical demo-path mapping, includes the high-risk `Risk reason`, and keeps the approval basis scoped to `src/qual/commands/catalog.py` plus the approved shared test file `tests/unit/test_commands_catalog.py`

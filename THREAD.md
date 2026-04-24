@@ -6,32 +6,26 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual branch tip submitted for merge, not a narrowed historical SHA
-- Verified implementation basis SHA: `077764032`
+- Review basis: reviewed command-catalog slice only, not the broader branch-tip command-surface packet
+- Verified implementation basis SHA: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Submitted tip note: any newer tip created by this handoff refresh is metadata-only packet bookkeeping on top of that verified implementation basis
-- Review scope: branch-tip command-surface hardening across the command catalog, live CLI parser entrypoints, diff-preview contract output, current-MVP workflow wrappers, and the matching unit coverage
+- Review scope: deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the approved shared regression coverage in `tests/unit/test_commands_catalog.py`
 - Canonical demo-path step advanced: `preview and apply or reject a patch` in the engine-first demo path `open document -> retrieve relevant material -> gather context -> plan or revise -> preview and apply or reject a patch -> save and continue`
-- Concrete step mapping: this lane makes the operator-facing `patch-review` plus `apply-patch` / `reject-patch` surface explicit, parser-checked, and smoke-testable for the active CLI-first MVP loop while Textual remains disabled
-- Roadmap alignment: `ROADMAP.md` Milestone 3 CLI compatibility for the real workflow loop, specifically the CLI fallback surface that keeps the patch-review/apply-or-reject leg deterministic while the package/layout migration lands
-- Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract`
-- Scope boundary: this handoff claims command-surface and diff-preview contract work only; it does not claim provider, routing, storage, or audit behavior changes
+- Concrete step mapping: this lane keeps the active CLI fallback stable for the patch preview/apply-or-reject leg by ensuring the catalog-backed command contract stays canonical-order aligned and rejects parser drift loudly while Textual remains disabled
+- Roadmap alignment: `ROADMAP.md` Milestone 3 CLI compatibility for the real workflow loop, specifically the migration-safe CLI surface
+- Vision alignment: `PRODUCT_VISION.md` capabilities 3 `Canonical engine contract` and 6 `Auditable state and workflow`
+- Scope boundary: this handoff claims only the command-catalog contract hardening and the approved shared regression test; it does not claim parser-entrypoint rewrites, diff-preview work, workflow-wrapper additions, provider/routing changes, or storage behavior changes
 - Task accounting note: metadata-only packet refreshes are bookkeeping for the handoff and are not counted as implementation tasks
 
 ## Reviewed Files
 
-- `scripts/scope-check.sh`
-- `src/qual/cli.py`
-- `src/qual/commands/__init__.py`
-- `src/qual/commands/canonical.py`
 - `src/qual/commands/catalog.py`
-- `src/qual/commands/diff_preview.py`
-- `src/qual/commands/workflow.py`
 - `tests/unit/test_commands_catalog.py`
-- `tests/unit/test_diff_preview.py`
 
 ## Required Gates
 
-- Verified on implementation basis SHA `077764032` on `2026-04-24`; any newer tip from this handoff refresh is metadata-only
+- Reviewer packet reported these gates as passing on implementation basis SHA `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Handoff refresh reran the same gates on current tip `0ba2eb03fca6dfc377208d7757c9a71221b3652e`; that tip remains metadata-only
 - `make scope-check`
 - `./quality-format.sh --check`
 - `./quality-lint.sh`
