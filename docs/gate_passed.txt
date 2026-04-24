@@ -3,7 +3,7 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran for the corrected retrieval handoff:
 
-* current submitted implementation tip before this metadata-only fixer commit `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`
+* current submitted implementation tip before this metadata-only fixer commit `764dc41208453059a2a8c96502a092b6676d4fd2`
 * reviewed implementation head `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`
 * reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`
 * reviewed implementation files `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `codex_packet_handoff/tools/planner.py`, `docs/gate_passed.txt`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/embeddings_strategy.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/interface.py`, `src/qual/engine/retrieval/pageindex_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, `tests/unit/test_packet_planner.py`, and `tests/unit/test_unified_retrieval.py`
@@ -26,9 +26,10 @@ Focused retrieval proof:
 * `python3 -m unittest tests.unit.test_unified_retrieval` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`.
-Plan-alignment statement: the reviewed range `378cf9a7..9d9e11a1` makes `retrieve relevant material` more real by keeping excerpt lookup on the auditable SQLite FTS path and by preserving deterministic query-constraint snapshots in sparse retrieval payloads, so downstream engine flows see stable retrieval state.
+Plan-alignment statement: This work makes the `retrieve relevant material` step more real by ensuring excerpt lookup fails closed to the canonical FTS-backed retrieval path and returns deterministic provenance only for FTS hits.
 Scope note: this handoff now covers the real cumulative implementation range through `9d9e11a1`, including the substantive post-`adfa8cda` retrieval commits that previously sat outside the packet's claimed scope.
 Budget compliance statement: this packet is shared/high-risk work because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`, so the handoff is read against the 4-task cap rather than the default 8-task cap.
 Traceability statement: this fixer commit is metadata-only; re-review should validate the actual reviewed implementation range `378cf9a7..9d9e11a1`, not the fixer commit itself.
+Packet artifact note: the mirrored `.codex/*` packet artifacts are read-only in this worktree, so the writable reviewer-facing handoff source of truth for this fixer pass is `THREAD_PACKET.md` plus this gate summary.
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
