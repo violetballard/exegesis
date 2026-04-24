@@ -66,12 +66,12 @@
 
 ## Commands Run and Outcomes
 
-- `SCOPE_ALLOW_SHARED=1 make scope-check`: `PASSED`
-- `SCOPE_ALLOW_SHARED=1 ./quality-format.sh --check`: `PASSED`
-- `SCOPE_ALLOW_SHARED=1 ./quality-lint.sh`: `PASSED`
-- `SCOPE_ALLOW_SHARED=1 ./quality-test.sh`: `PASSED`
-- `SCOPE_ALLOW_SHARED=1 ./typecheck-test.sh`: `PASSED`
-- `SCOPE_ALLOW_SHARED=1 make ci`: `PASSED`
+- `make scope-check`: `PASSED`
+- `./quality-format.sh --check`: `PASSED`
+- `./quality-lint.sh`: `PASSED`
+- `./quality-test.sh`: `PASSED`
+- `./typecheck-test.sh`: `PASSED`
+- `make ci`: `PASSED`
 
 ## Ownership Note
 
