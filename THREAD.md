@@ -33,6 +33,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `+9652/-485` lines in the full `f8d860ed..5ea27f3d` range
   - this is not a valid `AGENTS.md` high-risk `4`-task handoff as previously framed because it exceeds the `<=8 files` and `<=300 net LOC` size limits
   - the packet is now truthful about that budget miss; the implementation should be split into smaller reviewable packets before integration promotion
+- High-risk reason for the refreshed packet:
+  - the reviewed branch tip includes additional command-surface behavior beyond the earlier `command_cli_contract()` hardening and still carries one approved shared-test file outside lane-owned paths
 - Recommended split for re-review:
   - Packet A: parser-surface and catalog hardening
   - Packet B: demo token, shim, and next-action workflow contracts
@@ -43,6 +45,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `reject-patch`
   - `persist`
   - `export-handoff`
+- Explicit canonical demo-path statement:
+  - this refreshed handoff makes the roadmap's `preview and apply or reject a patch` step more real by keeping terminal-driven CLI routes pinned to the same canonical tokens before the downstream `persist` and `export-handoff` transitions
 - Roadmap / vision alignment for the true scope:
   - `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`) scope item `Command and diff-preview behavior hardening`
   - `ROADMAP.md` Milestone 2 (`Test Hardening`) scope items `Add focused unit coverage for core behaviors` and `Keep command-level probes for integration confidence`
