@@ -1349,6 +1349,12 @@ def terminal_artifact_cli_fallback_entrypoint_contract_fingerprint() -> str:
     return _fingerprint_manifest_section(manifest)
 
 
+def terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint() -> str:
+    """Return the explicit CLI fallback entrypoint manifest fingerprint under a manifest-specific name."""
+
+    return terminal_artifact_cli_fallback_entrypoint_contract_fingerprint()
+
+
 def describe_terminal_artifact_rendering_contract_fingerprints(
     include_terminal_artifact_rendering: bool = False,
     include_contract_aliases: bool = False,

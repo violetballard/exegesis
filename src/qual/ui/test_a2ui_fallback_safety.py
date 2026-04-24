@@ -86,6 +86,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_envelope_contract_fingerprint,
     terminal_artifact_cli_fallback_contract_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
+    terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint,
     terminal_artifact_cli_fallback_shell_refinement_policy_contract_fingerprint,
     terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint,
@@ -249,6 +250,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIs(
             public_ui.terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
+        )
+        self.assertIs(
+            public_ui.terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint,
+            terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint,
         )
         self.assertIs(
             public_ui.terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint,
@@ -849,6 +854,24 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(manifest["contract_fingerprint"], fingerprint)
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
+
+    def test_terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint_alias_matches_contract(
+        self,
+    ) -> None:
+        manifest = describe_terminal_artifact_cli_fallback_entrypoint_contract()
+        fingerprint = terminal_artifact_cli_fallback_entrypoint_contract_fingerprint()
+        manifest_fingerprint = terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint()
+
+        self.assertEqual(manifest["contract_fingerprint"], fingerprint)
+        self.assertEqual(manifest_fingerprint, fingerprint)
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint"],
+            fingerprint,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_contract_manifest"]["contract_fingerprint"],
+            fingerprint,
+        )
 
     def test_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_include_self_describing_aliases(
         self,
