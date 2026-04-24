@@ -739,6 +739,10 @@ def describe_a2ui_contract_fingerprints(
                 terminal_artifact_renderer_entrypoints_contract_fingerprint(),
             ),
             (
+                "terminal_artifact_renderer_entrypoints_contract_manifest",
+                terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+            ),
+            (
                 "terminal_artifact_cli_fallback_target",
                 terminal_artifact_cli_fallback_target_contract_fingerprint(),
             ),
