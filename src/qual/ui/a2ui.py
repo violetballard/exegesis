@@ -1047,6 +1047,10 @@ def describe_a2ui_contract_fingerprints(
                 terminal_artifact_render_target_contract_fingerprint(),
             ),
             ("terminal_artifact_rendering_contract", terminal_artifact_rendering_contract_fingerprint()),
+            (
+                "terminal_artifact_rendering_contract_manifest",
+                terminal_artifact_rendering_contract_fingerprint(),
+            ),
             ("terminal_artifact_cli_fallback_contract", terminal_artifact_cli_fallback_contract_fingerprint()),
             (
                 "terminal_artifact_cli_fallback_target_contract",
@@ -1486,6 +1490,12 @@ def describe_terminal_artifact_render_target_contract() -> dict[str, Any]:
     return manifest
 
 
+def describe_terminal_artifact_render_target_contract_manifest() -> dict[str, Any]:
+    """Return the render-target contract under a manifest-specific name."""
+
+    return describe_terminal_artifact_render_target_contract()
+
+
 def describe_terminal_artifact_render_target_contract_fingerprints(
     include_terminal_artifact_render_target: bool = False,
     include_contract_aliases: bool = False,
@@ -1576,6 +1586,14 @@ def describe_terminal_artifact_rendering_contract() -> dict[str, Any]:
     manifest["terminal_artifact_rendering_fingerprint"] = fingerprint
     manifest["terminal_artifact_rendering_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
+    manifest["terminal_artifact_rendering"] = _snapshot_contract_section(manifest)
+    manifest["terminal_artifact_rendering_contract"] = _snapshot_contract_section(
+        manifest["terminal_artifact_rendering"]
+    )
+    manifest["terminal_artifact_rendering_contract_manifest"] = _snapshot_contract_section(
+        manifest["terminal_artifact_rendering_contract"]
+    )
+    manifest["terminal_artifact_rendering_contract_manifest_fingerprint"] = fingerprint
     manifest["terminal_artifact_render_target"] = manifest["render_target_contract"]
     manifest["terminal_artifact_render_target_fingerprint"] = terminal_artifact_render_target_contract_fingerprint()
     manifest["terminal_artifact_render_target_contract"] = _snapshot_contract_section(
@@ -1604,6 +1622,12 @@ def describe_terminal_artifact_rendering_contract() -> dict[str, Any]:
         "contract_fingerprint"
     ]
     return manifest
+
+
+def describe_terminal_artifact_rendering_contract_manifest() -> dict[str, Any]:
+    """Return the rendering contract under a manifest-specific name."""
+
+    return describe_terminal_artifact_rendering_contract()
 
 
 def describe_terminal_artifact_renderer_entrypoints_contract() -> dict[str, Any]:
@@ -1777,6 +1801,10 @@ def describe_terminal_artifact_rendering_contract_fingerprints(
             ),
             ("terminal_artifact_render_target", terminal_artifact_render_target_contract_fingerprint()),
             ("terminal_artifact_rendering_contract", terminal_artifact_rendering_contract_fingerprint()),
+            (
+                "terminal_artifact_rendering_contract_manifest",
+                terminal_artifact_rendering_contract_fingerprint(),
+            ),
             (
                 "renderer_entrypoints_contract",
                 terminal_artifact_renderer_entrypoints_contract_fingerprint(),
@@ -2126,6 +2154,10 @@ def describe_terminal_artifact_contract_fingerprints(
             ("terminal_artifact_render_target_contract", terminal_artifact_render_target_contract_fingerprint()),
             ("terminal_artifact_rendering", terminal_artifact_rendering_contract_fingerprint()),
             ("terminal_artifact_rendering_contract", terminal_artifact_rendering_contract_fingerprint()),
+            (
+                "terminal_artifact_rendering_contract_manifest",
+                terminal_artifact_rendering_contract_fingerprint(),
+            ),
             ("terminal_artifact_cli_fallback", terminal_artifact_cli_fallback_contract_fingerprint()),
             (
                 "terminal_artifact_cli_fallback_contract",
@@ -2300,6 +2332,10 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
             ),
             ("terminal_artifact_render_target", terminal_artifact_render_target_contract_fingerprint()),
             ("terminal_artifact_rendering_contract", terminal_artifact_rendering_contract_fingerprint()),
+            (
+                "terminal_artifact_rendering_contract_manifest",
+                terminal_artifact_rendering_contract_fingerprint(),
+            ),
             (
                 "terminal_artifact_cli_fallback_contract",
                 terminal_artifact_cli_fallback_contract_fingerprint(),
@@ -4407,6 +4443,12 @@ def terminal_artifact_rendering_contract_fingerprint() -> str:
     return _fingerprint_manifest_section(manifest)
 
 
+def terminal_artifact_rendering_contract_manifest_fingerprint() -> str:
+    """Return the rendering manifest fingerprint under a manifest-specific name."""
+
+    return terminal_artifact_rendering_contract_fingerprint()
+
+
 def terminal_artifact_renderer_entrypoints_contract_fingerprint() -> str:
     """Return a stable fingerprint for the terminal artifact renderer-entrypoints manifest."""
 
@@ -4493,6 +4535,12 @@ def terminal_artifact_render_target_contract_fingerprint() -> str:
 
     manifest = _build_terminal_artifact_render_target_contract_manifest()
     return _fingerprint_manifest_section(manifest)
+
+
+def terminal_artifact_render_target_contract_manifest_fingerprint() -> str:
+    """Return the render-target manifest fingerprint under a manifest-specific name."""
+
+    return terminal_artifact_render_target_contract_fingerprint()
 
 
 def terminal_artifact_kind_resolution_fingerprint() -> str:
