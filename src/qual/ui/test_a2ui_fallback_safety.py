@@ -11221,6 +11221,70 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(direct_unknown["title"], "Unsupported card type: FutureCard")
         self.assertEqual(direct_unknown["actions"][0]["id"], "copy_to_clipboard")
 
+    def test_engine_card_materializers_snapshot_debug_payloads(self) -> None:
+        caps = A2UICapabilities(
+            a2ui_version=1,
+            client_name="Exegesis Studio",
+            cards_supported=("RunLogCard",),
+            primitive_blocks_supported=(
+                "MarkdownBlock",
+                "KeyValueBlock",
+                "ListBlock",
+                "TableBlock",
+                "AlertBlock",
+                "ProgressBlock",
+                "CodeBlock",
+            ),
+            actions_supported=(
+                "apply_patch",
+                "reject_patch",
+                "open_section",
+                "open_corpus_item",
+                "pin_to_context_set",
+                "create_context_set",
+                "run_agent",
+                "refresh_license",
+                "export_document",
+                "copy_to_clipboard",
+            ),
+            max_payload_bytes=1_000_000,
+            supports_streaming=True,
+        )
+        supported_debug = {"tags": ["alpha", "beta"]}
+        generic_debug = {"tags": ["gamma", "delta"]}
+
+        supported_card = engine_prepare_card(
+            {
+                "type": "RunLogCard",
+                "title": " Run Log ",
+                "a2ui_version": 1,
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Kept"}],
+                "actions": [],
+                "debug": supported_debug,
+            },
+            caps,
+        )
+        generic_card = engine_prepare_card(
+            {
+                "type": "GenericCard",
+                "title": " Patch ",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Kept"}],
+                "actions": [],
+                "debug": generic_debug,
+            },
+            caps,
+        )
+
+        supported_debug["tags"].append("mutated")
+        generic_debug["tags"].append("mutated")
+
+        self.assertEqual(supported_card["debug"], {"tags": ["alpha", "beta"]})
+        self.assertEqual(generic_card["debug"], {"tags": ["gamma", "delta"]})
+        self.assertIsNot(supported_card["debug"], supported_debug)
+        self.assertIsNot(generic_card["debug"], generic_debug)
+        self.assertIsNot(supported_card["debug"]["tags"], supported_debug["tags"])
+        self.assertIsNot(generic_card["debug"]["tags"], generic_debug["tags"])
+
     def test_validate_generic_card_accepts_actionref_instances_and_rejects_duplicates(self) -> None:
         validate_generic_card(
             {

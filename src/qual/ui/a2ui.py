@@ -6658,7 +6658,13 @@ def _canonical_json(payload: dict[str, Any]) -> str:
 
 def _canonicalize_card_top_level_fields(card: dict[str, Any]) -> dict[str, Any]:
     allowed_keys = ("type", "title", "subtitle", "a2ui_version", "debug", "blocks", "actions")
-    return {key: card[key] for key in allowed_keys if key in card}
+    out = {key: card[key] for key in allowed_keys if key in card}
+    if "debug" in out:
+        try:
+            out["debug"] = copy.deepcopy(out["debug"])
+        except Exception:
+            pass
+    return out
 
 
 def _canonicalize_terminal_artifact_card_actions(card: dict[str, Any]) -> dict[str, Any]:
