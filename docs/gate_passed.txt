@@ -33,22 +33,21 @@ Reviewed implementation files:
 * `src/qual/retrieval/service.py`
 * `tests/unit/test_unified_retrieval.py` (approved shared regression coverage)
 
-Writable metadata-only packet refresh files:
+Metadata-only packet refresh files:
 
 * `THREAD_PACKET.md`
 * `docs/gate_passed.txt`
 
-Blocked metadata-only packet refresh files:
+Blocked packet mirrors:
 
-* `.codex/kickoff_packets/feat-retrieval-fts.md` (write blocked by `PermissionError: [Errno 1] Operation not permitted`)
-* `.codex/lane_meta/feat-retrieval-fts.json` (write blocked by `PermissionError: [Errno 1] Operation not permitted`)
+* `.codex/kickoff_packets/feat-retrieval-fts.md` (`PermissionError: [Errno 1] Operation not permitted`)
+* `.codex/lane_meta/feat-retrieval-fts.json` (`PermissionError: [Errno 1] Operation not permitted`)
 
 Reviewer-fix closure:
 
 * The packet now truthfully absorbs the last runtime retrieval change into the reviewed implementation head `0a222d08310c907b67e6ce9d1585d55cd00d88aa`.
-* The writable traceability fields now match the actual metadata-only packet refresh files.
+* The packet traceability fields now match the actual writable packet refresh files and no longer imply a metadata-only tail after `adfa8cd...`.
 * The handoff includes the explicit canonical demo-path statement naming `retrieve relevant material` and tying it to deterministic FTS-only excerpt provenance lookup.
-* The authoritative `.codex` packet refresh is still blocked because writes there fail with `PermissionError: [Errno 1] Operation not permitted`.
 
 Budget classification:
 
