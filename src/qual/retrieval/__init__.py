@@ -162,8 +162,9 @@ def build_retrieval_query(
 
     Constraint payloads are accepted as mapping-shaped payloads or
     RetrievalConstraints objects and normalized into the canonical query
-    dataclass. Iterable doc_types/date_range values are normalized
-    deterministically from those inputs.
+    dataclass. Query text, iterable doc_types, and date_range values are
+    normalized deterministically from those inputs so downstream payloads and
+    fingerprints do not depend on caller casing or whitespace.
     """
 
     if constraints is None:
@@ -185,6 +186,7 @@ def build_retrieval_query(
     normalized_query_text = _normalize_required_text(
         query_text,
         field_name="query_text",
+        casefold=True,
         collapse_whitespace=True,
     )
     normalized_scope = _normalize_required_text(scope, field_name="scope")

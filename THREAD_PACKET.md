@@ -1,56 +1,46 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `reviewer-fix demo-path alignment`
-- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation scope: `FTS-first excerpt lookup hardening in the accepted retrieval slice`
-- Canonical demo-path step advanced: `retrieve relevant material`
-- Demo-path sentence: This change makes `retrieve relevant material` more real by ensuring excerpt lookup resolves only through the canonical SQLite FTS path, so downstream basket/workflow consumers cannot silently fall back to PageIndex-only IDs.
+- Packet role: `retrieval query canonicalization`
 
 ## Scope Goal
 
-- Refresh the handoff packet so it explicitly maps the accepted retrieval slice to the canonical demo path without broadening the reviewed narrative beyond the `adfa8cdadd43747ffbcb612e4151e262b13e52ca` scope anchor.
+- Keep the FTS-first retrieval lane deterministic by making the canonical query builder normalize `query_text` the same way downstream payloads, provenance, and fingerprints already do.
 
 ## Scope Completed
 
-- Kept the handoff anchored to the accepted retrieval slice at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-- Added the explicit canonical demo-path mapping required by `AGENTS.md`.
-- Preserved the FTS-first framing for excerpt lookup and avoided reframing this packet as PageIndex or embeddings compatibility work.
+- Canonicalized `build_retrieval_query()` so query objects emitted through the retrieval facade now casefold and collapse query text before engine use.
+- Updated the builder contract note to state that query text is part of the deterministic normalization surface.
+- Kept the change inside retrieval-owned code and preserved the FTS-first/PageIndex-deferred boundary.
 
-## Thread Kickoff (High-Risk)
+## Thread Kickoff
 
 - Branch: `codex/feat-retrieval-fts`
-- Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: refresh the handoff packet for the accepted retrieval slice and make the canonical demo-path advancement explicit in the packet itself.
-- Risk reason: the accepted slice includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so this remains shared/high-risk packet work.
+- Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
+- Scope goal: tighten the canonical retrieval query constructor so engine callers receive the same normalized query text that downstream retrieval payloads and fingerprints already expect.
 
 ### Budget
 
-- Task budget: `4`
-- Time budget: `30m`
-- Size limits: `<=8 files`, `<=300 net LOC`
+- Task budget: `8`
+- Time budget: `45m`
+- Size limits: `<=12 files`, `<=500 net LOC`
 - Max fix attempts per failing gate: `2`
 
-### Planned Tasks (max 4)
+### Planned Tasks
 
-1. Re-anchor the handoff packet narrative to the accepted `adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice.
-2. Add the explicit canonical demo-path statement naming `retrieve relevant material`.
-3. Refresh writable handoff artifacts so the demo-path statement is present in the packet itself.
-4. Re-run `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
-
-### Early Review Triggers
-
-- before first edit to any shared/integrator-locked file
-- before changing public interfaces or command contracts
-- before touching provider routing/config behavior
+1. Inspect the retrieval-owned query-construction path and confirm the deterministic contract gap.
+2. Patch the canonical retrieval facade without expanding into deferred retrieval strategies.
+3. Run focused retrieval validation and the required lane gates.
+4. Refresh the handoff packet with the actual change and verification results.
 
 ### Stop Triggers
 
+- integrator-locked/shared-by-approval edits needed
 - unresolved test/lint/typecheck after 2 attempts
 - unresolved `make scope-check`
 - budget/size/time limit hit
 
-### Checkpoint Cadence (short updates)
+### Checkpoint Cadence
 
 - plan complete
 - first green tests
@@ -59,25 +49,26 @@
 
 ## AGENTS Checkpoint Evidence
 
-- `plan complete`: the packet was narrowed to the accepted `adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval slice and the explicit demo-path statement was queued for the handoff itself.
-- `before risky/shared file edit`: the shared/high-risk boundary was restated before editing packet files because the accepted slice includes `tests/unit/test_unified_retrieval.py`.
-- `first green tests`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed after the packet refresh.
-- `ready for handoff`: the writable handoff artifacts now explicitly name `retrieve relevant material` and explain the FTS-only excerpt lookup impact inside the packet itself.
+- `plan complete`: narrowed the work to the canonical retrieval query builder in `src/qual/retrieval/__init__.py`.
+- `first green tests`: `python -m unittest tests.unit.test_unified_retrieval` passed after the builder change.
+- `before risky/shared file edit`: no risky/shared file edits were needed; scope stayed fully inside lane-owned retrieval paths.
+- `ready for handoff`: required gates passed and the packet now reflects the current retrieval-owned change instead of the earlier metadata-only packet refresh work.
 
 ## Tasks Completed
 
-1. Re-anchored the handoff narrative to the accepted `adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval slice.
-2. Added the explicit canonical demo-path statement required for `AGENTS.md` compliance.
-3. Refreshed the writable handoff artifacts without broadening the packet into PageIndex or embeddings compatibility work.
+1. Identified that the canonical retrieval builder still preserved caller casing in `query_text` even though retrieval payloads and fingerprints already canonicalized it.
+2. Normalized builder-emitted query text with casefolded whitespace-collapsed output so engine callers now get the deterministic query object directly.
+3. Re-ran focused retrieval validation plus all required handoff gates.
+4. Replaced the stale packet-refresh handoff with this commit-scoped integration packet.
 
 ## Files Changed
 
+- `src/qual/retrieval/__init__.py`
 - `THREAD_PACKET.md`
-- `docs/gate_passed.txt`
 
 ## Commands Run With Results
 
-- `make scope-check`: `PASS`
+- `python -m unittest tests.unit.test_unified_retrieval`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
 - `./quality-test.sh`: `PASS`
@@ -86,21 +77,21 @@
 
 ## Risks / Blockers
 
-- Risk: `HIGH`
-- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` keeps this handoff under the `4`-task high-risk cap.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain permission-blocked in this sandbox, so this fixer pass refreshes the reviewer-facing packet files that are writable here.
+- Risk: `LOW`
+- No shared-by-approval or integrator-locked files were edited in this pass.
+- No routing/provider behavior changed.
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop`
-- `feat-retrieval-fts`: retrieval/search
+- `ROADMAP.md: Milestone 3: Product Readiness`
+- `ROADMAP.md: Milestone 4: Retrieval Layer`
 
 ### Vision capability affected
 
-- `Retrieval-first context handling`
-- `Auditable state and workflow`
+- `2. Retrieval-first context handling`
+- `3. Auditable generation`
 
 ### Routing/provider impact note
 
@@ -112,6 +103,6 @@
 
 ## Scope-Check / Ownership Note
 
-- Approved shared test edit in accepted slice: `YES` (`tests/unit/test_unified_retrieval.py`)
-- Integrator-locked edit in accepted slice: `NO`
-- This packet is intentionally narrowed to the accepted `adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice and should be re-reviewed on that basis.
+- Shared-by-approval edits in this pass: `NO`
+- Integrator-locked edits in this pass: `NO`
+- Retrieval remains FTS-first; PageIndex and embeddings stay deferred/fallback-only.
