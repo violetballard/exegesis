@@ -619,6 +619,7 @@ class CommandCatalogTests(unittest.TestCase):
 
     def test_command_cli_contract_rejects_parser_surface_drift_when_diff_token_disappears(self) -> None:
         baseline_tokens = command_catalog.command_cli_contract().tokens
+        baseline_canonical_names = command_catalog.command_cli_contract().canonical_names
         parser_surface_without_diff = (
             ("bootstrap", ("bootstrap",)),
             ("diff-preview", ("diff-preview",)),
@@ -639,6 +640,10 @@ class CommandCatalogTests(unittest.TestCase):
             )
             self.assertNotEqual(parser_tokens, baseline_tokens)
             self.assertNotIn("diff", parser_tokens)
+            self.assertEqual(
+                tuple(name for name, _ in command_catalog._CLI_ENTRYPOINTS),
+                baseline_canonical_names,
+            )
             with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
                 command_catalog.command_cli_contract()
 

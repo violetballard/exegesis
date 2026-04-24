@@ -569,15 +569,24 @@ def _validate_command_cli_contract(
     expected_canonical_names = _canonical_name_projection_from_entrypoints(
         authoritative_entrypoints
     )
+    live_canonical_names = _canonical_name_projection_from_entrypoints(live_entrypoints)
     if contract.canonical_names != expected_canonical_names:
+        raise ValueError("Command CLI canonical names are inconsistent")
+    if contract.canonical_names != live_canonical_names:
         raise ValueError("Command CLI canonical names are inconsistent")
 
     expected_lookup_table = _cli_lookup_projection_from_entrypoints(authoritative_entrypoints)
+    live_lookup_table = _cli_lookup_projection_from_entrypoints(live_entrypoints)
     expected_tokens = tuple(token for token, _ in expected_lookup_table)
+    live_tokens = tuple(token for token, _ in live_lookup_table)
     if contract.tokens != expected_tokens:
+        raise ValueError("Command CLI tokens are inconsistent")
+    if contract.tokens != live_tokens:
         raise ValueError("Command CLI tokens are inconsistent")
 
     if contract.lookup_table != expected_lookup_table:
+        raise ValueError("Command CLI lookup table is inconsistent")
+    if contract.lookup_table != live_lookup_table:
         raise ValueError("Command CLI lookup table is inconsistent")
 
 
