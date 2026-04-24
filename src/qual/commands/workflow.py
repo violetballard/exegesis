@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from src.qual.commands.catalog import (
+    CommandDemoWorkflowContract,
     CommandDemoLoopContract,
     CommandDemoBranchContract,
     CommandDemoNextActionContract,
@@ -11,6 +12,13 @@ from src.qual.commands.catalog import (
     CommandTrustedSurfaceContract,
     CommandTrustedSurfaceEntry,
     CommandInvocationPlanEntry,
+    command_mvp_workflow_contract,
+    command_mvp_workflow_tokens,
+    command_mvp_workflow_lookup_table,
+    command_mvp_workflow_invocation_table,
+    command_mvp_workflow_transition_targets,
+    command_mvp_workflow_compatibility_lookup_table,
+    command_mvp_workflow_compatibility_invocation_table,
     command_mvp_branch_contract,
     command_mvp_branch_invocation_table,
     command_mvp_branch_trusted_invocation_table,
@@ -18,7 +26,10 @@ from src.qual.commands.catalog import (
     command_mvp_loop_invocation_plan,
     command_mvp_loop_tokens,
     command_mvp_next_action_contract,
+    command_mvp_next_action_lookup_table,
     command_mvp_next_action_invocation_table,
+    command_mvp_next_action_compatibility_lookup_table,
+    command_mvp_next_action_compatibility_invocation_table,
     command_mvp_next_action_preferred_invocation_table,
     command_mvp_path_contract,
     command_mvp_path_invocation_plan,
@@ -38,6 +49,41 @@ def command_workflow_surface_contract() -> CommandTrustedSurfaceContract:
 def command_workflow_surface_tokens() -> tuple[str, ...]:
     """Return the trusted current-MVP command tokens in deterministic order."""
     return command_mvp_trusted_surface_tokens()
+
+
+def command_workflow_contract() -> CommandDemoWorkflowContract:
+    """Return the stable current-MVP workflow contract for the canonical CLI loop."""
+    return command_mvp_workflow_contract()
+
+
+def command_workflow_tokens() -> tuple[str, ...]:
+    """Return the canonical current-MVP workflow tokens in deterministic order."""
+    return command_mvp_workflow_tokens()
+
+
+def command_workflow_lookup_table() -> tuple[tuple[str, str], ...]:
+    """Return the stable workflow token to canonical command lookup table."""
+    return command_mvp_workflow_lookup_table()
+
+
+def command_workflow_invocation_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return the parser-ready invocation table for the canonical CLI loop."""
+    return command_mvp_workflow_invocation_table()
+
+
+def command_workflow_transition_targets() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return the canonical next-step transitions for the current MVP workflow."""
+    return command_mvp_workflow_transition_targets()
+
+
+def command_workflow_compatibility_lookup_table() -> tuple[tuple[str, str], ...]:
+    """Return legacy workflow verbs mapped onto the stable current-MVP loop."""
+    return command_mvp_workflow_compatibility_lookup_table()
+
+
+def command_workflow_compatibility_invocation_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return parser-ready argv for legacy workflow verbs mapped to the stable loop."""
+    return command_mvp_workflow_compatibility_invocation_table()
 
 
 def command_workflow_path_contract() -> CommandDemoPathContract:
@@ -125,6 +171,27 @@ def command_workflow_next_action_invocation_table(
     return command_mvp_next_action_invocation_table(source_token)
 
 
+def command_workflow_next_action_lookup_table(
+    source_token: str,
+) -> tuple[tuple[str, str], ...]:
+    """Return follow-up workflow actions resolved to canonical command names."""
+    return command_mvp_next_action_lookup_table(source_token)
+
+
+def command_workflow_next_action_compatibility_lookup_table(
+    source_token: str,
+) -> tuple[tuple[str, str], ...]:
+    """Return legacy follow-up verbs mapped to canonical workflow actions."""
+    return command_mvp_next_action_compatibility_lookup_table(source_token)
+
+
+def command_workflow_next_action_compatibility_invocation_table(
+    source_token: str,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return parser-ready argv for legacy follow-up workflow verbs."""
+    return command_mvp_next_action_compatibility_invocation_table(source_token)
+
+
 def command_workflow_next_action_surface_invocation_table(
     source_token: str,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
@@ -135,6 +202,13 @@ def command_workflow_next_action_surface_invocation_table(
 __all__ = [
     "command_workflow_surface_contract",
     "command_workflow_surface_tokens",
+    "command_workflow_contract",
+    "command_workflow_tokens",
+    "command_workflow_lookup_table",
+    "command_workflow_invocation_table",
+    "command_workflow_transition_targets",
+    "command_workflow_compatibility_lookup_table",
+    "command_workflow_compatibility_invocation_table",
     "command_workflow_path_contract",
     "command_workflow_path_tokens",
     "command_workflow_path_invocation_plan",
@@ -149,6 +223,9 @@ __all__ = [
     "command_workflow_branch_surface_invocation_table",
     "command_workflow_next_action_contract",
     "command_workflow_next_action_tokens",
+    "command_workflow_next_action_lookup_table",
     "command_workflow_next_action_invocation_table",
+    "command_workflow_next_action_compatibility_lookup_table",
+    "command_workflow_next_action_compatibility_invocation_table",
     "command_workflow_next_action_surface_invocation_table",
 ]

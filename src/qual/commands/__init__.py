@@ -337,13 +337,21 @@ from src.qual.commands.catalog import (
     validate_command_catalog,
 )
 from src.qual.commands.workflow import (
+    command_workflow_compatibility_invocation_table,
+    command_workflow_compatibility_lookup_table,
+    command_workflow_contract,
     command_workflow_branch_contract,
     command_workflow_branch_invocation_plan,
     command_workflow_branch_invocation_table,
     command_workflow_branch_surface,
     command_workflow_branch_surface_invocation_table,
     command_workflow_branch_tokens,
+    command_workflow_invocation_table,
+    command_workflow_lookup_table,
     command_workflow_next_action_contract,
+    command_workflow_next_action_compatibility_invocation_table,
+    command_workflow_next_action_compatibility_lookup_table,
+    command_workflow_next_action_lookup_table,
     command_workflow_next_action_invocation_table,
     command_workflow_next_action_surface_invocation_table,
     command_workflow_next_action_tokens,
@@ -355,6 +363,8 @@ from src.qual.commands.workflow import (
     command_workflow_path_tokens,
     command_workflow_surface_contract,
     command_workflow_surface_tokens,
+    command_workflow_tokens,
+    command_workflow_transition_targets,
 )
 
 __all__ = [
@@ -698,7 +708,15 @@ __all__ = [
     "command_workflow_branch_surface",
     "command_workflow_branch_surface_invocation_table",
     "command_workflow_branch_tokens",
+    "command_workflow_compatibility_invocation_table",
+    "command_workflow_compatibility_lookup_table",
+    "command_workflow_contract",
+    "command_workflow_invocation_table",
+    "command_workflow_lookup_table",
     "command_workflow_next_action_contract",
+    "command_workflow_next_action_compatibility_invocation_table",
+    "command_workflow_next_action_compatibility_lookup_table",
+    "command_workflow_next_action_lookup_table",
     "command_workflow_next_action_invocation_table",
     "command_workflow_next_action_surface_invocation_table",
     "command_workflow_next_action_tokens",
@@ -710,4 +728,6 @@ __all__ = [
     "command_workflow_path_tokens",
     "command_workflow_surface_contract",
     "command_workflow_surface_tokens",
+    "command_workflow_tokens",
+    "command_workflow_transition_targets",
 ]

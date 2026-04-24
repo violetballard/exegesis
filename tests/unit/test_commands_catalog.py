@@ -198,12 +198,20 @@ from src.qual.commands import (
     command_mvp_workflow_trusted_contract,
     command_mvp_workflow_tokens,
     command_workflow_next_action_contract,
+    command_workflow_next_action_compatibility_invocation_table,
+    command_workflow_next_action_compatibility_lookup_table,
     command_workflow_next_action_invocation_table,
+    command_workflow_next_action_lookup_table,
     command_workflow_next_action_surface_invocation_table,
     command_workflow_next_action_tokens,
+    command_workflow_lookup_table,
     command_workflow_path_contract,
     command_workflow_path_invocation_plan,
     command_workflow_path_tokens,
+    command_workflow_compatibility_invocation_table,
+    command_workflow_compatibility_lookup_table,
+    command_workflow_invocation_table,
+    command_workflow_transition_targets,
     command_workflow_tokens,
     command_mvp_workflow_lookup_table,
     command_mvp_workflow_invocation_table,
@@ -5744,6 +5752,17 @@ class CommandCatalogTests(unittest.TestCase):
     def test_public_workflow_contract_aliases_track_the_current_mvp_contract(self) -> None:
         self.assertEqual(command_workflow_contract(), command_mvp_workflow_contract())
         self.assertEqual(command_workflow_tokens(), command_mvp_workflow_tokens())
+        self.assertEqual(command_workflow_lookup_table(), command_mvp_workflow_lookup_table())
+        self.assertEqual(command_workflow_invocation_table(), command_mvp_workflow_invocation_table())
+        self.assertEqual(command_workflow_transition_targets(), command_mvp_workflow_transition_targets())
+        self.assertEqual(
+            command_workflow_compatibility_lookup_table(),
+            command_mvp_workflow_compatibility_lookup_table(),
+        )
+        self.assertEqual(
+            command_workflow_compatibility_invocation_table(),
+            command_mvp_workflow_compatibility_invocation_table(),
+        )
 
     def test_public_workflow_path_aliases_track_the_current_mvp_path(self) -> None:
         self.assertEqual(command_workflow_path_contract(), command_mvp_path_contract())
@@ -5775,8 +5794,20 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(command_workflow_next_action_tokens("review"), ("apply-patch", "reject-patch"))
         self.assertEqual(
+            command_workflow_next_action_lookup_table("review"),
+            command_mvp_next_action_lookup_table("review"),
+        )
+        self.assertEqual(
             command_workflow_next_action_invocation_table("review"),
             command_mvp_next_action_invocation_table("review"),
+        )
+        self.assertEqual(
+            command_workflow_next_action_compatibility_lookup_table("review"),
+            command_mvp_next_action_compatibility_lookup_table("review"),
+        )
+        self.assertEqual(
+            command_workflow_next_action_compatibility_invocation_table("review"),
+            command_mvp_next_action_compatibility_invocation_table("review"),
         )
         self.assertEqual(
             command_workflow_next_action_surface_invocation_table("review"),
