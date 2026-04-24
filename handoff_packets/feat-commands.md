@@ -4,6 +4,7 @@
 - Scope completed: delivered a Milestone 3 CLI compatibility safeguard by tightening `command_cli_contract()` so it validates the full grouped CLI parser surface reconstructed from the contract lookup table, not just canonical command order, and added regression coverage for alias-level drift.
 - Canonical demo-path mapping sentence: this slice makes `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch` more real because the CLI contract now fails fast if parser or catalog drift drops or mutates the `diff` alias while the canonical command sequence still appears unchanged.
 - Concrete blocker removed: without this change, alias-level parser drift could silently break the `diff-preview` entrypoint used for the patch-review step while `canonical_names` still looked valid, so the CLI operator surface was not deterministically guarded.
+- Traceability note: reviewed implementation commit is `ebe78557`; the latest packet-refresh commit on this branch is `e1d22341`, which updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 
 ## Tasks Completed
 1. Hardened `src/qual/commands/catalog.py` so `command_cli_contract()` reconstructs grouped entrypoints from `lookup_table` and verifies that full surface against both the catalog-defined and live parser projections.
@@ -17,6 +18,7 @@
 - `THREAD.md`
 - `THREAD_PACKET.md`
 - `handoff_packets/feat-commands.md`
+- Packet-refresh commit coverage: `e1d22341` touched `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`; the implementation commit under review remains `ebe78557`.
 
 ## Commands Run With Results
 - `python3 -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_mutated_diff_alias_with_stable_canonical_names` -> passed
@@ -26,7 +28,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T12:12:28Z`
+- Verification rerun timestamp: `2026-04-24T12:17:02Z`
 
 ## Risks / Blockers
 - Risks: future command-surface edits still need to keep `_CLI_ENTRYPOINTS`, command specs, and shared contract tests aligned.

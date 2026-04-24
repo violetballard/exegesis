@@ -6,6 +6,7 @@
 - Canonical demo-path steps advanced: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`
 - Required mapping statement: this slice strengthens the active CLI demo loop by making `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch` more reliable because the `diff-preview` CLI surface now fails fast if the `diff` alias drops or mutates while the canonical command order still looks stable.
 - Concrete blocker removed: before this slice, alias-level parser drift could silently change or remove the `diff` entrypoint while `canonical_names` still matched, weakening the deterministic CLI control surface for the patch-review step.
+- Traceability note: reviewed implementation commit is `ebe78557`; the latest metadata refresh commit on this branch is `e1d22341`, and it changes `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` only.
 
 ## Thread Kickoff (High-Risk)
 
@@ -47,7 +48,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Verification rerun timestamp: `2026-04-24T12:12:28Z`
+- Verification rerun timestamp: `2026-04-24T12:17:02Z`
 
 ## Ownership Note
 

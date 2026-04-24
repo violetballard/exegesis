@@ -10,8 +10,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Canonical demo-path steps advanced: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`
 - Explicit re-review statement: the current branch tip is the review target, and this slice keeps the active CLI loop trustworthy by making `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch` more reliable when alias-level parser drift would otherwise silently change the command contract.
 - Concrete blocker removed: alias-level parser drift can no longer quietly drop or mutate `diff` while the canonical command sequence still appears unchanged.
+- Traceability note: reviewed implementation remains `ebe78557`, and the latest metadata refresh on top of it is `e1d22341`, which updates `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` only.
 - Canonical roadmap/vision mapping: `ROADMAP.md` Milestone 3 `Real workflow loop` plus `PRODUCT_VISION.md` capability 3 `Canonical engine contract`, because the CLI remains the active operator surface while Textual is disabled.
-- Latest verification rerun: `2026-04-24T12:12:28Z`
+- Latest verification rerun: `2026-04-24T12:17:02Z`
 
 ## Reviewed Files
 
