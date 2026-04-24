@@ -1,16 +1,26 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Branch head before handoff commit: `206ee919c0bb7a1736e07a86a5cba5aff314a785`
-- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..206ee919c0bb7a1736e07a86a5cba5aff314a785`
-- Scope completed: regenerated the handoff against the actual branch tip so it now truthfully covers the cumulative FTS-first retrieval slice, including the latest `FTSStrategy` hardening that normalizes runner `None` hits to the stable empty-list contract used by fresh and cached engine retrieval paths.
+- Packet role: `metadata-only reviewer-fix re-emit`
+- Current submitted tip before this packet refresh commit: `df7829f8b8641af6b62eb839c41fb9c8db5a0cac`
+- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Packet traceability note: review this lane against the narrowed implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `d7fd5d20..adfa8cda`.
+- Canonical demo-path step advanced: `retrieve relevant material`
+- Reviewer-required plan-alignment statement: This work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage and basket-promotion inputs stay deterministic.
+- Evidence note: `tests/unit/test_unified_retrieval.py` covers both the narrowed service-level contract and the public retrieval facade for this slice. `test_retrieval_service_rejects_pageindex_excerpt_payloads` proves PageIndex-only excerpt IDs fail closed on `fetch_excerpt(...)`, and `test_retrieve_fts_excerpt_returns_canonical_fts_payload` proves the canonical/public FTS excerpt helpers return the same payload shape.
+- Packet authority note: this top-level packet and `docs/gate_passed.txt` are the reviewer-facing source of truth for the explicit demo-path mapping and plan-alignment wording on this branch.
+
+## Scope Goal
+
+- Regenerate the retrieval-specific handoff packet so it stays narrowed to reviewed commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, states explicitly that this work advances `retrieve relevant material`, and reports the metadata-only refresh files from this packet slice accurately.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: submit the actual branch tip for review, including the latest FTSStrategy empty-hit normalization and the approved shared regression coverage, without widening beyond the FTS-first retrieval contract.
-- Risk reason: the reviewed implementation includes the approved shared regression file `tests/unit/test_unified_retrieval.py`, so this handoff must stay inside the shared/high-risk budget.
+- Scope goal: correct the reviewer packet against the reviewed retrieval implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` without widening the lane beyond the approved FTS-only excerpt fail-closed slice.
+- Risk reason: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so it is shared/high-risk work under the 4-task cap.
 
 ### Budget
 
@@ -19,58 +29,59 @@
 - Size limits: `<=8 files`, `<=300 net LOC`
 - Max fix attempts per failing gate: `2`
 
-### Planned Tasks
+### Planned Tasks (max 4)
 
-1. Regenerate the handoff packet against the actual branch tip `206ee919c0bb7a1736e07a86a5cba5aff314a785`.
-2. Update scope, files-changed, and reviewed-range traceability so the packet matches the real code under review.
-3. Add an explicit canonical demo-path statement naming the step this retrieval work advances.
-4. Re-run the required local gates and record the results on the real reviewed tip.
-
-### Early Review Triggers
-
-- before first edit to any shared/integrator-locked file
-- before changing public interfaces or command contracts
-- before touching provider routing/config behavior
+1. Keep the handoff anchored to reviewed implementation head `adfa8cda` and reviewed range `d7fd5d20..adfa8cda`.
+2. State the canonical demo-path step explicitly as `retrieve relevant material`.
+3. Reconcile the packet file lists and metadata-only traceability so they match this packet-refresh slice, including `docs/gate_passed.txt`.
+4. Re-run the required gates and record results against the narrowed reviewed implementation head/range.
 
 ### Checkpoint Status
 
-- `plan complete`: confirmed the reviewer packet was stale because the actual branch tip includes retrieval code and test changes in `206ee919`.
-- `first green tests`: focused retrieval coverage and the full required gate suite were rerun on the actual branch tip after the handoff refresh.
-- `before risky/shared file edit`: no new shared code behavior changed in this fixer pass; the reviewed shared surface remains the approved `tests/unit/test_unified_retrieval.py`.
-- `ready for handoff`: the packet now names the actual reviewed implementation head, the full reviewed range, and the canonical demo-path step advanced by the branch-tip behavior.
+- `plan complete`: the packet is anchored to the reviewer-approved retrieval implementation range `d7fd5d20..adfa8cda`.
+- `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- `before risky/shared file edit`: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+- `ready for handoff`: the kickoff packet, lane metadata, top-level packet, and gate summary agree on the same reviewed implementation head, reviewed range, risk class, reviewed files, and metadata-only refresh files.
 
-## Tasks Completed
+## Scope Completed
 
-1. Regenerated the handoff packet against actual branch tip `206ee919c0bb7a1736e07a86a5cba5aff314a785` instead of describing it as metadata-only.
-2. Updated the traceability fields so the reviewed implementation range, branch-head role, and files changed all match the real code under review, including `src/qual/engine/retrieval/fts_strategy.py` and `tests/unit/test_unified_retrieval.py`.
-3. Added explicit scope for the latest retrieval hardening: `FTSStrategy` now normalizes `None` runner hits to deterministic empty lists on both fresh and cached paths, which keeps the FTS-first engine surface fail-closed and auditable.
-4. Added the required canonical demo-path statement: this work makes `retrieve relevant material` more real by keeping excerpt lookup and empty-hit handling on the authoritative SQLite FTS path with deterministic retrieval output for engine consumers.
+- Removed the PageIndex fallback from `fetch_excerpt`, so the public excerpt lookup surface now resolves through the canonical FTS-only path.
+- Added regression coverage proving PageIndex-only excerpt IDs now raise `KeyError` instead of silently backfilling through PageIndex.
+- Kept the reviewed evidence intentionally narrow to the excerpt lookup contract and its public FTS helper surface rather than broader retrieval or provenance claims.
+- This handoff explicitly states that the reviewed slice advances the canonical demo-path step `retrieve relevant material`.
 
-## Files Changed
+## Reviewed Scope Boundary
 
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation files:
+- `src/qual/retrieval/service.py`
+- `tests/unit/test_unified_retrieval.py`
+- Current metadata-only handoff files in this packet refresh:
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
-- `codex_packet_handoff/tools/planner.py`
 - `docs/gate_passed.txt`
-- `src/qual/engine/retrieval/__init__.py`
-- `src/qual/engine/retrieval/embeddings_strategy.py`
-- `src/qual/engine/retrieval/fts_strategy.py`
-- `src/qual/engine/retrieval/interface.py`
-- `src/qual/engine/retrieval/pageindex_strategy.py`
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/retrieval/__init__.py`
+
+## Tasks Completed
+
+1. Kept `fetch_excerpt` on the canonical FTS-only lookup path so PageIndex-only excerpt IDs fail closed.
+2. Added regression tests proving non-FTS excerpt IDs now raise `KeyError` and the public FTS excerpt helper still returns the canonical payload.
+3. Kept the reviewed scope anchored to commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+4. Re-emitted retrieval-specific handoff artifacts so the completed packet is no longer stale or lane-mismatched.
+
+## Files Changed
+
+- Reviewed implementation files in `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`:
 - `src/qual/retrieval/service.py`
-- `tests/unit/test_packet_planner.py`
 - `tests/unit/test_unified_retrieval.py`
+- Current metadata-only packet refresh files:
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
+- `THREAD_PACKET.md`
+- `docs/gate_passed.txt`
 
 ## Commands Run With Results
 
-- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_fetch_excerpt_requires_an_fts_lookup_hit`: `PASS`
-- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_auto_provenance_bundle_matches_result_snapshot`: `PASS`
-- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_fts_source_bundle_matches_result_snapshot`: `PASS`
-- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_fts_strategy_normalizes_none_runner_hits_to_empty_list`: `PASS`
-- `python3 -m unittest tests.unit.test_unified_retrieval`: `PASS`
 - `make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
@@ -78,18 +89,29 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 
+## Reviewer Fix Closure
+
+1. The handoff now names the canonical demo-path step directly as `retrieve relevant material`.
+2. The plan-alignment statement explains that this step becomes more real because excerpt lookup stays on the auditable SQLite FTS path and PageIndex-only excerpt IDs fail closed.
+3. The scope-completed text is narrowed to the reviewed slice: removal of the PageIndex fallback from `fetch_excerpt` and regression coverage proving non-FTS excerpt IDs now raise `KeyError`.
+4. The handoff remains classified as shared/high-risk work because the reviewed slice includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+
 ## Risks / Blockers
 
-- Risk: `LOW`
-- Blockers: `None`
-- Note: unrelated untracked root-level scratch files were present before this pass and were left untouched.
+- Risk: `HIGH`
+- Blockers: none
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- `Milestone 4: Retrieval Layer`
-- `Milestone 3: Product Readiness` via the retrieval evidence/provenance contract preserved by the deterministic FTS-first surface
+- `Milestone 3: Real workflow loop` via the `retrieve relevant material` step's deterministic excerpt-query contract
+- `feat-retrieval-fts` FTS-only excerpt fail-closed slice
+
+### Canonical demo-path step advanced
+
+- `retrieve relevant material`
+- Deterministic FTS-only excerpt lookup strengthens auditable basket-promotion inputs.
 
 ### Vision capability affected
 
@@ -100,14 +122,11 @@
 
 - None
 
-### Canonical demo-path step advanced
-
-- `retrieve relevant material`
-
-### How this handoff makes that step more real
-
-- It keeps excerpt lookup and empty-hit handling on the authoritative SQLite FTS path while preserving deterministic retrieval payloads, provenance, and cache/replay behavior for engine consumers.
-
 ### Proposed `README.md` patch text
 
 - None
+
+## Scope-Check / Ownership Note
+
+- Shared or integrator-locked edits: `YES`
+- Approved shared regression coverage remains limited to `tests/unit/test_unified_retrieval.py`.

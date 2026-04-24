@@ -3,10 +3,10 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran for the reviewed retrieval branch tip:
 
-* current submitted tip `206ee919c0bb7a1736e07a86a5cba5aff314a785`
-* reviewed implementation head `206ee919c0bb7a1736e07a86a5cba5aff314a785`
-* reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..206ee919c0bb7a1736e07a86a5cba5aff314a785`
-* reviewed implementation files `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `codex_packet_handoff/tools/planner.py`, `docs/gate_passed.txt`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/embeddings_strategy.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/interface.py`, `src/qual/engine/retrieval/pageindex_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, `tests/unit/test_packet_planner.py`, and `tests/unit/test_unified_retrieval.py`
+* current packet refresh tip before this commit `df7829f8b8641af6b62eb839c41fb9c8db5a0cac`
+* reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+* reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+* reviewed implementation files `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`
 * approved shared regression surface `tests/unit/test_unified_retrieval.py`
 
 Gate status:
@@ -21,15 +21,14 @@ Gate status:
 Focused retrieval proof:
 
 * `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_fetch_excerpt_requires_an_fts_lookup_hit` - passed
-* `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_auto_provenance_bundle_matches_result_snapshot` - passed
-* `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_fts_source_bundle_matches_result_snapshot` - passed
-* `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_fts_strategy_normalizes_none_runner_hits_to_empty_list` - passed
+* `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_fts_excerpt_returns_canonical_fts_payload` - passed
+* `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_service_rejects_pageindex_excerpt_payloads` - passed
 * `python3 -m unittest tests.unit.test_unified_retrieval` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`.
-Plan-alignment statement: this reviewed retrieval range makes `retrieve relevant material` more real by keeping excerpt lookup and empty-hit handling on the authoritative SQLite FTS path while preserving deterministic retrieval payloads, provenance, and cache/replay behavior for engine consumers.
-Scope note: this packet documents the real reviewed retrieval/runtime surface present at branch tip `206ee919`; it does not claim any new routing or provider behavior beyond that reviewed range.
+Plan-alignment statement: this reviewed retrieval range makes `retrieve relevant material` more real by ensuring excerpt lookup stays on the auditable SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage and basket-promotion inputs stay deterministic.
+Scope note: this packet is intentionally narrow to the reviewed slice: removal of the PageIndex fallback from `fetch_excerpt` and regression coverage proving non-FTS excerpt IDs now raise `KeyError`.
 Budget compliance statement: this packet is shared/high-risk work because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`, so the handoff is read against the 4-task cap rather than the default 8-task cap.
-Traceability statement: re-review should validate the actual reviewed implementation range `d7fd5d20..206ee919`; this handoff has been regenerated so the packet matches the real branch tip instead of treating `206ee919` as metadata-only.
+Traceability statement: re-review should validate the actual reviewed implementation range `d7fd5d20..adfa8cda`; this packet refresh remains metadata-only and does not broaden that reviewed slice.
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
