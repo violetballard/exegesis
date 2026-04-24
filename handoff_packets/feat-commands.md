@@ -40,13 +40,11 @@
 - Blockers: none.
 
 ## Roadmap Item(s) Affected
-- `AGENTS.md` handoff readiness and checkpoint rules because this packet now explicitly names the exact roadmap MVP flow advanced, records the shared-file checkpoint, and keeps the claim limited to the blocker removed for that flow.
 - `ROADMAP.md` Milestone 3 `Real workflow loop` because this is a narrow `feat-commands` command-catalog hardening slice that keeps the manual CLI smoke flow `open project/document -> retrieve relevant material -> preview and apply or reject a patch` stable while Textual remains disabled.
-- `ROADMAP.md` exit criterion `CLI can still execute the MVP loop while Textual remains disabled` because this slice helps lock an intentional user-facing output contract by failing fast when the parser-backed CLI surface drifts from the canonical catalog.
+- `ROADMAP.md` Milestone 3 exit criterion `CLI can still execute the MVP loop while Textual remains disabled` because this slice helps lock the parser-backed operator command contract by failing fast when the live CLI surface drifts from the canonical catalog.
 
 ## Vision Capability Affected
-- `PRODUCT_VISION.md` operator-first control surface, narrowed here to canonical engine-contract hardening, because the active CLI operator surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on for `open project/document -> retrieve relevant material -> preview and apply or reject a patch`.
-- `PRODUCT_VISION.md` near-term product truth because the CLI remains the current operator path while Textual stays disabled, and this change hardens one real operator flow rather than claiming broader command reachability.
+- `PRODUCT_VISION.md` capability 3 `Canonical engine contract` because the active CLI operator surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on for `open project/document -> retrieve relevant material -> preview and apply or reject a patch`.
 
 ## Routing / Provider Impact Note
 - None. This change does not touch routing or provider configuration.
