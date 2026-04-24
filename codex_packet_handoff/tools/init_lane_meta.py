@@ -23,6 +23,7 @@ TEMPLATE = {
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
   "shared_file_exception": False,
+  "integrator_locked_exception": False,
   "kickoff_budget_note": "",
   "approved_exception_note": ""
 }

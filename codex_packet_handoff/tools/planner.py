@@ -180,7 +180,14 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     prp=str(meta.get("proposed_readme_patch","")).strip()
     if prp:
         lines += ["### Proposed README patch text","```diff",prp,"```",""]
-    lines += ["## Scope-check / ownership note", f"- Shared/integrator-locked edits: `{'YES' if bool(meta.get('shared_file_exception')) else 'NO'}`",""]
+    shared_by_approval = bool(meta.get("shared_file_exception"))
+    integrator_locked = bool(meta.get("integrator_locked_exception"))
+    lines += [
+        "## Scope-check / ownership note",
+        f"- Shared-by-approval edits: `{'YES' if shared_by_approval else 'NO'}`",
+        f"- Integrator-locked edits: `{'YES' if integrator_locked else 'NO'}`",
+        "",
+    ]
     return "\n".join(lines)
 
 

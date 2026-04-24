@@ -51,6 +51,7 @@ class PacketPlannerTests(unittest.TestCase):
             "vision_capabilities": ["2. Retrieval-first context handling"],
             "routing_provider_impact": "None",
             "shared_file_exception": False,
+            "integrator_locked_exception": False,
         }
 
         packet = build_packet(
@@ -78,6 +79,8 @@ class PacketPlannerTests(unittest.TestCase):
         self.assertIn("- Reviewed implementation range: `1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`", packet)
         self.assertIn("## Files changed (cumulative range)", packet)
         self.assertIn("Shipped the cumulative 1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac retrieval thread", packet)
+        self.assertIn("- Shared-by-approval edits: `NO`", packet)
+        self.assertIn("- Integrator-locked edits: `NO`", packet)
 
 
 if __name__ == "__main__":
