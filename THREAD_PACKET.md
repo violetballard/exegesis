@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Packet refresh trace anchor before this fixer commit: `26395a2b80fac607b540cd9925284e9a51cf4c78`
+- Packet refresh trace anchor before this fixer commit: `11441ef0f54f33a2adb128feb13ecf00555e2141`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Canonical demo-path step advanced: `retrieve relevant material`
@@ -101,12 +101,12 @@
 ### Roadmap item(s) affected
 
 - `ROADMAP.md: Milestone 3: Product Readiness`
-- `ROADMAP.md: Milestone 4: Retrieval Layer`
+- `ROADMAP.md: define generation provenance contract (retrieval evidence attached to outputs)`
 
 ### Vision capability affected
 
 - `2. Retrieval-first context handling`
-- `6. Auditable state and workflow`
+- `3. Auditable generation`
 
 ### Routing/provider impact note
 
