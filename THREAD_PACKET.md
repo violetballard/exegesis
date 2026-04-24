@@ -36,7 +36,7 @@
 1. Reclassified the reviewed slice as shared/high-risk work with `tests/unit/test_unified_retrieval.py` as the sole approved shared exception surface.
 2. Aligned the handoff on the reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 3. Removed stale fallback wording so the handoff now states that `fetch_excerpt` is FTS-only and that PageIndex-only excerpt IDs fail closed.
-4. Re-emitted the handoff packet and confirmed the checked-in kickoff and lane metadata already describe the same shared/high-risk scope, approved exception surface, and FTS-only excerpt contract.
+4. Re-emitted the canonical handoff packet with the explicit demo-path and ownership fields requested in review while preserving the narrowed shared/high-risk framing and the same FTS-only excerpt contract.
 
 ## Files Changed
 
@@ -59,7 +59,9 @@
 
 ## Required Handoff Fields
 
-- Roadmap item(s) affected: `Milestone 4: Retrieval Layer`, `feat-retrieval-fts`
-- Vision capability affected: `2. Retrieval-first context handling`, `3. Auditable generation`
+- Roadmap item(s) affected: `Milestone 3: Real workflow loop`, `feat-retrieval-fts`
+- Vision capability affected: `2. Retrieval-first context handling`, `6. Auditable state and workflow`
 - Routing/provider impact note: `None`
+- Canonical demo-path step advanced: `retrieve relevant material`; removing the PageIndex fallback from the public excerpt lookup path keeps excerpt resolution on the authoritative FTS-first path needed for basket promotion and downstream workflow use.
+- Ownership/risk classification: `shared-by-approval only`; the reviewed slice includes `tests/unit/test_unified_retrieval.py` as the sole approved shared file and includes no integrator-locked edits.
 - Proposed README.md patch text: `None`
