@@ -87,6 +87,8 @@ class ShellUI:
     def render_artifact(self, artifact: Any, *, kind: str | None = None) -> str:
         normalized_kind = self._normalize_fallback_kind(kind)
         if normalized_kind == "card" and _is_explicit_terminal_artifact_leaf(artifact):
+            # Card hints must not be able to smuggle typed leaf payloads back
+            # through the shell fallback path if a downstream resolver fails.
             return _render_invalid_terminal_card(artifact)
         if normalized_kind == "card" and isinstance(artifact, Mapping) and _is_malformed_terminal_artifact_envelope(artifact):
             payload = artifact.get("artifact")
