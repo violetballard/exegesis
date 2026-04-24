@@ -27,6 +27,8 @@ from src.qual.engine.retrieval.payload import _build_retrieval_doc_bundle_from_p
 from src.qual.engine.retrieval.payload import _build_retrieval_excerpt_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_source_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_provenance_from_payload
+from src.qual.engine.retrieval.payload import _normalize_doc_hit_snapshot
+from src.qual.engine.retrieval.payload import _normalize_excerpt_hit_snapshot
 from src.qual.engine.retrieval.payload import _basket_promotion_fingerprint
 import src.qual.retrieval as package_retrieval
 from src.qual.retrieval import retrieve_auto as engine_retrieve_auto
@@ -3828,6 +3830,68 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
 
         self.assertEqual(provenance, result.retrieval_provenance_bundle())
+
+    def test_normalize_excerpt_hit_snapshot_backfills_query_metadata_from_nested_query(self) -> None:
+        snapshot = _normalize_excerpt_hit_snapshot(
+            {
+                "doc_id": "doc-pdf-1",
+                "excerpt_id": "excerpt-1",
+                "excerpt_text": "Methods section with recruitment constraints.",
+                "provenance": {
+                    "query": {
+                        "query_text": "  Methods   constraints  ",
+                        "scope": "  DOC:doc-pdf-1  ",
+                        "intent": "  OuTlInE_SuPpOrT  ",
+                        "confidentiality_profile": "  StAnDaRd  ",
+                        "constraints": {
+                            "date_range": ("2026-02-28", "2026-02-01"),
+                            "section_hint": "  methods   notes  ",
+                        },
+                    }
+                },
+            }
+        )
+
+        self.assertIsNotNone(snapshot)
+        snapshot = cast(dict[str, object], snapshot)
+        provenance = cast(dict[str, object], snapshot["provenance"])
+        self.assertEqual(provenance["query_scope"], "doc:doc-pdf-1")
+        self.assertEqual(provenance["query_intent"], "outline_support")
+        self.assertEqual(provenance["query_confidentiality_profile"], "standard")
+        self.assertEqual(provenance["query_date_range"], ["2026-02-01", "2026-02-28"])
+        self.assertEqual(provenance["section_hint"], "methods notes")
+        self.assertIsInstance(provenance.get("query_fingerprint"), str)
+        self.assertTrue(cast(str, provenance["query_fingerprint"]))
+
+    def test_normalize_doc_hit_snapshot_backfills_query_metadata_from_nested_query(self) -> None:
+        snapshot = _normalize_doc_hit_snapshot(
+            {
+                "doc_id": "doc-pdf-1",
+                "top_excerpt_id": "excerpt-1",
+                "provenance": {
+                    "query": {
+                        "query_text": "  Methods   constraints  ",
+                        "scope": "  Vault  ",
+                        "intent": "  CoMpArE  ",
+                        "constraints": {
+                            "date_range": ("2026-02-28", "2026-02-01"),
+                            "section_hint": "  methods   notes  ",
+                        },
+                    }
+                },
+            }
+        )
+
+        self.assertIsNotNone(snapshot)
+        snapshot = cast(dict[str, object], snapshot)
+        provenance = cast(dict[str, object], snapshot["provenance"])
+        self.assertEqual(provenance["query_scope"], "vault")
+        self.assertEqual(provenance["query_intent"], "compare")
+        self.assertEqual(provenance["query_confidentiality_profile"], "confidential")
+        self.assertEqual(provenance["query_date_range"], ["2026-02-01", "2026-02-28"])
+        self.assertEqual(provenance["section_hint"], "methods notes")
+        self.assertIsInstance(provenance.get("query_fingerprint"), str)
+        self.assertTrue(cast(str, provenance["query_fingerprint"]))
 
     def test_retrieval_provenance_helper_backfills_primary_fingerprints_from_citations(self) -> None:
         result = self.service.retrieve_auto(

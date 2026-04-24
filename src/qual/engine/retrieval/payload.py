@@ -355,6 +355,40 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
     return normalized
 
 
+def _query_fingerprint_from_snapshot(query_snapshot: object) -> str | None:
+    if not isinstance(query_snapshot, dict):
+        return None
+    normalized_query = _normalize_query_snapshot(query_snapshot)
+    query_text = _normalize_query_text(normalized_query.get("query_text"))
+    query_scope = _normalize_query_scope(normalized_query.get("scope"))
+    query_intent = _normalize_query_intent(normalized_query.get("intent"))
+    query_confidentiality_profile = _normalize_query_confidentiality_profile(
+        normalized_query.get("confidentiality_profile")
+    ) or "confidential"
+    if query_text is None or query_scope is None or query_intent is None:
+        return None
+    query_constraints = normalized_query.get("constraints", {})
+    if not isinstance(query_constraints, dict):
+        query_constraints = {}
+    normalized_constraints = {
+        "max_results": _normalize_optional_int(query_constraints.get("max_results")) or 10,
+        "doc_types": _normalize_query_doc_types(query_constraints.get("doc_types")),
+        "date_range": _normalize_query_date_range(query_constraints.get("date_range")),
+        "require_citations": _normalize_optional_bool(query_constraints.get("require_citations")) or False,
+        "section_hint": _normalize_query_hint(query_constraints.get("section_hint")),
+        "prefer_exact_matches": _normalize_optional_bool(query_constraints.get("prefer_exact_matches")) or False,
+    }
+    return _stable_fingerprint(
+        {
+            "query_text": query_text,
+            "scope": query_scope,
+            "intent": query_intent,
+            "constraints": normalized_constraints,
+            "confidentiality_profile": query_confidentiality_profile,
+        }
+    )
+
+
 def _normalize_query_constraints(constraints: object) -> dict[str, object]:
     if not isinstance(constraints, dict):
         normalized: dict[str, object] = {}
@@ -451,21 +485,36 @@ def _normalize_hit_shared_provenance_snapshot(provenance: object) -> dict[str, o
     if not isinstance(provenance, dict):
         return {}
     normalized = copy.deepcopy(provenance)
+    query_snapshot = _normalize_query_snapshot(normalized.get("query", {}))
     query_fingerprint = _normalize_optional_text(normalized.get("query_fingerprint"))
+    if query_fingerprint is None:
+        query_fingerprint = _query_fingerprint_from_snapshot(query_snapshot)
     if query_fingerprint is not None:
         normalized["query_fingerprint"] = query_fingerprint
     query_scope = _normalize_query_scope(normalized.get("query_scope"))
+    if query_scope is None:
+        query_scope = _normalize_query_scope(query_snapshot.get("scope"))
     if query_scope is not None:
         normalized["query_scope"] = query_scope
     query_intent = _normalize_query_intent(normalized.get("query_intent"))
+    if query_intent is None:
+        query_intent = _normalize_query_intent(query_snapshot.get("intent"))
     if query_intent is not None:
         normalized["query_intent"] = query_intent
     query_confidentiality_profile = _normalize_query_confidentiality_profile(
         normalized.get("query_confidentiality_profile")
     )
+    if query_confidentiality_profile is None:
+        query_confidentiality_profile = _normalize_query_confidentiality_profile(
+            query_snapshot.get("confidentiality_profile")
+        )
     if query_confidentiality_profile is not None:
         normalized["query_confidentiality_profile"] = query_confidentiality_profile
     query_date_range = _normalize_query_date_range(normalized.get("query_date_range"))
+    if query_date_range is None:
+        query_constraints = query_snapshot.get("constraints", {})
+        if isinstance(query_constraints, dict):
+            query_date_range = _normalize_query_date_range(query_constraints.get("date_range"))
     if query_date_range is not None:
         normalized["query_date_range"] = query_date_range
     candidate_doc_count = _normalize_optional_int(normalized.get("candidate_doc_count"))
@@ -534,6 +583,12 @@ def _normalize_excerpt_hit_provenance_snapshot(provenance: object) -> dict[str, 
     if span is not None:
         normalized["span"] = span
     section_hint = _normalize_query_hint(normalized.get("section_hint"))
+    if section_hint is None:
+        query_snapshot = normalized.get("query", {})
+        if isinstance(query_snapshot, dict):
+            query_constraints = query_snapshot.get("constraints", {})
+            if isinstance(query_constraints, dict):
+                section_hint = _normalize_query_hint(query_constraints.get("section_hint"))
     if section_hint is not None:
         normalized["section_hint"] = section_hint
     source_strategy = _normalize_optional_casefold_text(
@@ -591,6 +646,12 @@ def _normalize_doc_hit_provenance_snapshot(provenance: object) -> dict[str, obje
             normalized["top_matched_terms"]
         )
     section_hint = _normalize_query_hint(normalized.get("section_hint"))
+    if section_hint is None:
+        query_snapshot = normalized.get("query", {})
+        if isinstance(query_snapshot, dict):
+            query_constraints = query_snapshot.get("constraints", {})
+            if isinstance(query_constraints, dict):
+                section_hint = _normalize_query_hint(query_constraints.get("section_hint"))
     if section_hint is not None:
         normalized["section_hint"] = section_hint
     source_strategy = _normalize_optional_casefold_text(
