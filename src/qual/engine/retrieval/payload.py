@@ -3008,6 +3008,24 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
     retrieval_excerpt_bundle = payload.get("retrieval_excerpt_bundle")
     if not isinstance(retrieval_excerpt_bundle, dict):
         retrieval_excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
+    retrieval_citation_bundle = payload.get("retrieval_citation_bundle")
+    if not isinstance(retrieval_citation_bundle, dict):
+        retrieval_citation_bundle = {}
+    retrieval_summary = payload.get("retrieval_summary")
+    if not isinstance(retrieval_summary, dict):
+        retrieval_summary = {}
+    retrieval_manifest = payload.get("retrieval_manifest")
+    if not isinstance(retrieval_manifest, dict):
+        retrieval_manifest = {}
+    retrieval_evidence = payload.get("retrieval_evidence")
+    if not isinstance(retrieval_evidence, dict):
+        retrieval_evidence = {}
+    retrieval_provenance = payload.get("retrieval_provenance", payload.get("provenance", {}))
+    if not isinstance(retrieval_provenance, dict):
+        retrieval_provenance = {}
+    basket_promotion = payload.get("basket_promotion")
+    if not isinstance(basket_promotion, dict):
+        basket_promotion = {}
     query_snapshot = _normalize_query_snapshot(payload.get("query", {}))
     policy_snapshot = _normalize_policy_snapshot(payload.get("policy", payload.get("retrieval_policy", {})))
     return _normalize_retrieval_source_bundle_snapshot({
@@ -3018,16 +3036,18 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_backend": payload.get("retrieval_backend"),
         "retrieval_mode": payload.get("retrieval_mode"),
         "citation_status": copy.deepcopy(payload.get("citation_status", {})),
-        "retrieval_citation_bundle": copy.deepcopy(payload.get("retrieval_citation_bundle", {})),
-        "retrieval_summary": copy.deepcopy(payload.get("retrieval_summary", {})),
+        "retrieval_citation_bundle": copy.deepcopy(retrieval_citation_bundle),
+        "retrieval_summary": copy.deepcopy(retrieval_summary),
         "retrieval_doc_bundle": copy.deepcopy(retrieval_doc_bundle),
         "retrieval_excerpt_bundle": copy.deepcopy(retrieval_excerpt_bundle),
-        "doc_hits": _normalize_doc_hits(payload.get("doc_hits", [])),
-        "excerpt_hits": _normalize_excerpt_hits(payload.get("excerpt_hits", [])),
-        "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
-        "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
-        "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
-        "basket_promotion": copy.deepcopy(payload.get("basket_promotion", {})),
+        "doc_hits": _normalize_doc_hits(payload.get("doc_hits", retrieval_doc_bundle.get("doc_hits", []))),
+        "excerpt_hits": _normalize_excerpt_hits(
+            payload.get("excerpt_hits", retrieval_excerpt_bundle.get("excerpt_hits", []))
+        ),
+        "retrieval_manifest": copy.deepcopy(retrieval_manifest),
+        "retrieval_evidence": copy.deepcopy(retrieval_evidence),
+        "retrieval_provenance": copy.deepcopy(retrieval_provenance),
+        "basket_promotion": copy.deepcopy(basket_promotion),
     })
 
 
@@ -3277,6 +3297,20 @@ def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> 
     bundle_context = _build_retrieval_bundle_context_from_payload(payload)
     provenance = bundle_context["retrieval_provenance"]
     excerpt_hits = _normalize_list_like(payload.get("excerpt_hits", []))
+    if not excerpt_hits and any(
+        payload.get(field_name) is not None for field_name in ("excerpt_id", "excerpt_text", "text", "span")
+    ):
+        synthetic_excerpt_hit = _normalize_excerpt_hit_snapshot(
+            {
+                **copy.deepcopy(payload),
+                "excerpt_text": _first_text_value(
+                    payload.get("excerpt_text"),
+                    payload.get("text"),
+                ),
+            }
+        )
+        if synthetic_excerpt_hit is not None:
+            excerpt_hits = [synthetic_excerpt_hit]
     excerpt_citations: list[object] = []
     if isinstance(provenance, dict):
         excerpt_citations = _normalize_list_like(provenance.get("excerpt_citations", []))
@@ -4049,6 +4083,12 @@ def build_retrieval_downstream_payload_from_result(
             if isinstance(context_bundle, dict):
                 payload = _backfill_downstream_payload_from_context_bundle(payload, context_bundle)
         source_bundle = _build_retrieval_source_bundle_from_result_source(result)
+        if source_bundle is None and isinstance(payload, dict):
+            # Some retrieval compatibility sources only expose a sparse
+            # excerpt-lookup-style ``as_dict`` payload. Rebuild the canonical
+            # source bundle from that snapshot so engine callers still receive
+            # the full downstream retrieval contract.
+            source_bundle = _build_retrieval_source_bundle_from_payload(payload)
         if source_bundle is not None:
                 payload = _backfill_sparse_snapshot(
                     payload,
@@ -4079,6 +4119,8 @@ def build_retrieval_downstream_payload_from_result(
             if isinstance(context_bundle, dict):
                 payload = _backfill_downstream_payload_from_context_bundle(payload, context_bundle)
         source_bundle = _build_retrieval_source_bundle_from_result_source(result)
+        if source_bundle is None and isinstance(payload, dict):
+            source_bundle = _build_retrieval_source_bundle_from_payload(payload)
         if source_bundle is not None:
                 payload = _backfill_sparse_snapshot(
                     payload,
