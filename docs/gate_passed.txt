@@ -6,7 +6,7 @@ Reviewed implementation head: `4ec62ffecef5ee266d766cbb35ffc531cd597e60`
 Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..4ec62ffecef5ee266d766cbb35ffc531cd597e60`
 Canonical demo-path step advanced: `retrieve relevant material`
 Scope: fail closed on unsupported scoped-query payloads in the canonical FTS strategy and preserve approved shared regression coverage proving unsupported scoped queries do not execute as canonical FTS requests.
-Current branch tip before this handoff refresh commit: `91017271631061ff5c6d76d32ac07bb168f21c28`
+Branch tip at start of this reviewer-fix refresh pass: `314d8021abfee6f50e728f8c550f16ca7a2393cc`
 
 Reviewed implementation files:
 
@@ -54,4 +54,4 @@ Routing/provider impact:
 
 Remaining blocker:
 
-* The sandbox rejects writes under `.codex/`, so `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale and could not be corrected in this fixer pass.
+* None for the visible handoff artifacts required by review. Hidden `.codex/**` mirrors may still lag because this worktree refreshes the repo-visible packet files only.

@@ -2,14 +2,12 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `branch-tip reviewer-fix handoff refresh`
-- Current branch tip: `ab9a54d6ca4c076689e273f287925199fd0594c5`
 - Reviewed implementation head: `4ec62ffecef5ee266d766cbb35ffc531cd597e60`
 - Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..4ec62ffecef5ee266d766cbb35ffc531cd597e60`
-- Reviewed branch-tip range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..ab9a54d6ca4c076689e273f287925199fd0594c5`
 - Scope goal: keep the post-`adfa8cda` retrieval follow-up slice FTS-first, deterministic, and auditable on the canonical engine surface while making unsupported scoped excerpt queries fail closed.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Plan-alignment statement: this slice advances `retrieve relevant material` by forcing excerpt lookup and scoped retrieval validation to stay on the canonical SQLite FTS path, preserving deterministic provenance for basket promotion and downstream workflow consumers.
-- Direct handoff statement: this handoff is against the actual branch tip `ab9a54d6ca4c076689e273f287925199fd0594c5`. The retrieval behavior change in that tip is `4ec62ffecef5ee266d766cbb35ffc531cd597e60` (`fix(retrieval): fail closed on unsupported scoped queries`), and the later commits `d9dcf91cb19860de91d29d4e850312887d56c5e1`, `0038073fac1dfebef0c643769784c22f59bcbc92`, and `ab9a54d6ca4c076689e273f287925199fd0594c5` are packet/docs-only follow-up commits after that implementation head.
+- Direct handoff statement: this handoff keeps the reviewed implementation range fixed at `adfa8cdadd43747ffbcb612e4151e262b13e52ca..4ec62ffecef5ee266d766cbb35ffc531cd597e60`. The later commits `d9dcf91cb19860de91d29d4e850312887d56c5e1`, `0038073fac1dfebef0c643769784c22f59bcbc92`, `ab9a54d6ca4c076689e273f287925199fd0594c5`, `91017271631061ff5c6d76d32ac07bb168f21c28`, and `314d8021abfee6f50e728f8c550f16ca7a2393cc` are packet/docs-only follow-up commits after that implementation head, and this reviewer-fix refresh continues to leave the implementation slice unchanged.
 - Approved exception surface: one approved shared test edit in `tests/unit/test_unified_retrieval.py` only; no integrator-locked files and no other shared-by-approval files are part of the reviewed implementation slice.
 
 ## Scope Completed
@@ -17,7 +15,7 @@
 - The post-`adfa8cda` retrieval follow-up slice remains FTS-first and deterministic across the current engine retrieval tree.
 - `4ec62ffecef5ee266d766cbb35ffc531cd597e60` adds fail-closed handling for unsupported scoped excerpt queries in `src/qual/engine/retrieval/fts_strategy.py`.
 - `tests/unit/test_unified_retrieval.py` preserves the approved shared regression coverage for the canonical retrieval contract in the same reviewed slice.
-- The reviewed implementation range for this handoff is `adfa8cdadd43747ffbcb612e4151e262b13e52ca..4ec62ffecef5ee266d766cbb35ffc531cd597e60`, and the reviewed branch-tip range is `adfa8cdadd43747ffbcb612e4151e262b13e52ca..ab9a54d6ca4c076689e273f287925199fd0594c5`.
+- The reviewed implementation range for this handoff is `adfa8cdadd43747ffbcb612e4151e262b13e52ca..4ec62ffecef5ee266d766cbb35ffc531cd597e60`, and the later branch-tip commits remain packet/docs-only follow-up commits outside that implementation slice.
 
 ## Thread Kickoff (High-Risk)
 
@@ -56,8 +54,6 @@
 
 ### Metadata-only handoff files
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
 
@@ -73,8 +69,8 @@
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Residual risk: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are read-only in this environment, so the visible repo-root handoff is corrected here but the mirrored hidden packet files could not be rewritten from this worktree.
-- Blockers: hidden `.codex/**` packet paths reject writes with `Operation not permitted` in this environment.
+- Residual risk: hidden `.codex/**` mirrors may still be stale relative to the visible handoff artifacts because this worktree only refreshes the repo-visible packet files.
+- Blockers: none for the visible handoff packet required by review.
 - Budget note: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so it remains shared/high-risk work under the `4`-task cap and outside the low-risk owned-path-only budget class.
 
 ## Required Handoff Fields
