@@ -222,6 +222,7 @@ def describe_a2ui_contract(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,
     include_terminal_artifact_cli_fallback_entrypoint: bool = False,
+    include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
     include_shell_ui_contract: bool = False,
 ) -> dict[str, Any]:
     """Return the stable, versioned A2UI contract manifest.
@@ -233,21 +234,22 @@ def describe_a2ui_contract(
     UI snapshot. That opt-in also exposes the renderer-entrypoints manifest
     alias so CLI consumers can recover the shared entrypoint map without
     depending on shell UI state.
-    Pass ``include_shell_ui_contract=True`` to opt into the CLI fallback
-    adapter contract slice. The embedded shell snapshot is exposed with both
-    ``shell_ui_contract_fingerprint`` and ``shell_ui_fingerprint`` aliases so
-    callers can use the same naming as the shell contract itself. That opt-in
-    also surfaces the explicit CLI fallback entrypoint aliases from the shell
-    contract so engine-side payloads can negotiate the same renderer entrypoint
-    name without depending on shell internals. The top-level manifest mirrors
-    the shell contract alias set with ``shell_ui_contract_manifest`` and
+    Pass ``include_terminal_artifact_cli_fallback_card_hint_recovery_policy=True``
+    to surface the CLI fallback card-hint recovery policy without pulling in
+    the shell UI snapshot. Pass ``include_shell_ui_contract=True`` to opt into
+    the CLI fallback adapter contract slice. The embedded shell snapshot is
+    exposed with both ``shell_ui_contract_fingerprint`` and
+    ``shell_ui_fingerprint`` aliases so callers can use the same naming as the
+    shell contract itself. That opt-in also surfaces the explicit CLI fallback
+    entrypoint aliases from the shell contract so engine-side payloads can
+    negotiate the same renderer entrypoint name without depending on shell
+    internals. The top-level manifest mirrors the shell contract alias set
+    with ``shell_ui_contract_manifest`` and
     ``shell_ui_contract_manifest_fingerprint`` for consumers that prefer the
     shell-style manifest naming, and it also exposes
     ``terminal_artifact_renderer_entrypoints_contract_manifest`` for the
-    renderer-entrypoints contract slice itself. The shell card-hint recovery
-    policy is surfaced directly as well so CLI fallback policy stays
-    addressable without drilling into the embedded shell snapshot. The shared
-    action/selection leaf bundle is also surfaced as ``leaf_contracts`` and
+    renderer-entrypoints contract slice itself. The shared action/selection
+    leaf bundle is also surfaced as ``leaf_contracts`` and
     ``leaf_contracts_contract_manifest`` so engine outputs can negotiate that
     stable contract slice without reassembling it from the separate leaf
     manifests.
@@ -256,6 +258,7 @@ def describe_a2ui_contract(
     manifest = _snapshot_contract_section(_build_a2ui_contract_manifest(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         include_terminal_artifact_cli_fallback_entrypoint=include_terminal_artifact_cli_fallback_entrypoint,
+        include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
         include_shell_ui_contract=include_shell_ui_contract,
     ))
     manifest["contract_fingerprint"] = _fingerprint_manifest_section(manifest)
@@ -462,6 +465,7 @@ def describe_a2ui_contract(
     manifest["contract_fingerprints"] = _build_a2ui_contract_fingerprint_summary(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         include_terminal_artifact_cli_fallback_entrypoint=include_terminal_artifact_cli_fallback_entrypoint,
+        include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
         include_shell_ui_contract=include_shell_ui_contract,
     )
     manifest["contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(
@@ -525,21 +529,25 @@ def describe_a2ui_contract_fingerprints(
     include_contract_aliases: bool = False,
     include_terminal_artifact_cli_fallback_route: bool = False,
     include_terminal_artifact_cli_fallback_entrypoint: bool = False,
+    include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
     include_shell_ui_contract: bool = False,
 ) -> dict[str, str]:
     """Return stable fingerprints for the contract sections and embedded contracts.
 
     The default key set stays lean for existing callers while still exposing
-    the shared leaf bundle fingerprint that engine consumers need. Opt-in
-    flags expose the embedded dispatch fingerprints, including the raw-leaf
-    card-default recovery contract and its policy contract, plus contract
-    aliases that the full manifest already surfaces so lightweight callers can
-    negotiate the same contract slice without pulling the entire manifest. The
-    top-level `contract_fingerprint` alias is included only when alias
-    expansion is requested, mirroring the manifest surface. Pass
+    the shared leaf bundle fingerprint and the raw-leaf card-default recovery
+    contract that engine consumers need. Opt-in flags expose the embedded
+    dispatch fingerprints and contract aliases that the full manifest already
+    surfaces so lightweight callers can negotiate the same contract slice
+    without pulling the entire manifest. The top-level `contract_fingerprint`
+    alias is included only when alias expansion is requested, mirroring the
+    manifest surface. Pass
     ``include_terminal_artifact_cli_fallback_entrypoint=True`` to expose the
     explicit CLI fallback entrypoint contract slice without pulling in the
     shell UI snapshot. Pass
+    ``include_terminal_artifact_cli_fallback_card_hint_recovery_policy=True``
+    to expose the CLI fallback card-hint policy without pulling in the shell
+    UI snapshot. Pass
     ``include_shell_ui_contract=True`` to opt into the shell adapter contract
     fingerprint used by the CLI fallback path. That opt-in also exposes the
     canonical ``shell_ui_contract_fingerprint``, ``shell_ui_fingerprint``,
@@ -548,8 +556,8 @@ def describe_a2ui_contract_fingerprints(
     snapshot always carries the CLI fallback route slice, that opt-in also
     surfaces the route fingerprint aliases for the embedded fallback route
     contract and the explicit CLI fallback entrypoint aliases used by the
-    shell adapter, plus the shell card-hint recovery policy aliases that keep
-    the CLI fallback policy directly negotiable, plus
+    shell adapter, plus the card-hint recovery policy aliases for callers that
+    prefer the shell-shaped surface, plus
     ``terminal_artifact_renderer_entrypoints_contract_manifest`` for the
     renderer-entrypoints contract slice itself.
     """
@@ -557,6 +565,7 @@ def describe_a2ui_contract_fingerprints(
     manifest = _build_a2ui_contract_manifest(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         include_terminal_artifact_cli_fallback_entrypoint=include_terminal_artifact_cli_fallback_entrypoint,
+        include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
         include_shell_ui_contract=include_shell_ui_contract,
     )
     fingerprints = {
@@ -585,7 +594,19 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["terminal_artifact_rendering"] = terminal_artifact_rendering_contract_fingerprint()
     if include_terminal_artifact_cli_fallback:
         fingerprints["terminal_artifact_cli_fallback"] = terminal_artifact_cli_fallback_contract_fingerprint()
+    if include_terminal_artifact_cli_fallback_card_hint_recovery_policy or include_shell_ui_contract:
         fingerprints["card_hint_recovery_policy"] = card_hint_recovery_policy_contract_fingerprint_value
+        _add_contract_alias_fingerprints(
+            fingerprints,
+            (
+                "card_hint_recovery_policy_contract",
+                card_hint_recovery_policy_contract_fingerprint_value,
+            ),
+            (
+                "card_hint_recovery_policy_contract_manifest",
+                card_hint_recovery_policy_contract_fingerprint_value,
+            ),
+        )
     if include_terminal_artifact_cli_fallback_target:
         fingerprints["terminal_artifact_cli_fallback_target"] = (
             terminal_artifact_cli_fallback_target_contract_fingerprint()
@@ -1018,6 +1039,7 @@ def _build_a2ui_contract_fingerprint_summary(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,
     include_terminal_artifact_cli_fallback_entrypoint: bool = False,
+    include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
     include_shell_ui_contract: bool = False,
 ) -> dict[str, str]:
     return describe_a2ui_contract_fingerprints(
@@ -1029,6 +1051,7 @@ def _build_a2ui_contract_fingerprint_summary(
         include_terminal_artifact_cli_fallback_target=True,
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         include_terminal_artifact_cli_fallback_entrypoint=include_terminal_artifact_cli_fallback_entrypoint,
+        include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
         include_shell_ui_contract=include_shell_ui_contract,
     )
 
@@ -1066,6 +1089,7 @@ def _build_a2ui_schema_versions_manifest(
 def describe_a2ui_dispatch_contract_fingerprints(
     *,
     include_terminal_artifact_cli_fallback_entrypoint: bool = False,
+    include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
     include_shell_ui_contract: bool = False,
     include_contract_aliases: bool = False,
 ) -> dict[str, str]:
@@ -1086,6 +1110,7 @@ def describe_a2ui_dispatch_contract_fingerprints(
         include_terminal_artifact_cli_fallback_target=True,
         include_terminal_artifact_cli_fallback_route=True,
         include_terminal_artifact_cli_fallback_entrypoint=include_terminal_artifact_cli_fallback_entrypoint,
+        include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
         include_shell_ui_contract=include_shell_ui_contract,
         include_contract_aliases=include_contract_aliases,
     )
@@ -2829,11 +2854,13 @@ def _build_a2ui_contract_manifest(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,
     include_terminal_artifact_cli_fallback_entrypoint: bool = False,
+    include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
     include_shell_ui_contract: bool = False,
 ) -> dict[str, Any]:
     terminal_artifact_contract = describe_terminal_artifact_contract(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
+    card_hint_recovery_policy_contract = describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract()
     manifest = {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
@@ -2874,6 +2901,23 @@ def _build_a2ui_contract_manifest(
             for action_id, schema in sorted(_ACTION_SCHEMAS.items())
         ],
     }
+    if include_shell_ui_contract or include_terminal_artifact_cli_fallback_card_hint_recovery_policy:
+        manifest["card_hint_recovery_policy"] = _snapshot_contract_section(card_hint_recovery_policy_contract)
+        manifest["card_hint_recovery_policy_fingerprint"] = card_hint_recovery_policy_contract[
+            "contract_fingerprint"
+        ]
+        manifest["card_hint_recovery_policy_contract"] = _snapshot_contract_section(
+            card_hint_recovery_policy_contract
+        )
+        manifest["card_hint_recovery_policy_contract_fingerprint"] = card_hint_recovery_policy_contract[
+            "contract_fingerprint"
+        ]
+        manifest["card_hint_recovery_policy_contract_manifest"] = _snapshot_contract_section(
+            card_hint_recovery_policy_contract
+        )
+        manifest["card_hint_recovery_policy_contract_manifest_fingerprint"] = card_hint_recovery_policy_contract[
+            "contract_fingerprint"
+        ]
     if include_shell_ui_contract:
         shell_ui_contract = _snapshot_shell_ui_contract(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
@@ -2888,25 +2932,6 @@ def _build_a2ui_contract_manifest(
         )
         manifest["shell_ui_contract_fingerprints_fingerprint"] = shell_ui_contract[
             "contract_fingerprints_fingerprint"
-        ]
-        card_hint_recovery_policy_contract = _snapshot_contract_section(
-            shell_ui_contract["card_hint_recovery_policy_contract"]
-        )
-        manifest["card_hint_recovery_policy"] = _snapshot_contract_section(
-            shell_ui_contract["card_hint_recovery_policy"]
-        )
-        manifest["card_hint_recovery_policy_fingerprint"] = shell_ui_contract[
-            "card_hint_recovery_policy_fingerprint"
-        ]
-        manifest["card_hint_recovery_policy_contract"] = card_hint_recovery_policy_contract
-        manifest["card_hint_recovery_policy_contract_fingerprint"] = shell_ui_contract[
-            "card_hint_recovery_policy_contract_fingerprint"
-        ]
-        manifest["card_hint_recovery_policy_contract_manifest"] = _snapshot_contract_section(
-            shell_ui_contract["card_hint_recovery_policy_contract_manifest"]
-        )
-        manifest["card_hint_recovery_policy_contract_manifest_fingerprint"] = shell_ui_contract[
-            "card_hint_recovery_policy_contract_manifest_fingerprint"
         ]
         # Mirror the shell's renderer-entrypoint alias so shell-aware
         # consumers can negotiate the same renderer contract names.
@@ -4034,6 +4059,7 @@ def a2ui_contract_fingerprint(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,
     include_terminal_artifact_cli_fallback_entrypoint: bool = False,
+    include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
     include_shell_ui_contract: bool = False,
 ) -> str:
     """Return a stable fingerprint for the current contract manifest."""
@@ -4041,6 +4067,7 @@ def a2ui_contract_fingerprint(
     manifest = _build_a2ui_contract_manifest(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         include_terminal_artifact_cli_fallback_entrypoint=include_terminal_artifact_cli_fallback_entrypoint,
+        include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
         include_shell_ui_contract=include_shell_ui_contract,
     )
     return _fingerprint_manifest_section(manifest)
@@ -4048,6 +4075,7 @@ def a2ui_contract_fingerprint(
 
 def describe_a2ui_engine_contract(
     *,
+    include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
     include_shell_ui_contract: bool = False,
 ) -> dict[str, Any]:
     """Return the engine-facing A2UI contract snapshot.
@@ -4060,12 +4088,14 @@ def describe_a2ui_engine_contract(
     return describe_a2ui_contract(
         include_terminal_artifact_cli_fallback_route=True,
         include_terminal_artifact_cli_fallback_entrypoint=True,
+        include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
         include_shell_ui_contract=include_shell_ui_contract,
     )
 
 
 def a2ui_engine_contract_fingerprint(
     *,
+    include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
     include_shell_ui_contract: bool = False,
 ) -> str:
     """Return a stable fingerprint for the engine-facing A2UI manifest."""
@@ -4073,6 +4103,7 @@ def a2ui_engine_contract_fingerprint(
     return a2ui_contract_fingerprint(
         include_terminal_artifact_cli_fallback_route=True,
         include_terminal_artifact_cli_fallback_entrypoint=True,
+        include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
         include_shell_ui_contract=include_shell_ui_contract,
     )
 
