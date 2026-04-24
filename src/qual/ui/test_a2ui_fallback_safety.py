@@ -939,6 +939,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["card_hint_recovery_policy"],
             {
                 "recover_typed_leaf_payloads": True,
+                "explicit_leaf_instances_rejected_under_card_hints": True,
                 "preserve_raw_leaf_card_default": True,
             },
         )
@@ -1093,6 +1094,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             _fingerprint_manifest_section(
                 {
                     "recover_typed_leaf_payloads": True,
+                    "explicit_leaf_instances_rejected_under_card_hints": True,
                     "preserve_raw_leaf_card_default": True,
                 }
             ),
@@ -4763,7 +4765,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[SelectionRef]", text)
         self.assertNotIn("[TerminalArtifact]", text)
 
-    def test_terminal_artifact_renderer_rejects_explicit_leaf_dataclasses_for_card_hints_but_cli_fallback_recovers_them(
+    def test_terminal_artifact_renderer_rejects_explicit_leaf_dataclasses_for_card_hints_and_cli_fallback_keeps_them_invalid(
         self,
     ) -> None:
         shell = ShellUI()
@@ -4786,11 +4788,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 self.assertIn("[UnknownCard] <invalid card>", shell_text)
                 self.assertIn("Action policy: copy_to_clipboard_only", shell_text)
                 self.assertEqual(shell_cli_text, cli_text)
-                self.assertNotIn("[UnknownCard] <invalid card>", cli_text)
-                expected_prefix = "[ActionRef]" if case_name == "action" else "[SelectionRef]"
-                expected_schema = "Action schema v1" if case_name == "action" else "Selection schema v1"
-                self.assertIn(expected_prefix, cli_text)
-                self.assertIn(expected_schema, cli_text)
+                self.assertIn("[UnknownCard] <invalid card>", cli_text)
+                self.assertIn("[UnknownCard] <invalid card>", shell_cli_text)
+                self.assertNotIn("[ActionRef]", cli_text)
+                self.assertNotIn("[SelectionRef]", cli_text)
+                self.assertNotIn("[ActionRef]", shell_cli_text)
+                self.assertNotIn("[SelectionRef]", shell_cli_text)
 
     def test_terminal_artifact_cli_fallback_contract_fingerprints_are_public_and_canonical(self) -> None:
         manifest = describe_terminal_artifact_cli_fallback_contract()
@@ -8633,7 +8636,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 self.assertIn(expected_schema, text)
                 self.assertNotIn("[UnknownCard] <invalid card>", text)
 
-    def test_terminal_artifact_cli_fallback_recovers_typed_leaf_dataclasses_when_shared_resolver_underflows_to_card(
+    def test_terminal_artifact_cli_fallback_keeps_typed_leaf_dataclasses_invalid_when_shared_resolver_underflows_to_card(
         self,
     ) -> None:
         shell = ShellUI()
@@ -8674,9 +8677,11 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                         shell_text = shell.render_cli_fallback(artifact, kind="card")
 
                 self.assertEqual(cli_text, shell_text)
-                self.assertIn(expected_prefix, cli_text)
-                self.assertIn(expected_schema, cli_text)
-                self.assertNotIn("[UnknownCard] <invalid card>", cli_text)
+                self.assertIn("[UnknownCard] <invalid card>", cli_text)
+                self.assertIn("Fallback: unknown card", cli_text)
+                self.assertIn("Action policy: copy_to_clipboard_only", cli_text)
+                self.assertNotIn(expected_prefix, cli_text)
+                self.assertNotIn(expected_schema, cli_text)
 
     def test_terminal_artifact_cli_fallback_recovers_typed_leaf_mappings_when_shared_resolver_underflows_to_card(
         self,
@@ -9348,7 +9353,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[SelectionRef]", text)
         self.assertNotIn("[ActionRef]", text)
 
-    def test_terminal_artifact_cli_fallback_entrypoint_recovers_explicit_typed_leaves_under_card_hints(
+    def test_terminal_artifact_cli_fallback_entrypoint_keeps_explicit_typed_leaves_invalid_under_card_hints(
         self,
     ) -> None:
         shell = ShellUI()
@@ -9381,8 +9386,11 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 self.assertIn("Fallback: unknown card", shell_text)
                 self.assertIn("Action policy: copy_to_clipboard_only", shell_text)
                 self.assertEqual(cli_text, shell_cli_text)
-                self.assertNotIn("[UnknownCard] <invalid card>", shell_cli_text)
-                self.assertIn("[ActionRef]" if case_name == "action" else "[SelectionRef]", cli_text)
+                self.assertIn("[UnknownCard] <invalid card>", shell_cli_text)
+                self.assertNotIn("[ActionRef]", cli_text)
+                self.assertNotIn("[SelectionRef]", cli_text)
+                self.assertNotIn("[ActionRef]", shell_cli_text)
+                self.assertNotIn("[SelectionRef]", shell_cli_text)
 
     def test_terminal_artifact_cli_fallback_entrypoint_matches_shell_for_malformed_card_hint_envelopes(
         self,

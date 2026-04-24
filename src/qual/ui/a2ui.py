@@ -2251,6 +2251,7 @@ def _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest() -> 
 def _build_terminal_artifact_cli_fallback_card_hint_recovery_policy_manifest() -> dict[str, Any]:
     return {
         "recover_typed_leaf_payloads": True,
+        "explicit_leaf_instances_rejected_under_card_hints": True,
         "preserve_raw_leaf_card_default": True,
     }
 
@@ -4722,9 +4723,10 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
     """
 
     requested_kind = _normalize_terminal_artifact_kind_hint(kind)
-    if requested_kind == "card" and _is_explicit_terminal_artifact_leaf(artifact):
-        # Keep explicit leaf payloads on the safe invalid-card path when the
-        # caller explicitly asked for card rendering.
+    if requested_kind == "card" and isinstance(artifact, (ActionRef, SelectionRef)):
+        # Keep direct leaf objects on the safe invalid-card path when the
+        # caller explicitly asked for card rendering. Typed mapping payloads
+        # still recover through the shared fallback resolver below.
         return _render_invalid_terminal_card(artifact)
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
     envelope_kind = None
