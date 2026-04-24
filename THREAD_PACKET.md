@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `actual-branch-tip handoff with metadata-only refresh`
-- Current branch tip before this packet refresh commit: `6df9fd789ec7aa4e8301b1a7a9879b5f28bc2a7c`
+- Current branch tip before this packet refresh commit: `e8a8717b138f7d3551cd89bc3dc68071d5dad5f3`
 - Reviewed implementation head: `a9eaaaa79afcd57cde90738adee76e52cfc29adb`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..a9eaaaa79afcd57cde90738adee76e52cfc29adb`
 - Shared-file approval basis: `tests/unit/test_unified_retrieval.py` is the only non-owned edit in the reviewed slice, and this handoff treats it as the explicit shared-by-approval regression exception under `THREAD_OWNERSHIP.md`'s shared-file mechanism (`SCOPE_ALLOW_SHARED=1 make scope-check`) for canonical retrieval-contract coverage.
@@ -64,6 +64,9 @@
 - `e013b29a` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
 - `61b9c36f` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
 - `6df9fd78` -> `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`
+- `9f242d30` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- `18498590` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- `e8a8717b` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
 - Current metadata-only packet refresh files:
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
