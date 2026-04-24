@@ -927,6 +927,9 @@ def describe_shell_ui_contract_fingerprints(
         "terminal_artifact_cli_fallback_target_contract": (
             terminal_artifact_cli_fallback_target_contract_fingerprint_value
         ),
+        "terminal_artifact_cli_fallback_target_contract_manifest_fingerprint": (
+            terminal_artifact_cli_fallback_target_contract_fingerprint_value
+        ),
         "terminal_artifact_cli_fallback_route": terminal_artifact_cli_fallback_route_contract_fingerprint_value,
         "terminal_artifact_cli_fallback_route_contract": (
             terminal_artifact_cli_fallback_route_contract_fingerprint_value
