@@ -3051,11 +3051,41 @@ def _canonical_demo_terminal_argv_token(resolved: ResolvedCommand) -> str:
         return ""
     operation_kind = _normalize_token(_argv_option_value(resolved.argv, "--operation-kind"))
     message = _normalize_token(_argv_option_value(resolved.argv, "--message"))
-    if not operation_kind or not message:
+    if not operation_kind:
         return ""
     canonical_token = _COMMAND_DEMO_TERMINAL_MESSAGE_TOKENS.get((operation_kind, message), "")
+    if not canonical_token and message:
+        canonical_token = _fuzzy_demo_terminal_message_token(operation_kind, message)
     if canonical_token in _COMMAND_DEMO_LOOP_TOKENS:
         return canonical_token
+    return ""
+
+
+def _fuzzy_demo_terminal_message_token(operation_kind: str, message: str) -> str:
+    message_parts = tuple(part for part in message.split("-") if part)
+    if not message_parts:
+        return ""
+
+    matched_canonical_tokens: list[str] = []
+    seen_canonical_tokens: set[str] = set()
+    for (candidate_operation_kind, candidate_token), canonical_token in _COMMAND_DEMO_TERMINAL_MESSAGE_TOKENS.items():
+        if candidate_operation_kind != operation_kind:
+            continue
+        candidate_parts = tuple(part for part in candidate_token.split("-") if part)
+        if not candidate_parts:
+            continue
+        if len(candidate_parts) > len(message_parts):
+            continue
+        for index in range(len(message_parts) - len(candidate_parts) + 1):
+            if message_parts[index : index + len(candidate_parts)] != candidate_parts:
+                continue
+            if canonical_token not in seen_canonical_tokens:
+                seen_canonical_tokens.add(canonical_token)
+                matched_canonical_tokens.append(canonical_token)
+            break
+
+    if len(matched_canonical_tokens) == 1:
+        return matched_canonical_tokens[0]
     return ""
 
 
