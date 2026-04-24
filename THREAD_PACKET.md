@@ -7,7 +7,7 @@
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet traceability note: review this lane against the narrowed implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `d7fd5d20..adfa8cda`.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Reviewer-required plan-alignment statement: This work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage and basket-promotion inputs stay deterministic.
+- Reviewer-required plan-alignment statement: This work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage.
 - Evidence note: `tests/unit/test_unified_retrieval.py` covers both the narrowed service-level contract and the public retrieval facade for this slice. `test_retrieval_service_rejects_pageindex_excerpt_payloads` proves PageIndex-only excerpt IDs fail closed on `fetch_excerpt(...)`, and `test_retrieve_fts_excerpt_returns_canonical_fts_payload` proves the canonical/public FTS excerpt helpers return the same payload shape.
 - Packet authority note: this top-level packet and `docs/gate_passed.txt` are the reviewer-facing source of truth for the explicit demo-path mapping and plan-alignment wording on this branch.
 
@@ -95,6 +95,7 @@
 2. The plan-alignment statement explains that this step becomes more real because excerpt lookup stays on the auditable SQLite FTS path and PageIndex-only excerpt IDs fail closed.
 3. The scope-completed text is narrowed to the reviewed slice: removal of the PageIndex fallback from `fetch_excerpt` and regression coverage proving non-FTS excerpt IDs now raise `KeyError`.
 4. The handoff remains classified as shared/high-risk work because the reviewed slice includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+5. This fixer pass reran the required local gate suite on a metadata-only packet refresh without changing the reviewed implementation range.
 
 ## Risks / Blockers
 
@@ -111,7 +112,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- Deterministic FTS-only excerpt lookup strengthens auditable basket-promotion inputs.
+- Deterministic FTS-only excerpt lookup keeps the demo path auditable and fail-closed.
 
 ### Vision capability affected
 

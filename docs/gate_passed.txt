@@ -26,9 +26,10 @@ Focused retrieval proof:
 * `python3 -m unittest tests.unit.test_unified_retrieval` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`.
-Plan-alignment statement: this reviewed retrieval range makes `retrieve relevant material` more real by ensuring excerpt lookup stays on the auditable SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage and basket-promotion inputs stay deterministic.
+Plan-alignment statement: this reviewed retrieval range makes `retrieve relevant material` more real by ensuring excerpt lookup stays on the auditable SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage.
 Scope note: this packet is intentionally narrow to the reviewed slice: removal of the PageIndex fallback from `fetch_excerpt` and regression coverage proving non-FTS excerpt IDs now raise `KeyError`.
 Budget compliance statement: this packet is shared/high-risk work because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`, so the handoff is read against the 4-task cap rather than the default 8-task cap.
 Traceability statement: re-review should validate the actual reviewed implementation range `d7fd5d20..adfa8cda`; this packet refresh remains metadata-only and does not broaden that reviewed slice.
+Fixer pass note: this packet records a fresh full-gate rerun on a metadata-only handoff refresh without changing the reviewed implementation range.
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
