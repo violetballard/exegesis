@@ -3320,6 +3320,16 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         top_level_doc_hits = []
     if not isinstance(top_level_excerpt_hits, list):
         top_level_excerpt_hits = []
+    normalized["query"] = _normalize_query_snapshot(
+        _first_dict_value(
+            normalized.get("query"),
+            query,
+            summary.get("query"),
+        )
+    )
+    query_snapshot = normalized["query"]
+    if not isinstance(query_snapshot, dict):
+        query_snapshot = {}
     query_constraints = query.get("constraints", {})
     if not isinstance(query_constraints, dict):
         query_constraints = {}
@@ -3332,12 +3342,16 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         )
     else:
         normalized["query_scope"] = _normalize_query_scope(normalized.get("query_scope"))
+    if _is_missing_snapshot_value(query_snapshot.get("scope")):
+        query_snapshot["scope"] = normalized.get("query_scope")
     if _is_missing_snapshot_value(normalized.get("query_intent")):
         normalized["query_intent"] = _normalize_query_intent(
             query.get("intent", summary.get("query_intent", diagnostics.get("query_intent")))
         )
     else:
         normalized["query_intent"] = _normalize_query_intent(normalized.get("query_intent"))
+    if _is_missing_snapshot_value(query_snapshot.get("intent")):
+        query_snapshot["intent"] = normalized.get("query_intent")
     if _is_missing_snapshot_value(normalized.get("query_confidentiality_profile")):
         normalized["query_confidentiality_profile"] = _normalize_query_confidentiality_profile(
             query.get(
@@ -3352,12 +3366,21 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["query_confidentiality_profile"] = _normalize_query_confidentiality_profile(
             normalized.get("query_confidentiality_profile")
         )
+    if _is_missing_snapshot_value(query_snapshot.get("confidentiality_profile")):
+        query_snapshot["confidentiality_profile"] = normalized.get("query_confidentiality_profile")
     if "query_date_range" not in normalized or _is_missing_snapshot_value(query_date_range):
         normalized["query_date_range"] = _normalize_query_date_range(
             query_constraints.get("date_range", summary.get("query_date_range", diagnostics.get("date_range")))
         )
     else:
         normalized["query_date_range"] = query_date_range
+    query_constraints_snapshot = query_snapshot.get("constraints", {})
+    if not isinstance(query_constraints_snapshot, dict):
+        query_constraints_snapshot = {}
+    if _is_missing_snapshot_value(query_constraints_snapshot.get("date_range")):
+        query_constraints_snapshot["date_range"] = normalized.get("query_date_range")
+    query_snapshot["constraints"] = query_constraints_snapshot
+    normalized["query"] = _normalize_query_snapshot(query_snapshot)
     if _is_missing_snapshot_value(normalized.get("result_fingerprint")):
         normalized["result_fingerprint"] = summary.get("result_fingerprint", diagnostics.get("result_fingerprint"))
     else:

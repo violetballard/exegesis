@@ -1347,6 +1347,7 @@ class RetrievalResult:
             else None
         )
         return {
+            "query": self._query_snapshot(),
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
