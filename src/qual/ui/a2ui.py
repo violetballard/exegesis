@@ -4448,13 +4448,26 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
             requested_kind=requested_kind,
         )
     try:
-        return _render_terminal_artifact_resolved(
+        rendered_artifact = _render_terminal_artifact_resolved(
             fallback_artifact,
             fallback_kind,
             requested_kind=requested_kind,
         )
     except Exception:
         return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
+    if (
+        requested_kind == "card"
+        and fallback_kind == "card"
+        and not _has_expected_card_renderer_prefix(rendered_artifact)
+    ):
+        # Card-hint fallback output must stay card-shaped. If a resolver or
+        # renderer drift returns leaf text here, force the safer card fallback
+        # instead of leaking action or selection presentation through the card
+        # contract.
+        return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
+    if isinstance(rendered_artifact, str):
+        return rendered_artifact
+    return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
 
 
 def _is_current_terminal_artifact_cli_fallback_hint(
@@ -4602,6 +4615,12 @@ def _render_terminal_artifact_resolved(
     if isinstance(rendered_card, str):
         return rendered_card
     return _render_invalid_terminal_card(artifact)
+
+
+def _has_expected_card_renderer_prefix(rendered: Any) -> bool:
+    if not isinstance(rendered, str):
+        return False
+    return not rendered.startswith(("[ActionRef]", "[SelectionRef]", "[TerminalArtifact]"))
 
 
 def _render_terminal_artifact_cli_fallback_failure(

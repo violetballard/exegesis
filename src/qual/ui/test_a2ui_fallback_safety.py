@@ -4238,6 +4238,24 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[ActionRef]", text)
         self.assertNotIn("[SelectionRef]", text)
 
+    def test_terminal_artifact_cli_fallback_rejects_leaf_renderer_text_for_card_hints(self) -> None:
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        with patch(
+            "src.qual.ui.a2ui._render_terminal_artifact_resolved",
+            return_value="[ActionRef] Export\nAction schema v1",
+        ):
+            text = render_terminal_cli_fallback(raw_leaf, kind="card")
+
+        self.assertIn("[<missing>] <untitled>", text)
+        self.assertNotIn("[ActionRef] Export", text)
+        self.assertNotIn("[SelectionRef]", text)
+        self.assertNotIn("[TerminalArtifact]", text)
+
     def test_terminal_artifact_cli_fallback_contract_fingerprints_are_public_and_canonical(self) -> None:
         manifest = describe_terminal_artifact_cli_fallback_contract()
         fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints()
