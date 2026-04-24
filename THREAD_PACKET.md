@@ -2,8 +2,8 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `feature lane handoff`
-- Reviewed implementation head: `reported from final branch HEAD after commit`
-- Reviewed implementation range: `current fix pass on branch tip`
+- Reviewed implementation head: `3d362dd40277de623ac4467f95b2acb39b2587fd`
+- Reviewed implementation range: `2b03f9a218ce3444bb2e49d8204ceebbcfe82ad7..3d362dd40277de623ac4467f95b2acb39b2587fd`
 - Scope goal: keep the retrieval lane FTS-first for the MVP by making the engine-side `FTSStrategy` fail closed unless the incoming payload is a canonical FTS-first retrieval query.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Plan-alignment statement: this slice advances `retrieve relevant material` by keeping routing and cache eligibility aligned with the active SQLite FTS contract, so malformed query text or unsupported retrieval metadata cannot be treated as valid retrieval work on the engine path.
@@ -54,7 +54,7 @@
 
 - Risk: `LOW`
 - Blockers: `None`
-- Metadata note: the implementation change stayed inside retrieval-owned code; the only non-lane file touched in this pass is this handoff packet because the lane prompt requires the INTEGRATION handoff fields to be refreshed.
+- Metadata note: the reviewed implementation head above is the code commit for this fix pass; any later commit that only refreshes this packet is metadata-only and does not widen the retrieval implementation scope.
 
 ## Required Handoff Fields
 
