@@ -24,7 +24,7 @@ Focused retrieval proof:
 * `python3 -m unittest tests.unit.test_unified_retrieval` - passed (`214 tests`)
 
 Canonical demo-path step advanced: `retrieve relevant material`.
-Plan-alignment statement: this work makes `retrieve relevant material` more real by keeping excerpt lookup, retrieval payload rebuilds, source bundles, and engine-facing retrieval exports anchored to the authoritative SQLite FTS path with deterministic structured output for downstream consumers.
+Plan-alignment statement: this change makes `retrieve relevant material` more real by forcing excerpt lookup to fail closed unless the hit comes from the authoritative SQLite FTS path.
 Budget compliance statement: task count remains within the 4-task high-risk cap, but the truthful promoted range exceeds the high-risk size budget at `15 files changed, 10447 insertions(+), 1082 deletions(-)`.
 Traceability statement: re-review should validate the truthful promoted branch-tip range `378cf9a7..d0d89fe5`; post-`adfa8cda` retrieval/runtime commits are in scope and are not metadata-only.
 

@@ -23,9 +23,8 @@ LANE_CANONICAL_DEMO_PATH = {
     "feat-retrieval-fts": {
         "step": "retrieve relevant material",
         "impact": (
-            "This handoff advances `retrieve relevant material` by ensuring excerpt lookup "
-            "resolves only through the authoritative SQLite FTS path and fails closed for "
-            "PageIndex-only IDs, keeping downstream basket/workflow use deterministic and auditable."
+            "This change makes `retrieve relevant material` more real by forcing excerpt "
+            "lookup to fail closed unless the hit comes from the authoritative SQLite FTS path."
         ),
     },
 }

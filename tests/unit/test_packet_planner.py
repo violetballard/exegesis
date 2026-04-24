@@ -43,8 +43,8 @@ class PacketPlannerTests(unittest.TestCase):
             "roadmap_items": ["ROADMAP.md: Milestone 3: Real workflow loop"],
             "canonical_demo_path_step": "retrieve relevant material",
             "canonical_demo_path_impact": (
-                "This change keeps excerpt lookup on the authoritative SQLite FTS path "
-                "so downstream basket/workflow use stays deterministic and auditable."
+                "This change makes `retrieve relevant material` more real by forcing excerpt "
+                "lookup to fail closed unless the hit comes from the authoritative SQLite FTS path."
             ),
             "vision_capabilities": ["2. Retrieval-first context handling"],
             "routing_provider_impact": "None",
@@ -96,7 +96,7 @@ class PacketPlannerTests(unittest.TestCase):
 
         self.assertIn("### Canonical demo-path step advanced", packet)
         self.assertIn("- retrieve relevant material", packet)
-        self.assertIn("fails closed for PageIndex-only IDs", packet)
+        self.assertIn("fail closed unless the hit comes from the authoritative SQLite FTS path", packet)
 
 
 if __name__ == "__main__":
