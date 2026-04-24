@@ -230,7 +230,9 @@ def describe_a2ui_contract(
     the contract they negotiated without having to mirror internal module state.
     Pass ``include_terminal_artifact_cli_fallback_entrypoint=True`` to opt into
     the explicit CLI fallback entrypoint contract slice without the full shell
-    UI snapshot.
+    UI snapshot. That opt-in also exposes the renderer-entrypoints manifest
+    alias so CLI consumers can recover the shared entrypoint map without
+    depending on shell UI state.
     Pass ``include_shell_ui_contract=True`` to opt into the CLI fallback
     adapter contract slice. The embedded shell snapshot is exposed with both
     ``shell_ui_contract_fingerprint`` and ``shell_ui_fingerprint`` aliases so
@@ -2393,6 +2395,16 @@ def _build_a2ui_contract_manifest(
         manifest["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"] = (
             terminal_artifact_cli_fallback_entrypoint_contract[
                 "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"
+            ]
+        )
+        manifest["terminal_artifact_renderer_entrypoints_contract_manifest"] = _snapshot_contract_section(
+            terminal_artifact_cli_fallback_entrypoint_contract[
+                "terminal_artifact_renderer_entrypoints_contract_manifest"
+            ]
+        )
+        manifest["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"] = (
+            terminal_artifact_cli_fallback_entrypoint_contract[
+                "terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"
             ]
         )
     if include_terminal_artifact_cli_fallback_route:
