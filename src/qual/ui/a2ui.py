@@ -459,6 +459,7 @@ def describe_a2ui_contract(
         ]
     manifest["contract_fingerprints"] = _build_a2ui_contract_fingerprint_summary(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        include_terminal_artifact_cli_fallback_entrypoint=include_terminal_artifact_cli_fallback_entrypoint,
         include_shell_ui_contract=include_shell_ui_contract,
     )
     manifest["contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(
