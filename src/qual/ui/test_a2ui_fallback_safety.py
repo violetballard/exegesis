@@ -1080,6 +1080,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             include_terminal_artifact_cli_fallback_entrypoint=True,
         )
         entrypoint_manifest = describe_terminal_artifact_cli_fallback_entrypoint_contract()
+        target_manifest = describe_terminal_artifact_cli_fallback_target_contract()
         entrypoint_fingerprints = describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints()
         shell_policy_manifest = describe_terminal_artifact_cli_fallback_shell_refinement_policy_contract()
         resolver_policy_manifest = describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract()
@@ -1123,6 +1124,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"],
             terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            target_manifest["contract_fingerprints"],
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"],
+            target_manifest["contract_fingerprints_fingerprint"],
         )
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_entrypoint_contract"][
@@ -2501,6 +2510,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_target_contract_manifest"],
             target_manifest,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            target_manifest["contract_fingerprints"],
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"],
+            target_manifest["contract_fingerprints_fingerprint"],
         )
         self.assertEqual(
             manifest["terminal_artifact_renderer_entrypoints_contract_manifest"],
