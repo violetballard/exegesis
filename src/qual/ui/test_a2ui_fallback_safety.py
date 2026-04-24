@@ -58,6 +58,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_render_target_contract,
     describe_terminal_artifact_render_target_contract_fingerprints,
     describe_terminal_artifact_renderer_entrypoints_contract,
+    describe_terminal_artifact_renderer_entrypoints_contract_fingerprints,
     describe_terminal_artifact_rendering_contract,
     describe_terminal_artifact_rendering_contract_fingerprints,
     describe_terminal_fallback_contract,
@@ -96,6 +97,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint,
     terminal_artifact_render_target_contract_fingerprint,
     terminal_artifact_renderer_entrypoints_contract_fingerprint,
+    terminal_artifact_renderer_entrypoints_contract_fingerprints_fingerprint,
     _build_terminal_artifact_renderer_entrypoints,
     terminal_artifact_kind_resolution_fingerprint,
     terminal_artifact_fallback_recovery_fingerprint,
@@ -207,8 +209,16 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             describe_terminal_artifact_renderer_entrypoints_contract,
         )
         self.assertIs(
+            public_ui.describe_terminal_artifact_renderer_entrypoints_contract_fingerprints,
+            describe_terminal_artifact_renderer_entrypoints_contract_fingerprints,
+        )
+        self.assertIs(
             public_ui.terminal_artifact_renderer_entrypoints_contract_fingerprint,
             terminal_artifact_renderer_entrypoints_contract_fingerprint,
+        )
+        self.assertIs(
+            public_ui.terminal_artifact_renderer_entrypoints_contract_fingerprints_fingerprint,
+            terminal_artifact_renderer_entrypoints_contract_fingerprints_fingerprint,
         )
         self.assertIs(
             public_ui.describe_terminal_artifact_cli_fallback_entrypoint_contract,
@@ -634,8 +644,33 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             {"renderer_entrypoints": manifest["renderer_entrypoints_fingerprint"]},
         )
         self.assertEqual(
+            manifest["contract_fingerprints_fingerprint"],
+            terminal_artifact_renderer_entrypoints_contract_fingerprints_fingerprint(),
+        )
+        self.assertEqual(
             manifest["contract_fingerprints"]["renderer_entrypoints"],
             manifest["renderer_entrypoints_fingerprint"],
+        )
+        self.assertEqual(
+            describe_terminal_artifact_renderer_entrypoints_contract_fingerprints(),
+            manifest["contract_fingerprints"],
+        )
+        aliased_fingerprints = describe_terminal_artifact_renderer_entrypoints_contract_fingerprints(
+            include_contract_aliases=True,
+        )
+        self.assertEqual(
+            aliased_fingerprints["renderer_entrypoints_contract"],
+            fingerprint,
+        )
+        self.assertEqual(
+            aliased_fingerprints["terminal_artifact_renderer_entrypoints_contract_manifest"],
+            fingerprint,
+        )
+        self.assertEqual(
+            terminal_artifact_renderer_entrypoints_contract_fingerprints_fingerprint(
+                include_contract_aliases=True,
+            ),
+            _fingerprint_manifest_section(aliased_fingerprints),
         )
         self.assertEqual(rendering_manifest["renderer_entrypoints_contract"], manifest)
         self.assertEqual(rendering_manifest["renderer_entrypoints_contract_fingerprint"], fingerprint)
