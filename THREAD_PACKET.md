@@ -7,8 +7,8 @@
 - Scope goal: keep retrieval FTS-first by narrowing `fetch_excerpt()` to canonical FTS-only excerpt resolution and preserving approved shared regression coverage proving PageIndex-only excerpt IDs fail closed on the public excerpt lookup path.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Plan-alignment statement: this slice advances `retrieve relevant material` by making the public `fetch_excerpt` surface resolve only through the canonical SQLite FTS path, so PageIndex-only excerpt IDs fail closed on the retrieval step itself.
-- Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by narrowing public excerpt resolution to the canonical FTS-only lookup path and by keeping approved shared regression coverage proving PageIndex-only excerpt IDs raise `KeyError`. It does not promote PageIndex or embeddings to required runtime paths, and it does not claim basket promotion, plan/revise behavior, or broader workflow progress.
-- Approved exception surface: approved shared regression coverage in `tests/unit/test_unified_retrieval.py` only; no other shared-by-approval or integrator-locked files are part of the reviewed implementation slice.
+- Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by narrowing public excerpt resolution to the canonical FTS-only lookup path and by keeping approved shared regression coverage proving PageIndex-only excerpt IDs raise `KeyError`. That FTS-only `fetch_excerpt` contract makes downstream basket promotion and workflow consumers more reliable because excerpt lookup now fails closed before non-canonical PageIndex-only IDs can leak past retrieval. It does not promote PageIndex or embeddings to required runtime paths, and it does not claim basket promotion, plan/revise behavior, or broader workflow progress.
+- Approved exception surface: one approved shared test edit in `tests/unit/test_unified_retrieval.py` only; no integrator-locked files and no other shared-by-approval files are part of the reviewed implementation slice.
 
 ## Scope Completed
 
@@ -64,5 +64,5 @@
 - Vision capability affected: `2. Retrieval-first context handling`, `6. Auditable state and workflow`
 - Routing/provider impact note: `None`
 - Canonical demo-path step advanced: `retrieve relevant material`; narrowing public excerpt resolution to the authoritative FTS-first path strengthens deterministic excerpt retrieval on that step without claiming broader workflow progress.
-- Ownership/risk classification: `shared-by-approval only`; the reviewed slice includes `tests/unit/test_unified_retrieval.py` as the sole approved shared file and includes no integrator-locked edits.
+- Ownership/risk classification: `shared-by-approval only`; the reviewed slice includes one approved shared test edit in `tests/unit/test_unified_retrieval.py` and includes no integrator-locked edits.
 - Proposed README.md patch text: `None`
