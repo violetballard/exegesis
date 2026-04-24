@@ -51,10 +51,13 @@
 - `./quality-test.sh`: `PASS` (`216 tests`)
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
+- Current fixer pass note: reran the full required gate set on packet-refresh head `cfc97cf83cbe90bfabc4a0a182ce04538707a662` before the verification commit below.
 
 ## Risks / Blockers
 
 - Risk: `HIGH`
+- Residual risk: callers, persisted state, or fixtures outside the narrowed reviewed implementation range may still hold PageIndex-only excerpt IDs; those IDs now fail closed with `KeyError` on the public excerpt lookup surface until they are regenerated as canonical FTS excerpt IDs.
+- Checked in narrowed review range: `src/qual/retrieval/service.py` and the approved shared regression surface `tests/unit/test_unified_retrieval.py` were updated to enforce and prove the fail-closed FTS-only contract, and no additional caller migrations were required inside that reviewed slice.
 - Blockers: `None`
 - Budget note: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so it remains shared/high-risk work under the `4`-task cap and outside the low-risk owned-path-only budget class.
 
