@@ -3,24 +3,26 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `feature lane handoff`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Scope goal: harden the Milestone 3 retrieval contract on the canonical retrieval surface by keeping the canonical FTS-first retrieval path deterministic and by rejecting PageIndex-only excerpt IDs on the public excerpt lookup path.
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Scope goal: harden the Retrieval Layer MVP contract on the canonical retrieval surface by keeping SQLite FTS authoritative and by rejecting PageIndex-only excerpt IDs on the public excerpt lookup path.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Plan-alignment statement: this slice advances `retrieve relevant material` by hardening the Milestone 3 retrieval contract around the canonical retrieval surface: SQLite FTS stays authoritative, PageIndex-only excerpt IDs are rejected on the public excerpt lookup path, and the structured hit/provenance payloads stay deterministic enough to unblock downstream basket promotion and workflow cards.
-- Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by hardening the Milestone 3 retrieval contract on the canonical retrieval surface and rejecting PageIndex-only excerpt IDs on that public excerpt lookup path.
+- Plan-alignment statement: this slice advances `retrieve relevant material` by hardening the canonical FTS-first retrieval contract: SQLite FTS stays authoritative, `fetch_excerpt` resolves only through the canonical FTS path, PageIndex-only excerpt IDs fail closed, and the structured hit/provenance payloads remain deterministic for downstream engine flows.
+- Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by preserving the FTS-first retrieval contract on the public excerpt lookup path and by keeping the approved shared regression surface narrowly scoped to `tests/unit/test_unified_retrieval.py`.
+- Approved exception surface: approved shared regression coverage in `tests/unit/test_unified_retrieval.py` only; no other shared-by-approval or integrator-locked files are part of the reviewed implementation range.
 
 ## Scope Completed
 
 - SQLite FTS remains the authoritative MVP retrieval path in the reviewed implementation range.
-- This slice hardens the Milestone 3 retrieval contract on the canonical retrieval surface by making `fetch_excerpt` resolve through the canonical FTS-only path and fail closed for PageIndex-only excerpt identifiers.
+- `fetch_excerpt` resolves only through the canonical FTS path and fails closed for PageIndex-only excerpt identifiers.
 - Deterministic structured retrieval output remains available through the canonical engine surface for downstream workflow use.
 - No retrieval code changed after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`; later commits are metadata-only packet refreshes.
 
-## Thread Kickoff
+## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: re-emit the retrieval handoff packet with accurate traceability and explicit Milestone 3 retrieval-contract wording while preserving the reviewed implementation range above.
+- Scope goal: re-emit the retrieval handoff packet so it matches the reviewed shared/high-risk slice exactly, preserves the reviewed implementation range above, and states plainly that `fetch_excerpt` now resolves only through the canonical FTS path and fails closed for PageIndex-only excerpt IDs.
+- Risk reason: the reviewed slice includes the approved shared regression edit in `tests/unit/test_unified_retrieval.py`, so the packet must follow the high-risk/shared budget class.
 
 ### Budget
 
@@ -31,31 +33,21 @@
 
 ### Tasks Completed
 
-1. Removed the PageIndex fallback from `fetch_excerpt` so excerpt lookup stays on the canonical FTS-only path.
-2. Added approved shared regression coverage proving PageIndex-only excerpt IDs fail closed with `KeyError`.
-3. Corrected handoff traceability so the reviewed implementation range remains anchored to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-4. Added explicit canonical demo-path mapping for `retrieve relevant material` and stated plainly that this slice hardens the Milestone 3 retrieval contract by rejecting PageIndex-only excerpt IDs on the canonical retrieval surface.
+1. Reclassified the reviewed slice as shared/high-risk work with `tests/unit/test_unified_retrieval.py` as the sole approved shared exception surface.
+2. Aligned the handoff on the reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+3. Removed stale fallback wording so the handoff now states that `fetch_excerpt` is FTS-only and that PageIndex-only excerpt IDs fail closed.
+4. Re-emitted the handoff packet and confirmed the checked-in kickoff and lane metadata already describe the same shared/high-risk scope, approved exception surface, and FTS-only excerpt contract.
 
 ## Files Changed
 
-### Reviewed implementation files
-
-- `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
-
-### Metadata-only handoff files
-
-- `8f6fbb02309502159aac91a30d1fd6f0dcea114c`: `THREAD_PACKET.md`
-- `f360f73552fb5536abf9e4b74d1a8348fd54eec6`: `THREAD_PACKET.md`, `docs/gate_passed.txt`
-- `307c6576ecf36031ce7bee82f076580772e5ca77`: `THREAD_PACKET.md`, `docs/gate_passed.txt`
-- `f2c2cbd90bc3b5b5d062911296cb9b8d13a9c6d6`: `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- `THREAD_PACKET.md`
 
 ## Commands Run With Results
 
-- `make scope-check`: `PASS`
+- `make scope-check`: `PASS` (`[devex] scope-check: no policy for branch 'codex/feat-retrieval-fts'; skipping` then `passed`)
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
-- `./quality-test.sh`: `PASS`
+- `./quality-test.sh`: `PASS` (`216 tests`)
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 
@@ -63,29 +55,11 @@
 
 - Risk: `HIGH`
 - Blockers: `None`
-- Budget note: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so it remains shared/high-risk work under the 4-task cap.
+- Budget note: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so it remains shared/high-risk work under the `4`-task cap and outside the low-risk owned-path-only budget class.
 
 ## Required Handoff Fields
 
-### Roadmap item(s) affected
-
-- `Milestone 3: Real workflow loop`
-- `feat-retrieval-fts`
-
-### Vision capability affected
-
-- `2. Retrieval-first context handling`
-- `6. Auditable state and workflow`
-
-### Canonical demo-path step advanced
-
-- `retrieve relevant material`
-- The deterministic structured retrieval output in this slice is the concrete unblocker for promoting or gathering context into the basket later in the workflow.
-
-### Routing/provider impact note
-
-- None
-
-### Proposed README.md patch text
-
-- None
+- Roadmap item(s) affected: `Milestone 4: Retrieval Layer`, `feat-retrieval-fts`
+- Vision capability affected: `2. Retrieval-first context handling`, `3. Auditable generation`
+- Routing/provider impact note: `None`
+- Proposed README.md patch text: `None`
