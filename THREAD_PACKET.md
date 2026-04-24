@@ -10,6 +10,7 @@
 - Reviewer-required plan-alignment statement: This change makes the "retrieve relevant material" step more real by making excerpt lookup fail closed unless the excerpt originated from the canonical FTS retrieval path.
 - Evidence note: `tests/unit/test_unified_retrieval.py` covers both the canonical/public FTS excerpt helpers and the fail-closed excerpt contract, while the cumulative reviewed range also carries the sparse-hit query-constraint preservation fixes in `src/qual/engine/retrieval/payload.py`.
 - Packet authority note: this top-level packet and [docs/gate_passed.txt](/Users/doctor-violet/.codex/worktrees/rfts/qual/docs/gate_passed.txt:1) are the reviewer-facing source of truth for the corrected reviewed range, demo-path mapping, and gate results for this branch. This fixer pass updates only those reviewer-facing artifacts, so any unchanged mirrored `.codex/*` packet artifacts should be treated as non-authoritative for re-review.
+- Gate reissue note: the required gate suite was rerun on this metadata-only reissue so the packet now couples the corrected traceability claims with a fresh green verification pass.
 
 ## Scope Goal
 
