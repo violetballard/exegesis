@@ -43,7 +43,7 @@
 
 - Exact implementation basis now approved:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
-- Current packet refresh traceability: this resubmission is metadata-only and updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
+- Current packet refresh traceability: this resubmission is metadata-only and updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` while keeping re-review pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -60,6 +60,7 @@
 ## Canonical Demo-Path Mapping
 
 - Canonical demo-path step advanced: `preview and apply or reject a patch`.
+- Required AGENTS sentence: this change makes `preview and apply or reject a patch` more real by forcing the review-step public command surface to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set.
 - Concrete blocker removed: the public `diff-preview` preview entrypoint can no longer silently drift to alias-only parser shapes while still resolving through lookup. That removes a concrete CLI-fallback blocker at the operator-visible patch-review step.
 - Scope-tightening statement: this slice claims only review-step command-contract hardening. It does not claim new retrieval, persistence, audit-path, export, or broader workflow behavior.
 - Current CLI smoke route context: `project-open -> retrieval -> preview and apply or reject a patch -> persist -> export-handoff`, entered through `bootstrap --project demo`.
@@ -73,7 +74,7 @@
 - Approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
 - Approval owner: the integrator-managed branch policy for `codex/feat-commands`
 - Approval source: `scripts/scope-check.sh` `is_approved_shared_test()` branch allowlist for `codex/feat-commands*`
-- Additional ownership source: `THREAD_OWNERSHIP.md` keeps lane ownership on `src/qual/commands/**`; no integrator-locked files are part of this slice
+- Additional ownership source: `THREAD_OWNERSHIP.md` keeps lane ownership on `src/qual/commands/**`; the non-owned test edit is a shared-by-approval exception, not an integrator-locked edit
 - Approval basis: shared regression coverage is required to prove the review-step parser contract
 - Scope-check allowance used: `not required`
 - Integrator-locked edits in this slice: `none`
