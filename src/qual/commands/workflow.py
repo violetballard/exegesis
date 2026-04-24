@@ -350,6 +350,8 @@ __all__ = [
     "command_workflow_surface_contract",
     "command_workflow_surface_entry",
     "command_workflow_surface_entry_for",
+    "command_workflow_surface_flow_lookup_table",
+    "command_workflow_surface_invocation_table",
     "command_workflow_surface_tokens",
     "command_workflow_entry",
     "command_workflow_entry_for",

@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 import src.qual.cli as qual_cli
 import src.qual.commands.catalog as command_catalog
+import src.qual.commands.workflow as command_workflow_module
 from src.qual.cli import parse_args, parser_cli_entrypoints
 from src.qual.commands import (
     CommandCliFlowContract,
@@ -5950,6 +5951,10 @@ class CommandCatalogTests(unittest.TestCase):
             command_workflow_surface_invocation_table(),
             command_mvp_surface_invocation_table(),
         )
+
+    def test_public_workflow_module_exports_surface_projection_helpers(self) -> None:
+        self.assertIn("command_workflow_surface_flow_lookup_table", command_workflow_module.__all__)
+        self.assertIn("command_workflow_surface_invocation_table", command_workflow_module.__all__)
 
     def test_public_workflow_smoke_aliases_track_the_current_mvp_surface(self) -> None:
         self.assertEqual(command_workflow_smoke_contract(), command_mvp_smoke_contract())
