@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: reviewer-fix final verification refresh regenerated on 2026-04-24 for the exact reviewed implementation slice, with the canonical demo-path mapping preserved and the required gates rerun against the unchanged CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 4.
+- Packet refresh status: reviewer-fix final verification refresh regenerated on 2026-04-24 for the exact reviewed implementation slice, with the canonical demo-path mapping preserved and the required gates rerun against the unchanged CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 4's engine-contract-first CLI compatibility rule.
 - Reviewed implementation commit: `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` (`test(commands): cover cached parser surface drift`).
 - Packet refresh traceability:
   - the current branch tip for re-review is a packet-only refresh above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7`; no implementation files beyond the reviewed slice changed in this refresh
@@ -54,7 +54,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `ROADMAP.md` Milestone 3 scope: `Define and lock user-facing output contracts`, applied here only to parser-surface drift detection for the public `diff-preview` and companion CLI tokens in the `patch-review` step
   - `ROADMAP.md` Milestone 3 exit criteria: `Contract changes documented and intentional`, protected here by failing closed when the live `patch-review` parser entrypoints drift from the catalog
   - `ROADMAP.md` MVP focus: `feat-commands` is an active implementation lane, while `feat-console` remains deferred and no UI-lane scope is claimed here
-  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: keep the CLI `patch-review` surface deterministic so the current operator-facing review entrypoint stays stable for both manual smoke runs and downstream structured-output consumers
+  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: this is engine-contract and CLI-compatibility hardening for the `patch-review` entrypoint, keeping the public `diff-preview` surface stable for the current CLI-first MVP loop rather than claiming broader workflow-state progress
 - Ownership / scope note:
   - lane-owned implementation paths: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`

@@ -138,7 +138,7 @@
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the `patch-review` parser contract for `diff-preview` must stay deterministic and catalog-locked because CLI remains a first-class operator surface.
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: this slice is engine-contract and CLI-compatibility hardening for the `patch-review` entrypoint. It keeps the public `diff-preview` parser surface deterministic, stable, and catalog-locked for the current CLI-first MVP loop while `Exegesis Console` remains deferred, rather than claiming broader auditable-workflow progress.
 
 ### Routing / Provider Impact Note
 
