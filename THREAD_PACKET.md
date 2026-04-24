@@ -47,11 +47,11 @@
   2. Preserved deterministic patch-review CLI entrypoint ordering by rebuilding grouped entrypoints from the public contract and rejecting alias-level or ordering drift that would otherwise keep canonical names stable.
   3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for parser/catalog drift rejection, including alias-level drift that preserves canonical command names and direct mutation of the live CLI parser entrypoint constant.
 - files changed:
-  - `src/qual/commands/catalog.py`
-  - `tests/unit/test_commands_catalog.py`
-  - `THREAD.md`
-  - `THREAD_PACKET.md`
-  - `handoff_packets/feat-commands.md`
+  - reviewed implementation: `src/qual/commands/catalog.py`
+  - reviewed implementation: `tests/unit/test_commands_catalog.py`
+  - metadata-only handoff refresh: `THREAD.md`
+  - metadata-only handoff refresh: `THREAD_PACKET.md`
+  - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -59,6 +59,11 @@
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
+- traceability:
+  - reviewed implementation slice only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`
+  - docs-only refresh commit in branch history: `8391bf07914fffd6fcd29867dc6f21ed25a56ea1` (`docs(thread): pin feat-commands demo-path step`)
+  - metadata-only file changed by `8391bf07914fffd6fcd29867dc6f21ed25a56ea1`: `THREAD.md`
+  - current packet refresh files: `THREAD_PACKET.md` and `handoff_packets/feat-commands.md`
 - risks/blockers:
   - risk: future command-surface edits still need to preserve deterministic ordering and fast-fail parser/catalog drift detection so the patch-review CLI contract stays stable throughout the current manual operator flow
   - blockers: none
@@ -66,15 +71,19 @@
   - `ROADMAP.md` Milestone 3 `Product Readiness`: this slice helps lock an intentional user-facing CLI contract before publish by keeping the current engine-first loop on deterministic, migration-safe entrypoints while the future console client is still disabled
 - canonical demo-path step advanced: the Milestone 3 CLI/operator-contract bridge that keeps the engine-first loop reachable through deterministic, migration-safe entrypoints while Textual remains disabled, specifically `produce a plan or revision` -> `preview and apply or reject a patch`
 - concrete canonical mapping: this slice advances that Milestone 3 CLI/operator-contract bridge by keeping `project-open/bootstrap -> retrieval -> plan-or-revise -> apply-or-reject -> export-handoff` reachable through deterministic, migration-safe CLI entrypoints, so the operator can still run the engine-first loop on the current CLI surface without silent parser/catalog drift
-  - concrete canonical-path blocker removed: deterministic CLI ordering and fast-fail parser/catalog drift detection are now enforced on the existing review/apply command surface, removing the concrete blocker where the current CLI entrypoints could silently diverge before the engine-first loop reaches export handoff
-  - non-claim boundary: this handoff does not claim broader CLI polish, new workflow reachability, persistence progress, A2UI contract work, provider routing work, or any new engine behavior
+- concrete canonical-path blocker removed: deterministic CLI ordering and fast-fail parser/catalog drift detection are now enforced on the existing review/apply command surface, removing the concrete blocker where the current CLI entrypoints could silently diverge before the engine-first loop reaches export handoff
+- non-claim boundary: this handoff does not claim broader CLI polish, new workflow reachability, persistence progress, A2UI contract work, provider routing work, or any new engine behavior
 - vision capability affected:
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the existing CLI surface now rejects parser/catalog drift before it can silently change the deterministic operator contract that remains first-class in Engine and must stay compatible with future `Exegesis Console` consumption
 - routing/provider impact note:
   - none; this change does not touch routing or provider configuration
+- traceability note:
+  - reviewed implementation approval stays pinned to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` only
+  - docs-only refresh commit `8391bf07914fffd6fcd29867dc6f21ed25a56ea1` changed `THREAD.md` only
+  - packet metadata files `THREAD_PACKET.md` and `handoff_packets/feat-commands.md` were refreshed in earlier docs-only commits on this branch and are regenerated here to keep the written handoff aligned with that history
 - scope/ownership note:
   - lane-owned implementation path: `src/qual/commands/catalog.py`
   - focused regression path: `tests/unit/test_commands_catalog.py`
-  - approval/source note: the reviewed implementation claim is pinned to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` are metadata-only refreshes
+  - approval/source note: the reviewed implementation claim is pinned to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` are metadata-only refreshes and do not broaden the approval basis beyond deterministic CLI contract hardening for migration-safe entrypoints
   - shared-test approval record: `scripts/scope-check.sh` lists `tests/unit/test_commands_catalog.py` under `is_approved_shared_test()` for branch `codex/feat-commands*`
   - integrator-locked edits: none
