@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: reviewer-fix metadata refresh regenerated at 2026-04-24T07:36:51Z for the exact reviewed implementation slice, with the canonical `preview and apply or reject a patch` mapping preserved and the required gates rerun against the unchanged CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 4.
+- Packet refresh status: reviewer-fix metadata refresh regenerated at 2026-04-24T07:44:12Z for the exact reviewed implementation slice, with the canonical `preview and apply or reject a patch` mapping preserved, the CLI-fallback reliability note added for the Textual-disabled MVP loop, and the required gates rerun against the unchanged CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 4.
 - Reviewed implementation commit: `f49cae6e16b70f71397d74480e83e6a1742a0379` (`docs(commands): refresh fixer handoff evidence`), carrying forward the command helper implementation from `3e1e7d7f9ebce3001ebe941133b00e145e79cb7b` and the warmed-cache parser-surface regression coverage from `bd118a6cbb417005bb793b3d784372ba6c1452a1`.
 - Packet refresh traceability:
   - the pre-refresh branch tip for this metadata refresh was `f49cae6e16b70f71397d74480e83e6a1742a0379`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
@@ -39,13 +39,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Active MVP operator path strengthened:
   - the existing CLI smoke route `project-open -> retrieval -> preview and apply or reject a patch -> persist -> export-handoff` by keeping the public review-step parser verb contract catalog-locked
 - Direct plan-alignment statement:
-  - this change makes `preview and apply or reject a patch` more real by preventing silent parser-surface drift at the `diff-preview` entrypoint and by failing fast before the operator reaches the review step with the wrong public verb set
+  - this change makes `preview and apply or reject a patch` more real by preventing silent parser-surface drift at the `diff-preview` entrypoint and by failing fast before the operator reaches the review step with the wrong public verb set while the CLI fallback still has to carry the MVP loop with Textual disabled
 - Concrete smoke-test evidence:
   - `tests/unit/test_commands_catalog.py` now proves the live parser surface stays `("diff-preview", "diff")` for the `preview and apply or reject a patch` step and fails fast when `diff-preview` disappears while `diff` still resolves to the same canonical command, even after the CLI token helpers have been warmed
 - Traceability note:
   - `f49cae6e16b70f71397d74480e83e6a1742a0379` is the pre-refresh reviewed implementation tip for this lane slice, carrying forward the command helper implementation from `3e1e7d7f9ebce3001ebe941133b00e145e79cb7b`, the warmed-cache regression coverage from `bd118a6cbb417005bb793b3d784372ba6c1452a1`, and the earlier `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` drift fix; this packet refresh commit records the updated re-review mapping and gate results on top of pre-refresh tip `f49cae6e16b70f71397d74480e83e6a1742a0379`
 - Concrete blocker removed for the current CLI smoke route:
-  - the active CLI smoke route no longer allows the public `diff-preview` parser token for `preview and apply or reject a patch` to disappear and leave only the still-resolvable alias `diff` without an immediate contract failure
+  - the active CLI smoke route no longer allows the public `diff-preview` parser token for `preview and apply or reject a patch` to disappear and leave only the still-resolvable alias `diff` without an immediate contract failure, which keeps the CLI fallback reliable while Textual remains disabled
 - Scope-tightening note:
   - this reviewed slice hardens only parser-surface drift detection for the preview-entry command contract plus focused regression coverage; it does not claim new retrieval, patch application, persistence, export, or broader CLI behavior
 - Why this is in-scope now:
@@ -71,4 +71,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `./typecheck-test.sh`
   - `make ci`
 - Gate attribution note:
-- these gates were rerun at 2026-04-24T07:36:51Z against the packet-refresh workspace state at `f49cae6e16b70f71397d74480e83e6a1742a0379`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
+- these gates were rerun at 2026-04-24T07:44:12Z against the packet-refresh workspace state at `f49cae6e16b70f71397d74480e83e6a1742a0379`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`

@@ -4,8 +4,8 @@
 - Branch: `codex/feat-commands`
 - Commit: `f49cae6e16b70f71397d74480e83e6a1742a0379`
 - Packet refresh role: `reviewer-fix metadata refresh`
-- Packet refresh basis: `regenerated on 2026-04-24T07:36:51Z after rerunning the required gates on the pre-refresh branch tip f49cae6e16b70f71397d74480e83e6a1742a0379 to keep the packet aligned with current branch-tip traceability while preserving the reviewer's required canonical demo-path mapping, concrete blocker removal, narrowed roadmap and vision wording, and explicit shared-test approval note`
-- Post-fixer verification: `2026-04-24T07:36:51Z UTC gate rerun confirmed the packet still matches the branch state during this metadata-only refresh; no implementation files changed in this packet-only refresh`
+- Packet refresh basis: `regenerated on 2026-04-24T07:44:12Z after rerunning the required gates on the pre-refresh branch tip f49cae6e16b70f71397d74480e83e6a1742a0379 to keep the packet aligned with current branch-tip traceability while preserving the reviewer's required canonical demo-path mapping, concrete blocker removal, CLI-fallback reliability note while Textual remains disabled, narrowed roadmap and vision wording, and explicit shared-test approval note`
+- Post-fixer verification: `2026-04-24T07:44:12Z UTC gate rerun confirmed the packet still matches the branch state during this metadata-only refresh; no implementation files changed in this packet-only refresh`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -63,11 +63,11 @@
 ## Canonical Demo-Path Mapping
 
 - Canonical demo-path step advanced: `preview and apply or reject a patch` (`diff-preview` on the public CLI surface).
-- Concrete blocker removed: the parser can no longer silently drop the public `diff-preview` token and leave only the still-resolvable alias `diff`, which would otherwise change the operator-visible review step without any fail-fast signal.
+- Concrete blocker removed: the parser can no longer silently drop the public `diff-preview` token and leave only the still-resolvable alias `diff`, which would otherwise make the CLI fallback unreliable at the operator-visible review step while Textual remains disabled and Milestone 3 still depends on the CLI MVP loop.
 - Scope-tightening statement: this slice claims only review-step command-contract hardening plus focused regression coverage. It does not claim new retrieval, patch application, persistence, export, or broader CLI-surface work.
 - Current CLI smoke route context: `project-open -> retrieval -> preview and apply or reject a patch -> persist -> export-handoff`, entered through `bootstrap --project demo`.
 - Smoke-test evidence: `tests/unit/test_commands_catalog.py` proves the live parser surface keeps `diff-preview` before `diff` for `preview and apply or reject a patch` and fails fast when `diff-preview` disappears while `diff` still resolves to the same canonical command, including after `command_cli_tokens()` has already been warmed.
-- Plan-alignment note: `ROADMAP.md` Milestone 3 calls out locking user-facing output contracts, so this removes a concrete blocker in the current `preview and apply or reject a patch` stage of the CLI smoke route rather than claiming a broader release-readiness step.
+- Plan-alignment note: `ROADMAP.md` Milestone 3 still depends on the CLI MVP loop while Textual remains disabled, so this removes a concrete blocker in the current `preview and apply or reject a patch` stage by making the fallback review-step contract fail closed instead of drifting silently.
 
 ## Approved Exception Note
 
@@ -107,7 +107,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at 2026-04-24T07:36:51Z against the metadata-refresh workspace state at `f49cae6e16b70f71397d74480e83e6a1742a0379`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
+- Gate attribution note: these gates were rerun at 2026-04-24T07:44:12Z against the metadata-refresh workspace state at `f49cae6e16b70f71397d74480e83e6a1742a0379`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 
 ### Risks / Blockers
 
@@ -122,7 +122,7 @@
 
 - `preview and apply or reject a patch` (`diff-preview` on the public CLI surface)
 - This change makes `preview and apply or reject a patch` more real by keeping the operator-facing `diff-preview` command surface for the current CLI smoke route catalog-locked instead of allowing alias-only parser drift to pass silently.
-- Concrete blocker removal: the contract now fails fast if the live parser entrypoint for `preview and apply or reject a patch` drops `diff-preview`, substitutes alias-only ordering, or adds extra accepted tokens while still resolving through lookup, preventing the current CLI smoke route from silently changing at its operator-visible review step.
+- Concrete blocker removal: the contract now fails fast if the live parser entrypoint for `preview and apply or reject a patch` drops `diff-preview`, substitutes alias-only ordering, or adds extra accepted tokens while still resolving through lookup, preventing the current CLI smoke route from silently changing at its operator-visible review step while Textual remains disabled and the CLI fallback still has to carry the MVP loop.
 - Smoke-test evidence for this step is explicit in the shared regression suite: `test_command_cli_contract_matches_the_catalog_order`, `test_command_cli_contract_rejects_parser_surface_drift_when_diff_token_disappears`, `test_command_cli_tokens_rejects_parser_surface_drift_after_cache_warm`, and the alias/reorder drift tests all assert the live `_CLI_ENTRYPOINTS` contract for `diff-preview`.
 
 ### Roadmap item(s) affected
