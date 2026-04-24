@@ -2,9 +2,9 @@
 
 - Branch name: `codex/feat-commands`
 - Reviewed implementation basis:
-  - `744c0fefcbd69ff3a128df512b6786fd2dba8023` (`feat(commands): fail on parser surface drift`)
+  - `2c5e1e6eeaf7a39a30f8f542a827110d681c1399` (`fix(commands): derive CLI contract from live parser projection`)
 - Approval basis pin:
-  - Re-review remains pinned to implementation commit `744c0fefcbd69ff3a128df512b6786fd2dba8023` and the two implementation files only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
+  - Re-review remains pinned to implementation commit `2c5e1e6eeaf7a39a30f8f542a827110d681c1399` and the two implementation files only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
   - The current packet-refresh commit is metadata-only and is not part of the implementation approval basis.
 - Scope completed: hardened `command_cli_contract()` for the current engine-first CLI smoke path by protecting the supporting `project-open` / `retrieval` / `patch-review` command surface so the live parser entrypoints stay locked to the declared command catalog and fail fast on parser-surface drift.
 - Primary canonical demo-path step advanced: `continue working without losing context`
@@ -46,7 +46,7 @@
 ## Tasks Completed
 1. `continue working without losing context`: locked the live CLI command contract to the command catalog so parser-surface drift fails closed before the operator reaches the wrong `project-open`, `retrieval`, or `patch-review` verb sets on the active CLI fallback path.
 2. `continue working without losing context`: added focused regressions in [tests/unit/test_commands_catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/tests/unit/test_commands_catalog.py:1) covering parser-surface alignment and command-catalog drift rejection for the supporting CLI smoke surface.
-3. `continue working without losing context`: updated [handoff_packets/feat-commands.md](/Users/doctor-violet/.codex/worktrees/5494/qual/handoff_packets/feat-commands.md:1), [THREAD_PACKET.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD_PACKET.md:1), and [THREAD.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD.md:1) so the re-review packet points to commit `744c0fefcbd69ff3a128df512b6786fd2dba8023`, names the exact primary canonical demo-path step explicitly, and ties each completed task to that step.
+3. `continue working without losing context`: updated [handoff_packets/feat-commands.md](/Users/doctor-violet/.codex/worktrees/5494/qual/handoff_packets/feat-commands.md:1), [THREAD_PACKET.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD_PACKET.md:1), and [THREAD.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD.md:1) so the re-review packet points to commit `2c5e1e6eeaf7a39a30f8f542a827110d681c1399`, names the exact primary canonical demo-path step explicitly, and ties each completed task to that step.
 4. `continue working without losing context`: recorded the completed high-risk kickoff context, including why the shared-test exception is required as evidence for that same demo-path mapping and command-contract touchpoint, so the 4-task cap remains auditable against the same reviewed implementation scope.
 
 ## Files Changed
