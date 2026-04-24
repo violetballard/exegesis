@@ -86,8 +86,6 @@
 
 ## Roadmap and Vision Mapping
 
-- `AGENTS.md` handoff readiness and checkpoint rules: this slice stays within the documented high-risk task budget, records the required shared-file checkpoint, and keeps the claim pinned to one concrete MVP flow instead of a broad lane narrative.
 - `ROADMAP.md` Milestone 3 `Real workflow loop`: this narrow `feat-commands` command-catalog hardening slice keeps the manual CLI smoke flow `open project/document -> retrieve relevant material -> preview and apply or reject a patch` stable while Textual remains disabled.
-- `ROADMAP.md` exit criterion `CLI can still execute the MVP loop while Textual remains disabled`: this slice helps lock the operator-facing command contract by failing fast when the parser-backed CLI surface drifts from the canonical catalog.
-- `PRODUCT_VISION.md` operator-first control surface, narrowed here to canonical engine-contract hardening: the active CLI surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on for `open project/document -> retrieve relevant material -> preview and apply or reject a patch`.
-- `PRODUCT_VISION.md` near-term product truth: this change hardens the current CLI-first operator path without claiming broader surface expansion beyond the existing engine and A2UI contract work.
+- `ROADMAP.md` Milestone 3 exit criterion `CLI can still execute the MVP loop while Textual remains disabled`: this slice helps lock the parser-backed operator command contract by failing fast when the live CLI surface drifts from the canonical catalog.
+- `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: the active CLI surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on for `open project/document -> retrieve relevant material -> preview and apply or reject a patch`.
