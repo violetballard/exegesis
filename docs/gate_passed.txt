@@ -3,7 +3,7 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran for the reviewer-fix packet refresh on:
 
-* current packet-refresh branch tip before this commit `059b68f3d88492e3b5795d9807e239b866d814a2`
+* current packet-refresh branch tip before this commit `f4ddf4d47dbe6ccc56d1c8739b8b9e1f31221c78`
 * reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 * reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 * reviewed implementation files `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`

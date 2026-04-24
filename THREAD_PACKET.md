@@ -1,8 +1,8 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `metadata-only reviewer-fix canonical demo-path mapping`
-- Current submitted tip before this packet refresh commit: `059b68f366a2a67814e68f0baf9eb740600099bb`
+- Packet role: `metadata-only reviewer-fix final packet refresh`
+- Current submitted tip before this packet refresh commit: `f4ddf4d47dbe6ccc56d1c8739b8b9e1f31221c78`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet traceability note: review this lane against the narrowed implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `378cf9a7..adfa8cda`.
