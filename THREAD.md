@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: metadata-only resubmission generated on 2026-04-24 so the handoff now points at the real implementation basis instead of the prior stale metadata commit.
+- Packet refresh status: metadata-only resubmission generated at `2026-04-24T08:19:27Z` so the handoff now points at the real implementation basis instead of the prior stale metadata commit.
 - Exact implementation basis now approved:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
   - `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa` (`feat(commands): expose default workflow aliases`)

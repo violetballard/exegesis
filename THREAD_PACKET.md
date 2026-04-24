@@ -3,8 +3,8 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`
-- Packet refresh role: `reviewer-fix metadata-only resubmission`
-- Packet refresh basis: `regenerated on 2026-04-24 after the reviewer found that the prior packet pointed at a metadata commit instead of the real latest implementation basis; this refresh now approves the actual implementation tip 4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa, carrying forward the earlier parser-surface hardening from f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Packet refresh role: `fixer metadata-only resubmission`
+- Packet refresh basis: `regenerated on 2026-04-24T08:19:27Z after the reviewer found that the prior packet pointed at a metadata commit instead of the real latest implementation basis; this refresh now approves the actual implementation tip 4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa, carrying forward the earlier parser-surface hardening from f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Post-fixer verification: `2026-04-24T08:19:27Z UTC gate rerun confirmed this packet refresh matches the current branch state; this refresh changes only THREAD.md, THREAD_PACKET.md, and handoff_packets/feat-commands.md`
 - Packet-only refresh files:
   - `THREAD.md`
@@ -90,9 +90,8 @@
 
 1. Locked the live review-step parser surface to the command catalog so `diff-preview` drift fails closed.
 2. Added parser-drift regression coverage for alias-only, missing-token, extra-token, and cache-warm drift cases in `tests/unit/test_commands_catalog.py`.
-3. Added public default current-MVP workflow aliases and trusted-surface aliases in `src/qual/commands/catalog.py` and exported them from `src/qual/commands/__init__.py`.
-4. Added tests proving those new default aliases stay equal to the current MVP contract.
-5. Regenerated the handoff packet so the approval basis matches the real branch contents and the ownership / roadmap / vision mapping stays narrow.
+3. Added public default current-MVP workflow aliases and trusted-surface aliases in `src/qual/commands/catalog.py`, exported them from `src/qual/commands/__init__.py`, and added tests proving those aliases stay equal to the current MVP contract.
+4. Regenerated the handoff packet so the approval basis matches the real branch contents and the ownership / roadmap / vision mapping stays narrow.
 
 ### Files Changed
 
