@@ -205,6 +205,38 @@ def _snapshot_shell_ui_contract(
     )
 
 
+def _a2ui_shell_ui_contract_manifest_fingerprint(
+    shell_ui_contract: Mapping[str, Any],
+    *,
+    include_terminal_artifact_cli_fallback_route: bool,
+    include_contract_aliases: bool,
+) -> str:
+    """Return the shell manifest fingerprint used by A2UI dispatch snapshots.
+
+    When the A2UI dispatch snapshot opts into the route-aware shell contract
+    and also expands contract aliases, keep the manifest fingerprint tied to
+    the route-only shell contract. That preserves a stable shell-manifest
+    hash for engine-facing dispatch consumers while still allowing the shell
+    snapshot itself to expose alias-expanded fingerprints.
+    """
+
+    if include_terminal_artifact_cli_fallback_route and include_contract_aliases:
+        from .shell import shell_ui_contract_fingerprint
+
+        return shell_ui_contract_fingerprint(
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        )
+    fingerprint = shell_ui_contract.get("contract_fingerprint")
+    if isinstance(fingerprint, str):
+        return fingerprint
+    from .shell import shell_ui_contract_fingerprint
+
+    return shell_ui_contract_fingerprint(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        include_contract_aliases=include_contract_aliases,
+    )
+
+
 def _snapshot_terminal_artifact_cli_fallback_entrypoint_contract() -> dict[str, Any]:
     return _snapshot_contract_section(describe_terminal_artifact_cli_fallback_entrypoint_contract())
 
@@ -826,6 +858,11 @@ def describe_a2ui_contract_fingerprints(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
             include_contract_aliases=include_contract_aliases,
         )
+        shell_ui_contract_manifest_fingerprint = _a2ui_shell_ui_contract_manifest_fingerprint(
+            shell_ui_contract,
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+            include_contract_aliases=include_contract_aliases,
+        )
         shell_ui_contract_fingerprint = shell_ui_contract["contract_fingerprint"]
         shell_ui_contract_fingerprints_fingerprint = shell_ui_contract["contract_fingerprints_fingerprint"]
         fingerprints["shell_ui_contract"] = shell_ui_contract_fingerprint
@@ -834,12 +871,8 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["shell_ui_contract_fingerprints"] = shell_ui_contract_fingerprints_fingerprint
         fingerprints["shell_ui_contract_fingerprints_fingerprint"] = shell_ui_contract_fingerprints_fingerprint
         shell_ui_contract_fingerprints = shell_ui_contract["contract_fingerprints"]
-        fingerprints["shell_ui_contract_manifest"] = shell_ui_contract_fingerprints[
-            "shell_ui_contract_manifest"
-        ]
-        fingerprints["shell_ui_contract_manifest_fingerprint"] = shell_ui_contract_fingerprints[
-            "shell_ui_contract_manifest_fingerprint"
-        ]
+        fingerprints["shell_ui_contract_manifest"] = shell_ui_contract_manifest_fingerprint
+        fingerprints["shell_ui_contract_manifest_fingerprint"] = shell_ui_contract_manifest_fingerprint
         fingerprints["card_hint_recovery_policy"] = card_hint_recovery_policy_contract_fingerprint_value
         _add_contract_alias_fingerprints(
             fingerprints,
@@ -3022,11 +3055,21 @@ def _build_a2ui_contract_manifest(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
             include_contract_aliases=include_contract_aliases,
         )
+        shell_ui_contract_manifest_fingerprint = _a2ui_shell_ui_contract_manifest_fingerprint(
+            shell_ui_contract,
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+            include_contract_aliases=include_contract_aliases,
+        )
         manifest["shell_ui_contract"] = shell_ui_contract
         manifest["shell_ui_contract_fingerprint"] = shell_ui_contract["contract_fingerprint"]
         manifest["shell_ui_fingerprint"] = shell_ui_contract["contract_fingerprint"]
-        manifest["shell_ui_contract_manifest"] = _snapshot_contract_section(shell_ui_contract)
-        manifest["shell_ui_contract_manifest_fingerprint"] = shell_ui_contract["contract_fingerprint"]
+        shell_ui_contract_manifest = _snapshot_contract_section(shell_ui_contract)
+        shell_ui_contract_manifest["contract_fingerprint"] = shell_ui_contract_manifest_fingerprint
+        shell_ui_contract_manifest["shell_ui_contract_manifest_fingerprint"] = (
+            shell_ui_contract_manifest_fingerprint
+        )
+        manifest["shell_ui_contract_manifest"] = shell_ui_contract_manifest
+        manifest["shell_ui_contract_manifest_fingerprint"] = shell_ui_contract_manifest_fingerprint
         manifest["shell_ui_contract_fingerprints"] = _snapshot_contract_section(
             shell_ui_contract["contract_fingerprints"]
         )
