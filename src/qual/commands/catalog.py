@@ -2997,6 +2997,47 @@ def _normalize_demo_compatibility_argv(argv: tuple[str, ...] | list[str]) -> tup
     return (_normalize_demo_compatibility_token(raw_argv[0]), *raw_argv[1:])
 
 
+_COMMAND_DEMO_TERMINAL_MESSAGE_TOKENS: dict[tuple[str, str], str] = {
+    ("terminal-tool-orchestration", "apply-patch"): "apply-patch",
+    ("terminal-tool-orchestration", "approve-patch"): "apply-patch",
+    ("terminal-tool-orchestration", "accept-patch"): "apply-patch",
+    ("terminal-tool-orchestration", "reject-patch"): "reject-patch",
+    ("terminal-tool-orchestration", "decline-patch"): "reject-patch",
+    ("terminal-tool-orchestration", "discard-patch"): "reject-patch",
+    ("terminal-synthesis-request", "persist"): "persist",
+    ("terminal-synthesis-request", "persist-and-continue"): "persist",
+    ("terminal-synthesis-request", "save-work"): "persist",
+    ("terminal-synthesis-request", "continue-work"): "persist",
+    ("terminal-synthesis-request", "resume-work"): "persist",
+    ("terminal-synthesis-request", "export"): "export-handoff",
+    ("terminal-synthesis-request", "export-handoff"): "export-handoff",
+    ("terminal-synthesis-request", "handoff-export"): "export-handoff",
+    ("terminal-synthesis-request", "queue-handoff"): "export-handoff",
+}
+
+
+def _argv_option_value(argv: tuple[str, ...], option_name: str) -> str:
+    for index, token in enumerate(argv):
+        if token == option_name and index + 1 < len(argv):
+            return argv[index + 1]
+        if token.startswith(f"{option_name}="):
+            return token.partition("=")[2]
+    return ""
+
+
+def _canonical_demo_terminal_argv_token(resolved: ResolvedCommand) -> str:
+    if resolved.canonical_name != "terminal" or not resolved.argv:
+        return ""
+    operation_kind = _normalize_token(_argv_option_value(resolved.argv, "--operation-kind"))
+    message = _normalize_token(_argv_option_value(resolved.argv, "--message"))
+    if not operation_kind or not message:
+        return ""
+    canonical_token = _COMMAND_DEMO_TERMINAL_MESSAGE_TOKENS.get((operation_kind, message), "")
+    if canonical_token in _COMMAND_DEMO_LOOP_TOKENS:
+        return canonical_token
+    return ""
+
+
 def _uses_demo_compatibility_surface(token: str) -> bool:
     normalized_token = _normalize_token(token)
     if not normalized_token:
@@ -4363,6 +4404,10 @@ def canonical_demo_command_argv(argv: tuple[str, ...] | list[str]) -> str:
     workflow_token = workflow_token_by_argv.get(resolved.argv)
     if workflow_token is not None:
         return workflow_token
+
+    terminal_token = _canonical_demo_terminal_argv_token(resolved)
+    if terminal_token:
+        return terminal_token
 
     if resolved.matched and resolved.flow_step:
         normalized_flow_step = _normalize_token(resolved.flow_step)

@@ -11,7 +11,9 @@ from src.qual.commands import (
     CommandSpec,
     canonical_command,
     canonical_demo_command,
+    canonical_demo_command_argv,
     canonical_mvp_command,
+    canonical_mvp_command_argv,
     canonical_command_for,
     command_aliases,
     command_aliases_for,
@@ -282,6 +284,42 @@ class CommandCatalogTests(unittest.TestCase):
     def test_demo_surface_canonicalizer_normalizes_unknown_tokens_deterministically(self) -> None:
         self.assertEqual(canonical_demo_command("  New_Command  "), "new-command")
         self.assertEqual(canonical_mvp_command(""), "")
+
+    def test_demo_surface_canonicalizer_maps_terminal_apply_reject_messages_case_insensitively(self) -> None:
+        cases = (
+            (
+                ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", " apply patch "),
+                "apply-patch",
+            ),
+            (
+                ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "ACCEPT PATCH"),
+                "apply-patch",
+            ),
+            (
+                ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", " decline patch "),
+                "reject-patch",
+            ),
+        )
+        for argv, expected in cases:
+            with self.subTest(argv=argv):
+                self.assertEqual(canonical_demo_command_argv(argv), expected)
+                self.assertEqual(canonical_mvp_command_argv(argv), expected)
+
+    def test_demo_surface_canonicalizer_maps_terminal_persist_and_export_messages_case_insensitively(self) -> None:
+        cases = (
+            (
+                ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", " persist and continue "),
+                "persist",
+            ),
+            (
+                ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "EXPORT HANDOFF"),
+                "export-handoff",
+            ),
+        )
+        for argv, expected in cases:
+            with self.subTest(argv=argv):
+                self.assertEqual(canonical_demo_command_argv(argv), expected)
+                self.assertEqual(canonical_mvp_command_argv(argv), expected)
 
     def test_unknown_commands_are_normalized_deterministically(self) -> None:
         self.assertEqual(canonical_command("  New_Command  "), "new-command")
