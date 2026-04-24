@@ -7,6 +7,7 @@
 - Canonical MVP flow context: `open project/document -> retrieve relevant material -> preview and apply or reject a patch` remains the same manual CLI smoke flow, and this slice only hardens the parser-backed CLI compatibility surface that starts that path while Textual remains disabled.
 - Canonical MVP flow mapping sentence: this `feat-commands` slice is migration-safe compatibility hardening only; it tightens the existing command catalog contract so parser/catalog drift cannot silently break the CLI compatibility required while Textual remains disabled.
 - Demo-path sentence: this change keeps the operator-facing CLI entry surface aligned with the canonical catalog so the MVP loop remains executable from the CLI while Textual remains disabled.
+- Canonical wording lock: this handoff intentionally uses the exact reviewer-requested framing, namely that the CLI can still execute the MVP loop while Textual remains disabled and that CLI compatibility is required while Textual remains disabled.
 - Concrete blocker removed: before this change, parser drift could silently desynchronize the existing CLI surface from the catalog while leaving the contract seemingly valid, so an operator could begin the manual MVP flow through an `open project/document` surface that no longer matched the canonical command catalog.
 - Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and its implementation scope is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; this follow-up commit refreshes handoff metadata only after a green rerun of the required gates.
 - Final verification note: a metadata-only fixer pass on `2026-04-24` revalidated the reviewer-requested demo-path mapping and reran the full required gate set without changing the reviewed implementation files.
@@ -18,7 +19,7 @@
 3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and parser/catalog drift rejection.
 
 ## Packet Refresh Notes
-- This handoff now names the exact canonical demo-path step advanced, states why the work is migration-safe compatibility hardening for the existing catalog instead of second-order cleanup, and keeps the approval basis pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus its two implementation files only.
+- This handoff now names the exact canonical demo-path step advanced, locks the CLI/Textual wording to the reviewer-requested phrasing, states why the work is migration-safe compatibility hardening for the existing catalog instead of second-order cleanup, and keeps the approval basis pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus its two implementation files only.
 
 ## Files Changed
 - `src/qual/commands/catalog.py`
