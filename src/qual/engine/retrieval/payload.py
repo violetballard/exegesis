@@ -1168,6 +1168,95 @@ def _excerpt_hit_identity(snapshot: dict[str, object]) -> tuple[str | None, str 
     )
 
 
+def _reorder_hits_by_identity(
+    hits: list[dict[str, object]],
+    *,
+    ordered_identities: object,
+    identity_fn,
+    sort_key,
+) -> list[dict[str, object]]:
+    normalized_order = [item for item in _normalize_text_list_like(ordered_identities) if item]
+    if not hits:
+        return []
+    if not normalized_order:
+        return sorted(hits, key=sort_key)
+
+    buckets: dict[str, list[dict[str, object]]] = {}
+    extras: list[dict[str, object]] = []
+    for hit in hits:
+        identity = identity_fn(hit)
+        if identity is None or identity not in normalized_order:
+            extras.append(hit)
+            continue
+        buckets.setdefault(identity, []).append(hit)
+
+    ordered: list[dict[str, object]] = []
+    for identity in normalized_order:
+        ordered.extend(buckets.pop(identity, []))
+    for identity in sorted(buckets):
+        ordered.extend(sorted(buckets[identity], key=sort_key))
+    ordered.extend(sorted(extras, key=sort_key))
+    return ordered
+
+
+def _doc_hit_sort_key(hit: dict[str, object]) -> tuple[object, ...]:
+    provenance = hit.get("provenance")
+    if not isinstance(provenance, dict):
+        provenance = {}
+    doc_rank = _normalize_optional_int(provenance.get("doc_rank"))
+    top_excerpt_rank = _normalize_optional_int(provenance.get("top_excerpt_rank"))
+    top_fts_rank = _normalize_optional_float(provenance.get("top_fts_rank"))
+    return (
+        doc_rank if doc_rank is not None else 1_000_000_000,
+        top_excerpt_rank if top_excerpt_rank is not None else 1_000_000_000,
+        top_fts_rank if top_fts_rank is not None else 1_000_000_000.0,
+        _normalize_optional_text(hit.get("doc_id")) or "",
+        _normalize_optional_text(hit.get("top_excerpt_id")) or "",
+        _normalize_optional_text(provenance.get("doc_fingerprint")) or "",
+    )
+
+
+def _excerpt_hit_sort_key(hit: dict[str, object]) -> tuple[object, ...]:
+    provenance = hit.get("provenance")
+    if not isinstance(provenance, dict):
+        provenance = {}
+    rank = _normalize_optional_int(provenance.get("rank"))
+    fts_rank = _normalize_optional_float(provenance.get("fts_rank"))
+    return (
+        rank if rank is not None else 1_000_000_000,
+        fts_rank if fts_rank is not None else 1_000_000_000.0,
+        _normalize_optional_text(hit.get("doc_id")) or "",
+        _normalize_optional_text(hit.get("excerpt_id")) or "",
+        _normalize_optional_text(provenance.get("excerpt_fingerprint")) or "",
+    )
+
+
+def _order_doc_hits_for_contract(
+    hits: object,
+    *,
+    ordered_doc_ids: object,
+) -> list[dict[str, object]]:
+    return _reorder_hits_by_identity(
+        _normalize_doc_hits(hits),
+        ordered_identities=ordered_doc_ids,
+        identity_fn=lambda hit: _normalize_optional_text(hit.get("doc_id")),
+        sort_key=_doc_hit_sort_key,
+    )
+
+
+def _order_excerpt_hits_for_contract(
+    hits: object,
+    *,
+    ordered_excerpt_ids: object,
+) -> list[dict[str, object]]:
+    return _reorder_hits_by_identity(
+        _normalize_excerpt_hits(hits),
+        ordered_identities=ordered_excerpt_ids,
+        identity_fn=lambda hit: _normalize_optional_text(hit.get("excerpt_id")),
+        sort_key=_excerpt_hit_sort_key,
+    )
+
+
 def _backfill_top_level_doc_hits_from_bundle_hits(
     doc_hits: object,
     bundle_doc_hits: object,
@@ -2433,6 +2522,14 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     canonical_top_excerpt_ids = _canonical_top_excerpt_ids_from_sources(
         retrieval_citation_bundle.get("doc_citations", []),
         retrieval_doc_bundle.get("doc_hits", []),
+    )
+    normalized["doc_hits"] = _order_doc_hits_for_contract(
+        normalized["doc_hits"],
+        ordered_doc_ids=canonical_doc_ids,
+    )
+    normalized["excerpt_hits"] = _order_excerpt_hits_for_contract(
+        normalized["excerpt_hits"],
+        ordered_excerpt_ids=canonical_excerpt_ids,
     )
     if canonical_doc_ids:
         normalized["retrieval_summary"]["doc_ids"] = copy.deepcopy(canonical_doc_ids)
