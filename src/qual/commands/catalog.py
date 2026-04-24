@@ -3445,6 +3445,31 @@ def _demo_workflow_branch_tokens(
     return ("project-open", "retrieval", "patch-review", branch_token, "persist", "export-handoff")
 
 
+def _trusted_surface_entry_for_workflow_token(
+    specs: tuple[CommandSpec, ...],
+    workflow_token: str,
+) -> CommandTrustedSurfaceEntry:
+    trusted_entries = {entry.token: entry for entry in command_demo_trusted_surface_catalog(specs)}
+    workflow_entry = command_demo_workflow_entry_for(specs, workflow_token)
+    if workflow_entry is None:
+        raise ValueError(f"Command trusted workflow token is unresolved: {workflow_token}")
+
+    for preferred_token in workflow_entry.preferred_surface_tokens:
+        trusted_entry = trusted_entries.get(_normalize_token(preferred_token))
+        if trusted_entry is not None:
+            return trusted_entry
+
+    trusted_entry = trusted_entries.get(workflow_entry.token)
+    if trusted_entry is not None:
+        return trusted_entry
+
+    for entry in trusted_entries.values():
+        if entry.canonical_token == workflow_entry.token:
+            return entry
+
+    raise ValueError(f"Command trusted workflow surface is unresolved: {workflow_token}")
+
+
 def command_demo_workflow_invocation_plan(
     decision_token: str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -3469,6 +3494,25 @@ def command_mvp_workflow_invocation_plan(
 ) -> tuple[CommandDemoWorkflowInvocationEntry, ...]:
     """Return the current MVP parser-ready loop for either the apply or reject branch."""
     return command_demo_workflow_invocation_plan(decision_token, specs)
+
+
+def command_demo_workflow_trusted_invocation_plan(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandTrustedSurfaceEntry, ...]:
+    """Return the trusted demo verbs for the full apply/reject branch in workflow order."""
+    return tuple(
+        _trusted_surface_entry_for_workflow_token(specs, token)
+        for token in _demo_workflow_branch_tokens(specs, decision_token)
+    )
+
+
+def command_mvp_workflow_trusted_invocation_plan(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandTrustedSurfaceEntry, ...]:
+    """Return the current MVP trusted command surface for the full apply/reject branch."""
+    return command_demo_workflow_trusted_invocation_plan(decision_token, specs)
 
 
 def command_demo_workflow_invocation_contract(
