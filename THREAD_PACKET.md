@@ -6,7 +6,8 @@
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation files: `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`
-- Packet/supporting files refreshed in this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- Packet/supporting files refreshed in this fixer pass: `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- Re-review authority note: in this worktree, use `THREAD_PACKET.md` and `docs/gate_passed.txt` as the updated reviewer-facing record because `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are unwritable (`operation not permitted`).
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Demo-path sentence: this slice advances the canonical demo-path step `retrieve relevant material` by making `fetch_excerpt` resolve only through the canonical FTS lookup path, so PageIndex-only excerpt IDs fail closed and Milestone 3 stays aligned to FTS-first structured retrieval before basket promotion.
 - Canonical demo-path strengthening statement: this slice makes excerpt lookup auditable and fail-closed on the FTS-first engine path used before basket promotion.
@@ -71,7 +72,7 @@
 - `plan complete`: the high-risk kickoff and planned tasks were locked to the narrowed reviewed implementation slice `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and to the canonical demo-path step `retrieve relevant material`.
 - `first green tests`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed for this metadata-only fixer pass.
 - `before risky/shared file edit`: the shared/high-risk boundary was called out before refreshing the handoff because the reviewed implementation scope still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
-- `ready for handoff`: the kickoff packet, lane metadata, thread handoff, and gate summary now carry the same reviewed implementation head, narrowed reviewed range, and checkpoint trail required for re-review.
+- `ready for handoff`: `THREAD_PACKET.md` and `docs/gate_passed.txt` now carry the same reviewed implementation head, narrowed reviewed range, and checkpoint trail required for re-review, while the `.codex` mirror files remain blocked by filesystem permissions in this worktree.
 
 ### Handoff Packet
 
@@ -86,13 +87,14 @@
 
 1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
 2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
-3. Regenerated the kickoff packet, lane metadata, thread handoff, and gate summary artifacts in the required shared/high-risk format.
+3. Regenerated the writable thread handoff and gate summary artifacts in the required shared/high-risk format and recorded the blocked `.codex` mirror files explicitly.
 4. Re-ran the required local gates and recorded the results for re-review.
 
 ## Files Changed
 
 - Reviewed implementation files: `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`
-- Packet/supporting files: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- Packet/supporting files: `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- Blocked mirror files: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`
 
 ## Commands Run With Results
 
@@ -107,7 +109,7 @@
 
 - Risk: `HIGH`
 - Compatibility risk: callers must preserve canonical FTS excerpt IDs; PageIndex-only excerpt IDs now fail closed with `KeyError` on the public lookup path.
-- Blockers: none
+- Blockers: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are unwritable in this worktree (`operation not permitted`), so the reviewer-targeted packet mirrors could not be refreshed here.
 
 ## Required Handoff Fields
 
