@@ -6,7 +6,9 @@
 - Scope summary: this is CLI compatibility hardening for the active MVP loop while Textual remains disabled. It does not add new commands, new engine behavior, or new workflow reachability.
 - Canonical demo-path step advanced: canonical step `5 of 7`, `preview and apply or reject a patch`
 - Concrete canonical mapping: this slice advances canonical step `5 of 7`, `preview and apply or reject a patch`, inside the current MVP loop by locking the parser-backed patch-review entrypoints to the canonical catalog before review commands run, so the operator moves from `produce a plan or revision` into patch review on a deterministic CLI surface instead of silently accepting parser/catalog drift.
+- Current MVP loop note: by hard-failing parser/catalog drift at the patch-review boundary, this change keeps the CLI side of `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`, and `continue working without losing context` deterministic while Textual remains disabled.
 - Concrete canonical-path blocker removed: deterministic CLI ordering and fast-fail parser/catalog drift detection are now enforced at the patch-review boundary, removing the concrete blocker where review/apply commands could silently diverge from the canonical catalog before the operator can safely continue to `persist the updated document/session state` while Textual remains disabled.
+- Milestone 3 exit-criteria note: this is not second-order work because `ROADMAP.md` requires the CLI to execute the MVP flow while Textual remains disabled, and this slice directly hardens the command boundary operators must cross to complete that loop safely.
 - Canonical demo-path context: `AGENTS.md` defines the engine-side path as `open project/document` -> `retrieve relevant material` -> `promote or gather context into the basket` -> `produce a plan or revision` -> `preview and apply or reject a patch` -> `persist the updated document/session state` -> `continue working without losing context`.
 - Roadmap tie-in: this is Milestone 3 CLI compatibility work for the real workflow loop, specifically at the patch-review step while Textual remains disabled.
 - Non-claim boundary: this handoff does not claim progress on persistence, A2UI, Textual activation, or any new command reachability.
@@ -87,6 +89,7 @@
 ## Roadmap Item(s) Affected
 
 - `ROADMAP.md` Milestone 3 `Real workflow loop`: this slice removes a CLI-surface stability blocker at the patch-review boundary for the CLI-first MVP loop while the package/layout migration lands.
+- `ROADMAP.md` Milestone 3 exit criteria `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`: this is not second-order work because parser/catalog drift at patch review would break that CLI loop before operators can finish the run.
 - `ROADMAP.md` canonical MVP loop step `preview and apply or reject a patch`: this slice hardens the exact command boundary operators use at that step, after planning/revision output and before persistence/continued work.
 - `ROADMAP.md` lane mapping for `feat-commands`: this slice hardens migration-safe CLI entrypoints only and does not claim broader workflow reachability.
 
