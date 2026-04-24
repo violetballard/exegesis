@@ -600,6 +600,16 @@ def describe_a2ui_contract_fingerprints(
                 "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"
             ]
         )
+        fingerprints["terminal_artifact_renderer_entrypoints_contract_manifest"] = (
+            terminal_artifact_cli_fallback_entrypoint_contract[
+                "terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"
+            ]
+        )
+        fingerprints["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"] = (
+            terminal_artifact_cli_fallback_entrypoint_contract[
+                "terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"
+            ]
+        )
     if include_terminal_artifact_raw_leaf_card_default:
         fingerprints["terminal_artifact_raw_leaf_card_default"] = (
             terminal_artifact_raw_leaf_card_default_contract_fingerprint()
@@ -2052,6 +2062,12 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_manifest() -> dict
         "renderer_entrypoints": _snapshot_contract_section(renderer_entrypoints_contract["renderer_entrypoints"]),
         "renderer_entrypoints_contract": _snapshot_contract_section(renderer_entrypoints_contract),
         "renderer_entrypoints_contract_fingerprint": renderer_entrypoints_contract["contract_fingerprint"],
+        "terminal_artifact_renderer_entrypoints_contract_manifest": _snapshot_contract_section(
+            renderer_entrypoints_contract
+        ),
+        "terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint": (
+            renderer_entrypoints_contract["contract_fingerprint"]
+        ),
         "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints": _snapshot_contract_section(
             contract_fingerprints
         ),
@@ -2073,6 +2089,10 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints() -> 
         fingerprints,
         (
             "renderer_entrypoints_contract",
+            terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+        ),
+        (
+            "terminal_artifact_renderer_entrypoints_contract_manifest",
             terminal_artifact_renderer_entrypoints_contract_fingerprint(),
         ),
     )
