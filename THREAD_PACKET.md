@@ -4,8 +4,8 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: remove the parser/catalog drift blocker on the canonical `preview and apply or reject a patch` demo-path step by locking the parser-backed review/apply command surface to the canonical catalog in `src/qual/commands/catalog.py`, without adding new engine behavior.
-- Risk reason: this is a high-risk/shared-file handoff because it hardens the public command contract in `src/qual/commands/catalog.py` and uses the explicitly approved shared regression path `tests/unit/test_commands_catalog.py`, so drift at patch-review entrypoints would directly weaken the current manual CLI smoke flow.
+- Scope goal: remove the parser/catalog drift blocker on the canonical `open project/document and continue working` demo-path step by locking the parser-backed command surface to the canonical catalog in `src/qual/commands/catalog.py`, without adding new engine behavior.
+- Risk reason: this is a high-risk/shared-file handoff because it hardens the public command contract in `src/qual/commands/catalog.py` and uses the explicitly approved shared regression path `tests/unit/test_commands_catalog.py`, so drift at operator-facing CLI entrypoints would directly weaken the current manual CLI smoke flow.
 
 ### Budget
 
@@ -38,7 +38,7 @@
 - plan complete: scope stayed pinned to the reviewed implementation slice in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`
 - first green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed for this handoff slice
 - before risky/shared file edit: the only shared path in scope was the approved regression file `tests/unit/test_commands_catalog.py`
-- ready for handoff: this packet explicitly maps the reviewed slice to the canonical `preview and apply or reject a patch` step, states that parser/catalog drift on the review/apply loop was the direct blocker removed for that step, and adds the direct Milestone 3 CLI-compatibility claim that the MVP loop remains executable through the CLI fallback while Textual stays disabled
+- ready for handoff: this packet explicitly maps the reviewed slice to the canonical `open project/document and continue working` step, states that parser/catalog drift on the CLI operator path was the direct blocker removed for that step, and adds the direct Milestone 3 CLI-compatibility claim that the MVP loop remains executable through the CLI fallback while Textual stays disabled
 
 ### Handoff Packet
 
@@ -68,17 +68,17 @@
   - current packet refresh files: `THREAD_PACKET.md` and `handoff_packets/feat-commands.md`
   - gate rerun verification for this handoff pass was repeated before the metadata refresh commit in this turn
 - risks/blockers:
-  - risk: future command-surface edits still need to preserve deterministic ordering and fast-fail parser/catalog drift detection so the patch-review CLI contract stays stable throughout the current manual operator flow
+  - risk: future command-surface edits still need to preserve deterministic ordering and fast-fail parser/catalog drift detection so the operator-facing CLI contract stays stable throughout the current manual loop
   - blockers: none
 - roadmap item(s) affected:
-  - `ROADMAP.md` Milestone 3 `Real workflow loop`: this slice hardens the current manual CLI-first loop specifically at the `preview and apply or reject a patch` step by keeping the review/apply entrypoints deterministic and migration-safe while `feat-console` stays disabled and the MVP continues to rely on the CLI fallback surface
-- canonical demo-path step advanced: `preview and apply or reject a patch` on the active MVP engine-first path (`Engine stability`, `FTS-first retrieval`, `A2UI contracts with CLI fallback`)
-- Milestone 3 exit-criterion mapping: this slice keeps the CLI/operator fallback able to execute the current MVP review/apply loop while Textual remains disabled by making the `preview`, `apply`, and `reject` command surface deterministic and drift-checked
-- concrete canonical mapping: this slice advances the canonical `preview and apply or reject a patch` step in the current engine-first MVP path `project-open/bootstrap -> retrieval -> plan-or-revise -> apply-or-reject -> export-handoff` by hardening the exact review/apply parser surface the operator must use before `persist -> export-handoff`, while `feat-console` stays disabled and the MVP continues to depend on the CLI fallback surface
-- concrete canonical-path blocker removed: before this change, alias or ordering drift could let the operator reach the `preview`, `apply`, or `reject` entrypoints through parser surfaces that no longer matched the canonical catalog even though canonical command names still looked stable; this slice removes that direct blocker on `preview and apply or reject a patch` by forcing the CLI fallback review/apply step to fail fast on parser/catalog drift
-- non-claim boundary: this handoff does not claim broader CLI polish, new workflow branches, persistence progress, auditable-state/workflow progress, A2UI contract work, provider routing work, public workflow-wrapper exposure, or any new engine behavior
+  - `ROADMAP.md` Milestone 3 CLI compatibility while Textual remains disabled: this slice hardens the current manual CLI-first loop by keeping the operator-facing command surface deterministic and migration-safe for the active MVP path, without claiming broader workflow or release-readiness progress
+- canonical demo-path step advanced: `open project/document and continue working` on the active MVP engine-first path (`Engine stability`, `FTS-first retrieval`, `A2UI contracts with CLI fallback`)
+- Milestone 3 exit-criterion mapping: this slice keeps the CLI/operator fallback able to execute the current MVP loop while Textual remains disabled by making the `bootstrap`, `preview`, `apply`, and `reject` command surface deterministic and drift-checked
+- concrete canonical mapping: this slice advances the canonical `open project/document and continue working` step in the current engine-first MVP path `project-open/bootstrap -> retrieval -> patch-review -> apply-or-reject -> persist -> export-handoff` by hardening the parser-backed command surface the operator uses to stay on the same deterministic CLI path while `feat-console` stays disabled and the MVP continues to depend on the CLI fallback surface
+- concrete canonical-path blocker removed: before this change, alias or ordering drift could let the operator rely on `bootstrap`, `preview`, `apply`, or `reject` entrypoints whose parser surfaces no longer matched the canonical catalog even though canonical command names still looked stable; this slice removes that direct blocker on `open project/document and continue working` by forcing the CLI fallback command surface to fail fast on parser/catalog drift
+- non-claim boundary: this handoff does not claim broader CLI polish, new workflow branches, persistence progress, auditable-state/workflow progress except as a secondary side effect of deterministic CLI behavior, A2UI contract work, provider routing work, public workflow-wrapper exposure, or any new engine behavior
 - vision capability affected:
-  - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: this slice is limited to CLI compatibility for the existing engine-facing review/apply contract at `preview`, `apply`, and `reject`, so parser/catalog drift fails fast and the current fallback surface remains deterministic while `feat-console` stays disabled; it does not claim auditable-state/workflow progress or broader operator-surface expansion
+  - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: this slice is limited to CLI compatibility for the existing engine-facing command contract at `bootstrap`, `preview`, `apply`, and `reject`, so parser/catalog drift fails fast and the current fallback surface remains deterministic while `feat-console` stays disabled; any `Auditable state and workflow` benefit is secondary and not the basis for this handoff
 - routing/provider impact note:
   - none; this change does not touch routing or provider configuration
 - traceability note:
@@ -89,6 +89,6 @@
 - scope/ownership note:
   - lane-owned implementation path: `src/qual/commands/catalog.py`
   - focused regression path: `tests/unit/test_commands_catalog.py`
-  - approval/source note: the reviewed implementation claim is pinned to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` are metadata-only refreshes and do not broaden the approval basis beyond deterministic command-catalog CLI contract hardening for migration-safe entrypoints
+  - approval/source note: the reviewed implementation claim is pinned to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` are metadata-only refreshes and do not broaden the approval basis beyond deterministic command-catalog CLI contract hardening for migration-safe operator entrypoints
   - shared-test approval record: `scripts/scope-check.sh` lists `tests/unit/test_commands_catalog.py` under `is_approved_shared_test()` for branch `codex/feat-commands*`
   - integrator-locked edits: none
