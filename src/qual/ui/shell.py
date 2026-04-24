@@ -151,6 +151,18 @@ class ShellUI:
                 fallback_kind = normalized_kind
                 if fallback_kind is None:
                     fallback_kind = self._infer_fallback_kind(artifact)
+            if (
+                kind is None
+                and fallback_kind == "card"
+                and isinstance(artifact, Mapping)
+                and _is_malformed_terminal_artifact_envelope(artifact)
+                and _normalize_terminal_artifact_envelope_kind(artifact.get("kind")) == "card"
+            ):
+                recovered_payload = artifact.get("artifact")
+                recovered_kind = _recover_terminal_artifact_leaf_kind(recovered_payload)
+                if recovered_kind in {"action", "selection"}:
+                    fallback_artifact = recovered_payload
+                    fallback_kind = recovered_kind
         if (
             kind is None
             and fallback_kind in {"action", "selection"}
