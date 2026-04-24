@@ -11,6 +11,7 @@
 - AGENTS.md handoff completeness note: This packet explicitly satisfies the required canonical demo-path field by stating that the reviewed slice advances `retrieve relevant material`.
 - Evidence note: `tests/unit/test_unified_retrieval.py` covers both the narrowed service-level contract and the public retrieval facade for this slice. `test_retrieval_service_rejects_pageindex_excerpt_payloads` proves PageIndex-only excerpt IDs fail closed on `fetch_excerpt(...)`, and `test_retrieve_fts_excerpt_returns_canonical_fts_payload` proves the canonical/public FTS excerpt helpers still return the same normalized FTS payload after the fail-closed change.
 - Packet authority note: this top-level packet and `docs/gate_passed.txt` are the reviewer-facing source of truth for the explicit demo-path mapping and plan-alignment wording on this branch. They intentionally describe only the narrowed FTS-only excerpt fail-closed slice and do not claim lane-level MVP completion.
+- Metadata mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are non-authoritative mirrors for this re-review and may lag this packet in restricted worktrees. Re-review should anchor on `THREAD_PACKET.md` and `docs/gate_passed.txt`.
 - Verified refresh-scope note: this refresh changes only `THREAD_PACKET.md` and `docs/gate_passed.txt` in this worktree; any earlier metadata-only refreshes are outside the scope of this re-review packet.
 - Post-rerun confirmation note: the full required gate stack was rerun against metadata-only packet tip `6ccd62dcb7d2073258d50f9a4882e786cab7e9d5` immediately before this reviewer-fix commit.
 
@@ -99,6 +100,7 @@
 6. The reviewed file list, metadata-only file list, and gate summary all match the narrowed reviewed implementation range and current packet-refresh contents.
 7. Broader retrieval provenance/helper surfaces already present in the touched files are explicitly treated as pre-existing context, not as claimed changes in this re-review slice.
 8. The reviewer-facing truth sources are explicitly identified so re-review reads the demo-path mapping from this packet and `docs/gate_passed.txt`.
+9. Stale `.codex` metadata mirrors do not supersede this packet or the gate summary in restricted worktrees.
 
 ## Risks / Blockers
 
