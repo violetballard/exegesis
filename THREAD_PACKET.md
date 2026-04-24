@@ -2,25 +2,24 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `feature lane handoff`
-- Reviewed implementation head: `f360f73552fb5536abf9e4b74d1a8348fd54eec6`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..f360f73552fb5536abf9e4b74d1a8348fd54eec6`
-- Scope goal: keep the retrieval lane FTS-first for the MVP by shipping the cumulative retrieval-contract work on the current branch tip, including deterministic excerpt resolution, canonical query and provenance payload normalization, fail-closed handling for noncanonical FTS queries, and the approved shared regression coverage for that behavior.
+- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Scope goal: complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Plan-alignment statement: this slice advances `retrieve relevant material` by making the canonical SQLite FTS retrieval path and excerpt resolution deterministic for downstream basket and workflow use, including the provenance-bundle query data and fail-closed noncanonical-query handling now shipped on the branch tip.
+- Plan-alignment statement: this slice advances `retrieve relevant material` by keeping SQLite FTS authoritative and by making excerpt lookup, structured hits, and provenance payloads deterministic enough to unblock downstream basket promotion and workflow cards.
 
 ## Scope Completed
 
-- Kept SQLite FTS authoritative across the retrieval and engine facades while leaving PageIndex and embeddings as compatibility-only fallback shims that fail closed.
-- Preserved deterministic payload, hit, excerpt, and provenance snapshots for downstream engine flows, including sparse source and context rehydration.
-- Enforced the canonical FTS-only excerpt path under approved shared regression coverage so non-FTS excerpt identifiers fail closed.
-- Included the tip-range retrieval-contract fixes from `2b03f9a2` and `3d362dd4`: `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py` preserve canonical query text in the provenance bundle, and `src/qual/engine/retrieval/fts_strategy.py` now fails closed for noncanonical FTS queries.
-- Refreshed the handoff artifacts so the reviewed range, file list, budget note, and gate results describe the code actually present on the live branch tip `f360f73552fb5536abf9e4b74d1a8348fd54eec6`.
+- SQLite FTS remains the authoritative MVP retrieval path in the reviewed implementation range.
+- `fetch_excerpt` now resolves through the canonical FTS-only path and fails closed for PageIndex-only excerpt identifiers.
+- Deterministic structured retrieval output remains available through the canonical engine surface for downstream workflow use.
+- No retrieval code changed after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`; later commits are metadata-only packet refreshes.
 
 ## Thread Kickoff
 
 - Branch: `codex/feat-retrieval-fts`
-- Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
-- Scope goal: ship the cumulative retrieval-contract branch tip truthfully for re-review instead of a narrowed metadata-only slice.
+- Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
+- Scope goal: re-emit the retrieval handoff packet with accurate traceability and demo-path mapping while preserving the reviewed implementation range above.
 
 ### Budget
 
@@ -31,28 +30,23 @@
 
 ### Tasks Completed
 
-1. Kept the retrieval lane FTS-first by preserving the canonical retrieval query constructor and `retrieve_auto` helper through both retrieval facades.
-2. Hardened deterministic retrieval payload, provenance, and sparse source/context rehydration behavior for downstream engine flows.
-3. Kept excerpt lookup on the canonical FTS-only path under shared regression coverage, with non-FTS excerpt IDs failing closed.
-4. Preserved canonical query text in the provenance bundle, failed closed for noncanonical FTS queries on the branch tip, and regenerated the handoff so both changes are described as retrieval-contract work.
+1. Removed the PageIndex fallback from `fetch_excerpt` so excerpt lookup stays on the canonical FTS-only path.
+2. Added approved shared regression coverage proving PageIndex-only excerpt IDs fail closed with `KeyError`.
+3. Corrected handoff traceability so the reviewed implementation range remains anchored to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+4. Added explicit canonical demo-path mapping for `retrieve relevant material` and tied the deterministic structured output to downstream basket/workflow use.
 
 ## Files Changed
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
-- `THREAD_PACKET.md`
-- `codex_packet_handoff/tools/planner.py`
-- `docs/gate_passed.txt`
-- `src/qual/engine/retrieval/__init__.py`
-- `src/qual/engine/retrieval/embeddings_strategy.py`
-- `src/qual/engine/retrieval/fts_strategy.py`
-- `src/qual/engine/retrieval/interface.py`
-- `src/qual/engine/retrieval/pageindex_strategy.py`
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/retrieval/__init__.py`
+### Reviewed implementation files
+
 - `src/qual/retrieval/service.py`
-- `tests/unit/test_packet_planner.py`
 - `tests/unit/test_unified_retrieval.py`
+
+### Metadata-only handoff files
+
+- `8f6fbb02309502159aac91a30d1fd6f0dcea114c`: `THREAD_PACKET.md`
+- `f360f73552fb5536abf9e4b74d1a8348fd54eec6`: `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- `307c6576ecf36031ce7bee82f076580772e5ca77`: `THREAD_PACKET.md`, `docs/gate_passed.txt`
 
 ## Commands Run With Results
 
@@ -67,7 +61,7 @@
 
 - Risk: `HIGH`
 - Blockers: `None`
-- Budget note: this is shared/high-risk work because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file for this lane. The actual reviewed tip spans `15 files`, `10899 insertions`, and `1085 deletions` relative to `378cf9a7`, so this handoff intentionally describes the cumulative branch tip rather than a narrow two-file slice.
+- Budget note: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so it remains shared/high-risk work under the 4-task cap.
 
 ## Required Handoff Fields
 
@@ -75,7 +69,6 @@
 
 - `Milestone 3: Real workflow loop`
 - `feat-retrieval-fts`
-- `retrieve relevant material`
 
 ### Vision capability affected
 
@@ -85,7 +78,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This slice advances that step by making the canonical SQLite FTS retrieval path and excerpt resolution deterministic for downstream basket and workflow use, including the provenance-bundle query data and fail-closed noncanonical-query handling now preserved on the branch tip.
+- The deterministic structured retrieval output in this slice is the concrete unblocker for promoting or gathering context into the basket later in the workflow.
 
 ### Routing/provider impact note
 

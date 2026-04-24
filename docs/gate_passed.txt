@@ -2,44 +2,32 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Reviewed implementation head: `f360f73552fb5536abf9e4b74d1a8348fd54eec6`
-Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..f360f73552fb5536abf9e4b74d1a8348fd54eec6`
+Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
-Scope: keep the retrieval lane FTS-first for the MVP by handing off the cumulative retrieval-contract work on the live branch tip, including deterministic excerpt resolution, canonical query/provenance payload normalization, and fail-closed handling for noncanonical FTS queries.
-Current branch tip before this handoff refresh commit: `f360f73552fb5536abf9e4b74d1a8348fd54eec6`
+Scope: complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output while preserving the same reviewed implementation range.
+Current branch tip before this handoff refresh commit: `307c6576ecf36031ce7bee82f076580772e5ca77`
 
-Files changed in the reviewed implementation range:
+Reviewed implementation files:
 
-* `.codex/kickoff_packets/feat-retrieval-fts.md`
-* `.codex/lane_meta/feat-retrieval-fts.json`
-* `THREAD_PACKET.md`
-* `codex_packet_handoff/tools/planner.py`
-* `docs/gate_passed.txt`
-* `src/qual/engine/retrieval/__init__.py`
-* `src/qual/engine/retrieval/embeddings_strategy.py`
-* `src/qual/engine/retrieval/fts_strategy.py`
-* `src/qual/engine/retrieval/interface.py`
-* `src/qual/engine/retrieval/pageindex_strategy.py`
-* `src/qual/engine/retrieval/payload.py`
-* `src/qual/retrieval/__init__.py`
 * `src/qual/retrieval/service.py`
-* `tests/unit/test_packet_planner.py`
 * `tests/unit/test_unified_retrieval.py`
 
-Files updated in this fixer pass:
+Metadata-only packet refresh commits:
 
-* `THREAD_PACKET.md`
-* `docs/gate_passed.txt`
+* `8f6fbb02309502159aac91a30d1fd6f0dcea114c`: `THREAD_PACKET.md`
+* `f360f73552fb5536abf9e4b74d1a8348fd54eec6`: `THREAD_PACKET.md`, `docs/gate_passed.txt`
+* `307c6576ecf36031ce7bee82f076580772e5ca77`: `THREAD_PACKET.md`, `docs/gate_passed.txt`
 
 Plan-alignment note:
 
-* This lane advances `retrieve relevant material` by making the canonical SQLite FTS retrieval path and excerpt resolution deterministic for downstream basket and workflow use, including provenance-bundle query data and fail-closed handling when the request is not a canonical FTS retrieval.
+* This lane advances `retrieve relevant material` by keeping the canonical SQLite FTS retrieval path, excerpt lookup, and structured provenance output deterministic enough for downstream basket promotion and workflow cards.
 
 Budget classification:
 
 * Shared/high-risk because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file for this lane.
-* Actual reviewed tip size: `15 files`, `10899 insertions`, `1085 deletions` relative to `378cf9a7`.
-* This exceeds the narrow high-risk slice limits, so this handoff now describes the cumulative branch tip instead of a two-file or metadata-only subset.
+* The reviewed implementation range stays fixed at `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+* Later commits listed above are metadata-only and do not expand retrieval implementation scope.
 
 Verification:
 
@@ -54,7 +42,6 @@ Roadmap items affected:
 
 * `Milestone 3: Real workflow loop`
 * `feat-retrieval-fts`
-* `retrieve relevant material`
 
 Vision capabilities affected:
 
@@ -64,7 +51,3 @@ Vision capabilities affected:
 Routing/provider impact:
 
 * none
-
-Sandbox note:
-
-* `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are not writable through the current patch sandbox, so this summary and `THREAD_PACKET.md` are the authoritative refreshed handoff artifacts for this fixer pass.
