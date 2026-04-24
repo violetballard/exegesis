@@ -2,10 +2,10 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `2c5e1e6eeaf7a39a30f8f542a827110d681c1399`
+- Commit: `b551c0786f650ef38bc72f97841f4bdbb2de1f6e`
 - Packet refresh role: `fixer reviewer packet verification refresh`
 - Packet refresh basis: `committed the reviewer-required parser-surface guard and regression coverage, then refreshed the metadata-only handoff packet so every artifact points to that exact implementation commit without widening the reviewed scope`
-- Post-fixer verification: `2026-04-24T11:19:02Z UTC full required gate rerun confirmed the metadata-only packet refresh matches the current branch state while the reviewed implementation scope remains pinned to 2c5e1e6eeaf7a39a30f8f542a827110d681c1399`
+- Post-fixer verification: `2026-04-24T11:45:09Z UTC full required gate rerun confirmed the metadata-only packet refresh matches the current branch state while the reviewed implementation scope remains pinned to b551c0786f650ef38bc72f97841f4bdbb2de1f6e`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -61,9 +61,9 @@
 ## Review Basis
 
 - Exact implementation basis for re-review:
-  - `2c5e1e6eeaf7a39a30f8f542a827110d681c1399` (`fix(commands): derive CLI contract from live parser projection`)
+  - `b551c0786f650ef38bc72f97841f4bdbb2de1f6e` (`fix(commands): harden cli parser surface contract`)
 - Approval basis pin for re-review:
-  - Only `2c5e1e6eeaf7a39a30f8f542a827110d681c1399`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
+  - Only `b551c0786f650ef38bc72f97841f4bdbb2de1f6e`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
   - The current packet-refresh commit is metadata-only and must not be treated as widening the reviewed implementation scope.
 - Current packet refresh traceability: the current packet-refresh commit is metadata-only and updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 - Reviewed implementation files:
@@ -115,7 +115,7 @@
 
 1. `continue working without losing context`: locked the live CLI command contract to the command catalog so parser-surface drift fails closed before the operator reaches the wrong `project-open`, `retrieval`, or `patch-review` verb sets on the active CLI fallback path.
 2. `continue working without losing context`: added focused regression coverage for parser-surface alignment and command-catalog drift rejection in `tests/unit/test_commands_catalog.py`, with evidence scoped to the supporting `open project/document` / `retrieve relevant material` / `preview and apply or reject a patch` smoke surface.
-3. `continue working without losing context`: regenerated the handoff packet so the re-review basis points to commit `2c5e1e6eeaf7a39a30f8f542a827110d681c1399`, the roadmap or vision mapping stays narrow, and the exact canonical demo-path step plus blocker removal are stated explicitly per reviewer request.
+3. `continue working without losing context`: regenerated the handoff packet so the re-review basis points to commit `b551c0786f650ef38bc72f97841f4bdbb2de1f6e`, the roadmap or vision mapping stays narrow, and the exact canonical demo-path step plus blocker removal are stated explicitly per reviewer request.
 4. `continue working without losing context`: re-ran the required gates and recorded the outcomes against the current reviewed implementation scope so the packet stays tied to a verified command-contract slice.
 
 ### Files Changed
@@ -134,7 +134,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at `2026-04-24T11:19:02Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `2c5e1e6eeaf7a39a30f8f542a827110d681c1399`; the current packet refresh itself is metadata-only.
+- Gate attribution note: these gates were rerun at `2026-04-24T11:45:09Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `b551c0786f650ef38bc72f97841f4bdbb2de1f6e`; the current packet refresh itself is metadata-only.
 
 ### Risks / Blockers
 

@@ -8,14 +8,14 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Packet refresh status: fixer reran the full required gate set after the reviewer-required parser-surface guard and is refreshing the packet metadata so re-review points to one exact implementation commit.
 - Exact implementation basis for re-review:
-  - `2c5e1e6eeaf7a39a30f8f542a827110d681c1399` (`fix(commands): derive CLI contract from live parser projection`)
+  - `b551c0786f650ef38bc72f97841f4bdbb2de1f6e` (`fix(commands): harden cli parser surface contract`)
 - Approval basis pin for re-review:
-  - Only `2c5e1e6eeaf7a39a30f8f542a827110d681c1399`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
+  - Only `b551c0786f650ef38bc72f97841f4bdbb2de1f6e`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
   - The packet-refresh commit is metadata-only and must not be treated as widening the implementation scope.
 - Current packet refresh traceability:
   - the packet-refresh commit updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
 - Post-fixer verification note:
-- `2026-04-24T11:19:02Z UTC` full required gate rerun confirmed this packet refresh matches the current branch state while the reviewed implementation basis remains pinned to `2c5e1e6eeaf7a39a30f8f542a827110d681c1399`
+- `2026-04-24T11:45:09Z UTC` full required gate rerun confirmed this packet refresh matches the current branch state while the reviewed implementation basis remains pinned to `b551c0786f650ef38bc72f97841f4bdbb2de1f6e`
 - High-risk kickoff context:
   - scope goal: make the canonical `continue working without losing context` step more real by removing a concrete blocker at the CLI fallback boundary: silent parser/catalog drift on the operator-visible `project-open` / `retrieval` / `patch-review` command surface
   - risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file
