@@ -1,38 +1,27 @@
 # Feature -> Review Packet
 
-## Thread Kickoff (High-Risk)
+## Thread Kickoff (High-Risk, Invalidated By Actual Scope)
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: keep the active `feat-commands` operator surface deterministic at the `open project/document` step by preserving stable command-contract metadata and migration-safe command entrypoints while the Textual surface stays disabled.
-- Risk reason: reviewed implementation includes one approved shared regression file, `tests/unit/test_commands_catalog.py`.
+- Scope goal: harden the active `feat-commands` CLI operator surface across the canonical demo path while Textual remains disabled.
+- Risk reason: the reviewed basis includes shared test coverage and broad command-surface behavior changes.
 
-### Budget
+### Submitted Budget
 
 - Task budget: `4`
 - Time budget: `30m`
 - Size limits: `<=8 files`, `<=300 net LOC`
 - Max fix attempts per failing gate: `2`
 
-### Planned Tasks (max 4)
+### Budget Reconciliation Against The True Reviewed Basis
 
-1. Inspect the feat-commands catalog contracts and identify a deterministic demo-path gap inside lane-owned code.
-2. Fix the flow-step labeling for shim-backed demo-loop commands without broadening command behavior or touching shared CLI entrypoints.
-3. Update focused regression coverage for the corrected trusted-surface, workflow, compatibility, and next-action metadata.
-4. Refresh the handoff packet after focused unit coverage and the required gate suite.
-
-### Early Review Triggers
-
-- before first edit to any shared/integrator-locked file
-- before changing public interfaces or command contracts
-- before touching provider routing/config behavior
-
-### Stop Triggers
-
-- integrator-locked/shared-by-approval edits needed
-- unresolved test/lint/typecheck after 2 attempts
-- unresolved `make scope-check`
-- budget/size/time limit hit
+- Reviewed implementation base previously approved for comparison: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Reviewed implementation range in this resubmission: the full branch delta through `5ea27f3d960f2f2876347f2b8ce616223227a713`
+- Files changed in the true reviewed basis: `9`
+- Delta size in the true reviewed basis: `+9652/-485`
+- Result: this is not a valid `AGENTS.md` high-risk `4`-task handoff because it exceeds the `<=8 files` and `<=300 net LOC` limits
+- Required follow-up for integration promotion: split this implementation into smaller reviewable packets before promotion
 
 ### Checkpoint Cadence
 
@@ -43,42 +32,22 @@
 
 ## Review Basis
 
-- Reviewed implementation base previously approved for comparison: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewed implementation commits included in this re-review:
-  - `06540160de4cf0d452c1ed9b4d4926c205888be9` (`fix(commands): preserve demo flow steps for shim tokens`)
-  - `7fe699292035b6671bd17a3c5defa1659819c6fa` (`feat(commands): canonicalize demo argv workflow tokens`)
-- Current handoff packet is a metadata-only refresh on top of that reviewed implementation range
-- Reviewed implementation files:
+- This resubmission is not metadata-only.
+- The true reviewed basis includes non-doc implementation across:
+  - `scripts/scope-check.sh`
+  - `src/qual/commands/__init__.py`
+  - `src/qual/commands/canonical.py`
   - `src/qual/commands/catalog.py`
+  - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_commands_catalog.py`
+  - `tests/unit/test_diff_preview.py`
+  - `THREAD.md`
+  - `THREAD_PACKET.md`
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` so it rejects catalog-entrypoint projection drift, including alias-only substitutions, token removals, token additions, and entrypoint reordering that would otherwise leave canonical command names unchanged.
-- Re-verified the reviewer-requested parser-surface guardrail against the current branch tip so the contract claim, implementation, and regression coverage are explicitly aligned for re-review.
-- Fixed `_resolve_demo_loop_token()` so demo-loop resolution preserves the logical demo token as the flow step when a shim-backed terminal command is selected for `apply-patch`, `reject-patch`, or `persist`.
-- Added canonical demo-argv normalization so shim-backed parser invocations map back to the stable workflow token used by the demo-path contracts.
-- Kept the active CLI smoke route self-describing from `patch-review` into `apply-patch` or `reject-patch`, then `persist`, by preventing shim-backed terminal actions from collapsing back to fallback `terminal` metadata.
-- Corrected the downstream demo workflow metadata generated from that loop resolution so the canonical CLI MVP path now reports:
-  - `apply-patch` as `apply-patch`
-  - `reject-patch` as `reject-patch`
-  - `persist` as `persist`
-  - `export-handoff` as `export-handoff`
-- Updated focused regression tests to lock the corrected flow-step metadata across:
-  - trusted surface entries
-  - demo loop entries
-  - compatibility entries
-  - workflow entries
-  - next-action entries
-  - custom-spec compatibility resolution
-
-## Canonical Demo-Path Mapping
-
-- Stable commands covered by this slice:
-  - `bootstrap`
-  - `diff-preview`
-  - `context-basket`
-  - `terminal`
+- Hardened parser-surface and command-catalog behavior, including projection-drift rejection, lookup helpers, parser-ready argv helpers, smoke argv helpers, trusted-surface helpers, and CLI shim contract support.
+- Expanded demo token and shim resolution behavior so workflow, compatibility, and next-action metadata stay stable for:
   - `project-open`
   - `retrieval`
   - `patch-review`
@@ -86,20 +55,30 @@
   - `reject-patch`
   - `persist`
   - `export-handoff`
-- Canonical demo-path step advanced:
-  - `open project/document` via the `project-open` operator token
-- Explicit handoff statement for AGENTS.md:
-  - This work makes the canonical `open project/document` step more real by hardening the CLI-first operator surface around the migration-safe `project-open` entrypoint while Textual remains disabled.
-- Concrete Milestone / vision claim this supports:
-  - `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`) scope item `Command and diff-preview behavior hardening`: this slice hardens the deterministic `project-open` CLI contract used for the `open project/document` smoke route
-  - `ROADMAP.md` Milestone 2 (`Test Hardening`) scope item `Add focused unit coverage for core behaviors`: this slice locks parser-edge and command-probe coverage around catalog drift rejection and stable demo-path flow-step metadata
-  - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): CLI remains a first-class surface for development and reliability, so the `project-open` contract cannot be allowed to drift silently
-- Concrete blocker removed:
-  - This prevents parser/catalog drift from silently changing the CLI contract for the migration-safe `project-open` entrypoint used for `open project/document`.
-- Scope guard:
-  - this handoff is limited to deterministic CLI contract validation and migration-safe command entrypoints; it does not claim engine workflow behavior changes.
-- Why this is not second-order work under the current narrowing rules:
-  - the active operator surface is still the CLI while Textual stays disabled, so failing fast on parser/catalog drift and keeping the patch-review to apply/reject workflow tokens stable directly protects the live MVP command contract instead of adding optional catalog hygiene.
+- Added legacy alias normalization and compatibility handling for retrieval and document-open style entrypoints.
+- Stabilized diff-preview truncation, fingerprint, and no-diff payload behavior.
+- Expanded regression coverage for parser surfaces, trusted/demo workflow tables, compatibility aliases, next-action metadata, and diff-preview behavior.
+- Regenerated the handoff packet so its review basis, scope, budget statement, and roadmap mapping match the actual reviewed range.
+
+## Canonical Demo-Path Mapping
+
+- Canonical demo-path steps advanced by the true reviewed basis:
+  - `open project/document`
+  - `retrieval`
+  - `patch-review`
+  - `apply-patch`
+  - `reject-patch`
+  - `persist`
+  - `export-handoff`
+- Explicit handoff statement for `AGENTS.md`:
+  - The true reviewed range hardens the CLI-first MVP route across the canonical demo path while Textual remains disabled.
+- Concrete roadmap / vision mapping for the real scope:
+  - `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`) scope item `Command and diff-preview behavior hardening`
+  - `ROADMAP.md` Milestone 2 (`Test Hardening`) scope item `Add focused unit coverage for core behaviors`
+  - `ROADMAP.md` Milestone 2 (`Test Hardening`) scope item `Keep command-level probes for integration confidence`
+  - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`)
+- Scope truth note:
+  - this packet covers the broader command/demo/shim/diff-preview range through `5ea27f3d960f2f2876347f2b8ce616223227a713`; it does not claim the branch is command-catalog-only
 
 ## Handoff Packet
 
@@ -107,51 +86,54 @@
 
 ### Tasks Completed (Numbered)
 
-1. Verified the CLI contract path now rejects catalog-entrypoint projection drift while preserving canonical command ordering for the exposed command catalog.
-2. Fixed lane-owned demo-loop resolution so workflow contracts preserve the logical demo token for apply/reject/persist instead of collapsing to `export-handoff`.
-3. Canonicalized full demo-path argv back to the stable workflow token and updated regression coverage to lock both catalog-entrypoint projection drift rejection and the corrected demo-path metadata.
-4. Re-ran the required gate suite and refreshed the handoff metadata for re-review.
+1. Restated the true implementation basis as the full `f8d860ed..5ea27f3d` branch delta instead of a metadata-only refresh on top of two commits.
+2. Tightened the packet scope so it explicitly includes parser-surface, demo token, shim, apply/reject/persist/export-handoff, and diff-preview behavior changes.
+3. Recomputed the budget and documented that the actual range is not a valid high-risk `4`-task slice under `AGENTS.md`.
+4. Re-ran the required local gate suite for the true reviewed basis and refreshed the roadmap / vision mapping to match the real command surface being advanced.
 
 ### Files Changed
 
-- `src/qual/commands/catalog.py`
-- `tests/unit/test_commands_catalog.py`
 - `THREAD.md`
 - `THREAD_PACKET.md`
+- `scripts/scope-check.sh`
+- `src/qual/commands/__init__.py`
+- `src/qual/commands/canonical.py`
+- `src/qual/commands/catalog.py`
+- `src/qual/commands/diff_preview.py`
+- `tests/unit/test_commands_catalog.py`
+- `tests/unit/test_diff_preview.py`
 
 ### Commands Run and Outcomes
 
-- `make scope-check`: `PASS`
-- `python -m unittest tests.unit.test_commands_catalog -q`: `PASS`
-- `python -m unittest tests.unit.test_diff_preview -q`: `PASS`
-- `./quality-format.sh --check`: `PASS`
-- `./quality-lint.sh`: `PASS`
-- `./quality-test.sh`: `PASS`
-- `./typecheck-test.sh`: `PASS`
-- `make ci`: `PASS`
+- `make scope-check`: `PASSED` (`[devex] scope-check: passed for branch 'codex/feat-commands'`)
+- `./quality-format.sh --check`: `PASSED` (`[format] check passed`)
+- `./quality-lint.sh`: `PASSED` (`[lint] passed`)
+- `./quality-test.sh`: `PASSED` (`smoke passed`; `Ran 203 tests ... OK`)
+- `./typecheck-test.sh`: `PASSED` (`[typecheck] compiling Python sources in src/`)
+- `make ci`: `PASSED` (`[devex] CI entrypoint completed`)
 
 ### Risks / Blockers
 
 - Risks:
-  - this change is intentionally narrow and limited to command-contract metadata, but future command-surface expansion could regress parser-entrypoint invariants or logical flow-step labels if new shim-backed demo tokens are added without extending the same validation path and tests.
+  - future command-surface expansion could regress parser-entrypoint invariants, logical flow-step labels, or diff-preview payload guarantees if new shim-backed tokens land without corresponding contract tests.
 - Blockers:
-  - none
+  - the true reviewed basis exceeds the submitted high-risk budget and should be split into smaller reviewable packets before integration promotion.
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`) scope item `Command and diff-preview behavior hardening`: this handoff keeps the `project-open` CLI contract deterministic and migration-safe for the active CLI smoke route.
-- `ROADMAP.md` Milestone 2 (`Test Hardening`) scope item `Add focused unit coverage for core behaviors`: this handoff keeps targeted parser-edge and command-probe coverage in place for drift rejection and stable demo-path flow-step metadata.
-- `ROADMAP.md` active MVP emphasis `feat-commands`: keeps deterministic CLI contract validation in the lane-owned command catalog without broadening into engine workflow behavior claims.
-- Canonical demo-path step advanced: `open project/document` via the `project-open` operator token.
-- Explicit statement of what this work makes more real: it hardens the CLI-first operator surface for `open project/document` by keeping the `project-open` contract deterministic and migration-safe while Textual remains disabled.
-- Concrete blocker removed on that step: this prevents parser/catalog drift from silently changing the CLI contract for the migration-safe `project-open` entrypoint used for `open project/document`.
-- Scope guard: this handoff is limited to deterministic CLI contract validation and migration-safe command entrypoints; it does not claim engine workflow behavior changes.
+- `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`) scope item `Command and diff-preview behavior hardening`
+- `ROADMAP.md` Milestone 2 (`Test Hardening`) scope item `Add focused unit coverage for core behaviors`
+- `ROADMAP.md` Milestone 2 (`Test Hardening`) scope item `Keep command-level probes for integration confidence`
+- Canonical demo-path steps advanced: `open project/document`, `retrieval`, `patch-review`, `apply-patch`, `reject-patch`, `persist`, and `export-handoff`
+- Explicit statement of what this work makes more real: it hardens the CLI-first operator route across the current MVP demo path while Textual remains disabled.
+- Concrete blocker removed on that path: it prevents parser/catalog drift, shim-token collapse, and diff-preview instability from silently changing the CLI-visible MVP command flow.
+- Scope guard: this packet now describes the full reviewed branch basis truthfully; it does not represent the range as a narrow command-catalog-only slice.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): preserves the required CLI compatibility for `open project/document` and the rest of the MVP loop while `Exegesis Console` remains disabled and CLI remains the first-class operator surface.
+- `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): CLI remains the first-class operator surface for the MVP, so the command contracts and diff-preview outputs in this range must stay deterministic and auditable.
 
 ### Routing / Provider Impact Note
 

@@ -7,40 +7,44 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Current Review Focus
 
 - Reviewed implementation base previously approved for comparison: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Reviewed implementation commits included in this re-review:
-  - `06540160de4cf0d452c1ed9b4d4926c205888be9` (`fix(commands): preserve demo flow steps for shim tokens`)
-  - `7fe699292035b6671bd17a3c5defa1659819c6fa` (`feat(commands): canonicalize demo argv workflow tokens`)
-- Current handoff packet is a metadata-only refresh on top of that reviewed implementation range.
-- Reviewed implementation files:
+- Reviewed implementation range in this resubmission: the full branch delta through `5ea27f3d960f2f2876347f2b8ce616223227a713`.
+- This resubmission is not metadata-only. The true reviewed basis includes non-doc command and diff-preview implementation across:
+  - `scripts/scope-check.sh`
+  - `src/qual/commands/__init__.py`
+  - `src/qual/commands/canonical.py`
   - `src/qual/commands/catalog.py`
+  - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_commands_catalog.py`
-- Reviewed implementation behavior:
-  - `command_cli_contract()` rejects catalog-entrypoint projection drift, including alias substitution, token removal, token addition, and catalog-entrypoint projection reorder cases that leave canonical command names unchanged
-  - shim-backed demo-loop tokens now keep their logical flow-step identity in the canonical CLI MVP workflow contract
-  - canonical demo-path argv now map back to the stable workflow token instead of inheriting the fallback canonical command name for shim-backed terminal actions
-  - `apply-patch`, `reject-patch`, and `persist` no longer collapse to `export-handoff` inside workflow, trusted-surface, compatibility, and next-action metadata
-  - regression coverage now locks that corrected metadata for the `project-open -> retrieval -> patch-review -> apply/reject -> persist -> export-handoff` demo path
-  - this is first-order MVP contract work, not second-order catalog cleanup, because the CLI remains the active operator surface while Textual stays disabled
-- Exact existing CLI demo-path commands this work hardens:
-  - `project-open`
+  - `tests/unit/test_diff_preview.py`
+  - `THREAD.md`
+  - `THREAD_PACKET.md`
+- True implementation scope included in the reviewed range:
+  - parser-surface and command-catalog hardening, including drift rejection, lookup helpers, parser-ready entry argv helpers, smoke argv helpers, trusted-surface helpers, and CLI shim contracts
+  - demo token and shim resolution work, including stable workflow, compatibility, and next-action metadata for `project-open`, `retrieval`, `patch-review`, `apply-patch`, `reject-patch`, `persist`, and `export-handoff`
+  - legacy alias normalization and retrieval/document-open compatibility handling
+  - diff-preview truncation, fingerprint, and no-diff payload stabilization
+  - expanded regression coverage for command parser surfaces, trusted/demo workflow tables, compatibility aliases, next-action metadata, and diff-preview behavior
+- Recomputed budget against the true reviewed basis:
+  - `9` files changed
+  - `+9652/-485` lines in the full `f8d860ed..5ea27f3d` range
+  - this is not a valid `AGENTS.md` high-risk `4`-task handoff as previously framed because it exceeds the `<=8 files` and `<=300 net LOC` size limits
+  - the packet is now truthful about that budget miss; the implementation should be split into smaller reviewable packets before integration promotion
+- Canonical demo-path steps advanced by the true range:
+  - `open project/document`
   - `retrieval`
   - `patch-review`
   - `apply-patch`
   - `reject-patch`
   - `persist`
   - `export-handoff`
-- Roadmap / vision alignment:
-  - `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`) scope item `Command and diff-preview behavior hardening`: hardens the deterministic `project-open` CLI contract used for the `open project/document` smoke route
-  - `ROADMAP.md` Milestone 2 (`Test Hardening`) scope item `Add focused unit coverage for core behaviors`: locks parser-edge and command-probe coverage around catalog drift rejection and stable demo-path flow-step metadata
-  - `ROADMAP.md` active MVP emphasis `feat-commands`: keeps deterministic CLI contract validation in the lane-owned command catalog without broadening into engine workflow behavior claims
-  - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): preserves the required CLI compatibility for `open project/document` and the rest of the MVP loop while Textual remains disabled and CLI remains the first-class operator surface
-- Scope / risk note:
-  - lane-owned implementation: `src/qual/commands/catalog.py`
-  - approved shared regression file: `tests/unit/test_commands_catalog.py`
-  - integrator-locked files touched: none
-  - canonical demo-path step advanced: `open project/document` via the `project-open` operator token
-  - explicit statement of what this work makes more real: it hardens the CLI-first operator surface for `open project/document` by keeping the `project-open` contract deterministic and migration-safe while Textual remains disabled
-  - concrete blocker removed on that step: this prevents parser/catalog drift from silently changing the CLI contract for the migration-safe `project-open` entrypoint used for `open project/document`
-  - scope guard: this handoff is limited to deterministic CLI contract validation and migration-safe command entrypoints; it does not claim engine workflow behavior changes
-  - required gates passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, `make ci`
-  - metadata refreshed for this handoff: `THREAD.md`, `THREAD_PACKET.md`
+- Roadmap / vision alignment for the true scope:
+  - `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`) scope item `Command and diff-preview behavior hardening`
+  - `ROADMAP.md` Milestone 2 (`Test Hardening`) scope items `Add focused unit coverage for core behaviors` and `Keep command-level probes for integration confidence`
+  - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): the branch hardens the CLI-first MVP route across the full reviewed command surface while Textual remains disabled
+- Required gates rerun for the true reviewed basis:
+  - `make scope-check`
+  - `./quality-format.sh --check`
+  - `./quality-lint.sh`
+  - `./quality-test.sh`
+  - `./typecheck-test.sh`
+  - `make ci`
