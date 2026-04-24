@@ -107,11 +107,12 @@
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Blockers: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` were rechecked on this fixer pass and remain sandbox-blocked (`Operation not permitted` on direct write-access checks); the writable handoff surfaces in this commit carry the required canonical demo-path statement for re-review.
+- Compatibility risk: callers that still pass PageIndex-only excerpt IDs to `RetrievalService.fetch_excerpt` now fail closed with `KeyError`, so downstream consumers must resolve and persist canonical FTS excerpt IDs instead of relying on the removed fallback path.
+- Blockers: none
 
 ## Ready For Handoff
 
-- Status: ready for re-review on writable packet surfaces; `.codex` mirror refresh remains blocked by sandbox permissions
+- Status: ready for re-review
 
 ## Required Handoff Fields
 
