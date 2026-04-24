@@ -490,6 +490,16 @@ def _declared_cli_entrypoints_for(spec: CommandSpec) -> tuple[str, ...]:
     return tuple(_normalize_token(entrypoint) for entrypoint in entrypoints)
 
 
+def _declared_cli_entrypoint_projection(
+    specs: tuple[CommandSpec, ...],
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return tuple(
+        (spec.name, _declared_cli_entrypoints_for(spec))
+        for spec in specs
+        if spec.cli_exposed
+    )
+
+
 def _validate_command_cli_contract(
     contract: CommandCliContract,
     specs: tuple[CommandSpec, ...],
@@ -506,11 +516,7 @@ def _validate_command_cli_contract(
     # token and keeping only an alias must still fail fast for both the default
     # catalog and custom spec sets.
     if validated_entrypoints is not None:
-        expected_parser_surface = tuple(
-            (spec.name, _declared_cli_entrypoints_for(spec))
-            for spec in specs
-            if spec.cli_exposed
-        )
+        expected_parser_surface = _declared_cli_entrypoint_projection(specs)
         if validated_entrypoints != expected_parser_surface:
             raise ValueError("Command CLI catalog entrypoint projection is inconsistent")
 
