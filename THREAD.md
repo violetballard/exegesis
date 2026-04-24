@@ -6,8 +6,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: reviewer-fix packet refresh regenerated on 2026-04-24 for the exact reviewed implementation slice, with roadmap/vision mapping narrowed to the engine-first CLI operator surface while `feat-console` remains inactive.
+- Packet refresh status: reviewer-fix packet refresh regenerated on 2026-04-24 for the exact reviewed implementation slice, with roadmap/vision mapping narrowed to Milestone 3 CLI compatibility while the Textual lanes remain disabled.
 - Reviewed implementation commit: `dbb8e0155a647bd0eb7f442a1799136ee4d591f4` (`fix(commands): harden parser surface drift checks`).
+- Packet refresh traceability:
+  - the current branch tip for re-review is a packet-only refresh above `dbb8e0155a647bd0eb7f442a1799136ee4d591f4`; no implementation files beyond the reviewed slice changed in this refresh
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -46,11 +48,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Why this is milestone-worthy now:
   - Milestone 3 is where user-facing contracts are locked and documented intentionally, so preventing silent drift in the bootstrap-facing parser surface is direct operator-surface hardening rather than second-order cleanup
 - Roadmap / vision alignment for this reviewed slice:
-  - `ROADMAP.md` Milestone 3 `Product Readiness`: lock the `project-open` bootstrap command contract intentionally instead of letting the parser surface drift silently
-  - `ROADMAP.md` Milestone 3 exit criteria: contract changes should be documented and intentional, applied here only to the parser contract for the `project-open` smoke-route entrypoint
-  - `ROADMAP.md` MVP Focus Through 2026-05-04: `feat-commands` is active while `feat-console` is defined but not active, so this slice stays on the engine-first CLI operator surface
-  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: keep the CLI bootstrap surface deterministic because CLI is the current first-class operator surface
-  - `PRODUCT_VISION.md` current capability alignment: engine contracts come first and `Exegesis Console` comes later, so no UI expansion is claimed here
+  - `ROADMAP.md` Milestone 3 `Real workflow loop`: harden the CLI-first operator contract for the current engine loop while Textual stays scaffolded and disabled
+  - `ROADMAP.md` Milestone 3 scope: preserve CLI compatibility while the package/layout migration lands, applied here only to the parser contract for the `project-open` smoke-route entrypoint
+  - `ROADMAP.md` Milestone 3 exit criteria: `CLI can still execute the MVP loop while Textual remains disabled`, protected here by failing closed on parser-surface drift
+  - `ROADMAP.md` Active now: `feat-commands` is active while `feat-console-shell` and `feat-console-workflow` remain disabled, so no UI-lane scope is claimed here
+  - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: keep the CLI bootstrap surface deterministic because CLI compatibility is required while Textual remains disabled
+  - `PRODUCT_VISION.md` capability 6 `Auditable state and workflow`: make parser/catalog drift explicit instead of silently changing the operator-facing entrypoint
 - Ownership / scope note:
   - lane-owned implementation paths: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
@@ -65,3 +68,5 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `./quality-test.sh`
   - `./typecheck-test.sh`
   - `make ci`
+- Gate attribution note:
+  - these gates were rerun on 2026-04-24 against the packet-refresh workspace state whose only changed files above `dbb8e0155a647bd0eb7f442a1799136ee4d591f4` are `THREAD.md` and `THREAD_PACKET.md`
