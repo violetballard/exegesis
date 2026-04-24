@@ -574,6 +574,28 @@ def _normalized_doc_id_list_snapshot(value: object) -> list[str]:
     return normalized
 
 
+def _mirror_query_constraint_fields(
+    payload: dict[str, object],
+    *,
+    provenance: Mapping[str, object],
+) -> None:
+    query_constraints = provenance.get("query_constraints")
+    if isinstance(query_constraints, dict):
+        payload["query_constraints"] = copy.deepcopy(query_constraints)
+    query_max_results = _optional_int(provenance.get("query_max_results"))
+    if query_max_results is not None:
+        payload["query_max_results"] = query_max_results
+    query_doc_types = _normalize_query_doc_types_payload(provenance.get("query_doc_types"))
+    if query_doc_types is not None:
+        payload["query_doc_types"] = copy.deepcopy(query_doc_types)
+    query_require_citations = _optional_bool(provenance.get("query_require_citations"))
+    if query_require_citations is not None:
+        payload["query_require_citations"] = query_require_citations
+    query_prefer_exact_matches = _optional_bool(provenance.get("query_prefer_exact_matches"))
+    if query_prefer_exact_matches is not None:
+        payload["query_prefer_exact_matches"] = query_prefer_exact_matches
+
+
 @dataclass(frozen=True)
 class RetrievalConstraints:
     max_results: int = 10
@@ -769,6 +791,7 @@ class RetrievalHit:
         retrieved_excerpt_ids = _optional_list_like(self.provenance.get("retrieved_excerpt_ids"))
         if retrieved_excerpt_ids is not None:
             payload["retrieved_excerpt_ids"] = retrieved_excerpt_ids
+        _mirror_query_constraint_fields(payload, provenance=self.provenance)
         return payload
 
 
@@ -900,6 +923,7 @@ class RetrievalDocHit:
         retrieved_excerpt_ids = _optional_list_like(self.provenance.get("retrieved_excerpt_ids"))
         if retrieved_excerpt_ids is not None:
             payload["retrieved_excerpt_ids"] = retrieved_excerpt_ids
+        _mirror_query_constraint_fields(payload, provenance=self.provenance)
         return payload
 
 
@@ -2308,6 +2332,11 @@ class RetrievalService:
                 query_fingerprint=self._query_fingerprint(query),
                 candidate_doc_count=effective_candidate_doc_count,
                 query_date_range=query.constraints.date_range,
+                query_constraints=_basket_promotion_query_constraint_snapshot(query),
+                query_max_results=query.constraints.max_results,
+                query_doc_types=query.constraints.doc_types,
+                query_require_citations=query.constraints.require_citations,
+                query_prefer_exact_matches=query.constraints.prefer_exact_matches,
             )
             hits.append(
                 RetrievalHit(
@@ -2457,6 +2486,11 @@ class RetrievalService:
                         "query_scope": query.scope,
                         "query_intent": query.intent,
                         "query_confidentiality_profile": query.confidentiality_profile,
+                        "query_constraints": _basket_promotion_query_constraint_snapshot(query),
+                        "query_max_results": query.constraints.max_results,
+                        "query_doc_types": list(query.constraints.doc_types),
+                        "query_require_citations": query.constraints.require_citations,
+                        "query_prefer_exact_matches": query.constraints.prefer_exact_matches,
                         "query_date_range": list(query.constraints.date_range) if query.constraints.date_range is not None else None,
                         "candidate_doc_count": candidate_doc_count,
                         "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
@@ -3130,6 +3164,11 @@ class RetrievalService:
         query_intent: str | None = None,
         query_confidentiality_profile: str | None = None,
         query_date_range: tuple[str, str] | None = None,
+        query_constraints: dict[str, object] | None = None,
+        query_max_results: int | None = None,
+        query_doc_types: tuple[str, ...] = (),
+        query_require_citations: bool | None = None,
+        query_prefer_exact_matches: bool | None = None,
         query_fingerprint: str | None = None,
         candidate_doc_count: int | None = None,
     ) -> dict[str, object]:
@@ -3173,6 +3212,16 @@ class RetrievalService:
             provenance["section_hint_rank"] = section_hint_rank
         if query_date_range is not None:
             provenance["query_date_range"] = list(query_date_range)
+        if query_constraints is not None:
+            provenance["query_constraints"] = copy.deepcopy(query_constraints)
+        if query_max_results is not None:
+            provenance["query_max_results"] = query_max_results
+        if query_doc_types:
+            provenance["query_doc_types"] = list(query_doc_types)
+        if query_require_citations is not None:
+            provenance["query_require_citations"] = query_require_citations
+        if query_prefer_exact_matches is not None:
+            provenance["query_prefer_exact_matches"] = query_prefer_exact_matches
         if query_fingerprint is not None:
             provenance["query_fingerprint"] = query_fingerprint
         if candidate_doc_count is not None:

@@ -437,7 +437,13 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 query_text="discussion theory",
                 scope="doc:doc-pdf-1",
                 intent="outline_support",
-                constraints=RetrievalConstraints(max_results=6, section_hint="discussion"),
+                constraints=RetrievalConstraints(
+                    max_results=6,
+                    doc_types=("pdf",),
+                    section_hint="discussion",
+                    require_citations=True,
+                    prefer_exact_matches=True,
+                ),
                 confidentiality_profile="confidential",
             )
         )
@@ -470,6 +476,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
             self.assertEqual(hit_payload["matched_terms"], hit.provenance["matched_terms"])
             self.assertEqual(hit_payload["section_hint"], "discussion")
             self.assertEqual(hit_payload["section_hint_rank"], hit.provenance["section_hint_rank"])
+            self.assertEqual(hit_payload["query_constraints"], hit.provenance["query_constraints"])
+            self.assertEqual(hit_payload["query_max_results"], 6)
+            self.assertEqual(hit_payload["query_doc_types"], ["pdf"])
+            self.assertTrue(hit_payload["query_require_citations"])
+            self.assertTrue(hit_payload["query_prefer_exact_matches"])
 
     def test_section_hint_biases_fts_ranking_and_provenance(self) -> None:
         self.service.add_or_update_document(
@@ -623,7 +634,12 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 query_text="memo coding comparison",
                 scope="vault",
                 intent="compare",
-                constraints=RetrievalConstraints(max_results=4),
+                constraints=RetrievalConstraints(
+                    max_results=4,
+                    doc_types=("memo",),
+                    require_citations=True,
+                    prefer_exact_matches=True,
+                ),
                 confidentiality_profile="confidential",
             )
         )
@@ -656,6 +672,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(doc_hit_payload["top_excerpt_text_hash"], doc_hit.provenance["top_excerpt_text_hash"])
         self.assertEqual(doc_hit_payload["doc_rank"], doc_hit.provenance["doc_rank"])
         self.assertEqual(doc_hit_payload["top_excerpt_rank"], doc_hit.provenance["top_excerpt_rank"])
+        self.assertEqual(doc_hit_payload["query_constraints"], doc_hit.provenance["query_constraints"])
+        self.assertEqual(doc_hit_payload["query_max_results"], 4)
+        self.assertEqual(doc_hit_payload["query_doc_types"], ["memo"])
+        self.assertTrue(doc_hit_payload["query_require_citations"])
+        self.assertTrue(doc_hit_payload["query_prefer_exact_matches"])
         self.assertIsNone(doc_hit_payload.get("section_hint"))
         self.assertEqual(doc_hit_payload["source_hash"], doc_hit.source_hash)
         self.assertEqual(result.diagnostics["doc_hits_count"], len(result.doc_hits))
