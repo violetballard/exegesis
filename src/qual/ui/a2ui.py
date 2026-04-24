@@ -1257,6 +1257,8 @@ def describe_terminal_artifact_renderer_entrypoints_contract() -> dict[str, Any]
         manifest["contract_fingerprints"]
     )
     manifest["contract_fingerprint"] = fingerprint
+    manifest["renderer_entrypoints_contract_manifest"] = _snapshot_contract_section(manifest)
+    manifest["renderer_entrypoints_contract_manifest_fingerprint"] = fingerprint
     return manifest
 
 
@@ -1269,13 +1271,23 @@ def describe_terminal_artifact_renderer_entrypoints_contract_manifest() -> dict[
 def describe_terminal_artifact_renderer_entrypoints_contract_fingerprints(
     include_contract_aliases: bool = False,
 ) -> dict[str, str]:
-    """Return stable fingerprints for the renderer-entrypoints contract slice."""
+    """Return stable fingerprints for the renderer-entrypoints contract slice.
+
+    Pass ``include_contract_aliases=True`` to add self-describing aliases for
+    the manifest name and its fingerprint.
+    """
 
     fingerprints = _build_terminal_artifact_renderer_entrypoints_contract_fingerprints(
         include_contract_aliases=include_contract_aliases,
     )
     if include_contract_aliases:
-        fingerprints["renderer_entrypoints_contract_manifest"] = fingerprints["renderer_entrypoints_contract"]
+        _add_contract_alias_fingerprints(
+            fingerprints,
+            (
+                "renderer_entrypoints_contract_manifest",
+                fingerprints["renderer_entrypoints_contract"],
+            ),
+        )
     return fingerprints
 
 
