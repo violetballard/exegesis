@@ -2,8 +2,8 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Scope: align failed direct excerpt lookup audits with the canonical FTS-first retrieval contract.
-Current branch tip before handoff commit: `152cb4f1c5435250d5e3e31fe9054a93fe5efeb1`
+Scope: align failed direct excerpt lookup audits with the canonical FTS-first retrieval audit schema.
+Current branch tip before handoff commit: `6ed15b42efa484dc7d0db8e3f2c37fdb8a34eb35`
 
 Files changed:
 
@@ -13,7 +13,8 @@ Files changed:
 
 Verification:
 
-* targeted Python probe for `retrieve_fts_excerpt('missing-excerpt')` now records `strategies_used=['fts']` in the `excerpt_lookup_failed` audit event
+* `python -m unittest tests.unit.test_unified_retrieval` - passed
+* targeted Python probe for `retrieve_fts_excerpt('missing-excerpt')` now records aligned null or empty lookup metadata fields plus `strategies_used=['fts']` in the `excerpt_lookup_failed` audit event
 * `./quality-format.sh --check` - passed
 * `./quality-lint.sh` - passed
 * `./quality-test.sh` - passed
@@ -33,7 +34,7 @@ Vision capabilities affected:
 Canonical demo-path step advanced:
 
 * `retrieve relevant material`
-* failed excerpt lookups now stay explicitly attributable to the canonical FTS route, which improves auditability for basket promotion and later revise/apply flows when excerpt rehydration fails
+* failed excerpt lookups now stay schema-aligned with successful FTS excerpt lookups, which improves auditability for basket promotion and later revise/apply flows when excerpt rehydration fails
 
 Routing/provider impact:
 
