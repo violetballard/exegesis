@@ -18,8 +18,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - deterministic CLI compatibility for the active fallback surface: fail-fast parser/catalog drift detection plus normalized terminal persistence alias routing
 - Canonical demo-path step advanced:
   - `open project/document`
+- One-line plan alignment:
+  - this change makes `open project/document` more real by keeping the CLI fallback command contract deterministic and failing fast before that first operator step can run on a drifted parser/catalog surface
 - Active MVP operator path strengthened:
   - the CLI fallback path for `open project/document` by keeping command ordering deterministic and failing fast before the first operator step runs if parser/catalog drift is introduced
+- Direct plan-alignment statement:
+  - this change makes `open project/document` more real by keeping the CLI command contract deterministic during the engine-first MVP loop and failing closed when parser/catalog drift is introduced
 - Traceability note:
   - `86e7450a89c33ed158097c4fde9d5fc9edb023ab` is the actual implementation tip for this reviewed slice; later commits on the branch are packet-only refreshes
 - Concrete blocker removed for Milestone 3:

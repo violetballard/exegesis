@@ -13,7 +13,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: keep the existing `feat-commands` compatibility surface deterministic by locking the declared parser-facing command ordering to the canonical command catalog and failing fast when parser/catalog drift is introduced, including the reviewer-called `diff` token disappearance case.
+- Scope goal: make the canonical `open project/document` CLI fallback step more real by locking the declared parser-facing command ordering to the canonical command catalog and failing fast when parser/catalog drift is introduced, including the reviewer-called `diff` token disappearance case.
 - Risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file.
 
 ### Budget
@@ -49,14 +49,15 @@
 
 ## Scope Completed
 
-- Added a fail-fast guard in `command_cli_contract()` so the parser-facing CLI contract cannot silently diverge from the canonical command catalog ordering.
-- Added regression coverage proving the CLI contract matches the catalog in the normal case and raises on parser/catalog drift, including explicit rejection when the `diff` parser token disappears.
-- Normalized the `persist-and-continue` compatibility verb onto the existing terminal persistence route so the CLI fallback surface stays deterministic.
-- Kept the slice narrow: command-surface compatibility hardening plus targeted tests, with no provider, routing, or broader workflow behavior changes.
+- Hardened the `open project/document` CLI fallback entry step by adding a fail-fast guard in `command_cli_contract()` so the parser-facing command surface cannot silently diverge from the canonical command catalog ordering before the operator can start the demo path.
+- Added regression coverage proving that `open project/document` entry surface stays trustworthy in the normal case and raises on parser/catalog drift, including explicit rejection when the `diff` parser token disappears from the accepted parser-facing surface.
+- Kept the active fallback loop on one deterministic persistence route by normalizing the `persist-and-continue` compatibility verb onto the existing terminal `persist` flow instead of allowing a second silent routing target to drift away from the reviewed command catalog.
+- Kept the slice narrow: concrete blocker removal for the `open project/document` fallback entry step through command-surface compatibility hardening plus targeted tests, with no provider, routing, or broader workflow behavior changes.
 
 ## Canonical Demo-Path Mapping
 
 - Canonical demo-path step advanced: `open project/document`.
+- One-line plan alignment: this change makes `open project/document` more real by keeping the CLI fallback command contract deterministic and failing fast before that first operator step can run on a drifted parser/catalog surface.
 - Active MVP operator path strengthened: the CLI fallback path for `open project/document` while Textual remains disabled, by ensuring the command surface fails closed before the first operator step runs if parser/catalog drift is introduced.
 - Concrete blocker removed: before this guard, the active CLI surface could lose required parser tokens or aliases such as `diff` while the deduplicated canonical-name tuple still matched `command_names()`. That left the CLI command catalog able to drift silently, which is a concrete reliability blocker before the operator can safely start the `open project/document` demo-path step.
 - Direct plan-alignment statement: this change makes the `open project/document` CLI fallback entry step more real by keeping command ordering deterministic and failing fast whenever the parser-facing catalog drifts from the canonical command catalog.
