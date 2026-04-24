@@ -2,16 +2,16 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review scope: current branch-tip command-catalog contract hardening plus one shared regression for alias-level parser-surface drift
-- Canonical demo-path step advanced: `preview and apply or reject a patch`
-- Required mapping statement: this slice strengthens the patch-review step because the `diff-preview` CLI surface now fails fast if the `diff` alias drops or mutates while the canonical command order still looks stable.
+- Review scope: current branch-tip Milestone 3 CLI compatibility safeguard for the engine-first demo loop plus one shared regression for alias-level parser-surface drift
+- Canonical demo-path steps advanced: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`
+- Required mapping statement: this slice strengthens the active CLI demo loop by making `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch` more reliable because the `diff-preview` CLI surface now fails fast if the `diff` alias drops or mutates while the canonical command order still looks stable.
 - Concrete blocker removed: before this slice, alias-level parser drift could silently change or remove the `diff` entrypoint while `canonical_names` still matched, weakening the deterministic CLI control surface for the patch-review step.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: keep the patch-review CLI surface deterministic by rejecting alias-level parser drift in the command catalog contract.
+- Scope goal: keep the Milestone 3 CLI compatibility surface deterministic by rejecting alias-level parser drift in the command catalog contract that protects the engine-first demo loop.
 - Risk reason: this touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file.
 
 ### Budget
@@ -25,7 +25,7 @@
 
 1. Tighten the CLI contract to validate full grouped parser surface, not just canonical command order.
 2. Add a regression proving alias-level drift raises even when canonical names stay unchanged.
-3. Refresh the handoff packet so it matches the current branch tip, states the shared-test exception explicitly, and maps the work to `preview and apply or reject a patch`.
+3. Refresh the handoff packet so it matches the current branch tip, states the shared-test exception explicitly, and maps the work to the concrete Milestone 3 CLI demo-path steps it protects.
 4. Re-run the required gates and record the results.
 
 ## Review Basis
@@ -47,7 +47,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Verification rerun timestamp: `2026-04-24T12:08:15Z`
+- Verification rerun timestamp: `2026-04-24T12:12:28Z`
 
 ## Ownership Note
 
@@ -59,8 +59,8 @@
 
 ## Roadmap and Vision Mapping
 
-- `ROADMAP.md` Milestone 3 `Real workflow loop`: this change preserves CLI compatibility while Textual remains disabled by making the `diff-preview` patch-review entrypoint deterministic and drift-resistant.
-- `ROADMAP.md` canonical demo path step: `preview and apply or reject a patch` is more reliable because alias-level parser drift on `diff` now fails fast instead of silently weakening the patch-review command surface.
+- `ROADMAP.md` Milestone 3 `Real workflow loop`: this change is a CLI compatibility safeguard for the engine-first MVP loop while Textual remains disabled, making the `diff-preview` patch-review entrypoint deterministic and drift-resistant.
+- `ROADMAP.md` canonical demo path steps: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch` are more reliable because alias-level parser drift on `diff` now fails fast instead of silently weakening the CLI command surface the operator relies on across that loop.
 - `ROADMAP.md` active lane mapping: `feat-commands` owns CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: the CLI compatibility surface stays stable for the future client while Textual remains disabled.
 - `PRODUCT_VISION.md` near-term product truth: the CLI remains the active operator surface until UI lanes are enabled, so guarding the `diff-preview` patch-review entrypoint removes a concrete blocker on that active path.

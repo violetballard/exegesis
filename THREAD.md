@@ -6,12 +6,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review scope: command-catalog contract hardening plus one shared regression for alias-level parser drift
-- Canonical demo-path step advanced: `preview and apply or reject a patch`
-- Explicit re-review statement: the current branch tip is the review target, and the `diff-preview` patch-review CLI surface now fails fast if alias-level parser drift changes the `diff` token while canonical command names still appear stable.
+- Review scope: Milestone 3 CLI compatibility safeguard for the engine-first demo loop, plus one shared regression covering alias-level parser drift in the patch-review command surface
+- Canonical demo-path steps advanced: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`
+- Explicit re-review statement: the current branch tip is the review target, and this slice keeps the active CLI loop trustworthy by making `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch` more reliable when alias-level parser drift would otherwise silently change the command contract.
 - Concrete blocker removed: alias-level parser drift can no longer quietly drop or mutate `diff` while the canonical command sequence still appears unchanged.
 - Canonical roadmap/vision mapping: `ROADMAP.md` Milestone 3 `Real workflow loop` plus `PRODUCT_VISION.md` capability 3 `Canonical engine contract`, because the CLI remains the active operator surface while Textual is disabled.
-- Latest verification rerun: `2026-04-24T12:08:15Z`
+- Latest verification rerun: `2026-04-24T12:12:28Z`
 
 ## Reviewed Files
 
