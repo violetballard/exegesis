@@ -26,8 +26,8 @@ Focused retrieval proof:
 * `python3 -m unittest tests.unit.test_unified_retrieval` - passed (`214 tests`)
 
 Canonical demo-path step advanced: `retrieve relevant material`.
-Plan-alignment statement: this work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage and basket-promotion inputs stay deterministic.
-Scope-tightening statement: basket promotion is a downstream consumer of the structured FTS results from this slice; this handoff does not broaden the lane beyond the FTS-only excerpt fail-closed contract.
+Plan-alignment statement: this work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage while structured retrieval outputs stay deterministic for downstream consumers.
+Scope-tightening statement: basket promotion is only a downstream consumer of the structured FTS results from this slice; this handoff does not broaden the lane beyond the FTS-only excerpt fail-closed contract.
 Shared-file approval basis: `tests/unit/test_unified_retrieval.py` remains the approved shared-by-approval regression exception for this lane.
 Traceability statement: re-review should validate the narrowed reviewed implementation range `378cf9a7..adfa8cda` and read the explicit demo-path mapping from `THREAD_PACKET.md` plus this gate summary.
 

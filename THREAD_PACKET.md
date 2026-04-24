@@ -7,8 +7,8 @@
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet traceability note: review this lane against the narrowed implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `378cf9a7..adfa8cda`.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Reviewer-required plan-alignment statement: This work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage.
-- Scope-tight statement: basket promotion is only a downstream consumer of the structured FTS result from this slice; this handoff does not broaden the lane beyond the FTS-only excerpt fail-closed contract.
+- Reviewer-required plan-alignment statement: This work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage while structured retrieval outputs stay deterministic for downstream consumers.
+- Scope-tight statement: basket promotion is only a downstream consumer of the structured FTS results from this slice; this handoff does not broaden the lane beyond the FTS-only excerpt fail-closed contract.
 
 ## Scope Goal
 
