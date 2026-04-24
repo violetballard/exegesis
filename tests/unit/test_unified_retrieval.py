@@ -2529,6 +2529,95 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(provenance["active_strategy_ids"], ["fts"])
         self.assertEqual(provenance["deferred_strategy_ids"], ["embeddings", "pageindex"])
 
+    def test_retrieval_source_bundle_normalizes_hit_level_shortlist_ids_and_existing_policy_alias(self) -> None:
+        normalized = _build_retrieval_source_bundle_from_payload(
+            {
+                "retrieval_source_bundle": {
+                    "query": {
+                        "query_text": "memo comparison",
+                        "scope": "vault",
+                        "intent": "compare",
+                        "confidentiality_profile": "confidential",
+                        "constraints": {},
+                    },
+                    "policy": {
+                        "retrieval_backend": "sqlite_fts",
+                        "retrieval_mode": "fts_first",
+                        "active_strategy_ids": ["fts"],
+                        "deferred_strategy_ids": ["pageindex", "embeddings"],
+                    },
+                    "retrieval_summary": {
+                        "retrieval_backend": "sqlite_fts",
+                        "retrieval_mode": "fts_first",
+                        "active_strategy_ids": ["fts"],
+                        "deferred_strategy_ids": ["pageindex", "embeddings"],
+                    },
+                    "doc_hits": [
+                        {
+                            "doc_id": "doc-a",
+                            "source_hash": "hash-a",
+                            "source_strategy": "fts",
+                            "excerpt_count": 1,
+                            "top_score": 0.4,
+                            "fts_shortlist_doc_ids": ("doc-b", "doc-a"),
+                            "retrieval_policy": {
+                                "retrieval_backend": "sqlite_fts",
+                                "retrieval_mode": "fts_first",
+                                "active_strategy_ids": ("fts",),
+                                "deferred_strategy_ids": ("embeddings", "pageindex"),
+                            },
+                            "policy": {
+                                "retrieval_backend": "sqlite_fts",
+                                "retrieval_mode": "fts_first",
+                                "active_strategy_ids": ("fts",),
+                                "deferred_strategy_ids": ("embeddings", "pageindex"),
+                            },
+                            "provenance": {},
+                        }
+                    ],
+                    "excerpt_hits": [
+                        {
+                            "doc_id": "doc-a",
+                            "excerpt_id": "excerpt-a",
+                            "source_strategy": "fts",
+                            "score": 0.4,
+                            "span": {"char_range": {"start": 0, "end": 5}},
+                            "fts_shortlist_doc_ids": ("doc-b", "doc-a"),
+                            "retrieval_policy": {
+                                "retrieval_backend": "sqlite_fts",
+                                "retrieval_mode": "fts_first",
+                                "active_strategy_ids": ("fts",),
+                                "deferred_strategy_ids": ("embeddings", "pageindex"),
+                            },
+                            "policy": {
+                                "retrieval_backend": "sqlite_fts",
+                                "retrieval_mode": "fts_first",
+                                "active_strategy_ids": ("fts",),
+                                "deferred_strategy_ids": ("embeddings", "pageindex"),
+                            },
+                            "provenance": {},
+                        }
+                    ],
+                }
+            }
+        )
+
+        doc_hit = normalized["doc_hits"][0]
+        excerpt_hit = normalized["excerpt_hits"][0]
+
+        self.assertEqual(doc_hit["fts_shortlist_doc_ids"], ["doc-b", "doc-a"])
+        self.assertEqual(excerpt_hit["fts_shortlist_doc_ids"], ["doc-b", "doc-a"])
+        self.assertEqual(doc_hit["retrieval_policy"], doc_hit["policy"])
+        self.assertEqual(excerpt_hit["retrieval_policy"], excerpt_hit["policy"])
+        self.assertEqual(
+            doc_hit["retrieval_policy"]["deferred_strategy_ids"],
+            ["embeddings", "pageindex"],
+        )
+        self.assertEqual(
+            excerpt_hit["retrieval_policy"]["deferred_strategy_ids"],
+            ["embeddings", "pageindex"],
+        )
+
     def test_retrieval_source_bundle_normalizer_backfills_sparse_top_level_hits(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

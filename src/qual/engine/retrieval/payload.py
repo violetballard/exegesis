@@ -435,7 +435,8 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
     retrieval_policy = normalized.get("retrieval_policy", normalized.get("policy"))
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
-        normalized["policy"] = copy.deepcopy(normalized["retrieval_policy"])
+        if "policy" in normalized:
+            normalized["policy"] = copy.deepcopy(normalized["retrieval_policy"])
     elif "policy" in normalized:
         normalized["policy"] = {}
     citation_status = normalized.get("citation_status")
@@ -489,7 +490,8 @@ def _normalize_hit_shared_provenance_snapshot(provenance: object) -> dict[str, o
     retrieval_policy = normalized.get("retrieval_policy", normalized.get("policy"))
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
-        normalized["policy"] = copy.deepcopy(normalized["retrieval_policy"])
+        if "policy" in normalized:
+            normalized["policy"] = copy.deepcopy(normalized["retrieval_policy"])
     return normalized
 
 
@@ -668,7 +670,10 @@ def _normalize_excerpt_hit_snapshot(hit: object) -> dict[str, object] | None:
     retrieval_policy = normalized.get("retrieval_policy", normalized.get("policy"))
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+        if "policy" in normalized:
+            normalized["policy"] = copy.deepcopy(normalized["retrieval_policy"])
     for field_name in (
+        "fts_shortlist_doc_ids",
         "active_strategy_ids",
         "deferred_strategy_ids",
         "strategies_used",
@@ -820,7 +825,10 @@ def _normalize_doc_hit_snapshot(hit: object) -> dict[str, object] | None:
     retrieval_policy = normalized.get("retrieval_policy", normalized.get("policy"))
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+        if "policy" in normalized:
+            normalized["policy"] = copy.deepcopy(normalized["retrieval_policy"])
     for field_name in (
+        "fts_shortlist_doc_ids",
         "active_strategy_ids",
         "deferred_strategy_ids",
         "strategies_used",
