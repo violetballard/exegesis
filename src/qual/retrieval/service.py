@@ -38,6 +38,10 @@ _FTS_BOUNDARY_SCAN_CHARS = 40
 _SUPPORTED_RETRIEVAL_INTENTS = {"lookup", "compare", "summarize", "quote_find", "outline_support"}
 _SUPPORTED_CONFIDENTIALITY_PROFILES = {"confidential", "standard"}
 _FTS_SOURCE_STRATEGY = "fts"
+_CANONICAL_RETRIEVAL_BACKEND = FTS_FIRST_POLICY.retrieval_backend
+_CANONICAL_RETRIEVAL_MODE = FTS_FIRST_POLICY.retrieval_mode
+_CANONICAL_ACTIVE_STRATEGY_IDS = list(FTS_FIRST_POLICY.active_strategy_ids)
+_CANONICAL_DEFERRED_STRATEGY_IDS = list(FTS_FIRST_POLICY.deferred_strategy_ids)
 _EXCERPT_QUERY_MIRROR_FIELDS = (
     "query",
     "query_constraints",
@@ -395,24 +399,15 @@ def _normalize_hit_shared_provenance_payload(provenance: object) -> dict[str, ob
     fts_shortlist_doc_ids = _normalize_doc_id_list_payload(normalized.get("fts_shortlist_doc_ids"))
     if fts_shortlist_doc_ids is not None:
         normalized["fts_shortlist_doc_ids"] = fts_shortlist_doc_ids
-    retrieval_backend = _normalized_profile_text(normalized.get("retrieval_backend"))
-    if retrieval_backend is not None:
-        normalized["retrieval_backend"] = retrieval_backend
-    retrieval_mode = _normalized_profile_text(normalized.get("retrieval_mode"))
-    if retrieval_mode is not None:
-        normalized["retrieval_mode"] = retrieval_mode
-    retrieval_policy = _normalize_retrieval_policy_snapshot_payload(
-        normalized.get("retrieval_policy", normalized.get("policy"))
-    )
-    if retrieval_policy:
-        normalized["retrieval_policy"] = retrieval_policy
-        normalized["policy"] = copy.deepcopy(retrieval_policy)
-    normalized["active_strategy_ids"] = _normalize_strategy_id_list_payload(
-        normalized.get("active_strategy_ids")
-    )
-    normalized["deferred_strategy_ids"] = _normalize_strategy_id_list_payload(
-        normalized.get("deferred_strategy_ids")
-    )
+    # Hit-level provenance must always round-trip back to the active FTS-first
+    # contract even when sparse compatibility payloads carry stale strategy ids.
+    retrieval_policy = retrieval_policy_snapshot()
+    normalized["retrieval_backend"] = _CANONICAL_RETRIEVAL_BACKEND
+    normalized["retrieval_mode"] = _CANONICAL_RETRIEVAL_MODE
+    normalized["retrieval_policy"] = copy.deepcopy(retrieval_policy)
+    normalized["policy"] = copy.deepcopy(retrieval_policy)
+    normalized["active_strategy_ids"] = copy.deepcopy(_CANONICAL_ACTIVE_STRATEGY_IDS)
+    normalized["deferred_strategy_ids"] = copy.deepcopy(_CANONICAL_DEFERRED_STRATEGY_IDS)
     normalized["strategies_used"] = _normalize_strategy_id_list_payload(
         normalized.get("strategies_used")
     )
@@ -465,12 +460,8 @@ def _normalize_excerpt_hit_provenance_payload(provenance: object) -> dict[str, o
     section_hint_rank = _optional_int(normalized.get("section_hint_rank"))
     if section_hint_rank is not None:
         normalized["section_hint_rank"] = section_hint_rank
-    source_strategy = _normalized_profile_text(
-        normalized.get("source_strategy") or normalized.get("retrieval_source_strategy")
-    )
-    if source_strategy is not None:
-        normalized["source_strategy"] = source_strategy
-        normalized["retrieval_source_strategy"] = source_strategy
+    normalized["source_strategy"] = _FTS_SOURCE_STRATEGY
+    normalized["retrieval_source_strategy"] = _FTS_SOURCE_STRATEGY
     return normalized
 
 
@@ -526,12 +517,8 @@ def _normalize_doc_hit_provenance_payload(provenance: object) -> dict[str, objec
     top_section_hint_rank = _optional_int(normalized.get("top_section_hint_rank"))
     if top_section_hint_rank is not None:
         normalized["top_section_hint_rank"] = top_section_hint_rank
-    source_strategy = _normalized_profile_text(
-        normalized.get("source_strategy") or normalized.get("retrieval_source_strategy")
-    )
-    if source_strategy is not None:
-        normalized["source_strategy"] = source_strategy
-        normalized["retrieval_source_strategy"] = source_strategy
+    normalized["source_strategy"] = _FTS_SOURCE_STRATEGY
+    normalized["retrieval_source_strategy"] = _FTS_SOURCE_STRATEGY
     return normalized
 
 
