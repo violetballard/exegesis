@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: fixer resubmission regenerated against the current reviewed implementation basis after the reviewer requested stronger parser-surface validation and matching regression evidence.
+- Packet refresh status: fixer verification refreshed against the current reviewed implementation basis after the reviewer requested explicit canonical demo-path mapping and tighter Milestone 3 handoff alignment.
 - Exact implementation basis for re-review:
   - `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa` (`feat(commands): expose default workflow aliases`)
   - reviewer-requested parser-surface fixes are included in the reviewed ancestry:
@@ -16,7 +16,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Current packet refresh traceability:
   - later `docs(commands)` commits update only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
 - Post-fixer verification note:
-- `2026-04-24T08:48:39Z UTC` gate rerun confirmed this packet matches the current branch state while the reviewed implementation basis remains pinned to `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`
+- `2026-04-24T08:51:22Z UTC` gate rerun confirmed this packet still matches the current branch state while the reviewed implementation basis remains pinned to `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`

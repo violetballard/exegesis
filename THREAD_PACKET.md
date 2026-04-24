@@ -3,9 +3,9 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`
-- Packet refresh role: `fixer re-review packet refresh`
-- Packet refresh basis: `regenerated after the reviewer requested parser-surface validation for the public diff-preview entrypoint, matching shared regressions, and a packet scope statement that matches the actual implementation now on this branch`
-- Post-fixer verification: `2026-04-24T08:48:39Z UTC gate rerun confirmed this packet refresh matches the current branch state; later docs-only packet refresh commits remain metadata-only`
+- Packet refresh role: `fixer re-review verification refresh`
+- Packet refresh basis: `revalidated after the reviewer requested explicit canonical demo-path mapping and tighter Milestone 3 handoff alignment; the current packet keeps those required fields explicit without changing the reviewed implementation scope`
+- Post-fixer verification: `2026-04-24T08:51:22Z UTC gate rerun confirmed this packet refresh still matches the current branch state; later docs-only packet refresh commits remain metadata-only`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -113,7 +113,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at `2026-04-24T08:48:39Z UTC` against the current branch state while the reviewed implementation scope is pinned to `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`; the current packet refresh itself is metadata-only.
+- Gate attribution note: these gates were rerun at `2026-04-24T08:51:22Z UTC` against the current branch state while the reviewed implementation scope is pinned to `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`; the current packet refresh itself is metadata-only.
 
 ### Risks / Blockers
 
